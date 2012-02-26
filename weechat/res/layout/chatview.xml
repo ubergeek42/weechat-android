@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical" >
+
+    <EditText
+        android:id="@+id/chatview_input"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_toLeftOf="@+id/chatview_send"
+        android:inputType="textLongMessage"
+        android:singleLine="false" >
+
+        <requestFocus />
+    </EditText>
+
+    <Button
+        android:id="@+id/chatview_send"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:text="@string/sendButton" />
+
+    <ScrollView
+        android:id="@+id/chatview_scrollview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/chatview_input"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/chatview_title" >
+
+        <TableLayout
+            android:id="@+id/chatview_lines"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:scrollbars="vertical"
+            android:shrinkColumns="2" >
+        </TableLayout>
+    </ScrollView>
+
+    <TextView
+        android:id="@+id/chatview_title"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:ellipsize="marquee"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:marqueeRepeatLimit="1"
+        android:maxLines="1"
+        android:scrollHorizontally="true"
+        android:text="channel title"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+</RelativeLayout>

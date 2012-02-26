@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TableRow xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent" >
+
+    <TextView
+        android:id="@+id/chatline_timestamp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="[00:00:00]" />
+
+    <TextView
+        android:id="@+id/chatline_prefix"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dip"
+        android:gravity="right"
+        android:text="ubergeek" />
+
+    <TextView
+        android:id="@+id/chatline_message"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dip"
+        android:maxLines="25"
+        android:text="some reasonably long message that is kinda long and not really important, but should wrap" />
+
+</TableRow>

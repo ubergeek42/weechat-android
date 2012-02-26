@@ -1,0 +1,5 @@
+This is a simple Java implementation of the weechat relay protocol, along with a basic android application that uses it.
+
+For more details see:
+Weechat - http://www.weechat.org/
+Relay Protocol - http://www.weechat.org/files/doc/devel/weechat_relay_protocol.en.html

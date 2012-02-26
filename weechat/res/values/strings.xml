@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="hello">Hello World, WeechatActivity!</string>
+    <string name="app_name">Weechat</string>
+    <string name="status_default">Not Connected</string>
+    <string name="about">Created by ubergeek42\nkj@ubergeek42.com</string>
+    <string name="sendButton">Send</string>
+
+</resources>
