@@ -1,6 +1,6 @@
 This project provides a Java implementation of the Weechat Relay Protocol
 
-weechat-android - An eclipse project to build the Android sample application(May require modifying the library path to include weechat-relay.jar from weechat-relay)
+weechat - An eclipse project to build the Android sample application(May require modifying the library path to include weechat-relay.jar from weechat-relay)
 weechat-relay - A library implementing the Weechat Relay Protocol
 
 For more details see:

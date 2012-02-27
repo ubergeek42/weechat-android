@@ -3,6 +3,7 @@
 	<name>weechat</name>
 	<comment></comment>
 	<projects>
+		<project>weechat-relay</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
