@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="weechat-relay" default="dist" basedir=".">
+	<description>Java library to interface with the weechat relay plugin</description>
+	
+	<property name="src" location="src" />
+	<property name="build" location="build" />
+	
+	
+	<target name="init">
+		<tstamp/>
+		<mkdir dir="${build}" />
+	</target>
+	
+	<target name="compile" depends="init"
+			description="Compile all necessary source files">
+			<javac includeantruntime="false" srcdir="${src}" destdir="${build}" />
+	</target>
+	
+	<target name="dist" depends="compile"
+			description="Generate the jar library">
+			<jar jarfile="weechat-relay-${DSTAMP}.jar">
+				<fileset dir="${build}"/>
+				<fileset dir="${src}"/>
+			</jar>
+			<copy file="weechat-relay-${DSTAMP}.jar" tofile="weechat-relay.jar"/>
+	</target>
+	
+	<target name="clean" description="Clean up">
+		<delete dir="${build}" />
+		<delete>
+			<fileset dir="." includes="weechat-relay-*.jar" />
+			<fileset dir="." includes="weechat-relay.jar" />
+		</delete>
+	</target>
+</project>
