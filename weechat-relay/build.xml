@@ -13,7 +13,8 @@
 	
 	<target name="compile" depends="init"
 			description="Compile all necessary source files">
-			<javac includeantruntime="false" srcdir="${src}" destdir="${build}" />
+		<!-- TODO: add option for debug on/off -->
+			<javac debug="on" includeantruntime="false" srcdir="${src}" destdir="${build}" />
 	</target>
 	
 	<target name="dist" depends="compile"

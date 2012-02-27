@@ -139,7 +139,7 @@ public class WRelayConnection {
 	private Thread socketReader = new Thread(new Runnable() {
 		public void run() {
 			ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-			while(!sock.isClosed()) {
+			while(sock!=null && !sock.isClosed()) {
 				byte b[] = new byte[256];
 				try {
 					int r = instream.read(b);
@@ -168,7 +168,7 @@ public class WRelayConnection {
 					}
 					
 				} catch (IOException e) {
-					if (!sock.isClosed()) {
+					if (sock!=null && !sock.isClosed()) {
 						e.printStackTrace();
 						connected = false;
 					} else {

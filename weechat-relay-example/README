@@ -1,0 +1,3 @@
+This is a simple demo program showing how to connect to a Weechat Relay server, send it messages, and hook responses from it.
+
+This will gain more documentation and possibly testcases in the future.

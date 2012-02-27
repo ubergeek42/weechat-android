@@ -26,6 +26,27 @@ public class WInfolist extends WObject {
 	}
 
 	/**
+	 * @return The name of this infolist
+	 */
+	public String getName() {
+		return this.name;
+	}
+	/**
+	 * Returns a hashmap for the specified item
+	 * @param index - The item to retrieve
+	 * @return A HashMap<String,WObject> representing it
+	 */
+	public HashMap<String,WObject> getItem(int index) {
+		return items.get(index);
+	}
+	/**
+	 * @return The number of items in the infolist
+	 */
+	public int size() {
+		return items.size();
+	}
+	
+	/**
 	 * Debug toString message
 	 */
 	@Override
