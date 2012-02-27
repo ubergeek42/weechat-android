@@ -11,7 +11,7 @@ import com.ubergeek42.weechat.weechatrelay.protocol.WObject.WType;
  * @author ubergeek42<kj@ubergeek42.com>
  *
  */
-class WData {
+public class WData {
 	
 	private byte[] data;
 	public WData(byte[] data) {
