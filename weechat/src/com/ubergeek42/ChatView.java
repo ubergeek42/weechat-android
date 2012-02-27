@@ -91,7 +91,7 @@ public class ChatView implements TabHost.TabContentFactory, WBufferObserver, OnC
 			if (input.length() == 0) return; // Ignore empty input box
 			
 			String message = "input " + wb.getFullName() + " " + input; 
-			activity.wr.writeMsg(message + "\n");
+			activity.wr.sendMsg(message + "\n");
 			inputBox.setText("");
 		}
 	};

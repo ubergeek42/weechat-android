@@ -16,7 +16,6 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
 import android.widget.TabHost;
-import android.widget.TabHost.TabSpec;
 import android.widget.Toast;
 
 import com.ubergeek42.weechat.ChatBuffers;
@@ -37,7 +36,6 @@ public class WeechatActivity extends Activity implements OnItemClickListener {
 	
 	ArrayList<ChatView> chats = new ArrayList<ChatView>();
 	ArrayList<TabHost.TabSpec> tabs = new ArrayList<TabHost.TabSpec>();
-	
 	
     /** Called when the activity is first created. */
     @Override
@@ -95,7 +93,7 @@ public class WeechatActivity extends Activity implements OnItemClickListener {
 		
 		// Get a list of buffers
 		wr.addHandler("listbuffers", cbs);
-		wr.writeMsg("(listbuffers) hdata buffer:gui_buffers(*) number,full_name,short_name,type,title,nicklist,local_variables");
+		wr.sendMsg("(listbuffers) hdata buffer:gui_buffers(*) number,full_name,short_name,type,title,nicklist,local_variables");
 		
 		// Handle event messages regarding buffers
 		wr.addHandler("_buffer_opened", cbs);
@@ -113,7 +111,7 @@ public class WeechatActivity extends Activity implements OnItemClickListener {
 		msgHandler = new MessageHandler(cbs);
 		wr.addHandler("_buffer_line_added", msgHandler);
 
-		wr.writeMsg("sync");
+		wr.sendMsg("sync");
     }
     
     @Override
