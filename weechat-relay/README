@@ -1,0 +1,3 @@
+=Build Instructions=
+This project is designed to be compiled with ant.  It will produce a weechat-relay.jar file which you can
+inlcude in your projects.
