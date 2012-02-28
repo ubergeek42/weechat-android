@@ -1,3 +1,5 @@
 This is a simple demo program showing how to connect to a Weechat Relay server, send it messages, and hook responses from it.
 
 This will gain more documentation and possibly testcases in the future.
+
+Compile the sample weechat-relay-example.jar using ant.  You must have previously built the library in ../weechat-relay

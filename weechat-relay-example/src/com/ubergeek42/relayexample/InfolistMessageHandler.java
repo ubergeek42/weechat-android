@@ -1,3 +1,4 @@
+package com.ubergeek42.relayexample;
 import java.util.HashMap;
 
 import com.ubergeek42.weechat.weechatrelay.WMessage;

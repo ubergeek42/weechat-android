@@ -4,6 +4,10 @@ weechat - An eclipse project to build the Android sample application(May require
 weechat-relay - A library implementing the Weechat Relay Protocol
 weechat-relay-example - A simple example program that makes use of the weechat-relay library
 
+You can build these projects by running 'ant' from this directory. If you wish to build them individually, you must build weechat-relay(the library) first.
+
+To build the android application, you will need to 'cd weechat', then run 'android update project --path .' before running ant.
+
 For more details see:
 Weechat - http://www.weechat.org/
 Relay Protocol - http://www.weechat.org/files/doc/devel/weechat_relay_protocol.en.html

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="weechat-relay" default="build" basedir=".">
+	<target name="init">
+	</target>
+
+	<target name="buildlib">
+		<subant target="dist">
+			<fileset dir="." includes="weechat-relay/build.xml"/>
+		</subant>
+	</target>
+
+	<target depends="buildlib" name="buildandroid">
+		<subant target="release">
+			<fileset dir="." includes="weechat/build.xml"/>
+		</subant>
+	</target>
+
+	<target depends="buildlib" name="buildexample">
+		<subant target="dist">
+			<fileset dir="." includes="weechat-relay-example/build.xml"/>
+		</subant>
+	</target>
+
+	<target name="build" depends="buildexample,buildandroid" />
+
+
+	<target name="clean">
+		<subant target="clean">
+			<fileset dir="." includes="weechat-relay-example/build.xml"/>
+			<fileset dir="." includes="weechat/build.xml"/>
+			<fileset dir="." includes="weechat-relay/build.xml"/>
+		</subant>
+	</target>
+</project>

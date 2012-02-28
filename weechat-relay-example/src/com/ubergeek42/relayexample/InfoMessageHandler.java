@@ -1,3 +1,4 @@
+package com.ubergeek42.relayexample;
 import com.ubergeek42.weechat.weechatrelay.WMessage;
 import com.ubergeek42.weechat.weechatrelay.WMessageHandler;
 import com.ubergeek42.weechat.weechatrelay.protocol.WInfo;
@@ -5,7 +6,7 @@ import com.ubergeek42.weechat.weechatrelay.protocol.WObject;
 
 
 public class InfoMessageHandler implements WMessageHandler {
-
+	
 	@Override
 	public void handleMessage(WMessage msg, String id) {
 		WObject[] objs = msg.getObjects();

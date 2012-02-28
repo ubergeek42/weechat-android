@@ -158,12 +158,12 @@ public class WRelayConnection {
 			connected = true;
 			sendMsg(null, "init","password="+password+",compression=gzip");
 			
+			socketReader.start();
+			
 			// Call any registered connection handlers
 			for (WRelayConnectionHandler wrch : connectionHandlers) {
 				wrch.onConnect();
 			}
-			
-			socketReader.start();
 		}
 	});
 	

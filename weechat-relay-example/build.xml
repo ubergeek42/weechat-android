@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="weechat-relay-example" default="dist" basedir=".">
+	<description>Example program showing how to use the weechat-relay Java library</description>
+	
+	<property name="src" location="src" />
+	<property name="build" location="build" />
+	
+	<property name="lib.dir" value="../weechat-relay/libs" />
+	
+	<path id="classpath">
+		<fileset dir="${lib.dir}" includes="weechat-relay.jar" />
+	</path>
+	
+	<target name="init">
+		<tstamp/>
+		<mkdir dir="${build}" />
+	</target>
+	
+	<target name="compile" depends="init"
+			description="Compile all necessary source files">
+		<!-- TODO: add option for debug on/off -->
+		<javac debug="on" includeantruntime="false" srcdir="${src}" destdir="${build}" classpathref="classpath" />
+	</target>
+	
+	<target name="dist" depends="compile"
+			description="Generate the jar application">
+		<manifest file="MANIFEST.MF">
+			<attribute name="Main-Class" value="com.ubergeek42.relayexample.RelayExample" />
+		</manifest>
+		<jar jarfile="weechat-relay-example.jar"
+			manifest="MANIFEST.MF">
+			<fileset dir="${build}"/>
+			<fileset dir="${src}"/>
+			<zipgroupfileset dir="${lib.dir}" includes="weechat-relay.jar" />
+		</jar>
+	</target>
+	
+	<target name="clean" description="Clean up">
+		<delete dir="${build}" />
+		<delete dir="." includes="weechat-relay-example.jar"/>
+		<delete file="MANIFEST.MF" />
+	</target>
+</project>
