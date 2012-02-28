@@ -6,6 +6,7 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import com.ubergeek42.weechat.Helper;
@@ -25,7 +26,8 @@ public class WRelayConnection {
 	private OutputStream outstream = null;
 	private InputStream instream = null;
 	
-	private HashMap<String,WMessageHandler> handlers = new HashMap<String, WMessageHandler>();
+	private HashMap<String,WMessageHandler> messageHandlers = new HashMap<String, WMessageHandler>();
+	private ArrayList<WRelayConnectionHandler> connectionHandlers = new ArrayList<WRelayConnectionHandler>();
 	
 	private boolean connected = false;
 	
@@ -65,31 +67,33 @@ public class WRelayConnection {
 	 * @param wmh - The object to receive the callback
 	 */
 	public void addHandler(String id, WMessageHandler wmh) {
-		handlers.put(id, wmh);
+		messageHandlers.put(id, wmh);
 	}
 	/**
 	 * Connects to the server.  On success isConnected() will return true.
 	 * On failure, prints a stack trace...
 	 * TODO: proper error handling(should throw an exception)
 	 */
-	public void connect() {
-		try {
-			sock = new Socket(server, port);
-			outstream = sock.getOutputStream();
-			instream = sock.getInputStream();
-		} catch (IOException e) {
-			e.printStackTrace();
-			return;
-		}
-		connected = true;
-		sendMsg(null, "init","password="+password+",compression=gzip");
-		socketReader.start();
+	public void tryConnect() {
+		createSocketConnection.start();
 	}
+	/**
+	 * Register a connection handler to receive onConnected/onDisconnected events
+	 * @param wrch - The connection handler
+	 */
+	public void setConnectionHandler(WRelayConnectionHandler wrch) {
+		connectionHandlers.add(wrch);
+	}
+	
 	/**
 	 * Disconnects from the server, and cleans up
 	 */
 	public void disconnect() {
 		try {
+			if (createSocketConnection.isAlive()) {
+				createSocketConnection.interrupt();
+			}
+			
 			// Send quit message
 			if (connected) outstream.write("quit\n".getBytes());
 			
@@ -100,6 +104,11 @@ public class WRelayConnection {
 			
 			if (socketReader.isAlive()) {
 				// TODO: kill the thread if necessary
+			}
+			
+			// Call any registered disconnect handlers
+			for (WRelayConnectionHandler wrch : connectionHandlers) {
+				wrch.onDisconnect();
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -132,6 +141,31 @@ public class WRelayConnection {
 			msg = String.format("(%s) %s %s",id,command, arguments);
 		sendMsg(msg);
 	}
+	
+	/**
+	 * Connects to the server in a new thread, so we can interrupt it if we want to cancel the connection
+	 */
+	private Thread createSocketConnection = new Thread(new Runnable() {
+		public void run() {
+			try {
+				sock = new Socket(server, port);
+				outstream = sock.getOutputStream();
+				instream = sock.getInputStream();
+			} catch (IOException e) {
+				e.printStackTrace();
+				return;
+			}
+			connected = true;
+			sendMsg(null, "init","password="+password+",compression=gzip");
+			
+			// Call any registered connection handlers
+			for (WRelayConnectionHandler wrch : connectionHandlers) {
+				wrch.onConnect();
+			}
+			
+			socketReader.start();
+		}
+	});
 	
 	/**
 	 * Reads data from the socket, breaks it into messages, and dispatches the handlers
@@ -175,6 +209,10 @@ public class WRelayConnection {
 						// Socket closed..no big deal
 						connected = false;
 					}
+					// Call any registered disconnect handlers
+					for (WRelayConnectionHandler wrch : connectionHandlers) {
+						wrch.onDisconnect();
+					}
 				}
 			}
 		}
@@ -186,8 +224,8 @@ public class WRelayConnection {
 	 */
 	private void handleMessage(WMessage msg) {
 		String id = msg.getID();
-		if (handlers.containsKey(id)) {
-			WMessageHandler wmh = handlers.get(id);
+		if (messageHandlers.containsKey(id)) {
+			WMessageHandler wmh = messageHandlers.get(id);
 			wmh.handleMessage(msg, id);
 		}
 	}

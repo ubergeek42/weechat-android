@@ -24,7 +24,6 @@ public class ChatView implements TabHost.TabContentFactory, WBufferObserver, OnC
 
 	private WeechatBuffer wb;
 	private LayoutInflater inflater;
-	private TabSpec tabspec;
 
 	private ScrollView scrollview;
 	private TextView titlestr;
@@ -34,19 +33,12 @@ public class ChatView implements TabHost.TabContentFactory, WBufferObserver, OnC
 	private WeechatActivity activity;
 	private boolean destroyed = false;
 
-	public ChatView(WeechatBuffer wb, TabSpec tabspec, WeechatActivity activity) {
+	public ChatView(WeechatBuffer wb, WeechatActivity activity) {
 		this.inflater = activity.getLayoutInflater();
 		this.activity = activity;
 		this.wb = wb;
-		this.tabspec = tabspec;
 		
 		wb.addObserver(this);
-		
-		if (wb.getShortName()!=null)
-			tabspec.setIndicator(wb.getShortName());
-		else
-			tabspec.setIndicator("blah");
-		tabspec.setContent(this);
 	}
 	
 	public void destroy() {
