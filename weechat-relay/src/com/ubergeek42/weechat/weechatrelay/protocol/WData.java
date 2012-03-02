@@ -14,52 +14,52 @@ import com.ubergeek42.weechat.weechatrelay.protocol.WObject.WType;
 public class WData {
 	
 	private byte[] data;
+	private int pointer; // Current location in the byte array
 	public WData(byte[] data) {
 		this.data = data;
+		this.pointer = 0;
 	}
 	
 	public int getUnsignedInt() {
-		if (data.length < 4) {
-			throw new IndexOutOfBoundsException("[WData.parseLength] Not enough data to compute length");
+		if (pointer+4 > data.length) {
+			throw new IndexOutOfBoundsException("[WData.getUnsignedInt] Not enough data to compute length");
 		}
-		int ret = ((data[0] & 0xFF) << 24) |
-				  ((data[1] & 0xFF) << 16) |
-				  ((data[2] & 0xFF) <<  8) |
-				  ((data[3] & 0xFF));
+		int ret = ((data[pointer+0] & 0xFF) << 24) |
+				  ((data[pointer+1] & 0xFF) << 16) |
+				  ((data[pointer+2] & 0xFF) <<  8) |
+				  ((data[pointer+3] & 0xFF));
 		
-		data = Helper.copyOfRange(data, 4, data.length);
+		pointer += 4;
+		return ret;
+	}
+	
+	public int getByte() {
+		int ret = (int)(data[pointer] & 0xFF);
+		
+		pointer++;
 		return ret;
 	}
 	public char getChar() {
-		char ret = (char)(data[0] & 0xFF);
-		
-		data = Helper.copyOfRange(data, 1, data.length);
-		return ret;
-	}
-	public int getByte() {
-		int ret = (int)(data[0] & 0xFF);
-		
-		data = Helper.copyOfRange(data, 1, data.length);
-		return ret;
+		return (char)getByte();
 	}
 	
 	// Might have to change to a BigInteger...
 	public long getLongInteger() {
 		int length = getByte();
-		if (length > data.length) {
+		if (pointer+length > data.length) {
 			throw new IndexOutOfBoundsException("[WData.getLongInteger] Not enough data");
 		}
 		StringBuilder sb = new StringBuilder();
-		for(int i=0;i<length;i++)
+		for(int i=0;i<length;i++) {
 			sb.append(getChar());
-		
+		}
 
 		return Long.parseLong(sb.toString());
 	}
 	
 	public String getString() {
 		int length = getUnsignedInt();
-		if (length > data.length) {
+		if (pointer+length > data.length) {
 			throw new IndexOutOfBoundsException("[WData.getString] Not enough data");
 		}
 		if (length ==  0) return "";
@@ -72,31 +72,33 @@ public class WData {
 
 		return sb.toString();
 	}
-	
+
+	// XXX: untested
 	public byte[] getBuffer() {
 		int length = getUnsignedInt();
-		if (length > data.length) {
-			throw new IndexOutOfBoundsException("[WData.getString] Not enough data");
+		if (pointer+length > data.length) {
+			throw new IndexOutOfBoundsException("[WData.getBuffer] Not enough data");
 		}
 		if (length == 0) {
 			return null;
 		}
 		
-		byte[] ret = Helper.copyOfRange(data, 0, length);
+		byte[] ret = Helper.copyOfRange(data, pointer, pointer+length);
 		
-		data = Helper.copyOfRange(data, length, data.length);
+		pointer += length;
 		return ret;
 	}
 	
 	public String getPointer() {
 		int length = getByte();
-		if (length > data.length) {
+		if (pointer+length > data.length) {
 			throw new IndexOutOfBoundsException("[WData.getPointer] Not enough data");
 		}
 
 		StringBuilder sb = new StringBuilder();
-		for(int i=0;i<length;i++)
+		for(int i=0;i<length;i++) {
 			sb.append(getChar());
+		}
 		
 		if (Integer.parseInt(sb.toString(),16) == 0) {
 			// Null Pointer
@@ -139,7 +141,8 @@ public class WData {
 		for (int i=0;i<count;i++) {
 			HdataEntry hde = new HdataEntry();
 			for (int j=0; j<whd.path_list.length; j++) {
-				hde.addPointer(getPointer());
+				String pointer = getPointer();
+				hde.addPointer(pointer);
 			}
 			
 			for (int j=0; j<whd.key_list.length; j++) {
@@ -226,11 +229,10 @@ public class WData {
 	
 	// Returns the unconsumed portion of the data stream
 	public byte[] getByteArray() {
-		return data.clone();
-		
+		return Helper.copyOfRange(data, pointer, data.length);
 	}
 
 	public boolean empty() {
-		return data.length==0;
+		return pointer==data.length;
 	}
 }
