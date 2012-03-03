@@ -2,6 +2,9 @@ package com.ubergeek42;
 
 import java.util.LinkedList;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,8 +23,10 @@ import com.ubergeek42.weechat.ChatMessage;
 import com.ubergeek42.weechat.WBufferObserver;
 import com.ubergeek42.weechat.WeechatBuffer;
 
-public class ChatView implements TabHost.TabContentFactory, WBufferObserver, OnClickListener, OnKeyListener {
+public class ChatViewTab implements TabHost.TabContentFactory, WBufferObserver, OnClickListener, OnKeyListener {
 
+	private static final Logger logger = LoggerFactory.getLogger(ChatViewTab.class);
+	
 	private WeechatBuffer wb;
 	private LayoutInflater inflater;
 
@@ -33,7 +38,7 @@ public class ChatView implements TabHost.TabContentFactory, WBufferObserver, OnC
 	private WeechatActivity activity;
 	private boolean destroyed = false;
 
-	public ChatView(WeechatBuffer wb, WeechatActivity activity) {
+	public ChatViewTab(WeechatBuffer wb, WeechatActivity activity) {
 		this.inflater = activity.getLayoutInflater();
 		this.activity = activity;
 		this.wb = wb;
@@ -42,14 +47,26 @@ public class ChatView implements TabHost.TabContentFactory, WBufferObserver, OnC
 	}
 	
 	public void destroy() {
-		wb.removeObserver(this);
+		if (wb!=null) {
+			wb.removeObserver(this);
+			wb = null;
+		}
 		this.destroyed  = true;
+		
+		// Signal the activity to remove any tabs that were destroyed(i.e. this one)
+		activity.runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				activity.removeDestroyedTabs();
+			}
+		});
 	}
-
+	
 	// Runs on the uiThread to update the contents of the various buffers
 	Runnable updateCV = new Runnable() {
 		@Override
 		public void run() {
+			long start = System.currentTimeMillis();
 			if (destroyed)return;
 			LinkedList<ChatMessage> lines = wb.getLines();
 			table.removeAllViews();
@@ -67,6 +84,7 @@ public class ChatView implements TabHost.TabContentFactory, WBufferObserver, OnC
 				
 				table.addView(tr);
 			}
+			logger.debug("updateChatView took: " + (System.currentTimeMillis() - start) + "ms");
 			scrollview.post(new Runnable() {
 				@Override
 				public void run() {
@@ -83,8 +101,8 @@ public class ChatView implements TabHost.TabContentFactory, WBufferObserver, OnC
 			if (input.length() == 0) return; // Ignore empty input box
 			
 			String message = "input " + wb.getFullName() + " " + input; 
-			activity.wr.sendMsg(message + "\n");
 			inputBox.setText("");
+			activity.wr.sendMsg(message + "\n");
 		}
 	};
 	
@@ -99,10 +117,15 @@ public class ChatView implements TabHost.TabContentFactory, WBufferObserver, OnC
         sendButton = (Button) x.findViewById(R.id.chatview_send);
         
         //titlestr.setText("random text for the title this is kinda long and hopefully more than 2 lines and takes up a bunch of space so it needs to marquee");
-        titlestr.setText(wb.getTitle());
+        if (!destroyed)
+        	titlestr.setText(wb.getTitle());
         
         // TODO: figure out best way to have scrollable title
         //titlestr.setMovementMethod(new ScrollingMovementMethod());
+        
+        scrollview.setFocusable(false);
+        table.setFocusable(false);
+        titlestr.setFocusable(false);
         
         sendButton.setOnClickListener(this);
         inputBox.setOnKeyListener(this);
@@ -129,6 +152,19 @@ public class ChatView implements TabHost.TabContentFactory, WBufferObserver, OnC
 			return true;
 		}
 		return false;
+	}
+
+	public WeechatBuffer getBuffer() {
+		return this.wb;
+	}
+
+	@Override
+	public void onBufferClosed() {
+		this.destroy();
+	}
+
+	public boolean isDestroyed() {
+		return destroyed;
 	}
 
 }

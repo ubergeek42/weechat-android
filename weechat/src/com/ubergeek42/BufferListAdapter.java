@@ -58,6 +58,7 @@ public class BufferListAdapter extends BaseAdapter implements ChatBufferObserver
 
 		title.setText(bufferItem.getTitle());
 		status.setText("unknown");
+		status.setText(bufferItem.getNumNicks() + " users");
 		return convertView;
 	}
 	@Override

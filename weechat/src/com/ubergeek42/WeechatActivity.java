@@ -2,12 +2,17 @@ package com.ubergeek42;
 
 import java.util.ArrayList;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
@@ -23,6 +28,7 @@ import android.widget.Toast;
 
 import com.ubergeek42.weechat.ChatBuffers;
 import com.ubergeek42.weechat.MessageHandler;
+import com.ubergeek42.weechat.Nicklist;
 import com.ubergeek42.weechat.WeechatBuffer;
 import com.ubergeek42.weechat.weechatrelay.WMessageHandler;
 import com.ubergeek42.weechat.weechatrelay.WRelayConnection;
@@ -30,6 +36,8 @@ import com.ubergeek42.weechat.weechatrelay.WRelayConnectionHandler;
 
 public class WeechatActivity extends Activity implements OnItemClickListener,
 		OnCancelListener, WRelayConnectionHandler {
+	private static final Logger logger = LoggerFactory.getLogger(WeechatActivity.class);
+	
 	BufferListAdapter m_adapter;
 	ChatBuffers cbs;
 	WRelayConnection wr;
@@ -39,16 +47,19 @@ public class WeechatActivity extends Activity implements OnItemClickListener,
 	TabHost tabhost;
 	LayoutInflater inflater;
 
-	ArrayList<ChatView> chats = new ArrayList<ChatView>();
+	ArrayList<ChatViewTab> chats = new ArrayList<ChatViewTab>();
 	ArrayList<TabHost.TabSpec> tabs = new ArrayList<TabHost.TabSpec>();
 	private SharedPreferences prefs;
+	
+	
+	private Nicklist nickhandler;
 
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
-
+		
 		prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
 		inflater = getLayoutInflater();
 
@@ -59,7 +70,9 @@ public class WeechatActivity extends Activity implements OnItemClickListener,
 
 		cbs = new ChatBuffers();
 		m_adapter = new BufferListAdapter(this, cbs);
-
+		msgHandler = new MessageHandler(cbs);
+		nickhandler = new Nicklist(cbs);
+				
 		bufferlist = (ListView) this.findViewById(R.id.bufferlist);
 		bufferlist.setAdapter(m_adapter);
 		bufferlist.setOnItemClickListener(this);
@@ -95,6 +108,7 @@ public class WeechatActivity extends Activity implements OnItemClickListener,
 	}
 
 	public void connect() {
+		logger.debug("Connect called");
 		progressDialog = ProgressDialog.show(this, "Connecting to server",
 				"Please wait...");
 		progressDialog.setCancelable(true);
@@ -116,12 +130,27 @@ public class WeechatActivity extends Activity implements OnItemClickListener,
 		setTitle("Weechat - " + wr.getServer());
 		wr.tryConnect();
 	}
+	
+	public void disconnect() {
+		if (wr!=null && wr.isConnected())
+			wr.disconnect();
+		
+		cbs = new ChatBuffers();
+		m_adapter = new BufferListAdapter(this, cbs);
+		msgHandler = new MessageHandler(cbs);
+		nickhandler = new Nicklist(cbs);
+		bufferlist.setAdapter(m_adapter);
+	}
 
 	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
+	public boolean onPrepareOptionsMenu(Menu menu) {
 		menu.clear();
-		menu.add("Connect");
+		if (wr.isConnected())
+			menu.add("Disconnect");
+		else
+			menu.add("Connect");
 		menu.add("Preferences");
+		menu.add("Nicklist");
 		menu.add("Close Tab");
 		return super.onPrepareOptionsMenu(menu);
 	}
@@ -129,49 +158,90 @@ public class WeechatActivity extends Activity implements OnItemClickListener,
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		String s = (String) item.getTitle();
-		if (s.compareTo("Quit") == 0) {
+		if (s.equals("Quit")) {
 			finish();
 			android.os.Process.killProcess(android.os.Process.myPid());
 		} else if (s.compareTo("Preferences") == 0) {
 			Intent i = new Intent(this, WeechatPreferencesActivity.class);
 			startActivity(i);
-		} else if (s.compareTo("Connect") == 0) {
-			// disconnect/etc first
+		} else if (s.equals("Connect")) {
 			connect();
-		} else if (s.compareTo("Close Tab") == 0) {
-			int toRemove = tabhost.getCurrentTab();
-			if (toRemove != 0) { // Can't remove main tab
-				tabhost.setCurrentTab(0);
-				tabhost.clearAllTabs();
-				tabs.remove(toRemove);
-				for (TabHost.TabSpec ts : tabs) {
-					tabhost.addTab(ts);
-				}
-				tabhost.setCurrentTab(toRemove - 1);
+		} else if (s.equals("Disconnect")) {
+			disconnect();
+		} else if (s.equals("Nicklist")) {
+			int curtab = tabhost.getCurrentTab();
+			if(curtab==0) {
+				return true; // no nicklist for buffers tab
 			}
+			ChatViewTab cvt = chats.get(curtab-1);
+			WeechatBuffer wb = cvt.getBuffer();
+			
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			builder.setTitle("Nicks in channel:");
+			builder.setItems(wb.getNicks(), new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					// Do nothing...
+				}
+			});
+			builder.create().show();
+		} else if (s.equals("Close Tab")) {
+			int toRemove = tabhost.getCurrentTab();
+			removeTab(toRemove);
+			if (toRemove >= 1)
+				chats.remove(toRemove-1);
 		} else {
 			return false;
 		}
 		return true;
 	}
 
+	public void removeDestroyedTabs() {
+		ArrayList<ChatViewTab> toremove = new ArrayList<ChatViewTab>();
+		int index = 1;// first tab is for buffers which don't have a ChatViewTab
+		for(ChatViewTab cvt: chats) {
+			if (cvt.isDestroyed()) {
+				toremove.add(cvt);
+				removeTab(index);
+				index++;
+			}
+		}
+	}
+	
+	private void removeTab(int index) {
+		if (index != 0) { // Can't remove main tab
+			// Focus/Visibility is a workaround for the following issues:
+			// http://code.google.com/p/android/issues/detail?id=2772
+			// http://groups.google.com/group/android-developers/browse_thread/thread/8a24314b853bccb5
+			tabhost.setFocusable(false);
+			tabhost.setVisibility(View.GONE);
+			
+			tabhost.setCurrentTab(0);
+			tabhost.clearAllTabs();
+			tabs.remove(index);
+			for (TabHost.TabSpec ts : tabs) {
+				tabhost.addTab(ts);
+			}
+			tabhost.setCurrentTab(index - 1);
+			tabhost.setFocusable(true);
+			tabhost.setVisibility(View.VISIBLE);
+		}
+	}
+	
 	@Override
 	public void onBackPressed() {
 		finish();
-		if (wr != null)
-			wr.disconnect();
+		disconnect();
 		android.os.Process.killProcess(android.os.Process.myPid());
 		super.onBackPressed();
 	}
 
 	@Override
-	public void onItemClick(AdapterView<?> parent, View view, int position,
-			long id) {
-		WeechatBuffer wb = (WeechatBuffer) bufferlist
-				.getItemAtPosition(position);
+	public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+		WeechatBuffer wb = (WeechatBuffer) bufferlist.getItemAtPosition(position);
 		String tag = wb.getFullName();
 
-		ChatView cv = new ChatView(wb, this);
+		ChatViewTab cv = new ChatViewTab(wb, this);
 
 		String title = "Unknown";
 		if (wb.getShortName() != null)
@@ -186,7 +256,7 @@ public class WeechatActivity extends Activity implements OnItemClickListener,
 	@Override
 	public void onCancel(DialogInterface arg0) {
 		// Canceling the connect progress dialog
-		wr.disconnect();
+		disconnect();
 	}
 
 	@Override
@@ -221,9 +291,17 @@ public class WeechatActivity extends Activity implements OnItemClickListener,
 		wr.addHandler("_buffer_localvar_removed", cbs);
 		wr.addHandler("_buffer_closing", cbs);
 
-		msgHandler = new MessageHandler(cbs);
+		// Buffer line changes(added or removed)
 		wr.addHandler("_buffer_line_added", msgHandler);
-
+		wr.addHandler("listlines_reverse", msgHandler);
+		wr.sendMsg("(listlines_reverse) hdata buffer:gui_buffers(*)/own_lines/last_line(-" + WeechatBuffer.MAXLINES + ")/data date,displayed,prefix,message");
+		
+		// Nicklist changes
+		wr.addHandler("nicklist", nickhandler);
+		wr.addHandler("_nicklist", nickhandler);
+		wr.sendMsg("nicklist","nicklist","");
+		
+		// Subscribe to any future changes
 		wr.sendMsg("sync");
 	}
 
@@ -232,13 +310,20 @@ public class WeechatActivity extends Activity implements OnItemClickListener,
 	 * Called when the connection to the server is lost
 	 */
 	public void onDisconnect() {
+		logger.trace("Disconnected from server");
 		runOnUiThread(new Runnable() {
 			public void run() {
+				disconnect();
 				if (progressDialog != null && progressDialog.isShowing()) {
 					progressDialog.dismiss();
-					Toast.makeText(getBaseContext(), "Disconnected from server", 1000).show();
 				}
+				Toast.makeText(getBaseContext(), "Disconnected from server", 1000).show();
 			}
 		});
+	}
+	
+	@Override
+	public void onConfigurationChanged(Configuration newConfig) {
+		super.onConfigurationChanged(newConfig);
 	}
 }
