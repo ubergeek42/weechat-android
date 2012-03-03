@@ -10,9 +10,17 @@ USE AT YOUR OWN RISK! This is alpha software and I am not responsible
 if your device bursts into flames, you lose all of your data, or if
 anything else bad happens.
 
+Open the following link your device, which will download the file.  Click on it and choose to install.
 [Link to apk](https://github.com/ubergeek42/weechat-android/raw/master/releases/weechat.apk)
 
 Please report any bugs/feature requests here on github, or send me an email: kj@ubergeek42.com
+
+Basic Usage
+-----------
+To begin using it, press menu, then preferences.  Enter the host, port and password for your
+weechat relay server.  Then menu->connect.
+
+When you are in a buffer, you can view the nicklist by pressing menu->nicklist.
 
 Screenshots
 -----------
@@ -36,5 +44,5 @@ You can build these projects by running 'ant' from this directory. If you wish t
 To build the android application, you will need to 'cd weechat', then run 'android update project --path .' before running ant.
 
 For more details about Weechat and the Relay Protocol:
-Weechat - http://www.weechat.org/
-Relay Protocol - http://www.weechat.org/files/doc/devel/weechat_relay_protocol.en.html
+* Weechat - http://www.weechat.org/
+* Relay Protocol - http://www.weechat.org/files/doc/devel/weechat_relay_protocol.en.html
