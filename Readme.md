@@ -12,6 +12,8 @@ anything else bad happens.
 
 [Link to apk](https://github.com/ubergeek42/weechat-android/raw/master/releases/weechat.apk)
 
+Please report any bugs/feature requests here on github, or send me an email: kj@ubergeek42.com
+
 Screenshots
 -----------
 ![Chat View](https://github.com/ubergeek42/weechat-android/raw/master/releases/chat-channel.png)
