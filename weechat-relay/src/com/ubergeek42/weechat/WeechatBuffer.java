@@ -39,6 +39,13 @@ public class WeechatBuffer {
 				lines.removeFirst();
 		}
 	}
+	public void addLineFirstNoNotify(ChatMessage m) {
+		synchronized(messagelock) {
+			lines.addFirst(m);
+			if (lines.size() > MAXLINES)
+				lines.removeLast();
+		}
+	}
 	
 	// Notify anyone who cares
 	public void notifyObservers() {
@@ -114,5 +121,14 @@ public class WeechatBuffer {
 			ret = nicks.size();
 		}
 		return ret;
+	}
+	public void clearNicklist() {
+		synchronized(nicklock) {
+			nicks.clear();
+		}
+	}
+	public void destroy() {
+		for(WBufferObserver o: observers)
+			o.onBufferClosed();
 	}
 }

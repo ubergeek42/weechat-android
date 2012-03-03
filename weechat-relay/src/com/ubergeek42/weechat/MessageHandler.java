@@ -49,7 +49,7 @@ public class MessageHandler implements WMessageHandler {
 				
 				buffer.addLine(cm);
 			}
-		} else if (id.equals("listlines")) {
+		} else if (id.equals("listlines_reverse")) { // lines come in most recent to least recent
 			long start = System.currentTimeMillis();
 			System.err.println("Listlines started");
 			WHdata whdata = (WHdata) objects[0];
@@ -81,7 +81,7 @@ public class MessageHandler implements WMessageHandler {
 				System.out.println(buffer.getFullName() + " " + cm);
 				
 				// TODO: check buffer isn't null...
-				buffer.addLineNoNotify(cm);
+				buffer.addLineFirstNoNotify(cm);
 				toUpdate.add(buffer);
 			}
 			for(WeechatBuffer wb: toUpdate) {

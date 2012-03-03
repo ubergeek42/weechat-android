@@ -131,6 +131,8 @@ public class ChatBuffers implements WMessageHandler {
 				HdataEntry hde = whdata.getItem(i);
 				for(int j=0;j<buffers.size();j++) {
 					if (buffers.get(j).getPointer().equals(hde.getPointer())) {
+						WeechatBuffer wb = buffers.get(j);
+						wb.destroy();
 						buffers.remove(j);
 						break;
 					}

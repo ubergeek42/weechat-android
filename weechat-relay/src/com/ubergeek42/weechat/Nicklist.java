@@ -1,6 +1,7 @@
 package com.ubergeek42.weechat;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +27,8 @@ public class Nicklist implements WMessageHandler {
 		if (id.equals("_nicklist") || id.equals("nicklist")) {
 			// TODO: verify path is nicklist_item
 
+			HashSet<WeechatBuffer> nicklistCleared = new HashSet<WeechatBuffer>();
+			
 			// Which buffer is this for?
 			WObject objects[] = m.getObjects();
 			WHdata whdata = (WHdata) objects[0];
@@ -49,6 +52,10 @@ public class Nicklist implements WMessageHandler {
 				logger.info(ni.toString());
 				
 				WeechatBuffer wb = cbs.findByPointer(hde.getPointer(0));
+				if (!nicklistCleared.contains(wb)) {
+					nicklistCleared.add(wb);
+					wb.clearNicklist();
+				}
 				wb.addNick(ni);
 			}
 		}

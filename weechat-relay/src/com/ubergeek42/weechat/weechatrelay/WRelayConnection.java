@@ -94,14 +94,17 @@ public class WRelayConnection {
 	 * Disconnects from the server, and cleans up
 	 */
 	public void disconnect() {
+		if (!connected) return;
 		try {
+			logger.trace("Interrupting create connectiong thread");
 			if (createSocketConnection.isAlive()) {
 				createSocketConnection.interrupt();
 			}
 			
-			// Send quit message
+			logger.trace("Sending quit message");
 			if (connected) outstream.write("quit\n".getBytes());
 			
+			logger.trace("Closing streams");
 			connected = false;
 			if (instream!=null)  { instream.close();  instream=null; }
 			if (outstream!=null) { outstream.close(); outstream=null; }
@@ -110,7 +113,8 @@ public class WRelayConnection {
 			if (socketReader.isAlive()) {
 				// TODO: kill the thread if necessary
 			}
-			
+
+			logger.trace("Calling any registered connection handlers");
 			// Call any registered disconnect handlers
 			for (WRelayConnectionHandler wrch : connectionHandlers) {
 				wrch.onDisconnect();
@@ -184,9 +188,14 @@ public class WRelayConnection {
 			while(sock!=null && !sock.isClosed()) {
 				byte b[] = new byte[256];
 				try {
+					logger.trace("Reading from stream");
 					int r = instream.read(b);
-					if (r>0)
+					logger.trace("Read " + r + " bytes from the stream"); 
+					if (r>0) {
 						buffer.write(b,0,r);
+					} else if (r==-1){ // Stream closed
+						break;
+					}
 					
 					while (buffer.size() >=4) {
 						// Calculate length
@@ -215,16 +224,18 @@ public class WRelayConnection {
 				} catch (IOException e) {
 					if (sock!=null && !sock.isClosed()) {
 						e.printStackTrace();
-						connected = false;
 					} else {
 						// Socket closed..no big deal
-						connected = false;
-					}
-					// Call any registered disconnect handlers
-					for (WRelayConnectionHandler wrch : connectionHandlers) {
-						wrch.onDisconnect();
 					}
 				}
+			}
+			connected = false;
+			sock = null;
+			instream = null;
+			outstream = null;
+			// Call any registered disconnect handlers
+			for (WRelayConnectionHandler wrch : connectionHandlers) {
+				wrch.onDisconnect();
 			}
 		}
 	});
@@ -238,6 +249,8 @@ public class WRelayConnection {
 		if (messageHandlers.containsKey(id)) {
 			WMessageHandler wmh = messageHandlers.get(id);
 			wmh.handleMessage(msg, id);
+		} else {
+			logger.debug("Unhandled message: " + id);
 		}
 	}
 	
