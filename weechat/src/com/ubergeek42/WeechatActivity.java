@@ -39,9 +39,12 @@ public class WeechatActivity extends Activity implements OnItemClickListener,
 	private static final Logger logger = LoggerFactory.getLogger(WeechatActivity.class);
 	
 	BufferListAdapter m_adapter;
-	ChatBuffers cbs;
 	WRelayConnection wr;
+	
+	ChatBuffers cbs;
 	WMessageHandler msgHandler;
+	Nicklist nickhandler;
+	
 	ProgressDialog progressDialog;
 	ListView bufferlist;
 	TabHost tabhost;
@@ -51,10 +54,7 @@ public class WeechatActivity extends Activity implements OnItemClickListener,
 	ArrayList<TabHost.TabSpec> tabs = new ArrayList<TabHost.TabSpec>();
 	private SharedPreferences prefs;
 	
-	
-	private Nicklist nickhandler;
 
-	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -81,6 +81,7 @@ public class WeechatActivity extends Activity implements OnItemClickListener,
 			connect();
 	}
 
+	// Add a tab using an existing view ID(like R.id.maintab, defined in main.xml)
 	public void addTab(String tag, String title, int viewID) {
 		TabHost.TabSpec tabspec = tabhost.newTabSpec(tag);
 
@@ -94,6 +95,7 @@ public class WeechatActivity extends Activity implements OnItemClickListener,
 		tabhost.addTab(tabspec);
 	}
 
+	// Add a tab that is built using a TabContentFactory
 	public void addTab(String tag, String title, TabHost.TabContentFactory tcv) {
 		TabHost.TabSpec tabspec = tabhost.newTabSpec(tag);
 
@@ -107,6 +109,7 @@ public class WeechatActivity extends Activity implements OnItemClickListener,
 		tabhost.addTab(tabspec);
 	}
 
+	// Connect to the configured server, and display a progress dialog
 	public void connect() {
 		logger.debug("Connect called");
 		progressDialog = ProgressDialog.show(this, "Connecting to server",
@@ -132,6 +135,7 @@ public class WeechatActivity extends Activity implements OnItemClickListener,
 		wr.tryConnect();
 	}
 	
+	// Disconnect from the server, and reset the internal state
 	public void disconnect() {
 		if (wr!=null && wr.isConnected())
 			wr.disconnect();
@@ -144,6 +148,7 @@ public class WeechatActivity extends Activity implements OnItemClickListener,
 	}
 
 	@Override
+	// Build the options menu
 	public boolean onPrepareOptionsMenu(Menu menu) {
 		menu.clear();
 		if (wr!=null && wr.isConnected())
@@ -157,6 +162,7 @@ public class WeechatActivity extends Activity implements OnItemClickListener,
 	}
 
 	@Override
+	// Handle the options when the user presses the Menu key
 	public boolean onOptionsItemSelected(MenuItem item) {
 		String s = (String) item.getTitle();
 		if (s.equals("Quit")) {
@@ -197,6 +203,8 @@ public class WeechatActivity extends Activity implements OnItemClickListener,
 		return true;
 	}
 
+	// If the ChatView associated with a tab is "destroyed" close the tab
+	// This happens when the buffer is closed with /close or similar
 	public void removeDestroyedTabs() {
 		ArrayList<ChatViewTab> toremove = new ArrayList<ChatViewTab>();
 		int index = 1;// first tab is for buffers which don't have a ChatViewTab
@@ -209,6 +217,7 @@ public class WeechatActivity extends Activity implements OnItemClickListener,
 		}
 	}
 	
+	// Remove a tab holding a buffer from the tablist 
 	private void removeTab(int index) {
 		if (index != 0) { // Can't remove main tab
 			// Focus/Visibility is a workaround for the following issues:
@@ -230,6 +239,7 @@ public class WeechatActivity extends Activity implements OnItemClickListener,
 	}
 	
 	@Override
+	// Clean up and kill self when the users presses back, we don't run in the background
 	public void onBackPressed() {
 		finish();
 		disconnect();
@@ -238,6 +248,7 @@ public class WeechatActivity extends Activity implements OnItemClickListener,
 	}
 
 	@Override
+	// When the user clicks on a buffer in the list
 	public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 		WeechatBuffer wb = (WeechatBuffer) bufferlist.getItemAtPosition(position);
 		String tag = wb.getFullName();
@@ -255,16 +266,14 @@ public class WeechatActivity extends Activity implements OnItemClickListener,
 	}
 
 	@Override
+	// Called when the user presses back on the "Connecting please wait" dialog
 	public void onCancel(DialogInterface arg0) {
-		// Canceling the connect progress dialog
 		disconnect();
 	}
 
 	@Override
-	/**
-	 * Called when the connection to the server is successful
-	 */
 	public void onConnect() {
+		// Clear the progress dialog and display a successful connection message
 		runOnUiThread(new Runnable() {
 			public void run() {
 				if (progressDialog != null && progressDialog.isShowing()) {
@@ -275,11 +284,10 @@ public class WeechatActivity extends Activity implements OnItemClickListener,
 			}
 		});
 
-		// Get a list of buffers
+		// Handle us getting a listing of the buffers
 		wr.addHandler("listbuffers", cbs);
-		wr.sendMsg("(listbuffers) hdata buffer:gui_buffers(*) number,full_name,short_name,type,title,nicklist,local_variables");
 
-		// Handle event messages regarding buffers
+		// Handle weechat event messages regarding buffers
 		wr.addHandler("_buffer_opened", cbs);
 		wr.addHandler("_buffer_type_changed", cbs);
 		wr.addHandler("_buffer_moved", cbs);
@@ -292,24 +300,28 @@ public class WeechatActivity extends Activity implements OnItemClickListener,
 		wr.addHandler("_buffer_localvar_removed", cbs);
 		wr.addHandler("_buffer_closing", cbs);
 
-		// Buffer line changes(added or removed)
+		// Handle lines being added to buffers
 		wr.addHandler("_buffer_line_added", msgHandler);
 		wr.addHandler("listlines_reverse", msgHandler);
-		wr.sendMsg("(listlines_reverse) hdata buffer:gui_buffers(*)/own_lines/last_line(-" + WeechatBuffer.MAXLINES + ")/data date,displayed,prefix,message");
 		
-		// Nicklist changes
+		
+		// Handle changes to the nicklist for buffers
 		wr.addHandler("nicklist", nickhandler);
 		wr.addHandler("_nicklist", nickhandler);
-		wr.sendMsg("nicklist","nicklist","");
 		
+		// Get a list of buffers current open, along with some information about them
+		wr.sendMsg("(listbuffers) hdata buffer:gui_buffers(*) number,full_name,short_name,type,title,nicklist,local_variables");
+		
+		// Get the last MAXLINES for each buffer
+		wr.sendMsg("(listlines_reverse) hdata buffer:gui_buffers(*)/own_lines/last_line(-" + WeechatBuffer.MAXLINES + ")/data date,displayed,prefix,message");
+
+		// Get the nicklist for any buffers we have
+		wr.sendMsg("nicklist","nicklist","");
 		// Subscribe to any future changes
 		wr.sendMsg("sync");
 	}
 
 	@Override
-	/**
-	 * Called when the connection to the server is lost
-	 */
 	public void onDisconnect() {
 		logger.trace("Disconnected from server");
 		runOnUiThread(new Runnable() {
@@ -323,7 +335,9 @@ public class WeechatActivity extends Activity implements OnItemClickListener,
 		});
 	}
 	
+	
 	@Override
+	// Eat configuration changes so we don't reload during orientation/keyboard changes
 	public void onConfigurationChanged(Configuration newConfig) {
 		super.onConfigurationChanged(newConfig);
 	}
