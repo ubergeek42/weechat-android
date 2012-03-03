@@ -1,4 +1,4 @@
-package com.ubergeek42.weechat.weechatrelay;
+package com.ubergeek42.weechat.relay;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,15 +13,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ubergeek42.weechat.Helper;
-import com.ubergeek42.weechat.weechatrelay.protocol.WData;
+import com.ubergeek42.weechat.relay.protocol.Data;
 
 /**
  * Class to provide and manage a connection to a weechat relay server
  * @author ubergeek42<kj@ubergeek42.com>
  */
-public class WRelayConnection {
+public class RelayConnection {
 
-	private static Logger logger = LoggerFactory.getLogger(WRelayConnection.class);
+	private static Logger logger = LoggerFactory.getLogger(RelayConnection.class);
 	
 	private Socket sock = null;
 	private String password = null;
@@ -31,8 +31,8 @@ public class WRelayConnection {
 	private OutputStream outstream = null;
 	private InputStream instream = null;
 	
-	private HashMap<String,WMessageHandler> messageHandlers = new HashMap<String, WMessageHandler>();
-	private ArrayList<WRelayConnectionHandler> connectionHandlers = new ArrayList<WRelayConnectionHandler>();
+	private HashMap<String,RelayMessageHandler> messageHandlers = new HashMap<String, RelayMessageHandler>();
+	private ArrayList<RelayConnectionHandler> connectionHandlers = new ArrayList<RelayConnectionHandler>();
 	
 	private boolean connected = false;
 	
@@ -42,7 +42,7 @@ public class WRelayConnection {
 	 * @param port - port to connect on
 	 * @param password - password for the relay server
 	 */
-	public WRelayConnection(String server, String port, String password) {
+	public RelayConnection(String server, String port, String password) {
 		try {
 			this.server = InetAddress.getByName(server);
 		} catch (UnknownHostException e) {
@@ -71,7 +71,7 @@ public class WRelayConnection {
 	 * @param id - The string ID to handle(e.g. "_nicklist" or "_buffer_opened")
 	 * @param wmh - The object to receive the callback
 	 */
-	public void addHandler(String id, WMessageHandler wmh) {
+	public void addHandler(String id, RelayMessageHandler wmh) {
 		messageHandlers.put(id, wmh);
 	}
 	/**
@@ -86,7 +86,7 @@ public class WRelayConnection {
 	 * Register a connection handler to receive onConnected/onDisconnected events
 	 * @param wrch - The connection handler
 	 */
-	public void setConnectionHandler(WRelayConnectionHandler wrch) {
+	public void setConnectionHandler(RelayConnectionHandler wrch) {
 		connectionHandlers.add(wrch);
 	}
 	
@@ -116,7 +116,7 @@ public class WRelayConnection {
 
 			logger.trace("Calling any registered connection handlers");
 			// Call any registered disconnect handlers
-			for (WRelayConnectionHandler wrch : connectionHandlers) {
+			for (RelayConnectionHandler wrch : connectionHandlers) {
 				wrch.onDisconnect();
 			}
 		} catch (IOException e) {
@@ -171,7 +171,7 @@ public class WRelayConnection {
 			socketReader.start();
 			
 			// Call any registered connection handlers
-			for (WRelayConnectionHandler wrch : connectionHandlers) {
+			for (RelayConnectionHandler wrch : connectionHandlers) {
 				wrch.onConnect();
 			}
 			logger.trace("createSocketConnection finished");
@@ -200,7 +200,7 @@ public class WRelayConnection {
 					while (buffer.size() >=4) {
 						// Calculate length
 						
-						int length = new WData(buffer.toByteArray()).getUnsignedInt();
+						int length = new Data(buffer.toByteArray()).getUnsignedInt();
 						
 						// Still have more message to read
 						if (buffer.size() < length) break;
@@ -210,7 +210,7 @@ public class WRelayConnection {
 						byte[] bdata = buffer.toByteArray();
 						byte[] msgdata = Helper.copyOfRange(bdata, 0, length);
 						byte[] remainder = Helper.copyOfRange(bdata, length, bdata.length);
-						WMessage wm = new WMessage(msgdata);
+						RelayMessage wm = new RelayMessage(msgdata);
 						
 						long start = System.currentTimeMillis();
 						handleMessage(wm);
@@ -234,7 +234,7 @@ public class WRelayConnection {
 			instream = null;
 			outstream = null;
 			// Call any registered disconnect handlers
-			for (WRelayConnectionHandler wrch : connectionHandlers) {
+			for (RelayConnectionHandler wrch : connectionHandlers) {
 				wrch.onDisconnect();
 			}
 		}
@@ -244,10 +244,10 @@ public class WRelayConnection {
 	 * Signal any observers whenever we receive a message
 	 * @param msg - Message we received
 	 */
-	private void handleMessage(WMessage msg) {
+	private void handleMessage(RelayMessage msg) {
 		String id = msg.getID();
 		if (messageHandlers.containsKey(id)) {
-			WMessageHandler wmh = messageHandlers.get(id);
+			RelayMessageHandler wmh = messageHandlers.get(id);
 			wmh.handleMessage(msg, id);
 		} else {
 			logger.debug("Unhandled message: " + id);

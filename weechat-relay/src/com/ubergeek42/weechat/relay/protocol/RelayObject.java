@@ -1,4 +1,4 @@
-package com.ubergeek42.weechat.weechatrelay.protocol;
+package com.ubergeek42.weechat.relay.protocol;
 
 import java.util.Date;
 
@@ -7,7 +7,7 @@ import java.util.Date;
  * 
  * @author ubergeek42<kj@ubergeek42.com>
  */
-public class WObject {
+public class RelayObject {
 	public enum WType {
 		CHR, INT, LON, STR, BUF, PTR, TIM, HTB, HDA, INF, INL, UNKNOWN
 	}
@@ -20,27 +20,27 @@ public class WObject {
 
 	protected WType type = WType.UNKNOWN;
 
-	protected WObject() {
+	protected RelayObject() {
 		// Does nothing
 	}
 
-	protected WObject(char c) {
+	protected RelayObject(char c) {
 		charValue = c;
 	}
 
-	protected WObject(int i) {
+	protected RelayObject(int i) {
 		intValue = i;
 	}
 
-	protected WObject(long l) {
+	protected RelayObject(long l) {
 		longValue = l;
 	}
 
-	protected WObject(String s) {
+	protected RelayObject(String s) {
 		strValue = s;
 	}
 
-	protected WObject(byte[] b) {
+	protected RelayObject(byte[] b) {
 		baValue = b;
 	}
 

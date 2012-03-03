@@ -1,9 +1,9 @@
-package com.ubergeek42.weechat.weechatrelay.protocol;
+package com.ubergeek42.weechat.relay.protocol;
 
 import java.util.HashMap;
 
 import com.ubergeek42.weechat.Helper;
-import com.ubergeek42.weechat.weechatrelay.protocol.WObject.WType;
+import com.ubergeek42.weechat.relay.protocol.RelayObject.WType;
 
 
 /**
@@ -11,11 +11,11 @@ import com.ubergeek42.weechat.weechatrelay.protocol.WObject.WType;
  * @author ubergeek42<kj@ubergeek42.com>
  *
  */
-public class WData {
+public class Data {
 	
 	private byte[] data;
 	private int pointer; // Current location in the byte array
-	public WData(byte[] data) {
+	public Data(byte[] data) {
 		this.data = data;
 		this.pointer = 0;
 	}
@@ -113,23 +113,23 @@ public class WData {
 		return time;
 	}
 	
-	public WHashtable getHashtable() {
+	public Hashtable getHashtable() {
 		WType keyType = getType();
 		WType valueType = getType();
 		int count = getUnsignedInt();
 		
-		WHashtable hta = new WHashtable(keyType, valueType);
+		Hashtable hta = new Hashtable(keyType, valueType);
 		for(int i=0; i<count; i++) {
-			WObject k = getObject(keyType);
-			WObject v = getObject(valueType);
+			RelayObject k = getObject(keyType);
+			RelayObject v = getObject(valueType);
 			hta.put(k, v);
 		}
 		
 		return hta;
 	}
 	
-	public WHdata getHdata() {
-		WHdata whd = new WHdata();
+	public Hdata getHdata() {
+		Hdata whd = new Hdata();
 		
 		String hpath = getString();
 		String keys = getString();
@@ -153,25 +153,25 @@ public class WData {
 		return whd;
 	}
 	
-	public WInfo getInfo() {
+	public Info getInfo() {
 		String name  = getString();
 		String value = getString();
-		return new WInfo(name, value);
+		return new Info(name, value);
 	}
 	
-	public WInfolist getInfolist() {
+	public Infolist getInfolist() {
 		String name = getString();
 		int count = getUnsignedInt();
 		
-		WInfolist wil = new WInfolist(name);
+		Infolist wil = new Infolist(name);
 		
 		for(int i=0;i<count;i++) {
 			int numItems = getUnsignedInt();
-			HashMap<String,WObject> variables = new HashMap<String,WObject>();
+			HashMap<String,RelayObject> variables = new HashMap<String,RelayObject>();
 			for(int j=0;j<numItems;j++) {
 				String itemName = getString();
 				WType itemType = getType();
-				WObject item = getObject(itemType);
+				RelayObject item = getObject(itemType);
 				variables.put(itemName, item);
 			}
 			wil.addItem(variables);
@@ -187,29 +187,29 @@ public class WData {
 		WType type = WType.valueOf(new String(""+a+b+c).toUpperCase());
 		return type;
 	}
-	public WObject getObject() {
+	public RelayObject getObject() {
 		WType type = getType();
 		return getObject(type);
 	}
 	
-	private WObject getObject(WType type) {
-		WObject ret = null;
+	private RelayObject getObject(WType type) {
+		RelayObject ret = null;
 		
 		switch (type) {
 		case CHR:
-			ret = new WObject(getChar()); break;
+			ret = new RelayObject(getChar()); break;
 		case INT:
-			ret = new WObject(getUnsignedInt()); break;
+			ret = new RelayObject(getUnsignedInt()); break;
 		case LON:
-			ret = new WObject(getLongInteger()); break;
+			ret = new RelayObject(getLongInteger()); break;
 		case STR:
-			ret = new WObject(getString()); break;
+			ret = new RelayObject(getString()); break;
 		case BUF:
-			ret = new WObject(getBuffer()); break;
+			ret = new RelayObject(getBuffer()); break;
 		case PTR:
-			ret = new WObject(getPointer()); break;
+			ret = new RelayObject(getPointer()); break;
 		case TIM:
-			ret = new WObject(getTime()); break;
+			ret = new RelayObject(getTime()); break;
 		case HTB:
 			ret = getHashtable(); break;
 		case HDA:

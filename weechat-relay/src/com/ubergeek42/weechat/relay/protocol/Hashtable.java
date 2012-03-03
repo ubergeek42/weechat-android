@@ -1,4 +1,4 @@
-package com.ubergeek42.weechat.weechatrelay.protocol;
+package com.ubergeek42.weechat.relay.protocol;
 
 import java.util.HashMap;
 
@@ -10,19 +10,19 @@ import java.util.HashMap;
  *   
  * @author ubergeek42<kj@ubergeek42.com>
  */
-public class WHashtable extends WObject {
+public class Hashtable extends RelayObject {
 
-	private HashMap<WObject,WObject> hashtable = new HashMap<WObject,WObject>();
+	private HashMap<RelayObject,RelayObject> hashtable = new HashMap<RelayObject,RelayObject>();
 	
 	private WType keyType;
 	private WType valueType;
 	
-	protected WHashtable(WType keyType, WType valueType) {
+	protected Hashtable(WType keyType, WType valueType) {
 		this.keyType = keyType;
 		this.valueType = valueType;
 	}
 
-	protected void put(WObject key, WObject value) {
+	protected void put(RelayObject key, RelayObject value) {
 		hashtable.put(key, value);
 	}
 	
@@ -32,8 +32,8 @@ public class WHashtable extends WObject {
 	@Override
 	public String toString() {
 		StringBuilder map = new StringBuilder();
-		for(WObject key: hashtable.keySet()) {
-			WObject value = hashtable.get(key);
+		for(RelayObject key: hashtable.keySet()) {
+			RelayObject value = hashtable.get(key);
 			map.append(key);
 			map.append(" -> ");
 			map.append(value);

@@ -1,4 +1,4 @@
-package com.ubergeek42.weechat.weechatrelay;
+package com.ubergeek42.weechat.relay;
 
 /**
  * Provides notifications about the connection with the server such as when a
@@ -7,7 +7,7 @@ package com.ubergeek42.weechat.weechatrelay;
  * @author ubergeek42<kj@ubergeek42.com>
  * 
  */
-public interface WRelayConnectionHandler {
+public interface RelayConnectionHandler {
 	/**
 	 * Called when a connection to the server is established, and commands can
 	 * begin to be sent/received.

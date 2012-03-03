@@ -1,24 +1,25 @@
-package com.ubergeek42.weechat;
+package com.ubergeek42.weechat.handler;
 import java.util.ArrayList;
 
-import com.ubergeek42.weechat.weechatrelay.WMessage;
-import com.ubergeek42.weechat.weechatrelay.WMessageHandler;
-import com.ubergeek42.weechat.weechatrelay.protocol.HdataEntry;
-import com.ubergeek42.weechat.weechatrelay.protocol.WHdata;
-import com.ubergeek42.weechat.weechatrelay.protocol.WObject;
+import com.ubergeek42.weechat.Buffer;
+import com.ubergeek42.weechat.relay.RelayMessage;
+import com.ubergeek42.weechat.relay.RelayMessageHandler;
+import com.ubergeek42.weechat.relay.protocol.Hdata;
+import com.ubergeek42.weechat.relay.protocol.HdataEntry;
+import com.ubergeek42.weechat.relay.protocol.RelayObject;
 
 /**
  * Manages the list of Buffers in weechat
  * @author ubergeek42<kj@ubergeek42.com>
  *
  */
-public class ChatBuffers implements WMessageHandler {
+public class BufferManager implements RelayMessageHandler {
 
-	ArrayList<WeechatBuffer> buffers = new ArrayList<WeechatBuffer>();
-	private ChatBufferObserver onChanged;
+	ArrayList<Buffer> buffers = new ArrayList<Buffer>();
+	private BufferManagerObserver onChanged;
 	
-	public WeechatBuffer findByPointer(String pointer) {
-		for(WeechatBuffer b: buffers) {
+	public Buffer findByPointer(String pointer) {
+		for(Buffer b: buffers) {
 			if (pointer.equals(b.getPointer()))
 				return b;
 		}
@@ -26,21 +27,21 @@ public class ChatBuffers implements WMessageHandler {
 	}
 	
 	@Override
-	public void handleMessage(WMessage m, String id) {
-		WObject objects[] = m.getObjects();
+	public void handleMessage(RelayMessage m, String id) {
+		RelayObject objects[] = m.getObjects();
 		if (id.equals("listbuffers")) {
 			if (objects.length != 1) {
 				System.out.println("[ListBufferHandler.handleMessage] Expected 1 object, got " + objects.length);
 			}
-			if (!(objects[0] instanceof WHdata)) {
+			if (!(objects[0] instanceof Hdata)) {
 				System.out.println("[ListBufferHandler.handleMessage] Expected WHData, got " + objects[0].getClass());
 				return;
 			}
-			WHdata whdata = (WHdata) objects[0];
+			Hdata whdata = (Hdata) objects[0];
 			for (int i=0; i<whdata.getCount(); i++) {
 				HdataEntry hde = whdata.getItem(i);
 				
-				WeechatBuffer wb = new WeechatBuffer();
+				Buffer wb = new Buffer();
 				wb.setPointer(hde.getPointer());
 				wb.setNumber(hde.getItem("number").asInt());
 				wb.setFullName(hde.getItem("full_name").asString());
@@ -52,11 +53,11 @@ public class ChatBuffers implements WMessageHandler {
 				buffers.add(wb);
 			}
 		} else if (id.equals("_buffer_opened")) {
-			WHdata whdata = (WHdata) objects[0];
+			Hdata whdata = (Hdata) objects[0];
 			for (int i=0; i<whdata.getCount(); i++) {
 				HdataEntry hde = whdata.getItem(i);
 				
-				WeechatBuffer wb = new WeechatBuffer();
+				Buffer wb = new Buffer();
 				wb.setPointer(hde.getPointer());
 				wb.setNumber(hde.getItem("number").asInt());
 				wb.setFullName(hde.getItem("full_name").asString());
@@ -70,10 +71,10 @@ public class ChatBuffers implements WMessageHandler {
 				buffers.add(wb);
 			}
 		} else if(id.equals("_buffer_type_changed")) {
-			WHdata whdata = (WHdata) objects[0];
+			Hdata whdata = (Hdata) objects[0];
 			for (int i=0; i<whdata.getCount(); i++) {
 				HdataEntry hde = whdata.getItem(i);
-				WeechatBuffer wb = findByPointer(hde.getPointer());
+				Buffer wb = findByPointer(hde.getPointer());
 				if (wb==null) {
 					System.err.println("[ChatBuffers:_buffer_type_changed] Unable to find buffer to update type");
 					return;
@@ -83,10 +84,10 @@ public class ChatBuffers implements WMessageHandler {
 				wb.setFullName(hde.getItem("full_name").asString());
 			}
 		} else if(id.equals("_buffer_moved") || id.equals("_buffer_merged") || id.equals("_buffer_unmerged")) {
-			WHdata whdata = (WHdata) objects[0];
+			Hdata whdata = (Hdata) objects[0];
 			for (int i=0; i<whdata.getCount(); i++) {
 				HdataEntry hde = whdata.getItem(i);
-				WeechatBuffer wb = findByPointer(hde.getPointer());
+				Buffer wb = findByPointer(hde.getPointer());
 				if (wb==null) {
 					System.err.format("[ChatBuffers:%s] Unable to find buffer to update\n",id);
 					return;
@@ -95,10 +96,10 @@ public class ChatBuffers implements WMessageHandler {
 				wb.setFullName(hde.getItem("full_name").asString());
 			}
 		} else if (id.equals("_buffer_renamed") || id.equals("_buffer_title_changed")) {
-			WHdata whdata = (WHdata) objects[0];
+			Hdata whdata = (Hdata) objects[0];
 			for (int i=0; i<whdata.getCount(); i++) {
 				HdataEntry hde = whdata.getItem(i);
-				WeechatBuffer wb = findByPointer(hde.getPointer());
+				Buffer wb = findByPointer(hde.getPointer());
 				if (wb==null) {
 					System.err.format("[ChatBuffers:%s] Unable to find buffer to update\n",id);
 					return;
@@ -113,10 +114,10 @@ public class ChatBuffers implements WMessageHandler {
 				}
 			}
 		} else if (id.equals("_buffer_localvar_added") || id.equals("_buffer_localvar_changed") || id.equals("_buffer_localvar_removed")) {
-			WHdata whdata = (WHdata) objects[0];
+			Hdata whdata = (Hdata) objects[0];
 			for (int i=0; i<whdata.getCount(); i++) {
 				HdataEntry hde = whdata.getItem(i);
-				WeechatBuffer wb = findByPointer(hde.getPointer());
+				Buffer wb = findByPointer(hde.getPointer());
 				if (wb==null) {
 					System.err.format("[ChatBuffers:%s] Unable to find buffer to update\n",id);
 					return;
@@ -126,12 +127,12 @@ public class ChatBuffers implements WMessageHandler {
 				// TODO: Manipulate local variables
 			}
 		} else if (id.equals("_buffer_closing")) {
-			WHdata whdata = (WHdata) objects[0];
+			Hdata whdata = (Hdata) objects[0];
 			for (int i=0; i<whdata.getCount(); i++) {
 				HdataEntry hde = whdata.getItem(i);
 				for(int j=0;j<buffers.size();j++) {
 					if (buffers.get(j).getPointer().equals(hde.getPointer())) {
-						WeechatBuffer wb = buffers.get(j);
+						Buffer wb = buffers.get(j);
 						wb.destroy();
 						buffers.remove(j);
 						break;
@@ -144,7 +145,7 @@ public class ChatBuffers implements WMessageHandler {
 		this.onChanged.onBuffersChanged();
 	}
 
-	public WeechatBuffer getBuffer(int index) {
+	public Buffer getBuffer(int index) {
 		return buffers.get(index);
 	}
 	
@@ -152,7 +153,7 @@ public class ChatBuffers implements WMessageHandler {
 		return buffers.size();
 	}
 
-	public void onChanged(ChatBufferObserver bo) {
+	public void onChanged(BufferManagerObserver bo) {
 		this.onChanged = bo;
 	}
 

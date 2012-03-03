@@ -1,28 +1,30 @@
-package com.ubergeek42.weechat;
+package com.ubergeek42.weechat.handler;
 
 import java.util.Date;
 import java.util.HashSet;
 
-import com.ubergeek42.weechat.weechatrelay.WMessage;
-import com.ubergeek42.weechat.weechatrelay.WMessageHandler;
-import com.ubergeek42.weechat.weechatrelay.protocol.HdataEntry;
-import com.ubergeek42.weechat.weechatrelay.protocol.WHdata;
-import com.ubergeek42.weechat.weechatrelay.protocol.WObject;
+import com.ubergeek42.weechat.Buffer;
+import com.ubergeek42.weechat.BufferLine;
+import com.ubergeek42.weechat.relay.RelayMessage;
+import com.ubergeek42.weechat.relay.RelayMessageHandler;
+import com.ubergeek42.weechat.relay.protocol.Hdata;
+import com.ubergeek42.weechat.relay.protocol.HdataEntry;
+import com.ubergeek42.weechat.relay.protocol.RelayObject;
 
-public class MessageHandler implements WMessageHandler {
+public class MessageHandler implements RelayMessageHandler {
 
-	private ChatBuffers cb;
+	private BufferManager cb;
 	
-	public MessageHandler(ChatBuffers cb) {
+	public MessageHandler(BufferManager cb) {
 		this.cb = cb;
 	}
 	
 	@Override
-	public void handleMessage(WMessage m, String id) {
+	public void handleMessage(RelayMessage m, String id) {
 		System.err.println("handleMessage Called");
-		WObject objects[] = m.getObjects();
+		RelayObject objects[] = m.getObjects();
 		if (id.equals("_buffer_line_added")) {
-			WHdata whdata = (WHdata) objects[0];
+			Hdata whdata = (Hdata) objects[0];
 			for (int i=0; i<whdata.getCount(); i++) {
 				HdataEntry hde = whdata.getItem(i);
 				// TODO: check last item of path is line_data
@@ -35,10 +37,10 @@ public class MessageHandler implements WMessageHandler {
 				String bPointer = hde.getItem("buffer").asPointer();
 	
 				// Find the buffer to put the line in
-				WeechatBuffer buffer = cb.findByPointer(bPointer);
+				Buffer buffer = cb.findByPointer(bPointer);
 				
 				// Create a new message object, and add it to the correct buffer
-				ChatMessage cm = new ChatMessage();
+				BufferLine cm = new BufferLine();
 				cm.setPrefix(prefix);
 				cm.setMessage(message);
 				cm.setTimestamp(time);
@@ -52,9 +54,9 @@ public class MessageHandler implements WMessageHandler {
 		} else if (id.equals("listlines_reverse")) { // lines come in most recent to least recent
 			long start = System.currentTimeMillis();
 			System.err.println("Listlines started");
-			WHdata whdata = (WHdata) objects[0];
+			Hdata whdata = (Hdata) objects[0];
 			
-			HashSet<WeechatBuffer> toUpdate = new HashSet<WeechatBuffer>();
+			HashSet<Buffer> toUpdate = new HashSet<Buffer>();
 			for(int i=0; i<whdata.getCount(); i++) {
 				HdataEntry hde = whdata.getItem(i);
 				// TODO: check last item of path is line_data
@@ -68,10 +70,10 @@ public class MessageHandler implements WMessageHandler {
 				String bPointer = hde.getPointer(0);
 	
 				// Find the buffer to put the line in
-				WeechatBuffer buffer = cb.findByPointer(bPointer);
+				Buffer buffer = cb.findByPointer(bPointer);
 				
 				// Create a new message object, and add it to the correct buffer
-				ChatMessage cm = new ChatMessage();
+				BufferLine cm = new BufferLine();
 				cm.setPrefix(prefix);
 				cm.setMessage(message);
 				cm.setTimestamp(time);
@@ -84,7 +86,7 @@ public class MessageHandler implements WMessageHandler {
 				buffer.addLineFirstNoNotify(cm);
 				toUpdate.add(buffer);
 			}
-			for(WeechatBuffer wb: toUpdate) {
+			for(Buffer wb: toUpdate) {
 				wb.notifyObservers();
 			}
 			long elapsed = System.currentTimeMillis() - start;

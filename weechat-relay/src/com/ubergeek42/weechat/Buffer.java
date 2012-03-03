@@ -6,11 +6,16 @@ import java.util.LinkedList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ubergeek42.weechat.weechatrelay.WRelayConnection;
+import com.ubergeek42.weechat.relay.RelayConnection;
 
-public class WeechatBuffer {
+/**
+ * Representation of a buffer from weechat
+ * @author ubergeek42<kj@ubergeek42.com>
+ *
+ */
+public class Buffer {
 	public static final int MAXLINES = 50;
-	private static Logger logger = LoggerFactory.getLogger(WeechatBuffer.class);
+	private static Logger logger = LoggerFactory.getLogger(Buffer.class);
 
 	
 	Object messagelock = new Object();
@@ -24,22 +29,22 @@ public class WeechatBuffer {
 	private boolean hasNicklist;
 	private int type;
 
-	private ArrayList<WBufferObserver> observers = new ArrayList<WBufferObserver>();
-	private LinkedList<ChatMessage> lines = new LinkedList<ChatMessage>();
+	private ArrayList<BufferObserver> observers = new ArrayList<BufferObserver>();
+	private LinkedList<BufferLine> lines = new LinkedList<BufferLine>();
 	private ArrayList<NickItem> nicks = new ArrayList<NickItem>();
 	
-	public void addLine(ChatMessage m) {
+	public void addLine(BufferLine m) {
 		addLineNoNotify(m);
 		notifyObservers();
 	}
-	public void addLineNoNotify(ChatMessage m) {
+	public void addLineNoNotify(BufferLine m) {
 		synchronized(messagelock) {
 			lines.addLast(m);
 			if (lines.size() > MAXLINES)
 				lines.removeFirst();
 		}
 	}
-	public void addLineFirstNoNotify(ChatMessage m) {
+	public void addLineFirstNoNotify(BufferLine m) {
 		synchronized(messagelock) {
 			lines.addFirst(m);
 			if (lines.size() > MAXLINES)
@@ -49,13 +54,13 @@ public class WeechatBuffer {
 	
 	// Notify anyone who cares
 	public void notifyObservers() {
-		for(WBufferObserver o: observers)
+		for(BufferObserver o: observers)
 			o.onLineAdded();
 	}
-	public void addObserver(WBufferObserver ob) {
+	public void addObserver(BufferObserver ob) {
 		observers.add(ob);
 	}
-	public void removeObserver(WBufferObserver ob) {
+	public void removeObserver(BufferObserver ob) {
 		observers.remove(ob);
 	}
 	
@@ -72,11 +77,11 @@ public class WeechatBuffer {
 	public String getTitle()                  { return this.title; }
 	public String getShortName()              { return this.shortName; }
 
-	public LinkedList<ChatMessage> getLines() {
+	public LinkedList<BufferLine> getLines() {
 		// Give them a copy, so we don't get concurrent modification exceptions
-		LinkedList<ChatMessage> ret = new LinkedList<ChatMessage>();
+		LinkedList<BufferLine> ret = new LinkedList<BufferLine>();
 		synchronized(messagelock) {
-			for(ChatMessage m: lines) {
+			for(BufferLine m: lines) {
 				ret.add(m);
 			}
 		}
@@ -86,7 +91,7 @@ public class WeechatBuffer {
 	public String getLinesHTML() {
 		// TODO: think about thread synchronization
 		StringBuffer sb = new StringBuffer();
-		for (ChatMessage m: lines) {
+		for (BufferLine m: lines) {
 			sb.append("<tr><td class=\"timestamp\">");
 			sb.append(m.getTimestampStr());
 			sb.append("</td><td>");
@@ -128,7 +133,7 @@ public class WeechatBuffer {
 		}
 	}
 	public void destroy() {
-		for(WBufferObserver o: observers)
+		for(BufferObserver o: observers)
 			o.onBufferClosed();
 	}
 }

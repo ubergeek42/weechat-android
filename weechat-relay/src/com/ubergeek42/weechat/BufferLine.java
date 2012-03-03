@@ -4,7 +4,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class ChatMessage {
+public class BufferLine {
 	private static DateFormat df = new SimpleDateFormat("HH:mm:ss");
 	
 	private String message;

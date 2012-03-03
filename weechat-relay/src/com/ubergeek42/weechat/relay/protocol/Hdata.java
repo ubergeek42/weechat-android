@@ -1,4 +1,4 @@
-package com.ubergeek42.weechat.weechatrelay.protocol;
+package com.ubergeek42.weechat.relay.protocol;
 
 import java.util.ArrayList;
 /**
@@ -9,7 +9,7 @@ import java.util.ArrayList;
  *  
  * @author ubergeek42<kj@ubergeek42.com>
  */
-public class WHdata extends WObject {
+public class Hdata extends RelayObject {
 
 	// XXX: Protected since they are accessed from WData directly...
 	protected String key_list[] = null;

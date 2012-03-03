@@ -1,4 +1,4 @@
-package com.ubergeek42.weechat.weechatrelay.protocol;
+package com.ubergeek42.weechat.relay.protocol;
 
 /**
  * An Info item, basically a name and value pair
@@ -8,11 +8,11 @@ package com.ubergeek42.weechat.weechatrelay.protocol;
  * @author ubergeek42<kj@ubergeek42.com>
  *
  */
-public class WInfo extends WObject {
+public class Info extends RelayObject {
 	private String value;
 	private String name;
 
-	protected WInfo(String name, String value) {
+	protected Info(String name, String value) {
 		this.name = name;
 		this.value = value;
 	}

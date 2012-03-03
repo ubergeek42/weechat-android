@@ -1,4 +1,4 @@
-package com.ubergeek42.weechat.weechatrelay.protocol;
+package com.ubergeek42.weechat.relay.protocol;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -7,15 +7,15 @@ import java.util.HashMap;
  * @author ubergeek42<kj@ubergeek42.com>
  *
  */
-public class HdataEntry extends WObject {
+public class HdataEntry extends RelayObject {
 	private ArrayList<String> pointers = new ArrayList<String>();
-	private HashMap<String, WObject> data = new HashMap<String, WObject>();
+	private HashMap<String, RelayObject> data = new HashMap<String, RelayObject>();
 	
 	protected void addPointer(String pointer) {
 		pointers.add(pointer);
 	}
 
-	protected void addObject(String key, WObject value) {
+	protected void addObject(String key, RelayObject value) {
 		data.put(key, value);
 	}
 
@@ -44,7 +44,7 @@ public class HdataEntry extends WObject {
 	 * @param key - The element to retrieve
 	 * @return The desired object(or null if not found)
 	 */
-	public WObject getItem(String key) {
+	public RelayObject getItem(String key) {
 		return data.get(key);
 	}
 

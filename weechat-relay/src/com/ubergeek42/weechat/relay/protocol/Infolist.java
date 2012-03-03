@@ -1,4 +1,4 @@
-package com.ubergeek42.weechat.weechatrelay.protocol;
+package com.ubergeek42.weechat.relay.protocol;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,17 +11,17 @@ import java.util.HashMap;
  * 
  * @author ubergeek42<kj@ubergeek42.com>
  */
-public class WInfolist extends WObject {
+public class Infolist extends RelayObject {
 
 	private String name;
-	private ArrayList<HashMap<String,WObject>> items = new ArrayList<HashMap<String,WObject>>();
+	private ArrayList<HashMap<String,RelayObject>> items = new ArrayList<HashMap<String,RelayObject>>();
 	
-	protected WInfolist(String name) {
+	protected Infolist(String name) {
 		this.name = name;
 		this.type = WType.INL;
 	}
 
-	protected void addItem(HashMap<String, WObject> variables) {
+	protected void addItem(HashMap<String, RelayObject> variables) {
 		items.add(variables);
 	}
 
@@ -36,7 +36,7 @@ public class WInfolist extends WObject {
 	 * @param index - The item to retrieve
 	 * @return A HashMap<String,WObject> representing it
 	 */
-	public HashMap<String,WObject> getItem(int index) {
+	public HashMap<String,RelayObject> getItem(int index) {
 		return items.get(index);
 	}
 	/**
@@ -52,7 +52,7 @@ public class WInfolist extends WObject {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder(name + ":\n");
-		for(HashMap<String,WObject> item: items) {
+		for(HashMap<String,RelayObject> item: items) {
 			for(String name: item.keySet()) {
 				sb.append(String.format("  %s->%s, ",name,item.get(name)));
 			}

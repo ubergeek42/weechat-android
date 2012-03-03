@@ -1,4 +1,4 @@
-package com.ubergeek42.weechat.weechatrelay;
+package com.ubergeek42.weechat.relay;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -9,23 +9,23 @@ import java.util.zip.InflaterInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ubergeek42.weechat.weechatrelay.protocol.WData;
-import com.ubergeek42.weechat.weechatrelay.protocol.WObject;
+import com.ubergeek42.weechat.relay.protocol.Data;
+import com.ubergeek42.weechat.relay.protocol.RelayObject;
 /**
  * Represents a message from the Weechat Relay Server
  * @author ubergeek42<kj@ubergeek42.com>
  */
-public class WMessage {
+public class RelayMessage {
 	
-	private static Logger logger = LoggerFactory.getLogger(WMessage.class);
+	private static Logger logger = LoggerFactory.getLogger(RelayMessage.class);
 	
-	private ArrayList<WObject> objects = new ArrayList<WObject>();
+	private ArrayList<RelayObject> objects = new ArrayList<RelayObject>();
 	private boolean compressed = false;
 	private int length = 0;
 	private String id = null;
 
-	protected WMessage(byte[] data) {
-		WData wd = new WData(data); // Load the data into our consumer
+	protected RelayMessage(byte[] data) {
+		Data wd = new Data(data); // Load the data into our consumer
 
 		// Get total message length
 		length = wd.getUnsignedInt();
@@ -47,7 +47,7 @@ public class WMessage {
 					bout.write(b,0,r);
 				}
 				data = bout.toByteArray();
-				wd = new WData(data);
+				wd = new Data(data);
 				//System.out.format("[WMessage.constructor] Data size: %d/%d\n", length, data.length+5);// 5 is how much we've already read
 			} catch (IOException e) {
 				System.err.println("[WMessage.constructor] Failed to decompress data stream");
@@ -71,7 +71,7 @@ public class WMessage {
 	 */
 	public String toString() {
 		String msg = String.format("[WMessage.tostring]\n  Length: %d\n  Compressed: %s\n  ID: %s\n",length, "" + compressed, id);
-		for(WObject obj: objects) {
+		for(RelayObject obj: objects) {
 			msg += obj.toString() + "\n";
 		}
 		return msg;
@@ -87,8 +87,8 @@ public class WMessage {
 	/**
 	 * @return The set of objects in the message
 	 */
-	public WObject[] getObjects() {
-		WObject[] ret = new WObject[objects.size()];
+	public RelayObject[] getObjects() {
+		RelayObject[] ret = new RelayObject[objects.size()];
 		ret = objects.toArray(ret);
 		return ret;
 	}
