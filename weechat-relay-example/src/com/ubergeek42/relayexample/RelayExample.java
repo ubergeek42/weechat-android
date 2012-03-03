@@ -2,6 +2,8 @@ package com.ubergeek42.relayexample;
 
 import com.ubergeek42.weechat.ChatBufferObserver;
 import com.ubergeek42.weechat.ChatBuffers;
+import com.ubergeek42.weechat.MessageHandler;
+import com.ubergeek42.weechat.Nicklist;
 import com.ubergeek42.weechat.WeechatBuffer;
 import com.ubergeek42.weechat.weechatrelay.WRelayConnection;
 import com.ubergeek42.weechat.weechatrelay.WRelayConnectionHandler;
@@ -26,24 +28,34 @@ public class RelayExample implements ChatBufferObserver, WRelayConnectionHandler
 
 	@Override
 	public void onConnect() {
-		// Hook a handler for testing the infolist functionality
-		wr.addHandler("infolist-test", new InfolistMessageHandler());
-		wr.sendMsg("infolist-test","infolist", "buffer");
-		
-		// Hook a handler for testing the "info" functionality
-		wr.addHandler("info-test", new InfoMessageHandler());
-		wr.sendMsg("info-test", "info", "version");
-		
 		// Hook a handler for testing hdata functionality
 		cb.onChanged(this);
 		wr.addHandler("listbuffers", cb);
 		wr.sendMsg("listbuffers","hdata","buffer:gui_buffers(*) number,full_name,short_name,type,title,nicklist,local_variables");
 		// Please view the source for ChatBuffers to see how this was handled
 		// ChatBuffers also handles a bunch of other special event messages(such as _buffer_opened, or _buffer_closed)
+		Nicklist nicks = new Nicklist(cb);
+		wr.addHandler("_nicklist", nicks);
+		wr.addHandler("nicklist", nicks);
+		wr.sendMsg("nicklist", "nicklist", "irc.freenode.#cs-fit");
+		// Hook a handler for testing the infolist functionality
+		//wr.addHandler("infolist-test", new InfolistMessageHandler());
+		//wr.sendMsg("infolist-test","infolist", "buffer");
+		
+		// Hook a handler for testing the "info" functionality
+		//wr.addHandler("info-test", new InfoMessageHandler());
+		//wr.sendMsg("info-test", "info", "version");
+		
+		// Hook new lines that are received
+		MessageHandler msgHandler = new MessageHandler(cb);
+		wr.addHandler("_buffer_line_added", msgHandler);
+		// Request a list of all lines from all buffers
+		wr.addHandler("listlines", msgHandler);
+		wr.sendMsg("listlines","hdata", "buffer:gui_buffers(*)/own_lines/first_line(5)/data date,displayed,prefix,message");
 		
 		// Sleep a bit to get our messages, then quit
 		try {
-			Thread.sleep(3000);
+			Thread.sleep(6000);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}

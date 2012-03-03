@@ -9,6 +9,9 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.ubergeek42.weechat.Helper;
 import com.ubergeek42.weechat.weechatrelay.protocol.WData;
 
@@ -18,6 +21,8 @@ import com.ubergeek42.weechat.weechatrelay.protocol.WData;
  */
 public class WRelayConnection {
 
+	private static Logger logger = LoggerFactory.getLogger(WRelayConnection.class);
+	
 	private Socket sock = null;
 	private String password = null;
 	private InetAddress server = null;
@@ -147,6 +152,7 @@ public class WRelayConnection {
 	 */
 	private Thread createSocketConnection = new Thread(new Runnable() {
 		public void run() {
+			logger.trace("createSocketConnection thread started");
 			try {
 				sock = new Socket(server, port);
 				outstream = sock.getOutputStream();
@@ -164,6 +170,7 @@ public class WRelayConnection {
 			for (WRelayConnectionHandler wrch : connectionHandlers) {
 				wrch.onConnect();
 			}
+			logger.trace("createSocketConnection finished");
 		}
 	});
 	
@@ -172,6 +179,7 @@ public class WRelayConnection {
 	 */
 	private Thread socketReader = new Thread(new Runnable() {
 		public void run() {
+			logger.trace("socketReader thread started");
 			ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 			while(sock!=null && !sock.isClosed()) {
 				byte b[] = new byte[256];
@@ -188,13 +196,16 @@ public class WRelayConnection {
 						// Still have more message to read
 						if (buffer.size() < length) break;
 						
+						logger.trace("socketReader got message, size: " + length);
 						// We have a full message, so let's do something with it
 						byte[] bdata = buffer.toByteArray();
 						byte[] msgdata = Helper.copyOfRange(bdata, 0, length);
 						byte[] remainder = Helper.copyOfRange(bdata, length, bdata.length);
 						WMessage wm = new WMessage(msgdata);
 						
+						long start = System.currentTimeMillis();
 						handleMessage(wm);
+						logger.debug("handleMessage took " + (System.currentTimeMillis()-start) + "ms");
 						
 						// Reset the buffer, and put back any additional data
 						buffer.reset();

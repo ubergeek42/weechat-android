@@ -49,67 +49,68 @@ public class ChatMessage {
 		return cleanMessage(prefix);
 	}
 	
-	private String cleanMessage(String prefix) {
+	private String cleanMessage(String msg) {
+		if(msg==null) return msg;
 		StringBuffer cleaned = new StringBuffer();
 		try {
-		for(int i=0;i<prefix.length();) {
-			char c = prefix.charAt(i++);
+		for(int i=0;i<msg.length();) {
+			char c = msg.charAt(i++);
 			
 			if (c==0x1C) {
 				// reset color(doesn't consume anything else)
 				continue;
 			} else if (c==0x1A || c==0x1B) {
-				c = prefix.charAt(i++);
+				c = msg.charAt(i++);
 				continue;
 			} else if (c==0x19) {
-				c = prefix.charAt(i++);
+				c = msg.charAt(i++);
 				if(c==0x1C) continue; // reset color
 				
 				// Special code(related to bar things)
 				if (c=='b') {
-					c = prefix.charAt(i++); // consume an additional character
+					c = msg.charAt(i++); // consume an additional character
 					continue;
 				}
 				
 				if (c=='F' || c=='B' || c=='*') {
-					c = prefix.charAt(i++);
+					c = msg.charAt(i++);
 				}
 				
 				
 				// Extended color is 5 digits
 				if (c=='@') {
-					c=prefix.charAt(i++);
+					c=msg.charAt(i++);
 					// Consume attributes
 					while(c == '*' || c=='!' || c=='/' || c=='_' || c=='|') {
-						c=prefix.charAt(i++);
+						c=msg.charAt(i++);
 					}
 					i+=5;
 				} else { // standard color is 2 digits
 					// consume attributes
 					while(c == '*' || c=='!' || c=='/' || c=='_' || c=='|') {
-						c=prefix.charAt(i++);
+						c=msg.charAt(i++);
 					}
 					i++;
 				}
-				c=prefix.charAt(i++);
+				c=msg.charAt(i++);
 				
 				if (c == ',') {
 					// Extended color is 5 digits
 					if (c=='@') {
-						c=prefix.charAt(i++);
+						c=msg.charAt(i++);
 						// Consume attributes
 						while(c == '*' || c=='!' || c=='/' || c=='_' || c=='|') {
-							c=prefix.charAt(i++);
+							c=msg.charAt(i++);
 						}
 						i+=5;
 					} else { // standard color is 2 digits
 						// consume attributes
 						while(c == '*' || c=='!' || c=='/' || c=='_' || c=='|') {
-							c=prefix.charAt(i++);
+							c=msg.charAt(i++);
 						}
 						i++;
 					}
-					c=prefix.charAt(i++);
+					c=msg.charAt(i++);
 				}
 				// TODO: probably a bug here is two 0x19's come right after one another
 			}

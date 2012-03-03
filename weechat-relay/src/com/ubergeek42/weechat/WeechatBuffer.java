@@ -3,10 +3,18 @@ package com.ubergeek42.weechat;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.ubergeek42.weechat.weechatrelay.WRelayConnection;
+
 public class WeechatBuffer {
-	private static final int MAXLINES = 100;
+	public static final int MAXLINES = 50;
+	private static Logger logger = LoggerFactory.getLogger(WeechatBuffer.class);
+
 	
-	Object lock = new Object();
+	Object messagelock = new Object();
+	Object nicklock = new Object();
 	
 	private int bufferNumber;
 	private String pointer;
@@ -16,22 +24,27 @@ public class WeechatBuffer {
 	private boolean hasNicklist;
 	private int type;
 
-	ArrayList<WBufferObserver> observers = new ArrayList<WBufferObserver>();
+	private ArrayList<WBufferObserver> observers = new ArrayList<WBufferObserver>();
 	private LinkedList<ChatMessage> lines = new LinkedList<ChatMessage>();
-	private Nicklist nicks = new Nicklist();
+	private ArrayList<NickItem> nicks = new ArrayList<NickItem>();
 	
 	public void addLine(ChatMessage m) {
-		synchronized(lock) {
+		addLineNoNotify(m);
+		notifyObservers();
+	}
+	public void addLineNoNotify(ChatMessage m) {
+		synchronized(messagelock) {
 			lines.addLast(m);
 			if (lines.size() > MAXLINES)
 				lines.removeFirst();
 		}
-		// Notify anyone who cares
+	}
+	
+	// Notify anyone who cares
+	public void notifyObservers() {
 		for(WBufferObserver o: observers)
 			o.onLineAdded();
 	}
-
-	
 	public void addObserver(WBufferObserver ob) {
 		observers.add(ob);
 	}
@@ -55,7 +68,7 @@ public class WeechatBuffer {
 	public LinkedList<ChatMessage> getLines() {
 		// Give them a copy, so we don't get concurrent modification exceptions
 		LinkedList<ChatMessage> ret = new LinkedList<ChatMessage>();
-		synchronized(lock) {
+		synchronized(messagelock) {
 			for(ChatMessage m: lines) {
 				ret.add(m);
 			}
@@ -76,5 +89,30 @@ public class WeechatBuffer {
 			sb.append("</td></tr>\n");
 		}
 		return sb.toString();
+	}
+	public void addNick(NickItem ni) {
+		synchronized(nicklock) {
+			nicks.add(ni);
+		}
+	}
+	public String[] getNicks() {
+		int i = 0;
+		String ret[] = new String[0];
+		synchronized(nicklock) {
+			ret = new String[nicks.size()];
+			for(NickItem ni: nicks) {
+				ret[i] = ni.toString();
+				logger.debug(ret[i]);
+				i++;
+			}
+		}
+		return ret;
+	}
+	public int getNumNicks() {
+		int ret=0;
+		synchronized(nicklock) {
+			ret = nicks.size();
+		}
+		return ret;
 	}
 }

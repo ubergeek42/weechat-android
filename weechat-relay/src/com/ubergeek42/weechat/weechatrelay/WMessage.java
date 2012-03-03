@@ -6,6 +6,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.zip.InflaterInputStream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.ubergeek42.weechat.weechatrelay.protocol.WData;
 import com.ubergeek42.weechat.weechatrelay.protocol.WObject;
 /**
@@ -13,6 +16,9 @@ import com.ubergeek42.weechat.weechatrelay.protocol.WObject;
  * @author ubergeek42<kj@ubergeek42.com>
  */
 public class WMessage {
+	
+	private static Logger logger = LoggerFactory.getLogger(WMessage.class);
+	
 	private ArrayList<WObject> objects = new ArrayList<WObject>();
 	private boolean compressed = false;
 	private int length = 0;

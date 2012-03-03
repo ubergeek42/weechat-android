@@ -8,4 +8,9 @@ public class NickItem {
 	String color;
 	String prefix;
 	String prefixColor;
+	
+	@Override
+	public String toString() {
+		return String.format("%s%s",prefix,name);
+	}
 }
