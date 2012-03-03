@@ -3,9 +3,14 @@
 	<description>Java library to interface with the weechat relay plugin</description>
 	
 	<property name="src" location="src" />
-	<property name="build" location="build" />
+	<property name="build" location="bin" />
 	<property name="libdir" location="libs" />
 	
+	<property name="slf4j.dir" value="../libs" />
+		
+	<path id="classpath">
+		<fileset dir="${slf4j.dir}" includes="slf4j-api-1.6.4.jar" />
+	</path>
 	
 	<target name="init">
 		<tstamp/>
@@ -16,7 +21,7 @@
 	<target name="compile" depends="init"
 			description="Compile all necessary source files">
 		<!-- TODO: add option for debug on/off -->
-			<javac debug="on" includeantruntime="false" srcdir="${src}" destdir="${build}" />
+			<javac debug="on" includeantruntime="false" srcdir="${src}" destdir="${build}" classpathref="classpath" />
 	</target>
 	
 	<target name="dist" depends="compile"

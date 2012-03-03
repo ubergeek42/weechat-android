@@ -3,6 +3,7 @@
 	<name>weechat-relay-example</name>
 	<comment></comment>
 	<projects>
+		<project>weechat-relay</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
@@ -21,7 +22,7 @@
 			<arguments>
 				<dictionary>
 					<key>LaunchConfigHandle</key>
-					<value>&lt;project&gt;/.externalToolBuilders/New_Builder.launch</value>
+					<value>&lt;project&gt;/.externalToolBuilders/Ant.launch</value>
 				</dictionary>
 			</arguments>
 		</buildCommand>

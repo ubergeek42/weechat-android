@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="weechat-relay-example" default="dist" basedir=".">
+<project name="weechat-relay-example" default="compile" basedir=".">
 	<description>Example program showing how to use the weechat-relay Java library</description>
 	
 	<property name="src" location="src" />
-	<property name="build" location="build" />
+	<property name="build" location="bin" />
 	
 	<property name="lib.dir" value="../weechat-relay/libs" />
+	<property name="slf4j.dir" value="../libs" />
 	
 	<path id="classpath">
 		<fileset dir="${lib.dir}" includes="weechat-relay.jar" />
+		<fileset dir="${slf4j.dir}" includes="slf4j-*.jar" />
 	</path>
 	
 	<target name="init">
