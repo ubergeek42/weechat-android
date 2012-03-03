@@ -11,10 +11,8 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
         android:layout_toLeftOf="@+id/chatview_send"
-        android:inputType="textLongMessage"
-        android:singleLine="false" >
-
-        <requestFocus />
+        android:inputType="text"
+        android:singleLine="true" >
     </EditText>
 
     <Button

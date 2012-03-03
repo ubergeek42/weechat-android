@@ -122,6 +122,7 @@ public class WeechatActivity extends Activity implements OnItemClickListener,
 		if (server.equals("0.0.0.0")) {
 			Intent i = new Intent(this, WeechatPreferencesActivity.class);
 			startActivity(i);
+			progressDialog.dismiss();
 			return;
 		}
 
@@ -145,7 +146,7 @@ public class WeechatActivity extends Activity implements OnItemClickListener,
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu) {
 		menu.clear();
-		if (wr.isConnected())
+		if (wr!=null && wr.isConnected())
 			menu.add("Disconnect");
 		else
 			menu.add("Connect");

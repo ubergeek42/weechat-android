@@ -131,6 +131,12 @@ public class ChatViewTab implements TabHost.TabContentFactory, WBufferObserver, 
         inputBox.setOnKeyListener(this);
         
         activity.runOnUiThread(updateCV);
+        x.post(new Runnable() {
+			@Override
+			public void run() {
+				inputBox.requestFocus();
+			}
+        });
 		return x;
 	}
 
