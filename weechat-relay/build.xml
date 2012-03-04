@@ -5,9 +5,10 @@
 	<property name="src" location="src" />
 	<property name="build" location="bin" />
 	<property name="libdir" location="libs" />
+	<property name="javadoc.dir" value="doc" />
 	
 	<property name="slf4j.dir" value="../libs" />
-		
+	
 	<path id="classpath">
 		<fileset dir="${slf4j.dir}" includes="slf4j-api-1.6.4.jar" />
 	</path>
@@ -24,6 +25,20 @@
 			<javac debug="on" includeantruntime="false" srcdir="${src}" destdir="${build}" classpathref="classpath" />
 	</target>
 	
+	<target name="javadoc">
+		<javadoc
+			access="public"
+			destdir="${javadoc.dir}"
+			author="true"
+			version="true"
+			use="true"
+			windowtitle="org.ubergeek42.weechat.relay" >
+			<fileset dir="${src}">
+				<include name="**/*.java"/>
+			</fileset>
+		</javadoc>
+	</target>
+	
 	<target name="dist" depends="compile"
 			description="Generate the jar library">
 			<jar jarfile="${libdir}/weechat-relay.jar">
@@ -35,5 +50,6 @@
 	<target name="clean" description="Clean up">
 		<delete dir="${build}" />
 		<delete dir="${libdir}" />
+		<delete dir="${javadoc.dir}" />
 	</target>
 </project>
