@@ -1,36 +1,30 @@
-Weechat Android Relay Client v0.01
+Weechat Android Relay Client v0.02
 ==================================
-This is the first "release" of my android relay client for weechat.
-It should be treated as pre-alpha software, with no expectations of
-functionality.(However, in my limited tests it seems to mostly work)
+This is an Android Weechat Relay client.
+It should be treated as pre-alpha software, with no expectations of functionality.(However, in my limited tests it seems to mostly work)
 
-Download
---------
-USE AT YOUR OWN RISK! This is alpha software and I am not responsible
-if your device bursts into flames, you lose all of your data, or if
-anything else bad happens.
+###Download
+USE AT YOUR OWN RISK! This is alpha software and I am not responsible if your device bursts into flames, you lose all of your data, or if anything else bad happens.
 
-Open the following link your device, which will download the file.  Click on it and choose to install.
-[Link to apk](https://github.com/ubergeek42/weechat-android/raw/master/releases/weechat.apk)
+Either scan the QR code, or click the link to download the apk.  Click on it and choose to install. [Download Link](https://github.com/downloads/ubergeek42/weechat-android/weechat.apk)
 
-Please report any bugs/feature requests here on github, or send me an email: kj@ubergeek42.com
+![Download](https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=https://github.com/downloads/ubergeek42/weechat-android/weechat.apk)
 
-Basic Usage
------------
-To begin using it, press menu, then preferences.  Enter the host, port and password for your
-weechat relay server.  Then menu->connect.
+### Bug Reports and Feature Requests Welcome!
+Please report any bugs or feature requests here on github, or send me an email: kj@ubergeek42.com
 
-When you are in a buffer, you can view the nicklist by pressing menu->nicklist.
+###Basic Usage
+At the main screen, press menu, then choose preferences.
+Configure your hostname, port, and password.  You can also choose to connect automatically next time the app runs, or enable colors(May be a little slow at times).
 
-Screenshots
------------
-![Chat View](https://github.com/ubergeek42/weechat-android/raw/master/releases/chat-channel.png)
-![Buffer List](https://github.com/ubergeek42/weechat-android/raw/master/releases/buffers-tab.png)
-![Preferences page](https://github.com/ubergeek42/weechat-android/raw/master/releases/preferences.png)
+Then press Menu->Connect to connect to the server. If successful you will see a list of your weechat buffers.  Clicking on a buffer opens it in a new tab.  A buffer currently displays the 50 most recent lines.  I plan to make this configurable in the future.
+
+To see the nicklist for the current buffer, press menu, then choose nicklist.
+
+The back button exits(and disconnects).  There is currently no support for running in the background.
 
 
-Source Code
------------
+###Source Code
 There are 3 basic parts to this, the android application, the java library which provides most of
 the functionality of connecting to the weechat relay server, and an example client showing the basic
 features of that library.
@@ -46,3 +40,17 @@ To build the android application, you will need to 'cd weechat', then run 'andro
 For more details about Weechat and the Relay Protocol:
 * Weechat - http://www.weechat.org/
 * Relay Protocol - http://www.weechat.org/files/doc/devel/weechat_relay_protocol.en.html
+
+###Screenshots
+<a href="https://github.com/ubergeek42/weechat-android/raw/master/releases/chat-channel.png"><img src="https://github.com/ubergeek42/weechat-android/raw/master/releases/chat-channel.png" width="400px"></a>
+<a href="https://github.com/ubergeek42/weechat-android/raw/master/releases/preferences.png"><img src="https://github.com/ubergeek42/weechat-android/raw/master/releases/preferences.png" height="400px"></a>
+<a href="https://github.com/ubergeek42/weechat-android/raw/master/releases/buffers-tab.png"><img src="https://github.com/ubergeek42/weechat-android/raw/master/releases/buffers-tab.png" height="400px"></a>
+<a href="https://github.com/ubergeek42/weechat-android/raw/master/releases/buffers-colors.png"><img src="https://github.com/ubergeek42/weechat-android/raw/master/releases/buffers-colors.png" height="400px"></a>
+
+### Changelog
+#### v0.02
+* Colors!
+* A few bugfixes
+
+#### v0.01
+* Initial Release
