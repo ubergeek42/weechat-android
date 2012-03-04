@@ -15,6 +15,7 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -26,24 +27,24 @@ import android.widget.TabHost;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.ubergeek42.weechat.ChatBuffers;
-import com.ubergeek42.weechat.MessageHandler;
-import com.ubergeek42.weechat.Nicklist;
-import com.ubergeek42.weechat.WeechatBuffer;
-import com.ubergeek42.weechat.weechatrelay.WMessageHandler;
-import com.ubergeek42.weechat.weechatrelay.WRelayConnection;
-import com.ubergeek42.weechat.weechatrelay.WRelayConnectionHandler;
+import com.ubergeek42.weechat.Buffer;
+import com.ubergeek42.weechat.relay.RelayConnection;
+import com.ubergeek42.weechat.relay.RelayConnectionHandler;
+import com.ubergeek42.weechat.relay.RelayMessageHandler;
+import com.ubergeek42.weechat.relay.messagehandler.BufferManager;
+import com.ubergeek42.weechat.relay.messagehandler.LineHandler;
+import com.ubergeek42.weechat.relay.messagehandler.NicklistHandler;
 
 public class WeechatActivity extends Activity implements OnItemClickListener,
-		OnCancelListener, WRelayConnectionHandler {
+		OnCancelListener, RelayConnectionHandler {
 	private static final Logger logger = LoggerFactory.getLogger(WeechatActivity.class);
-	
+
 	BufferListAdapter m_adapter;
-	WRelayConnection wr;
-	
-	ChatBuffers cbs;
-	WMessageHandler msgHandler;
-	Nicklist nickhandler;
+	RelayConnection wr;
+
+	BufferManager cbs;
+	RelayMessageHandler msgHandler;
+	NicklistHandler nickhandler;
 	
 	ProgressDialog progressDialog;
 	ListView bufferlist;
@@ -68,10 +69,10 @@ public class WeechatActivity extends Activity implements OnItemClickListener,
 
 		addTab("buffers_tab", "Buffers", R.id.maintab);
 
-		cbs = new ChatBuffers();
+		cbs = new BufferManager();
 		m_adapter = new BufferListAdapter(this, cbs);
-		msgHandler = new MessageHandler(cbs);
-		nickhandler = new Nicklist(cbs);
+		msgHandler = new LineHandler(cbs);
+		nickhandler = new NicklistHandler(cbs);
 				
 		bufferlist = (ListView) this.findViewById(R.id.bufferlist);
 		bufferlist.setAdapter(m_adapter);
@@ -129,7 +130,7 @@ public class WeechatActivity extends Activity implements OnItemClickListener,
 			return;
 		}
 
-		wr = new WRelayConnection(server, port, password);
+		wr = new RelayConnection(server, port, password);
 		wr.setConnectionHandler(this);
 		setTitle("Weechat - " + wr.getServer());
 		wr.tryConnect();
@@ -140,10 +141,10 @@ public class WeechatActivity extends Activity implements OnItemClickListener,
 		if (wr!=null && wr.isConnected())
 			wr.disconnect();
 		
-		cbs = new ChatBuffers();
+		cbs = new BufferManager();
 		m_adapter = new BufferListAdapter(this, cbs);
-		msgHandler = new MessageHandler(cbs);
-		nickhandler = new Nicklist(cbs);
+		msgHandler = new LineHandler(cbs);
+		nickhandler = new NicklistHandler(cbs);
 		bufferlist.setAdapter(m_adapter);
 	}
 
@@ -181,7 +182,7 @@ public class WeechatActivity extends Activity implements OnItemClickListener,
 				return true; // no nicklist for buffers tab
 			}
 			ChatViewTab cvt = chats.get(curtab-1);
-			WeechatBuffer wb = cvt.getBuffer();
+			Buffer wb = cvt.getBuffer();
 			
 			AlertDialog.Builder builder = new AlertDialog.Builder(this);
 			builder.setTitle("Nicks in channel:");
@@ -250,7 +251,7 @@ public class WeechatActivity extends Activity implements OnItemClickListener,
 	@Override
 	// When the user clicks on a buffer in the list
 	public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-		WeechatBuffer wb = (WeechatBuffer) bufferlist.getItemAtPosition(position);
+		Buffer wb = (Buffer) bufferlist.getItemAtPosition(position);
 		String tag = wb.getFullName();
 
 		ChatViewTab cv = new ChatViewTab(wb, this);
@@ -313,7 +314,7 @@ public class WeechatActivity extends Activity implements OnItemClickListener,
 		wr.sendMsg("(listbuffers) hdata buffer:gui_buffers(*) number,full_name,short_name,type,title,nicklist,local_variables");
 		
 		// Get the last MAXLINES for each buffer
-		wr.sendMsg("(listlines_reverse) hdata buffer:gui_buffers(*)/own_lines/last_line(-" + WeechatBuffer.MAXLINES + ")/data date,displayed,prefix,message");
+		wr.sendMsg("(listlines_reverse) hdata buffer:gui_buffers(*)/own_lines/last_line(-" + Buffer.MAXLINES + ")/data date,displayed,prefix,message");
 
 		// Get the nicklist for any buffers we have
 		wr.sendMsg("nicklist","nicklist","");

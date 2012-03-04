@@ -5,6 +5,8 @@ import java.util.LinkedList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import android.text.Html;
+import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,20 +16,20 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ScrollView;
 import android.widget.TabHost;
-import android.widget.TabHost.TabSpec;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
-import com.ubergeek42.weechat.ChatMessage;
-import com.ubergeek42.weechat.WBufferObserver;
-import com.ubergeek42.weechat.WeechatBuffer;
+import com.ubergeek42.weechat.Buffer;
+import com.ubergeek42.weechat.BufferLine;
+import com.ubergeek42.weechat.BufferObserver;
+import com.ubergeek42.weechat.Color;
 
-public class ChatViewTab implements TabHost.TabContentFactory, WBufferObserver, OnClickListener, OnKeyListener {
+public class ChatViewTab implements TabHost.TabContentFactory, BufferObserver, OnClickListener, OnKeyListener {
 
 	private static final Logger logger = LoggerFactory.getLogger(ChatViewTab.class);
 	
-	private WeechatBuffer wb;
+	private Buffer wb;
 	private LayoutInflater inflater;
 
 	private ScrollView scrollview;
@@ -38,7 +40,7 @@ public class ChatViewTab implements TabHost.TabContentFactory, WBufferObserver, 
 	private WeechatActivity activity;
 	private boolean destroyed = false;
 
-	public ChatViewTab(WeechatBuffer wb, WeechatActivity activity) {
+	public ChatViewTab(Buffer wb, WeechatActivity activity) {
 		this.inflater = activity.getLayoutInflater();
 		this.activity = activity;
 		this.wb = wb;
@@ -68,19 +70,21 @@ public class ChatViewTab implements TabHost.TabContentFactory, WBufferObserver, 
 		public void run() {
 			long start = System.currentTimeMillis();
 			if (destroyed)return;
-			LinkedList<ChatMessage> lines = wb.getLines();
+			LinkedList<BufferLine> lines = wb.getLines();
 			table.removeAllViews();
-			for(ChatMessage cm: lines) {
+			for(BufferLine cm: lines) {
 				TableRow tr = (TableRow)inflater.inflate(R.layout.chatline, null);
 				
 				TextView timestamp = (TextView) tr.findViewById(R.id.chatline_timestamp);
 				timestamp.setText(cm.getTimestampStr());
 				
 				TextView prefix = (TextView) tr.findViewById(R.id.chatline_prefix);
-				prefix.setText(cm.getPrefix());
+				Color c = new Color(TextUtils.htmlEncode(cm.getPrefix()));
+				prefix.setText(Html.fromHtml(c.toHTML()), TextView.BufferType.SPANNABLE);
 				
 				TextView message = (TextView) tr.findViewById(R.id.chatline_message);
-				message.setText(cm.getMessage());
+				c = new Color(TextUtils.htmlEncode(cm.getMessage()));
+				message.setText(Html.fromHtml(c.toHTML()), TextView.BufferType.SPANNABLE);
 				
 				table.addView(tr);
 			}
@@ -160,7 +164,7 @@ public class ChatViewTab implements TabHost.TabContentFactory, WBufferObserver, 
 		return false;
 	}
 
-	public WeechatBuffer getBuffer() {
+	public Buffer getBuffer() {
 		return this.wb;
 	}
 

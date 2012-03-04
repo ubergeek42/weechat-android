@@ -6,15 +6,15 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
-import com.ubergeek42.weechat.ChatBufferObserver;
-import com.ubergeek42.weechat.ChatBuffers;
-import com.ubergeek42.weechat.WeechatBuffer;
+import com.ubergeek42.weechat.Buffer;
+import com.ubergeek42.weechat.relay.messagehandler.BufferManager;
+import com.ubergeek42.weechat.relay.messagehandler.BufferManagerObserver;
 
-public class BufferListAdapter extends BaseAdapter implements ChatBufferObserver {
+public class BufferListAdapter extends BaseAdapter implements BufferManagerObserver {
 	WeechatActivity parentActivity;
 	LayoutInflater inflater;
-	private ChatBuffers cbs;
-	public BufferListAdapter(WeechatActivity parentActivity, ChatBuffers cbs) {
+	private BufferManager cbs;
+	public BufferListAdapter(WeechatActivity parentActivity, BufferManager cbs) {
 		this.parentActivity = parentActivity;
 		this.inflater = LayoutInflater.from(parentActivity);
 		this.cbs = cbs;
@@ -27,7 +27,7 @@ public class BufferListAdapter extends BaseAdapter implements ChatBufferObserver
 	}
 
 	@Override
-	public WeechatBuffer getItem(int position) {
+	public Buffer getItem(int position) {
 		return cbs.getBuffer(position);
 	}
 
@@ -39,7 +39,7 @@ public class BufferListAdapter extends BaseAdapter implements ChatBufferObserver
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
 		
-		WeechatBuffer bufferItem = (WeechatBuffer)getItem(position);
+		Buffer bufferItem = (Buffer)getItem(position);
 		
 		if (convertView == null) {
 			convertView = inflater.inflate(R.layout.buffer_item,null);
