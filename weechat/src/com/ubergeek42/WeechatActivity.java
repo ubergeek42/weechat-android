@@ -62,6 +62,9 @@ public class WeechatActivity extends Activity implements OnItemClickListener,
 		setContentView(R.layout.main);
 		
 		prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+		boolean chatviewColors = prefs.getBoolean("chatview_color", true);
+		ChatViewTab.setColorsEnabled(chatviewColors);
+		
 		inflater = getLayoutInflater();
 
 		tabhost = (TabHost) findViewById(R.id.TabHost01);

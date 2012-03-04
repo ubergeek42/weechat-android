@@ -27,44 +27,44 @@ public class Color {
 		"#FFFFFF"	// White
 	};
 	private static final String weechatOptions[] = new String[] {
-		"#000000", //# 0"default"
-		"#000000", //# 1"chat",
+		"#FFFFFF", //# 0"default"
+		"#FFFFFF", //# 1"chat",
 		"#999999", //# 2"chat_time", 
-		"#000000", //# 3"chat_time_delimiters", 
+		"#FFFFFF", //# 3"chat_time_delimiters", 
 		"#FF6633", //# 4"chat_prefix_error", 
 		"#990099", //# 5"chat_prefix_network", 
-		"#000000", //# 6"chat_prefix_action", 
+		"#FFFFFF", //# 6"chat_prefix_action", 
 		"#00CC00", //# 7"chat_prefix_join", 
 		"#CC0000", //# 8"chat_prefix_quit", 
 		"#CC00FF", //# 9"chat_prefix_more", 
 		"#330099", //# 10"chat_prefix_suffix", 
-		"#000000", //# 11"chat_buffer", 
-		"#000000", //# 12"chat_server", 
-		"#000000", //# 13"chat_channel", 
-		"#000000", //# 14"chat_nick", 
-		"*#000000", //# 15"chat_nick_self", 
-		"#000000", //# 16"chat_nick_other", 
-		"#000000", //# 17 (nick1 -- obsolete)"", 
-		"#000000", //# 18 (nick2 -- obsolete)"", 
-		"#000000", //# 19 (nick3 -- obsolete)"", 
-		"#000000", //# 20 (nick4 -- obsolete)"", 
-		"#000000", //# 21 (nick5 -- obsolete)"", 
-		"#000000", //# 22 (nick6 -- obsolete)"", 
-		"#000000", //# 23 (nick7 -- obsolete)"", 
-		"#000000", //# 24 (nick8 -- obsolete)"", 
-		"#000000", //# 25 (nick9 -- obsolete)"", 
-		"#000000", //# 26 (nick10 -- obsolete)"", 
+		"#FFFFFF", //# 11"chat_buffer", 
+		"#FFFFFF", //# 12"chat_server", 
+		"#FFFFFF", //# 13"chat_channel", 
+		"#FFFFFF", //# 14"chat_nick", 
+		"*#FFFFFF", //# 15"chat_nick_self", 
+		"#FFFFFF", //# 16"chat_nick_other", 
+		"#FFFFFF", //# 17 (nick1 -- obsolete)"", 
+		"#FFFFFF", //# 18 (nick2 -- obsolete)"", 
+		"#FFFFFF", //# 19 (nick3 -- obsolete)"", 
+		"#FFFFFF", //# 20 (nick4 -- obsolete)"", 
+		"#FFFFFF", //# 21 (nick5 -- obsolete)"", 
+		"#FFFFFF", //# 22 (nick6 -- obsolete)"", 
+		"#FFFFFF", //# 23 (nick7 -- obsolete)"", 
+		"#FFFFFF", //# 24 (nick8 -- obsolete)"", 
+		"#FFFFFF", //# 25 (nick9 -- obsolete)"", 
+		"#FFFFFF", //# 26 (nick10 -- obsolete)"", 
 		"#666666", //# 27"chat_host", 
 		"#9999FF", //# 28"chat_delimiters", 
 		"#3399CC", //# 29"chat_highlight", 
-		"#000000", //# 30"chat_read_marker", 
-		"#000000", //# 31"chat_text_found", 
-		"#000000", //# 32"chat_value", 
-		"#000000", //# 33"chat_prefix_buffer", 
-		"#000000", //# 34"chat_tags", 
-		"#000000", //# 35"chat_inactive_window", 
-		"#000000", //# 36"chat_inactive_buffer", 
-		"#000000"  //# 37"chat_prefix_buffer_inactive_buffer"
+		"#FFFFFF", //# 30"chat_read_marker", 
+		"#FFFFFF", //# 31"chat_text_found", 
+		"#FFFFFF", //# 32"chat_value", 
+		"#FFFFFF", //# 33"chat_prefix_buffer", 
+		"#FFFFFF", //# 34"chat_tags", 
+		"#FFFFFF", //# 35"chat_inactive_window", 
+		"#FFFFFF", //# 36"chat_inactive_buffer", 
+		"#FFFFFF"  //# 37"chat_prefix_buffer_inactive_buffer"
 	};
 	
 	private static String extendedColors[] = new String[256];
@@ -77,10 +77,8 @@ public class Color {
 	private static final String FG_DEFAULT = weechatColors[0];
 	private static final String BG_DEFAULT = weechatColors[1];
 	
-	
 	private String msg;
 	private int index;
-	
 	
 	// Current state
 	boolean bold = false;
@@ -90,8 +88,13 @@ public class Color {
 	String fgColor = weechatColors[0];
 	String bgColor = weechatColors[1];
 	
-	public Color(String message) {
-		this.msg = message;
+	public Color() {
+		this.msg = "";
+		this.index = 0;
+	}
+
+	public void setText(String message) {
+		this.msg = encodeHTML(message);
 		this.index = 0;
 	}
 	
@@ -302,10 +305,7 @@ public class Color {
 	}
 	
 	
-
-	
-
-	public String stripColors() {
+	public static String stripColors(String msg) {
 		if(msg==null) return msg;
 		StringBuffer cleaned = new StringBuffer();
 		try {
@@ -377,5 +377,35 @@ public class Color {
 			// Ignored
 		}
 		return cleaned.toString();
+	}
+	
+	
+	/**
+	 * Encode a string as HTML(Escaping the various special characters that are valid html)
+	 * Slightly modified to escape ampersand as well...
+	 * Taken from:
+	 * 	http://stackoverflow.com/a/8838023
+	 *  http://forums.thedailywtf.com/forums/p/2806/72054.aspx#72054
+	 * @param s - String to escape
+	 * @return A string safe to use in an HTML document
+	 */
+	private static String encodeHTML(String s)
+	{
+	    StringBuffer out = new StringBuffer();
+	    for(int i=0; i<s.length(); i++)
+	    {
+	        char c = s.charAt(i);
+	        if (c=='&') {
+	        	out.append("&amp;");
+	        }else if(c > 127 || c=='"' || c=='<' || c=='>')
+	        {
+	           out.append("&#"+(int)c+";");
+	        }
+	        else
+	        {
+	            out.append(c);
+	        }
+	    }
+	    return out.toString();
 	}
 }

@@ -18,7 +18,14 @@ public class BufferLine {
 	private String message;
 	private String prefix;
 	private Date time;
+	
+	
+	private String messageHTML = null;
+	private String prefixHTML = null;
+	private String timeStr = null;
+	
 	private boolean visible;
+	
 	// TODO: consider caching the color "cleaned" values as well
 	
 	/**
@@ -26,6 +33,8 @@ public class BufferLine {
 	 * @param prefix - The prefix for the line
 	 */
 	public void setPrefix(String prefix) {
+		if (prefix == null)
+			prefix = "";
 		this.prefix = prefix;
 	}
 	/**
@@ -33,7 +42,19 @@ public class BufferLine {
 	 * @return The stripped prefix for the line
 	 */
 	public String getPrefix() {
-		return prefix;
+		return cleanMessage(prefix);
+	}
+	/**
+	 * Get the prefix for the line formatted with html(and colors) 
+	 * @return an HTML formatted prefix
+	 */
+	public String getPrefixHTML() {
+		Color c = new Color();
+		if (this.prefixHTML==null) {
+			c.setText(prefix);
+			this.prefixHTML = c.toHTML();
+		}
+		return this.prefixHTML;
 	}
 
 	/**
@@ -41,6 +62,8 @@ public class BufferLine {
 	 * @param message - The content for the line
 	 */
 	public void setMessage(String message) {
+		if (message==null)
+			message = "";
 		this.message = message;
 	}
 	/**
@@ -48,7 +71,19 @@ public class BufferLine {
 	 * @return The stripped message for the line
 	 */
 	public String getMessage() {
-		return message;
+		return cleanMessage(message);
+	}
+	/**
+	 * Get the message formatted with html(and colors)
+	 * @return an HTML formatted message
+	 */
+	public String getMessageHTML() {
+		Color c = new Color();
+		if (this.messageHTML==null) {
+			c.setText(message);
+			this.messageHTML = c.toHTML();
+		}
+		return this.messageHTML;
 	}
 
 	/**
@@ -63,7 +98,9 @@ public class BufferLine {
 	 * @return A string representation of the timestamp
 	 */
 	public String getTimestampStr() {
-		return DATEFORMAT.format(time);
+		if (this.timeStr == null)
+			this.timeStr = DATEFORMAT.format(time);
+		return this.timeStr;
 	}
 	
 	/**
@@ -80,8 +117,7 @@ public class BufferLine {
 	 * @return The message without any color codes
 	 */
 	private String cleanMessage(String msg) {
-		Color c = new Color(msg);
-		return c.stripColors();
+		return Color.stripColors(msg);
 	}
 
 	@Override

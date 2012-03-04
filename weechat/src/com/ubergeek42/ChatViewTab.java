@@ -6,7 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import android.text.Html;
-import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -23,7 +22,6 @@ import android.widget.TextView;
 import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.BufferLine;
 import com.ubergeek42.weechat.BufferObserver;
-import com.ubergeek42.weechat.Color;
 
 public class ChatViewTab implements TabHost.TabContentFactory, BufferObserver, OnClickListener, OnKeyListener {
 
@@ -39,7 +37,17 @@ public class ChatViewTab implements TabHost.TabContentFactory, BufferObserver, O
 	private Button sendButton;
 	private WeechatActivity activity;
 	private boolean destroyed = false;
-
+	
+	// Used to cache rendered table rows(as it is very slow to build them every refresh)
+	private LRUMap<BufferLine,TableRow> tableCache = new LRUMap<BufferLine,TableRow>(Buffer.MAXLINES, Buffer.MAXLINES);
+	
+	// TODO: expose setting in the UI for coloring messages(Note: somewhat slow)
+	private static boolean enableColor = true;
+	
+	protected static void setColorsEnabled(boolean enabled) {
+		enableColor = enabled;
+	}
+	
 	public ChatViewTab(Buffer wb, WeechatActivity activity) {
 		this.inflater = activity.getLayoutInflater();
 		this.activity = activity;
@@ -73,20 +81,32 @@ public class ChatViewTab implements TabHost.TabContentFactory, BufferObserver, O
 			LinkedList<BufferLine> lines = wb.getLines();
 			table.removeAllViews();
 			for(BufferLine cm: lines) {
-				TableRow tr = (TableRow)inflater.inflate(R.layout.chatline, null);
-				
-				TextView timestamp = (TextView) tr.findViewById(R.id.chatline_timestamp);
-				timestamp.setText(cm.getTimestampStr());
-				
-				TextView prefix = (TextView) tr.findViewById(R.id.chatline_prefix);
-				Color c = new Color(TextUtils.htmlEncode(cm.getPrefix()));
-				prefix.setText(Html.fromHtml(c.toHTML()), TextView.BufferType.SPANNABLE);
-				
-				TextView message = (TextView) tr.findViewById(R.id.chatline_message);
-				c = new Color(TextUtils.htmlEncode(cm.getMessage()));
-				message.setText(Html.fromHtml(c.toHTML()), TextView.BufferType.SPANNABLE);
-				
-				table.addView(tr);
+				if (tableCache.containsKey(cm))
+					table.addView(tableCache.get(cm));
+				else {
+					TableRow tr = (TableRow)inflater.inflate(R.layout.chatline, null);
+					
+					TextView timestamp = (TextView) tr.findViewById(R.id.chatline_timestamp);
+					timestamp.setText(cm.getTimestampStr());
+					
+					TextView prefix = (TextView) tr.findViewById(R.id.chatline_prefix);
+					if (enableColor) {
+						prefix.setText(Html.fromHtml(cm.getPrefixHTML()), TextView.BufferType.SPANNABLE);
+					} else {
+						prefix.setText(cm.getPrefix());
+					}
+					
+					TextView message = (TextView) tr.findViewById(R.id.chatline_message);
+					if (enableColor) {
+						message.setText(Html.fromHtml(cm.getMessageHTML()), TextView.BufferType.SPANNABLE);
+					} else {
+						message.setText(cm.getMessage());
+					}
+
+					// Add to the cache
+					tableCache.put(cm, tr);
+					table.addView(tr);
+				}
 			}
 			logger.debug("updateChatView took: " + (System.currentTimeMillis() - start) + "ms");
 			scrollview.post(new Runnable() {
