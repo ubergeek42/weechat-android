@@ -1,4 +1,4 @@
-package com.ubergeek42.weechat.handler;
+package com.ubergeek42.weechat.relay.messagehandler;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -11,20 +11,18 @@ import com.ubergeek42.weechat.relay.protocol.Hdata;
 import com.ubergeek42.weechat.relay.protocol.HdataEntry;
 import com.ubergeek42.weechat.relay.protocol.RelayObject;
 
-public class MessageHandler implements RelayMessageHandler {
+public class LineHandler implements RelayMessageHandler {
 
 	private BufferManager cb;
 	
-	public MessageHandler(BufferManager cb) {
+	public LineHandler(BufferManager cb) {
 		this.cb = cb;
 	}
 	
 	@Override
-	public void handleMessage(RelayMessage m, String id) {
-		System.err.println("handleMessage Called");
-		RelayObject objects[] = m.getObjects();
+	public void handleMessage(RelayObject obj, String id) {
+		Hdata whdata = (Hdata) obj;
 		if (id.equals("_buffer_line_added")) {
-			Hdata whdata = (Hdata) objects[0];
 			for (int i=0; i<whdata.getCount(); i++) {
 				HdataEntry hde = whdata.getItem(i);
 				// TODO: check last item of path is line_data
@@ -54,13 +52,11 @@ public class MessageHandler implements RelayMessageHandler {
 		} else if (id.equals("listlines_reverse")) { // lines come in most recent to least recent
 			long start = System.currentTimeMillis();
 			System.err.println("Listlines started");
-			Hdata whdata = (Hdata) objects[0];
 			
 			HashSet<Buffer> toUpdate = new HashSet<Buffer>();
 			for(int i=0; i<whdata.getCount(); i++) {
 				HdataEntry hde = whdata.getItem(i);
 				// TODO: check last item of path is line_data
-				
 				
 				// Get the information about the "line"
 				String message = hde.getItem("message").asString();

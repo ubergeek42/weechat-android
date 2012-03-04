@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import com.ubergeek42.weechat.Helper;
 import com.ubergeek42.weechat.relay.protocol.Data;
+import com.ubergeek42.weechat.relay.protocol.RelayObject;
 
 /**
  * Class to provide and manage a connection to a weechat relay server
@@ -247,8 +248,10 @@ public class RelayConnection {
 	private void handleMessage(RelayMessage msg) {
 		String id = msg.getID();
 		if (messageHandlers.containsKey(id)) {
-			RelayMessageHandler wmh = messageHandlers.get(id);
-			wmh.handleMessage(msg, id);
+			RelayMessageHandler rmh = messageHandlers.get(id);
+			for(RelayObject obj: msg.getObjects()) {
+				rmh.handleMessage(obj, id);
+			}
 		} else {
 			logger.debug("Unhandled message: " + id);
 		}

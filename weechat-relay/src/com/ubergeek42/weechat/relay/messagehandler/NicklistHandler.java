@@ -1,4 +1,4 @@
-package com.ubergeek42.weechat.handler;
+package com.ubergeek42.weechat.relay.messagehandler;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -30,21 +30,17 @@ public class NicklistHandler implements RelayMessageHandler {
 	}
 
 	@Override
-	public void handleMessage(RelayMessage m, String id) {
+	public void handleMessage(RelayObject obj, String id) {
 		if (id.equals("_nicklist") || id.equals("nicklist")) {
-			// TODO: verify path is nicklist_item
+			// TODO: verify path is nicklist_item, that obj is Hdata
 
 			HashSet<Buffer> nicklistCleared = new HashSet<Buffer>();
 			
 			// Which buffer is this for?
-			RelayObject objects[] = m.getObjects();
-			Hdata whdata = (Hdata) objects[0];
+			Hdata whdata = (Hdata) obj;
 			for (int i = 0; i < whdata.getCount(); i++) {
 				HdataEntry hde = whdata.getItem(i);
 				NickItem ni = new NickItem(hde);
-				
-
-				
 				
 				// Not a nick we care about(its a group or invisible)
 				if (ni.isGroup() || !ni.isVisible())

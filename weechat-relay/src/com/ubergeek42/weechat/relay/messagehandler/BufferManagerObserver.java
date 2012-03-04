@@ -1,4 +1,4 @@
-package com.ubergeek42.weechat.handler;
+package com.ubergeek42.weechat.relay.messagehandler;
 
 /**
  * Observer to receive notifications when buffers change
