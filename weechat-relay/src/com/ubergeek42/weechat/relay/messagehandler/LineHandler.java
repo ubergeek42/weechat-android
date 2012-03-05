@@ -50,9 +50,6 @@ public class LineHandler implements RelayMessageHandler {
 				buffer.addLine(cm);
 			}
 		} else if (id.equals("listlines_reverse")) { // lines come in most recent to least recent
-			long start = System.currentTimeMillis();
-			System.err.println("Listlines started");
-			
 			HashSet<Buffer> toUpdate = new HashSet<Buffer>();
 			for(int i=0; i<whdata.getCount(); i++) {
 				HdataEntry hde = whdata.getItem(i);
@@ -76,7 +73,7 @@ public class LineHandler implements RelayMessageHandler {
 				cm.setVisible(displayed);
 				
 				// XXX: debugging statement
-				System.out.println(buffer.getFullName() + " " + cm);
+				//System.out.println(buffer.getFullName() + " " + cm);
 				
 				// TODO: check buffer isn't null...
 				buffer.addLineFirstNoNotify(cm);
@@ -85,8 +82,6 @@ public class LineHandler implements RelayMessageHandler {
 			for(Buffer wb: toUpdate) {
 				wb.notifyObservers();
 			}
-			long elapsed = System.currentTimeMillis() - start;
-			System.err.println("Listlines finished: " + elapsed);
 		} else {
 			// Unhandled ID message...
 		}

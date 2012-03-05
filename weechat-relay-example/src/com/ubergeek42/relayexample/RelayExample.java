@@ -1,16 +1,19 @@
 package com.ubergeek42.relayexample;
 
-import com.ubergeek42.weechat.ChatBufferObserver;
-import com.ubergeek42.weechat.ChatBuffers;
-import com.ubergeek42.weechat.MessageHandler;
-import com.ubergeek42.weechat.Nicklist;
-import com.ubergeek42.weechat.WeechatBuffer;
-import com.ubergeek42.weechat.weechatrelay.WRelayConnection;
-import com.ubergeek42.weechat.weechatrelay.WRelayConnectionHandler;
+import java.util.LinkedList;
 
-public class RelayExample implements ChatBufferObserver, WRelayConnectionHandler {
-	static ChatBuffers cb = new ChatBuffers();
-	private WRelayConnection wr;
+import com.ubergeek42.weechat.Buffer;
+import com.ubergeek42.weechat.BufferLine;
+import com.ubergeek42.weechat.relay.RelayConnection;
+import com.ubergeek42.weechat.relay.RelayConnectionHandler;
+import com.ubergeek42.weechat.relay.messagehandler.BufferManager;
+import com.ubergeek42.weechat.relay.messagehandler.BufferManagerObserver;
+import com.ubergeek42.weechat.relay.messagehandler.LineHandler;
+import com.ubergeek42.weechat.relay.messagehandler.NicklistHandler;
+
+public class RelayExample implements BufferManagerObserver, RelayConnectionHandler {
+	static BufferManager bufferManager = new BufferManager();
+	private RelayConnection relay;
 	public static void main(String[] args) {
 		new RelayExample().demo();
 	}
@@ -21,46 +24,58 @@ public class RelayExample implements ChatBufferObserver, WRelayConnectionHandler
 		String password = "testpassword";
 		
 		System.out.format("Attempting connection to %s:%s with password %s\n", server, port, password);
-		wr = new WRelayConnection(server, port, password);
-		wr.setConnectionHandler(this);
-		wr.tryConnect();
+		relay = new RelayConnection(server, port, password);
+		relay.setConnectionHandler(this);
+		relay.tryConnect();
 	}
 
 	@Override
 	public void onConnect() {
 		// Hook a handler for testing hdata functionality
-		cb.onChanged(this);
-		wr.addHandler("listbuffers", cb);
-		wr.sendMsg("listbuffers","hdata","buffer:gui_buffers(*) number,full_name,short_name,type,title,nicklist,local_variables");
-		// Please view the source for ChatBuffers to see how this was handled
-		// ChatBuffers also handles a bunch of other special event messages(such as _buffer_opened, or _buffer_closed)
-		Nicklist nicks = new Nicklist(cb);
-		wr.addHandler("_nicklist", nicks);
-		wr.addHandler("nicklist", nicks);
-		wr.sendMsg("nicklist", "nicklist", "irc.freenode.#cs-fit");
+		bufferManager.onChanged(this);
+		relay.addHandler("listbuffers", bufferManager);
+		relay.sendMsg("listbuffers","hdata","buffer:gui_buffers(*) number,full_name,short_name,type,title,nicklist,local_variables");
+		// Please view the source for BufferManager to see how this was handled
+		// BufferManager also handles a bunch of other special event messages(such as _buffer_opened, or _buffer_closed)
+		
+		// Hook for testing nicklists
+		NicklistHandler nickHandler = new NicklistHandler(bufferManager);
+		relay.addHandler("_nicklist", nickHandler);
+		relay.addHandler("nicklist", nickHandler);
+		relay.sendMsg("nicklist", "nicklist", "irc.freenode.#cs-fit");
+		
+		
 		// Hook a handler for testing the infolist functionality
-		//wr.addHandler("infolist-test", new InfolistMessageHandler());
-		//wr.sendMsg("infolist-test","infolist", "buffer");
+		relay.addHandler("infolist-test", new InfolistMessageHandler());
+		relay.sendMsg("infolist-test","infolist", "buffer");
 		
 		// Hook a handler for testing the "info" functionality
-		//wr.addHandler("info-test", new InfoMessageHandler());
-		//wr.sendMsg("info-test", "info", "version");
+		relay.addHandler("info-test", new InfoMessageHandler());
+		relay.sendMsg("info-test", "info", "version");
 		
 		// Hook new lines that are received
-		MessageHandler msgHandler = new MessageHandler(cb);
-		wr.addHandler("_buffer_line_added", msgHandler);
-		// Request a list of all lines from all buffers
-		wr.addHandler("listlines", msgHandler);
-		wr.sendMsg("listlines","hdata", "buffer:gui_buffers(*)/own_lines/first_line(5)/data date,displayed,prefix,message");
+		LineHandler msgHandler = new LineHandler(bufferManager);
+		relay.addHandler("_buffer_line_added", msgHandler);
+		// Request a list of last 5 lines from all buffers
+		relay.addHandler("listlines_reverse", msgHandler);
+		relay.sendMsg("listlines_reverse","hdata", "buffer:gui_buffers(*)/own_lines/last_line(-5)/data date,displayed,prefix,message");
 		
 		// Sleep a bit to get our messages, then quit
 		try {
-			Thread.sleep(6000);
+			Thread.sleep(1000);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+		
+		// Prints the messages for the first buffer
+		Buffer b = bufferManager.getBuffer(0);
+		LinkedList<BufferLine> lines = b.getLines();
+		for(BufferLine bl: lines) {
+			System.out.println(bl.toString());
+		}
+		
 		System.out.println("Cleaning up");
-		wr.disconnect();
+		relay.disconnect();
 	}
 
 	@Override
@@ -71,8 +86,8 @@ public class RelayExample implements ChatBufferObserver, WRelayConnectionHandler
 	@Override
 	public void onBuffersChanged() {
 		System.out.println("[Buffer list]");
-		for (int i=0;i<cb.getNumBuffers(); i++) {
-			WeechatBuffer wb = cb.getBuffer(i);
+		for (int i=0;i<bufferManager.getNumBuffers(); i++) {
+			Buffer wb = bufferManager.getBuffer(i);
 			// Just print some simple information about the buffer
 			System.out.println("  " + wb.getShortName() + " " + wb.getFullName());
 		}
