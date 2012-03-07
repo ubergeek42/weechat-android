@@ -26,13 +26,18 @@ public class LineHandler implements RelayMessageHandler {
 			for (int i=0; i<whdata.getCount(); i++) {
 				HdataEntry hde = whdata.getItem(i);
 				// TODO: check last item of path is line_data
-				
+
 				// Get the information about the "line"
 				String message = hde.getItem("message").asString();
 				String prefix = hde.getItem("prefix").asString();
 				boolean displayed = (hde.getItem("displayed").asChar()==0x01);
 				Date time = hde.getItem("date").asTime();
 				String bPointer = hde.getItem("buffer").asPointer();
+				
+				// Try to get highlight status(added in 0.3.8-dev: 2012-03-06)
+				RelayObject t = hde.getItem("highlight");
+				boolean highlight = false;
+				if(t!=null) highlight = (t.asChar()==0x01);
 	
 				// Find the buffer to put the line in
 				Buffer buffer = cb.findByPointer(bPointer);
@@ -43,6 +48,7 @@ public class LineHandler implements RelayMessageHandler {
 				cm.setMessage(message);
 				cm.setTimestamp(time);
 				cm.setVisible(displayed);
+				cm.setHighlight(highlight);
 				
 				// XXX: debugging statement
 				System.out.println(cm);
@@ -61,6 +67,7 @@ public class LineHandler implements RelayMessageHandler {
 				boolean displayed = (hde.getItem("displayed").asChar()==0x01);
 				Date time = hde.getItem("date").asTime();
 				String bPointer = hde.getPointer(0);
+				boolean highlight = (hde.getItem("highlight").asChar()==0x01);
 	
 				// Find the buffer to put the line in
 				Buffer buffer = cb.findByPointer(bPointer);
@@ -71,6 +78,8 @@ public class LineHandler implements RelayMessageHandler {
 				cm.setMessage(message);
 				cm.setTimestamp(time);
 				cm.setVisible(displayed);
+
+				cm.setHighlight(highlight);
 				
 				// XXX: debugging statement
 				//System.out.println(buffer.getFullName() + " " + cm);

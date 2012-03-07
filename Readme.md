@@ -1,4 +1,4 @@
-Weechat Android Relay Client v0.02
+Weechat Android Relay Client v0.03
 ==================================
 This is an Android Weechat Relay client.
 It should be treated as pre-alpha software, with no expectations of functionality.(However, in my limited tests it seems to mostly work)
@@ -6,9 +6,9 @@ It should be treated as pre-alpha software, with no expectations of functionalit
 ###Download
 USE AT YOUR OWN RISK! This is alpha software and I am not responsible if your device bursts into flames, you lose all of your data, or if anything else bad happens.
 
-Either scan the QR code, or click the link to download the apk.  Click on it and choose to install. [Download Link](https://github.com/downloads/ubergeek42/weechat-android/weechat.apk)
+Either scan the QR code, or click the link to download the apk.  Click on it and choose to install. [Download Link](https://github.com/downloads/ubergeek42/weechat-android/weechat-0.03.apk)
 
-![Download](https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=https://github.com/downloads/ubergeek42/weechat-android/weechat.apk)
+![Download](https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=https://github.com/downloads/ubergeek42/weechat-android/weechat-0.03.apk)
 
 ### Bug Reports and Feature Requests Welcome!
 Please report any bugs or feature requests here on github, or send me an email: kj@ubergeek42.com
@@ -17,7 +17,7 @@ Please report any bugs or feature requests here on github, or send me an email: 
 At the main screen, press menu, then choose preferences.
 Configure your hostname, port, and password.  You can also choose to connect automatically next time the app runs, or enable colors(May be a little slow at times).
 
-Then press Menu->Connect to connect to the server. If successful you will see a list of your weechat buffers.  Clicking on a buffer opens it in a new tab.  A buffer currently displays the 50 most recent lines.  I plan to make this configurable in the future.
+Then press Menu->Connect to connect to the server. If successful you will see a list of your weechat buffers.  Clicking on a buffer opens it in a new tab.  A buffer currently displays the 50 most recent lines.  I plan to make this configurable in the future(More is slower).
 
 To see the nicklist for the current buffer, press menu, then choose nicklist.
 
@@ -43,11 +43,17 @@ For more details about Weechat and the Relay Protocol:
 
 ###Screenshots
 <a href="https://github.com/ubergeek42/weechat-android/raw/master/releases/chat-channel.png"><img src="https://github.com/ubergeek42/weechat-android/raw/master/releases/chat-channel.png" width="400px"></a>
+<a href="https://github.com/ubergeek42/weechat-android/raw/master/releases/weechat.png"><img src="https://github.com/ubergeek42/weechat-android/raw/master/releases/weechat.png" height="400px"></a>
 <a href="https://github.com/ubergeek42/weechat-android/raw/master/releases/preferences.png"><img src="https://github.com/ubergeek42/weechat-android/raw/master/releases/preferences.png" height="400px"></a>
 <a href="https://github.com/ubergeek42/weechat-android/raw/master/releases/buffers-tab.png"><img src="https://github.com/ubergeek42/weechat-android/raw/master/releases/buffers-tab.png" height="400px"></a>
 <a href="https://github.com/ubergeek42/weechat-android/raw/master/releases/buffer-colors.png"><img src="https://github.com/ubergeek42/weechat-android/raw/master/releases/buffer-colors.png" height="400px"></a>
 
 ### Changelog
+#### v0.03
+* Preferences for Colors/Timestamp
+* Highlight support for messages
+* Misc bugfixes
+
 #### v0.02
 * Colors!
 * A few bugfixes

@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import android.graphics.Color;
 import android.text.Html;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -27,11 +28,15 @@ public class ChatViewTab implements TabHost.TabContentFactory, BufferObserver, O
 
 	private static final Logger logger = LoggerFactory.getLogger(ChatViewTab.class);
 	
+	// Global settings for all chatviewtabs
+	private static boolean enableColor = true;
+	private static boolean enableTimestamp = true;
+	
+	
 	private Buffer wb;
 	private LayoutInflater inflater;
 
 	private ScrollView scrollview;
-	private TextView titlestr;
 	private TableLayout table;
 	private EditText inputBox;
 	private Button sendButton;
@@ -41,11 +46,11 @@ public class ChatViewTab implements TabHost.TabContentFactory, BufferObserver, O
 	// Used to cache rendered table rows(as it is very slow to build them every refresh)
 	private LRUMap<BufferLine,TableRow> tableCache = new LRUMap<BufferLine,TableRow>(Buffer.MAXLINES, Buffer.MAXLINES);
 	
-	// TODO: expose setting in the UI for coloring messages(Note: somewhat slow)
-	private static boolean enableColor = true;
-	
 	protected static void setColorsEnabled(boolean enabled) {
 		enableColor = enabled;
+	}
+	protected static void setTimestampEnabled(boolean enabled) {
+		enableTimestamp = enabled;
 	}
 	
 	public ChatViewTab(Buffer wb, WeechatActivity activity) {
@@ -80,34 +85,48 @@ public class ChatViewTab implements TabHost.TabContentFactory, BufferObserver, O
 			if (destroyed)return;
 			LinkedList<BufferLine> lines = wb.getLines();
 			table.removeAllViews();
-			for(BufferLine cm: lines) {
-				if (tableCache.containsKey(cm))
-					table.addView(tableCache.get(cm));
-				else {
-					TableRow tr = (TableRow)inflater.inflate(R.layout.chatline, null);
-					
-					TextView timestamp = (TextView) tr.findViewById(R.id.chatline_timestamp);
-					timestamp.setText(cm.getTimestampStr());
-					
-					TextView prefix = (TextView) tr.findViewById(R.id.chatline_prefix);
-					if (enableColor) {
-						prefix.setText(Html.fromHtml(cm.getPrefixHTML()), TextView.BufferType.SPANNABLE);
-					} else {
-						prefix.setText(cm.getPrefix());
+			
+			synchronized(tableCache) {
+				for(BufferLine cm: lines) {
+					if (tableCache.containsKey(cm))
+						table.addView(tableCache.get(cm));
+					else {
+						TableRow tr = (TableRow)inflater.inflate(R.layout.chatline, null);
+						
+						TextView timestamp = (TextView) tr.findViewById(R.id.chatline_timestamp);
+						if (enableTimestamp) {
+							timestamp.setText(cm.getTimestampStr());
+						} else {
+							tr.removeView(timestamp);
+						}
+						
+						TextView prefix = (TextView) tr.findViewById(R.id.chatline_prefix);
+						if(cm.getHighlight()) {
+							prefix.setBackgroundColor(Color.MAGENTA);
+							prefix.setTextColor(Color.YELLOW);
+							prefix.setText(cm.getPrefix());
+						} else {
+							if (enableColor) {
+								prefix.setText(Html.fromHtml(cm.getPrefixHTML()), TextView.BufferType.SPANNABLE);
+							} else {
+								prefix.setText(cm.getPrefix());
+							}
+						}
+						
+						TextView message = (TextView) tr.findViewById(R.id.chatline_message);
+						if (enableColor) {
+							message.setText(Html.fromHtml(cm.getMessageHTML()), TextView.BufferType.SPANNABLE);
+						} else {
+							message.setText(cm.getMessage());
+						}
+	
+						// Add to the cache
+						tableCache.put(cm, tr);
+						table.addView(tr);
 					}
-					
-					TextView message = (TextView) tr.findViewById(R.id.chatline_message);
-					if (enableColor) {
-						message.setText(Html.fromHtml(cm.getMessageHTML()), TextView.BufferType.SPANNABLE);
-					} else {
-						message.setText(cm.getMessage());
-					}
-
-					// Add to the cache
-					tableCache.put(cm, tr);
-					table.addView(tr);
-				}
 			}
+			}
+			
 			logger.debug("updateChatView took: " + (System.currentTimeMillis() - start) + "ms");
 			scrollview.post(new Runnable() {
 				@Override
@@ -137,19 +156,11 @@ public class ChatViewTab implements TabHost.TabContentFactory, BufferObserver, O
         scrollview = (ScrollView) x.findViewById(R.id.chatview_scrollview);
         inputBox = (EditText)x.findViewById(R.id.chatview_input);
         table = (TableLayout)x.findViewById(R.id.chatview_lines);
-        titlestr = (TextView) x.findViewById(R.id.chatview_title);
         sendButton = (Button) x.findViewById(R.id.chatview_send);
-        
-        //titlestr.setText("random text for the title this is kinda long and hopefully more than 2 lines and takes up a bunch of space so it needs to marquee");
-        if (!destroyed)
-        	titlestr.setText(wb.getTitle());
-        
-        // TODO: figure out best way to have scrollable title
-        //titlestr.setMovementMethod(new ScrollingMovementMethod());
+
         
         scrollview.setFocusable(false);
         table.setFocusable(false);
-        titlestr.setFocusable(false);
         
         sendButton.setOnClickListener(this);
         inputBox.setOnKeyListener(this);
@@ -195,6 +206,13 @@ public class ChatViewTab implements TabHost.TabContentFactory, BufferObserver, O
 
 	public boolean isDestroyed() {
 		return destroyed;
+	}
+	// Called to invalidate all cached content and redraw
+	public void invalidate() {
+		synchronized(tableCache) {
+			tableCache.clear();
+		}
+		activity.runOnUiThread(updateCV);
 	}
 
 }

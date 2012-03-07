@@ -25,6 +25,7 @@ public class BufferLine {
 	private String timeStr = null;
 	
 	private boolean visible;
+	private boolean highlight;
 	
 	// TODO: consider caching the color "cleaned" values as well
 	
@@ -128,5 +129,19 @@ public class BufferLine {
 		sb.append(" | ");
 		sb.append(cleanMessage(message));
 		return sb.toString();
+	}
+	/**
+	 * Set whether the line was a 'highlight' and should be noticed by the user
+	 * @param highlight - Whether the line is highlighted or not
+	 */
+	public void setHighlight(boolean highlight) {
+		this.highlight = highlight;
+	}
+	/**
+	 * Returns whether a line is a 'highlight' or not
+	 * @return Whether the line is a 'highlight' or not
+	 */
+	public boolean getHighlight() {
+		return highlight;
 	}
 }

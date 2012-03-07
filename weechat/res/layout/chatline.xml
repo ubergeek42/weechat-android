@@ -7,7 +7,9 @@
         android:id="@+id/chatline_timestamp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="[00:00:00]" />
+        android:textSize="10sp"
+        android:typeface="monospace"
+        android:text="placeholder time" />
 
     <TextView
         android:id="@+id/chatline_prefix"
@@ -15,7 +17,9 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="10dip"
         android:gravity="right"
-        android:text="ubergeek" />
+        android:textSize="10sp"
+        android:typeface="monospace"
+        android:text="placeholder prefix" />
 
     <TextView
         android:id="@+id/chatline_message"
@@ -23,6 +27,8 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="10dip"
         android:maxLines="25"
-        android:text="some reasonably long message that is kinda long and not really important, but should wrap" />
+        android:textSize="10sp"
+        android:typeface="monospace"
+        android:text="placeholder message text" />
 
 </TableRow>

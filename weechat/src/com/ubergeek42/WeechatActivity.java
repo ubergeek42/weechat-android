@@ -12,6 +12,7 @@ import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -36,7 +37,7 @@ import com.ubergeek42.weechat.relay.messagehandler.LineHandler;
 import com.ubergeek42.weechat.relay.messagehandler.NicklistHandler;
 
 public class WeechatActivity extends Activity implements OnItemClickListener,
-		OnCancelListener, RelayConnectionHandler {
+		OnCancelListener, RelayConnectionHandler, OnSharedPreferenceChangeListener {
 	private static final Logger logger = LoggerFactory.getLogger(WeechatActivity.class);
 
 	BufferListAdapter m_adapter;
@@ -62,6 +63,8 @@ public class WeechatActivity extends Activity implements OnItemClickListener,
 		setContentView(R.layout.main);
 		
 		prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+		prefs.registerOnSharedPreferenceChangeListener(this);
+		
 		boolean chatviewColors = prefs.getBoolean("chatview_color", true);
 		ChatViewTab.setColorsEnabled(chatviewColors);
 		
@@ -81,8 +84,11 @@ public class WeechatActivity extends Activity implements OnItemClickListener,
 		bufferlist.setAdapter(m_adapter);
 		bufferlist.setOnItemClickListener(this);
 
-		if (prefs.getBoolean("connect_onstart", false))
+		if (prefs.getBoolean("connect_onstart", false)) {
 			connect();
+		} else {
+			Toast.makeText(getApplicationContext(), "Press Menu to access preferences or connect", Toast.LENGTH_LONG).show();
+		}
 	}
 
 	// Add a tab using an existing view ID(like R.id.maintab, defined in main.xml)
@@ -284,7 +290,7 @@ public class WeechatActivity extends Activity implements OnItemClickListener,
 					progressDialog.dismiss();
 				}
 				Toast.makeText(getBaseContext(),
-						"Connected to server: " + wr.getServer(), 1000).show();
+						"Connected to server: " + wr.getServer(), Toast.LENGTH_LONG).show();
 			}
 		});
 
@@ -317,7 +323,7 @@ public class WeechatActivity extends Activity implements OnItemClickListener,
 		wr.sendMsg("(listbuffers) hdata buffer:gui_buffers(*) number,full_name,short_name,type,title,nicklist,local_variables");
 		
 		// Get the last MAXLINES for each buffer
-		wr.sendMsg("(listlines_reverse) hdata buffer:gui_buffers(*)/own_lines/last_line(-" + Buffer.MAXLINES + ")/data date,displayed,prefix,message");
+		wr.sendMsg("(listlines_reverse) hdata buffer:gui_buffers(*)/own_lines/last_line(-" + Buffer.MAXLINES + ")/data date,displayed,prefix,message,highlight");
 
 		// Get the nicklist for any buffers we have
 		wr.sendMsg("nicklist","nicklist","");
@@ -344,5 +350,20 @@ public class WeechatActivity extends Activity implements OnItemClickListener,
 	// Eat configuration changes so we don't reload during orientation/keyboard changes
 	public void onConfigurationChanged(Configuration newConfig) {
 		super.onConfigurationChanged(newConfig);
+	}
+
+	@Override
+	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+		if (key.equals("chatview_color")) {
+			ChatViewTab.setColorsEnabled(prefs.getBoolean("chatview_color", true));
+			for (ChatViewTab cv: chats) {
+				cv.invalidate();
+			}
+		} else if (key.equals("chatview_timestamp")) {
+			ChatViewTab.setTimestampEnabled(prefs.getBoolean("chatview_timestamp", true));
+			for (ChatViewTab cv: chats) {
+				cv.invalidate();
+			} 
+		}
 	}
 }
