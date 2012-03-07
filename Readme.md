@@ -43,7 +43,7 @@ For more details about Weechat and the Relay Protocol:
 
 ###Screenshots
 <a href="https://github.com/ubergeek42/weechat-android/raw/master/releases/chat-channel.png"><img src="https://github.com/ubergeek42/weechat-android/raw/master/releases/chat-channel.png" width="400px"></a>
-<a href="https://github.com/ubergeek42/weechat-android/raw/master/releases/weechat.png"><img src="https://github.com/ubergeek42/weechat-android/raw/master/releases/weechat.png" height="400px"></a>
+
 <a href="https://github.com/ubergeek42/weechat-android/raw/master/releases/preferences.png"><img src="https://github.com/ubergeek42/weechat-android/raw/master/releases/preferences.png" height="400px"></a>
 <a href="https://github.com/ubergeek42/weechat-android/raw/master/releases/buffers-tab.png"><img src="https://github.com/ubergeek42/weechat-android/raw/master/releases/buffers-tab.png" height="400px"></a>
 <a href="https://github.com/ubergeek42/weechat-android/raw/master/releases/buffer-colors.png"><img src="https://github.com/ubergeek42/weechat-android/raw/master/releases/buffer-colors.png" height="400px"></a>
