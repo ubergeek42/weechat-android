@@ -38,6 +38,7 @@ You can build these projects by running 'ant' from this directory. If you wish t
 To build the android application, you will need to 'cd weechat', then run 'android update project --path .' before running ant.
 
 For more details about Weechat and the Relay Protocol:
+
 * Weechat - http://www.weechat.org/
 * Relay Protocol - http://www.weechat.org/files/doc/devel/weechat_relay_protocol.en.html
 
