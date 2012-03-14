@@ -10,7 +10,7 @@
 	<property name="slf4j.dir" value="../libs" />
 	
 	<path id="classpath">
-		<fileset dir="${slf4j.dir}" includes="slf4j-api-1.6.4.jar" />
+		<fileset dir="${slf4j.dir}" includes="slf4j-api-*.jar" />
 	</path>
 	
 	<target name="init">
@@ -45,6 +45,9 @@
 				<fileset dir="${build}"/>
 				<fileset dir="${src}"/>
 			</jar>
+			<copy todir="${libdir}">
+				<fileset dir="${slf4j.dir}" includes="slf4j-api-*.jar" />
+			</copy>
 	</target>
 	
 	<target name="clean" description="Clean up">
