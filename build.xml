@@ -23,6 +23,11 @@
 
 	<target name="build" depends="buildexample,buildandroid" />
 
+	<target name="test">
+		<subant target="test">
+			<fileset dir="." includes="weechat-relay/build.xml" />
+		</subant>
+	</target>
 
 	<target name="clean">
 		<subant target="clean">
