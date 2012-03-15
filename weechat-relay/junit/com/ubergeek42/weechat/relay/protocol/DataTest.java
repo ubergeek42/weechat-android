@@ -8,8 +8,8 @@ public class DataTest {
 
 	@Test
 	public void testGetChar() {
-		for(int o=0;o<256;o++) {
-			Data d = new Data(new byte[]{(byte) (o & 0xFF)});
+		for (int o = 0; o < 256; o++) {
+			Data d = new Data(new byte[] { (byte) (o & 0xFF) });
 			char c = d.getChar();
 			assertEquals(c, o);
 		}
@@ -17,11 +17,16 @@ public class DataTest {
 
 	@Test
 	public void testGetByte() {
-		for(int o=0;o<256;o++) {
-			Data d = new Data(new byte[]{(byte) (o & 0xFF)});
+		for (int o = 0; o < 256; o++) {
+			Data d = new Data(new byte[] { (byte) (o & 0xFF) });
 			int b = d.getByte();
 			assertEquals(b, o);
 		}
+	}
+
+	@Test
+	public void testGetLongInteger() {
+		fail("Testing failure in jenkins");
 	}
 
 }
