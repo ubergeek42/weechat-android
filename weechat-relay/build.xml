@@ -1,37 +1,126 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="weechat-relay" default="dist" basedir=".">
+<project name="weechat-relay" default="compile" basedir=".">
 	<description>Java library to interface with the weechat relay plugin</description>
 	
 	<property name="src" location="src" />
 	<property name="build" location="bin" />
-	<property name="libdir" location="libs" />
+	<property name="junit" location="junit" />
+	<property name="libs" location="libs" />
 	<property name="reports" location="reports" />
-	<property name="javadoc.dir" value="doc" />
+	<property name="docs" value="docs" />
 	
 	<property name="external.libdir" value="../libs" />
 	
-	<path id="classpath">
-		<fileset dir="${external.libdir}" includes="slf4j-api-*.jar" />
-		<fileset dir="${external.libdir}" includes="junit.jar" />
+	<!-- Emma Settings -->
+	<property name="emma.dir" location="${reports}/emma" />
+	<property name="emma.instr" location="${emma.dir}/instr" />
+	<property name="emma.coverage" location="${emma.dir}/coverage" />
+	
+	<!-- Base Classpath -->
+	<path id="classpath.base">
+		<pathelement location="${build}" />
 	</path>
 	
+	<!-- External libraries required for build -->
+	<path id="classpath.ext">
+		<fileset dir="${external.libdir}" includes="slf4j-api-*.jar" />
+	</path>
+	
+	<!-- Classpath required for testing -->
+	<path id="classpath.test">
+		<fileset dir="${external.libdir}" includes="junit.jar" />
+		<path refid="classpath.emma" />
+	</path>
+	<!-- Classpath for emma + emma taskdef for ant -->
+	<path id="classpath.emma">
+		<fileset dir="${external.libdir}" includes="emma.jar" />
+		<fileset dir="${external.libdir}" includes="emma_ant.jar" />
+	</path>
+	<taskdef resource="emma_ant.properties" classpathref="classpath.emma" />
+	
+	<!-- Create the default directories/etc -->
 	<target name="init">
 		<tstamp/>
 		<mkdir dir="${build}" />
-		<mkdir dir="${libdir}" />
+		<mkdir dir="${libs}" />
 	</target>
 	
-	<target name="compile" depends="init"
-			description="Compile all necessary source files">
-		<!-- TODO: add option for debug on/off -->
-			<javac debug="on" includeantruntime="false" srcdir="${src}" destdir="${build}" classpathref="classpath" />
-			<javac debug="on" includeantruntime="false" srcdir="junit" destdir="${build}" classpathref="classpath" />
+	<target name="compile" depends="init" description="Compile everything">
+		<!-- Compile the main library -->
+		<javac srcdir="${src}" destdir="${build}" debug="true" includeantruntime="false">
+			<classpath refid="classpath.base" />
+			<classpath refid="classpath.ext" />
+		</javac>
+		
+		<!-- Build the junit tests -->
+		<javac debug="on" includeantruntime="false" srcdir="${junit}" destdir="${build}">
+			<classpath refid="classpath.base" />
+			<classpath refid="classpath.ext" />
+			<classpath refid="classpath.test" />
+		</javac>
+	
+		<!-- Produce the jar file-->
+		<jar jarfile="${libs}/weechat-relay.jar">
+			<fileset dir="${build}">
+				<include name="**/*.class" />
+				<exclude name="**/*Test.class" />
+			</fileset>
+			<fileset dir="${src}">
+				<include name="**/*.java" />
+				<exclude name="**/*Test.java" />
+			</fileset>
+			<manifest>
+				<attribute name="Build-Date" value="${TODAY}" />
+			</manifest>
+		</jar>
+	</target>
+	
+	<target name="test" depends="compile">
+		<mkdir dir="${reports}"/>
+		<!-- Instrument the code with emma -->
+		<emma>
+			<instr instrpathref="classpath.base" destdir="${emma.instr}" metadatafile="${emma.coverage}/metadata.emma" merge="true">
+				<filter excludes="*Test*" />
+			</instr>
+		</emma>
+		<!-- Run the JUnit tests -->
+		<junit fork="yes" forkmode="once" dir=".">
+			<jvmarg value="-Demma.coverage.out.file=${emma.coverage}/coverage.emma" />
+			<jvmarg value="-Demma.coverage.out.merge=true" />
+			<classpath>
+				<path location="${emma.instr}" />
+				<path refid="classpath.base" />
+				<path refid="classpath.ext" />
+				<path refid="classpath.test" />
+			</classpath>
+			<formatter type="xml" />
+			<batchtest todir="${reports}">
+				<fileset dir="${build}" includes="**/*Test.class"/>
+			</batchtest>
+		</junit>
+		
+		<!-- JUnit Report -->
+		<junitreport todir="${reports}">
+			<fileset dir="${reports}">
+					<include name="TEST-*.xml" />
+			</fileset>
+			<report format="frames" todir="${reports}/html" />
+		</junitreport>
+		
+		<!-- Emma Report -->
+		<emma>
+			<report sourcepath="${src}">
+				<fileset dir="${emma.coverage}" includes="*.emma" />
+				<html outfile="${emma.coverage}/coverage.html" />
+				<xml outfile="${emma.coverage}/coverage.xml" />
+			</report>
+		</emma>
 	</target>
 	
 	<target name="javadoc">
 		<javadoc
 			access="public"
-			destdir="${javadoc.dir}"
+			destdir="${docs}"
 			author="true"
 			version="true"
 			use="true"
@@ -42,43 +131,9 @@
 		</javadoc>
 	</target>
 	
-	<target name="dist" depends="compile"
-			description="Generate the jar library">
-			<jar jarfile="${libdir}/weechat-relay.jar">
-				<fileset dir="${build}">
-					<include name="**/*.class" />
-					<exclude name="**/*Test.class" />
-				</fileset>
-				<fileset dir="${src}">
-					<include name="**/*.java" />
-					<exclude name="**/*Test.java" />
-				</fileset>
-			</jar>
-			<copy todir="${libdir}">
-				<fileset dir="${external.libdir}" includes="slf4j-api-*.jar" />
-			</copy>
-	</target>
-	
-	<target name="test" depends="compile">
-		<mkdir dir="${reports}"/>
-		<junit fork="yes">
-			<classpath path="${external.libdir}/junit.jar;${build}"/>
-			<formatter type="xml" />
-			<batchtest todir="${reports}">
-				<fileset dir="${build}" includes="**/*Test.class"/>
-			</batchtest>
-		</junit>
-		<junitreport todir="${reports}">
-			<fileset dir="${reports}">
-					<include name="TEST-*.xml" />
-			</fileset>
-			<report format="frames" todir="${reports}/html" />
-		</junitreport>
-	</target>
-	
 	<target name="clean" description="Clean up">
 		<delete dir="${build}" />
-		<delete dir="${libdir}" />
+		<delete dir="${libs}" />
 		<delete dir="${javadoc.dir}" />
 		<delete dir="${reports}" />
 	</target>
