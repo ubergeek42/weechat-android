@@ -4,7 +4,7 @@
 	</target>
 
 	<target name="buildlib">
-		<subant target="dist">
+		<subant target="compile">
 			<fileset dir="." includes="weechat-relay/build.xml"/>
 		</subant>
 	</target>
