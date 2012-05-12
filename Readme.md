@@ -29,6 +29,7 @@ The nicklist is missing from this version, I'm looking at the most useful way to
 The app does run in the background, however if you would like to exit it, from the buffers list menu->quit.  I've run it in the background all day with no real noticable drain on my battery.
 
 ### Requirements
+* Android 2.1+
 * Weechat v0.3.7
 * If you want support for highlights(private message notifications will work otherwise), you must be using Weechat v0.3.8-dev after March 6th.
 
@@ -54,6 +55,9 @@ For more details about Weechat and the Relay Protocol:
 <a href="https://github.com/ubergeek42/weechat-android/raw/master/releases/preferences.png"><img src="https://github.com/ubergeek42/weechat-android/raw/master/releases/preferences.png" height="400px"></a>
 <a href="https://github.com/ubergeek42/weechat-android/raw/master/releases/buffers.png"><img src="https://github.com/ubergeek42/weechat-android/raw/master/releases/buffers.png" height="400px"></a>
 <a href="https://github.com/ubergeek42/weechat-android/raw/master/releases/notifications.png"><img src="https://github.com/ubergeek42/weechat-android/raw/master/releases/notifications.png" height="400px"></a>
+
+In this last one, the "U: 2 H: 1" in purple refers to 2 unread messages, 1 highlight.  If it was only unread messages it is displayed in yellow.
+
 
 ### Changelog
 #### v0.05-dev
