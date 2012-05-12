@@ -11,7 +11,7 @@
 
 	<target depends="buildlib" name="buildandroid">
 		<subant target="release">
-			<fileset dir="." includes="weechat/build.xml"/>
+			<fileset dir="." includes="weechat-android/build.xml"/>
 		</subant>
 	</target>
 
@@ -32,7 +32,7 @@
 	<target name="clean">
 		<subant target="clean">
 			<fileset dir="." includes="weechat-relay-example/build.xml"/>
-			<fileset dir="." includes="weechat/build.xml"/>
+			<fileset dir="." includes="weechat-android/build.xml"/>
 			<fileset dir="." includes="weechat-relay/build.xml"/>
 		</subant>
 	</target>
