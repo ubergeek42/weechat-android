@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
-    <EditTextPreference android:key="connect_host" android:summary="Host to connect to listening for Weechat Relay Connections" android:title="Host"/>
-    <EditTextPreference android:key="connect_port" android:title="Port"/>
-    <EditTextPreference android:key="connect_password" android:summary="Password for Weechat Relay protocol" android:title="Password"/>
-    <CheckBoxPreference android:key="connect_onstart" android:title="Connect on run" android:summary="Whether to connect to the server automatically when the program is started" />
-    <CheckBoxPreference android:key="chatview_color" android:title="Show colors in chat" android:summary="Opening a buffer with this enabled may take some time, so be patient.(Caution: may take some time to apply when changed)" android:defaultValue="true" />
-    <CheckBoxPreference android:key="chatview_timestamp" android:title="Show timestamps in chat" android:summary="Display timestamps alongside messages when viewing a buffer(Caution: may take some time to apply when changed)" android:defaultValue="true" />
-</PreferenceScreen>
