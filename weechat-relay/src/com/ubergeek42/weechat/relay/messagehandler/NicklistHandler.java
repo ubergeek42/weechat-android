@@ -46,8 +46,6 @@ public class NicklistHandler implements RelayMessageHandler {
 				if (ni.isGroup() || !ni.isVisible())
 					continue;
 				
-				logger.debug(ni.toString());
-				
 				Buffer wb = cbs.findByPointer(hde.getPointer(0));
 				if (!nicklistCleared.contains(wb)) {
 					nicklistCleared.add(wb);

@@ -1,5 +1,7 @@
 package com.ubergeek42.weechat.relay.protocol;
 
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 
 import com.ubergeek42.weechat.Helper;
@@ -22,7 +24,7 @@ public class Data {
 	
 	public int getUnsignedInt() {
 		if (pointer+4 > data.length) {
-			throw new IndexOutOfBoundsException("[WData.getUnsignedInt] Not enough data to compute length");
+			throw new IndexOutOfBoundsException("Not enough data to compute length");
 		}
 		int ret = ((data[pointer+0] & 0xFF) << 24) |
 				  ((data[pointer+1] & 0xFF) << 16) |
@@ -47,7 +49,10 @@ public class Data {
 	public long getLongInteger() {
 		int length = getByte();
 		if (pointer+length > data.length) {
-			throw new IndexOutOfBoundsException("[WData.getLongInteger] Not enough data");
+			throw new IndexOutOfBoundsException("Not enough data");
+		}
+		if (length == 0) {
+			throw new RuntimeException("Length must not be zero");
 		}
 		StringBuilder sb = new StringBuilder();
 		for(int i=0;i<length;i++) {
@@ -57,27 +62,36 @@ public class Data {
 		return Long.parseLong(sb.toString());
 	}
 	
+
 	public String getString() {
 		int length = getUnsignedInt();
 		if (pointer+length > data.length) {
-			throw new IndexOutOfBoundsException("[WData.getString] Not enough data");
+			throw new IndexOutOfBoundsException("Not enough data");
 		}
 		if (length ==  0) return "";
 		if (length == -1) return null;
-		
-		StringBuilder sb = new StringBuilder();
-		for(int i=0;i<length;i++) {
-			sb.append(getChar());
-		}
 
-		return sb.toString();
+		byte[] bytes = new byte[length];
+		for(int i=0;i<length;i++) {
+			//sb.append(getChar());
+			bytes[i] = (byte)getByte();
+		}
+		
+		// TODO: optimize?
+		String ret = new String(bytes);
+		try {
+			ret = new String(bytes, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+		return ret;
 	}
 
 	// XXX: untested
 	public byte[] getBuffer() {
 		int length = getUnsignedInt();
 		if (pointer+length > data.length) {
-			throw new IndexOutOfBoundsException("[WData.getBuffer] Not enough data");
+			throw new IndexOutOfBoundsException("Not enough data");
 		}
 		if (length == 0) {
 			return null;
@@ -92,7 +106,7 @@ public class Data {
 	public String getPointer() {
 		int length = getByte();
 		if (pointer+length > data.length) {
-			throw new IndexOutOfBoundsException("[WData.getPointer] Not enough data");
+			throw new IndexOutOfBoundsException("Not enough data");
 		}
 
 		StringBuilder sb = new StringBuilder();

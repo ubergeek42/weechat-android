@@ -13,7 +13,7 @@ public class BufferLine {
 	/**
 	 * The default representation for the timestamp when a line is rendered
 	 */
-	public static final DateFormat DATEFORMAT = new SimpleDateFormat("HH:mm:ss");
+	public final DateFormat DATEFORMAT = new SimpleDateFormat("HH:mm:ss");
 	
 	private String message;
 	private String prefix;
@@ -110,6 +110,13 @@ public class BufferLine {
 	 */
 	public void setVisible(boolean displayed) {
 		this.visible = displayed;
+	}
+	/**
+	 * Get whether the line should be visible or not
+	 * @return Whether the line is visible or not
+	 */
+	public boolean getVisible() {
+		return this.visible;
 	}
 
 	/**

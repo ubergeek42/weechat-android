@@ -32,7 +32,7 @@ public class RelayConnection {
 	private OutputStream outstream = null;
 	private InputStream instream = null;
 	
-	private HashMap<String,RelayMessageHandler> messageHandlers = new HashMap<String, RelayMessageHandler>();
+	private HashMap<String,ArrayList<RelayMessageHandler>> messageHandlers = new HashMap<String, ArrayList<RelayMessageHandler>>();
 	private ArrayList<RelayConnectionHandler> connectionHandlers = new ArrayList<RelayConnectionHandler>();
 	
 	private boolean connected = false;
@@ -73,7 +73,11 @@ public class RelayConnection {
 	 * @param wmh - The object to receive the callback
 	 */
 	public void addHandler(String id, RelayMessageHandler wmh) {
-		messageHandlers.put(id, wmh);
+		ArrayList<RelayMessageHandler> currentHandlers = messageHandlers.get(id);
+		if (currentHandlers == null)
+			currentHandlers = new ArrayList<RelayMessageHandler>();
+		currentHandlers.add(wmh);
+		messageHandlers.put(id, currentHandlers);
 	}
 	/**
 	 * Connects to the server.  On success isConnected() will return true.
@@ -97,15 +101,12 @@ public class RelayConnection {
 	public void disconnect() {
 		if (!connected) return;
 		try {
-			logger.trace("Interrupting create connectiong thread");
 			if (createSocketConnection.isAlive()) {
 				createSocketConnection.interrupt();
 			}
 			
-			logger.trace("Sending quit message");
 			if (connected) outstream.write("quit\n".getBytes());
 			
-			logger.trace("Closing streams");
 			connected = false;
 			if (instream!=null)  { instream.close();  instream=null; }
 			if (outstream!=null) { outstream.close(); outstream=null; }
@@ -115,7 +116,6 @@ public class RelayConnection {
 				// TODO: kill the thread if necessary
 			}
 
-			logger.trace("Calling any registered connection handlers");
 			// Call any registered disconnect handlers
 			for (RelayConnectionHandler wrch : connectionHandlers) {
 				wrch.onDisconnect();
@@ -184,14 +184,11 @@ public class RelayConnection {
 	 */
 	private Thread socketReader = new Thread(new Runnable() {
 		public void run() {
-			logger.trace("socketReader thread started");
 			ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 			while(sock!=null && !sock.isClosed()) {
 				byte b[] = new byte[256];
 				try {
-					logger.trace("Reading from stream");
 					int r = instream.read(b);
-					logger.trace("Read " + r + " bytes from the stream"); 
 					if (r>0) {
 						buffer.write(b,0,r);
 					} else if (r==-1){ // Stream closed
@@ -215,7 +212,7 @@ public class RelayConnection {
 						
 						long start = System.currentTimeMillis();
 						handleMessage(wm);
-						logger.debug("handleMessage took " + (System.currentTimeMillis()-start) + "ms");
+						logger.trace("handleMessage took " + (System.currentTimeMillis()-start) + "ms");
 						
 						// Reset the buffer, and put back any additional data
 						buffer.reset();
@@ -248,9 +245,11 @@ public class RelayConnection {
 	private void handleMessage(RelayMessage msg) {
 		String id = msg.getID();
 		if (messageHandlers.containsKey(id)) {
-			RelayMessageHandler rmh = messageHandlers.get(id);
-			for(RelayObject obj: msg.getObjects()) {
-				rmh.handleMessage(obj, id);
+			ArrayList<RelayMessageHandler> handlers = messageHandlers.get(id);
+			for (RelayMessageHandler rmh : handlers) { 
+				for(RelayObject obj: msg.getObjects()) {
+					rmh.handleMessage(obj, id);
+				}
 			}
 		} else {
 			logger.debug("Unhandled message: " + id);

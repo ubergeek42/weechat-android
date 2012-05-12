@@ -6,7 +6,8 @@ import java.util.LinkedList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ubergeek42.weechat.relay.RelayConnection;
+import com.ubergeek42.weechat.relay.protocol.Hashtable;
+import com.ubergeek42.weechat.relay.protocol.RelayObject;
 
 /**
  * Representation of a buffer from weechat
@@ -14,7 +15,7 @@ import com.ubergeek42.weechat.relay.RelayConnection;
  *
  */
 public class Buffer {
-	public static final int MAXLINES = 50;
+	public static final int MAXLINES = 200;
 	private static Logger logger = LoggerFactory.getLogger(Buffer.class);
 
 	
@@ -29,13 +30,18 @@ public class Buffer {
 	private boolean hasNicklist;
 	private int type;
 
+	private int numUnread=0;
+	private int numHighlights=0;
+	
 	private ArrayList<BufferObserver> observers = new ArrayList<BufferObserver>();
 	private LinkedList<BufferLine> lines = new LinkedList<BufferLine>();
 	private ArrayList<NickItem> nicks = new ArrayList<NickItem>();
+	private Hashtable local_vars;
 	
 	public void addLine(BufferLine m) {
 		addLineNoNotify(m);
 		notifyObservers();
+		numUnread++;
 	}
 	public void addLineNoNotify(BufferLine m) {
 		synchronized(messagelock) {
@@ -71,12 +77,21 @@ public class Buffer {
 	public void setTitle(String s)            { this.title = s; }
 	public void setNicklistVisible(boolean b) { this.hasNicklist = b; }
 	public void setType(int i)                { this.type = i; }
+	public void setLocals(Hashtable ht)       { this.local_vars = ht; }
 	
 	public String getPointer()                { return pointer; }
 	public String getFullName()               { return this.fullName; }
 	public String getTitle()                  { return this.title; }
 	public String getShortName()              { return this.shortName; }
+	public RelayObject getLocalVar(String key){ return this.local_vars.get(key); }
 
+	public void resetHighlight() {numHighlights = 0;}
+	public void resetUnread()    {numUnread = 0;}
+	public void addHighlight()   {numHighlights++;}
+	
+	public int getHighlights() { return numHighlights; }
+	public int getUnread() { return numUnread;}
+	
 	public LinkedList<BufferLine> getLines() {
 		// Give them a copy, so we don't get concurrent modification exceptions
 		LinkedList<BufferLine> ret = new LinkedList<BufferLine>();

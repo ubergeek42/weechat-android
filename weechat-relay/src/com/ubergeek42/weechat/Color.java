@@ -397,7 +397,7 @@ public class Color {
 	        char c = s.charAt(i);
 	        if (c=='&') {
 	        	out.append("&amp;");
-	        } else if (c==' ') {
+	        } else if (c==' ' && (i-1>0 && s.charAt(i-1)==' ')) {
 	        	out.append("&nbsp;");
 	        } else if(c > 127 || c=='"' || c=='<' || c=='>') {
 	           out.append("&#"+(int)c+";");

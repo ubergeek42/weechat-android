@@ -5,8 +5,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ubergeek42.weechat.Buffer;
-import com.ubergeek42.weechat.relay.RelayMessage;
 import com.ubergeek42.weechat.relay.RelayMessageHandler;
+import com.ubergeek42.weechat.relay.protocol.Hashtable;
 import com.ubergeek42.weechat.relay.protocol.Hdata;
 import com.ubergeek42.weechat.relay.protocol.HdataEntry;
 import com.ubergeek42.weechat.relay.protocol.RelayObject;
@@ -20,16 +20,28 @@ public class BufferManager implements RelayMessageHandler {
 	private static Logger logger = LoggerFactory.getLogger(BufferManager.class);
 	
 	ArrayList<Buffer> buffers = new ArrayList<Buffer>();
-	private BufferManagerObserver onChanged;
+	private BufferManagerObserver onChangeObserver;
 	
 	/**
-	 * Located and returns a Buffer object based on it's pointer
+	 * Locate and returns a Buffer object based on it's pointer
 	 * @param pointer - Pointer to a weechat buffer(e.g. 0xDEADBEEF)
 	 * @return Buffer object for the associated buffer, or null if not found
 	 */
 	public Buffer findByPointer(String pointer) {
 		for(Buffer b: buffers) {
 			if (pointer.equals(b.getPointer()))
+				return b;
+		}
+		return null;
+	}
+	/**
+	 * Locate and returns a Buffer object based on it's name
+	 * @param pointer - Name of a weechat buffer(e.g. irc.freenode.#weechat)
+	 * @return Buffer object for the associated buffer, or null if not found
+	 */
+	public Buffer findByName(String bufferName) {
+		for(Buffer b: buffers) {
+			if (bufferName.equals(b.getFullName()))
 				return b;
 		}
 		return null;
@@ -56,7 +68,16 @@ public class BufferManager implements RelayMessageHandler {
 	 * @param bo - The observer to receive notifications
 	 */
 	public void onChanged(BufferManagerObserver bo) {
-		this.onChanged = bo;
+		this.onChangeObserver = bo;
+	}
+	/**
+	 * Can be called to inform clients that the buffers have changed in some way
+	 * Currently used for notifying about unread lines/highlights
+	 */
+	public void buffersChanged() {
+		if (onChangeObserver != null) {
+			onChangeObserver.onBuffersChanged();
+		}
 	}
 	
 	@Override
@@ -78,6 +99,10 @@ public class BufferManager implements RelayMessageHandler {
 				wb.setTitle(hde.getItem("title").asString());
 				wb.setNicklistVisible(hde.getItem("nicklist").asInt()==1);
 				wb.setType(hde.getItem("type").asInt());
+				
+				Hashtable ht = (Hashtable)hde.getItem("local_variables");
+				if (ht!=null)
+					wb.setLocals(ht);
 				
 				buffers.add(wb);
 			} else if (id.equals("_buffer_opened")) {
@@ -111,12 +136,17 @@ public class BufferManager implements RelayMessageHandler {
 					wb.setTitle(hde.getItem("title").asString());
 				} else {
 					wb.setShortName(hde.getItem("short_name").asString());
-					// TODO: Manipulate local variables
+					Hashtable ht = (Hashtable)hde.getItem("local_variables");
+					if (ht!=null)
+						wb.setLocals(ht);
 				}
 			} else if (id.equals("_buffer_localvar_added") || id.equals("_buffer_localvar_changed") || id.equals("_buffer_localvar_removed")) {
 				wb.setNumber(hde.getItem("number").asInt());
 				wb.setFullName(hde.getItem("full_name").asString());
-				// TODO: Manipulate local variables
+
+				Hashtable ht = (Hashtable)hde.getItem("local_variables");
+				if (ht!=null)
+					wb.setLocals(ht);
 			} else if (id.equals("_buffer_closing")) {
 				for(int j=0;j<buffers.size();j++) {
 					if (buffers.get(j).getPointer().equals(hde.getPointer())) {
@@ -126,12 +156,12 @@ public class BufferManager implements RelayMessageHandler {
 					}
 				}
 			} else {
-				logger.debug("Unknown message ID: " + id);
+				logger.debug("Unknown message ID: \"" + id+"\"");
 			}
 		}
-		
-		this.onChanged.onBuffersChanged();
+		buffersChanged();
 	}
+	
 
 	
 

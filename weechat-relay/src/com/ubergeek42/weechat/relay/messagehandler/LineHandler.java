@@ -54,6 +54,7 @@ public class LineHandler implements RelayMessageHandler {
 				System.out.println(cm);
 				
 				buffer.addLine(cm);
+				cb.buffersChanged();
 			}
 		} else if (id.equals("listlines_reverse")) { // lines come in most recent to least recent
 			HashSet<Buffer> toUpdate = new HashSet<Buffer>();
@@ -67,7 +68,11 @@ public class LineHandler implements RelayMessageHandler {
 				boolean displayed = (hde.getItem("displayed").asChar()==0x01);
 				Date time = hde.getItem("date").asTime();
 				String bPointer = hde.getPointer(0);
-				boolean highlight = (hde.getItem("highlight").asChar()==0x01);
+				
+				// Try to get highlight status(added in 0.3.8-dev: 2012-03-06)
+				RelayObject t = hde.getItem("highlight");
+				boolean highlight = false;
+				if(t!=null) highlight = (t.asChar()==0x01);
 	
 				// Find the buffer to put the line in
 				Buffer buffer = cb.findByPointer(bPointer);

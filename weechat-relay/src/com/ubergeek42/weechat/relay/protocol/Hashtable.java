@@ -12,10 +12,10 @@ import java.util.HashMap;
  */
 public class Hashtable extends RelayObject {
 
-	private HashMap<RelayObject,RelayObject> hashtable = new HashMap<RelayObject,RelayObject>();
+	private HashMap<String,RelayObject> hashtable = new HashMap<String,RelayObject>();
 	
-	private WType keyType;
-	private WType valueType;
+	private WType keyType; // One of: Integer, String, Pointer, Buffer, Time
+	private WType valueType; // Same possible types as for keys
 	
 	protected Hashtable(WType keyType, WType valueType) {
 		this.keyType = keyType;
@@ -23,7 +23,11 @@ public class Hashtable extends RelayObject {
 	}
 
 	protected void put(RelayObject key, RelayObject value) {
-		hashtable.put(key, value);
+		hashtable.put(key.toString(), value);
+	}
+	
+	public RelayObject get(String key) {
+		return hashtable.get(key);
 	}
 	
 	/**
@@ -32,7 +36,7 @@ public class Hashtable extends RelayObject {
 	@Override
 	public String toString() {
 		StringBuilder map = new StringBuilder();
-		for(RelayObject key: hashtable.keySet()) {
+		for(String key: hashtable.keySet()) {
 			RelayObject value = hashtable.get(key);
 			map.append(key);
 			map.append(" -> ");

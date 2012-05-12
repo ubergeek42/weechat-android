@@ -1,5 +1,6 @@
 package com.ubergeek42.weechat.relay.protocol;
 
+import java.util.Arrays;
 import java.util.Date;
 
 /**
@@ -8,6 +9,7 @@ import java.util.Date;
  * @author ubergeek42<kj@ubergeek42.com>
  */
 public class RelayObject {
+
 	public enum WType {
 		CHR, INT, LON, STR, BUF, PTR, TIM, HTB, HDA, INF, INL, UNKNOWN
 	}
@@ -26,22 +28,27 @@ public class RelayObject {
 
 	protected RelayObject(char c) {
 		charValue = c;
+		type = WType.CHR;
 	}
 
 	protected RelayObject(int i) {
 		intValue = i;
+		type = WType.INT;
 	}
 
 	protected RelayObject(long l) {
 		longValue = l;
+		type = WType.LON;
 	}
 
 	protected RelayObject(String s) {
 		strValue = s;
+		type = WType.STR;
 	}
 
 	protected RelayObject(byte[] b) {
 		baValue = b;
+		type = WType.BUF;
 	}
 
 	protected void setType(WType t) {
@@ -133,7 +140,7 @@ public class RelayObject {
 			value = "" + asLong();
 			break;
 		case STR:
-			value = '"' + asString() + '"';
+			value = asString();
 			break;
 		case TIM:
 			value = "" + asTime();
@@ -142,7 +149,7 @@ public class RelayObject {
 			value = "" + asPointer();
 			break;
 		case BUF:
-			value = "" + asBytes();
+			value = "" + Arrays.toString(asBytes());
 			break; // Need a better printer for a byte buffer
 		}
 		// return String.format("%s -> %s", type, value);
