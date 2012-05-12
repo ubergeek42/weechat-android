@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="WeechatAndroid" default="help">
+<project name="WeechatAndroid-custom" default="help">
 	<target name="-pre-build">
 		<copy todir="${jar.libs.dir}">
 			<fileset dir="../weechat-relay/libs" includes="weechat-relay.jar" />

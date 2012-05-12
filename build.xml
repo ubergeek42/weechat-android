@@ -1,39 +1,57 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="weechat-relay" default="build" basedir=".">
-	<target name="init">
-	</target>
-
-	<target name="buildlib">
+	<!-- Build all components -->
+	<target name="build">
 		<subant target="compile">
-			<fileset dir="." includes="weechat-relay/build.xml"/>
+			<fileset dir="weechat-relay" includes="build.xml"/>
 		</subant>
-	</target>
-
-	<target depends="buildlib" name="buildandroid">
-		<subant target="release">
-			<fileset dir="." includes="weechat-android/build.xml"/>
+		<subant target="debug">
+			<fileset dir="weechat-android" includes="build.xml"/>
 		</subant>
-	</target>
-
-	<target depends="buildlib" name="buildexample">
 		<subant target="dist">
-			<fileset dir="." includes="weechat-relay-example/build.xml"/>
+			<fileset dir="weechat-relay-example" includes="build.xml"/>
 		</subant>
 	</target>
 
-	<target name="build" depends="buildexample,buildandroid" />
-
+	<!-- Run the tests, and generate the docs/reports -->
 	<target name="test">
 		<subant target="test">
-			<fileset dir="." includes="weechat-relay/build.xml" />
+			<fileset dir="weechat-relay" includes="build.xml"/>
 		</subant>
+		
+		<!-- Delete output directories -->
+		<delete dir="gh-pages/javadoc" />
+		<delete dir="gh-pages/junit" />
+		<delete dir="gh-pages/emma" />
+		
+		<!-- Copy the new docs/reports -->
+		<copy todir="gh-pages/javadoc">
+			<fileset dir="weechat-relay/docs"/>
+		</copy>
+		<copy todir="gh-pages/emma">
+			<fileset dir="weechat-relay/reports/emma/coverage" includes="**/*.html"/>
+		</copy>
+		<copy todir="gh-pages/junit">
+			<fileset dir="weechat-relay/reports/html"/>
+		</copy>
 	</target>
 
+	<!-- Cleanup after ourselves -->
 	<target name="clean">
 		<subant target="clean">
 			<fileset dir="." includes="weechat-relay-example/build.xml"/>
 			<fileset dir="." includes="weechat-android/build.xml"/>
 			<fileset dir="." includes="weechat-relay/build.xml"/>
 		</subant>
+	</target>
+	
+	<!-- Create a release package -->
+	<target name="dist" depends="clean,build,test" >
+		<subant target="release">
+			<fileset dir="weechat-android" includes="build.xml"/>
+		</subant>
+		<copy todir="releases">
+			<fileset dir="weechat-android/bin/" includes="WeechatAndroid-release.apk" />
+		</copy>
 	</target>
 </project>
