@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">weechat</string>
+    <string name="sendButton">Send</string>
+    <string name="app_version">Weechat v0.5-dev</string>
+</resources>

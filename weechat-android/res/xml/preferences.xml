@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+    <EditTextPreference android:key="host" android:title="Relay Host"/>
+    <EditTextPreference android:key="port" android:title="Relay Port"/>
+    <EditTextPreference android:key="password" android:title="Relay Password"/>
+    <CheckBoxPreference android:key="autoconnect" android:summary="Connect as soon as app is launched" android:title="Connect Automatically"/>
+    <CheckBoxPreference android:key="reconnect" android:summary="Reconnect automatically.  Exits if disabled" android:title="Automatically Reconnect"/>
+    <CheckBoxPreference android:summary="Note: May be slow when changing" android:title="Show colors in chat" android:key="chatview_colors" android:defaultValue="true"/>
+    <CheckBoxPreference android:summary="Whether to display timestamps in chat. Saves space when disabled." android:title="Show timestamps" android:key="chatview_timestamps" android:defaultValue="true"/>
+    <CheckBoxPreference android:summary="If enabled, messages that were filtered will be hidden.(e.g. irc_smart_filter)" android:title="Filter messages" android:key="chatview_filters" android:defaultValue="true"/>
+    <CheckBoxPreference android:summary="Use default notification sound when a private message or highlight is received" android:title="Notification Sound" android:key="notification_sounds" android:defaultValue="false"/>
+</PreferenceScreen>
