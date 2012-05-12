@@ -61,6 +61,7 @@ For more details about Weechat and the Relay Protocol:
 * Support Notifications
 * Background service
 * Message filters
+* UTF-8 Support(Fixes #1)
 
 #### v.0.04
 * Skipped
