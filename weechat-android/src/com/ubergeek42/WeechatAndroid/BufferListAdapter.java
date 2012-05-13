@@ -1,6 +1,7 @@
 package com.ubergeek42.WeechatAndroid;
 
 import android.graphics.Color;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -52,14 +53,14 @@ public class BufferListAdapter extends BaseAdapter implements BufferManagerObser
 		TextView fullname = (TextView)convertView.findViewById(R.id.bufferlist_fullname);
 		TextView hotlist = (TextView)convertView.findViewById(R.id.bufferlist_hotlist);
 		TextView title = (TextView)convertView.findViewById(R.id.bufferlist_title);
-		
+
 		// use contents of bufferItem to fill in text content
 		fullname.setText(bufferItem.getFullName());
 		shortname.setText(bufferItem.getShortName());
 		if (bufferItem.getShortName()==null)
 			shortname.setText(bufferItem.getFullName());
 
-		title.setText(bufferItem.getTitle());
+		title.setText(com.ubergeek42.weechat.Color.stripColors(bufferItem.getTitle()));
 		
 		int unread = bufferItem.getUnread();
 		int highlight = bufferItem.getHighlights();

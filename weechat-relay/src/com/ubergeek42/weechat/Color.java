@@ -376,9 +376,18 @@ public class Color {
 		}catch(StringIndexOutOfBoundsException e) {
 			// Ignored
 		}
-		return cleaned.toString();
+		return stripUnprintable(cleaned.toString());
 	}
 	
+	private static String stripUnprintable(String msg) {
+		if(msg==null) return msg;
+		StringBuffer cleaned = new StringBuffer();
+		for (int i=0; i<msg.length(); i++) {
+			char c= msg.charAt(i);
+			if (c>=' ') cleaned.append(c);
+		}
+		return cleaned.toString();
+	}
 	
 	/**
 	 * Encode a string as HTML(Escaping the various special characters that are valid html)
