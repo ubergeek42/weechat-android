@@ -82,18 +82,20 @@ public class Data {
 		try {
 			ret = new String(bytes, "UTF-8");
 		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
+			// Should never occur, with UTF-8 being hardcoded in
 		}
 		return ret;
 	}
 
-	// XXX: untested
 	public byte[] getBuffer() {
 		int length = getUnsignedInt();
 		if (pointer+length > data.length) {
 			throw new IndexOutOfBoundsException("Not enough data");
 		}
 		if (length == 0) {
+			return new byte[0];
+		}
+		if (length == -1) {
 			return null;
 		}
 		
@@ -113,9 +115,10 @@ public class Data {
 		for(int i=0;i<length;i++) {
 			sb.append(getChar());
 		}
-		
-		if (Integer.parseInt(sb.toString(),16) == 0) {
+
+		if (length==1 && Long.parseLong(sb.toString().toUpperCase(),16) == 0) {
 			// Null Pointer
+			return "0x0";
 		}
 		
 		return "0x" + sb.toString();
