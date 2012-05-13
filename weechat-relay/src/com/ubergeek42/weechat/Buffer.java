@@ -41,7 +41,8 @@ public class Buffer {
 	public void addLine(BufferLine m) {
 		addLineNoNotify(m);
 		notifyObservers();
-		numUnread++;
+		if (m.getVisible())
+			numUnread++;
 	}
 	public void addLineNoNotify(BufferLine m) {
 		synchronized(messagelock) {
