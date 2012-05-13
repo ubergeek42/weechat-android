@@ -28,10 +28,16 @@ The nicklist is missing from this version, I'm looking at the most useful way to
 
 The app does run in the background, however if you would like to exit it, from the buffers list menu->quit.  I've run it in the background all day with no real noticable drain on my battery.
 
-### Requirements
+### Requirements + Setup
 * Android 2.1+
 * Weechat v0.3.7
 * If you want support for highlights(private message notifications will work otherwise), you must be using Weechat v0.3.8-dev after March 6th.
+
+In weechat, you will need to configure the relay server.  /help relay will get you most of the way there.
+
+    /relay add weechat 8001
+
+This will setup weechat to listen on port 8001 for connections.  You will probably want to set relay.network.password as well.
 
 ###Source Code
 There are 3 basic parts to this, the android application, the java library which provides most of the functionality of connecting to the weechat relay server, and an example client showing the basic features of that library.

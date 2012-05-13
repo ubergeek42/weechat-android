@@ -19,7 +19,7 @@ public class RelayExample implements BufferManagerObserver, RelayConnectionHandl
 	}
 
 	private void demo() {
-		String server = "10.0.0.1";
+		String server = "127.0.0.1";
 		String port = "8001";
 		String password = "testpassword";
 		

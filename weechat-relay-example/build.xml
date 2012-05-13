@@ -11,6 +11,7 @@
 	<path id="classpath">
 		<fileset dir="${lib.dir}" includes="weechat-relay.jar" />
 		<fileset dir="${slf4j.dir}" includes="slf4j-api-*.jar" />
+		<fileset dir="${slf4j.dir}" includes="slf4j-simple-*.jar" />
 	</path>
 	
 	<target name="init">
