@@ -1,22 +1,28 @@
-Weechat Android Relay Client v0.05-dev
+Weechat Android Relay Client
 ==================================
 This is an Android Weechat Relay client.
 It is currently in beta status, with most things working.  It has not been extensively tested, so it may force close or drain your battery excessively.(However, in my limited testing it seems quite fine, I use it daily)
 
-###Download
+##Download
+####Stable version
 Either scan the QR code, or click the link to download the apk.  Click on it and choose to install. [Download Link](https://github.com/downloads/ubergeek42/weechat-android/weechat-0.05-dev.apk)
 
 ![Download](https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=https://github.com/downloads/ubergeek42/weechat-android/weechat-0.05-dev.apk)
 
-### Bug Reports and Feature Requests Welcome!
-Please report any bugs or feature requests here on github, or send me an email: kj@ubergeek42.com
+####Latest Development Snapshot
+If you're feeling adventurous, you can try the latest development version.  This is built after every commit, and while I try to keep a working build, it may fail or have major bugs.
 
-###Basic Usage
+[Get the latest development version here](http://repository-ubergeek42.forge.cloudbees.com/release/index.html)
+
+## Bug Reports and Feature Requests Welcome!
+Please report any bugs or feature requests here on github, or send me an email: kj@ubergeek42.com.  You can also ping me in #weechat on freenode.
+
+##Basic Usage
 At the main screen, press menu, then choose preferences.
 Configure your hostname, port, and password.  Some other options:
 
-* Connect Automatically - Connects to the weechat relay as soon as the program starts
-* Automatically reconnect
+* Connect automatically
+* Automatically reconnect, useful on a flakey network
 * Colors in chat(may be slow depending on device)
 * Timestamps can be toggled to make better use of screen space
 * Messages filtered by weechat can be filtered here(e.g. irc_smart_filter)
@@ -29,20 +35,20 @@ The nicklist is missing from this version, I'm looking at the most useful way to
 The app does run in the background, however if you would like to exit it, from the buffers list menu->quit.  I've run it in the background all day with no real noticable drain on my battery.
 
 ### Requirements + Setup
-* Android 2.1+
-* Weechat v0.3.7
-* If you want support for highlights(private message notifications will work otherwise), you must be using Weechat v0.3.8-dev after March 6th.
+* Weechat v0.3.7+
+* Android 2.1+ - The only permissions needed are internet access.
+* Note: If you want support for highlights(private message notifications will work otherwise), you must be using Weechat v0.3.8-dev after March 6th.
 
-In weechat, you will need to configure the relay server.  /help relay will get you most of the way there.
+In weechat, you will need to configure the relay server.  /help relay will get you most of the way there.  Basically you will need to run:
 
     /relay add weechat 8001
 
-This will setup weechat to listen on port 8001 for connections.  You will probably want to set relay.network.password as well.
+This will setup weechat to listen on port 8001 for connections.  Make sure your firewall is setup to allow access to this port.  You will probably want to set relay.network.password as well.  Communications with weechat are *not* encrypted at this point in time.
 
 ###Source Code
 There are 3 basic parts to this, the android application, the java library which provides most of the functionality of connecting to the weechat relay server, and an example client showing the basic features of that library.
 
-* weechat - An eclipse project to build the Android sample application(May require modifying the library path to include weechat-relay.jar from weechat-relay, you may also need slf4j/slf4j-android)
+* weechat-android - The android application.
 * weechat-relay - A library implementing the Weechat Relay Protocol
 * weechat-relay-example - A simple example program that makes use of the weechat-relay library
 
@@ -66,6 +72,7 @@ In this last one, the "U: 2 H: 1" in purple refers to 2 unread messages, 1 highl
 
 
 ### Changelog
+
 #### v0.05-dev
 * Complete rewrite of the frontend
 * Support Notifications
