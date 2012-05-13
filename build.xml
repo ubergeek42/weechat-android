@@ -46,12 +46,13 @@
 	</target>
 	
 	<!-- Create a release package -->
-	<target name="dist" depends="clean,build,test" >
+	<target name="dist">
+		<subant target="compile">
+			<fileset dir="weechat-relay" includes="build.xml"/>
+		</subant>
 		<subant target="release">
 			<fileset dir="weechat-android" includes="build.xml"/>
 		</subant>
-		<copy todir="releases">
-			<fileset dir="weechat-android/bin/" includes="WeechatAndroid-release.apk" />
-		</copy>
+		<move file="weechat-android/bin/WeechatAndroid-release.apk" tofile="weechat.apk" />
 	</target>
 </project>
