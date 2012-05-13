@@ -376,15 +376,43 @@ public class Color {
 		}catch(StringIndexOutOfBoundsException e) {
 			// Ignored
 		}
-		return stripUnprintable(cleaned.toString());
+		return cleaned.toString();
 	}
 	
-	private static String stripUnprintable(String msg) {
+	// Strips colors encoded with the standard irc method
+	public static String stripIRCColors(String msg) {
+		
 		if(msg==null) return msg;
 		StringBuffer cleaned = new StringBuffer();
-		for (int i=0; i<msg.length(); i++) {
-			char c= msg.charAt(i);
-			if (c>=' ') cleaned.append(c);
+		try {
+		for(int i=0;i<msg.length();) {
+			char c = msg.charAt(i++);
+
+			if (c==0x02 || c==0x0F || c==0x11 || c==0x12 || c==0x16 || c==0x1D || c==0x1F) { // Bold, Color Reset, Fixed,  Reverse, Reverse2, Italic, Underline
+				// do nothing with them
+				continue;
+			} else if (c==0x03) { // color follows this
+				// 1 or 2 digit color
+				if (Character.isDigit(msg.charAt(i))) {
+					c = msg.charAt(i++);
+					if (Character.isDigit(msg.charAt(i))) {
+						c = msg.charAt(i++);
+					}
+				}
+				// comma, then 1 or 2 digits
+				if (c == ',' && Character.isDigit(msg.charAt(i))) {
+					c = msg.charAt(i++);
+					if (Character.isDigit(msg.charAt(i))) {
+						c = msg.charAt(i++);
+					}
+				}
+				continue;
+			}
+
+			cleaned.append(c);
+		}
+		}catch(StringIndexOutOfBoundsException e) {
+			// Ignored
 		}
 		return cleaned.toString();
 	}
