@@ -34,7 +34,7 @@ The nicklist is missing from this version, I'm looking at the most useful way to
 
 The app does run in the background, however if you would like to exit it, from the buffers list menu->quit.  I've run it in the background all day with no real noticable drain on my battery.
 
-### Requirements + Setup
+## Requirements + Setup
 * Weechat v0.3.7+
 * Android 2.1+ - The only permissions needed are internet access.
 * Note: If you want support for highlights(private message notifications will work otherwise), you must be using Weechat v0.3.8-dev after March 6th.
@@ -45,7 +45,7 @@ In weechat, you will need to configure the relay server.  /help relay will get y
 
 This will setup weechat to listen on port 8001 for connections.  Make sure your firewall is setup to allow access to this port.  You will probably want to set relay.network.password as well.  Communications with weechat are *not* encrypted at this point in time.
 
-###Source Code
+##Source Code
 There are 3 basic parts to this, the android application, the java library which provides most of the functionality of connecting to the weechat relay server, and an example client showing the basic features of that library.
 
 * weechat-android - The android application.
@@ -61,7 +61,7 @@ For more details about Weechat and the Relay Protocol:
 * Weechat - http://www.weechat.org/
 * Relay Protocol - http://www.weechat.org/files/doc/devel/weechat_relay_protocol.en.html
 
-###Screenshots
+##Screenshots
 <a href="https://github.com/ubergeek42/weechat-android/raw/master/releases/chat-channel.png"><img src="https://github.com/ubergeek42/weechat-android/raw/master/releases/chat-channel.png" width="400px"></a>
 
 <a href="https://github.com/ubergeek42/weechat-android/raw/master/releases/preferences.png"><img src="https://github.com/ubergeek42/weechat-android/raw/master/releases/preferences.png" height="400px"></a>
@@ -71,7 +71,7 @@ For more details about Weechat and the Relay Protocol:
 In this last one, the "U: 2 H: 1" in purple refers to 2 unread messages, 1 highlight.  If it was only unread messages it is displayed in yellow.
 
 
-### Changelog
+## Changelog
 
 #### v0.05-dev
 * Complete rewrite of the frontend

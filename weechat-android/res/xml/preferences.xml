@@ -9,4 +9,7 @@
     <CheckBoxPreference android:summary="Whether to display timestamps in chat. Saves space when disabled." android:title="Show timestamps" android:key="chatview_timestamps" android:defaultValue="true"/>
     <CheckBoxPreference android:summary="If enabled, messages that were filtered will be hidden.(e.g. irc_smart_filter)" android:title="Filter messages" android:key="chatview_filters" android:defaultValue="true"/>
     <CheckBoxPreference android:summary="Use default notification sound when a private message or highlight is received" android:title="Notification Sound" android:key="notification_sounds" android:defaultValue="false"/>
+    <PreferenceScreen android:key="misc_prefs" android:title="Miscellaneous settings">
+        <CheckBoxPreference android:key="prefix_align_right" android:title="Right align prefix" android:summary="Uncheck to left align" android:defaultValue="true"/>
+    </PreferenceScreen>
 </PreferenceScreen>

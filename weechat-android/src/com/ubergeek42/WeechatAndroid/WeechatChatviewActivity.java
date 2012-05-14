@@ -11,12 +11,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.text.Html;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -34,9 +36,8 @@ import android.widget.TextView;
 import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.BufferLine;
 import com.ubergeek42.weechat.BufferObserver;
-import com.ubergeek42.weechat.relay.RelayConnection;
 
-public class WeechatChatviewActivity extends Activity implements OnClickListener, OnKeyListener, BufferObserver {
+public class WeechatChatviewActivity extends Activity implements OnClickListener, OnKeyListener, BufferObserver, OnSharedPreferenceChangeListener {
 
 	private static Logger logger = LoggerFactory.getLogger(WeechatChatviewActivity.class);
 	
@@ -55,6 +56,7 @@ public class WeechatChatviewActivity extends Activity implements OnClickListener
 	private boolean enableTimestamp = true;
 	private boolean enableColor = true;
 	private boolean enableFilters = true;
+	private boolean prefix_align_right = true;
 	
 	private LRUMap<BufferLine,TableRow> tableCache = new LRUMap<BufferLine,TableRow>(Buffer.MAXLINES, Buffer.MAXLINES);
 
@@ -90,11 +92,13 @@ public class WeechatChatviewActivity extends Activity implements OnClickListener
         inputBox.setOnKeyListener(this);
         
         prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-		
+        prefs.registerOnSharedPreferenceChangeListener(this);
+        
 		// Load the preferences
 		enableColor = prefs.getBoolean("chatview_colors", true);
 		enableTimestamp = prefs.getBoolean("chatview_timestamps", true);
 		enableFilters = prefs.getBoolean("chatview_filters", true);
+		prefix_align_right = prefs.getBoolean("prefix_align_right", true);
 	}
 
 	@Override
@@ -207,6 +211,10 @@ public class WeechatChatviewActivity extends Activity implements OnClickListener
 								prefix.setText(cm.getPrefix());
 							}
 						}
+						if (prefix_align_right)
+							prefix.setGravity(Gravity.RIGHT);
+						else
+							prefix.setGravity(Gravity.LEFT);
 						
 						TextView message = (TextView) tr.findViewById(R.id.chatline_message);
 						if (enableColor) {
@@ -288,6 +296,26 @@ public class WeechatChatviewActivity extends Activity implements OnClickListener
 		// Close when the buffer is closed
 		buffer.removeObserver(this);
 		finish();
+	}
+	
+	@Override
+	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+		if (key.equals("chatview_colors")) {
+			enableColor = prefs.getBoolean("chatview_colors", true);
+			tableCache.clear();
+			refreshView();
+		} else if (key.equals("chatview_timestamps")) {
+			enableTimestamp = prefs.getBoolean("chatview_timestamps", true);
+			tableCache.clear();
+			refreshView();
+		} else if (key.equals("chatview_filters")) {
+			enableFilters = prefs.getBoolean("chatview_filters", true);
+			refreshView();
+		} else if (key.equals("prefix_align_right")) {
+			prefix_align_right = prefs.getBoolean("prefix_align_right", true);
+			tableCache.clear();
+			refreshView();
+		}
 	}
 	
 }
