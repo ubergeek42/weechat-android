@@ -2,7 +2,7 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
     <EditTextPreference android:key="host" android:title="Relay Host"/>
     <EditTextPreference android:key="port" android:title="Relay Port"/>
-    <EditTextPreference android:key="password" android:title="Relay Password"/>
+    <EditTextPreference android:key="password" android:title="Relay Password" android:password="true"/>
     <CheckBoxPreference android:key="autoconnect" android:summary="Connect as soon as app is launched" android:title="Connect Automatically"/>
     <CheckBoxPreference android:key="reconnect" android:summary="Reconnect automatically.  Exits if disabled" android:title="Automatically Reconnect"/>
     <CheckBoxPreference android:summary="Note: May be slow when changing" android:title="Show colors in chat" android:key="chatview_colors" android:defaultValue="true"/>
