@@ -33,6 +33,8 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, OnShar
 	private int maxPrefix = 0;
 	protected int prefixWidth;
 	
+	private View filteredLine;
+	
 	public ChatLinesAdapter(WeechatChatviewActivity activity,
 			Buffer buffer) {
 		this.activity = activity;
@@ -43,6 +45,8 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, OnShar
 		prefs.registerOnSharedPreferenceChangeListener(this);
 		
 		lines = buffer.getLines();
+		
+		filteredLine = inflater.inflate(R.layout.filtered_line,null);
 		
 		// Load the preferences
 		enableColor = prefs.getBoolean("chatview_colors", true);
@@ -70,8 +74,13 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, OnShar
 	public View getView(int position, View convertView, ViewGroup parent) {
 		BufferLine chatLine = (BufferLine)getItem(position);
 		
-		if (convertView == null) {
+		// If we don't have the view, or we were using a filteredView, inflate a new one
+		if (convertView == null || convertView == filteredLine) {
 			convertView = inflater.inflate(R.layout.chatview_line,null);
+		}
+		// Filter the line, by returning a blank view
+		if (enableFilters && !chatLine.getVisible()) {
+			return filteredLine;
 		}
 
 		// Render the timestamp
