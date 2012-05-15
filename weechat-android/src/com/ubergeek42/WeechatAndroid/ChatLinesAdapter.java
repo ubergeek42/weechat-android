@@ -33,8 +33,6 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, OnShar
 	private int maxPrefix = 0;
 	protected int prefixWidth;
 	
-	private View filteredLine;
-	
 	public ChatLinesAdapter(WeechatChatviewActivity activity,
 			Buffer buffer) {
 		this.activity = activity;
@@ -45,8 +43,6 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, OnShar
 		prefs.registerOnSharedPreferenceChangeListener(this);
 		
 		lines = buffer.getLines();
-		
-		filteredLine = inflater.inflate(R.layout.filtered_line,null);
 		
 		// Load the preferences
 		enableColor = prefs.getBoolean("chatview_colors", true);
@@ -75,12 +71,8 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, OnShar
 		BufferLine chatLine = (BufferLine)getItem(position);
 		
 		// If we don't have the view, or we were using a filteredView, inflate a new one
-		if (convertView == null || convertView == filteredLine) {
+		if (convertView == null) {
 			convertView = inflater.inflate(R.layout.chatview_line,null);
-		}
-		// Filter the line, by returning a blank view
-		if (enableFilters && !chatLine.getVisible()) {
-			return filteredLine;
 		}
 
 		// Render the timestamp
@@ -167,6 +159,14 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, OnShar
 			public void run() {
 				lines = buffer.getLines();
 
+				if (enableFilters) {
+					LinkedList<BufferLine> filtered = new LinkedList<BufferLine>();
+					for(BufferLine line: lines) {
+						if (line.getVisible()) filtered.add(line);
+					}
+					lines = filtered;
+				}
+				
 				if (prefix_align.equals("right") || prefix_align.equals("left")) {
 					int maxlength = 0;
 					// Find max prefix width
