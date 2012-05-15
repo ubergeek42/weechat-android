@@ -15,23 +15,41 @@
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
     <TextView
-        android:id="@+id/textView2"
+        android:id="@+id/TextView04"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/textView1"
-        android:layout_centerHorizontal="true"
-        android:text="created by ubergeek42"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:text="@string/app_build_id"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
 
     <TextView
         android:id="@+id/textView3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_above="@+id/TextView04"
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
-        android:layout_below="@+id/textView2"
-        android:layout_marginTop="22dp"
-        android:text="@string/app_build_id"
+        android:text="Build Identifier(please include in bug reports):"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <TextView
+        android:id="@+id/TextView05"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/textView1"
+        android:layout_centerHorizontal="true"
+        android:text="for Android"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/TextView05"
+        android:layout_centerHorizontal="true"
+        android:text="created by ubergeek42"
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
     <TextView
@@ -39,10 +57,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true"
-        android:layout_below="@+id/textView3"
+        android:layout_below="@+id/textView2"
+        android:layout_marginTop="30dp"
         android:text="http://github.com/ubergeek42/weechat-android/"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:autoLink="web"/>
 
     <TextView
         android:id="@+id/TextView02"
@@ -50,7 +69,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_below="@+id/TextView01"
-        android:layout_marginTop="17dp"
+        android:layout_marginTop="19dp"
         android:text="Find a bug or have a feature request?"
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
