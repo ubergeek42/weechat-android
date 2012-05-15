@@ -10,6 +10,6 @@
     <CheckBoxPreference android:summary="If enabled, messages that were filtered will be hidden.(e.g. irc_smart_filter)" android:title="Filter messages" android:key="chatview_filters" android:defaultValue="true"/>
     <CheckBoxPreference android:summary="Use default notification sound when a private message or highlight is received" android:title="Notification Sound" android:key="notification_sounds" android:defaultValue="false"/>
     <PreferenceScreen android:key="misc_prefs" android:title="Miscellaneous settings">
-        <CheckBoxPreference android:key="prefix_align_right" android:title="Right align prefix" android:summary="Uncheck to left align" android:defaultValue="true"/>
+        <ListPreference android:key="prefix_align" android:title="Prefix Alignment" android:defaultValue="right" android:entries="@array/settings_prefix_alignment_names" android:entryValues="@array/settings_prefix_alignment_values"/>
     </PreferenceScreen>
 </PreferenceScreen>

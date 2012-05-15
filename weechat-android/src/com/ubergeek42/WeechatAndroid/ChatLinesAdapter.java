@@ -78,22 +78,23 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, OnShar
 		TextView timestamp = (TextView) convertView.findViewById(R.id.chatline_timestamp);
 		if (enableTimestamp) {
 			timestamp.setText(chatLine.getTimestampStr());
+			timestamp.setPadding(timestamp.getPaddingLeft(), timestamp.getPaddingTop(), 5, timestamp.getPaddingBottom());
 		} else {
 			timestamp.setText("");
+			timestamp.setPadding(timestamp.getPaddingLeft(), timestamp.getPaddingTop(), 0, timestamp.getPaddingBottom());
 		}
 		
 		TextView prefix = (TextView) convertView.findViewById(R.id.chatline_prefix);
 		
-		// Need to recalculate the min prefix width
+		// Recalculate the prefix width based on the size of one character(fixed width font)
 		if (prefixWidth == 0) {
 			prefix.setMinimumWidth(0);
 			prefix.setText("m");
 			prefix.measure(convertView.getWidth(), convertView.getHeight());
-			prefixWidth = prefix.getMeasuredWidth()*(maxPrefix+1);
+			prefixWidth = prefix.getMeasuredWidth()*(maxPrefix); // Multiply single character width by max prefix size 
 		}
 		
 		// Render the prefix
-		
 		if(chatLine.getHighlight()) {
 			prefix.setBackgroundColor(Color.MAGENTA);
 			prefix.setTextColor(Color.YELLOW);
@@ -167,8 +168,6 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, OnShar
 					maxPrefix = maxlength;
 					prefixWidth = 0;
 				}
-
-				
 
 				notifyDataSetChanged();
 			}
