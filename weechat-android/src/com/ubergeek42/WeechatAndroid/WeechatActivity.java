@@ -34,6 +34,7 @@ public class WeechatActivity extends Activity implements OnItemClickListener, Re
 	    super.onCreate(savedInstanceState);
 	    
 	    setContentView(R.layout.bufferlist);
+	    setTitle(getString(R.string.app_version));
 	    PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
 	    
 	    bufferlist = (ListView) this.findViewById(R.id.bufferlist_list);
@@ -42,9 +43,6 @@ public class WeechatActivity extends Activity implements OnItemClickListener, Re
 		// See also code in the onDisconnect handler(its a copy/paste)
 		String[] message = {"Press Menu->Connect to get started"};
 		bufferlist.setAdapter(new ArrayAdapter<String>(WeechatActivity.this, R.layout.tips_list_item, message));
-		
-		TextView tv = (TextView)this.findViewById(R.id.bufferlist_status);
-		tv.setText(getString(R.string.app_version));
 		
 		// Start the service(if necessary)
 	    startService(new Intent(this, RelayService.class));
