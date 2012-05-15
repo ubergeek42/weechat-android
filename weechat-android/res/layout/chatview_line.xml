@@ -1,35 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TableRow xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/RelativeLayout1"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent" >
+    android:layout_height="fill_parent"
+    android:orientation="vertical" >
 
     <TextView
         android:id="@+id/chatline_timestamp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:text="timestamp"
         android:textSize="10sp"
-        android:typeface="monospace"
-        android:text="placeholder time" />
+        android:typeface="monospace" />
 
     <TextView
         android:id="@+id/chatline_prefix"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="10dip"
+        android:layout_alignParentTop="true"
+        android:layout_toRightOf="@+id/chatline_timestamp"
         android:gravity="right"
+        android:text="prefix"
         android:textSize="10sp"
-        android:typeface="monospace"
-        android:text="placeholder prefix" />
+        android:typeface="monospace" />
 
     <TextView
         android:id="@+id/chatline_message"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="10dip"
-        android:maxLines="25"
-        android:textSize="10sp"
-        android:typeface="monospace"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:layout_toRightOf="@+id/chatline_prefix"
         android:layout_weight="1"
-        android:text="placeholder message text" />
+        android:maxLines="25"
+        android:text="message text"
+        android:textSize="10sp"
+        android:typeface="monospace" />
 
-</TableRow>
+</RelativeLayout>
