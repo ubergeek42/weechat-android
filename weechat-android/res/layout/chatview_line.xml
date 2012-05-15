@@ -39,6 +39,7 @@
         android:maxLines="25"
         android:text="message text"
         android:textSize="10sp"
-        android:typeface="monospace" />
+        android:typeface="monospace"
+        android:autoLink="web"/>
 
 </RelativeLayout>
