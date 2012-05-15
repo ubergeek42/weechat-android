@@ -172,16 +172,15 @@ public class WeechatChatviewActivity extends Activity implements OnClickListener
 		buffer.removeObserver(this);
 		finish();
 	}
-	
-	
-	
-	
+
 	//==== Options Menu
 	@Override
 	// Build the options menu
 	public boolean onPrepareOptionsMenu(Menu menu) {
 		menu.clear();
-		menu.add("Close Buffer");
+		menu.add("Toggle Timestamps");
+		menu.add("Toggle Filters");
+		menu.add("Close");
 		menu.add("Settings");
 		return super.onPrepareOptionsMenu(menu);
 	}
@@ -189,12 +188,16 @@ public class WeechatChatviewActivity extends Activity implements OnClickListener
 	// Handle the options when the user presses the Menu key
 	public boolean onOptionsItemSelected(MenuItem item) {
 		String s = (String) item.getTitle();
-		if (s.equals("Close Buffer")) {
+		if (s.equals("Close")) {
 			buffer.removeObserver(this);
 			finish();
 		} else if (s.equals("Settings")) {
 			Intent i = new Intent(this, WeechatPreferencesActivity.class);
 			startActivity(i);
+		} else if (s.equals("Toggle Timestamps")) {
+			chatlineAdapter.toggleTimestamps();
+		} else if (s.equals("Toggle Filters")) {
+			chatlineAdapter.toggleFilters();
 		}
 		return true;
 	}

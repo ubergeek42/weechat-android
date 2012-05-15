@@ -151,6 +151,16 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, OnShar
 		notifyChanged();
 	}
 	
+	// Provide a couple of methods for quick toggling timestamps/filters
+	public void toggleTimestamps() {
+		enableTimestamp = !enableTimestamp;
+		notifyChanged();
+	}
+	public void toggleFilters() {
+		enableFilters = !enableFilters;
+		notifyChanged();
+	}
+	
 	// Run the notifyDataSetChanged method in the activity's main thread
 	public void notifyChanged() {
 		activity.runOnUiThread(new Runnable() {
