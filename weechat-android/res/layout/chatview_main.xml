@@ -36,7 +36,15 @@
         android:focusable="false"
 		android:focusableInTouchMode="false"
 		android:clickable="false">
-
     </ListView>
+
+    <TextView
+        android:id="@android:id/empty"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:text="@string/loading_please_wait"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
 
 </RelativeLayout>

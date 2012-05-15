@@ -65,7 +65,7 @@ public class WeechatChatviewActivity extends Activity implements OnClickListener
         
         String[] message = {"Loading. Please wait..."};
 		chatlines.setAdapter(new ArrayAdapter<String>(this, R.layout.tips_list_item, message));
-        
+        chatlines.setEmptyView(findViewById(android.R.id.empty));
         
         sendButton.setOnClickListener(this);
         inputBox.setOnKeyListener(this);
