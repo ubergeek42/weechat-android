@@ -16,11 +16,9 @@ public class BufferListAdapter extends BaseAdapter implements BufferManagerObser
 	WeechatActivity parentActivity;
 	LayoutInflater inflater;
 	private BufferManager bufferManager;
-	private RelayServiceBinder rsb;
 	public BufferListAdapter(WeechatActivity parentActivity, RelayServiceBinder rsb) {
 		this.parentActivity = parentActivity;
 		this.inflater = LayoutInflater.from(parentActivity);
-		this.rsb = rsb;
 		
 		bufferManager = rsb.getBufferManager();
 		bufferManager.onChanged(this);
