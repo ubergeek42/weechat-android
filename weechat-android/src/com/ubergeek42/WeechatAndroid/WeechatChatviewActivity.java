@@ -69,8 +69,6 @@ public class WeechatChatviewActivity extends Activity implements OnClickListener
         
         sendButton.setOnClickListener(this);
         inputBox.setOnKeyListener(this);
-        
-		
 	}
 
 	@Override

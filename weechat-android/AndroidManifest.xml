@@ -18,7 +18,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".WeechatPreferencesActivity"></activity>
-        <activity android:name=".WeechatChatviewActivity"></activity>
+        <activity android:name=".WeechatChatviewActivity" android:windowSoftInputMode="stateHidden"></activity>
     </application>
 
 </manifest>
