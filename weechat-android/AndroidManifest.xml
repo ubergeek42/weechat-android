@@ -19,6 +19,7 @@
         </activity>
         <activity android:name=".WeechatPreferencesActivity"></activity>
         <activity android:name=".WeechatChatviewActivity" android:windowSoftInputMode="stateHidden"></activity>
+        <activity android:name=".WeechatAboutActivity"></activity>
     </application>
 
 </manifest>

@@ -75,6 +75,7 @@ public class WeechatActivity extends Activity implements OnItemClickListener, Re
 		else
 			menu.add("Connect");
 		menu.add("Preferences");
+		menu.add("About");
 		menu.add("Quit");
 		return super.onPrepareOptionsMenu(menu);
 	}
@@ -92,6 +93,9 @@ public class WeechatActivity extends Activity implements OnItemClickListener, Re
 			rsb.shutdown();
 		} else if (s.equals("Connect")) {
 			rsb.connect();
+		} else if (s.equals("About")) {
+			Intent i = new Intent(this, WeechatAboutActivity.class);
+			startActivity(i);
 		} else if (s.equals("Preferences")) {
 			Intent i = new Intent(this, WeechatPreferencesActivity.class);
 			startActivity(i);

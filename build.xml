@@ -47,6 +47,9 @@
 	
 	<!-- Create a release package -->
 	<target name="dist">
+		<exec dir="weechat-android" executable="/bin/bash">
+			<arg value="./updateVersion.sh"/>
+		</exec>
 		<subant target="compile">
 			<fileset dir="weechat-relay" includes="build.xml"/>
 		</subant>
