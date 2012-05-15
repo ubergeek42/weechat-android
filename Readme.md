@@ -5,17 +5,28 @@ It is currently in beta status, with most things working.  It has not been exten
 
 ##Download
 ####Stable version
-Either scan the QR code, or click the link to download the apk.  Click on it and choose to install. [Download Link](https://github.com/downloads/ubergeek42/weechat-android/weechat-0.05-dev.apk)
+Either scan the QR code, or click the link to download the apk.  Click on it and choose to install. [Download Link](https://github.com/downloads/ubergeek42/weechat-android/weechat-0.06.apk)
 
-![Download](https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=https://github.com/downloads/ubergeek42/weechat-android/weechat-0.05-dev.apk)
+![Download](https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=https://github.com/downloads/ubergeek42/weechat-android/weechat-0.06.apk)
 
 ####Latest Development Snapshot
 If you're feeling adventurous, you can try the latest development version.  This is built after every commit, and while I try to keep a working build, it may fail or have major bugs.
 
 [Get the latest development version here](http://repository-ubergeek42.forge.cloudbees.com/release/index.html)
 
+##Screenshots
+<a href="https://github.com/ubergeek42/weechat-android/raw/master/releases/chat-channel-toggles.png"><img src="https://github.com/ubergeek42/weechat-android/raw/master/releases/chat-channel-toggles.png" height="400px"></a>
+<a href="https://github.com/ubergeek42/weechat-android/raw/master/releases/preferences.png"><img src="https://github.com/ubergeek42/weechat-android/raw/master/releases/preferences.png" height="400px"></a>
+
+<a href="https://github.com/ubergeek42/weechat-android/raw/master/releases/buffers.png"><img src="https://github.com/ubergeek42/weechat-android/raw/master/releases/buffers.png" height="400px"></a>
+<a href="https://github.com/ubergeek42/weechat-android/raw/master/releases/notifications.png"><img src="https://github.com/ubergeek42/weechat-android/raw/master/releases/notifications.png" height="400px"></a>
+
+In this last one, the "U: 2 H: 1" in purple refers to 2 unread messages, 1 highlight.  If it was only unread messages it is displayed in yellow.
+
 ## Bug Reports and Feature Requests Welcome!
 Please report any bugs or feature requests here on github, or send me an email: kj@ubergeek42.com.  You can also ping me in #weechat on freenode.
+
+Please include the Build Identifier found in the about screen if possible.
 
 ##Basic Usage
 At the main screen, press menu, then choose preferences.
@@ -27,6 +38,7 @@ Configure your hostname, port, and password.  Some other options:
 * Timestamps can be toggled to make better use of screen space
 * Messages filtered by weechat can be filtered here(e.g. irc_smart_filter)
 * Play the default notification sound on highlight/private message
+* Prefix Alignment options
 
 Then press Menu->Connect to connect to the server. If successful you will see a list of your weechat buffers.  Clicking on a buffer opens it.  A buffer currently displays the 200 most recent lines(including possible filtered lines).  I plan to make this configurable in the future(More is slower).
 
@@ -61,19 +73,21 @@ For more details about Weechat and the Relay Protocol:
 * Weechat - http://www.weechat.org/
 * Relay Protocol - http://www.weechat.org/files/doc/devel/weechat_relay_protocol.en.html
 
-##Screenshots
-<a href="https://github.com/ubergeek42/weechat-android/raw/master/releases/chat-channel.png"><img src="https://github.com/ubergeek42/weechat-android/raw/master/releases/chat-channel.png" width="400px"></a>
 
-<a href="https://github.com/ubergeek42/weechat-android/raw/master/releases/preferences.png"><img src="https://github.com/ubergeek42/weechat-android/raw/master/releases/preferences.png" height="400px"></a>
-<a href="https://github.com/ubergeek42/weechat-android/raw/master/releases/buffers.png"><img src="https://github.com/ubergeek42/weechat-android/raw/master/releases/buffers.png" height="400px"></a>
-<a href="https://github.com/ubergeek42/weechat-android/raw/master/releases/notifications.png"><img src="https://github.com/ubergeek42/weechat-android/raw/master/releases/notifications.png" height="400px"></a>
-
-In this last one, the "U: 2 H: 1" in purple refers to 2 unread messages, 1 highlight.  If it was only unread messages it is displayed in yellow.
 
 
 ## Changelog
 
-#### v0.05-dev
+#### v0.06 - May 13th, 2012
+* Rewrite rendering of chat messages(improved performance)
+* Added about screen
+* Made links in messages clickable
+* Fixed bug with irc colors in topics
+* Password now hidden in preferences
+* Added preference for prefix alignment
+* Keyboard behaves nicer in chats
+
+#### v0.05-dev - May 11th, 2012
 * Complete rewrite of the frontend
 * Support Notifications
 * Background service
