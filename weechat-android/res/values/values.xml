@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="settings_prefix_alignment_names">
+        <item>Left Aligned</item>
+        <item>Right Aligned</item>
+        <item>No Alignment</item>
+    </string-array>
+    <string-array name="settings_prefix_alignment_values">
+        <item>left</item>
+        <item>right</item>
+        <item>none</item>
+    </string-array>
+</resources>
