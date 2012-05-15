@@ -90,8 +90,9 @@ public class BufferManager implements RelayMessageHandler {
 		
 		for (int i=0; i<whdata.getCount(); i++) {
 			HdataEntry hde = whdata.getItem(i);
-			Buffer wb = new Buffer();
+			
 			if (id.equals("listbuffers")) {
+				Buffer wb = new Buffer();
 				wb.setPointer(hde.getPointer());
 				wb.setNumber(hde.getItem("number").asInt());
 				wb.setFullName(hde.getItem("full_name").asString());
@@ -106,6 +107,7 @@ public class BufferManager implements RelayMessageHandler {
 				
 				buffers.add(wb);
 			} else if (id.equals("_buffer_opened")) {
+				Buffer wb = new Buffer();
 				wb.setPointer(hde.getPointer());
 				wb.setNumber(hde.getItem("number").asInt());
 				wb.setFullName(hde.getItem("full_name").asString());
@@ -116,47 +118,48 @@ public class BufferManager implements RelayMessageHandler {
 				// also get "prev_buffer", "next_buffer", and "local_variables"
 				// Don't get "type" though
 				buffers.add(wb);
-			}
-			wb = findByPointer(hde.getPointer(0));
-			if (wb==null) {
-				logger.debug("Unable to find buffer to update");
-				return;
-			}
-			if(id.equals("_buffer_type_changed")) {
-				wb.setType(hde.getItem("type").asInt());
-				wb.setNumber(hde.getItem("number").asInt());
-				wb.setFullName(hde.getItem("full_name").asString());
-			} else if(id.equals("_buffer_moved") || id.equals("_buffer_merged") || id.equals("_buffer_unmerged")) {
-				wb.setNumber(hde.getItem("number").asInt());
-				wb.setFullName(hde.getItem("full_name").asString());
-			} else if (id.equals("_buffer_renamed") || id.equals("_buffer_title_changed")) {
-				wb.setNumber(hde.getItem("number").asInt());
-				wb.setFullName(hde.getItem("full_name").asString());
-				if(id.equals("_buffer_title_changed")) {
-					wb.setTitle(hde.getItem("title").asString());
-				} else {
-					wb.setShortName(hde.getItem("short_name").asString());
+			} else {
+				Buffer wb = findByPointer(hde.getPointer(0));
+				if (wb==null) {
+					logger.debug("Unable to find buffer to update");
+					return;
+				}
+				if(id.equals("_buffer_type_changed")) {
+					wb.setType(hde.getItem("type").asInt());
+					wb.setNumber(hde.getItem("number").asInt());
+					wb.setFullName(hde.getItem("full_name").asString());
+				} else if(id.equals("_buffer_moved") || id.equals("_buffer_merged") || id.equals("_buffer_unmerged")) {
+					wb.setNumber(hde.getItem("number").asInt());
+					wb.setFullName(hde.getItem("full_name").asString());
+				} else if (id.equals("_buffer_renamed") || id.equals("_buffer_title_changed")) {
+					wb.setNumber(hde.getItem("number").asInt());
+					wb.setFullName(hde.getItem("full_name").asString());
+					if(id.equals("_buffer_title_changed")) {
+						wb.setTitle(hde.getItem("title").asString());
+					} else {
+						wb.setShortName(hde.getItem("short_name").asString());
+						Hashtable ht = (Hashtable)hde.getItem("local_variables");
+						if (ht!=null)
+							wb.setLocals(ht);
+					}
+				} else if (id.equals("_buffer_localvar_added") || id.equals("_buffer_localvar_changed") || id.equals("_buffer_localvar_removed")) {
+					wb.setNumber(hde.getItem("number").asInt());
+					wb.setFullName(hde.getItem("full_name").asString());
+	
 					Hashtable ht = (Hashtable)hde.getItem("local_variables");
 					if (ht!=null)
 						wb.setLocals(ht);
-				}
-			} else if (id.equals("_buffer_localvar_added") || id.equals("_buffer_localvar_changed") || id.equals("_buffer_localvar_removed")) {
-				wb.setNumber(hde.getItem("number").asInt());
-				wb.setFullName(hde.getItem("full_name").asString());
-
-				Hashtable ht = (Hashtable)hde.getItem("local_variables");
-				if (ht!=null)
-					wb.setLocals(ht);
-			} else if (id.equals("_buffer_closing")) {
-				for(int j=0;j<buffers.size();j++) {
-					if (buffers.get(j).getPointer().equals(hde.getPointer())) {
-						Buffer b = buffers.remove(j);
-						b.destroy();
-						break;
+				} else if (id.equals("_buffer_closing")) {
+					for(int j=0;j<buffers.size();j++) {
+						if (buffers.get(j).getPointer().equals(hde.getPointer())) {
+							Buffer b = buffers.remove(j);
+							b.destroy();
+							break;
+						}
 					}
+				} else {
+					logger.debug("Unknown message ID: \"" + id+"\"");
 				}
-			} else {
-				logger.debug("Unknown message ID: \"" + id+"\"");
 			}
 		}
 		buffersChanged();
