@@ -77,6 +77,8 @@ public class Color {
 	private static final String FG_DEFAULT = weechatColors[0];
 	private static final String BG_DEFAULT = weechatColors[1];
 	
+	private static Color singleton = new Color();
+	
 	private String msg;
 	private int index;
 	
@@ -96,6 +98,15 @@ public class Color {
 	public void setText(String message) {
 		this.msg = encodeHTML(message);
 		this.index = 0;
+	}
+	
+	private void resetState() {
+		bold = false;
+		reverse = false;
+		italic = false;
+		underline = false;
+		fgColor = FG_DEFAULT;
+		bgColor = BG_DEFAULT;
 	}
 	
 	private char getChar() {
@@ -222,12 +233,28 @@ public class Color {
 		return ret;
 	}
 
-	public String toHTML() {
+	public static String stripColors(String msg) {
 		if(msg==null) return msg;
-		StringBuffer html = new StringBuffer(getHTMLTag(false));
+		singleton.resetState();
+		singleton.setText(msg);
+		String ret = singleton.parseColors(false);
+		return ret.toString();
+	}
+	
+	public String toHTML() {
+		return parseColors(true);
+	}
+	
+	public String parseColors(boolean insert_html) {
+		if(msg==null) return msg;
+		StringBuffer parsedMsg;
+		if (insert_html) {
+			parsedMsg = new StringBuffer(getHTMLTag(false));
+		} else {
+			parsedMsg = new StringBuffer();
+		}
 
 		char c;
-		
 		while(index < msg.length()) {
 			if (peekChar()==0x1C) {
 				getChar();
@@ -239,21 +266,21 @@ public class Color {
 				italic = false;
 				underline = false;
 				
-				html.append(getHTMLTag());
+				if (insert_html) { parsedMsg.append(getHTMLTag()); }
 				continue;
 			} else if (peekChar()==0x1A) { // set attribute
 				getChar();
 				c = getChar();
 				setAttribute(c);
 				
-				html.append(getHTMLTag());
+				if (insert_html) { parsedMsg.append(getHTMLTag()); }
 				continue;
 			} else if (peekChar()==0x1B) { // Remove attribute
 				getChar();
 				c = getChar();
 				removeAttribute(c);
 				
-				html.append(getHTMLTag());
+				if (insert_html) { parsedMsg.append(getHTMLTag()); }
 				continue;
 			} else if (peekChar()==0x19) {
 				getChar();
@@ -262,7 +289,7 @@ public class Color {
 					getChar();
 					fgColor = FG_DEFAULT;
 					bgColor = BG_DEFAULT;
-					html.append(getHTMLTag());
+					if (insert_html) { parsedMsg.append(getHTMLTag()); }
 					continue; 
 				}
 				
@@ -275,15 +302,15 @@ public class Color {
 				if (peekChar()=='F') { // Set foreground color+attributes
 					getChar();
 					getFormatString();
-					html.append(getHTMLTag());
+					if (insert_html) { parsedMsg.append(getHTMLTag()); }
 				} else if (peekChar()=='B') { // Set background color +attributes
 					getChar();
 					getFormatString();
-					html.append(getHTMLTag());
+					if (insert_html) { parsedMsg.append(getHTMLTag()); }
 				} else if (peekChar()=='*') {
 					getChar();
 					getFormatString();
-					html.append(getHTMLTag());
+					if (insert_html) { parsedMsg.append(getHTMLTag()); }
 				} else {
 					if (peekChar()=='@') {
 						getChar();
@@ -292,92 +319,19 @@ public class Color {
 					} else {
 						fgColor = getWeechatOptions();
 					}
-					html.append(getHTMLTag());
+					if (insert_html) { parsedMsg.append(getHTMLTag()); }
 				}
 			} else {
 				// Not formatting or anything, so append it to the string
-				html.append(getChar());
+				parsedMsg.append(getChar());
 			}
 		}
-		html.append("</font>");
+		if (insert_html) { parsedMsg.append("</font>"); }
 		//logger.debug("HTML for string: " + html.toString());
-		return html.toString() ;
+		return parsedMsg.toString() ;
 	}
 	
 	
-	public static String stripColors(String msg) {
-		if(msg==null) return msg;
-		StringBuffer cleaned = new StringBuffer();
-		try {
-		for(int i=0;i<msg.length();) {
-			char c = msg.charAt(i++);
-
-			if (c==0x1C) {
-				// reset color(doesn't consume anything else)
-				continue;
-			} else if (c==0x1A || c==0x1B) {
-				c = msg.charAt(i++);
-				continue;
-			} else if (c==0x19) {
-				c = msg.charAt(i++);
-				if(c==0x1C) continue; // reset color
-
-				// Special code(related to bar things)
-				if (c=='b') {
-					c = msg.charAt(i++); // consume an additional character
-					continue;
-				}
-
-				if (c=='F' || c=='B' || c=='*') {
-					c = msg.charAt(i++);
-				}
-
-
-				// Extended color is 5 digits
-				if (c=='@') {
-					c=msg.charAt(i++);
-					// Consume attributes
-					while(c == '*' || c=='!' || c=='/' || c=='_' || c=='|') {
-						c=msg.charAt(i++);
-					}
-					i+=5;
-				} else { // standard color is 2 digits
-					// consume attributes
-					while(c == '*' || c=='!' || c=='/' || c=='_' || c=='|') {
-						c=msg.charAt(i++);
-					}
-					i++;
-				}
-				c=msg.charAt(i++);
-
-				if (c == ',') {
-					// Extended color is 5 digits
-					if (c=='@') {
-						c=msg.charAt(i++);
-						// Consume attributes
-						while(c == '*' || c=='!' || c=='/' || c=='_' || c=='|') {
-							c=msg.charAt(i++);
-						}
-						i+=5;
-					} else { // standard color is 2 digits
-						// consume attributes
-						while(c == '*' || c=='!' || c=='/' || c=='_' || c=='|') {
-							c=msg.charAt(i++);
-						}
-						i++;
-					}
-					c=msg.charAt(i++);
-				}
-				// TODO: probably a bug here is two 0x19's come right after one another
-			}
-
-			cleaned.append(c);
-		}
-		}catch(StringIndexOutOfBoundsException e) {
-			// Ignored
-		}
-		return cleaned.toString();
-	}
 	
 	// Strips colors encoded with the standard irc method
 	public static String stripIRCColors(String msg) {
