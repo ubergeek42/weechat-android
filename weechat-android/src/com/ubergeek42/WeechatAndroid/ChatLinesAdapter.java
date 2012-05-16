@@ -7,6 +7,10 @@ import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.graphics.Color;
 import android.preference.PreferenceManager;
 import android.text.Html;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.style.BackgroundColorSpan;
+import android.text.style.ForegroundColorSpan;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -90,19 +94,22 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, OnShar
 		// Recalculate the prefix width based on the size of one character(fixed width font)
 		if (prefixWidth == 0) {
 			prefix.setMinimumWidth(0);
-			prefix.setText("m");
+			StringBuilder sb = new StringBuilder();
+			for(int i=0;i<maxPrefix;i++)
+				sb.append("m");
+			prefix.setText(sb.toString());
 			prefix.measure(convertView.getWidth(), convertView.getHeight());
-			prefixWidth = prefix.getMeasuredWidth()*(maxPrefix); // Multiply single character width by max prefix size 
+			prefixWidth = prefix.getMeasuredWidth(); 
 		}
 		
 		// Render the prefix
 		if(chatLine.getHighlight()) {
-			prefix.setBackgroundColor(Color.MAGENTA);
-			prefix.setTextColor(Color.YELLOW);
-			prefix.setText(chatLine.getPrefix());
+			String prefixStr = chatLine.getPrefix();
+			Spannable highlightText = new SpannableString(prefixStr);
+			highlightText.setSpan(new ForegroundColorSpan(Color.YELLOW), 0, prefixStr.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+			highlightText.setSpan(new BackgroundColorSpan(Color.MAGENTA), 0, prefixStr.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+			prefix.setText(highlightText);
 		} else {
-			prefix.setBackgroundColor(Color.BLACK);
-			prefix.setTextColor(Color.WHITE);
 			if (enableColor) {
 				prefix.setText(Html.fromHtml(chatLine.getPrefixHTML()), TextView.BufferType.SPANNABLE);
 			} else {
@@ -111,10 +118,10 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, OnShar
 		}
 		if (prefix_align.equals("right")) {
 			prefix.setGravity(Gravity.RIGHT);
-			prefix.setMinimumWidth(maxPrefix*10);
+			prefix.setMinimumWidth(prefixWidth);
 		} else if (prefix_align.equals("left")) {
 			prefix.setGravity(Gravity.LEFT);
-			prefix.setMinimumWidth(maxPrefix*10);
+			prefix.setMinimumWidth(prefixWidth);
 		} else {
 			prefix.setGravity(Gravity.LEFT);
 			prefix.setMinimumWidth(0);
@@ -127,8 +134,6 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, OnShar
 		} else {
 			message.setText(chatLine.getMessage());
 		}
-		
-		// TODO: handle filters
 		
 		return convertView;
 	}
