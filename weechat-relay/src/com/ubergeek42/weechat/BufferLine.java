@@ -52,7 +52,7 @@ public class BufferLine {
 	public String getPrefixHTML() {
 		Color c = new Color();
 		if (this.prefixHTML==null) {
-			c.setText(prefix);
+			c.setText(prefix,true);
 			this.prefixHTML = c.toHTML();
 		}
 		return this.prefixHTML;
@@ -81,7 +81,7 @@ public class BufferLine {
 	public String getMessageHTML() {
 		Color c = new Color();
 		if (this.messageHTML==null) {
-			c.setText(message);
+			c.setText(message, true);
 			this.messageHTML = c.toHTML();
 		}
 		return this.messageHTML;

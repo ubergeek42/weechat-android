@@ -95,8 +95,12 @@ public class Color {
 		this.index = 0;
 	}
 
-	public void setText(String message) {
-		this.msg = encodeHTML(message);
+	public void setText(String message, boolean encode_html) {
+		if (encode_html) {
+			this.msg = encodeHTML(message);
+		} else {
+			this.msg = message;
+		}
 		this.index = 0;
 	}
 	
@@ -236,7 +240,7 @@ public class Color {
 	public static String stripColors(String msg) {
 		if(msg==null) return msg;
 		singleton.resetState();
-		singleton.setText(msg);
+		singleton.setText(msg, false);
 		String ret = singleton.parseColors(false);
 		return ret.toString();
 	}
