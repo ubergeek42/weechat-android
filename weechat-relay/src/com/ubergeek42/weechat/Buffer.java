@@ -152,4 +152,10 @@ public class Buffer {
 		for(BufferObserver o: observers)
 			o.onBufferClosed();
 	}
+	public boolean hasLine(String linePointer) {
+		for(BufferLine line: lines) {
+			if (line.getPointer().equals(linePointer)) return true;
+		}
+		return false;
+	}
 }

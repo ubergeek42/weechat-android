@@ -26,6 +26,7 @@ public class BufferLine {
 	
 	private boolean visible;
 	private boolean highlight;
+	private String pointer;
 	
 	// TODO: consider caching the color "cleaned" values as well
 	
@@ -150,5 +151,18 @@ public class BufferLine {
 	 */
 	public boolean getHighlight() {
 		return highlight;
+	}
+	/**
+	 * A pointer to the hdata object for the line
+	 * @param pointer
+	 */
+	public void setPointer(String pointer) {
+		this.pointer = pointer;
+	}
+	/**
+	 * Return the pointer that represents this line
+	 */
+	public String getPointer() {
+		return this.pointer;
 	}
 }

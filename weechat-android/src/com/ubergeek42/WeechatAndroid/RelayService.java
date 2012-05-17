@@ -22,7 +22,6 @@ import com.ubergeek42.weechat.relay.messagehandler.NicklistHandler;
 
 public class RelayService extends Service implements RelayConnectionHandler, OnSharedPreferenceChangeListener, HotlistObserver {
 
-	private static final int MAXLINES = Buffer.MAXLINES;
 	private static final int NOTIFICATION_ID = 42;
 	private NotificationManager notificationManger;
 	
@@ -167,14 +166,8 @@ public class RelayService extends Service implements RelayConnectionHandler, OnS
 		// Get a list of buffers current open, along with some information about them
 		relayConnection.sendMsg("(listbuffers) hdata buffer:gui_buffers(*) number,full_name,short_name,type,title,nicklist,local_variables");
 
-		// Get the last MAXLINES for each buffer
-		relayConnection.sendMsg("(listlines_reverse) hdata buffer:gui_buffers(*)/own_lines/last_line(-" + MAXLINES + ")/data date,displayed,prefix,message,highlight");
-
-		// Get the nicklist for any buffers we have
-		relayConnection.sendMsg("nicklist","nicklist","");
-
 		// Subscribe to any future changes
-		relayConnection.sendMsg("sync");
+		relayConnection.sendMsg("sync * buffer");
 		
 		if (connectionHandler != null)
 			connectionHandler.onConnect();

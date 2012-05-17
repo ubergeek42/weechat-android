@@ -85,8 +85,10 @@ public class WeechatChatviewActivity extends Activity implements OnClickListener
 	@Override
 	protected void onStop() {
 		super.onStop();
-		if (buffer!=null)
+		if (buffer!=null) {
 			buffer.removeObserver(this);
+			rsb.unsubscribeBuffer(buffer.getPointer());
+		}
 		
 		if(mBound) {
 			unbindService(mConnection);
@@ -98,8 +100,10 @@ public class WeechatChatviewActivity extends Activity implements OnClickListener
 		buffer = rsb.getBufferByName(bufferName);
 		buffer.addObserver(this);
 		
+		// Subscribe to the buffer(gets the lines for it, and gets nicklist)
+		rsb.subscribeBuffer(buffer.getPointer());
+		
 		chatlineAdapter = new ChatLinesAdapter(this, buffer);
-
 		chatlines.setAdapter(chatlineAdapter);
 		onLineAdded();
 	}

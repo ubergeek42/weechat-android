@@ -41,20 +41,20 @@ public class LineHandler implements RelayMessageHandler {
 	
 				// Find the buffer to put the line in
 				Buffer buffer = cb.findByPointer(bPointer);
-				
-				// Create a new message object, and add it to the correct buffer
-				BufferLine cm = new BufferLine();
-				cm.setPrefix(prefix);
-				cm.setMessage(message);
-				cm.setTimestamp(time);
-				cm.setVisible(displayed);
-				cm.setHighlight(highlight);
-				
-				// XXX: debugging statement
-				System.out.println(cm);
-				
-				buffer.addLine(cm);
-				cb.buffersChanged();
+				// Do we already have this line?
+				if (!buffer.hasLine(hde.getPointer())) {
+					// Create a new message object, and add it to the correct buffer
+					BufferLine cm = new BufferLine();
+					cm.setPrefix(prefix);
+					cm.setMessage(message);
+					cm.setTimestamp(time);
+					cm.setVisible(displayed);
+					cm.setHighlight(highlight);
+					cm.setPointer(hde.getPointer());
+					
+					buffer.addLine(cm);
+					cb.buffersChanged();
+				}
 			}
 		} else if (id.equals("listlines_reverse")) { // lines come in most recent to least recent
 			HashSet<Buffer> toUpdate = new HashSet<Buffer>();
@@ -76,22 +76,21 @@ public class LineHandler implements RelayMessageHandler {
 	
 				// Find the buffer to put the line in
 				Buffer buffer = cb.findByPointer(bPointer);
-				
-				// Create a new message object, and add it to the correct buffer
-				BufferLine cm = new BufferLine();
-				cm.setPrefix(prefix);
-				cm.setMessage(message);
-				cm.setTimestamp(time);
-				cm.setVisible(displayed);
-
-				cm.setHighlight(highlight);
-				
-				// XXX: debugging statement
-				//System.out.println(buffer.getFullName() + " " + cm);
-				
-				// TODO: check buffer isn't null...
-				buffer.addLineFirstNoNotify(cm);
-				toUpdate.add(buffer);
+				// Do we already have this line?
+				if (!buffer.hasLine(hde.getPointer())) {
+					// Create a new message object, and add it to the correct buffer
+					BufferLine cm = new BufferLine();
+					cm.setPrefix(prefix);
+					cm.setMessage(message);
+					cm.setTimestamp(time);
+					cm.setVisible(displayed);
+					cm.setHighlight(highlight);
+					cm.setPointer(hde.getPointer());
+					
+					// TODO: check buffer isn't null...
+					buffer.addLineFirstNoNotify(cm);
+					toUpdate.add(buffer);
+				}
 			}
 			for(Buffer wb: toUpdate) {
 				wb.notifyObservers();

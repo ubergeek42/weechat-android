@@ -76,4 +76,19 @@ public class RelayServiceBinder extends Binder {
 		relayService.resetNotification();
 	}
 	
+	/**
+	 * Subscribes to a buffer.  Gets the last MAXLINES of lines, and subscribes to nicklist changes
+	 * @param bufferPointer
+	 */
+	public void subscribeBuffer(String bufferPointer) {
+		// Get the last MAXLINES for each buffer
+		relayService.relayConnection.sendMsg("(listlines_reverse) hdata buffer:"+bufferPointer+"/own_lines/last_line(-" + Buffer.MAXLINES + ")/data date,displayed,prefix,message,highlight");
+
+		// Get the nicklist for any buffers we have
+		relayService.relayConnection.sendMsg("nicklist","nicklist",bufferPointer);
+		relayService.relayConnection.sendMsg("sync "+bufferPointer+" nicklist");
+	}
+	public void unsubscribeBuffer(String bufferPointer) {
+		relayService.relayConnection.sendMsg("desync "+bufferPointer+" nicklist");
+	}
 }
