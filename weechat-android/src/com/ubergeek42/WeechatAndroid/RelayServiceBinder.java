@@ -81,14 +81,16 @@ public class RelayServiceBinder extends Binder {
 	 * @param bufferPointer
 	 */
 	public void subscribeBuffer(String bufferPointer) {
+		Buffer buf = relayService.bufferManager.findByPointer(bufferPointer);
 		// Get the last MAXLINES for each buffer
 		relayService.relayConnection.sendMsg("(listlines_reverse) hdata buffer:"+bufferPointer+"/own_lines/last_line(-" + Buffer.MAXLINES + ")/data date,displayed,prefix,message,highlight");
 
 		// Get the nicklist for any buffers we have
-		relayService.relayConnection.sendMsg("nicklist","nicklist",bufferPointer);
-		relayService.relayConnection.sendMsg("sync "+bufferPointer+" nicklist");
+		//relayService.relayConnection.sendMsg("nicklist","nicklist",buf.getFullName());
+		//relayService.relayConnection.sendMsg("sync "+buf.getFullName());
 	}
 	public void unsubscribeBuffer(String bufferPointer) {
-		relayService.relayConnection.sendMsg("desync "+bufferPointer+" nicklist");
+		//Buffer buf = relayService.bufferManager.findByPointer(bufferPointer);
+		//relayService.relayConnection.sendMsg("desync "+buf.getFullName()+" nicklist");
 	}
 }

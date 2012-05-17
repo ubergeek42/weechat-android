@@ -1,5 +1,7 @@
 package com.ubergeek42.WeechatAndroid;
 
+import java.util.ArrayList;
+
 import android.graphics.Color;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -16,6 +18,9 @@ public class BufferListAdapter extends BaseAdapter implements BufferManagerObser
 	WeechatActivity parentActivity;
 	LayoutInflater inflater;
 	private BufferManager bufferManager;
+	protected ArrayList<Buffer> buffers = new ArrayList<Buffer>();
+	
+	
 	public BufferListAdapter(WeechatActivity parentActivity, RelayServiceBinder rsb) {
 		this.parentActivity = parentActivity;
 		this.inflater = LayoutInflater.from(parentActivity);
@@ -25,12 +30,12 @@ public class BufferListAdapter extends BaseAdapter implements BufferManagerObser
 	}
 	@Override
 	public int getCount() {
-		return bufferManager.getNumBuffers();
+		return buffers.size();
 	}
 
 	@Override
 	public Buffer getItem(int position) {
-		return bufferManager.getBuffer(position);
+		return buffers.get(position);
 	}
 
 	@Override
@@ -78,6 +83,7 @@ public class BufferListAdapter extends BaseAdapter implements BufferManagerObser
 		parentActivity.runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
+				buffers = bufferManager.getBuffers();
 				notifyDataSetChanged();
 			}
 		});

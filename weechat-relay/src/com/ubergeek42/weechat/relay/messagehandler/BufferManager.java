@@ -47,6 +47,13 @@ public class BufferManager implements RelayMessageHandler {
 		return null;
 	}
 	/**
+	 * Get the list of buffers
+	 */
+	@SuppressWarnings("unchecked")
+	public ArrayList<Buffer> getBuffers() {
+		return (ArrayList<Buffer>) buffers.clone();
+	}
+	/**
 	 * Get the Buffer at the specified index
 	 * @param index - The index to retrieve
 	 * @return Buffer object at the given index

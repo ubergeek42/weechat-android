@@ -167,7 +167,7 @@ public class RelayService extends Service implements RelayConnectionHandler, OnS
 		relayConnection.sendMsg("(listbuffers) hdata buffer:gui_buffers(*) number,full_name,short_name,type,title,nicklist,local_variables");
 
 		// Subscribe to any future changes
-		relayConnection.sendMsg("sync * buffer");
+		relayConnection.sendMsg("sync");
 		
 		if (connectionHandler != null)
 			connectionHandler.onConnect();
