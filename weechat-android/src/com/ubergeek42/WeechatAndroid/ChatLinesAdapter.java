@@ -36,6 +36,7 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, OnShar
 	private String prefix_align = "right";
 	private int maxPrefix = 0;
 	protected int prefixWidth;
+	private float textSize;
 	
 	public ChatLinesAdapter(WeechatChatviewActivity activity,
 			Buffer buffer) {
@@ -53,6 +54,7 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, OnShar
 		enableTimestamp = prefs.getBoolean("chatview_timestamps", true);
 		enableFilters = prefs.getBoolean("chatview_filters", true);
 		prefix_align = prefs.getString("prefix_align", "right");
+		textSize = Float.parseFloat(prefs.getString("text_size", "10"));
 	}
 
 	@Override
@@ -79,8 +81,15 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, OnShar
 			convertView = inflater.inflate(R.layout.chatview_line,null);
 		}
 
-		// Render the timestamp
+		// Change the font sizes
 		TextView timestamp = (TextView) convertView.findViewById(R.id.chatline_timestamp);
+		TextView prefix = (TextView) convertView.findViewById(R.id.chatline_prefix);
+		TextView message = (TextView) convertView.findViewById(R.id.chatline_message);
+		timestamp.setTextSize(textSize);
+		prefix.setTextSize(textSize);
+		message.setTextSize(textSize);
+		
+		// Render the timestamp
 		if (enableTimestamp) {
 			timestamp.setText(chatLine.getTimestampStr());
 			timestamp.setPadding(timestamp.getPaddingLeft(), timestamp.getPaddingTop(), 5, timestamp.getPaddingBottom());
@@ -88,8 +97,6 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, OnShar
 			timestamp.setText("");
 			timestamp.setPadding(timestamp.getPaddingLeft(), timestamp.getPaddingTop(), 0, timestamp.getPaddingBottom());
 		}
-		
-		TextView prefix = (TextView) convertView.findViewById(R.id.chatline_prefix);
 		
 		// Recalculate the prefix width based on the size of one character(fixed width font)
 		if (prefixWidth == 0) {
@@ -128,7 +135,7 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, OnShar
 		}
 
 		// Render the message
-		TextView message = (TextView) convertView.findViewById(R.id.chatline_message);
+		
 		if (enableColor) {
 			message.setText(Html.fromHtml(chatLine.getMessageHTML()), TextView.BufferType.SPANNABLE);
 		} else {
@@ -150,6 +157,8 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, OnShar
 			enableFilters = prefs.getBoolean("chatview_filters", true);
 		} else if (key.equals("prefix_align_right")) {
 			prefix_align = prefs.getString("prefix_align", "right");
+		} else if (key.equals("text_size")) {
+			textSize = Float.parseFloat(prefs.getString("text_size", "10"));
 		} else {
 			return; // Exit before running the notifyChanged function
 		}

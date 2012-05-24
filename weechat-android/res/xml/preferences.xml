@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
-    <EditTextPreference android:key="host" android:title="Relay Host"/>
-    <EditTextPreference android:key="port" android:title="Relay Port"/>
-    <EditTextPreference android:key="password" android:title="Relay Password" android:password="true"/>
+    <EditTextPreference android:key="host" android:title="Relay Host" android:singleLine="true"/>
+    <EditTextPreference android:key="port" android:title="Relay Port" android:numeric="integer"/>
+    <EditTextPreference android:key="password" android:title="Relay Password" android:password="true" android:singleLine="true"/>
     <CheckBoxPreference android:key="autoconnect" android:summary="Connect as soon as app is launched" android:title="Connect Automatically"/>
     <CheckBoxPreference android:key="reconnect" android:summary="Reconnect automatically.  Exits if disabled" android:title="Automatically Reconnect"/>
     <CheckBoxPreference android:summary="Note: May be slow when changing" android:title="Show colors in chat" android:key="chatview_colors" android:defaultValue="true"/>
@@ -11,5 +11,6 @@
     <CheckBoxPreference android:summary="Use default notification sound when a private message or highlight is received" android:title="Notification Sound" android:key="notification_sounds" android:defaultValue="false"/>
     <PreferenceScreen android:key="misc_prefs" android:title="Miscellaneous settings">
         <ListPreference android:key="prefix_align" android:title="Prefix Alignment" android:defaultValue="right" android:entries="@array/settings_prefix_alignment_names" android:entryValues="@array/settings_prefix_alignment_values"/>
+        <EditTextPreference android:key="text_size" android:title="Text Size" android:defaultValue="10" android:numeric="integer"/>
     </PreferenceScreen>
 </PreferenceScreen>
