@@ -8,6 +8,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,13 +27,14 @@ public class RelayConnection {
 	
 	private Socket sock = null;
 	private String password = null;
+	private String serverString = null;
 	private InetAddress server = null;
 	private int port;
 	
 	private OutputStream outstream = null;
 	private InputStream instream = null;
 	
-	private HashMap<String,ArrayList<RelayMessageHandler>> messageHandlers = new HashMap<String, ArrayList<RelayMessageHandler>>();
+	private HashMap<String,HashSet<RelayMessageHandler>> messageHandlers = new HashMap<String, HashSet<RelayMessageHandler>>();
 	private ArrayList<RelayConnectionHandler> connectionHandlers = new ArrayList<RelayConnectionHandler>();
 	
 	private boolean connected = false;
@@ -44,11 +46,7 @@ public class RelayConnection {
 	 * @param password - password for the relay server
 	 */
 	public RelayConnection(String server, String port, String password) {
-		try {
-			this.server = InetAddress.getByName(server);
-		} catch (UnknownHostException e) {
-			e.printStackTrace();
-		}
+		this.serverString = server;
 		this.port = Integer.parseInt(port);
 		this.password = password;
 	}
@@ -57,7 +55,7 @@ public class RelayConnection {
 	 * @return The server we are connected to
 	 */
 	public String getServer() {
-		return server.getHostName();
+		return serverString;
 	}
 	
 	/**
@@ -73,9 +71,9 @@ public class RelayConnection {
 	 * @param wmh - The object to receive the callback
 	 */
 	public void addHandler(String id, RelayMessageHandler wmh) {
-		ArrayList<RelayMessageHandler> currentHandlers = messageHandlers.get(id);
+		HashSet<RelayMessageHandler> currentHandlers = messageHandlers.get(id);
 		if (currentHandlers == null)
-			currentHandlers = new ArrayList<RelayMessageHandler>();
+			currentHandlers = new HashSet<RelayMessageHandler>();
 		currentHandlers.add(wmh);
 		messageHandlers.put(id, currentHandlers);
 	}
@@ -85,6 +83,12 @@ public class RelayConnection {
 	 * TODO: proper error handling(should throw an exception)
 	 */
 	public void tryConnect() {
+		try {
+			server = InetAddress.getByName(serverString);
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+			return;
+		}
 		createSocketConnection.start();
 	}
 	/**
@@ -245,7 +249,7 @@ public class RelayConnection {
 	private void handleMessage(RelayMessage msg) {
 		String id = msg.getID();
 		if (messageHandlers.containsKey(id)) {
-			ArrayList<RelayMessageHandler> handlers = messageHandlers.get(id);
+			HashSet<RelayMessageHandler> handlers = messageHandlers.get(id);
 			for (RelayMessageHandler rmh : handlers) { 
 				for(RelayObject obj: msg.getObjects()) {
 					rmh.handleMessage(obj, id);
