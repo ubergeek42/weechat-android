@@ -68,7 +68,7 @@ public class WeechatActivity extends Activity implements OnItemClickListener, Re
 	// Build the options menu
 	public boolean onPrepareOptionsMenu(Menu menu) {
 		menu.clear();
-		if (rsb.isConnected())
+		if (rsb != null && rsb.isConnected())
 			menu.add("Disconnect");
 		else
 			menu.add("Connect");
@@ -82,15 +82,15 @@ public class WeechatActivity extends Activity implements OnItemClickListener, Re
 	public boolean onOptionsItemSelected(MenuItem item) {
 		String s = (String) item.getTitle();
 		if (s.equals("Quit")) {
-			rsb.shutdown();
+			if (rsb != null)rsb.shutdown();
 			unbindService(mConnection);
 			mBound = false;
 			stopService(new Intent(this, RelayService.class));
 			finish();
 		} else if (s.equals("Disconnect")) {
-			rsb.shutdown();
+			if (rsb != null)rsb.shutdown();
 		} else if (s.equals("Connect")) {
-			rsb.connect();
+			if (rsb != null)rsb.connect();
 		} else if (s.equals("About")) {
 			Intent i = new Intent(this, WeechatAboutActivity.class);
 			startActivity(i);
@@ -141,7 +141,7 @@ public class WeechatActivity extends Activity implements OnItemClickListener, Re
 
 	@Override
 	public void onConnect() {
-		if (rsb.isConnected()) {
+		if (rsb != null && rsb.isConnected()) {
 			// Create and update the buffer list when we connect to the service
 			m_adapter = new BufferListAdapter(WeechatActivity.this, rsb);
 			this.runOnUiThread(new Runnable() {
