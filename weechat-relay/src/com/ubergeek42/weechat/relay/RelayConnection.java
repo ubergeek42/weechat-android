@@ -1,14 +1,27 @@
 package com.ubergeek42.weechat.relay;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import javax.net.SocketFactory;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -163,7 +176,108 @@ public class RelayConnection {
 		public void run() {
 			logger.trace("createSocketConnection thread started");
 			try {
-				sock = new Socket(server, port);
+				//sock = new Socket(server, port);
+                // Adopt this in your application
+                String PASSWORD_FOR_PKCS12 = "123456";
+                //InputStream pkcs12in = ......
+                FileInputStream pkcs12in = new FileInputStream(new File("/sdcard/client.p12"));
+                // You only need to execute this code once
+                SSLContext context = null;
+				try {
+					context = SSLContext.getInstance("TLS");
+				} catch (NoSuchAlgorithmException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+                // Local client certificate and key and server certificate
+                KeyStore keyStore = null;
+				try {
+					keyStore = KeyStore.getInstance("PKCS12");
+				} catch (KeyStoreException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+                try {
+					keyStore.load(pkcs12in, PASSWORD_FOR_PKCS12.toCharArray());
+				} catch (NoSuchAlgorithmException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (CertificateException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+                // Build a TrustManager, that trusts only the server certificate
+                TrustManagerFactory tmf = null;
+				try {
+					tmf = TrustManagerFactory.getInstance("X509");
+				} catch (NoSuchAlgorithmException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+                KeyStore keyStoreCA = null;
+				try {
+					keyStoreCA = KeyStore.getInstance("BKS");
+				} catch (KeyStoreException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+                try {
+					keyStoreCA.load(null, null);
+				} catch (NoSuchAlgorithmException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (CertificateException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+                Certificate c = null;
+				try {
+					c = keyStore.getCertificate("Server");
+				} catch (KeyStoreException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+                try {
+					keyStoreCA.setCertificateEntry("Server", c);
+				} catch (KeyStoreException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+                try {
+					tmf.init(keyStoreCA);
+				} catch (KeyStoreException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+                // Build a KeyManager for Client auth
+                KeyManagerFactory kmf = null;
+				try {
+					kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+				} catch (NoSuchAlgorithmException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+                try {
+					kmf.init(keyStore, null);
+				} catch (KeyStoreException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (NoSuchAlgorithmException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (UnrecoverableKeyException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+                try {
+					context.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+				} catch (KeyManagementException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+                //SocketFactory socketFactory = SSLSocketFactory.getDefault();
+                SocketFactory socketFactory = context.getSocketFactory();
+                sock = socketFactory.createSocket(server, port);
 				outstream = sock.getOutputStream();
 				instream = sock.getInputStream();
 			} catch (IOException e) {
