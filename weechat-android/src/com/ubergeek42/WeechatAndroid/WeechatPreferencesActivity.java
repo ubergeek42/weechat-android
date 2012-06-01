@@ -48,13 +48,15 @@ public class WeechatPreferencesActivity extends PreferenceActivity implements On
 	    textSizePref.setSummary(sharedPreferences.getString("text_size", "10"));
 	    stunnelCert.setSummary(sharedPreferences.getString("stunnel_cert", "Not Set"));
 	    
-	    if (sharedPreferences.getString("password", null) == null){
+	    String tmp;
+	    tmp = sharedPreferences.getString("password", null);
+	    if ( tmp == null || tmp.equals("")){
 	    	passPref.setSummary("None Set");
 	    }else{
 	    	passPref.setSummary("******");
 	    }
-	    
-	    if (sharedPreferences.getString("stunnel_pass", null) == null){
+	    tmp = sharedPreferences.getString("stunnel_pass", null);
+	    if ( tmp == null || tmp.equals("")){
 	    	stunnelPass.setSummary("None Set");
 	    }else{
 	    	stunnelPass.setSummary("******");
@@ -68,7 +70,8 @@ public class WeechatPreferencesActivity extends PreferenceActivity implements On
 		} else if(key.equals("port")) {
 			portPref.setSummary(sharedPreferences.getString("port", "8001"));
 		} else if(key.equals("password")) {
-			if (sharedPreferences.getString("password", null) == null){
+			String tmp = sharedPreferences.getString("password", null);
+			if (tmp == null || tmp.equals("")){
 		    	passPref.setSummary("None Set");
 		    }else{
 		    	passPref.setSummary("******");
@@ -78,7 +81,8 @@ public class WeechatPreferencesActivity extends PreferenceActivity implements On
 		} else if(key.equals("stunnel_cert")) {
 			stunnelCert.setSummary(sharedPreferences.getString("stunnel_cert", "/sdcard/weechat/client.p12"));
 		} else if(key.equals("stunnel_pass")) {
-			if (sharedPreferences.getString("stunnel_pass", null) == null){
+			String tmp = sharedPreferences.getString("stunnel_pass", null);
+			if (tmp == null || tmp.equals("")){
 		    	stunnelPass.setSummary("None Set");
 		    }else{
 		    	stunnelPass.setSummary("******");
