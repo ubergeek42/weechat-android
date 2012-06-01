@@ -55,6 +55,7 @@ public class RelayConnection {
 	private ArrayList<RelayConnectionHandler> connectionHandlers = new ArrayList<RelayConnectionHandler>();
 	
 	private boolean connected = false;
+	private boolean autoReconnect = false;
 	
 	private Thread currentConnection;
 	
@@ -91,19 +92,13 @@ public class RelayConnection {
 	}
 	
 	/**
-	 * Set the certificate to use when connecting to Stunnel
-	 * @param path - Path to the certificate
+	 * Sets whether to attempt reconnecting if disconnected
+	 * @param autoreconnect - Whether to autoreconnect or not
 	 */
-	public void setStunnelCert(String path) {
-		stunnelCert = path;
+	public void setAutoReconnect(boolean autoreconnect) {
+		this.autoReconnect = autoreconnect;
 	}
-	/**
-	 * Password to open the Stunnel key
-	 * @param pass
-	 */
-	public void setStunnelKey(String pass) {
-		stunnnelKeyPass = pass;
-	}
+
 	
 	/**
 	 * @return The server we are connected to
@@ -113,30 +108,13 @@ public class RelayConnection {
 	}
 	
 	/**
-	 * @return Whether we have a connection to the server
-	 */
-	public boolean isConnected() {
-		return connected;
-	}
-	
-	/**
-	 * Registers a handler to be called whenever a message is received
-	 * @param id - The string ID to handle(e.g. "_nicklist" or "_buffer_opened")
-	 * @param wmh - The object to receive the callback
-	 */
-	public void addHandler(String id, RelayMessageHandler wmh) {
-		HashSet<RelayMessageHandler> currentHandlers = messageHandlers.get(id);
-		if (currentHandlers == null)
-			currentHandlers = new HashSet<RelayMessageHandler>();
-		currentHandlers.add(wmh);
-		messageHandlers.put(id, currentHandlers);
-	}
-	/**
 	 * Connects to the server.  On success isConnected() will return true.
 	 * On failure, prints a stack trace...
 	 * TODO: proper error handling(should throw an exception)
 	 */
-	public void tryConnect() {
+	public void connect() {
+		if (isConnected() || socketReader.isAlive()) return;
+		
 		try {
 			server = InetAddress.getByName(serverString);
 		} catch (UnknownHostException e) {
@@ -145,12 +123,12 @@ public class RelayConnection {
 		}
 		currentConnection.start();
 	}
+	
 	/**
-	 * Register a connection handler to receive onConnected/onDisconnected events
-	 * @param wrch - The connection handler
+	 * @return Whether we have a connection to the server
 	 */
-	public void setConnectionHandler(RelayConnectionHandler wrch) {
-		connectionHandlers.add(wrch);
+	public boolean isConnected() {
+		return connected;
 	}
 	
 	/**
@@ -182,6 +160,7 @@ public class RelayConnection {
 			e.printStackTrace();
 		}
 	}
+	
 	/**
 	 * Sends the specified message to the server
 	 * @param msg - The message to send
@@ -195,6 +174,7 @@ public class RelayConnection {
 			e.printStackTrace();
 		}
 	}
+	
 	/**
 	 * Sends a message to the server
 	 * @param id - id of the message
@@ -209,6 +189,15 @@ public class RelayConnection {
 			msg = String.format("(%s) %s %s",id,command, arguments);
 		sendMsg(msg);
 	}
+	
+	/**
+	 * Register a connection handler to receive onConnected/onDisconnected events
+	 * @param wrch - The connection handler
+	 */
+	public void setConnectionHandler(RelayConnectionHandler wrch) {
+		connectionHandlers.add(wrch);
+	}
+	
 	/**
 	 * Connects to the server in a new thread, so we can interrupt it if we want to cancel the connection
 	 */
@@ -236,6 +225,21 @@ public class RelayConnection {
 			logger.trace("createSocketConnection finished");
 		}
 	});
+	
+	/**
+	 * Set the certificate to use when connecting to stunnel
+	 * @param path - Path to the certificate
+	 */
+	public void setStunnelCert(String path) {
+		stunnelCert = path;
+	}
+	/**
+	 * Password to open the stunnel key
+	 * @param pass
+	 */
+	public void setStunnelKey(String pass) {
+		stunnnelKeyPass = pass;
+	}
 	/**
 	 * Connects to the server(via stunnel) in a new thread, so we can interrupt it if we want to cancel the connection
 	 */
@@ -321,7 +325,7 @@ public class RelayConnection {
 		public void run() {
 			ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 			while(sock!=null && !sock.isClosed()) {
-				byte b[] = new byte[256];
+				byte b[] = new byte[1024];
 				try {
 					int r = instream.read(b);
 					if (r>0) {
@@ -333,6 +337,7 @@ public class RelayConnection {
 					while (buffer.size() >=4) {
 						// Calculate length
 						
+						// TODO: wasteful...
 						int length = new Data(buffer.toByteArray()).getUnsignedInt();
 						
 						// Still have more message to read
@@ -373,6 +378,19 @@ public class RelayConnection {
 		}
 	});
 
+	/**
+	 * Registers a handler to be called whenever a message is received
+	 * @param id - The string ID to handle(e.g. "_nicklist" or "_buffer_opened")
+	 * @param wmh - The object to receive the callback
+	 */
+	public void addHandler(String id, RelayMessageHandler wmh) {
+		HashSet<RelayMessageHandler> currentHandlers = messageHandlers.get(id);
+		if (currentHandlers == null)
+			currentHandlers = new HashSet<RelayMessageHandler>();
+		currentHandlers.add(wmh);
+		messageHandlers.put(id, currentHandlers);
+	}
+	
 	/**
 	 * Signal any observers whenever we receive a message
 	 * @param msg - Message we received

@@ -19,4 +19,10 @@ public interface RelayConnectionHandler {
 	 * because the client requested a disconnect.
 	 */
 	public void onDisconnect();
+	
+	/**
+	 * Called when there is an error with the connection, and provides a message as a string.
+	 * @param err - The error string
+	 */
+	public void onError(String err);
 }

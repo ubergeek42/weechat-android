@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.IBinder;
+import android.os.SystemClock;
 import android.preference.PreferenceManager;
 
 import com.ubergeek42.WeechatAndroid.notifications.HotlistHandler;
@@ -43,6 +44,7 @@ public class RelayService extends Service implements RelayConnectionHandler, OnS
 	private SharedPreferences prefs;
 	private boolean shutdown;
 	private boolean disconnected;
+	private Thread reconnector = null;
 	
 	@Override
 	public IBinder onBind(Intent arg0) {
@@ -127,7 +129,7 @@ public class RelayService extends Service implements RelayConnectionHandler, OnS
 			relayConnection.setConnectionType(ConnectionType.STUNNEL);
 		}
 		relayConnection.setConnectionHandler(this);
-		relayConnection.tryConnect();
+		relayConnection.connect();
 	}
 	
 	void resetNotification() {
@@ -142,6 +144,45 @@ public class RelayService extends Service implements RelayConnectionHandler, OnS
 		notificationManger.notify(NOTIFICATION_ID, notification);
 	}
 
+	// Spawn a thread that attempts to reconnect us.
+	private void reconnect() {
+		// stop if we are already trying to reconnect
+		if (reconnector !=null && reconnector.isAlive())
+			return;
+		reconnector = new Thread(new Runnable(){
+			long delays[] = new long[]{0, 5, 15, 30, 60, 120, 300, 600, 900}; 
+			int numReconnects = 0;//how many times we've tried this...
+			@Override
+			public void run() {
+				for (;;) {
+					long currentDelay = 0;
+					if (numReconnects>=delays.length) {
+						currentDelay = delays[delays.length-1];
+					} else {
+						currentDelay = delays[numReconnects];
+					}
+					if (currentDelay>0)
+						showNotification("Reconnecting","Will reconnect in "+currentDelay+" seconds...");
+					// Sleep for a bit
+					SystemClock.sleep(currentDelay*1000);
+
+					// See if we are connected, if so we can stop trying to reconnect
+					if (relayConnection!=null && relayConnection.isConnected()) {
+						return;
+					}
+	
+					
+					
+					// Try connecting again
+					connect();
+					numReconnects++;
+				}
+			}
+		});
+		reconnector.start();
+	}
+	
+	
 	@Override
 	public void onConnect() {
 		if (disconnected == true) {
@@ -185,7 +226,7 @@ public class RelayService extends Service implements RelayConnectionHandler, OnS
 		if (connectionHandler != null)
 			connectionHandler.onConnect();
 	}
-
+	
 	@Override
 	public void onDisconnect() {
 		if(disconnected) return; // Only do the disconnect handler once
@@ -197,10 +238,17 @@ public class RelayService extends Service implements RelayConnectionHandler, OnS
 		
 		// Automatically attempt reconnection if enabled(and if we aren't shutting down)
 		if (!shutdown && prefs.getBoolean("reconnect", true)) {
-			connect();
+			reconnect();
+			showNotification("Reconnecting...","Reconnecting...");
 		} else {
 			showNotification("Disconnected", "Disconnected");
 		}
+	}
+	@Override
+	public void onError(String arg0) {
+		// TODO Auto-generated method stub
+		
+		
 	}
 
 	public void shutdown() {
@@ -247,5 +295,7 @@ public class RelayService extends Service implements RelayConnectionHandler, OnS
 		
 		notificationManger.notify(NOTIFICATION_ID, notification);
 	}
+
+	
 	
 }

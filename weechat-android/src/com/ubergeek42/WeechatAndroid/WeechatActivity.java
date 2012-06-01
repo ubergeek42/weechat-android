@@ -161,9 +161,15 @@ public class WeechatActivity extends Activity implements OnItemClickListener, Re
 		this.runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
+				
 				String[] message = {"Press Menu->Connect to get started"};
 				bufferlist.setAdapter(new ArrayAdapter<String>(WeechatActivity.this, R.layout.tips_list_item, message));
 			}
 		});
+	}
+
+	@Override
+	public void onError(String arg0) {
+		
 	}
 }
