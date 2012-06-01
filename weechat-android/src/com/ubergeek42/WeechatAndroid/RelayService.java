@@ -12,8 +12,8 @@ import android.preference.PreferenceManager;
 
 import com.ubergeek42.WeechatAndroid.notifications.HotlistHandler;
 import com.ubergeek42.WeechatAndroid.notifications.HotlistObserver;
-import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.relay.RelayConnection;
+import com.ubergeek42.weechat.relay.RelayConnection.ConnectionType;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
 import com.ubergeek42.weechat.relay.RelayMessageHandler;
 import com.ubergeek42.weechat.relay.messagehandler.BufferManager;
@@ -29,6 +29,10 @@ public class RelayService extends Service implements RelayConnectionHandler, OnS
 	String host;
 	String port;
 	String pass;
+	
+	boolean useStunnel = false;
+	String stunnelCert;
+	String stunnelPass;
 
 	RelayConnection relayConnection;
 	BufferManager bufferManager;
@@ -87,6 +91,10 @@ public class RelayService extends Service implements RelayConnectionHandler, OnS
 		host = prefs.getString("host", null);
 		pass = prefs.getString("password", "password");
 		port = prefs.getString("port", "8001");
+		
+		stunnelCert = prefs.getString("stunnel_cert", "");
+		stunnelPass = prefs.getString("stunnel_pass", "");
+		if (!stunnelCert.equals(""))useStunnel = true;
 					
 		// If no host defined, signal them to edit their preferences
 		if (host == null) {
@@ -113,6 +121,11 @@ public class RelayService extends Service implements RelayConnectionHandler, OnS
 		hotlistHandler.registerHighlightHandler(this);
 		
 		relayConnection = new RelayConnection(host, port, pass);
+		if (useStunnel) {
+			relayConnection.setStunnelCert(stunnelCert);
+			relayConnection.setStunnelKey(stunnelPass);
+			relayConnection.setConnectionType(ConnectionType.STUNNEL);
+		}
 		relayConnection.setConnectionHandler(this);
 		relayConnection.tryConnect();
 	}
