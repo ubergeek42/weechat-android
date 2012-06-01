@@ -400,8 +400,12 @@ public class RelayConnection {
 		if (messageHandlers.containsKey(id)) {
 			HashSet<RelayMessageHandler> handlers = messageHandlers.get(id);
 			for (RelayMessageHandler rmh : handlers) { 
-				for(RelayObject obj: msg.getObjects()) {
-					rmh.handleMessage(obj, id);
+				if (msg.getObjects().length==0) {
+					rmh.handleMessage(null, id);
+				} else {
+					for(RelayObject obj: msg.getObjects()) {
+						rmh.handleMessage(obj, id);
+					}
 				}
 			}
 		} else {

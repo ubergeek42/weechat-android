@@ -20,8 +20,10 @@ import com.ubergeek42.weechat.relay.RelayMessageHandler;
 import com.ubergeek42.weechat.relay.messagehandler.BufferManager;
 import com.ubergeek42.weechat.relay.messagehandler.LineHandler;
 import com.ubergeek42.weechat.relay.messagehandler.NicklistHandler;
+import com.ubergeek42.weechat.relay.messagehandler.UpgradeHandler;
+import com.ubergeek42.weechat.relay.messagehandler.UpgradeObserver;
 
-public class RelayService extends Service implements RelayConnectionHandler, OnSharedPreferenceChangeListener, HotlistObserver {
+public class RelayService extends Service implements RelayConnectionHandler, OnSharedPreferenceChangeListener, HotlistObserver, UpgradeObserver {
 
 	private static final int NOTIFICATION_ID = 42;
 	private NotificationManager notificationManger;
@@ -45,6 +47,7 @@ public class RelayService extends Service implements RelayConnectionHandler, OnS
 	private boolean shutdown;
 	private boolean disconnected;
 	private Thread reconnector = null;
+	private Thread upgrading;
 	
 	@Override
 	public IBinder onBind(Intent arg0) {
@@ -170,9 +173,7 @@ public class RelayService extends Service implements RelayConnectionHandler, OnS
 					if (relayConnection!=null && relayConnection.isConnected()) {
 						return;
 					}
-	
-					
-					
+
 					// Try connecting again
 					connect();
 					numReconnects++;
@@ -191,6 +192,11 @@ public class RelayService extends Service implements RelayConnectionHandler, OnS
 			showNotification("Connected to " + relayConnection.getServer(), "Connected to " + relayConnection.getServer());
 		}
 		disconnected = false;
+		
+		// Handle weechat upgrading
+		UpgradeHandler uh = new UpgradeHandler(this);
+		relayConnection.addHandler("_upgrade", uh);
+		relayConnection.addHandler("_upgrade_ended", uh);
 		
 		// Handle us getting a listing of the buffers
 		relayConnection.addHandler("listbuffers", bufferManager);
@@ -296,6 +302,21 @@ public class RelayService extends Service implements RelayConnectionHandler, OnS
 		notificationManger.notify(NOTIFICATION_ID, notification);
 	}
 
-	
-	
+	@Override
+	public void onUpgrade() {
+		// Don't do this twice
+		if (upgrading!=null && upgrading.isAlive()) return;
+		
+		// Basically just reconnect on upgrade
+		upgrading = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				showNotification("Upgrading...", "Weechat is upgrading, please wait for reconnection");
+				shutdown();
+				SystemClock.sleep(5000);
+				connect();	
+			}
+		});
+		upgrading.start();
+	}	
 }

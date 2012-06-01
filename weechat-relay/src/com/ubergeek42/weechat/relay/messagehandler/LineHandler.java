@@ -3,6 +3,9 @@ package com.ubergeek42.weechat.relay.messagehandler;
 import java.util.Date;
 import java.util.HashSet;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.BufferLine;
 import com.ubergeek42.weechat.relay.RelayMessage;
@@ -12,7 +15,8 @@ import com.ubergeek42.weechat.relay.protocol.HdataEntry;
 import com.ubergeek42.weechat.relay.protocol.RelayObject;
 
 public class LineHandler implements RelayMessageHandler {
-
+	private static Logger logger = LoggerFactory.getLogger(LineHandler.class);
+	
 	private BufferManager cb;
 	
 	public LineHandler(BufferManager cb) {
@@ -41,6 +45,10 @@ public class LineHandler implements RelayMessageHandler {
 	
 				// Find the buffer to put the line in
 				Buffer buffer = cb.findByPointer(bPointer);
+				if (buffer == null){
+					logger.debug("Unable to find buffer to update");
+					return;
+				}
 				// Do we already have this line?
 				if (!buffer.hasLine(hde.getPointer())) {
 					// Create a new message object, and add it to the correct buffer
@@ -76,6 +84,10 @@ public class LineHandler implements RelayMessageHandler {
 	
 				// Find the buffer to put the line in
 				Buffer buffer = cb.findByPointer(bPointer);
+				if (buffer == null){
+					logger.debug("Unable to find buffer to update");
+					return;
+				}
 				// Do we already have this line?
 				if (!buffer.hasLine(hde.getPointer())) {
 					// Create a new message object, and add it to the correct buffer
