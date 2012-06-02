@@ -118,6 +118,8 @@ public class RelayService extends Service implements RelayConnectionHandler, OnS
 			return;
 		}
 		
+		shutdown = false;
+		
 		bufferManager = new BufferManager();
 		msgHandler = new LineHandler(bufferManager);
 		nickHandler = new NicklistHandler(bufferManager);
