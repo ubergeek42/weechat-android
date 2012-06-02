@@ -1,5 +1,8 @@
 package com.ubergeek42.WeechatAndroid;
 
+import java.util.Arrays;
+import java.util.Vector;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +30,7 @@ import android.widget.ListView;
 import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.BufferObserver;
 
-public class WeechatChatviewActivity extends Activity implements OnClickListener, OnKeyListener, BufferObserver {
+public class WeechatChatviewActivity extends Activity implements OnClickListener, OnKeyListener, BufferObserver, OnSharedPreferenceChangeListener {
 
 	private static Logger logger = LoggerFactory.getLogger(WeechatChatviewActivity.class);
 	
@@ -43,6 +46,19 @@ public class WeechatChatviewActivity extends Activity implements OnClickListener
 	
 	private ChatLinesAdapter chatlineAdapter;
 	
+	
+	private String[] nickCache;
+
+	// Settings for keeping track of the current tab completion stuff
+	private boolean tabCompletingInProgress;
+	private Vector<String> tabCompleteMatches;
+	private int tabCompleteCurrentIndex;
+	private int tabCompleteWordStart;
+	private int tabCompleteWordEnd;
+	
+	private SharedPreferences prefs;
+	private boolean enableTabComplete = true;
+	
 
 	/** Called when the activity is first created. */
 	@Override
@@ -54,6 +70,11 @@ public class WeechatChatviewActivity extends Activity implements OnClickListener
 	    if (extras == null) {
 	    	finish(); // quit if no view given..
 	    }
+	    
+	    prefs = PreferenceManager.getDefaultSharedPreferences(this.getBaseContext());
+	    prefs.registerOnSharedPreferenceChangeListener(this);
+	    enableTabComplete = prefs.getBoolean("tab_completion", true);
+	    
 	    
 	    bufferName = extras.getString("buffer");
 
@@ -135,15 +156,65 @@ public class WeechatChatviewActivity extends Activity implements OnClickListener
 			rsb.sendMessage(message + "\n");
 		}
 	};
+
+	
+
 	
 	// User pressed enter in the input box
 	@Override
 	public boolean onKey(View v, int keycode, KeyEvent event) {
 		if (keycode == KeyEvent.KEYCODE_ENTER && event.getAction()==KeyEvent.ACTION_UP) {
+			tabCompletingInProgress=false;
 			runOnUiThread(messageSender);
 			return true;
+		} else if(keycode == KeyEvent.KEYCODE_TAB && event.getAction() == KeyEvent.ACTION_DOWN) {
+			if (!enableTabComplete || nickCache == null) return true;
+			
+			// Get the current input text
+			String txt = inputBox.getText().toString();
+			if (tabCompletingInProgress == false) {
+				int currentPos = inputBox.getSelectionStart()-1;
+				int start = currentPos;
+				// Search backwards to find the beginning of the word
+				while(start>0 && txt.charAt(start) != ' ') start--;
+				
+				if (start>0) start++;
+				String prefix = txt.substring(start, currentPos+1).toLowerCase();
+				if (prefix.length()<2) {
+					//No tab completion
+					return true;
+				}
+				
+				Vector<String> matches = new Vector<String>();
+				for(String possible: nickCache) {
+					
+					String temp = possible.toLowerCase().trim();
+					if (temp.startsWith(prefix)) {
+						matches.add(possible.trim());
+					}
+				}
+				if (matches.size() == 0) return true;
+				
+				tabCompletingInProgress = true;
+				tabCompleteMatches = matches;
+				tabCompleteCurrentIndex = 0;
+				tabCompleteWordStart = start;
+				tabCompleteWordEnd = currentPos;
+			} else {
+				tabCompleteWordEnd = tabCompleteWordStart + tabCompleteMatches.get(tabCompleteCurrentIndex).length()-1; // end of current tab complete word
+				tabCompleteCurrentIndex = (tabCompleteCurrentIndex+1)%tabCompleteMatches.size(); // next match
+			}
+			
+			String newtext = txt.substring(0, tabCompleteWordStart) + tabCompleteMatches.get(tabCompleteCurrentIndex) + txt.substring(tabCompleteWordEnd+1);
+			tabCompleteWordEnd = tabCompleteWordStart + tabCompleteMatches.get(tabCompleteCurrentIndex).length(); // end of new tabcomplete word
+			inputBox.setText(newtext);
+			inputBox.setSelection(tabCompleteWordEnd);
+
+			return true;
+		} else if(keycode == KeyEvent.KEYCODE_TAB && event.getAction() == KeyEvent.ACTION_UP) {
+			return true; // eat the tab up, but don't reset tabCompletingInProgress to false
 		}
-		// TODO: add code for nick completion here
+		tabCompletingInProgress = false;
 		return false;
 	}
 
@@ -153,7 +224,6 @@ public class WeechatChatviewActivity extends Activity implements OnClickListener
 		runOnUiThread(messageSender);
 	}
 
-	// Called whenever a new line is added to a buffer
 	@Override
 	public void onLineAdded() {
 		rsb.resetNotifications();
@@ -175,6 +245,12 @@ public class WeechatChatviewActivity extends Activity implements OnClickListener
 		// Close when the buffer is closed
 		buffer.removeObserver(this);
 		finish();
+	}
+	
+	@Override
+	public void onNicklistChanged() {
+		nickCache = buffer.getNicks();
+		Arrays.sort(nickCache);
 	}
 
 	//==== Options Menu
@@ -204,5 +280,12 @@ public class WeechatChatviewActivity extends Activity implements OnClickListener
 			chatlineAdapter.toggleFilters();
 		}
 		return true;
+	}
+
+	@Override
+	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+		if (key.equals("tab_completion")) {
+			enableTabComplete = prefs.getBoolean("tab_completion", true);
+		}
 	}
 }

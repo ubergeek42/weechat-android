@@ -31,6 +31,6 @@ public class NickItem {
 	
 	@Override
 	public String toString() {
-		return String.format("%s%s", prefix, name);
+		return name;
 	}
 }

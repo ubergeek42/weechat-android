@@ -122,6 +122,8 @@ public class Buffer {
 		synchronized(nicklock) {
 			nicks.add(ni);
 		}
+		for(BufferObserver o: observers)
+			o.onNicklistChanged();
 	}
 	public String[] getNicks() {
 		int i = 0;
@@ -130,7 +132,6 @@ public class Buffer {
 			ret = new String[nicks.size()];
 			for(NickItem ni: nicks) {
 				ret[i] = ni.toString();
-				logger.debug(ret[i]);
 				i++;
 			}
 		}

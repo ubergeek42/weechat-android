@@ -352,7 +352,7 @@ public class RelayConnection {
 						
 						long start = System.currentTimeMillis();
 						handleMessage(wm);
-						logger.trace("handleMessage took " + (System.currentTimeMillis()-start) + "ms");
+						logger.trace("handleMessage took " + (System.currentTimeMillis()-start) + "ms(id: "+wm.getID()+")");
 						
 						// Reset the buffer, and put back any additional data
 						buffer.reset();

@@ -1,6 +1,5 @@
 package com.ubergeek42.weechat.relay.messagehandler;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 
 import org.slf4j.Logger;
@@ -8,7 +7,6 @@ import org.slf4j.LoggerFactory;
 
 import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.NickItem;
-import com.ubergeek42.weechat.relay.RelayMessage;
 import com.ubergeek42.weechat.relay.RelayMessageHandler;
 import com.ubergeek42.weechat.relay.protocol.Hdata;
 import com.ubergeek42.weechat.relay.protocol.HdataEntry;
@@ -21,8 +19,6 @@ import com.ubergeek42.weechat.relay.protocol.RelayObject;
  */
 public class NicklistHandler implements RelayMessageHandler {
 	private static Logger logger = LoggerFactory.getLogger(NicklistHandler.class);
-
-	ArrayList<NickItem> nicks = new ArrayList<NickItem>();
 	private BufferManager cbs;
 
 	public NicklistHandler(BufferManager cbs) {

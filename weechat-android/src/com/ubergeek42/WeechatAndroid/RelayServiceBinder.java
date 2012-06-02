@@ -86,7 +86,7 @@ public class RelayServiceBinder extends Binder {
 		if (buf.getLines().size() < Buffer.MAXLINES)
 			relayService.relayConnection.sendMsg("(listlines_reverse) hdata buffer:"+bufferPointer+"/own_lines/last_line(-" + Buffer.MAXLINES + ")/data date,displayed,prefix,message,highlight");
 		// Get the nicklist for any buffers we have
-		//relayService.relayConnection.sendMsg("nicklist","nicklist",buf.getFullName());
+		relayService.relayConnection.sendMsg("nicklist","nicklist",buf.getFullName());
 		//relayService.relayConnection.sendMsg("sync "+buf.getFullName());
 	}
 	public void unsubscribeBuffer(String bufferPointer) {

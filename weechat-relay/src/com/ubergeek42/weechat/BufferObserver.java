@@ -15,4 +15,9 @@ public interface BufferObserver {
 	 * Called when the buffer is closed in weechat
 	 */
 	public void onBufferClosed();
+	
+	/**
+	 * Called when the nicklist changes
+	 */
+	public void onNicklistChanged();
 }
