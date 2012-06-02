@@ -167,7 +167,7 @@ public class WeechatChatviewActivity extends Activity implements OnClickListener
 			tabCompletingInProgress=false;
 			runOnUiThread(messageSender);
 			return true;
-		} else if(keycode == KeyEvent.KEYCODE_TAB && event.getAction() == KeyEvent.ACTION_DOWN) {
+		} else if((keycode == KeyEvent.KEYCODE_TAB || keycode == KeyEvent.KEYCODE_SEARCH) && event.getAction() == KeyEvent.ACTION_DOWN) {
 			if (!enableTabComplete || nickCache == null) return true;
 			
 			// Get the current input text
@@ -211,8 +211,9 @@ public class WeechatChatviewActivity extends Activity implements OnClickListener
 			inputBox.setSelection(tabCompleteWordEnd);
 
 			return true;
-		} else if(keycode == KeyEvent.KEYCODE_TAB && event.getAction() == KeyEvent.ACTION_UP) {
-			return true; // eat the tab up, but don't reset tabCompletingInProgress to false
+		} else if(KeyEvent.isModifierKey(keycode) || keycode == KeyEvent.KEYCODE_TAB || keycode == KeyEvent.KEYCODE_SEARCH) {
+			// If it was a modifier key(or tab/search), don't kill tabCompletingInProgress
+			return true;
 		}
 		tabCompletingInProgress = false;
 		return false;
