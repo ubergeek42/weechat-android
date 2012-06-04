@@ -213,7 +213,7 @@ public class WeechatChatviewActivity extends Activity implements OnClickListener
 			return true;
 		} else if(KeyEvent.isModifierKey(keycode) || keycode == KeyEvent.KEYCODE_TAB || keycode == KeyEvent.KEYCODE_SEARCH) {
 			// If it was a modifier key(or tab/search), don't kill tabCompletingInProgress
-			return true;
+			return false;
 		}
 		tabCompletingInProgress = false;
 		return false;
