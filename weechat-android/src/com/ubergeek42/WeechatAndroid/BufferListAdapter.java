@@ -45,39 +45,51 @@ public class BufferListAdapter extends BaseAdapter implements BufferManagerObser
 
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
-		
-		Buffer bufferItem = (Buffer)getItem(position);
+		ViewHolder holder;
 		
 		if (convertView == null) {
 			convertView = inflater.inflate(R.layout.bufferlist_item,null);
-		}
-		
-		TextView shortname = (TextView)convertView.findViewById(R.id.bufferlist_shortname);
-		TextView fullname = (TextView)convertView.findViewById(R.id.bufferlist_fullname);
-		TextView hotlist = (TextView)convertView.findViewById(R.id.bufferlist_hotlist);
-		TextView title = (TextView)convertView.findViewById(R.id.bufferlist_title);
+            holder = new ViewHolder();
+            holder.shortname = (TextView)convertView.findViewById(R.id.bufferlist_shortname);
+            holder.fullname = (TextView)convertView.findViewById(R.id.bufferlist_fullname);
+            holder.hotlist = (TextView)convertView.findViewById(R.id.bufferlist_hotlist);
+            holder.title = (TextView)convertView.findViewById(R.id.bufferlist_title);
+
+            convertView.setTag(holder);
+		} else {
+            holder = (ViewHolder) convertView.getTag();
+        }
+
+		Buffer bufferItem = (Buffer)getItem(position);
 
 		// use contents of bufferItem to fill in text content
-		fullname.setText(bufferItem.getFullName());
-		shortname.setText(bufferItem.getShortName());
+        holder.fullname.setText(bufferItem.getFullName());
+        holder.shortname.setText(bufferItem.getShortName());
 		if (bufferItem.getShortName()==null)
-			shortname.setText(bufferItem.getFullName());
+            holder.shortname.setText(bufferItem.getFullName());
 
-		title.setText(com.ubergeek42.weechat.Color.stripAllColorsAndAttributes(bufferItem.getTitle()));
+        holder.title.setText(com.ubergeek42.weechat.Color.stripAllColorsAndAttributes(bufferItem.getTitle()));
 		
 		int unread = bufferItem.getUnread();
 		int highlight = bufferItem.getHighlights();
-		hotlist.setText(String.format("U:%2d  H:%2d   ", unread, highlight));
+        holder.hotlist.setText(String.format("U:%2d  H:%2d   ", unread, highlight));
 
 		if (highlight>0) {
-			hotlist.setTextColor(Color.MAGENTA);
+            holder.hotlist.setTextColor(Color.MAGENTA);
 		} else if (unread>0) {
-			hotlist.setTextColor(Color.YELLOW);
+            holder.hotlist.setTextColor(Color.YELLOW);
 		} else {
-			hotlist.setTextColor(Color.WHITE);
+            holder.hotlist.setTextColor(Color.WHITE);
 		}
 		return convertView;
 	}
+    static class ViewHolder {
+        TextView shortname;
+        TextView fullname;
+        TextView hotlist;
+        TextView title;
+    }
+    
 	@Override
 	public void onBuffersChanged() {
 		parentActivity.runOnUiThread(new Runnable() {
