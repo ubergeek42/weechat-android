@@ -74,39 +74,47 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, OnShar
 
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
-		BufferLine chatLine = (BufferLine)getItem(position);
+        ViewHolder holder;
 		
 		// If we don't have the view, or we were using a filteredView, inflate a new one
 		if (convertView == null) {
 			convertView = inflater.inflate(R.layout.chatview_line,null);
-		}
+            holder = new ViewHolder();
+            holder.timestamp = (TextView) convertView.findViewById(R.id.chatline_timestamp);
+            holder.prefix = (TextView) convertView.findViewById(R.id.chatline_prefix);
+            holder.message = (TextView) convertView.findViewById(R.id.chatline_message);
 
-		// Change the font sizes
-		TextView timestamp = (TextView) convertView.findViewById(R.id.chatline_timestamp);
-		TextView prefix = (TextView) convertView.findViewById(R.id.chatline_prefix);
-		TextView message = (TextView) convertView.findViewById(R.id.chatline_message);
-		timestamp.setTextSize(textSize);
-		prefix.setTextSize(textSize);
-		message.setTextSize(textSize);
-		
+            // Change the font sizes
+            holder.timestamp.setTextSize(textSize);
+            holder.prefix.setTextSize(textSize);
+            holder.message.setTextSize(textSize);
+            
+            convertView.setTag(holder);
+
+		} else {
+            holder = (ViewHolder) convertView.getTag();
+        }
+
+        BufferLine chatLine = (BufferLine)getItem(position);
+
 		// Render the timestamp
 		if (enableTimestamp) {
-			timestamp.setText(chatLine.getTimestampStr());
-			timestamp.setPadding(timestamp.getPaddingLeft(), timestamp.getPaddingTop(), 5, timestamp.getPaddingBottom());
+            holder.timestamp.setText(chatLine.getTimestampStr());
+            holder.timestamp.setPadding(holder.timestamp.getPaddingLeft(), holder.timestamp.getPaddingTop(), 5, holder.timestamp.getPaddingBottom());
 		} else {
-			timestamp.setText("");
-			timestamp.setPadding(timestamp.getPaddingLeft(), timestamp.getPaddingTop(), 0, timestamp.getPaddingBottom());
+            holder.timestamp.setText("");
+            holder.timestamp.setPadding(holder.timestamp.getPaddingLeft(), holder.timestamp.getPaddingTop(), 0, holder.timestamp.getPaddingBottom());
 		}
 		
 		// Recalculate the prefix width based on the size of one character(fixed width font)
 		if (prefixWidth == 0) {
-			prefix.setMinimumWidth(0);
+            holder.prefix.setMinimumWidth(0);
 			StringBuilder sb = new StringBuilder();
 			for(int i=0;i<maxPrefix;i++)
 				sb.append("m");
-			prefix.setText(sb.toString());
-			prefix.measure(convertView.getWidth(), convertView.getHeight());
-			prefixWidth = prefix.getMeasuredWidth(); 
+            holder.prefix.setText(sb.toString());
+            holder.prefix.measure(convertView.getWidth(), convertView.getHeight());
+			prefixWidth = holder.prefix.getMeasuredWidth();
 		}
 		
 		// Render the prefix
@@ -115,35 +123,40 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, OnShar
 			Spannable highlightText = new SpannableString(prefixStr);
 			highlightText.setSpan(new ForegroundColorSpan(Color.YELLOW), 0, prefixStr.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
 			highlightText.setSpan(new BackgroundColorSpan(Color.MAGENTA), 0, prefixStr.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-			prefix.setText(highlightText);
+            holder.prefix.setText(highlightText);
 		} else {
 			if (enableColor) {
-				prefix.setText(Html.fromHtml(chatLine.getPrefixHTML()), TextView.BufferType.SPANNABLE);
+                holder.prefix.setText(Html.fromHtml(chatLine.getPrefixHTML()), TextView.BufferType.SPANNABLE);
 			} else {
-				prefix.setText(chatLine.getPrefix());
+                holder.prefix.setText(chatLine.getPrefix());
 			}
 		}
 		if (prefix_align.equals("right")) {
-			prefix.setGravity(Gravity.RIGHT);
-			prefix.setMinimumWidth(prefixWidth);
+            holder.prefix.setGravity(Gravity.RIGHT);
+            holder.prefix.setMinimumWidth(prefixWidth);
 		} else if (prefix_align.equals("left")) {
-			prefix.setGravity(Gravity.LEFT);
-			prefix.setMinimumWidth(prefixWidth);
+            holder.prefix.setGravity(Gravity.LEFT);
+            holder.prefix.setMinimumWidth(prefixWidth);
 		} else {
-			prefix.setGravity(Gravity.LEFT);
-			prefix.setMinimumWidth(0);
+            holder.prefix.setGravity(Gravity.LEFT);
+            holder.prefix.setMinimumWidth(0);
 		}
 
 		// Render the message
 		
 		if (enableColor) {
-			message.setText(Html.fromHtml(chatLine.getMessageHTML()), TextView.BufferType.SPANNABLE);
+            holder.message.setText(Html.fromHtml(chatLine.getMessageHTML()), TextView.BufferType.SPANNABLE);
 		} else {
-			message.setText(chatLine.getMessage());
+            holder.message.setText(chatLine.getMessage());
 		}
 		
 		return convertView;
 	}
+    static class ViewHolder {
+        TextView timestamp;
+        TextView prefix;
+        TextView message;
+    }
 
 	
 	// Change preferences immediately

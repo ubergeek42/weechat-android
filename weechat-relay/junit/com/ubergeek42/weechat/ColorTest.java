@@ -10,15 +10,95 @@ public class ColorTest {
 	public void testStripColors() {
 		String teststr = "\u001903asd\u001C";
 		String oracle = "asd";
-		assertEquals(Color.stripColors(teststr), oracle);
+		assertEquals(oracle, Color.stripColors(teststr));
 	}
+
+    /**
+     *  0x0F is ascii character 15, which turns off all previous attributes, including color, bold, underline and italics.
+     *  This case happens on freenode with title set to something containing colors, the 0F seems to come from what
+     *  should be 0x1C, or reset colors/attributes. See <a href="http://www.mirc.com/colors.html">mIRC Colors</a>.
+     *
+     *
+     *  warning : it shouldn't really be stripped away, but due to performance reasons we don't want to run every
+     *  BufferLine through Color.stripAllColorsAndAttributes().
+     *  Make this unit test fail in the future if it causes issues!
+     */
 	@Test
-	public void testStripColors2() {
-		// Happens on freenode with title set to something containing colors, the 0F seems to come from what should be 0x1C, or reset colors/attributes
+	public void testStrip0x0FwithWeeChatStyle() {
 		String teststr = "red green cyan.\u000F some normal text";
 		String oracle = "red green cyan. some normal text";
-		assertEquals(Color.stripColors(teststr), oracle);
+		assertEquals(oracle, Color.stripColors(teststr));
 	}
+    /**
+     *  0x0F is ascii character 15, which turns off all previous attributes, including color, bold, underline and italics.
+     *  See <a href="http://www.mirc.com/colors.html">mIRC Colors</a>
+     */
+    @Test
+    public void testStrip0x0FwithIRCStyle() {
+        String teststr = "red green cyan.\u000F some normal text";
+        String oracle = "red green cyan. some normal text";
+        assertEquals(oracle, Color.stripIRCColors(teststr));
+    }
+    @Test
+    public void testStripColorInIset() {
+        String isetTitle = "Interactive set (iset.pl v1.0)  |  Filter: \u0019F08*relay*\u0019F00  |  16 options";
+        String expected = "Interactive set (iset.pl v1.0)  |  Filter: *relay*  |  16 options";
+        assertEquals(isetTitle, Color.stripIRCColors(isetTitle));
+        assertNotSame(expected, Color.stripIRCColors(isetTitle));
+        assertEquals(expected, Color.stripColors(isetTitle));
+
+    }
+    @Test
+    public void testStrippingBothIRCAndWeeStyle() {
+        String isetTitle = "Interactive set (iset.pl v1.0)  |  Filter: \u0019F08*relay*\u0019F00  |  16 options";
+        String topicTitle = "\u0002foo\u0002o \u000307,03bar zAr\u0003t";
+
+        String expected = "Interactive set (iset.pl v1.0)  |  Filter: *relay*  |  16 options";
+        String expectedTopic = "fooo bar zArt";
+
+        //assertEquals(expectedTopic, Color.stripIRCColors(topicTitle));
+        assertEquals(expectedTopic, Color.stripColors(Color.stripIRCColors(topicTitle)));
+        assertEquals(expectedTopic, Color.stripIRCColors(Color.stripColors(topicTitle)));
+
+        assertEquals(expected, Color.stripIRCColors(Color.stripColors(isetTitle)));
+        assertEquals(expected, Color.stripColors(Color.stripIRCColors(isetTitle)));
+    }
+    @Test
+    public void testStrippingBothWithHelperMethod() {
+        String isetTitle = "Interactive set (iset.pl v1.0)  |  Filter: \u0019F08*relay*\u0019F00  |  16 options";
+        String topicTitle = "\u0002foo\u0002o \u000307,03bar zAr\u0003t";
+
+        String expected = "Interactive set (iset.pl v1.0)  |  Filter: *relay*  |  16 options";
+        String expectedTopic = "fooo bar zArt";
+        
+        assertEquals(expected, Color.stripAllColorsAndAttributes(isetTitle));
+        assertEquals(expectedTopic, Color.stripAllColorsAndAttributes(topicTitle));
+    }
+    @Test
+    public void testStripIRCStyleBold() {
+        String test = "\u0002te\u0002s\u0002t";
+        String expected = "test";
+        assertEquals(expected, Color.stripIRCColors(test));
+    }
+    @Test
+    public void testStripIRCStyleForegroundColor() {
+        String test = "\u0003110\u0003031\u0003122\u000F3";
+        String expected = "0123";
+        assertEquals(expected, Color.stripIRCColors(test));
+    }
+    @Test
+    public void testStripIRCStyleBackgroundWithNoForeground() {
+        String test = "\u0003,12foo\u0003bar";
+        String expected = "foobar";
+        assertEquals(expected, Color.stripIRCColors(test));
+    }
+    @Test
+    public void testStripIRCStyleForegroundAndBackgroundColor() {
+        String test = "\u000311,01foo\u000314,02bar \u000Fzar\u000312tar";
+        String expected = "foobar zartar";
+        assertEquals(expected, Color.stripIRCColors(test));
+                
+    }
 }
 /*
 00 00 00 21

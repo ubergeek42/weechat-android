@@ -3,7 +3,14 @@ package com.ubergeek42.weechat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Color class takes care of parsing WeeChat's own color codes in strings to diplay attributes (bold,underline) and
+ * colors on screen. WeeChat's color codes get mapped to HTML color codes wrapped in a <code>font</code>-tag.
 
+ * This class can also help with stripping attributes and colors from the String.
+ *
+ * See WeeChat dev document for more information: <a href="http://www.weechat.org/files/doc/devel/weechat_dev.en.html#color_codes_in_strings">here</a>
+ */
 public class Color {
 	private static Logger logger = LoggerFactory.getLogger(Color.class);
 	// Default weechat colors...00-16
@@ -325,7 +332,16 @@ public class Color {
 					}
 					if (insert_html) { parsedMsg.append(getHTMLTag()); }
 				}
-			} else {
+			} else if (peekChar()==0x0F) { // warning: see unit test testStrip0x0FwithWeeChatStyle() in ColorTest (weechat-relay)
+                getChar();
+                fgColor = FG_DEFAULT;
+                bgColor = BG_DEFAULT;
+                reverse = false;
+                italic = false;
+                underline = false;
+                if (insert_html) { parsedMsg.append(getHTMLTag()); }
+                continue;
+            } else {
 				// Not formatting or anything, so append it to the string
 				parsedMsg.append(getChar());
 			}
@@ -358,7 +374,7 @@ public class Color {
 					}
 				}
 				// comma, then 1 or 2 digits
-				if (c == ',' && Character.isDigit(msg.charAt(i))) {
+				if (msg.charAt(i) == ',' && Character.isDigit(msg.charAt(++i))) {
 					c = msg.charAt(i++);
 					if (Character.isDigit(msg.charAt(i))) {
 						c = msg.charAt(i++);
@@ -374,6 +390,16 @@ public class Color {
 		}
 		return cleaned.toString();
 	}
+
+    /**
+     * Strips colors encoded with the standard IRC methods AND weechats methods.
+     *
+     * @param message Message to gets it colors and attributes stripped from
+     * @return Message Stripped message
+     */
+    public static String stripAllColorsAndAttributes(String message) {
+        return Color.stripColors(Color.stripIRCColors(message));
+    }
 	
 	/**
 	 * Encode a string as HTML(Escaping the various special characters that are valid html)
