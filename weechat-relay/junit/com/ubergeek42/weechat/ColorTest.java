@@ -10,14 +10,14 @@ public class ColorTest {
 	public void testStripColors() {
 		String teststr = "\u001903asd\u001C";
 		String oracle = "asd";
-		assertEquals(Color.stripColors(teststr), oracle);
+		assertEquals(oracle, Color.stripColors(teststr));
 	}
 	@Test
 	public void testStripColors2() {
 		// Happens on freenode with title set to something containing colors, the 0F seems to come from what should be 0x1C, or reset colors/attributes
 		String teststr = "red green cyan.\u000F some normal text";
 		String oracle = "red green cyan. some normal text";
-		assertEquals(Color.stripColors(teststr), oracle);
+		assertEquals(oracle, Color.stripColors(teststr));
 	}
     @Test
     public void testStripColorInIset() {
