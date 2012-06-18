@@ -63,7 +63,7 @@ public class BufferListAdapter extends BaseAdapter implements BufferManagerObser
 		if (bufferItem.getShortName()==null)
 			shortname.setText(bufferItem.getFullName());
 
-		title.setText(com.ubergeek42.weechat.Color.stripIRCColors(bufferItem.getTitle()));
+		title.setText(com.ubergeek42.weechat.Color.stripColors(bufferItem.getTitle()));
 		
 		int unread = bufferItem.getUnread();
 		int highlight = bufferItem.getHighlights();

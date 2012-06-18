@@ -19,6 +19,15 @@ public class ColorTest {
 		String oracle = "red green cyan. some normal text";
 		assertEquals(Color.stripColors(teststr), oracle);
 	}
+    @Test
+    public void testStripColorInIset() {
+        String isetTitle = "Interactive set (iset.pl v1.0)  |  Filter: \u0019F08*relay*\u0019F00  |  16 options";
+        String expected = "Interactive set (iset.pl v1.0)  |  Filter: *relay*  |  16 options";
+        assertEquals(isetTitle, Color.stripIRCColors(isetTitle));
+        assertNotSame(expected, Color.stripIRCColors(isetTitle));
+        assertEquals(expected, Color.stripColors(isetTitle));
+
+    }
 }
 /*
 00 00 00 21

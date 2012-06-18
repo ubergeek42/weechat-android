@@ -3,7 +3,14 @@ package com.ubergeek42.weechat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Color class takes care of parsing WeeChat's own color codes in strings to diplay attributes (bold,underline) and
+ * colors on screen. WeeChat's color codes get mapped to HTML color codes wrapped in a <code>font</code>-tag.
 
+ * This class can also help with stripping attributes and colors from the String.
+ *
+ * See WeeChat dev document for more information: <a href="http://www.weechat.org/files/doc/devel/weechat_dev.en.html#color_codes_in_strings">here</a>
+ */
 public class Color {
 	private static Logger logger = LoggerFactory.getLogger(Color.class);
 	// Default weechat colors...00-16
