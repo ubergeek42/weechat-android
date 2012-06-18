@@ -365,7 +365,7 @@ public class Color {
 					}
 				}
 				// comma, then 1 or 2 digits
-				if (c == ',' && Character.isDigit(msg.charAt(i))) {
+				if (msg.charAt(i) == ',' && Character.isDigit(msg.charAt(++i))) {
 					c = msg.charAt(i++);
 					if (Character.isDigit(msg.charAt(i))) {
 						c = msg.charAt(i++);
@@ -381,6 +381,16 @@ public class Color {
 		}
 		return cleaned.toString();
 	}
+
+    /**
+     * Strips colors encoded with the standard IRC methods AND weechats methods.
+     *
+     * @param message Message to gets it colors and attributes stripped from
+     * @return Message Stripped message
+     */
+    public static String stripAllColorsAndAttributes(String message) {
+        return Color.stripColors(Color.stripIRCColors(message));
+    }
 	
 	/**
 	 * Encode a string as HTML(Escaping the various special characters that are valid html)
