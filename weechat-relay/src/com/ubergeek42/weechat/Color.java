@@ -347,7 +347,16 @@ public class Color {
 					}
 					if (insert_html) { parsedMsg.append(getHTMLTag()); }
 				}
-			} else {
+			} else if (peekChar()==0x0F) { // warning: see unit test testStrip0x0FwithWeeChatStyle() in ColorTest (weechat-relay)
+                getChar();
+                fgColor = FG_DEFAULT;
+                bgColor = BG_DEFAULT;
+                reverse = false;
+                italic = false;
+                underline = false;
+                if (insert_html) { parsedMsg.append(getHTMLTag()); }
+                continue;
+            } else {
 				// Not formatting or anything, so append it to the string
 				parsedMsg.append(getChar());
 			}
