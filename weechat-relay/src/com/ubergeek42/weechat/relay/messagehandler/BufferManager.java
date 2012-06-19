@@ -36,7 +36,7 @@ public class BufferManager implements RelayMessageHandler {
 	}
 	/**
 	 * Locate and returns a Buffer object based on it's name
-	 * @param pointer - Name of a weechat buffer(e.g. irc.freenode.#weechat)
+	 * @param bufferName - Name of a weechat buffer(e.g. irc.freenode.#weechat)
 	 * @return Buffer object for the associated buffer, or null if not found
 	 */
 	public Buffer findByName(String bufferName) {
