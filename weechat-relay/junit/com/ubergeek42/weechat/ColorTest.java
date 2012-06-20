@@ -12,13 +12,17 @@ public class ColorTest {
 		String oracle = "asd";
 		assertEquals(oracle, Color.stripColors(teststr));
 	}
-	@Test
-	public void testStripColors2() {
-		// Happens on freenode with title set to something containing colors, the 0F seems to come from what should be 0x1C, or reset colors/attributes
-		String teststr = "red green cyan.\u000F some normal text";
-		String oracle = "red green cyan. some normal text";
-		assertEquals(oracle, Color.stripColors(teststr));
-	}
+
+    /**
+     *  0x0F is ascii character 15, which turns off all previous attributes, including color, bold, underline and italics.
+     *  See <a href="http://www.mirc.com/colors.html">mIRC Colors</a>
+     */
+    @Test
+    public void testStrip0x0FwithIRCStyle() {
+        String teststr = "red green cyan.\u000F some normal text";
+        String oracle = "red green cyan. some normal text";
+        assertEquals(oracle, Color.stripIRCColors(teststr));
+    }
     @Test
     public void testStripColorInIset() {
         String isetTitle = "Interactive set (iset.pl v1.0)  |  Filter: \u0019F08*relay*\u0019F00  |  16 options";
