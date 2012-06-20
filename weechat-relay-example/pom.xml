@@ -4,9 +4,9 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>com.ubergeek42.weechatandroid</groupId>
-	<artifactId>weechat-android</artifactId>
-	<name>WeeChat Android</name>
-	<packaging>apk</packaging>
+	<artifactId>weechat-relay-example</artifactId>
+	<name>WeeChat Relay Example</name>
+	<packaging>jar</packaging>
 
 	<parent>
 		<groupId>com.ubergeek42.weechatandroid</groupId>
@@ -29,7 +29,7 @@
 			<groupId>com.ubergeek42.weechatandroid</groupId>
 			<artifactId>weechat-relay</artifactId>
 			<version>0.8-SNAPSHOT</version>
-			<type>apklib</type>
+			<type>jar</type>
 		</dependency>
 		<dependency>
 			<groupId>com.pivotallabs</groupId>
@@ -49,38 +49,10 @@
 
 		<plugins>
 			<plugin>
-				<groupId>com.jayway.maven.plugins.android.generation2</groupId>
-				<artifactId>android-maven-plugin</artifactId>
-				<extensions>true</extensions>
-			</plugin>
-
-			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<configuration>
 					<skip>true</skip>
-				</configuration>
-			</plugin>
-
-			<plugin>
-				<groupId>com.google.code.maven-replacer-plugin</groupId>
-				<artifactId>maven-replacer-plugin</artifactId>
-				<version>1.4.0</version>
-				<executions>
-					<execution>
-						<phase>process-sources</phase>
-						<goals>
-							<goal>replace</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<ignoreMissingFile>false</ignoreMissingFile>
-					<file>target/generated-sources/r/com/ubergeek42/weechatandroid/R.java</file>
-					<outputFile>target/generated-sources/r/com/ubergeek42/weechatandroid/R.java</outputFile>
-					<regex>false</regex>
-					<token>static final int</token>
-					<value>static int</value>
 				</configuration>
 			</plugin>
 
@@ -100,27 +72,6 @@
 				</executions>
 			</plugin>-->
 
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>build-helper-maven-plugin</artifactId>
-				<version>1.7</version>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>attach-artifact</goal>
-						</goals>
-						<configuration>
-							<artifacts>
-								<artifact>
-									<type>jar</type>
-									<file>${project.build.directory}/${project.build.finalName}.jar</file>
-								</artifact>
-							</artifacts>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
 		</plugins>
 
 		<pluginManagement>
