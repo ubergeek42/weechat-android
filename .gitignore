@@ -1,0 +1,11 @@
+bin
+out
+target
+classes
+gen
+libs
+.idea
+*.iml
+*.iwl
+*.swp
+local.properties
