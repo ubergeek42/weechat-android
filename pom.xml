@@ -22,6 +22,7 @@
 	<modules>
 		<module>weechat-relay</module>
 		<module>weechat-android</module>
+		<module>weechat-relay-example</module>
 	</modules>
 
 	<scm>
