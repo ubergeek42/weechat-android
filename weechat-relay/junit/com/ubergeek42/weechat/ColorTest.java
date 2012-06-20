@@ -15,22 +15,6 @@ public class ColorTest {
 
     /**
      *  0x0F is ascii character 15, which turns off all previous attributes, including color, bold, underline and italics.
-     *  This case happens on freenode with title set to something containing colors, the 0F seems to come from what
-     *  should be 0x1C, or reset colors/attributes. See <a href="http://www.mirc.com/colors.html">mIRC Colors</a>.
-     *
-     *
-     *  warning : it shouldn't really be stripped away, but due to performance reasons we don't want to run every
-     *  BufferLine through Color.stripAllColorsAndAttributes().
-     *  Make this unit test fail in the future if it causes issues!
-     */
-	@Test
-	public void testStrip0x0FwithWeeChatStyle() {
-		String teststr = "red green cyan.\u000F some normal text";
-		String oracle = "red green cyan. some normal text";
-		assertEquals(oracle, Color.stripColors(teststr));
-	}
-    /**
-     *  0x0F is ascii character 15, which turns off all previous attributes, including color, bold, underline and italics.
      *  See <a href="http://www.mirc.com/colors.html">mIRC Colors</a>
      */
     @Test

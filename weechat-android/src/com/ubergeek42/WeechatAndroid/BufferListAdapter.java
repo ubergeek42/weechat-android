@@ -1,3 +1,18 @@
+/*******************************************************************************
+ * Copyright 2012 Keith Johnson
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ ******************************************************************************/
 package com.ubergeek42.WeechatAndroid;
 
 import java.util.ArrayList;
@@ -44,45 +59,46 @@ public class BufferListAdapter extends BaseAdapter implements BufferManagerObser
 	}
 
 	@Override
-	public View getView(int position, View convertView, ViewGroup parent) {
-		ViewHolder holder;
-		
-		if (convertView == null) {
-			convertView = inflater.inflate(R.layout.bufferlist_item,null);
+    public View getView(int position, View convertView, ViewGroup parent) {
+        ViewHolder holder;
+
+        if (convertView == null) {
+            convertView = inflater.inflate(R.layout.bufferlist_item, null);
             holder = new ViewHolder();
-            holder.shortname = (TextView)convertView.findViewById(R.id.bufferlist_shortname);
-            holder.fullname = (TextView)convertView.findViewById(R.id.bufferlist_fullname);
-            holder.hotlist = (TextView)convertView.findViewById(R.id.bufferlist_hotlist);
-            holder.title = (TextView)convertView.findViewById(R.id.bufferlist_title);
+            holder.shortname = (TextView) convertView.findViewById(R.id.bufferlist_shortname);
+            holder.fullname = (TextView) convertView.findViewById(R.id.bufferlist_fullname);
+            holder.hotlist = (TextView) convertView.findViewById(R.id.bufferlist_hotlist);
+            holder.title = (TextView) convertView.findViewById(R.id.bufferlist_title);
 
             convertView.setTag(holder);
-		} else {
+        } else {
             holder = (ViewHolder) convertView.getTag();
         }
 
-		Buffer bufferItem = (Buffer)getItem(position);
+        Buffer bufferItem = (Buffer) getItem(position);
 
-		// use contents of bufferItem to fill in text content
+        // use contents of bufferItem to fill in text content
         holder.fullname.setText(bufferItem.getFullName());
         holder.shortname.setText(bufferItem.getShortName());
-		if (bufferItem.getShortName()==null)
+        if (bufferItem.getShortName() == null)
             holder.shortname.setText(bufferItem.getFullName());
 
         holder.title.setText(com.ubergeek42.weechat.Color.stripAllColorsAndAttributes(bufferItem.getTitle()));
-		
-		int unread = bufferItem.getUnread();
-		int highlight = bufferItem.getHighlights();
+
+        int unread = bufferItem.getUnread();
+        int highlight = bufferItem.getHighlights();
         holder.hotlist.setText(String.format("U:%2d  H:%2d   ", unread, highlight));
 
-		if (highlight>0) {
+        if (highlight > 0) {
             holder.hotlist.setTextColor(Color.MAGENTA);
-		} else if (unread>0) {
+        } else if (unread > 0) {
             holder.hotlist.setTextColor(Color.YELLOW);
-		} else {
+        } else {
             holder.hotlist.setTextColor(Color.WHITE);
-		}
-		return convertView;
-	}
+        }
+        return convertView;
+    }
+
     static class ViewHolder {
         TextView shortname;
         TextView fullname;

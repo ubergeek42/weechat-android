@@ -1,3 +1,18 @@
+/*******************************************************************************
+ * Copyright 2012 Keith Johnson
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ ******************************************************************************/
 package com.ubergeek42.WeechatAndroid;
 
 import java.util.LinkedList;
@@ -75,10 +90,10 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, OnShar
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
         ViewHolder holder;
-		
-		// If we don't have the view, or we were using a filteredView, inflate a new one
-		if (convertView == null) {
-			convertView = inflater.inflate(R.layout.chatview_line,null);
+
+        // If we don't have the view, or we were using a filteredView, inflate a new one
+        if (convertView == null) {
+            convertView = inflater.inflate(R.layout.chatview_line, null);
             holder = new ViewHolder();
             holder.timestamp = (TextView) convertView.findViewById(R.id.chatline_timestamp);
             holder.prefix = (TextView) convertView.findViewById(R.id.chatline_prefix);
@@ -88,70 +103,71 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, OnShar
             holder.timestamp.setTextSize(textSize);
             holder.prefix.setTextSize(textSize);
             holder.message.setTextSize(textSize);
-            
+
             convertView.setTag(holder);
 
-		} else {
+        } else {
             holder = (ViewHolder) convertView.getTag();
         }
 
-        BufferLine chatLine = (BufferLine)getItem(position);
+        BufferLine chatLine = (BufferLine) getItem(position);
 
-		// Render the timestamp
-		if (enableTimestamp) {
+        // Render the timestamp
+        if (enableTimestamp) {
             holder.timestamp.setText(chatLine.getTimestampStr());
             holder.timestamp.setPadding(holder.timestamp.getPaddingLeft(), holder.timestamp.getPaddingTop(), 5, holder.timestamp.getPaddingBottom());
-		} else {
+        } else {
             holder.timestamp.setText("");
             holder.timestamp.setPadding(holder.timestamp.getPaddingLeft(), holder.timestamp.getPaddingTop(), 0, holder.timestamp.getPaddingBottom());
-		}
-		
-		// Recalculate the prefix width based on the size of one character(fixed width font)
-		if (prefixWidth == 0) {
+        }
+
+        // Recalculate the prefix width based on the size of one character(fixed width font)
+        if (prefixWidth == 0) {
             holder.prefix.setMinimumWidth(0);
-			StringBuilder sb = new StringBuilder();
-			for(int i=0;i<maxPrefix;i++)
-				sb.append("m");
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < maxPrefix; i++)
+                sb.append("m");
             holder.prefix.setText(sb.toString());
             holder.prefix.measure(convertView.getWidth(), convertView.getHeight());
-			prefixWidth = holder.prefix.getMeasuredWidth();
-		}
-		
-		// Render the prefix
-		if(chatLine.getHighlight()) {
-			String prefixStr = chatLine.getPrefix();
-			Spannable highlightText = new SpannableString(prefixStr);
-			highlightText.setSpan(new ForegroundColorSpan(Color.YELLOW), 0, prefixStr.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-			highlightText.setSpan(new BackgroundColorSpan(Color.MAGENTA), 0, prefixStr.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+            prefixWidth = holder.prefix.getMeasuredWidth();
+        }
+
+        // Render the prefix
+        if (chatLine.getHighlight()) {
+            String prefixStr = chatLine.getPrefix();
+            Spannable highlightText = new SpannableString(prefixStr);
+            highlightText.setSpan(new ForegroundColorSpan(Color.YELLOW), 0, prefixStr.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+            highlightText.setSpan(new BackgroundColorSpan(Color.MAGENTA), 0, prefixStr.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
             holder.prefix.setText(highlightText);
-		} else {
-			if (enableColor) {
+        } else {
+            if (enableColor) {
                 holder.prefix.setText(Html.fromHtml(chatLine.getPrefixHTML()), TextView.BufferType.SPANNABLE);
-			} else {
+            } else {
                 holder.prefix.setText(chatLine.getPrefix());
-			}
-		}
-		if (prefix_align.equals("right")) {
+            }
+        }
+        if (prefix_align.equals("right")) {
             holder.prefix.setGravity(Gravity.RIGHT);
             holder.prefix.setMinimumWidth(prefixWidth);
-		} else if (prefix_align.equals("left")) {
+        } else if (prefix_align.equals("left")) {
             holder.prefix.setGravity(Gravity.LEFT);
             holder.prefix.setMinimumWidth(prefixWidth);
-		} else {
+        } else {
             holder.prefix.setGravity(Gravity.LEFT);
             holder.prefix.setMinimumWidth(0);
-		}
+        }
 
-		// Render the message
-		
-		if (enableColor) {
+        // Render the message
+
+        if (enableColor) {
             holder.message.setText(Html.fromHtml(chatLine.getMessageHTML()), TextView.BufferType.SPANNABLE);
-		} else {
+        } else {
             holder.message.setText(chatLine.getMessage());
-		}
-		
-		return convertView;
-	}
+        }
+
+        return convertView;
+    }
+
     static class ViewHolder {
         TextView timestamp;
         TextView prefix;
