@@ -26,7 +26,7 @@ public class RelayExample implements BufferManagerObserver, RelayConnectionHandl
 		System.out.format("Attempting connection to %s:%s with password %s\n", server, port, password);
 		relay = new RelayConnection(server, port, password);
 		relay.setConnectionHandler(this);
-		relay.tryConnect();
+		relay.connect();
 	}
 
 	@Override
@@ -82,8 +82,13 @@ public class RelayExample implements BufferManagerObserver, RelayConnectionHandl
 	public void onDisconnect() {
 		System.out.println("Disconnected...");
 	}
-	
-	@Override
+
+    @Override
+    public void onError(String err) {
+        System.out.println(String.format("Error: %s", err));
+    }
+
+    @Override
 	public void onBuffersChanged() {
 		System.out.println("[Buffer list]");
 		for (int i=0;i<bufferManager.getNumBuffers(); i++) {
