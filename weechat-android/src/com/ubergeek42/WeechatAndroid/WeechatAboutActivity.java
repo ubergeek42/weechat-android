@@ -17,6 +17,7 @@ package com.ubergeek42.WeechatAndroid;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.widget.TextView;
 
 public class WeechatAboutActivity extends Activity {
 
@@ -24,6 +25,8 @@ public class WeechatAboutActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.about);
+		TextView tv = (TextView) this.findViewById(R.id.versionID);
+		tv.setText(com.ubergeek42.weechat.GitVersion.BANNER);
 	}
 
 }
