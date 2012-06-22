@@ -9,7 +9,7 @@
 	<packaging>apklib</packaging>
 
 	<parent>
-		<groupId>com.ubergeek42.weechatandroid-parent</groupId>
+		<groupId>com.ubergeek42.weechatandroid</groupId>
 		<artifactId>parent</artifactId>
 		<version>0.8-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>

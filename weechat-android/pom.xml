@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>com.ubergeek42.weechatandroid-parent</groupId>
+		<groupId>com.ubergeek42.weechatandroid</groupId>
 		<artifactId>parent</artifactId>
 		<version>0.8-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
@@ -54,10 +54,46 @@
 					</execution>
 				</executions>
 			</plugin>
+			<!-- Sign our apk if it's not a release build -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jarsigner-plugin</artifactId>
+				<version>1.2</version>
+				<configuration>
+					<skip>${debugBuild}</skip>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>sign</goal>
+							<goal>verify</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 			<plugin>
 				<groupId>com.jayway.maven.plugins.android.generation2</groupId>
 				<artifactId>android-maven-plugin</artifactId>
 				<extensions>true</extensions>
+				<configuration>
+					<sign>
+						<debug>${debugBuild}</debug>
+					</sign>
+					<zipalign>
+						<verbose>true</verbose>
+						<skip>${debugBuild}</skip>
+					</zipalign>
+				</configuration>
+				<executions>
+					<execution>
+						<id>alignApk</id>
+						<phase>package</phase>
+						<goals>
+							<goal>zipalign</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 			<!--<plugin>
 				<groupId>org.codehaus.groovy.maven</groupId>
@@ -81,4 +117,25 @@
 			</plugin>-->
 		</plugins>
 	</build>
+	<profiles>
+		<profile>
+			<id>standard</id>
+			<activation><activeByDefault>true</activeByDefault></activation>
+			<properties>
+				<debugBuild>true</debugBuild>
+			</properties>			
+		</profile>
+		<profile>
+			<id>release</id>
+			<activation>
+				<property>
+					<name>performRelease</name>
+					<value>true</value>
+				</property>
+			</activation>
+			<properties>
+				<debugBuild>false</debugBuild>
+			</properties>
+		</profile>
+	</profiles>
 </project>
