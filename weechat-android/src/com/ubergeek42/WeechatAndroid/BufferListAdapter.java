@@ -16,6 +16,8 @@
 package com.ubergeek42.WeechatAndroid;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 import android.graphics.Color;
 import android.util.Log;
@@ -50,6 +52,8 @@ public class BufferListAdapter extends BaseAdapter implements BufferManagerObser
 
 	@Override
 	public Buffer getItem(int position) {
+		
+		
 		return buffers.get(position);
 	}
 
@@ -112,6 +116,19 @@ public class BufferListAdapter extends BaseAdapter implements BufferManagerObser
 			@Override
 			public void run() {
 				buffers = bufferManager.getBuffers();
+				// Sort buffers based on unread count
+				Collections.sort(buffers, new Comparator<Buffer>() {
+			        @Override public int compare(Buffer b1, Buffer b2) {
+			        	// TODO implement as comparable in Buffer class
+			        	int b1Highlights = b1.getHighlights();
+			        	int b2Highlights = b2.getHighlights();
+			        	if(b2Highlights > 0 || b1Highlights > 0) {
+			        		return b2Highlights - b1Highlights;
+			        	}
+			            return b2.getUnread() - b1.getUnread();
+			        }
+			        
+			    });
 				notifyDataSetChanged();
 			}
 		});
