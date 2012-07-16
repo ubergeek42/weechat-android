@@ -97,7 +97,7 @@ public class WeechatPreferencesActivity extends PreferenceActivity implements On
 		} else if(key.equals("text_size")) {
 			textSizePref.setSummary(sharedPreferences.getString("text_size", "10"));
 		} else if(key.equals("timestamp_format")) {
-			textSizePref.setSummary(sharedPreferences.getString("timestamp_format", "HH:mm:ss"));
+			timestampformatPref.setSummary(sharedPreferences.getString("timestamp_format", "HH:mm:ss"));
 		} else if(key.equals("stunnel_cert")) {
 			stunnelCert.setSummary(sharedPreferences.getString("stunnel_cert", "/sdcard/weechat/client.p12"));
 		} else if(key.equals("stunnel_pass")) {
