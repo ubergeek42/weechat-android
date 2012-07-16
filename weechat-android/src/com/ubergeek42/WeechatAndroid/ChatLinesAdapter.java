@@ -16,6 +16,8 @@
 package com.ubergeek42.WeechatAndroid;
 
 import java.util.LinkedList;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
@@ -52,6 +54,7 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, OnShar
 	private int maxPrefix = 0;
 	protected int prefixWidth;
 	private float textSize;
+	private final DateFormat timestampFormat;
 	
 	public ChatLinesAdapter(WeechatChatviewActivity activity,
 			Buffer buffer) {
@@ -70,6 +73,7 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, OnShar
 		enableFilters = prefs.getBoolean("chatview_filters", true);
 		prefix_align = prefs.getString("prefix_align", "right");
 		textSize = Float.parseFloat(prefs.getString("text_size", "10"));
+		timestampFormat = new SimpleDateFormat(prefs.getString("timestamp_format", "HH:mm:ss"));
 	}
 
 	@Override
@@ -114,7 +118,7 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, OnShar
 
         // Render the timestamp
         if (enableTimestamp) {
-            holder.timestamp.setText(chatLine.getTimestampStr());
+            holder.timestamp.setText(timestampFormat.format(chatLine.getTimestamp()));
             holder.timestamp.setPadding(holder.timestamp.getPaddingLeft(), holder.timestamp.getPaddingTop(), 5, holder.timestamp.getPaddingBottom());
         } else {
             holder.timestamp.setText("");
