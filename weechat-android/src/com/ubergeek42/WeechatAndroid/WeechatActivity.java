@@ -117,12 +117,6 @@ public class WeechatActivity extends Activity implements OnItemClickListener, Re
 				Intent si = new Intent(this, WeechatPreferencesActivity.class);
 				startActivity(si);
 				return true;
-	        case android.R.id.home:
-	            // app icon in action bar clicked; go home
-	            Intent intent = new Intent(this, WeechatActivity.class);
-	            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-	            startActivity(intent);
-	            return true;
 			default:
 				return super.onOptionsItemSelected(item);
 		}
