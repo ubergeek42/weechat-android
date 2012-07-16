@@ -78,21 +78,7 @@ public class WeechatActivity extends Activity implements OnItemClickListener, Re
 			mBound = false;
 		}
 	}
-
-	/*@Override
-	// Build the options menu
-	public boolean onPrepareOptionsMenu(Menu menu) {
-		menu.clear();
-		if (rsb != null && rsb.isConnected())
-			menu.add("Disconnect");
-		else
-			menu.add("Connect");
-		menu.add("Settings");
-		menu.add("About");
-		menu.add("Quit");
-		return super.onPrepareOptionsMenu(menu);
-	}*/
-	
+		
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 	    MenuInflater inflater = getMenuInflater();
@@ -103,11 +89,7 @@ public class WeechatActivity extends Activity implements OnItemClickListener, Re
 	    
 	    return true;
 	}
-	/*
-	public void onGroupItemClick(MenuItem item) {
-		//item.getItemId()
-	}*/
-	
+		
 	@Override
 	// Handle the menu clicks
 	public boolean onOptionsItemSelected(MenuItem item) {
@@ -119,18 +101,28 @@ public class WeechatActivity extends Activity implements OnItemClickListener, Re
 					} else if (s.equals("Connect")) {
 						if (rsb != null)rsb.connect();
 					}
+				 return true;
 			case R.id.quit:
 				if (rsb != null)rsb.shutdown();
 				unbindService(mConnection);
 				mBound = false;
 				stopService(new Intent(this, RelayService.class));
 				finish();
+				return true;
 			case R.id.about:
 				Intent ai = new Intent(this, WeechatAboutActivity.class);
 				startActivity(ai);
+				return true;
 			case R.id.settings:
 				Intent si = new Intent(this, WeechatPreferencesActivity.class);
 				startActivity(si);
+				return true;
+	        case android.R.id.home:
+	            // app icon in action bar clicked; go home
+	            Intent intent = new Intent(this, WeechatActivity.class);
+	            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+	            startActivity(intent);
+	            return true;
 			default:
 				return super.onOptionsItemSelected(item);
 		}

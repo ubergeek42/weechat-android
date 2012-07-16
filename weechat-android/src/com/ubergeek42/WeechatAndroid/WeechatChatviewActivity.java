@@ -284,6 +284,15 @@ public class WeechatChatviewActivity extends Activity implements OnClickListener
 	// Handle the options when the user presses the Menu key
 	public boolean onOptionsItemSelected(MenuItem item) {
 		String s = (String) item.getTitle();
+		
+		if (item.getItemId() == android.R.id.home ) {
+	         // app icon in action bar clicked; go home
+	         Intent intent = new Intent(this, WeechatActivity.class);
+	         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+	         startActivity(intent);
+	         return true;
+		}
+		
 		if (s.equals("Close")) {
 			buffer.removeObserver(this);
 			finish();
