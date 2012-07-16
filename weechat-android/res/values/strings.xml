@@ -4,4 +4,8 @@
     <string name="sendButton">Send</string>
     <string name="app_version">Weechat v0.08-dev</string>
     <string name="loading_please_wait">"Retrieving lines from buffer.\nPlease wait."</string>
+    <string name="settings_button">Settings</string>
+    <string name="connect_button">Connect</string>
+    <string name="about_button">About</string>
+    <string name="quit_button">Quit</string>
 </resources>

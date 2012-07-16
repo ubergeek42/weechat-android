@@ -24,13 +24,13 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.TextView;
 
 import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
@@ -79,7 +79,7 @@ public class WeechatActivity extends Activity implements OnItemClickListener, Re
 		}
 	}
 
-	@Override
+	/*@Override
 	// Build the options menu
 	public boolean onPrepareOptionsMenu(Menu menu) {
 		menu.clear();
@@ -87,33 +87,53 @@ public class WeechatActivity extends Activity implements OnItemClickListener, Re
 			menu.add("Disconnect");
 		else
 			menu.add("Connect");
-		menu.add("Preferences");
+		menu.add("Settings");
 		menu.add("About");
 		menu.add("Quit");
 		return super.onPrepareOptionsMenu(menu);
-	}
+	}*/
+	
 	@Override
-	// Handle the options when the user presses the Menu key
+	public boolean onCreateOptionsMenu(Menu menu) {
+	    MenuInflater inflater = getMenuInflater();
+	    inflater.inflate(R.menu.main_activity, menu);
+	    if (rsb != null && rsb.isConnected()) {
+	    	menu.findItem(R.id.connect).setTitle("Disconnect");
+	    }
+	    
+	    return true;
+	}
+	/*
+	public void onGroupItemClick(MenuItem item) {
+		//item.getItemId()
+	}*/
+	
+	@Override
+	// Handle the menu clicks
 	public boolean onOptionsItemSelected(MenuItem item) {
-		String s = (String) item.getTitle();
-		if (s.equals("Quit")) {
-			if (rsb != null)rsb.shutdown();
-			unbindService(mConnection);
-			mBound = false;
-			stopService(new Intent(this, RelayService.class));
-			finish();
-		} else if (s.equals("Disconnect")) {
-			if (rsb != null)rsb.shutdown();
-		} else if (s.equals("Connect")) {
-			if (rsb != null)rsb.connect();
-		} else if (s.equals("About")) {
-			Intent i = new Intent(this, WeechatAboutActivity.class);
-			startActivity(i);
-		} else if (s.equals("Preferences")) {
-			Intent i = new Intent(this, WeechatPreferencesActivity.class);
-			startActivity(i);
+		switch (item.getItemId()) {
+			case R.id.connect:
+				String s = (String) item.getTitle();
+				 if (s.equals("Disconnect")) {
+						if (rsb != null)rsb.shutdown();
+					} else if (s.equals("Connect")) {
+						if (rsb != null)rsb.connect();
+					}
+			case R.id.quit:
+				if (rsb != null)rsb.shutdown();
+				unbindService(mConnection);
+				mBound = false;
+				stopService(new Intent(this, RelayService.class));
+				finish();
+			case R.id.about:
+				Intent ai = new Intent(this, WeechatAboutActivity.class);
+				startActivity(ai);
+			case R.id.settings:
+				Intent si = new Intent(this, WeechatPreferencesActivity.class);
+				startActivity(si);
+			default:
+				return super.onOptionsItemSelected(item);
 		}
-		return true;
 	}
 
 	
