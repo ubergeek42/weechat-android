@@ -93,7 +93,8 @@ public class WeechatChatviewActivity extends Activity implements OnClickListener
 	    
 	    bufferName = extras.getString("buffer");
 
-	    setTitle("Weechat - " + bufferName);
+	    //setTitle("Weechat - " + bufferName);
+	    
 	    
 	    chatlines = (ListView) findViewById(R.id.chatview_lines);
         inputBox = (EditText)findViewById(R.id.chatview_input);
