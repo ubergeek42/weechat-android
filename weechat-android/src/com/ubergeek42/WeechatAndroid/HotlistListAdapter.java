@@ -100,9 +100,9 @@ public class HotlistListAdapter extends BaseAdapter implements SpinnerAdapter, H
 	public boolean onNavigationItemSelected(int position, long itemId) {
 		Log.d(TAG, "position:" + position + " itemId" + itemId);
 		// If position is zero, don't do anything
-		if(position == 0) {
+		/*if(position == 0) {
 			return false;
-		}
+		}*/
 		// Handles the user clicking on a Hotlist
 		HotlistItem h = (HotlistItem) this.getItem(position);
 		
@@ -115,8 +115,6 @@ public class HotlistListAdapter extends BaseAdapter implements SpinnerAdapter, H
 	}
 	@Override
 	public void onHotlistChanged() {
-		// TODO Auto-generated method stub
-		// TODO Auto-generated method stub
 		Log.d(TAG, "onBuffersChanged()");
 		parentActivity.runOnUiThread(new Runnable() {
 			@Override

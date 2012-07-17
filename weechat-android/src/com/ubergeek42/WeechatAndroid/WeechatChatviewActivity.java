@@ -42,7 +42,7 @@ import android.widget.ListView;
 import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.BufferObserver;
 
-public class WeechatChatviewActivity extends Activity implements OnClickListener, OnKeyListener, BufferObserver, OnSharedPreferenceChangeListener {
+public class WeechatChatviewActivity extends WeechatActivity implements OnClickListener, OnKeyListener, BufferObserver, OnSharedPreferenceChangeListener {
 
 	private ListView chatlines;
 	private EditText inputBox;

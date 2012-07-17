@@ -102,12 +102,14 @@ public class WeechatActivity extends Activity implements OnItemClickListener, Re
 		
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
+	    super.onPrepareOptionsMenu(menu);
+
 	    MenuInflater inflater = getMenuInflater();
 	    inflater.inflate(R.menu.main_activity, menu);
 	    if (rsb != null && rsb.isConnected()) {
-	    	menu.findItem(R.id.connect).setTitle("Disconnect");
+		    menu.findItem(R.id.connect).setVisible(false);
+
 	    }
-	    
 	    return true;
 	}
 		
@@ -192,11 +194,11 @@ public class WeechatActivity extends Activity implements OnItemClickListener, Re
 				public void run() {
 					bufferlist.setAdapter(m_adapter);
 					m_adapter.onBuffersChanged();
-					
-					
+
 					ActionBar actionBar = getActionBar();
 					actionBar.setListNavigationCallbacks(h_adapter, h_adapter);
 				    actionBar.setDisplayShowTitleEnabled(false);
+				    
 				    h_adapter.onHotlistChanged();
 
 				}
