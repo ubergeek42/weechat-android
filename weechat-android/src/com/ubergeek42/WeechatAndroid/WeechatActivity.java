@@ -25,6 +25,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.StrictMode;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -192,9 +193,11 @@ public class WeechatActivity extends Activity implements OnItemClickListener, Re
 					bufferlist.setAdapter(m_adapter);
 					m_adapter.onBuffersChanged();
 					
+					
 					ActionBar actionBar = getActionBar();
 					actionBar.setListNavigationCallbacks(h_adapter, h_adapter);
-				   //actionBar.setDisplayShowTitleEnabled(false);^M
+				    actionBar.setDisplayShowTitleEnabled(false);
+				    h_adapter.onHotlistChanged();
 
 				}
 			});
@@ -219,6 +222,7 @@ public class WeechatActivity extends Activity implements OnItemClickListener, Re
 
 	@Override
 	public void onError(String arg0) {
+		Log.d("WeechatActivity", "onError:" + arg0);
 		
 	}
 }

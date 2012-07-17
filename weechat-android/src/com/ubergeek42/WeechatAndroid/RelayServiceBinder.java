@@ -20,6 +20,7 @@ import android.os.Binder;
 import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
 import com.ubergeek42.weechat.relay.messagehandler.BufferManager;
+import com.ubergeek42.weechat.relay.messagehandler.HotlistManager;
 /**
  * Provides functions that are available to clients of the relay service
  * @author ubergeek42<kj@ubergeek42.com>
@@ -78,6 +79,14 @@ public class RelayServiceBinder extends Binder {
 	public BufferManager getBufferManager() {
 		return relayService.bufferManager;
 	}
+	/**
+	 * Returns the HotlistManager object for the current connection
+	 * @return The HotlistManager object
+	 */
+
+	public HotlistManager getHotlistManager() {
+		return relayService.hotlistManager;
+	}
 
 	/**
 	 * Send a message to the server(expected to be formatted appropriately)
@@ -108,4 +117,6 @@ public class RelayServiceBinder extends Binder {
 		//Buffer buf = relayService.bufferManager.findByPointer(bufferPointer);
 		//relayService.relayConnection.sendMsg("desync "+buf.getFullName()+" nicklist");
 	}
+
+
 }

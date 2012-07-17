@@ -16,34 +16,33 @@ import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 
 import com.ubergeek42.weechat.Buffer;
-import com.ubergeek42.weechat.relay.messagehandler.BufferManager;
-import com.ubergeek42.weechat.relay.messagehandler.BufferManagerObserver;
+import com.ubergeek42.weechat.HotlistItem;
+import com.ubergeek42.weechat.relay.messagehandler.HotlistManager;
+import com.ubergeek42.weechat.relay.messagehandler.HotlistManagerObserver;
 
-public class HotlistListAdapter extends BaseAdapter implements SpinnerAdapter, BufferManagerObserver, OnNavigationListener {
+public class HotlistListAdapter extends BaseAdapter implements SpinnerAdapter, HotlistManagerObserver, OnNavigationListener {
 	WeechatActivity parentActivity;
 	LayoutInflater inflater;
 	private static final String TAG = "HotlistListAdapter";
-	private BufferManager bufferManager;
-	protected ArrayList<Buffer> buffers = new ArrayList<Buffer>();
+	private HotlistManager hotlistManager;
+	protected ArrayList<HotlistItem> hotlist = new ArrayList<HotlistItem>();
 	
 	
 	public HotlistListAdapter(WeechatActivity parentActivity, RelayServiceBinder rsb) {
 		this.parentActivity = parentActivity;
 		this.inflater = LayoutInflater.from(parentActivity);
 		
-		bufferManager = rsb.getBufferManager();
-		bufferManager.onChanged(this);
+		hotlistManager = rsb.getHotlistManager();
+		hotlistManager.onChanged(this);
 	}
 	@Override
 	public int getCount() {
-		return buffers.size();
+		return hotlist.size();
 	}
 
 	@Override
-	public Buffer getItem(int position) {
-		
-		
-		return buffers.get(position);
+	public HotlistItem getItem(int position) {
+		return hotlist.get(position);
 	}
 
 	@Override
@@ -68,18 +67,16 @@ public class HotlistListAdapter extends BaseAdapter implements SpinnerAdapter, B
             holder = (ViewHolder) convertView.getTag();
         }
 
-        Buffer bufferItem = (Buffer) getItem(position);
+        HotlistItem hotlistItem = (HotlistItem) getItem(position);
 
-        // use contents of bufferItem to fill in text content
-        holder.fullname.setText(bufferItem.getFullName());
-        holder.shortname.setText(bufferItem.getShortName());
-        if (bufferItem.getShortName() == null)
-            holder.shortname.setText(bufferItem.getFullName());
+        // use contents of hotlistItem to fill in text content
+        holder.fullname.setText(hotlistItem.getFullName());
+        holder.shortname.setText(hotlistItem.buffer_name);
 
-        holder.title.setText(com.ubergeek42.weechat.Color.stripAllColorsAndAttributes(bufferItem.getTitle()));
+        //holder.title.setText(com.ubergeek42.weechat.Color.stripAllColorsAndAttributes(hotlistItem.getTitle()));
 
-        int unread = bufferItem.getUnread();
-        int highlight = bufferItem.getHighlights();
+        int unread = hotlistItem.getUnread();
+        int highlight = hotlistItem.getHighlights();
         holder.hotlist.setText(String.format("U:%2d  H:%2d   ", unread, highlight));
 
         if (highlight > 0) {
@@ -98,42 +95,7 @@ public class HotlistListAdapter extends BaseAdapter implements SpinnerAdapter, B
         TextView hotlist;
         TextView title;
     }
-
-	@Override
-	public void onBuffersChanged() {
-		// TODO Auto-generated method stub
-		Log.d(TAG, "onBuffersChanged()");
-		parentActivity.runOnUiThread(new Runnable() {
-			@Override
-			public void run() {
-				buffers = bufferManager.getBuffers();
-				// Sort buffers based on unread count
-				// TODO implement as comparable in Buffer class
-				Collections.sort(buffers, new Comparator<Buffer>() {
-			        @Override public int compare(Buffer b1, Buffer b2) {
-			        	
-			        	
-			        	String name = b1.getFullName();
-			        	//Log.d(TAG, "title:"+name);
-			        	if (name == "core.weechat") {
-			        		return -1;
-			        	}
-			        	
-			        	int b1Highlights = b1.getHighlights();
-			        	int b2Highlights = b2.getHighlights();
-			        	if(b2Highlights > 0 || b1Highlights > 0) {
-			        		return b2Highlights - b1Highlights;
-			        	}
-			            return b2.getUnread() - b1.getUnread();
-			        }
-			        
-			    });
-				notifyDataSetChanged();
-			}
-		});
-
-		
-	}
+	
 	@Override
 	public boolean onNavigationItemSelected(int position, long itemId) {
 		Log.d(TAG, "position:" + position + " itemId" + itemId);
@@ -141,14 +103,27 @@ public class HotlistListAdapter extends BaseAdapter implements SpinnerAdapter, B
 		if(position == 0) {
 			return false;
 		}
-		// Handles the user clicking on a buffer
-		Buffer b = (Buffer) this.getItem(position);
+		// Handles the user clicking on a Hotlist
+		HotlistItem h = (HotlistItem) this.getItem(position);
 		
 		// Start new activity for the given buffer
 		Intent i = new Intent(this.parentActivity, WeechatChatviewActivity.class);
-		i.putExtra("buffer", b.getFullName());
+		i.putExtra("buffer", h.getFullName());
 		this.parentActivity.startActivity(i);
 
 		return true;
+	}
+	@Override
+	public void onHotlistChanged() {
+		// TODO Auto-generated method stub
+		// TODO Auto-generated method stub
+		Log.d(TAG, "onBuffersChanged()");
+		parentActivity.runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				hotlist = hotlistManager.getHotlist();
+				notifyDataSetChanged();
+			}
+		});
 	}  
 }

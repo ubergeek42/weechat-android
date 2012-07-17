@@ -20,10 +20,13 @@ import java.util.ArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import android.util.Log;
+
 import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.Color;
 import com.ubergeek42.weechat.relay.RelayMessageHandler;
 import com.ubergeek42.weechat.relay.messagehandler.BufferManager;
+import com.ubergeek42.weechat.relay.messagehandler.HotlistManager;
 import com.ubergeek42.weechat.relay.protocol.Hdata;
 import com.ubergeek42.weechat.relay.protocol.HdataEntry;
 import com.ubergeek42.weechat.relay.protocol.RelayObject;
@@ -31,10 +34,12 @@ import com.ubergeek42.weechat.relay.protocol.RelayObject;
 public class HotlistHandler implements RelayMessageHandler {
 	private static Logger logger = LoggerFactory.getLogger(HotlistHandler.class);
 	private BufferManager bufferManager;
+	private HotlistManager hotlistManager;
 	private ArrayList<HotlistObserver> observers = new ArrayList<HotlistObserver>();
 	
-	public HotlistHandler(BufferManager bufferManager) {
+	public HotlistHandler(BufferManager bufferManager, HotlistManager hotlistManager) {
 		this.bufferManager = bufferManager;
+		this.hotlistManager = hotlistManager;
 	}
 
 	public void registerHighlightHandler(HotlistObserver observer) {
@@ -48,8 +53,10 @@ public class HotlistHandler implements RelayMessageHandler {
 	@Override
 	public void handleMessage(RelayObject obj, String id) {
 		if (id.equals("hotlist")) { // Results from "infolist hotlist"
-			// TODO: generate "Hotlist Status" string similar to at the bottom of weechat
+			Log.d("Hotlisthandler", "hotlisthandler_got_infolist_hotlist");
 
+			hotlistManager.handleMessage(obj, id);
+			
 		} else if (id.equals("_buffer_line_added")){ // New line added...what is it?
 			logger.debug("buffer_line_added called");
 			Hdata hdata = (Hdata) obj;
@@ -128,3 +135,4 @@ public class HotlistHandler implements RelayMessageHandler {
     
 	 */
 }
+

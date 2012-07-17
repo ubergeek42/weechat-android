@@ -1,5 +1,6 @@
 /*******************************************************************************
  * Copyright 2012 Keith Johnson
+ * Copyright 2012 Tor Hveem
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +34,7 @@ import com.ubergeek42.weechat.relay.RelayConnection.ConnectionType;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
 import com.ubergeek42.weechat.relay.RelayMessageHandler;
 import com.ubergeek42.weechat.relay.messagehandler.BufferManager;
+import com.ubergeek42.weechat.relay.messagehandler.HotlistManager;
 import com.ubergeek42.weechat.relay.messagehandler.LineHandler;
 import com.ubergeek42.weechat.relay.messagehandler.NicklistHandler;
 import com.ubergeek42.weechat.relay.messagehandler.UpgradeHandler;
@@ -54,6 +56,7 @@ public class RelayService extends Service implements RelayConnectionHandler, OnS
 
 	RelayConnection relayConnection;
 	BufferManager bufferManager;
+	HotlistManager hotlistManager;
 	RelayMessageHandler msgHandler;
 	NicklistHandler nickHandler;
 	HotlistHandler hotlistHandler;
@@ -136,9 +139,10 @@ public class RelayService extends Service implements RelayConnectionHandler, OnS
 		shutdown = false;
 		
 		bufferManager = new BufferManager();
+		hotlistManager = new HotlistManager();
 		msgHandler = new LineHandler(bufferManager);
 		nickHandler = new NicklistHandler(bufferManager);
-		hotlistHandler = new HotlistHandler(bufferManager);
+		hotlistHandler = new HotlistHandler(bufferManager, hotlistManager);
 		
 		hotlistHandler.registerHighlightHandler(this);
 		
@@ -217,6 +221,8 @@ public class RelayService extends Service implements RelayConnectionHandler, OnS
 		
 		// Handle us getting a listing of the buffers
 		relayConnection.addHandler("listbuffers", bufferManager);
+		// Handle getting infolist hotlist
+		relayConnection.addHandler("initialinfolist", hotlistManager);
 
 		// Handle weechat event messages regarding buffers
 		relayConnection.addHandler("_buffer_opened", bufferManager);
@@ -243,6 +249,11 @@ public class RelayService extends Service implements RelayConnectionHandler, OnS
 		// Get a list of buffers current open, along with some information about them
 		relayConnection.sendMsg("(listbuffers) hdata buffer:gui_buffers(*) number,full_name,short_name,type,title,nicklist,local_variables");
 
+		// Get the current hotlist
+		//relayConnection.sendMsg("initialinfolist", "hdata", "infolist:priority,color,buffer_pointer,buffer_number,plugin_name,buffer_name,count_00,count_01,count_02,count_03");
+		relayConnection.sendMsg("initialinfolist", "infolist", "hotlist");
+
+		
 		// Subscribe to any future changes
 		relayConnection.sendMsg("sync");
 		
