@@ -23,11 +23,6 @@
 		</dependency>
 		
 		<dependency>
-			<groupId>com.google.android</groupId>
-			<artifactId>support-v4</artifactId>
-		</dependency>
-		
-		<dependency>
 			<groupId>com.ubergeek42.weechatandroid</groupId>
 			<artifactId>weechat-relay</artifactId>
 			<version>0.8-SNAPSHOT</version>
@@ -44,7 +39,6 @@
 			<plugin>
 				<groupId>net.mgorski.quicktag</groupId>
 				<artifactId>quicktag</artifactId>
-				<version>1.0.4</version>
 				<executions>
 					<execution>
 						<phase>generate-sources</phase>
@@ -54,11 +48,10 @@
 					</execution>
 				</executions>
 			</plugin>
-			<!-- Sign our apk if it's not a release build -->
+			<!-- Sign our apk with the release key if it isn't a debug key -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jarsigner-plugin</artifactId>
-				<version>1.2</version>
 				<configuration>
 					<skip>${debugBuild}</skip>
 				</configuration>
@@ -72,6 +65,8 @@
 					</execution>
 				</executions>
 			</plugin>
+
+			<!--  Sign with the debug key if it is a debug build -->
 			<plugin>
 				<groupId>com.jayway.maven.plugins.android.generation2</groupId>
 				<artifactId>android-maven-plugin</artifactId>
@@ -95,28 +90,10 @@
 					</execution>
 				</executions>
 			</plugin>
-			<!--<plugin>
-				<groupId>org.codehaus.groovy.maven</groupId>
-				<artifactId>gmaven-plugin</artifactId>
-				<version>1.4</version>
-				<executions>
-					<execution>
-						<id>groovy-magic</id>
-						<phase>prepare-package</phase>
-						<goals>
-							<goal>execute</goal>
-						</goals>
-						<configuration>
-							<source>
-								def scmversion = 'git describe'.execute().text.trim()
-								project.build.finalName = "${project.artifactId}-${scmversion}"
-							</source>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>-->
 		</plugins>
 	</build>
+	
+	
 	<profiles>
 		<profile>
 			<id>standard</id>
