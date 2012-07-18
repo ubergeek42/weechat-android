@@ -18,9 +18,6 @@ package com.ubergeek42.WeechatAndroid;
 import java.util.Arrays;
 import java.util.Vector;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
@@ -47,8 +44,6 @@ import com.ubergeek42.weechat.BufferObserver;
 
 public class WeechatChatviewActivity extends Activity implements OnClickListener, OnKeyListener, BufferObserver, OnSharedPreferenceChangeListener {
 
-	private static Logger logger = LoggerFactory.getLogger(WeechatChatviewActivity.class);
-	
 	private ListView chatlines;
 	private EditText inputBox;
 	private Button sendButton;
@@ -78,7 +73,9 @@ public class WeechatChatviewActivity extends Activity implements OnClickListener
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
+
 	    super.onCreate(savedInstanceState);
+
 	    setContentView(R.layout.chatview_main);
 
 	    Bundle extras = getIntent().getExtras();
@@ -181,6 +178,26 @@ public class WeechatChatviewActivity extends Activity implements OnClickListener
 		if (keycode == KeyEvent.KEYCODE_ENTER && event.getAction()==KeyEvent.ACTION_UP) {
 			tabCompletingInProgress=false;
 			runOnUiThread(messageSender);
+			return true;
+        }
+		// check for terminal resizing keys
+        else if (keycode == KeyEvent.KEYCODE_VOLUME_UP) {
+			int text_size = Integer.parseInt(prefs.getString("text_size", "10")) + 1;
+			SharedPreferences.Editor editor = prefs.edit();
+			editor.putString("text_size", Integer.toString(text_size));
+	        editor.commit();
+	        // TODO there's probably a better way to do this
+	        // Recreate this view
+	        this.recreate();
+			return true;
+		} else if(keycode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+			int text_size = Integer.parseInt(prefs.getString("text_size", "10")) - 1;
+			SharedPreferences.Editor editor = prefs.edit();
+			editor.putString("text_size", Integer.toString(text_size));
+	        editor.commit();
+	        // TODO there's probably a better way to do this
+	        // Recreate this view
+	        this.recreate();
 			return true;
 		} else if((keycode == KeyEvent.KEYCODE_TAB || keycode == KeyEvent.KEYCODE_SEARCH) && event.getAction() == KeyEvent.ACTION_DOWN) {
 			if (!enableTabComplete || nickCache == null) return true;
