@@ -15,5 +15,6 @@
         <EditTextPreference android:key="stunnel_cert" android:title="Stunnel Certificate File"  android:singleLine="true" android:summary="/sdcard/weechat/client.p12"/>
         <EditTextPreference android:key="stunnel_pass" android:title="Stunnel Password" android:password="true" android:singleLine="true"/>
         <CheckBoxPreference android:key="tab_completion" android:summary="Use tab key to complete nicks" android:title="Tab Completion for Nicks" android:defaultValue="true"/>
+        <CheckBoxPreference android:key="sort_buffers" android:summary="Sort by number of highlights/unread messages" android:title="Sort bufferlist" android:defaultValue="true"/>
     </PreferenceScreen>
 </PreferenceScreen>
