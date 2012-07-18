@@ -91,8 +91,32 @@ public class Color {
 	
 	private static String extendedColors[] = new String[256];
 	static {
-		for(int i=0;i<256;i++) {
-			extendedColors[i] = String.format("#%02x%02x%02x",i,i,i);
+		// 16 basic terminal colors(from: http://docs.oracle.com/cd/E19728-01/820-2550/term_em_colormaps.html)
+		extendedColors[ 0] = "#000000"; // Black
+		extendedColors[ 1] = "#FF0000"; // Light Red
+		extendedColors[ 2] = "#00FF00"; // Light Green
+		extendedColors[ 3] = "#FFFF00"; // Yellow
+		extendedColors[ 4] = "#0000FF"; // Light blue
+		extendedColors[ 5] = "#FF00FF"; // Light magenta
+		extendedColors[ 6] = "#00FFFF"; // Light cyan
+		extendedColors[ 7] = "#FFFFFF"; // High White
+		extendedColors[ 8] = "#808080"; // Gray
+		extendedColors[ 9] = "#800000"; // Red
+		extendedColors[10] = "#008000"; // Green
+		extendedColors[11] = "#808000"; // Brown
+		extendedColors[12] = "#000080"; // Blue
+		extendedColors[13] = "#800080"; // Magenta
+		extendedColors[14] = "#008080"; // Cyan
+		extendedColors[15] = "#C0C0C0"; // White
+		
+		// Extended terminal colors, from colortest.vim: http://www.vim.org/scripts/script.php?script_id=1349
+		int base[] = new int[]{0, 95, 135, 175, 215, 255};
+		for(int i=16;i<232;i++) {
+			int j=i-16;
+			extendedColors[i] = String.format("#%02x%02x%02x",base[(j/36)%6], base[(j/6)%6], base[j%6]);
+		}
+		for(int i=232; i<256; i++) {
+			extendedColors[i] = String.format("#%02x%02x%02x",8+i*10,8+i*10,8+i*10);
 		}
 	}
 	
