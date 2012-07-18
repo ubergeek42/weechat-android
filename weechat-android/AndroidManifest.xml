@@ -4,14 +4,20 @@
     android:versionCode="1"
     android:versionName="1.0" >
 
-    <uses-sdk android:minSdkVersion="7" />
+     <uses-sdk android:minSdkVersion="4"
+              android:targetSdkVersion="11" />
     <uses-permission android:name="android.permission.INTERNET"/>
 
     <application
         android:icon="@drawable/ic_launcher"
-        android:label="@string/app_name" >
+        android:label="@string/app_name" 
+        android:theme="@android:style/Theme.Holo.Light">
+        
         <service android:name="RelayService"></service>
-        <activity android:name=".WeechatActivity" android:launchMode="singleTask">
+        <activity 
+            android:name=".WeechatActivity" 
+            android:launchMode="singleTask"
+			>
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER" />

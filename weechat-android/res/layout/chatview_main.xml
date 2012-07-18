@@ -2,6 +2,9 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
+    android:textColor="@color/chatview_fg"
+    android:background="@color/chatview_bg"
+    
     android:orientation="vertical" >
 
     <EditText
@@ -12,6 +15,7 @@
         android:layout_alignParentLeft="true"
         android:layout_toLeftOf="@+id/chatview_send"
         android:inputType="text"
+        android:textColor="@color/chatview_fg"
         android:singleLine="true" >
     </EditText>
 
@@ -35,6 +39,8 @@
         android:listSelector="#00000000"
         android:focusable="false"
 		android:focusableInTouchMode="false"
+		android:textColor="@color/chatview_fg"
+ 	    android:background="@color/chatview_bg"
 		android:clickable="false">
     </ListView>
 
@@ -44,6 +50,8 @@
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
+        android:textColor="@color/chatview_fg"
+        android:background="@color/chatview_bg"
         android:text="@string/loading_please_wait"
         android:textAppearance="?android:attr/textAppearanceLarge" />
 

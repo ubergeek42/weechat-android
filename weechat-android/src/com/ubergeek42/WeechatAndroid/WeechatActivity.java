@@ -15,6 +15,7 @@
  ******************************************************************************/
 package com.ubergeek42.WeechatAndroid;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
@@ -22,15 +23,17 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.StrictMode;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.TextView;
 
 import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
@@ -42,12 +45,23 @@ public class WeechatActivity extends Activity implements OnItemClickListener, Re
 	private ListView bufferlist;
 	
 	private BufferListAdapter m_adapter;
+	private HotlistListAdapter h_adapter;
 	
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
+		StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+
+		StrictMode.setThreadPolicy(policy);
 	    super.onCreate(savedInstanceState);
 	    
+	    
+		ActionBar actionBar = getActionBar();
+		// add the custom view to the action bar
+		//actionBar.setCustomView(R.layout.actionbar_view);
+		//actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM | ActionBar.DISPLAY_SHOW_HOME);
+
+
 	    setContentView(R.layout.bufferlist);
 	    setTitle(getString(R.string.app_version));
 	    PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
@@ -57,7 +71,14 @@ public class WeechatActivity extends Activity implements OnItemClickListener, Re
 	    
 		// See also code in the onDisconnect handler(its a copy/paste)
 		String[] message = {"Press Menu->Connect to get started"};
+		
 		bufferlist.setAdapter(new ArrayAdapter<String>(WeechatActivity.this, R.layout.tips_list_item, message));
+		
+		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
+		//actionBar.setListNavigationCallbacks(h_adapter, this);
+		//actionBar.setSelectedNavigationItem(position);
+
+		
 		
 		// Start the service(if necessary)
 	    startService(new Intent(this, RelayService.class));
@@ -78,42 +99,50 @@ public class WeechatActivity extends Activity implements OnItemClickListener, Re
 			mBound = false;
 		}
 	}
+		
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+	    super.onPrepareOptionsMenu(menu);
 
-	@Override
-	// Build the options menu
-	public boolean onPrepareOptionsMenu(Menu menu) {
-		menu.clear();
-		if (rsb != null && rsb.isConnected())
-			menu.add("Disconnect");
-		else
-			menu.add("Connect");
-		menu.add("Preferences");
-		menu.add("About");
-		menu.add("Quit");
-		return super.onPrepareOptionsMenu(menu);
+	    MenuInflater inflater = getMenuInflater();
+	    inflater.inflate(R.menu.main_activity, menu);
+	    if (rsb != null && rsb.isConnected()) {
+		    menu.findItem(R.id.connect).setVisible(false);
+
+	    }
+	    return true;
 	}
+		
 	@Override
-	// Handle the options when the user presses the Menu key
+	// Handle the menu clicks
 	public boolean onOptionsItemSelected(MenuItem item) {
-		String s = (String) item.getTitle();
-		if (s.equals("Quit")) {
-			if (rsb != null)rsb.shutdown();
-			unbindService(mConnection);
-			mBound = false;
-			stopService(new Intent(this, RelayService.class));
-			finish();
-		} else if (s.equals("Disconnect")) {
-			if (rsb != null)rsb.shutdown();
-		} else if (s.equals("Connect")) {
-			if (rsb != null)rsb.connect();
-		} else if (s.equals("About")) {
-			Intent i = new Intent(this, WeechatAboutActivity.class);
-			startActivity(i);
-		} else if (s.equals("Preferences")) {
-			Intent i = new Intent(this, WeechatPreferencesActivity.class);
-			startActivity(i);
+		switch (item.getItemId()) {
+			case R.id.connect:
+				String s = (String) item.getTitle();
+				 if (s.equals("Disconnect")) {
+						if (rsb != null)rsb.shutdown();
+					} else if (s.equals("Connect")) {
+						if (rsb != null)rsb.connect();
+					}
+				 return true;
+			case R.id.quit:
+				if (rsb != null)rsb.shutdown();
+				unbindService(mConnection);
+				mBound = false;
+				stopService(new Intent(this, RelayService.class));
+				finish();
+				return true;
+			case R.id.about:
+				Intent ai = new Intent(this, WeechatAboutActivity.class);
+				startActivity(ai);
+				return true;
+			case R.id.settings:
+				Intent si = new Intent(this, WeechatPreferencesActivity.class);
+				startActivity(si);
+				return true;
+			default:
+				return super.onOptionsItemSelected(item);
 		}
-		return true;
 	}
 
 	
@@ -159,11 +188,19 @@ public class WeechatActivity extends Activity implements OnItemClickListener, Re
 		if (rsb != null && rsb.isConnected()) {
 			// Create and update the buffer list when we connect to the service
 			m_adapter = new BufferListAdapter(WeechatActivity.this, rsb);
+			h_adapter = new HotlistListAdapter(WeechatActivity.this, rsb);
 			this.runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
 					bufferlist.setAdapter(m_adapter);
 					m_adapter.onBuffersChanged();
+
+					ActionBar actionBar = getActionBar();
+					actionBar.setListNavigationCallbacks(h_adapter, h_adapter);
+				    actionBar.setDisplayShowTitleEnabled(false);
+				    
+				    h_adapter.onHotlistChanged();
+
 				}
 			});
 		}
@@ -179,12 +216,15 @@ public class WeechatActivity extends Activity implements OnItemClickListener, Re
 				
 				String[] message = {"Press Menu->Connect to get started"};
 				bufferlist.setAdapter(new ArrayAdapter<String>(WeechatActivity.this, R.layout.tips_list_item, message));
+				
+				
 			}
 		});
 	}
 
 	@Override
 	public void onError(String arg0) {
+		Log.d("WeechatActivity", "onError:" + arg0);
 		
 	}
 }

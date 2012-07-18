@@ -3,6 +3,9 @@
     android:id="@+id/RelativeLayout1"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
+    android:textColor="@color/chatview_fg"
+    android:background="@color/chatview_bg"
+    
     android:orientation="vertical" >
 
     <TextView
@@ -14,6 +17,8 @@
         android:text="timestamp"
         android:textSize="10sp"
         android:typeface="monospace"
+        android:textColor="@color/chatview_fg"
+        android:background="@color/chatview_bg"
         android:paddingRight="5px"/>
 
     <TextView
@@ -26,6 +31,9 @@
         android:text="prefix"
         android:textSize="10sp"
         android:typeface="monospace"
+        android:textColor="@color/chatview_fg"
+        android:background="@color/chatview_bg"
+        
         android:paddingRight="10px" />
 
     <TextView
@@ -40,6 +48,9 @@
         android:text="message text"
         android:textSize="10sp"
         android:typeface="monospace"
+        android:textColor="@color/chatview_fg"
+        android:background="@color/chatview_bg"
+        
         android:autoLink="web"/>
 
 </RelativeLayout>
