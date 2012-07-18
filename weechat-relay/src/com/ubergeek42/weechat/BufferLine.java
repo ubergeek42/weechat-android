@@ -111,6 +111,12 @@ public class BufferLine {
 		this.time = time;
 	}
 	/**
+	 * Get the timestamp associated with the line as a Java Date object
+	 */
+	public Date getTimestamp() {
+		return this.time;
+	}
+	/**
 	 * Get the timestamp for the line formatted as a string according to DATEFORMAT
 	 * @return A string representation of the timestamp
 	 */
