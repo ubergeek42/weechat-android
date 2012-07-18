@@ -17,12 +17,18 @@ package com.ubergeek42.weechat.relay.messagehandler;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 
 import android.util.Log;
 
+//import com.ubergeek42.WeechatAndroid.notifications.HotlistObserver;
+import com.ubergeek42.weechat.Buffer;
+import com.ubergeek42.weechat.Color;
 import com.ubergeek42.weechat.HotlistItem;
 import com.ubergeek42.weechat.relay.RelayMessageHandler;
+import com.ubergeek42.weechat.relay.protocol.Hdata;
+import com.ubergeek42.weechat.relay.protocol.HdataEntry;
 import com.ubergeek42.weechat.relay.protocol.Infolist;
 import com.ubergeek42.weechat.relay.protocol.RelayObject;
 
@@ -33,12 +39,15 @@ import com.ubergeek42.weechat.relay.protocol.RelayObject;
  */
 public class HotlistManager implements RelayMessageHandler {
 	private static final String TAG = "HotlistManager";
-
-	
 	ArrayList<HotlistItem> hotlist = new ArrayList<HotlistItem>();
 	private HotlistManagerObserver onChangeObserver;
+	private BufferManager bufferManager;
 	
 
+	public void setBufferManager(BufferManager bfm) {
+		this.bufferManager = bfm;
+	}
+	
 	/**
 	 * Get the hotlist
 	 */
@@ -72,45 +81,72 @@ public class HotlistManager implements RelayMessageHandler {
 		
 		/*Log.d(TAG, "Got id " + id);
 		Log.d(TAG, "Got obj " + obj);*/
-		
-		Infolist infolist = (Infolist)obj;
-		
-		hotlist.clear();
-		
-		for(int i=0;i<infolist.size(); i++) {
-			System.out.format("  Item %d\n",i);
-			HashMap<String,RelayObject> item = infolist.getItem(i);
-			
-			HotlistItem hli = new HotlistItem(item);
-			// Only add messages and highlights to hotlist
-			// TODO: this could be a preference
-			if(hli.count_01 > 0 || hli.count_02 > 0) {
-			    hotlist.add(hli);
-			}
-				
-			Log.d(TAG, "Added hotlistitem " + hli);
-		}
-		
-		// Sort the hotlist
-		Collections.sort(hotlist, new Comparator<HotlistItem>() {
-	        @Override public int compare(HotlistItem b1, HotlistItem b2) {
-	        	
-	        	
-	        	
-	        	int b1Highlights = b1.getHighlights();
-	        	int b2Highlights = b2.getHighlights();
-	        	if(b2Highlights > 0 || b1Highlights > 0) {
-	        		return b2Highlights - b1Highlights;
-	        	}
-	            return b2.getUnread() - b1.getUnread();
-	        }
-	        
-	    });
+		if (id.equals("_buffer_line_added")){ // New line added...what is it?
+			//logger.debug("buffer_line_added called");
+			Hdata hdata = (Hdata) obj;
+					
+			for(int i=0;i<hdata.getCount(); i++) {
+				HdataEntry hde = hdata.getItem(i);		
+				// TODO: check last item of path is line_data
 
+				String bPointer = hde.getItem("buffer").asPointer();
+				Buffer b = bufferManager.findByPointer(bPointer);
+				if(b==null) {
+					continue;
+				}
+				
+				HotlistItem hli = new HotlistItem(hde, b);
+				boolean found = false;
+			    for (HotlistItem oldhli : hotlist) {
+			    	//TODO implement comparator ?
+			    	if(oldhli.getFullName() == hli.getFullName()) {
+			    		oldhli.count_01 += hli.count_01;
+			    		oldhli.count_02 += hli.count_02;
+			    		found=true;
+			    		break;
+			    	}
+			    }
+			    if (!found)
+			    	hotlist.add(hli);
+		
+				// TODO: should be based on tags for line(notify_none/etc), but these are inaccessible through the relay plugin
+				// Determine if buffer is a privmessage(check localvar "type" for value "private"), and notify for that too
+			}
+		}else {
+		
+			Infolist infolist = (Infolist)obj;		
+			hotlist.clear();
+			
+			for(int i=0;i<infolist.size(); i++) {
+				System.out.format("  Item %d\n",i);
+				HashMap<String,RelayObject> item = infolist.getItem(i);
+				
+				HotlistItem hli = new HotlistItem(item);
+				// Only add messages and highlights to hotlist
+				// TODO: this could be a preference
+				if(hli.count_01 > 0 || hli.count_02 > 0) {
+					// We got count, check and se if we already have buffer in hotlist
+				    hotlist.add(hli);
+				}
+				Log.d(TAG, "Added hotlistitem " + hli);
+			}
+			
+			// Sort the hotlist
+			Collections.sort(hotlist, new Comparator<HotlistItem>() {
+		        @Override public int compare(HotlistItem b1, HotlistItem b2) {
+		        	
+		        	
+		        	
+		        	int b1Highlights = b1.getHighlights();
+		        	int b2Highlights = b2.getHighlights();
+		        	if(b2Highlights > 0 || b1Highlights > 0) {
+		        		return b2Highlights - b1Highlights;
+		        	}
+		            return b2.getUnread() - b1.getUnread();
+		        }        
+			});
+		}
+		// FIXME We probably changed, but this could be more intelligent
 		hotlistChanged();
 	}
-	
-
-	
-
 }

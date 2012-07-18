@@ -15,7 +15,10 @@
  ******************************************************************************/
 package com.ubergeek42.weechat;
 
+import java.util.Date;
 import java.util.HashMap;
+
+import com.ubergeek42.weechat.relay.protocol.HdataEntry;
 import com.ubergeek42.weechat.relay.protocol.RelayObject;
 
 
@@ -26,7 +29,7 @@ public class HotlistItem {
 	 buffer_pointer................: ptr 0x227f5b0
 	 buffer_number.................: int 3
 	 plugin_name...................: str 'irc'
-	 buffer_name...................: str 'EFNet.#channel'
+	 buffer_name...................: str 'network.#channel'
 	 count_00......................: int 0
 	 count_01......................: int 2
 	 count_02......................: int 0
@@ -58,11 +61,56 @@ public class HotlistItem {
 		this.count_02 = item.get("count_02").asInt();
 		this.count_03 = item.get("count_03").asInt();
 
-		}
-	
-	public String getFullName()  	{ 
-		return this.plugin_name + "." + this.buffer_name;
 	}
+	
+	public HotlistItem(HdataEntry hde, Buffer b) {		
+
+		// Get the information about the "line"
+		/*
+		String message = hde.getItem("message").asString();
+		String prefix = hde.getItem("prefix").asString();
+		boolean displayed = (hde.getItem("displayed").asChar()==0x01);
+		Date time = hde.getItem("date").asTime();
+		*/
+		String bPointer = hde.getItem("buffer").asPointer();
+		
+		 //Try to get highlight status(added in 0.3.8-dev: 2012-03-06)
+		 RelayObject t = hde.getItem("highlight");
+			boolean highlight = false;
+		 if(t!=null) highlight = (t.asChar()==0x01);
+	
+		// TODO: should be based on tags for line(notify_none/etc), but these are inaccessible through the relay plugin
+		// Determine if buffer is a privmessage(check localvar "type" for value "private"), and notify for that too
+		RelayObject bufferType = b.getLocalVar("type");
+		if (bufferType != null && bufferType.asString().equals("private")) {
+			// Must have localvar("channel") == prefix
+			RelayObject buddyNick = b.getLocalVar("channel");
+			if (buddyNick != null && buddyNick.asString().equals(Color.stripColors(hde.getItem("prefix").asString()))) {	
+				highlight = true;
+			}
+		}
+		this.buffer = bPointer;
+		this.buffer_name = b.getFullName();
+		// FIXME get plugin name from buffer
+		this.plugin_name = "";
+	
+		if (highlight) {
+			this.count_00 = 0;
+			this.count_01 = 0;
+			this.count_02 = 1;
+		}else{
+			this.count_00 = 0;
+			this.count_01 = 1;
+			this.count_02 = 0;
+		}
+	}
+
+	public String getFullName() {
+		if (this.plugin_name != "")
+			return this.plugin_name + "." + this.buffer_name;
+		return this.buffer_name;
+	}
+	
 	public int getUnread() { return this.count_01; }
 	public int getHighlights() { return this.count_02; }
 

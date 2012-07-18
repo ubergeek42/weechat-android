@@ -21,6 +21,7 @@ import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.Color;
 import com.ubergeek42.weechat.relay.RelayMessageHandler;
 import com.ubergeek42.weechat.relay.messagehandler.BufferManager;
+import com.ubergeek42.weechat.relay.messagehandler.HotlistManager;
 import com.ubergeek42.weechat.relay.protocol.Hdata;
 import com.ubergeek42.weechat.relay.protocol.HdataEntry;
 import com.ubergeek42.weechat.relay.protocol.RelayObject;
@@ -28,10 +29,12 @@ import com.ubergeek42.weechat.relay.protocol.RelayObject;
 public class HotlistHandler implements RelayMessageHandler {
 	//private static Logger logger = LoggerFactory.getLogger(HotlistHandler.class);
 	private BufferManager bufferManager;
+	private HotlistManager hotlistManager;
 	private ArrayList<HotlistObserver> observers = new ArrayList<HotlistObserver>();
 	
-	public HotlistHandler(BufferManager bufferManager) {
+	public HotlistHandler(BufferManager bufferManager, HotlistManager hotlistManager) {
 		this.bufferManager = bufferManager;
+		this.hotlistManager = hotlistManager;
 	}
 
 	public void registerHighlightHandler(HotlistObserver observer) {
@@ -44,12 +47,13 @@ public class HotlistHandler implements RelayMessageHandler {
 
 	@Override
 	public void handleMessage(RelayObject obj, String id) {
-		if (id.equals("hotlist")) { // Results from "infolist hotlist"
-			// TODO: generate "Hotlist Status" string similar to at the bottom of weechat
-
-		} else if (id.equals("_buffer_line_added")){ // New line added...what is it?
+		if (id.equals("_buffer_line_added")){ // New line added...what is it?
 			//logger.debug("buffer_line_added called");
 			Hdata hdata = (Hdata) obj;
+			
+			// Send the hdata to hotlist manager too, for hotlist update
+			hotlistManager.handleMessage(obj, id);
+			
 			for(int i=0;i<hdata.getCount(); i++) {
 				HdataEntry hde = hdata.getItem(i);
 				hde.getItem("buffer");
@@ -67,6 +71,7 @@ public class HotlistHandler implements RelayMessageHandler {
 				if(b==null) {
 					return;
 				}
+				
 
 				// TODO: should be based on tags for line(notify_none/etc), but these are inaccessible through the relay plugin
 				// Determine if buffer is a privmessage(check localvar "type" for value "private"), and notify for that too

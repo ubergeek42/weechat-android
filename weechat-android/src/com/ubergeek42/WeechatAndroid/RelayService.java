@@ -139,9 +139,10 @@ public class RelayService extends Service implements RelayConnectionHandler, OnS
 		
 		bufferManager = new BufferManager();
 		hotlistManager = new HotlistManager();
+	    hotlistManager.setBufferManager(bufferManager);
 		msgHandler = new LineHandler(bufferManager);
 		nickHandler = new NicklistHandler(bufferManager);
-		hotlistHandler = new HotlistHandler(bufferManager);
+		hotlistHandler = new HotlistHandler(bufferManager, hotlistManager);
 		
 		hotlistHandler.registerHighlightHandler(this);
 		

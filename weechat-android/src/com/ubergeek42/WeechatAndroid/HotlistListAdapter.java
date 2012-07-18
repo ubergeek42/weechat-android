@@ -57,8 +57,8 @@ public class HotlistListAdapter extends BaseAdapter implements SpinnerAdapter, H
         if (convertView == null) {
             convertView = inflater.inflate(R.layout.hotlist_item, null);
             holder = new ViewHolder();
-            holder.title = (TextView) convertView.findViewById(R.id.hotlist_title);
             holder.hotlist = (TextView) convertView.findViewById(R.id.hotlist_hotlist);
+            holder.title = (TextView) convertView.findViewById(R.id.hotlist_title);
 
             convertView.setTag(holder);
         } else {
@@ -68,13 +68,14 @@ public class HotlistListAdapter extends BaseAdapter implements SpinnerAdapter, H
         HotlistItem hotlistItem = (HotlistItem) getItem(position);
 
         // use contents of hotlistItem to fill in text content
-        holder.title.setText(hotlistItem.buffer_name);
 
         //holder.title.setText(com.ubergeek42.weechat.Color.stripAllColorsAndAttributes(hotlistItem.getTitle()));
 
         int unread = hotlistItem.getUnread();
         int highlight = hotlistItem.getHighlights();
-        holder.hotlist.setText(String.format("U:%2d  H:%2d   ", unread, highlight));
+        int count = unread + highlight;
+       
+        holder.hotlist.setText(String.format("%2d ", count));  
 
         if (highlight > 0) {
             holder.hotlist.setTextColor(Color.MAGENTA);
@@ -83,6 +84,9 @@ public class HotlistListAdapter extends BaseAdapter implements SpinnerAdapter, H
         } else {
             holder.hotlist.setTextColor(Color.WHITE);
         }
+        
+        holder.title.setText(hotlistItem.getFullName());
+
         return convertView;
     }
 
@@ -131,28 +135,17 @@ public class HotlistListAdapter extends BaseAdapter implements SpinnerAdapter, H
         if (convertView == null) {
             convertView = inflater.inflate(R.layout.hotlist_item, null);
             holder = new ViewHolder();
-            holder.title = (TextView) convertView.findViewById(R.id.hotlist_title);
-         
             holder.hotlist = (TextView) convertView.findViewById(R.id.hotlist_hotlist);
-            
-
+            holder.title = (TextView) convertView.findViewById(R.id.hotlist_title);    
             convertView.setTag(holder);
         } else {
-        	return convertView;
-            //holder = (ViewHolder) convertView.getTag();
+        	//return convertView;
+            holder = (ViewHolder) convertView.getTag();
         }
-
-        //HotlistItem hotlistItem = (HotlistItem) getItem(position);
-
-               
-        holder.title.setText("Weechat");
-        holder.hotlist.setText("");
-
+        holder.hotlist.setText("");     
+        holder.title.setText("Hotlist");
         //holder.title.setText(com.ubergeek42.weechat.Color.stripAllColorsAndAttributes(hotlistItem.getTitle()));
-
-        //holder.hotlist.setText(String.format("U:%2d  H:%2d   ", unread, highlight));
-
-        
+        //holder.hotlist.setText(String.format("U:%2d  H:%2d   ", unread, highlight));        
         return convertView;		
 	}  
 }

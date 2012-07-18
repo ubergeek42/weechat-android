@@ -38,6 +38,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 
+import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.BufferObserver;
 
@@ -87,7 +88,7 @@ public class WeechatChatviewActivity extends WeechatActivity implements OnClickL
 	    
 	    bufferName = extras.getString("buffer");
 
-	    setTitle("Weechat - " + bufferName);
+	    setTitle(bufferName);
 	    
 	    chatlines = (ListView) findViewById(R.id.chatview_lines);
         inputBox = (EditText)findViewById(R.id.chatview_input);
