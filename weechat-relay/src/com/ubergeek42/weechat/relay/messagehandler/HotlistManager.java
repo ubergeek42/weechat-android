@@ -82,7 +82,11 @@ public class HotlistManager implements RelayMessageHandler {
 			HashMap<String,RelayObject> item = infolist.getItem(i);
 			
 			HotlistItem hli = new HotlistItem(item);
-			hotlist.add(hli);
+			// Only add messages and highlights to hotlist
+			// TODO: this could be a preference
+			if(hli.count_01 > 0 || hli.count_02 > 0) {
+			    hotlist.add(hli);
+			}
 				
 			Log.d(TAG, "Added hotlistitem " + hli);
 		}
