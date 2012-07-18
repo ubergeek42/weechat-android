@@ -18,10 +18,6 @@ package com.ubergeek42.WeechatAndroid;
 import java.util.Arrays;
 import java.util.Vector;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -45,10 +41,8 @@ import android.widget.ListView;
 import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.BufferObserver;
 
-public class WeechatChatviewActivity extends Activity implements OnClickListener, OnKeyListener, BufferObserver, OnSharedPreferenceChangeListener {
+public class WeechatChatviewActivity extends WeechatActivity implements OnClickListener, OnKeyListener, BufferObserver, OnSharedPreferenceChangeListener {
 
-	private static Logger logger = LoggerFactory.getLogger(WeechatChatviewActivity.class);
-	
 	private ListView chatlines;
 	private EditText inputBox;
 	private Button sendButton;

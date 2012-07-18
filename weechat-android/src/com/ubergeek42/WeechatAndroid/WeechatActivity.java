@@ -15,6 +15,7 @@
  ******************************************************************************/
 package com.ubergeek42.WeechatAndroid;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
@@ -22,7 +23,9 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.StrictMode;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -30,7 +33,6 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.TextView;
 
 import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
@@ -42,10 +44,14 @@ public class WeechatActivity extends Activity implements OnItemClickListener, Re
 	private ListView bufferlist;
 	
 	private BufferListAdapter m_adapter;
+	private HotlistListAdapter h_adapter;
 	
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
+		StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+		StrictMode.setThreadPolicy(policy); 
+
 	    super.onCreate(savedInstanceState);
 	    
 	    setContentView(R.layout.bufferlist);
@@ -58,7 +64,7 @@ public class WeechatActivity extends Activity implements OnItemClickListener, Re
 		// See also code in the onDisconnect handler(its a copy/paste)
 		String[] message = {"Press Menu->Connect to get started"};
 		bufferlist.setAdapter(new ArrayAdapter<String>(WeechatActivity.this, R.layout.tips_list_item, message));
-		
+        
 		// Start the service(if necessary)
 	    startService(new Intent(this, RelayService.class));
 	}
@@ -159,11 +165,20 @@ public class WeechatActivity extends Activity implements OnItemClickListener, Re
 		if (rsb != null && rsb.isConnected()) {
 			// Create and update the buffer list when we connect to the service
 			m_adapter = new BufferListAdapter(WeechatActivity.this, rsb);
+            // Create and update the hotlist
+			h_adapter = new HotlistListAdapter(WeechatActivity.this, rsb);
 			this.runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
 					bufferlist.setAdapter(m_adapter);
 					m_adapter.onBuffersChanged();
+
+					ActionBar actionBar = getActionBar();
+			        // Set the action bar to be a list
+					actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
+					actionBar.setListNavigationCallbacks(h_adapter, h_adapter);
+				    actionBar.setDisplayShowTitleEnabled(true);
+				    h_adapter.onHotlistChanged();
 				}
 			});
 		}
@@ -173,6 +188,7 @@ public class WeechatActivity extends Activity implements OnItemClickListener, Re
 	public void onDisconnect() {
 		// Create and update the buffer list when we connect to the service
 		m_adapter = null;
+		h_adapter = null;
 		this.runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
@@ -185,6 +201,7 @@ public class WeechatActivity extends Activity implements OnItemClickListener, Re
 
 	@Override
 	public void onError(String arg0) {
+		Log.d("WeechatActivity", "onError:" + arg0);
 		
 	}
 }

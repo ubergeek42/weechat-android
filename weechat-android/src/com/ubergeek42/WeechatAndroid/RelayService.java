@@ -33,6 +33,7 @@ import com.ubergeek42.weechat.relay.RelayConnection.ConnectionType;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
 import com.ubergeek42.weechat.relay.RelayMessageHandler;
 import com.ubergeek42.weechat.relay.messagehandler.BufferManager;
+import com.ubergeek42.weechat.relay.messagehandler.HotlistManager;
 import com.ubergeek42.weechat.relay.messagehandler.LineHandler;
 import com.ubergeek42.weechat.relay.messagehandler.NicklistHandler;
 import com.ubergeek42.weechat.relay.messagehandler.UpgradeHandler;
@@ -57,6 +58,7 @@ public class RelayService extends Service implements RelayConnectionHandler, OnS
 	RelayMessageHandler msgHandler;
 	NicklistHandler nickHandler;
 	HotlistHandler hotlistHandler;
+	HotlistManager hotlistManager;
 	RelayConnectionHandler connectionHandler;
 	private SharedPreferences prefs;
 	private boolean shutdown;
@@ -136,6 +138,7 @@ public class RelayService extends Service implements RelayConnectionHandler, OnS
 		shutdown = false;
 		
 		bufferManager = new BufferManager();
+		hotlistManager = new HotlistManager();
 		msgHandler = new LineHandler(bufferManager);
 		nickHandler = new NicklistHandler(bufferManager);
 		hotlistHandler = new HotlistHandler(bufferManager);
@@ -240,8 +243,13 @@ public class RelayService extends Service implements RelayConnectionHandler, OnS
 		relayConnection.addHandler("nicklist", nickHandler);
 		relayConnection.addHandler("_nicklist", nickHandler);
 
+		// Handle getting infolist hotlist for initial hotlist sync
+		relayConnection.addHandler("initialinfolist", hotlistManager);
+
 		// Get a list of buffers current open, along with some information about them
 		relayConnection.sendMsg("(listbuffers) hdata buffer:gui_buffers(*) number,full_name,short_name,type,title,nicklist,local_variables");
+		// Get the current hotlist
+		relayConnection.sendMsg("initialinfolist", "infolist", "hotlist");
 
 		// Subscribe to any future changes
 		relayConnection.sendMsg("sync");

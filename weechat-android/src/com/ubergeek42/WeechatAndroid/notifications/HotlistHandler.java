@@ -17,9 +17,6 @@ package com.ubergeek42.WeechatAndroid.notifications;
 
 import java.util.ArrayList;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.Color;
 import com.ubergeek42.weechat.relay.RelayMessageHandler;
@@ -29,7 +26,7 @@ import com.ubergeek42.weechat.relay.protocol.HdataEntry;
 import com.ubergeek42.weechat.relay.protocol.RelayObject;
 
 public class HotlistHandler implements RelayMessageHandler {
-	private static Logger logger = LoggerFactory.getLogger(HotlistHandler.class);
+	//private static Logger logger = LoggerFactory.getLogger(HotlistHandler.class);
 	private BufferManager bufferManager;
 	private ArrayList<HotlistObserver> observers = new ArrayList<HotlistObserver>();
 	
@@ -51,7 +48,7 @@ public class HotlistHandler implements RelayMessageHandler {
 			// TODO: generate "Hotlist Status" string similar to at the bottom of weechat
 
 		} else if (id.equals("_buffer_line_added")){ // New line added...what is it?
-			logger.debug("buffer_line_added called");
+			//logger.debug("buffer_line_added called");
 			Hdata hdata = (Hdata) obj;
 			for(int i=0;i<hdata.getCount(); i++) {
 				HdataEntry hde = hdata.getItem(i);
