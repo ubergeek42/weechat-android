@@ -63,7 +63,7 @@ public class WeechatPreferencesActivity extends PreferenceActivity implements On
 	    hostPref.setSummary(sharedPreferences.getString("host", ""));
 	    portPref.setSummary(sharedPreferences.getString("port", "8001"));
 	    textSizePref.setSummary(sharedPreferences.getString("text_size", "10"));
-	    timestampformatPref.setSummary(sharedPreferences.getString("timestampformatPref", "HH:mm:ss"));
+	    timestampformatPref.setSummary(sharedPreferences.getString("timestamp_format", "HH:mm:ss"));
 	    stunnelCert.setSummary(sharedPreferences.getString("stunnel_cert", "Not Set"));
 	    
 	    String tmp;
