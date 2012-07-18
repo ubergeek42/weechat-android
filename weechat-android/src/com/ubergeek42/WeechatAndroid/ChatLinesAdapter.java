@@ -103,17 +103,17 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, OnShar
             holder.prefix = (TextView) convertView.findViewById(R.id.chatline_prefix);
             holder.message = (TextView) convertView.findViewById(R.id.chatline_message);
 
-            // Change the font sizes
-            holder.timestamp.setTextSize(textSize);
-            holder.prefix.setTextSize(textSize);
-            holder.message.setTextSize(textSize);
-
             convertView.setTag(holder);
 
         } else {
             holder = (ViewHolder) convertView.getTag();
         }
 
+        // Change the font sizes
+        holder.timestamp.setTextSize(textSize);
+        holder.prefix.setTextSize(textSize);
+        holder.message.setTextSize(textSize);
+        
         BufferLine chatLine = (BufferLine) getItem(position);
 
         // Render the timestamp

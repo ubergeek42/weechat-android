@@ -181,24 +181,24 @@ public class WeechatChatviewActivity extends Activity implements OnClickListener
 			return true;
         }
 		// check for terminal resizing keys
-        else if (keycode == KeyEvent.KEYCODE_VOLUME_UP) {
-			int text_size = Integer.parseInt(prefs.getString("text_size", "10")) + 1;
+        else if (keycode == KeyEvent.KEYCODE_VOLUME_UP && event.getAction()==KeyEvent.ACTION_DOWN) {
+			float text_size = Float.parseFloat(prefs.getString("text_size", "10")) + 1;
+			// Max text_size of 30
+			if (text_size>30) text_size = 30;
 			SharedPreferences.Editor editor = prefs.edit();
-			editor.putString("text_size", Integer.toString(text_size));
+			editor.putString("text_size", Float.toString(text_size));
 	        editor.commit();
-	        // TODO there's probably a better way to do this
-	        // Recreate this view
-	        this.recreate();
 			return true;
-		} else if(keycode == KeyEvent.KEYCODE_VOLUME_DOWN) {
-			int text_size = Integer.parseInt(prefs.getString("text_size", "10")) - 1;
+		} else if(keycode == KeyEvent.KEYCODE_VOLUME_DOWN && event.getAction()==KeyEvent.ACTION_DOWN) {
+			float text_size = Float.parseFloat(prefs.getString("text_size", "10")) - 1;
+			// Enforce a minimum text size of 5
+			if (text_size < 5) text_size = 5;
 			SharedPreferences.Editor editor = prefs.edit();
-			editor.putString("text_size", Integer.toString(text_size));
+			editor.putString("text_size", Float.toString(text_size));
 	        editor.commit();
-	        // TODO there's probably a better way to do this
-	        // Recreate this view
-	        this.recreate();
 			return true;
+		} else if(keycode == KeyEvent.KEYCODE_VOLUME_DOWN || keycode == KeyEvent.KEYCODE_VOLUME_UP) {
+			return true;// Eat these keys
 		} else if((keycode == KeyEvent.KEYCODE_TAB || keycode == KeyEvent.KEYCODE_SEARCH) && event.getAction() == KeyEvent.ACTION_DOWN) {
 			if (!enableTabComplete || nickCache == null) return true;
 			
