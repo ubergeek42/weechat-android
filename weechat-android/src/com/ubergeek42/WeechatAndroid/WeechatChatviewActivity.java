@@ -18,9 +18,6 @@ package com.ubergeek42.WeechatAndroid;
 import java.util.Arrays;
 import java.util.Vector;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
@@ -47,8 +44,6 @@ import com.ubergeek42.weechat.BufferObserver;
 
 public class WeechatChatviewActivity extends Activity implements OnClickListener, OnKeyListener, BufferObserver, OnSharedPreferenceChangeListener {
 
-	private static Logger logger = LoggerFactory.getLogger(WeechatChatviewActivity.class);
-	
 	private ListView chatlines;
 	private EditText inputBox;
 	private Button sendButton;
@@ -78,7 +73,9 @@ public class WeechatChatviewActivity extends Activity implements OnClickListener
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
+
 	    super.onCreate(savedInstanceState);
+
 	    setContentView(R.layout.chatview_main);
 
 	    Bundle extras = getIntent().getExtras();
@@ -182,6 +179,26 @@ public class WeechatChatviewActivity extends Activity implements OnClickListener
 			tabCompletingInProgress=false;
 			runOnUiThread(messageSender);
 			return true;
+        }
+		// check for terminal resizing keys
+        else if (keycode == KeyEvent.KEYCODE_VOLUME_UP && event.getAction()==KeyEvent.ACTION_DOWN) {
+			float text_size = Float.parseFloat(prefs.getString("text_size", "10")) + 1;
+			// Max text_size of 30
+			if (text_size>30) text_size = 30;
+			SharedPreferences.Editor editor = prefs.edit();
+			editor.putString("text_size", Float.toString(text_size));
+	        editor.commit();
+			return true;
+		} else if(keycode == KeyEvent.KEYCODE_VOLUME_DOWN && event.getAction()==KeyEvent.ACTION_DOWN) {
+			float text_size = Float.parseFloat(prefs.getString("text_size", "10")) - 1;
+			// Enforce a minimum text size of 5
+			if (text_size < 5) text_size = 5;
+			SharedPreferences.Editor editor = prefs.edit();
+			editor.putString("text_size", Float.toString(text_size));
+	        editor.commit();
+			return true;
+		} else if(keycode == KeyEvent.KEYCODE_VOLUME_DOWN || keycode == KeyEvent.KEYCODE_VOLUME_UP) {
+			return true;// Eat these keys
 		} else if((keycode == KeyEvent.KEYCODE_TAB || keycode == KeyEvent.KEYCODE_SEARCH) && event.getAction() == KeyEvent.ACTION_DOWN) {
 			if (!enableTabComplete || nickCache == null) return true;
 			

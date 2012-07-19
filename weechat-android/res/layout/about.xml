@@ -15,20 +15,20 @@
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
     <TextView
-        android:id="@+id/TextView04"
+        android:id="@+id/versionID"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
-        android:text="@string/app_build_id"
+        android:text="Unknown version ID"
         android:textAppearance="?android:attr/textAppearanceSmall" />
 
     <TextView
         android:id="@+id/textView3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/TextView04"
+        android:layout_above="@+id/versionID"
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
         android:text="Build Identifier(please include in bug reports):"

@@ -16,8 +16,13 @@
 package com.ubergeek42.WeechatAndroid;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.graphics.Color;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -29,16 +34,21 @@ import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.relay.messagehandler.BufferManager;
 import com.ubergeek42.weechat.relay.messagehandler.BufferManagerObserver;
 
-public class BufferListAdapter extends BaseAdapter implements BufferManagerObserver {
+public class BufferListAdapter extends BaseAdapter implements BufferManagerObserver, OnSharedPreferenceChangeListener {
 	WeechatActivity parentActivity;
 	LayoutInflater inflater;
 	private BufferManager bufferManager;
 	protected ArrayList<Buffer> buffers = new ArrayList<Buffer>();
-	
+	private SharedPreferences prefs;
+	private boolean enableBufferSorting;
 	
 	public BufferListAdapter(WeechatActivity parentActivity, RelayServiceBinder rsb) {
 		this.parentActivity = parentActivity;
 		this.inflater = LayoutInflater.from(parentActivity);
+		
+		prefs = PreferenceManager.getDefaultSharedPreferences(parentActivity.getBaseContext());
+	    prefs.registerOnSharedPreferenceChangeListener(this);
+	    enableBufferSorting = prefs.getBoolean("sort_buffers", true);
 		
 		bufferManager = rsb.getBufferManager();
 		bufferManager.onChanged(this);
@@ -50,6 +60,8 @@ public class BufferListAdapter extends BaseAdapter implements BufferManagerObser
 
 	@Override
 	public Buffer getItem(int position) {
+		
+		
 		return buffers.get(position);
 	}
 
@@ -112,8 +124,31 @@ public class BufferListAdapter extends BaseAdapter implements BufferManagerObser
 			@Override
 			public void run() {
 				buffers = bufferManager.getBuffers();
+				// Sort buffers based on unread count
+				if (enableBufferSorting) {
+					Collections.sort(buffers, bufferComparator);
+				}
 				notifyDataSetChanged();
 			}
 		});
+	}
+	private Comparator<Buffer> bufferComparator = new Comparator<Buffer>() {
+		@Override
+		public int compare(Buffer b1, Buffer b2) {
+        	int b1Highlights = b1.getHighlights();
+        	int b2Highlights = b2.getHighlights();
+        	if(b2Highlights > 0 || b1Highlights > 0) {
+        		return b2Highlights - b1Highlights;
+        	}
+            return b2.getUnread() - b1.getUnread();
+        }
+	};
+	
+	@Override
+	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+		if (key.equals("sort_buffers")) {
+			enableBufferSorting = prefs.getBoolean("sort_buffers", true);
+			onBuffersChanged();
+		}
 	}
 }
