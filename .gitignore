@@ -9,3 +9,4 @@ libs
 *.iwl
 *.swp
 local.properties
+weechat-android/src/com/ubergeek42/weechat/GitVersion.java

@@ -5,8 +5,8 @@ package com.ubergeek42.weechat;
 public class GitVersion {
   public static String PROJECT_NAME = "WeeChat Android";
   public static String PROJECT_ARTIFACT = "weechat-android";
-  public static String PROJECT_VERSION = "unofficial-dev";
-  public static String DESCRIBE = "unofficial-dev";
-  public static String BUILD_TIME = "yyyy-mm-dd hh:mm";
-  public static String BANNER = "unofficial-dev yyyy-mm-dd hh:mm";
+  public static String PROJECT_VERSION = "N/A";
+  public static String DESCRIBE = "not-built-by-maven";
+  public static String BUILD_TIME = "2012-07-19 13:37";
+  public static String BANNER = "not-built-by-maven 2012-07-19 13:37";
 }
