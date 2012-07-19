@@ -137,6 +137,10 @@ public class WeechatChatviewActivity extends WeechatActivity implements OnClickL
 		chatlineAdapter = new ChatLinesAdapter(this, buffer);
 		chatlines.setAdapter(chatlineAdapter);
 		onLineAdded();
+		
+	    // Reset hotlist status
+	    rsb.getHotlistManager().removeHotlistItem(this.bufferName);
+
 	}
 	
 	ServiceConnection mConnection = new ServiceConnection() {

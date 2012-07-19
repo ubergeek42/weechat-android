@@ -17,14 +17,11 @@ package com.ubergeek42.weechat.relay.messagehandler;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 
 import android.util.Log;
 
-//import com.ubergeek42.WeechatAndroid.notifications.HotlistObserver;
 import com.ubergeek42.weechat.Buffer;
-import com.ubergeek42.weechat.Color;
 import com.ubergeek42.weechat.HotlistItem;
 import com.ubergeek42.weechat.relay.RelayMessageHandler;
 import com.ubergeek42.weechat.relay.protocol.Hdata;
@@ -75,14 +72,26 @@ public class HotlistManager implements RelayMessageHandler {
 			onChangeObserver.onHotlistChanged();
 		}
 	}
+	/**
+	 * Remove hotlist item from hotlist. Called when switching to the buffer 
+	 * to read the lines
+	 * @param fullBufferName
+	 */
+	public void removeHotlistItem(String fullBufferName) {
+	    for (HotlistItem hli : hotlist) {
+	    	if(hli.getFullName().equals(fullBufferName)) {
+	    		hotlist.remove(hli);
+	    	}
+	    }
+
+		
+	}
 	
 	@Override
 	public void handleMessage(RelayObject obj, String id) {
 		
-		/*Log.d(TAG, "Got id " + id);
-		Log.d(TAG, "Got obj " + obj);*/
 		if (id.equals("_buffer_line_added")){ // New line added...what is it?
-			//logger.debug("buffer_line_added called");
+			Log.d(TAG, "buffer_line_added called");
 			Hdata hdata = (Hdata) obj;
 					
 			for(int i=0;i<hdata.getCount(); i++) {
@@ -98,15 +107,19 @@ public class HotlistManager implements RelayMessageHandler {
 				HotlistItem hli = new HotlistItem(hde, b);
 				boolean found = false;
 			    for (HotlistItem oldhli : hotlist) {
-			    	//TODO implement comparator ?
-			    	if(oldhli.getFullName() == hli.getFullName()) {
+			    	//FIXME implement comparator ?
+			    	if(oldhli.getFullName().equals(hli.getFullName())) {
+			    		oldhli.count_00 += hli.count_00;
 			    		oldhli.count_01 += hli.count_01;
 			    		oldhli.count_02 += hli.count_02;
+			    		oldhli.count_03 += hli.count_03;
+
 			    		found=true;
 			    		break;
 			    	}
 			    }
-			    if (!found)
+			    // Only add to hotlist if there are actual messages
+			    if (!found && (hli.getHighlights() > 0 || hli.getUnread() > 0))
 			    	hotlist.add(hli);
 		
 				// TODO: should be based on tags for line(notify_none/etc), but these are inaccessible through the relay plugin
@@ -125,27 +138,24 @@ public class HotlistManager implements RelayMessageHandler {
 				// Only add messages and highlights to hotlist
 				// TODO: this could be a preference
 				if(hli.count_01 > 0 || hli.count_02 > 0) {
-					// We got count, check and se if we already have buffer in hotlist
+					// We got count, check and see if we already have buffer in hotlist
 				    hotlist.add(hli);
 				}
 				Log.d(TAG, "Added hotlistitem " + hli);
 			}
-			
-			// Sort the hotlist
-			Collections.sort(hotlist, new Comparator<HotlistItem>() {
-		        @Override public int compare(HotlistItem b1, HotlistItem b2) {
-		        	
-		        	
-		        	
-		        	int b1Highlights = b1.getHighlights();
-		        	int b2Highlights = b2.getHighlights();
-		        	if(b2Highlights > 0 || b1Highlights > 0) {
-		        		return b2Highlights - b1Highlights;
-		        	}
-		            return b2.getUnread() - b1.getUnread();
-		        }        
-			});
 		}
+		// Sort the hotlist, highlights first, then unread
+		Collections.sort(hotlist, new Comparator<HotlistItem>() {
+	        @Override public int compare(HotlistItem b1, HotlistItem b2) {
+	        	int b1Highlights = b1.getHighlights();
+	        	int b2Highlights = b2.getHighlights();
+	        	if(b2Highlights > 0 || b1Highlights > 0) {
+	        		return b2Highlights - b1Highlights;
+	        	}
+	            return b2.getUnread() - b1.getUnread();
+	        }        
+		});
+
 		// FIXME We probably changed, but this could be more intelligent
 		hotlistChanged();
 	}

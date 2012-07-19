@@ -15,7 +15,6 @@
  ******************************************************************************/
 package com.ubergeek42.weechat;
 
-import java.util.Date;
 import java.util.HashMap;
 
 import com.ubergeek42.weechat.relay.protocol.HdataEntry;
@@ -44,9 +43,6 @@ public class HotlistItem {
 	public int count_01;
 	public int count_02;
 	public int count_03;
-	
-
-	
 
 	public HotlistItem(HashMap<String,RelayObject>  item) {
 	
@@ -69,11 +65,13 @@ public class HotlistItem {
 		/*
 		String message = hde.getItem("message").asString();
 		String prefix = hde.getItem("prefix").asString();
-		boolean displayed = (hde.getItem("displayed").asChar()==0x01);
 		Date time = hde.getItem("date").asTime();
 		*/
 		String bPointer = hde.getItem("buffer").asPointer();
 		
+		// Is line displayed or hidden by filters, etc?
+		boolean displayed = (hde.getItem("displayed").asChar()==0x01);
+
 		 //Try to get highlight status(added in 0.3.8-dev: 2012-03-06)
 		 RelayObject t = hde.getItem("highlight");
 			boolean highlight = false;
@@ -93,15 +91,19 @@ public class HotlistItem {
 		this.buffer_name = b.getFullName();
 		// FIXME get plugin name from buffer
 		this.plugin_name = "";
-	
+		this.count_00 = 0;
+		this.count_02 = 0;
+		this.count_01 = 0;
 		if (highlight) {
-			this.count_00 = 0;
-			this.count_01 = 0;
-			this.count_02 = 1;
+			if (displayed)
+				this.count_02 = 1;
+			else
+				this.count_00 = 1;
 		}else{
-			this.count_00 = 0;
-			this.count_01 = 1;
-			this.count_02 = 0;
+			if(displayed)
+				this.count_01 = 1;
+			else
+				this.count_00 = 1;
 		}
 	}
 
