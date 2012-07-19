@@ -206,13 +206,15 @@ public class WeechatChatviewActivity extends Activity implements OnClickListener
 			String txt = inputBox.getText().toString();
 			if (tabCompletingInProgress == false) {
 				int currentPos = inputBox.getSelectionStart()-1;
+				if (currentPos < 0) return true;
+				
 				int start = currentPos;
 				// Search backwards to find the beginning of the word
 				while(start>0 && txt.charAt(start) != ' ') start--;
 				
 				if (start>0) start++;
 				String prefix = txt.substring(start, currentPos+1).toLowerCase();
-				if (prefix.length()<2) {
+				if (prefix.length()<1) {
 					//No tab completion
 					return true;
 				}
