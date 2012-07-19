@@ -38,6 +38,8 @@ import com.ubergeek42.weechat.relay.messagehandler.NicklistHandler;
 import com.ubergeek42.weechat.relay.messagehandler.UpgradeHandler;
 import com.ubergeek42.weechat.relay.messagehandler.UpgradeObserver;
 
+import java.io.IOException;
+
 public class RelayService extends Service implements RelayConnectionHandler, OnSharedPreferenceChangeListener, HotlistObserver, UpgradeObserver {
 
 	private static final int NOTIFICATION_ID = 42;
@@ -149,8 +151,12 @@ public class RelayService extends Service implements RelayConnectionHandler, OnS
 			relayConnection.setConnectionType(ConnectionType.STUNNEL);
 		}
 		relayConnection.setConnectionHandler(this);
-		relayConnection.connect();
-	}
+        try {
+            relayConnection.connect();
+        } catch (IOException e) {
+            showNotification(null, String.format("Error connecting: %s", e.getMessage()));
+        }
+    }
 	
 	void resetNotification() {
 		showNotification(null, "Connected to " + relayConnection.getServer());

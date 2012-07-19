@@ -127,15 +127,11 @@ public class RelayConnection {
 	 * On failure, prints a stack trace...
 	 * TODO: proper error handling(should throw an exception)
 	 */
-	public void connect() {
+	public void connect() throws IOException {
 		if (isConnected() || socketReader.isAlive()) return;
 		
-		try {
-			server = InetAddress.getByName(serverString);
-		} catch (UnknownHostException e) {
-			e.printStackTrace();
-			return;
-		}
+        server = InetAddress.getByName(serverString);
+
 		currentConnection.start();
 	}
 	
