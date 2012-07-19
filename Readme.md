@@ -14,8 +14,6 @@ Either scan the QR code, or click the link to download the apk.  Click on it and
 ####Latest Development Snapshot - v0.08-dev
 If you're feeling adventurous, you can try the latest development version.  This is built after every commit, and while I try to keep a working build, it may fail or have major bugs.
 
-[![Build Status](https://ubergeek42.ci.cloudbees.com/job/weechat-android/badge/icon)](https://ubergeek42.ci.cloudbees.com/job/weechat-android/)
-
 [Get the latest development version here](http://repository-ubergeek42.forge.cloudbees.com/release/index.html)
 
 ## Installation and usage:
