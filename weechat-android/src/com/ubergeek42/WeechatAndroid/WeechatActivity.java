@@ -15,7 +15,6 @@
  ******************************************************************************/
 package com.ubergeek42.WeechatAndroid;
 
-import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -23,44 +22,85 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
+import android.support.v4.app.FragmentActivity;
+
+import android.support.v4.app.FragmentTransaction;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
-import android.widget.ListView;
-import android.widget.TextView;
 
 import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
 
-public class WeechatActivity extends Activity implements OnItemClickListener, RelayConnectionHandler {
-
+public class WeechatActivity extends FragmentActivity implements BufferListFragment.OnBufferSelectedListener, OnItemClickListener, RelayConnectionHandler {
+	private static final String TAG = "WeechatActivity";
 	private boolean mBound = false;
 	private RelayServiceBinder rsb;
-	private ListView bufferlist;
-	
+	//private ListView bufferlist;
+	private BufferListFragment bufferlistFragment;
 	private BufferListAdapter m_adapter;
 	
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
+		Log.d(TAG, "onCreate()");
 	    super.onCreate(savedInstanceState);
 	    
-	    setContentView(R.layout.bufferlist);
+
+	    //setContentView(R.layout.bufferlist);
+	    setContentView(R.layout.bufferlist_fragment);
+	    
+	    
+	    if(bufferlistFragment==null) new BufferListFragment();
+	    
+        // Check whether the activity is using the layout version with
+        // the fragment_container FrameLayout. If so, we must add the first fragment
+        if (findViewById(R.id.fragment_container) != null) {
+
+            // However, if we're being restored from a previous state,
+            // then we don't need to do anything and should return or else
+            // we could end up with overlapping fragments.
+            // FIXME
+        	if (savedInstanceState != null) {
+                return;
+            }
+
+            bufferlistFragment = new BufferListFragment();
+
+            // In case this activity was started with special instructions from an Intent,
+            // pass the Intent's extras to the fragment as arguments
+            bufferlistFragment.setArguments(getIntent().getExtras());
+
+            // Add the fragment to the 'fragment_container' FrameLayout
+            getSupportFragmentManager().beginTransaction()
+                    .add(R.id.fragment_container, bufferlistFragment).commit();
+        }else 
+        {
+            bufferlistFragment = new BufferListFragment();
+
+        }
+
+            
 	    setTitle(getString(R.string.app_version));
 	    PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
 	    
-	    bufferlist = (ListView) this.findViewById(R.id.bufferlist_list);
-		bufferlist.setOnItemClickListener(this);
+	    //bufferlist = (ListView) this.findViewById(R.id.bufferlist_list);
+		//bufferlist.setOnItemClickListener(this);
 	    
 		// See also code in the onDisconnect handler(its a copy/paste)
-		String[] message = {"Press Menu->Connect to get started"};
-		bufferlist.setAdapter(new ArrayAdapter<String>(WeechatActivity.this, R.layout.tips_list_item, message));
-		
+		//String[] message = {"Press Menu->Connect to get started"};
+		//bufferlist.setAdapter(new ArrayAdapter<String>(WeechatActivity.this, R.layout.tips_list_item, message));
+
 		// Start the service(if necessary)
 	    startService(new Intent(this, RelayService.class));
+
+		
+		Log.d(TAG, "onCreate() bflf" + bufferlistFragment);
+
 	}
 	
 	@Override
@@ -141,7 +181,9 @@ public class WeechatActivity extends Activity implements OnItemClickListener, Re
 
 	@Override
 	public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-		if (bufferlist.getAdapter() instanceof ArrayAdapter<?>) {
+		Log.d(TAG, "onItemClick()");
+		/*
+		if (bufferlistFragment.getAdapter() instanceof ArrayAdapter<?>) {
 			return;
 		}
 		
@@ -152,17 +194,21 @@ public class WeechatActivity extends Activity implements OnItemClickListener, Re
 		Intent i = new Intent(this, WeechatChatviewActivity.class);
 		i.putExtra("buffer", b.getFullName());
 		startActivity(i);
+		*/
 	}
 
 	@Override
 	public void onConnect() {
+		Log.d(TAG, "onConnect()");
 		if (rsb != null && rsb.isConnected()) {
-			// Create and update the buffer list when we connect to the service
 			m_adapter = new BufferListAdapter(WeechatActivity.this, rsb);
+
+			// Create and update the buffer list when we connect to the service
 			this.runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
-					bufferlist.setAdapter(m_adapter);
+   					Log.d(TAG, "onConnect" + bufferlistFragment);
+					bufferlistFragment.setListAdapter(m_adapter);
 					m_adapter.onBuffersChanged();
 				}
 			});
@@ -178,7 +224,7 @@ public class WeechatActivity extends Activity implements OnItemClickListener, Re
 			public void run() {
 				
 				String[] message = {"Press Menu->Connect to get started"};
-				bufferlist.setAdapter(new ArrayAdapter<String>(WeechatActivity.this, R.layout.tips_list_item, message));
+				bufferlistFragment.setListAdapter(new ArrayAdapter<String>(WeechatActivity.this, R.layout.tips_list_item, message));
 			}
 		});
 	}
@@ -187,4 +233,58 @@ public class WeechatActivity extends Activity implements OnItemClickListener, Re
 	public void onError(String arg0) {
 		
 	}
+    public RelayServiceBinder getRServiceB() {
+    	return rsb;
+    }
+
+    public void onBufferSelected(int position) {
+		Log.d(TAG, "onBufferSelected()");
+
+        // The user selected the buffer from the BufferlistFragment
+
+		if (bufferlistFragment.getListAdapter() instanceof ArrayAdapter<?>) {
+			return;
+		}
+		
+		// Handles the user clicking on a buffer
+		//Buffer b = (Buffer) bufferlistFragment.getgetItemAtPosition(position);
+		Buffer b = (Buffer) bufferlistFragment.getListView().getItemAtPosition(position);
+		
+		// Start new activity for the given buffer
+		/*Intent i = new Intent(this, WeechatChatviewActivity.class);
+		i.putExtra("buffer", b.getFullName());
+		startActivity(i);*/
+
+    	
+    	
+        // Capture the buffer fragment from the activity layout
+        BufferFragment bufferFrag = (BufferFragment)
+                getSupportFragmentManager().findFragmentById(R.id.buffer_fragment);
+
+        if (bufferFrag != null) {
+            // If article frag is available, we're in two-pane layout...
+
+            // Call a method in the BufferFragment to update its content
+            bufferFrag.updateBufferView(position, "");
+
+        } else {
+            // If the frag is not available, we're in the one-pane layout and must swap frags...
+
+            // Create fragment and give it an argument for the selected article
+            BufferFragment newFragment = new BufferFragment();
+            Bundle args = new Bundle();
+            args.putInt(BufferFragment.ARG_POSITION, position);
+            args.putString("buffer", b.getFullName());
+            newFragment.setArguments(args);
+            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+
+            // Replace whatever is in the fragment_container view with this fragment,
+            // and add the transaction to the back stack so the user can navigate back
+            transaction.replace(R.id.fragment_container, newFragment);
+            transaction.addToBackStack(null);
+
+            // Commit the transaction
+            transaction.commit();
+        }
+    }
 }

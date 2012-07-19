@@ -23,6 +23,7 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.graphics.Color;
 import android.preference.PreferenceManager;
+import android.support.v4.app.FragmentActivity;
 import android.text.Html;
 import android.text.Spannable;
 import android.text.SpannableString;
@@ -36,12 +37,13 @@ import android.widget.BaseAdapter;
 import android.widget.ListAdapter;
 import android.widget.TextView;
 
+import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.BufferLine;
 
 public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, OnSharedPreferenceChangeListener {
 
-	private WeechatChatviewActivity activity = null;
+	private FragmentActivity activity = null;
 	private Buffer buffer;
 	private LinkedList<BufferLine> lines;
 	private LayoutInflater inflater;
@@ -56,7 +58,7 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, OnShar
 	private float textSize;
 	private final DateFormat timestampFormat;
 	
-	public ChatLinesAdapter(WeechatChatviewActivity activity,
+	public ChatLinesAdapter(FragmentActivity activity,
 			Buffer buffer) {
 		this.activity = activity;
 		this.buffer = buffer;

@@ -136,8 +136,8 @@ public class WeechatChatviewActivity extends Activity implements OnClickListener
 		// Subscribe to the buffer(gets the lines for it, and gets nicklist)
 		rsb.subscribeBuffer(buffer.getPointer());
 		
-		chatlineAdapter = new ChatLinesAdapter(this, buffer);
-		chatlines.setAdapter(chatlineAdapter);
+		//chatlineAdapter = new ChatLinesAdapter(this, buffer);
+		//chatlines.setAdapter(chatlineAdapter);
 		onLineAdded();
 	}
 	
@@ -155,6 +155,7 @@ public class WeechatChatviewActivity extends Activity implements OnClickListener
 			// Only called when the background service crashes...
 		}
 	};
+	
 	
 	// Sends the message if necessary
 	Runnable messageSender = new Runnable(){
