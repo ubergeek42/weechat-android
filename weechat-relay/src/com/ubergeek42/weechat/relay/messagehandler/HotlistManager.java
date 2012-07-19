@@ -78,9 +78,11 @@ public class HotlistManager implements RelayMessageHandler {
 	 * @param fullBufferName
 	 */
 	public void removeHotlistItem(String fullBufferName) {
+		//HotlistItem hli = null;
 	    for (HotlistItem hli : hotlist) {
 	    	if(hli.getFullName().equals(fullBufferName)) {
 	    		hotlist.remove(hli);
+	    		return;
 	    	}
 	    }
 
