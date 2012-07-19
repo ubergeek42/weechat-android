@@ -9,31 +9,31 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Adapter;
 import android.widget.BaseAdapter;
-import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 
 import com.ubergeek42.weechat.HotlistItem;
 import com.ubergeek42.weechat.relay.messagehandler.HotlistManager;
 import com.ubergeek42.weechat.relay.messagehandler.HotlistManagerObserver;
 
-public class HotlistListAdapter extends BaseAdapter implements SpinnerAdapter, HotlistManagerObserver, OnNavigationListener {
+public class HotlistListAdapter extends BaseAdapter implements Adapter, HotlistManagerObserver, OnNavigationListener {
 	WeechatActivity parentActivity;
 	LayoutInflater inflater;
 	private static final String TAG = "HotlistListAdapter";
 	private HotlistManager hotlistManager;
 	protected ArrayList<HotlistItem> hotlist = new ArrayList<HotlistItem>();
     private boolean synthetic = true;
-    private int currentPosition = 0;
+    
 
 	
 	
 	public HotlistListAdapter(WeechatActivity parentActivity, RelayServiceBinder rsb) {
 		this.parentActivity = parentActivity;
-		this.inflater = LayoutInflater.from(parentActivity);
-		
+		this.inflater = LayoutInflater.from(parentActivity);	
 		hotlistManager = rsb.getHotlistManager();
 		hotlistManager.onChanged(this);
+		this.onHotlistChanged();
 	}
 	@Override
 	public int getCount() {
@@ -52,6 +52,8 @@ public class HotlistListAdapter extends BaseAdapter implements SpinnerAdapter, H
 
 	@Override
     public View getDropDownView(int position, View convertView, ViewGroup parent) {
+		Log.d(TAG, "getDropDownView()");
+
         ViewHolder holder;
 
         if (convertView == null) {
@@ -98,15 +100,11 @@ public class HotlistListAdapter extends BaseAdapter implements SpinnerAdapter, H
 	@Override
 	public boolean onNavigationItemSelected(int position, long itemId) {
 		Log.d(TAG, "position:" + position + " itemId" + itemId);
-        //if (synthetic) {
-        //    synthetic = false;
-        //    return true;
-        //}
-
-		// If position is current opsition, don't do anything
-		if(position == currentPosition) {
-			return false;
+		if(synthetic) {
+			synthetic = false;
+			return true;	
 		}
+		
 		// Handles the user clicking on a Hotlist
 		HotlistItem h = (HotlistItem) this.getItem(position);
 		
@@ -130,6 +128,8 @@ public class HotlistListAdapter extends BaseAdapter implements SpinnerAdapter, H
 	}
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
+		Log.d(TAG, "getView()");
+
         ViewHolder holder;
 
         if (convertView == null) {
@@ -147,5 +147,5 @@ public class HotlistListAdapter extends BaseAdapter implements SpinnerAdapter, H
         //holder.title.setText(com.ubergeek42.weechat.Color.stripAllColorsAndAttributes(hotlistItem.getTitle()));
         //holder.hotlist.setText(String.format("U:%2d  H:%2d   ", unread, highlight));        
         return convertView;		
-	}  
+	}
 }

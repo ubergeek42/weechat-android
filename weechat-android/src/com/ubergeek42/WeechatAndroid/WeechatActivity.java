@@ -174,11 +174,11 @@ public class WeechatActivity extends Activity implements OnItemClickListener, Re
 					m_adapter.onBuffersChanged();
 
 					ActionBar actionBar = getActionBar();
+				    actionBar.setDisplayShowTitleEnabled(true);
 			        // Set the action bar to be a list
 					actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
 					actionBar.setListNavigationCallbacks(h_adapter, h_adapter);
-				    actionBar.setDisplayShowTitleEnabled(true);
-				    h_adapter.onHotlistChanged();
+					
 				}
 			});
 		}
