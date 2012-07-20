@@ -28,8 +28,6 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnKeyListener;
@@ -38,7 +36,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 
-import com.ubergeek42.WeechatAndroid.R;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
 import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.BufferObserver;
 

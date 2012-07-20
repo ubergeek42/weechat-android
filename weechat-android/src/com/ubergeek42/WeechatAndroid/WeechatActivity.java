@@ -15,38 +15,38 @@
  ******************************************************************************/
 package com.ubergeek42.WeechatAndroid;
 
-import android.app.ActionBar;
-import android.app.Activity;
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.Intent;
-import android.content.ServiceConnection;
+import android.app.AlertDialog;
+import android.content.*;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.StrictMode;
 import android.preference.PreferenceManager;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import com.actionbarsherlock.app.SherlockActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuInflater;
+import com.actionbarsherlock.view.MenuItem;
 import com.ubergeek42.weechat.Buffer;
+import com.ubergeek42.weechat.HotlistItem;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
 
-public class WeechatActivity extends Activity implements OnItemClickListener, RelayConnectionHandler {
+public class WeechatActivity extends SherlockActivity implements OnItemClickListener, RelayConnectionHandler {
+
+    private static final String TAG = "WeeChatActivity";
 
 	private boolean mBound = false;
 	private RelayServiceBinder rsb;
 	private ListView bufferlist;
-	
 	private BufferListAdapter m_adapter;
-	private HotlistListAdapter h_adapter;
-	
-	/** Called when the activity is first created. */
+    private HotlistListAdapter hotlistListAdapter;
+
+    /** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
@@ -60,7 +60,6 @@ public class WeechatActivity extends Activity implements OnItemClickListener, Re
 	    
 	    bufferlist = (ListView) this.findViewById(R.id.bufferlist_list);
 		bufferlist.setOnItemClickListener(this);
-	    
 		// See also code in the onDisconnect handler(its a copy/paste)
 		String[] message = {"Press Menu->Connect to get started"};
 		bufferlist.setAdapter(new ArrayAdapter<String>(WeechatActivity.this, R.layout.tips_list_item, message));
@@ -85,42 +84,6 @@ public class WeechatActivity extends Activity implements OnItemClickListener, Re
 		}
 	}
 
-	@Override
-	// Build the options menu
-	public boolean onPrepareOptionsMenu(Menu menu) {
-		menu.clear();
-		if (rsb != null && rsb.isConnected())
-			menu.add("Disconnect");
-		else
-			menu.add("Connect");
-		menu.add("Preferences");
-		menu.add("About");
-		menu.add("Quit");
-		return super.onPrepareOptionsMenu(menu);
-	}
-	@Override
-	// Handle the options when the user presses the Menu key
-	public boolean onOptionsItemSelected(MenuItem item) {
-		String s = (String) item.getTitle();
-		if (s.equals("Quit")) {
-			if (rsb != null)rsb.shutdown();
-			unbindService(mConnection);
-			mBound = false;
-			stopService(new Intent(this, RelayService.class));
-			finish();
-		} else if (s.equals("Disconnect")) {
-			if (rsb != null)rsb.shutdown();
-		} else if (s.equals("Connect")) {
-			if (rsb != null)rsb.connect();
-		} else if (s.equals("About")) {
-			Intent i = new Intent(this, WeechatAboutActivity.class);
-			startActivity(i);
-		} else if (s.equals("Preferences")) {
-			Intent i = new Intent(this, WeechatPreferencesActivity.class);
-			startActivity(i);
-		}
-		return true;
-	}
 
 	
 	ServiceConnection mConnection = new ServiceConnection() {
@@ -166,29 +129,108 @@ public class WeechatActivity extends Activity implements OnItemClickListener, Re
 			// Create and update the buffer list when we connect to the service
 			m_adapter = new BufferListAdapter(WeechatActivity.this, rsb);
             // Create and update the hotlist
-			h_adapter = new HotlistListAdapter(WeechatActivity.this, rsb);
-			this.runOnUiThread(new Runnable() {
-				@Override
-				public void run() {
-					bufferlist.setAdapter(m_adapter);
-					m_adapter.onBuffersChanged();
+            hotlistListAdapter = new HotlistListAdapter(WeechatActivity.this, rsb);
 
-					ActionBar actionBar = getActionBar();
-				    actionBar.setDisplayShowTitleEnabled(true);
-			        // Set the action bar to be a list
-					actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
-					actionBar.setListNavigationCallbacks(h_adapter, h_adapter);
-					
-				}
-			});
+            this.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    bufferlist.setAdapter(m_adapter);
+                    m_adapter.onBuffersChanged();
+
+                    /*hotlistManager = rsb.getHotlistManager();
+                    hotlistManager.onChanged(WeechatActivity.this);*/
+
+
+
+                }
+            });
+
 		}
 	}
+
+    @Override
+    // Handle the options when the user presses the Menu key
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch(item.getItemId()) {
+            case R.id.menu_connection_state: {
+                if (rsb != null) {
+                    if (rsb.isConnected()) {
+                        rsb.shutdown();
+                    } else {
+                        rsb.connect();
+                    }
+                    supportInvalidateOptionsMenu();
+                }
+                break;
+            }
+            case R.id.menu_preferences: {
+                Intent i = new Intent(this, WeechatPreferencesActivity.class);
+                startActivity(i);
+                break;
+            }
+            case R.id.menu_about: {
+                Intent i = new Intent(this, WeechatAboutActivity.class);
+                startActivity(i);
+                break;
+            }
+            case R.id.menu_quit: {
+                if (rsb != null)rsb.shutdown();
+                unbindService(mConnection);
+                mBound = false;
+                stopService(new Intent(this, RelayService.class));
+                finish();
+                break;
+            }
+            case R.id.menu_hotlist: {
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle("Hotlist");
+                builder.setAdapter(hotlistListAdapter, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int position) {
+                        HotlistItem hostlistItem = hotlistListAdapter.getItem(position);
+
+                        Intent intent = new Intent(WeechatActivity.this, WeechatChatviewActivity.class);
+                        intent.putExtra("buffer", hostlistItem.getFullName());
+                        startActivity(intent);
+                    }
+                });
+                builder.create().show();
+                break;
+            }
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu (Menu menu) {
+        Log.d(TAG, "onPrepareOptionsMenu()");
+
+
+        MenuItem connectionStatus = menu.findItem(R.id.wee_submenu);
+        if (connectionStatus != null) {
+            connectionStatus = connectionStatus.getSubMenu().findItem(R.id.menu_connection_state);
+            if (rsb != null & rsb.isConnected())
+                connectionStatus.setTitle(R.string.disconnect);
+            else
+                connectionStatus.setTitle(R.string.connect);
+        }
+
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater menuInflater = getSupportMenuInflater();
+        menuInflater.inflate(R.menu.menu_actionbar, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
 
 	@Override
 	public void onDisconnect() {
 		// Create and update the buffer list when we connect to the service
 		m_adapter = null;
-		h_adapter = null;
+		hotlistListAdapter = null;
 		this.runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
