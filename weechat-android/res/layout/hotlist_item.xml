@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="fill_parent" >
+
+    <TextView
+        android:id="@+id/hotlist_hotlist"
+        android:layout_width="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:text="U:005  H:005"
+        android:textAppearance="?android:attr/textAppearanceSmall" 
+        android:layout_height="50dp"
+    	android:paddingLeft="10dp"
+  		android:gravity="center_vertical"
+    	android:textSize="18dp"/>
+
+    <TextView
+        android:id="@+id/hotlist_title"
+        android:layout_width="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_toRightOf="@+id/hotlist_hotlist"
+        android:text="Hotlist title"
+        android:textAppearance="?android:attr/textAppearanceMedium" 
+        android:layout_height="50dp"
+    	android:paddingLeft="10dp"
+  		android:gravity="center_vertical"
+    	android:textSize="18dp" />
+
+</RelativeLayout>

@@ -33,10 +33,13 @@ import com.ubergeek42.weechat.relay.RelayConnection.ConnectionType;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
 import com.ubergeek42.weechat.relay.RelayMessageHandler;
 import com.ubergeek42.weechat.relay.messagehandler.BufferManager;
+import com.ubergeek42.weechat.relay.messagehandler.HotlistManager;
 import com.ubergeek42.weechat.relay.messagehandler.LineHandler;
 import com.ubergeek42.weechat.relay.messagehandler.NicklistHandler;
 import com.ubergeek42.weechat.relay.messagehandler.UpgradeHandler;
 import com.ubergeek42.weechat.relay.messagehandler.UpgradeObserver;
+
+import java.io.IOException;
 
 public class RelayService extends Service implements RelayConnectionHandler, OnSharedPreferenceChangeListener, HotlistObserver, UpgradeObserver {
 
@@ -48,15 +51,20 @@ public class RelayService extends Service implements RelayConnectionHandler, OnS
 	String port;
 	String pass;
 	
-	boolean useStunnel = false;
 	String stunnelCert;
 	String stunnelPass;
+	
+	String sshHost;
+	String sshPass;
+	String sshPort;
+	String sshUser;
 
 	RelayConnection relayConnection;
 	BufferManager bufferManager;
 	RelayMessageHandler msgHandler;
 	NicklistHandler nickHandler;
 	HotlistHandler hotlistHandler;
+	HotlistManager hotlistManager;
 	RelayConnectionHandler connectionHandler;
 	private SharedPreferences prefs;
 	private boolean shutdown;
@@ -106,7 +114,7 @@ public class RelayService extends Service implements RelayConnectionHandler, OnS
 		return super.onStartCommand(intent, flags, startId);
 	}
 	
-	public void connect() {
+	public boolean connect() {
 		// Load the preferences
 		host = prefs.getString("host", null);
 		pass = prefs.getString("password", "password");
@@ -114,8 +122,14 @@ public class RelayService extends Service implements RelayConnectionHandler, OnS
 		
 		stunnelCert = prefs.getString("stunnel_cert", "");
 		stunnelPass = prefs.getString("stunnel_pass", "");
-		if (!stunnelCert.equals(""))useStunnel = true;
-					
+		
+		sshHost = prefs.getString("ssh_host", "");
+		sshUser = prefs.getString("ssh_user", "");
+		sshPass = prefs.getString("ssh_pass","");
+		sshPort = prefs.getString("ssh_port","22");
+		
+		
+		
 		// If no host defined, signal them to edit their preferences
 		if (host == null) {
 			Notification notification = new Notification(R.drawable.ic_launcher, "Click to edit your preferences and connect", System.currentTimeMillis());
@@ -125,32 +139,51 @@ public class RelayService extends Service implements RelayConnectionHandler, OnS
 			notification.setLatestEventInfo(this, getString(R.string.app_version), "Update settings", contentIntent);
 			notification.flags |= Notification.FLAG_ONGOING_EVENT | Notification.FLAG_NO_CLEAR;
 			notificationManger.notify(NOTIFICATION_ID, notification);
-			return;
+			return false;
 		}
 		
 		// Only connect if we aren't already connected
 		if ((relayConnection != null) && (relayConnection.isConnected())) {
-			return;
+			return false;
 		}
 		
 		shutdown = false;
 		
 		bufferManager = new BufferManager();
+        hotlistManager = new HotlistManager();
+
+        hotlistManager.setBufferManager(bufferManager);
 		msgHandler = new LineHandler(bufferManager);
 		nickHandler = new NicklistHandler(bufferManager);
-		hotlistHandler = new HotlistHandler(bufferManager);
+		hotlistHandler = new HotlistHandler(bufferManager, hotlistManager);
 		
 		hotlistHandler.registerHighlightHandler(this);
 		
 		relayConnection = new RelayConnection(host, port, pass);
-		if (useStunnel) {
+		String connType = prefs.getString("connection_type","plain");
+		if (connType.equals("ssh")) {
+			relayConnection.setSSHHost(sshHost);
+			relayConnection.setSSHUsername(sshUser);
+			relayConnection.setSSHPort(sshPort);
+			relayConnection.setSSHPassword(sshPass);
+			relayConnection.setConnectionType(ConnectionType.SSHTUNNEL);			
+		} else if (connType.equals("stunnel")) {
 			relayConnection.setStunnelCert(stunnelCert);
 			relayConnection.setStunnelKey(stunnelPass);
 			relayConnection.setConnectionType(ConnectionType.STUNNEL);
+		} else {
+			relayConnection.setConnectionType(ConnectionType.DEFAULT);
 		}
+
 		relayConnection.setConnectionHandler(this);
-		relayConnection.connect();
-	}
+        try {
+            relayConnection.connect();
+        } catch (IOException e) {
+            showNotification(null, String.format("Error connecting: %s", e.getMessage()));
+            return false;
+        }
+        return true;
+    }
 	
 	void resetNotification() {
 		showNotification(null, "Connected to " + relayConnection.getServer());
@@ -240,8 +273,13 @@ public class RelayService extends Service implements RelayConnectionHandler, OnS
 		relayConnection.addHandler("nicklist", nickHandler);
 		relayConnection.addHandler("_nicklist", nickHandler);
 
+		// Handle getting infolist hotlist for initial hotlist sync
+		relayConnection.addHandler("initialinfolist", hotlistManager);
+
 		// Get a list of buffers current open, along with some information about them
 		relayConnection.sendMsg("(listbuffers) hdata buffer:gui_buffers(*) number,full_name,short_name,type,title,nicklist,local_variables");
+		// Get the current hotlist
+		relayConnection.sendMsg("initialinfolist", "infolist", "hotlist");
 
 		// Subscribe to any future changes
 		relayConnection.sendMsg("sync");

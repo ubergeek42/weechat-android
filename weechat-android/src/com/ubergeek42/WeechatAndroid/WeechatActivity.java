@@ -15,43 +15,52 @@
  ******************************************************************************/
 package com.ubergeek42.WeechatAndroid;
 
-import android.annotation.SuppressLint;
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.Intent;
-import android.content.ServiceConnection;
-import android.os.Bundle;
-import android.os.IBinder;
-import android.os.StrictMode;
+import android.app.AlertDialog;
+import android.content.*;
+import android.os.*;
 import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
+import android.widget.ListView;
 
+import com.actionbarsherlock.app.SherlockActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuInflater;
+import com.actionbarsherlock.view.MenuItem;
 import com.ubergeek42.weechat.Buffer;
+import com.ubergeek42.weechat.HotlistItem;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
 
-public class WeechatActivity extends FragmentActivity implements BufferListFragment.OnBufferSelectedListener, OnItemClickListener, RelayConnectionHandler {
+public class WeechatActivity extends SherlockFragmentActivity implements BufferListFragment.OnBufferSelectedListener, OnItemClickListener, RelayConnectionHandler {
 	private static final String TAG = "WeechatActivity";
 	private boolean mBound = false;
 	private RelayServiceBinder rsb;
-	//private ListView bufferlist;
-	//private BufferListFragment bufferlistFragment;
-	//private BufferListAdapter m_adapter;
-	
-	/** Called when the activity is first created. */
-	@SuppressLint("NewApi") @Override
+	/*private ListView bufferlist;
+	private BufferListAdapter m_adapter;
+    private HotlistListAdapter hotlistListAdapter;*/
+    private static final boolean DEVELOPER_MODE = true; // todo: maven to configure this variable
+    private SocketToggleConnection taskToggleConnection;
+
+    /** Called when the activity is first created. */
+	@Override
 	public void onCreate(Bundle savedInstanceState) {
-		Log.d(TAG, "onCreate()");
-	    super.onCreate(savedInstanceState);
-	    StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build(); 	 	
-	    StrictMode.setThreadPolicy(policy); 
+        super.onCreate(savedInstanceState);
+        
+        if (DEVELOPER_MODE) {
+            StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
+                    .detectDiskReads()
+                    .detectDiskWrites()
+                    .detectNetwork()
+                    .penaltyLog()
+                    .build());
+        }
+
+	    
+
 
 	    //setContentView(R.layout.bufferlist);
 	    setContentView(R.layout.bufferlist_fragment);
@@ -60,6 +69,7 @@ public class WeechatActivity extends FragmentActivity implements BufferListFragm
 	    startService(new Intent(this, RelayService.class));
 
 	    setTitle(getString(R.string.app_version));
+        // todo Read preferences from background, its IO, 31ms strictmode!
 	    PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
 	    
         // Check whether the activity is using the layout version with
@@ -98,48 +108,18 @@ public class WeechatActivity extends FragmentActivity implements BufferListFragm
 	@Override
 	protected void onStop() {
 		super.onStop();
+
+        if (taskToggleConnection != null && taskToggleConnection.getStatus()!=AsyncTask.Status.FINISHED) {
+            taskToggleConnection.cancel(true);
+            taskToggleConnection = null;
+        }
+
 		if (mBound) {
 			unbindService(mConnection);
 			mBound = false;
 		}
 	}
 
-	@Override
-	// Build the options menu
-	public boolean onPrepareOptionsMenu(Menu menu) {
-		menu.clear();
-		if (getRsb() != null && getRsb().isConnected())
-			menu.add("Disconnect");
-		else
-			menu.add("Connect");
-		menu.add("Preferences");
-		menu.add("About");
-		menu.add("Quit");
-		return super.onPrepareOptionsMenu(menu);
-	}
-	@Override
-	// Handle the options when the user presses the Menu key
-	public boolean onOptionsItemSelected(MenuItem item) {
-		String s = (String) item.getTitle();
-		if (s.equals("Quit")) {
-			if (getRsb() != null)getRsb().shutdown();
-			unbindService(mConnection);
-			mBound = false;
-			stopService(new Intent(this, RelayService.class));
-			finish();
-		} else if (s.equals("Disconnect")) {
-			if (getRsb() != null)getRsb().shutdown();
-		} else if (s.equals("Connect")) {
-			if (getRsb() != null)getRsb().connect();
-		} else if (s.equals("About")) {
-			Intent i = new Intent(this, WeechatAboutActivity.class);
-			startActivity(i);
-		} else if (s.equals("Preferences")) {
-			Intent i = new Intent(this, WeechatPreferencesActivity.class);
-			startActivity(i);
-		}
-		return true;
-	}
 
 	
 	ServiceConnection mConnection = new ServiceConnection() {
@@ -179,7 +159,11 @@ public class WeechatActivity extends FragmentActivity implements BufferListFragm
 				@Override
 				public void run() {
 					BufferListAdapter m_adapter = new BufferListAdapter(WeechatActivity.this, getRsb());
-   					Log.d(TAG, "onConnect m_adapter:" + m_adapter);
+
+                    /*// Create and update the hotlist
+                    hotlistListAdapter = new HotlistListAdapter(WeechatActivity.this, rsb);*/
+
+                    Log.d(TAG, "onConnect m_adapter:" + m_adapter);
    					Log.d(TAG, "onConnect bfl:" + bfl);
 					//bfl.getListAdapter().onBuffersChanged();
    					// In porttrait mode FIXME this should probably live somewhere else
@@ -194,6 +178,80 @@ public class WeechatActivity extends FragmentActivity implements BufferListFragm
 			});
 		}
 	}
+
+    @Override
+    // Handle the options when the user presses the Menu key
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch(item.getItemId()) {
+            case R.id.menu_connection_state: {
+                if (rsb != null) {
+                    taskToggleConnection = new SocketToggleConnection();
+                    taskToggleConnection.execute();
+                }
+                break;
+            }
+            case R.id.menu_preferences: {
+                Intent i = new Intent(this, WeechatPreferencesActivity.class);
+                startActivity(i);
+                break;
+            }
+            case R.id.menu_about: {
+                Intent i = new Intent(this, WeechatAboutActivity.class);
+                startActivity(i);
+                break;
+            }
+            case R.id.menu_quit: {
+                if (rsb != null)rsb.shutdown();
+                unbindService(mConnection);
+                mBound = false;
+                stopService(new Intent(this, RelayService.class));
+                finish();
+                break;
+            }
+            case R.id.menu_hotlist: {
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle("Hotlist");
+                builder.setAdapter(hotlistListAdapter, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int position) {
+                        HotlistItem hostlistItem = hotlistListAdapter.getItem(position);
+
+                        Intent intent = new Intent(WeechatActivity.this, WeechatChatviewActivity.class);
+                        intent.putExtra("buffer", hostlistItem.getFullName());
+                        startActivity(intent);
+                    }
+                });
+                builder.create().show();
+                break;
+            }
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu (Menu menu) {
+        Log.d(TAG, "onPrepareOptionsMenu()");
+
+
+        MenuItem connectionStatus = menu.findItem(R.id.wee_submenu);
+        if (connectionStatus != null) {
+            connectionStatus = connectionStatus.getSubMenu().findItem(R.id.menu_connection_state);
+            if (rsb != null & rsb.isConnected())
+                connectionStatus.setTitle(R.string.disconnect);
+            else
+                connectionStatus.setTitle(R.string.connect);
+        }
+
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater menuInflater = getSupportMenuInflater();
+        menuInflater.inflate(R.menu.menu_actionbar, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
 
 	@Override
 	public void onDisconnect() {
@@ -212,57 +270,25 @@ public class WeechatActivity extends FragmentActivity implements BufferListFragm
 
 	@Override
 	public void onError(String arg0) {
+		Log.d("WeechatActivity", "onError:" + arg0);
 		
 	}
-    public RelayServiceBinder getRServiceB() {
-    	return getRsb();
-    }
 
-    public void onBufferSelected(int position, Buffer buffer) {        
-    	// The user selected the buffer from the BufferlistFragment
-		Log.d(TAG, "onBufferSelected() position:" + position + " buffer:" + buffer );
-		
-        // Capture the buffer fragment from the activity layout
-        BufferFragment bufferFrag = (BufferFragment)
-                getSupportFragmentManager().findFragmentById(R.id.buffer_fragment);
+    protected class SocketToggleConnection extends AsyncTask<Void, Void, Boolean> {
 
+        @Override
+        protected Boolean doInBackground(Void... voids) {
+            if (rsb.isConnected())
+                rsb.shutdown();
+            else
+                return rsb.connect();
 
-        if (bufferFrag != null) {
-            // If buffer frag is available, we're in two-pane layout...
+            return false;
+        }
 
-            // Call a method in the BufferFragment to update its content
-            bufferFrag.updateBufferView(position, buffer.getFullName());
-        } else {
-            // If the frag is not available, we're in the one-pane layout and must swap frags...
-
-            // Create fragment and give it an argument for the selected article
-            BufferFragment newFragment = new BufferFragment();
-            Bundle args = new Bundle();
-            args.putInt(BufferFragment.ARG_POSITION, position);
-            args.putString("buffer", buffer.getFullName());
-            newFragment.setArguments(args);
-            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-
-            // Replace whatever is in the fragment_container view with this fragment,
-            // and add the transaction to the back stack so the user can navigate back
-            transaction.replace(R.id.fragment_container, newFragment);
-            transaction.addToBackStack(null);
-
-            // Commit the transaction
-            transaction.commit();
+        @Override
+        protected void onPostExecute(Boolean success) {
+            supportInvalidateOptionsMenu();
         }
     }
-
-    /**
-     * getter for the service binder, used by the BufferFragment
-     * @return rsb
-     */
-	public RelayServiceBinder getRsb() {
-		return rsb;
-	}
-	public void setRsb(RelayServiceBinder rsb) {
-		this.rsb = rsb;
-	}
-
-
 }

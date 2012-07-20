@@ -29,8 +29,6 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnKeyListener;
@@ -39,6 +37,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
 import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.BufferObserver;
 
@@ -73,9 +73,7 @@ public class WeechatChatviewActivity extends Activity implements OnClickListener
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
-
 	    super.onCreate(savedInstanceState);
-
 	    setContentView(R.layout.chatview_main);
 
 	    Bundle extras = getIntent().getExtras();
@@ -90,7 +88,7 @@ public class WeechatChatviewActivity extends Activity implements OnClickListener
 	    
 	    bufferName = extras.getString("buffer");
 
-	    setTitle("Weechat - " + bufferName);
+	    setTitle(bufferName);
 	    
 	    chatlines = (ListView) findViewById(R.id.chatview_lines);
         inputBox = (EditText)findViewById(R.id.chatview_input);
@@ -139,6 +137,10 @@ public class WeechatChatviewActivity extends Activity implements OnClickListener
 		//chatlineAdapter = new ChatLinesAdapter(this, buffer);
 		//chatlines.setAdapter(chatlineAdapter);
 		onLineAdded();
+		
+	    // Reset hotlist status
+	    rsb.getHotlistManager().removeHotlistItem(this.bufferName);
+
 	}
 	
 	ServiceConnection mConnection = new ServiceConnection() {
@@ -155,7 +157,6 @@ public class WeechatChatviewActivity extends Activity implements OnClickListener
 			// Only called when the background service crashes...
 		}
 	};
-	
 	
 	// Sends the message if necessary
 	Runnable messageSender = new Runnable(){
@@ -207,13 +208,15 @@ public class WeechatChatviewActivity extends Activity implements OnClickListener
 			String txt = inputBox.getText().toString();
 			if (tabCompletingInProgress == false) {
 				int currentPos = inputBox.getSelectionStart()-1;
+				if (currentPos < 0) return true;
+				
 				int start = currentPos;
 				// Search backwards to find the beginning of the word
 				while(start>0 && txt.charAt(start) != ' ') start--;
 				
 				if (start>0) start++;
 				String prefix = txt.substring(start, currentPos+1).toLowerCase();
-				if (prefix.length()<2) {
+				if (prefix.length()<1) {
 					//No tab completion
 					return true;
 				}
