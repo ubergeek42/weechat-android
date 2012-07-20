@@ -159,13 +159,13 @@ public class Color {
 		bgColor = BG_DEFAULT;
 	}
 	
-	private char getChar() {
+	private synchronized char getChar() {
 		if (index>=msg.length()) {
 			return ' ';
 		}
 		return msg.charAt(index++);
 	}
-	private char peekChar() {
+	private synchronized char peekChar() {
 		if (index>=msg.length()) {
 			return ' ';
 		}
