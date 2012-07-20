@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/wee_submenu"
+          android:showAsAction="always"
+          android:icon="@drawable/ic_launcher"
+          android:title="@string/wee_submenu">
+        <menu>
+            <item android:id="@+id/menu_connection_state"
+                  android:showAsAction="always|withText"
+                  android:title="ConnectionState?" />
+            <item android:id="@+id/menu_preferences"
+                  android:showAsAction="always|withText"
+                  android:title="@string/preferences" />
+            <item android:id="@+id/menu_about"
+                  android:showAsAction="always|withText"
+                  android:title="@string/about" />
+            <item android:id="@+id/menu_quit"
+                  android:showAsAction="always|withText"
+                  android:title="@string/quit" />
+        </menu>
+     </item>
+    <item android:id="@+id/menu_hotlist"
+            android:showAsAction="always"
+            android:title="@string/hotlist"/>
+</menu>

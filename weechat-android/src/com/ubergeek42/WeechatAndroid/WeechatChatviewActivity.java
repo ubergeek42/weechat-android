@@ -18,7 +18,6 @@ package com.ubergeek42.WeechatAndroid;
 import java.util.Arrays;
 import java.util.Vector;
 
-import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -29,8 +28,6 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnKeyListener;
@@ -39,10 +36,12 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
 import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.BufferObserver;
 
-public class WeechatChatviewActivity extends Activity implements OnClickListener, OnKeyListener, BufferObserver, OnSharedPreferenceChangeListener {
+public class WeechatChatviewActivity extends WeechatActivity implements OnClickListener, OnKeyListener, BufferObserver, OnSharedPreferenceChangeListener {
 
 	private ListView chatlines;
 	private EditText inputBox;
@@ -73,9 +72,7 @@ public class WeechatChatviewActivity extends Activity implements OnClickListener
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
-
 	    super.onCreate(savedInstanceState);
-
 	    setContentView(R.layout.chatview_main);
 
 	    Bundle extras = getIntent().getExtras();
@@ -90,7 +87,7 @@ public class WeechatChatviewActivity extends Activity implements OnClickListener
 	    
 	    bufferName = extras.getString("buffer");
 
-	    setTitle("Weechat - " + bufferName);
+	    setTitle(bufferName);
 	    
 	    chatlines = (ListView) findViewById(R.id.chatview_lines);
         inputBox = (EditText)findViewById(R.id.chatview_input);
@@ -139,6 +136,10 @@ public class WeechatChatviewActivity extends Activity implements OnClickListener
 		chatlineAdapter = new ChatLinesAdapter(this, buffer);
 		chatlines.setAdapter(chatlineAdapter);
 		onLineAdded();
+		
+	    // Reset hotlist status
+	    rsb.getHotlistManager().removeHotlistItem(this.bufferName);
+
 	}
 	
 	ServiceConnection mConnection = new ServiceConnection() {
