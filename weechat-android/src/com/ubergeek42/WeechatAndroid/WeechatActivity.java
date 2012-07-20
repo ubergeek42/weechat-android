@@ -19,15 +19,14 @@ import android.app.AlertDialog;
 import android.content.*;
 import android.os.*;
 import android.preference.PreferenceManager;
-import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
-import android.widget.ListView;
 
-import com.actionbarsherlock.app.SherlockActivity;
+import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
@@ -41,9 +40,10 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
 	private RelayServiceBinder rsb;
 	/*private ListView bufferlist;
 	private BufferListAdapter m_adapter;
-    private HotlistListAdapter hotlistListAdapter;*/
+    */
     private static final boolean DEVELOPER_MODE = true; // todo: maven to configure this variable
     private SocketToggleConnection taskToggleConnection;
+    private HotlistListAdapter hotlistListAdapter;
 
     /** Called when the activity is first created. */
 	@Override
@@ -58,9 +58,6 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
                     .penaltyLog()
                     .build());
         }
-
-	    
-
 
 	    //setContentView(R.layout.bufferlist);
 	    setContentView(R.layout.bufferlist_fragment);
@@ -154,14 +151,16 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
         final BufferListFragment bfl = (BufferListFragment)
                 getSupportFragmentManager().findFragmentById(R.id.bufferlist_fragment);
 		if (rsb != null && rsb.isConnected()) {
-			// Create and update the buffer list when we connect to the service
+
+            // Create and update the hotlist
+            hotlistListAdapter = new HotlistListAdapter(WeechatActivity.this, rsb);
+
 			runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
+                    // Create and update the buffer list when we connect to the service
 					BufferListAdapter m_adapter = new BufferListAdapter(WeechatActivity.this, getRsb());
 
-                    /*// Create and update the hotlist
-                    hotlistListAdapter = new HotlistListAdapter(WeechatActivity.this, rsb);*/
 
                     Log.d(TAG, "onConnect m_adapter:" + m_adapter);
    					Log.d(TAG, "onConnect bfl:" + bfl);
@@ -272,6 +271,52 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
 	public void onError(String arg0) {
 		Log.d("WeechatActivity", "onError:" + arg0);
 		
+	}
+
+    public void onBufferSelected(int position, Buffer buffer) {
+    	// The user selected the buffer from the BufferlistFragment
+		Log.d(TAG, "onBufferSelected() position:" + position + " buffer:" + buffer );
+
+        // Capture the buffer fragment from the activity layout
+        BufferFragment bufferFrag = (BufferFragment)
+                getSupportFragmentManager().findFragmentById(R.id.buffer_fragment);
+
+
+        if (bufferFrag != null) {
+            // If buffer frag is available, we're in two-pane layout...
+
+            // Call a method in the BufferFragment to update its content
+            bufferFrag.updateBufferView(position, buffer.getFullName());
+        } else {
+            // If the frag is not available, we're in the one-pane layout and must swap frags...
+
+            // Create fragment and give it an argument for the selected article
+            BufferFragment newFragment = new BufferFragment();
+            Bundle args = new Bundle();
+            args.putInt(BufferFragment.ARG_POSITION, position);
+            args.putString("buffer", buffer.getFullName());
+            newFragment.setArguments(args);
+            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+
+            // Replace whatever is in the fragment_container view with this fragment,
+            // and add the transaction to the back stack so the user can navigate back
+            transaction.replace(R.id.fragment_container, newFragment);
+            transaction.addToBackStack(null);
+
+            // Commit the transaction
+            transaction.commit();
+        }
+    }
+
+    /**
+     * getter for the service binder, used by the BufferFragment
+     * @return rsb
+     */
+	public RelayServiceBinder getRsb() {
+		return rsb;
+	}
+	public void setRsb(RelayServiceBinder rsb) {
+		this.rsb = rsb;
 	}
 
     protected class SocketToggleConnection extends AsyncTask<Void, Void, Boolean> {
