@@ -17,9 +17,7 @@ package com.ubergeek42.WeechatAndroid;
 
 import android.app.AlertDialog;
 import android.content.*;
-import android.os.Bundle;
-import android.os.IBinder;
-import android.os.StrictMode;
+import android.os.*;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
@@ -45,12 +43,20 @@ public class WeechatActivity extends SherlockActivity implements OnItemClickList
 	private ListView bufferlist;
 	private BufferListAdapter m_adapter;
     private HotlistListAdapter hotlistListAdapter;
+    private static final boolean DEVELOPER_MODE = true; // todo: maven to configure this variable
+    private SocketToggleConnection taskToggleConnection;
 
     /** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
-		StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-		StrictMode.setThreadPolicy(policy); 
+        if (DEVELOPER_MODE) {
+            StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
+                    .detectDiskReads()
+                    .detectDiskWrites()
+                    .detectNetwork()
+                    .penaltyLog()
+                    .build());
+        }
 
 	    super.onCreate(savedInstanceState);
 	    
@@ -78,6 +84,12 @@ public class WeechatActivity extends SherlockActivity implements OnItemClickList
 	@Override
 	protected void onStop() {
 		super.onStop();
+
+        if (taskToggleConnection != null && taskToggleConnection.getStatus()!=AsyncTask.Status.FINISHED) {
+            taskToggleConnection.cancel(true);
+            taskToggleConnection = null;
+        }
+
 		if (mBound) {
 			unbindService(mConnection);
 			mBound = false;
@@ -154,12 +166,8 @@ public class WeechatActivity extends SherlockActivity implements OnItemClickList
         switch(item.getItemId()) {
             case R.id.menu_connection_state: {
                 if (rsb != null) {
-                    if (rsb.isConnected()) {
-                        rsb.shutdown();
-                    } else {
-                        rsb.connect();
-                    }
-                    supportInvalidateOptionsMenu();
+                    taskToggleConnection = new SocketToggleConnection();
+                    taskToggleConnection.execute();
                 }
                 break;
             }
@@ -246,4 +254,21 @@ public class WeechatActivity extends SherlockActivity implements OnItemClickList
 		Log.d("WeechatActivity", "onError:" + arg0);
 		
 	}
+
+    protected class SocketToggleConnection extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            if (rsb.isConnected())
+                rsb.shutdown();
+            else
+                rsb.connect();
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void ignore) {
+            supportInvalidateOptionsMenu();
+        }
+    }
 }
