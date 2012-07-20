@@ -37,7 +37,6 @@ import android.widget.BaseAdapter;
 import android.widget.ListAdapter;
 import android.widget.TextView;
 
-import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.BufferLine;
 
