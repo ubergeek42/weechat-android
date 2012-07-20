@@ -51,9 +51,13 @@ public class RelayService extends Service implements RelayConnectionHandler, OnS
 	String port;
 	String pass;
 	
-	boolean useStunnel = false;
 	String stunnelCert;
 	String stunnelPass;
+	
+	String sshHost;
+	String sshPass;
+	String sshPort;
+	String sshUser;
 
 	RelayConnection relayConnection;
 	BufferManager bufferManager;
@@ -118,8 +122,14 @@ public class RelayService extends Service implements RelayConnectionHandler, OnS
 		
 		stunnelCert = prefs.getString("stunnel_cert", "");
 		stunnelPass = prefs.getString("stunnel_pass", "");
-		if (!stunnelCert.equals(""))useStunnel = true;
-					
+		
+		sshHost = prefs.getString("ssh_host", "");
+		sshUser = prefs.getString("ssh_user", "");
+		sshPass = prefs.getString("ssh_pass","");
+		sshPort = prefs.getString("ssh_port","22");
+		
+		
+		
 		// If no host defined, signal them to edit their preferences
 		if (host == null) {
 			Notification notification = new Notification(R.drawable.ic_launcher, "Click to edit your preferences and connect", System.currentTimeMillis());
@@ -150,11 +160,21 @@ public class RelayService extends Service implements RelayConnectionHandler, OnS
 		hotlistHandler.registerHighlightHandler(this);
 		
 		relayConnection = new RelayConnection(host, port, pass);
-		if (useStunnel) {
+		String connType = prefs.getString("connection_type","plain");
+		if (connType.equals("ssh")) {
+			relayConnection.setSSHHost(sshHost);
+			relayConnection.setSSHUsername(sshUser);
+			relayConnection.setSSHPort(sshPort);
+			relayConnection.setSSHPassword(sshPass);
+			relayConnection.setConnectionType(ConnectionType.SSHTUNNEL);			
+		} else if (connType.equals("stunnel")) {
 			relayConnection.setStunnelCert(stunnelCert);
 			relayConnection.setStunnelKey(stunnelPass);
 			relayConnection.setConnectionType(ConnectionType.STUNNEL);
+		} else {
+			relayConnection.setConnectionType(ConnectionType.DEFAULT);
 		}
+
 		relayConnection.setConnectionHandler(this);
         try {
             relayConnection.connect();

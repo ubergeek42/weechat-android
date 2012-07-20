@@ -41,6 +41,9 @@ import javax.net.ssl.TrustManagerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.Session;
 import com.ubergeek42.weechat.Helper;
 import com.ubergeek42.weechat.relay.protocol.Data;
 import com.ubergeek42.weechat.relay.protocol.RelayObject;
@@ -52,7 +55,7 @@ import com.ubergeek42.weechat.relay.protocol.RelayObject;
 public class RelayConnection {
 
 	public enum ConnectionType {
-		STUNNEL, DEFAULT
+		STUNNEL, SSHTUNNEL, DEFAULT
 	}
 
 	private static Logger logger = LoggerFactory.getLogger(RelayConnection.class);
@@ -74,8 +77,17 @@ public class RelayConnection {
 	
 	private Thread currentConnection;
 	
+	/** Stunnel Settings */
 	private String stunnelCert;
 	private String stunnnelKeyPass;
+	
+	/** SSH Tunnel Settings */
+	private Session sshSession;
+	private String sshHost;
+	private String sshUsername;
+	private String sshPassword;
+	private int sshPort = 22;
+	private int sshLocalPort = 22231;
 	
 	/**
 	 * Sets up a connection to a weechat relay server
@@ -92,20 +104,27 @@ public class RelayConnection {
 	}
 	
 	/**
-	 * Sets the connection type(Currently supports Stunnel, and normal socket connections)
-	 * @param ct - The connection type(STUNNEL or DEFAULT)
+	 * Sets the connection type(Currently supports Stunnel, SSH Tunnel, and normal socket connections)
+	 * @param ct - The connection type(SSHTUNNEL, STUNNEL, or DEFAULT)
 	 */
 	public void setConnectionType(ConnectionType ct) {
 		switch(ct) {
 		case STUNNEL:
+			logger.debug("Connection type set to: STUNNEL");
 			currentConnection = createStunnelSocketConnection;
+			break;
+		case SSHTUNNEL:
+			logger.debug("Connection type set to: SSH TUNNEL");
+			currentConnection = createSSHTunnelSocketConnection;
 			break;
 		case DEFAULT:
 		default:
+			logger.debug("Connection type set to: DEFAULT");
 			currentConnection = createSocketConnection;
 		}
 	}
-	
+
+
 	/**
 	 * Sets whether to attempt reconnecting if disconnected
 	 * @param autoreconnect - Whether to autoreconnect or not
@@ -210,6 +229,20 @@ public class RelayConnection {
 	}
 	
 	/**
+	 * Does post connection setup(Sends initial commands/etc)
+	 */
+	private void postConnectionSetup() {
+		connected = true;
+		sendMsg(null, "init","password="+password+",compression=gzip");
+
+		socketReader.start();
+		
+		// Call any registered connection handlers
+		for (RelayConnectionHandler wrch : connectionHandlers) {
+			wrch.onConnect();
+		}
+	}
+	/**
 	 * Connects to the server in a new thread, so we can interrupt it if we want to cancel the connection
 	 */
 	private Thread createSocketConnection = new Thread(new Runnable() {
@@ -223,17 +256,9 @@ public class RelayConnection {
 				e.printStackTrace();
 				return;
 			}
+			postConnectionSetup();
 			
-			connected = true;
-			sendMsg(null, "init","password="+password+",compression=gzip");
-
-			socketReader.start();
-			
-			// Call any registered connection handlers
-			for (RelayConnectionHandler wrch : connectionHandlers) {
-				wrch.onConnect();
-			}
-			logger.trace("createSocketConnection finished");
+			logger.trace("plain - createSocketConnection finished");
 		}
 	});
 	
@@ -314,20 +339,70 @@ public class RelayConnection {
 			}
 				
 			
-			connected = true;
-			sendMsg(null, "init","password="+password+",compression=gzip");
-			
-			socketReader.start();
-			
-			// Call any registered connection handlers
-			for (RelayConnectionHandler wrch : connectionHandlers) {
-				wrch.onConnect();
-			}
-			logger.trace("createSocketConnection finished");
+			postConnectionSetup();
+			logger.trace("Stunnel - createSocketConnection finished");
 		}
 	});
 	
-	
+	/**
+	 * Host to connect to via ssh
+	 * @param host - Where to connect to
+	 */
+	public void setSSHHost(String host) {
+		sshHost = host;
+	}
+	/**
+	 * Username for ssh
+	 * @param user - the user to connect as
+	 */
+	public void setSSHUsername(String user) {
+		sshUsername = user;
+	}
+	/**
+	 * Set the port to connect to with SSH
+	 * @param port - the SSH port on the remote server
+	 */
+	public void setSSHPort(String port) {
+		sshPort = Integer.parseInt(port);
+	}
+	/**
+	 * Password for ssh
+	 * @param pass
+	 */
+	public void setSSHPassword(String pass) {
+		sshPassword = pass;
+	}
+	/**
+	 * Connects to the server(via an ssh tunnel) in a new thread, so we can interrupt it if we want to cancel the connection
+	 */
+	private Thread createSSHTunnelSocketConnection = new Thread(new Runnable() {
+		public void run() {
+			// You only need to execute this code once
+			try {
+				JSch jsch = new JSch();
+				sshSession = jsch.getSession(sshUsername, sshHost, sshPort);
+				sshSession.setPassword(sshPassword);
+				sshSession.setConfig("StrictHostKeyChecking", "no");
+				sshSession.connect();
+				sshSession.setPortForwardingL(sshLocalPort, serverString, port);
+			} catch (JSchException e) {
+				e.printStackTrace();
+			}
+
+			// Connect to the local SSH Tunnel
+			try {
+				sock = new Socket(InetAddress.getByName("127.0.0.1"), sshLocalPort);
+				outstream = sock.getOutputStream();
+				instream = sock.getInputStream();
+			} catch (IOException e) {
+				e.printStackTrace();
+				return;
+			}
+
+			postConnectionSetup();
+			logger.trace("SSH - createSocketConnection finished");
+		}
+	});
 	
 	/**
 	 * Reads data from the socket, breaks it into messages, and dispatches the handlers
@@ -423,7 +498,4 @@ public class RelayConnection {
 			logger.debug("Unhandled message: " + id);
 		}
 	}
-	
-	
-
 }
