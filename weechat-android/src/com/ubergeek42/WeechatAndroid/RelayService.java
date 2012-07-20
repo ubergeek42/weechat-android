@@ -110,7 +110,7 @@ public class RelayService extends Service implements RelayConnectionHandler, OnS
 		return super.onStartCommand(intent, flags, startId);
 	}
 	
-	public void connect() {
+	public boolean connect() {
 		// Load the preferences
 		host = prefs.getString("host", null);
 		pass = prefs.getString("password", "password");
@@ -129,17 +129,20 @@ public class RelayService extends Service implements RelayConnectionHandler, OnS
 			notification.setLatestEventInfo(this, getString(R.string.app_version), "Update settings", contentIntent);
 			notification.flags |= Notification.FLAG_ONGOING_EVENT | Notification.FLAG_NO_CLEAR;
 			notificationManger.notify(NOTIFICATION_ID, notification);
-			return;
+			return false;
 		}
 		
 		// Only connect if we aren't already connected
 		if ((relayConnection != null) && (relayConnection.isConnected())) {
-			return;
+			return false;
 		}
 		
 		shutdown = false;
 		
 		bufferManager = new BufferManager();
+        hotlistManager = new HotlistManager();
+
+        hotlistManager.setBufferManager(bufferManager);
 		msgHandler = new LineHandler(bufferManager);
 		nickHandler = new NicklistHandler(bufferManager);
 		hotlistHandler = new HotlistHandler(bufferManager, hotlistManager);
@@ -157,7 +160,9 @@ public class RelayService extends Service implements RelayConnectionHandler, OnS
             relayConnection.connect();
         } catch (IOException e) {
             showNotification(null, String.format("Error connecting: %s", e.getMessage()));
+            return false;
         }
+        return true;
     }
 	
 	void resetNotification() {

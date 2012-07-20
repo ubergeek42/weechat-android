@@ -46,8 +46,8 @@ public class RelayServiceBinder extends Binder {
 		return relayService.relayConnection.isConnected();
 	}
 	
-	public void connect() {
-		relayService.connect();
+	public boolean connect() {
+		return relayService.connect();
 	}
 
 	

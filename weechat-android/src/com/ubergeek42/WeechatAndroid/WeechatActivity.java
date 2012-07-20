@@ -62,6 +62,7 @@ public class WeechatActivity extends SherlockActivity implements OnItemClickList
 	    
 	    setContentView(R.layout.bufferlist);
 	    setTitle(getString(R.string.app_version));
+        // todo Read preferences from background, its IO, 31ms strictmode!
 	    PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
 	    
 	    bufferlist = (ListView) this.findViewById(R.id.bufferlist_list);
@@ -255,19 +256,20 @@ public class WeechatActivity extends SherlockActivity implements OnItemClickList
 		
 	}
 
-    protected class SocketToggleConnection extends AsyncTask<Void, Void, Void> {
+    protected class SocketToggleConnection extends AsyncTask<Void, Void, Boolean> {
 
         @Override
-        protected Void doInBackground(Void... voids) {
+        protected Boolean doInBackground(Void... voids) {
             if (rsb.isConnected())
                 rsb.shutdown();
             else
-                rsb.connect();
-            return null;
+                return rsb.connect();
+
+            return false;
         }
 
         @Override
-        protected void onPostExecute(Void ignore) {
+        protected void onPostExecute(Boolean success) {
             supportInvalidateOptionsMenu();
         }
     }
