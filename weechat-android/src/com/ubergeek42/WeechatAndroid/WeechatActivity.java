@@ -214,9 +214,10 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
                 builder.setAdapter(hotlistListAdapter, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int position) {
-                        HotlistItem hotlistItem = hotlistListAdapter.getItem(position);                        
+                        HotlistItem hotlistItem = hotlistListAdapter.getItem(position);
+                        String name = hotlistItem.getFullName();
                         // TODO get the proper position in the bufferlistadapter, does it matter?
-                        onBufferSelected(0, hotlistItem.getFullName());
+                        onBufferSelected(0, name);
                     }
                 });
                 builder.create().show();
@@ -279,6 +280,9 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
         // Capture the buffer fragment from the activity layout
         BufferFragment bufferFrag = (BufferFragment)
                 getSupportFragmentManager().findFragmentById(R.id.buffer_fragment);
+
+        //  Remove buffer from hotlist
+        rsb.getHotlistManager().removeHotlistItem(buffer);
 
 
         if (bufferFrag != null) {
