@@ -23,4 +23,5 @@
     <item android:id="@+id/menu_hotlist"
             android:showAsAction="always"
             android:title="@string/hotlist"/>
+    <item android:id="@+id/menu_nicklist" android:title="@string/nicklist_menu" android:showAsAction="always"></item>
 </menu>

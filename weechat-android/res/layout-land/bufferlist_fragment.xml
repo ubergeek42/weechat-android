@@ -13,5 +13,16 @@
               android:id="@+id/buffer_fragment"
               android:layout_width="match_parent"
               android:layout_height="match_parent" />
+    
+   <!--  <fragment android:name="com.ubergeek42.WeechatAndroid.NickListFragment"
+              android:id="@+id/nicklist_fragment"
+              android:layout_width="200dp"
+              android:layout_height="match_parent" />
+              
+              -->
+    
+    
+
+    
 
 </LinearLayout>

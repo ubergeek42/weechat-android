@@ -34,11 +34,13 @@ import com.actionbarsherlock.view.MenuItem;
 import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.HotlistItem;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
+import com.ubergeek42.weechat.relay.messagehandler.BufferManager;
 
 public class WeechatActivity extends SherlockFragmentActivity implements BufferListFragment.OnBufferSelectedListener, OnItemClickListener, RelayConnectionHandler {
 	private static final String TAG = "WeechatActivity";
 	private boolean mBound = false;
 	private RelayServiceBinder rsb;
+	private String currentBuffer;
 	/*private ListView bufferlist;
 	private BufferListAdapter m_adapter;
     */
@@ -223,6 +225,52 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
                 builder.create().show();
                 break;
             }
+            case R.id.menu_nicklist: {
+            	if(currentBuffer!=null) {
+		            NickListAdapter nicklistAdapter = new NickListAdapter(WeechatActivity.this, rsb,rsb.getBufferByName(currentBuffer).getNicks() );
+		            
+		            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		            builder.setTitle("Nicklist");
+		            builder.setAdapter(nicklistAdapter, new DialogInterface.OnClickListener() {
+		                @Override
+		                public void onClick(DialogInterface dialogInterface, int position) {
+		                	//TODO define something to happen here        	
+		                }
+		            });
+		            ;
+		            builder.create().show();
+            	}
+/*
+                // Capture the buffer fragment from the activity layout
+                //NickListFragment nlFrag = (NickListFragment) getSupportFragmentManager().findFragmentById(R.id.nicklist_fragment);
+                
+                // Create fragment and give it an argument for the selected article
+                BufferFragment newFragment = new BufferFragment();
+                Bundle args = new Bundle();
+                //args.putInt(BufferFragment.ARG_POSITION, position);
+                //args.putString("buffer", buffer);
+                newFragment.setArguments(args);
+                FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+
+                // Replace whatever is in the fragment_container view with this fragment,
+                // and add the transaction to the back stack so the user can navigate back
+                //transaction.replace(R.id.fragment_container, newFragment);
+                //transaction.addToBackStack(null);
+                
+               
+                //ft.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right);
+                NickListFragment nlFrag = new NickListFragment();
+                nlFrag.setListAdapter(nicklistAdapter);
+
+                //ft.replace(R.id.details_fragment_container, newFragment, "detailFragment");
+                ft.add(nlFrag, "nicklistfragment");
+
+                // Start the animated transition.
+                ft.commit();
+                */
+                break;
+        
+            }
         }
 
         return super.onOptionsItemSelected(item);
@@ -276,20 +324,24 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
     public void onBufferSelected(int position, String buffer) {
     	// The user selected the buffer from the BufferlistFragment
 		Log.d(TAG, "onBufferSelected() position:" + position + " buffer:" + buffer );
+		
+		currentBuffer = buffer;
+		
+		//  Remove buffer from hotlist
+		rsb.getHotlistManager().removeHotlistItem(buffer);
 
         // Capture the buffer fragment from the activity layout
         BufferFragment bufferFrag = (BufferFragment)
                 getSupportFragmentManager().findFragmentById(R.id.buffer_fragment);
-
-        //  Remove buffer from hotlist
-        rsb.getHotlistManager().removeHotlistItem(buffer);
-
-
+      
         if (bufferFrag != null) {
             // If buffer frag is available, we're in two-pane layout...
 
             // Call a method in the BufferFragment to update its content
             bufferFrag.updateBufferView(position, buffer);
+            
+
+
         } else {
             // If the frag is not available, we're in the one-pane layout and must swap frags...
 
