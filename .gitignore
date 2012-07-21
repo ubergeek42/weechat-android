@@ -8,5 +8,12 @@ libs
 *.iml
 *.iwl
 *.swp
+.metadata
+.classpath
 local.properties
+FragmentBasics
+actionbarsherlock
+eclipse-ws
+*.jar
+slf4j-1.6.6
 weechat-android/src/com/ubergeek42/weechat/GitVersion.java
