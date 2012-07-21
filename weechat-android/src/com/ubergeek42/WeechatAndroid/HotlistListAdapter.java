@@ -7,24 +7,21 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Adapter;
 import android.widget.BaseAdapter;
+import android.widget.ListAdapter;
 import android.widget.TextView;
 
 import com.ubergeek42.weechat.HotlistItem;
 import com.ubergeek42.weechat.relay.messagehandler.HotlistManager;
 import com.ubergeek42.weechat.relay.messagehandler.HotlistManagerObserver;
 
-public class HotlistListAdapter extends BaseAdapter implements Adapter, HotlistManagerObserver {
+public class HotlistListAdapter extends BaseAdapter implements ListAdapter, HotlistManagerObserver {
 	WeechatActivity parentActivity;
 	LayoutInflater inflater;
 	private static final String TAG = "HotlistListAdapter";
 	private HotlistManager hotlistManager;
 	protected ArrayList<HotlistItem> hotlist = new ArrayList<HotlistItem>();
     private boolean synthetic = true;
-    
-
-	
 	
 	public HotlistListAdapter(WeechatActivity parentActivity, RelayServiceBinder rsb) {
 		this.parentActivity = parentActivity;

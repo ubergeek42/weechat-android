@@ -15,6 +15,7 @@
  ******************************************************************************/
 package com.ubergeek42.WeechatAndroid;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.*;
 import android.os.*;
@@ -46,6 +47,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
     private HotlistListAdapter hotlistListAdapter;
 
     /** Called when the activity is first created. */
+	@SuppressLint("NewApi")
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -152,15 +154,14 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
                 getSupportFragmentManager().findFragmentById(R.id.bufferlist_fragment);
 		if (rsb != null && rsb.isConnected()) {
 
-            // Create and update the hotlist
-            hotlistListAdapter = new HotlistListAdapter(WeechatActivity.this, rsb);
 
 			runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
                     // Create and update the buffer list when we connect to the service
 					BufferListAdapter m_adapter = new BufferListAdapter(WeechatActivity.this, getRsb());
-
+		            // Create and update the hotlist
+		            hotlistListAdapter = new HotlistListAdapter(WeechatActivity.this, getRsb());
 
                     Log.d(TAG, "onConnect m_adapter:" + m_adapter);
    					Log.d(TAG, "onConnect bfl:" + bfl);
@@ -213,11 +214,9 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
                 builder.setAdapter(hotlistListAdapter, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int position) {
-                        HotlistItem hostlistItem = hotlistListAdapter.getItem(position);
-
-                        Intent intent = new Intent(WeechatActivity.this, WeechatChatviewActivity.class);
-                        intent.putExtra("buffer", hostlistItem.getFullName());
-                        startActivity(intent);
+                        HotlistItem hotlistItem = hotlistListAdapter.getItem(position);                        
+                        // TODO get the proper position in the bufferlistadapter, does it matter?
+                        onBufferSelected(0, hotlistItem.getFullName());
                     }
                 });
                 builder.create().show();
@@ -273,7 +272,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
 		
 	}
 
-    public void onBufferSelected(int position, Buffer buffer) {
+    public void onBufferSelected(int position, String buffer) {
     	// The user selected the buffer from the BufferlistFragment
 		Log.d(TAG, "onBufferSelected() position:" + position + " buffer:" + buffer );
 
@@ -286,7 +285,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
             // If buffer frag is available, we're in two-pane layout...
 
             // Call a method in the BufferFragment to update its content
-            bufferFrag.updateBufferView(position, buffer.getFullName());
+            bufferFrag.updateBufferView(position, buffer);
         } else {
             // If the frag is not available, we're in the one-pane layout and must swap frags...
 
@@ -294,7 +293,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
             BufferFragment newFragment = new BufferFragment();
             Bundle args = new Bundle();
             args.putInt(BufferFragment.ARG_POSITION, position);
-            args.putString("buffer", buffer.getFullName());
+            args.putString("buffer", buffer);
             newFragment.setArguments(args);
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 

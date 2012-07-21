@@ -23,7 +23,7 @@ public class BufferListFragment extends ListFragment {
     public interface OnBufferSelectedListener {
         /** Called by BufferlistFragment when a list item is selected 
          * @param b */
-        public void onBufferSelected(int position, Buffer b);
+        public void onBufferSelected(int position, String fullBufferName);
     }
 
     @Override
@@ -72,7 +72,7 @@ public class BufferListFragment extends ListFragment {
     	// Get the current buffer
 		Buffer b = (Buffer) getListView().getItemAtPosition(position);
 
-        mCallback.onBufferSelected(position, b);
+        mCallback.onBufferSelected(position, b.getFullName());
         
         // Set the item as checked to be highlighted when in two-pane layout
         getListView().setItemChecked(position, true);
