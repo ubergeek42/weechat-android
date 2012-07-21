@@ -21,7 +21,6 @@ public class HotlistListAdapter extends BaseAdapter implements ListAdapter, Hotl
 	private static final String TAG = "HotlistListAdapter";
 	private HotlistManager hotlistManager;
 	protected ArrayList<HotlistItem> hotlist = new ArrayList<HotlistItem>();
-    private boolean synthetic = true;
 	
 	public HotlistListAdapter(WeechatActivity parentActivity, RelayServiceBinder rsb) {
 		this.parentActivity = parentActivity;
@@ -45,12 +44,11 @@ public class HotlistListAdapter extends BaseAdapter implements ListAdapter, Hotl
 		return position;
 	}
 
-
     static class ViewHolder {
         TextView hotlist;
         TextView title;
     }
-	
+   
 	@Override
 	public void onHotlistChanged() {
 		Log.d(TAG, "onHotlistChanged()");

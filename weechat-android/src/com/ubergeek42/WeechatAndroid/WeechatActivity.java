@@ -42,8 +42,10 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
 	private RelayServiceBinder rsb;
 	private String currentBuffer;
 	/*private ListView bufferlist;
+	*/
 	private BufferListAdapter m_adapter;
-    */
+	BufferListFragment bfl;
+
     private static final boolean DEVELOPER_MODE = true; // todo: maven to configure this variable
     private SocketToggleConnection taskToggleConnection;
     private HotlistListAdapter hotlistListAdapter;
@@ -53,7 +55,8 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
+		Log.d(TAG, "onCreate()");
+
         if (DEVELOPER_MODE) {
             StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
                     .detectDiskReads()
@@ -62,45 +65,60 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
                     .penaltyLog()
                     .build());
         }
+		// Start the service(if necessary)
+	    startService(new Intent(this, RelayService.class));
 
 	    //setContentView(R.layout.bufferlist);
 	    setContentView(R.layout.bufferlist_fragment);
 	    
-		// Start the service(if necessary)
-	    startService(new Intent(this, RelayService.class));
-
 	    setTitle(getString(R.string.app_version));
-        // todo Read preferences from background, its IO, 31ms strictmode!
-	    PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
-	    
         // Check whether the activity is using the layout version with
         // the fragment_container FrameLayout. If so, we must add the first fragment
         if (findViewById(R.id.fragment_container) != null) {
+    		Log.d(TAG, "onCreate() MARKER 1");
 
             // However, if we're being restored from a previous state,
             // then we don't need to do anything and should return or else
             // we could end up with overlapping fragments.
             // FIXME
-        	if (savedInstanceState != null) {
-                return;
-            }
+        	//if (savedInstanceState != null) {
+        	//	Log.d(TAG, "onCreate() MARKER 2");
+            //    return;
+            //}
 
-            BufferListFragment bufferlistFragment = new BufferListFragment();
+            bfl = new BufferListFragment();
 
             // In case this activity was started with special instructions from an Intent,
             // pass the Intent's extras to the fragment as arguments
-            bufferlistFragment.setArguments(getIntent().getExtras());
+            bfl.setArguments(getIntent().getExtras());
 
             // Add the fragment to the 'fragment_container' FrameLayout
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.fragment_container, bufferlistFragment).commit();
+                    .add(R.id.fragment_container, bfl).commit();
         }
-		//Log.d(TAG, "onCreate() bflf" + bufferlistFragment);
+        else {
+    		Log.d(TAG, "onCreate() MARKER 3");
+
+        	if (bfl == null) {
+        		Log.d(TAG, "onCreate() MARKER 4");
+				 bfl = (BufferListFragment)
+		                getSupportFragmentManager().findFragmentById(R.id.bufferlist_fragment);
+        	}
+
+        }
+		String[] message = {"Press Menu->Connect to get started"};
+		bfl.setListAdapter(new ArrayAdapter<String>(WeechatActivity.this, R.layout.tips_list_item, message));
+
+        // TODO Read preferences from background, its IO, 31ms strictmode!
+	    PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
+	    
+
 	}
 	
 	@Override
 	protected void onStart() {
 		super.onStart();
+		Log.d(TAG, "onStart()");
 
 		// Bind to the Relay Service
 	    bindService(new Intent(this, RelayService.class), mConnection, Context.BIND_AUTO_CREATE);
@@ -120,8 +138,6 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
 			mBound = false;
 		}
 	}
-
-
 	
 	ServiceConnection mConnection = new ServiceConnection() {
 		@Override
@@ -130,7 +146,6 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
 			getRsb().setRelayConnectionHandler(WeechatActivity.this);
 
 			mBound = true;
-			
 			// Check if the service is already connected to the weechat relay, and if so load it up
 			if (getRsb().isConnected()) {
 				WeechatActivity.this.onConnect();
@@ -151,30 +166,24 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
 
 	@Override
 	public void onConnect() {
-		Log.d(TAG, "onConnect()");
-        final BufferListFragment bfl = (BufferListFragment)
-                getSupportFragmentManager().findFragmentById(R.id.bufferlist_fragment);
+		Log.d(TAG, "onConnect()");       
 		if (rsb != null && rsb.isConnected()) {
-
+            // Create and update the buffer list when we connect to the service
+			m_adapter = new BufferListAdapter(WeechatActivity.this, getRsb());
+            // Create and update the hotlist
+            hotlistListAdapter = new HotlistListAdapter(WeechatActivity.this, getRsb());
+				Log.d(TAG, "onConnect bfl1:" + bfl);
 
 			runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
-                    // Create and update the buffer list when we connect to the service
-					BufferListAdapter m_adapter = new BufferListAdapter(WeechatActivity.this, getRsb());
-		            // Create and update the hotlist
-		            hotlistListAdapter = new HotlistListAdapter(WeechatActivity.this, getRsb());
-
-                    Log.d(TAG, "onConnect m_adapter:" + m_adapter);
-   					Log.d(TAG, "onConnect bfl:" + bfl);
+   					Log.d(TAG, "onConnect bfl2:" + bfl);
 					//bfl.getListAdapter().onBuffersChanged();
    					// In porttrait mode FIXME this should probably live somewhere else
-   				    if(bfl==null) {
-   				    	BufferListFragment bflnew = new BufferListFragment();
-						bflnew.setListAdapter(m_adapter);
-   				    }else {
-						bfl.setListAdapter(m_adapter);
-   				    }
+   				    	//BufferListFragment bflnew = new BufferListFragment();
+						//bflnew.setListAdapter(m_adapter);
+
+					bfl.setListAdapter(m_adapter);
 					m_adapter.onBuffersChanged();
 				}
 			});
@@ -280,11 +289,10 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
     public boolean onPrepareOptionsMenu (Menu menu) {
         Log.d(TAG, "onPrepareOptionsMenu()");
 
-
         MenuItem connectionStatus = menu.findItem(R.id.wee_submenu);
         if (connectionStatus != null) {
             connectionStatus = connectionStatus.getSubMenu().findItem(R.id.menu_connection_state);
-            if (rsb != null & rsb.isConnected())
+            if (rsb != null && rsb.isConnected())
                 connectionStatus.setTitle(R.string.disconnect);
             else
                 connectionStatus.setTitle(R.string.connect);
@@ -339,12 +347,9 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
 
             // Call a method in the BufferFragment to update its content
             bufferFrag.updateBufferView(position, buffer);
-            
-
 
         } else {
             // If the frag is not available, we're in the one-pane layout and must swap frags...
-
             // Create fragment and give it an argument for the selected article
             BufferFragment newFragment = new BufferFragment();
             Bundle args = new Bundle();
