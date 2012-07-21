@@ -25,16 +25,24 @@
 			<groupId>com.google.android</groupId>
 			<artifactId>support-v4</artifactId>
 		</dependency>
+
 		<dependency>
 			<groupId>com.ubergeek42.weechatandroid</groupId>
 			<artifactId>weechat-relay</artifactId>
 			<version>0.8-SNAPSHOT</version>
 			<type>jar</type>
 		</dependency>
+
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<scope>test</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
+			<version>1.6.6</version>
 		</dependency>
 	</dependencies>
 
