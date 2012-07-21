@@ -61,6 +61,7 @@ public class WeechatPreferencesActivity extends PreferenceActivity implements On
 	    
 	    prefixPref = (ListPreference) getPreferenceScreen().findPreference("prefix_align");
 	    connectionTypePref = (ListPreference) getPreferenceScreen().findPreference("connection_type");
+	    setTitle(R.string.preferences);
 	}
 
 	@Override
