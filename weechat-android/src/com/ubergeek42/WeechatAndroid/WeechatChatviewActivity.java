@@ -18,6 +18,7 @@ package com.ubergeek42.WeechatAndroid;
 import java.util.Arrays;
 import java.util.Vector;
 
+import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -28,6 +29,8 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnKeyListener;
@@ -36,12 +39,10 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuItem;
 import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.BufferObserver;
 
-public class WeechatChatviewActivity extends WeechatActivity implements OnClickListener, OnKeyListener, BufferObserver, OnSharedPreferenceChangeListener {
+public class WeechatChatviewActivity extends Activity implements OnClickListener, OnKeyListener, BufferObserver, OnSharedPreferenceChangeListener {
 
 	private ListView chatlines;
 	private EditText inputBox;
@@ -133,8 +134,8 @@ public class WeechatChatviewActivity extends WeechatActivity implements OnClickL
 		// Subscribe to the buffer(gets the lines for it, and gets nicklist)
 		rsb.subscribeBuffer(buffer.getPointer());
 		
-		chatlineAdapter = new ChatLinesAdapter(this, buffer);
-		chatlines.setAdapter(chatlineAdapter);
+		//chatlineAdapter = new ChatLinesAdapter(this, buffer);
+		//chatlines.setAdapter(chatlineAdapter);
 		onLineAdded();
 		
 	    // Reset hotlist status
