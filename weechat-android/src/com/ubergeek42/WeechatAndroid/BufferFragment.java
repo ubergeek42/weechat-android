@@ -115,7 +115,17 @@ public class BufferFragment extends Fragment implements BufferObserver, OnKeyLis
 		buffer = rsb.getBufferByName(bufferName);
 		
 		// TODO this could be settings defined by user
-	    getActivity().setTitle(buffer.getShortName() + " " + buffer.getTitle());
+		StringBuilder tsb = new StringBuilder();
+		String buffername = buffer.getShortName();
+		String title = buffer.getTitle();
+		if(buffername != null) {
+			tsb.append(buffername);
+			tsb.append(" ");
+		}
+		if(title != null) {
+			tsb.append(title);
+		}
+	    getActivity().setTitle(tsb.toString());
 
 		buffer.addObserver(this);
 		
