@@ -22,6 +22,7 @@ import java.util.HashMap;
 import android.util.Log;
 
 import com.ubergeek42.weechat.Buffer;
+import com.ubergeek42.weechat.Color;
 import com.ubergeek42.weechat.HotlistItem;
 import com.ubergeek42.weechat.relay.RelayMessageHandler;
 import com.ubergeek42.weechat.relay.protocol.Hdata;
@@ -98,12 +99,23 @@ public class HotlistManager implements RelayMessageHandler {
 				HdataEntry hde = hdata.getItem(i);		
 				// TODO: check last item of path is line_data
 
+				// Is line displayed or hidden by filters, etc?
+				boolean displayed = (hde.getItem("displayed").asChar()==0x01);
+				if(!displayed)
+					continue;
+
 				String bPointer = hde.getItem("buffer").asPointer();
 				Buffer b = bufferManager.findByPointer(bPointer);
 				if(b==null) {
 					continue;
 				}
 				
+				// TODO Check for buffer type
+				// Ignore core / server, etc
+				
+				// TODO: should be based on tags for line(notify_none/etc), but these are inaccessible through the relay plugin
+				// Determine if buffer is a privmessage(check localvar "type" for value "private"), and notify for that too
+							
 				HotlistItem hli = new HotlistItem(hde, b);
 				boolean found = false;
 			    for (HotlistItem oldhli : hotlist) {
@@ -113,7 +125,6 @@ public class HotlistManager implements RelayMessageHandler {
 			    		oldhli.count_01 += hli.count_01;
 			    		oldhli.count_02 += hli.count_02;
 			    		oldhli.count_03 += hli.count_03;
-
 			    		found=true;
 			    		break;
 			    	}
@@ -121,9 +132,6 @@ public class HotlistManager implements RelayMessageHandler {
 			    // Only add to hotlist if there are actual messages
 			    if (!found && (hli.getHighlights() > 0 || hli.getUnread() > 0))
 			    	hotlist.add(hli);
-		
-				// TODO: should be based on tags for line(notify_none/etc), but these are inaccessible through the relay plugin
-				// Determine if buffer is a privmessage(check localvar "type" for value "private"), and notify for that too
 			}
 		}else {
 		
