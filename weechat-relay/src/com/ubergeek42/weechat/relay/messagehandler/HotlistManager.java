@@ -152,7 +152,7 @@ public class HotlistManager implements RelayMessageHandler {
 	        	if(b2Highlights > 0 || b1Highlights > 0) {
 	        		return b2Highlights - b1Highlights;
 	        	}
-	            return b2.buffer_number - b1.buffer_number;
+	            return b1.buffer_number - b2.buffer_number;
 	        }        
 		});
 
