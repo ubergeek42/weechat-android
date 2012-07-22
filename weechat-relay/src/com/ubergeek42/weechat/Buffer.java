@@ -86,7 +86,7 @@ public class Buffer {
 		observers.remove(ob);
 	}
 	
-	public void setNumber(int i)              { bufferNumber = i; }
+	public void setNumber(int i)              { this.bufferNumber = i; }
 	public void setPointer(String s)          { this.pointer = s; }
 	public void setFullName(String s)         { this.fullName = s; }
 	public void setShortName(String s)        { this.shortName = s; }
@@ -95,6 +95,7 @@ public class Buffer {
 	public void setType(int i)                { this.type = i; }
 	public void setLocals(Hashtable ht)       { this.local_vars = ht; }
 	
+	public int    getNumber() 			      { return bufferNumber; }
 	public String getPointer()                { return pointer; }
 	public String getFullName()               { return this.fullName; }
 	public String getTitle()                  { return this.title; }

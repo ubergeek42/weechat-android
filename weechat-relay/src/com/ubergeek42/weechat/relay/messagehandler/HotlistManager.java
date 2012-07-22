@@ -85,8 +85,6 @@ public class HotlistManager implements RelayMessageHandler {
 	    		return;
 	    	}
 	    }
-
-		
 	}
 	
 	@Override
@@ -154,7 +152,7 @@ public class HotlistManager implements RelayMessageHandler {
 	        	if(b2Highlights > 0 || b1Highlights > 0) {
 	        		return b2Highlights - b1Highlights;
 	        	}
-	            return b2.getUnread() - b1.getUnread();
+	            return b2.buffer_number - b1.buffer_number;
 	        }        
 		});
 

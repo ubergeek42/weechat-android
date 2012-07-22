@@ -87,6 +87,7 @@ public class HotlistItem {
 				highlight = true;
 			}
 		}
+		this.buffer_number = b.getNumber();
 		this.buffer = bPointer;
 		this.buffer_name = b.getFullName();
 		// FIXME get plugin name from buffer
