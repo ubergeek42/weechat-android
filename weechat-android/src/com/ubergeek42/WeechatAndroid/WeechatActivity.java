@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright 2012 Keith Johnson
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -70,7 +70,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
 
 	    //setContentView(R.layout.bufferlist);
 	    setContentView(R.layout.bufferlist_fragment);
-	    
+
 	    setTitle(getString(R.string.app_version));
         // Check whether the activity is using the layout version with
         // the fragment_container FrameLayout. If so, we must add the first fragment
@@ -111,10 +111,10 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
 
         // TODO Read preferences from background, its IO, 31ms strictmode!
 	    PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
-	    
+
 
 	}
-	
+
 	@Override
 	protected void onStart() {
 		super.onStart();
@@ -138,7 +138,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
 			mBound = false;
 		}
 	}
-	
+
 	ServiceConnection mConnection = new ServiceConnection() {
 		@Override
 		public void onServiceConnected(ComponentName name, IBinder service) {
@@ -166,7 +166,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
 
 	@Override
 	public void onConnect() {
-		Log.d(TAG, "onConnect()");       
+		Log.d(TAG, "onConnect()");
 		if (rsb != null && rsb.isConnected()) {
             // Create and update the buffer list when we connect to the service
 			m_adapter = new BufferListAdapter(WeechatActivity.this, getRsb());
@@ -237,13 +237,13 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
             case R.id.menu_nicklist: {
             	if(currentBuffer!=null) {
 		            NickListAdapter nicklistAdapter = new NickListAdapter(WeechatActivity.this, rsb,rsb.getBufferByName(currentBuffer).getNicks() );
-		            
+
 		            AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		            builder.setTitle("Nicklist");
 		            builder.setAdapter(nicklistAdapter, new DialogInterface.OnClickListener() {
 		                @Override
 		                public void onClick(DialogInterface dialogInterface, int position) {
-		                	//TODO define something to happen here        	
+		                	//TODO define something to happen here
 		                }
 		            });
 		            ;
@@ -278,7 +278,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
                 ft.commit();
                 */
                 break;
-        
+
             }
         }
 
@@ -289,14 +289,13 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
     public boolean onPrepareOptionsMenu (Menu menu) {
         Log.d(TAG, "onPrepareOptionsMenu()");
 
-        MenuItem connectionStatus = menu.findItem(R.id.wee_submenu);
-        if (connectionStatus != null) {
-            connectionStatus = connectionStatus.getSubMenu().findItem(R.id.menu_connection_state);
-            if (rsb != null && rsb.isConnected())
-                connectionStatus.setTitle(R.string.disconnect);
-            else
-                connectionStatus.setTitle(R.string.connect);
-        }
+        MenuItem connectionStatus = menu.findItem(R.id.menu_connection_state);
+
+        if (rsb != null && rsb.isConnected())
+            connectionStatus.setTitle(R.string.disconnect);
+        else
+            connectionStatus.setTitle(R.string.connect);
+
 
         return super.onPrepareOptionsMenu(menu);
     }
@@ -326,22 +325,22 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
 	@Override
 	public void onError(String arg0) {
 		Log.d("WeechatActivity", "onError:" + arg0);
-		
+
 	}
 
     public void onBufferSelected(int position, String buffer) {
     	// The user selected the buffer from the BufferlistFragment
 		Log.d(TAG, "onBufferSelected() position:" + position + " buffer:" + buffer );
-		
+
 		currentBuffer = buffer;
-		
+
 		//  Remove buffer from hotlist
 		rsb.getHotlistManager().removeHotlistItem(buffer);
 
         // Capture the buffer fragment from the activity layout
         BufferFragment bufferFrag = (BufferFragment)
                 getSupportFragmentManager().findFragmentById(R.id.buffer_fragment);
-      
+
         if (bufferFrag != null) {
             // If buffer frag is available, we're in two-pane layout...
 
