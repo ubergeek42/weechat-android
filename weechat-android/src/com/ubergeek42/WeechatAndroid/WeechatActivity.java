@@ -93,8 +93,6 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
 				 bfl = (BufferListFragment)getSupportFragmentManager().findFragmentById(R.id.bufferlist_fragment);
         	}
         }
-		//String[] message = {"Press Menu->Connect to get started"};
-		//bfl.setListAdapter(new ArrayAdapter<String>(WeechatActivity.this, R.layout.tips_list_item, message));
     }
 
 	@Override
@@ -130,7 +128,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
 		@Override
 		public void onServiceConnected(ComponentName name, IBinder service) {
 			rsb = (RelayServiceBinder) service;
-			rsb.setRelayConnectionHandler(WeechatActivity.this);
+			rsb.addRelayConnectionHandler(WeechatActivity.this);
 
 			mBound = true;
 			// Check if the service is already connected to the weechat relay, and if so load it up
@@ -141,6 +139,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
 
 		@Override
 		public void onServiceDisconnected(ComponentName name) {
+			rsb.removeRelayConnectionHandler(WeechatActivity.this);
 			mBound = false;
 			rsb = null;
 		}

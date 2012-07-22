@@ -51,8 +51,11 @@ public class RelayServiceBinder extends Binder {
 	}
 
 	
-	public void setRelayConnectionHandler(RelayConnectionHandler rch) {
-		relayService.connectionHandler = rch;
+	public void addRelayConnectionHandler(RelayConnectionHandler rch) {
+		relayService.connectionHandlers.add(rch);
+	}
+	public void removeRelayConnectionHandler(RelayConnectionHandler rch) {
+		relayService.connectionHandlers.remove(rch);
 	}
 	
 	

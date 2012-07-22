@@ -58,7 +58,6 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
         
         setRetainInstance(true);
         
-        String[] message = {"Press Menu->Connect to get started"};
 		setListAdapter(new ArrayAdapter<String>(getActivity(), R.layout.tips_list_item, message));
     }
     
@@ -91,7 +90,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
 		public void onServiceConnected(ComponentName name, IBinder service) {
 			Log.d("BufferListFragment","Bufferlistfragment onserviceconnected");
 			rsb = (RelayServiceBinder) service;
-			rsb.setRelayConnectionHandler(BufferListFragment.this);
+			rsb.addRelayConnectionHandler(BufferListFragment.this);
 			
 			mBound = true;
 			if (rsb.isConnected()) {
@@ -101,8 +100,10 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
 
 		@Override
 		public void onServiceDisconnected(ComponentName name) {
+			rsb.removeRelayConnectionHandler(BufferListFragment.this);
 			mBound = false;
 			rsb = null;
+			Log.d("DISCONNECT", "ONSERVICEDISCONNECTED called");
 		}
 	};
 
@@ -120,6 +121,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
 
 	@Override
 	public void onConnect() {
+		Log.d("BufferListFragment","onConnect called");
 		if (rsb != null && rsb.isConnected()) {
 			// Create and update the buffer list when we connect to the service
 			m_adapter = new BufferListAdapter((WeechatActivity) getActivity(), rsb);
@@ -139,7 +141,6 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
 		getActivity().runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
-				String[] message = {"Press Menu->Connect to get started"};
 				setListAdapter(new ArrayAdapter<String>(getActivity(), R.layout.tips_list_item, message));
 			}
 		});

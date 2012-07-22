@@ -15,6 +15,9 @@
  ******************************************************************************/
 package com.ubergeek42.WeechatAndroid.service;
 
+import java.io.IOException;
+import java.util.HashSet;
+
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -30,8 +33,6 @@ import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.WeechatChatviewActivity;
 import com.ubergeek42.WeechatAndroid.WeechatPreferencesActivity;
-import com.ubergeek42.WeechatAndroid.R.drawable;
-import com.ubergeek42.WeechatAndroid.R.string;
 import com.ubergeek42.WeechatAndroid.notifications.HotlistHandler;
 import com.ubergeek42.WeechatAndroid.notifications.HotlistObserver;
 import com.ubergeek42.weechat.relay.RelayConnection;
@@ -44,8 +45,6 @@ import com.ubergeek42.weechat.relay.messagehandler.LineHandler;
 import com.ubergeek42.weechat.relay.messagehandler.NicklistHandler;
 import com.ubergeek42.weechat.relay.messagehandler.UpgradeHandler;
 import com.ubergeek42.weechat.relay.messagehandler.UpgradeObserver;
-
-import java.io.IOException;
 
 public class RelayService extends Service implements RelayConnectionHandler, OnSharedPreferenceChangeListener, HotlistObserver, UpgradeObserver {
 
@@ -71,7 +70,7 @@ public class RelayService extends Service implements RelayConnectionHandler, OnS
 	NicklistHandler nickHandler;
 	HotlistHandler hotlistHandler;
 	HotlistManager hotlistManager;
-	RelayConnectionHandler connectionHandler;
+	HashSet<RelayConnectionHandler> connectionHandlers = new HashSet<RelayConnectionHandler>();
 	private SharedPreferences prefs;
 	private boolean shutdown;
 	private boolean disconnected;
@@ -290,16 +289,18 @@ public class RelayService extends Service implements RelayConnectionHandler, OnS
 		// Subscribe to any future changes
 		relayConnection.sendMsg("sync");
 		
-		if (connectionHandler != null)
-			connectionHandler.onConnect();
+		for (RelayConnectionHandler rch : connectionHandlers) {
+			rch.onConnect();
+		}
 	}
 	
 	@Override
 	public void onDisconnect() {
 		if(disconnected) return; // Only do the disconnect handler once
 		// :( aww disconnected
-		if (connectionHandler != null)
-			connectionHandler.onDisconnect();
+		for (RelayConnectionHandler rch : connectionHandlers) {
+			rch.onDisconnect();
+		}
 
 		disconnected = true;
 		
@@ -312,10 +313,11 @@ public class RelayService extends Service implements RelayConnectionHandler, OnS
 		}
 	}
 	@Override
-	public void onError(String arg0) {
+	public void onError(String error) {
 		// TODO Auto-generated method stub
-		
-		
+		for (RelayConnectionHandler rch : connectionHandlers) {
+			rch.onError(error);
+		}	
 	}
 
 	public void shutdown() {
