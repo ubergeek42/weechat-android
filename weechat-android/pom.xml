@@ -32,12 +32,6 @@
 			<groupId>com.google.android</groupId>
 			<artifactId>support-v4</artifactId>
 		</dependency>
-		<dependency>
-		  <groupId>com.actionbarsherlock</groupId>
-		  <artifactId>library</artifactId>
-		  <version>4.1.0</version>
-		  <type>apklib</type>
-		</dependency>
 		
 		<dependency>
 			<groupId>org.slf4j</groupId>
@@ -118,12 +112,37 @@
 	
 	
 	<profiles>
+	    <!-- Eclipse isn't very smart, don't add dependencies for actionbarsherlock, and make the support lib provided -->
+	    <profile>
+	        <id>eclipse-m2e</id>
+	        <activation>
+	            <property>
+	                <name>m2e.version</name>
+                </property>
+            </activation>
+            <dependencies>
+                <dependency>
+					<groupId>com.google.android</groupId>
+					<artifactId>support-v4</artifactId>
+					<scope>provided</scope>
+				</dependency>
+            </dependencies>
+	    </profile>
+	    
 		<profile>
 			<id>standard</id>
 			<activation><activeByDefault>true</activeByDefault></activation>
 			<properties>
 				<debugBuild>true</debugBuild>
-			</properties>			
+			</properties>
+			<dependencies>
+			    <dependency>
+                    <groupId>com.actionbarsherlock</groupId>
+                    <artifactId>library</artifactId>
+                    <version>4.1.0</version>
+                    <type>apklib</type>
+                </dependency>
+			</dependencies>
 		</profile>
 		<profile>
 			<id>release</id>
@@ -136,6 +155,14 @@
 			<properties>
 				<debugBuild>false</debugBuild>
 			</properties>
+			<dependencies>
+			    <dependency>
+                    <groupId>com.actionbarsherlock</groupId>
+                    <artifactId>library</artifactId>
+                    <version>4.1.0</version>
+                    <type>apklib</type>
+                </dependency>
+			</dependencies>
 		</profile>
 	</profiles>
 </project>

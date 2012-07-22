@@ -1,5 +1,6 @@
 package com.ubergeek42.relayexample;
 
+import java.io.IOException;
 import java.util.LinkedList;
 
 import com.ubergeek42.weechat.Buffer;
@@ -14,11 +15,11 @@ import com.ubergeek42.weechat.relay.messagehandler.NicklistHandler;
 public class RelayExample implements BufferManagerObserver, RelayConnectionHandler {
 	static BufferManager bufferManager = new BufferManager();
 	private RelayConnection relay;
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		new RelayExample().demo();
 	}
 
-	private void demo() {
+	private void demo() throws IOException {
 		String server = "127.0.0.1";
 		String port = "8001";
 		String password = "testpassword";
