@@ -3,20 +3,15 @@ package com.ubergeek42.WeechatAndroid.fragments;
 import android.app.Activity;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.v4.app.ListFragment;
-import com.ubergeek42.WeechatAndroid.NickListAdapter;
-import com.ubergeek42.WeechatAndroid.R;
-import com.ubergeek42.WeechatAndroid.R.id;
-import com.ubergeek42.WeechatAndroid.service.RelayServiceBinder;
-
 import android.util.Log;
 import android.view.View;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ListView;
 
-public class NickListFragment extends ListFragment {
+import com.actionbarsherlock.app.SherlockListFragment;
+import com.ubergeek42.WeechatAndroid.R;
+import com.ubergeek42.WeechatAndroid.service.RelayServiceBinder;
+
+public class NickListFragment extends SherlockListFragment {
 	private static final String TAG = "NickListFragment";
 	private static final String[] message = {"Press Menu->Connect to get started"};
 	RelayServiceBinder rsb;

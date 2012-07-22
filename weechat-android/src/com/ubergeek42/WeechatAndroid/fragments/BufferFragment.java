@@ -45,7 +45,7 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
     private boolean mBound;
     private RelayServiceBinder rsb;
     
-    private String bufferName;
+    private String bufferName = "";
     private Buffer buffer;
 	
 	private ChatLinesAdapter chatlineAdapter;
@@ -163,8 +163,6 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
         
 		chatlines.setAdapter(new ArrayAdapter<String>(getActivity(), R.layout.tips_list_item, message));
         chatlines.setEmptyView(getView().findViewById(android.R.id.empty));
-
-        Log.d(TAG, rsb + bufferName + "");
 
 		buffer = rsb.getBufferByName(bufferName);
 		

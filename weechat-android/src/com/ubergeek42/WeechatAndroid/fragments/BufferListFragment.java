@@ -64,7 +64,9 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     @Override
     public void onStart() {
         super.onStart();
-        		
+        
+        getActivity().setTitle(getString(R.string.app_version));
+        
         // When in two-pane layout, set the listview to highlight the selected list item
         // (We do this during onStart because at the point the listview is available.)
         if (getFragmentManager().findFragmentById(R.id.buffer_fragment) != null) {

@@ -64,8 +64,6 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
 	    // Load the layout
 	    setContentView(R.layout.bufferlist_fragment);
 
-	    setTitle(getString(R.string.app_version));
-
 	    if (findViewById(R.id.fragment_container) == null) {
 	    	tabletView = true;
 	    }
@@ -92,13 +90,14 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
         	if (bfl == null) {
 				 bfl = (BufferListFragment)getSupportFragmentManager().findFragmentById(R.id.bufferlist_fragment);
         	}
+        	setTitle(getString(R.string.app_version));
         }
     }
 
 	@Override
 	protected void onStart() {
 		super.onStart();
-
+		
 		// Bind to the Relay Service
 	    bindService(new Intent(this, RelayService.class), mConnection, Context.BIND_AUTO_CREATE);
 	}
