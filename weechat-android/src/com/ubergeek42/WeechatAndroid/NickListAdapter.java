@@ -16,6 +16,7 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.ubergeek42.WeechatAndroid.service.RelayServiceBinder;
 import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.BufferObserver;
 import com.ubergeek42.weechat.HotlistItem;

@@ -39,6 +39,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 
+import com.ubergeek42.WeechatAndroid.service.RelayService;
+import com.ubergeek42.WeechatAndroid.service.RelayServiceBinder;
 import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.BufferObserver;
 

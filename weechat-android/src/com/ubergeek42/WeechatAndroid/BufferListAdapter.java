@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
+import android.app.Activity;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.graphics.Color;
@@ -29,19 +30,20 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
+import com.ubergeek42.WeechatAndroid.service.RelayServiceBinder;
 import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.relay.messagehandler.BufferManager;
 import com.ubergeek42.weechat.relay.messagehandler.BufferManagerObserver;
 
 public class BufferListAdapter extends BaseAdapter implements BufferManagerObserver, OnSharedPreferenceChangeListener {
-	WeechatActivity parentActivity;
+	Activity parentActivity;
 	LayoutInflater inflater;
 	private BufferManager bufferManager;
 	protected ArrayList<Buffer> buffers = new ArrayList<Buffer>();
 	private SharedPreferences prefs;
 	private boolean enableBufferSorting;
 	
-	public BufferListAdapter(WeechatActivity parentActivity, RelayServiceBinder rsb) {
+	public BufferListAdapter(Activity parentActivity, RelayServiceBinder rsb) {
 		this.parentActivity = parentActivity;
 		this.inflater = LayoutInflater.from(parentActivity);
 		

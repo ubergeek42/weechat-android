@@ -3,7 +3,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>com.ubergeek42.weechatandroid</groupId>
 	<artifactId>weechat-relay</artifactId>
 	<name>WeechatRelay</name>
 	<packaging>apklib</packaging>
@@ -21,10 +20,10 @@
 			<artifactId>android</artifactId>
 			<scope>provided</scope>
 		</dependency>
-		<dependency>
+		<!-- <dependency>
 			<groupId>com.google.android</groupId>
 			<artifactId>support-v4</artifactId>
-		</dependency>
+		</dependency>-->
 
 		<!--<dependency>
 			<groupId>junit</groupId>

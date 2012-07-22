@@ -15,7 +15,6 @@
  ******************************************************************************/
 package com.ubergeek42.WeechatAndroid;
 
-import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.*;
 import android.os.*;
@@ -31,94 +30,76 @@ import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
+import com.ubergeek42.WeechatAndroid.fragments.BufferFragment;
+import com.ubergeek42.WeechatAndroid.fragments.BufferListFragment;
+import com.ubergeek42.WeechatAndroid.service.RelayService;
+import com.ubergeek42.WeechatAndroid.service.RelayServiceBinder;
 import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.HotlistItem;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
 import com.ubergeek42.weechat.relay.messagehandler.BufferManager;
 
-public class WeechatActivity extends SherlockFragmentActivity implements BufferListFragment.OnBufferSelectedListener, OnItemClickListener, RelayConnectionHandler {
+public class WeechatActivity extends SherlockFragmentActivity implements BufferListFragment.OnBufferSelectedListener, RelayConnectionHandler {
 	private static final String TAG = "WeechatActivity";
 	private boolean mBound = false;
 	private RelayServiceBinder rsb;
 	private String currentBuffer;
-	/*private ListView bufferlist;
-	*/
-	private BufferListAdapter m_adapter;
-	BufferListFragment bfl;
 
-    private static final boolean DEVELOPER_MODE = true; // todo: maven to configure this variable
+	// We have 2 fragments(depending on layout); the bufferlist, and an active buffer
+	private BufferListFragment bfl;
+
+	private boolean tabletView = false;
+
     private SocketToggleConnection taskToggleConnection;
     private HotlistListAdapter hotlistListAdapter;
 
     /** Called when the activity is first created. */
-	@SuppressLint("NewApi")
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-		Log.d(TAG, "onCreate()");
 
-        if (DEVELOPER_MODE) {
-            StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
-                    .detectDiskReads()
-                    .detectDiskWrites()
-                    .detectNetwork()
-                    .penaltyLog()
-                    .build());
-        }
-		// Start the service(if necessary)
+		// Start the background service(if necessary)
 	    startService(new Intent(this, RelayService.class));
 
-	    //setContentView(R.layout.bufferlist);
+	    // Load the layout
 	    setContentView(R.layout.bufferlist_fragment);
 
 	    setTitle(getString(R.string.app_version));
+
+	    if (findViewById(R.id.fragment_container) == null) {
+	    	tabletView = true;
+	    }
+	    
+        // TODO Read preferences from background, its IO, 31ms strict mode!
+	    PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
+	    
+	    if (savedInstanceState != null) {
+	    	return;
+	    }
+	    
         // Check whether the activity is using the layout version with
         // the fragment_container FrameLayout. If so, we must add the first fragment
-        if (findViewById(R.id.fragment_container) != null) {
-    		Log.d(TAG, "onCreate() MARKER 1");
-
-            // However, if we're being restored from a previous state,
-            // then we don't need to do anything and should return or else
-            // we could end up with overlapping fragments.
-            // FIXME
-        	//if (savedInstanceState != null) {
-        	//	Log.d(TAG, "onCreate() MARKER 2");
-            //    return;
-            //}
-
-            bfl = new BufferListFragment();
-
-            // In case this activity was started with special instructions from an Intent,
-            // pass the Intent's extras to the fragment as arguments
+        if (!tabletView) {
+        	// Create a new fragment, and pass any extras to it
+        	bfl = new BufferListFragment();
             bfl.setArguments(getIntent().getExtras());
-
-            // Add the fragment to the 'fragment_container' FrameLayout
-            getSupportFragmentManager().beginTransaction()
-                    .add(R.id.fragment_container, bfl).commit();
-        }
-        else {
-    		Log.d(TAG, "onCreate() MARKER 3");
-
+            
+            // Replace anything in the fragment container with our new fragment
+            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+            ft = ft.replace(R.id.fragment_container, bfl);
+            ft.commit();
+        } else {
         	if (bfl == null) {
-        		Log.d(TAG, "onCreate() MARKER 4");
-				 bfl = (BufferListFragment)
-		                getSupportFragmentManager().findFragmentById(R.id.bufferlist_fragment);
+				 bfl = (BufferListFragment)getSupportFragmentManager().findFragmentById(R.id.bufferlist_fragment);
         	}
-
         }
-		String[] message = {"Press Menu->Connect to get started"};
-		bfl.setListAdapter(new ArrayAdapter<String>(WeechatActivity.this, R.layout.tips_list_item, message));
-
-        // TODO Read preferences from background, its IO, 31ms strictmode!
-	    PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
-
-
-	}
+		//String[] message = {"Press Menu->Connect to get started"};
+		//bfl.setListAdapter(new ArrayAdapter<String>(WeechatActivity.this, R.layout.tips_list_item, message));
+    }
 
 	@Override
 	protected void onStart() {
 		super.onStart();
-		Log.d(TAG, "onStart()");
 
 		// Bind to the Relay Service
 	    bindService(new Intent(this, RelayService.class), mConnection, Context.BIND_AUTO_CREATE);
@@ -138,16 +119,22 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
 			mBound = false;
 		}
 	}
+	
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		
+	}
 
 	ServiceConnection mConnection = new ServiceConnection() {
 		@Override
 		public void onServiceConnected(ComponentName name, IBinder service) {
-			setRsb((RelayServiceBinder) service);
-			getRsb().setRelayConnectionHandler(WeechatActivity.this);
+			rsb = (RelayServiceBinder) service;
+			rsb.setRelayConnectionHandler(WeechatActivity.this);
 
 			mBound = true;
 			// Check if the service is already connected to the weechat relay, and if so load it up
-			if (getRsb().isConnected()) {
+			if (rsb.isConnected()) {
 				WeechatActivity.this.onConnect();
 			}
 		}
@@ -155,39 +142,25 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
 		@Override
 		public void onServiceDisconnected(ComponentName name) {
 			mBound = false;
-			setRsb(null);
+			rsb = null;
 		}
 	};
 
 	@Override
-	public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-		Log.d(TAG, "onItemClick()");
-	}
-
-	@Override
 	public void onConnect() {
-		Log.d(TAG, "onConnect()");
 		if (rsb != null && rsb.isConnected()) {
-            // Create and update the buffer list when we connect to the service
-			m_adapter = new BufferListAdapter(WeechatActivity.this, getRsb());
             // Create and update the hotlist
-            hotlistListAdapter = new HotlistListAdapter(WeechatActivity.this, getRsb());
-				Log.d(TAG, "onConnect bfl1:" + bfl);
-
-			runOnUiThread(new Runnable() {
-				@Override
-				public void run() {
-   					Log.d(TAG, "onConnect bfl2:" + bfl);
-					//bfl.getListAdapter().onBuffersChanged();
-   					// In porttrait mode FIXME this should probably live somewhere else
-   				    	//BufferListFragment bflnew = new BufferListFragment();
-						//bflnew.setListAdapter(m_adapter);
-
-					bfl.setListAdapter(m_adapter);
-					m_adapter.onBuffersChanged();
-				}
-			});
+            hotlistListAdapter = new HotlistListAdapter(WeechatActivity.this, rsb);
 		}
+	}
+	@Override
+	public void onDisconnect() {
+		// Nothing to do here :/
+	}
+	
+	@Override
+	public void onError(String arg0) {
+		Log.d("WeechatActivity", "onError:" + arg0);
 	}
 
     @Override
@@ -246,57 +219,23 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
 		                	//TODO define something to happen here
 		                }
 		            });
-		            ;
 		            builder.create().show();
             	}
-/*
-                // Capture the buffer fragment from the activity layout
-                //NickListFragment nlFrag = (NickListFragment) getSupportFragmentManager().findFragmentById(R.id.nicklist_fragment);
-                
-                // Create fragment and give it an argument for the selected article
-                BufferFragment newFragment = new BufferFragment();
-                Bundle args = new Bundle();
-                //args.putInt(BufferFragment.ARG_POSITION, position);
-                //args.putString("buffer", buffer);
-                newFragment.setArguments(args);
-                FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-
-                // Replace whatever is in the fragment_container view with this fragment,
-                // and add the transaction to the back stack so the user can navigate back
-                //transaction.replace(R.id.fragment_container, newFragment);
-                //transaction.addToBackStack(null);
-                
-               
-                //ft.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right);
-                NickListFragment nlFrag = new NickListFragment();
-                nlFrag.setListAdapter(nicklistAdapter);
-
-                //ft.replace(R.id.details_fragment_container, newFragment, "detailFragment");
-                ft.add(nlFrag, "nicklistfragment");
-
-                // Start the animated transition.
-                ft.commit();
-                */
                 break;
-
             }
         }
-
         return super.onOptionsItemSelected(item);
     }
 
     @Override
     public boolean onPrepareOptionsMenu (Menu menu) {
-        Log.d(TAG, "onPrepareOptionsMenu()");
-
+    	// Swap the text from connect to disconnect depending on connection status
         MenuItem connectionStatus = menu.findItem(R.id.menu_connection_state);
-
         if (rsb != null && rsb.isConnected())
             connectionStatus.setTitle(R.string.disconnect);
         else
             connectionStatus.setTitle(R.string.connect);
-
-
+        
         return super.onPrepareOptionsMenu(menu);
     }
 
@@ -307,89 +246,54 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
         return super.onCreateOptionsMenu(menu);
     }
 
-	@Override
-	public void onDisconnect() {
-		// Create and update the buffer list when we connect to the service
-		this.runOnUiThread(new Runnable() {
-			@Override
-			public void run() {
-				String[] message = {"Press Menu->Connect to get started"};
-				BufferListFragment bfl = (BufferListFragment)
-		                getSupportFragmentManager().findFragmentById(R.id.bufferlist_fragment);
-				if (bfl!=null)
-					bfl.setListAdapter(new ArrayAdapter<String>(WeechatActivity.this, R.layout.tips_list_item, message));
-			}
-		});
-	}
-
-	@Override
-	public void onError(String arg0) {
-		Log.d("WeechatActivity", "onError:" + arg0);
-
-	}
-
     public void onBufferSelected(int position, String buffer) {
     	// The user selected the buffer from the BufferlistFragment
 		Log.d(TAG, "onBufferSelected() position:" + position + " buffer:" + buffer );
 
-		currentBuffer = buffer;
-
+		// Do nothing if they selected the same buffer
+		if (buffer == currentBuffer) return;
+		
 		//  Remove buffer from hotlist
 		rsb.getHotlistManager().removeHotlistItem(buffer);
 
         // Capture the buffer fragment from the activity layout
-        BufferFragment bufferFrag = (BufferFragment)
-                getSupportFragmentManager().findFragmentById(R.id.buffer_fragment);
+        BufferFragment bufferFrag = (BufferFragment) getSupportFragmentManager().findFragmentById(R.id.buffer_fragment);
 
-        if (bufferFrag != null) {
-            // If buffer frag is available, we're in two-pane layout...
-
+        if (tabletView && bufferFrag !=null) {
             // Call a method in the BufferFragment to update its content
             bufferFrag.updateBufferView(position, buffer);
-
         } else {
-            // If the frag is not available, we're in the one-pane layout and must swap frags...
-            // Create fragment and give it an argument for the selected article
+            // Create fragment and pass the correct arguments
             BufferFragment newFragment = new BufferFragment();
             Bundle args = new Bundle();
             args.putInt(BufferFragment.ARG_POSITION, position);
             args.putString("buffer", buffer);
             newFragment.setArguments(args);
-            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 
-            // Replace whatever is in the fragment_container view with this fragment,
-            // and add the transaction to the back stack so the user can navigate back
+            // Replace the current fragment with the buffer they selected
+            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
             transaction.replace(R.id.fragment_container, newFragment);
             transaction.addToBackStack(null);
-
-            // Commit the transaction
             transaction.commit();
         }
+        
+		// Update the current buffer to reflect the change we made
+		currentBuffer = buffer;
     }
 
     /**
-     * getter for the service binder, used by the BufferFragment
-     * @return rsb
+     * Used to toggle the connection 
      */
-	public RelayServiceBinder getRsb() {
-		return rsb;
-	}
-	public void setRsb(RelayServiceBinder rsb) {
-		this.rsb = rsb;
-	}
-
-    protected class SocketToggleConnection extends AsyncTask<Void, Void, Boolean> {
-
+    private class SocketToggleConnection extends AsyncTask<Void, Void, Boolean> {
         @Override
         protected Boolean doInBackground(Void... voids) {
-            if (rsb.isConnected())
+            if (rsb.isConnected()) {
                 rsb.shutdown();
-            else
+            } else {
                 return rsb.connect();
-
-            return false;
+            }
+            return true;
         }
-
         @Override
         protected void onPostExecute(Boolean success) {
             supportInvalidateOptionsMenu();
