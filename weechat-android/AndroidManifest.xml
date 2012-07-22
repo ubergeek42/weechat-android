@@ -11,15 +11,17 @@
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name" >
         <service android:name="RelayService"></service>
-        <activity android:name=".WeechatActivity" android:launchMode="singleTask">
+        <activity 
+            android:name=".WeechatActivity" 
+            android:launchMode="singleTask"
+            android:windowSoftInputMode="stateHidden"
+            >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <activity android:name=".WeechatPreferencesActivity"></activity>
-        <activity android:name=".WeechatChatviewActivity" android:windowSoftInputMode="stateHidden"></activity>
         <activity android:name=".WeechatAboutActivity"></activity>
     </application>
-
 </manifest>
