@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright 2012 Keith Johnson
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,8 +16,9 @@
 package com.ubergeek42.weechat.relay.protocol;
 
 import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
 import java.util.HashMap;
+
+import android.util.Log;
 
 import com.ubergeek42.weechat.Helper;
 import com.ubergeek42.weechat.relay.protocol.RelayObject.WType;
@@ -29,14 +30,14 @@ import com.ubergeek42.weechat.relay.protocol.RelayObject.WType;
  *
  */
 public class Data {
-	
-	private byte[] data;
+
+	private final byte[] data;
 	private int pointer; // Current location in the byte array
 	public Data(byte[] data) {
 		this.data = data;
 		this.pointer = 0;
 	}
-	
+
 	public int getUnsignedInt() {
 		if (pointer+4 > data.length) {
 			throw new IndexOutOfBoundsException("Not enough data to compute length");
@@ -45,21 +46,21 @@ public class Data {
 				  ((data[pointer+1] & 0xFF) << 16) |
 				  ((data[pointer+2] & 0xFF) <<  8) |
 				  ((data[pointer+3] & 0xFF));
-		
+
 		pointer += 4;
 		return ret;
 	}
-	
+
 	public int getByte() {
-		int ret = (int)(data[pointer] & 0xFF);
-		
+		int ret = data[pointer] & 0xFF;
+
 		pointer++;
 		return ret;
 	}
 	public char getChar() {
 		return (char)getByte();
 	}
-	
+
 	// Might have to change to a BigInteger...
 	public long getLongInteger() {
 		int length = getByte();
@@ -76,22 +77,26 @@ public class Data {
 
 		return Long.parseLong(sb.toString());
 	}
-	
+
 
 	public String getString() {
 		int length = getUnsignedInt();
 		if (pointer+length > data.length) {
 			throw new IndexOutOfBoundsException("Not enough data");
 		}
-		if (length ==  0) return "";
-		if (length == -1) return null;
+		if (length ==  0) {
+			return "";
+		}
+		if (length == -1) {
+			return null;
+		}
 
 		byte[] bytes = new byte[length];
 		for(int i=0;i<length;i++) {
 			//sb.append(getChar());
 			bytes[i] = (byte)getByte();
 		}
-		
+
 		// TODO: optimize?
 		String ret = new String(bytes);
 		try {
@@ -113,13 +118,13 @@ public class Data {
 		if (length == -1) {
 			return null;
 		}
-		
+
 		byte[] ret = Helper.copyOfRange(data, pointer, pointer+length);
-		
+
 		pointer += length;
 		return ret;
 	}
-	
+
 	public String getPointer() {
 		int length = getByte();
 		if (pointer+length > data.length) {
@@ -135,48 +140,48 @@ public class Data {
 			// Null Pointer
 			return "0x0";
 		}
-		
+
 		return "0x" + sb.toString();
 	}
-	
+
 	// Maybe return a reasonable "Date" object or similar
 	public long getTime() {
 		long time = getLongInteger();
 		return time;
 	}
-	
+
 	public Hashtable getHashtable() {
 		WType keyType = getType();
 		WType valueType = getType();
 		int count = getUnsignedInt();
-		
+
 		Hashtable hta = new Hashtable(keyType, valueType);
 		for(int i=0; i<count; i++) {
 			RelayObject k = getObject(keyType);
 			RelayObject v = getObject(valueType);
 			hta.put(k, v);
 		}
-		
+
 		return hta;
 	}
-	
+
 	public Hdata getHdata() {
 		Hdata whd = new Hdata();
-		
+
 		String hpath = getString();
 		String keys = getString();
 		int count = getUnsignedInt();
-		
+
 		whd.path_list = hpath.split("/");
 		whd.setKeys(keys.split(","));
-		
+
 		for (int i=0;i<count;i++) {
 			HdataEntry hde = new HdataEntry();
 			for (int j=0; j<whd.path_list.length; j++) {
 				String pointer = getPointer();
 				hde.addPointer(pointer);
 			}
-			
+
 			for (int j=0; j<whd.key_list.length; j++) {
 				hde.addObject(whd.key_list[j], getObject(whd.type_list[j]));
 			}
@@ -184,19 +189,19 @@ public class Data {
 		}
 		return whd;
 	}
-	
+
 	public Info getInfo() {
 		String name  = getString();
 		String value = getString();
 		return new Info(name, value);
 	}
-	
+
 	public Infolist getInfolist() {
 		String name = getString();
 		int count = getUnsignedInt();
-		
+
 		Infolist wil = new Infolist(name);
-		
+
 		for(int i=0;i<count;i++) {
 			int numItems = getUnsignedInt();
 			HashMap<String,RelayObject> variables = new HashMap<String,RelayObject>();
@@ -208,7 +213,7 @@ public class Data {
 			}
 			wil.addItem(variables);
 		}
-		
+
 		return wil;
 	}
 	
@@ -233,10 +238,10 @@ public class Data {
 		WType type = getType();
 		return getObject(type);
 	}
-	
+
 	private RelayObject getObject(WType type) {
 		RelayObject ret = null;
-		
+
 		switch (type) {
 		case CHR:
 			ret = new RelayObject(getChar()); break;
@@ -266,11 +271,12 @@ public class Data {
 			System.err.println("[WData.getObject] Unknown object type: " + type);
 		}
 		// Set the type of the object
-		if (ret != null)
+		if (ret != null) {
 			ret.setType(type);
+		}
 		return ret;
 	}
-	
+
 	// Returns the unconsumed portion of the data stream
 	public byte[] getByteArray() {
 		return Helper.copyOfRange(data, pointer, data.length);

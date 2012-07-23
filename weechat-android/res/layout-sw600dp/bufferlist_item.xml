@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent" >
+    android:layout_height="wrap_content"
+     >
 
     <TextView
         android:id="@+id/bufferlist_shortname"
@@ -9,8 +10,9 @@
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:text="Buffer Short Name"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
-
+         />
+        <!--  android:textAppearance="?android:attr/textAppearanceMedium"-->
+    
     <TextView
         android:id="@+id/bufferlist_fullname"
         android:layout_width="wrap_content"
@@ -21,12 +23,21 @@
         android:textAppearance="?android:attr/textAppearanceSmall" />
     
     <TextView
-        android:id="@+id/bufferlist_hotlist"
+        android:id="@+id/bufferlist_hotlist_messagecount"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
-        android:text="U:005  H:005"
+        android:text="U:005"
         android:textAppearance="?android:attr/textAppearanceSmall" />
+     <TextView
+        android:id="@+id/bufferlist_hotlist_highlightcount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:text="H:005"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+    
 
 </RelativeLayout>

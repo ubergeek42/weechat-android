@@ -29,13 +29,21 @@
         android:text="title for the channel"
         android:textAppearance="?android:attr/textAppearanceSmall" />
 
+
     <TextView
-        android:id="@+id/bufferlist_hotlist"
+        android:id="@+id/bufferlist_hotlist_messagecount"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
-        android:text="U:005  H:005"
+        android:text="U:005"
         android:textAppearance="?android:attr/textAppearanceSmall" />
-
+     <TextView
+        android:id="@+id/bufferlist_hotlist_highlightcount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:text="H:005"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
 </RelativeLayout>

@@ -2,7 +2,11 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="horizontal"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:divider="?android:attr/dividerHorizontal"
+    android:layout_marginLeft="8dp"
+    android:showDividers="middle"
+    >
 
     <fragment android:name="com.ubergeek42.WeechatAndroid.fragments.BufferListFragment"
               android:id="@+id/bufferlist_fragment"
@@ -12,7 +16,9 @@
     <fragment android:name="com.ubergeek42.WeechatAndroid.fragments.BufferFragment"
               android:id="@+id/buffer_fragment"
               android:layout_width="match_parent"
-              android:layout_height="match_parent" />
+              android:layout_height="match_parent" 
+              android:layout_marginLeft="0dp"
+              />
     
    <!--  <fragment android:name="com.ubergeek42.WeechatAndroid.fragments.NickListFragment"
               android:id="@+id/nicklist_fragment"
