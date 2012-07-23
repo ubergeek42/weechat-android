@@ -34,6 +34,7 @@ public class RelayObject {
 	private long longValue;
 	private String strValue;
 	private byte[] baValue;
+	private Array arrayValue;
 
 	protected WType type = WType.UNKNOWN;
 
@@ -64,6 +65,11 @@ public class RelayObject {
 	protected RelayObject(byte[] b) {
 		baValue = b;
 		type = WType.BUF;
+	}
+
+	public RelayObject(Array array) {
+		arrayValue = array;
+		type = WType.ARR;
 	}
 
 	protected void setType(WType t) {
@@ -126,6 +132,14 @@ public class RelayObject {
 		checkType(WType.BUF);
 		return baValue;
 	}
+	/**
+	 * @return An array representation of the object
+	 */
+	public Array asArray() {
+		checkType(WType.ARR);
+		return arrayValue;
+	}
+
 
 	/**
 	 * @return A string representing a pointer(e.g. 0xDEADBEEF)
@@ -170,8 +184,12 @@ public class RelayObject {
 		case BUF:
 			value = "" + Arrays.toString(asBytes());
 			break; // Need a better printer for a byte buffer
+		case ARR:
+			value = "" + asArray();
+			break;
 		}
 		// return String.format("%s -> %s", type, value);
 		return String.format("%s", value);
 	}
+
 }

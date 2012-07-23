@@ -252,6 +252,8 @@ public class Data {
 			ret = new RelayObject(getPointer()); break;
 		case TIM:
 			ret = new RelayObject(getTime()); break;
+		case ARR:
+			ret = new RelayObject(getArray()); break;
 		case HTB:
 			ret = getHashtable(); break;
 		case HDA:
@@ -260,8 +262,6 @@ public class Data {
 			ret = getInfo(); break;
 		case INL:
 			ret = getInfolist(); break;
-		case ARR:
-			ret = getArray(); break;
 		default:
 			System.err.println("[WData.getObject] Unknown object type: " + type);
 		}
