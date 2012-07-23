@@ -1,12 +1,19 @@
 package com.ubergeek42.WeechatAndroid.fragments;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -20,8 +27,10 @@ import com.ubergeek42.WeechatAndroid.service.RelayService;
 import com.ubergeek42.WeechatAndroid.service.RelayServiceBinder;
 import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
+import com.ubergeek42.weechat.relay.messagehandler.BufferManager;
+import com.ubergeek42.weechat.relay.messagehandler.BufferManagerObserver;
 
-public class BufferListFragment extends SherlockListFragment implements RelayConnectionHandler {
+public class BufferListFragment extends SherlockListFragment implements RelayConnectionHandler, BufferManagerObserver, OnSharedPreferenceChangeListener  {
 	private static final String[] message = {"Press Menu->Connect to get started"};
 
 	private boolean mBound = false;
@@ -30,6 +39,13 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
 	private BufferListAdapter m_adapter;
 
     OnBufferSelectedListener mCallback;
+	private BufferManager bufferManager;
+
+	private SharedPreferences prefs;
+	private boolean enableBufferSorting;
+	private int currentPosition = -1;
+
+    
 
     // The container Activity must implement this interface so the frag can deliver messages
     public interface OnBufferSelectedListener {
@@ -59,6 +75,11 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
         setRetainInstance(true);
         
 		setListAdapter(new ArrayAdapter<String>(getActivity(), R.layout.tips_list_item, message));
+		prefs = PreferenceManager.getDefaultSharedPreferences(getActivity().getBaseContext());
+	    prefs.registerOnSharedPreferenceChangeListener(this);
+	    enableBufferSorting = prefs.getBoolean("sort_buffers", true);
+
+
     }
     
     @Override
@@ -119,6 +140,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
         
         // Set the item as checked to be highlighted when in two-pane layout
         getListView().setItemChecked(position, true);
+        currentPosition = position;
     }
 
 	@Override
@@ -126,14 +148,19 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
 		Log.d("BufferListFragment","onConnect called");
 		if (rsb != null && rsb.isConnected()) {
 			// Create and update the buffer list when we connect to the service
-			m_adapter = new BufferListAdapter((WeechatActivity) getActivity(), rsb);
+			m_adapter = new BufferListAdapter((WeechatActivity) getActivity());
+			bufferManager = rsb.getBufferManager();
+			bufferManager.onChanged(BufferListFragment.this);
+
+
 			getActivity().runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
 					setListAdapter(m_adapter);
-					m_adapter.onBuffersChanged();
 				}
 			});
+			m_adapter.notifyDataSetChanged();
+
 		}
 	}
 
@@ -152,4 +179,64 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
 	public void onError(String err) {
 		
 	}
+	@Override
+	public void onBuffersChanged() {
+		getActivity().runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				ArrayList<Buffer> buffers;
+				int position = currentPosition;
+				Buffer b = null;
+				
+				if(position>=0) {
+					try{
+						b = m_adapter.getItem(position);
+					}catch(ArrayIndexOutOfBoundsException e)
+					{
+						Log.d("BufferListFragment", "OutOfBounds:"+position);
+					}
+				}
+				
+				buffers = bufferManager.getBuffers();
+				// Sort buffers based on unread count
+				if (enableBufferSorting) {
+					Collections.sort(buffers, bufferComparator);
+				}
+				m_adapter.buffers = buffers;
+				m_adapter.notifyDataSetChanged();
+				
+				if(b!=null) {
+					for(int i=0;i<buffers.size();i++) {
+						if(b.getFullName().equals(buffers.get(i).getFullName())) {
+							currentPosition = i;
+							break;
+						}
+					}
+					// Set the item as checked to be highlighted when in two-pane layout
+			        getListView().setItemChecked(currentPosition, true);
+
+				}	
+			}
+		});
+	}
+	private final Comparator<Buffer> bufferComparator = new Comparator<Buffer>() {
+		@Override
+		public int compare(Buffer b1, Buffer b2) {
+        	int b1Highlights = b1.getHighlights();
+        	int b2Highlights = b2.getHighlights();
+        	if(b2Highlights > 0 || b1Highlights > 0) {
+        		return b2Highlights - b1Highlights;
+        	}
+            return b2.getUnread() - b1.getUnread();
+        }
+	};
+
+	@Override
+	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+		if (key.equals("sort_buffers")) {
+			enableBufferSorting = prefs.getBoolean("sort_buffers", true);
+			onBuffersChanged();
+		}
+	}
+
 }

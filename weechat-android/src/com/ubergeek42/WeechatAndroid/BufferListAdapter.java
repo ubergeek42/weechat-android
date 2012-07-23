@@ -35,24 +35,15 @@ import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.relay.messagehandler.BufferManager;
 import com.ubergeek42.weechat.relay.messagehandler.BufferManagerObserver;
 
-public class BufferListAdapter extends BaseAdapter implements BufferManagerObserver, OnSharedPreferenceChangeListener {
+public class BufferListAdapter extends BaseAdapter{
 	Activity parentActivity;
 	LayoutInflater inflater;
-	private final BufferManager bufferManager;
-	protected ArrayList<Buffer> buffers = new ArrayList<Buffer>();
-	private final SharedPreferences prefs;
-	private boolean enableBufferSorting;
+	public ArrayList<Buffer> buffers = new ArrayList<Buffer>();
 
-	public BufferListAdapter(Activity parentActivity, RelayServiceBinder rsb) {
+	public BufferListAdapter(Activity parentActivity) {
 		this.parentActivity = parentActivity;
 		this.inflater = LayoutInflater.from(parentActivity);
 
-		prefs = PreferenceManager.getDefaultSharedPreferences(parentActivity.getBaseContext());
-	    prefs.registerOnSharedPreferenceChangeListener(this);
-	    enableBufferSorting = prefs.getBoolean("sort_buffers", true);
-
-		bufferManager = rsb.getBufferManager();
-		bufferManager.onChanged(this);
 	}
 	@Override
 	public int getCount() {
@@ -61,8 +52,6 @@ public class BufferListAdapter extends BaseAdapter implements BufferManagerObser
 
 	@Override
 	public Buffer getItem(int position) {
-
-
 		return buffers.get(position);
 	}
 
@@ -134,37 +123,4 @@ public class BufferListAdapter extends BaseAdapter implements BufferManagerObser
         TextView title;
     }
 
-	@Override
-	public void onBuffersChanged() {
-		parentActivity.runOnUiThread(new Runnable() {
-			@Override
-			public void run() {
-				buffers = bufferManager.getBuffers();
-				// Sort buffers based on unread count
-				if (enableBufferSorting) {
-					Collections.sort(buffers, bufferComparator);
-				}
-				notifyDataSetChanged();
-			}
-		});
-	}
-	private final Comparator<Buffer> bufferComparator = new Comparator<Buffer>() {
-		@Override
-		public int compare(Buffer b1, Buffer b2) {
-        	int b1Highlights = b1.getHighlights();
-        	int b2Highlights = b2.getHighlights();
-        	if(b2Highlights > 0 || b1Highlights > 0) {
-        		return b2Highlights - b1Highlights;
-        	}
-            return b2.getUnread() - b1.getUnread();
-        }
-	};
-
-	@Override
-	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-		if (key.equals("sort_buffers")) {
-			enableBufferSorting = prefs.getBoolean("sort_buffers", true);
-			onBuffersChanged();
-		}
-	}
 }

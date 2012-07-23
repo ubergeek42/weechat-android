@@ -2,6 +2,10 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:background="?android:attr/activatedBackgroundIndicator"
+    
+    
      >
 
     <TextView
@@ -10,8 +14,9 @@
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:text="Buffer Short Name"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        
          />
-        <!--  android:textAppearance="?android:attr/textAppearanceMedium"-->
     
     <TextView
         android:id="@+id/bufferlist_fullname"
