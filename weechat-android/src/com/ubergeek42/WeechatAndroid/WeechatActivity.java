@@ -192,7 +192,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
             }
             case R.id.menu_hotlist: {
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setTitle("Hotlist");
+                builder.setTitle(R.string.hotlist);
                 builder.setAdapter(hotlistListAdapter, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int position) {
@@ -207,10 +207,11 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
             }
             case R.id.menu_nicklist: {
             	if(currentBuffer!=null) {
-		            NickListAdapter nicklistAdapter = new NickListAdapter(WeechatActivity.this, rsb,rsb.getBufferByName(currentBuffer).getNicks() );
-
+            		String[]nicks = rsb.getBufferByName(currentBuffer).getNicks();
+		            NickListAdapter nicklistAdapter = new NickListAdapter(WeechatActivity.this, rsb, nicks);
+		            	
 		            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		            builder.setTitle("Nicklist");
+		            builder.setTitle(getString(R.string.nicklist_menu) + " (" + nicks.length + ")");
 		            builder.setAdapter(nicklistAdapter, new DialogInterface.OnClickListener() {
 		                @Override
 		                public void onClick(DialogInterface dialogInterface, int position) {
