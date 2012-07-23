@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright 2012 Keith Johnson
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -34,17 +34,16 @@ import com.ubergeek42.weechat.relay.protocol.RelayObject;
 public class LineHandler implements RelayMessageHandler {
 	private static Logger logger = LoggerFactory.getLogger(LineHandler.class);
 	private static String TAG = "RelayMessagehandler";
-	
-	private BufferManager cb;
-	
+
+	private final BufferManager cb;
+
 	public LineHandler(BufferManager cb) {
 		this.cb = cb;
 	}
-	
+
 	@Override
 	public void handleMessage(RelayObject obj, String id) {
 		Hdata whdata = (Hdata) obj;
-		Log.d(TAG, "whdata:" + whdata.toString());
 		HashSet<Buffer> toUpdate = new HashSet<Buffer>();
 
 		for (int i=0; i<whdata.getCount(); i++) {
@@ -56,21 +55,31 @@ public class LineHandler implements RelayMessageHandler {
 			String prefix = hde.getItem("prefix").asString();
 			boolean displayed = (hde.getItem("displayed").asChar()==0x01);
 			Date time = hde.getItem("date").asTime();
-			String bPointer = hde.getItem("buffer").asPointer();
-			
+			String bPointer;
+			if (id.equals("_buffer_line_added")) {
+			    bPointer = hde.getItem("buffer").asPointer();
+			}else{
+				bPointer = hde.getPointer(0);
+			}
+
 			// Try to get highlight status(added in 0.3.8-dev: 2012-03-06)
 			RelayObject t = hde.getItem("highlight");
 			boolean highlight = false;
-			if(t!=null) highlight = (t.asChar()==0x01);
-			
+			if(t!=null) {
+				highlight = (t.asChar()==0x01);
+			}
+
 			// Try to get the array tags (added in 0.3.9-dev: 2012-07-23)
 			RelayObject tags = hde.getItem("tags_array");
 			if(tags!=null) {
-				Log.d(TAG, "tags_array:"+ tags.toString());
+				//Log.d(TAG, "tags_array:"+ tags.toString());
+				Array tagsArray = tags.asArray();
+				for(int ai=0;ai<tagsArray.getArraySize();ai++) {
+					String tag = tagsArray.get(ai).asString();
+					// TODO do something with the tag
+				}
 
-				Log.d(TAG, "Type:" + tags.getType());
 			}
-
 			// Find the buffer to put the line in
 			Buffer buffer = cb.findByPointer(bPointer);
 			if (buffer == null){
@@ -104,5 +113,5 @@ public class LineHandler implements RelayMessageHandler {
 		for(Buffer wb: toUpdate) {
 			wb.notifyObservers();
 		}
-	}	
+	}
 }

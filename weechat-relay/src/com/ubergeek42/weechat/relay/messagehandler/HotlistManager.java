@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright 2012 Tor Hveem
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,6 +25,7 @@ import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.Color;
 import com.ubergeek42.weechat.HotlistItem;
 import com.ubergeek42.weechat.relay.RelayMessageHandler;
+import com.ubergeek42.weechat.relay.protocol.Array;
 import com.ubergeek42.weechat.relay.protocol.Hdata;
 import com.ubergeek42.weechat.relay.protocol.HdataEntry;
 import com.ubergeek42.weechat.relay.protocol.Infolist;
@@ -40,12 +41,12 @@ public class HotlistManager implements RelayMessageHandler {
 	ArrayList<HotlistItem> hotlist = new ArrayList<HotlistItem>();
 	private HotlistManagerObserver onChangeObserver;
 	private BufferManager bufferManager;
-	
+
 
 	public void setBufferManager(BufferManager bfm) {
 		this.bufferManager = bfm;
 	}
-	
+
 	/**
 	 * Get the hotlist
 	 */
@@ -53,7 +54,7 @@ public class HotlistManager implements RelayMessageHandler {
 	public ArrayList<HotlistItem> getHotlist() {
 		return (ArrayList<HotlistItem>) hotlist.clone();
 	}
-	
+
 	public int getSize() {
 		return hotlist.size();
 	}
@@ -74,7 +75,7 @@ public class HotlistManager implements RelayMessageHandler {
 		}
 	}
 	/**
-	 * Remove hotlist item from hotlist. Called when switching to the buffer 
+	 * Remove hotlist item from hotlist. Called when switching to the buffer
 	 * to read the lines
 	 * @param fullBufferName
 	 */
@@ -87,35 +88,62 @@ public class HotlistManager implements RelayMessageHandler {
 	    	}
 	    }
 	}
-	
+
 	@Override
 	public void handleMessage(RelayObject obj, String id) {
-		
+
 		if (id.equals("_buffer_line_added")){ // New line added...what is it?
 			Log.d(TAG, "buffer_line_added called");
 			Hdata hdata = (Hdata) obj;
-					
-			for(int i=0;i<hdata.getCount(); i++) {
-				HdataEntry hde = hdata.getItem(i);		
+
+			outer: for(int i=0;i<hdata.getCount(); i++) {
+				HdataEntry hde = hdata.getItem(i);
 				// TODO: check last item of path is line_data
 
 				// Is line displayed or hidden by filters, etc?
 				boolean displayed = (hde.getItem("displayed").asChar()==0x01);
-				if(!displayed)
+				if(!displayed) {
 					continue;
+				}
 
 				String bPointer = hde.getItem("buffer").asPointer();
 				Buffer b = bufferManager.findByPointer(bPointer);
 				if(b==null) {
 					continue;
 				}
-				
+
 				// TODO Check for buffer type
 				// Ignore core / server, etc
-				
-				// TODO: should be based on tags for line(notify_none/etc), but these are inaccessible through the relay plugin
-				// Determine if buffer is a privmessage(check localvar "type" for value "private"), and notify for that too
-							
+
+
+
+				// Try to get the array tags (added in 0.3.9-dev: 2012-07-23)
+				RelayObject tags = hde.getItem("tags_array");
+				if(tags!=null) {
+					Log.d(TAG, "tags_array:"+ tags.toString());
+					Array tagsArray = tags.asArray();
+					int tagCount = tagsArray.getArraySize();
+					if(tagCount == 0) {
+						// All important messages have tags
+						Log.d(TAG, "Found no tags in buffer:"+b.getFullName()+",skipping line.");
+						continue;
+					}
+					for(int ai=0;ai<tagCount;ai++) {
+						String tag = tagsArray.get(ai).asString();
+						if(tag.equals("irc_smart_filter")||
+						   tag.equals("irc_mode")||
+						   tag.equals("irc_quit")||
+						   tag.equals("irc_join")||
+						   tag.equals("notify_none")
+						   ) {
+							Log.d(TAG, "Found tag:"+tag+",skipping line.");
+							continue outer;
+						}
+					}
+
+				}
+
+
 				HotlistItem hli = new HotlistItem(hde, b);
 				boolean found = false;
 			    for (HotlistItem oldhli : hotlist) {
@@ -130,18 +158,19 @@ public class HotlistManager implements RelayMessageHandler {
 			    	}
 			    }
 			    // Only add to hotlist if there are actual messages
-			    if (!found && (hli.getHighlights() > 0 || hli.getUnread() > 0))
-			    	hotlist.add(hli);
+			    if (!found && (hli.getHighlights() > 0 || hli.getUnread() > 0)) {
+					hotlist.add(hli);
+				}
 			}
 		}else {
-		
-			Infolist infolist = (Infolist)obj;		
+
+			Infolist infolist = (Infolist)obj;
 			hotlist.clear();
-			
+
 			for(int i=0;i<infolist.size(); i++) {
 				System.out.format("  Item %d\n",i);
 				HashMap<String,RelayObject> item = infolist.getItem(i);
-				
+
 				HotlistItem hli = new HotlistItem(item);
 				// Only add messages and highlights to hotlist
 				// TODO: this could be a preference
@@ -161,7 +190,7 @@ public class HotlistManager implements RelayMessageHandler {
 	        		return b2Highlights - b1Highlights;
 	        	}
 	            return b1.buffer_number - b2.buffer_number;
-	        }        
+	        }
 		});
 
 		// FIXME We probably changed, but this could be more intelligent
