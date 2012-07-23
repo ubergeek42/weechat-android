@@ -212,6 +212,16 @@ public class Data {
 		return wil;
 	}
 	
+	public Array getArray() {
+		WType arrayType = getType();
+		int arraySize = getUnsignedInt();
+		Array arr = new Array(arrayType, arraySize);
+		for(int i=0;i<arraySize;i++) {
+			arr.add(getObject(arrayType));
+		}
+		return arr;
+	}
+	
 	private WType getType() {
 		char a = getChar();
 		char b = getChar();
@@ -250,6 +260,8 @@ public class Data {
 			ret = getInfo(); break;
 		case INL:
 			ret = getInfolist(); break;
+		case ARR:
+			ret = getArray(); break;
 		default:
 			System.err.println("[WData.getObject] Unknown object type: " + type);
 		}

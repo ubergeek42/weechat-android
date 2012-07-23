@@ -26,7 +26,7 @@ import java.util.Date;
 public class RelayObject {
 
 	public enum WType {
-		CHR, INT, LON, STR, BUF, PTR, TIM, HTB, HDA, INF, INL, UNKNOWN
+		CHR, INT, LON, STR, BUF, PTR, TIM, HTB, HDA, INF, INL, ARR, UNKNOWN
 	}
 
 	private char charValue;
@@ -82,6 +82,10 @@ public class RelayObject {
 					+ t);
 	}
 
+	public String getType() {
+		return type.toString();
+	}
+	
 	/**
 	 * @return The char representation of an object
 	 */
