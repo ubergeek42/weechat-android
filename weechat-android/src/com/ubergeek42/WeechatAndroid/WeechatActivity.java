@@ -52,6 +52,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
 
     private SocketToggleConnection taskToggleConnection;
     private HotlistListAdapter hotlistListAdapter;
+    private Menu actionBarMenu;
 
     /** Called when the activity is first created. */
 	@Override
@@ -150,6 +151,15 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
             // Create and update the hotlist
             hotlistListAdapter = new HotlistListAdapter(WeechatActivity.this, rsb);
 		}
+
+        // Make sure we update action bar menu after a connection change.
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                updateMenuContext(actionBarMenu);
+            }
+        });
+
 	}
 	@Override
 	public void onDisconnect() {
@@ -225,22 +235,33 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
-    public boolean onPrepareOptionsMenu (Menu menu) {
+    /**
+     * Replacement method for onPrepareOptionsMenu
+     * due to rsb might be null on the event of clicking the menu button.
+     *
+     * Hence our activity stores the menu references in onCreateOptionsMenu
+     * and we can update menu items underway from events like onConnect.
+     * @param menu actionBarMenu to update context on
+     */
+    public void updateMenuContext (Menu menu) {
     	// Swap the text from connect to disconnect depending on connection status
         MenuItem connectionStatus = menu.findItem(R.id.menu_connection_state);
         if (rsb != null && rsb.isConnected())
             connectionStatus.setTitle(R.string.disconnect);
         else
             connectionStatus.setTitle(R.string.connect);
-        
-        return super.onPrepareOptionsMenu(menu);
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater menuInflater = getSupportMenuInflater();
         menuInflater.inflate(R.menu.menu_actionbar, menu);
+
+        updateMenuContext(menu);
+
+        // Can safely hold on to this according to docs
+        // http://developer.android.com/reference/android/app/Activity.html#onCreateOptionsMenu(android.view.Menu)
+        actionBarMenu = menu;
         return super.onCreateOptionsMenu(menu);
     }
 
