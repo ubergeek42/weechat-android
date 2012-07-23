@@ -163,7 +163,13 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
 	}
 	@Override
 	public void onDisconnect() {
-		// Nothing to do here :/
+        // Make sure we update action bar menu after a connection change.
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                updateMenuContext(actionBarMenu);
+            }
+        });
 	}
 	
 	@Override
