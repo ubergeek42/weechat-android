@@ -208,11 +208,9 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
 					ArrayList<Buffer> newBuffers = new ArrayList<Buffer>();
 					for (Buffer b: buffers) {
 						RelayObject relayobj = b.getLocalVar("type");
-						if (relayobj != null) {
-							if (!relayobj.asString().equals("server")) {
-								newBuffers.add(b);
-							}
-						}
+						if (relayobj != null && relayobj.asString().equals("server"))
+							continue;
+						newBuffers.add(b);
 					}
 					buffers = newBuffers;
 				}
