@@ -4,8 +4,8 @@
     android:layout_height="wrap_content"
     android:gravity="center_vertical"
     android:background="?android:attr/activatedBackgroundIndicator"
-    
-    
+    android:padding="6dip"
+    >
      >
 
     <TextView
@@ -30,18 +30,17 @@
     <TextView
         android:id="@+id/bufferlist_hotlist_messagecount"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="fill_parent"
         android:layout_alignParentRight="true"
-        android:layout_alignParentTop="true"
         android:text="U:005"
         android:textAppearance="?android:attr/textAppearanceSmall" />
-     <TextView
+    <TextView
         android:id="@+id/bufferlist_hotlist_highlightcount"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="fill_parent"
         android:layout_alignParentRight="true"
         android:layout_alignParentBottom="true"
-        android:text="H:005"
+        android:text="H:005"        
         android:textAppearance="?android:attr/textAppearanceSmall" />
     
 
