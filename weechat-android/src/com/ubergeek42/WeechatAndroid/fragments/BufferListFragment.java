@@ -152,6 +152,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
 			// Create and update the buffer list when we connect to the service
 			m_adapter = new BufferListAdapter(getActivity());
 			bufferManager = rsb.getBufferManager();
+			m_adapter.setBuffers(bufferManager.getBuffers());
 			bufferManager.onChanged(BufferListFragment.this);
 
 
@@ -192,9 +193,10 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
 				if(position>=0) {
 					try{
 						lastBuffer = m_adapter.getItem(position);
-					}catch(ArrayIndexOutOfBoundsException e)
-					{
-						Log.d("BufferListFragment", "OutOfBounds:"+position);
+					}catch(ArrayIndexOutOfBoundsException e) {
+						Log.d("BufferListFragment", "AOutOfBounds:"+position);
+					}catch(IndexOutOfBoundsException e) {
+						Log.d("BufferListFragment", "IOutOfBounds:"+position);
 					}
 				}
 				
