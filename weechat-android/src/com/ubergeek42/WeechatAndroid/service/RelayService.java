@@ -181,12 +181,8 @@ public class RelayService extends Service implements RelayConnectionHandler, OnS
 		}
 
 		relayConnection.setConnectionHandler(this);
-        try {
-            relayConnection.connect();
-        } catch (IOException e) {
-            showNotification(null, String.format("Error connecting: %s", e.getMessage()));
-            return false;
-        }
+		
+        relayConnection.connect();
         return true;
     }
 	
