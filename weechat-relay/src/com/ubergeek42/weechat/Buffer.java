@@ -21,7 +21,6 @@ import java.util.LinkedList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ubergeek42.weechat.relay.protocol.Array;
 import com.ubergeek42.weechat.relay.protocol.Hashtable;
 import com.ubergeek42.weechat.relay.protocol.RelayObject;
 
@@ -122,7 +121,12 @@ public class Buffer {
 	public int getNotifyLevel() {
 		return notify;
 	}
-	public RelayObject getLocalVar(String key){ return this.local_vars.get(key); }
+
+	public RelayObject getLocalVar(String key) {
+		if (this.local_vars == null)
+			return null;
+		return this.local_vars.get(key);
+	}
 
 	public void resetHighlight() {numHighlights = 0;}
 	public void resetUnread()    {numUnread = 0;}
