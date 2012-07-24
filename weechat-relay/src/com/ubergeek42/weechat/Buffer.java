@@ -127,6 +127,18 @@ public class Buffer {
 	public void resetHighlight() {numHighlights = 0;}
 	public void resetUnread()    {numUnread = 0;}
 	public void addHighlight()   {numHighlights++;}
+
+	public void addHighlights(int highlights) {
+		numHighlights += highlights;
+	}
+
+	public void addUnread() {
+		numUnread++;
+	}
+
+	public void addUnreads(int unreads) {
+		numUnread += unreads;
+	}
 	
 	public int getHighlights() { return numHighlights; }
 	public int getUnread() { return numUnread;}
@@ -197,5 +209,6 @@ public class Buffer {
 		}
 		return false;
 	}
+
 
 }

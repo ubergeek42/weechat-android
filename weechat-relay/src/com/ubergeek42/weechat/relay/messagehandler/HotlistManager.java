@@ -173,14 +173,29 @@ public class HotlistManager implements RelayMessageHandler {
 				HashMap<String,RelayObject> item = infolist.getItem(i);
 
 				HotlistItem hli = new HotlistItem(item);
+
+				// Sync the initial counts to the buffers too
+				Buffer b = bufferManager.findByPointer(hli.buffer);
+				if (b != null) {
+					b.addHighlights(hli.getHighlights());
+					b.addUnreads(hli.getUnread());
+				}
+
 				// Only add messages and highlights to hotlist
 				// TODO: this could be a preference
 				if(hli.count_01 > 0 || hli.count_02 > 0) {
 					// We got count, check and see if we already have buffer in hotlist
 				    hotlist.add(hli);
+					if (b != null) {
+						// FIXME this could probably only be signaled once
+						bufferManager.buffersChanged();
+					}
 				}
 				logger.debug("Added hotlistitem " + hli);
+
+
 			}
+
 		}
 		// Sort the hotlist, highlights first, then unread
 		Collections.sort(hotlist, new Comparator<HotlistItem>() {
