@@ -108,12 +108,20 @@ public class Buffer {
 	public void setNicklistVisible(boolean b) { this.hasNicklist = b; }
 	public void setType(int i)                { this.type = i; }
 	public void setLocals(Hashtable ht)       { this.local_vars = ht; }
+
+	public void setNotifyLevel(int i) {
+		this.notify = i;
+	}
 	
 	public int    getNumber() 			      { return bufferNumber; }
 	public String getPointer()                { return pointer; }
 	public String getFullName()               { return this.fullName; }
 	public String getTitle()                  { return this.title; }
 	public String getShortName()              { return this.shortName; }
+
+	public int getNotifyLevel() {
+		return notify;
+	}
 	public RelayObject getLocalVar(String key){ return this.local_vars.get(key); }
 
 	public void resetHighlight() {numHighlights = 0;}
@@ -189,4 +197,5 @@ public class Buffer {
 		}
 		return false;
 	}
+
 }

@@ -122,6 +122,7 @@ public class BufferManager implements RelayMessageHandler {
 				wb.setTitle(hde.getItem("title").asString());
 				wb.setNicklistVisible(hde.getItem("nicklist").asInt()==1);
 				wb.setType(hde.getItem("type").asInt());
+				wb.setNotifyLevel(hde.getItem("notify").asInt());
 				
 				Hashtable ht = (Hashtable)hde.getItem("local_variables");
 				if (ht!=null)

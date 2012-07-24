@@ -96,7 +96,8 @@ public class LineHandler implements RelayMessageHandler {
 					// Check if this line should be added as an unread line
 					// TODO make this into a preference as users might have
 					// different tastes
-					if (cm.isUnread())
+					// TODO more elaborate checking of notify level
+					if (cm.isUnread() && buffer.getNotifyLevel() >= 1)
 						buffer.addLine(cm);
 					else
 						buffer.addLineNoUnread(cm);

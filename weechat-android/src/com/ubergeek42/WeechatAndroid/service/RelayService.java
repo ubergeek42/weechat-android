@@ -277,7 +277,7 @@ public class RelayService extends Service implements RelayConnectionHandler, OnS
 		relayConnection.addHandler("initialinfolist", hotlistManager);
 
 		// Get a list of buffers current open, along with some information about them
-		relayConnection.sendMsg("(listbuffers) hdata buffer:gui_buffers(*) number,full_name,short_name,type,title,nicklist,local_variables");
+		relayConnection.sendMsg("(listbuffers) hdata buffer:gui_buffers(*) number,full_name,short_name,type,title,nicklist,local_variables,notify");
 		// Get the current hotlist
 		relayConnection.sendMsg("initialinfolist", "infolist", "hotlist");
 
