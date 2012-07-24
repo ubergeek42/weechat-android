@@ -1,8 +1,6 @@
 package com.ubergeek42.WeechatAndroid.fragments;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 
 import android.app.Activity;
 import android.content.ComponentName;
@@ -14,7 +12,6 @@ import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
-import android.text.method.HideReturnsTransformationMethod;
 import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -23,7 +20,6 @@ import android.widget.ListView;
 import com.actionbarsherlock.app.SherlockListFragment;
 import com.ubergeek42.WeechatAndroid.BufferListAdapter;
 import com.ubergeek42.WeechatAndroid.R;
-import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
 import com.ubergeek42.WeechatAndroid.service.RelayServiceBinder;
 import com.ubergeek42.weechat.Buffer;
@@ -48,6 +44,9 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
 	private boolean hideServerBuffers;
 	private int currentPosition = -1;
 
+	// Are we attached to an activity?
+	private boolean attached;
+
     
 
     // The container Activity must implement this interface so the frag can deliver messages
@@ -69,6 +68,12 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
             throw new ClassCastException(activity.toString()
                     + " must implement OnBufferSelectedListener");
         }
+        attached = true;
+    }
+    @Override
+    public void onDetach() {
+    	super.onDetach();
+    	attached = false;
     }
     
     @Override
@@ -105,6 +110,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
 	public void onStop() {
 		super.onStop();
 		if (mBound) {
+			rsb.removeRelayConnectionHandler(BufferListFragment.this);
 			getActivity().unbindService(mConnection);
 			mBound = false;
 		}
@@ -125,10 +131,8 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
 
 		@Override
 		public void onServiceDisconnected(ComponentName name) {
-			rsb.removeRelayConnectionHandler(BufferListFragment.this);
 			mBound = false;
 			rsb = null;
-			Log.d("DISCONNECT", "ONSERVICEDISCONNECTED called");
 		}
 	};
 
@@ -162,7 +166,8 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
 					setListAdapter(m_adapter);
 				}
 			});
-			m_adapter.notifyDataSetChanged();
+			
+			onBuffersChanged();
 		}
 	}
 
@@ -183,6 +188,9 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
 	}
 	@Override
 	public void onBuffersChanged() {
+		// Need to make sure we are attached to an activity, otherwise getActivity can be null
+		if (!attached) return;
+		
 		getActivity().runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
@@ -226,6 +234,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
 					currentPosition = m_adapter.findBufferPosition(lastBuffer);
 					if (currentPosition>=0)
 						getListView().setItemChecked(currentPosition, true);
+					// TODO: crash, content view not yet created(maybe this is being called too early?)
 				}	
 			}
 		});

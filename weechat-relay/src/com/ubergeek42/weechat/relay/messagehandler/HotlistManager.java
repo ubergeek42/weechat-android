@@ -30,6 +30,7 @@ import com.ubergeek42.weechat.relay.protocol.Hdata;
 import com.ubergeek42.weechat.relay.protocol.HdataEntry;
 import com.ubergeek42.weechat.relay.protocol.Infolist;
 import com.ubergeek42.weechat.relay.protocol.RelayObject;
+import com.ubergeek42.weechat.relay.protocol.RelayObject.WType;
 
 /**
  * Manages a list of buffers present in weechat
@@ -37,7 +38,7 @@ import com.ubergeek42.weechat.relay.protocol.RelayObject;
  *
  */
 public class HotlistManager implements RelayMessageHandler {
-	private static Logger logger = LoggerFactory.getLogger(LineHandler.class);
+	private static Logger logger = LoggerFactory.getLogger(HotlistManager.class);
 	
 	ArrayList<HotlistItem> hotlist = new ArrayList<HotlistItem>();
 	private HotlistManagerObserver onChangeObserver;
@@ -85,6 +86,7 @@ public class HotlistManager implements RelayMessageHandler {
 	    for (HotlistItem hli : hotlist) {
 	    	if(hli.getFullName().equals(fullBufferName)) {
 	    		hotlist.remove(hli);
+	    		hotlistChanged();
 	    		return;
 	    	}
 	    }
@@ -94,9 +96,7 @@ public class HotlistManager implements RelayMessageHandler {
 	public void handleMessage(RelayObject obj, String id) {
 
 		if (id.equals("_buffer_line_added")){ // New line added...what is it?
-			logger.debug("buffer_line_added called");
 			Hdata hdata = (Hdata) obj;
-
 			outer: for(int i=0;i<hdata.getCount(); i++) {
 				HdataEntry hde = hdata.getItem(i);
 				// TODO: check last item of path is line_data
@@ -110,17 +110,16 @@ public class HotlistManager implements RelayMessageHandler {
 				String bPointer = hde.getItem("buffer").asPointer();
 				Buffer b = bufferManager.findByPointer(bPointer);
 				if(b==null) {
+					// No buffer associated with this line
 					continue;
 				}
 
 				// TODO Check for buffer type
 				// Ignore core / server, etc
 
-
-
 				// Try to get the array tags (added in 0.3.9-dev: 2012-07-23)
 				RelayObject tags = hde.getItem("tags_array");
-				if(tags!=null) {
+				if(tags!=null  && tags.getType() == WType.ARR) {
 					logger.debug("tags_array:"+ tags.toString());
 					Array tagsArray = tags.asArray();
 					int tagCount = tagsArray.length();

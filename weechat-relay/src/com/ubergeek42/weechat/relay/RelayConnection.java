@@ -434,7 +434,7 @@ public class RelayConnection {
 						// Still have more message to read
 						if (buffer.size() < length) break;
 						
-						logger.trace("socketReader got message, size: " + length);
+						//logger.trace("socketReader got message, size: " + length);
 						// We have a full message, so let's do something with it
 						byte[] bdata = buffer.toByteArray();
 						byte[] msgdata = Helper.copyOfRange(bdata, 0, length);
@@ -443,7 +443,7 @@ public class RelayConnection {
 						
 						long start = System.currentTimeMillis();
 						handleMessage(wm);
-						logger.trace("handleMessage took " + (System.currentTimeMillis()-start) + "ms(id: "+wm.getID()+")");
+						//logger.trace("handleMessage took " + (System.currentTimeMillis()-start) + "ms(id: "+wm.getID()+")");
 						
 						// Reset the buffer, and put back any additional data
 						buffer.reset();

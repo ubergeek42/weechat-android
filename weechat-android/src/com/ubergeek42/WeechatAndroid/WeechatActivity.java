@@ -263,6 +263,8 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
      * @param menu actionBarMenu to update context on
      */
     public void updateMenuContext (Menu menu) {
+    	if (menu==null) return;
+    	
     	// Swap the text from connect to disconnect depending on connection status
         MenuItem connectionStatus = menu.findItem(R.id.menu_connection_state);
         if (rsb != null && rsb.isConnected())

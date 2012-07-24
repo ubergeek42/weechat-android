@@ -60,13 +60,7 @@ public class HotlistItem {
 	}
 	
 	public HotlistItem(HdataEntry hde, Buffer b) {		
-
 		// Get the information about the "line"
-		/*
-		String message = hde.getItem("message").asString();
-		String prefix = hde.getItem("prefix").asString();
-		Date time = hde.getItem("date").asTime();
-		*/
 		String bPointer = hde.getItem("buffer").asPointer();
 		
 		// Is line displayed or hidden by filters, etc?
@@ -75,7 +69,7 @@ public class HotlistItem {
 		 //Try to get highlight status(added in 0.3.8-dev: 2012-03-06)
 		 RelayObject t = hde.getItem("highlight");
 			boolean highlight = false;
-		 if(t!=null) highlight = (t.asChar()==0x01);
+		 if (t!=null) highlight = (t.asChar()==0x01);
 	
 		// TODO: should be based on tags for line(notify_none/etc), but these are inaccessible through the relay plugin
 		// Determine if buffer is a privmessage(check localvar "type" for value "private"), and notify for that too

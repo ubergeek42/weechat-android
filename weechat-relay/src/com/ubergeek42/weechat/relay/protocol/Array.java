@@ -17,8 +17,6 @@ package com.ubergeek42.weechat.relay.protocol;
 
 import java.util.ArrayList;
 
-import android.util.Log;
-
 public class Array extends RelayObject {
 
 	private final ArrayList<RelayObject> array = new ArrayList<RelayObject>();
@@ -47,6 +45,9 @@ public class Array extends RelayObject {
 	}
 
 	public String[] asStringArray() {
+		if (arrayType != WType.STR) {
+			return new String[0];
+		}
 		String[] ret = new String[length()];
 		for (int i = 0; i < length(); i++) {
 			ret[i] = array.get(i).asString();
