@@ -15,7 +15,6 @@
  ******************************************************************************/
 package com.ubergeek42.WeechatAndroid.service;
 
-import java.io.IOException;
 import java.util.HashSet;
 
 import android.app.Notification;

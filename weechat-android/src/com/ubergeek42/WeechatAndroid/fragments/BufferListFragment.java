@@ -14,6 +14,7 @@ import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
+import android.text.method.HideReturnsTransformationMethod;
 import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -29,6 +30,7 @@ import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
 import com.ubergeek42.weechat.relay.messagehandler.BufferManager;
 import com.ubergeek42.weechat.relay.messagehandler.BufferManagerObserver;
+import com.ubergeek42.weechat.relay.protocol.RelayObject;
 
 public class BufferListFragment extends SherlockListFragment implements RelayConnectionHandler, BufferManagerObserver, OnSharedPreferenceChangeListener  {
 	private static final String[] message = {"Press Menu->Connect to get started"};
@@ -43,6 +45,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
 
 	private SharedPreferences prefs;
 	private boolean enableBufferSorting;
+	private boolean hideServerBuffers;
 	private int currentPosition = -1;
 
     
@@ -78,8 +81,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
 		prefs = PreferenceManager.getDefaultSharedPreferences(getActivity().getBaseContext());
 	    prefs.registerOnSharedPreferenceChangeListener(this);
 	    enableBufferSorting = prefs.getBoolean("sort_buffers", true);
-
-
+	    hideServerBuffers = prefs.getBoolean("hide_server_buffers", false);
     }
     
     @Override
@@ -148,7 +150,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
 		Log.d("BufferListFragment","onConnect called");
 		if (rsb != null && rsb.isConnected()) {
 			// Create and update the buffer list when we connect to the service
-			m_adapter = new BufferListAdapter((WeechatActivity) getActivity());
+			m_adapter = new BufferListAdapter(getActivity());
 			bufferManager = rsb.getBufferManager();
 			bufferManager.onChanged(BufferListFragment.this);
 
@@ -160,7 +162,6 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
 				}
 			});
 			m_adapter.notifyDataSetChanged();
-
 		}
 	}
 
@@ -186,11 +187,11 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
 			public void run() {
 				ArrayList<Buffer> buffers;
 				int position = currentPosition;
-				Buffer b = null;
+				Buffer lastBuffer = null;
 				
 				if(position>=0) {
 					try{
-						b = m_adapter.getItem(position);
+						lastBuffer = m_adapter.getItem(position);
 					}catch(ArrayIndexOutOfBoundsException e)
 					{
 						Log.d("BufferListFragment", "OutOfBounds:"+position);
@@ -198,43 +199,45 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
 				}
 				
 				buffers = bufferManager.getBuffers();
-				// Sort buffers based on unread count
-				if (enableBufferSorting) {
-					Collections.sort(buffers, bufferComparator);
-				}
-				m_adapter.buffers = buffers;
-				m_adapter.notifyDataSetChanged();
 				
-				if(b!=null) {
-					for(int i=0;i<buffers.size();i++) {
-						if(b.getFullName().equals(buffers.get(i).getFullName())) {
-							currentPosition = i;
-							break;
+				
+				// Remove server buffers(if unwanted)
+				if (hideServerBuffers) {
+					ArrayList<Buffer> newBuffers = new ArrayList<Buffer>();
+					for (Buffer b: buffers) {
+						RelayObject relayobj = b.getLocalVar("type");
+						if (relayobj != null) {
+							if (!relayobj.asString().equals("server")) {
+								newBuffers.add(b);
+							}
 						}
 					}
-					// Set the item as checked to be highlighted when in two-pane layout
-			        getListView().setItemChecked(currentPosition, true);
+					buffers = newBuffers;
+				}
+				
+				m_adapter.setBuffers(buffers);
+				// Sort buffers based on unread count
+				if (enableBufferSorting) {
+					m_adapter.sortBuffers();
+				}
 
+				// If we had a buffer selected, make sure it stays highlighted when in two-pane layout(as things may have shuffled around)
+				if (lastBuffer != null) {
+					currentPosition = m_adapter.findBufferPosition(lastBuffer);
+					if (currentPosition>=0)
+						getListView().setItemChecked(currentPosition, true);
 				}	
 			}
 		});
 	}
-	private final Comparator<Buffer> bufferComparator = new Comparator<Buffer>() {
-		@Override
-		public int compare(Buffer b1, Buffer b2) {
-        	int b1Highlights = b1.getHighlights();
-        	int b2Highlights = b2.getHighlights();
-        	if(b2Highlights > 0 || b1Highlights > 0) {
-        		return b2Highlights - b1Highlights;
-        	}
-            return b2.getUnread() - b1.getUnread();
-        }
-	};
 
 	@Override
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
 		if (key.equals("sort_buffers")) {
 			enableBufferSorting = prefs.getBoolean("sort_buffers", true);
+			onBuffersChanged();
+		} else if(key.equals("hide_server_buffers")) {
+			hideServerBuffers = prefs.getBoolean("hide_server_buffers", false);
 			onBuffersChanged();
 		}
 	}

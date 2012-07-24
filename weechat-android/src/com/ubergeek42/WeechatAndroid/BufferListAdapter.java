@@ -38,7 +38,7 @@ import com.ubergeek42.weechat.relay.messagehandler.BufferManagerObserver;
 public class BufferListAdapter extends BaseAdapter{
 	Activity parentActivity;
 	LayoutInflater inflater;
-	public ArrayList<Buffer> buffers = new ArrayList<Buffer>();
+	private ArrayList<Buffer> buffers = new ArrayList<Buffer>();
 
 	public BufferListAdapter(Activity parentActivity) {
 		this.parentActivity = parentActivity;
@@ -55,6 +55,35 @@ public class BufferListAdapter extends BaseAdapter{
 		return buffers.get(position);
 	}
 
+	public ArrayList<Buffer> getBuffers() {
+		return buffers;
+	}
+	
+	public void setBuffers(ArrayList<Buffer> buffers) {
+		this.buffers = buffers;
+		this.notifyDataSetChanged();
+	}
+	
+	public void sortBuffers() {
+		Collections.sort(buffers, bufferComparator);
+	}
+	
+	/**
+	 * Find the position of a buffer(by name) in the list
+	 * @param b - The buffer to find
+	 * @return Position of the buffer if found
+	 * 			-1 if not found
+	 */
+	public int findBufferPosition(Buffer b) {
+		for(int i=0;i<buffers.size();i++) {
+			if(b.getFullName().equals(buffers.get(i).getFullName())) {
+				return i;
+			}
+		}
+		return -1;
+	}
+	
+	
 	@Override
 	public long getItemId(int position) {
 		return position;
@@ -115,12 +144,23 @@ public class BufferListAdapter extends BaseAdapter{
         return convertView;
     }
 
-    static class ViewHolder {
+	private static class ViewHolder {
         TextView highlightcount;
 		TextView messagecount;
 		TextView shortname;
         TextView fullname;
         TextView title;
     }
-
+	
+	private final Comparator<Buffer> bufferComparator = new Comparator<Buffer>() {
+		@Override
+		public int compare(Buffer b1, Buffer b2) {
+        	int b1Highlights = b1.getHighlights();
+        	int b2Highlights = b2.getHighlights();
+        	if(b2Highlights > 0 || b1Highlights > 0) {
+        		return b2Highlights - b1Highlights;
+        	}
+            return b2.getUnread() - b1.getUnread();
+        }
+	};
 }
