@@ -123,7 +123,7 @@ public class HotlistManager implements RelayMessageHandler {
 				if(tags!=null) {
 					logger.debug("tags_array:"+ tags.toString());
 					Array tagsArray = tags.asArray();
-					int tagCount = tagsArray.getArraySize();
+					int tagCount = tagsArray.length();
 					if(tagCount == 0) {
 						// All important messages have tags
 						logger.debug("Found no tags in buffer:"+b.getFullName()+",skipping line.");

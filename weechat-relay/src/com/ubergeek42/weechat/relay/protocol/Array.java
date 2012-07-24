@@ -37,11 +37,15 @@ public class Array extends RelayObject {
 		return array.get(index);
 	}
 
-	public int getArraySize() {
+	public int length() {
 		return arraySize;
 	}
 	public void setArraySize(int arraySize) {
 		this.arraySize = arraySize;
+	}
+
+	public String[] asStringArray() {
+		return array.toArray(new String[array.size()]);
 	}
 	/**
 	 * Debug toString

@@ -67,15 +67,13 @@ public class LineHandler implements RelayMessageHandler {
 				highlight = (t.asChar()==0x01);
 			}
 
+			String[] tags = null;
 			// Try to get the array tags (added in 0.3.9-dev: 2012-07-23)
 			// Make sure it is the right type as well, prior to this commit it is just a pointer
-			RelayObject tags = hde.getItem("tags_array");
-			if(tags!=null && tags.getType() == WType.ARR) {
-				Array tagsArray = tags.asArray();
-				for(int ai=0;ai<tagsArray.getArraySize();ai++) {
-					String tag = tagsArray.get(ai).asString();
-					// TODO: store the tags with the line object?
-				}
+			RelayObject tagsobj = hde.getItem("tags_array");
+			if (tagsobj != null && tagsobj.getType() == WType.ARR) {
+				Array tagsArray = tagsobj.asArray();
+				tags = tagsArray.asStringArray();
 			}
 			// Find the buffer to put the line in
 			Buffer buffer = cb.findByPointer(bPointer);
@@ -93,6 +91,7 @@ public class LineHandler implements RelayMessageHandler {
 				cm.setVisible(displayed);
 				cm.setHighlight(highlight);
 				cm.setPointer(hde.getPointer());
+				cm.setTags(tags);
 				if (id.equals("_buffer_line_added")) {
 					buffer.addLine(cm);
 					cb.buffersChanged();

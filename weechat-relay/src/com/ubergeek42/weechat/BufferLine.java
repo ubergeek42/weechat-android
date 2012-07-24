@@ -19,6 +19,8 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import com.ubergeek42.weechat.relay.protocol.Array;
+
 /**
  * A line/message from a buffer.
  * @author ubergeek42<kj@ubergeek42.com>
@@ -43,6 +45,8 @@ public class BufferLine {
 	private boolean highlight;
 	private String pointer;
 	
+	private String[] tags;
+
 	// TODO: consider caching the color "cleaned" values as well
 	
 	/**
@@ -185,5 +189,19 @@ public class BufferLine {
 	 */
 	public String getPointer() {
 		return this.pointer;
+	}
+
+	/*
+	 * Get the Array of tags beloging to this line
+	 */
+	public String[] getTags() {
+		return tags;
+	}
+
+	/*
+	 * Set the Array of tags beloging to this line
+	 */
+	public void setTags(String[] tags) {
+		this.tags = tags;
 	}
 }
