@@ -18,8 +18,6 @@ package com.ubergeek42.weechat.relay.protocol;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 
-import android.util.Log;
-
 import com.ubergeek42.weechat.Helper;
 import com.ubergeek42.weechat.relay.protocol.RelayObject.WType;
 

@@ -21,8 +21,6 @@ import java.util.HashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import android.util.Log;
-
 import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.BufferLine;
 import com.ubergeek42.weechat.relay.RelayMessageHandler;
@@ -33,7 +31,6 @@ import com.ubergeek42.weechat.relay.protocol.RelayObject;
 
 public class LineHandler implements RelayMessageHandler {
 	private static Logger logger = LoggerFactory.getLogger(LineHandler.class);
-	private static String TAG = "RelayMessagehandler";
 
 	private final BufferManager cb;
 

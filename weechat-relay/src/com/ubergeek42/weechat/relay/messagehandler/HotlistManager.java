@@ -19,10 +19,10 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 
-import android.util.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.ubergeek42.weechat.Buffer;
-import com.ubergeek42.weechat.Color;
 import com.ubergeek42.weechat.HotlistItem;
 import com.ubergeek42.weechat.relay.RelayMessageHandler;
 import com.ubergeek42.weechat.relay.protocol.Array;
@@ -37,7 +37,8 @@ import com.ubergeek42.weechat.relay.protocol.RelayObject;
  *
  */
 public class HotlistManager implements RelayMessageHandler {
-	private static final String TAG = "HotlistManager";
+	private static Logger logger = LoggerFactory.getLogger(LineHandler.class);
+	
 	ArrayList<HotlistItem> hotlist = new ArrayList<HotlistItem>();
 	private HotlistManagerObserver onChangeObserver;
 	private BufferManager bufferManager;
@@ -93,7 +94,7 @@ public class HotlistManager implements RelayMessageHandler {
 	public void handleMessage(RelayObject obj, String id) {
 
 		if (id.equals("_buffer_line_added")){ // New line added...what is it?
-			Log.d(TAG, "buffer_line_added called");
+			logger.debug("buffer_line_added called");
 			Hdata hdata = (Hdata) obj;
 
 			outer: for(int i=0;i<hdata.getCount(); i++) {
@@ -120,12 +121,12 @@ public class HotlistManager implements RelayMessageHandler {
 				// Try to get the array tags (added in 0.3.9-dev: 2012-07-23)
 				RelayObject tags = hde.getItem("tags_array");
 				if(tags!=null) {
-					Log.d(TAG, "tags_array:"+ tags.toString());
+					logger.debug("tags_array:"+ tags.toString());
 					Array tagsArray = tags.asArray();
 					int tagCount = tagsArray.getArraySize();
 					if(tagCount == 0) {
 						// All important messages have tags
-						Log.d(TAG, "Found no tags in buffer:"+b.getFullName()+",skipping line.");
+						logger.debug("Found no tags in buffer:"+b.getFullName()+",skipping line.");
 						continue;
 					}
 					for(int ai=0;ai<tagCount;ai++) {
@@ -136,7 +137,7 @@ public class HotlistManager implements RelayMessageHandler {
 						   tag.equals("irc_join")||
 						   tag.equals("notify_none")
 						   ) {
-							Log.d(TAG, "Found tag:"+tag+",skipping line.");
+							logger.debug("Found tag:"+tag+",skipping line.");
 							continue outer;
 						}
 					}
@@ -178,7 +179,7 @@ public class HotlistManager implements RelayMessageHandler {
 					// We got count, check and see if we already have buffer in hotlist
 				    hotlist.add(hli);
 				}
-				Log.d(TAG, "Added hotlistitem " + hli);
+				logger.debug("Added hotlistitem " + hli);
 			}
 		}
 		// Sort the hotlist, highlights first, then unread

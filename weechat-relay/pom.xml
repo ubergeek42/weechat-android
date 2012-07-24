@@ -5,7 +5,7 @@
 
 	<artifactId>weechat-relay</artifactId>
 	<name>WeechatRelay</name>
-	<packaging>apklib</packaging>
+	<packaging>jar</packaging>
 
 	<parent>
 		<groupId>com.ubergeek42.weechatandroid</groupId>
@@ -15,21 +15,6 @@
 	</parent>
 
 	<dependencies>
-		<dependency>
-			<groupId>com.google.android</groupId>
-			<artifactId>android</artifactId>
-			<scope>provided</scope>
-		</dependency>
-		<!-- <dependency>
-			<groupId>com.google.android</groupId>
-			<artifactId>support-v4</artifactId>
-		</dependency>-->
-
-		<!--<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<scope>test</scope>
-		</dependency>-->
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
@@ -49,13 +34,5 @@
 	<build>
 		<sourceDirectory>src</sourceDirectory>
 		<testSourceDirectory>test</testSourceDirectory>
-
-		<plugins>
-			<plugin>
-				<groupId>com.jayway.maven.plugins.android.generation2</groupId>
-				<artifactId>android-maven-plugin</artifactId>
-				<extensions>true</extensions>
-			</plugin>
-		</plugins>
 	</build>
 </project>
