@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright 2012 Keith Johnson
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -35,24 +35,15 @@ import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.relay.messagehandler.BufferManager;
 import com.ubergeek42.weechat.relay.messagehandler.BufferManagerObserver;
 
-public class BufferListAdapter extends BaseAdapter implements BufferManagerObserver, OnSharedPreferenceChangeListener {
+public class BufferListAdapter extends BaseAdapter{
 	Activity parentActivity;
 	LayoutInflater inflater;
-	private BufferManager bufferManager;
-	protected ArrayList<Buffer> buffers = new ArrayList<Buffer>();
-	private SharedPreferences prefs;
-	private boolean enableBufferSorting;
-	
-	public BufferListAdapter(Activity parentActivity, RelayServiceBinder rsb) {
+	private ArrayList<Buffer> buffers = new ArrayList<Buffer>();
+
+	public BufferListAdapter(Activity parentActivity) {
 		this.parentActivity = parentActivity;
 		this.inflater = LayoutInflater.from(parentActivity);
-		
-		prefs = PreferenceManager.getDefaultSharedPreferences(parentActivity.getBaseContext());
-	    prefs.registerOnSharedPreferenceChangeListener(this);
-	    enableBufferSorting = prefs.getBoolean("sort_buffers", true);
-		
-		bufferManager = rsb.getBufferManager();
-		bufferManager.onChanged(this);
+
 	}
 	@Override
 	public int getCount() {
@@ -61,11 +52,38 @@ public class BufferListAdapter extends BaseAdapter implements BufferManagerObser
 
 	@Override
 	public Buffer getItem(int position) {
-		
-		
 		return buffers.get(position);
 	}
 
+	public ArrayList<Buffer> getBuffers() {
+		return buffers;
+	}
+	
+	public void setBuffers(ArrayList<Buffer> buffers) {
+		this.buffers = buffers;
+		this.notifyDataSetChanged();
+	}
+	
+	public void sortBuffers() {
+		Collections.sort(buffers, bufferComparator);
+	}
+	
+	/**
+	 * Find the position of a buffer(by name) in the list
+	 * @param b - The buffer to find
+	 * @return Position of the buffer if found
+	 * 			-1 if not found
+	 */
+	public int findBufferPosition(Buffer b) {
+		for(int i=0;i<buffers.size();i++) {
+			if(b.getFullName().equals(buffers.get(i).getFullName())) {
+				return i;
+			}
+		}
+		return -1;
+	}
+	
+	
 	@Override
 	public long getItemId(int position) {
 		return position;
@@ -80,7 +98,9 @@ public class BufferListAdapter extends BaseAdapter implements BufferManagerObser
             holder = new ViewHolder();
             holder.shortname = (TextView) convertView.findViewById(R.id.bufferlist_shortname);
             holder.fullname = (TextView) convertView.findViewById(R.id.bufferlist_fullname);
-            holder.hotlist = (TextView) convertView.findViewById(R.id.bufferlist_hotlist);
+            holder.messagecount = (TextView) convertView.findViewById(R.id.bufferlist_hotlist_messagecount);
+            holder.highlightcount = (TextView) convertView.findViewById(R.id.bufferlist_hotlist_highlightcount);
+
             holder.title = (TextView) convertView.findViewById(R.id.bufferlist_title);
 
             convertView.setTag(holder);
@@ -88,54 +108,51 @@ public class BufferListAdapter extends BaseAdapter implements BufferManagerObser
             holder = (ViewHolder) convertView.getTag();
         }
 
-        Buffer bufferItem = (Buffer) getItem(position);
+        Buffer bufferItem = getItem(position);
 
         // use contents of bufferItem to fill in text content
         holder.fullname.setText(bufferItem.getFullName());
         holder.shortname.setText(bufferItem.getShortName());
-        if (bufferItem.getShortName() == null)
-            holder.shortname.setText(bufferItem.getFullName());
+        if (bufferItem.getShortName() == null) {
+			holder.shortname.setText(bufferItem.getFullName());
+		}
 
         // Title might be removed in different layouts
-        if(holder.title!=null)
-        	holder.title.setText(com.ubergeek42.weechat.Color.stripAllColorsAndAttributes(bufferItem.getTitle()));
+        if(holder.title!=null) {
+			holder.title.setText(com.ubergeek42.weechat.Color.stripAllColorsAndAttributes(bufferItem.getTitle()));
+		}
 
-        int unread = bufferItem.getUnread();
-        int highlight = bufferItem.getHighlights();
-        holder.hotlist.setText(String.format("U:%2d  H:%2d   ", unread, highlight));
+        int unreadc = bufferItem.getUnread();
+        int highlightc = bufferItem.getHighlights();
+        //holder.hotlist.setText(String.format("U:%2d  H:%2d   ", unread, highlight));
 
-        if (highlight > 0) {
-            holder.hotlist.setTextColor(Color.MAGENTA);
-        } else if (unread > 0) {
-            holder.hotlist.setTextColor(Color.YELLOW);
-        } else {
-            holder.hotlist.setTextColor(Color.WHITE);
+        if (highlightc > 0) {
+            holder.highlightcount.setText("" + highlightc);
+            holder.highlightcount.setTextColor(Color.MAGENTA);
         }
+        else {
+        	holder.highlightcount.setText("");
+        }
+        if (unreadc > 0) {
+        	holder.messagecount.setText("" + (unreadc - highlightc));
+			holder.messagecount.setTextColor(Color.YELLOW);
+		} else {
+        	holder.messagecount.setText("");
+			holder.messagecount.setTextColor(Color.WHITE);
+		}
+
         return convertView;
     }
 
-    static class ViewHolder {
-        TextView shortname;
+	private static class ViewHolder {
+        TextView highlightcount;
+		TextView messagecount;
+		TextView shortname;
         TextView fullname;
-        TextView hotlist;
         TextView title;
     }
-    
-	@Override
-	public void onBuffersChanged() {
-		parentActivity.runOnUiThread(new Runnable() {
-			@Override
-			public void run() {
-				buffers = bufferManager.getBuffers();
-				// Sort buffers based on unread count
-				if (enableBufferSorting) {
-					Collections.sort(buffers, bufferComparator);
-				}
-				notifyDataSetChanged();
-			}
-		});
-	}
-	private Comparator<Buffer> bufferComparator = new Comparator<Buffer>() {
+	
+	private final Comparator<Buffer> bufferComparator = new Comparator<Buffer>() {
 		@Override
 		public int compare(Buffer b1, Buffer b2) {
         	int b1Highlights = b1.getHighlights();
@@ -146,12 +163,4 @@ public class BufferListAdapter extends BaseAdapter implements BufferManagerObser
             return b2.getUnread() - b1.getUnread();
         }
 	};
-	
-	@Override
-	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-		if (key.equals("sort_buffers")) {
-			enableBufferSorting = prefs.getBoolean("sort_buffers", true);
-			onBuffersChanged();
-		}
-	}
 }

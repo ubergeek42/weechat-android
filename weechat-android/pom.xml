@@ -25,7 +25,7 @@
 			<groupId>com.ubergeek42.weechatandroid</groupId>
 			<artifactId>weechat-relay</artifactId>
 			<version>0.8-SNAPSHOT</version>
-			<type>apklib</type>
+			<type>jar</type>
 		</dependency>
 		
 		<dependency>

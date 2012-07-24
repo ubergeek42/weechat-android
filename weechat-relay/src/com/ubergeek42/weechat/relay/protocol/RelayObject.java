@@ -26,7 +26,7 @@ import java.util.Date;
 public class RelayObject {
 
 	public enum WType {
-		CHR, INT, LON, STR, BUF, PTR, TIM, HTB, HDA, INF, INL, UNKNOWN
+		CHR, INT, LON, STR, BUF, PTR, TIM, HTB, HDA, INF, INL, ARR, UNKNOWN
 	}
 
 	private char charValue;
@@ -34,6 +34,7 @@ public class RelayObject {
 	private long longValue;
 	private String strValue;
 	private byte[] baValue;
+	private Array arrayValue;
 
 	protected WType type = WType.UNKNOWN;
 
@@ -66,6 +67,11 @@ public class RelayObject {
 		type = WType.BUF;
 	}
 
+	public RelayObject(Array array) {
+		arrayValue = array;
+		type = WType.ARR;
+	}
+
 	protected void setType(WType t) {
 		type = t;
 	}
@@ -82,6 +88,10 @@ public class RelayObject {
 					+ t);
 	}
 
+	public WType getType() {
+		return type;
+	}
+	
 	/**
 	 * @return The char representation of an object
 	 */
@@ -122,6 +132,14 @@ public class RelayObject {
 		checkType(WType.BUF);
 		return baValue;
 	}
+	/**
+	 * @return An array representation of the object
+	 */
+	public Array asArray() {
+		checkType(WType.ARR);
+		return arrayValue;
+	}
+
 
 	/**
 	 * @return A string representing a pointer(e.g. 0xDEADBEEF)
@@ -166,8 +184,12 @@ public class RelayObject {
 		case BUF:
 			value = "" + Arrays.toString(asBytes());
 			break; // Need a better printer for a byte buffer
+		case ARR:
+			value = "" + asArray();
+			break;
 		}
 		// return String.format("%s -> %s", type, value);
 		return String.format("%s", value);
 	}
+
 }

@@ -15,7 +15,6 @@
  ******************************************************************************/
 package com.ubergeek42.WeechatAndroid.service;
 
-import java.io.IOException;
 import java.util.HashSet;
 
 import android.app.Notification;
@@ -181,12 +180,8 @@ public class RelayService extends Service implements RelayConnectionHandler, OnS
 		}
 
 		relayConnection.setConnectionHandler(this);
-        try {
-            relayConnection.connect();
-        } catch (IOException e) {
-            showNotification(null, String.format("Error connecting: %s", e.getMessage()));
-            return false;
-        }
+		
+        relayConnection.connect();
         return true;
     }
 	

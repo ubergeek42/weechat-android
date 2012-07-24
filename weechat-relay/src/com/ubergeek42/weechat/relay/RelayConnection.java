@@ -62,8 +62,7 @@ public class RelayConnection {
 	
 	private Socket sock = null;
 	private String password = null;
-	private String serverString = null;
-	private InetAddress server = null;
+	private String server = null;
 	private int port;
 	
 	private OutputStream outstream = null;
@@ -96,7 +95,7 @@ public class RelayConnection {
 	 * @param password - password for the relay server
 	 */
 	public RelayConnection(String server, String port, String password) {
-		this.serverString = server;
+		this.server = server;
 		this.port = Integer.parseInt(port);
 		this.password = password;
 		
@@ -138,7 +137,7 @@ public class RelayConnection {
 	 * @return The server we are connected to
 	 */
 	public String getServer() {
-		return serverString;
+		return server;
 	}
 	
 	/**
@@ -146,10 +145,8 @@ public class RelayConnection {
 	 * On failure, prints a stack trace...
 	 * TODO: proper error handling(should throw an exception)
 	 */
-	public void connect() throws IOException {
+	public void connect() {
 		if (isConnected() || socketReader.isAlive()) return;
-		
-        server = InetAddress.getByName(serverString);
 
 		currentConnection.start();
 	}
@@ -247,13 +244,15 @@ public class RelayConnection {
 	 */
 	private Thread createSocketConnection = new Thread(new Runnable() {
 		public void run() {
-            // You only need to execute this code once
 			try {
-				sock = new Socket(server, port);
+				sock = new Socket(InetAddress.getByName(server), port);
 				outstream = sock.getOutputStream();
 				instream = sock.getInputStream();
 			} catch (IOException e) {
 				e.printStackTrace();
+				for (RelayConnectionHandler wrch : connectionHandlers) {
+					wrch.onError(e.getMessage());
+				}
 				return;
 			}
 			postConnectionSetup();
@@ -281,14 +280,14 @@ public class RelayConnection {
 	 */
 	private Thread createStunnelSocketConnection = new Thread(new Runnable() {
 		public void run() {
-			//sock = new Socket(server, port);
-            // You only need to execute this code once
             SSLContext context = null;
             KeyStore keyStore = null;
             TrustManagerFactory tmf = null;
             KeyStore keyStoreCA = null;
             KeyManagerFactory kmf = null;
 			try {
+				
+				
 				FileInputStream pkcs12in = new FileInputStream(new File(stunnelCert));
 				
 				context = SSLContext.getInstance("TLS");
@@ -330,11 +329,14 @@ public class RelayConnection {
 
             SocketFactory socketFactory = context.getSocketFactory();
 			try {
-				sock = socketFactory.createSocket(server, port);
+				sock = socketFactory.createSocket(InetAddress.getByName(server), port);
 				outstream = sock.getOutputStream();
 				instream = sock.getInputStream();
 			} catch (IOException e) {
 				e.printStackTrace();
+				for (RelayConnectionHandler wrch : connectionHandlers) {
+					wrch.onError(e.getMessage());
+				}
 				return;
 			}
 				
@@ -384,7 +386,7 @@ public class RelayConnection {
 				sshSession.setPassword(sshPassword);
 				sshSession.setConfig("StrictHostKeyChecking", "no");
 				sshSession.connect();
-				sshSession.setPortForwardingL(sshLocalPort, serverString, port);
+				sshSession.setPortForwardingL(sshLocalPort, server, port);
 			} catch (JSchException e) {
 				e.printStackTrace();
 			}
@@ -396,6 +398,9 @@ public class RelayConnection {
 				instream = sock.getInputStream();
 			} catch (IOException e) {
 				e.printStackTrace();
+				for (RelayConnectionHandler wrch : connectionHandlers) {
+					wrch.onError(e.getMessage());
+				}
 				return;
 			}
 

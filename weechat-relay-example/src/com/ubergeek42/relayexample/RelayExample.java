@@ -1,3 +1,18 @@
+/*******************************************************************************
+ * Copyright 2012 Keith Johnson
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ ******************************************************************************/
 package com.ubergeek42.relayexample;
 
 import java.io.IOException;
@@ -32,6 +47,10 @@ public class RelayExample implements BufferManagerObserver, RelayConnectionHandl
 
 	@Override
 	public void onConnect() {
+		relay.addHandler("test", new TestMessageHandler());
+		relay.sendMsg("test","test","");
+		
+		/*
 		// Hook a handler for testing hdata functionality
 		bufferManager.onChanged(this);
 		relay.addHandler("listbuffers", bufferManager);
@@ -43,7 +62,7 @@ public class RelayExample implements BufferManagerObserver, RelayConnectionHandl
 		NicklistHandler nickHandler = new NicklistHandler(bufferManager);
 		relay.addHandler("_nicklist", nickHandler);
 		relay.addHandler("nicklist", nickHandler);
-		relay.sendMsg("nicklist", "nicklist", "irc.freenode.#cs-fit");
+		relay.sendMsg("nicklist", "nicklist", "irc.freenode.#weechat");
 		
 		
 		// Hook a handler for testing the infolist functionality
@@ -61,12 +80,7 @@ public class RelayExample implements BufferManagerObserver, RelayConnectionHandl
 		relay.addHandler("listlines_reverse", msgHandler);
 		relay.sendMsg("listlines_reverse","hdata", "buffer:gui_buffers(*)/own_lines/last_line(-5)/data date,displayed,prefix,message");
 		
-		// Sleep a bit to get our messages, then quit
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+		
 		
 		// Prints the messages for the first buffer
 		Buffer b = bufferManager.getBuffer(0);
@@ -74,9 +88,21 @@ public class RelayExample implements BufferManagerObserver, RelayConnectionHandl
 		for(BufferLine bl: lines) {
 			System.out.println(bl.toString());
 		}
+		//*/
 		
+		
+		
+		// Sleep a bit to get our messages, then quit
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+				
 		System.out.println("Cleaning up");
 		relay.disconnect();
+		
+		
 	}
 
 	@Override

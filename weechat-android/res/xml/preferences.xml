@@ -25,12 +25,20 @@
 				<EditTextPreference android:key="ssh_pass" android:title="SSH Password" android:password="true" android:singleLine="true" />
 		    </PreferenceScreen>
 	    </PreferenceCategory>
-    </PreferenceScreen></PreferenceCategory><PreferenceCategory android:title="Look &amp; Feel" android:key="lookfeelgroup"><EditTextPreference android:key="text_size" android:title="Text Size" android:defaultValue="10" android:numeric="integer" android:summary="Note: you can change this during chat with volume buttons"/><EditTextPreference android:key="timestamp_format" android:title="Timestamp format" android:defaultValue="HH:mm:ss" android:singleLine="true" /><CheckBoxPreference android:summary="Note: May be slow when changing" android:title="Show colors in chat" android:key="chatview_colors" android:defaultValue="true" /><CheckBoxPreference android:summary="If enabled, messages that were filtered will be hidden.(e.g. irc_smart_filter)" android:title="Filter messages" android:key="chatview_filters" android:defaultValue="true" /><CheckBoxPreference android:key="sort_buffers" android:summary="Sort by number of highlights/unread messages" android:title="Sort bufferlist" android:defaultValue="true" /><CheckBoxPreference android:key="tab_completion" android:summary="Use tab key to complete nicks" android:title="Tab Completion for Nicks" android:defaultValue="true" /><CheckBoxPreference android:summary="Use default notification sound when a private message or highlight is received" android:title="Notification Sound" android:key="notification_sounds" android:defaultValue="false" /><ListPreference android:key="prefix_align" android:title="Prefix Alignment" android:defaultValue="right" android:entries="@array/settings_prefix_alignment_names" android:entryValues="@array/settings_prefix_alignment_values" /><CheckBoxPreference android:summary="Whether to display timestamps in chat. Saves space when disabled." android:title="Show timestamps" android:key="chatview_timestamps" android:defaultValue="true" /></PreferenceCategory>
+    </PreferenceScreen>
     
-	
-    
-
-    
-    
+    </PreferenceCategory>
+    <PreferenceCategory android:title="Look &amp; Feel" android:key="lookfeelgroup">
+        <EditTextPreference android:key="text_size" android:title="Text Size" android:defaultValue="10" android:numeric="integer" android:summary="Note: you can change this during chat with volume buttons"/>
+        <EditTextPreference android:key="timestamp_format" android:title="Timestamp format" android:defaultValue="HH:mm:ss" android:singleLine="true" />
+        <CheckBoxPreference android:summary="Note: May be slow when changing" android:title="Show colors in chat" android:key="chatview_colors" android:defaultValue="true" />
+        <CheckBoxPreference android:summary="If enabled, messages that were filtered will be hidden.(e.g. irc_smart_filter)" android:title="Filter messages" android:key="chatview_filters" android:defaultValue="true" />
+        <CheckBoxPreference android:key="sort_buffers" android:summary="Sort by number of highlights/unread messages" android:title="Sort bufferlist" android:defaultValue="true" />
+        <CheckBoxPreference android:key="hide_server_buffers" android:summary="Hides server buffers(eg. irc.freenode)" android:title="Hide Server Buffers" android:defaultValue="false" />
+        <CheckBoxPreference android:key="tab_completion" android:summary="Use tab key to complete nicks" android:title="Tab Completion for Nicks" android:defaultValue="true" />
+        <CheckBoxPreference android:summary="Use default notification sound when a private message or highlight is received" android:title="Notification Sound" android:key="notification_sounds" android:defaultValue="false" />
+        <ListPreference android:key="prefix_align" android:title="Prefix Alignment" android:defaultValue="right" android:entries="@array/settings_prefix_alignment_names" android:entryValues="@array/settings_prefix_alignment_values" />
+        <CheckBoxPreference android:summary="Whether to display timestamps in chat. Saves space when disabled." android:title="Show timestamps" android:key="chatview_timestamps" android:defaultValue="true" />
+    </PreferenceCategory>
     
 </PreferenceScreen>

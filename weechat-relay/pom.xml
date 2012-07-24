@@ -5,7 +5,7 @@
 
 	<artifactId>weechat-relay</artifactId>
 	<name>WeechatRelay</name>
-	<packaging>apklib</packaging>
+	<packaging>jar</packaging>
 
 	<parent>
 		<groupId>com.ubergeek42.weechatandroid</groupId>
@@ -16,25 +16,11 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>com.google.android</groupId>
-			<artifactId>android</artifactId>
-			<scope>provided</scope>
-		</dependency>
-		<!-- <dependency>
-			<groupId>com.google.android</groupId>
-			<artifactId>support-v4</artifactId>
-		</dependency>-->
-
-		<!--<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<scope>test</scope>
-		</dependency>-->
-		<dependency>
 			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-android</artifactId>
-			<version>1.6.1-RC1</version>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.6.6</version>
 		</dependency>
+            
 		
 		<!-- Needed for SSH Tunnel Support -->
 		<dependency>
@@ -48,13 +34,5 @@
 	<build>
 		<sourceDirectory>src</sourceDirectory>
 		<testSourceDirectory>test</testSourceDirectory>
-
-		<plugins>
-			<plugin>
-				<groupId>com.jayway.maven.plugins.android.generation2</groupId>
-				<artifactId>android-maven-plugin</artifactId>
-				<extensions>true</extensions>
-			</plugin>
-		</plugins>
 	</build>
 </project>
