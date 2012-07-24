@@ -28,6 +28,7 @@ import com.ubergeek42.weechat.relay.protocol.Array;
 import com.ubergeek42.weechat.relay.protocol.Hdata;
 import com.ubergeek42.weechat.relay.protocol.HdataEntry;
 import com.ubergeek42.weechat.relay.protocol.RelayObject;
+import com.ubergeek42.weechat.relay.protocol.RelayObject.WType;
 
 public class LineHandler implements RelayMessageHandler {
 	private static Logger logger = LoggerFactory.getLogger(LineHandler.class);
@@ -62,20 +63,19 @@ public class LineHandler implements RelayMessageHandler {
 			// Try to get highlight status(added in 0.3.8-dev: 2012-03-06)
 			RelayObject t = hde.getItem("highlight");
 			boolean highlight = false;
-			if(t!=null) {
+			if (t!=null) {
 				highlight = (t.asChar()==0x01);
 			}
 
 			// Try to get the array tags (added in 0.3.9-dev: 2012-07-23)
+			// Make sure it is the right type as well, prior to this commit it is just a pointer
 			RelayObject tags = hde.getItem("tags_array");
-			if(tags!=null) {
-				//Log.d(TAG, "tags_array:"+ tags.toString());
+			if(tags!=null && tags.getType() == WType.ARR) {
 				Array tagsArray = tags.asArray();
 				for(int ai=0;ai<tagsArray.getArraySize();ai++) {
 					String tag = tagsArray.get(ai).asString();
-					// TODO do something with the tag
+					// TODO: store the tags with the line object?
 				}
-
 			}
 			// Find the buffer to put the line in
 			Buffer buffer = cb.findByPointer(bPointer);
@@ -94,7 +94,6 @@ public class LineHandler implements RelayMessageHandler {
 				cm.setHighlight(highlight);
 				cm.setPointer(hde.getPointer());
 				if (id.equals("_buffer_line_added")) {
-
 					buffer.addLine(cm);
 					cb.buffersChanged();
 				}
@@ -103,9 +102,7 @@ public class LineHandler implements RelayMessageHandler {
 					buffer.addLineFirstNoNotify(cm);
 					toUpdate.add(buffer);
 			    }
-
 			}
-
 		}
 		for(Buffer wb: toUpdate) {
 			wb.notifyObservers();

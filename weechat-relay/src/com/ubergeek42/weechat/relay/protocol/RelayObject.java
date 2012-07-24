@@ -88,8 +88,8 @@ public class RelayObject {
 					+ t);
 	}
 
-	public String getType() {
-		return type.toString();
+	public WType getType() {
+		return type;
 	}
 	
 	/**

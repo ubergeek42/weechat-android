@@ -26,6 +26,6 @@ import com.ubergeek42.weechat.relay.protocol.RelayObject;
 public class TestMessageHandler implements RelayMessageHandler {
 	public void handleMessage(RelayObject obj, String id) {
 		System.out.println("\n============"+id+"=================");
-		System.out.println(obj.getType() + " - " + obj);
+		System.out.println(obj.getType().toString() + " - " + obj);
 	}
 }
