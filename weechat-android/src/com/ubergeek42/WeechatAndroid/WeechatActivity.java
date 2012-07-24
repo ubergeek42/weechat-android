@@ -222,6 +222,18 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
             	}
                 break;
             }
+            case R.id.menu_bufferlist: {
+                // Replace anything in the fragment container with our new fragment
+                FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+                if (bfl.isHidden()) {
+                    ft.show(bfl);
+                } else {
+                    ft.hide(bfl);
+                }
+                ft.commit();
+            	
+            }
+            break;
         }
         return super.onOptionsItemSelected(item);
     }
