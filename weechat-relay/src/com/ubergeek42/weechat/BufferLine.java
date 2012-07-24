@@ -17,7 +17,9 @@ package com.ubergeek42.weechat;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 import com.ubergeek42.weechat.relay.protocol.Array;
 
@@ -192,16 +194,44 @@ public class BufferLine {
 	}
 
 	/*
-	 * Get the Array of tags beloging to this line
+	 * Get the Array of tags belonging to this line
 	 */
 	public String[] getTags() {
 		return tags;
 	}
 
 	/*
-	 * Set the Array of tags beloging to this line
+	 * Set the Array of tags belonging to this line
 	 */
 	public void setTags(String[] tags) {
 		this.tags = tags;
+	}
+
+	/*
+	 * Logic for deciding if this line should be treated as an unread message
+	 */
+	public boolean isUnread() {
+		if (highlight)
+			return true;
+		if (!visible)
+			return false;
+
+		// Check tags if weechat >= 0.3.9-dev
+		if (tags != null) {
+			if (tags.length == 0) // All important messages have tags
+				return false;
+			final List list = Arrays.asList(tags);
+			// Every "message" to user should have one or more of these tags
+			// notify_message, notify_highlight or notify_message
+			if (list.contains("notify_message")
+					|| list.contains("notify_highlight")
+					|| list.contains("notify_private"))
+				return true;
+			else
+				return false;
+		}
+		// If this point is reached, probably old version of weechat, so we err
+		// on the safe side and treat it as unread
+		return true;
 	}
 }

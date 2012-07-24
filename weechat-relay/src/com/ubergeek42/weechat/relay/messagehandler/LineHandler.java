@@ -93,7 +93,13 @@ public class LineHandler implements RelayMessageHandler {
 				cm.setPointer(hde.getPointer());
 				cm.setTags(tags);
 				if (id.equals("_buffer_line_added")) {
-					buffer.addLine(cm);
+					// Check if this line should be added as an unread line
+					// TODO make this into a preference as users might have
+					// different tastes
+					if (cm.isUnread())
+						buffer.addLine(cm);
+					else
+						buffer.addLineNoUnread(cm);
 					cb.buffersChanged();
 				}
 			    else if (id.equals("listlines_reverse")) { // lines come in most recent to least recent

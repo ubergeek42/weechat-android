@@ -21,6 +21,7 @@ import java.util.LinkedList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ubergeek42.weechat.relay.protocol.Array;
 import com.ubergeek42.weechat.relay.protocol.Hashtable;
 import com.ubergeek42.weechat.relay.protocol.RelayObject;
 
@@ -44,9 +45,13 @@ public class Buffer {
 	private String title;
 	private boolean hasNicklist;
 	private int type;
+	// Notify level for buffer, default = 2 == highlight and msg
+	private int notify = 2;
 
 	private int numUnread=0;
 	private int numHighlights=0;
+	// Lines that were updates but were not important
+	private int numUpdates = 0;
 	
 	private ArrayList<BufferObserver> observers = new ArrayList<BufferObserver>();
 	private LinkedList<BufferLine> lines = new LinkedList<BufferLine>();
@@ -55,8 +60,17 @@ public class Buffer {
 	
 	public void addLine(BufferLine m) {
 		addLineNoNotify(m);
-		if (m.getVisible())
-			numUnread++;
+		numUnread++;
+		notifyObservers();
+	}
+
+	/*
+	 * Add Line to the Buffer, but don't increase the unread count. Examples for
+	 * such lines are joins/quits
+	 */
+	public void addLineNoUnread(BufferLine m) {
+		addLineNoNotify(m);
+		numUpdates++;
 		notifyObservers();
 	}
 	public void addLineNoNotify(BufferLine m) {
