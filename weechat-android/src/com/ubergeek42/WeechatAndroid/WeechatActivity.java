@@ -56,6 +56,8 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
     private SocketToggleConnection taskToggleConnection;
     private HotlistListAdapter hotlistListAdapter;
     private Menu actionBarMenu;
+    
+    private Fragment currentFragment;
 
     /** Called when the activity is first created. */
 	@Override
@@ -122,12 +124,6 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
 		}
 	}
 	
-	@Override
-	protected void onDestroy() {
-		super.onDestroy();
-		
-	}
-
 	ServiceConnection mConnection = new ServiceConnection() {
 		@Override
 		public void onServiceConnected(ComponentName name, IBinder service) {
@@ -147,8 +143,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
 			rsb = null;
 		}
 	};
-	private Fragment currentFragment;
-
+	
 	@Override
 	public void onConnect() {
 		if (rsb != null && rsb.isConnected()) {
@@ -227,8 +222,9 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
             case R.id.menu_nicklist: {
             	if (!( currentFragment instanceof BufferFragment)) break;
 				BufferFragment currentBuffer = (BufferFragment) currentFragment;
-            	logger.debug("CurrentBuffer: " + currentFragment);
         		String[] nicks = currentBuffer.getNicklist();
+        		if (nicks == null) break;
+        		
 	            NickListAdapter nicklistAdapter = new NickListAdapter(WeechatActivity.this, nicks);
 	            	
 	            AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -292,12 +288,8 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
     
     // Called by whatever fragment is loaded, to set the currentview
     public void setCurrentFragment(Fragment frag) {
-    	if (tabletView && (frag instanceof BufferListFragment)) {
-    		// do nothing
-    	} else {
-    		// Update the current fragment that we are viewing
-    		currentFragment = frag;
-    	}
+    	currentFragment = frag;
+    	logger.debug("CurrentFragment is: " + frag.getClass());
     }
 
     public void onBufferSelected(String buffer) {

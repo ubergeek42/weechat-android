@@ -2,6 +2,9 @@ package com.ubergeek42.WeechatAndroid.fragments;
 
 import java.util.ArrayList;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
@@ -30,6 +33,7 @@ import com.ubergeek42.weechat.relay.messagehandler.BufferManagerObserver;
 import com.ubergeek42.weechat.relay.protocol.RelayObject;
 
 public class BufferListFragment extends SherlockListFragment implements RelayConnectionHandler, BufferManagerObserver, OnSharedPreferenceChangeListener  {
+	private static Logger logger = LoggerFactory.getLogger(BufferListFragment.class);
 	private static final String[] message = {"Press Menu->Connect to get started"};
 
 	private boolean mBound = false;
@@ -60,6 +64,8 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
+        
+        logger.debug("BufferListFragment onAttach called");
 
         // This makes sure that the container activity has implemented
         // the callback interface. If not, it throws an exception.
@@ -74,6 +80,16 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
         WeechatActivity parent = (WeechatActivity)activity;
 		parent.setCurrentFragment(this);
     }
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+    	super.onActivityCreated(savedInstanceState);
+    	
+    	logger.debug("BufferListFragment onActivityCreated called");
+    	
+    	WeechatActivity parent = (WeechatActivity)getActivity();
+		parent.setCurrentFragment(this);
+    }
+    
     @Override
     public void onDetach() {
     	super.onDetach();
