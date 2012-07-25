@@ -20,6 +20,7 @@ import android.widget.ListView;
 import com.actionbarsherlock.app.SherlockListFragment;
 import com.ubergeek42.WeechatAndroid.BufferListAdapter;
 import com.ubergeek42.WeechatAndroid.R;
+import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
 import com.ubergeek42.WeechatAndroid.service.RelayServiceBinder;
 import com.ubergeek42.weechat.Buffer;
@@ -53,7 +54,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     public interface OnBufferSelectedListener {
         /** Called by BufferlistFragment when a list item is selected 
          * @param b */
-        public void onBufferSelected(int position, String fullBufferName);
+        public void onBufferSelected(String fullBufferName);
     }
     
     @Override
@@ -69,6 +70,9 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
                     + " must implement OnBufferSelectedListener");
         }
         attached = true;
+        
+        WeechatActivity parent = (WeechatActivity)activity;
+		parent.setCurrentFragment(this);
     }
     @Override
     public void onDetach() {
@@ -142,7 +146,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
 		Buffer b = (Buffer) getListView().getItemAtPosition(position);
 
 		// Tell our parent to load the buffer
-        mCallback.onBufferSelected(position, b.getFullName());
+        mCallback.onBufferSelected(b.getFullName());
         
         // Set the item as checked to be highlighted when in two-pane layout
         getListView().setItemChecked(position, true);

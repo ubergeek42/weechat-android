@@ -15,16 +15,22 @@
  ******************************************************************************/
 package com.ubergeek42.WeechatAndroid;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import android.app.AlertDialog;
-import android.content.*;
-import android.os.*;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.ServiceConnection;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.os.IBinder;
 import android.preference.PreferenceManager;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
-import android.view.View;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
-import android.widget.ArrayAdapter;
 
 import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.actionbarsherlock.view.Menu;
@@ -34,16 +40,13 @@ import com.ubergeek42.WeechatAndroid.fragments.BufferFragment;
 import com.ubergeek42.WeechatAndroid.fragments.BufferListFragment;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
 import com.ubergeek42.WeechatAndroid.service.RelayServiceBinder;
-import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.HotlistItem;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
-import com.ubergeek42.weechat.relay.messagehandler.BufferManager;
 
 public class WeechatActivity extends SherlockFragmentActivity implements BufferListFragment.OnBufferSelectedListener, RelayConnectionHandler {
-	private static final String TAG = "WeechatActivity";
+	private static Logger logger = LoggerFactory.getLogger(WeechatActivity.class);
 	private boolean mBound = false;
 	private RelayServiceBinder rsb;
-	private String currentBuffer;
 
 	// We have 2 fragments(depending on layout); the bufferlist, and an active buffer
 	private BufferListFragment bfl;
@@ -113,6 +116,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
         }
 
 		if (mBound) {
+			rsb.removeRelayConnectionHandler(WeechatActivity.this);
 			unbindService(mConnection);
 			mBound = false;
 		}
@@ -139,11 +143,11 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
 
 		@Override
 		public void onServiceDisconnected(ComponentName name) {
-			rsb.removeRelayConnectionHandler(WeechatActivity.this);
 			mBound = false;
 			rsb = null;
 		}
 	};
+	private Fragment currentFragment;
 
 	@Override
 	public void onConnect() {
@@ -214,28 +218,28 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
                     public void onClick(DialogInterface dialogInterface, int position) {
                         HotlistItem hotlistItem = hotlistListAdapter.getItem(position);
                         String name = hotlistItem.getFullName();
-                        // TODO get the proper position in the bufferlistadapter, does it matter?
-                        onBufferSelected(0, name);
+                        onBufferSelected(name);
                     }
                 });
                 builder.create().show();
                 break;
             }
             case R.id.menu_nicklist: {
-            	if(currentBuffer!=null) {
-            		String[]nicks = rsb.getBufferByName(currentBuffer).getNicks();
-		            NickListAdapter nicklistAdapter = new NickListAdapter(WeechatActivity.this, rsb, nicks);
-		            	
-		            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		            builder.setTitle(getString(R.string.nicklist_menu) + " (" + nicks.length + ")");
-		            builder.setAdapter(nicklistAdapter, new DialogInterface.OnClickListener() {
-		                @Override
-		                public void onClick(DialogInterface dialogInterface, int position) {
-		                	//TODO define something to happen here
-		                }
-		            });
-		            builder.create().show();
-            	}
+            	if (!( currentFragment instanceof BufferFragment)) break;
+				BufferFragment currentBuffer = (BufferFragment) currentFragment;
+            	logger.debug("CurrentBuffer: " + currentFragment);
+        		String[] nicks = currentBuffer.getNicklist();
+	            NickListAdapter nicklistAdapter = new NickListAdapter(WeechatActivity.this, nicks);
+	            	
+	            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+	            builder.setTitle(getString(R.string.nicklist_menu) + " (" + nicks.length + ")");
+	            builder.setAdapter(nicklistAdapter, new DialogInterface.OnClickListener() {
+	                @Override
+	                public void onClick(DialogInterface dialogInterface, int position) {
+	                	//TODO define something to happen here
+	                }
+	            });
+	            builder.create().show();
                 break;
             }
             case R.id.menu_bufferlist: {
@@ -285,40 +289,47 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
         actionBarMenu = menu;
         return super.onCreateOptionsMenu(menu);
     }
+    
+    // Called by whatever fragment is loaded, to set the currentview
+    public void setCurrentFragment(Fragment frag) {
+    	if (tabletView && (frag instanceof BufferListFragment)) {
+    		// do nothing
+    	} else {
+    		// Update the current fragment that we are viewing
+    		currentFragment = frag;
+    	}
+    }
 
-    public void onBufferSelected(int position, String buffer) {
+    public void onBufferSelected(String buffer) {
     	// The user selected the buffer from the BufferlistFragment
-		Log.d(TAG, "onBufferSelected() position:" + position + " buffer:" + buffer );
+		logger.debug("onBufferSelected() buffer:" + buffer );
 
-		// Do nothing if they selected the same buffer
-		if (buffer == currentBuffer) return;
+		if (currentFragment instanceof BufferFragment) {
+			BufferFragment currentBuffer = (BufferFragment) currentFragment;
+			if (buffer == currentBuffer.getBufferName()) {
+				// We don't have to do anything if we already have the buffer loaded
+				return;
+			}
+		}
 		
-		//  Remove buffer from hotlist
-		rsb.getHotlistManager().removeHotlistItem(buffer);
-
+		// Create fragment for the buffer and setup the arguments
+        BufferFragment newFragment = new BufferFragment();
+        Bundle args = new Bundle();
+        args.putString("buffer", buffer);
+        newFragment.setArguments(args);
+		
         // Capture the buffer fragment from the activity layout
         BufferFragment bufferFrag = (BufferFragment) getSupportFragmentManager().findFragmentById(R.id.buffer_fragment);
-
-        if (tabletView && bufferFrag !=null) {
-            // Call a method in the BufferFragment to update its content
-            bufferFrag.updateBufferView(position, buffer);
-        } else {
-            // Create fragment and pass the correct arguments
-            BufferFragment newFragment = new BufferFragment();
-            Bundle args = new Bundle();
-            args.putInt(BufferFragment.ARG_POSITION, position);
-            args.putString("buffer", buffer);
-            newFragment.setArguments(args);
-
-            // Replace the current fragment with the buffer they selected
-            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-            transaction.replace(R.id.fragment_container, newFragment);
-            transaction.addToBackStack(null);
-            transaction.commit();
-        }
         
-		// Update the current buffer to reflect the change we made
-		currentBuffer = buffer;
+        // Replace the current fragment with the buffer they selected
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        if (bufferFrag != null) {
+        	transaction.replace(R.id.buffer_fragment, newFragment);            
+        } else {
+            transaction.replace(R.id.fragment_container, newFragment);
+        }
+        transaction.addToBackStack(null);
+        transaction.commit();
     }
 
     /**

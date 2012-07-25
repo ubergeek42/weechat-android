@@ -29,13 +29,13 @@ import android.widget.ListView;
 import com.actionbarsherlock.app.SherlockFragment;
 import com.ubergeek42.WeechatAndroid.ChatLinesAdapter;
 import com.ubergeek42.WeechatAndroid.R;
+import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
 import com.ubergeek42.WeechatAndroid.service.RelayServiceBinder;
 import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.BufferObserver;
 
 public class BufferFragment extends SherlockFragment implements BufferObserver, OnKeyListener, OnSharedPreferenceChangeListener, OnClickListener {
-    public final static String ARG_POSITION = "position";
     final static String TAG = "BufferFragment";
 	
     private ListView chatlines;
@@ -64,8 +64,13 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
 	private SharedPreferences prefs;
 	private boolean enableTabComplete = true;	
 
-    private int mCurrentPosition = -1;
-
+	@Override
+	public void onAttach(Activity activity) {
+		super.onAttach(activity);
+		
+		WeechatActivity parent = (WeechatActivity)activity;
+		parent.setCurrentFragment(this);
+	}
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -75,16 +80,7 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
 	}
 	
 	@Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, 
-        Bundle savedInstanceState) {
-
-        // If activity recreated (such as from screen rotate), restore
-        // the previous Buffer selection set by onSaveInstanceState().
-        // This is primarily necessary when in the two-pane layout.
-        if (savedInstanceState != null) {
-            mCurrentPosition = savedInstanceState.getInt(ARG_POSITION);
-        }
-
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.chatview_main, container, false);
     }
@@ -93,8 +89,7 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
     @Override
     public void onStart() {
         super.onStart();
-		Log.d(TAG, "onStart");
-            
+
 	    prefs = PreferenceManager.getDefaultSharedPreferences(getActivity().getBaseContext());
 	    prefs.registerOnSharedPreferenceChangeListener(this);
 	    enableTabComplete = prefs.getBoolean("tab_completion", true);
@@ -106,10 +101,8 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
         Bundle args = getArguments();
         if (args != null) {
             // Set Buffer based on argument passed in
-            updateBufferView(args.getInt(ARG_POSITION), args.getString("buffer"));
-        } else if (mCurrentPosition != -1) {
-            // Set Buffer based on saved instance state defined during onCreateView
-            updateBufferView(mCurrentPosition, "");
+            this.bufferName = args.getString("buffer");
+            // might need a refreshView() here?
         }
         
         // Bind to the Relay Service
@@ -126,7 +119,11 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
 		}
 	}
     
-	ServiceConnection mConnection = new ServiceConnection() {
+	public String getBufferName() {
+		return bufferName;
+	}
+	
+	private ServiceConnection mConnection = new ServiceConnection() {
 		@Override
 		public void onServiceConnected(ComponentName name, IBinder service) {
 			Log.d("BufferFragment","Bufferfragment onserviceconnected");
@@ -141,22 +138,16 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
 			mBound = false;
 			rsb = null;
 		}
-	};
-	public void updateBufferView(int position, String bufferName) {
-		this.bufferName = bufferName;
-		this.mCurrentPosition = position;
-		if (mBound) {
-			refreshView();
-		}
-	}
-	
+	};	
 
-    public void refreshView() {       
-        
+    private void refreshView() {       
 	    // Called without bufferName, can't do anything.
         if (bufferName.equals(""))
         	return;
 	    
+        //  Remove buffer from hotlist
+    	rsb.getHotlistManager().removeHotlistItem(bufferName);
+        
 	    chatlines  = (ListView) getView().findViewById(R.id.chatview_lines);
         inputBox   = (EditText) getView().findViewById(R.id.chatview_input);
         sendButton = (Button)   getView().findViewById(R.id.chatview_send);
@@ -191,14 +182,7 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
         sendButton.setOnClickListener(this);
         inputBox.setOnKeyListener(this);
     }
-        
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
 
-        // Save the current Buffer selection in case we need to recreate the fragment
-        outState.putInt(ARG_POSITION, mCurrentPosition);
-    }
 	@Override
 	public void onLineAdded() {
 		rsb.resetNotifications();
@@ -220,11 +204,15 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
 		buffer.removeObserver(this);
 		getActivity().getSupportFragmentManager().popBackStack();
 	}
+	public String[] getNicklist() {
+		return nickCache;
+	}
 	@Override
 	public void onNicklistChanged() {
 		nickCache = buffer.getNicks();
 		Arrays.sort(nickCache);
 	}
+	
 	// User pressed enter in the input box
 	@Override
 	public boolean onKey(View v, int keycode, KeyEvent event) {
@@ -310,8 +298,14 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
 			enableTabComplete = prefs.getBoolean("tab_completion", true);
 		}
 	}
+
+	// Send button pressed
+	@Override
+	public void onClick(View arg0) {
+		getActivity().runOnUiThread(messageSender);
+	}
 	// Sends the message if necessary
-	Runnable messageSender = new Runnable(){
+	private Runnable messageSender = new Runnable(){
 		@Override
 		public void run() {		
 			String input = inputBox.getText().toString();
@@ -322,11 +316,6 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
 			rsb.sendMessage(message + "\n");
 		}
 	};
-	// Send button pressed
-	@Override
-	public void onClick(View arg0) {
-		getActivity().runOnUiThread(messageSender);
-	}
 }
 
 
