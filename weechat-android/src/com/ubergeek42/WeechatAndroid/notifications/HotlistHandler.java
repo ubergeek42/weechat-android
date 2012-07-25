@@ -16,15 +16,19 @@
 package com.ubergeek42.WeechatAndroid.notifications;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.Color;
 import com.ubergeek42.weechat.relay.RelayMessageHandler;
 import com.ubergeek42.weechat.relay.messagehandler.BufferManager;
 import com.ubergeek42.weechat.relay.messagehandler.HotlistManager;
+import com.ubergeek42.weechat.relay.protocol.Array;
 import com.ubergeek42.weechat.relay.protocol.Hdata;
 import com.ubergeek42.weechat.relay.protocol.HdataEntry;
 import com.ubergeek42.weechat.relay.protocol.RelayObject;
+import com.ubergeek42.weechat.relay.protocol.RelayObject.WType;
 
 public class HotlistHandler implements RelayMessageHandler {
 	//private static Logger logger = LoggerFactory.getLogger(HotlistHandler.class);
@@ -69,11 +73,23 @@ public class HotlistHandler implements RelayMessageHandler {
 				// Find the associated buffer
 				Buffer b = bufferManager.findByPointer(bPointer);
 				if(b==null) {
-					return;
+					continue;
 				}
 				
+				List tags = null;
+				// Try to get the array tags (added in 0.3.9-dev: 2012-07-23)
+				// Make sure it is the right type as well, prior to this commit it is just a pointer
+				RelayObject tagsobj = hde.getItem("tags_array");
+				if (tagsobj != null && tagsobj.getType() == WType.ARR) {
+					Array tagsArray = tagsobj.asArray();
+					tags = Arrays.asList(tagsArray.asStringArray());
+					// Typically messages from log have these tags
+					// TODO make this more elaborate
+					if (tags.contains("no_highlight") || tags.contains("notify_none")) {
+						continue;
+					}
+				}
 
-				// TODO: should be based on tags for line(notify_none/etc), but these are inaccessible through the relay plugin
 				// Determine if buffer is a privmessage(check localvar "type" for value "private"), and notify for that too
 				RelayObject bufferType = b.getLocalVar("type");
 				if (bufferType != null && bufferType.asString().equals("private")) {
@@ -84,9 +100,14 @@ public class HotlistHandler implements RelayMessageHandler {
 					}
 				}
 				
+				// Nothing to do if buffer shouldn't be notified
+				// TODO this can be more elaborate
+				if (b.getNotifyLevel() == 0)
+					continue;
+				
 				// Nothing to do if not a highlight
 				if (!highlight)
-					return;
+					continue;
 				
 				// Update the buffer to indicate there are unread highlights
 				b.addHighlight();
@@ -100,33 +121,4 @@ public class HotlistHandler implements RelayMessageHandler {
 			}
 		}
 	}
-	/*
-	 * Example hotlist infolist content; counts are msg, private, highlight, other
-[Infolist] hotlist
-  Item 0
-    count_01: 0
-    count_00: 0
-    count_03: 0
-    count_02: 1
-    color: "lightgreen"
-    buffer_pointer: 0xdb0378
-    priority: 2
-    creation_time: [82, 65, 102, 79, 26, -9, 5, 0]
-    plugin_name: "relay"
-    buffer_number: 10
-    buffer_name: "relay.list"
-  Item 1
-    count_01: 0
-    count_00: 106
-    count_03: 0
-    count_02: 0
-    color: "default"
-    buffer_pointer: 0xfdb238
-    priority: 0
-    creation_time: [-27, 52, 102, 79, 103, -90, 9, 0]
-    plugin_name: "relay"
-    buffer_number: 11
-    buffer_name: "relay_raw"
-    
-	 */
 }
