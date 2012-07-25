@@ -50,15 +50,14 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
 
 	// We have 2 fragments(depending on layout); the bufferlist, and an active buffer
 	private BufferListFragment bfl;
-
+	private Fragment currentFragment;
+	
 	private boolean tabletView = false;
 
     private SocketToggleConnection taskToggleConnection;
     private HotlistListAdapter hotlistListAdapter;
     private Menu actionBarMenu;
     
-    private Fragment currentFragment;
-
     /** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -97,6 +96,12 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
 				 bfl = (BufferListFragment)getSupportFragmentManager().findFragmentById(R.id.bufferlist_fragment);
         	}
         	setTitle(getString(R.string.app_version));
+        }
+        
+        // Load a buffer if necessary
+        Bundle extras = getIntent().getExtras();
+        if (extras != null) {
+        	onBufferSelected(extras.getString("buffer"));
         }
     }
 

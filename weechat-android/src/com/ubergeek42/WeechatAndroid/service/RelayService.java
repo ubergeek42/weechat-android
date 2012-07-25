@@ -30,7 +30,6 @@ import android.preference.PreferenceManager;
 
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
-import com.ubergeek42.WeechatAndroid.WeechatChatviewActivity;
 import com.ubergeek42.WeechatAndroid.WeechatPreferencesActivity;
 import com.ubergeek42.WeechatAndroid.notifications.HotlistHandler;
 import com.ubergeek42.WeechatAndroid.notifications.HotlistObserver;
@@ -345,7 +344,7 @@ public class RelayService extends Service implements RelayConnectionHandler, OnS
 	public void onHighlight(String bufferName, String message) {
 		// TODO: on intent click, clear the notification
 		Notification notification = new Notification(R.drawable.ic_launcher, message, System.currentTimeMillis());
-		Intent i = new Intent(this, WeechatChatviewActivity.class);
+		Intent i = new Intent(this, WeechatActivity.class);
 		i.putExtra("buffer", bufferName);
 		PendingIntent contentIntent = PendingIntent.getActivity(this, 0, i, PendingIntent.FLAG_UPDATE_CURRENT);
 		
