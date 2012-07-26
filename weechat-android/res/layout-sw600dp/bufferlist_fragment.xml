@@ -4,6 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:showDividers="middle"
+    android:id="@+id/fragment_container_tablet"
   >
 
     <fragment android:name="com.ubergeek42.WeechatAndroid.fragments.BufferListFragment"

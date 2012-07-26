@@ -39,7 +39,7 @@
 		android:focusableInTouchMode="false"
 		android:clickable="false">
     </ListView>
-
+<!-- 
     <TextView
         android:id="@android:id/empty"
         android:layout_width="wrap_content"
@@ -48,5 +48,5 @@
         android:layout_alignParentTop="true"
         android:text="@string/loading_please_wait"
         android:textAppearance="?android:attr/textAppearanceLarge" />
-
+ -->
 </RelativeLayout>

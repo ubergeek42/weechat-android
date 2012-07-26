@@ -4,6 +4,9 @@ package com.ubergeek42.WeechatAndroid.fragments;
 import java.util.Arrays;
 import java.util.Vector;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
@@ -14,7 +17,6 @@ import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -36,8 +38,8 @@ import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.BufferObserver;
 
 public class BufferFragment extends SherlockFragment implements BufferObserver, OnKeyListener, OnSharedPreferenceChangeListener, OnClickListener {
-    final static String TAG = "BufferFragment";
-	
+	private static Logger logger = LoggerFactory.getLogger(BufferFragment.class);
+
     private ListView chatlines;
 	private EditText inputBox;
 	private Button sendButton;
@@ -51,7 +53,7 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
 	private ChatLinesAdapter chatlineAdapter;
 	
 	private String[] nickCache;
-    private final String[] message = {""};	
+    private final String[] message = {"Please wait, loading content."};	
 
 	// Settings for keeping track of the current tab completion stuff
 	private boolean tabCompletingInProgress;
@@ -76,7 +78,7 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
-		setRetainInstance(true);
+		//setRetainInstance(true);
 	}
 	
 	@Override
@@ -126,11 +128,11 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
 	private ServiceConnection mConnection = new ServiceConnection() {
 		@Override
 		public void onServiceConnected(ComponentName name, IBinder service) {
-			Log.d("BufferFragment","Bufferfragment onserviceconnected");
+			logger.debug("Bufferfragment onserviceconnected");
 			rsb = (RelayServiceBinder) service;
 			mBound = true;
 			
-			refreshView();
+			initView();
 		}
 
 		@Override
@@ -140,7 +142,7 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
 		}
 	};	
 
-    private void refreshView() {       
+    private void initView() {
 	    // Called without bufferName, can't do anything.
         if (bufferName.equals(""))
         	return;
@@ -153,7 +155,7 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
         sendButton = (Button)   getView().findViewById(R.id.chatview_send);
         
 		chatlines.setAdapter(new ArrayAdapter<String>(getActivity(), R.layout.tips_list_item, message));
-        chatlines.setEmptyView(getView().findViewById(android.R.id.empty));
+        //chatlines.setEmptyView(getView().findViewById(android.R.id.empty));
 
 		buffer = rsb.getBufferByName(bufferName);
 		
@@ -162,7 +164,6 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
 			bufferName = "";
 			return;
 		}
-		
 		// TODO this could be settings defined by user
 		StringBuilder tsb = new StringBuilder();
 		String buffername = buffer.getShortName();

@@ -23,7 +23,6 @@ import android.widget.ListView;
 import com.actionbarsherlock.app.SherlockListFragment;
 import com.ubergeek42.WeechatAndroid.BufferListAdapter;
 import com.ubergeek42.WeechatAndroid.R;
-import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
 import com.ubergeek42.WeechatAndroid.service.RelayServiceBinder;
 import com.ubergeek42.weechat.Buffer;
@@ -52,8 +51,6 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
 	// Are we attached to an activity?
 	private boolean attached;
 
-    
-
     // The container Activity must implement this interface so the frag can deliver messages
     public interface OnBufferSelectedListener {
         /** Called by BufferlistFragment when a list item is selected 
@@ -75,22 +72,6 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
             throw new ClassCastException(activity.toString()
                     + " must implement OnBufferSelectedListener");
         }
-        
-        WeechatActivity parent = (WeechatActivity)activity;
-		parent.setCurrentFragment(this);
-    }
-    @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-    	super.onActivityCreated(savedInstanceState);
-    	
-    	WeechatActivity parent = (WeechatActivity)getActivity();
-		parent.setCurrentFragment(this);
-    }
-    
-    @Override
-    public void onDetach() {
-    	super.onDetach();
-    	
     }
     
     @Override

@@ -48,9 +48,9 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
 	private boolean mBound = false;
 	private RelayServiceBinder rsb;
 
-	// We have 2 fragments(depending on layout); the bufferlist, and an active buffer
-	private BufferListFragment bfl;
-	private Fragment currentFragment;
+	// We have 2 fragments: the bufferlist, and an active buffer
+	private BufferListFragment bufferListFrag;
+	private BufferFragment currentBufferFrag;
 	
 	private boolean tabletView = false;
 
@@ -69,8 +69,10 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
 	    // Load the layout
 	    setContentView(R.layout.bufferlist_fragment);
 
-	    if (findViewById(R.id.fragment_container) == null) {
+	    if (findViewById(R.id.fragment_container_tablet) != null) {
 	    	tabletView = true;
+	    } else {
+	    	tabletView = false;
 	    }
 	    
         // TODO Read preferences from background, its IO, 31ms strict mode!
@@ -80,23 +82,21 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
 	    	return;
 	    }
 	    
-        // Check whether the activity is using the layout version with
-        // the fragment_container FrameLayout. If so, we must add the first fragment
-        if (!tabletView) {
-        	// Create a new fragment, and pass any extras to it
-        	bfl = new BufferListFragment();
-            bfl.setArguments(getIntent().getExtras());
-            
-            // Replace anything in the fragment container with our new fragment
-            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-            ft = ft.replace(R.id.fragment_container, bfl);
-            ft.commit();
-        } else {
-        	if (bfl == null) {
-				 bfl = (BufferListFragment)getSupportFragmentManager().findFragmentById(R.id.bufferlist_fragment);
-        	}
-        	setTitle(getString(R.string.app_version));
-        }
+	    // Get the bufferlistfragment from the view
+    	if (bufferListFrag == null) {
+			 bufferListFrag = (BufferListFragment)getSupportFragmentManager().findFragmentById(R.id.bufferlist_fragment);
+    	}
+    	if (currentBufferFrag == null) {
+    		currentBufferFrag = (BufferFragment)getSupportFragmentManager().findFragmentById(R.id.buffer_fragment);
+    	}
+    	if (!tabletView) {
+    		// Hide the buffer fragment
+    		FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+    		ft.hide(currentBufferFrag);
+    		ft.commit();
+    	}
+    	
+    	setTitle(getString(R.string.app_version));
     }
 	@Override
 	protected void onNewIntent(Intent intent) {
@@ -228,9 +228,10 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
                 break;
             }
             case R.id.menu_nicklist: {
-            	if (!( currentFragment instanceof BufferFragment)) break;
-				BufferFragment currentBuffer = (BufferFragment) currentFragment;
-        		String[] nicks = currentBuffer.getNicklist();
+            	// No nicklist if they aren't looking at a buffer
+            	if (currentBufferFrag.isHidden()) break;
+            	
+        		String[] nicks = currentBufferFrag.getNicklist();
         		if (nicks == null) break;
         		
 	            NickListAdapter nicklistAdapter = new NickListAdapter(WeechatActivity.this, nicks);
@@ -249,11 +250,16 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
             case R.id.menu_bufferlist: {
                 // Replace anything in the fragment container with our new fragment
                 FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-                if (bfl.isHidden()) {
-                    ft.show(bfl);
+                if (bufferListFrag.isHidden()) {
+                    ft.show(bufferListFrag);
+                    if (tabletView) ft.hide(currentBufferFrag);
+                    else  ft.show(bufferListFrag);
                 } else {
-                    ft.hide(bfl);
+                    ft.hide(bufferListFrag);
+                    if (tabletView) ft.show(currentBufferFrag);
+                    else  ft.hide(bufferListFrag);
                 }
+                
                 ft.commit();
             	
             }
@@ -291,10 +297,6 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
             connectionStatus.setTitle(R.string.disconnect);
         else
             connectionStatus.setTitle(R.string.connect);
-        
-        if (!tabletView) {
-        	menu.removeItem(R.id.menu_bufferlist);
-        }
     }
 
     @Override
@@ -312,19 +314,22 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
     
     // Called by whatever fragment is loaded, to set the currentview
     public void setCurrentFragment(Fragment frag) {
-    	currentFragment = frag;
+    	currentBufferFrag = (BufferFragment) frag;
     }
 
     public void onBufferSelected(String buffer) {
     	// The user selected the buffer from the BufferlistFragment
 		logger.debug("onBufferSelected() buffer:" + buffer );
 
-		if (currentFragment instanceof BufferFragment) {
-			BufferFragment currentBuffer = (BufferFragment) currentFragment;
-			if (buffer == currentBuffer.getBufferName()) {
-				// We don't have to do anything if we already have the buffer loaded
-				return;
+		if (buffer == currentBufferFrag.getBufferName()) {
+			// Show the buffer if it isn't visible
+			if (currentBufferFrag.isHidden()) {
+				FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+				ft.show(currentBufferFrag);
+				ft.hide(bufferListFrag);
+				ft.commit();
 			}
+			return;
 		}
 		
 		// Does the buffer actually exist?(If not, return)
@@ -337,18 +342,16 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
         args.putString("buffer", buffer);
         newFragment.setArguments(args);
 		
-        // Capture the buffer fragment from the activity layout
-        BufferFragment bufferFrag = (BufferFragment) getSupportFragmentManager().findFragmentById(R.id.buffer_fragment);
-        
         // Replace the current fragment with the buffer they selected
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        if (bufferFrag != null) {
-        	transaction.replace(R.id.buffer_fragment, newFragment);            
-        } else {
-            transaction.replace(R.id.fragment_container, newFragment);
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        ft.replace(R.id.buffer_fragment, newFragment);
+        //ft.addToBackStack(null);
+        if (tabletView == false) {
+        	// hide the bufferlist, show the buffer
+        	ft.show(currentBufferFrag);
+        	ft.hide(bufferListFrag);
         }
-        transaction.addToBackStack(null);
-        transaction.commit();
+        ft.commit();
     }
 
     /**
