@@ -27,6 +27,7 @@ import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.IBinder;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
+import android.support.v4.app.NotificationCompat;
 
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
@@ -135,11 +136,18 @@ public class RelayService extends Service implements RelayConnectionHandler, OnS
 		
 		// If no host defined, signal them to edit their preferences
 		if (host == null) {
-			Notification notification = new Notification(R.drawable.ic_launcher, "Click to edit your preferences and connect", System.currentTimeMillis());
 			Intent i = new Intent(this, WeechatPreferencesActivity.class);
-			PendingIntent contentIntent = PendingIntent.getActivity(this, 0, i, PendingIntent.FLAG_UPDATE_CURRENT);
+			PendingIntent contentIntent = PendingIntent.getActivity(this, 0, i, PendingIntent.FLAG_CANCEL_CURRENT);
 			
-			notification.setLatestEventInfo(this, getString(R.string.app_version), "Update settings", contentIntent);
+			NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
+			builder.setContentIntent(contentIntent)
+				.setSmallIcon(R.drawable.ic_notification)
+				.setContentTitle(getString(R.string.app_version))
+				.setContentText("Update settings")
+				.setTicker("Click to edit your preferences and connect")
+				.setWhen(System.currentTimeMillis());
+			
+			Notification notification = builder.getNotification();
 			notification.flags |= Notification.FLAG_ONGOING_EVENT | Notification.FLAG_NO_CLEAR;
 			notificationManger.notify(NOTIFICATION_ID, notification);
 			return false;
@@ -189,9 +197,18 @@ public class RelayService extends Service implements RelayConnectionHandler, OnS
 	}
 	
 	private void showNotification(String tickerText, String content) {
-		Notification notification = new Notification(R.drawable.ic_launcher, tickerText, System.currentTimeMillis());
-		PendingIntent contentIntent = PendingIntent.getActivity(this, 0, new Intent(this, WeechatActivity.class), 0);
-		notification.setLatestEventInfo(this, getString(R.string.app_version), content, contentIntent);
+		PendingIntent contentIntent = PendingIntent.getActivity(this, 0, new Intent(this, WeechatActivity.class),
+				PendingIntent.FLAG_CANCEL_CURRENT);
+		
+		NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
+		builder.setContentIntent(contentIntent)
+			.setSmallIcon(R.drawable.ic_notification)
+			.setContentTitle(getString(R.string.app_version))
+			.setContentText(content)
+			.setTicker(tickerText)
+			.setWhen(System.currentTimeMillis());
+		
+		Notification notification = builder.getNotification();
 		notification.flags |= Notification.FLAG_ONGOING_EVENT | Notification.FLAG_NO_CLEAR;
 		notificationManger.notify(NOTIFICATION_ID, notification);
 	}
@@ -342,13 +359,19 @@ public class RelayService extends Service implements RelayConnectionHandler, OnS
 
 	@Override
 	public void onHighlight(String bufferName, String message) {
-		// TODO: on intent click, clear the notification
-		Notification notification = new Notification(R.drawable.ic_launcher, message, System.currentTimeMillis());
 		Intent i = new Intent(this, WeechatActivity.class);
 		i.putExtra("buffer", bufferName);
 		PendingIntent contentIntent = PendingIntent.getActivity(this, 0, i, PendingIntent.FLAG_UPDATE_CURRENT);
 		
-		notification.setLatestEventInfo(this, getString(R.string.app_version), message, contentIntent);
+		NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
+		builder.setContentIntent(contentIntent)
+			.setSmallIcon(R.drawable.ic_notification)
+			.setContentTitle(getString(R.string.app_version))
+			.setContentText(message)
+			.setTicker(message)
+			.setWhen(System.currentTimeMillis());
+
+		Notification notification = builder.getNotification();
 		notification.flags |= Notification.FLAG_ONGOING_EVENT | Notification.FLAG_NO_CLEAR;
 		
 		// Default notification sound if enabled
