@@ -97,9 +97,14 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
         	}
         	setTitle(getString(R.string.app_version));
         }
-        
-        
     }
+	@Override
+	protected void onNewIntent(Intent intent) {
+		super.onNewIntent(intent);
+		setIntent(intent);
+		logger.debug("onNewIntent called");
+		handleIntent();
+	}
 
 	@Override
 	protected void onStart() {
@@ -137,11 +142,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
 				WeechatActivity.this.onConnect();
 			}
 			
-			// Load a buffer if necessary
-	        Bundle extras = getIntent().getExtras();
-	        if (extras != null) {
-	        	onBufferSelected(extras.getString("buffer"));
-	        }
+			handleIntent();
 		}
 
 		@Override
@@ -261,6 +262,18 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
         return super.onOptionsItemSelected(item);
     }
 
+    // when we get an intent, do something with it
+    private void handleIntent() {
+    	// Load a buffer if necessary
+        Bundle extras = getIntent().getExtras();
+        if (extras != null) {
+        	// Load the given buffer
+        	onBufferSelected(extras.getString("buffer"));
+        } else {
+        	// Load the bufferlist
+        }
+    }
+    
     /**
      * Replacement method for onPrepareOptionsMenu
      * due to rsb might be null on the event of clicking the menu button.
@@ -300,7 +313,6 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
     // Called by whatever fragment is loaded, to set the currentview
     public void setCurrentFragment(Fragment frag) {
     	currentFragment = frag;
-    	logger.debug("CurrentFragment is: " + frag.getClass());
     }
 
     public void onBufferSelected(String buffer) {
