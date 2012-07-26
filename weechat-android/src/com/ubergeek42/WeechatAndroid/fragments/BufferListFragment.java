@@ -75,7 +75,6 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
             throw new ClassCastException(activity.toString()
                     + " must implement OnBufferSelectedListener");
         }
-        attached = true;
         
         WeechatActivity parent = (WeechatActivity)activity;
 		parent.setCurrentFragment(this);
@@ -84,8 +83,6 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     public void onActivityCreated(Bundle savedInstanceState) {
     	super.onActivityCreated(savedInstanceState);
     	
-    	logger.debug("BufferListFragment onActivityCreated called");
-    	
     	WeechatActivity parent = (WeechatActivity)getActivity();
 		parent.setCurrentFragment(this);
     }
@@ -93,7 +90,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     @Override
     public void onDetach() {
     	super.onDetach();
-    	attached = false;
+    	
     }
     
     @Override
@@ -107,6 +104,8 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
 	    prefs.registerOnSharedPreferenceChangeListener(this);
 	    enableBufferSorting = prefs.getBoolean("sort_buffers", true);
 	    hideServerBuffers = prefs.getBoolean("hide_server_buffers", false);
+	    
+	    
     }
     
     @Override
@@ -124,11 +123,14 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
         // Bind to the Relay Service
         if (mBound == false)
         	getActivity().bindService(new Intent(getActivity(), RelayService.class), mConnection, Context.BIND_AUTO_CREATE);
+        
+        attached = true;
     }
     
     @Override
 	public void onStop() {
 		super.onStop();
+		attached = false;
 		if (mBound) {
 			rsb.removeRelayConnectionHandler(BufferListFragment.this);
 			getActivity().unbindService(mConnection);
