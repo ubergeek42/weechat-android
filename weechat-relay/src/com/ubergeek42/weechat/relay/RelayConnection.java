@@ -195,11 +195,19 @@ public class RelayConnection {
 	public void sendMsg(String msg) {
 		if (!connected) return;
 		msg = msg+"\n";
-		try {
-			outstream.write(msg.getBytes());
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		
+		final String message = msg;
+		Runnable sender = new Runnable() {
+			@Override
+			public void run() {
+				try {
+					outstream.write(message.getBytes());
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		};
+		new Thread(sender).start();
 	}
 	
 	/**
