@@ -201,7 +201,6 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
 	}
 	@Override
 	public void onBufferClosed() {
-		buffer.removeObserver(this);
 		getActivity().getSupportFragmentManager().popBackStack();
 	}
 	public String[] getNicklist() {
