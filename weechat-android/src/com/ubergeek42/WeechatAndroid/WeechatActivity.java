@@ -276,6 +276,10 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
             connectionStatus.setTitle(R.string.disconnect);
         else
             connectionStatus.setTitle(R.string.connect);
+        
+        if (!tabletView) {
+        	menu.removeItem(R.id.menu_bufferlist);
+        }
     }
 
     @Override
