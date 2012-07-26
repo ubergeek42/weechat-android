@@ -98,11 +98,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
         	setTitle(getString(R.string.app_version));
         }
         
-        // Load a buffer if necessary
-        Bundle extras = getIntent().getExtras();
-        if (extras != null) {
-        	onBufferSelected(extras.getString("buffer"));
-        }
+        
     }
 
 	@Override
@@ -140,6 +136,12 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
 			if (rsb.isConnected()) {
 				WeechatActivity.this.onConnect();
 			}
+			
+			// Load a buffer if necessary
+	        Bundle extras = getIntent().getExtras();
+	        if (extras != null) {
+	        	onBufferSelected(extras.getString("buffer"));
+	        }
 		}
 
 		@Override
@@ -312,6 +314,10 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
 				return;
 			}
 		}
+		
+		// Does the buffer actually exist?(If not, return)
+		if (rsb.getBufferByName(buffer)==null)
+			return;
 		
 		// Create fragment for the buffer and setup the arguments
         BufferFragment newFragment = new BufferFragment();

@@ -157,6 +157,12 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
 
 		buffer = rsb.getBufferByName(bufferName);
 		
+		// The buffer is no longer open...
+		if (buffer == null) {
+			bufferName = "";
+			return;
+		}
+		
 		// TODO this could be settings defined by user
 		StringBuilder tsb = new StringBuilder();
 		String buffername = buffer.getShortName();
