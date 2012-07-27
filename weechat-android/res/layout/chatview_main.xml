@@ -4,6 +4,7 @@
     android:layout_height="fill_parent"
     android:orientation="vertical"
     android:paddingLeft="6dip"
+    android:id="@+id/chatview_layout"
      >
 
     <EditText
