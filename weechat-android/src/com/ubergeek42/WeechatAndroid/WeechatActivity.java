@@ -78,17 +78,23 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
         // TODO Read preferences from background, its IO, 31ms strict mode!
 	    PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
 	    
-	    if (savedInstanceState != null) {
-	    	return;
-	    }
-	    
 	    // Get the bufferlistfragment from the view
     	if (bufferListFrag == null) {
 			 bufferListFrag = (BufferListFragment)getSupportFragmentManager().findFragmentById(R.id.bufferlist_fragment);
     	}
+	    
     	if (currentBufferFrag == null) {
-    		currentBufferFrag = (BufferFragment)getSupportFragmentManager().findFragmentById(R.id.buffer_fragment);
+    		BufferFragment newFragment = new BufferFragment();
+    		FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+            ft.replace(R.id.buffer_fragment, newFragment);
+            ft.commit();
+    		currentBufferFrag = newFragment;
     	}
+    	
+	    if (savedInstanceState != null) {
+	    	return;
+	    }
+	    
     	if (!tabletView) {
     		// Hide the buffer fragment
     		FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
@@ -252,12 +258,10 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
                 FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
                 if (bufferListFrag.isHidden()) {
                     ft.show(bufferListFrag);
-                    if (tabletView) ft.hide(currentBufferFrag);
-                    else  ft.show(bufferListFrag);
+                    if (!tabletView) ft.hide(currentBufferFrag);
                 } else {
                     ft.hide(bufferListFrag);
-                    if (tabletView) ft.show(currentBufferFrag);
-                    else  ft.hide(bufferListFrag);
+                    if (!tabletView) ft.show(currentBufferFrag);
                 }
                 
                 ft.commit();
