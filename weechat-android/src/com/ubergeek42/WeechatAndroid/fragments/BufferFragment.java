@@ -142,10 +142,19 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
 		}
 	};	
 
+	private void loadEmptyView() {
+		ViewGroup vg = (ViewGroup) getView().findViewById(R.id.chatview_layout);
+		vg.removeAllViews();
+		View empty = getActivity().getLayoutInflater().inflate(R.layout.buffer_not_loaded, vg, false);
+		vg.addView(empty);
+	}
+	
     private void initView() {
 	    // Called without bufferName, can't do anything.
-        if (bufferName.equals(""))
+        if (bufferName.equals("")) {
+        	loadEmptyView();
         	return;
+        }
 	    
         //  Remove buffer from hotlist
     	rsb.getHotlistManager().removeHotlistItem(bufferName);
@@ -162,6 +171,7 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
 		// The buffer is no longer open...
 		if (buffer == null) {
 			bufferName = "";
+			loadEmptyView();
 			return;
 		}
 		// TODO this could be settings defined by user
@@ -208,7 +218,8 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
 	}
 	@Override
 	public void onBufferClosed() {
-		getActivity().getSupportFragmentManager().popBackStack();
+		WeechatActivity act = (WeechatActivity) getActivity();
+		act.closeBuffer(bufferName);
 		if (buffer != null)
 			rsb.unsubscribeBuffer(buffer.getPointer());
 	}

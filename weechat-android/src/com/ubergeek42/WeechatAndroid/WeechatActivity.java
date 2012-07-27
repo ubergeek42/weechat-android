@@ -316,6 +316,20 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
         return super.onCreateOptionsMenu(menu);
     }
     
+    public void closeBuffer(String bufferName) {
+    	//Buffer name is unused for now
+    	
+    	// Create an empty Buffer Fragment, hide it, and show the buffer list
+    	BufferFragment newFragment = new BufferFragment();
+		FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        ft.replace(R.id.buffer_fragment, newFragment);
+        ft.hide(currentBufferFrag);
+		ft.show(bufferListFrag);
+        ft.commit();
+		currentBufferFrag = newFragment;
+		
+    }
+    
     // Called by whatever fragment is loaded, to set the currentview
     public void setCurrentFragment(Fragment frag) {
     	currentBufferFrag = (BufferFragment) frag;
