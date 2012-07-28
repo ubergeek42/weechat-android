@@ -371,6 +371,19 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
         }
         ft.commit();
     }
+    
+    // Go back to the buffer list when they press back
+    @Override
+    public void onBackPressed() {
+    	if (bufferListFrag.isVisible()) {
+    		finish();
+    	} else {
+            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+            ft.hide(currentBufferFrag);
+        	ft.show(bufferListFrag);
+        	ft.commit();
+    	}
+    }
 
     /**
      * Used to toggle the connection 
