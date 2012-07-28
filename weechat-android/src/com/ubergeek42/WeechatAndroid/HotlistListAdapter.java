@@ -81,7 +81,7 @@ public class HotlistListAdapter extends BaseAdapter implements ListAdapter, Hotl
 
         int unread = hotlistItem.getUnread();
         int highlight = hotlistItem.getHighlights();
-        int count = unread + highlight;
+        int count = Math.max(unread, highlight);
 
         holder.hotlist.setText(String.format("%2d ", count));
 

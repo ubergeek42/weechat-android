@@ -128,7 +128,7 @@ public class BufferListAdapter extends BaseAdapter{
         	holder.highlightcount.setText("");
         }
         if (unreadc > 0) {
-        	holder.messagecount.setText("" + (unreadc - highlightc));
+        	holder.messagecount.setText("" + (unreadc));
 			holder.messagecount.setTextColor(Color.YELLOW);
 		} else {
         	holder.messagecount.setText("");
