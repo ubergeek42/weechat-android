@@ -13,11 +13,12 @@
         android:layout_height="50dp"
     	android:paddingLeft="10dp"
   		android:gravity="center_vertical"
-    	android:textSize="18dp"/>
+    	android:textSize="18dp"
+    	android:background="#111111"/>
 
     <TextView
         android:id="@+id/hotlist_title"
-        android:layout_width="wrap_content"
+        android:layout_width="fill_parent"
         android:layout_alignParentTop="true"
         android:layout_toRightOf="@+id/hotlist_hotlist"
         android:text="Hotlist title"
@@ -25,6 +26,8 @@
         android:layout_height="50dp"
     	android:paddingLeft="10dp"
   		android:gravity="center_vertical"
-    	android:textSize="18dp" />
+    	android:textSize="18dp"
+    	android:textColor="#ffffff"
+    	android:background="#111111"/>
 
 </RelativeLayout>

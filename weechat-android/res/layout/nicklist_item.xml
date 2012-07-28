@@ -5,7 +5,7 @@
 
     <TextView
         android:id="@+id/nicklist_nick"
-        android:layout_width="wrap_content"
+        android:layout_width="fill_parent"
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
         android:text="Nickname"
@@ -13,5 +13,7 @@
         android:layout_height="50dp"
     	android:paddingLeft="10dp"
   		android:gravity="center_vertical"
-    	android:textSize="18dp"/>
+    	android:textSize="18dp"
+    	android:background="#111111"
+    	android:textColor="#ffffff"/>
 </RelativeLayout>
