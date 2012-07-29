@@ -47,6 +47,7 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
     private boolean mBound;
     private RelayServiceBinder rsb;
     
+    private String fragmentTitle = "";	
     private String bufferName = "";
     private Buffer buffer;
 	
@@ -140,13 +141,17 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
 			mBound = false;
 			rsb = null;
 		}
-	};	
+	};
 
 	private void loadEmptyView() {
 		ViewGroup vg = (ViewGroup) getView().findViewById(R.id.chatview_layout);
 		vg.removeAllViews();
 		View empty = getActivity().getLayoutInflater().inflate(R.layout.buffer_not_loaded, vg, false);
 		vg.addView(empty);
+	}
+	
+	public void updateTitle() {
+		getActivity().setTitle(fragmentTitle);
 	}
 	
     private void initView() {
@@ -185,7 +190,8 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
 		if(title != null) {
 			tsb.append(title);
 		}
-	    getActivity().setTitle(tsb.toString());
+		fragmentTitle = tsb.toString();
+		updateTitle();
 
 		buffer.addObserver(this);
 		

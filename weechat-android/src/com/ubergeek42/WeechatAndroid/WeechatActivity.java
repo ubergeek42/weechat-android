@@ -90,6 +90,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
             ft.commit();
     		currentBufferFrag = newFragment;
     	}
+    	updateTitle();
     	
 	    if (savedInstanceState != null) {
 	    	return;
@@ -99,10 +100,10 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
     		// Hide the buffer fragment
     		FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
     		ft.hide(currentBufferFrag);
+    		ft.show(bufferListFrag);
     		ft.commit();
+    		updateTitle();
     	}
-    	
-    	setTitle(getString(R.string.app_version));
     }
 	@Override
 	protected void onNewIntent(Intent intent) {
@@ -263,9 +264,8 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
                     ft.hide(bufferListFrag);
                     if (!tabletView) ft.show(currentBufferFrag);
                 }
-                
                 ft.commit();
-            	
+                updateTitle();
             }
             break;
         }
@@ -318,7 +318,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
     
     public void closeBuffer(String bufferName) {
     	//Buffer name is unused for now
-    	
+
     	// Create an empty Buffer Fragment, hide it, and show the buffer list
     	BufferFragment newFragment = new BufferFragment();
 		FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
@@ -327,8 +327,18 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
 		ft.show(bufferListFrag);
         ft.commit();
 		currentBufferFrag = newFragment;
-		
+		updateTitle();
     }
+    
+    private void updateTitle() {
+    	getSupportFragmentManager().executePendingTransactions();
+    	if (currentBufferFrag.isVisible()) {
+    		currentBufferFrag.updateTitle();
+		} else {
+			setTitle(getString(R.string.app_version));
+    	}
+    }
+    
     
     // Called by whatever fragment is loaded, to set the currentview
     public void setCurrentFragment(Fragment frag) {
@@ -346,6 +356,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
 				ft.show(currentBufferFrag);
 				ft.hide(bufferListFrag);
 				ft.commit();
+				updateTitle();
 			}
 			return;
 		}
@@ -370,6 +381,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
         	ft.hide(bufferListFrag);
         }
         ft.commit();
+        updateTitle();
     }
     
     // Go back to the buffer list when they press back
@@ -382,6 +394,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
             ft.hide(currentBufferFrag);
         	ft.show(bufferListFrag);
         	ft.commit();
+        	updateTitle();
     	}
     }
 
