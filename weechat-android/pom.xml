@@ -1,168 +1,166 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
 
-	<parent>
-		<groupId>com.ubergeek42.weechatandroid</groupId>
-		<artifactId>parent</artifactId>
-		<version>0.8-SNAPSHOT</version>
-		<relativePath>../pom.xml</relativePath>
-	</parent>
+    <parent>
+        <groupId>com.ubergeek42.weechatandroid</groupId>
+        <artifactId>parent</artifactId>
+        <version>0.8-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
 
-	<artifactId>weechat-android</artifactId>
-	<name>WeeChat Android</name>
-	<packaging>apk</packaging>
+    <artifactId>weechat-android</artifactId>
+    <name>WeeChat Android</name>
+    <packaging>apk</packaging>
 
-	<dependencies>
-		<dependency>
-			<groupId>com.google.android</groupId>
-			<artifactId>android</artifactId>
-			<scope>provided</scope>
-		</dependency>
-		
-		<dependency>
-			<groupId>com.ubergeek42.weechatandroid</groupId>
-			<artifactId>weechat-relay</artifactId>
-			<version>0.8-SNAPSHOT</version>
-			<type>jar</type>
-		</dependency>
-		
-		<dependency>
-			<groupId>com.google.android</groupId>
-			<artifactId>support-v4</artifactId>
-		</dependency>
-		
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-			<version>1.6.6</version>
-			<scope>provided</scope>
-		</dependency>
-		
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-android</artifactId>
-			<version>1.6.1-RC1</version>
-		</dependency>
-	</dependencies>
+    <dependencies>
+        <dependency>
+            <groupId>com.google.android</groupId>
+            <artifactId>android</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        
+        <dependency>
+            <groupId>com.ubergeek42.weechatandroid</groupId>
+            <artifactId>weechat-relay</artifactId>
+            <version>0.8-SNAPSHOT</version>
+            <type>jar</type>
+        </dependency>
+        
+        <dependency>
+            <groupId>com.google.android</groupId>
+            <artifactId>support-v4</artifactId>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.6.6</version>
+            <scope>provided</scope>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-android</artifactId>
+            <version>1.6.1-RC1</version>
+        </dependency>
+    </dependencies>
 
-	<build>
-		<sourceDirectory>src</sourceDirectory>
-		<testSourceDirectory>test</testSourceDirectory>
+    <build>
+        <sourceDirectory>src</sourceDirectory>
+        <testSourceDirectory>test</testSourceDirectory>
 
-		<plugins>
-			<!-- Generates a java file with some useful inforamtion in it -->
-			<plugin>
-				<groupId>net.mgorski.quicktag</groupId>
-				<artifactId>quicktag</artifactId>
-				<executions>
-					<execution>
-						<phase>generate-sources</phase>
-						<goals>
-							<goal>quicktag</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<!-- Sign our apk with the release key if it isn't a debug key -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jarsigner-plugin</artifactId>
-				<configuration>
-					<skip>${debugBuild}</skip>
-				</configuration>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>sign</goal>
-							<goal>verify</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
+        <plugins>
+            <!-- Generates a java file with some useful inforamtion in it -->
+            <plugin>
+                <groupId>net.mgorski.quicktag</groupId>
+                <artifactId>quicktag</artifactId>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>quicktag</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- Sign our apk with the release key if it isn't a debug key -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jarsigner-plugin</artifactId>
+                <configuration>
+                    <skip>${debugBuild}</skip>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>sign</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
 
-			<!--  Sign with the debug key if it is a debug build -->
-			<plugin>
-				<groupId>com.jayway.maven.plugins.android.generation2</groupId>
-				<artifactId>android-maven-plugin</artifactId>
-				<extensions>true</extensions>
-				<configuration>
-					<sign>
-						<debug>${debugBuild}</debug>
-					</sign>
-					<zipalign>
-						<verbose>true</verbose>
-						<skip>${debugBuild}</skip>
-					</zipalign>
-				</configuration>
-				<executions>
-					<execution>
-						<id>alignApk</id>
-						<phase>package</phase>
-						<goals>
-							<goal>zipalign</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
-	</build>
-	
-	
-	<profiles>
-	    <!-- Eclipse isn't very smart, don't add dependencies for actionbarsherlock, and make the support lib provided -->
-	    <profile>
-	        <id>eclipse-m2e</id>
-	        <activation>
-	            <property>
-	                <name>m2e.version</name>
+            <!--  Sign with the debug key if it is a debug build -->
+            <plugin>
+                <groupId>com.jayway.maven.plugins.android.generation2</groupId>
+                <artifactId>android-maven-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <sign>
+                        <debug>${debugBuild}</debug>
+                    </sign>
+                    <zipalign>
+                        <verbose>true</verbose>
+                        <skip>${debugBuild}</skip>
+                    </zipalign>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>alignApk</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>zipalign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <!-- Eclipse isn't very smart, don't add dependencies for actionbarsherlock, and make the support lib provided -->
+        <profile>
+            <id>eclipse-m2e</id>
+            <activation>
+                <property>
+                    <name>m2e.version</name>
                 </property>
             </activation>
             <dependencies>
                 <dependency>
-					<groupId>com.google.android</groupId>
-					<artifactId>support-v4</artifactId>
-					<scope>provided</scope>
-				</dependency>
+                    <groupId>com.google.android</groupId>
+                    <artifactId>support-v4</artifactId>
+                    <scope>provided</scope>
+                </dependency>
             </dependencies>
-	    </profile>
-	    
-		<profile>
-			<id>standard</id>
-			<activation><activeByDefault>true</activeByDefault></activation>
-			<properties>
-				<debugBuild>true</debugBuild>
-			</properties>
-			<dependencies>
-			    <dependency>
+        </profile>
+        
+        <profile>
+            <id>standard</id>
+            <activation><activeByDefault>true</activeByDefault></activation>
+            <properties>
+                <debugBuild>true</debugBuild>
+            </properties>
+            <dependencies>
+                <dependency>
                     <groupId>com.actionbarsherlock</groupId>
                     <artifactId>library</artifactId>
                     <version>4.1.0</version>
                     <type>apklib</type>
                 </dependency>
-			</dependencies>
-		</profile>
-		<profile>
-			<id>release</id>
-			<activation>
-				<property>
-					<name>performRelease</name>
-					<value>true</value>
-				</property>
-			</activation>
-			<properties>
-				<debugBuild>false</debugBuild>
-			</properties>
-			<dependencies>
-			    <dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>release</id>
+            <activation>
+                <property>
+                    <name>performRelease</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <properties>
+                <debugBuild>false</debugBuild>
+            </properties>
+            <dependencies>
+                <dependency>
                     <groupId>com.actionbarsherlock</groupId>
                     <artifactId>library</artifactId>
                     <version>4.1.0</version>
                     <type>apklib</type>
                 </dependency>
-			</dependencies>
-		</profile>
-	</profiles>
+            </dependencies>
+        </profile>
+    </profiles>
 </project>

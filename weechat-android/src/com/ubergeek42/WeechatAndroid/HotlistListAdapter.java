@@ -17,52 +17,54 @@ import com.ubergeek42.weechat.relay.messagehandler.HotlistManager;
 import com.ubergeek42.weechat.relay.messagehandler.HotlistManagerObserver;
 
 public class HotlistListAdapter extends BaseAdapter implements ListAdapter, HotlistManagerObserver {
-	WeechatActivity parentActivity;
-	LayoutInflater inflater;
-	private static final String TAG = "HotlistListAdapter";
-	private HotlistManager hotlistManager;
-	protected ArrayList<HotlistItem> hotlist = new ArrayList<HotlistItem>();
-	
-	public HotlistListAdapter(WeechatActivity parentActivity, RelayServiceBinder rsb) {
-		this.parentActivity = parentActivity;
-		this.inflater = LayoutInflater.from(parentActivity);	
-		hotlistManager = rsb.getHotlistManager();
-		hotlistManager.onChanged(this);
-		this.onHotlistChanged();
-	}
-	@Override
-	public int getCount() {
-		return hotlist.size();
-	}
+    WeechatActivity parentActivity;
+    LayoutInflater inflater;
+    private static final String TAG = "HotlistListAdapter";
+    private HotlistManager hotlistManager;
+    protected ArrayList<HotlistItem> hotlist = new ArrayList<HotlistItem>();
 
-	@Override
-	public HotlistItem getItem(int position) {
-		return hotlist.get(position);
-	}
+    public HotlistListAdapter(WeechatActivity parentActivity, RelayServiceBinder rsb) {
+        this.parentActivity = parentActivity;
+        this.inflater = LayoutInflater.from(parentActivity);
+        hotlistManager = rsb.getHotlistManager();
+        hotlistManager.onChanged(this);
+        this.onHotlistChanged();
+    }
 
-	@Override
-	public long getItemId(int position) {
-		return position;
-	}
+    @Override
+    public int getCount() {
+        return hotlist.size();
+    }
+
+    @Override
+    public HotlistItem getItem(int position) {
+        return hotlist.get(position);
+    }
+
+    @Override
+    public long getItemId(int position) {
+        return position;
+    }
 
     static class ViewHolder {
         TextView hotlist;
         TextView title;
     }
-   
-	@Override
-	public void onHotlistChanged() {
-		Log.d(TAG, "onHotlistChanged()");
-		parentActivity.runOnUiThread(new Runnable() {
-			@Override
-			public void run() {
-				hotlist = hotlistManager.getHotlist();
-				notifyDataSetChanged();
-			}
-		});
-	}
-	@Override
-	public View getView(int position, View convertView, ViewGroup parent) {
+
+    @Override
+    public void onHotlistChanged() {
+        Log.d(TAG, "onHotlistChanged()");
+        parentActivity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                hotlist = hotlistManager.getHotlist();
+                notifyDataSetChanged();
+            }
+        });
+    }
+
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent) {
 
         ViewHolder holder;
 
@@ -77,7 +79,7 @@ public class HotlistListAdapter extends BaseAdapter implements ListAdapter, Hotl
             holder = (ViewHolder) convertView.getTag();
         }
 
-        HotlistItem hotlistItem = (HotlistItem) getItem(position);
+        HotlistItem hotlistItem = getItem(position);
 
         int unread = hotlistItem.getUnread();
         int highlight = hotlistItem.getHighlights();
@@ -96,5 +98,5 @@ public class HotlistListAdapter extends BaseAdapter implements ListAdapter, Hotl
         holder.title.setText(hotlistItem.getFullName());
 
         return convertView;
-	}
+    }
 }

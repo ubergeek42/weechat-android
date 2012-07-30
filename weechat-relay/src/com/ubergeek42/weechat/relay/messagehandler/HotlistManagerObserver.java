@@ -17,12 +17,13 @@ package com.ubergeek42.weechat.relay.messagehandler;
 
 /**
  * Observer to receive notifications when buffers change
+ * 
  * @author thveem<xt@bash.no>
- *
+ * 
  */
 public interface HotlistManagerObserver {
-	/**
-	 * Called whenever the hotlist changes
-	 */
-	public void onHotlistChanged();
+    /**
+     * Called whenever the hotlist changes
+     */
+    public void onHotlistChanged();
 }

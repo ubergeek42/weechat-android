@@ -21,217 +21,252 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-import com.ubergeek42.weechat.relay.protocol.Array;
-
 /**
  * A line/message from a buffer.
+ * 
  * @author ubergeek42<kj@ubergeek42.com>
- *
+ * 
  */
 public class BufferLine {
-	/**
-	 * The default representation for the timestamp when a line is rendered
-	 */
-	public final DateFormat DATEFORMAT = new SimpleDateFormat("HH:mm:ss");
-	
-	private String message;
-	private String prefix;
-	private Date time;
-	
-	
-	private String messageHTML = null;
-	private String prefixHTML = null;
-	private String timeStr = null;
-	
-	private boolean visible;
-	private boolean highlight;
-	private String pointer;
-	
-	private String[] tags;
+    /**
+     * The default representation for the timestamp when a line is rendered
+     */
+    public final DateFormat DATEFORMAT = new SimpleDateFormat("HH:mm:ss");
 
-	// TODO: consider caching the color "cleaned" values as well
-	
-	/**
-	 * Set the prefix for the line
-	 * @param prefix - The prefix for the line
-	 */
-	public void setPrefix(String prefix) {
-		if (prefix == null)
-			prefix = "";
-		this.prefix = prefix;
-	}
-	/**
-	 * Get the prefix for the line, and strip out any color sequences
-	 * @return The stripped prefix for the line
-	 */
-	public String getPrefix() {
-		return cleanMessage(prefix);
-	}
-	/**
-	 * Get the prefix for the line formatted with html(and colors) 
-	 * @return an HTML formatted prefix
-	 */
-	public String getPrefixHTML() {
-		Color c = new Color();
-		if (this.prefixHTML==null) {
-			c.setText(prefix,true);
-			this.prefixHTML = c.toHTML();
-		}
-		return this.prefixHTML;
-	}
+    private String message;
+    private String prefix;
+    private Date time;
 
-	/**
-	 * Set the content for the line
-	 * @param message - The content for the line
-	 */
-	public void setMessage(String message) {
-		if (message==null)
-			message = "";
-		this.message = message;
-	}
-	/**
-	 * Get the message for the line, and strip out any color sequences
-	 * @return The stripped message for the line
-	 */
-	public String getMessage() {
-		return cleanMessage(message);
-	}
-	/**
-	 * Get the message formatted with html(and colors)
-	 * @return an HTML formatted message
-	 */
-	public String getMessageHTML() {
-		Color c = new Color();
-		if (this.messageHTML==null) {
-			c.setText(message, true);
-			this.messageHTML = c.toHTML();
-		}
-		return this.messageHTML;
-	}
+    private String messageHTML = null;
+    private String prefixHTML = null;
+    private String timeStr = null;
 
-	/**
-	 * Set the timestamp associated with the line
-	 * @param time - The line's timestamp as a Java Date object
-	 */
-	public void setTimestamp(Date time) {
-		this.time = time;
-	}
-	/**
-	 * Get the timestamp associated with the line as a Java Date object
-	 */
-	public Date getTimestamp() {
-		return this.time;
-	}
-	/**
-	 * Get the timestamp for the line formatted as a string according to DATEFORMAT
-	 * @return A string representation of the timestamp
-	 */
-	public String getTimestampStr() {
-		if (this.timeStr == null)
-			this.timeStr = DATEFORMAT.format(time);
-		return this.timeStr;
-	}
-	
-	/**
-	 * Set whether this line should be visible or not
-	 * @param displayed - Whether to show the line or not
-	 */
-	public void setVisible(boolean displayed) {
-		this.visible = displayed;
-	}
-	/**
-	 * Get whether the line should be visible or not
-	 * @return Whether the line is visible or not
-	 */
-	public boolean getVisible() {
-		return this.visible;
-	}
+    private boolean visible;
+    private boolean highlight;
+    private String pointer;
 
-	/**
-	 * Strips out all of the weechat specific color codes from a string
-	 * @param msg - The message to be cleaned of color codes
-	 * @return The message without any color codes
-	 */
-	private String cleanMessage(String msg) {
-		return Color.stripColors(msg);
-	}
+    private String[] tags;
 
-	@Override
-	public String toString() {
-		StringBuffer sb = new StringBuffer();
-		sb.append("[" + DATEFORMAT.format(time) + "] ");
-		sb.append(cleanMessage(prefix));
-		sb.append(" | ");
-		sb.append(cleanMessage(message));
-		return sb.toString();
-	}
-	/**
-	 * Set whether the line was a 'highlight' and should be noticed by the user
-	 * @param highlight - Whether the line is highlighted or not
-	 */
-	public void setHighlight(boolean highlight) {
-		this.highlight = highlight;
-	}
-	/**
-	 * Returns whether a line is a 'highlight' or not
-	 * @return Whether the line is a 'highlight' or not
-	 */
-	public boolean getHighlight() {
-		return highlight;
-	}
-	/**
-	 * A pointer to the hdata object for the line
-	 * @param pointer
-	 */
-	public void setPointer(String pointer) {
-		this.pointer = pointer;
-	}
-	/**
-	 * Return the pointer that represents this line
-	 */
-	public String getPointer() {
-		return this.pointer;
-	}
+    // TODO: consider caching the color "cleaned" values as well
 
-	/*
-	 * Get the Array of tags belonging to this line
-	 */
-	public String[] getTags() {
-		return tags;
-	}
+    /**
+     * Set the prefix for the line
+     * 
+     * @param prefix
+     *            - The prefix for the line
+     */
+    public void setPrefix(String prefix) {
+        if (prefix == null) {
+            prefix = "";
+        }
+        this.prefix = prefix;
+    }
 
-	/*
-	 * Set the Array of tags belonging to this line
-	 */
-	public void setTags(String[] tags) {
-		this.tags = tags;
-	}
+    /**
+     * Get the prefix for the line, and strip out any color sequences
+     * 
+     * @return The stripped prefix for the line
+     */
+    public String getPrefix() {
+        return cleanMessage(prefix);
+    }
 
-	/*
-	 * Logic for deciding if this line should be treated as an unread message
-	 */
-	public boolean isUnread() {
-		if (highlight)
-			return true;
-		if (!visible)
-			return false;
+    /**
+     * Get the prefix for the line formatted with html(and colors)
+     * 
+     * @return an HTML formatted prefix
+     */
+    public String getPrefixHTML() {
+        Color c = new Color();
+        if (this.prefixHTML == null) {
+            c.setText(prefix, true);
+            this.prefixHTML = c.toHTML();
+        }
+        return this.prefixHTML;
+    }
 
-		// Check tags if weechat >= 0.3.9-dev
-		if (tags != null) {
-			if (tags.length == 0) // All important messages have tags
-				return false;
-			final List list = Arrays.asList(tags);
-			// Every "message" to user should have one or more of these tags
-			// notify_message, notify_highlight or notify_message
-			if (list.contains("notify_message")
-					|| list.contains("notify_highlight")
-					|| list.contains("notify_private"))
-				return true;
-			else
-				return false;
-		}
-		// If this point is reached, probably old version of weechat, so we err
-		// on the safe side and treat it as unread
-		return true;
-	}
+    /**
+     * Set the content for the line
+     * 
+     * @param message
+     *            - The content for the line
+     */
+    public void setMessage(String message) {
+        if (message == null) {
+            message = "";
+        }
+        this.message = message;
+    }
+
+    /**
+     * Get the message for the line, and strip out any color sequences
+     * 
+     * @return The stripped message for the line
+     */
+    public String getMessage() {
+        return cleanMessage(message);
+    }
+
+    /**
+     * Get the message formatted with html(and colors)
+     * 
+     * @return an HTML formatted message
+     */
+    public String getMessageHTML() {
+        Color c = new Color();
+        if (this.messageHTML == null) {
+            c.setText(message, true);
+            this.messageHTML = c.toHTML();
+        }
+        return this.messageHTML;
+    }
+
+    /**
+     * Set the timestamp associated with the line
+     * 
+     * @param time
+     *            - The line's timestamp as a Java Date object
+     */
+    public void setTimestamp(Date time) {
+        this.time = time;
+    }
+
+    /**
+     * Get the timestamp associated with the line as a Java Date object
+     */
+    public Date getTimestamp() {
+        return this.time;
+    }
+
+    /**
+     * Get the timestamp for the line formatted as a string according to DATEFORMAT
+     * 
+     * @return A string representation of the timestamp
+     */
+    public String getTimestampStr() {
+        if (this.timeStr == null) {
+            this.timeStr = DATEFORMAT.format(time);
+        }
+        return this.timeStr;
+    }
+
+    /**
+     * Set whether this line should be visible or not
+     * 
+     * @param displayed
+     *            - Whether to show the line or not
+     */
+    public void setVisible(boolean displayed) {
+        this.visible = displayed;
+    }
+
+    /**
+     * Get whether the line should be visible or not
+     * 
+     * @return Whether the line is visible or not
+     */
+    public boolean getVisible() {
+        return this.visible;
+    }
+
+    /**
+     * Strips out all of the weechat specific color codes from a string
+     * 
+     * @param msg
+     *            - The message to be cleaned of color codes
+     * @return The message without any color codes
+     */
+    private String cleanMessage(String msg) {
+        return Color.stripColors(msg);
+    }
+
+    @Override
+    public String toString() {
+        StringBuffer sb = new StringBuffer();
+        sb.append("[" + DATEFORMAT.format(time) + "] ");
+        sb.append(cleanMessage(prefix));
+        sb.append(" | ");
+        sb.append(cleanMessage(message));
+        return sb.toString();
+    }
+
+    /**
+     * Set whether the line was a 'highlight' and should be noticed by the user
+     * 
+     * @param highlight
+     *            - Whether the line is highlighted or not
+     */
+    public void setHighlight(boolean highlight) {
+        this.highlight = highlight;
+    }
+
+    /**
+     * Returns whether a line is a 'highlight' or not
+     * 
+     * @return Whether the line is a 'highlight' or not
+     */
+    public boolean getHighlight() {
+        return highlight;
+    }
+
+    /**
+     * A pointer to the hdata object for the line
+     * 
+     * @param pointer
+     */
+    public void setPointer(String pointer) {
+        this.pointer = pointer;
+    }
+
+    /**
+     * Return the pointer that represents this line
+     */
+    public String getPointer() {
+        return this.pointer;
+    }
+
+    /*
+     * Get the Array of tags belonging to this line
+     */
+    public String[] getTags() {
+        return tags;
+    }
+
+    /*
+     * Set the Array of tags belonging to this line
+     */
+    public void setTags(String[] tags) {
+        this.tags = tags;
+    }
+
+    /*
+     * Logic for deciding if this line should be treated as an unread message
+     */
+    public boolean isUnread() {
+        if (highlight) {
+            return true;
+        }
+        if (!visible) {
+            return false;
+        }
+
+        // Check tags if weechat >= 0.3.9-dev
+        if (tags != null) {
+            if (tags.length == 0) {
+                return false;
+            }
+            final List list = Arrays.asList(tags);
+            // Every "message" to user should have one or more of these tags
+            // notify_message, notify_highlight or notify_message
+            if (list.contains("notify_message") || list.contains("notify_highlight")
+                    || list.contains("notify_private")) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+        // If this point is reached, probably old version of weechat, so we err
+        // on the safe side and treat it as unread
+        return true;
+    }
 }

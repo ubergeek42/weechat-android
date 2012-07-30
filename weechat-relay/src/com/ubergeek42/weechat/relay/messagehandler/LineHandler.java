@@ -31,87 +31,88 @@ import com.ubergeek42.weechat.relay.protocol.RelayObject;
 import com.ubergeek42.weechat.relay.protocol.RelayObject.WType;
 
 public class LineHandler implements RelayMessageHandler {
-	private static Logger logger = LoggerFactory.getLogger(LineHandler.class);
+    private static Logger logger = LoggerFactory.getLogger(LineHandler.class);
 
-	private final BufferManager cb;
+    private final BufferManager cb;
 
-	public LineHandler(BufferManager cb) {
-		this.cb = cb;
-	}
+    public LineHandler(BufferManager cb) {
+        this.cb = cb;
+    }
 
-	@Override
-	public void handleMessage(RelayObject obj, String id) {
-		Hdata whdata = (Hdata) obj;
-		HashSet<Buffer> toUpdate = new HashSet<Buffer>();
+    @Override
+    public void handleMessage(RelayObject obj, String id) {
+        Hdata whdata = (Hdata) obj;
+        HashSet<Buffer> toUpdate = new HashSet<Buffer>();
 
-		for (int i=0; i<whdata.getCount(); i++) {
-			HdataEntry hde = whdata.getItem(i);
-			// TODO: check last item of path is line_data
+        for (int i = 0; i < whdata.getCount(); i++) {
+            HdataEntry hde = whdata.getItem(i);
+            // TODO: check last item of path is line_data
 
-			// Get the information about the "line"
-			String message = hde.getItem("message").asString();
-			String prefix = hde.getItem("prefix").asString();
-			boolean displayed = (hde.getItem("displayed").asChar()==0x01);
-			Date time = hde.getItem("date").asTime();
-			String bPointer;
-			if (id.equals("_buffer_line_added")) {
-			    bPointer = hde.getItem("buffer").asPointer();
-			}else{
-				bPointer = hde.getPointer(0);
-			}
+            // Get the information about the "line"
+            String message = hde.getItem("message").asString();
+            String prefix = hde.getItem("prefix").asString();
+            boolean displayed = (hde.getItem("displayed").asChar() == 0x01);
+            Date time = hde.getItem("date").asTime();
+            String bPointer;
+            if (id.equals("_buffer_line_added")) {
+                bPointer = hde.getItem("buffer").asPointer();
+            } else {
+                bPointer = hde.getPointer(0);
+            }
 
-			// Try to get highlight status(added in 0.3.8-dev: 2012-03-06)
-			RelayObject t = hde.getItem("highlight");
-			boolean highlight = false;
-			if (t!=null) {
-				highlight = (t.asChar()==0x01);
-			}
+            // Try to get highlight status(added in 0.3.8-dev: 2012-03-06)
+            RelayObject t = hde.getItem("highlight");
+            boolean highlight = false;
+            if (t != null) {
+                highlight = (t.asChar() == 0x01);
+            }
 
-			String[] tags = null;
-			// Try to get the array tags (added in 0.3.9-dev: 2012-07-23)
-			// Make sure it is the right type as well, prior to this commit it is just a pointer
-			RelayObject tagsobj = hde.getItem("tags_array");
-			if (tagsobj != null && tagsobj.getType() == WType.ARR) {
-				Array tagsArray = tagsobj.asArray();
-				tags = tagsArray.asStringArray();
-			}
-			// Find the buffer to put the line in
-			Buffer buffer = cb.findByPointer(bPointer);
-			if (buffer == null){
-				logger.debug("Unable to find buffer to update");
-				return;
-			}
-			// Do we already have this line?
-			if (!buffer.hasLine(hde.getPointer())) {
-				// Create a new message object, and add it to the correct buffer
-				BufferLine cm = new BufferLine();
-				cm.setPrefix(prefix);
-				cm.setMessage(message);
-				cm.setTimestamp(time);
-				cm.setVisible(displayed);
-				cm.setHighlight(highlight);
-				cm.setPointer(hde.getPointer());
-				cm.setTags(tags);
-				if (id.equals("_buffer_line_added")) {
-					// Check if this line should be added as an unread line
-					// TODO make this into a preference as users might have
-					// different tastes
-					// TODO more elaborate checking of notify level
-					if (cm.isUnread() && buffer.getNotifyLevel() >= 1)
-						buffer.addLine(cm);
-					else
-						buffer.addLineNoUnread(cm);
-					cb.buffersChanged();
-				}
-			    else if (id.equals("listlines_reverse")) { // lines come in most recent to least recent
-					// TODO: check buffer isn't null...
-					buffer.addLineFirstNoNotify(cm);
-					toUpdate.add(buffer);
-			    }
-			}
-		}
-		for(Buffer wb: toUpdate) {
-			wb.notifyObservers();
-		}
-	}
+            String[] tags = null;
+            // Try to get the array tags (added in 0.3.9-dev: 2012-07-23)
+            // Make sure it is the right type as well, prior to this commit it is just a pointer
+            RelayObject tagsobj = hde.getItem("tags_array");
+            if (tagsobj != null && tagsobj.getType() == WType.ARR) {
+                Array tagsArray = tagsobj.asArray();
+                tags = tagsArray.asStringArray();
+            }
+            // Find the buffer to put the line in
+            Buffer buffer = cb.findByPointer(bPointer);
+            if (buffer == null) {
+                logger.debug("Unable to find buffer to update");
+                return;
+            }
+            // Do we already have this line?
+            if (!buffer.hasLine(hde.getPointer())) {
+                // Create a new message object, and add it to the correct buffer
+                BufferLine cm = new BufferLine();
+                cm.setPrefix(prefix);
+                cm.setMessage(message);
+                cm.setTimestamp(time);
+                cm.setVisible(displayed);
+                cm.setHighlight(highlight);
+                cm.setPointer(hde.getPointer());
+                cm.setTags(tags);
+                if (id.equals("_buffer_line_added")) {
+                    // Check if this line should be added as an unread line
+                    // TODO make this into a preference as users might have
+                    // different tastes
+                    // TODO more elaborate checking of notify level
+                    if (cm.isUnread() && buffer.getNotifyLevel() >= 1) {
+                        buffer.addLine(cm);
+                    } else {
+                        buffer.addLineNoUnread(cm);
+                    }
+                    cb.buffersChanged();
+                } else if (id.equals("listlines_reverse")) { // lines come in most recent to least
+                                                             // recent
+                    // TODO: check buffer isn't null...
+                    buffer.addLineFirstNoNotify(cm);
+                    toUpdate.add(buffer);
+                }
+            }
+        }
+        for (Buffer wb : toUpdate) {
+            wb.notifyObservers();
+        }
+    }
 }

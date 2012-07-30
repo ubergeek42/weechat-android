@@ -25,171 +25,172 @@ import java.util.Date;
  */
 public class RelayObject {
 
-	public enum WType {
-		CHR, INT, LON, STR, BUF, PTR, TIM, HTB, HDA, INF, INL, ARR, UNKNOWN
-	}
+    public enum WType {
+        CHR, INT, LON, STR, BUF, PTR, TIM, HTB, HDA, INF, INL, ARR, UNKNOWN
+    }
 
-	private char charValue;
-	private int intValue;
-	private long longValue;
-	private String strValue;
-	private byte[] baValue;
-	private Array arrayValue;
+    private char charValue;
+    private int intValue;
+    private long longValue;
+    private String strValue;
+    private byte[] baValue;
+    private Array arrayValue;
 
-	protected WType type = WType.UNKNOWN;
+    protected WType type = WType.UNKNOWN;
 
-	protected RelayObject() {
-		// Does nothing
-	}
+    protected RelayObject() {
+        // Does nothing
+    }
 
-	protected RelayObject(char c) {
-		charValue = c;
-		type = WType.CHR;
-	}
+    protected RelayObject(char c) {
+        charValue = c;
+        type = WType.CHR;
+    }
 
-	protected RelayObject(int i) {
-		intValue = i;
-		type = WType.INT;
-	}
+    protected RelayObject(int i) {
+        intValue = i;
+        type = WType.INT;
+    }
 
-	protected RelayObject(long l) {
-		longValue = l;
-		type = WType.LON;
-	}
+    protected RelayObject(long l) {
+        longValue = l;
+        type = WType.LON;
+    }
 
-	protected RelayObject(String s) {
-		strValue = s;
-		type = WType.STR;
-	}
+    protected RelayObject(String s) {
+        strValue = s;
+        type = WType.STR;
+    }
 
-	protected RelayObject(byte[] b) {
-		baValue = b;
-		type = WType.BUF;
-	}
+    protected RelayObject(byte[] b) {
+        baValue = b;
+        type = WType.BUF;
+    }
 
-	public RelayObject(Array array) {
-		arrayValue = array;
-		type = WType.ARR;
-	}
+    public RelayObject(Array array) {
+        arrayValue = array;
+        type = WType.ARR;
+    }
 
-	protected void setType(WType t) {
-		type = t;
-	}
+    protected void setType(WType t) {
+        type = t;
+    }
 
-	/**
-	 * Throws an exception if the object type doesn't match the argument
-	 * 
-	 * @param t
-	 *            - the wype we expect/want from this Object
-	 */
-	private void checkType(WType t) {
-		if (type != t)
-			throw new RuntimeException("Cannont convert from " + type + " to "
-					+ t);
-	}
+    /**
+     * Throws an exception if the object type doesn't match the argument
+     * 
+     * @param t
+     *            - the wype we expect/want from this Object
+     */
+    private void checkType(WType t) {
+        if (type != t) {
+            throw new RuntimeException("Cannont convert from " + type + " to " + t);
+        }
+    }
 
-	public WType getType() {
-		return type;
-	}
-	
-	/**
-	 * @return The char representation of an object
-	 */
-	public char asChar() {
-		checkType(WType.CHR);
-		return charValue;
-	}
+    public WType getType() {
+        return type;
+    }
 
-	/**
-	 * @return The unsigned integer representation of the object
-	 */
-	public int asInt() {
-		checkType(WType.INT);
-		return intValue;
-	}
+    /**
+     * @return The char representation of an object
+     */
+    public char asChar() {
+        checkType(WType.CHR);
+        return charValue;
+    }
 
-	/**
-	 * @return The long integer representation of the object TODO: see if this
-	 *         needs to be changed to a BigInteger
-	 */
-	public long asLong() {
-		checkType(WType.LON);
-		return longValue;
-	}
+    /**
+     * @return The unsigned integer representation of the object
+     */
+    public int asInt() {
+        checkType(WType.INT);
+        return intValue;
+    }
 
-	/**
-	 * @return The string representation of the object
-	 */
-	public String asString() {
-		checkType(WType.STR);
-		return strValue;
-	}
+    /**
+     * @return The long integer representation of the object TODO: see if this needs to be changed
+     *         to a BigInteger
+     */
+    public long asLong() {
+        checkType(WType.LON);
+        return longValue;
+    }
 
-	/**
-	 * @return A byte array representation of the object
-	 */
-	public byte[] asBytes() {
-		checkType(WType.BUF);
-		return baValue;
-	}
-	/**
-	 * @return An array representation of the object
-	 */
-	public Array asArray() {
-		checkType(WType.ARR);
-		return arrayValue;
-	}
+    /**
+     * @return The string representation of the object
+     */
+    public String asString() {
+        checkType(WType.STR);
+        return strValue;
+    }
 
+    /**
+     * @return A byte array representation of the object
+     */
+    public byte[] asBytes() {
+        checkType(WType.BUF);
+        return baValue;
+    }
 
-	/**
-	 * @return A string representing a pointer(e.g. 0xDEADBEEF)
-	 */
-	public String asPointer() {
-		checkType(WType.PTR);
-		return strValue;
-	}
+    /**
+     * @return An array representation of the object
+     */
+    public Array asArray() {
+        checkType(WType.ARR);
+        return arrayValue;
+    }
 
-	/**
-	 * @return A Date representation of the object
-	 */
-	public Date asTime() {
-		checkType(WType.TIM);
-		return new Date(longValue * 1000);
-	}
+    /**
+     * @return A string representing a pointer(e.g. 0xDEADBEEF)
+     */
+    public String asPointer() {
+        checkType(WType.PTR);
+        return strValue;
+    }
 
-	/**
-	 * Debug string representation of the object
-	 */
-	public String toString() {
-		String value = "Unknown";
-		switch (type) {
-		case CHR:
-			value = String.format("0x%02x", (int) asChar());
-			break;
-		case INT:
-			value = "" + asInt();
-			break;
-		case LON:
-			value = "" + asLong();
-			break;
-		case STR:
-			value = asString();
-			break;
-		case TIM:
-			value = "" + asTime();
-			break;
-		case PTR:
-			value = "" + asPointer();
-			break;
-		case BUF:
-			value = "" + Arrays.toString(asBytes());
-			break; // Need a better printer for a byte buffer
-		case ARR:
-			value = "" + asArray();
-			break;
-		}
-		// return String.format("%s -> %s", type, value);
-		return String.format("%s", value);
-	}
+    /**
+     * @return A Date representation of the object
+     */
+    public Date asTime() {
+        checkType(WType.TIM);
+        return new Date(longValue * 1000);
+    }
+
+    /**
+     * Debug string representation of the object
+     */
+    @Override
+    public String toString() {
+        String value = "Unknown";
+        switch (type) {
+        case CHR:
+            value = String.format("0x%02x", (int) asChar());
+            break;
+        case INT:
+            value = "" + asInt();
+            break;
+        case LON:
+            value = "" + asLong();
+            break;
+        case STR:
+            value = asString();
+            break;
+        case TIM:
+            value = "" + asTime();
+            break;
+        case PTR:
+            value = "" + asPointer();
+            break;
+        case BUF:
+            value = "" + Arrays.toString(asBytes());
+            break; // Need a better printer for a byte buffer
+        case ARR:
+            value = "" + asArray();
+            break;
+        }
+        // return String.format("%s -> %s", type, value);
+        return String.format("%s", value);
+    }
 
 }

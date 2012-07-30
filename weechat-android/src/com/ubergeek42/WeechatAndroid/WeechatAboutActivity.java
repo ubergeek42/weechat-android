@@ -21,12 +21,12 @@ import android.widget.TextView;
 
 public class WeechatAboutActivity extends Activity {
 
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.about);
-		TextView tv = (TextView) this.findViewById(R.id.versionID);
-		tv.setText(com.ubergeek42.weechat.GitVersion.BANNER);
-	}
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.about);
+        TextView tv = (TextView) this.findViewById(R.id.versionID);
+        tv.setText(com.ubergeek42.weechat.GitVersion.BANNER);
+    }
 
 }

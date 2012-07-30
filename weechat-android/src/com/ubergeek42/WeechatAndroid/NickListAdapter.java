@@ -14,36 +14,36 @@ import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.BufferObserver;
 import com.ubergeek42.weechat.NickItem;
 
-public class NickListAdapter extends BaseAdapter implements BufferObserver  {
-	WeechatActivity parentActivity;
-	LayoutInflater inflater;
-	private static final String TAG = "NickListAdapter";
-	private String[] nickCache;
+public class NickListAdapter extends BaseAdapter implements BufferObserver {
+    WeechatActivity parentActivity;
+    LayoutInflater inflater;
+    private static final String TAG = "NickListAdapter";
+    private String[] nickCache;
     private Buffer buffer;
-	protected ArrayList<NickItem> nicklist = new ArrayList<NickItem>();
-	
-	public NickListAdapter(WeechatActivity parentActivity, String[] nickCache) {
-		this.parentActivity = parentActivity;
-		this.inflater = LayoutInflater.from(parentActivity);
-		this.nickCache = nickCache;
-	}
+    protected ArrayList<NickItem> nicklist = new ArrayList<NickItem>();
 
-	@Override
-	public String getItem(int position) {
-		return nickCache[position];
-	}
+    public NickListAdapter(WeechatActivity parentActivity, String[] nickCache) {
+        this.parentActivity = parentActivity;
+        this.inflater = LayoutInflater.from(parentActivity);
+        this.nickCache = nickCache;
+    }
 
-	@Override
-	public long getItemId(int position) {
-		return position;
-	}
+    @Override
+    public String getItem(int position) {
+        return nickCache[position];
+    }
+
+    @Override
+    public long getItemId(int position) {
+        return position;
+    }
 
     static class ViewHolder {
         TextView nick;
     }
-    
-	@Override
-	public View getView(int position, View convertView, ViewGroup parent) {
+
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent) {
 
         ViewHolder holder;
 
@@ -60,33 +60,38 @@ public class NickListAdapter extends BaseAdapter implements BufferObserver  {
         holder.nick.setText(nickCache[position]);
 
         return convertView;
-	}
-	@Override
-	public void onLineAdded() {
-		// TODO Auto-generated method stub
-		
-	}
-	@Override
-	public void onBufferClosed() {
-		// TODO Auto-generated method stub
-		
-	}
-	@Override
-	public void onNicklistChanged() {
-		Log.d(TAG, "onNicklistChanged()");
-		parentActivity.runOnUiThread(new Runnable() {
-			@Override
-			public void run() {
-					nickCache = buffer.getNicks();
-					Arrays.sort(nickCache);
-					notifyDataSetChanged();
-			}
-		});		
-	}
+    }
 
-	@Override
-	public int getCount() {
-		if(nickCache==null) return 0;
-		return nickCache.length;
-	}
+    @Override
+    public void onLineAdded() {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void onBufferClosed() {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void onNicklistChanged() {
+        Log.d(TAG, "onNicklistChanged()");
+        parentActivity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                nickCache = buffer.getNicks();
+                Arrays.sort(nickCache);
+                notifyDataSetChanged();
+            }
+        });
+    }
+
+    @Override
+    public int getCount() {
+        if (nickCache == null) {
+            return 0;
+        }
+        return nickCache.length;
+    }
 }

@@ -19,53 +19,54 @@ import java.util.ArrayList;
 
 public class Array extends RelayObject {
 
-	private final ArrayList<RelayObject> array = new ArrayList<RelayObject>();
+    private final ArrayList<RelayObject> array = new ArrayList<RelayObject>();
 
-	private final WType arrayType; // One of: Integer, String, Pointer, Buffer, Time
-	private int arraySize;
+    private final WType arrayType; // One of: Integer, String, Pointer, Buffer, Time
+    private int arraySize;
 
-	protected Array(WType arrayType, int size) {
-		this.arrayType = arrayType;
-		this.setArraySize(size);
-	}
+    protected Array(WType arrayType, int size) {
+        this.arrayType = arrayType;
+        this.setArraySize(size);
+    }
 
-	protected void add(RelayObject value) {
-		array.add(value);
-	}
+    protected void add(RelayObject value) {
+        array.add(value);
+    }
 
-	public RelayObject get(int index) {
-		return array.get(index);
-	}
+    public RelayObject get(int index) {
+        return array.get(index);
+    }
 
-	public int length() {
-		return arraySize;
-	}
-	public void setArraySize(int arraySize) {
-		this.arraySize = arraySize;
-	}
+    public int length() {
+        return arraySize;
+    }
 
-	public String[] asStringArray() {
-		if (arrayType != WType.STR) {
-			return new String[0];
-		}
-		String[] ret = new String[length()];
-		for (int i = 0; i < length(); i++) {
-			ret[i] = array.get(i).asString();
-		}
-		return ret;
-	}
-	/**
-	 * Debug toString
-	 */
-	@Override
-	public String toString() {
-		StringBuilder map = new StringBuilder();
-		for(RelayObject value: array) {
-			map.append(value);
-			map.append(", ");
-		}
-		return map.toString();
-	}
+    public void setArraySize(int arraySize) {
+        this.arraySize = arraySize;
+    }
 
+    public String[] asStringArray() {
+        if (arrayType != WType.STR) {
+            return new String[0];
+        }
+        String[] ret = new String[length()];
+        for (int i = 0; i < length(); i++) {
+            ret[i] = array.get(i).asString();
+        }
+        return ret;
+    }
+
+    /**
+     * Debug toString
+     */
+    @Override
+    public String toString() {
+        StringBuilder map = new StringBuilder();
+        for (RelayObject value : array) {
+            map.append(value);
+            map.append(", ");
+        }
+        return map.toString();
+    }
 
 }

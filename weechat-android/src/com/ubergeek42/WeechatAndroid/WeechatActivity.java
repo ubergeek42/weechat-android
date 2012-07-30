@@ -43,128 +43,132 @@ import com.ubergeek42.WeechatAndroid.service.RelayServiceBinder;
 import com.ubergeek42.weechat.HotlistItem;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
 
-public class WeechatActivity extends SherlockFragmentActivity implements BufferListFragment.OnBufferSelectedListener, RelayConnectionHandler {
-	private static Logger logger = LoggerFactory.getLogger(WeechatActivity.class);
-	private boolean mBound = false;
-	private RelayServiceBinder rsb;
+public class WeechatActivity extends SherlockFragmentActivity implements
+        BufferListFragment.OnBufferSelectedListener, RelayConnectionHandler {
+    private static Logger logger = LoggerFactory.getLogger(WeechatActivity.class);
+    private boolean mBound = false;
+    private RelayServiceBinder rsb;
 
-	// We have 2 fragments: the bufferlist, and an active buffer
-	private BufferListFragment bufferListFrag;
-	private BufferFragment currentBufferFrag;
-	
-	private boolean tabletView = false;
+    // We have 2 fragments: the bufferlist, and an active buffer
+    private BufferListFragment bufferListFrag;
+    private BufferFragment currentBufferFrag;
+
+    private boolean tabletView = false;
 
     private SocketToggleConnection taskToggleConnection;
     private HotlistListAdapter hotlistListAdapter;
     private Menu actionBarMenu;
-    
+
     /** Called when the activity is first created. */
-	@Override
-	public void onCreate(Bundle savedInstanceState) {
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-		// Start the background service(if necessary)
-	    startService(new Intent(this, RelayService.class));
+        // Start the background service(if necessary)
+        startService(new Intent(this, RelayService.class));
 
-	    // Load the layout
-	    setContentView(R.layout.bufferlist_fragment);
+        // Load the layout
+        setContentView(R.layout.bufferlist_fragment);
 
-	    if (findViewById(R.id.fragment_container_tablet) != null) {
-	    	tabletView = true;
-	    } else {
-	    	tabletView = false;
-	    }
-	    
+        if (findViewById(R.id.fragment_container_tablet) != null) {
+            tabletView = true;
+        } else {
+            tabletView = false;
+        }
+
         // TODO Read preferences from background, its IO, 31ms strict mode!
-	    PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
-	    
-	    // Get the bufferlistfragment from the view
-    	if (bufferListFrag == null) {
-			 bufferListFrag = (BufferListFragment)getSupportFragmentManager().findFragmentById(R.id.bufferlist_fragment);
-    	}
-	    
-    	if (currentBufferFrag == null) {
-    		BufferFragment newFragment = new BufferFragment();
-    		FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
+
+        // Get the bufferlistfragment from the view
+        if (bufferListFrag == null) {
+            bufferListFrag = (BufferListFragment) getSupportFragmentManager().findFragmentById(
+                    R.id.bufferlist_fragment);
+        }
+
+        if (currentBufferFrag == null) {
+            BufferFragment newFragment = new BufferFragment();
+            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
             ft.replace(R.id.buffer_fragment, newFragment);
             ft.commit();
-    		currentBufferFrag = newFragment;
-    	}
-    	updateTitle();
-    	
-	    if (savedInstanceState != null) {
-	    	return;
-	    }
-	    
-    	if (!tabletView) {
-    		// Hide the buffer fragment
-    		FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-    		ft.hide(currentBufferFrag);
-    		ft.show(bufferListFrag);
-    		ft.commit();
-    		updateTitle();
-    	}
+            currentBufferFrag = newFragment;
+        }
+        updateTitle();
+
+        if (savedInstanceState != null) {
+            return;
+        }
+
+        if (!tabletView) {
+            // Hide the buffer fragment
+            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+            ft.hide(currentBufferFrag);
+            ft.show(bufferListFrag);
+            ft.commit();
+            updateTitle();
+        }
     }
-	@Override
-	protected void onNewIntent(Intent intent) {
-		super.onNewIntent(intent);
-		setIntent(intent);
-		logger.debug("onNewIntent called");
-		handleIntent();
-	}
 
-	@Override
-	protected void onStart() {
-		super.onStart();
-		
-		// Bind to the Relay Service
-	    bindService(new Intent(this, RelayService.class), mConnection, Context.BIND_AUTO_CREATE);
-	}
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        logger.debug("onNewIntent called");
+        handleIntent();
+    }
 
-	@Override
-	protected void onStop() {
-		super.onStop();
+    @Override
+    protected void onStart() {
+        super.onStart();
 
-        if (taskToggleConnection != null && taskToggleConnection.getStatus()!=AsyncTask.Status.FINISHED) {
+        // Bind to the Relay Service
+        bindService(new Intent(this, RelayService.class), mConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        if (taskToggleConnection != null
+                && taskToggleConnection.getStatus() != AsyncTask.Status.FINISHED) {
             taskToggleConnection.cancel(true);
             taskToggleConnection = null;
         }
 
-		if (mBound) {
-			rsb.removeRelayConnectionHandler(WeechatActivity.this);
-			unbindService(mConnection);
-			mBound = false;
-		}
-	}
-	
-	ServiceConnection mConnection = new ServiceConnection() {
-		@Override
-		public void onServiceConnected(ComponentName name, IBinder service) {
-			rsb = (RelayServiceBinder) service;
-			rsb.addRelayConnectionHandler(WeechatActivity.this);
+        if (mBound) {
+            rsb.removeRelayConnectionHandler(WeechatActivity.this);
+            unbindService(mConnection);
+            mBound = false;
+        }
+    }
 
-			mBound = true;
-			// Check if the service is already connected to the weechat relay, and if so load it up
-			if (rsb.isConnected()) {
-				WeechatActivity.this.onConnect();
-			}
-			
-			handleIntent();
-		}
+    ServiceConnection mConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            rsb = (RelayServiceBinder) service;
+            rsb.addRelayConnectionHandler(WeechatActivity.this);
 
-		@Override
-		public void onServiceDisconnected(ComponentName name) {
-			mBound = false;
-			rsb = null;
-		}
-	};
-	
-	@Override
-	public void onConnect() {
-		if (rsb != null && rsb.isConnected()) {
+            mBound = true;
+            // Check if the service is already connected to the weechat relay, and if so load it up
+            if (rsb.isConnected()) {
+                WeechatActivity.this.onConnect();
+            }
+
+            handleIntent();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            mBound = false;
+            rsb = null;
+        }
+    };
+
+    @Override
+    public void onConnect() {
+        if (rsb != null && rsb.isConnected()) {
             // Create and update the hotlist
             hotlistListAdapter = new HotlistListAdapter(WeechatActivity.this, rsb);
-		}
+        }
 
         // Make sure we update action bar menu after a connection change.
         runOnUiThread(new Runnable() {
@@ -174,9 +178,10 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
             }
         });
 
-	}
-	@Override
-	public void onDisconnect() {
+    }
+
+    @Override
+    public void onDisconnect() {
         // Make sure we update action bar menu after a connection change.
         runOnUiThread(new Runnable() {
             @Override
@@ -184,89 +189,99 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
                 updateMenuContext(actionBarMenu);
             }
         });
-	}
-	
-	@Override
-	public void onError(String arg0) {
-		Log.d("WeechatActivity", "onError:" + arg0);
-	}
+    }
+
+    @Override
+    public void onError(String arg0) {
+        Log.d("WeechatActivity", "onError:" + arg0);
+    }
 
     @Override
     // Handle the options when the user presses the Menu key
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch(item.getItemId()) {
-            case R.id.menu_connection_state: {
-                if (rsb != null) {
-                    taskToggleConnection = new SocketToggleConnection();
-                    taskToggleConnection.execute();
+        switch (item.getItemId()) {
+        case R.id.menu_connection_state: {
+            if (rsb != null) {
+                taskToggleConnection = new SocketToggleConnection();
+                taskToggleConnection.execute();
+            }
+            break;
+        }
+        case R.id.menu_preferences: {
+            Intent i = new Intent(this, WeechatPreferencesActivity.class);
+            startActivity(i);
+            break;
+        }
+        case R.id.menu_about: {
+            Intent i = new Intent(this, WeechatAboutActivity.class);
+            startActivity(i);
+            break;
+        }
+        case R.id.menu_quit: {
+            if (rsb != null) {
+                rsb.shutdown();
+            }
+            unbindService(mConnection);
+            mBound = false;
+            stopService(new Intent(this, RelayService.class));
+            finish();
+            break;
+        }
+        case R.id.menu_hotlist: {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle(R.string.hotlist);
+            builder.setAdapter(hotlistListAdapter, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int position) {
+                    HotlistItem hotlistItem = hotlistListAdapter.getItem(position);
+                    String name = hotlistItem.getFullName();
+                    onBufferSelected(name);
                 }
+            });
+            builder.create().show();
+            break;
+        }
+        case R.id.menu_nicklist: {
+            // No nicklist if they aren't looking at a buffer
+            if (currentBufferFrag.isHidden()) {
                 break;
             }
-            case R.id.menu_preferences: {
-                Intent i = new Intent(this, WeechatPreferencesActivity.class);
-                startActivity(i);
+
+            String[] nicks = currentBufferFrag.getNicklist();
+            if (nicks == null) {
                 break;
             }
-            case R.id.menu_about: {
-                Intent i = new Intent(this, WeechatAboutActivity.class);
-                startActivity(i);
-                break;
-            }
-            case R.id.menu_quit: {
-                if (rsb != null)rsb.shutdown();
-                unbindService(mConnection);
-                mBound = false;
-                stopService(new Intent(this, RelayService.class));
-                finish();
-                break;
-            }
-            case R.id.menu_hotlist: {
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setTitle(R.string.hotlist);
-                builder.setAdapter(hotlistListAdapter, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int position) {
-                        HotlistItem hotlistItem = hotlistListAdapter.getItem(position);
-                        String name = hotlistItem.getFullName();
-                        onBufferSelected(name);
-                    }
-                });
-                builder.create().show();
-                break;
-            }
-            case R.id.menu_nicklist: {
-            	// No nicklist if they aren't looking at a buffer
-            	if (currentBufferFrag.isHidden()) break;
-            	
-        		String[] nicks = currentBufferFrag.getNicklist();
-        		if (nicks == null) break;
-        		
-	            NickListAdapter nicklistAdapter = new NickListAdapter(WeechatActivity.this, nicks);
-	            	
-	            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-	            builder.setTitle(getString(R.string.nicklist_menu) + " (" + nicks.length + ")");
-	            builder.setAdapter(nicklistAdapter, new DialogInterface.OnClickListener() {
-	                @Override
-	                public void onClick(DialogInterface dialogInterface, int position) {
-	                	//TODO define something to happen here
-	                }
-	            });
-	            builder.create().show();
-                break;
-            }
-            case R.id.menu_bufferlist: {
-                // Replace anything in the fragment container with our new fragment
-                FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-                if (bufferListFrag.isHidden()) {
-                    ft.show(bufferListFrag);
-                    if (!tabletView) ft.hide(currentBufferFrag);
-                } else {
-                    ft.hide(bufferListFrag);
-                    if (!tabletView) ft.show(currentBufferFrag);
+
+            NickListAdapter nicklistAdapter = new NickListAdapter(WeechatActivity.this, nicks);
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle(getString(R.string.nicklist_menu) + " (" + nicks.length + ")");
+            builder.setAdapter(nicklistAdapter, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int position) {
+                    // TODO define something to happen here
                 }
-                ft.commit();
-                updateTitle();
+            });
+            builder.create().show();
+            break;
+        }
+        case R.id.menu_bufferlist: {
+            // Replace anything in the fragment container with our new fragment
+            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+            if (bufferListFrag.isHidden()) {
+                ft.show(bufferListFrag);
+                if (!tabletView) {
+                    ft.hide(currentBufferFrag);
+                }
+            } else {
+                ft.hide(bufferListFrag);
+                if (!tabletView) {
+                    ft.show(currentBufferFrag);
+                }
             }
+            ft.commit();
+            updateTitle();
+        }
             break;
         }
         return super.onOptionsItemSelected(item);
@@ -274,33 +289,38 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
 
     // when we get an intent, do something with it
     private void handleIntent() {
-    	// Load a buffer if necessary
+        // Load a buffer if necessary
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
-        	// Load the given buffer
-        	onBufferSelected(extras.getString("buffer"));
+            // Load the given buffer
+            onBufferSelected(extras.getString("buffer"));
         } else {
-        	// Load the bufferlist
+            // Load the bufferlist
         }
     }
-    
+
     /**
-     * Replacement method for onPrepareOptionsMenu
-     * due to rsb might be null on the event of clicking the menu button.
-     *
-     * Hence our activity stores the menu references in onCreateOptionsMenu
-     * and we can update menu items underway from events like onConnect.
-     * @param menu actionBarMenu to update context on
+     * Replacement method for onPrepareOptionsMenu due to rsb might be null on the event of clicking
+     * the menu button.
+     * 
+     * Hence our activity stores the menu references in onCreateOptionsMenu and we can update menu
+     * items underway from events like onConnect.
+     * 
+     * @param menu
+     *            actionBarMenu to update context on
      */
-    public void updateMenuContext (Menu menu) {
-    	if (menu==null) return;
-    	
-    	// Swap the text from connect to disconnect depending on connection status
+    public void updateMenuContext(Menu menu) {
+        if (menu == null) {
+            return;
+        }
+
+        // Swap the text from connect to disconnect depending on connection status
         MenuItem connectionStatus = menu.findItem(R.id.menu_connection_state);
-        if (rsb != null && rsb.isConnected())
+        if (rsb != null && rsb.isConnected()) {
             connectionStatus.setTitle(R.string.disconnect);
-        else
+        } else {
             connectionStatus.setTitle(R.string.connect);
+        }
     }
 
     @Override
@@ -315,91 +335,92 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
         actionBarMenu = menu;
         return super.onCreateOptionsMenu(menu);
     }
-    
-    public void closeBuffer(String bufferName) {
-    	//Buffer name is unused for now
 
-    	// Create an empty Buffer Fragment, hide it, and show the buffer list
-    	BufferFragment newFragment = new BufferFragment();
-		FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+    public void closeBuffer(String bufferName) {
+        // Buffer name is unused for now
+
+        // Create an empty Buffer Fragment, hide it, and show the buffer list
+        BufferFragment newFragment = new BufferFragment();
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.replace(R.id.buffer_fragment, newFragment);
         ft.hide(currentBufferFrag);
-		ft.show(bufferListFrag);
+        ft.show(bufferListFrag);
         ft.commit();
-		currentBufferFrag = newFragment;
-		updateTitle();
+        currentBufferFrag = newFragment;
+        updateTitle();
     }
-    
+
     private void updateTitle() {
-    	getSupportFragmentManager().executePendingTransactions();
-    	if (currentBufferFrag.isVisible()) {
-    		currentBufferFrag.updateTitle();
-		} else {
-			setTitle(getString(R.string.app_version));
-    	}
+        getSupportFragmentManager().executePendingTransactions();
+        if (currentBufferFrag.isVisible()) {
+            currentBufferFrag.updateTitle();
+        } else {
+            setTitle(getString(R.string.app_version));
+        }
     }
-    
-    
+
     // Called by whatever fragment is loaded, to set the currentview
     public void setCurrentFragment(Fragment frag) {
-    	currentBufferFrag = (BufferFragment) frag;
+        currentBufferFrag = (BufferFragment) frag;
     }
 
+    @Override
     public void onBufferSelected(String buffer) {
-    	// The user selected the buffer from the BufferlistFragment
-		logger.debug("onBufferSelected() buffer:" + buffer );
+        // The user selected the buffer from the BufferlistFragment
+        logger.debug("onBufferSelected() buffer:" + buffer);
 
-		if (buffer == currentBufferFrag.getBufferName()) {
-			// Show the buffer if it isn't visible
-			if (currentBufferFrag.isHidden()) {
-				FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-				ft.show(currentBufferFrag);
-				ft.hide(bufferListFrag);
-				ft.commit();
-				updateTitle();
-			}
-			return;
-		}
-		
-		// Does the buffer actually exist?(If not, return)
-		if (rsb.getBufferByName(buffer)==null)
-			return;
-		
-		// Create fragment for the buffer and setup the arguments
+        if (buffer == currentBufferFrag.getBufferName()) {
+            // Show the buffer if it isn't visible
+            if (currentBufferFrag.isHidden()) {
+                FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+                ft.show(currentBufferFrag);
+                ft.hide(bufferListFrag);
+                ft.commit();
+                updateTitle();
+            }
+            return;
+        }
+
+        // Does the buffer actually exist?(If not, return)
+        if (rsb.getBufferByName(buffer) == null) {
+            return;
+        }
+
+        // Create fragment for the buffer and setup the arguments
         BufferFragment newFragment = new BufferFragment();
         Bundle args = new Bundle();
         args.putString("buffer", buffer);
         newFragment.setArguments(args);
-		
+
         // Replace the current fragment with the buffer they selected
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.replace(R.id.buffer_fragment, newFragment);
-        //ft.addToBackStack(null);
+        // ft.addToBackStack(null);
         if (tabletView == false) {
-        	// hide the bufferlist, show the buffer
-        	ft.show(currentBufferFrag);
-        	ft.hide(bufferListFrag);
+            // hide the bufferlist, show the buffer
+            ft.show(currentBufferFrag);
+            ft.hide(bufferListFrag);
         }
         ft.commit();
         updateTitle();
     }
-    
+
     // Go back to the buffer list when they press back
     @Override
     public void onBackPressed() {
-    	if (bufferListFrag.isVisible()) {
-    		finish();
-    	} else {
+        if (bufferListFrag.isVisible()) {
+            finish();
+        } else {
             FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
             ft.hide(currentBufferFrag);
-        	ft.show(bufferListFrag);
-        	ft.commit();
-        	updateTitle();
-    	}
+            ft.show(bufferListFrag);
+            ft.commit();
+            updateTitle();
+        }
     }
 
     /**
-     * Used to toggle the connection 
+     * Used to toggle the connection
      */
     private class SocketToggleConnection extends AsyncTask<Void, Void, Boolean> {
         @Override
@@ -411,6 +432,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements BufferL
             }
             return true;
         }
+
         @Override
         protected void onPostExecute(Boolean success) {
             supportInvalidateOptionsMenu();
