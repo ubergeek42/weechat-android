@@ -145,7 +145,7 @@ public class WeechatPreferencesActivity extends PreferenceActivity implements
             sshHostPref.setSummary(sharedPreferences.getString(key, ""));
         } else if (key.equals("ssh_user")) {
             sshUserPref.setSummary(sharedPreferences.getString(key, ""));
-        } else if (key.equals("port")) {
+        } else if (key.equals("ssh_port")) {
             sshPortPref.setSummary(sharedPreferences.getString(key, "22"));
         } else if (key.equals("ssh_pass")) {
             String tmp = sharedPreferences.getString("ssh_pass", null);
