@@ -27,8 +27,10 @@ import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -36,7 +38,9 @@ import java.util.HashSet;
 import javax.net.SocketFactory;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,7 +60,7 @@ import com.ubergeek42.weechat.relay.protocol.RelayObject;
 public class RelayConnection {
 
     public enum ConnectionType {
-        STUNNEL, SSHTUNNEL, DEFAULT
+        SSL, STUNNEL, SSHTUNNEL, DEFAULT
     }
 
     private static Logger logger = LoggerFactory.getLogger(RelayConnection.class);
@@ -75,6 +79,9 @@ public class RelayConnection {
     private boolean connected = false;
     private Thread currentConnection;
 
+    /** SSL Settings */
+    // None yet?
+    
     /** Stunnel Settings */
     private String stunnelCert;
     private String stunnnelKeyPass;
@@ -114,6 +121,10 @@ public class RelayConnection {
      */
     public void setConnectionType(ConnectionType ct) {
         switch (ct) {
+        case SSL:
+            logger.debug("Connection type set to: WEECHAT SSL");
+            currentConnection = createSSLSocketConnection;
+            break;
         case STUNNEL:
             logger.debug("Connection type set to: STUNNEL");
             currentConnection = createStunnelSocketConnection;
@@ -302,6 +313,54 @@ public class RelayConnection {
         }
     });
 
+    /**
+     * Connects to the server(Via SSL) in a new thread, so we can interrupt it if we want to cancel the
+     * connection
+     */
+    private TrustManager[] trustAllCerts = new TrustManager[] {
+    		new X509TrustManager() {
+
+				@Override
+				public void checkClientTrusted(X509Certificate[] arg0,	String arg1) throws CertificateException {
+				}
+
+				@Override
+				public void checkServerTrusted(X509Certificate[] arg0,	String arg1) throws CertificateException {
+				}
+
+				@Override
+				public X509Certificate[] getAcceptedIssuers() {
+					return null;
+				}
+    		}
+    };
+    private Thread createSSLSocketConnection = new Thread(new Runnable() {
+        @Override
+        public void run() {
+            try {
+            	SSLContext sslContext = SSLContext.getInstance("TLS");
+            	sslContext.init(null, trustAllCerts, new SecureRandom());
+            	sock = sslContext.getSocketFactory().createSocket(InetAddress.getByName(server), port);
+            	sock.setKeepAlive(true);
+                outstream = sock.getOutputStream();
+                instream = sock.getInputStream();
+            } catch (IOException e) {
+                e.printStackTrace();
+                for (RelayConnectionHandler wrch : connectionHandlers) {
+                    wrch.onError(e.getMessage());
+                }
+                return;
+            } catch (NoSuchAlgorithmException e) {
+				e.printStackTrace();
+			} catch (KeyManagementException e) {
+				e.printStackTrace();
+			}
+            postConnectionSetup();
+
+            logger.trace("weechat ssl - createSocketConnection finished");
+        }
+    });
+    
     /**
      * Set the certificate to use when connecting to stunnel
      * 

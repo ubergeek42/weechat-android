@@ -12,11 +12,13 @@
     </string-array>
     <string-array name="settings_connection_type_names">
         <item >Plain Connection</item>
+        <item >Weechat SSL</item>
         <item >SSH Tunnel</item>
         <item >Stunnel</item>
     </string-array>
     <string-array name="settings_connection_type_values">
         <item >plain</item>
+        <item >ssl</item>
         <item >ssh</item>
         <item >stunnel</item>
     </string-array>

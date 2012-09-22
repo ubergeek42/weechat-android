@@ -180,6 +180,8 @@ public class RelayService extends Service implements RelayConnectionHandler,
             relayConnection.setStunnelCert(stunnelCert);
             relayConnection.setStunnelKey(stunnelPass);
             relayConnection.setConnectionType(ConnectionType.STUNNEL);
+        } else if (connType.equals("ssl")) {
+            relayConnection.setConnectionType(ConnectionType.SSL);
         } else {
             relayConnection.setConnectionType(ConnectionType.DEFAULT);
         }
