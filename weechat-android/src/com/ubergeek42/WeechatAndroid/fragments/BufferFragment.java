@@ -166,7 +166,9 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
         }
 
         // Remove buffer from hotlist
-        rsb.getHotlistManager().removeHotlistItem(bufferName);
+        if (rsb.getHotlistManager()!= null) {
+            rsb.getHotlistManager().removeHotlistItem(bufferName);
+        }
 
         chatlines = (ListView) getView().findViewById(R.id.chatview_lines);
         inputBox = (EditText) getView().findViewById(R.id.chatview_input);

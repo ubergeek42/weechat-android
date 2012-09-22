@@ -351,12 +351,17 @@ public class WeechatActivity extends SherlockFragmentActivity implements
     }
 
     private void updateTitle() {
-        getSupportFragmentManager().executePendingTransactions();
-        if (currentBufferFrag.isVisible()) {
-            currentBufferFrag.updateTitle();
-        } else {
-            setTitle(getString(R.string.app_version));
-        }
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                getSupportFragmentManager().executePendingTransactions();
+                if (currentBufferFrag.isVisible()) {
+                    currentBufferFrag.updateTitle();
+                } else {
+                    setTitle(getString(R.string.app_version));
+                }
+            }
+        });
     }
 
     // Called by whatever fragment is loaded, to set the currentview
