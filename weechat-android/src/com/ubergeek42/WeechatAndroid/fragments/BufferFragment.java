@@ -221,13 +221,6 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
         buffer.resetUnread();
 
         chatlineAdapter.notifyChanged();
-
-        chatlines.post(new Runnable() {
-            @Override
-            public void run() {
-                chatlines.setSelectionFromTop(chatlineAdapter.getCount() - 1, 0);
-            }
-        });
     }
 
     @Override

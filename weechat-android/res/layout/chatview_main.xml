@@ -38,7 +38,9 @@
         android:listSelector="#00000000"
         android:focusable="false"
 		android:focusableInTouchMode="false"
-		android:clickable="false">
+		android:clickable="false" 
+        android:transcriptMode="normal"
+        android:stackFromBottom="true">
     </ListView>
 <!-- 
     <TextView
