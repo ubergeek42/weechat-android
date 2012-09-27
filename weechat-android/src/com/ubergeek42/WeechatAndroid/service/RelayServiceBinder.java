@@ -15,6 +15,8 @@
  ******************************************************************************/
 package com.ubergeek42.WeechatAndroid.service;
 
+import java.security.cert.X509Certificate;
+
 import android.os.Binder;
 
 import com.ubergeek42.weechat.Buffer;
@@ -149,5 +151,21 @@ public class RelayServiceBinder extends Binder {
     public void unsubscribeBuffer(String bufferPointer) {
         // Buffer buf = relayService.bufferManager.findByPointer(bufferPointer);
         // relayService.relayConnection.sendMsg("desync "+buf.getFullName()+" nicklist");
+    }
+    
+    /**
+     * SSL Certificate related functions 
+     */
+    public void setCertificateError(X509Certificate cert) {
+        relayService.untrustedCert = cert;
+    }
+    public X509Certificate getCertificateError() {
+        return relayService.untrustedCert;
+    }
+    public void acceptCertificate() {
+        relayService.trustCertificate();
+    }
+    public void rejectCertificate() {
+        relayService.untrustedCert = null;
     }
 }

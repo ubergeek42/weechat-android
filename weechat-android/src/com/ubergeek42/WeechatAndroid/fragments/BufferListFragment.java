@@ -188,10 +188,9 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
             }
         });
     }
-
     @Override
-    public void onError(String err) {
-
+    public void onError(String err, Object extraInfo) {
+        // We don't do anything with the error message(the activity/service does though)
     }
 
     @Override
@@ -263,5 +262,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
             onBuffersChanged();
         }
     }
+
+
 
 }

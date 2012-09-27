@@ -21,6 +21,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".SSLCertActivity"></activity>
         <activity android:name=".WeechatPreferencesActivity"></activity>
         <activity android:name=".WeechatAboutActivity"></activity>
     </application>

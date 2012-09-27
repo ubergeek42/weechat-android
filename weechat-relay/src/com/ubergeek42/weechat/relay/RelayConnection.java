@@ -38,7 +38,7 @@ import java.util.HashSet;
 import javax.net.SocketFactory;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
+import javax.net.ssl.SSLSocket;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
@@ -80,7 +80,7 @@ public class RelayConnection {
     private Thread currentConnection;
 
     /** SSL Settings */
-    // None yet?
+    private KeyStore sslKeyStore;
     
     /** Stunnel Settings */
     private String stunnelCert;
@@ -221,8 +221,7 @@ public class RelayConnection {
     /**
      * Sends the specified message to the server
      * 
-     * @param msg
-     *            - The message to send
+     * @param msg - The message to send
      */
     public void sendMsg(String msg) {
         if (!connected) {
@@ -247,12 +246,9 @@ public class RelayConnection {
     /**
      * Sends a message to the server
      * 
-     * @param id
-     *            - id of the message
-     * @param command
-     *            - command to send
-     * @param arguments
-     *            - arguments for the command
+     * @param id - id of the message
+     * @param command - command to send
+     * @param arguments - arguments for the command
      */
     public void sendMsg(String id, String command, String arguments) {
         String msg;
@@ -267,8 +263,7 @@ public class RelayConnection {
     /**
      * Register a connection handler to receive onConnected/onDisconnected events
      * 
-     * @param wrch
-     *            - The connection handler
+     * @param wrch - The connection handler
      */
     public void setConnectionHandler(RelayConnectionHandler wrch) {
         connectionHandlers.add(wrch);
@@ -303,7 +298,7 @@ public class RelayConnection {
             } catch (IOException e) {
                 e.printStackTrace();
                 for (RelayConnectionHandler wrch : connectionHandlers) {
-                    wrch.onError(e.getMessage());
+                    wrch.onError(e.getMessage(), null);
                 }
                 return;
             }
@@ -313,46 +308,44 @@ public class RelayConnection {
         }
     });
 
+    
+    public void setSSLKeystore(KeyStore ks) {
+    	sslKeyStore = ks;
+    }
     /**
      * Connects to the server(Via SSL) in a new thread, so we can interrupt it if we want to cancel the
      * connection
      */
-    private TrustManager[] trustAllCerts = new TrustManager[] {
-    		new X509TrustManager() {
-
-				@Override
-				public void checkClientTrusted(X509Certificate[] arg0,	String arg1) throws CertificateException {
-				}
-
-				@Override
-				public void checkServerTrusted(X509Certificate[] arg0,	String arg1) throws CertificateException {
-				}
-
-				@Override
-				public X509Certificate[] getAcceptedIssuers() {
-					return null;
-				}
-    		}
-    };
     private Thread createSSLSocketConnection = new Thread(new Runnable() {
         @Override
         public void run() {
+        	
             try {
+            	TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            	tmf.init(sslKeyStore);
+            	
             	SSLContext sslContext = SSLContext.getInstance("TLS");
-            	sslContext.init(null, trustAllCerts, new SecureRandom());
-            	sock = sslContext.getSocketFactory().createSocket(InetAddress.getByName(server), port);
-            	sock.setKeepAlive(true);
+            	sslContext.init(null, tmf.getTrustManagers(), new SecureRandom());
+            	SSLSocket sslSock = (SSLSocket) sslContext.getSocketFactory().createSocket(InetAddress.getByName(server), port);
+            	sslSock.setKeepAlive(true);
+            	
+            	//SSLSession session = sslSock.getSession();
+            	//serverCert = (session.getPeerCertificates())[0];// or getPeerCertificateChain()
+            	
+            	sock = sslSock;
                 outstream = sock.getOutputStream();
                 instream = sock.getInputStream();
             } catch (IOException e) {
                 e.printStackTrace();
                 for (RelayConnectionHandler wrch : connectionHandlers) {
-                    wrch.onError(e.getMessage());
+                    wrch.onError(e.getMessage(), e);
                 }
                 return;
             } catch (NoSuchAlgorithmException e) {
 				e.printStackTrace();
 			} catch (KeyManagementException e) {
+				e.printStackTrace();
+			} catch (KeyStoreException e) {
 				e.printStackTrace();
 			}
             postConnectionSetup();
@@ -441,7 +434,7 @@ public class RelayConnection {
             } catch (IOException e) {
                 e.printStackTrace();
                 for (RelayConnectionHandler wrch : connectionHandlers) {
-                    wrch.onError(e.getMessage());
+                    wrch.onError(e.getMessage(), null);
                 }
                 return;
             }
@@ -454,8 +447,7 @@ public class RelayConnection {
     /**
      * Host to connect to via ssh
      * 
-     * @param host
-     *            - Where to connect to
+     * @param host - Where to connect to
      */
     public void setSSHHost(String host) {
         sshHost = host;
@@ -464,8 +456,7 @@ public class RelayConnection {
     /**
      * Username for ssh
      * 
-     * @param user
-     *            - the user to connect as
+     * @param user - the user to connect as
      */
     public void setSSHUsername(String user) {
         sshUsername = user;
@@ -474,8 +465,7 @@ public class RelayConnection {
     /**
      * Set the port to connect to with SSH
      * 
-     * @param port
-     *            - the SSH port on the remote server
+     * @param port - the SSH port on the remote server
      */
     public void setSSHPort(String port) {
         sshPort = Integer.parseInt(port);
@@ -517,7 +507,7 @@ public class RelayConnection {
             } catch (IOException e) {
                 e.printStackTrace();
                 for (RelayConnectionHandler wrch : connectionHandlers) {
-                    wrch.onError(e.getMessage());
+                    wrch.onError(e.getMessage(), null);
                 }
                 return;
             }

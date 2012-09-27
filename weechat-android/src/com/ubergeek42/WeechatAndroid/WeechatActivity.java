@@ -15,6 +15,15 @@
  ******************************************************************************/
 package com.ubergeek42.WeechatAndroid;
 
+import java.security.cert.CertPath;
+import java.security.cert.CertPathValidatorException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.List;
+
+import javax.net.ssl.SSLException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -192,8 +201,27 @@ public class WeechatActivity extends SherlockFragmentActivity implements
     }
 
     @Override
-    public void onError(String arg0) {
-        Log.d("WeechatActivity", "onError:" + arg0);
+    public void onError(String errorMsg, Object extraData) {
+        Log.d("WeechatActivity", "onError:" + errorMsg);
+        Log.d("Cause: ", ((SSLException)extraData).getCause().toString());
+        if (extraData instanceof SSLException) {
+            SSLException e1 = (SSLException) extraData;
+            if (e1.getCause() instanceof CertificateException) {
+                CertificateException e2 = (CertificateException) e1.getCause();
+                
+                if (e2.getCause() instanceof CertPathValidatorException) {
+                    CertPathValidatorException e = (CertPathValidatorException) e2.getCause();
+                    CertPath cp = e.getCertPath();                    
+                    
+                    // Set the cert error on the backend
+                    rsb.setCertificateError((X509Certificate) cp.getCertificates().get(0));
+                    
+                    // Start an activity to attempt establishing trust
+                    Intent i = new Intent(this, SSLCertActivity.class);
+                    startActivity(i);
+                }
+            }
+        }
     }
 
     @Override

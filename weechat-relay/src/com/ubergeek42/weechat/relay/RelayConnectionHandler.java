@@ -38,8 +38,8 @@ public interface RelayConnectionHandler {
     /**
      * Called when there is an error with the connection, and provides a message as a string.
      * 
-     * @param err
-     *            - The error string
+     * @param err - The error string
+     * @param extraInfo - Additional data related to the error message(SSL Fingerprints, etc)
      */
-    public void onError(String err);
+    public void onError(String err, Object extraInfo);
 }

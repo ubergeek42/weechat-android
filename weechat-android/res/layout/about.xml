@@ -82,4 +82,12 @@
         android:text="Create an issue on github or email me: kj@ubergeek42.com"
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
+    <Button
+        android:id="@+id/btn_clear_certs"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/textView3"
+        android:layout_alignParentLeft="true"
+        android:text="Clear SSL Certificates" />
+
 </RelativeLayout>

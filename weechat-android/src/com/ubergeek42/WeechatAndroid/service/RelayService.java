@@ -15,12 +15,29 @@
  ******************************************************************************/
 package com.ubergeek42.WeechatAndroid.service;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.HashSet;
+
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
@@ -48,6 +65,9 @@ import com.ubergeek42.weechat.relay.messagehandler.UpgradeObserver;
 public class RelayService extends Service implements RelayConnectionHandler,
         OnSharedPreferenceChangeListener, HotlistObserver, UpgradeObserver {
 
+    private static Logger logger = LoggerFactory.getLogger(RelayService.class);
+    
+    private static final String KEYSTORE_PASSWORD = "weechat-android";
     private static final int NOTIFICATION_ID = 42;
     private NotificationManager notificationManger;
 
@@ -62,6 +82,10 @@ public class RelayService extends Service implements RelayConnectionHandler,
     String sshPass;
     String sshPort;
     String sshUser;
+    
+    
+    KeyStore sslKeystore;
+    X509Certificate untrustedCert;
 
     RelayConnection relayConnection;
     BufferManager bufferManager;
@@ -93,8 +117,80 @@ public class RelayService extends Service implements RelayConnectionHandler,
 
         disconnected = false;
 
+        loadKeystore();
+        
+        
         if (prefs.getBoolean("autoconnect", false)) {
             connect();
+        }
+    }
+    
+    // Load our keystore for storing SSL certificates
+    private void loadKeystore() {
+        boolean createKeystore = false;
+        
+        // Get the ssl keystore
+        File keystoreFile = new File(getDir("sslDir", Context.MODE_PRIVATE), "keystore.jks");
+
+        try {
+            sslKeystore = KeyStore.getInstance("BKS");
+            sslKeystore.load(new FileInputStream(keystoreFile), KEYSTORE_PASSWORD.toCharArray());
+        } catch (KeyStoreException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            // Should never happen
+            e.printStackTrace();
+        } catch (CertificateException e) {
+            // Ideally never happens
+            e.printStackTrace();
+        } catch (FileNotFoundException e) {
+            logger.debug("Keystore not found, creating...");
+            createKeystore = true;
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        
+        if (createKeystore) {
+            createKeystore();
+        }
+        // Keystore now loaded
+        System.setProperty("javax.net.ssl.trustStore", keystoreFile.getAbsolutePath());
+    }
+    private void createKeystore() {
+        try {
+            sslKeystore.load(null,null);
+            TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            tmf.init((KeyStore)null);
+            X509TrustManager xtm = (X509TrustManager) tmf.getTrustManagers()[0]; 
+            for (X509Certificate cert : xtm.getAcceptedIssuers()) { 
+                sslKeystore.setCertificateEntry(cert.getSubjectDN().getName(), cert); 
+            }
+            // Add a random cert here(to prevent error about trustAnchors.isEmpty()
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        saveKeystore();
+    }
+    
+    private void saveKeystore() {
+        File keystoreFile = new File(getDir("sslDir", Context.MODE_PRIVATE), "keystore.jks");
+        try {
+            sslKeystore.store(new FileOutputStream(keystoreFile), KEYSTORE_PASSWORD.toCharArray());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    void trustCertificate() {
+        if (untrustedCert!=null) {
+            try {
+                KeyStore.TrustedCertificateEntry x = new KeyStore.TrustedCertificateEntry(untrustedCert);
+                sslKeystore.setEntry(host, x, null);
+            } catch (KeyStoreException e) {
+                e.printStackTrace();
+            }
+            saveKeystore();
         }
     }
 
@@ -330,10 +426,9 @@ public class RelayService extends Service implements RelayConnectionHandler,
     }
 
     @Override
-    public void onError(String error) {
-        // TODO Auto-generated method stub
+    public void onError(String error, Object extraData) {
         for (RelayConnectionHandler rch : connectionHandlers) {
-            rch.onError(error);
+            rch.onError(error, extraData);
         }
     }
 
