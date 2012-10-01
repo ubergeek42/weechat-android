@@ -154,19 +154,18 @@ public class RelayService extends Service implements RelayConnectionHandler,
         if (createKeystore) {
             createKeystore();
         }
-        // Keystore now loaded
-        System.setProperty("javax.net.ssl.trustStore", keystoreFile.getAbsolutePath());
     }
     private void createKeystore() {
         try {
             sslKeystore.load(null,null);
             TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
             tmf.init((KeyStore)null);
+            // Copy current certs into our keystore so we can use it...
+            // TODO: don't actually do this...
             X509TrustManager xtm = (X509TrustManager) tmf.getTrustManagers()[0]; 
             for (X509Certificate cert : xtm.getAcceptedIssuers()) { 
                 sslKeystore.setCertificateEntry(cert.getSubjectDN().getName(), cert); 
             }
-            // Add a random cert here(to prevent error about trustAnchors.isEmpty()
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -278,6 +277,7 @@ public class RelayService extends Service implements RelayConnectionHandler,
             relayConnection.setConnectionType(ConnectionType.STUNNEL);
         } else if (connType.equals("ssl")) {
             relayConnection.setConnectionType(ConnectionType.SSL);
+            relayConnection.setSSLKeystore(sslKeystore);
         } else {
             relayConnection.setConnectionType(ConnectionType.DEFAULT);
         }

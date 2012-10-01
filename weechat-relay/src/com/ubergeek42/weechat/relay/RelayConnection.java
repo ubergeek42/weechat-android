@@ -329,9 +329,6 @@ public class RelayConnection {
             	SSLSocket sslSock = (SSLSocket) sslContext.getSocketFactory().createSocket(InetAddress.getByName(server), port);
             	sslSock.setKeepAlive(true);
             	
-            	//SSLSession session = sslSock.getSession();
-            	//serverCert = (session.getPeerCertificates())[0];// or getPeerCertificateChain()
-            	
             	sock = sslSock;
                 outstream = sock.getOutputStream();
                 instream = sock.getInputStream();
