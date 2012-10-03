@@ -9,6 +9,7 @@
     <string name="menu_connection_state">connection state</string>
     <string name="wee_submenu">Weechat Android Submenu</string>
     <string name="preferences">Settings</string>
+    <string name="close">Close</string>
     <string name="about">About</string>
     <string name="quit">Quit</string>
     <string name="connect">Connect</string>

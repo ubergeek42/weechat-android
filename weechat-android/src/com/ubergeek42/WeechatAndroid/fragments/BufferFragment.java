@@ -68,18 +68,9 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
     private boolean enableTabComplete = true;
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-
-        WeechatActivity parent = (WeechatActivity) activity;
-        parent.setCurrentFragment(this);
-    }
-
-    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // setRetainInstance(true);
+        setRetainInstance(true);
     }
 
     @Override
@@ -127,6 +118,12 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
 
     public String getBufferName() {
         return bufferName;
+    }
+    public String getShortBufferName() {
+        if (buffer!=null)
+            return buffer.getShortName();
+        else
+            return "Unknown";
     }
 
     private ServiceConnection mConnection = new ServiceConnection() {

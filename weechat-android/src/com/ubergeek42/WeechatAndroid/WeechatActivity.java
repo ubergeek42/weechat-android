@@ -17,10 +17,9 @@ package com.ubergeek42.WeechatAndroid;
 
 import java.security.cert.CertPath;
 import java.security.cert.CertPathValidatorException;
-import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.List;
+import java.util.ArrayList;
 
 import javax.net.ssl.SSLException;
 
@@ -37,8 +36,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
+import android.support.v4.view.ViewPager;
 import android.util.Log;
 
 import com.actionbarsherlock.app.SherlockFragmentActivity;
@@ -47,27 +45,22 @@ import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragment;
 import com.ubergeek42.WeechatAndroid.fragments.BufferListFragment;
+import com.ubergeek42.WeechatAndroid.fragments.BufferListFragment.OnBufferSelectedListener;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
 import com.ubergeek42.WeechatAndroid.service.RelayServiceBinder;
 import com.ubergeek42.weechat.HotlistItem;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
+import com.viewpagerindicator.TitlePageIndicator;
 
-public class WeechatActivity extends SherlockFragmentActivity implements
-        BufferListFragment.OnBufferSelectedListener, RelayConnectionHandler {
+public class WeechatActivity extends SherlockFragmentActivity implements RelayConnectionHandler, OnBufferSelectedListener {
+    
     private static Logger logger = LoggerFactory.getLogger(WeechatActivity.class);
     private boolean mBound = false;
     private RelayServiceBinder rsb;
-
-    // We have 2 fragments: the bufferlist, and an active buffer
-    private BufferListFragment bufferListFrag;
-    private BufferFragment currentBufferFrag;
-
-    private boolean tabletView = false;
-
-    private SocketToggleConnection taskToggleConnection;
-    private HotlistListAdapter hotlistListAdapter;
-    private Menu actionBarMenu;
-
+    
+    private ViewPager viewPager;
+    private MainPagerAdapter mainPagerAdapter;
+    
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -77,45 +70,62 @@ public class WeechatActivity extends SherlockFragmentActivity implements
         startService(new Intent(this, RelayService.class));
 
         // Load the layout
-        setContentView(R.layout.bufferlist_fragment);
-
-        if (findViewById(R.id.fragment_container_tablet) != null) {
-            tabletView = true;
+        setContentView(R.layout.main_screen);
+        
+        viewPager = (ViewPager) findViewById(R.id.main_viewpager);
+        
+        // Restore state if we have it
+        if (savedInstanceState != null) {
+            // Load the previous BufferListFragment, and the Buffers that were open 
+            int numpages = savedInstanceState.getInt("numpages");
+            BufferListFragment blf = (BufferListFragment)getSupportFragmentManager().getFragment(savedInstanceState, "saved_frag_0");
+            ArrayList<BufferFragment> frags = new ArrayList<BufferFragment>();
+            for(int i=1;i<numpages;i++) {
+                BufferFragment f = (BufferFragment)getSupportFragmentManager().getFragment(savedInstanceState, "saved_frag_"+i);
+                if (f!=null)
+                    frags.add(f);
+            }
+            mainPagerAdapter = new MainPagerAdapter(getSupportFragmentManager(), viewPager, blf, frags);
         } else {
-            tabletView = false;
+            mainPagerAdapter = new MainPagerAdapter(getSupportFragmentManager(), viewPager);
         }
+        viewPager.setAdapter(mainPagerAdapter);
+        viewPager.setOffscreenPageLimit(10);// TODO: probably a crash if more than 10 buffers, and screen rotates
+        // see: http://stackoverflow.com/questions/11296411/fragmentstatepageradapter-illegalstateexception-myfragment-is-not-currently
+
+        TitlePageIndicator titleIndicator = (TitlePageIndicator) findViewById(R.id.main_titleviewpager);
+        titleIndicator.setViewPager(viewPager);
 
         // TODO Read preferences from background, its IO, 31ms strict mode!
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
-
-        // Get the bufferlistfragment from the view
-        if (bufferListFrag == null) {
-            bufferListFrag = (BufferListFragment) getSupportFragmentManager().findFragmentById(
-                    R.id.bufferlist_fragment);
-        }
-
-        if (currentBufferFrag == null) {
-            BufferFragment newFragment = new BufferFragment();
-            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-            ft.replace(R.id.buffer_fragment, newFragment);
-            ft.commit();
-            currentBufferFrag = newFragment;
-        }
+        
         updateTitle();
-
-        if (savedInstanceState != null) {
-            return;
-        }
-
-        if (!tabletView) {
-            // Hide the buffer fragment
-            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-            ft.hide(currentBufferFrag);
-            ft.show(bufferListFrag);
-            ft.commit();
-            updateTitle();
+    }
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt("numpages", mainPagerAdapter.getCount());
+        for(int i=0;i<mainPagerAdapter.getCount(); i++) {
+            if (mainPagerAdapter.getItem(i)!=null)
+                getSupportFragmentManager().putFragment(outState,"saved_frag_"+i, mainPagerAdapter.getItem(i));
         }
     }
+    
+    @Override
+    public void onBufferSelected(String buffer) {
+       // Does the buffer actually exist?(If not, return)
+        if (rsb.getBufferByName(buffer) == null) {
+            return;
+        }
+        mainPagerAdapter.openBuffer(buffer);
+    }
+
+    private SocketToggleConnection taskToggleConnection;
+    private HotlistListAdapter hotlistListAdapter;
+    private Menu actionBarMenu;
+    
+
+
 
     @Override
     protected void onNewIntent(Intent intent) {
@@ -124,53 +134,18 @@ public class WeechatActivity extends SherlockFragmentActivity implements
         logger.debug("onNewIntent called");
         handleIntent();
     }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-
-        // Bind to the Relay Service
-        bindService(new Intent(this, RelayService.class), mConnection, Context.BIND_AUTO_CREATE);
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-
-        if (taskToggleConnection != null
-                && taskToggleConnection.getStatus() != AsyncTask.Status.FINISHED) {
-            taskToggleConnection.cancel(true);
-            taskToggleConnection = null;
-        }
-
-        if (mBound) {
-            rsb.removeRelayConnectionHandler(WeechatActivity.this);
-            unbindService(mConnection);
-            mBound = false;
+    // when we get an intent, do something with it
+    private void handleIntent() {
+        // Load a buffer if necessary
+        Bundle extras = getIntent().getExtras();
+        if (extras != null) {
+            // Load the given buffer
+            onBufferSelected(extras.getString("buffer"));
+        } else {
+            // Load the bufferlist
         }
     }
 
-    ServiceConnection mConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            rsb = (RelayServiceBinder) service;
-            rsb.addRelayConnectionHandler(WeechatActivity.this);
-
-            mBound = true;
-            // Check if the service is already connected to the weechat relay, and if so load it up
-            if (rsb.isConnected()) {
-                WeechatActivity.this.onConnect();
-            }
-
-            handleIntent();
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            mBound = false;
-            rsb = null;
-        }
-    };
 
     @Override
     public void onConnect() {
@@ -186,7 +161,6 @@ public class WeechatActivity extends SherlockFragmentActivity implements
                 updateMenuContext(actionBarMenu);
             }
         });
-
     }
 
     @Override
@@ -240,6 +214,11 @@ public class WeechatActivity extends SherlockFragmentActivity implements
             startActivity(i);
             break;
         }
+        case R.id.menu_close: {
+            if (viewPager.getCurrentItem()>0)
+                mainPagerAdapter.closeBuffer(mainPagerAdapter.getCurrentBuffer().getBufferName());
+            break;
+        }
         case R.id.menu_about: {
             Intent i = new Intent(this, WeechatAboutActivity.class);
             startActivity(i);
@@ -271,11 +250,12 @@ public class WeechatActivity extends SherlockFragmentActivity implements
         }
         case R.id.menu_nicklist: {
             // No nicklist if they aren't looking at a buffer
-            if (currentBufferFrag.isHidden()) {
+            if (viewPager.getCurrentItem()>0) {
                 break;
             }
 
-            String[] nicks = currentBufferFrag.getNicklist();
+            // TODO: check for null(should be covered by previous if statement
+            String[] nicks = mainPagerAdapter.getCurrentBuffer().getNicklist();
             if (nicks == null) {
                 break;
             }
@@ -293,39 +273,11 @@ public class WeechatActivity extends SherlockFragmentActivity implements
             builder.create().show();
             break;
         }
-        case R.id.menu_bufferlist: {
-            // Replace anything in the fragment container with our new fragment
-            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-            if (bufferListFrag.isHidden()) {
-                ft.show(bufferListFrag);
-                if (!tabletView) {
-                    ft.hide(currentBufferFrag);
-                }
-            } else {
-                ft.hide(bufferListFrag);
-                if (!tabletView) {
-                    ft.show(currentBufferFrag);
-                }
-            }
-            ft.commit();
-            updateTitle();
-        }
-            break;
         }
         return super.onOptionsItemSelected(item);
     }
 
-    // when we get an intent, do something with it
-    private void handleIntent() {
-        // Load a buffer if necessary
-        Bundle extras = getIntent().getExtras();
-        if (extras != null) {
-            // Load the given buffer
-            onBufferSelected(extras.getString("buffer"));
-        } else {
-            // Load the bufferlist
-        }
-    }
+
 
     /**
      * Replacement method for onPrepareOptionsMenu due to rsb might be null on the event of clicking
@@ -364,17 +316,14 @@ public class WeechatActivity extends SherlockFragmentActivity implements
         return super.onCreateOptionsMenu(menu);
     }
 
-    public void closeBuffer(String bufferName) {
-        // Buffer name is unused for now
-
-        // Create an empty Buffer Fragment, hide it, and show the buffer list
-        BufferFragment newFragment = new BufferFragment();
-        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        ft.replace(R.id.buffer_fragment, newFragment);
-        ft.hide(currentBufferFrag);
-        ft.show(bufferListFrag);
-        ft.commit();
-        currentBufferFrag = newFragment;
+    public void closeBuffer(final String bufferName) {
+        // In own thread to prevent things from breaking
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mainPagerAdapter.closeBuffer(bufferName);                
+            }
+        });
         updateTitle();
     }
 
@@ -382,74 +331,14 @@ public class WeechatActivity extends SherlockFragmentActivity implements
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                getSupportFragmentManager().executePendingTransactions();
-                if (currentBufferFrag.isVisible()) {
-                    currentBufferFrag.updateTitle();
+                BufferFragment bf = mainPagerAdapter.getCurrentBuffer();
+                if (bf!=null) {
+                    bf.updateTitle();
                 } else {
                     setTitle(getString(R.string.app_version));
                 }
             }
         });
-    }
-
-    // Called by whatever fragment is loaded, to set the currentview
-    public void setCurrentFragment(Fragment frag) {
-        currentBufferFrag = (BufferFragment) frag;
-    }
-
-    @Override
-    public void onBufferSelected(String buffer) {
-        // The user selected the buffer from the BufferlistFragment
-        logger.debug("onBufferSelected() buffer:" + buffer);
-
-        if (buffer == currentBufferFrag.getBufferName()) {
-            // Show the buffer if it isn't visible
-            if (currentBufferFrag.isHidden()) {
-                FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-                ft.show(currentBufferFrag);
-                ft.hide(bufferListFrag);
-                ft.commit();
-                updateTitle();
-            }
-            return;
-        }
-
-        // Does the buffer actually exist?(If not, return)
-        if (rsb.getBufferByName(buffer) == null) {
-            return;
-        }
-
-        // Create fragment for the buffer and setup the arguments
-        BufferFragment newFragment = new BufferFragment();
-        Bundle args = new Bundle();
-        args.putString("buffer", buffer);
-        newFragment.setArguments(args);
-
-        // Replace the current fragment with the buffer they selected
-        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        ft.replace(R.id.buffer_fragment, newFragment);
-        // ft.addToBackStack(null);
-        if (tabletView == false) {
-            // hide the bufferlist, show the buffer
-            ft.show(currentBufferFrag);
-            ft.hide(bufferListFrag);
-        }
-        ft.commit();
-        updateTitle();
-    }
-
-    // Go back to the buffer list when they press back
-    @Override
-    public void onBackPressed() {
-        if (bufferListFrag.isVisible()) {
-            finish();
-        } else {
-            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-            ft.hide(currentBufferFrag);
-            ft.show(bufferListFrag);
-            ft.commit();
-            updateTitle();
-        }
     }
 
     /**
@@ -471,4 +360,56 @@ public class WeechatActivity extends SherlockFragmentActivity implements
             supportInvalidateOptionsMenu();
         }
     }
+    
+    /**
+     * Service connection management...
+     */
+    
+    @Override
+    protected void onStart() {
+        super.onStart();
+        // Bind to the Relay Service
+        bindService(new Intent(this, RelayService.class), mConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        if (taskToggleConnection != null
+                && taskToggleConnection.getStatus() != AsyncTask.Status.FINISHED) {
+            taskToggleConnection.cancel(true);
+            taskToggleConnection = null;
+        }
+
+        if (mBound) {
+            rsb.removeRelayConnectionHandler(WeechatActivity.this);
+            unbindService(mConnection);
+            mBound = false;
+        }
+    }
+
+    ServiceConnection mConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            rsb = (RelayServiceBinder) service;
+            rsb.addRelayConnectionHandler(WeechatActivity.this);
+
+            mBound = true;
+            // Check if the service is already connected to the weechat relay, and if so load it up
+            if (rsb.isConnected()) {
+                WeechatActivity.this.onConnect();
+            }
+
+            handleIntent();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            mBound = false;
+            rsb = null;
+        }
+    };
+
+    
 }
