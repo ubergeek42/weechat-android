@@ -435,7 +435,13 @@ public class RelayService extends Service implements RelayConnectionHandler,
     public void shutdown() {
         if (relayConnection != null) {
             shutdown = true;
-            relayConnection.disconnect();
+            // Do the actual shutdown on its own thread(to avoid an error on Android 3.0+)
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    relayConnection.disconnect();
+                }
+            }).start();
         }
         // TODO: possibly call stopself?
     }
@@ -443,12 +449,6 @@ public class RelayService extends Service implements RelayConnectionHandler,
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         // Load/refresh preferences
-        // TODO: tell clients to refresh views
-        // if (key.equals("chatview_color")) {
-        // sharedPreferences.getBoolean("chatview_color", true);
-        // } else if (key.equals("chatview_timestamp")) {
-        // sharedPreferences.getBoolean("chatview_timestamp", true);
-        // }
         if (key.equals("host")) {
             host = prefs.getString("host", null);
         } else if (key.equals("password")) {
