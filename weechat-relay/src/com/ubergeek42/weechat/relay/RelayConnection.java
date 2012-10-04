@@ -21,7 +21,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.InetAddress;
 import java.net.Socket;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
@@ -292,7 +291,7 @@ public class RelayConnection {
         @Override
         public void run() {
             try {
-                sock = new Socket(InetAddress.getByName(server), port);
+                sock = new Socket(server, port);
                 outstream = sock.getOutputStream();
                 instream = sock.getInputStream();
             } catch (IOException e) {
@@ -326,7 +325,7 @@ public class RelayConnection {
             	
             	SSLContext sslContext = SSLContext.getInstance("TLS");
             	sslContext.init(null, tmf.getTrustManagers(), new SecureRandom());
-            	SSLSocket sslSock = (SSLSocket) sslContext.getSocketFactory().createSocket(InetAddress.getByName(server), port);
+            	SSLSocket sslSock = (SSLSocket) sslContext.getSocketFactory().createSocket(server, port);
             	sslSock.setKeepAlive(true);
             	
             	sock = sslSock;
@@ -425,7 +424,7 @@ public class RelayConnection {
 
             SocketFactory socketFactory = context.getSocketFactory();
             try {
-                sock = socketFactory.createSocket(InetAddress.getByName(server), port);
+                sock = socketFactory.createSocket(server, port);
                 outstream = sock.getOutputStream();
                 instream = sock.getInputStream();
             } catch (IOException e) {
@@ -498,7 +497,7 @@ public class RelayConnection {
 
             // Connect to the local SSH Tunnel
             try {
-                sock = new Socket(InetAddress.getByName("127.0.0.1"), sshLocalPort);
+                sock = new Socket("127.0.0.1", sshLocalPort);
                 outstream = sock.getOutputStream();
                 instream = sock.getInputStream();
             } catch (IOException e) {
