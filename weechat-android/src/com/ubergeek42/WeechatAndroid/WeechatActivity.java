@@ -100,6 +100,9 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
         
         updateTitle();
+        
+        // TODO: make notification load the right buffer
+        // TODO: add preference to hide the TitlePageIndicator
     }
     @Override
     protected void onSaveInstanceState(Bundle outState) {
@@ -250,7 +253,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         }
         case R.id.menu_nicklist: {
             // No nicklist if they aren't looking at a buffer
-            if (viewPager.getCurrentItem()>0) {
+            if (viewPager.getCurrentItem()==0) {
                 break;
             }
 
