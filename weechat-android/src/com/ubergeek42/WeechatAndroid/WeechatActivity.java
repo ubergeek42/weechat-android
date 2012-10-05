@@ -225,13 +225,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
             break;
         }
         case R.id.menu_quit: {
-            if (rsb != null) {
-                rsb.shutdown();
-            }
-            unbindService(mConnection);
-            mBound = false;
-            stopService(new Intent(this, RelayService.class));
-            finish();
+            new SocketShutdownConnection().execute();
             break;
         }
         case R.id.menu_hotlist: {
@@ -339,6 +333,24 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
                 }
             }
         });
+    }
+
+    private class SocketShutdownConnection extends AsyncTask<Void, Void, Boolean> {
+        @Override
+        protected Boolean doInBackground(Void... voids) {
+            if (rsb != null) {
+                rsb.shutdown();
+            }
+            return true;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean success) {
+            unbindService(mConnection);
+            mBound = false;
+            stopService(new Intent(WeechatActivity.this, RelayService.class));
+            finish();
+        }
     }
 
     /**
