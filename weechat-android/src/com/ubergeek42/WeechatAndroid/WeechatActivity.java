@@ -58,8 +58,14 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     private boolean mBound = false;
     private RelayServiceBinder rsb;
     
+    private SocketToggleConnection taskToggleConnection;
+    private HotlistListAdapter hotlistListAdapter;
+    private Menu actionBarMenu;
+    
     private ViewPager viewPager;
     private MainPagerAdapter mainPagerAdapter;
+    
+    private boolean tabletMode = false;
     
     /** Called when the activity is first created. */
     @Override
@@ -72,22 +78,40 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         // Load the layout
         setContentView(R.layout.main_screen);
         
+        BufferListFragment blf = (BufferListFragment) getSupportFragmentManager().findFragmentById(R.id.bufferlist_fragment);
+        if (blf != null) {
+            tabletMode = true;
+        }
+        
         viewPager = (ViewPager) findViewById(R.id.main_viewpager);
         
         // Restore state if we have it
         if (savedInstanceState != null) {
             // Load the previous BufferListFragment, and the Buffers that were open 
             int numpages = savedInstanceState.getInt("numpages");
-            BufferListFragment blf = (BufferListFragment)getSupportFragmentManager().getFragment(savedInstanceState, "saved_frag_0");
+            
             ArrayList<BufferFragment> frags = new ArrayList<BufferFragment>();
-            for(int i=1;i<numpages;i++) {
+            for(int i=0;i<numpages;i++) {
+                
+                if (!tabletMode && i==0) {
+                    blf = (BufferListFragment)getSupportFragmentManager().getFragment(savedInstanceState, "saved_frag_0");
+                    continue;
+                }
+                
                 BufferFragment f = (BufferFragment)getSupportFragmentManager().getFragment(savedInstanceState, "saved_frag_"+i);
                 if (f!=null)
                     frags.add(f);
             }
-            mainPagerAdapter = new MainPagerAdapter(getSupportFragmentManager(), viewPager, blf, frags);
+            mainPagerAdapter = new MainPagerAdapter(getSupportFragmentManager(), viewPager);
+            mainPagerAdapter.setBuffers(frags);
+            
+            if (!tabletMode)
+                mainPagerAdapter.setBufferList(blf);
         } else {
             mainPagerAdapter = new MainPagerAdapter(getSupportFragmentManager(), viewPager);
+            
+            if (!tabletMode)
+                mainPagerAdapter.setBufferList(new BufferListFragment());
         }
         viewPager.setAdapter(mainPagerAdapter);
         viewPager.setOffscreenPageLimit(10);// TODO: probably a crash if more than 10 buffers, and screen rotates
@@ -109,8 +133,9 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         super.onSaveInstanceState(outState);
         outState.putInt("numpages", mainPagerAdapter.getCount());
         for(int i=0;i<mainPagerAdapter.getCount(); i++) {
-            if (mainPagerAdapter.getItem(i)!=null)
+            if (mainPagerAdapter.getItem(i)!=null) {
                 getSupportFragmentManager().putFragment(outState,"saved_frag_"+i, mainPagerAdapter.getItem(i));
+            }
         }
     }
     
@@ -122,12 +147,6 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         }
         mainPagerAdapter.openBuffer(buffer);
     }
-
-    private SocketToggleConnection taskToggleConnection;
-    private HotlistListAdapter hotlistListAdapter;
-    private Menu actionBarMenu;
-    
-
 
 
     @Override
@@ -218,8 +237,11 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
             break;
         }
         case R.id.menu_close: {
-            if (viewPager.getCurrentItem()>0)
-                mainPagerAdapter.closeBuffer(mainPagerAdapter.getCurrentBuffer().getBufferName());
+            if (viewPager.getCurrentItem()>0 || tabletMode) {
+                BufferFragment currentBuffer = mainPagerAdapter.getCurrentBuffer();
+                if (currentBuffer != null)
+                    mainPagerAdapter.closeBuffer(currentBuffer.getBufferName());
+            }
             break;
         }
         case R.id.menu_about: {
@@ -253,12 +275,14 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         }
         case R.id.menu_nicklist: {
             // No nicklist if they aren't looking at a buffer
-            if (viewPager.getCurrentItem()==0) {
+            if (viewPager.getCurrentItem()==0 && !tabletMode) {
                 break;
             }
 
             // TODO: check for null(should be covered by previous if statement
-            String[] nicks = mainPagerAdapter.getCurrentBuffer().getNicklist();
+            BufferFragment currentBuffer = mainPagerAdapter.getCurrentBuffer();
+            if (currentBuffer == null) break;
+            String[] nicks = currentBuffer.getNicklist();
             if (nicks == null) {
                 break;
             }

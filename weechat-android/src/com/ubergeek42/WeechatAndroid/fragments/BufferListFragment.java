@@ -15,9 +15,7 @@ import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
-import android.util.Log;
 import android.view.View;
-import android.widget.AbsListView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
@@ -48,7 +46,6 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     private SharedPreferences prefs;
     private boolean enableBufferSorting;
     private boolean hideServerBuffers;
-    private int currentPosition = -1;
 
     // Are we attached to an activity?
     private boolean attached;
@@ -90,18 +87,11 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
         prefs.registerOnSharedPreferenceChangeListener(this);
         enableBufferSorting = prefs.getBoolean("sort_buffers", true);
         hideServerBuffers = prefs.getBoolean("hide_server_buffers", false);
-
     }
 
     @Override
     public void onStart() {
         super.onStart();
-
-        // When in two-pane layout, set the listview to highlight the selected list item
-        // (We do this during onStart because at the point the listview is available.)
-        if (getFragmentManager().findFragmentById(R.id.buffer_fragment) != null) {
-            getListView().setChoiceMode(AbsListView.CHOICE_MODE_SINGLE);
-        }
 
         // Bind to the Relay Service
         if (mBound == false) {
@@ -126,7 +116,6 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     ServiceConnection mConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            Log.d("BufferListFragment", "Bufferlistfragment onserviceconnected");
             rsb = (RelayServiceBinder) service;
             rsb.addRelayConnectionHandler(BufferListFragment.this);
 
@@ -150,15 +139,10 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
 
         // Tell our parent to load the buffer
         mCallback.onBufferSelected(b.getFullName());
-
-        // Set the item as checked to be highlighted when in two-pane layout
-        getListView().setItemChecked(position, true);
-        currentPosition = position;
     }
 
     @Override
     public void onConnect() {
-        Log.d("BufferListFragment", "onConnect called");
         if (rsb != null && rsb.isConnected()) {
             // Create and update the buffer list when we connect to the service
             m_adapter = new BufferListAdapter(getActivity());
@@ -204,18 +188,6 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
             @Override
             public void run() {
                 ArrayList<Buffer> buffers;
-                int position = currentPosition;
-                Buffer lastBuffer = null;
-
-                if (position >= 0) {
-                    try {
-                        lastBuffer = m_adapter.getItem(position);
-                    } catch (ArrayIndexOutOfBoundsException e) {
-                        Log.d("BufferListFragment", "AOutOfBounds:" + position);
-                    } catch (IndexOutOfBoundsException e) {
-                        Log.d("BufferListFragment", "IOutOfBounds:" + position);
-                    }
-                }
 
                 buffers = bufferManager.getBuffers();
 
@@ -237,17 +209,6 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
                 if (enableBufferSorting) {
                     m_adapter.sortBuffers();
                 }
-
-                // If we had a buffer selected, make sure it stays highlighted when in two-pane
-                // layout(as things may have shuffled around)
-                if (lastBuffer != null) {
-                    currentPosition = m_adapter.findBufferPosition(lastBuffer);
-                    if (currentPosition >= 0) {
-                        getListView().setItemChecked(currentPosition, true);
-                        // TODO: crash, content view not yet created(maybe this is being called too
-                        // early?)
-                    }
-                }
             }
         });
     }
@@ -262,7 +223,4 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
             onBuffersChanged();
         }
     }
-
-
-
 }

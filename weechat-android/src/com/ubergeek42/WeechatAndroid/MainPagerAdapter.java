@@ -16,7 +16,7 @@ import com.ubergeek42.WeechatAndroid.fragments.BufferListFragment;
 
 public class MainPagerAdapter extends FragmentStatePagerAdapter {
     private static Logger logger = LoggerFactory.getLogger(MainPagerAdapter.class);
-    private BufferListFragment bufferListFragment;
+    private BufferListFragment bufferListFragment = null;
     private ArrayList<BufferFragment> buffers = new ArrayList<BufferFragment>();
     private ViewPager pager;
     
@@ -27,28 +27,31 @@ public class MainPagerAdapter extends FragmentStatePagerAdapter {
     
     public MainPagerAdapter(FragmentManager fm, ViewPager p) {
         super(fm);
-        bufferListFragment = new BufferListFragment();
         pager = p;
     }
-    
-    public MainPagerAdapter(FragmentManager fm, ViewPager p, BufferListFragment blf, ArrayList<BufferFragment> frags) {
-        super(fm);
-        bufferListFragment = blf;
-        pager = p;        
+    public void setBuffers(ArrayList<BufferFragment> frags) {
         buffers = frags;
     }
 
-    public void restore(BufferFragment f) {
-        buffers.add(f);
+    public void setBufferList(BufferListFragment blf) {
+        bufferListFragment = blf;
     }
-    
+
     @Override
     public int getCount() {
-        return 1+buffers.size();
+        if (bufferListFragment==null)
+            return buffers.size();
+        else
+            return 1+buffers.size();
     }
 
     @Override
     public Fragment getItem(int pos) {
+        // Tablet view
+        if (bufferListFragment==null)
+            return buffers.get(pos);
+        
+        // Not tablet view
         if (pos==0) {
             return bufferListFragment;
         } else {
@@ -57,6 +60,16 @@ public class MainPagerAdapter extends FragmentStatePagerAdapter {
     }
     @Override
     public CharSequence getPageTitle(int pos) {
+        // Tablet view
+        if (bufferListFragment==null) {
+            String title = buffers.get(pos).getShortBufferName();
+            if (title==null || title.equals("")){
+                return buffers.get(pos).getBufferName();
+            }
+            return title;
+        }
+            
+        // Phone view
         if (pos==0) {
             return "Buffer List";
         } else {
@@ -83,14 +96,16 @@ public class MainPagerAdapter extends FragmentStatePagerAdapter {
         }
     }
     public void openBuffer(String buffer) {
-        // The user selected the buffer from the BufferlistFragment
-        logger.debug("onBufferSelected() buffer:" + buffer);
-
         // Find the appropriate buffer in our list
         for (int i=0;i<buffers.size(); i++) {
             BufferFragment bf = buffers.get(i);
             if (bf.getBufferName().equals(buffer)) {
-                pager.setCurrentItem(i+1);
+                
+                if (bufferListFragment == null) {
+                    pager.setCurrentItem(i);
+                } else {
+                    pager.setCurrentItem(i+1);
+                }
                 // TODO: update title?
                 return;
             }
@@ -103,16 +118,23 @@ public class MainPagerAdapter extends FragmentStatePagerAdapter {
         newFragment.setArguments(args);
         buffers.add(newFragment);
         pager.setCurrentItem(buffers.size());
-        // TODO: update title
     }
 
     public BufferFragment getCurrentBuffer() {
         int pos = pager.getCurrentItem();
-        if (pos>=1 && pos <= buffers.size()) { 
-            return buffers.get(pos-1);
+        
+        if (bufferListFragment == null) {
+            // Tablet view
+            if (pos>=0 && pos < buffers.size()) {
+                return buffers.get(pos);
+            }
+        } else {
+            // Phone view
+            if (pos>=1 && pos <= buffers.size()) { 
+                return buffers.get(pos-1);
+            }
         }
         return null;
     }
-
     
 }
