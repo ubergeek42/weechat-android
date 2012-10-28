@@ -134,11 +134,14 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
 
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
-        // Get the buffer they clicked
-        Buffer b = (Buffer) getListView().getItemAtPosition(position);
+    	Object obj = getListView().getItemAtPosition(position);
+    	if (obj instanceof Buffer) {
+	        // Get the buffer they clicked
+	        Buffer b = (Buffer) obj;
 
-        // Tell our parent to load the buffer
-        mCallback.onBufferSelected(b.getFullName());
+	        // Tell our parent to load the buffer
+	        mCallback.onBufferSelected(b.getFullName());
+    	}
     }
 
     @Override
