@@ -126,8 +126,6 @@ public class Color {
     private static final String FG_DEFAULT = weechatColors[0];
     private static final String BG_DEFAULT = weechatColors[1];
 
-    private static Color singleton = new Color();
-
     private String msg;
     private int index;
 
@@ -136,8 +134,8 @@ public class Color {
     boolean reverse = false;
     boolean italic = false;
     boolean underline = false;
-    String fgColor = weechatColors[0];
-    String bgColor = weechatColors[1];
+    String fgColor = FG_DEFAULT;
+    String bgColor = BG_DEFAULT;
 
     public Color() {
         this.msg = "";
@@ -153,23 +151,14 @@ public class Color {
         this.index = 0;
     }
 
-    private void resetState() {
-        bold = false;
-        reverse = false;
-        italic = false;
-        underline = false;
-        fgColor = FG_DEFAULT;
-        bgColor = BG_DEFAULT;
-    }
-
-    private synchronized char getChar() {
+    private char getChar() {
         if (index >= msg.length()) {
             return ' ';
         }
         return msg.charAt(index++);
     }
 
-    private synchronized char peekChar() {
+    private char peekChar() {
         if (index >= msg.length()) {
             return ' ';
         }
@@ -265,9 +254,9 @@ public class Color {
         }
     }
 
-    private void getFormatString() {
+    private void getFormatString(int numColors) {
         fgColor = getColor();
-        if (peekChar() == ',') {
+        if (peekChar() == ',' && numColors==2) {
             getChar();
             bgColor = getColor();
         }
@@ -299,9 +288,9 @@ public class Color {
         if (msg == null) {
             return msg;
         }
-        singleton.resetState();
-        singleton.setText(msg, false);
-        String ret = singleton.parseColors(false);
+        Color c = new Color();
+        c.setText(msg, false);
+        String ret = c.parseColors(false);
         return ret.toString();
     }
 
@@ -375,19 +364,19 @@ public class Color {
 
                 if (peekChar() == 'F') { // Set foreground color+attributes
                     getChar();
-                    getFormatString();
+                    getFormatString(1);
                     if (insert_html) {
                         parsedMsg.append(getHTMLTag());
                     }
                 } else if (peekChar() == 'B') { // Set background color +attributes
                     getChar();
-                    getFormatString();
+                    getFormatString(1);
                     if (insert_html) {
                         parsedMsg.append(getHTMLTag());
                     }
                 } else if (peekChar() == '*') {
                     getChar();
-                    getFormatString();
+                    getFormatString(2);
                     if (insert_html) {
                         parsedMsg.append(getHTMLTag());
                     }
