@@ -38,6 +38,7 @@ import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.actionbarsherlock.view.Menu;
@@ -197,10 +198,16 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     }
 
     @Override
-    public void onError(String errorMsg, Object extraData) {
+    public void onError(final String errorMsg, Object extraData) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(getBaseContext(), "Error: " + errorMsg, Toast.LENGTH_LONG).show();
+            }
+        });        
         Log.d("WeechatActivity", "onError:" + errorMsg);
-        Log.d("Cause: ", ((SSLException)extraData).getCause().toString());
         if (extraData instanceof SSLException) {
+            Log.d("Cause: ", ((SSLException)extraData).getCause().toString());
             SSLException e1 = (SSLException) extraData;
             if (e1.getCause() instanceof CertificateException) {
                 CertificateException e2 = (CertificateException) e1.getCause();

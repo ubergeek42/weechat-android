@@ -295,10 +295,10 @@ public class RelayConnection {
                 sock = new Socket(server, port);
                 outstream = sock.getOutputStream();
                 instream = sock.getInputStream();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
                 for (RelayConnectionHandler wrch : connectionHandlers) {
-                    wrch.onError(e.getMessage(), null);
+                    wrch.onError(e.getMessage(), e);
                 }
                 return;
             }
@@ -332,19 +332,13 @@ public class RelayConnection {
             	sock = sslSock;
                 outstream = sock.getOutputStream();
                 instream = sock.getInputStream();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
                 for (RelayConnectionHandler wrch : connectionHandlers) {
                     wrch.onError(e.getMessage(), e);
                 }
                 return;
-            } catch (NoSuchAlgorithmException e) {
-				e.printStackTrace();
-			} catch (KeyManagementException e) {
-				e.printStackTrace();
-			} catch (KeyStoreException e) {
-				e.printStackTrace();
-			}
+            }
             postConnectionSetup();
 
             logger.trace("weechat ssl - createSocketConnection finished");
@@ -403,23 +397,11 @@ public class RelayConnection {
                 kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
                 kmf.init(keyStore, null);
                 context.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
-            } catch (NoSuchAlgorithmException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
-                return;
-            } catch (KeyStoreException e) {
-                e.printStackTrace();
-                return;
-            } catch (CertificateException e) {
-                e.printStackTrace();
-                return;
-            } catch (UnrecoverableKeyException e) {
-                e.printStackTrace();
-                return;
-            } catch (KeyManagementException e) {
-                e.printStackTrace();
-                return;
-            } catch (IOException e) {
-                e.printStackTrace();
+                for (RelayConnectionHandler wrch : connectionHandlers) {
+                    wrch.onError(e.getMessage(), e);
+                }
                 return;
             }
 
@@ -428,10 +410,10 @@ public class RelayConnection {
                 sock = socketFactory.createSocket(server, port);
                 outstream = sock.getOutputStream();
                 instream = sock.getInputStream();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
                 for (RelayConnectionHandler wrch : connectionHandlers) {
-                    wrch.onError(e.getMessage(), null);
+                    wrch.onError(e.getMessage(), e);
                 }
                 return;
             }
@@ -508,8 +490,12 @@ public class RelayConnection {
                 sshSession.setConfig("StrictHostKeyChecking", "no");
                 sshSession.connect();
                 sshSession.setPortForwardingL(sshLocalPort, server, port);
-            } catch (JSchException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
+                for (RelayConnectionHandler wrch : connectionHandlers) {
+                    wrch.onError(e.getMessage(), e);
+                }
+                return;
             }
 
             // Connect to the local SSH Tunnel
@@ -517,10 +503,10 @@ public class RelayConnection {
                 sock = new Socket("127.0.0.1", sshLocalPort);
                 outstream = sock.getOutputStream();
                 instream = sock.getInputStream();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
                 for (RelayConnectionHandler wrch : connectionHandlers) {
-                    wrch.onError(e.getMessage(), null);
+                    wrch.onError(e.getMessage(),e);
                 }
                 return;
             }
