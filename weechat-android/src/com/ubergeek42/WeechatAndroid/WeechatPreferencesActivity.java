@@ -37,6 +37,7 @@ public class WeechatPreferencesActivity extends PreferenceActivity implements
     private EditTextPreference sshPortPref;
     private EditTextPreference sshPassPref;
     private EditTextPreference sshUserPref;
+    private EditTextPreference sshKeyFilePref;
     private ListPreference prefixPref;
     private ListPreference connectionTypePref;
 
@@ -60,10 +61,10 @@ public class WeechatPreferencesActivity extends PreferenceActivity implements
         sshUserPref = (EditTextPreference) getPreferenceScreen().findPreference("ssh_user");
         sshPortPref = (EditTextPreference) getPreferenceScreen().findPreference("ssh_port");
         sshPassPref = (EditTextPreference) getPreferenceScreen().findPreference("ssh_pass");
+        sshKeyFilePref = (EditTextPreference) getPreferenceScreen().findPreference("ssh_keyfile");
 
         prefixPref = (ListPreference) getPreferenceScreen().findPreference("prefix_align");
-        connectionTypePref = (ListPreference) getPreferenceScreen().findPreference(
-                "connection_type");
+        connectionTypePref = (ListPreference) getPreferenceScreen().findPreference("connection_type");
         setTitle(R.string.preferences);
     }
 
@@ -88,6 +89,7 @@ public class WeechatPreferencesActivity extends PreferenceActivity implements
         sshHostPref.setSummary(sharedPreferences.getString("ssh_host", ""));
         sshUserPref.setSummary(sharedPreferences.getString("ssh_user", ""));
         sshPortPref.setSummary(sharedPreferences.getString("ssh_port", "22"));
+        sshKeyFilePref.setSummary(sharedPreferences.getString("ssh_keyfile", "Not Set"));
 
         prefixPref.setSummary(prefixPref.getEntry());
         connectionTypePref.setSummary(connectionTypePref.getEntry());
@@ -132,8 +134,7 @@ public class WeechatPreferencesActivity extends PreferenceActivity implements
             timestampformatPref.setSummary(sharedPreferences.getString("timestamp_format",
                     "HH:mm:ss"));
         } else if (key.equals("stunnel_cert")) {
-            stunnelCert.setSummary(sharedPreferences.getString("stunnel_cert",
-                    "/sdcard/weechat/client.p12"));
+            stunnelCert.setSummary(sharedPreferences.getString("stunnel_cert", "/sdcard/weechat/client.p12"));
         } else if (key.equals("stunnel_pass")) {
             String tmp = sharedPreferences.getString("stunnel_pass", null);
             if (tmp == null || tmp.equals("")) {
@@ -154,6 +155,8 @@ public class WeechatPreferencesActivity extends PreferenceActivity implements
             } else {
                 sshPassPref.setSummary("******");
             }
+        } else if (key.equals("ssh_keyfile")) {
+            sshKeyFilePref.setSummary(sharedPreferences.getString(key, "/sdcard/weechat/sshkey.id_rsa"));
         } else if (key.equals("prefix_align")) {
             prefixPref.setSummary(prefixPref.getEntry());
         } else if (key.equals("connection_type")) {

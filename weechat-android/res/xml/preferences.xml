@@ -18,7 +18,8 @@
 				<EditTextPreference android:key="ssh_host" android:title="SSH Host" android:singleLine="true" />
 				<EditTextPreference android:key="ssh_user" android:title="SSH Username" android:singleLine="true" />
 				<EditTextPreference android:key="ssh_port" android:title="SSH Port" android:numeric="integer" />
-				<EditTextPreference android:key="ssh_pass" android:title="SSH Password" android:password="true" android:singleLine="true" />
+				<EditTextPreference android:key="ssh_pass" android:title="SSH Password/Key Passphrase" android:password="true" android:singleLine="true"/>
+				<EditTextPreference android:key="ssh_keyfile" android:title="SSH Private Key File" android:singleLine="true" android:summary="/sdcard/weechat/sshkey.id_rsa" />
 			</PreferenceScreen>
 		</PreferenceCategory>
     </PreferenceScreen>

@@ -82,6 +82,7 @@ public class RelayService extends Service implements RelayConnectionHandler,
     String sshPass;
     String sshPort;
     String sshUser;
+    String sshKeyfile;
     
     
     KeyStore sslKeystore;
@@ -226,6 +227,7 @@ public class RelayService extends Service implements RelayConnectionHandler,
         sshUser = prefs.getString("ssh_user", "");
         sshPass = prefs.getString("ssh_pass", "");
         sshPort = prefs.getString("ssh_port", "22");
+        sshKeyfile = prefs.getString("ssh_keyfile", "");
 
         // If no host defined, signal them to edit their preferences
         if (host == null) {
@@ -270,6 +272,7 @@ public class RelayService extends Service implements RelayConnectionHandler,
             relayConnection.setSSHUsername(sshUser);
             relayConnection.setSSHPort(sshPort);
             relayConnection.setSSHPassword(sshPass);
+            relayConnection.setSSHKeyFile(sshKeyfile);
             relayConnection.setConnectionType(ConnectionType.SSHTUNNEL);
         } else if (connType.equals("stunnel")) {
             relayConnection.setStunnelCert(stunnelCert);

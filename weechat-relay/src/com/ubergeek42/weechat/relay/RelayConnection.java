@@ -89,6 +89,7 @@ public class RelayConnection {
     private Session sshSession;
     private String sshHost;
     private String sshUsername;
+    private String sshKeyFilePath = null;
     private String sshPassword;
     private int sshPort = 22;
     private int sshLocalPort = 22231;
@@ -468,13 +469,20 @@ public class RelayConnection {
     }
 
     /**
-     * Password for ssh
+     * Password for ssh(either for the user or for the keyfile)
      * 
      * @param pass
      */
     public void setSSHPassword(String pass) {
         sshPassword = pass;
     }
+    /**
+     * Path to an ssh private key to use
+     * @param string
+     */
+	public void setSSHKeyFile(String keyfile) {
+		sshKeyFilePath = keyfile;
+	}
 
     /**
      * Connects to the server(via an ssh tunnel) in a new thread, so we can interrupt it if we want
@@ -485,9 +493,18 @@ public class RelayConnection {
         public void run() {
             // You only need to execute this code once
             try {
+            	JSch.setLogger(new JschLogger());
                 JSch jsch = new JSch();
+                System.out.println("[KeyAuth] " + sshKeyFilePath + " - " + sshPassword);
+                if (sshKeyFilePath != null && sshKeyFilePath.length()>0) {
+                	jsch.addIdentity(sshKeyFilePath, sshPassword);                	
+                }
+                System.out.println("[identities] " + jsch.getIdentityNames());
+
                 sshSession = jsch.getSession(sshUsername, sshHost, sshPort);
-                sshSession.setPassword(sshPassword);
+                
+                if (sshKeyFilePath == null || sshKeyFilePath.length()==0)
+                	sshSession.setPassword(sshPassword);
                 sshSession.setConfig("StrictHostKeyChecking", "no");
                 sshSession.connect();
                 sshSession.setPortForwardingL(sshLocalPort, server, port);
