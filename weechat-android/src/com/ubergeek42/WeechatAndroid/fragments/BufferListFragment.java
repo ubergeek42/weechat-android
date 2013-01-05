@@ -86,7 +86,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
         prefs = PreferenceManager.getDefaultSharedPreferences(getActivity().getBaseContext());
         prefs.registerOnSharedPreferenceChangeListener(this);
         enableBufferSorting = prefs.getBoolean("sort_buffers", true);
-        hideServerBuffers = prefs.getBoolean("hide_server_buffers", false);
+        hideServerBuffers = prefs.getBoolean("hide_server_buffers", true);
     }
 
     @Override
@@ -222,7 +222,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
             enableBufferSorting = prefs.getBoolean("sort_buffers", true);
             onBuffersChanged();
         } else if (key.equals("hide_server_buffers")) {
-            hideServerBuffers = prefs.getBoolean("hide_server_buffers", false);
+            hideServerBuffers = prefs.getBoolean("hide_server_buffers", true);
             onBuffersChanged();
         }
     }

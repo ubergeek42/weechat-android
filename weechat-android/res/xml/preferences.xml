@@ -26,7 +26,7 @@
 
     <PreferenceCategory android:key="buffer_settings" android:title="Buffer List Settings">
 		<CheckBoxPreference android:key="sort_buffers" android:summary="Sort by number of highlights/unread messages" android:title="Sort bufferlist" android:defaultValue="true" />
-		<CheckBoxPreference android:key="hide_server_buffers" android:summary="Hides server buffers(eg. irc.freenode)" android:title="Hide Server Buffers" android:defaultValue="false" />
+		<CheckBoxPreference android:key="hide_server_buffers" android:summary="Hides server buffers(eg. irc.freenode)" android:title="Hide Server Buffers" android:defaultValue="true" />
     </PreferenceCategory>
     
     <PreferenceCategory android:key="lookfeelgroup" android:title="Look &amp; Feel">
