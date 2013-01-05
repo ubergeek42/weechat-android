@@ -16,4 +16,5 @@
     <string name="disconnect">Disconnect</string>
     <string name="hotlist">Hotlist</string>
     <string name="nicklist_menu">Nicks</string>
+    <string name="tabkey">⇥</string>
 </resources>

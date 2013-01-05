@@ -40,6 +40,8 @@
     
     <PreferenceCategory android:key="misc_settings" android:title="Misc. Settings">
 		<CheckBoxPreference android:key="tab_completion" android:summary="Use tab key to complete nicks" android:title="Tab Completion for Nicks" android:defaultValue="true" />
+		<CheckBoxPreference android:key="tabbtn_show" android:summary="Show a tab button next to the input bar(⇥)" android:title="Show tab button(⇥)" android:defaultValue="false" />
+		<CheckBoxPreference android:key="sendbtn_show" android:summary="Show send button next to input bar" android:title="Show send button" android:defaultValue="true" />
 		<CheckBoxPreference android:key="notification_sounds" android:summary="Use default notification sound when a private message or highlight is received" android:title="Notification Sound" android:defaultValue="false" />
 	</PreferenceCategory>
     

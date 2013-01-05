@@ -43,6 +43,7 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
     private ListView chatlines;
     private EditText inputBox;
     private Button sendButton;
+    private Button tabButton;
 
     private boolean mBound;
     private RelayServiceBinder rsb;
@@ -170,7 +171,19 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
         chatlines = (ListView) getView().findViewById(R.id.chatview_lines);
         inputBox = (EditText) getView().findViewById(R.id.chatview_input);
         sendButton = (Button) getView().findViewById(R.id.chatview_send);
-
+        tabButton = (Button) getView().findViewById(R.id.chatview_tab);
+        
+        if (prefs.getBoolean("sendbtn_show", true)) {
+            sendButton.setVisibility(View.VISIBLE);
+        } else {
+            sendButton.setVisibility(View.GONE);
+        }
+        if (prefs.getBoolean("tabbtn_show", false)) {
+            tabButton.setVisibility(View.VISIBLE);
+        } else {
+            tabButton.setVisibility(View.GONE);
+        }
+        
         chatlines.setAdapter(new ArrayAdapter<String>(getActivity(), R.layout.tips_list_item,
                 message));
         // chatlines.setEmptyView(getView().findViewById(android.R.id.empty));
@@ -207,6 +220,7 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
         onLineAdded();
 
         sendButton.setOnClickListener(this);
+        tabButton.setOnClickListener(this);
         inputBox.setOnKeyListener(this);
     }
 
@@ -239,15 +253,16 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
         Arrays.sort(nickCache);
     }
 
-    // User pressed enter in the input box
+    // User pressed some key in the input box, check for what it was
     @Override
     public boolean onKey(View v, int keycode, KeyEvent event) {
+
+        // Enter key sends the message
         if (keycode == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_UP) {
-            tabCompletingInProgress = false;
             getActivity().runOnUiThread(messageSender);
             return true;
         }
-        // check for terminal resizing keys
+        // Check for text resizing keys(volume buttons)
         else if (keycode == KeyEvent.KEYCODE_VOLUME_UP && event.getAction() == KeyEvent.ACTION_DOWN) {
             float text_size = Float.parseFloat(prefs.getString("text_size", "10")) + 1;
             // Max text_size of 30
@@ -258,8 +273,7 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
             editor.putString("text_size", Float.toString(text_size));
             editor.commit();
             return true;
-        } else if (keycode == KeyEvent.KEYCODE_VOLUME_DOWN
-                && event.getAction() == KeyEvent.ACTION_DOWN) {
+        } else if (keycode == KeyEvent.KEYCODE_VOLUME_DOWN && event.getAction() == KeyEvent.ACTION_DOWN) {
             float text_size = Float.parseFloat(prefs.getString("text_size", "10")) - 1;
             // Enforce a minimum text size of 5
             if (text_size < 5) {
@@ -271,72 +285,10 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
             return true;
         } else if (keycode == KeyEvent.KEYCODE_VOLUME_DOWN || keycode == KeyEvent.KEYCODE_VOLUME_UP) {
             return true;// Eat these keys
-        } else if ((keycode == KeyEvent.KEYCODE_TAB || keycode == KeyEvent.KEYCODE_SEARCH)
+        } // Try tab completion(using tab key, or search key)
+        else if ((keycode == KeyEvent.KEYCODE_TAB || keycode == KeyEvent.KEYCODE_SEARCH)
                 && event.getAction() == KeyEvent.ACTION_DOWN) {
-            if (!enableTabComplete || nickCache == null) {
-                return true;
-            }
-
-            // Get the current input text
-            String txt = inputBox.getText().toString();
-            if (tabCompletingInProgress == false) {
-                int currentPos = inputBox.getSelectionStart() - 1;
-                int start = currentPos;
-                if (currentPos < 0) {
-                    return true;
-                }
-
-                // Search backwards to find the beginning of the word
-                while (start > 0 && txt.charAt(start) != ' ') {
-                    start--;
-                }
-
-                if (start > 0) {
-                    start++;
-                }
-                String prefix = txt.substring(start, currentPos + 1).toLowerCase();
-                if (prefix.length() < 1) {
-                    // No tab completion
-                    return true;
-                }
-
-                Vector<String> matches = new Vector<String>();
-                for (String possible : nickCache) {
-
-                    String temp = possible.toLowerCase().trim();
-                    if (temp.startsWith(prefix)) {
-                        matches.add(possible.trim());
-                    }
-                }
-                if (matches.size() == 0) {
-                    return true;
-                }
-
-                tabCompletingInProgress = true;
-                tabCompleteMatches = matches;
-                tabCompleteCurrentIndex = 0;
-                tabCompleteWordStart = start;
-                tabCompleteWordEnd = currentPos;
-            } else {
-                tabCompleteWordEnd = tabCompleteWordStart
-                        + tabCompleteMatches.get(tabCompleteCurrentIndex).length() - 1; // end of
-                                                                                        // current
-                                                                                        // tab
-                                                                                        // complete
-                                                                                        // word
-                tabCompleteCurrentIndex = (tabCompleteCurrentIndex + 1) % tabCompleteMatches.size(); // next
-                                                                                                     // match
-            }
-
-            String newtext = txt.substring(0, tabCompleteWordStart)
-                    + tabCompleteMatches.get(tabCompleteCurrentIndex)
-                    + txt.substring(tabCompleteWordEnd + 1);
-            tabCompleteWordEnd = tabCompleteWordStart
-                    + tabCompleteMatches.get(tabCompleteCurrentIndex).length(); // end of new
-                                                                                // tabcomplete word
-            inputBox.setText(newtext);
-            inputBox.setSelection(tabCompleteWordEnd);
-
+            tryTabComplete();
             return true;
         } else if (KeyEvent.isModifierKey(keycode) || keycode == KeyEvent.KEYCODE_TAB
                 || keycode == KeyEvent.KEYCODE_SEARCH) {
@@ -351,19 +303,100 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         if (key.equals("tab_completion")) {
             enableTabComplete = prefs.getBoolean("tab_completion", true);
+        } else if(key.equals("sendbtn_show") && sendButton != null) {
+            if (prefs.getBoolean("sendbtn_show", true)) {
+                sendButton.setVisibility(View.VISIBLE);
+            } else {
+                sendButton.setVisibility(View.GONE);
+            }
+        } else if(key.equals("tabbtn_show") && tabButton != null) {
+            if (prefs.getBoolean("tabbtn_show", false)) {
+                tabButton.setVisibility(View.VISIBLE);
+            } else {
+                tabButton.setVisibility(View.GONE);
+            }
         }
     }
 
     // Send button pressed
     @Override
-    public void onClick(View arg0) {
-        getActivity().runOnUiThread(messageSender);
+    public void onClick(View v) {
+        if (sendButton.getId() == v.getId()) {
+            getActivity().runOnUiThread(messageSender);
+        } else if (tabButton.getId() == v.getId()) {
+            // do tab completion
+            tryTabComplete();
+        }
+    }
+    
+    // Attempts to perform tab completion on the current input
+    private void tryTabComplete() {
+        if (!enableTabComplete || nickCache == null) {
+            return;
+        }
+
+        // Get the current input text
+        String txt = inputBox.getText().toString();
+        if (tabCompletingInProgress == false) {
+            int currentPos = inputBox.getSelectionStart() - 1;
+            int start = currentPos;
+            if (currentPos < 0) {
+                return;
+            }
+
+            // Search backwards to find the beginning of the word
+            while (start > 0 && txt.charAt(start) != ' ') {
+                start--;
+            }
+            if (start > 0) {
+                start++;
+            }
+            String prefix = txt.substring(start, currentPos + 1).toLowerCase();
+            if (prefix.length() < 1) {
+                // No tab completion
+                return;
+            }
+
+            Vector<String> matches = new Vector<String>();
+            for (String possible : nickCache) {
+
+                String temp = possible.toLowerCase().trim();
+                if (temp.startsWith(prefix)) {
+                    matches.add(possible.trim());
+                }
+            }
+            if (matches.size() == 0) {
+                return;
+            }
+
+            tabCompletingInProgress = true;
+            tabCompleteMatches = matches;
+            tabCompleteCurrentIndex = 0;
+            tabCompleteWordStart = start;
+            tabCompleteWordEnd = currentPos;
+        } else {
+            tabCompleteWordEnd = tabCompleteWordStart
+                    + tabCompleteMatches.get(tabCompleteCurrentIndex).length() - 1; // end of current tab complete word
+            tabCompleteCurrentIndex = (tabCompleteCurrentIndex + 1) % tabCompleteMatches.size(); // next match
+        }
+
+        String newtext = txt.substring(0, tabCompleteWordStart)
+                + tabCompleteMatches.get(tabCompleteCurrentIndex)
+                + txt.substring(tabCompleteWordEnd + 1);
+        tabCompleteWordEnd = tabCompleteWordStart
+                + tabCompleteMatches.get(tabCompleteCurrentIndex).length(); // end of new tabcomplete word
+        inputBox.setText(newtext);
+        inputBox.setSelection(tabCompleteWordEnd);
+
+        return;
     }
 
     // Sends the message if necessary
     private Runnable messageSender = new Runnable() {
         @Override
         public void run() {
+            tabCompletingInProgress = false;
+            
             String input = inputBox.getText().toString();
             if (input.length() == 0) {
                 return; // Ignore empty input box
