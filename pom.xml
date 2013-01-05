@@ -119,11 +119,10 @@
                     <version>1.2</version>
                     <configuration>
                         <archive>${project.build.directory}/${project.build.finalName}.apk</archive>
-                        <alias>weechat</alias>
+                        <alias>${sign.alias}</alias>
                         <keypass>${sign.keypass}</keypass>
                         <storepass>${sign.storepass}</storepass>
-                        <!-- Is always run from weechat-android/ directory. -->
-                        <keystore>../releases/android.jks</keystore>
+                        <keystore>${sign.keystore}</keystore>
                         <verbose>true</verbose>
                     </configuration>
                 </plugin>
