@@ -207,7 +207,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         });        
         Log.d("WeechatActivity", "onError:" + errorMsg);
         if (extraData instanceof SSLException) {
-            Log.d("Cause: ", ((SSLException)extraData).getCause().toString());
+            Log.d("[WeechatActivity]", "Cause: "+ ((SSLException)extraData).getCause());
             SSLException e1 = (SSLException) extraData;
             if (e1.getCause() instanceof CertificateException) {
                 CertificateException e2 = (CertificateException) e1.getCause();
