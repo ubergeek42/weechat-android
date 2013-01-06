@@ -48,6 +48,7 @@
     
     
         <sign.debug>true</sign.debug>
+        <sign.alias>example_alias</sign.alias>
     </properties>
 
     <dependencyManagement>
