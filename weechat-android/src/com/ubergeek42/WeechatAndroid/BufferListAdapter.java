@@ -20,7 +20,10 @@ import java.util.Collections;
 import java.util.Comparator;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.graphics.Color;
+import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,15 +32,22 @@ import android.widget.TextView;
 
 import com.ubergeek42.weechat.Buffer;
 
-public class BufferListAdapter extends BaseAdapter {
+public class BufferListAdapter extends BaseAdapter implements OnSharedPreferenceChangeListener {
     Activity parentActivity;
     LayoutInflater inflater;
+    private SharedPreferences prefs;
     private ArrayList<Buffer> buffers = new ArrayList<Buffer>();
 
+    private boolean hideBufferTitles = false;
+    
     public BufferListAdapter(Activity parentActivity) {
         this.parentActivity = parentActivity;
         this.inflater = LayoutInflater.from(parentActivity);
 
+        prefs = PreferenceManager.getDefaultSharedPreferences(parentActivity.getBaseContext());
+        prefs.registerOnSharedPreferenceChangeListener(this);
+        
+        hideBufferTitles = prefs.getBoolean("hide_buffer_titles", false);
     }
 
     @Override
@@ -115,10 +125,18 @@ public class BufferListAdapter extends BaseAdapter {
         }
 
         // Title might be removed in different layouts
-        if (holder.title != null) {
+        if (holder.title != null && !hideBufferTitles) {
             holder.title.setText(com.ubergeek42.weechat.Color
                     .stripAllColorsAndAttributes(bufferItem.getTitle()));
         }
+        // Allow hiding of buffer titles
+        if (hideBufferTitles) {
+            holder.title.setVisibility(View.GONE);
+        } else {
+            holder.title.setVisibility(View.VISIBLE);
+        }
+        
+        
 
         int unreadc = bufferItem.getUnread();
         int highlightc = bufferItem.getHighlights();
@@ -160,4 +178,14 @@ public class BufferListAdapter extends BaseAdapter {
             return b2.getUnread() - b1.getUnread();
         }
     };
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        if (key.equals("chatview_colors")) {
+            hideBufferTitles = prefs.getBoolean("hide_buffer_titles", false);
+        } else {
+            return;
+        }
+        notifyDataSetChanged();
+    }
 }
