@@ -6,15 +6,17 @@ It is currently in beta status, with most things working.  I use it daily withou
 This requires weechat to be running somewhere and it connects to it.  It is not a standalone weechat for your phone.  If you are looking for a standalone irc client for android, you will need to look elsewhere.
 
 ##Download
-####Stable version - v0.07
-Either scan the QR code, or click the link to download the apk.  Click on it and choose to install. [Download Link](https://github.com/downloads/ubergeek42/weechat-android/weechat-v0.07.apk)
+####Stable version - Google Play Store
+Either scan the QR code, or download it from the [Google Play Store](https://play.google.com/store/apps/details?id=com.ubergeek42.WeechatAndroid).
 
-![Download](https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=https://github.com/downloads/ubergeek42/weechat-android/weechat-v0.07.apk)
+![Download](https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=https://play.google.com/store/apps/details?id=com.ubergeek42.WeechatAndroid)
 
 ####Latest Development Snapshot - v0.08-dev
+[![Build Status](https://buildhive.cloudbees.com/job/ubergeek42/job/weechat-android/badge/icon)](https://buildhive.cloudbees.com/job/ubergeek42/job/weechat-android/)
+
 If you're feeling adventurous, you can try the latest development version.  This is built after every commit, and while I try to keep a working build, it may fail or have major bugs.
 
-[Get the latest development version here](http://repository-ubergeek42.forge.cloudbees.com/release/index.html)
+[Get the latest development version here](http://repository-ubergeek42.forge.cloudbees.com/release/index.html) (Note: This is signed with a different key than the stable version, so you will have to uninstall to move between them)
 
 ## Installation and usage:
 Please refer to the quick start guide for details:
@@ -22,6 +24,10 @@ Please refer to the quick start guide for details:
 https://github.com/ubergeek42/weechat-android/wiki/Quickstart-Guide
 
 ##Screenshots
+Please see the screenshots in the google play store:
+https://play.google.com/store/apps/details?id=com.ubergeek42.WeechatAndroid&hl=en
+
+##Screenshots(old)
 Note these are from 0.06/0.07-dev, but it looks roughly the same.
 
 <a href="https://github.com/ubergeek42/weechat-android/raw/master/releases/chat-channel-toggles.png"><img src="https://github.com/ubergeek42/weechat-android/raw/master/releases/chat-channel-toggles.png" height="400px"></a>
@@ -48,6 +54,12 @@ For more details about Weechat and the Relay Protocol:
 
 
 ## Changelog
+
+#### v0.08-dev - In progress
+* SSL Support
+* Swiping to change buffers
+* SSH Keyfile support
+* Lots of other small things
 
 #### v0.07 - June 13th, 2012
 * Tab completion for nicks(tab key or search button)
