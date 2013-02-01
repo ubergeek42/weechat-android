@@ -6,7 +6,6 @@ import java.util.Vector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -16,16 +15,24 @@ import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
+import android.text.ClipboardManager;
+import android.text.style.URLSpan;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnKeyListener;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.actionbarsherlock.app.SherlockFragment;
 import com.ubergeek42.WeechatAndroid.ChatLinesAdapter;
@@ -38,6 +45,7 @@ import com.ubergeek42.weechat.BufferObserver;
 
 public class BufferFragment extends SherlockFragment implements BufferObserver, OnKeyListener,
         OnSharedPreferenceChangeListener, OnClickListener {
+
     private static Logger logger = LoggerFactory.getLogger(BufferFragment.class);
 
     private ListView chatlines;
@@ -217,6 +225,7 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
 
         chatlineAdapter = new ChatLinesAdapter(getActivity(), buffer);
         chatlines.setAdapter(chatlineAdapter);
+        registerForContextMenu(chatlines);
         onLineAdded();
 
         sendButton.setOnClickListener(this);
@@ -412,4 +421,49 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
             rsb.sendMessage(message + "\n");
         }
     };
+    
+    /*
+     * This is related to the tap and hold menu that appears when clicking on a message
+     */
+    private static final int CONTEXT_MENU_COPY_TXT = Menu.FIRST;
+    private static final int CONTEXT_MENU_COPY_URL = CONTEXT_MENU_COPY_TXT+1;
+    private TextView contextMenuView = null;
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        ClipboardManager cm = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
+        if (item.getItemId() == CONTEXT_MENU_COPY_TXT) {
+            CharSequence txt = contextMenuView.getText();
+            cm.setText(txt.toString());
+        } else if (item.getItemId() >= CONTEXT_MENU_COPY_URL) {
+            URLSpan[] urls = contextMenuView.getUrls();
+            cm.setText(urls[item.getItemId() - CONTEXT_MENU_COPY_URL].getURL());
+        }
+        return super.onContextItemSelected(item);
+    }
+
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+        if (!(v instanceof ListView)) return;
+        
+        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
+        View selected = info.targetView;
+        if (selected == null) return;
+        
+        
+        TextView msg = (TextView)selected.findViewById(R.id.chatline_message);
+        if (msg==null) return;
+
+        contextMenuView = msg;
+        
+        menu.setHeaderTitle("Copy?");
+        menu.add(0, CONTEXT_MENU_COPY_TXT, 0, "Copy message text");
+        
+        URLSpan[] urls = contextMenuView.getUrls();
+        int i=0;
+        for(URLSpan url: urls) {
+            menu.add(0, CONTEXT_MENU_COPY_URL+i, 1, "URL: " + url.getURL());
+            i++;
+        }
+    }
 }
