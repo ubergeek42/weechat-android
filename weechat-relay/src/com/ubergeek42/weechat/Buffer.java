@@ -85,6 +85,14 @@ public class Buffer {
         }
     }
 
+    public void clearLines() {
+    	synchronized(messagelock) {
+    		lines.clear();
+    		numUnread = 0;
+    		numHighlights = 0;
+    	}
+    }
+    
     // Notify anyone who cares
     public void notifyObservers() {
         for (BufferObserver o : observers) {

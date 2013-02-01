@@ -216,6 +216,12 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter,
         enableFilters = !enableFilters;
         notifyChanged();
     }
+    
+    public void clearLines() {
+        buffer.clearLines();
+        lines.clear();
+        notifyChanged();
+    }
 
     // Run the notifyDataSetChanged method in the activity's main thread
     public void notifyChanged() {

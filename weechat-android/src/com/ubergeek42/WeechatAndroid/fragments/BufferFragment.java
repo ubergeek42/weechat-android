@@ -401,6 +401,11 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
             if (input.length() == 0) {
                 return; // Ignore empty input box
             }
+            
+            // Check if it was a /buffer clear, /CL command, then clear the lines
+            if (input.equals("/CL") || input.equals("/buffer clear")) {
+                chatlineAdapter.clearLines();
+            }
 
             String message = "input " + bufferName + " " + input;
             inputBox.setText("");
