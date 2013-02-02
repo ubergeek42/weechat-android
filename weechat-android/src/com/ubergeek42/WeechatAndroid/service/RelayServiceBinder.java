@@ -95,7 +95,9 @@ public class RelayServiceBinder extends Binder {
      * @return a Buffer object for the given buffer
      */
     public Buffer getBufferByName(String bufferName) {
-        return relayService.bufferManager.findByName(bufferName);
+        if (isConnected())
+            return relayService.bufferManager.findByName(bufferName);
+        return null;
     }
 
     /**
