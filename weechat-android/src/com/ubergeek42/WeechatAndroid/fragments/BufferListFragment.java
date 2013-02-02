@@ -89,7 +89,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
             View v = inflater.inflate(R.layout.bufferlist, null);
             bufferlistFilter = (EditText) v.findViewById(R.id.bufferlist_filter);
             bufferlistFilter.addTextChangedListener(filterTextWatcher);
-            if (prefs.getBoolean("show_buffer_filter", true)) {
+            if (prefs.getBoolean("show_buffer_filter", false)) {
                 bufferlistFilter.setVisibility(View.VISIBLE);
             } else {
                 bufferlistFilter.setVisibility(View.GONE);
@@ -245,7 +245,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
             hideServerBuffers = prefs.getBoolean("hide_server_buffers", true);
             onBuffersChanged();
         } else if(key.equals("show_buffer_filter") && bufferlistFilter != null) {
-            if (prefs.getBoolean("show_buffer_filter", true)) {
+            if (prefs.getBoolean("show_buffer_filter", false)) {
                 bufferlistFilter.setVisibility(View.VISIBLE);
             } else {
                 bufferlistFilter.setVisibility(View.GONE);
