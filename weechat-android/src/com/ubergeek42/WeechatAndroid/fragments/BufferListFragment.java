@@ -15,8 +15,13 @@ import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.ListView;
 
 import com.actionbarsherlock.app.SherlockListFragment;
@@ -43,12 +48,16 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     OnBufferSelectedListener mCallback;
     private BufferManager bufferManager;
 
+    // Used for filtering the list of buffers displayed
+    private EditText bufferlistFilter;
+    
     private SharedPreferences prefs;
     private boolean enableBufferSorting;
     private boolean hideServerBuffers;
 
     // Are we attached to an activity?
     private boolean attached;
+    
 
     // The container Activity must implement this interface so the frag can deliver messages
     public interface OnBufferSelectedListener {
@@ -75,6 +84,18 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
                     + " must implement OnBufferSelectedListener");
         }
     }
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+            View v = inflater.inflate(R.layout.bufferlist, null);
+            bufferlistFilter = (EditText) v.findViewById(R.id.bufferlist_filter);
+            bufferlistFilter.addTextChangedListener(filterTextWatcher);
+            if (prefs.getBoolean("show_buffer_filter", true)) {
+                bufferlistFilter.setVisibility(View.VISIBLE);
+            } else {
+                bufferlistFilter.setVisibility(View.GONE);
+            }
+            return v;
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -87,6 +108,9 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
         prefs.registerOnSharedPreferenceChangeListener(this);
         enableBufferSorting = prefs.getBoolean("sort_buffers", true);
         hideServerBuffers = prefs.getBoolean("hide_server_buffers", true);
+        
+        
+        // TODO ondestroy: bufferlistFilter.removeTextChangedListener(filterTextWatcher);
     }
 
     @Override
@@ -153,6 +177,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
             m_adapter.setBuffers(bufferManager.getBuffers());
             bufferManager.onChanged(BufferListFragment.this);
 
+            m_adapter.enableSorting(prefs.getBoolean("sort_buffers", true));
             getActivity().runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -208,10 +233,6 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
                 }
 
                 m_adapter.setBuffers(buffers);
-                // Sort buffers based on unread count
-                if (enableBufferSorting) {
-                    m_adapter.sortBuffers();
-                }
             }
         });
     }
@@ -219,11 +240,30 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         if (key.equals("sort_buffers")) {
-            enableBufferSorting = prefs.getBoolean("sort_buffers", true);
-            onBuffersChanged();
+            m_adapter.enableSorting(prefs.getBoolean("sort_buffers", true));
         } else if (key.equals("hide_server_buffers")) {
             hideServerBuffers = prefs.getBoolean("hide_server_buffers", true);
             onBuffersChanged();
+        } else if(key.equals("show_buffer_filter") && bufferlistFilter != null) {
+            if (prefs.getBoolean("show_buffer_filter", true)) {
+                bufferlistFilter.setVisibility(View.VISIBLE);
+            } else {
+                bufferlistFilter.setVisibility(View.GONE);
+            }
         }
     }
+    
+    // TextWatcher object for filtering the buffer list
+    private TextWatcher filterTextWatcher = new TextWatcher() {
+        @Override
+        public void afterTextChanged(Editable a) { }
+        @Override
+        public void beforeTextChanged(CharSequence arg0, int a, int b, int c) {}
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+            if (m_adapter!=null) {
+                m_adapter.filterBuffers(s.toString());
+            }
+        }
+    };
 }

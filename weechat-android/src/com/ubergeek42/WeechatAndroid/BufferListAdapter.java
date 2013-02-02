@@ -36,9 +36,13 @@ public class BufferListAdapter extends BaseAdapter implements OnSharedPreference
     Activity parentActivity;
     LayoutInflater inflater;
     private SharedPreferences prefs;
-    private ArrayList<Buffer> buffers = new ArrayList<Buffer>();
-
+    private ArrayList<Buffer> allBuffers = new ArrayList<Buffer>();
+    private ArrayList<Buffer> filteredBuffers = new ArrayList<Buffer>();
+    private String currentFilter = null;
+    
+    
     private boolean hideBufferTitles = false;
+    private boolean sortedBuffers = false;
     
     public BufferListAdapter(Activity parentActivity) {
         this.parentActivity = parentActivity;
@@ -52,25 +56,44 @@ public class BufferListAdapter extends BaseAdapter implements OnSharedPreference
 
     @Override
     public int getCount() {
-        return buffers.size();
+        return filteredBuffers.size();
     }
 
     @Override
     public Buffer getItem(int position) {
-        return buffers.get(position);
+        return filteredBuffers.get(position);
     }
-
-    public ArrayList<Buffer> getBuffers() {
-        return buffers;
+    
+    /**
+     * Filter the buffer list to only contain things that match the string
+     * @param filter - the string to filter on
+     */
+    public void filterBuffers(String filter) {
+        filteredBuffers.clear();
+        
+        // Handle the case of a missing/empty filter
+        if (filter == null || filter.length()==0) {
+            filteredBuffers.addAll(allBuffers);
+        } else {
+            // Filter based on what they typed
+            currentFilter = filter.toLowerCase();
+            for(Buffer b: allBuffers) {
+                if (b.getFullName().toLowerCase().contains(currentFilter)) {
+                    filteredBuffers.add(b);
+                }
+            }
+        }
+        if (sortedBuffers) Collections.sort(filteredBuffers, bufferComparator);
+        notifyDataSetChanged();
     }
 
     public void setBuffers(ArrayList<Buffer> buffers) {
-        this.buffers = buffers;
-        this.notifyDataSetChanged();
+        this.allBuffers = buffers;
+        filterBuffers(currentFilter);
     }
 
-    public void sortBuffers() {
-        Collections.sort(buffers, bufferComparator);
+    public void enableSorting(boolean enableSorting) {
+        sortedBuffers = enableSorting;
     }
 
     /**
@@ -81,8 +104,8 @@ public class BufferListAdapter extends BaseAdapter implements OnSharedPreference
      * @return Position of the buffer if found -1 if not found
      */
     public int findBufferPosition(Buffer b) {
-        for (int i = 0; i < buffers.size(); i++) {
-            if (b.getFullName().equals(buffers.get(i).getFullName())) {
+        for (int i = 0; i < filteredBuffers.size(); i++) {
+            if (b.getFullName().equals(filteredBuffers.get(i).getFullName())) {
                 return i;
             }
         }
@@ -188,4 +211,6 @@ public class BufferListAdapter extends BaseAdapter implements OnSharedPreference
         }
         notifyDataSetChanged();
     }
+
+
 }
