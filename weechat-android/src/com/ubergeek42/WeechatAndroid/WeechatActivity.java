@@ -37,6 +37,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.v4.view.ViewPager;
+import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -53,7 +54,7 @@ import com.ubergeek42.weechat.HotlistItem;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
 import com.viewpagerindicator.TitlePageIndicator;
 
-public class WeechatActivity extends SherlockFragmentActivity implements RelayConnectionHandler, OnBufferSelectedListener {
+public class WeechatActivity extends SherlockFragmentActivity implements RelayConnectionHandler, OnBufferSelectedListener, OnPageChangeListener {
     
     private static Logger logger = LoggerFactory.getLogger(WeechatActivity.class);
     private boolean mBound = false;
@@ -117,9 +118,13 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         viewPager.setAdapter(mainPagerAdapter);
         viewPager.setOffscreenPageLimit(10);// TODO: probably a crash if more than 10 buffers, and screen rotates
         // see: http://stackoverflow.com/questions/11296411/fragmentstatepageradapter-illegalstateexception-myfragment-is-not-currently
-
+        
+        
+        
         TitlePageIndicator titleIndicator = (TitlePageIndicator) findViewById(R.id.main_titleviewpager);
         titleIndicator.setViewPager(viewPager);
+        titleIndicator.setOnPageChangeListener(this);
+        titleIndicator.setCurrentItem(0);
 
         // TODO Read preferences from background, its IO, 31ms strict mode!
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
@@ -444,6 +449,21 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
             rsb = null;
         }
     };
+
+    /**
+     * Part of OnPageChangeListener
+     * Used to change the title of the window when the user switches tabs 
+     */
+    @Override
+    public void onPageScrollStateChanged(int state) {
+    }
+    @Override
+    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+    }
+    @Override
+    public void onPageSelected(int position) {
+        updateTitle();
+    }
 
     
 }
