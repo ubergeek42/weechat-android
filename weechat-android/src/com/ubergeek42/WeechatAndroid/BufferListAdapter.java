@@ -148,15 +148,14 @@ public class BufferListAdapter extends BaseAdapter implements OnSharedPreference
         }
 
         // Title might be removed in different layouts
-        if (holder.title != null && !hideBufferTitles) {
-            holder.title.setText(com.ubergeek42.weechat.Color
-                    .stripAllColorsAndAttributes(bufferItem.getTitle()));
-        }
-        // Allow hiding of buffer titles
-        if (hideBufferTitles) {
-            holder.title.setVisibility(View.GONE);
-        } else {
-            holder.title.setVisibility(View.VISIBLE);
+        if (holder.title != null) {
+            // Allow hiding of buffer titles
+            if (hideBufferTitles) {
+                holder.title.setVisibility(View.GONE);
+            } else {
+                holder.title.setText(com.ubergeek42.weechat.Color.stripAllColorsAndAttributes(bufferItem.getTitle()));
+                holder.title.setVisibility(View.VISIBLE);
+            }
         }
         
         
