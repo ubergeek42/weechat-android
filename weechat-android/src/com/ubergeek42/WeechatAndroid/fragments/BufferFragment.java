@@ -192,8 +192,7 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
             tabButton.setVisibility(View.GONE);
         }
         
-        chatlines.setAdapter(new ArrayAdapter<String>(getActivity(), R.layout.tips_list_item,
-                message));
+        chatlines.setAdapter(new ArrayAdapter<String>(getActivity(), R.layout.tips_list_item, message));
         // chatlines.setEmptyView(getView().findViewById(android.R.id.empty));
 
         buffer = rsb.getBufferByName(bufferName);

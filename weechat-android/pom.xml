@@ -44,6 +44,12 @@
             <artifactId>slf4j-android</artifactId>
             <version>1.6.1-RC1</version>
         </dependency>
+        
+		<dependency>
+			<groupId>ch.acra</groupId>
+			<artifactId>acra</artifactId>
+			<version>4.4.0</version>
+		</dependency>
     </dependencies>
 
     <build>

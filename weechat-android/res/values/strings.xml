@@ -17,4 +17,13 @@
     <string name="hotlist">Hotlist</string>
     <string name="nicklist_menu">Nicks</string>
     <string name="tabkey">⇥</string>
+    
+    
+    <string name="crash_notif_ticker_text">Unexpected error, please send a report…</string>
+	<string name="crash_notif_title">Weechat has crashed…</string>
+	<string name="crash_notif_text">Please click here to help fix the issue.</string>
+	<string name="crash_dialog_text">Sorry, but weechat-android appears to have crashed.  If you would like
+	    to assist in having this issue resolved, please click Ok to send details about the crash to the developer.
+	    Note: Usernames/passwords will not be sent.</string>
+    <string name="crash_dialog_comment_prompt">Any additional comments(or your email if you\'d like a reply):</string>
 </resources>
