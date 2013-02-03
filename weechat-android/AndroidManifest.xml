@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.ubergeek42.WeechatAndroid"
-    android:versionCode="4"
-    android:versionName="0.8-dev-b4" >
+    android:versionCode="5"
+    android:versionName="0.8-dev-b5" >
 
     <uses-sdk android:minSdkVersion="7" android:targetSdkVersion="16" />
     <uses-permission android:name="android.permission.INTERNET"/>
