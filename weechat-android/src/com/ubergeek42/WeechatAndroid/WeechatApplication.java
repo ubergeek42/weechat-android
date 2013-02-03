@@ -9,7 +9,7 @@ import android.app.Application;
 @ReportsCrashes(formKey = "",
 formUri = "http://ubergeek42.com/android/submit.php",
 
-excludeMatchingSharedPreferencesKeys={"(ssh_pass|ssh_user|password)"},
+excludeMatchingSharedPreferencesKeys={"(ssh_pass|ssh_user|password|stunnel_pass)"},
 
 mode = ReportingInteractionMode.NOTIFICATION,
 resNotifTickerText = R.string.crash_notif_ticker_text,
