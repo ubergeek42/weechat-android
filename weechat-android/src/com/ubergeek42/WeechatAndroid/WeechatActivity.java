@@ -147,7 +147,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     @Override
     public void onBufferSelected(String buffer) {
        // Does the buffer actually exist?(If not, return)
-        if (rsb.getBufferByName(buffer) == null) {
+        if (mBound && rsb.getBufferByName(buffer) == null) {
             return;
         }
         mainPagerAdapter.openBuffer(buffer);
