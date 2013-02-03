@@ -66,6 +66,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     
     private ViewPager viewPager;
     private MainPagerAdapter mainPagerAdapter;
+    private TitlePageIndicator titleIndicator;
     
     private boolean tabletMode = false;
     
@@ -118,10 +119,8 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         viewPager.setAdapter(mainPagerAdapter);
         viewPager.setOffscreenPageLimit(10);// TODO: probably a crash if more than 10 buffers, and screen rotates
         // see: http://stackoverflow.com/questions/11296411/fragmentstatepageradapter-illegalstateexception-myfragment-is-not-currently
-        
-        
-        
-        TitlePageIndicator titleIndicator = (TitlePageIndicator) findViewById(R.id.main_titleviewpager);
+
+        titleIndicator = (TitlePageIndicator) findViewById(R.id.main_titleviewpager);
         titleIndicator.setViewPager(viewPager);
         titleIndicator.setOnPageChangeListener(this);
         titleIndicator.setCurrentItem(0);
@@ -152,6 +151,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
             return;
         }
         mainPagerAdapter.openBuffer(buffer);
+        titleIndicator.setCurrentItem(viewPager.getCurrentItem());
     }
 
 
@@ -251,8 +251,10 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         case R.id.menu_close: {
             if (viewPager.getCurrentItem()>0 || tabletMode) {
                 BufferFragment currentBuffer = mainPagerAdapter.getCurrentBuffer();
-                if (currentBuffer != null)
+                if (currentBuffer != null) {
                     mainPagerAdapter.closeBuffer(currentBuffer.getBufferName());
+                    titleIndicator.setCurrentItem(viewPager.getCurrentItem());
+                }
             }
             break;
         }
@@ -360,7 +362,8 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                mainPagerAdapter.closeBuffer(bufferName);                
+                mainPagerAdapter.closeBuffer(bufferName);
+                titleIndicator.setCurrentItem(viewPager.getCurrentItem());
             }
         });
         updateTitle();

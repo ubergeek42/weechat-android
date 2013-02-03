@@ -1,6 +1,7 @@
 package com.ubergeek42.WeechatAndroid;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,18 +83,18 @@ public class MainPagerAdapter extends FragmentStatePagerAdapter {
     }
     
     public void closeBuffer(String buffer) {
-        int removeIndex = -1;
-        for (int i=0;i<buffers.size(); i++) {
-            BufferFragment bf = buffers.get(i);
+        int i=0;
+        Iterator<BufferFragment> iter = buffers.iterator();
+        while(iter.hasNext()) {
+            BufferFragment bf = iter.next();
             if (bf.getBufferName().equals(buffer)) {
                 // TODO: wrong thread error for pager.setCurrentItem
                 pager.setCurrentItem(i);
-                removeIndex = i;
+                iter.remove();
             }
+            i++;
         }
-        if (removeIndex!=-1) {
-            buffers.remove(removeIndex);
-        }
+        notifyDataSetChanged();
     }
     public void openBuffer(String buffer) {
         // Find the appropriate buffer in our list
@@ -118,6 +119,8 @@ public class MainPagerAdapter extends FragmentStatePagerAdapter {
         newFragment.setArguments(args);
         buffers.add(newFragment);
         pager.setCurrentItem(buffers.size());
+        
+        notifyDataSetChanged();
     }
 
     public BufferFragment getCurrentBuffer() {
@@ -135,6 +138,11 @@ public class MainPagerAdapter extends FragmentStatePagerAdapter {
             }
         }
         return null;
+    }
+    
+    @Override
+    public int getItemPosition(Object object) {
+        return POSITION_NONE;
     }
     
 }
