@@ -147,12 +147,16 @@ public class RelayServiceBinder extends Binder {
         }
         // Get the nicklist for any buffers we have
         relayService.relayConnection.sendMsg("nicklist", "nicklist", buf.getFullName());
-        // relayService.relayConnection.sendMsg("sync "+buf.getFullName());
+        if (relayService.optimize_traffic) {
+            relayService.relayConnection.sendMsg("sync "+buf.getFullName());
+        }
     }
 
     public void unsubscribeBuffer(String bufferPointer) {
-        // Buffer buf = relayService.bufferManager.findByPointer(bufferPointer);
-        // relayService.relayConnection.sendMsg("desync "+buf.getFullName()+" nicklist");
+        if (relayService.optimize_traffic) {
+            Buffer buf = relayService.bufferManager.findByPointer(bufferPointer);
+            relayService.relayConnection.sendMsg("desync "+buf.getFullName());
+        }
     }
     
     /**

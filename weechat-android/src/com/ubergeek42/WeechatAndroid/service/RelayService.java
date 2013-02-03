@@ -71,6 +71,8 @@ public class RelayService extends Service implements RelayConnectionHandler,
     private static final int NOTIFICATION_ID = 42;
     private NotificationManager notificationManger;
 
+    boolean optimize_traffic = false;
+    
     String host;
     String port;
     String pass;
@@ -100,6 +102,8 @@ public class RelayService extends Service implements RelayConnectionHandler,
     private boolean disconnected;
     private Thread reconnector = null;
     private Thread upgrading;
+
+    
 
     @Override
     public IBinder onBind(Intent arg0) {
@@ -228,6 +232,8 @@ public class RelayService extends Service implements RelayConnectionHandler,
         sshPass = prefs.getString("ssh_pass", "");
         sshPort = prefs.getString("ssh_port", "22");
         sshKeyfile = prefs.getString("ssh_keyfile", "");
+        
+        optimize_traffic = prefs.getBoolean("optimize_traffic", false);
 
         // If no host defined, signal them to edit their preferences
         if (host == null) {
@@ -400,7 +406,8 @@ public class RelayService extends Service implements RelayConnectionHandler,
         relayConnection.sendMsg("initialinfolist", "infolist", "hotlist");
 
         // Subscribe to any future changes
-        relayConnection.sendMsg("sync");
+        if (!optimize_traffic)
+            relayConnection.sendMsg("sync");
 
         for (RelayConnectionHandler rch : connectionHandlers) {
             rch.onConnect();
@@ -458,6 +465,8 @@ public class RelayService extends Service implements RelayConnectionHandler,
             pass = prefs.getString("password", "password");
         } else if (key.equals("port")) {
             port = prefs.getString("port", "8001");
+        } else if (key.equals("optimize_traffic")) {
+            optimize_traffic = prefs.getBoolean("optimize_traffic", false);
         }
     }
 

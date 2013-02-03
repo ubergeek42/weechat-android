@@ -6,6 +6,8 @@
 	    <EditTextPreference android:key="password" android:title="Relay Password" android:password="true" android:singleLine="true" />
     	<CheckBoxPreference android:key="autoconnect" android:summary="Connect automatically on app launch" android:title="Connect Automatically" />
     	
+    	<CheckBoxPreference android:key="optimize_traffic" android:layout="@layout/preference_long_summary" android:summary="Only enable if running WeeChat 0.4.1-dev (git: v0.4.0-35-g7a1f9a1) or newer (Requires restart)" android:title="Reduce network traffic" android:defaultValue="false"/>
+    	
 		<PreferenceCategory android:key="adv_connection_group" android:title="Advanced Connection Settings">
 			<ListPreference android:entries="@array/settings_connection_type_names" android:defaultValue="plain" android:entryValues="@array/settings_connection_type_values" android:title="Connection Type" android:key="connection_type" />
 			

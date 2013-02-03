@@ -252,8 +252,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
             if (viewPager.getCurrentItem()>0 || tabletMode) {
                 BufferFragment currentBuffer = mainPagerAdapter.getCurrentBuffer();
                 if (currentBuffer != null) {
-                    mainPagerAdapter.closeBuffer(currentBuffer.getBufferName());
-                    titleIndicator.setCurrentItem(viewPager.getCurrentItem());
+                    currentBuffer.onBufferClosed();
                 }
             }
             break;
