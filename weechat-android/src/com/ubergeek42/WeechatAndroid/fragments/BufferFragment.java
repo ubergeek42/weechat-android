@@ -429,13 +429,15 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
     private TextView contextMenuView = null;
     @Override
     public boolean onContextItemSelected(MenuItem item) {
-        ClipboardManager cm = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
-        if (item.getItemId() == CONTEXT_MENU_COPY_TXT) {
-            CharSequence txt = contextMenuView.getText();
-            cm.setText(txt.toString());
-        } else if (item.getItemId() >= CONTEXT_MENU_COPY_URL) {
-            URLSpan[] urls = contextMenuView.getUrls();
-            cm.setText(urls[item.getItemId() - CONTEXT_MENU_COPY_URL].getURL());
+        if (contextMenuView != null) {
+            ClipboardManager cm = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
+            if (item.getItemId() == CONTEXT_MENU_COPY_TXT) {
+                CharSequence txt = contextMenuView.getText();
+                cm.setText(txt.toString());
+            } else if (item.getItemId() >= CONTEXT_MENU_COPY_URL) {
+                URLSpan[] urls = contextMenuView.getUrls();
+                cm.setText(urls[item.getItemId() - CONTEXT_MENU_COPY_URL].getURL());
+            }
         }
         return super.onContextItemSelected(item);
     }
