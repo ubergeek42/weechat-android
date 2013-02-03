@@ -1,20 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string-array name="settings_prefix_alignment_names">
-        <item>Left Aligned</item>
-        <item>Right Aligned</item>
-        <item>No Alignment</item>
-    </string-array>
+    <!--  Don't touch these, they are internal names -->
     <string-array name="settings_prefix_alignment_values">
         <item>left</item>
         <item>right</item>
         <item>none</item>
-    </string-array>
-    <string-array name="settings_connection_type_names">
-        <item >Plain Connection</item>
-        <item >Weechat SSL</item>
-        <item >SSH Tunnel</item>
-        <item >Stunnel</item>
     </string-array>
     <string-array name="settings_connection_type_values">
         <item >plain</item>

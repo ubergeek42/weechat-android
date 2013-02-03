@@ -244,8 +244,8 @@ public class RelayService extends Service implements RelayConnectionHandler,
             NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
             builder.setContentIntent(contentIntent).setSmallIcon(R.drawable.ic_notification)
                     .setContentTitle(getString(R.string.app_version))
-                    .setContentText("Update settings")
-                    .setTicker("Click to edit your preferences and connect")
+                    .setContentText(getString(R.string.notification_update_settings))
+                    .setTicker(getString(R.string.notification_update_settings_details))
                     .setWhen(System.currentTimeMillis());
 
             Notification notification = builder.getNotification();
@@ -298,7 +298,7 @@ public class RelayService extends Service implements RelayConnectionHandler,
     }
 
     void resetNotification() {
-        showNotification(null, "Connected to " + relayConnection.getServer());
+        showNotification(null, getString(R.string.notification_connected_to) + relayConnection.getServer());
     }
 
     private void showNotification(String tickerText, String content) {
@@ -335,8 +335,7 @@ public class RelayService extends Service implements RelayConnectionHandler,
                         currentDelay = delays[numReconnects];
                     }
                     if (currentDelay > 0) {
-                        showNotification("Reconnecting", "Will reconnect in " + currentDelay
-                                + " seconds...");
+                        showNotification(getString(R.string.notification_reconnecting), String.format(getString(R.string.notification_reconnecting_details),currentDelay));
                     }
                     // Sleep for a bit
                     SystemClock.sleep(currentDelay * 1000);
@@ -358,11 +357,11 @@ public class RelayService extends Service implements RelayConnectionHandler,
     @Override
     public void onConnect() {
         if (disconnected == true) {
-            showNotification("Reconnected to " + relayConnection.getServer(), "Connected to "
+            showNotification(getString(R.string.notification_reconnected_to) + relayConnection.getServer(), getString(R.string.notification_connected_to)
                     + relayConnection.getServer());
         } else {
-            showNotification("Connected to " + relayConnection.getServer(), "Connected to "
-                    + relayConnection.getServer());
+            String tmp = getString(R.string.notification_connected_to) + relayConnection.getServer();
+            showNotification(tmp,tmp);
         }
         disconnected = false;
 
@@ -429,9 +428,11 @@ public class RelayService extends Service implements RelayConnectionHandler,
         // Automatically attempt reconnection if enabled(and if we aren't shutting down)
         if (!shutdown && prefs.getBoolean("reconnect", true)) {
             reconnect();
-            showNotification("Reconnecting...", "Reconnecting...");
+            String tmp = getString(R.string.notification_reconnecting);
+            showNotification(tmp,tmp);
         } else {
-            showNotification("Disconnected", "Disconnected");
+            String tmp = getString(R.string.notification_disconnected);
+            showNotification(tmp,tmp);
         }
     }
 
@@ -504,8 +505,8 @@ public class RelayService extends Service implements RelayConnectionHandler,
         upgrading = new Thread(new Runnable() {
             @Override
             public void run() {
-                showNotification("Upgrading...",
-                        "Weechat is upgrading, please wait for reconnection");
+                showNotification(getString(R.string.notification_upgrading),
+                        getString(R.string.notification_upgrading_details));
                 shutdown();
                 SystemClock.sleep(5000);
                 connect();
