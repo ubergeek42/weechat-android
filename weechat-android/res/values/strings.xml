@@ -18,6 +18,19 @@
     <string name="nicklist_menu">Nicks</string>
     <string name="tabkey">⇥</string>
     
+    <!--  ACRA(Application Crash Reports for Android) related strings -->
+    <string name="pref_debug_screen">Crash Reporting</string>
+    <string name="pref_disable_acra">Disable crash reporting</string>
+    <string name="pref_acra_enabled">Crash reporting currently enabled</string>
+    <string name="pref_acra_disabled">Crash reporting currently disabled</string>
+    
+    <string name="pref_acra_user_email">Email for crash reports</string>
+    <string name="pref_acra_user_email_summary">Included in crash reports so the developer
+        can contact regarding the crash.</string>
+    
+    <string name="pref_acra_alwaysaccept">Send automatically</string>
+    <string name="pref_acra_alwaysaccept_enabled">Crash reports will be sent automatically</string>
+    <string name="pref_acra_alwaysaccept_disabled">A dialog will prompt you to send each crash report</string>
     
     <string name="crash_notif_ticker_text">Unexpected error, please send a report…</string>
 	<string name="crash_notif_title">Weechat has crashed…</string>

@@ -48,5 +48,20 @@
 		<CheckBoxPreference android:key="notification_sounds" android:summary="Use default notification sound when a private message or highlight is received" android:title="Notification Sound" android:defaultValue="false" />
 	</PreferenceCategory>
     
-	
+    <!-- ACRA Preferences -->
+	<PreferenceScreen android:key="debug_prefs" android:title="@string/pref_debug_screen">
+	    <CheckBoxPreference android:key="acra.disable"
+		    android:title="@string/pref_disable_acra"
+		    android:summaryOn="@string/pref_acra_disabled"
+		    android:summaryOff="@string/pref_acra_enabled"
+		    android:defaultValue="false"/>
+	    <EditTextPreference android:key="acra.user.email"
+		    android:title="@string/pref_acra_user_email"
+		    android:summary="@string/pref_acra_user_email_summary"/>
+	    <CheckBoxPreference android:key="acra.alwaysaccept"
+		    android:title="@string/pref_acra_alwaysaccept"
+		    android:summaryOn="@string/pref_acra_alwaysaccept_enabled"
+		    android:summaryOff="@string/pref_acra_alwaysaccept_disabled"
+		    android:defaultValue="false"/>
+    </PreferenceScreen>
 </PreferenceScreen>
