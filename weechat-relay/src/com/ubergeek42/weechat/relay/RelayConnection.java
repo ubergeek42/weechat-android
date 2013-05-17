@@ -266,7 +266,7 @@ public class RelayConnection {
      */
     private void postConnectionSetup() {
         connected = true;
-        sendMsg(null, "init", "password=" + password + ",compression=gzip");
+        sendMsg(null, "init", "password=" + password + ",compression=zlib");
 
         socketReader.start();
 
