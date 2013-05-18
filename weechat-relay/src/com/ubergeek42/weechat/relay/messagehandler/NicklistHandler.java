@@ -66,6 +66,26 @@ public class NicklistHandler implements RelayMessageHandler {
                 }
                 wb.addNick(ni);
             }
+        } else if (id.equals("_nicklist_diff")) {
+        	Hdata whdata = (Hdata) obj;
+        	for (int i=0; i< whdata.getCount(); i++) {
+        		HdataEntry hde = whdata.getItem(i);
+        		NickItem ni = new NickItem(hde);
+        		// Not a nick we care about(its a group or invisible)
+                if (ni.isGroup() || !ni.isVisible()) {
+                    continue;
+                }
+
+                Buffer wb = cbs.findByPointer(hde.getPointer(0));
+        		char diff = hde.getItem("_diff").asChar();
+        		if (diff == '+') {
+        			wb.addNick(ni);
+        		}else if (diff == '-') {
+        			wb.removeNick(ni);
+        		} else if (diff == '*') {
+        			wb.updateNick(ni);
+        		}
+        	}
         }
     }
 }

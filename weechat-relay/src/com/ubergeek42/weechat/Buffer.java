@@ -239,6 +239,24 @@ public class Buffer {
             o.onNicklistChanged();
         }
     }
+    
+    public void removeNick(NickItem ni) {
+    	synchronized (nicklock) {
+    		nicks.remove(ni);
+    	}
+    	for (BufferObserver o : observers) {
+    		o.onNicklistChanged();
+    	}
+    }
+    public void updateNick(NickItem ni) {
+    	synchronized (nicklock) {
+    		nicks.remove(ni);
+    		nicks.add(ni);
+    	}
+    	for (BufferObserver o : observers) {
+    		o.onNicklistChanged();
+    	}
+    }
 
     public String[] getNicks() {
         int i = 0;

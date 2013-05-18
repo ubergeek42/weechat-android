@@ -394,6 +394,7 @@ public class RelayService extends Service implements RelayConnectionHandler,
         // Handle changes to the nicklist for buffers
         relayConnection.addHandler("nicklist", nickHandler);
         relayConnection.addHandler("_nicklist", nickHandler);
+        relayConnection.addHandler("_nicklist_diff", nickHandler);
 
         // Handle getting infolist hotlist for initial hotlist sync
         relayConnection.addHandler("initialinfolist", hotlistManager);
