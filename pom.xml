@@ -39,7 +39,7 @@
         <android.platform>14</android.platform>
         <android-support.version>r7</android-support.version>
 
-        <!--<android-maven.version>3.2.0</android-maven.version>-->
+        <android-maven.version>3.6.0</android-maven.version>
         <!--<robolectric.version>1.1</robolectric.version>-->
         <junit.version>4.10</junit.version>
 
@@ -89,7 +89,7 @@
                 <plugin>
                     <groupId>com.jayway.maven.plugins.android.generation2</groupId>
                     <artifactId>android-maven-plugin</artifactId>
-                    <!--<version>${android-maven.version}</version>-->
+                    <version>${android-maven.version}</version>
                     <extensions>true</extensions>
                     <configuration>
                         <sdk>
