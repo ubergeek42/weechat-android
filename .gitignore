@@ -17,3 +17,5 @@ eclipse-ws
 *.jar
 slf4j-1.6.6
 weechat-android/src/com/ubergeek42/weechat/GitVersion.java
+.settings
+.project

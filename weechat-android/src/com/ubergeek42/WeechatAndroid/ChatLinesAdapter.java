@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright 2012 Keith Johnson
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,6 +19,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.LinkedList;
 
+import android.view.View.OnClickListener;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.graphics.Color;
@@ -35,6 +36,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.EditText;
 import android.widget.ListAdapter;
 import android.widget.TextView;
 
@@ -42,10 +44,11 @@ import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.BufferLine;
 
 public class ChatLinesAdapter extends BaseAdapter implements ListAdapter,
-        OnSharedPreferenceChangeListener {
+        OnSharedPreferenceChangeListener, OnClickListener {
 
     private FragmentActivity activity = null;
     private Buffer buffer;
+    private EditText mInputBox;
     private LinkedList<BufferLine> lines;
     private LayoutInflater inflater;
     private SharedPreferences prefs;
@@ -59,9 +62,10 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter,
     private float textSize;
     private final DateFormat timestampFormat;
 
-    public ChatLinesAdapter(FragmentActivity activity, Buffer buffer) {
+    public ChatLinesAdapter(FragmentActivity activity, Buffer buffer, EditText inputBox) {
         this.activity = activity;
         this.buffer = buffer;
+        this.mInputBox = inputBox;
         this.inflater = LayoutInflater.from(activity);
 
         prefs = PreferenceManager.getDefaultSharedPreferences(activity.getBaseContext());
@@ -115,6 +119,7 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter,
         holder.timestamp.setTextSize(textSize);
         holder.prefix.setTextSize(textSize);
         holder.message.setTextSize(textSize);
+        holder.prefix.setOnClickListener(this);
 
         BufferLine chatLine = (BufferLine) getItem(position);
 
@@ -257,5 +262,35 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter,
                 notifyDataSetChanged();
             }
         });
+    }
+
+    @Override
+    public void onClick(View v) {
+        CharSequence prefix = ((TextView) v).getText();
+
+        // check if we have a nickname surrounded by < >
+        if (prefix.charAt(0) != '<' || prefix.charAt(prefix.length() - 1) != '>')
+            return;
+
+        // check if nick is an @operator or +voiced user
+        int nickStart = 1;
+        if (prefix.charAt(nickStart) == '@' || prefix.charAt(nickStart) == '+') {
+            nickStart = 2;
+        }
+
+        // insert text at current position or at selection
+        // via http://stackoverflow.com/questions/3609174/android-insert-text-into-edittext-at-current-position
+        int selStart = mInputBox.getSelectionStart();
+        int selEnd = mInputBox.getSelectionEnd();
+        String insNick;
+
+        if (selStart == 0) {
+            insNick = prefix.subSequence(nickStart, prefix.length() - 1).toString() + ": ";
+        } else {
+            insNick = prefix.subSequence(nickStart, prefix.length() - 1).toString() + " ";
+        }
+
+        mInputBox.getText().replace(Math.min(selStart, selEnd), Math.max(selStart, selEnd),
+                insNick, 0, insNick.length());
     }
 }

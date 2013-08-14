@@ -222,7 +222,7 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
         // Subscribe to the buffer(gets the lines for it, and gets nicklist)
         rsb.subscribeBuffer(buffer.getPointer());
 
-        chatlineAdapter = new ChatLinesAdapter(getActivity(), buffer);
+        chatlineAdapter = new ChatLinesAdapter(getActivity(), buffer, inputBox);
         chatlines.setAdapter(chatlineAdapter);
         registerForContextMenu(chatlines);
         onLineAdded();
