@@ -125,6 +125,10 @@
                         <storepass>${sign.storepass}</storepass>
                         <keystore>${sign.keystore}</keystore>
                         <verbose>true</verbose>
+			<arguments>
+				<argument>-sigalg</argument><argument>MD5withRSA</argument>
+				<argument>-digestalg</argument><argument>SHA1</argument>
+			</arguments>
                     </configuration>
                 </plugin>
             
