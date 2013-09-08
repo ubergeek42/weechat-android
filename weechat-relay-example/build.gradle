@@ -1,0 +1,6 @@
+apply plugin: 'java'
+
+dependencies {
+    compile project(':weechat-relay')
+    compile 'org.slf4j:slf4j-api:1.6.6'
+}

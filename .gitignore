@@ -1,19 +1,12 @@
-bin
-out
-target
-classes
-gen
-libs
-.idea
-*.iml
-*.iwl
-*.swp
-.metadata
+.gradle
+
+# Gradle build directory(output)
+build
+
+# eclipse project stuff
+.settings
+.project
 .classpath
-local.properties
-FragmentBasics
-actionbarsherlock
-eclipse-ws
-*.jar
-slf4j-1.6.6
-weechat-android/src/com/ubergeek42/weechat/GitVersion.java
+.metadata
+
+

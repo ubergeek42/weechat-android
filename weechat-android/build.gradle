@@ -1,0 +1,105 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:0.5.+'
+    }
+}
+apply plugin: 'android'
+
+dependencies {
+    compile 'com.android.support:support-v4:18.0.+'
+
+    compile "ch.acra:acra:4.4.0"                 // Android Crash Reporter
+    compile "org.slf4j:slf4j-android:1.6.1-RC1"  // Android Logging API
+
+    // These provide support for older android devices
+    compile "com.actionbarsherlock:actionbarsherlock:4.4.0@aar"
+    compile "com.actionbarsherlock:viewpagerindicator:2.4.1"
+
+    // We need the weechat-relay library for connecting to weechat    
+    compile(project(':weechat-relay')) {
+        // Exclude this because slf4j-android is a superset of this
+        exclude group: 'org.slf4j', module:'slf4j-api'
+    }
+}
+
+android {
+    compileSdkVersion 17
+    buildToolsVersion "17"
+
+    defaultConfig {
+        versionCode 12
+        versionName "0.08"
+
+        minSdkVersion 8
+        targetSdkVersion 17
+    }
+
+    signingConfigs {
+	releasePlayConfig
+	devPlayConfig
+    }
+
+    // Setup a bit of buildconfiguration
+    buildTypes {
+        // Debug version, only ever used locally
+        debug {
+            packageNameSuffix ".debug"
+            versionNameSuffix "-debug"
+            buildConfig "public final static String VERSION_BANNER = \"" + versionBanner() + "\";",
+                "public final static boolean BLAH = true;"
+        }
+
+        // These are the real releases in the Google Play Store
+        release {
+            buildConfig "public final static String VERSION_BANNER = \"" + versionBanner() + "\";"
+	    signingConfig signingConfigs.releasePlayConfig
+        }
+
+        // Development releases in the Google Play Store(signed same as the cloudbees site)
+	devrelease.initWith(buildTypes.release)
+        devrelease {
+            packageNameSuffix ".dev"
+            versionNameSuffix "-dev"
+            buildConfig "public final static String VERSION_BANNER = \"" + versionBanner() + "\";"
+	    signingConfig signingConfigs.devPlayConfig
+        }
+    }
+}
+
+// Load properties from the user's local gradle.properties file(for both release and "dev" release builds)
+if (project.hasProperty('devStorefile') &&
+    project.hasProperty('devStorePassword') &&
+    project.hasProperty('devKeyAlias') &&
+    project.hasProperty('devKeyPassword')) {
+    android.signingConfigs.devPlayConfig.storeFile = file(devStorefile)
+    android.signingConfigs.devPlayConfig.storePassword = devStorePassword
+    android.signingConfigs.devPlayConfig.keyAlias = devKeyAlias
+    android.signingConfigs.devPlayConfig.keyPassword = devKeyPassword
+} else {
+    project.logger.warn('WARN: Set the values devStorefile, devStorePassword, devKeyAlias, and devKeyPassword in ~/.gradle/gradle.properties to sign the release.')
+    android.buildTypes.devrelease.signingConfig = null
+}
+
+if (project.hasProperty('releaseStorefile') &&
+    project.hasProperty('releaseStorePassword') &&
+    project.hasProperty('releaseKeyAlias') &&
+    project.hasProperty('releaseKeyPassword')) {
+    android.signingConfigs.releasePlayConfig.storeFile = file(releaseStorefile)
+    android.signingConfigs.releasePlayConfig.storePassword = releaseStorePassword
+    android.signingConfigs.releasePlayConfig.keyAlias = releaseKeyAlias
+    android.signingConfigs.releasePlayConfig.keyPassword = releaseKeyPassword
+} else {
+    project.logger.warn('WARN: Set the values releaseStorefile, releaseStorePassword, releaseKeyAlias, and releaseKeyPassword in ~/.gradle/gradle.properties to sign the release.')
+    android.buildTypes.release.signingConfig = null
+}
+
+
+String versionBanner() {
+    return 'git describe'.execute().text.trim()
+}
+
+
+

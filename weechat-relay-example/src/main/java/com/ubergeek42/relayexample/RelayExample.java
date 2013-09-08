@@ -111,7 +111,7 @@ public class RelayExample implements BufferManagerObserver, RelayConnectionHandl
 	}
 
     @Override
-    public void onError(String err) {
+    public void onError(String err, Object o) {
         System.out.println(String.format("Error: %s", err));
     }
 
