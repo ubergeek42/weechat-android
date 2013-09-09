@@ -1,6 +1,12 @@
-.gradle
+# Android
+local.properties
 
-# Gradle build directory(output)
+# Android Studio/InteliJ IDEA
+.idea
+*.iml
+
+# Gradle stuff
+.gradle
 build
 
 # eclipse project stuff
