@@ -64,7 +64,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
         /**
          * Called by BufferlistFragment when a list item is selected
          * 
-         * @param b
+         * @param fullBufferName
          */
         public void onBufferSelected(String fullBufferName);
     }
@@ -240,7 +240,8 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         if (key.equals("sort_buffers")) {
-            m_adapter.enableSorting(prefs.getBoolean("sort_buffers", true));
+            if (m_adapter != null)
+                m_adapter.enableSorting(prefs.getBoolean("sort_buffers", true));
         } else if (key.equals("hide_server_buffers")) {
             hideServerBuffers = prefs.getBoolean("hide_server_buffers", true);
             onBuffersChanged();
