@@ -1,6 +1,10 @@
 package com.ubergeek42.WeechatAndroid;
 
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
+
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.codec.digest.DigestUtils;
 
 import android.app.Activity;
 import android.content.ComponentName;
@@ -106,8 +110,13 @@ public class SSLCertActivity extends Activity {
         details.append("Issued On:  " + cert.getNotBefore() + "<br>");
         details.append("Expires On: " + cert.getNotAfter() + "<br><br>");
         
-        details.append("<b>Serial Number:</b><br>");
-        details.append(cert.getSerialNumber());
+        details.append("<b>Fingerprint:</b><br>");
+        try {
+            String fingerprint = new String(Hex.encodeHex(DigestUtils.sha1(cert.getEncoded())));
+            details.append(fingerprint);
+        }catch (CertificateEncodingException e) {
+            details.append("Unknown");
+        }
         
         certDetails.setText(Html.fromHtml(details.toString()),TextView.BufferType.SPANNABLE);
         accept.setEnabled(true);
