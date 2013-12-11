@@ -118,9 +118,10 @@ public class MainPagerAdapter extends FragmentStatePagerAdapter {
         args.putString("buffer", buffer);
         newFragment.setArguments(args);
         buffers.add(newFragment);
+        notifyDataSetChanged();
         pager.setCurrentItem(buffers.size());
         
-        notifyDataSetChanged();
+
     }
 
     public BufferFragment getCurrentBuffer() {
