@@ -15,24 +15,6 @@
  ******************************************************************************/
 package com.ubergeek42.WeechatAndroid.service;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.util.HashSet;
-
-import javax.net.ssl.TrustManagerFactory;
-import javax.net.ssl.X509TrustManager;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -46,13 +28,15 @@ import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.Session;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.WeechatPreferencesActivity;
 import com.ubergeek42.WeechatAndroid.notifications.HotlistHandler;
 import com.ubergeek42.WeechatAndroid.notifications.HotlistObserver;
 import com.ubergeek42.weechat.relay.RelayConnection;
-import com.ubergeek42.weechat.relay.RelayConnection.ConnectionType;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
 import com.ubergeek42.weechat.relay.RelayMessageHandler;
 import com.ubergeek42.weechat.relay.messagehandler.BufferManager;
@@ -61,6 +45,26 @@ import com.ubergeek42.weechat.relay.messagehandler.LineHandler;
 import com.ubergeek42.weechat.relay.messagehandler.NicklistHandler;
 import com.ubergeek42.weechat.relay.messagehandler.UpgradeHandler;
 import com.ubergeek42.weechat.relay.messagehandler.UpgradeObserver;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.HashSet;
+
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
 
 public class RelayService extends Service implements RelayConnectionHandler,
         OnSharedPreferenceChangeListener, HotlistObserver, UpgradeObserver {
@@ -74,18 +78,10 @@ public class RelayService extends Service implements RelayConnectionHandler,
     boolean optimize_traffic = false;
     
     String host;
-    String port;
+    int port;
     String pass;
 
-    String stunnelCert;
-    String stunnelPass;
-
-    String sshHost;
-    String sshPass;
-    String sshPort;
-    String sshUser;
-    String sshKeyfile;
-    
+    private int sshLocalPort = 22231;
     
     KeyStore sslKeystore;
     X509Certificate untrustedCert;
@@ -103,7 +99,6 @@ public class RelayService extends Service implements RelayConnectionHandler,
     private Thread reconnector = null;
     private Thread upgrading;
 
-    
 
     @Override
     public IBinder onBind(Intent arg0) {
@@ -219,21 +214,15 @@ public class RelayService extends Service implements RelayConnectionHandler,
     }
 
     public boolean connect() {
+        // Only connect if we aren't already connected
+        if ((relayConnection != null) && (relayConnection.isConnected())) {
+            return false;
+        }
+
         // Load the preferences
         host = prefs.getString("host", null);
         pass = prefs.getString("password", "password");
-        port = prefs.getString("port", "8001");
-
-        stunnelCert = prefs.getString("stunnel_cert", "");
-        stunnelPass = prefs.getString("stunnel_pass", "");
-
-        sshHost = prefs.getString("ssh_host", "");
-        sshUser = prefs.getString("ssh_user", "");
-        sshPass = prefs.getString("ssh_pass", "");
-        sshPort = prefs.getString("ssh_port", "22");
-        sshKeyfile = prefs.getString("ssh_keyfile", "");
-        
-        optimize_traffic = prefs.getBoolean("optimize_traffic", false);
+        port = Integer.parseInt(prefs.getString("port", "8001"));
 
         // If no host defined, signal them to edit their preferences
         if (host == null) {
@@ -254,11 +243,6 @@ public class RelayService extends Service implements RelayConnectionHandler,
             return false;
         }
 
-        // Only connect if we aren't already connected
-        if ((relayConnection != null) && (relayConnection.isConnected())) {
-            return false;
-        }
-
         shutdown = false;
 
         bufferManager = new BufferManager();
@@ -269,28 +253,26 @@ public class RelayService extends Service implements RelayConnectionHandler,
         nickHandler = new NicklistHandler(bufferManager);
         hotlistHandler = new HotlistHandler(bufferManager, hotlistManager);
 
+        optimize_traffic = prefs.getBoolean("optimize_traffic", false);
+
+
+
         hotlistHandler.registerHighlightHandler(this);
 
-        relayConnection = new RelayConnection(host, port, pass);
+
         String connType = prefs.getString("connection_type", "plain");
         if (connType.equals("ssh")) {
-            relayConnection.setSSHHost(sshHost);
-            relayConnection.setSSHUsername(sshUser);
-            relayConnection.setSSHPort(sshPort);
-            relayConnection.setSSHPassword(sshPass);
-            relayConnection.setSSHKeyFile(sshKeyfile);
-            relayConnection.setConnectionType(ConnectionType.SSHTUNNEL);
-        } else if (connType.equals("stunnel")) {
-            relayConnection.setStunnelCert(stunnelCert);
-            relayConnection.setStunnelKey(stunnelPass);
-            relayConnection.setConnectionType(ConnectionType.STUNNEL);
-        } else if (connType.equals("ssl")) {
-            relayConnection.setConnectionType(ConnectionType.SSL);
-            relayConnection.setSSLKeystore(sslKeystore);
-        } else {
-            relayConnection.setConnectionType(ConnectionType.DEFAULT);
-        }
+            CreatePortForward();
+            relayConnection = new RelayConnection("127.0.0.1", sshLocalPort, pass);
 
+        } else if (connType.equals("stunnel")) {
+            CreateStunnel();
+            relayConnection = new RelayConnection(host, port, pass);
+        } else if (connType.equals("ssl")) {
+            relayConnection = new RelayConnection(sslKeystore, host, port, pass);
+        } else {
+            relayConnection = new RelayConnection(host, port, pass);
+        }
         relayConnection.setConnectionHandler(this);
 
         relayConnection.connect();
@@ -300,6 +282,71 @@ public class RelayService extends Service implements RelayConnectionHandler,
     void resetNotification() {
         showNotification(null, getString(R.string.notification_connected_to) + relayConnection.getServer());
     }
+
+    private void CreatePortForward(){
+        String sshKeyFile = prefs.getString("ssh_keyfile", "");
+        String sshHost = prefs.getString("ssh_host", "");
+        String sshUser = prefs.getString("ssh_user", "");
+        String sshPass = prefs.getString("ssh_pass", "");
+        int sshPort = Integer.parseInt(prefs.getString("ssh_port", "22"));
+        try {
+            JSch jsch = new JSch();
+
+            if (sshKeyFile != null && sshKeyFile.length()>0) {
+                jsch.addIdentity(sshKeyFile, sshPass);
+            }
+            Session sshSession = jsch.getSession(sshUser, sshHost, sshPort);
+
+            if (sshKeyFile == null || sshKeyFile.length()==0)
+                sshSession.setPassword(sshPass);
+            sshSession.setConfig("StrictHostKeyChecking", "no");
+            sshSession.connect();
+            sshSession.setPortForwardingL(sshLocalPort, sshHost, port);
+        } catch (JSchException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Connects to the server(via stunnel) in a new thread, so we can interrupt it if we want to
+     * cancel the connection
+     */
+    private void CreateStunnel() {
+            SSLContext context = null;
+            KeyStore keyStore = null;
+            TrustManagerFactory tmf = null;
+            KeyStore keyStoreCA = null;
+            KeyManagerFactory kmf = null;
+            try {
+
+                FileInputStream pkcs12in = new FileInputStream(new File(prefs.getString("stunnel_cert", "")));
+
+                context = SSLContext.getInstance("TLS");
+
+                // Local client certificate and key and server certificate
+                keyStore = KeyStore.getInstance("PKCS12");
+                keyStore.load(pkcs12in, prefs.getString("stunnel_pass", "").toCharArray());
+
+                // Build a TrustManager, that trusts only the server certificate
+                keyStoreCA = KeyStore.getInstance("BKS");
+                keyStoreCA.load(null, null);
+                keyStoreCA.setCertificateEntry("Server", keyStore.getCertificate("Server"));
+                tmf = TrustManagerFactory.getInstance("X509");
+                tmf.init(keyStoreCA);
+
+                // Build a KeyManager for Client auth
+                kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+                kmf.init(keyStore, null);
+                context.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+            } catch (Exception e) {
+                e.printStackTrace();
+                for (RelayConnectionHandler wrch : connectionHandlers) {
+                    wrch.onError(e.getMessage(), e);
+                }
+            }
+    }
+
+
 
     private void showNotification(String tickerText, String content) {
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0, new Intent(this,
@@ -356,7 +403,7 @@ public class RelayService extends Service implements RelayConnectionHandler,
 
     @Override
     public void onConnect() {
-        if (disconnected == true) {
+        if (disconnected) {
             showNotification(getString(R.string.notification_reconnected_to) + relayConnection.getServer(), getString(R.string.notification_connected_to)
                     + relayConnection.getServer());
         } else {
@@ -466,7 +513,7 @@ public class RelayService extends Service implements RelayConnectionHandler,
         } else if (key.equals("password")) {
             pass = prefs.getString("password", "password");
         } else if (key.equals("port")) {
-            port = prefs.getString("port", "8001");
+            port = Integer.parseInt(prefs.getString("port", "8001"));
         } else if (key.equals("optimize_traffic")) {
             optimize_traffic = prefs.getBoolean("optimize_traffic", false);
         }
