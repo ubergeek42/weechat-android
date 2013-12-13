@@ -16,21 +16,23 @@
 
     <TextView
         android:id="@+id/versionID"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
         android:text="Unknown version ID"
+        android:gravity="center"
         android:textAppearance="?android:attr/textAppearanceSmall" />
 
     <TextView
         android:id="@+id/textView3"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_above="@+id/versionID"
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
+        android:gravity="center"
         android:text="Build Identifier(please include in bug reports):"
         android:textAppearance="?android:attr/textAppearanceSmall" />
 
@@ -53,41 +55,26 @@
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
     <TextView
-        android:id="@+id/TextView01"
+        android:id="@+id/textView25"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
         android:layout_below="@+id/textView2"
+        android:layout_centerHorizontal="true"
+        android:text="forked by lithium"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <TextView
+        android:id="@+id/TextView01"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/textView25"
         android:layout_marginTop="30dp"
-        android:text="http://github.com/ubergeek42/weechat-android/"
-        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:gravity="center"
+        android:text="http://github.com/lithium/weechat-android/"
+        android:textAppearance="?android:attr/textAppearanceSmall"
         android:autoLink="web"/>
 
-    <TextView
-        android:id="@+id/TextView02"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_below="@+id/TextView01"
-        android:layout_marginTop="19dp"
-        android:text="Find a bug or have a feature request?"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
 
-    <TextView
-        android:id="@+id/TextView03"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_below="@+id/TextView02"
-        android:text="Create an issue on github or email me: kj@ubergeek42.com"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
-
-    <Button
-        android:id="@+id/btn_clear_certs"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/textView3"
-        android:layout_alignParentLeft="true"
-        android:text="Clear SSL Certificates" />
 
 </RelativeLayout>

@@ -2,7 +2,7 @@
 <resources>
     <string name="app_name">weechat</string>
     <string name="sendButton">Send</string>
-    <string name="app_version">Weechat v0.08-dev</string>
+    <string name="app_version">Weechat v0.9-lithium</string>
     <string name="loading_please_wait">"Retrieving lines from buffer.\nPlease wait."</string>
 
     <string name="menu_wee">WeeMenu</string>
