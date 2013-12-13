@@ -242,6 +242,21 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         }
     }
 
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+        if (viewPager.getCurrentItem()==0 && !tabletMode) {
+            menu.findItem(R.id.menu_nicklist).setVisible(false);
+            menu.findItem(R.id.menu_close).setVisible(false);
+        } else {
+            menu.findItem(R.id.menu_nicklist).setVisible(true);
+            menu.findItem(R.id.menu_close).setVisible(true);
+        }
+        return true;
+    }
+
+
     @Override
     // Handle the options when the user presses the Menu key
     public boolean onOptionsItemSelected(MenuItem item) {
