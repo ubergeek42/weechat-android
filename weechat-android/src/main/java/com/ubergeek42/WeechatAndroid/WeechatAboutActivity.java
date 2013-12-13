@@ -26,7 +26,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class WeechatAboutActivity extends Activity implements OnClickListener {
+public class WeechatAboutActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,15 +35,6 @@ public class WeechatAboutActivity extends Activity implements OnClickListener {
         TextView tv = (TextView) this.findViewById(R.id.versionID);
         tv.setText(com.ubergeek42.WeechatAndroid.BuildConfig.VERSION_BANNER);
         
-        Button clearCerts = (Button)findViewById(R.id.btn_clear_certs);
-        clearCerts.setOnClickListener(this);
-    }
-
-    @Override
-    public void onClick(View arg0) {
-        File keystoreFile = new File(getDir("sslDir", Context.MODE_PRIVATE), "keystore.jks");
-        keystoreFile.delete();
-        Toast.makeText(this, "SSL Certs removed, please restart Weechat-Android", Toast.LENGTH_LONG).show();
     }
 
 }

@@ -118,4 +118,5 @@
     <string name="debug">Debug Settings</string>
     <string name="relay_settings">Weechat Relay Settings</string>
     <string name="about_weechat">About Weechat</string>
+    <string name="clear_ssl_certificates">Clear SSL Certificates</string>
 </resources>

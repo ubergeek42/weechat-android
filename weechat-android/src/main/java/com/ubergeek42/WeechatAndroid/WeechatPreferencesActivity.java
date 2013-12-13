@@ -15,12 +15,17 @@
  ******************************************************************************/
 package com.ubergeek42.WeechatAndroid;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
 import android.preference.EditTextPreference;
 import android.preference.ListPreference;
+import android.preference.Preference;
 import android.preference.PreferenceActivity;
+import android.widget.Toast;
+
+import java.io.File;
 
 public class WeechatPreferencesActivity extends PreferenceActivity implements
         OnSharedPreferenceChangeListener {
@@ -66,6 +71,20 @@ public class WeechatPreferencesActivity extends PreferenceActivity implements
         prefixPref = (ListPreference) getPreferenceScreen().findPreference("prefix_align");
         connectionTypePref = (ListPreference) getPreferenceScreen().findPreference("connection_type");
         setTitle(R.string.preferences);
+
+
+        Preference pref = getPreferenceScreen().findPreference("clear_certificates");
+        if (pref != null) {
+            pref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference preference) {
+                    File keystoreFile = new File(getDir("sslDir", Context.MODE_PRIVATE), "keystore.jks");
+                    keystoreFile.delete();
+                    Toast.makeText(WeechatPreferencesActivity.this, "SSL Certs removed, please restart Weechat-Android", Toast.LENGTH_LONG).show();
+                    return false;
+                }
+            });
+        }
     }
 
     @Override
