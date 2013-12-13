@@ -33,7 +33,7 @@
     <string name="notification_upgrading_details">Weechat is upgrading, please wait for reconnection</string>
     
     <!-- Preferences -->
-    <string name="pref_connection_group">Connection Settings…</string>
+    <string name="pref_connection_group">Connection Settings</string>
     <string name="pref_relay_host">Relay Host</string>
     <string name="pref_relay_port">Relay Port</string>
     <string name="pref_relay_password">Relay Password</string>
@@ -67,7 +67,7 @@
 	    <string name="pref_hide_buffer_titles_summary">Provides a more compact view allowing more buffers to be shown.</string>
 	    <string name="pref_show_buffer_filter">Show buffer filter</string>
 	    <string name="pref_show_buffer_filter_summary">Provides a text box to filter the buffer list by buffer name</string>
-    <string name="pref_lookfeel_group">Look &amp;amp; Feel</string>
+    <string name="pref_lookfeel_group">Look &amp; Feel</string>
 	    <string name="pref_text_size">Text Size</string>
 	    <string name="pref_text_size_summary">Note: you can change this during chat with volume buttons</string>
 	    <string name="pref_chatview_colors">Show colors in chat</string>
@@ -115,4 +115,7 @@
 	    to assist in having this issue resolved, please click Ok to send details about the crash to the developer.
 	    Note: Usernames/passwords will not be sent.</string>
     <string name="crash_dialog_comment_prompt">Any additional comments(or your email if you\'d like a reply):</string>
+    <string name="debug">Debug Settings</string>
+    <string name="relay_settings">Weechat Relay Settings</string>
+    <string name="about_weechat">About Weechat</string>
 </resources>

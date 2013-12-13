@@ -1,37 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:id="@+id/menu_hotlist"
-          android:showAsAction="always"
-          android:icon="@drawable/ic_3_rating_important"
-          android:title="@string/hotlist"/>
+    <item android:id="@+id/menu_connection_state"
+        android:menuCategory="secondary"
+        android:showAsAction="never"
+        android:icon="@drawable/ic_4_collections_cloud"
+        android:title="ConnectionState?"/>
+
+    <item android:id="@+id/menu_close"
+        android:menuCategory="secondary"
+        android:icon="@drawable/ic_1_navigation_cancel"
+        android:showAsAction="never"
+        android:title="@string/close"/>
+
     <item android:id="@+id/menu_nicklist"
           android:icon="@drawable/ic_6_social_group"
           android:title="@string/nicklist_menu"
-          android:showAsAction="always"/>
-    <item android:id="@+id/menu_connection_state"
-          android:menuCategory="secondary"
-          android:showAsAction="never"
-          android:icon="@drawable/ic_4_collections_cloud"
-          android:title="ConnectionState?"/>
-    <item android:id="@+id/menu_preferences"
-          android:menuCategory="secondary"
-          android:icon="@drawable/ic_2_action_settings"
-          android:showAsAction="never"
-          android:title="@string/preferences"/>
-    <item android:id="@+id/menu_close"
-          android:menuCategory="secondary"
-          android:icon="@drawable/ic_1_navigation_cancel"
-          android:showAsAction="never"
-          android:title="@string/close"/>
-    <item android:id="@+id/menu_about"
-          android:menuCategory="secondary"
-          android:icon="@drawable/ic_2_action_about"
-          android:showAsAction="never"
-          android:title="@string/about"/>
-    <item android:id="@+id/menu_quit"
-          android:menuCategory="secondary"
-          android:icon="@drawable/ic_1_navigation_cancel"
-          android:showAsAction="never"
-          android:title="@string/quit"/>
+          android:showAsAction="never"/>
+
+   <item android:id="@+id/menu_preferences"
+        android:menuCategory="secondary"
+        android:icon="@drawable/ic_2_action_settings"
+        android:showAsAction="never"
+        android:title="@string/preferences"/>
 </menu>

@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
-    <PreferenceScreen android:key="connection_group" android:title="@string/pref_connection_group">
+    <PreferenceCategory android:key="connection_category" android:title="@string/pref_connection_group">
+
+    <PreferenceScreen android:key="connection_group" android:title="@string/relay_settings">
 		<EditTextPreference android:key="host" android:title="@string/pref_relay_host" android:singleLine="true" />
 	    <EditTextPreference android:key="port" android:title="@string/pref_relay_port" android:numeric="integer" />
 	    <EditTextPreference android:key="password" android:title="@string/pref_relay_password" android:password="true" android:singleLine="true" />
@@ -25,6 +27,7 @@
 			</PreferenceScreen>
 		</PreferenceCategory>
     </PreferenceScreen>
+    </PreferenceCategory>
 
     <PreferenceCategory android:key="bufferlist_group" android:title="@string/pref_bufferlist_group">
 		<CheckBoxPreference android:key="sort_buffers" android:summary="@string/pref_sort_buffers_summary" android:title="@string/pref_sort_buffers" android:defaultValue="true" />
@@ -48,21 +51,30 @@
 		<CheckBoxPreference android:key="sendbtn_show" android:title="@string/pref_sendbtn_show" android:summary="@string/pref_sendbtn_show_summary" android:defaultValue="true" />
 		<CheckBoxPreference android:key="notification_sounds" android:title="@string/pref_notification_sounds" android:summary="@string/pref_notification_sounds_summary" android:defaultValue="false" />
 	</PreferenceCategory>
-    
-    <!-- ACRA Preferences -->
-	<PreferenceScreen android:key="debug_prefs" android:title="@string/pref_debug_screen">
-	    <CheckBoxPreference android:key="acra.disable"
-		    android:title="@string/pref_disable_acra"
-		    android:summaryOn="@string/pref_acra_disabled"
-		    android:summaryOff="@string/pref_acra_enabled"
-		    android:defaultValue="false"/>
-	    <EditTextPreference android:key="acra.user.email"
-		    android:title="@string/pref_acra_user_email"
-		    android:summary="@string/pref_acra_user_email_summary"/>
-	    <CheckBoxPreference android:key="acra.alwaysaccept"
-		    android:title="@string/pref_acra_alwaysaccept"
-		    android:summaryOn="@string/pref_acra_alwaysaccept_enabled"
-		    android:summaryOff="@string/pref_acra_alwaysaccept_disabled"
-		    android:defaultValue="false"/>
-    </PreferenceScreen>
+
+    <PreferenceCategory android:key="debug_category" android:title="@string/debug">
+        <!-- ACRA Preferences -->
+        <PreferenceScreen android:key="debug_prefs" android:title="@string/pref_debug_screen">
+            <CheckBoxPreference android:key="acra.disable"
+                android:title="@string/pref_disable_acra"
+                android:summaryOn="@string/pref_acra_disabled"
+                android:summaryOff="@string/pref_acra_enabled"
+                android:defaultValue="false"/>
+            <EditTextPreference android:key="acra.user.email"
+                android:title="@string/pref_acra_user_email"
+                android:summary="@string/pref_acra_user_email_summary"/>
+            <CheckBoxPreference android:key="acra.alwaysaccept"
+                android:title="@string/pref_acra_alwaysaccept"
+                android:summaryOn="@string/pref_acra_alwaysaccept_enabled"
+                android:summaryOff="@string/pref_acra_alwaysaccept_disabled"
+                android:defaultValue="false"/>
+        </PreferenceScreen>
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/about">
+        <PreferenceScreen android:title="@string/about_weechat">
+            <intent android:action=".activities.WeechatAboutActivity"/>
+       </PreferenceScreen>
+    </PreferenceCategory>
+
 </PreferenceScreen>

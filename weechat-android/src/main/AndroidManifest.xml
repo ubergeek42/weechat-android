@@ -24,7 +24,12 @@
         </activity>
         <activity android:name=".SSLCertActivity"></activity>
         <activity android:name=".WeechatPreferencesActivity"></activity>
-        <activity android:name=".WeechatAboutActivity"></activity>
+        <activity android:name=".WeechatAboutActivity">
+            <intent-filter>
+                <action android:name=".activities.WeechatAboutActivity"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </activity>
         
         <!-- For crash reporting -->
         <activity android:name="org.acra.CrashReportDialog"
