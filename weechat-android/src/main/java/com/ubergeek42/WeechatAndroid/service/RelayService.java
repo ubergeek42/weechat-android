@@ -65,6 +65,7 @@ import com.ubergeek42.weechat.relay.messagehandler.UpgradeObserver;
 public class RelayService extends Service implements RelayConnectionHandler,
         OnSharedPreferenceChangeListener, HotlistObserver, UpgradeObserver {
 
+    private static final boolean USE_ONGOING_NOTIFICATIONS = false;
     private static Logger logger = LoggerFactory.getLogger(RelayService.class);
     
     private static final String KEYSTORE_PASSWORD = "weechat-android";
@@ -302,17 +303,21 @@ public class RelayService extends Service implements RelayConnectionHandler,
     }
 
     private void showNotification(String tickerText, String content) {
-        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, new Intent(this,
-                WeechatActivity.class), PendingIntent.FLAG_CANCEL_CURRENT);
+        if (USE_ONGOING_NOTIFICATIONS) {
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
-        builder.setContentIntent(contentIntent).setSmallIcon(R.drawable.ic_notification)
-                .setContentTitle(getString(R.string.app_version)).setContentText(content)
-                .setTicker(tickerText).setWhen(System.currentTimeMillis());
+            PendingIntent contentIntent = PendingIntent.getActivity(this, 0, new Intent(this,
+                    WeechatActivity.class), PendingIntent.FLAG_CANCEL_CURRENT);
 
-        Notification notification = builder.getNotification();
-        notification.flags |= Notification.FLAG_ONGOING_EVENT | Notification.FLAG_NO_CLEAR;
-        notificationManger.notify(NOTIFICATION_ID, notification);
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
+            builder.setContentIntent(contentIntent).setSmallIcon(R.drawable.ic_notification)
+                    .setContentTitle(getString(R.string.app_version)).setContentText(content)
+                    .setTicker(tickerText).setWhen(System.currentTimeMillis());
+
+            Notification notification = builder.getNotification();
+            notification.flags |= Notification.FLAG_ONGOING_EVENT | Notification.FLAG_NO_CLEAR;
+            notificationManger.notify(NOTIFICATION_ID, notification);
+
+        }
     }
 
     // Spawn a thread that attempts to reconnect us.
@@ -485,7 +490,11 @@ public class RelayService extends Service implements RelayConnectionHandler,
                 .setTicker(message).setWhen(System.currentTimeMillis());
 
         Notification notification = builder.getNotification();
-        notification.flags |= Notification.FLAG_ONGOING_EVENT | Notification.FLAG_NO_CLEAR;
+        if (USE_ONGOING_NOTIFICATIONS) {
+            notification.flags |= Notification.FLAG_ONGOING_EVENT | Notification.FLAG_NO_CLEAR;
+        } else {
+            notification.flags |= Notification.FLAG_AUTO_CANCEL;
+        }
 
         // Default notification sound if enabled
         if (prefs.getBoolean("notification_sounds", false)) {
