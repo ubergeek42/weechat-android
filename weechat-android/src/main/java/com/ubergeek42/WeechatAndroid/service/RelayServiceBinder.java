@@ -15,14 +15,14 @@
  ******************************************************************************/
 package com.ubergeek42.WeechatAndroid.service;
 
+import java.security.cert.X509Certificate;
+
 import android.os.Binder;
 
 import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
 import com.ubergeek42.weechat.relay.messagehandler.BufferManager;
 import com.ubergeek42.weechat.relay.messagehandler.HotlistManager;
-
-import java.security.cert.X509Certificate;
 
 /**
  * Provides functions that are available to clients of the relay service
@@ -37,12 +37,28 @@ public class RelayServiceBinder extends Binder {
         this.relayService = relayService;
     }
 
+    public void setHost(String host) {
+        relayService.host = host;
+    }
+
+    public void setPort(String port) {
+        relayService.port = port;
+    }
+
+    public void setPassword(String password) {
+        relayService.pass = password;
+    }
+
     public String getHost() {
         return relayService.host;
     }
 
-    public int getPort() {
+    public String getPort() {
         return relayService.port;
+    }
+
+    public String getPassword() {
+        return relayService.pass;
     }
 
     public boolean isConnected() {
@@ -107,7 +123,6 @@ public class RelayServiceBinder extends Binder {
      * Send a message to the server(expected to be formatted appropriately)
      * 
      * @param string
-     *          -formatted message to send
      */
     public void sendMessage(String string) {
         relayService.relayConnection.sendMsg(string);
