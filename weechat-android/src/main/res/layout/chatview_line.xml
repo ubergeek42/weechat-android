@@ -26,7 +26,11 @@
         android:text="prefix"
         android:textSize="10sp"
         android:typeface="monospace"
-        android:paddingRight="10px" />
+        android:paddingRight="10px"
+        android:maxLength="13"
+        android:singleLine="true"
+        android:ellipsize="end"
+        />
 
     <TextView
         android:id="@+id/chatline_message"
