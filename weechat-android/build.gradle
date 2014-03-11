@@ -3,7 +3,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.7.+'
+        classpath 'com.android.tools.build:gradle:0.9.0'
     }
 }
 apply plugin: 'android'
@@ -29,7 +29,7 @@ dependencies {
 
 android {
     compileSdkVersion 17
-    buildToolsVersion "17"
+    buildToolsVersion "19.0.3"
 
     defaultConfig {
         versionCode 12
@@ -56,12 +56,12 @@ android {
 
         // These are the real releases in the Google Play Store
         release {
-            buildConfigField "String", "VERSION_BANNER", "\""+versionBanner()+"\""
-	        signingConfig signingConfigs.releasePlayConfig
+            buildConfigField "String", "VERSION_BANNER", "\"" + versionBanner() + "\""
+            signingConfig signingConfigs.releasePlayConfig
         }
 
         // Development releases in the Google Play Store(signed same as the cloudbees site)
-	devrelease.initWith(buildTypes.release)
+        devrelease.initWith(buildTypes.release)
         devrelease {
             packageNameSuffix ".dev"
             versionNameSuffix "-dev"
