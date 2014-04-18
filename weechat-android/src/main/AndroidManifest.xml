@@ -27,12 +27,5 @@
         <activity android:name=".SSLCertActivity"></activity>
         <activity android:name=".WeechatPreferencesActivity"></activity>
         <activity android:name=".WeechatAboutActivity"></activity>
-        
-        <!-- For crash reporting -->
-        <activity android:name="org.acra.CrashReportDialog"
-        android:theme="@android:style/Theme.Dialog"
-        android:launchMode="singleInstance"
-        android:excludeFromRecents="true"
-        android:finishOnTaskLaunch="true" />
     </application>
 </manifest>
