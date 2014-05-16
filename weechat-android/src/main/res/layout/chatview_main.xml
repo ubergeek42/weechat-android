@@ -33,12 +33,14 @@
 
         <EditText
             android:id="@+id/chatview_input"
-            android:layout_width="0dip"
+            android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_weight=".75"
-            android:inputType="text|textAutoCorrect"
-            android:singleLine="true"
-            android:imeOptions="actionSend">
+            android:inputType="textShortMessage|textMultiLine|textAutoCorrect"
+            android:imeOptions="actionSend"
+            android:maxLines="4"
+            android:minLines="1"
+            android:scrollbars="vertical">
 
             <requestFocus />
         </EditText>
