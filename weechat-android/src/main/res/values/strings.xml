@@ -67,7 +67,7 @@
 	    <string name="pref_hide_buffer_titles_summary">Provides a more compact view allowing more buffers to be shown.</string>
 	    <string name="pref_show_buffer_filter">Show buffer filter</string>
 	    <string name="pref_show_buffer_filter_summary">Provides a text box to filter the buffer list by buffer name</string>
-    <string name="pref_lookfeel_group">Look &amp;amp; Feel</string>
+    <string name="pref_lookfeel_group">Look &amp; Feel</string>
 	    <string name="pref_text_size">Text Size</string>
 	    <string name="pref_text_size_summary">Note: you can change this during chat with volume buttons</string>
 	    <string name="pref_chatview_colors">Show colors in chat</string>
