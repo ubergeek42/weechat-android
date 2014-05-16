@@ -474,6 +474,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     }
     @Override
     public void onPageSelected(int position) {
+        invalidateOptionsMenu();
     }
 
     
