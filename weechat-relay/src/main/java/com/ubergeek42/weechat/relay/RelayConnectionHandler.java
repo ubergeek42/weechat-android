@@ -24,10 +24,21 @@ package com.ubergeek42.weechat.relay;
  */
 public interface RelayConnectionHandler {
     /**
+     * Called when a connection to the server is in progress.
+     */
+    public void onConnecting();
+
+    /**
      * Called when a connection to the server is established, and commands can begin to be
-     * sent/received.
+     * sent/received.  This occurs before authentication is finished.
      */
     public void onConnect();
+
+    /**
+     * Called when a connection to the server is established, and login was successfully completed.
+     * General purpose commands can be used now.
+     */
+    public void onAuthenticated();
 
     /**
      * Called when the server is disconnected, either through error, timeout, or because the client
@@ -42,4 +53,7 @@ public interface RelayConnectionHandler {
      * @param extraInfo - Additional data related to the error message(SSL Fingerprints, etc)
      */
     public void onError(String err, Object extraInfo);
+
+
+
 }

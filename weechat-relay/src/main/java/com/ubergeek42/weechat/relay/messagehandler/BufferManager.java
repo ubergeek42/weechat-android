@@ -105,8 +105,15 @@ public class BufferManager implements RelayMessageHandler {
      * @param bo
      *            - The observer to receive notifications
      */
-    public void onChanged(BufferManagerObserver bo) {
+    public void setOnChangedHandler(BufferManagerObserver bo) {
         this.onChangeObserver = bo;
+    }
+
+    /**
+     * Clears the buffer change observer
+     */
+    public void clearOnChangedHandler() {
+        this.onChangeObserver = null;
     }
 
     /**

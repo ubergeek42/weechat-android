@@ -27,6 +27,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnKeyListener;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -147,6 +148,9 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
+            if (buffer != null) {
+                buffer.removeObserver(BufferFragment.this);
+            }
             mBound = false;
             rsb = null;
         }
@@ -158,10 +162,6 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
         View empty = getActivity().getLayoutInflater().inflate(R.layout.buffer_not_loaded, vg,
                 false);
         vg.addView(empty);
-    }
-
-    public void updateTitle() {
-        getActivity().setTitle(fragmentTitle);
     }
 
     private void initView() {
@@ -215,7 +215,6 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
             tsb.append(title);
         }
         fragmentTitle = tsb.toString();
-        updateTitle();
 
         buffer.addObserver(this);
 
@@ -230,6 +229,17 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
         sendButton.setOnClickListener(this);
         tabButton.setOnClickListener(this);
         inputBox.setOnKeyListener(this);
+        inputBox.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
+                boolean handled = false;
+                if (actionId == EditorInfo.IME_ACTION_SEND) {
+                    getActivity().runOnUiThread(messageSender);
+                    handled = true;
+                }
+                return handled;
+            }
+        });
     }
 
     @Override

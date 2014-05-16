@@ -69,7 +69,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     private TitlePageIndicator titleIndicator;
     
     private boolean tabletMode = false;
-    
+
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -127,8 +127,8 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
 
         // TODO Read preferences from background, its IO, 31ms strict mode!
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
-        
-        updateTitle();
+
+        setTitle(getString(R.string.app_version));
         
         // TODO: make notification load the right buffer
         // TODO: add preference to hide the TitlePageIndicator
@@ -176,6 +176,11 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
 
 
     @Override
+    public void onConnecting() {
+
+    }
+
+    @Override
     public void onConnect() {
         if (rsb != null && rsb.isConnected()) {
             // Create and update the hotlist
@@ -189,6 +194,11 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
                 updateMenuContext(actionBarMenu);
             }
         });
+    }
+
+    @Override
+    public void onAuthenticated() {
+
     }
 
     @Override
@@ -365,21 +375,6 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
                 titleIndicator.setCurrentItem(viewPager.getCurrentItem());
             }
         });
-        updateTitle();
-    }
-
-    private void updateTitle() {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                BufferFragment bf = mainPagerAdapter.getCurrentBuffer();
-                if (bf!=null) {
-                    bf.updateTitle();
-                } else {
-                    setTitle(getString(R.string.app_version));
-                }
-            }
-        });
     }
 
     /**
@@ -464,7 +459,6 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     }
     @Override
     public void onPageSelected(int position) {
-        updateTitle();
     }
 
     

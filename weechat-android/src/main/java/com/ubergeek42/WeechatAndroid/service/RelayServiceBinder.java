@@ -42,7 +42,7 @@ public class RelayServiceBinder extends Binder {
     }
 
     public void setPort(String port) {
-        relayService.port = port;
+        relayService.port = Integer.parseInt(port);
     }
 
     public void setPassword(String password) {
@@ -54,7 +54,7 @@ public class RelayServiceBinder extends Binder {
     }
 
     public String getPort() {
-        return relayService.port;
+        return relayService.port+"";
     }
 
     public String getPassword() {
@@ -169,7 +169,7 @@ public class RelayServiceBinder extends Binder {
         return relayService.untrustedCert;
     }
     public void acceptCertificate() {
-        relayService.trustCertificate();
+        relayService.certmanager.trustCertificate(relayService.untrustedCert);
     }
     public void rejectCertificate() {
         relayService.untrustedCert = null;

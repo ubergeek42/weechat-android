@@ -52,9 +52,13 @@ import com.ubergeek42.WeechatAndroid.WeechatPreferencesActivity;
 import com.ubergeek42.WeechatAndroid.notifications.HotlistHandler;
 import com.ubergeek42.WeechatAndroid.notifications.HotlistObserver;
 import com.ubergeek42.weechat.relay.RelayConnection;
-import com.ubergeek42.weechat.relay.RelayConnection.ConnectionType;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
 import com.ubergeek42.weechat.relay.RelayMessageHandler;
+import com.ubergeek42.weechat.relay.connection.IConnection;
+import com.ubergeek42.weechat.relay.connection.PlainConnection;
+import com.ubergeek42.weechat.relay.connection.SSHConnection;
+import com.ubergeek42.weechat.relay.connection.SSLConnection;
+import com.ubergeek42.weechat.relay.connection.StunnelConnection;
 import com.ubergeek42.weechat.relay.messagehandler.BufferManager;
 import com.ubergeek42.weechat.relay.messagehandler.HotlistManager;
 import com.ubergeek42.weechat.relay.messagehandler.LineHandler;
@@ -66,15 +70,14 @@ public class RelayService extends Service implements RelayConnectionHandler,
         OnSharedPreferenceChangeListener, HotlistObserver, UpgradeObserver {
 
     private static Logger logger = LoggerFactory.getLogger(RelayService.class);
-    
-    private static final String KEYSTORE_PASSWORD = "weechat-android";
+
     private static final int NOTIFICATION_ID = 42;
     private NotificationManager notificationManger;
 
     boolean optimize_traffic = false;
     
     String host;
-    String port;
+    int port;
     String pass;
 
     String stunnelCert;
@@ -85,10 +88,6 @@ public class RelayService extends Service implements RelayConnectionHandler,
     String sshPort;
     String sshUser;
     String sshKeyfile;
-    
-    
-    KeyStore sslKeystore;
-    X509Certificate untrustedCert;
 
     RelayConnection relayConnection;
     BufferManager bufferManager;
@@ -103,7 +102,8 @@ public class RelayService extends Service implements RelayConnectionHandler,
     private Thread reconnector = null;
     private Thread upgrading;
 
-    
+    SSLHandler certmanager;
+    X509Certificate untrustedCert;
 
     @Override
     public IBinder onBind(Intent arg0) {
@@ -118,88 +118,26 @@ public class RelayService extends Service implements RelayConnectionHandler,
         prefs.registerOnSharedPreferenceChangeListener(this);
 
         notificationManger = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        showNotification(null, "Tap to connect");
+        //showNotification(null, "Tap to connect");
+
+
+
+        startForeground(NOTIFICATION_ID, buildNotification(null,"Tap to connect", null));
 
         disconnected = false;
 
-        loadKeystore();
-        
+        // Prepare for dealing with SSL certs
+        certmanager = new SSLHandler(new File(getDir("sslDir", Context.MODE_PRIVATE), "keystore.jks"));
         
         if (prefs.getBoolean("autoconnect", false)) {
             connect();
         }
     }
     
-    // Load our keystore for storing SSL certificates
-    private void loadKeystore() {
-        boolean createKeystore = false;
-        
-        // Get the ssl keystore
-        File keystoreFile = new File(getDir("sslDir", Context.MODE_PRIVATE), "keystore.jks");
-
-        try {
-            sslKeystore = KeyStore.getInstance("BKS");
-            sslKeystore.load(new FileInputStream(keystoreFile), KEYSTORE_PASSWORD.toCharArray());
-        } catch (KeyStoreException e) {
-            e.printStackTrace();
-        } catch (NoSuchAlgorithmException e) {
-            // Should never happen
-            e.printStackTrace();
-        } catch (CertificateException e) {
-            // Ideally never happens
-            e.printStackTrace();
-        } catch (FileNotFoundException e) {
-            logger.debug("Keystore not found, creating...");
-            createKeystore = true;
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        
-        if (createKeystore) {
-            createKeystore();
-        }
-    }
-    private void createKeystore() {
-        try {
-            sslKeystore.load(null,null);
-            TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-            tmf.init((KeyStore)null);
-            // Copy current certs into our keystore so we can use it...
-            // TODO: don't actually do this...
-            X509TrustManager xtm = (X509TrustManager) tmf.getTrustManagers()[0]; 
-            for (X509Certificate cert : xtm.getAcceptedIssuers()) { 
-                sslKeystore.setCertificateEntry(cert.getSubjectDN().getName(), cert); 
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        saveKeystore();
-    }
-    
-    private void saveKeystore() {
-        File keystoreFile = new File(getDir("sslDir", Context.MODE_PRIVATE), "keystore.jks");
-        try {
-            sslKeystore.store(new FileOutputStream(keystoreFile), KEYSTORE_PASSWORD.toCharArray());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-    void trustCertificate() {
-        if (untrustedCert!=null) {
-            try {
-                KeyStore.TrustedCertificateEntry x = new KeyStore.TrustedCertificateEntry(untrustedCert);
-                sslKeystore.setEntry(host, x, null);
-            } catch (KeyStoreException e) {
-                e.printStackTrace();
-            }
-            saveKeystore();
-        }
-    }
 
     @Override
     public void onDestroy() {
+        logger.debug("relayservice destroyed");
         notificationManger.cancel(NOTIFICATION_ID);
         super.onDestroy();
 
@@ -215,14 +153,14 @@ public class RelayService extends Service implements RelayConnectionHandler,
             // connect();
             // }
         }
-        return super.onStartCommand(intent, flags, startId);
+        return START_STICKY;
     }
 
     public boolean connect() {
         // Load the preferences
         host = prefs.getString("host", null);
         pass = prefs.getString("password", "password");
-        port = prefs.getString("port", "8001");
+        port = Integer.parseInt(prefs.getString("port", "8001"));
 
         stunnelCert = prefs.getString("stunnel_cert", "");
         stunnelPass = prefs.getString("stunnel_pass", "");
@@ -241,16 +179,9 @@ public class RelayService extends Service implements RelayConnectionHandler,
             PendingIntent contentIntent = PendingIntent.getActivity(this, 0, i,
                     PendingIntent.FLAG_CANCEL_CURRENT);
 
-            NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
-            builder.setContentIntent(contentIntent).setSmallIcon(R.drawable.ic_notification)
-                    .setContentTitle(getString(R.string.app_version))
-                    .setContentText(getString(R.string.notification_update_settings))
-                    .setTicker(getString(R.string.notification_update_settings_details))
-                    .setWhen(System.currentTimeMillis());
-
-            Notification notification = builder.getNotification();
-            notification.flags |= Notification.FLAG_ONGOING_EVENT | Notification.FLAG_NO_CLEAR;
-            notificationManger.notify(NOTIFICATION_ID, notification);
+            showNotification(getString(R.string.notification_update_settings_details),
+                             getString(R.string.notification_update_settings),
+                             contentIntent);
             return false;
         }
 
@@ -271,48 +202,61 @@ public class RelayService extends Service implements RelayConnectionHandler,
 
         hotlistHandler.registerHighlightHandler(this);
 
-        relayConnection = new RelayConnection(host, port, pass);
+        IConnection conn;
         String connType = prefs.getString("connection_type", "plain");
         if (connType.equals("ssh")) {
-            relayConnection.setSSHHost(sshHost);
-            relayConnection.setSSHUsername(sshUser);
-            relayConnection.setSSHPort(sshPort);
-            relayConnection.setSSHPassword(sshPass);
-            relayConnection.setSSHKeyFile(sshKeyfile);
-            relayConnection.setConnectionType(ConnectionType.SSHTUNNEL);
+            SSHConnection tmp = new SSHConnection(host, port);
+            tmp.setSSHHost(sshHost);
+            tmp.setSSHUsername(sshUser);
+            tmp.setSSHKeyFile(sshKeyfile);
+            tmp.setSSHPassword(sshPass);
+            conn = tmp;
         } else if (connType.equals("stunnel")) {
-            relayConnection.setStunnelCert(stunnelCert);
-            relayConnection.setStunnelKey(stunnelPass);
-            relayConnection.setConnectionType(ConnectionType.STUNNEL);
+            StunnelConnection tmp = new StunnelConnection(host, port);
+            tmp.setStunnelCert(stunnelCert);
+            tmp.setStunnelKey(stunnelPass);
+            conn = tmp;
         } else if (connType.equals("ssl")) {
-            relayConnection.setConnectionType(ConnectionType.SSL);
-            relayConnection.setSSLKeystore(sslKeystore);
+            SSLConnection tmp = new SSLConnection(host, port);
+            tmp.setSSLKeystore(certmanager.sslKeystore);
+            conn = tmp;
         } else {
-            relayConnection.setConnectionType(ConnectionType.DEFAULT);
+            PlainConnection pc = new PlainConnection(host, port);
+            conn = pc;
         }
 
-        relayConnection.setConnectionHandler(this);
+        relayConnection = new RelayConnection(conn, pass);
+        conn.addConnectionHandler(this);
 
         relayConnection.connect();
         return true;
     }
 
     void resetNotification() {
-        showNotification(null, getString(R.string.notification_connected_to) + relayConnection.getServer());
+        showNotification(null, getString(R.string.notification_connected_to) + host);
     }
 
-    private void showNotification(String tickerText, String content) {
-        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, new Intent(this,
-                WeechatActivity.class), PendingIntent.FLAG_CANCEL_CURRENT);
+    private Notification buildNotification(String tickerText, String content, PendingIntent intent) {
+        PendingIntent contentIntent;
+        if (intent == null) {
+            contentIntent = PendingIntent.getActivity(this, 0, new Intent(this, WeechatActivity.class), PendingIntent.FLAG_CANCEL_CURRENT);
+        } else {
+            contentIntent = intent;
+        }
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
         builder.setContentIntent(contentIntent).setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(getString(R.string.app_version)).setContentText(content)
                 .setTicker(tickerText).setWhen(System.currentTimeMillis());
 
-        Notification notification = builder.getNotification();
-        notification.flags |= Notification.FLAG_ONGOING_EVENT | Notification.FLAG_NO_CLEAR;
-        notificationManger.notify(NOTIFICATION_ID, notification);
+        return builder.getNotification();
+    }
+
+    private void showNotification(String tickerText, String content, PendingIntent intent) {
+        notificationManger.notify(NOTIFICATION_ID, buildNotification(tickerText, content, intent));
+    }
+    private void showNotification(String tickerText, String content) {
+        notificationManger.notify(NOTIFICATION_ID, buildNotification(tickerText, content, null));
     }
 
     // Spawn a thread that attempts to reconnect us.
@@ -355,12 +299,21 @@ public class RelayService extends Service implements RelayConnectionHandler,
     }
 
     @Override
+    public void onConnecting() {
+
+    }
+
+    @Override
     public void onConnect() {
+
+    }
+
+    @Override
+    public void onAuthenticated() {
         if (disconnected == true) {
-            showNotification(getString(R.string.notification_reconnected_to) + relayConnection.getServer(), getString(R.string.notification_connected_to)
-                    + relayConnection.getServer());
+            showNotification(getString(R.string.notification_reconnected_to) + host, getString(R.string.notification_connected_to) + host);
         } else {
-            String tmp = getString(R.string.notification_connected_to) + relayConnection.getServer();
+            String tmp = getString(R.string.notification_connected_to) + host;
             showNotification(tmp,tmp);
         }
         disconnected = false;
@@ -439,6 +392,7 @@ public class RelayService extends Service implements RelayConnectionHandler,
 
     @Override
     public void onError(String error, Object extraData) {
+        logger.error("relayservice - error!");
         for (RelayConnectionHandler rch : connectionHandlers) {
             rch.onError(error, extraData);
         }
@@ -466,7 +420,7 @@ public class RelayService extends Service implements RelayConnectionHandler,
         } else if (key.equals("password")) {
             pass = prefs.getString("password", "password");
         } else if (key.equals("port")) {
-            port = prefs.getString("port", "8001");
+            port = Integer.parseInt(prefs.getString("port", "8001"));
         } else if (key.equals("optimize_traffic")) {
             optimize_traffic = prefs.getBoolean("optimize_traffic", false);
         }

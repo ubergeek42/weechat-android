@@ -53,7 +53,6 @@ public class HotlistListAdapter extends BaseAdapter implements ListAdapter, Hotl
 
     @Override
     public void onHotlistChanged() {
-        Log.d(TAG, "onHotlistChanged()");
         parentActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {

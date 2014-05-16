@@ -22,6 +22,8 @@ import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.BufferLine;
 import com.ubergeek42.weechat.relay.RelayConnection;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
+import com.ubergeek42.weechat.relay.connection.PlainConnection;
+import com.ubergeek42.weechat.relay.connection.SSLConnection;
 import com.ubergeek42.weechat.relay.messagehandler.BufferManager;
 import com.ubergeek42.weechat.relay.messagehandler.BufferManagerObserver;
 import com.ubergeek42.weechat.relay.messagehandler.LineHandler;
@@ -36,52 +38,66 @@ public class RelayExample implements BufferManagerObserver, RelayConnectionHandl
 
 	private void demo() throws IOException {
 		String server = "127.0.0.1";
-		String port = "8001";
+		int port = 9001;
 		String password = "testpassword";
 		
 		System.out.format("Attempting connection to %s:%s with password %s\n", server, port, password);
-		relay = new RelayConnection(server, port, password);
-		relay.setConnectionHandler(this);
+
+        //PlainConnection conn = new PlainConnection(server, port);
+        SSLConnection conn = new SSLConnection(server, port);
+
+		relay = new RelayConnection(conn,password);
+		conn.addConnectionHandler(this);
 		relay.connect();
 	}
 
-	@Override
+    @Override
+    public void onConnecting() {
+
+    }
+
+    @Override
 	public void onConnect() {
-		relay.addHandler("test", new TestMessageHandler());
-		relay.sendMsg("test","test","");
-		
+
+	}
+
+    @Override
+    public void onAuthenticated() {
+        relay.addHandler("test", new TestMessageHandler());
+        relay.sendMsg("test","test","");
+
 		/*
 		// Hook a handler for testing hdata functionality
-		bufferManager.onChanged(this);
+		bufferManager.setOnChangedHandler(this);
 		relay.addHandler("listbuffers", bufferManager);
 		relay.sendMsg("listbuffers","hdata","buffer:gui_buffers(*) number,full_name,short_name,type,title,nicklist,local_variables");
 		// Please view the source for BufferManager to see how this was handled
 		// BufferManager also handles a bunch of other special event messages(such as _buffer_opened, or _buffer_closed)
-		
+
 		// Hook for testing nicklists
 		NicklistHandler nickHandler = new NicklistHandler(bufferManager);
 		relay.addHandler("_nicklist", nickHandler);
 		relay.addHandler("nicklist", nickHandler);
 		relay.sendMsg("nicklist", "nicklist", "irc.freenode.#weechat");
-		
-		
+
+
 		// Hook a handler for testing the infolist functionality
 		relay.addHandler("infolist-test", new InfolistMessageHandler());
 		relay.sendMsg("infolist-test","infolist", "buffer");
-		
+
 		// Hook a handler for testing the "info" functionality
 		relay.addHandler("info-test", new InfoMessageHandler());
 		relay.sendMsg("info-test", "info", "version");
-		
+
 		// Hook new lines that are received
 		LineHandler msgHandler = new LineHandler(bufferManager);
 		relay.addHandler("_buffer_line_added", msgHandler);
 		// Request a list of last 5 lines from all buffers
 		relay.addHandler("listlines_reverse", msgHandler);
 		relay.sendMsg("listlines_reverse","hdata", "buffer:gui_buffers(*)/own_lines/last_line(-5)/data date,displayed,prefix,message");
-		
-		
-		
+
+
+
 		// Prints the messages for the first buffer
 		Buffer b = bufferManager.getBuffer(0);
 		LinkedList<BufferLine> lines = b.getLines();
@@ -89,23 +105,21 @@ public class RelayExample implements BufferManagerObserver, RelayConnectionHandl
 			System.out.println(bl.toString());
 		}
 		//*/
-		
-		
-		
-		// Sleep a bit to get our messages, then quit
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-				
-		System.out.println("Cleaning up");
-		relay.disconnect();
-		
-		
-	}
 
-	@Override
+
+
+        // Sleep a bit to get our messages, then quit
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("Cleaning up");
+        relay.disconnect();
+    }
+
+    @Override
 	public void onDisconnect() {
 		System.out.println("Disconnected...");
 	}

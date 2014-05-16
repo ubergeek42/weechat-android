@@ -125,7 +125,6 @@ public class HotlistManager implements RelayMessageHandler {
                 // Try to get the array tags (added in 0.3.9-dev: 2012-07-23)
                 RelayObject tags = hde.getItem("tags_array");
                 if (tags != null && tags.getType() == WType.ARR) {
-                    logger.debug("tags_array:" + tags.toString());
                     Array tagsArray = tags.asArray();
                     int tagCount = tagsArray.length();
                     if (tagCount == 0) {
@@ -170,7 +169,6 @@ public class HotlistManager implements RelayMessageHandler {
             hotlist.clear();
 
             for (int i = 0; i < infolist.size(); i++) {
-                System.out.format("  Item %d\n", i);
                 HashMap<String, RelayObject> item = infolist.getItem(i);
 
                 HotlistItem hli = new HotlistItem(item);
@@ -192,8 +190,6 @@ public class HotlistManager implements RelayMessageHandler {
                         bufferManager.buffersChanged();
                     }
                 }
-                logger.debug("Added hotlistitem " + hli);
-
             }
 
         }

@@ -5,17 +5,17 @@
 	    <EditTextPreference android:key="port" android:title="@string/pref_relay_port" android:numeric="integer" />
 	    <EditTextPreference android:key="password" android:title="@string/pref_relay_password" android:password="true" android:singleLine="true" />
     	<CheckBoxPreference android:key="autoconnect" android:summary="@string/pref_autoconnect_summary" android:title="@string/pref_autoconnect" />
-    	
+
     	<CheckBoxPreference android:key="optimize_traffic" android:layout="@layout/preference_long_summary" android:summary="@string/pref_optimize_traffic_summary" android:title="@string/pref_optimize_traffic" android:defaultValue="false"/>
-    	
+
 		<PreferenceCategory android:key="adv_connection_group" android:title="@string/pref_adv_connection_group">
 			<ListPreference android:key="connection_type" android:title="@string/pref_connection_type" android:defaultValue="plain" android:entries="@array/pref_connection_type_names" android:entryValues="@array/settings_connection_type_values"/>
-			
+
 			<PreferenceScreen android:key="stunnel_group" android:title="@string/pref_stunnel_group">
 				<EditTextPreference android:key="stunnel_cert" android:title="@string/pref_stunnel_cert" android:singleLine="true" android:summary="/sdcard/weechat/client.p12" />
 				<EditTextPreference android:key="stunnel_pass" android:title="@string/pref_stunnel_pass" android:password="true" android:singleLine="true" />
 			</PreferenceScreen>
-    
+
 			<PreferenceScreen android:key="ssh_group" android:title="@string/pref_ssh_group">
 				<EditTextPreference android:key="ssh_host" android:title="@string/pref_ssh_host" android:singleLine="true" />
 				<EditTextPreference android:key="ssh_user" android:title="@string/pref_ssh_user" android:singleLine="true" />
@@ -48,21 +48,4 @@
 		<CheckBoxPreference android:key="sendbtn_show" android:title="@string/pref_sendbtn_show" android:summary="@string/pref_sendbtn_show_summary" android:defaultValue="true" />
 		<CheckBoxPreference android:key="notification_sounds" android:title="@string/pref_notification_sounds" android:summary="@string/pref_notification_sounds_summary" android:defaultValue="false" />
 	</PreferenceCategory>
-    
-    <!-- ACRA Preferences -->
-	<PreferenceScreen android:key="debug_prefs" android:title="@string/pref_debug_screen">
-	    <CheckBoxPreference android:key="acra.disable"
-		    android:title="@string/pref_disable_acra"
-		    android:summaryOn="@string/pref_acra_disabled"
-		    android:summaryOff="@string/pref_acra_enabled"
-		    android:defaultValue="false"/>
-	    <EditTextPreference android:key="acra.user.email"
-		    android:title="@string/pref_acra_user_email"
-		    android:summary="@string/pref_acra_user_email_summary"/>
-	    <CheckBoxPreference android:key="acra.alwaysaccept"
-		    android:title="@string/pref_acra_alwaysaccept"
-		    android:summaryOn="@string/pref_acra_alwaysaccept_enabled"
-		    android:summaryOff="@string/pref_acra_alwaysaccept_disabled"
-		    android:defaultValue="false"/>
-    </PreferenceScreen>
 </PreferenceScreen>

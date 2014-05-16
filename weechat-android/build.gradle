@@ -50,7 +50,6 @@ android {
             packageNameSuffix ".debug"
             versionNameSuffix "-debug"
             buildConfigField "String", "VERSION_BANNER", "\""+versionBanner()+"\""
-            buildConfigField "String", "BLAH", "\"true\""
         }
 
         // These are the real releases in the Google Play Store
@@ -64,6 +63,7 @@ android {
         devrelease {
             packageNameSuffix ".dev"
             versionNameSuffix "-dev"
+            buildConfigField "String", "VERSION_BANNER", "\""+versionBanner()+"\""
 	        signingConfig signingConfigs.devPlayConfig
         }
     }

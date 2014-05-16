@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+    <PreferenceScreen android:key="connection_group" android:title="@string/pref_connection_group">
+		<EditTextPreference android:key="host" android:title="@string/pref_relay_host" android:singleLine="true" />
+	    <EditTextPreference android:key="port" android:title="@string/pref_relay_port" android:numeric="integer" />
+	    <EditTextPreference android:key="password" android:title="@string/pref_relay_password" android:password="true" android:singleLine="true" />
+    	<CheckBoxPreference android:key="autoconnect" android:summary="@string/pref_autoconnect_summary" android:title="@string/pref_autoconnect" />
+    	
+    	<CheckBoxPreference android:key="optimize_traffic" android:layout="@layout/preference_long_summary" android:summary="@string/pref_optimize_traffic_summary" android:title="@string/pref_optimize_traffic" android:defaultValue="false"/>
+    	
+		<PreferenceCategory android:key="adv_connection_group" android:title="@string/pref_adv_connection_group">
+			<ListPreference android:key="connection_type" android:title="@string/pref_connection_type" android:defaultValue="plain" android:entries="@array/pref_connection_type_names" android:entryValues="@array/settings_connection_type_values"/>
+			
+			<PreferenceScreen android:key="stunnel_group" android:title="@string/pref_stunnel_group">
+				<EditTextPreference android:key="stunnel_cert" android:title="@string/pref_stunnel_cert" android:singleLine="true" android:summary="/sdcard/weechat/client.p12" />
+				<EditTextPreference android:key="stunnel_pass" android:title="@string/pref_stunnel_pass" android:password="true" android:singleLine="true" />
+			</PreferenceScreen>
+    
+			<PreferenceScreen android:key="ssh_group" android:title="@string/pref_ssh_group">
+				<EditTextPreference android:key="ssh_host" android:title="@string/pref_ssh_host" android:singleLine="true" />
+				<EditTextPreference android:key="ssh_user" android:title="@string/pref_ssh_user" android:singleLine="true" />
+				<EditTextPreference android:key="ssh_port" android:title="@string/pref_ssh_port" android:numeric="integer" />
+				<EditTextPreference android:key="ssh_pass" android:title="@string/pref_ssh_pass" android:password="true" android:singleLine="true"/>
+				<EditTextPreference android:key="ssh_keyfile" android:title="@string/pref_ssh_keyfile" android:singleLine="true" android:summary="/sdcard/weechat/sshkey.id_rsa" />
+			</PreferenceScreen>
+		</PreferenceCategory>
+    </PreferenceScreen>
+</PreferenceScreen>

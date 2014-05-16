@@ -151,6 +151,8 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
+            bufferManager.clearOnChangedHandler();
+
             mBound = false;
             rsb = null;
         }
@@ -169,13 +171,18 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     }
 
     @Override
+    public void onConnecting() {
+
+    }
+
+    @Override
     public void onConnect() {
         if (rsb != null && rsb.isConnected()) {
             // Create and update the buffer list when we connect to the service
             m_adapter = new BufferListAdapter(getActivity());
             bufferManager = rsb.getBufferManager();
             m_adapter.setBuffers(bufferManager.getBuffers());
-            bufferManager.onChanged(BufferListFragment.this);
+            bufferManager.setOnChangedHandler(BufferListFragment.this);
 
             m_adapter.enableSorting(prefs.getBoolean("sort_buffers", true));
             getActivity().runOnUiThread(new Runnable() {
@@ -190,15 +197,23 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     }
 
     @Override
+    public void onAuthenticated() {
+
+    }
+
+    @Override
     public void onDisconnect() {
         // Create and update the buffer list when we connect to the service
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                setListAdapter(new ArrayAdapter<String>(getActivity(), R.layout.tips_list_item,
-                        message));
-            }
-        });
+        Activity act = getActivity();
+        if (act != null) {
+            act.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    setListAdapter(new ArrayAdapter<String>(getActivity(), R.layout.tips_list_item,
+                            message));
+                }
+            });
+        }
     }
     @Override
     public void onError(String err, Object extraInfo) {

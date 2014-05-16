@@ -36,8 +36,9 @@
             android:layout_width="0dip"
             android:layout_height="wrap_content"
             android:layout_weight=".75"
-            android:inputType="text"
-            android:singleLine="true" >
+            android:inputType="text|textAutoCorrect"
+            android:singleLine="true"
+            android:imeOptions="actionSend">
 
             <requestFocus />
         </EditText>
