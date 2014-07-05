@@ -16,6 +16,8 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.text.ClipboardManager;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.text.style.URLSpan;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
@@ -45,7 +47,7 @@ import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.BufferObserver;
 
 public class BufferFragment extends SherlockFragment implements BufferObserver, OnKeyListener,
-        OnSharedPreferenceChangeListener, OnClickListener {
+        OnSharedPreferenceChangeListener, OnClickListener, TextWatcher {
 
     private static Logger logger = LoggerFactory.getLogger(BufferFragment.class);
 
@@ -228,7 +230,8 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
 
         sendButton.setOnClickListener(this);
         tabButton.setOnClickListener(this);
-        inputBox.setOnKeyListener(this);
+        inputBox.setOnKeyListener(this);        // listen for hardware keyboard
+        inputBox.addTextChangedListener(this);  // listen for software keyboard through watching input box text
         inputBox.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
@@ -272,6 +275,7 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
     }
 
     // User pressed some key in the input box, check for what it was
+    // NOTE: this only applies to HARDWARE buttons
     @Override
     public boolean onKey(View v, int keycode, KeyEvent event) {
 
@@ -387,7 +391,6 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
                 return;
             }
 
-            tabCompletingInProgress = true;
             tabCompleteMatches = matches;
             tabCompleteCurrentIndex = 0;
             tabCompleteWordStart = start;
@@ -405,8 +408,7 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
                 + tabCompleteMatches.get(tabCompleteCurrentIndex).length(); // end of new tabcomplete word
         inputBox.setText(newtext);
         inputBox.setSelection(tabCompleteWordEnd);
-
-        return;
+        tabCompletingInProgress = true; // it is necessary to set this AFTER altering text since altering text in editbox sets this to false
     }
 
     // Sends the message if necessary
@@ -477,4 +479,13 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
             i++;
         }
     }
+
+    @Override
+    public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+    @Override
+    public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+    @Override
+    public void afterTextChanged(Editable s) {tabCompletingInProgress = false;}
 }
