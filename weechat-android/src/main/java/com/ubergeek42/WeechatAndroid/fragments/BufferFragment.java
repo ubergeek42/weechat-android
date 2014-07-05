@@ -391,6 +391,8 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
         // get new nickname, adjust the end of the word marker
         // and finally set the text and place the cursor on the end of completed word
         String nick = tabCompleteMatches.get(tabCompleteIndex);
+        if (tabCompleteWordStart == 0)
+            nick += ": ";
         inputBox.setText(txt.substring(0, tabCompleteWordStart) + nick + txt.substring(tabCompleteWordEnd));
         tabCompleteWordEnd = tabCompleteWordStart + nick.length();
         inputBox.setSelection(tabCompleteWordEnd);
