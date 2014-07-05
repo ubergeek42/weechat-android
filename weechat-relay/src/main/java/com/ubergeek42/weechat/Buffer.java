@@ -50,18 +50,29 @@ public class Buffer {
     private ArrayList<BufferObserver> observers = new ArrayList<BufferObserver>();
     private LinkedList<BufferLine> lines = new LinkedList<BufferLine>();
     private ArrayList<NickItem> nicks = new ArrayList<NickItem>();
+    private ArrayList<String> snicks = new ArrayList<String>();
     private Hashtable local_vars;
 
     public void addLine(BufferLine m) {
         addLineNoNotify(m);
         numUnread++;
         notifyObservers();
+
+        // this is a line that comes with a nickname (at all times?)
+        // change snicks accordingly, placing last used nickname first
+        String nick = "";
+        for (String tag : m.getTags())
+            if (tag.startsWith("nick_")) {
+                nick = tag.substring(5);
+                break;
+            }
+        if (!nick.equals("")) {
+            snicks.remove(nick);
+            snicks.add(0, nick);
+        }
     }
 
-    /*
-     * Add Line to the Buffer, but don't increase the unread count. Examples for such lines are
-     * joins/quits
-     */
+    // Add Line to the Buffer, but don't increase the unread count. Examples for such lines are joins/quits
     public void addLineNoUnread(BufferLine m) {
         addLineNoNotify(m);
         notifyObservers();
@@ -234,6 +245,7 @@ public class Buffer {
     public void addNick(NickItem ni) {
         synchronized (nicklock) {
             nicks.add(ni);
+            snicks.add(ni.toString());
         }
         for (BufferObserver o : observers) {
             o.onNicklistChanged();
@@ -243,6 +255,7 @@ public class Buffer {
     public void removeNick(NickItem ni) {
     	synchronized (nicklock) {
     		nicks.remove(ni);
+            snicks.remove(ni.toString());
     	}
     	for (BufferObserver o : observers) {
     		o.onNicklistChanged();
@@ -258,17 +271,10 @@ public class Buffer {
     	}
     }
 
-    public String[] getNicks() {
-        int i = 0;
-        String ret[] = new String[0];
-        synchronized (nicklock) {
-            ret = new String[nicks.size()];
-            for (NickItem ni : nicks) {
-                ret[i] = ni.toString();
-                i++;
-            }
-        }
-        return ret;
+    // return ArrayList containing strings with nicknames
+    // it is supposed to be in last spoke-places first order
+    public ArrayList<String> getNicks() {
+        return snicks;
     }
 
     public int getNumNicks() {
@@ -282,6 +288,7 @@ public class Buffer {
     public void clearNicklist() {
         synchronized (nicklock) {
             nicks.clear();
+            snicks.clear();
         }
     }
 

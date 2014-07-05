@@ -327,7 +327,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
             // TODO: check for null(should be covered by previous if statement
             BufferFragment currentBuffer = mainPagerAdapter.getCurrentBuffer();
             if (currentBuffer == null) break;
-            String[] nicks = currentBuffer.getNicklist();
+            ArrayList<String> nicks = currentBuffer.getNicklist();
             if (nicks == null) {
                 break;
             }
@@ -335,7 +335,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
             NickListAdapter nicklistAdapter = new NickListAdapter(WeechatActivity.this, nicks);
 
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle(getString(R.string.nicklist_menu) + " (" + nicks.length + ")");
+            builder.setTitle(getString(R.string.nicklist_menu) + " (" + nicks.size() + ")");
             builder.setAdapter(nicklistAdapter, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialogInterface, int position) {

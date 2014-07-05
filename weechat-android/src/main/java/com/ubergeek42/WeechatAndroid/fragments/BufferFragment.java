@@ -1,6 +1,6 @@
 package com.ubergeek42.WeechatAndroid.fragments;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Vector;
 
 import org.slf4j.Logger;
@@ -65,13 +65,13 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
 
     private ChatLinesAdapter chatlineAdapter;
 
-    private String[] nickCache;
+    private ArrayList<String> nickCache;
     private final String[] message = { "Please wait, loading content." };
 
     // Settings for keeping track of the current tab completion stuff
     private boolean tabCompletingInProgress;
     private Vector<String> tabCompleteMatches;
-    private int tabCompleteCurrentIndex;
+    private int tabCompleteIndex;
     private int tabCompleteWordStart;
     private int tabCompleteWordEnd;
 
@@ -264,14 +264,13 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
         }
     }
 
-    public String[] getNicklist() {
+    public ArrayList<String> getNicklist() {
         return nickCache;
     }
 
     @Override
     public void onNicklistChanged() {
         nickCache = buffer.getNicks();
-        Arrays.sort(nickCache);
     }
 
     // User pressed some key in the input box, check for what it was
@@ -353,62 +352,51 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
     
     // Attempts to perform tab completion on the current input
     private void tryTabComplete() {
-        if (!enableTabComplete || nickCache == null) {
+        if (!enableTabComplete || nickCache == null)
             return;
-        }
-
-        // Get the current input text
         String txt = inputBox.getText().toString();
-        if (tabCompletingInProgress == false) {
-            int currentPos = inputBox.getSelectionStart() - 1;
-            int start = currentPos;
-            if (currentPos < 0) {
+        if (!tabCompletingInProgress) {
+            // find the end of the word to be completed
+            // blabla nick|
+            tabCompleteWordEnd = inputBox.getSelectionStart();
+            if (tabCompleteWordEnd <= 0)
                 return;
-            }
 
-            // Search backwards to find the beginning of the word
-            while (start > 0 && txt.charAt(start) != ' ') {
-                start--;
-            }
-            if (start > 0) {
-                start++;
-            }
-            String prefix = txt.substring(start, currentPos + 1).toLowerCase();
-            if (prefix.length() < 1) {
-                // No tab completion
+            // find the beginning of the word to be completed
+            // blabla |nick
+            tabCompleteWordStart = tabCompleteWordEnd;
+            while (tabCompleteWordStart > 0 && txt.charAt(tabCompleteWordStart - 1) != ' ')
+                tabCompleteWordStart--;
+
+            // get the word to be completed, lowercase
+            if (tabCompleteWordStart == tabCompleteWordEnd)
                 return;
-            }
+            String prefix = txt.substring(tabCompleteWordStart, tabCompleteWordEnd).toLowerCase();
 
-            Vector<String> matches = new Vector<String>();
-            for (String possible : nickCache) {
-
-                String temp = possible.toLowerCase().trim();
-                if (temp.startsWith(prefix)) {
-                    matches.add(possible.trim());
-                }
-            }
-            if (matches.size() == 0) {
+            // compute a list of possible matches
+            // nickCache is ordered in last used comes first way, so we just pick whatever comes first
+            // if computed list is empty, abort
+            tabCompleteMatches = new Vector<String>();
+            for (String possible : nickCache)
+                if (possible.toLowerCase().trim().startsWith(prefix))
+                    tabCompleteMatches.add(possible.trim());
+            if (tabCompleteMatches.size() == 0)
                 return;
-            }
 
-            tabCompleteMatches = matches;
-            tabCompleteCurrentIndex = 0;
-            tabCompleteWordStart = start;
-            tabCompleteWordEnd = currentPos;
+            tabCompleteIndex = 0;
         } else {
-            tabCompleteWordEnd = tabCompleteWordStart
-                    + tabCompleteMatches.get(tabCompleteCurrentIndex).length() - 1; // end of current tab complete word
-            tabCompleteCurrentIndex = (tabCompleteCurrentIndex + 1) % tabCompleteMatches.size(); // next match
+            tabCompleteIndex = (tabCompleteIndex + 1) % tabCompleteMatches.size();
         }
 
-        String newtext = txt.substring(0, tabCompleteWordStart)
-                + tabCompleteMatches.get(tabCompleteCurrentIndex)
-                + txt.substring(tabCompleteWordEnd + 1);
-        tabCompleteWordEnd = tabCompleteWordStart
-                + tabCompleteMatches.get(tabCompleteCurrentIndex).length(); // end of new tabcomplete word
-        inputBox.setText(newtext);
+        // get new nickname, adjust the end of the word marker
+        // and finally set the text and place the cursor on the end of completed word
+        String nick = tabCompleteMatches.get(tabCompleteIndex);
+        inputBox.setText(txt.substring(0, tabCompleteWordStart) + nick + txt.substring(tabCompleteWordEnd));
+        tabCompleteWordEnd = tabCompleteWordStart + nick.length();
         inputBox.setSelection(tabCompleteWordEnd);
-        tabCompletingInProgress = true; // it is necessary to set this AFTER altering text since altering text in editbox sets this to false
+        // altering text in the input box sets tabCompletingInProgress to false,
+        // so this is the last thing we do in this function:
+        tabCompletingInProgress = true;
     }
 
     // Sends the message if necessary
