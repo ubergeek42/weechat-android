@@ -5,7 +5,6 @@
     android:layout_height="wrap_content"
     android:gravity="center_vertical"
     android:padding="6dip" >
-     >
 
     <TextView
         android:id="@+id/bufferlist_shortname"
