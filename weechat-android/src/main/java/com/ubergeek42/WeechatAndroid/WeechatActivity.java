@@ -39,6 +39,7 @@ import android.preference.PreferenceManager;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.util.Log;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
 
 import com.actionbarsherlock.app.SherlockFragmentActivity;
@@ -326,7 +327,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
             // TODO: check for null(should be covered by previous if statement
             BufferFragment currentBuffer = mainPagerAdapter.getCurrentBuffer();
             if (currentBuffer == null) break;
-            String[] nicks = currentBuffer.getNicklist();
+            ArrayList<String> nicks = currentBuffer.getNicklist();
             if (nicks == null) {
                 break;
             }
@@ -334,7 +335,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
             NickListAdapter nicklistAdapter = new NickListAdapter(WeechatActivity.this, nicks);
 
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle(getString(R.string.nicklist_menu) + " (" + nicks.length + ")");
+            builder.setTitle(getString(R.string.nicklist_menu) + " (" + nicks.size() + ")");
             builder.setAdapter(nicklistAdapter, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialogInterface, int position) {
@@ -481,6 +482,9 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     @Override
     public void onPageSelected(int position) {
         invalidateOptionsMenu();
+        final InputMethodManager imm = (InputMethodManager)getSystemService(
+                Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(viewPager.getWindowToken(), 0);
     }
 
     

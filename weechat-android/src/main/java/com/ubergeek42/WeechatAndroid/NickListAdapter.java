@@ -18,11 +18,11 @@ public class NickListAdapter extends BaseAdapter implements BufferObserver {
     WeechatActivity parentActivity;
     LayoutInflater inflater;
     private static final String TAG = "NickListAdapter";
-    private String[] nickCache;
+    private ArrayList<String> nickCache;
     private Buffer buffer;
     protected ArrayList<NickItem> nicklist = new ArrayList<NickItem>();
 
-    public NickListAdapter(WeechatActivity parentActivity, String[] nickCache) {
+    public NickListAdapter(WeechatActivity parentActivity, ArrayList<String> nickCache) {
         this.parentActivity = parentActivity;
         this.inflater = LayoutInflater.from(parentActivity);
         this.nickCache = nickCache;
@@ -30,7 +30,7 @@ public class NickListAdapter extends BaseAdapter implements BufferObserver {
 
     @Override
     public String getItem(int position) {
-        return nickCache[position];
+        return nickCache.get(position);
     }
 
     @Override
@@ -57,7 +57,7 @@ public class NickListAdapter extends BaseAdapter implements BufferObserver {
             holder = (ViewHolder) convertView.getTag();
         }
 
-        holder.nick.setText(nickCache[position]);
+        holder.nick.setText(nickCache.get(position));
 
         return convertView;
     }
@@ -81,7 +81,6 @@ public class NickListAdapter extends BaseAdapter implements BufferObserver {
             @Override
             public void run() {
                 nickCache = buffer.getNicks();
-                Arrays.sort(nickCache);
                 notifyDataSetChanged();
             }
         });
@@ -92,6 +91,6 @@ public class NickListAdapter extends BaseAdapter implements BufferObserver {
         if (nickCache == null) {
             return 0;
         }
-        return nickCache.length;
+        return nickCache.size();
     }
 }
