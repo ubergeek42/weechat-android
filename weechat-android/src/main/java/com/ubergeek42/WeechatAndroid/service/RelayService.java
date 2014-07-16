@@ -207,7 +207,7 @@ public class RelayService extends Service implements RelayConnectionHandler,
         if (connType.equals("ssh")) {
             SSHConnection tmp = new SSHConnection(host, port);
             tmp.setSSHHost(sshHost);
-            tmp.setSSHHost(sshPort);
+            tmp.setSSHPort(sshPort);
             tmp.setSSHUsername(sshUser);
             tmp.setSSHKeyFile(sshKeyfile);
             tmp.setSSHPassword(sshPass);
