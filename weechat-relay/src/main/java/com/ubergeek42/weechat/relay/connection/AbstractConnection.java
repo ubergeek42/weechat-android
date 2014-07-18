@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.ArrayList;
 
 public abstract class AbstractConnection implements IConnection {
@@ -67,10 +68,10 @@ public abstract class AbstractConnection implements IConnection {
                 //connector.stop(); // FIXME: deprecated, should probably find a better way to do this
             }
 
-            // If we're connected, tell weechat we're going away
-            if (connected) {
+            // Try telling weechat we're going away
+            try {
                 out_stream.write("quit\n".getBytes());
-            }
+            } catch (SocketException e) {}
 
             // Close all of our streams/sockets
             connected = false;

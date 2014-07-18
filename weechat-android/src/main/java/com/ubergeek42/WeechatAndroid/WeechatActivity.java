@@ -36,9 +36,9 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
-import android.util.Log;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
 
@@ -47,79 +47,57 @@ import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragment;
-import com.ubergeek42.WeechatAndroid.fragments.BufferListFragment;
-import com.ubergeek42.WeechatAndroid.fragments.BufferListFragment.OnBufferSelectedListener;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
 import com.ubergeek42.WeechatAndroid.service.RelayServiceBinder;
 import com.ubergeek42.weechat.HotlistItem;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
 import com.viewpagerindicator.TitlePageIndicator;
 
-public class WeechatActivity extends SherlockFragmentActivity implements RelayConnectionHandler, OnBufferSelectedListener, OnPageChangeListener {
+public class WeechatActivity extends SherlockFragmentActivity implements RelayConnectionHandler, OnPageChangeListener {
     
-    private static Logger logger = LoggerFactory.getLogger(WeechatActivity.class);
-    private boolean mBound = false;
-    private RelayServiceBinder rsb;
-    
-    private SocketToggleConnection taskToggleConnection;
-    private HotlistListAdapter hotlistListAdapter;
+    private static Logger logger = LoggerFactory.getLogger("WA");
+    final private static boolean DEBUG = BuildConfig.DEBUG && true;
+
+    private RelayServiceBinder relay;
+    private SocketToggleConnection connection_state_toggler;
     private Menu actionBarMenu;
-    
     private ViewPager viewPager;
     private MainPagerAdapter mainPagerAdapter;
     private TitlePageIndicator titleIndicator;
+    private InputMethodManager imm;
     
-    private boolean tabletMode = false;
+    private boolean phone_mode;
 
-    /** Called when the activity is first created. */
+    /////////////////////////
+    ///////////////////////// lifecycle
+    /////////////////////////
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        if (DEBUG) logger.debug("onCreate(...)");
         super.onCreate(savedInstanceState);
 
-        // Start the background service(if necessary)
+        // Start the background service (if necessary)
         startService(new Intent(this, RelayService.class));
 
         // Load the layout
         setContentView(R.layout.main_screen);
-        
-        BufferListFragment blf = (BufferListFragment) getSupportFragmentManager().findFragmentById(R.id.bufferlist_fragment);
-        if (blf != null) {
-            tabletMode = true;
-        }
-        
+
+        FragmentManager manager = getSupportFragmentManager();
         viewPager = (ViewPager) findViewById(R.id.main_viewpager);
-        
-        // Restore state if we have it
-        if (savedInstanceState != null) {
-            // Load the previous BufferListFragment, and the Buffers that were open 
-            int numpages = savedInstanceState.getInt("numpages");
-            
-            ArrayList<BufferFragment> frags = new ArrayList<BufferFragment>();
-            for(int i=0;i<numpages;i++) {
-                
-                if (!tabletMode && i==0) {
-                    blf = (BufferListFragment)getSupportFragmentManager().getFragment(savedInstanceState, "saved_frag_0");
-                    continue;
-                }
-                
-                BufferFragment f = (BufferFragment)getSupportFragmentManager().getFragment(savedInstanceState, "saved_frag_"+i);
-                if (f!=null)
-                    frags.add(f);
-            }
-            mainPagerAdapter = new MainPagerAdapter(getSupportFragmentManager(), viewPager);
-            mainPagerAdapter.setBuffers(frags);
-            
-            if (!tabletMode)
-                mainPagerAdapter.setBufferList(blf);
-        } else {
-            mainPagerAdapter = new MainPagerAdapter(getSupportFragmentManager(), viewPager);
-            
-            if (!tabletMode)
-                mainPagerAdapter.setBufferList(new BufferListFragment());
-        }
+        mainPagerAdapter = new MainPagerAdapter(manager, viewPager);
+
+        // run adapter.firstTimeInit() only the first time application is started
+        // adapter.restoreState() will take care of setting phone_mode other times
+        phone_mode = manager.findFragmentById(R.id.bufferlist_fragment) == null;
+        if (savedInstanceState == null)
+            mainPagerAdapter.firstTimeInit(phone_mode);
+
         viewPager.setAdapter(mainPagerAdapter);
-        viewPager.setOffscreenPageLimit(10);// TODO: probably a crash if more than 10 buffers, and screen rotates
-        // see: http://stackoverflow.com/questions/11296411/fragmentstatepageradapter-illegalstateexception-myfragment-is-not-currently
+
+        // pages to each side of the on-screen page that should stay in memory
+        // the other pages are NOT destroyed, merely their views are
+        viewPager.setOffscreenPageLimit(15);
 
         titleIndicator = (TitlePageIndicator) findViewById(R.id.main_titleviewpager);
         titleIndicator.setViewPager(viewPager);
@@ -129,89 +107,106 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         // TODO Read preferences from background, its IO, 31ms strict mode!
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
 
+        imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+
         setTitle(getString(R.string.app_version));
         getSupportActionBar().setHomeButtonEnabled(true);
         
         // TODO: make notification load the right buffer
         // TODO: add preference to hide the TitlePageIndicator
     }
+
+    /** bind to relay service, which results in:
+     **   onServiceConnected, which
+     **     adds relay connection handler */
+    // TODO: android.app.ServiceConnectionLeaked: Activity com.ubergeek42.WeechatAndroid.WeechatActivity
+    // TODO: has leaked ServiceConnection com.ubergeek42.WeechatAndroid.WeechatActivity$1@424fdbe8 that was originally bound here
+    // TODO: apparently onStop() sometimes doesn't get to unbind the service as onServiceConnected is called too late
+    // TODO: then onStart() is trying to bind again and boom! anyways, this doesn't do any visible harm...
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putInt("numpages", mainPagerAdapter.getCount());
-        for(int i=0;i<mainPagerAdapter.getCount(); i++) {
-            if (mainPagerAdapter.getItem(i)!=null) {
-                getSupportFragmentManager().putFragment(outState,"saved_frag_"+i, mainPagerAdapter.getItem(i));
-            }
-        }
-    }
-    
-    @Override
-    public void onBufferSelected(String buffer) {
-       // Does the buffer actually exist?(If not, return)
-        if (mBound && rsb.getBufferByName(buffer) == null) {
-            return;
-        }
-        mainPagerAdapter.openBuffer(buffer);
-        titleIndicator.setCurrentItem(viewPager.getCurrentItem());
+    protected void onStart() {
+        if (DEBUG) logger.debug("onStart()");
+        super.onStart();
+        bindService(new Intent(this, RelayService.class), service_connection, Context.BIND_AUTO_CREATE);
     }
 
-
+    /** if connection toggler is active, cancel it,
+     ** remove relay connection handler and
+     ** unbind from service */
     @Override
-    protected void onNewIntent(Intent intent) {
-        super.onNewIntent(intent);
-        setIntent(intent);
-        logger.debug("onNewIntent called");
-        handleIntent();
-    }
-    // when we get an intent, do something with it
-    private void handleIntent() {
-        // Load a buffer if necessary
-        Bundle extras = getIntent().getExtras();
-        if (extras != null) {
-            // Load the given buffer
-            onBufferSelected(extras.getString("buffer"));
-        } else {
-            // Load the bufferlist
+    protected void onStop() {
+        if (DEBUG) logger.debug("onStop()");
+        super.onStop();
+
+        if (connection_state_toggler != null
+                && connection_state_toggler.getStatus() != AsyncTask.Status.FINISHED) {
+            connection_state_toggler.cancel(true);
+            connection_state_toggler = null;
+        }
+
+        if (relay != null) {
+            relay.removeRelayConnectionHandler(WeechatActivity.this);
+            unbindService(service_connection);
+            relay = null;
         }
     }
 
-
     @Override
-    public void onConnecting() {
-
+    protected void onDestroy() {
+        if (DEBUG) logger.debug("onDestroy()");
+        super.onDestroy();
     }
 
+    /////////////////////////
+    ///////////////////////// relay connection
+    /////////////////////////
+
+    ServiceConnection service_connection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            if (DEBUG) logger.debug("onServiceConnected()");
+            relay = (RelayServiceBinder) service;
+            relay.addRelayConnectionHandler(WeechatActivity.this);
+
+            // Check if the service is already connected to the weechat relay, and if so load it up
+            if (relay.isConnection(RelayService.CONNECTED))
+                WeechatActivity.this.onConnect();
+
+            // open the buffer we want
+            handleIntent();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            if (DEBUG) logger.debug("onServiceDisconnected()");
+            relay = null;
+        }
+    };
+
+    /////////////////////////
+    ///////////////////////// RelayConnectionHandler
+    /////////////////////////
+
+    @Override
+    public void onConnecting() {}
+
+    /** creates and updates the hotlist
+     ** makes sure we update action bar menu after a connection change */
     @Override
     public void onConnect() {
-        if (rsb != null && rsb.isConnected()) {
-            // Create and update the hotlist
-            hotlistListAdapter = new HotlistListAdapter(WeechatActivity.this, rsb);
-        }
-
-        // Make sure we update action bar menu after a connection change.
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                updateMenuContext(actionBarMenu);
-            }
-        });
+        makeMenuReflectConnectionStatus();
     }
 
     @Override
-    public void onAuthenticated() {
+    public void onAuthenticated() {}
 
-    }
+    @Override
+    public void onBuffersListed() {}
 
+    /** makes sure we update action bar menu after a connection change */
     @Override
     public void onDisconnect() {
-        // Make sure we update action bar menu after a connection change.
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                updateMenuContext(actionBarMenu);
-            }
-        });
+        makeMenuReflectConnectionStatus();
     }
 
     @Override
@@ -222,9 +217,9 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
                 Toast.makeText(getBaseContext(), "Error: " + errorMsg, Toast.LENGTH_LONG).show();
             }
         });        
-        Log.d("WeechatActivity", "onError:" + errorMsg);
+        if (DEBUG) logger.error("onError({}, ...)", errorMsg);
         if (extraData instanceof SSLException) {
-            Log.d("[WeechatActivity]", "Cause: "+ ((SSLException)extraData).getCause());
+            if (DEBUG) logger.error("...cause: {}", ((SSLException) extraData).getCause());
             SSLException e1 = (SSLException) extraData;
             if (e1.getCause() instanceof CertificateException) {
                 CertificateException e2 = (CertificateException) e1.getCause();
@@ -234,7 +229,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
                     CertPath cp = e.getCertPath();                    
                     
                     // Set the cert error on the backend
-                    rsb.setCertificateError((X509Certificate) cp.getCertificates().get(0));
+                    relay.setCertificateError((X509Certificate) cp.getCertificates().get(0));
                     
                     // Start an activity to attempt establishing trust
                     Intent i = new Intent(this, SSLCertActivity.class);
@@ -244,173 +239,19 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         }
     }
 
+    /////////////////////////
+    ///////////////////////// connection toggler
+    /////////////////////////
 
-    @Override
-    public boolean onPrepareOptionsMenu(Menu menu) {
-        super.onPrepareOptionsMenu(menu);
-        if (viewPager.getCurrentItem()==0 && !tabletMode) {
-            menu.findItem(R.id.menu_nicklist).setVisible(false);
-            menu.findItem(R.id.menu_close).setVisible(false);
-        } else {
-            menu.findItem(R.id.menu_nicklist).setVisible(true);
-            menu.findItem(R.id.menu_close).setVisible(true);
-        }
-        return true;
-    }
-
-
-    @Override
-    // Handle the options when the user presses the Menu key
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-        case android.R.id.home: {
-            if (viewPager != null)
-                viewPager.setCurrentItem(0);
-            break;
-        }
-        case R.id.menu_connection_state: {
-            if (rsb != null) {
-                taskToggleConnection = new SocketToggleConnection();
-                taskToggleConnection.execute();
-            }
-            break;
-        }
-        case R.id.menu_preferences: {
-            Intent i = new Intent(this, WeechatPreferencesActivity.class);
-            startActivity(i);
-            break;
-        }
-        case R.id.menu_close: {
-            if (viewPager.getCurrentItem()>0 || tabletMode) {
-                BufferFragment currentBuffer = mainPagerAdapter.getCurrentBuffer();
-                if (currentBuffer != null) {
-                    currentBuffer.onBufferClosed();
-                }
-            }
-            break;
-        }
-        case R.id.menu_about: {
-            Intent i = new Intent(this, WeechatAboutActivity.class);
-            startActivity(i);
-            break;
-        }
-        case R.id.menu_quit: {
-            if (rsb != null) {
-                rsb.shutdown();
-            }
-            unbindService(mConnection);
-            mBound = false;
-            stopService(new Intent(this, RelayService.class));
-            finish();
-            break;
-        }
-        case R.id.menu_hotlist: {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle(R.string.hotlist);
-            builder.setAdapter(hotlistListAdapter, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int position) {
-                    HotlistItem hotlistItem = hotlistListAdapter.getItem(position);
-                    String name = hotlistItem.getFullName();
-                    onBufferSelected(name);
-                }
-            });
-            builder.create().show();
-            break;
-        }
-        case R.id.menu_nicklist: {
-            // No nicklist if they aren't looking at a buffer
-            if (viewPager.getCurrentItem()==0 && !tabletMode) {
-                break;
-            }
-
-            // TODO: check for null(should be covered by previous if statement
-            BufferFragment currentBuffer = mainPagerAdapter.getCurrentBuffer();
-            if (currentBuffer == null) break;
-            ArrayList<String> nicks = currentBuffer.getNicklist();
-            if (nicks == null) {
-                break;
-            }
-
-            NickListAdapter nicklistAdapter = new NickListAdapter(WeechatActivity.this, nicks);
-
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle(getString(R.string.nicklist_menu) + " (" + nicks.size() + ")");
-            builder.setAdapter(nicklistAdapter, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int position) {
-                    // TODO define something to happen here
-                }
-            });
-            builder.create().show();
-            break;
-        }
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-
-
-    /**
-     * Replacement method for onPrepareOptionsMenu due to rsb might be null on the event of clicking
-     * the menu button.
-     * 
-     * Hence our activity stores the menu references in onCreateOptionsMenu and we can update menu
-     * items underway from events like onConnect.
-     * 
-     * @param menu
-     *            actionBarMenu to update context on
-     */
-    public void updateMenuContext(Menu menu) {
-        if (menu == null) {
-            return;
-        }
-
-        // Swap the text from connect to disconnect depending on connection status
-        MenuItem connectionStatus = menu.findItem(R.id.menu_connection_state);
-        if (rsb != null && rsb.isConnected()) {
-            connectionStatus.setTitle(R.string.disconnect);
-        } else {
-            connectionStatus.setTitle(R.string.connect);
-        }
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater menuInflater = getSupportMenuInflater();
-        menuInflater.inflate(R.menu.menu_actionbar, menu);
-
-        updateMenuContext(menu);
-
-        // Can safely hold on to this according to docs
-        // http://developer.android.com/reference/android/app/Activity.html#onCreateOptionsMenu(android.view.Menu)
-        actionBarMenu = menu;
-        return super.onCreateOptionsMenu(menu);
-    }
-
-    public void closeBuffer(final String bufferName) {
-        // In own thread to prevent things from breaking
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                mainPagerAdapter.closeBuffer(bufferName);
-                titleIndicator.setCurrentItem(viewPager.getCurrentItem());
-            }
-        });
-    }
-
-    /**
-     * Used to toggle the connection
-     */
     private class SocketToggleConnection extends AsyncTask<Void, Void, Boolean> {
         @Override
         protected Boolean doInBackground(Void... voids) {
-            if (rsb.isConnected()) {
-                rsb.shutdown();
+            if (relay.isConnection(RelayService.CONNECTED)) {
+                relay.shutdown();
+                return true;
             } else {
-                return rsb.connect();
+                return relay.connect();
             }
-            return true;
         }
 
         @Override
@@ -418,74 +259,202 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
             supportInvalidateOptionsMenu();
         }
     }
-    
-    /**
-     * Service connection management...
-     */
-    
-    @Override
-    protected void onStart() {
-        super.onStart();
-        // Bind to the Relay Service
-        bindService(new Intent(this, RelayService.class), mConnection, Context.BIND_AUTO_CREATE);
-    }
+
+    /////////////////////////
+    ///////////////////////// OnPageChangeListener
+    /////////////////////////
 
     @Override
-    protected void onStop() {
-        super.onStop();
+    public void onPageScrollStateChanged(int state) {}
 
-        if (taskToggleConnection != null
-                && taskToggleConnection.getStatus() != AsyncTask.Status.FINISHED) {
-            taskToggleConnection.cancel(true);
-            taskToggleConnection = null;
-        }
-
-        if (mBound) {
-            rsb.removeRelayConnectionHandler(WeechatActivity.this);
-            unbindService(mConnection);
-            mBound = false;
-        }
-    }
-
-    ServiceConnection mConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            rsb = (RelayServiceBinder) service;
-            rsb.addRelayConnectionHandler(WeechatActivity.this);
-
-            mBound = true;
-            // Check if the service is already connected to the weechat relay, and if so load it up
-            if (rsb.isConnected()) {
-                WeechatActivity.this.onConnect();
-            }
-
-            handleIntent();
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            mBound = false;
-            rsb = null;
-        }
-    };
-
-    /**
-     * Part of OnPageChangeListener
-     * Used to change the title of the window when the user switches tabs 
-     */
     @Override
-    public void onPageScrollStateChanged(int state) {
-    }
-    @Override
-    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-    }
+    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {}
+
+    // change the title of the window when the user switches tabs
     @Override
     public void onPageSelected(int position) {
+        if (DEBUG) logger.debug("onPageSelected({})", position);
         invalidateOptionsMenu();
-        final InputMethodManager imm = (InputMethodManager)getSystemService(
-                Context.INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(viewPager.getWindowToken(), 0);
+        hideSoftwareKeyboard();
     }
 
-    
+    /////////////////////////
+    ///////////////////////// other fragment methods
+    /////////////////////////
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        if (DEBUG) logger.debug("onNewIntent({})", intent);
+        super.onNewIntent(intent);
+        setIntent(intent);
+        handleIntent();
+    }
+
+    /** Can safely hold on to this according to docs
+     ** http://developer.android.com/reference/android/app/Activity.html#onCreateOptionsMenu(android.view.Menu) **/
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        if (false && DEBUG) logger.debug("onCreateOptionsMenu(...)");
+        MenuInflater menuInflater = getSupportMenuInflater();
+        menuInflater.inflate(R.menu.menu_actionbar, menu);
+        actionBarMenu = menu;
+        makeMenuReflectConnectionStatus();
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        if (false && DEBUG) logger.debug("onPrepareOptionsMenu(...)");
+        super.onPrepareOptionsMenu(menu);
+        boolean buffer_visible = !(phone_mode && viewPager.getCurrentItem() == 0);
+        menu.findItem(R.id.menu_nicklist).setVisible(buffer_visible);
+        menu.findItem(R.id.menu_close).setVisible(buffer_visible);
+        return true;
+    }
+
+    /** handle the options when the user presses the menu button */
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home: {
+                if (viewPager != null)
+                    viewPager.setCurrentItem(0);
+                break;
+            }
+            case R.id.menu_connection_state: {
+                if (relay != null) {
+                    connection_state_toggler = new SocketToggleConnection();
+                    connection_state_toggler.execute();
+                }
+                break;
+            }
+            case R.id.menu_preferences: {
+                Intent i = new Intent(this, WeechatPreferencesActivity.class);
+                startActivity(i);
+                break;
+            }
+            case R.id.menu_close: {
+                BufferFragment currentBuffer = mainPagerAdapter.getCurrentBuffer();
+                if (currentBuffer != null) {
+                    currentBuffer.onBufferClosed();
+                }
+                break;
+            }
+            case R.id.menu_about: {
+                Intent i = new Intent(this, WeechatAboutActivity.class);
+                startActivity(i);
+                break;
+            }
+            case R.id.menu_quit: {
+                if (relay != null) {
+                    relay.shutdown();
+                }
+                unbindService(service_connection);
+                relay = null;
+                stopService(new Intent(this, RelayService.class));
+                finish();
+                break;
+            }
+            case R.id.menu_hotlist: {
+                if (relay != null && relay.isConnection(RelayService.CONNECTED)) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                    builder.setTitle(R.string.hotlist);
+                    final HotlistListAdapter hla = new HotlistListAdapter(WeechatActivity.this, relay);
+                    builder.setAdapter(hla, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int position) {
+                            HotlistItem hotlistItem = hla.getItem(position);
+                            String name = hotlistItem.getFullName();
+                            openBuffer(name);
+                        }
+                    });
+                    builder.create().show();
+                }
+                break;
+            }
+            case R.id.menu_nicklist: {
+                BufferFragment currentBuffer = mainPagerAdapter.getCurrentBuffer();
+                if (currentBuffer == null)
+                    break;
+                ArrayList<String> nicks = currentBuffer.getNicklist();
+                if (nicks == null)
+                    break;
+
+                NickListAdapter nicklistAdapter = new NickListAdapter(WeechatActivity.this, nicks);
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle(getString(R.string.nicklist_menu) + " (" + nicks.size() + ")");
+                builder.setAdapter(nicklistAdapter, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int position) {
+                        // TODO define something to happen here
+                    }
+                });
+                builder.create().show();
+                break;
+            }
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    /////////////////////////
+    ///////////////////////// private stuff
+    /////////////////////////
+
+    /** when we get an intent, do something with it */
+    private void handleIntent() {
+        Bundle extras = getIntent().getExtras();
+        if (extras != null) {
+            if (DEBUG) logger.debug("handleIntent(): opening a buffer from extras");
+            openBuffer(extras.getString("buffer"));
+        } else {
+            // TODO: Load the bufferlist
+        }
+    }
+
+    /** change first menu item from connect to disconnect or back depending on connection status */
+    private void makeMenuReflectConnectionStatus() {
+        if (false && DEBUG) logger.debug("makeMenuReflectConnectionStatus()");
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (WeechatActivity.this.actionBarMenu != null) {
+                    MenuItem connectionStatus = WeechatActivity.this.actionBarMenu.findItem(R.id.menu_connection_state);
+                    if (relay != null && (relay.isConnection(RelayService.CONNECTED)))
+                        connectionStatus.setTitle(R.string.disconnect);
+                    else
+                        connectionStatus.setTitle(R.string.connect);
+                }
+            }
+        });
+    }
+
+    /////////////////////////
+    ///////////////////////// misc
+    /////////////////////////
+
+    public void openBuffer(final String name) {
+        if (DEBUG) logger.debug("openBuffer({})", name);
+        if (relay != null && relay.getBufferByName(name) != null) {
+            mainPagerAdapter.openBuffer(name);
+            titleIndicator.setCurrentItem(viewPager.getCurrentItem());
+        }
+    }
+
+    // In own thread to prevent things from breaking
+    public void closeBuffer(final String name) {
+        if (DEBUG) logger.debug("closeBuffer({})", name);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mainPagerAdapter.closeBuffer(name);
+                titleIndicator.setCurrentItem(viewPager.getCurrentItem());
+            }
+        });
+    }
+
+    /** hides the software keyboard, if any */
+    public void hideSoftwareKeyboard() {
+        imm.hideSoftInputFromWindow(viewPager.getWindowToken(), 0);
+    }
 }

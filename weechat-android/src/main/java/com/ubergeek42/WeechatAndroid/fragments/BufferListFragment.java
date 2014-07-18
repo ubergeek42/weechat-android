@@ -1,6 +1,7 @@
 package com.ubergeek42.WeechatAndroid.fragments;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,240 +27,241 @@ import android.widget.ListView;
 
 import com.actionbarsherlock.app.SherlockListFragment;
 import com.ubergeek42.WeechatAndroid.BufferListAdapter;
+import com.ubergeek42.WeechatAndroid.BuildConfig;
 import com.ubergeek42.WeechatAndroid.R;
+import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
 import com.ubergeek42.WeechatAndroid.service.RelayServiceBinder;
 import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
 import com.ubergeek42.weechat.relay.messagehandler.BufferManager;
-import com.ubergeek42.weechat.relay.messagehandler.BufferManagerObserver;
+import com.ubergeek42.weechat.relay.messagehandler.BuffersChangedObserver;
 import com.ubergeek42.weechat.relay.protocol.RelayObject;
 
 public class BufferListFragment extends SherlockListFragment implements RelayConnectionHandler,
-        BufferManagerObserver, OnSharedPreferenceChangeListener {
-    private static Logger logger = LoggerFactory.getLogger(BufferListFragment.class);
-    private static final String[] message = { "Press Menu->Connect to get started" };
+        BuffersChangedObserver, OnSharedPreferenceChangeListener {
 
-    private boolean mBound = false;
-    private RelayServiceBinder rsb;
+    private static Logger logger = LoggerFactory.getLogger("list");
+    final private static boolean DEBUG = BuildConfig.DEBUG && true;
 
-    private BufferListAdapter m_adapter;
+    private static final String[] empty_list = { "Press Menu->Connect to get started" };
 
-    OnBufferSelectedListener mCallback;
-    private BufferManager bufferManager;
+    private RelayServiceBinder relay;
+    private BufferListAdapter adapter;
+    private BufferManager buffer_manager;
 
-    // Used for filtering the list of buffers displayed
     private EditText bufferlistFilter;
-    
     private SharedPreferences prefs;
-    private boolean enableBufferSorting;
-    private boolean hideServerBuffers;
+    private boolean hide_server_buffers;    // a preference
 
-    // Are we attached to an activity?
-    private boolean attached;
-    
+    /////////////////////////
+    ///////////////////////// lifecycle
+    /////////////////////////
 
-    // The container Activity must implement this interface so the frag can deliver messages
-    public interface OnBufferSelectedListener {
-        /**
-         * Called by BufferlistFragment when a list item is selected
-         * 
-         * @param fullBufferName
-         */
-        public void onBufferSelected(String fullBufferName);
-    }
-
+    /** This makes sure that the container activity has implemented
+     ** the callback interface. If not, it throws an exception. */
     @Override
     public void onAttach(Activity activity) {
+        if (DEBUG) logger.warn("onAttach()");
         super.onAttach(activity);
-
-        logger.debug("BufferListFragment onAttach called");
-
-        // This makes sure that the container activity has implemented
-        // the callback interface. If not, it throws an exception.
-        try {
-            mCallback = (OnBufferSelectedListener) activity;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString()
-                    + " must implement OnBufferSelectedListener");
-        }
-    }
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-            View v = inflater.inflate(R.layout.bufferlist, null);
-            bufferlistFilter = (EditText) v.findViewById(R.id.bufferlist_filter);
-            bufferlistFilter.addTextChangedListener(filterTextWatcher);
-            if (prefs.getBoolean("show_buffer_filter", false)) {
-                bufferlistFilter.setVisibility(View.VISIBLE);
-            } else {
-                bufferlistFilter.setVisibility(View.GONE);
-            }
-            return v;
+        if (!(activity instanceof WeechatActivity))
+            throw new ClassCastException(activity.toString() + " must be WeechatActivity");
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        if (DEBUG) logger.warn("onCreate()");
         super.onCreate(savedInstanceState);
-
         setRetainInstance(true);
-
-        setListAdapter(new ArrayAdapter<String>(getActivity(), R.layout.tips_list_item, message));
         prefs = PreferenceManager.getDefaultSharedPreferences(getActivity().getBaseContext());
         prefs.registerOnSharedPreferenceChangeListener(this);
-        enableBufferSorting = prefs.getBoolean("sort_buffers", true);
-        hideServerBuffers = prefs.getBoolean("hide_server_buffers", true);
-        
-        
-        // TODO ondestroy: bufferlistFilter.removeTextChangedListener(filterTextWatcher);
+        hide_server_buffers = prefs.getBoolean("hide_server_buffers", true);
     }
 
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        if (DEBUG) logger.warn("onCreateView()");
+        View v = inflater.inflate(R.layout.bufferlist, null);
+        bufferlistFilter = (EditText) v.findViewById(R.id.bufferlist_filter);
+        bufferlistFilter.addTextChangedListener(filterTextWatcher);
+        bufferlistFilter.setVisibility(prefs.getBoolean("show_buffer_filter", false) ? View.VISIBLE : View.GONE);
+        return v;
+    }
+
+    @Override
+    public void onDestroyView() {
+        if (DEBUG) logger.warn("onDestroyView()");
+        super.onDestroyView();
+        bufferlistFilter.removeTextChangedListener(filterTextWatcher);
+    }
+
+    /** relay is ALWAYS null on start
+     ** binding to relay service results in:
+     **   service_connection.onServiceConnected() which:
+     **     binds to RelayConnectionHandler, and,
+     **     if connected,
+     **       calls on Connect()
+     **         which results in buffer_manager.setOnChangedHandler()
+     **     else
+     **       calls onDisconnect(), which sets the “please connect” message */
     @Override
     public void onStart() {
+        if (DEBUG) logger.warn("onStart()");
         super.onStart();
-
-        // Bind to the Relay Service
-        if (mBound == false) {
-            getActivity().bindService(new Intent(getActivity(), RelayService.class), mConnection,
-                    Context.BIND_AUTO_CREATE);
-        }
-
-        attached = true;
+        getActivity().bindService(new Intent(getActivity(), RelayService.class), service_connection,
+                Context.BIND_AUTO_CREATE);
     }
 
+    /** here we remove RelayConnectionHandler & buffer_manager's onchange handler
+     ** it should be safe to call all unbinding functions */
     @Override
     public void onStop() {
+        if (DEBUG) logger.warn("onStop()");
         super.onStop();
-        attached = false;
-        if (mBound) {
-            rsb.removeRelayConnectionHandler(BufferListFragment.this);
-            getActivity().unbindService(mConnection);
-            mBound = false;
+        if (buffer_manager != null) {
+            buffer_manager.clearOnChangedHandler();                                     // buffer change watcher (safe to call)
+            buffer_manager = null;
         }
+        if (relay != null) {
+            relay.removeRelayConnectionHandler(BufferListFragment.this);                // connect/disconnect watcher (safe to call)
+            relay = null;
+        }
+        getActivity().unbindService(service_connection);                                // TODO safe to call?
     }
 
-    ServiceConnection mConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            rsb = (RelayServiceBinder) service;
-            rsb.addRelayConnectionHandler(BufferListFragment.this);
+    /////////////////////////
+    /////////////////////////
+    /////////////////////////
 
-            mBound = true;
-            if (rsb.isConnected()) {
+    ServiceConnection service_connection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {           // TODO can this be called after Fragment.onStop()?
+            if (DEBUG) logger.warn("onServiceConnected()");
+            relay = (RelayServiceBinder) service;
+            if (relay.isConnection(RelayService.CONNECTED))
                 BufferListFragment.this.onConnect();
-            }
+            else
+                BufferListFragment.this.onDisconnect();
+            relay.addRelayConnectionHandler(BufferListFragment.this);                   // connect/disconnect watcher
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-            bufferManager.clearOnChangedHandler();
-
-            mBound = false;
-            rsb = null;
+            if (DEBUG) logger.error("onServiceDisconnected() <- should not happen!");
+            relay = null;
+            buffer_manager = null;
         }
     };
 
+    /////////////////////////
+    ///////////////////////// method of android.support.v4.app.ListFragment
+    /////////////////////////
+
+    /** this is the mother method, it actually opens buffers */
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
-    	Object obj = getListView().getItemAtPosition(position);
-    	if (obj instanceof Buffer) {
-	        // Get the buffer they clicked
-	        Buffer b = (Buffer) obj;
-
-	        // Tell our parent to load the buffer
-	        mCallback.onBufferSelected(b.getFullName());
-    	}
+        if (DEBUG) logger.warn("onListItemClick(..., ..., {}, ...)", position);
+        Object obj = getListView().getItemAtPosition(position);
+        if (obj instanceof Buffer) {
+            Buffer b = (Buffer) obj;
+            ((WeechatActivity) getActivity()).openBuffer(b.getFullName());
+        }
     }
+
+    /////////////////////////
+    ///////////////////////// methods of RelayConnectionHandler
+    /////////////////////////
 
     @Override
-    public void onConnecting() {
+    public void onConnecting() {}
 
-    }
-
+    /** called on actual connection event and from other methods
+     ** creates and updates the buffer list */
     @Override
     public void onConnect() {
-        if (rsb != null && rsb.isConnected()) {
-            // Create and update the buffer list when we connect to the service
-            m_adapter = new BufferListAdapter(getActivity());
-            bufferManager = rsb.getBufferManager();
-            m_adapter.setBuffers(bufferManager.getBuffers());
-            bufferManager.setOnChangedHandler(BufferListFragment.this);
-
-            m_adapter.enableSorting(prefs.getBoolean("sort_buffers", true));
-            getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    setListAdapter(m_adapter);
-                }
-            });
-
-            onBuffersChanged();
-        }
-    }
-
-    @Override
-    public void onAuthenticated() {
-
-    }
-
-    @Override
-    public void onDisconnect() {
-        // Create and update the buffer list when we connect to the service
-        Activity act = getActivity();
-        if (act != null) {
-            act.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    setListAdapter(new ArrayAdapter<String>(getActivity(), R.layout.tips_list_item,
-                            message));
-                }
-            });
-        }
-    }
-    @Override
-    public void onError(String err, Object extraInfo) {
-        // We don't do anything with the error message(the activity/service does though)
-    }
-
-    @Override
-    public void onBuffersChanged() {
-        // Need to make sure we are attached to an activity, otherwise getActivity can be null
-        if (!attached) {
-            return;
-        }
-
+        if (DEBUG) logger.warn("onConnect()");
+        adapter = new BufferListAdapter(getActivity());
+        buffer_manager = relay.getBufferManager();
+        buffer_manager.setOnChangedHandler(this);                                       // buffer change watcher
+        adapter.enableSorting(prefs.getBoolean("sort_buffers", true));
+        adapter.filterBuffers(bufferlistFilter.getText().toString());  // resume sorting
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                ArrayList<Buffer> buffers;
+                setListAdapter(adapter);
+            }
+        });
+        onBuffersChanged();
+    }
 
-                buffers = bufferManager.getBuffers();
+    @Override
+    public void onAuthenticated() {}
 
-                // Remove server buffers(if unwanted)
-                if (hideServerBuffers) {
-                    ArrayList<Buffer> newBuffers = new ArrayList<Buffer>();
-                    for (Buffer b : buffers) {
-                        RelayObject relayobj = b.getLocalVar("type");
-                        if (relayobj != null && relayobj.asString().equals("server")) {
-                            continue;
-                        }
-                        newBuffers.add(b);
-                    }
-                    buffers = newBuffers;
+    /** this is called when the list of buffers has been finalised
+     ** technically buffers should be listening to this but let's do it here for now... */
+    @Override
+    public void onBuffersListed() {
+        logger.warn("onBuffersListed()");
+    }
+
+    /** called on actual disconnect even and from other methods
+     ** displays empty list */
+    @Override
+    public void onDisconnect() {
+        if (DEBUG) logger.warn("onDisconnect()");
+        // Create and update the buffer list when we connect to the service
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    setListAdapter(new ArrayAdapter<String>(getActivity(), R.layout.tips_list_item,
+                            empty_list));
                 }
+            });
+        }
+    }
 
-                m_adapter.setBuffers(buffers);
+    /** do nothing: activity is handling errors */
+    @Override
+    public void onError(String err, Object extraInfo) {}
+
+    /////////////////////////
+    ///////////////////////// BuffersChangedObserver
+    /////////////////////////
+
+    /** the only method and the only implementer of BuffersChangedObserver */
+    @Override
+    public void onBuffersChanged() {
+        if (false && DEBUG) logger.warn("onBuffersChanged()");
+        final ArrayList<Buffer> buffers = buffer_manager.getBuffersCopy();
+        if (hide_server_buffers) {
+            Iterator<Buffer> iter = buffers.iterator();
+            while (iter.hasNext()) {
+                RelayObject relayobj = iter.next().getLocalVar("type");
+                if (relayobj != null && relayobj.asString().equals("server"))
+                    iter.remove();
+            }
+        }
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (buffer_manager != null) adapter.setBuffers(buffers);               // are we still online?
             }
         });
     }
 
+    /////////////////////////
+    ///////////////////////// other
+    /////////////////////////
+
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        if (DEBUG) logger.warn("onSharedPreferenceChanged()");
         if (key.equals("sort_buffers")) {
-            if (m_adapter != null)
-                m_adapter.enableSorting(prefs.getBoolean("sort_buffers", true));
+            if (adapter != null)
+                adapter.enableSorting(prefs.getBoolean("sort_buffers", true));
         } else if (key.equals("hide_server_buffers")) {
-            hideServerBuffers = prefs.getBoolean("hide_server_buffers", true);
-            onBuffersChanged();
+            hide_server_buffers = prefs.getBoolean("hide_server_buffers", true);
         } else if(key.equals("show_buffer_filter") && bufferlistFilter != null) {
             if (prefs.getBoolean("show_buffer_filter", false)) {
                 bufferlistFilter.setVisibility(View.VISIBLE);
@@ -268,18 +270,22 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
             }
         }
     }
-    
-    // TextWatcher object for filtering the buffer list
+
+    /** TextWatcher object used for filtering the buffer list */
     private TextWatcher filterTextWatcher = new TextWatcher() {
         @Override
-        public void afterTextChanged(Editable a) { }
+        public void afterTextChanged(Editable a) {}
+
         @Override
         public void beforeTextChanged(CharSequence arg0, int a, int b, int c) {}
+
         @Override
         public void onTextChanged(CharSequence s, int start, int before, int count) {
-            if (m_adapter!=null) {
-                m_adapter.filterBuffers(s.toString());
-            }
+            if (false && DEBUG) logger.warn("onTextChanged({}, ...)", s);
+            if (adapter != null)
+                adapter.filterBuffers(s.toString());
         }
     };
+
+
 }

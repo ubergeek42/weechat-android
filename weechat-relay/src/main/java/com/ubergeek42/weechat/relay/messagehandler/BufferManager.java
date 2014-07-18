@@ -34,10 +34,11 @@ import com.ubergeek42.weechat.relay.protocol.RelayObject;
  * 
  */
 public class BufferManager implements RelayMessageHandler {
-    private static Logger logger = LoggerFactory.getLogger(BufferManager.class);
+    private static Logger logger = LoggerFactory.getLogger("BufferManager");
+    final private static boolean DEBUG = false;
 
     ArrayList<Buffer> buffers = new ArrayList<Buffer>();
-    private BufferManagerObserver onChangeObserver;
+    private BuffersChangedObserver onChangeObserver;
 
     /**
      * Locate and returns a Buffer object based on it's pointer
@@ -75,7 +76,7 @@ public class BufferManager implements RelayMessageHandler {
      * Get the list of buffers
      */
     @SuppressWarnings("unchecked")
-    public ArrayList<Buffer> getBuffers() {
+    public ArrayList<Buffer> getBuffersCopy() {
         return (ArrayList<Buffer>) buffers.clone();
     }
 
@@ -105,7 +106,8 @@ public class BufferManager implements RelayMessageHandler {
      * @param bo
      *            - The observer to receive notifications
      */
-    public void setOnChangedHandler(BufferManagerObserver bo) {
+    public void setOnChangedHandler(BuffersChangedObserver bo) {
+        if (DEBUG) logger.warn("setOnChangedHandler(...)");
         this.onChangeObserver = bo;
     }
 
@@ -113,6 +115,7 @@ public class BufferManager implements RelayMessageHandler {
      * Clears the buffer change observer
      */
     public void clearOnChangedHandler() {
+        if (DEBUG) logger.warn("clearOnChangedHandler()");
         this.onChangeObserver = null;
     }
 
@@ -121,6 +124,7 @@ public class BufferManager implements RelayMessageHandler {
      * notifying about unread lines/highlights
      */
     public void buffersChanged() {
+        if (DEBUG) logger.warn("buffersChanged()");
         if (onChangeObserver != null) {
             onChangeObserver.onBuffersChanged();
         }
@@ -129,7 +133,7 @@ public class BufferManager implements RelayMessageHandler {
     @Override
     public void handleMessage(RelayObject obj, String id) {
         if (!(obj instanceof Hdata)) {
-            logger.debug("Expected hdata, got " + obj.getClass());
+            if (DEBUG) logger.error("Expected hdata, got {}", obj.getClass());
             return;
         }
         Hdata whdata = (Hdata) obj;
@@ -169,7 +173,7 @@ public class BufferManager implements RelayMessageHandler {
             } else {
                 Buffer wb = findByPointer(hde.getPointer(0));
                 if (wb == null) {
-                    logger.debug("Unable to find buffer to update");
+                    if (DEBUG) logger.error("Unable to find buffer to update");
                     return;
                 }
                 if (id.equals("_buffer_type_changed")) {
@@ -211,7 +215,7 @@ public class BufferManager implements RelayMessageHandler {
                         }
                     }
                 } else {
-                    logger.debug("Unknown message ID: \"" + id + "\"");
+                    if (DEBUG) logger.warn("Unknown message ID: '{}'", id);
                 }
             }
         }

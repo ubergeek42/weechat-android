@@ -65,6 +65,7 @@ import com.ubergeek42.weechat.relay.messagehandler.LineHandler;
 import com.ubergeek42.weechat.relay.messagehandler.NicklistHandler;
 import com.ubergeek42.weechat.relay.messagehandler.UpgradeHandler;
 import com.ubergeek42.weechat.relay.messagehandler.UpgradeObserver;
+import com.ubergeek42.weechat.relay.protocol.RelayObject;
 
 public class RelayService extends Service implements RelayConnectionHandler,
         OnSharedPreferenceChangeListener, HotlistObserver, UpgradeObserver {
@@ -104,6 +105,21 @@ public class RelayService extends Service implements RelayConnectionHandler,
 
     SSLHandler certmanager;
     X509Certificate untrustedCert;
+
+    // for some reason, this java can't have binary literals...
+    public final static int DISCONNECTED =   Integer.parseInt("00001", 2);
+    public final static int CONNECTING =     Integer.parseInt("00010", 2);
+    public final static int CONNECTED =      Integer.parseInt("00100", 2);
+    public final static int AUTHENTICATED =  Integer.parseInt("01000", 2);
+    public final static int BUFFERS_LISTED = Integer.parseInt("10000", 2);
+    int connection_status = DISCONNECTED;
+
+    /** check status of connection
+     ** @param status one of DISCONNECTED, CONNECTING, CONNECTED, AUTHENTICATED, BUFFERS_LISTED
+     ** @return true if connection corresponds to one of these */
+    public boolean isConnection(int status) {
+        return (connection_status & status) != 0;
+    }
 
     @Override
     public IBinder onBind(Intent arg0) {
@@ -299,17 +315,15 @@ public class RelayService extends Service implements RelayConnectionHandler,
     }
 
     @Override
-    public void onConnecting() {
-
-    }
+    public void onConnecting() {connection_status = CONNECTING;}
 
     @Override
-    public void onConnect() {
-
-    }
+    public void onConnect() {connection_status = CONNECTED;}
 
     @Override
     public void onAuthenticated() {
+        connection_status = CONNECTED | AUTHENTICATED;
+
         if (disconnected == true) {
             showNotification(getString(R.string.notification_reconnected_to) + host, getString(R.string.notification_connected_to) + host);
         } else {
@@ -325,6 +339,9 @@ public class RelayService extends Service implements RelayConnectionHandler,
 
         // Handle us getting a listing of the buffers
         relayConnection.addHandler("listbuffers", bufferManager);
+        // this will call onBuffersListed
+        // ORDER OF ADDITION IS IMPORTANT, since LinkedHashSet is used in RelayConnection
+        relayConnection.addHandler("listbuffers", new BuffersListedObserver());
 
         // Handle weechat event messages regarding buffers
         relayConnection.addHandler("_buffer_opened", bufferManager);
@@ -368,7 +385,16 @@ public class RelayService extends Service implements RelayConnectionHandler,
     }
 
     @Override
+    public void onBuffersListed() {
+        connection_status = CONNECTED | AUTHENTICATED | BUFFERS_LISTED;
+        for (RelayConnectionHandler rch : connectionHandlers) {
+            rch.onBuffersListed();
+        }
+    }
+
+    @Override
     public void onDisconnect() {
+        connection_status = DISCONNECTED;
         if (disconnected) {
             return; // Only do the disconnect handler once
         }
@@ -468,5 +494,12 @@ public class RelayService extends Service implements RelayConnectionHandler,
             }
         });
         upgrading.start();
+    }
+
+    private class BuffersListedObserver implements RelayMessageHandler {
+        @Override
+        public void handleMessage(RelayObject obj, String id) {
+            RelayService.this.onBuffersListed();
+        }
     }
 }

@@ -16,32 +16,16 @@
 package com.ubergeek42.weechat.relay;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.Socket;
-import java.security.KeyStore;
-import java.security.SecureRandom;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-
-import javax.net.SocketFactory;
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocket;
-import javax.net.ssl.TrustManagerFactory;
+import java.util.LinkedHashSet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.Session;
 import com.ubergeek42.weechat.Helper;
 import com.ubergeek42.weechat.relay.connection.IConnection;
-import com.ubergeek42.weechat.relay.connection.PlainConnection;
 import com.ubergeek42.weechat.relay.protocol.Data;
 import com.ubergeek42.weechat.relay.protocol.RelayObject;
 
@@ -51,10 +35,11 @@ import com.ubergeek42.weechat.relay.protocol.RelayObject;
  * @author ubergeek42<kj@ubergeek42.com>
  */
 public class RelayConnection implements RelayConnectionHandler {
-    private static Logger logger = LoggerFactory.getLogger(RelayConnection.class);
+    final private static boolean DEBUG = false;
+    private static Logger logger = LoggerFactory.getLogger("RelayConnection");
     private String password;
 
-    private HashMap<String, HashSet<RelayMessageHandler>> messageHandlers = new HashMap<String, HashSet<RelayMessageHandler>>();
+    private HashMap<String, LinkedHashSet<RelayMessageHandler>> messageHandlers = new  HashMap<String, LinkedHashSet<RelayMessageHandler>>();
 
     IConnection conn;
 
@@ -200,7 +185,7 @@ public class RelayConnection implements RelayConnectionHandler {
                     }
                 }
             }
-            logger.debug("disconnected - socketreader thread stopping");
+            if (DEBUG) logger.debug("socketReader: disconnected, thread stopping");
             conn.disconnect();
         }
     });
@@ -214,9 +199,9 @@ public class RelayConnection implements RelayConnectionHandler {
      *            - The object to receive the callback
      */
     public void addHandler(String id, RelayMessageHandler wmh) {
-        HashSet<RelayMessageHandler> currentHandlers = messageHandlers.get(id);
+        LinkedHashSet<RelayMessageHandler> currentHandlers = messageHandlers.get(id);
         if (currentHandlers == null) {
-            currentHandlers = new HashSet<RelayMessageHandler>();
+            currentHandlers = new LinkedHashSet<RelayMessageHandler>();
         }
         currentHandlers.add(wmh);
         messageHandlers.put(id, currentHandlers);
@@ -230,7 +215,7 @@ public class RelayConnection implements RelayConnectionHandler {
      */
     private void handleMessage(RelayMessage msg) {
         String id = msg.getID();
-        logger.debug("handling message " + id);
+        if (DEBUG) logger.debug("handling message {}", id);
         if (messageHandlers.containsKey(id)) {
             HashSet<RelayMessageHandler> handlers = messageHandlers.get(id);
             for (RelayMessageHandler rmh : handlers) {
@@ -243,34 +228,34 @@ public class RelayConnection implements RelayConnectionHandler {
                 }
             }
         } else {
-            logger.debug("Unhandled message: " + id);
+            if (DEBUG) logger.debug("Unhandled message: {}", id);
         }
     }
 
 
     @Override
     public void onConnecting() {
-        System.out.println("RelayConnection.onConnecting");
-        logger.debug("RelayConnection.onConnecting");
+        System.out.println("onConnecting()");
+        if (DEBUG) logger.debug("RelayConnection.onConnecting");
     }
 
     @Override
     public void onConnect() {
-        System.out.println("RelayConnection.onConnect");
-        logger.debug("RelayConnection.onConnect");
+        if (DEBUG) logger.debug("onConnect()");
         postConnectionSetup();
     }
 
     @Override
     public void onAuthenticated() {
-        System.out.println("RelayConnection.onAuthenticated");
-        logger.debug("RelayConnection.onAuthenticated");
+        if (DEBUG) logger.debug("onAuthenticated()");
     }
 
     @Override
+    public void onBuffersListed() {}
+
+    @Override
     public void onDisconnect() {
-        System.out.println("RelayConnection.onDisconnect");
-        logger.debug("RelayConnection.onDisconnect");
+        if (DEBUG) logger.debug("onDisconnect()");
 
         // If the thread is still reading data
         if (socketReader.isAlive()) {
@@ -280,8 +265,7 @@ public class RelayConnection implements RelayConnectionHandler {
 
     @Override
     public void onError(String err, Object extraInfo) {
-        System.out.println("RelayConnection.onError");
-        logger.debug("RelayConnection.onError");
+        if (DEBUG) logger.debug("onError()");
     }
 
 

@@ -47,13 +47,16 @@ android {
     buildTypes {
         // Debug version, only ever used locally
         debug {
-            packageNameSuffix ".debug"
+            applicationIdSuffix ".debug"
             versionNameSuffix "-debug"
             buildConfigField "String", "VERSION_BANNER", "\""+versionBanner()+"\""
         }
 
         // These are the real releases in the Google Play Store
         release {
+            runProguard true
+            proguardFile file('proguard.txt')
+            proguardFile getDefaultProguardFile('proguard-android-optimize.txt')
             buildConfigField "String", "VERSION_BANNER", "\"" + versionBanner() + "\""
             signingConfig signingConfigs.releasePlayConfig
         }
@@ -61,7 +64,10 @@ android {
         // Development releases in the Google Play Store(signed same as the cloudbees site)
         devrelease.initWith(buildTypes.release)
         devrelease {
-            packageNameSuffix ".dev"
+            runProguard true
+            proguardFile file('proguard.txt')
+            proguardFile getDefaultProguardFile('proguard-android-optimize.txt')
+            applicationIdSuffix ".dev"
             versionNameSuffix "-dev"
             buildConfigField "String", "VERSION_BANNER", "\""+versionBanner()+"\""
 	        signingConfig signingConfigs.devPlayConfig

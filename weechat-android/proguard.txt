@@ -1,0 +1,26 @@
+# warnings prevent build from continuing
+-ignorewarnings
+
+# if we do not use obfuscation, everything will fail
+# see http://stackoverflow.com/questions/5701126/compile-with-proguard-gives-exception-local-variable-type-mismatch
+#-dontobfuscate
+
+-dontskipnonpubliclibraryclasses
+-forceprocessing
+-optimizationpasses 5
+
+# actionbarsherlock stuff
+-keep class android.support.v4.app.** { *; }
+-keep interface android.support.v4.app.** { *; }
+-keep class com.actionbarsherlock.** { *; }
+-keep interface com.actionbarsherlock.** { *; }
+-keepattributes *Annotation*
+
+# strip all logger calls
+# i hope the if (DEBUG) checks will get stripped too
+-assumenosideeffects class org.slf4j.Logger {
+    public void error(...);
+    public void warn(...);
+    public void debug(...);
+    public void trace(...);
+}

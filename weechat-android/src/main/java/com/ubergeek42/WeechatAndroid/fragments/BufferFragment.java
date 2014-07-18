@@ -6,6 +6,7 @@ import java.util.Vector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -31,13 +32,13 @@ import android.view.View.OnKeyListener;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
 import com.actionbarsherlock.app.SherlockFragment;
+import com.ubergeek42.WeechatAndroid.BuildConfig;
 import com.ubergeek42.WeechatAndroid.ChatLinesAdapter;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
@@ -45,387 +46,464 @@ import com.ubergeek42.WeechatAndroid.service.RelayService;
 import com.ubergeek42.WeechatAndroid.service.RelayServiceBinder;
 import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.BufferObserver;
+import com.ubergeek42.weechat.relay.RelayConnectionHandler;
 
 public class BufferFragment extends SherlockFragment implements BufferObserver, OnKeyListener,
-        OnSharedPreferenceChangeListener, OnClickListener, TextWatcher {
+        OnSharedPreferenceChangeListener, OnClickListener, TextWatcher, RelayConnectionHandler,
+        TextView.OnEditorActionListener {
 
-    private static Logger logger = LoggerFactory.getLogger(BufferFragment.class);
+    private static Logger logger = LoggerFactory.getLogger("buffer");
+    final private static boolean DEBUG = BuildConfig.DEBUG && true;
 
-    private ListView chatlines;
+    private ListView chatLines;
     private EditText inputBox;
     private Button sendButton;
     private Button tabButton;
 
-    private boolean mBound;
-    private RelayServiceBinder rsb;
+    private RelayServiceBinder relay;
 
-    private String fragmentTitle = "";
-    private String bufferName = "";
+    private String name = "";
+    private String shortname = "Unknown";
     private Buffer buffer;
 
-    private ChatLinesAdapter chatlineAdapter;
+    private ChatLinesAdapter chatlines_adapter;
 
-    private ArrayList<String> nickCache;
-    private final String[] message = { "Please wait, loading content." };
+    private ArrayList<String> nicks;
 
     // Settings for keeping track of the current tab completion stuff
-    private boolean tabCompletingInProgress;
-    private Vector<String> tabCompleteMatches;
-    private int tabCompleteIndex;
-    private int tabCompleteWordStart;
-    private int tabCompleteWordEnd;
+    private boolean tc_inprogress;
+    private Vector<String> tc_matches;
+    private int tc_index;
+    private int tc_wordstart;
+    private int tc_wordend;
 
     // Preference things
     private SharedPreferences prefs;
     private boolean enableTabComplete = true;
 
+    /////////////////////////
+    ///////////////////////// lifecycle
+    /////////////////////////
+
+    @Override
+    public void onAttach(Activity activity) {
+        if (DEBUG) logger.warn("{} onAttach(...)", name);
+        super.onAttach(activity);
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        if (DEBUG) logger.warn("{} onCreate()", name);
         super.onCreate(savedInstanceState);
+        if (savedInstanceState != null) shortname = savedInstanceState.getString("shortname");
         setRetainInstance(true);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.chatview_main, container, false);
+        if (DEBUG) logger.warn("{} onCreateView()", name);
+        View v = inflater.inflate(R.layout.chatview_main, container, false);
+
+        chatLines = (ListView) v.findViewById(R.id.chatview_lines);
+        inputBox = (EditText) v.findViewById(R.id.chatview_input);
+        sendButton = (Button) v.findViewById(R.id.chatview_send);
+        tabButton = (Button) v.findViewById(R.id.chatview_tab);
+
+        sendButton.setOnClickListener(this);
+        tabButton.setOnClickListener(this);
+        inputBox.setOnKeyListener(this);            // listen for hardware keyboard
+        inputBox.addTextChangedListener(this);      // listen for software keyboard through watching input box text
+        inputBox.setOnEditorActionListener(this);   // listen for software keyboard's “send” click. see onEditorAction()
+
+        return v;
     }
 
-    /** Called when the activity is first created. */
+    /** this method is run on “activation” of the buffer, although it may be invisible
+     ** we want to be disconnected from all things before the method runs
+     ** we connect to the service, which results in:
+     **   service_connection.onServiceConnected() which:
+     **     binds to RelayConnectionHandler, and,
+     **     if connected,
+     **       calls onBuffersListed()
+     **     else
+     **       calls onDisconnect(), which sets the “please connect” message */
     @Override
     public void onStart() {
+        if (DEBUG) logger.warn("{} onStart()", name);
         super.onStart();
 
         prefs = PreferenceManager.getDefaultSharedPreferences(getActivity().getBaseContext());
         prefs.registerOnSharedPreferenceChangeListener(this);
         enableTabComplete = prefs.getBoolean("tab_completion", true);
 
-        // During startup, check if there are arguments passed to the fragment.
-        // onStart is a good place to do this because the layout has already been
-        // applied to the fragment at this point so we can safely call the method
-        // below that sets the Buffer text.
-        Bundle args = getArguments();
-        if (args != null) {
-            // Set Buffer based on argument passed in
-            this.bufferName = args.getString("buffer");
-            // might need a refreshView() here?
-        }
+        this.name = getArguments().getString("buffer");
+        if (BuildConfig.DEBUG && (name.equals("") || relay != null || buffer != null)) // sanity check
+            throw new AssertionError("names shouldn't be ''");
 
-        // Bind to the Relay Service
-        if (mBound == false) {
-            getActivity().bindService(new Intent(getActivity(), RelayService.class), mConnection,
-                    Context.BIND_AUTO_CREATE);
-        }
+        getActivity().bindService(new Intent(getActivity(), RelayService.class), service_connection,
+                Context.BIND_AUTO_CREATE);
     }
 
     @Override
+    public void onResume() {
+        if (DEBUG) logger.warn("{} onResume()", name);
+        super.onResume();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString("shortname", shortname);
+    }
+
+    @Override
+    public void onPause() {
+        if (DEBUG) logger.warn("{} onPause()", name);
+        super.onPause();
+    }
+
+    /** this is the “deactivation” of the buffer, not necessarily called when it gets destroyed
+     ** we want to disconnect from all things here */
+    @Override
     public void onStop() {
+        if (DEBUG) logger.warn("{} onStop()", name);
         super.onStop();
-
-        if (mBound) {
-            getActivity().unbindService(mConnection);
-            mBound = false;
+        if (relay != null) {
+            if (buffer != null) relay.unsubscribeBuffer(buffer.getPointer()); // unsubscribe (???)
+            relay.removeRelayConnectionHandler(BufferFragment.this);       // remove connect / disconnect watcher
+            relay = null;
         }
+        if (buffer != null) {
+            buffer.removeObserver(this);                                               // remove buffer watcher
+            buffer = null;
+        }
+        getActivity().unbindService(service_connection);
     }
 
-    public String getBufferName() {
-        return bufferName;
-    }
-    public String getShortBufferName() {
-        if (buffer!=null)
-            return buffer.getShortName();
-        else
-            return "Unknown";
+    @Override
+    public void onDestroyView() {
+        if (DEBUG) logger.warn("{} onDestroyView()", name);
+        super.onDestroyView();
     }
 
-    private ServiceConnection mConnection = new ServiceConnection() {
+    @Override
+    public void onDestroy() {
+        if (DEBUG) logger.warn("{} onDestroy()", name);
+        super.onDestroy();
+    }
+
+    @Override
+    public void onDetach() {
+        if (DEBUG) logger.warn("{} onDetach()", name);
+        super.onDetach();
+    }
+
+    /////////////////////////
+    ///////////////////////// service connection
+    /////////////////////////
+
+    private ServiceConnection service_connection = new ServiceConnection() {
         @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            logger.debug("Bufferfragment onserviceconnected");
-            rsb = (RelayServiceBinder) service;
-            mBound = true;
-
-            initView();
+        public void onServiceConnected(ComponentName name, IBinder
+                service) {
+            if (DEBUG) logger.warn("{} onServiceConnected() <{}>", BufferFragment.this.name, BufferFragment.this);
+            relay = (RelayServiceBinder) service;
+            if (relay.isConnection(RelayService.BUFFERS_LISTED))
+                BufferFragment.this.onBuffersListed();                                  // TODO: run this in a thread
+            else
+                BufferFragment.this.onDisconnect();
+            relay.addRelayConnectionHandler(BufferFragment.this);                       // connect/disconnect watcher
         }
 
         @Override
-        public void onServiceDisconnected(ComponentName name) {
+        public void onServiceDisconnected(ComponentName name) {                         // TODO: wut
+            if (DEBUG) logger.warn("{} onServiceDisconnected() <- should not happen!", BufferFragment.this.name);
             if (buffer != null) {
-                buffer.removeObserver(BufferFragment.this);
+                buffer.removeObserver(BufferFragment.this);                             // buffer watcher
+                buffer = null;
             }
-            mBound = false;
-            rsb = null;
+            relay = null;
         }
     };
 
-    private void loadEmptyView() {
-        ViewGroup vg = (ViewGroup) getView().findViewById(R.id.chatview_layout);
-        vg.removeAllViews();
-        View empty = getActivity().getLayoutInflater().inflate(R.layout.buffer_not_loaded, vg,
-                false);
-        vg.addView(empty);
+    /////////////////////////
+    ///////////////////////// RelayConnectionHandler stuff
+    /////////////////////////
+
+    @Override
+    public void onConnecting() {}
+
+    @Override
+    public void onConnect() {if (DEBUG) logger.warn("{} onConnect()", name);}
+
+    @Override
+    public void onAuthenticated() {}
+
+    /** this function is called when the buffers have been listed, i.e. when we can TRY
+     ** attaching to the buffer and fetching lines and sending messages and whatnot
+     ** it's not necessary that the buffers have been listed just now, though */
+    public void onBuffersListed() {
+        if (DEBUG) logger.warn("{} onBuffersListed() <{}>", name, this);
+        if (DEBUG && name.equals("")) throw new AssertionError("name can't be empty in onBuffersListed");
+
+        // check if the buffer is still there
+        // it should be there at ALL times EXCEPT when we RE-connect to the service and find it missing
+        buffer = relay.getBufferByName(name);
+        if (buffer == null) {
+            showEmpty();
+        } else {
+            // set short name. we set it here because it's the buffer won't change
+            // and the name should be accessible between calls to this function
+            shortname = buffer.getShortName();
+
+            // remove this from hotlist
+            if (relay.getHotlistManager() != null)
+                relay.getHotlistManager().removeHotlistItem(name);                      // remove from hotlist
+
+            chatlines_adapter = new ChatLinesAdapter(getActivity(), buffer);
+            registerForContextMenu(chatLines);
+
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    inputBox.setFocusable(true);
+                    inputBox.setFocusableInTouchMode(true);
+                    sendButton.setEnabled(true);
+                    tabButton.setEnabled(true);
+                    sendButton.setVisibility(prefs.getBoolean("sendbtn_show", true) ? View.VISIBLE : View.GONE);
+                    tabButton.setVisibility(prefs.getBoolean("tabbtn_show", false) ? View.VISIBLE : View.GONE);
+                    chatLines.setAdapter(chatlines_adapter);
+                }
+            });
+
+            // attach this fragment to buffer and
+            // subscribe to the buffer (gets the lines for it, and gets nicklist)
+            buffer.addObserver(this);                                                   // buffer watcher
+            relay.subscribeBuffer(buffer.getPointer());                                 // subscription
+        }
     }
 
-    private void initView() {
-        // Called without bufferName, can't do anything.
-        if (bufferName.equals("")) {
-            loadEmptyView();
-            return;
-        }
-
-        // Remove buffer from hotlist
-        if (rsb.getHotlistManager()!= null) {
-            rsb.getHotlistManager().removeHotlistItem(bufferName);
-        }
-
-        chatlines = (ListView) getView().findViewById(R.id.chatview_lines);
-        inputBox = (EditText) getView().findViewById(R.id.chatview_input);
-        sendButton = (Button) getView().findViewById(R.id.chatview_send);
-        tabButton = (Button) getView().findViewById(R.id.chatview_tab);
-        
-        if (prefs.getBoolean("sendbtn_show", true)) {
-            sendButton.setVisibility(View.VISIBLE);
-        } else {
-            sendButton.setVisibility(View.GONE);
-        }
-        if (prefs.getBoolean("tabbtn_show", false)) {
-            tabButton.setVisibility(View.VISIBLE);
-        } else {
-            tabButton.setVisibility(View.GONE);
-        }
-        
-        chatlines.setAdapter(new ArrayAdapter<String>(getActivity(), R.layout.tips_list_item, message));
-        // chatlines.setEmptyView(getView().findViewById(android.R.id.empty));
-
-        buffer = rsb.getBufferByName(bufferName);
-
-        // The buffer is no longer open...
-        if (buffer == null) {
-            bufferName = "";
-            loadEmptyView();
-            return;
-        }
-        // TODO this could be settings defined by user
-        StringBuilder tsb = new StringBuilder();
-        String buffername = buffer.getShortName();
-        String title = buffer.getTitle();
-        if (buffername != null) {
-            tsb.append(buffername);
-            tsb.append(" ");
-        }
-        if (title != null) {
-            tsb.append(title);
-        }
-        fragmentTitle = tsb.toString();
-
-        buffer.addObserver(this);
-
-        // Subscribe to the buffer(gets the lines for it, and gets nicklist)
-        rsb.subscribeBuffer(buffer.getPointer());
-
-        chatlineAdapter = new ChatLinesAdapter(getActivity(), buffer);
-        chatlines.setAdapter(chatlineAdapter);
-        registerForContextMenu(chatlines);
-        onLineAdded();
-
-        sendButton.setOnClickListener(this);
-        tabButton.setOnClickListener(this);
-        inputBox.setOnKeyListener(this);        // listen for hardware keyboard
-        inputBox.addTextChangedListener(this);  // listen for software keyboard through watching input box text
-        inputBox.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+    /** loads the “no buffer, choose from list” thing */
+    private void showEmpty() {                                                          // TODO: replace with a notification that the buffer's been closed (?) in weechat?
+        if (DEBUG) logger.warn("{} showEmpty() <{}>", name, this);
+        getActivity().runOnUiThread(new Runnable() {
             @Override
-            public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
-                boolean handled = false;
-                if (actionId == EditorInfo.IME_ACTION_SEND) {
-                    getActivity().runOnUiThread(messageSender);
-                    handled = true;
-                }
-                return handled;
+            public void run() {
+                ViewGroup vg = (ViewGroup) getView().findViewById(R.id.chatview_layout);
+                vg.removeAllViews();
+                vg.addView(getActivity().getLayoutInflater().inflate(R.layout.buffer_not_loaded, vg, false));
+            }
+        });
+    }
+
+    /** on disconnect, restore chat lines if any
+     ** remove the bottom bar to indicate that we are offline
+     ** also remove the keyboard, if any */
+    @Override
+    public void onDisconnect() {
+        if (DEBUG) logger.warn("{} onDisconnect()", name);
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (chatlines_adapter != null) chatLines.setAdapter(chatlines_adapter);
+                inputBox.setFocusable(false);
+                sendButton.setEnabled(false);
+                tabButton.setEnabled(false);
+                ((WeechatActivity) getActivity()).hideSoftwareKeyboard();
             }
         });
     }
 
     @Override
+    public void onError(String err, Object extraInfo) {}
+
+    /////////////////////////
+    ///////////////////////// BufferObserver stuff
+    /////////////////////////
+
+    /** */
+    @Override
     public void onLineAdded() {
-        rsb.resetNotifications();
+        if (false && DEBUG) logger.warn("{} onLineAdded()", name);
+        if (DEBUG && relay == null) {throw new AssertionError("relay can't be null in onLineAdded()");}
+        relay.resetNotifications();
 
         buffer.resetHighlight();
         buffer.resetUnread();
 
-        chatlineAdapter.notifyChanged();
+        chatlines_adapter.notifyChanged();
     }
 
     @Override
     public void onBufferClosed() {
-        WeechatActivity act = (WeechatActivity) getActivity();
-        act.closeBuffer(bufferName);
-        if (buffer != null) {
-            rsb.unsubscribeBuffer(buffer.getPointer());
-        }
-    }
-
-    public ArrayList<String> getNicklist() {
-        return nickCache;
+        if (DEBUG) logger.warn("{} onBufferClosed()", name);
+        ((WeechatActivity) getActivity()).closeBuffer(name);
     }
 
     @Override
     public void onNicklistChanged() {
-        nickCache = buffer.getNicks();
+        nicks = buffer.getNicks();
     }
 
-    // User pressed some key in the input box, check for what it was
-    // NOTE: this only applies to HARDWARE buttons
+    /////////////////////////
+    ///////////////////////// misc
+    /////////////////////////
+
+    /** the only OnKeyListener's method
+     ** User pressed some key in the input box, check for what it was
+     ** NOTE: this only applies to HARDWARE buttons */
     @Override
     public boolean onKey(View v, int keycode, KeyEvent event) {
-
+        if (DEBUG) logger.warn("{} onKey(..., {}, ...)", name, keycode);
+        int action = event.getAction();
         // Enter key sends the message
-        if (keycode == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_UP) {
-            getActivity().runOnUiThread(messageSender);
+        if (keycode == KeyEvent.KEYCODE_ENTER && action == KeyEvent.ACTION_UP) {
+            getActivity().runOnUiThread(message_sender);
             return true;
         }
-        // Check for text resizing keys(volume buttons)
-        else if (keycode == KeyEvent.KEYCODE_VOLUME_UP && event.getAction() == KeyEvent.ACTION_DOWN) {
-            float text_size = Float.parseFloat(prefs.getString("text_size", "10")) + 1;
-            // Max text_size of 30
-            if (text_size > 30) {
-                text_size = 30;
+        // Check for text resizing keys (volume buttons)
+        if (keycode == KeyEvent.KEYCODE_VOLUME_DOWN || keycode == KeyEvent.KEYCODE_VOLUME_UP) {
+            if (action == KeyEvent.ACTION_UP) {
+                float text_size = Float.parseFloat(prefs.getString("text_size", "10"));
+                if (keycode == KeyEvent.KEYCODE_VOLUME_UP) {
+                    if (text_size < 30) text_size += 1;
+                } else {
+                    if (text_size > 5) text_size -= 1;
+                }
+                SharedPreferences.Editor editor = prefs.edit();
+                editor.putString("text_size", Float.toString(text_size));
+                editor.commit();
             }
-            SharedPreferences.Editor editor = prefs.edit();
-            editor.putString("text_size", Float.toString(text_size));
-            editor.commit();
             return true;
-        } else if (keycode == KeyEvent.KEYCODE_VOLUME_DOWN && event.getAction() == KeyEvent.ACTION_DOWN) {
-            float text_size = Float.parseFloat(prefs.getString("text_size", "10")) - 1;
-            // Enforce a minimum text size of 5
-            if (text_size < 5) {
-                text_size = 5;
-            }
-            SharedPreferences.Editor editor = prefs.edit();
-            editor.putString("text_size", Float.toString(text_size));
-            editor.commit();
-            return true;
-        } else if (keycode == KeyEvent.KEYCODE_VOLUME_DOWN || keycode == KeyEvent.KEYCODE_VOLUME_UP) {
-            return true;// Eat these keys
-        } // Try tab completion(using tab key, or search key)
-        else if ((keycode == KeyEvent.KEYCODE_TAB || keycode == KeyEvent.KEYCODE_SEARCH)
-                && event.getAction() == KeyEvent.ACTION_DOWN) {
+        }
+        // try tab completion if we press tab or search
+        if ((keycode == KeyEvent.KEYCODE_TAB || keycode == KeyEvent.KEYCODE_SEARCH) &&
+                action == KeyEvent.ACTION_DOWN) {
             tryTabComplete();
             return true;
-        } else if (KeyEvent.isModifierKey(keycode) || keycode == KeyEvent.KEYCODE_TAB
-                || keycode == KeyEvent.KEYCODE_SEARCH) {
-            // If it was a modifier key(or tab/search), don't kill tabCompletingInProgress
-            return false;
         }
-        tabCompletingInProgress = false;
         return false;
     }
 
-    @Override
-    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        if (key.equals("tab_completion")) {
-            enableTabComplete = prefs.getBoolean("tab_completion", true);
-        } else if(key.equals("sendbtn_show") && sendButton != null) {
-            if (prefs.getBoolean("sendbtn_show", true)) {
-                sendButton.setVisibility(View.VISIBLE);
-            } else {
-                sendButton.setVisibility(View.GONE);
-            }
-        } else if(key.equals("tabbtn_show") && tabButton != null) {
-            if (prefs.getBoolean("tabbtn_show", false)) {
-                tabButton.setVisibility(View.VISIBLE);
-            } else {
-                tabButton.setVisibility(View.GONE);
-            }
-        }
-    }
-
-    // Send button pressed
+    /** the only OnClickListener's method
+     ** our own send button or tab button pressed */
     @Override
     public void onClick(View v) {
-        if (sendButton.getId() == v.getId()) {
-            getActivity().runOnUiThread(messageSender);
-        } else if (tabButton.getId() == v.getId()) {
-            // do tab completion
+        if (v.getId() == sendButton.getId())
+            getActivity().runOnUiThread(message_sender);
+        else if (v.getId() == tabButton.getId())
             tryTabComplete();
-        }
     }
+
+    /** the only OnEditorActionListener's method
+     ** listens to keyboard's “send” press (NOT our button) */
+    @Override
+    public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
+        if (actionId == EditorInfo.IME_ACTION_SEND) {
+            getActivity().runOnUiThread(message_sender);
+            return true;
+        }
+        return false;
+    }
+
+    /** the only OnSharedPreferenceChangeListener's method */
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        if (key.equals("tab_completion"))
+            enableTabComplete = prefs.getBoolean("tab_completion", true);
+        else if (key.equals("sendbtn_show") && sendButton != null)
+            sendButton.setVisibility(prefs.getBoolean("sendbtn_show", true) ? View.VISIBLE : View.GONE);
+        else if (key.equals("tabbtn_show") && tabButton != null)
+            tabButton.setVisibility(prefs.getBoolean("tabbtn_show", true) ? View.VISIBLE : View.GONE);
+    }
+
+    /////////////////////////
+    ///////////////////////// send
+    /////////////////////////
+
+    /** ends the message if there's anything to send
+     ** if user entered /buffer clear or /CL command, then clear the lines */
+    private Runnable message_sender = new Runnable() {
+        @Override
+        public void run() {
+            String input = inputBox.getText().toString();
+            if (input.length() > 0) {
+                if (input.equals("/CL") || input.equals("/buffer clear"))
+                    chatlines_adapter.clearLines();
+                relay.sendMessage("input " + name + " " + input + "\n");
+                inputBox.setText("");   // this will reset tab completion
+            }
+        }
+    };
+
+    /////////////////////////
+    ///////////////////////// tab complete
+    /////////////////////////
     
-    // Attempts to perform tab completion on the current input
+    /** attempts to perform tab completion on the current input */
     private void tryTabComplete() {
-        if (!enableTabComplete || nickCache == null)
+        if (!enableTabComplete || nicks == null)
             return;
         String txt = inputBox.getText().toString();
-        if (!tabCompletingInProgress) {
+        if (!tc_inprogress) {
             // find the end of the word to be completed
             // blabla nick|
-            tabCompleteWordEnd = inputBox.getSelectionStart();
-            if (tabCompleteWordEnd <= 0)
+            tc_wordend = inputBox.getSelectionStart();
+            if (tc_wordend <= 0)
                 return;
 
             // find the beginning of the word to be completed
             // blabla |nick
-            tabCompleteWordStart = tabCompleteWordEnd;
-            while (tabCompleteWordStart > 0 && txt.charAt(tabCompleteWordStart - 1) != ' ')
-                tabCompleteWordStart--;
+            tc_wordstart = tc_wordend;
+            while (tc_wordstart > 0 && txt.charAt(tc_wordstart - 1) != ' ')
+                tc_wordstart--;
 
             // get the word to be completed, lowercase
-            if (tabCompleteWordStart == tabCompleteWordEnd)
+            if (tc_wordstart == tc_wordend)
                 return;
-            String prefix = txt.substring(tabCompleteWordStart, tabCompleteWordEnd).toLowerCase();
+            String prefix = txt.substring(tc_wordstart, tc_wordend).toLowerCase();
 
             // compute a list of possible matches
-            // nickCache is ordered in last used comes first way, so we just pick whatever comes first
+            // nicks is ordered in last used comes first way, so we just pick whatever comes first
             // if computed list is empty, abort
-            tabCompleteMatches = new Vector<String>();
-            for (String possible : nickCache)
-                if (possible.toLowerCase().trim().startsWith(prefix))
-                    tabCompleteMatches.add(possible.trim());
-            if (tabCompleteMatches.size() == 0)
+            tc_matches = new Vector<String>();
+            for (String nick : nicks)
+                if (nick.toLowerCase().trim().startsWith(prefix))
+                    tc_matches.add(nick.trim());
+            if (tc_matches.size() == 0)
                 return;
 
-            tabCompleteIndex = 0;
+            tc_index = 0;
         } else {
-            tabCompleteIndex = (tabCompleteIndex + 1) % tabCompleteMatches.size();
+            tc_index = (tc_index + 1) % tc_matches.size();
         }
 
         // get new nickname, adjust the end of the word marker
         // and finally set the text and place the cursor on the end of completed word
-        String nick = tabCompleteMatches.get(tabCompleteIndex);
-        if (tabCompleteWordStart == 0)
+        String nick = tc_matches.get(tc_index);
+        if (tc_wordstart == 0)
             nick += ": ";
-        inputBox.setText(txt.substring(0, tabCompleteWordStart) + nick + txt.substring(tabCompleteWordEnd));
-        tabCompleteWordEnd = tabCompleteWordStart + nick.length();
-        inputBox.setSelection(tabCompleteWordEnd);
-        // altering text in the input box sets tabCompletingInProgress to false,
+        inputBox.setText(txt.substring(0, tc_wordstart) + nick + txt.substring(tc_wordend));
+        tc_wordend = tc_wordstart + nick.length();
+        inputBox.setSelection(tc_wordend);
+        // altering text in the input box sets tc_inprogress to false,
         // so this is the last thing we do in this function:
-        tabCompletingInProgress = true;
+        tc_inprogress = true;
     }
 
-    // Sends the message if necessary
-    private Runnable messageSender = new Runnable() {
-        @Override
-        public void run() {
-            tabCompletingInProgress = false;
-            
-            String input = inputBox.getText().toString();
-            if (input.length() == 0) {
-                return; // Ignore empty input box
-            }
-            
-            // Check if it was a /buffer clear, /CL command, then clear the lines
-            if (input.equals("/CL") || input.equals("/buffer clear")) {
-                chatlineAdapter.clearLines();
-            }
+    public ArrayList<String> getNicklist() {
+        return nicks;
+    }
 
-            String message = "input " + bufferName + " " + input;
-            inputBox.setText("");
-            rsb.sendMessage(message + "\n");
-        }
-    };
-    
-    /*
-     * This is related to the tap and hold menu that appears when clicking on a message
-     */
+    public String getShortBufferName() {
+        return shortname;
+    }
+
+    /////////////////////////
+    ///////////////////////// context menu
+    /////////////////////////
+
+    /** This is related to the tap and hold menu that appears when clicking on a message */
     private static final int CONTEXT_MENU_COPY_TXT = Menu.FIRST;
     private static final int CONTEXT_MENU_COPY_URL = CONTEXT_MENU_COPY_TXT+1;
     private TextView contextMenuView = null;
@@ -436,7 +514,7 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
             if (item.getItemId() == CONTEXT_MENU_COPY_TXT) {
                 CharSequence txt = contextMenuView.getText();
                 cm.setText(txt.toString());
-            } else if (item.getItemId() >= CONTEXT_MENU_COPY_URL) {
+            } else if (item.getItemId() >= CONTEXT_MENU_COPY_URL) {                     // TODO: don't follow the url immediately
                 URLSpan[] urls = contextMenuView.getUrls();
                 cm.setText(urls[item.getItemId() - CONTEXT_MENU_COPY_URL].getURL());
             }
@@ -449,13 +527,11 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
         super.onCreateContextMenu(menu, v, menuInfo);
         if (!(v instanceof ListView)) return;
         
-        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
-        View selected = info.targetView;
+        View selected = ((AdapterView.AdapterContextMenuInfo) menuInfo).targetView;
         if (selected == null) return;
         
-        
-        TextView msg = (TextView)selected.findViewById(R.id.chatline_message);
-        if (msg==null) return;
+        TextView msg = (TextView) selected.findViewById(R.id.chatline_message);
+        if (msg == null) return;
 
         contextMenuView = msg;
         
@@ -463,12 +539,16 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
         menu.add(0, CONTEXT_MENU_COPY_TXT, 0, "Copy message text");
         
         URLSpan[] urls = contextMenuView.getUrls();
-        int i=0;
-        for(URLSpan url: urls) {
-            menu.add(0, CONTEXT_MENU_COPY_URL+i, 1, "URL: " + url.getURL());
+        int i = 0;
+        for (URLSpan url: urls) {
+            menu.add(0, CONTEXT_MENU_COPY_URL + i, 1, "URL: " + url.getURL());
             i++;
         }
     }
+
+    /////////////////////////
+    ///////////////////////// TextWatcher stuff
+    /////////////////////////
 
     @Override
     public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -476,6 +556,11 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
     @Override
     public void onTextChanged(CharSequence s, int start, int before, int count) {}
 
+    /** invalidate tab completion progress on input box text change
+     ** tryTabComplete() will set it back if it modified the text causing this function to run */
     @Override
-    public void afterTextChanged(Editable s) {tabCompletingInProgress = false;}
+    public void afterTextChanged(Editable s) {
+        if (false && DEBUG) logger.warn("{} afterTextChanged(...)", name);
+        tc_inprogress = false;
+    }
 }

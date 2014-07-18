@@ -61,11 +61,9 @@ public class RelayServiceBinder extends Binder {
         return relayService.pass;
     }
 
-    public boolean isConnected() {
-        if (relayService.relayConnection == null) {
-            return false;
-        }
-        return relayService.relayConnection.isConnected();
+    /** returns true if connection status corresponds to given connection */
+    public boolean isConnection(int status) {
+        return relayService.isConnection(status);
     }
 
     public boolean connect() {
@@ -95,7 +93,7 @@ public class RelayServiceBinder extends Binder {
      * @return a Buffer object for the given buffer
      */
     public Buffer getBufferByName(String bufferName) {
-        if (isConnected())
+        if (isConnection(RelayService.CONNECTED))
             return relayService.bufferManager.findByName(bufferName);
         return null;
     }
@@ -140,7 +138,7 @@ public class RelayServiceBinder extends Binder {
     public void subscribeBuffer(String bufferPointer) {
         Buffer buf = relayService.bufferManager.findByPointer(bufferPointer);
         // Get the last MAXLINES for each buffer(only if we don't already have at least MAXLINES)
-        if (buf.getLines().size() < Buffer.MAXLINES) {
+        if (buf.getLines().size() < Buffer.MAXLINES) {                                  // TODO: don't request a copy (getLines())
             relayService.relayConnection.sendMsg("(listlines_reverse) hdata buffer:"
                     + bufferPointer + "/own_lines/last_line(-" + Buffer.MAXLINES
                     + ")/data date,displayed,prefix,message,highlight,tags_array");
