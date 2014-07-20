@@ -15,6 +15,9 @@
  ******************************************************************************/
 package com.ubergeek42.weechat;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -31,6 +34,10 @@ public class BufferLine {
     /**
      * The default representation for the timestamp when a line is rendered
      */
+
+    final private static Logger logger = LoggerFactory.getLogger("BufferLine");
+    final private static boolean DEBUG = true;
+
     public final DateFormat DATEFORMAT = new SimpleDateFormat("HH:mm:ss");
 
     private String message;

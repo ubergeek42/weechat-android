@@ -285,7 +285,7 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
 
     /** loads the “no buffer, choose from list” thing */
     private void showEmpty() {                                                          // TODO: replace with a notification that the buffer's been closed (?) in weechat?
-        if (DEBUG) logger.warn("{} showEmpty() <{}>", name, this);
+        if (DEBUG) logger.warn("{} showEmpty()", name);
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {

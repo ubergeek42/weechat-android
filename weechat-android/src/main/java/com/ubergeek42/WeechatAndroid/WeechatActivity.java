@@ -401,14 +401,19 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     ///////////////////////// private stuff
     /////////////////////////
 
-    /** when we get an intent, do something with it */
+    /** when we get an intent, do something with it
+     ** apparently on certain systems android passes an extra key "profile"
+     ** containing an android.os.UserHandle object, so it might be non-null
+     ** even if doesn't contain "buffers" */
     private void handleIntent() {
+        if (DEBUG) logger.debug("handleIntent()");
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
-            if (DEBUG) logger.debug("handleIntent(): opening a buffer from extras");
-            openBuffer(extras.getString("buffer"));
-        } else {
-            // TODO: Load the bufferlist
+            String name = extras.getString("buffer");
+            if (name != null) {
+                if (DEBUG) logger.debug("handleIntent(): opening buffer '{}' from extras", name);
+                openBuffer(name);
+            }
         }
     }
 

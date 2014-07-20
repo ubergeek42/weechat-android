@@ -33,7 +33,7 @@
 
         <EditText
             android:id="@+id/chatview_input"
-            android:layout_width="fill_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight=".75"
             android:inputType="textShortMessage|textMultiLine|textAutoCorrect"

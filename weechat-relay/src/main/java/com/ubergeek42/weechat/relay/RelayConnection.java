@@ -137,8 +137,8 @@ public class RelayConnection implements RelayConnectionHandler {
         @Override
         public void run() {
             ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+            byte b[] = new byte[1024];
             while (conn.isConnected()) {
-                byte b[] = new byte[1024];
                 try {
                     int r = conn.read(b);
                     if (r > 0) {
@@ -267,7 +267,4 @@ public class RelayConnection implements RelayConnectionHandler {
     public void onError(String err, Object extraInfo) {
         if (DEBUG) logger.debug("onError()");
     }
-
-
-
 }
