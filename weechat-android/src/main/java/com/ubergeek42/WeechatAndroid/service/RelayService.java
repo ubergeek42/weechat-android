@@ -16,19 +16,8 @@
 package com.ubergeek42.WeechatAndroid.service;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.HashSet;
-
-import javax.net.ssl.TrustManagerFactory;
-import javax.net.ssl.X509TrustManager;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,6 +40,7 @@ import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.WeechatPreferencesActivity;
 import com.ubergeek42.WeechatAndroid.notifications.HotlistHandler;
 import com.ubergeek42.WeechatAndroid.notifications.HotlistObserver;
+import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.relay.RelayConnection;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
 import com.ubergeek42.weechat.relay.RelayMessageHandler;
@@ -359,6 +349,7 @@ public class RelayService extends Service implements RelayConnectionHandler,
         // Handle lines being added to buffers
         relayConnection.addHandler("_buffer_line_added", hotlistHandler);
         relayConnection.addHandler("_buffer_line_added", msgHandler);
+
         relayConnection.addHandler("listlines_reverse", msgHandler);
 
         // Handle changes to the nicklist for buffers
@@ -494,6 +485,16 @@ public class RelayService extends Service implements RelayConnectionHandler,
             }
         });
         upgrading.start();
+    }
+
+    public void requestLinesForBuffer(String bufferPointer) {
+        relayConnection.sendMsg("(listlines_reverse) hdata buffer:"
+                + bufferPointer + "/own_lines/last_line(-" + Buffer.MAXLINES
+                + ")/data date,displayed,prefix,message,highlight,tags_array");
+    }
+
+    public void requestNicklist(String bufferPointerOrName) {
+        relayConnection.sendMsg("nicklist", "nicklist", bufferPointerOrName);
     }
 
     private class BuffersListedObserver implements RelayMessageHandler {

@@ -41,8 +41,14 @@ import android.widget.TextView;
 import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.BufferLine;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class ChatLinesAdapter extends BaseAdapter implements ListAdapter,
         OnSharedPreferenceChangeListener {
+
+    private static Logger logger = LoggerFactory.getLogger("ChatLinesAdapter");
+    final private static boolean DEBUG = BuildConfig.DEBUG && true;
 
     private FragmentActivity activity = null;
     private Buffer buffer;
@@ -67,7 +73,7 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter,
         prefs = PreferenceManager.getDefaultSharedPreferences(activity.getBaseContext());
         prefs.registerOnSharedPreferenceChangeListener(this);
 
-        lines = buffer.getLines();
+        lines = buffer.getLinesCopy();
 
         // Load the preferences
         enableColor = prefs.getBoolean("chatview_colors", true);
@@ -229,7 +235,7 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter,
 
             @Override
             public void run() {
-                lines = buffer.getLines();
+                lines = buffer.getLinesCopy();
 
                 if (enableFilters) {
                     LinkedList<BufferLine> filtered = new LinkedList<BufferLine>();

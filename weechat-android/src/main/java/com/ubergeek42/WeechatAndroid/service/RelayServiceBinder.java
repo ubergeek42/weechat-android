@@ -19,10 +19,14 @@ import java.security.cert.X509Certificate;
 
 import android.os.Binder;
 
+import com.ubergeek42.WeechatAndroid.BuildConfig;
 import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
 import com.ubergeek42.weechat.relay.messagehandler.BufferManager;
 import com.ubergeek42.weechat.relay.messagehandler.HotlistManager;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Provides functions that are available to clients of the relay service
@@ -31,6 +35,10 @@ import com.ubergeek42.weechat.relay.messagehandler.HotlistManager;
  * 
  */
 public class RelayServiceBinder extends Binder {
+
+    private static Logger logger = LoggerFactory.getLogger("RelayServiceBinder");
+    final private static boolean DEBUG = BuildConfig.DEBUG && true;
+
     private RelayService relayService;
 
     public RelayServiceBinder(RelayService relayService) {
@@ -135,25 +143,30 @@ public class RelayServiceBinder extends Binder {
      * 
      * @param bufferPointer
      */
+    // Get the last MAXLINES for each buffer if needed
+    // Get the nicklist for any buffers we have
     public void subscribeBuffer(String bufferPointer) {
-        Buffer buf = relayService.bufferManager.findByPointer(bufferPointer);
-        // Get the last MAXLINES for each buffer(only if we don't already have at least MAXLINES)
-        if (buf.getLines().size() < Buffer.MAXLINES) {                                  // TODO: don't request a copy (getLines())
-            relayService.relayConnection.sendMsg("(listlines_reverse) hdata buffer:"
-                    + bufferPointer + "/own_lines/last_line(-" + Buffer.MAXLINES
-                    + ")/data date,displayed,prefix,message,highlight,tags_array");
+        if (DEBUG) logger.error("subscribeBuffer({})", bufferPointer);
+        Buffer buffer = relayService.bufferManager.findByPointer(bufferPointer);
+        if (!buffer.holds_all_lines_it_is_supposed_to_hold) {
+            if (DEBUG) logger.error("subscribeBuffer(): requesting all lines");
+            relayService.requestLinesForBuffer(bufferPointer);
         }
-        // Get the nicklist for any buffers we have
-        relayService.relayConnection.sendMsg("nicklist", "nicklist", buf.getFullName());
+        if (!buffer.holds_all_nicknames) {
+            if (DEBUG) logger.error("subscribeBuffer(): requesting full nicklist");
+            relayService.requestNicklist(bufferPointer);
+        }
         if (relayService.optimize_traffic) {
-            relayService.relayConnection.sendMsg("sync "+buf.getFullName());
+            if (DEBUG) logger.error("subscribeBuffer(): syncing");
+            relayService.relayConnection.sendMsg("sync " + bufferPointer);
         }
     }
 
     public void unsubscribeBuffer(String bufferPointer) {
+        if (DEBUG) logger.error("unsubscribeBuffer({})", bufferPointer);
         if (relayService.optimize_traffic) {
-            Buffer buf = relayService.bufferManager.findByPointer(bufferPointer);
-            relayService.relayConnection.sendMsg("desync "+buf.getFullName());
+            if (DEBUG) logger.error("unsubscribeBuffer(): desyncing");
+            relayService.relayConnection.sendMsg("desync " + bufferPointer);
         }
     }
     

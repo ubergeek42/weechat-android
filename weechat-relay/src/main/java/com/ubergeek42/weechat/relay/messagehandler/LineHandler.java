@@ -31,7 +31,8 @@ import com.ubergeek42.weechat.relay.protocol.RelayObject;
 import com.ubergeek42.weechat.relay.protocol.RelayObject.WType;
 
 public class LineHandler implements RelayMessageHandler {
-    private static Logger logger = LoggerFactory.getLogger(LineHandler.class);
+    final private static boolean DEBUG = false;
+    private static Logger logger = LoggerFactory.getLogger("LineHandler");
 
     private final BufferManager cb;
 
@@ -41,6 +42,9 @@ public class LineHandler implements RelayMessageHandler {
 
     @Override
     public void handleMessage(RelayObject obj, String id) {
+        if (DEBUG) logger.debug("handleMessage(..., {}): whdata.getCount() = {}", id, ((Hdata) obj).getCount());
+
+        Buffer buffer = null;
         Hdata whdata = (Hdata) obj;
         HashSet<Buffer> toUpdate = new HashSet<Buffer>();
 
@@ -76,7 +80,7 @@ public class LineHandler implements RelayMessageHandler {
                 tags = tagsArray.asStringArray();
             }
             // Find the buffer to put the line in
-            Buffer buffer = cb.findByPointer(bPointer);
+            buffer = cb.findByPointer(bPointer);
             if (buffer == null) {
                 logger.debug("Unable to find buffer to update");
                 return;
@@ -111,6 +115,12 @@ public class LineHandler implements RelayMessageHandler {
                 }
             }
         }
+        // this loop probably should be written more neatly, but—
+        // listlines_reverse usually comes in a bulk
+        // after these were listed we can assume the buffer holds the maximum amount of lines
+        // for the time being
+        if (id.equals("listlines_reverse") && buffer != null)
+            buffer.holds_all_lines_it_is_supposed_to_hold = true;
         for (Buffer wb : toUpdate) {
             wb.notifyObservers();
         }

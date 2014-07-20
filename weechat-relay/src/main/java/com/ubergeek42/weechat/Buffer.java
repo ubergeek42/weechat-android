@@ -34,8 +34,8 @@ public class Buffer {
     public static final int MAXLINES = 200;
     private static Logger logger = LoggerFactory.getLogger(Buffer.class);
 
-    Object messagelock = new Object();
-    Object nicklock = new Object();
+    final Object messagelock = new Object();
+    final Object nicklock = new Object();
 
     private int bufferNumber;
     private String pointer;
@@ -52,6 +52,9 @@ public class Buffer {
     private ArrayList<NickItem> nicks = new ArrayList<NickItem>();
     private ArrayList<String> snicks = new ArrayList<String>();
     private Hashtable local_vars;
+
+    public boolean holds_all_lines_it_is_supposed_to_hold = false;
+    public boolean holds_all_nicknames = false;
 
     public void addLine(BufferLine m) {
         addLineNoNotify(m);
@@ -216,7 +219,7 @@ public class Buffer {
         return numUnread;
     }
 
-    public LinkedList<BufferLine> getLines() {
+    public LinkedList<BufferLine> getLinesCopy() {
         // Give them a copy, so we don't get concurrent modification exceptions
         LinkedList<BufferLine> ret = new LinkedList<BufferLine>();
         synchronized (messagelock) {
