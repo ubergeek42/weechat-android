@@ -59,26 +59,24 @@ public class Buffer {
     public void addLine(BufferLine m) {
         addLineNoNotify(m);
         numUnread++;
-        notifyObservers();
+        notifyLineAdded();
 
         // this is a line that comes with a nickname (at all times?)
         // change snicks accordingly, placing last used nickname first
-        String nick = "";
+        String nick;
         for (String tag : m.getTags())
             if (tag.startsWith("nick_")) {
                 nick = tag.substring(5);
+                snicks.remove(nick);
+                snicks.add(0, nick);
                 break;
             }
-        if (!nick.equals("")) {
-            snicks.remove(nick);
-            snicks.add(0, nick);
-        }
     }
 
     // Add Line to the Buffer, but don't increase the unread count. Examples for such lines are joins/quits
     public void addLineNoUnread(BufferLine m) {
         addLineNoNotify(m);
-        notifyObservers();
+        notifyLineAdded();
     }
 
     public void addLineNoNotify(BufferLine m) {
@@ -108,9 +106,15 @@ public class Buffer {
     }
     
     // Notify anyone who cares
-    public void notifyObservers() {
+    public void notifyLineAdded() {
         for (BufferObserver o : observers) {
             o.onLineAdded();
+        }
+    }
+
+    public void notifyManyLinesAdded() {
+        for (BufferObserver o : observers) {
+            o.onManyLinesAdded();
         }
     }
 
@@ -219,7 +223,7 @@ public class Buffer {
         return numUnread;
     }
 
-    public LinkedList<BufferLine> getLinesCopy() {
+    public LinkedList<BufferLine> getLinesCopy() { // TODO remove this
         // Give them a copy, so we don't get concurrent modification exceptions
         LinkedList<BufferLine> ret = new LinkedList<BufferLine>();
         synchronized (messagelock) {
@@ -230,19 +234,8 @@ public class Buffer {
         return ret;
     }
 
-    public String getLinesHTML() {
-        // TODO: think about thread synchronization
-        StringBuffer sb = new StringBuffer();
-        for (BufferLine m : lines) {
-            sb.append("<tr><td class=\"timestamp\">");
-            sb.append(m.getTimestampStr());
-            sb.append("</td><td>");
-            sb.append(m.getPrefix());
-            sb.append("</td><td>");
-            sb.append(m.getMessage());
-            sb.append("</td></tr>\n");
-        }
-        return sb.toString();
+    public LinkedList<BufferLine> getLines() {
+        return lines;
     }
 
     public void addNick(NickItem ni) {

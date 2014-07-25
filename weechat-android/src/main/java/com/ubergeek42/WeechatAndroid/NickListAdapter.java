@@ -63,16 +63,13 @@ public class NickListAdapter extends BaseAdapter implements BufferObserver {
     }
 
     @Override
-    public void onLineAdded() {
-        // TODO Auto-generated method stub
-
-    }
+    public void onManyLinesAdded() {}
 
     @Override
-    public void onBufferClosed() {
-        // TODO Auto-generated method stub
+    public void onLineAdded() {}
 
-    }
+    @Override
+    public void onBufferClosed() {}
 
     @Override
     public void onNicklistChanged() {

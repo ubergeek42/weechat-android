@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright 2012 Keith Johnson
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,468 +18,428 @@ package com.ubergeek42.weechat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+
 /**
  * Color class takes care of parsing WeeChat's own color codes in strings to diplay attributes
  * (bold,underline) and colors on screen. WeeChat's color codes get mapped to HTML color codes
  * wrapped in a <code>font</code>-tag.
- * 
+ *
  * This class can also help with stripping attributes and colors from the String.
- * 
+ *
  * See WeeChat dev document for more information: <a
  * href="http://www.weechat.org/files/doc/devel/weechat_dev.en.html#color_codes_in_strings">here</a>
  */
 public class Color {
-    private static Logger logger = LoggerFactory.getLogger(Color.class);
+    final private static boolean DEBUG = true;
+    final private static Logger logger = LoggerFactory.getLogger("Color");
+
     // Default weechat colors...00-16
-    private static final String weechatColors[] = new String[] { "#D3D3D3",	// Grey
-            "#000000",	// Black
-            "#545454",	// Dark Gray
-            "#DC143C",	// Dark Red
-            "#FF0000",	// Light Red
-            "#006400",	// Dark Green
-            "#90EE90",	// Light Green
-            "#A52A2A",	// Brown
-            "#FFFF00",	// Yellow
-            "#00008B",	// Dark Blue
-            "#ADD8E6",	// Light Blue
-            "#8B008B",	// Dark Magenta
-            "#FF00FF",	// Light Magenta
-            "#008B8B",	// Dark Cyan
-            "#00FFFF",	// Cyan
-            "#D3D3D3",	// Gray
-            "#FFFFFF"	// White
-    };
-    private static final String weechatOptions[] = new String[] { "#FFFFFF", // # 0"default"
-            "#FFFFFF", // # 1"chat",
-            "#999999", // # 2"chat_time",
-            "#FFFFFF", // # 3"chat_time_delimiters",
-            "#FF6633", // # 4"chat_prefix_error",
-            "#990099", // # 5"chat_prefix_network",
-            "#FFFFFF", // # 6"chat_prefix_action",
-            "#00CC00", // # 7"chat_prefix_join",
-            "#CC0000", // # 8"chat_prefix_quit",
-            "#CC00FF", // # 9"chat_prefix_more",
-            "#330099", // # 10"chat_prefix_suffix",
-            "#FFFFFF", // # 11"chat_buffer",
-            "#FFFFFF", // # 12"chat_server",
-            "#FFFFFF", // # 13"chat_channel",
-            "#FFFFFF", // # 14"chat_nick",
-            "*#FFFFFF", // # 15"chat_nick_self",
-            "#FFFFFF", // # 16"chat_nick_other",
-            "#FFFFFF", // # 17 (nick1 -- obsolete)"",
-            "#FFFFFF", // # 18 (nick2 -- obsolete)"",
-            "#FFFFFF", // # 19 (nick3 -- obsolete)"",
-            "#FFFFFF", // # 20 (nick4 -- obsolete)"",
-            "#FFFFFF", // # 21 (nick5 -- obsolete)"",
-            "#FFFFFF", // # 22 (nick6 -- obsolete)"",
-            "#FFFFFF", // # 23 (nick7 -- obsolete)"",
-            "#FFFFFF", // # 24 (nick8 -- obsolete)"",
-            "#FFFFFF", // # 25 (nick9 -- obsolete)"",
-            "#FFFFFF", // # 26 (nick10 -- obsolete)"",
-            "#666666", // # 27"chat_host",
-            "#9999FF", // # 28"chat_delimiters",
-            "#3399CC", // # 29"chat_highlight",
-            "#FFFFFF", // # 30"chat_read_marker",
-            "#FFFFFF", // # 31"chat_text_found",
-            "#FFFFFF", // # 32"chat_value",
-            "#FFFFFF", // # 33"chat_prefix_buffer",
-            "#FFFFFF", // # 34"chat_tags",
-            "#FFFFFF", // # 35"chat_inactive_window",
-            "#FFFFFF", // # 36"chat_inactive_buffer",
-            "#FFFFFF"  // # 37"chat_prefix_buffer_inactive_buffer"
+    private static final int weechatColors[] = new int[] {
+            0xD3D3D3,	// Grey
+            0x000000,	// Black
+            0x545454,	// Dark Gray
+            0xDC143C,	// Dark Red
+            0xFF0000,	// Light Red
+            0x006400,	// Dark Green
+            0x90EE90,	// Light Green
+            0xA52A2A,	// Brown
+            0xFFFF00,	// Yellow
+            0x00008B,	// Dark Blue
+            0xADD8E6,	// Light Blue
+            0x8B008B,	// Dark Magenta
+            0xFF00FF,	// Light Magenta
+            0x008B8B,	// Dark Cyan
+            0x00FFFF,	// Cyan
+            0xD3D3D3,	// Gray
+            0xFFFFFF	// White
     };
 
-    private static String extendedColors[] = new String[256];
+    // these are weechat options
+    private static final int[][] weechatOptions = new int[][] {
+            {0xFFFFFF,       -1}, // #  0 default
+            {0xFFFFFF,       -1}, // #  1 chat
+            {0x999999,       -1}, // #  2 chat_time
+            {0xFFFFFF,       -1}, // #  3 chat_time_delimiters
+            {0xFF6633,       -1}, // #  4 chat_prefix_error
+            {0x990099,       -1}, // #  5 chat_prefix_network
+            {0x999999,       -1}, // #  6 chat_prefix_action
+            {0x00CC00,       -1}, // #  7 chat_prefix_join
+            {0xCC0000,       -1}, // #  8 chat_prefix_quit
+            {0xCC00FF,       -1}, // #  9 chat_prefix_more
+            {0x330099,       -1}, // # 10 chat_prefix_suffix
+            {0xFFFFFF,       -1}, // # 11 chat_buffer
+            {0xFFFFFF,       -1}, // # 12 chat_server
+            {0xFFFFFF,       -1}, // # 13 chat_channel
+            {0xFFFFFF,       -1}, // # 14 chat_nick
+            {0xFFFFFF,       -1}, // # 15 chat_nick_self
+            {0xFFFFFF,       -1}, // # 16 chat_nick_other
+            {      -1,       -1}, // # 17 (nick1 -- obsolete)
+            {      -1,       -1}, // # 18 (nick2 -- obsolete)
+            {      -1,       -1}, // # 19 (nick3 -- obsolete)
+            {      -1,       -1}, // # 20 (nick4 -- obsolete)
+            {      -1,       -1}, // # 21 (nick5 -- obsolete)
+            {      -1,       -1}, // # 22 (nick6 -- obsolete)
+            {      -1,       -1}, // # 23 (nick7 -- obsolete)
+            {      -1,       -1}, // # 24 (nick8 -- obsolete)
+            {      -1,       -1}, // # 25 (nick9 -- obsolete)
+            {      -1,       -1}, // # 26 (nick10 -- obsolete)
+            {0x666666,       -1}, // # 27 chat_host
+            {0x9999FF,       -1}, // # 28 chat_delimiters
+            {0xFFFFFF, 0xFF1155}, // # 29 chat_highlight
+            {      -1,       -1}, // # 30 chat_read_marker
+            {      -1,       -1}, // # 31 chat_text_found
+            {      -1,       -1}, // # 32 chat_value
+            {      -1,       -1}, // # 33 chat_prefix_buffer
+            {      -1,       -1}, // # 34 chat_tags
+            {      -1,       -1}, // # 35 chat_inactive_window
+            {      -1,       -1}, // # 36 chat_inactive_buffer
+            {      -1,       -1}, // # 37 chat_prefix_buffer_inactive_buffer
+    };
+
+    private static int extendedColors[] = new int[256];
     static {
         // 16 basic terminal colors(from:
         // http://docs.oracle.com/cd/E19728-01/820-2550/term_em_colormaps.html)
-        extendedColors[0] = "#000000"; // Black
-        extendedColors[1] = "#FF0000"; // Light Red
-        extendedColors[2] = "#00FF00"; // Light Green
-        extendedColors[3] = "#FFFF00"; // Yellow
-        extendedColors[4] = "#0000FF"; // Light blue
-        extendedColors[5] = "#FF00FF"; // Light magenta
-        extendedColors[6] = "#00FFFF"; // Light cyan
-        extendedColors[7] = "#FFFFFF"; // High White
-        extendedColors[8] = "#808080"; // Gray
-        extendedColors[9] = "#800000"; // Red
-        extendedColors[10] = "#008000"; // Green
-        extendedColors[11] = "#808000"; // Brown
-        extendedColors[12] = "#000080"; // Blue
-        extendedColors[13] = "#800080"; // Magenta
-        extendedColors[14] = "#008080"; // Cyan
-        extendedColors[15] = "#C0C0C0"; // White
+        extendedColors[0] =  0x000000; // Black
+        extendedColors[1] =  0xFF0000; // Light Red
+        extendedColors[2] =  0x00FF00; // Light Green
+        extendedColors[3] =  0xFFFF00; // Yellow
+        extendedColors[4] =  0x0000FF; // Light blue
+        extendedColors[5] =  0xFF00FF; // Light magenta
+        extendedColors[6] =  0x00FFFF; // Light cyan
+        extendedColors[7] =  0xFFFFFF; // High White
+        extendedColors[8] =  0x808080; // Gray
+        extendedColors[9] =  0x800000; // Red
+        extendedColors[10] = 0x008000; // Green
+        extendedColors[11] = 0x808000; // Brown
+        extendedColors[12] = 0x000080; // Blue
+        extendedColors[13] = 0x800080; // Magenta
+        extendedColors[14] = 0x008080; // Cyan
+        extendedColors[15] = 0xC0C0C0; // White
 
         // Extended terminal colors, from colortest.vim:
         // http://www.vim.org/scripts/script.php?script_id=1349
         int base[] = new int[] { 0, 95, 135, 175, 215, 255 };
         for (int i = 16; i < 232; i++) {
             int j = i - 16;
-            extendedColors[i] = String.format("#%02x%02x%02x", base[(j / 36) % 6],
-                    base[(j / 6) % 6], base[j % 6]);
+            extendedColors[i] = (base[(j / 36) % 6]) << 16 | (base[(j / 6) % 6] << 8 | (base[j % 6]));
         }
         for (int i = 232; i < 256; i++) {
-            extendedColors[i] = String.format("#%02x%02x%02x", 8 + i * 10, 8 + i * 10, 8 + i * 10);
+            int j = 8 + i * 10;
+            extendedColors[i] = j << 16 | j << 8 | j;
         }
     }
 
-    private static final String FG_DEFAULT = weechatColors[0];
-    private static final String BG_DEFAULT = weechatColors[1];
+    public static String stripColors(String text) { return text; }
+    public static String stripAllColorsAndAttributes(String text) { return text; }
 
-    private String msg;
-    private int index;
+    public static String clean_message;
+    public static int margin;
+    public static ArrayList<Span> final_span_list;
 
-    // Current state
-    boolean bold = false;
-    boolean reverse = false;
-    boolean italic = false;
-    boolean underline = false;
-    String fgColor = FG_DEFAULT;
-    String bgColor = BG_DEFAULT;
+    // prepares: clean_message, margin, final_span_list
+    public static void parse(String timestamp, String prefix, String message, final boolean highlight, final int max, final boolean align_right) {
+        int puff;
+        int color;
+        StringBuilder sb = new StringBuilder();
+        final_span_list = new ArrayList<Span>();
 
-    public Color() {
-        this.msg = "";
-        this.index = 0;
+        // timestamp uses no colors
+        sb.append(timestamp);
+        sb.append(" ");
+
+        // prefix should be adjusted accoring to the settings
+        // also, if highlight is enabled, remove all colors from here and add highlight color later
+        parseColors(prefix);
+        prefix = out.toString();
+        if (highlight) span_list.clear();
+        boolean nick_has_been_cut = false;
+        if (prefix.length() > max) {
+            nick_has_been_cut = true;
+            prefix = prefix.substring(0, max);
+            for (Span span: span_list) if (span.end > max) span.end = max;
+        }
+        else if (align_right && prefix.length() < max) {
+            int diff = max - prefix.length();
+            for (int x = 0; x < diff; x++) sb.append(" ");
+        }
+        if (highlight) {
+            color = weechatOptions[29][0];
+            if (color != -1) {Span fg = new Span(); fg.start = 0; fg.end = prefix.length(); fg.type = Span.FGCOLOR; fg.color = color; span_list.add(fg);}
+            color = weechatOptions[29][1];
+            if (color != -1) {Span bg = new Span(); bg.start = 0; bg.end = prefix.length(); bg.type = Span.BGCOLOR; bg.color = color; span_list.add(bg);}
+        }
+        puff = sb.length();
+        for (Span span : span_list) {
+            span.start += puff;
+            span.end += puff;
+            final_span_list.add(span);
+        }
+        sb.append(prefix);
+        if (nick_has_been_cut) {
+            sb.append("+");
+            Span fg = new Span(); fg.start = sb.length() - 1; fg.end = sb.length(); fg.type = Span.FGCOLOR; fg.color = 0x444444; final_span_list.add(fg);
+        }
+        else sb.append(" ");
+
+        // here's our margin
+        margin = sb.length();
+
+        // the rest of the message
+        parseColors(message);
+        message = out.toString();
+        puff = sb.length();
+        for (Span span : span_list) {
+            span.start += puff;
+            span.end += puff;
+            final_span_list.add(span);
+        }
+        sb.append(message);
+        clean_message = sb.toString();
     }
 
-    public void setText(String message, boolean encode_html) {
-        if (encode_html) {
-            this.msg = encodeHTML(message);
-        } else {
-            this.msg = message;
-        }
-        this.index = 0;
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    // output of parseColors()
+    private static StringBuffer out;                                   // printable characters
+    private static ArrayList<Span> span_list = new ArrayList<Span>();  // list of spans in “out”
+
+    // working vars of parseColor()
+    private static String msg;                                         // text currently being parsed by parseColors
+    private static int index;                                          // parsing position in this
+    private static Span[] spans = new Span[6];                         // list of currently open spans
+
+    // this Span can be easily translated into android's spans (except REVERSE)
+    public static class Span {
+        final static public int BOLD =      0x00;
+        final static public int UNDERLINE = 0x01;
+        final static public int REVERSE =   0x02;
+        final static public int ITALIC =    0x03;
+        final static public int FGCOLOR =   0x04;
+        final static public int BGCOLOR =   0x05;
+        public int start;
+        public int end;
+        public int type;
+        public int color;
     }
 
-    private char getChar() {
-        if (index >= msg.length()) {
-            return ' ';
-        }
+    private static char getChar() {
+        if (index >= msg.length()) return ' ';
         return msg.charAt(index++);
     }
 
-    private char peekChar() {
-        if (index >= msg.length()) {
-            return ' ';
-        }
+    private static char peekChar() {
+        if (index >= msg.length()) return ' ';
         return msg.charAt(index);
     }
 
-    private String getWeechatOptions() {
-        char c1 = getChar();
-        char c2 = getChar();
-        int color = Integer.parseInt("" + c1 + c2);
-
-        return weechatOptions[color];
+    /** adds a new span to the temporary span list
+     ** closing a similar span if it's been open and,
+     ** if possible, extending a recently closed span */
+    private static void addSpan(int type) {addSpan(type, -1);}
+    private static  void addSpan(int type, int color) {
+        finalizeSpan(type);
+        int pos = out.length();
+        // get the old span if the same span is ending at this same spot
+        // if found, remove it from the list
+        Span span = null;
+        boolean found = false;
+        for (Iterator<Span> it = span_list.iterator(); it.hasNext();) {
+            span = it.next();
+            if (span.end == pos && span.type == type && span.color == color) {
+                it.remove();
+                found = true;
+                break;
+            }
+        }
+        // no old span found, make new one
+        if (!found) {
+            span = new Span();
+            span.type = type;
+            span.start = pos;
+            span.color = color;
+        }
+        // put it into temporary list
+        spans[type] = span;
     }
 
-    // Returns a string for a given weechat standard color
-    private String getWeechatColor() {
-        char c1 = getChar();
-        char c2 = getChar();
-        int color = Integer.parseInt("" + c1 + c2);
-
-        return weechatColors[color];
-    }
-
-    // Returns a string for a given extended color
-    private String getExtendedColor() {
-        char c1 = getChar();
-        char c2 = getChar();
-        char c3 = getChar();
-        char c4 = getChar();
-        char c5 = getChar();
-        int color = Integer.parseInt("" + c1 + c2 + c3 + c4 + c5);
-
-        return extendedColors[color];
-    }
-
-    private String getColor() {
-        if (peekChar() == '@') {
-            getChar(); // consume the @
-
-            consumeAttributes();
-            return getExtendedColor();
-        } else { // standard color is 2 digits
-            consumeAttributes();
-            return getWeechatColor();
+    /** takes a span from the temporary span list and put it in the output list
+     ** if span is size 0, simply discards it */
+    private static void finalizeSpan(int type) {
+        Span span = spans[type];
+        if (span != null) {
+            spans[type] = null;
+            span.end = out.length();
+            if (span.start != span.end)
+                span_list.add(span);
         }
     }
 
-    private void consumeAttributes() {
-        // Consume attributes
-        char c = peekChar();
-        while (c == '*' || c == '!' || c == '/' || c == '_' || c == '|') {
-            getChar(); // consume the item
-            setAttribute(c);
-            c = peekChar(); // peek at the next character
-        }
+    /////////////////////////////////
+    ///////////////////////////////// colors
+    /////////////////////////////////
+
+    /** sets weechat's special colors.
+     ** sets, if available, both foreground and background colors.
+     **can take form of: 05 */
+    private static void setWeechatColor() {
+        int color;
+        int color_index = getNumberOfLengthUpTo(2);
+        if (color_index < 0 || color_index >= weechatOptions.length) return;
+        color = weechatOptions[color_index][0];
+        if (color != -1) addSpan(Span.FGCOLOR, color);
+        color = weechatOptions[color_index][1];
+        if (color != -1) addSpan(Span.BGCOLOR, color);
     }
 
-    private void setAttribute(char c) {
-        switch (c) {
-        case '*': // Bold
-            bold = true;
-            break;
-        case '!': // Reverse(Unsupported)
-            reverse = true;
-            break;
-        case '/': // Italics
-            italic = true;
-            break;
-        case '_': // Underline
-            underline = true;
-            break;
-        case '|': // Keep attributes
-            break;
-        }
+    /** parse colors/color & attribute combinations. can take form of:
+     ** 05, @00123, *05, @*_00123 */
+    private static void setColor(int type) {
+        int color;
+        boolean extended = (peekChar() == '@');
+        if (extended) getChar();
+        if (type == Span.FGCOLOR) maybeSetAttributes();
+        color = (extended) ? getColorExtended() : getColor();
+        if (color != -1) addSpan(type, color);
     }
 
-    private void removeAttribute(char c) {
-        switch (c) {
-        case '*': // Bold
-            bold = false;
-            break;
-        case '!': // Reverse(Unsupported)
-            reverse = false;
-            break;
-        case '/': // Italics
-            italic = false;
-            break;
-        case '_': // Underline
-            underline = false;
-            break;
-        case '|': // Keep attributes
-            break;
-        }
+    // returns color in the form 0xfffff or -1
+    private static int getColor() {
+        int color_index = getNumberOfLengthUpTo(2);
+        if (color_index < 0 || color_index >= weechatColors.length) return -1;
+        return weechatColors[color_index];
     }
 
-    private void getFormatString(int numColors) {
-        fgColor = getColor();
-        if (peekChar() == ',' && numColors==2) {
-            getChar();
-            bgColor = getColor();
-        }
+    // returns color in the form 0xfffff or -1
+    private static int getColorExtended() {
+        int color_index = getNumberOfLengthUpTo(5);
+        if (color_index < 0 || color_index >= extendedColors.length) return -1;
+        return extendedColors[color_index];
     }
 
-    private String getHTMLTag() {
-        return getHTMLTag(true);
-    }
-
-    private String getHTMLTag(boolean closeTag) {
-        String ret;
-        /*
-         * String attribs = ""; attribs += String.format("color:%s;", fgColor); attribs +=
-         * String.format("background-color:%s;", bgColor); if (italic) attribs +=
-         * "font-style:italic;"; if (bold) attribs += "font-weight:bold;";
-         * 
-         * if (closeTag) ret = String.format("</span><span style=\"%s\">", attribs); else ret =
-         * String.format("<span style=\"%s\">", attribs); return ret;
-         */
-        if (closeTag) {
-            ret = String.format("</font><font color=\"%s\">", fgColor);
-        } else {
-            ret = String.format("<font color=\"%s\">", fgColor);
+    // returns a number stored in the next “amount” characters
+    // if any of the “amount” characters is not a number, returns -1
+    private static final int[] multipliers = new int[]{1, 10, 100, 1000, 10000};
+    private static int getNumberOfLengthUpTo(int amount) {
+        int c;
+        int ret = 0;
+        for (amount--; amount >= 0; amount--) {     // 2: 1, 0;  5: 4, 3, 2, 1, 0
+            c = peekChar();
+            if (c < '0' || c > '9') return -1;
+            ret += (getChar() - '0') * multipliers[amount];
         }
         return ret;
     }
 
-    public static String stripColors(String msg) {
-        if (msg == null) {
-            return msg;
+    /////////////////////////////////
+    ///////////////////////////////// attributes
+    /////////////////////////////////
+
+    // set as many attributes as we can, maybe 0
+    private static void maybeSetAttributes() {
+        while (true) {
+            int type = getAttribute(peekChar());
+            if (type < -1) return;                   // next char is not an attribute
+            if (type > -1) addSpan(type);            // next char is an attribute
+            getChar();                               // consume if an attribute or “|”
         }
-        Color c = new Color();
-        c.setText(msg, false);
-        String ret = c.parseColors(false);
-        return ret.toString();
     }
 
-    public String toHTML() {
-        return parseColors(true);
+    // set 1 attribute
+    private static void maybeSetAttribute() {
+        int type = getAttribute(peekChar());
+        if (type < -1) return;
+        if (type > -1) addSpan(type);
+        getChar();
     }
 
-    public String parseColors(boolean insert_html) {
-        if (msg == null) {
-            return msg;
+    // remove 1 attribute
+    private static void maybeRemoveAttribute() {
+        int type = getAttribute(peekChar());
+        if (type < -1) return;
+        if (type > -1) finalizeSpan(type);
+        getChar();
+    }
+
+    // returns >= 0 if we've got useful attribute
+    // returns -1 if no useful attributes are found, but a character should be consumed
+    // returns -2 if nothing useful is found
+    // actually weechat breaks the protocol here...
+    private static int getAttribute(char c) {
+        switch(c) {
+            case '*': case 0x01: return Span.BOLD;
+            case '!': case 0x02: return Span.REVERSE;
+            case '/': case 0x03: return Span.ITALIC;
+            case '_': case 0x04: return Span.UNDERLINE;
+            case '|': return -1;
+            default:  return -2;
         }
-        StringBuffer parsedMsg;
-        if (insert_html) {
-            parsedMsg = new StringBuffer(getHTMLTag(false));
-        } else {
-            parsedMsg = new StringBuffer();
-        }
+    }
+
+    /////////////////////////////////
+    ///////////////////////////////// wow such code
+    /////////////////////////////////
+
+    /** takes text as input
+     ** sets out and span_list */
+    private static void parseColors(String msg) {
+        Color.msg = msg;
+        index = 0;
+        out = new StringBuffer();
+        span_list.clear();
 
         char c;
         while (index < msg.length()) {
-            if (peekChar() == 0x1C) {
-                getChar();
-                // reset attributes and color(doesn't consume anything else)
-                fgColor = FG_DEFAULT;
-                bgColor = BG_DEFAULT;
-                bold = false;
-                reverse = false;
-                italic = false;
-                underline = false;
-
-                if (insert_html) {
-                    parsedMsg.append(getHTMLTag());
-                }
-                continue;
-            } else if (peekChar() == 0x1A) { // set attribute
-                getChar();
-                c = getChar();
-                setAttribute(c);
-
-                if (insert_html) {
-                    parsedMsg.append(getHTMLTag());
-                }
-                continue;
-            } else if (peekChar() == 0x1B) { // Remove attribute
-                getChar();
-                c = getChar();
-                removeAttribute(c);
-
-                if (insert_html) {
-                    parsedMsg.append(getHTMLTag());
-                }
-                continue;
-            } else if (peekChar() == 0x19) {
-                getChar();
-
-                if (peekChar() == 0x1C) {// reset color
-                    getChar();
-                    fgColor = FG_DEFAULT;
-                    bgColor = BG_DEFAULT;
-                    if (insert_html) {
-                        parsedMsg.append(getHTMLTag());
+            c = getChar();
+            switch (c) {
+                case 0x1C:              // clear all attributes
+                    for (int i = 0; i <= 5; i++) finalizeSpan(i);
+                    break;
+                case 0x1A:              // set attr
+                    maybeSetAttribute();
+                    break;
+                case 0x1B:              // remove attr
+                    maybeRemoveAttribute();
+                    break;
+                case 0x19:              // oh god
+                    c = peekChar();
+                    switch (c) {
+                        case 0x1C:              // clear colors
+                            finalizeSpan(Span.FGCOLOR);
+                            finalizeSpan(Span.BGCOLOR);
+                            break;
+                        case '@':               // /color stuff. shouldn't happen, but just in case consume
+                            setColor(Span.FGCOLOR);
+                            break;
+                        case 'b':               // bars stuff. consume two chars
+                            getChar();
+                        case 'E':               // emphasise? consume one char
+                            getChar();
+                            break;
+                        case 'F':               // foreground
+                        case '*':               // foreground followed by ',' followed by background
+                            getChar();
+                            setColor(Span.FGCOLOR);
+                            if (c == 'F' || peekChar() != ',') break;
+                        case 'B':               // background (same as fg but w/o optional attributes)
+                            getChar();
+                            setColor(Span.BGCOLOR);
+                            break;
+                        default:
+                            setWeechatColor();  // this is determined by options
+                            break;
                     }
-                    continue;
-                }
-
-                if (peekChar() == 'b') { // Only for bar items; ignore
-                    getChar();
-                    c = getChar(); // consume an additional character
-                    continue;
-                }
-
-                if (peekChar() == 'F') { // Set foreground color+attributes
-                    getChar();
-                    getFormatString(1);
-                    if (insert_html) {
-                        parsedMsg.append(getHTMLTag());
-                    }
-                } else if (peekChar() == 'B') { // Set background color +attributes
-                    getChar();
-                    getFormatString(1);
-                    if (insert_html) {
-                        parsedMsg.append(getHTMLTag());
-                    }
-                } else if (peekChar() == '*') {
-                    getChar();
-                    getFormatString(2);
-                    if (insert_html) {
-                        parsedMsg.append(getHTMLTag());
-                    }
-                } else {
-                    if (peekChar() == '@') {
-                        getChar();
-                        fgColor = getExtendedColor();
-                        // should map to ncurses pair, which doesn't exist
-                    } else {
-                        fgColor = getWeechatOptions();
-                    }
-                    if (insert_html) {
-                        parsedMsg.append(getHTMLTag());
-                    }
-                }
-            } else {
-                // Not formatting or anything, so append it to the string
-                parsedMsg.append(getChar());
+                    break;
+                default:
+                    out.append(c);      // wow, we've got a printable character!
             }
         }
-        if (insert_html) {
-            parsedMsg.append("</font>");
-        }
-        // logger.debug("HTML for string: " + html.toString());
-        return parsedMsg.toString();
-    }
-
-    // Strips colors encoded with the standard irc method
-    public static String stripIRCColors(String msg) {
-
-        if (msg == null) {
-            return msg;
-        }
-        StringBuffer cleaned = new StringBuffer();
-        try {
-            for (int i = 0; i < msg.length();) {
-                char c = msg.charAt(i++);
-
-                if (c == 0x02 || c == 0x0F || c == 0x11 || c == 0x12 || c == 0x16 || c == 0x1D
-                        || c == 0x1F) { // Bold, Color Reset, Fixed, Reverse, Reverse2, Italic,
-                                        // Underline
-                    // do nothing with them
-                    continue;
-                } else if (c == 0x03) { // color follows this
-                    // 1 or 2 digit color
-                    if (Character.isDigit(msg.charAt(i))) {
-                        c = msg.charAt(i++);
-                        if (Character.isDigit(msg.charAt(i))) {
-                            c = msg.charAt(i++);
-                        }
-                    }
-                    // comma, then 1 or 2 digits
-                    if (msg.charAt(i) == ',' && Character.isDigit(msg.charAt(++i))) {
-                        c = msg.charAt(i++);
-                        if (Character.isDigit(msg.charAt(i))) {
-                            c = msg.charAt(i++);
-                        }
-                    }
-                    continue;
-                }
-
-                cleaned.append(c);
-            }
-        } catch (StringIndexOutOfBoundsException e) {
-            // Ignored
-        }
-        return cleaned.toString();
-    }
-
-    /**
-     * Strips colors encoded with the standard IRC methods AND weechats methods.
-     * 
-     * @param message
-     *            Message to gets it colors and attributes stripped from
-     * @return Message Stripped message
-     */
-    public static String stripAllColorsAndAttributes(String message) {
-        return Color.stripColors(Color.stripIRCColors(message));
-    }
-
-    /**
-     * Encode a string as HTML(Escaping the various special characters that are valid html) Slightly
-     * modified to escape ampersand as well... Taken from: http://stackoverflow.com/a/8838023
-     * http://forums.thedailywtf.com/forums/p/2806/72054.aspx#72054
-     * 
-     * @param s
-     *            - String to escape
-     * @return A string safe to use in an HTML document
-     */
-    private static String encodeHTML(String s) {
-        StringBuffer out = new StringBuffer();
-        for (int i = 0; i < s.length(); i++) {
-            char c = s.charAt(i);
-            if (c == '&') {
-                out.append("&amp;");
-            } else if (c == ' ' && (i - 1 > 0 && s.charAt(i - 1) == ' ')) {
-                out.append("&nbsp;");
-            } else if (c > 127 || c == '"' || c == '<' || c == '>') {
-                out.append("&#" + (int) c + ";");
-            } else {
-                out.append(c);
-            }
-        }
-        return out.toString();
+        for (int i = 0; i <= 5; i++) finalizeSpan(i);
+        //logger.error("processed message: [{}]", msg);
+        //for (Span span : span_list) logger.warn("> span #{} ({}-"+span.end+"): color " + span.color, span.type, span.start);
     }
 }

@@ -23,6 +23,11 @@ package com.ubergeek42.weechat;
  */
 public interface BufferObserver {
     /**
+     * Called when a lot of lines are added to a buffer
+     */
+    public void onManyLinesAdded();
+
+    /**
      * Called when a line is added to a buffer
      */
     public void onLineAdded();

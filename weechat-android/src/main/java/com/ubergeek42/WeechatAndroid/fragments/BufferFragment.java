@@ -260,7 +260,9 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
             if (relay.getHotlistManager() != null)
                 relay.getHotlistManager().removeHotlistItem(name);                      // remove from hotlist
 
+            logger.error("ACTIVITY: {}", getActivity());
             chatlines_adapter = new ChatLinesAdapter(getActivity(), buffer);
+            //else logger.error("CHATLINES ADAPTER IS NOT NULL");
             registerForContextMenu(chatLines);
 
             getActivity().runOnUiThread(new Runnable() {
@@ -321,17 +323,22 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
     ///////////////////////// BufferObserver stuff
     /////////////////////////
 
+    @Override
+    public void onManyLinesAdded() {
+        chatlines_adapter.onManyLinesAdded();
+    }
+
     /** */
     @Override
     public void onLineAdded() {
         if (false && DEBUG) logger.warn("{} onLineAdded()", name);
         if (DEBUG && relay == null) {throw new AssertionError("relay can't be null in onLineAdded()");}
-        relay.resetNotifications();
+        //relay.resetNotifications(); //TODO
 
-        buffer.resetHighlight();
-        buffer.resetUnread();
+        buffer.resetHighlight(); //TODO
+        buffer.resetUnread(); //TODO
 
-        chatlines_adapter.notifyChanged();
+        chatlines_adapter.onLineAdded();
     }
 
     @Override

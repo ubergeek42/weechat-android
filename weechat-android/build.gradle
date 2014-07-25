@@ -7,7 +7,6 @@ buildscript {
     }
 }
 apply plugin: 'android'
-
 dependencies {
     compile 'com.android.support:support-v4:18.0.+'
 
@@ -24,6 +23,10 @@ dependencies {
         // Exclude this because slf4j-android is a superset of this
         exclude group: 'org.slf4j', module:'slf4j-api'
     }
+}
+
+tasks.withType(Compile) {
+    options.encoding = 'UTF-8'
 }
 
 android {

@@ -21,16 +21,21 @@ import java.util.LinkedList;
 
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
-import android.graphics.Color;
+import android.graphics.Typeface;
 import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
-import android.text.Html;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.Spanned;
+import android.text.TextPaint;
+import android.text.method.LinkMovementMethod;
 import android.text.style.BackgroundColorSpan;
 import android.text.style.ForegroundColorSpan;
-import android.view.Gravity;
+import android.text.style.LeadingMarginSpan;
+import android.text.style.StyleSpan;
+import android.text.style.URLSpan;
+import android.text.style.UnderlineSpan;
+import android.text.util.Linkify;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -40,6 +45,7 @@ import android.widget.TextView;
 
 import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.BufferLine;
+import com.ubergeek42.weechat.Color;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,6 +59,7 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter,
     private FragmentActivity activity = null;
     private Buffer buffer;
     private LinkedList<BufferLine> lines;
+    private LinkedList<SpannableLine> spannables = new LinkedList<SpannableLine>();
     private LayoutInflater inflater;
     private SharedPreferences prefs;
 
@@ -60,20 +67,19 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter,
     private boolean enableColor = true;
     private boolean enableFilters = true;
     private String prefix_align = "right";
-    private int maxPrefix = 0;
-    protected int prefixWidth;
+    protected float letterWidth;
     private float textSize;
     private final DateFormat timestampFormat;
+    private LeadingMarginSpan.Standard lmspan = new LeadingMarginSpan.Standard(0, 20);
 
     public ChatLinesAdapter(FragmentActivity activity, Buffer buffer) {
+        logger.error("ChatLinesAdapter({}, {})", activity, buffer);
         this.activity = activity;
         this.buffer = buffer;
         this.inflater = LayoutInflater.from(activity);
 
         prefs = PreferenceManager.getDefaultSharedPreferences(activity.getBaseContext());
         prefs.registerOnSharedPreferenceChangeListener(this);
-
-        lines = buffer.getLinesCopy();
 
         // Load the preferences
         enableColor = prefs.getBoolean("chatview_colors", true);
@@ -82,16 +88,24 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter,
         prefix_align = prefs.getString("prefix_align", "right");
         textSize = Float.parseFloat(prefs.getString("text_size", "10"));
         timestampFormat = new SimpleDateFormat(prefs.getString("timestamp_format", "HH:mm:ss"));
+        setLetterWidth();
+        //onManyLinesAdded();
+    }
+
+    private void setLetterWidth() {
+        TextView textview = (TextView) inflater.inflate(R.layout.chatview_line, null).findViewById(R.id.chatline_message);
+        textview.setTextSize(textSize);
+        letterWidth = (textview.getPaint().measureText("m"));
     }
 
     @Override
     public int getCount() {
-        return lines.size();
+        return spannables.size();
     }
 
     @Override
     public Object getItem(int position) {
-        return lines.get(position);
+        return spannables.get(position);
     }
 
     @Override
@@ -101,96 +115,22 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter,
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        ViewHolder holder;
+        TextView textview;
 
         // If we don't have the view, or we were using a filteredView, inflate a new one
         if (convertView == null) {
             convertView = inflater.inflate(R.layout.chatview_line, null);
-            holder = new ViewHolder();
-            holder.timestamp = (TextView) convertView.findViewById(R.id.chatline_timestamp);
-            holder.prefix = (TextView) convertView.findViewById(R.id.chatline_prefix);
-            holder.message = (TextView) convertView.findViewById(R.id.chatline_message);
-
-            convertView.setTag(holder);
-
+            textview = (TextView) convertView.findViewById(R.id.chatline_message);
+            textview.setMovementMethod(LinkMovementMethod.getInstance());
+            convertView.setTag(textview);
         } else {
-            holder = (ViewHolder) convertView.getTag();
+            textview = (TextView) convertView.getTag();
         }
 
-        // Change the font sizes
-        holder.timestamp.setTextSize(textSize);
-        holder.prefix.setTextSize(textSize);
-        holder.message.setTextSize(textSize);
-
-        BufferLine chatLine = (BufferLine) getItem(position);
-
-        // Render the timestamp
-        if (enableTimestamp) {
-            holder.timestamp.setText(timestampFormat.format(chatLine.getTimestamp()));
-            holder.timestamp.setPadding(holder.timestamp.getPaddingLeft(),
-                    holder.timestamp.getPaddingTop(), 5, holder.timestamp.getPaddingBottom());
-        } else {
-            holder.timestamp.setText("");
-            holder.timestamp.setPadding(holder.timestamp.getPaddingLeft(),
-                    holder.timestamp.getPaddingTop(), 0, holder.timestamp.getPaddingBottom());
-        }
-
-        // Recalculate the prefix width based on the size of one character(fixed width font)
-        if (prefixWidth == 0) {
-            holder.prefix.setMinimumWidth(0);
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < maxPrefix; i++) {
-                sb.append("m");
-            }
-            holder.prefix.setText(sb.toString());
-            holder.prefix.measure(convertView.getWidth(), convertView.getHeight());
-            prefixWidth = holder.prefix.getMeasuredWidth();
-        }
-
-        // Render the prefix
-        if (chatLine.getHighlight()) {
-            String prefixStr = chatLine.getPrefix();
-            Spannable highlightText = new SpannableString(prefixStr);
-            highlightText.setSpan(new ForegroundColorSpan(Color.YELLOW), 0, prefixStr.length(),
-                    Spanned.SPAN_INCLUSIVE_INCLUSIVE);
-            highlightText.setSpan(new BackgroundColorSpan(Color.MAGENTA), 0, prefixStr.length(),
-                    Spanned.SPAN_INCLUSIVE_INCLUSIVE);
-            holder.prefix.setText(highlightText);
-        } else {
-            if (enableColor) {
-                holder.prefix.setText(Html.fromHtml(chatLine.getPrefixHTML()),
-                        TextView.BufferType.SPANNABLE);
-            } else {
-                holder.prefix.setText(chatLine.getPrefix());
-            }
-        }
-        if (prefix_align.equals("right")) {
-            holder.prefix.setGravity(Gravity.RIGHT);
-            holder.prefix.setMinimumWidth(prefixWidth);
-        } else if (prefix_align.equals("left")) {
-            holder.prefix.setGravity(Gravity.LEFT);
-            holder.prefix.setMinimumWidth(prefixWidth);
-        } else {
-            holder.prefix.setGravity(Gravity.LEFT);
-            holder.prefix.setMinimumWidth(0);
-        }
-
-        // Render the message
-
-        if (enableColor) {
-            holder.message.setText(Html.fromHtml(chatLine.getMessageHTML()),
-                    TextView.BufferType.SPANNABLE);
-        } else {
-            holder.message.setText(chatLine.getMessage());
-        }
-
+        textview.setTextSize(textSize);
+        SpannableLine spannableLine = (SpannableLine) getItem(position);
+        textview.setText(spannableLine.spannable);
         return convertView;
-    }
-
-    static class ViewHolder {
-        TextView timestamp;
-        TextView prefix;
-        TextView message;
     }
 
     // Change preferences immediately
@@ -206,62 +146,105 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter,
             prefix_align = prefs.getString("prefix_align", "right");
         } else if (key.equals("text_size")) {
             textSize = Float.parseFloat(prefs.getString("text_size", "10"));
-        } else {
-            return; // Exit before running the notifyChanged function
+            setLetterWidth();
         }
-        notifyChanged();
+        onManyLinesAdded();
     }
 
-    // Provide a couple of methods for quick toggling timestamps/filters
-    public void toggleTimestamps() {
-        enableTimestamp = !enableTimestamp;
-        notifyChanged();
-    }
-
-    public void toggleFilters() {
-        enableFilters = !enableFilters;
-        notifyChanged();
-    }
     
     public void clearLines() {
         buffer.clearLines();
         lines.clear();
-        notifyChanged();
+        onManyLinesAdded();
     }
 
     // Run the notifyDataSetChanged method in the activity's main thread
-    public void notifyChanged() {
+    public void onManyLinesAdded() {
+        logger.debug("onManyLinesAdded()");
+        lines = buffer.getLines();
+        spannables.clear();
+        if (enableFilters) {
+            for (BufferLine line : lines) if (line.isVisible()) spannables.add(makeSpannableLine(line));
+        } else {
+            for (BufferLine line : lines) spannables.add(makeSpannableLine(line));
+        }
         activity.runOnUiThread(new Runnable() {
-
             @Override
-            public void run() {
-                lines = buffer.getLinesCopy();
-
-                if (enableFilters) {
-                    LinkedList<BufferLine> filtered = new LinkedList<BufferLine>();
-                    for (BufferLine line : lines) {
-                        if (line.getVisible()) {
-                            filtered.add(line);
-                        }
-                    }
-                    lines = filtered;
-                }
-
-                if (prefix_align.equals("right") || prefix_align.equals("left")) {
-                    int maxlength = 0;
-                    // Find max prefix width
-                    for (BufferLine line : lines) {
-                        int tmp = line.getPrefix().length();
-                        if (tmp > maxlength) {
-                            maxlength = tmp;
-                        }
-                    }
-                    maxPrefix = maxlength;
-                    prefixWidth = 0;
-                }
-
-                notifyDataSetChanged();
-            }
+            public void run() {notifyDataSetChanged();}
         });
     }
+
+    public void onLineAdded() {
+        logger.debug("onLineAdded()");
+        if (spannables.size() > Buffer.MAXLINES) spannables.removeFirst();
+        BufferLine line = buffer.getLines().getLast();
+        if (enableFilters && !line.isVisible()) return;
+        spannables.add(makeSpannableLine(line));
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {notifyDataSetChanged();}
+        });
+    }
+
+    private SpannableLine makeSpannableLine(BufferLine line) {
+
+        String timestamp = timestampFormat.format(line.getTimestamp());
+        String prefix = line.getPrefix();
+        String message = line.getMessage();
+
+        Color.parse(timestamp, prefix, message, line.isHighlighted(), 7, true);
+
+        Spannable spannable = new SpannableString(Color.clean_message);
+
+        Object javaspan;
+        for (Color.Span span : Color.final_span_list) {
+            switch (span.type) {
+                case Color.Span.FGCOLOR:
+                    javaspan = new ForegroundColorSpan(span.color | 0xFF000000);
+                    break;
+                case Color.Span.BGCOLOR:
+                    javaspan = new BackgroundColorSpan(span.color | 0xFF000000);
+                    break;
+                case Color.Span.ITALIC:
+                    javaspan = new StyleSpan(Typeface.ITALIC);
+                    break;
+                case Color.Span.BOLD:
+                    javaspan = new StyleSpan(Typeface.BOLD);
+                    break;
+                case Color.Span.UNDERLINE:
+                    javaspan = new UnderlineSpan();
+                    break;
+                default:
+                    continue;
+            }
+            spannable.setSpan(javaspan, span.start, span.end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+
+        lmspan = new LeadingMarginSpan.Standard(0, (int) (letterWidth * ( (float) Color.margin)));
+        spannable.setSpan(lmspan, 0, spannable.length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
+
+        Linkify.addLinks(spannable, Linkify.WEB_URLS);
+        for (URLSpan urlspan : spannable.getSpans(0, spannable.length(), URLSpan.class)) {
+            spannable.setSpan(new URLSpan2(urlspan.getURL()), spannable.getSpanStart(urlspan), spannable.getSpanEnd(urlspan), 0);
+            spannable.removeSpan(urlspan);
+        }
+
+        return new SpannableLine(spannable, Color.margin);
+    }
+}
+
+class SpannableLine {
+    Spannable spannable;
+    int margin;
+    SpannableLine(Spannable spannable, int margin) {
+        this.spannable = spannable;
+        this.margin = margin;
+    }
+}
+
+class URLSpan2 extends URLSpan {
+    public URLSpan2(String url) {super(url);}
+
+    @Override
+    public void updateDrawState(TextPaint ds) {ds.setUnderlineText(true);}
 }

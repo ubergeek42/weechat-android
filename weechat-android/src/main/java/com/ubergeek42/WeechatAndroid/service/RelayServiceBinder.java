@@ -146,8 +146,8 @@ public class RelayServiceBinder extends Binder {
     // Get the last MAXLINES for each buffer if needed
     // Get the nicklist for any buffers we have
     public void subscribeBuffer(String bufferPointer) {
-        if (DEBUG) logger.error("subscribeBuffer({})", bufferPointer);
         Buffer buffer = relayService.bufferManager.findByPointer(bufferPointer);
+        if (DEBUG) logger.error("subscribeBuffer({}): {}", bufferPointer, buffer.getFullName());
         if (!buffer.holds_all_lines_it_is_supposed_to_hold) {
             if (DEBUG) logger.error("subscribeBuffer(): requesting all lines");
             relayService.requestLinesForBuffer(bufferPointer);
