@@ -147,8 +147,10 @@ public class Color {
         final_span_list = new ArrayList<Span>();
 
         // timestamp uses no colors
-        sb.append(timestamp);
-        sb.append(" ");
+        if (timestamp != null) {
+            sb.append(timestamp);
+            sb.append(" ");
+        }
 
         // prefix should be adjusted accoring to the settings
         // also, if highlight is enabled, remove all colors from here and add highlight color later

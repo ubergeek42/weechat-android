@@ -97,7 +97,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
 
         // pages to each side of the on-screen page that should stay in memory
         // the other pages are NOT destroyed, merely their views are
-        viewPager.setOffscreenPageLimit(15);
+        viewPager.setOffscreenPageLimit(0);
 
         titleIndicator = (TitlePageIndicator) findViewById(R.id.main_titleviewpager);
         titleIndicator.setViewPager(viewPager);
@@ -364,8 +364,8 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
                         @Override
                         public void onClick(DialogInterface dialogInterface, int position) {
                             HotlistItem hotlistItem = hla.getItem(position);
-                            String name = hotlistItem.getFullName();
-                            openBuffer(name);
+//                            String name = hotlistItem.getFullName();
+//                            openBuffer(name);
                         }
                     });
                     builder.create().show();
@@ -409,10 +409,10 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         if (DEBUG) logger.debug("handleIntent()");
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
-            String name = extras.getString("buffer");
-            if (name != null) {
-                if (DEBUG) logger.debug("handleIntent(): opening buffer '{}' from extras", name);
-                openBuffer(name);
+            int pointer = extras.getInt("pointer");
+            if (pointer != 0) {
+                if (DEBUG) logger.debug("handleIntent(): opening buffer '{}' from extras", pointer);
+                openBuffer(pointer); //TODO
             }
         }
     }
@@ -438,10 +438,10 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     ///////////////////////// misc
     /////////////////////////
 
-    public void openBuffer(final String name) {
-        if (DEBUG) logger.debug("openBuffer({})", name);
-        if (relay != null && relay.getBufferByName(name) != null) {
-            mainPagerAdapter.openBuffer(name);
+    public void openBuffer(int pointer) {
+        if (DEBUG) logger.debug("openBuffer({})", pointer);
+        if (relay != null && relay.getBufferByPointer(pointer) != null) {
+            mainPagerAdapter.openBuffer(pointer);
             titleIndicator.setCurrentItem(viewPager.getCurrentItem());
         }
     }

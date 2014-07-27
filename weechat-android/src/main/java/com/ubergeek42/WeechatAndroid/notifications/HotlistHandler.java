@@ -118,7 +118,7 @@ public class HotlistHandler implements RelayMessageHandler {
                     continue;
                 }
 
-                // Update the buffer to indicate there are unread highlights
+                // Update the buffer to indicate there are from_human highlights
                 b.addHighlight();
                 bufferManager.buffersChanged();
                 // Send the notification

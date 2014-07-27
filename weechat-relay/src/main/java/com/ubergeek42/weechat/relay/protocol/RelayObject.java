@@ -149,6 +149,15 @@ public class RelayObject {
         return strValue;
     }
 
+
+    public int asPointerInt() {
+        try {
+            return Integer.parseInt(asPointer().substring(2), 16);
+        } catch (Exception e) {
+            return -1;
+        }
+    }
+
     /**
      * @return A Date representation of the object
      */

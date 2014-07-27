@@ -42,17 +42,17 @@ import com.ubergeek42.WeechatAndroid.BuildConfig;
 import com.ubergeek42.WeechatAndroid.ChatLinesAdapter;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
+import com.ubergeek42.WeechatAndroid.service.Buffer;
+import com.ubergeek42.WeechatAndroid.service.BufferEye;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
 import com.ubergeek42.WeechatAndroid.service.RelayServiceBinder;
-import com.ubergeek42.weechat.Buffer;
-import com.ubergeek42.weechat.BufferObserver;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
 
-public class BufferFragment extends SherlockFragment implements BufferObserver, OnKeyListener,
+public class BufferFragment extends SherlockFragment implements BufferEye, OnKeyListener,
         OnSharedPreferenceChangeListener, OnClickListener, TextWatcher, RelayConnectionHandler,
         TextView.OnEditorActionListener {
 
-    private static Logger logger = LoggerFactory.getLogger("buffer");
+    private static Logger logger = LoggerFactory.getLogger("BufferFragment");
     final private static boolean DEBUG = BuildConfig.DEBUG && true;
 
     private ListView chatLines;
@@ -62,7 +62,8 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
 
     private RelayServiceBinder relay;
 
-    private String name = "";
+    private int pointer = -1;
+    //private String name = "";
     private String shortname = "Unknown";
     private Buffer buffer;
 
@@ -87,13 +88,13 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
 
     @Override
     public void onAttach(Activity activity) {
-        if (DEBUG) logger.warn("{} onAttach(...)", name);
+        if (DEBUG) logger.warn("{} onAttach(...)", shortname);
         super.onAttach(activity);
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        if (DEBUG) logger.warn("{} onCreate()", name);
+        if (DEBUG) logger.warn("{} onCreate()", shortname);
         super.onCreate(savedInstanceState);
         if (savedInstanceState != null) shortname = savedInstanceState.getString("shortname");
         setRetainInstance(true);
@@ -101,7 +102,7 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        if (DEBUG) logger.warn("{} onCreateView()", name);
+        if (DEBUG) logger.warn("{} onCreateView()", shortname);
         View v = inflater.inflate(R.layout.chatview_main, container, false);
 
         chatLines = (ListView) v.findViewById(R.id.chatview_lines);
@@ -129,16 +130,21 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
      **       calls onDisconnect(), which sets the “please connect” message */
     @Override
     public void onStart() {
-        if (DEBUG) logger.warn("{} onStart()", name);
+        if (DEBUG) logger.warn("{} onStart()", shortname);
         super.onStart();
 
         prefs = PreferenceManager.getDefaultSharedPreferences(getActivity().getBaseContext());
         prefs.registerOnSharedPreferenceChangeListener(this);
         enableTabComplete = prefs.getBoolean("tab_completion", true);
 
-        this.name = getArguments().getString("buffer");
-        if (BuildConfig.DEBUG && (name.equals("") || relay != null || buffer != null)) // sanity check
-            throw new AssertionError("names shouldn't be ''");
+        //logger.error("onStart: getArguments(): {}", getArguments());
+        //this.buffer = relay.getBufferByFullName("irc.free.##russkij");
+        //this.pointer = getArguments().getInt("pointer");
+        pointer = getArguments().getInt("pointer");
+        //buffer = relay.getBufferByPointer(pointer)
+        //name = "irc.free.##latvija";
+        if (BuildConfig.DEBUG && (shortname.equals("") || relay != null || buffer != null)) // sanity check
+            throw new AssertionError("shit shouldn't be empty");
 
         getActivity().bindService(new Intent(getActivity(), RelayService.class), service_connection,
                 Context.BIND_AUTO_CREATE);
@@ -146,7 +152,7 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
 
     @Override
     public void onResume() {
-        if (DEBUG) logger.warn("{} onResume()", name);
+        if (DEBUG) logger.warn("{} onResume()", shortname);
         super.onResume();
     }
 
@@ -158,7 +164,7 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
 
     @Override
     public void onPause() {
-        if (DEBUG) logger.warn("{} onPause()", name);
+        if (DEBUG) logger.warn("{} onPause()", shortname);
         super.onPause();
     }
 
@@ -166,15 +172,15 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
      ** we want to disconnect from all things here */
     @Override
     public void onStop() {
-        if (DEBUG) logger.warn("{} onStop()", name);
+        if (DEBUG) logger.warn("{} onStop()", shortname);
         super.onStop();
         if (relay != null) {
-            if (buffer != null) relay.unsubscribeBuffer(buffer.getPointer()); // unsubscribe (???)
+            if (buffer != null) relay.unsubscribeBuffer(buffer.pointer); // unsubscribe (???)
             relay.removeRelayConnectionHandler(BufferFragment.this);       // remove connect / disconnect watcher
             relay = null;
         }
         if (buffer != null) {
-            buffer.removeObserver(this);                                               // remove buffer watcher
+            buffer.setBufferEye(null);                                               // remove buffer watcher
             buffer = null;
         }
         getActivity().unbindService(service_connection);
@@ -182,19 +188,19 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
 
     @Override
     public void onDestroyView() {
-        if (DEBUG) logger.warn("{} onDestroyView()", name);
+        if (DEBUG) logger.warn("{} onDestroyView()", shortname);
         super.onDestroyView();
     }
 
     @Override
     public void onDestroy() {
-        if (DEBUG) logger.warn("{} onDestroy()", name);
+        if (DEBUG) logger.warn("{} onDestroy()", shortname);
         super.onDestroy();
     }
 
     @Override
     public void onDetach() {
-        if (DEBUG) logger.warn("{} onDetach()", name);
+        if (DEBUG) logger.warn("{} onDetach()", shortname);
         super.onDetach();
     }
 
@@ -206,7 +212,7 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
         @Override
         public void onServiceConnected(ComponentName name, IBinder
                 service) {
-            if (DEBUG) logger.warn("{} onServiceConnected() <{}>", BufferFragment.this.name, BufferFragment.this);
+            if (DEBUG) logger.warn("{} onServiceConnected() <{}>", BufferFragment.this.shortname, BufferFragment.this);
             relay = (RelayServiceBinder) service;
             if (relay.isConnection(RelayService.BUFFERS_LISTED))
                 BufferFragment.this.onBuffersListed();                                  // TODO: run this in a thread
@@ -217,9 +223,9 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
 
         @Override
         public void onServiceDisconnected(ComponentName name) {                         // TODO: wut
-            if (DEBUG) logger.warn("{} onServiceDisconnected() <- should not happen!", BufferFragment.this.name);
+            if (DEBUG) logger.warn("{} onServiceDisconnected() <- should not happen!", BufferFragment.this.shortname);
             if (buffer != null) {
-                buffer.removeObserver(BufferFragment.this);                             // buffer watcher
+                buffer.setBufferEye(null);                             // buffer watcher
                 buffer = null;
             }
             relay = null;
@@ -234,7 +240,7 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
     public void onConnecting() {}
 
     @Override
-    public void onConnect() {if (DEBUG) logger.warn("{} onConnect()", name);}
+    public void onConnect() {if (DEBUG) logger.warn("{} onConnect()", shortname);}
 
     @Override
     public void onAuthenticated() {}
@@ -243,24 +249,24 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
      ** attaching to the buffer and fetching lines and sending messages and whatnot
      ** it's not necessary that the buffers have been listed just now, though */
     public void onBuffersListed() {
-        if (DEBUG) logger.warn("{} onBuffersListed() <{}>", name, this);
-        if (DEBUG && name.equals("")) throw new AssertionError("name can't be empty in onBuffersListed");
+        if (DEBUG) logger.warn("{} onBuffersListed() <{}>",shortname, this);
+        if (DEBUG && shortname.equals("")) throw new AssertionError("name can't be empty in onBuffersListed");
 
         // check if the buffer is still there
         // it should be there at ALL times EXCEPT when we RE-connect to the service and find it missing
-        buffer = relay.getBufferByName(name);
+        buffer = relay.getBufferByPointer(pointer);
+        //buffer = relay.getBufferByFullName("irc.free.##latvija");
         if (buffer == null) {
             showEmpty();
         } else {
             // set short name. we set it here because it's the buffer won't change
             // and the name should be accessible between calls to this function
-            shortname = buffer.getShortName();
+            shortname = buffer.short_name;
 
             // remove this from hotlist
-            if (relay.getHotlistManager() != null)
-                relay.getHotlistManager().removeHotlistItem(name);                      // remove from hotlist
+//            if (relay.getHotlistManager() != null)
+//                relay.getHotlistManager().removeHotlistItem(name);                      // remove from hotlist
 
-            logger.error("ACTIVITY: {}", getActivity());
             chatlines_adapter = new ChatLinesAdapter(getActivity(), buffer);
             //else logger.error("CHATLINES ADAPTER IS NOT NULL");
             registerForContextMenu(chatLines);
@@ -280,14 +286,14 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
 
             // attach this fragment to buffer and
             // subscribe to the buffer (gets the lines for it, and gets nicklist)
-            buffer.addObserver(this);                                                   // buffer watcher
-            relay.subscribeBuffer(buffer.getPointer());                                 // subscription
+            //buffer.setBufferEye(this);                                                    // buffer watcher
+            relay.subscribeBuffer(buffer.pointer);                                          // subscription
         }
     }
 
     /** loads the “no buffer, choose from list” thing */
     private void showEmpty() {                                                          // TODO: replace with a notification that the buffer's been closed (?) in weechat?
-        if (DEBUG) logger.warn("{} showEmpty()", name);
+        if (DEBUG) logger.warn("{} showEmpty()", shortname);
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -303,7 +309,7 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
      ** also remove the keyboard, if any */
     @Override
     public void onDisconnect() {
-        if (DEBUG) logger.warn("{} onDisconnect()", name);
+        if (DEBUG) logger.warn("{} onDisconnect()", shortname);
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -323,34 +329,44 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
     ///////////////////////// BufferObserver stuff
     /////////////////////////
 
+//    @Override
+//    public void onManyLinesAdded() {
+//        chatlines_adapter.onManyLinesAdded();
+//    }
+//
+//    /** */
+//    @Override
+//    public void onLineAdded() {
+//        if (false && DEBUG) logger.warn("{} onLineAdded()", shortname);
+//        if (DEBUG && relay == null) {throw new AssertionError("relay can't be null in onLineAdded()");}
+//        //relay.resetNotifications(); //TODO
+//
+//        //buffer.resetHighlight(); //TODO
+//        //buffer.resetUnread(); //TODO
+//
+//        chatlines_adapter.onLineAdded();
+//    }
+
     @Override
-    public void onManyLinesAdded() {
-        chatlines_adapter.onManyLinesAdded();
+    public void onLinesChanged() {
+
     }
 
-    /** */
     @Override
-    public void onLineAdded() {
-        if (false && DEBUG) logger.warn("{} onLineAdded()", name);
-        if (DEBUG && relay == null) {throw new AssertionError("relay can't be null in onLineAdded()");}
-        //relay.resetNotifications(); //TODO
+    public void onPropertiesChanged() {
 
-        buffer.resetHighlight(); //TODO
-        buffer.resetUnread(); //TODO
-
-        chatlines_adapter.onLineAdded();
     }
 
     @Override
     public void onBufferClosed() {
-        if (DEBUG) logger.warn("{} onBufferClosed()", name);
-        ((WeechatActivity) getActivity()).closeBuffer(name);
+        if (DEBUG) logger.warn("{} onBufferClosed()", shortname);
+        ((WeechatActivity) getActivity()).closeBuffer(buffer.full_name);
     }
 
-    @Override
-    public void onNicklistChanged() {
-        nicks = buffer.getNicks();
-    }
+//    @Override
+//    public void onNicklistChanged() {
+//        //nicks = buffer.getNicks();
+//    }
 
     /////////////////////////
     ///////////////////////// misc
@@ -361,7 +377,7 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
      ** NOTE: this only applies to HARDWARE buttons */
     @Override
     public boolean onKey(View v, int keycode, KeyEvent event) {
-        if (DEBUG) logger.warn("{} onKey(..., {}, ...)", name, keycode);
+        if (DEBUG) logger.warn("{} onKey(..., {}, ...)", shortname, keycode);
         int action = event.getAction();
         // Enter key sends the message
         if (keycode == KeyEvent.KEYCODE_ENTER && action == KeyEvent.ACTION_UP) {
@@ -437,7 +453,7 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
             if (input.length() > 0) {
                 if (input.equals("/CL") || input.equals("/buffer clear"))
                     chatlines_adapter.clearLines();
-                relay.sendMessage("input " + name + " " + input + "\n");
+                relay.sendMessage("input " + buffer.full_name + " " + input + "\n");
                 inputBox.setText("");   // this will reset tab completion
             }
         }
@@ -567,7 +583,7 @@ public class BufferFragment extends SherlockFragment implements BufferObserver, 
      ** tryTabComplete() will set it back if it modified the text causing this function to run */
     @Override
     public void afterTextChanged(Editable s) {
-        if (false && DEBUG) logger.warn("{} afterTextChanged(...)", name);
+        if (false && DEBUG) logger.warn("{} afterTextChanged(...)", shortname);
         tc_inprogress = false;
     }
 }

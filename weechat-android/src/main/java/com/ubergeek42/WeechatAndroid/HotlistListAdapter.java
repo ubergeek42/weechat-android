@@ -26,8 +26,8 @@ public class HotlistListAdapter extends BaseAdapter implements ListAdapter, Hotl
     public HotlistListAdapter(WeechatActivity parentActivity, RelayServiceBinder rsb) {
         this.parentActivity = parentActivity;
         this.inflater = LayoutInflater.from(parentActivity);
-        hotlistManager = rsb.getHotlistManager();
-        hotlistManager.onChanged(this);
+        //hotlistManager = rsb.getHotlistManager();
+        //hotlistManager.onChanged(this);
         this.onHotlistChanged();
     }
 

@@ -81,11 +81,11 @@ public class RelayService extends Service implements RelayConnectionHandler,
     String sshKeyfile;
 
     RelayConnection relayConnection;
-    BufferManager bufferManager;
+    //BufferManager bufferManager;
     RelayMessageHandler msgHandler;
-    NicklistHandler nickHandler;
-    HotlistHandler hotlistHandler;
-    HotlistManager hotlistManager;
+    //NicklistHandler nickHandler;
+    //HotlistHandler hotlistHandler;
+    //HotlistManager hotlistManager;
     HashSet<RelayConnectionHandler> connectionHandlers = new HashSet<RelayConnectionHandler>();
     private SharedPreferences prefs;
     private boolean shutdown;
@@ -95,6 +95,8 @@ public class RelayService extends Service implements RelayConnectionHandler,
 
     SSLHandler certmanager;
     X509Certificate untrustedCert;
+
+    public RelayServiceBackbone bone;
 
     // for some reason, this java can't have binary literals...
     public final static int DISCONNECTED =   Integer.parseInt("00001", 2);
@@ -139,7 +141,6 @@ public class RelayService extends Service implements RelayConnectionHandler,
             connect();
         }
     }
-    
 
     @Override
     public void onDestroy() {
@@ -198,15 +199,15 @@ public class RelayService extends Service implements RelayConnectionHandler,
 
         shutdown = false;
 
-        bufferManager = new BufferManager();
-        hotlistManager = new HotlistManager();
-
-        hotlistManager.setBufferManager(bufferManager);
-        msgHandler = new LineHandler(bufferManager);
-        nickHandler = new NicklistHandler(bufferManager);
-        hotlistHandler = new HotlistHandler(bufferManager, hotlistManager);
-
-        hotlistHandler.registerHighlightHandler(this);
+//        bufferManager = new BufferManager();
+//        hotlistManager = new HotlistManager();
+//
+//        hotlistManager.setBufferManager(bufferManager);
+//        msgHandler = new LineHandler(bufferManager);
+//        nickHandler = new NicklistHandler(bufferManager);
+//        hotlistHandler = new HotlistHandler(bufferManager, hotlistManager);
+//
+//        hotlistHandler.registerHighlightHandler(this);
 
         IConnection conn;
         String connType = prefs.getString("connection_type", "plain");
@@ -322,50 +323,52 @@ public class RelayService extends Service implements RelayConnectionHandler,
         }
         disconnected = false;
 
+        bone = new RelayServiceBackbone(relayConnection);
+
         // Handle weechat upgrading
         UpgradeHandler uh = new UpgradeHandler(this);
         relayConnection.addHandler("_upgrade", uh);
         relayConnection.addHandler("_upgrade_ended", uh);
 
-        // Handle us getting a listing of the buffers
-        relayConnection.addHandler("listbuffers", bufferManager);
-        // this will call onBuffersListed
+//                // Handle us getting a listing of the buffers
+//                relayConnection.addHandler("listbuffers", bufferManager);
+//                // this will call onBuffersListed
         // ORDER OF ADDITION IS IMPORTANT, since LinkedHashSet is used in RelayConnection
         relayConnection.addHandler("listbuffers", new BuffersListedObserver());
 
-        // Handle weechat event messages regarding buffers
-        relayConnection.addHandler("_buffer_opened", bufferManager);
-        relayConnection.addHandler("_buffer_type_changed", bufferManager);
-        relayConnection.addHandler("_buffer_moved", bufferManager);
-        relayConnection.addHandler("_buffer_merged", bufferManager);
-        relayConnection.addHandler("_buffer_unmerged", bufferManager);
-        relayConnection.addHandler("_buffer_renamed", bufferManager);
-        relayConnection.addHandler("_buffer_title_changed", bufferManager);
-        relayConnection.addHandler("_buffer_localvar_added", bufferManager);
-        relayConnection.addHandler("_buffer_localvar_changed", bufferManager);
-        relayConnection.addHandler("_buffer_localvar_removed", bufferManager);
-        relayConnection.addHandler("_buffer_closing", bufferManager);
-
-        // Handle lines being added to buffers
-        relayConnection.addHandler("_buffer_line_added", hotlistHandler);
-        relayConnection.addHandler("_buffer_line_added", msgHandler);
-
-        relayConnection.addHandler("listlines_reverse", msgHandler);
-
-        // Handle changes to the nicklist for buffers
-        relayConnection.addHandler("nicklist", nickHandler);
-        relayConnection.addHandler("_nicklist", nickHandler);
-        relayConnection.addHandler("_nicklist_diff", nickHandler);
-
-        // Handle getting infolist hotlist for initial hotlist sync
-        relayConnection.addHandler("initialinfolist", hotlistManager);
-
-        // Get a list of buffers current open, along with some information about them
-        relayConnection
-                .sendMsg("(listbuffers) hdata buffer:gui_buffers(*) number,full_name,short_name,type,title,nicklist,local_variables,notify");
-        // Get the current hotlist
-        relayConnection.sendMsg("initialinfolist", "infolist", "hotlist");
-
+//                // Handle weechat event messages regarding buffers
+//                relayConnection.addHandler("_buffer_opened", bufferManager);
+//                relayConnection.addHandler("_buffer_type_changed", bufferManager);
+//                relayConnection.addHandler("_buffer_moved", bufferManager);
+//                relayConnection.addHandler("_buffer_merged", bufferManager);
+//                relayConnection.addHandler("_buffer_unmerged", bufferManager);
+//                relayConnection.addHandler("_buffer_renamed", bufferManager);
+//                relayConnection.addHandler("_buffer_title_changed", bufferManager);
+//                relayConnection.addHandler("_buffer_localvar_added", bufferManager);
+//                relayConnection.addHandler("_buffer_localvar_changed", bufferManager);
+//                relayConnection.addHandler("_buffer_localvar_removed", bufferManager);
+//                relayConnection.addHandler("_buffer_closing", bufferManager);
+//
+//                // Handle lines being added to buffers
+//                relayConnection.addHandler("_buffer_line_added", hotlistHandler);
+//                relayConnection.addHandler("_buffer_line_added", msgHandler);
+//
+//                relayConnection.addHandler("listlines_reverse", msgHandler);
+//
+//                // Handle changes to the nicklist for buffers
+//                relayConnection.addHandler("nicklist", nickHandler);
+//                relayConnection.addHandler("_nicklist", nickHandler);
+//                relayConnection.addHandler("_nicklist_diff", nickHandler);
+//
+//                // Handle getting infolist hotlist for initial hotlist sync
+//                relayConnection.addHandler("initialinfolist", hotlistManager);
+//
+//                // Get a list of buffers current open, along with some information about them
+//                relayConnection
+//                        .sendMsg("(listbuffers) hdata buffer:gui_buffers(*) number,full_name,short_name,type,title,nicklist,local_variables,notify");
+//                // Get the current hotlist
+//                relayConnection.sendMsg("initialinfolist", "infolist", "hotlist");
+//        R
         // Subscribe to any future changes
         if (!optimize_traffic)
             relayConnection.sendMsg("sync");
@@ -487,10 +490,10 @@ public class RelayService extends Service implements RelayConnectionHandler,
         upgrading.start();
     }
 
-    public void requestLinesForBuffer(String bufferPointer) {
+    public void requestLinesForBuffer(int pointer) {
         relayConnection.sendMsg("(listlines_reverse) hdata buffer:"
-                + bufferPointer + "/own_lines/last_line(-" + Buffer.MAXLINES
-                + ")/data date,displayed,prefix,message,highlight,tags_array");
+                + "0x" + Integer.toHexString(pointer) + "/own_lines/last_line(-" + Buffer.MAXLINES
+                + ")/data date,displayed,prefix,message,highlight,notify,tags_array");
     }
 
     public void requestNicklist(String bufferPointerOrName) {

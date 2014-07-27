@@ -20,10 +20,7 @@ import java.security.cert.X509Certificate;
 import android.os.Binder;
 
 import com.ubergeek42.WeechatAndroid.BuildConfig;
-import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
-import com.ubergeek42.weechat.relay.messagehandler.BufferManager;
-import com.ubergeek42.weechat.relay.messagehandler.HotlistManager;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,29 +42,29 @@ public class RelayServiceBinder extends Binder {
         this.relayService = relayService;
     }
 
-    public void setHost(String host) {
-        relayService.host = host;
-    }
-
-    public void setPort(String port) {
-        relayService.port = Integer.parseInt(port);
-    }
-
-    public void setPassword(String password) {
-        relayService.pass = password;
-    }
-
-    public String getHost() {
-        return relayService.host;
-    }
-
-    public String getPort() {
-        return relayService.port+"";
-    }
-
-    public String getPassword() {
-        return relayService.pass;
-    }
+//    public void setHost(String host) {
+//        relayService.host = host;
+//    }
+//
+//    public void setPort(String port) {
+//        relayService.port = Integer.parseInt(port);
+//    }
+//
+//    public void setPassword(String password) {
+//        relayService.pass = password;
+//    }
+//
+//    public String getHost() {
+//        return relayService.host;
+//    }
+//
+//    public String getPort() {
+//        return relayService.port+"";
+//    }
+//
+//    public String getPassword() {
+//        return relayService.pass;
+//    }
 
     /** returns true if connection status corresponds to given connection */
     public boolean isConnection(int status) {
@@ -93,38 +90,51 @@ public class RelayServiceBinder extends Binder {
         relayService.shutdown();
     }
 
-    /**
-     * Return a buffer object based on its full name
-     * 
-     * @param bufferName
-     *            - Full buffer name(e.g. irc.freenode.#weechat)
-     * @return a Buffer object for the given buffer
-     */
-    public Buffer getBufferByName(String bufferName) {
-        if (isConnection(RelayService.CONNECTED))
-            return relayService.bufferManager.findByName(bufferName);
-        return null;
+//    /**
+//     * Return a buffer object based on its full name
+//     *
+//     * @param bufferName
+//     *            - Full buffer name(e.g. irc.freenode.#weechat)
+//     * @return a Buffer object for the given buffer
+//     */
+////    public Buffer getBufferByName(String bufferName) {
+////        if (isConnection(RelayService.CONNECTED))
+////            return relayService.bufferManager.findByName(bufferName);
+////        return null;
+////    }
+//
+//    /**
+//     * Returns the BufferManager object for the current connection
+//     *
+//     * @return The BufferManager object
+//     */
+//    public BufferManager getBufferManager() {
+//        return relayService.bufferManager;
+//    }
+
+//    /**
+//     * Returns the HotlistManager object for the current connection
+//     *
+//     * @return The HotlistManager object
+//     */
+//
+//    public HotlistManager getHotlistManager() {
+//        return relayService.hotlistManager;
+//    }
+
+    public Buffer getBufferByPointer(int id) {
+        logger.error("getBufferByPointer({}) -> {}", id, relayService.bone.buffers.findByPointer(id));
+        return relayService.bone.buffers.findByPointer(id);
     }
 
-    /**
-     * Returns the BufferManager object for the current connection
-     * 
-     * @return The BufferManager object
-     */
-    public BufferManager getBufferManager() {
-        return relayService.bufferManager;
+    public Buffer getBufferByFullName(String name) {
+        logger.error("getBufferByFullName({}) -> {}", name, relayService.bone.buffers.findByFullName(name));
+        return relayService.bone.buffers.findByFullName(name);
     }
 
-    /**
-     * Returns the HotlistManager object for the current connection
-     * 
-     * @return The HotlistManager object
-     */
-
-    public HotlistManager getHotlistManager() {
-        return relayService.hotlistManager;
+    public Buffers getBuffers() {
+        return relayService.bone.buffers;
     }
-
     /**
      * Send a message to the server(expected to be formatted appropriately)
      * 
@@ -141,28 +151,28 @@ public class RelayServiceBinder extends Binder {
     /**
      * Subscribes to a buffer. Gets the last MAXLINES of lines, and subscribes to nicklist changes
      * 
-     * @param bufferPointer
+     * @param pointer
      */
     // Get the last MAXLINES for each buffer if needed
     // Get the nicklist for any buffers we have
-    public void subscribeBuffer(String bufferPointer) {
-        Buffer buffer = relayService.bufferManager.findByPointer(bufferPointer);
-        if (DEBUG) logger.error("subscribeBuffer({}): {}", bufferPointer, buffer.getFullName());
+    public void subscribeBuffer(int pointer) {
+        Buffer buffer = relayService.bone.buffers.findByPointer(pointer);
+        if (DEBUG) logger.error("subscribeBuffer({}): {}", pointer, buffer.full_name);
         if (!buffer.holds_all_lines_it_is_supposed_to_hold) {
             if (DEBUG) logger.error("subscribeBuffer(): requesting all lines");
-            relayService.requestLinesForBuffer(bufferPointer);
+            relayService.requestLinesForBuffer(pointer);
         }
-        if (!buffer.holds_all_nicknames) {
-            if (DEBUG) logger.error("subscribeBuffer(): requesting full nicklist");
-            relayService.requestNicklist(bufferPointer);
-        }
-        if (relayService.optimize_traffic) {
-            if (DEBUG) logger.error("subscribeBuffer(): syncing");
-            relayService.relayConnection.sendMsg("sync " + bufferPointer);
-        }
+//        if (!buffer.holds_all_nicknames) {
+//            if (DEBUG) logger.error("subscribeBuffer(): requesting full nicklist");
+//            //relayService.requestNicklist(pointer);
+//        }
+//        if (relayService.optimize_traffic) {
+//            if (DEBUG) logger.error("subscribeBuffer(): syncing");
+//            relayService.relayConnection.sendMsg("sync " + pointer);
+//        }
     }
 
-    public void unsubscribeBuffer(String bufferPointer) {
+    public void unsubscribeBuffer(int bufferPointer) {
         if (DEBUG) logger.error("unsubscribeBuffer({})", bufferPointer);
         if (relayService.optimize_traffic) {
             if (DEBUG) logger.error("unsubscribeBuffer(): desyncing");

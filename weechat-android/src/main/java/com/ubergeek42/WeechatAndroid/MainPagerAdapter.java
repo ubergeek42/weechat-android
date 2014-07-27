@@ -25,7 +25,7 @@ public class MainPagerAdapter extends PagerAdapter {
     final private static boolean DEBUG = BuildConfig.DEBUG && true;
 
     private boolean phone_mode = false;
-    private ArrayList<String> names = new ArrayList<String>();
+    private ArrayList<Integer> pointers = new ArrayList<Integer>();
     private ArrayList<Fragment> fragments = new ArrayList<Fragment>();
     private ViewPager pager;
     private FragmentManager manager;
@@ -41,7 +41,7 @@ public class MainPagerAdapter extends PagerAdapter {
     public void firstTimeInit(boolean phone_mode) {
         this.phone_mode = phone_mode;
         if (phone_mode) {
-            names.add("");
+            pointers.add(-1);
             fragments.add(new BufferListFragment());
         }
     }
@@ -52,7 +52,7 @@ public class MainPagerAdapter extends PagerAdapter {
 
     @Override
     public int getCount() {
-        return names.size();
+        return pointers.size();
     }
 
     /** this can be called either when a new fragment is being added or the old one is being
@@ -63,14 +63,15 @@ public class MainPagerAdapter extends PagerAdapter {
         if (DEBUG) logger.info("instantiateItem(..., {})", i);
         if (transaction == null)
             transaction = manager.beginTransaction();
-        Fragment f = manager.findFragmentByTag(names.get(i));
+        String tag = Integer.toString(pointers.get(i));
+        Fragment f = manager.findFragmentByTag(tag);
         if (f != null) {
             if (DEBUG) logger.info("instantiateItem(): attach");  // show can be used instead
             transaction.attach(f);
         } else {
-            f = fragments.get(i);
+            f = fragments.get(i); //TODO
             if (DEBUG) logger.info("instantiateItem(): add");
-            transaction.add(container.getId(), f, names.get(i));
+            transaction.add(container.getId(), f, tag);
         }
         return f;
     }
@@ -126,11 +127,11 @@ public class MainPagerAdapter extends PagerAdapter {
         return (phone_mode && i == 0) ? "Buffer List" : ((BufferFragment) fragments.get(i)).getShortBufferName();
     }
 
-    /** switch to already open buffer OR create a new buffer, putting it into BOTH names and fragments,
+    /** switch to already open buffer OR create a new buffer, putting it into BOTH pointers and fragments,
      ** run notifyDataSetChanged() which will in turn call instantiateItem(), and set new buffer as the current one */
-    public void openBuffer(String name) {
-        if (DEBUG) logger.info("openBuffer({})", name);
-        int idx = names.indexOf(name);
+    public void openBuffer(int pointer) {
+        if (DEBUG) logger.info("openBuffer({})", pointer);
+        int idx = pointers.indexOf(pointer);
         if (idx >= 0) {
             // found buffer by name, switch to it
             pager.setCurrentItem(idx);
@@ -138,22 +139,22 @@ public class MainPagerAdapter extends PagerAdapter {
             // create a new one
             Fragment f = new BufferFragment();
             Bundle args = new Bundle();
-            args.putString("buffer", name);
+            args.putInt("pointer", pointer);
             f.setArguments(args);
             fragments.add(f);
-            names.add(name);
+            pointers.add(pointer);
             notifyDataSetChanged();
-            pager.setCurrentItem(names.size());
+            pager.setCurrentItem(pointers.size());
         }
     }
 
-    /** close buffer if open, removing it from BOTH names and fragments.
+    /** close buffer if open, removing it from BOTH pointers and fragments.
      ** destroyItem() checks the lists to see if it has to remove the item for good */
     public void closeBuffer(String name) {
         if (DEBUG) logger.info("closeBuffer({})", name);
-        int idx = names.indexOf(name);
+        int idx = pointers.indexOf(name);
         if (idx >= 0) {
-            names.remove(idx);
+            pointers.remove(idx);
             fragments.remove(idx);
             notifyDataSetChanged();
         }
@@ -177,9 +178,9 @@ public class MainPagerAdapter extends PagerAdapter {
         if (fragments.size() == 0)
             return null;
         Bundle state = new Bundle();
-        state.putStringArrayList("\0", names);
-        for (int i = 0, size = names.size(); i < size; i++)
-            manager.putFragment(state, names.get(i), fragments.get(i));
+        state.putIntegerArrayList("\0", pointers);
+        for (int i = 0, size = pointers.size(); i < size; i++)
+            manager.putFragment(state, Integer.toString(pointers.get(i)), fragments.get(i));
         return state;
     }
 
@@ -190,11 +191,11 @@ public class MainPagerAdapter extends PagerAdapter {
             return;
         Bundle state = (Bundle) parcel;
         state.setClassLoader(loader);
-        names = state.getStringArrayList("\0");
-        if (names.size() > 0) {
-            for (String name : names)
-                fragments.add(manager.getFragment(state, name));
-            phone_mode = names.get(0).equals("");
+        pointers = state.getIntegerArrayList("\0");
+        if (pointers.size() > 0) {
+            for (int pointer : pointers)
+                fragments.add(manager.getFragment(state, Integer.toString(pointer)));
+            phone_mode = pointers.get(0).equals(-1);
             notifyDataSetChanged();
         }
     }

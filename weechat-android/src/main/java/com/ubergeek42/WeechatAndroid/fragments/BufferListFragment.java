@@ -30,16 +30,16 @@ import com.ubergeek42.WeechatAndroid.BufferListAdapter;
 import com.ubergeek42.WeechatAndroid.BuildConfig;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
+import com.ubergeek42.WeechatAndroid.service.Buffer;
+import com.ubergeek42.WeechatAndroid.service.Buffers;
+import com.ubergeek42.WeechatAndroid.service.BuffersEye;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
 import com.ubergeek42.WeechatAndroid.service.RelayServiceBinder;
-import com.ubergeek42.weechat.Buffer;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
-import com.ubergeek42.weechat.relay.messagehandler.BufferManager;
-import com.ubergeek42.weechat.relay.messagehandler.BuffersChangedObserver;
 import com.ubergeek42.weechat.relay.protocol.RelayObject;
 
 public class BufferListFragment extends SherlockListFragment implements RelayConnectionHandler,
-        BuffersChangedObserver, OnSharedPreferenceChangeListener {
+        BuffersEye, OnSharedPreferenceChangeListener {
 
     private static Logger logger = LoggerFactory.getLogger("list");
     final private static boolean DEBUG = BuildConfig.DEBUG && true;
@@ -48,7 +48,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
 
     private RelayServiceBinder relay;
     private BufferListAdapter adapter;
-    private BufferManager buffer_manager;
+    private Buffers buffers;
 
     private EditText bufferlistFilter;
     private SharedPreferences prefs;
@@ -118,9 +118,9 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     public void onStop() {
         if (DEBUG) logger.warn("onStop()");
         super.onStop();
-        if (buffer_manager != null) {
-            buffer_manager.clearOnChangedHandler();                                     // buffer change watcher (safe to call)
-            buffer_manager = null;
+        if (buffers != null) {
+            buffers.setBuffersEye(null);                                     // buffer change watcher (safe to call)
+            buffers = null;
         }
         if (relay != null) {
             relay.removeRelayConnectionHandler(BufferListFragment.this);                // connect/disconnect watcher (safe to call)
@@ -149,7 +149,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
         public void onServiceDisconnected(ComponentName name) {
             if (DEBUG) logger.error("onServiceDisconnected() <- should not happen!");
             relay = null;
-            buffer_manager = null;
+            buffers = null;
         }
     };
 
@@ -163,8 +163,8 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
         if (DEBUG) logger.warn("onListItemClick(..., ..., {}, ...)", position);
         Object obj = getListView().getItemAtPosition(position);
         if (obj instanceof Buffer) {
-            Buffer b = (Buffer) obj;
-            ((WeechatActivity) getActivity()).openBuffer(b.getFullName());
+            Buffer buffer = (Buffer) obj;
+            ((WeechatActivity) getActivity()).openBuffer(buffer.pointer);
         }
     }
 
@@ -181,8 +181,8 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     public void onConnect() {
         if (DEBUG) logger.warn("onConnect()");
         adapter = new BufferListAdapter(getActivity());
-        buffer_manager = relay.getBufferManager();
-        buffer_manager.setOnChangedHandler(this);                                       // buffer change watcher
+        buffers = relay.getBuffers();
+        buffers.setBuffersEye(this);                                       // buffer change watcher
         adapter.enableSorting(prefs.getBoolean("sort_buffers", true));
         adapter.filterBuffers(bufferlistFilter.getText().toString());  // resume sorting
         getActivity().runOnUiThread(new Runnable() {
@@ -233,19 +233,19 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     @Override
     public void onBuffersChanged() {
         if (false && DEBUG) logger.warn("onBuffersChanged()");
-        final ArrayList<Buffer> buffers = buffer_manager.getBuffersCopy();
-        if (hide_server_buffers) {
-            Iterator<Buffer> iter = buffers.iterator();
-            while (iter.hasNext()) {
-                RelayObject relayobj = iter.next().getLocalVar("type");
-                if (relayobj != null && relayobj.asString().equals("server"))
-                    iter.remove();
-            }
-        }
+        final ArrayList<Buffer> bufs = buffers.getBuffersCopy();
+//        if (hide_server_buffers) {
+//            Iterator<Buffer> iter = bufs.iterator();
+//            while (iter.hasNext()) {
+//                RelayObject relayobj = iter.next().getLocalVar("type");
+//                if (relayobj != null && relayobj.asString().equals("server"))
+//                    iter.remove();
+//            }
+//        }
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if (buffer_manager != null) adapter.setBuffers(buffers);               // are we still online?
+                if (buffers != null) adapter.setBuffers(buffers.getBuffersCopy());               // are we still online?
             }
         });
     }

@@ -3,8 +3,7 @@
     android:id="@+id/chatview_layout"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:orientation="vertical"
-    android:paddingLeft="6dip" >
+    android:orientation="vertical">
 
     <ListView
         android:id="@+id/chatview_lines"
@@ -15,6 +14,7 @@
         android:layout_alignParentTop="true"
         android:clickable="false"
         android:divider="#00000000"
+        android:background="#FF001122"
         android:dividerHeight="0px"
         android:focusable="false"
         android:focusableInTouchMode="false"

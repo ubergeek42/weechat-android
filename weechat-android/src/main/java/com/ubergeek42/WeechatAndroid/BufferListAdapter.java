@@ -30,7 +30,7 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
-import com.ubergeek42.weechat.Buffer;
+import com.ubergeek42.WeechatAndroid.service.Buffer;
 
 public class BufferListAdapter extends BaseAdapter implements OnSharedPreferenceChangeListener {
     Activity parentActivity;
@@ -78,7 +78,7 @@ public class BufferListAdapter extends BaseAdapter implements OnSharedPreference
             // Filter based on what they typed
             currentFilter = filter.toLowerCase();
             for(Buffer b: allBuffers) {
-                if (b.getFullName().toLowerCase().contains(currentFilter)) {
+                if (b.full_name.toLowerCase().contains(currentFilter)) {
                     filteredBuffers.add(b);
                 }
             }
@@ -105,7 +105,7 @@ public class BufferListAdapter extends BaseAdapter implements OnSharedPreference
      */
     public int findBufferPosition(Buffer b) {
         for (int i = 0; i < filteredBuffers.size(); i++) {
-            if (b.getFullName().equals(filteredBuffers.get(i).getFullName())) {
+            if (b.full_name.equals(filteredBuffers.get(i).full_name)) {
                 return i;
             }
         }
@@ -141,10 +141,10 @@ public class BufferListAdapter extends BaseAdapter implements OnSharedPreference
         Buffer bufferItem = getItem(position);
 
         // use contents of bufferItem to fill in text content
-        holder.fullname.setText(bufferItem.getFullName());
-        holder.shortname.setText(bufferItem.getShortName());
-        if (bufferItem.getShortName() == null) {
-            holder.shortname.setText(bufferItem.getFullName());
+        holder.fullname.setText(bufferItem.full_name);
+        holder.shortname.setText(bufferItem.short_name);
+        if (bufferItem.short_name == null) {
+            holder.shortname.setText(bufferItem.short_name);
         }
 
         // Title might be removed in different layouts
@@ -153,16 +153,16 @@ public class BufferListAdapter extends BaseAdapter implements OnSharedPreference
             if (hideBufferTitles) {
                 holder.title.setVisibility(View.GONE);
             } else {
-                holder.title.setText(com.ubergeek42.weechat.Color.stripAllColorsAndAttributes(bufferItem.getTitle()));
+                holder.title.setText(com.ubergeek42.weechat.Color.stripAllColorsAndAttributes(bufferItem.title));
                 holder.title.setVisibility(View.VISIBLE);
             }
         }
         
         
 
-        int unreadc = bufferItem.getUnread();
-        int highlightc = bufferItem.getHighlights();
-        // holder.hotlist.setText(String.format("U:%2d  H:%2d   ", unread, highlight));
+        int unreadc = bufferItem.unreads;
+        int highlightc = bufferItem.highlights;
+        // holder.hotlist.setText(String.format("U:%2d  H:%2d   ", from_human, highlight));
 
         if (highlightc > 0) {
             holder.highlightcount.setText("" + highlightc);
@@ -192,12 +192,7 @@ public class BufferListAdapter extends BaseAdapter implements OnSharedPreference
     private final Comparator<Buffer> bufferComparator = new Comparator<Buffer>() {
         @Override
         public int compare(Buffer b1, Buffer b2) {
-            int b1Highlights = b1.getHighlights();
-            int b2Highlights = b2.getHighlights();
-            if (b2Highlights > 0 || b1Highlights > 0) {
-                return b2Highlights - b1Highlights;
-            }
-            return b2.getUnread() - b1.getUnread();
+            return b2.highlights - b1.highlights;
         }
     };
 
