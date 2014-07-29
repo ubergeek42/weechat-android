@@ -115,7 +115,7 @@ public class Buffer {
         else lines.addFirst(line);
         if (line.visible) visible_lines_count++;
 
-        if (buffer_eye != null) line.processMessage();
+        if (is_open) line.processMessage();
         if (is_last && notify_level >= 0) {
             if (line.highlighted) highlights += 1;
             if (line.from_human) {
