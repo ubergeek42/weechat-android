@@ -19,103 +19,93 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
-import android.graphics.Color;
 import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.ubergeek42.WeechatAndroid.service.Buffer;
+import com.ubergeek42.WeechatAndroid.service.Buffers;
+import com.ubergeek42.WeechatAndroid.service.BuffersEye;
 
-public class BufferListAdapter extends BaseAdapter implements OnSharedPreferenceChangeListener {
-    Activity parentActivity;
+public class BufferListAdapter extends BaseAdapter implements OnSharedPreferenceChangeListener, BuffersEye {
+    Activity activity;
     LayoutInflater inflater;
+    Buffers buffer_list;
     private SharedPreferences prefs;
-    private ArrayList<Buffer> allBuffers = new ArrayList<Buffer>();
-    private ArrayList<Buffer> filteredBuffers = new ArrayList<Buffer>();
+    private ArrayList<Buffer> buffers = new ArrayList<Buffer>();
     private String currentFilter = null;
     
-    
-    private boolean hideBufferTitles = false;
-    private boolean sortedBuffers = false;
-    
-    public BufferListAdapter(Activity parentActivity) {
-        this.parentActivity = parentActivity;
-        this.inflater = LayoutInflater.from(parentActivity);
+    private boolean SORT_BUFFERS = false;
 
-        prefs = PreferenceManager.getDefaultSharedPreferences(parentActivity.getBaseContext());
+    final static int[][] COLORS = new int[][] {
+            {0xff0C131C, 0xff1D3A63},
+            {0xff20140E, 0xff734222},
+            {0xff0D1C0C, 0xff1D631D},
+            {0xff1D0C17, 0xff671E48},
+            {0xff201F0E, 0xff737322},
+            {0xff0E0C1C, 0xff291D63},
+            {0xff20180E, 0xff735322},
+            {0xff0C191C, 0xff1D5163},
+            {0xff1F0D0E, 0xff732222},
+            {0xff1A1E0D, 0xff586B1F},
+            {0xff160C1C, 0xff4C1D63},
+            {0xff201C0E, 0xff736322}
+    };
+    
+    public BufferListAdapter(Activity activity, Buffers buffer_list) {
+        this.activity = activity;
+        this.inflater = LayoutInflater.from(activity);
+        this.buffer_list = buffer_list;
+        prefs = PreferenceManager.getDefaultSharedPreferences(activity.getBaseContext());
         prefs.registerOnSharedPreferenceChangeListener(this);
-        
-        hideBufferTitles = prefs.getBoolean("hide_buffer_titles", false);
+        SORT_BUFFERS = prefs.getBoolean("sort_buffers", false);
     }
 
     @Override
     public int getCount() {
-        return filteredBuffers.size();
+        return buffers.size();
     }
 
     @Override
     public Buffer getItem(int position) {
-        return filteredBuffers.get(position);
-    }
-    
-    /**
-     * Filter the buffer list to only contain things that match the string
-     * @param filter - the string to filter on
-     */
-    public void filterBuffers(String filter) {
-        filteredBuffers.clear();
-        
-        // Handle the case of a missing/empty filter
-        if (filter == null || filter.length()==0) {
-            filteredBuffers.addAll(allBuffers);
-        } else {
-            // Filter based on what they typed
-            currentFilter = filter.toLowerCase();
-            for(Buffer b: allBuffers) {
-                if (b.full_name.toLowerCase().contains(currentFilter)) {
-                    filteredBuffers.add(b);
-                }
-            }
-        }
-        if (sortedBuffers) Collections.sort(filteredBuffers, bufferComparator);
-        notifyDataSetChanged();
-    }
-
-    public void setBuffers(ArrayList<Buffer> buffers) {
-        this.allBuffers = buffers;
-        filterBuffers(currentFilter);
-    }
-
-    public void enableSorting(boolean enableSorting) {
-        sortedBuffers = enableSorting;
-    }
-
-    /**
-     * Find the position of a buffer(by name) in the list
-     * 
-     * @param b
-     *            - The buffer to find
-     * @return Position of the buffer if found -1 if not found
-     */
-    public int findBufferPosition(Buffer b) {
-        for (int i = 0; i < filteredBuffers.size(); i++) {
-            if (b.full_name.equals(filteredBuffers.get(i).full_name)) {
-                return i;
-            }
-        }
-        return -1;
+        return buffers.get(position);
     }
 
     @Override
-    public long getItemId(int position) {
-        return position;
+    public void onBuffersChanged() {
+        final ArrayList<Buffer> temp_buffers = buffer_list.getBuffersCopy();
+        if (SORT_BUFFERS) Collections.sort(temp_buffers, bufferComparator);
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                buffers = temp_buffers;
+                notifyDataSetChanged();
+            }
+        });
     }
+
+    @Override
+    public void onBuffersSlightlyChanged() {
+        if (SORT_BUFFERS) Collections.sort(buffers, bufferComparator);                      // TODO: is this thread safe???
+        else activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                notifyDataSetChanged();
+            }
+        });
+    }
+
+    @Override
+    public long getItemId(int position) {return position;}
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
@@ -124,87 +114,61 @@ public class BufferListAdapter extends BaseAdapter implements OnSharedPreference
         if (convertView == null) {
             convertView = inflater.inflate(R.layout.bufferlist_item, null);
             holder = new ViewHolder();
-            holder.shortname = (TextView) convertView.findViewById(R.id.bufferlist_shortname);
-            holder.fullname = (TextView) convertView.findViewById(R.id.bufferlist_fullname);
-            holder.messagecount = (TextView) convertView
-                    .findViewById(R.id.bufferlist_hotlist_messagecount);
-            holder.highlightcount = (TextView) convertView
-                    .findViewById(R.id.bufferlist_hotlist_highlightcount);
-
-            holder.title = (TextView) convertView.findViewById(R.id.bufferlist_title);
-
+            holder.ui_buffer = (TextView) convertView.findViewById(R.id.buffer);
+            holder.ui_warm = (TextView) convertView.findViewById(R.id.buffer_warm);
+            holder.ui_hot = (TextView) convertView.findViewById(R.id.buffer_hot);
             convertView.setTag(holder);
-        } else {
+        } else
             holder = (ViewHolder) convertView.getTag();
-        }
 
-        Buffer bufferItem = getItem(position);
+        Buffer buffer = getItem(position);
 
-        // use contents of bufferItem to fill in text content
-        holder.fullname.setText(bufferItem.full_name);
-        holder.shortname.setText(bufferItem.short_name);
-        if (bufferItem.short_name == null) {
-            holder.shortname.setText(bufferItem.short_name);
-        }
+        holder.ui_buffer.setText(buffer.short_name);
 
-        // Title might be removed in different layouts
-        if (holder.title != null) {
-            // Allow hiding of buffer titles
-            if (hideBufferTitles) {
-                holder.title.setVisibility(View.GONE);
-            } else {
-                holder.title.setText(com.ubergeek42.weechat.Color.stripAllColorsAndAttributes(bufferItem.title));
-                holder.title.setVisibility(View.VISIBLE);
-            }
-        }
-        
-        
+        int unreads = buffer.unreads;
+        int highlights = buffer.highlights;
 
-        int unreadc = bufferItem.unreads;
-        int highlightc = bufferItem.highlights;
-        // holder.hotlist.setText(String.format("U:%2d  H:%2d   ", from_human, highlight));
+        holder.ui_buffer.setBackgroundColor(COLORS[buffer.number % COLORS.length][buffer.isOpen() ? 1 : 0]);
 
-        if (highlightc > 0) {
-            holder.highlightcount.setText("" + highlightc);
-            holder.highlightcount.setTextColor(Color.MAGENTA);
-        } else {
-            holder.highlightcount.setText("");
-        }
-        if (unreadc > 0) {
-            holder.messagecount.setText("" + (unreadc));
-            holder.messagecount.setTextColor(Color.YELLOW);
-        } else {
-            holder.messagecount.setText("");
-            holder.messagecount.setTextColor(Color.WHITE);
-        }
+//        if (buffer.isOpen()) {
+//            RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) holder.ui_buffer.getLayoutParams();
+//            params.setMargins(4, 0, 0, 0);
+//            holder.ui_buffer.setLayoutParams(params);
+//        }
+
+        if (highlights > 0) {
+            holder.ui_hot.setText(Integer.toString(highlights));
+            holder.ui_hot.setVisibility(View.VISIBLE);
+        } else
+            holder.ui_hot.setVisibility(View.INVISIBLE);
+
+        if (unreads > 0) {
+            holder.ui_warm.setText(Integer.toString(unreads));
+            holder.ui_warm.setVisibility(View.VISIBLE);
+        } else
+            holder.ui_warm.setVisibility(View.INVISIBLE);
 
         return convertView;
     }
 
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        if (key.equals("sort_buffers")) SORT_BUFFERS = prefs.getBoolean("sort_buffers", true);
+    }
+
     private static class ViewHolder {
-        TextView highlightcount;
-        TextView messagecount;
-        TextView shortname;
-        TextView fullname;
-        TextView title;
+        TextView ui_hot;
+        TextView ui_warm;
+        TextView ui_buffer;
     }
 
     private final Comparator<Buffer> bufferComparator = new Comparator<Buffer>() {
         @Override
         public int compare(Buffer b1, Buffer b2) {
-            return b2.highlights - b1.highlights;
+            int h1 = b1.highlights;
+            int h2 = b2.highlights;
+            if (h1 == h2) return b2.unreads - b1.unreads;
+            else return b2.highlights - b1.highlights;
         }
     };
-
-    @Override
-    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        if (key.equals("chatview_colors")) {
-            hideBufferTitles = prefs.getBoolean("hide_buffer_titles", false);
-        } else {
-            return;
-        }
-        notifyDataSetChanged();
-    }
-
-
 }

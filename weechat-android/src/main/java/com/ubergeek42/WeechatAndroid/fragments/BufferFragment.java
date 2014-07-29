@@ -80,7 +80,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
 
     // Preference things
     private SharedPreferences prefs;
-    private boolean enableTabComplete = true;
+    private boolean PREF_ENABLE_TAB_COMPLETE = true;
 
     /////////////////////////
     ///////////////////////// lifecycle
@@ -98,6 +98,8 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
         super.onCreate(savedInstanceState);
         if (savedInstanceState != null) shortname = savedInstanceState.getString("shortname");
         setRetainInstance(true);
+        pointer = getArguments().getInt("pointer");
+        prefs = PreferenceManager.getDefaultSharedPreferences(getActivity().getBaseContext());
     }
 
     @Override
@@ -133,19 +135,11 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
         if (DEBUG) logger.warn("{} onStart()", shortname);
         super.onStart();
 
-        prefs = PreferenceManager.getDefaultSharedPreferences(getActivity().getBaseContext());
-        prefs.registerOnSharedPreferenceChangeListener(this);
-        enableTabComplete = prefs.getBoolean("tab_completion", true);
-
-        //logger.error("onStart: getArguments(): {}", getArguments());
-        //this.buffer = relay.getBufferByFullName("irc.free.##russkij");
-        //this.pointer = getArguments().getInt("pointer");
-        pointer = getArguments().getInt("pointer");
-        //buffer = relay.getBufferByPointer(pointer)
-        //name = "irc.free.##latvija";
         if (BuildConfig.DEBUG && (shortname.equals("") || relay != null || buffer != null)) // sanity check
             throw new AssertionError("shit shouldn't be empty");
 
+        prefs.registerOnSharedPreferenceChangeListener(this);
+        PREF_ENABLE_TAB_COMPLETE = prefs.getBoolean("tab_completion", true);
         getActivity().bindService(new Intent(getActivity(), RelayService.class), service_connection,
                 Context.BIND_AUTO_CREATE);
     }
@@ -175,12 +169,12 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
         if (DEBUG) logger.warn("{} onStop()", shortname);
         super.onStop();
         if (relay != null) {
-            if (buffer != null) relay.unsubscribeBuffer(buffer.pointer); // unsubscribe (???)
-            relay.removeRelayConnectionHandler(BufferFragment.this);       // remove connect / disconnect watcher
+            if (buffer != null) relay.unsubscribeBuffer(buffer.pointer);            // unsubscribe
+            relay.removeRelayConnectionHandler(BufferFragment.this);                // remove connect / disconnect watcher
             relay = null;
         }
         if (buffer != null) {
-            buffer.setBufferEye(null);                                               // remove buffer watcher
+            buffer.setBufferEye(null);                                              // remove buffer watcher
             buffer = null;
         }
         getActivity().unbindService(service_connection);
@@ -433,7 +427,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         if (key.equals("tab_completion"))
-            enableTabComplete = prefs.getBoolean("tab_completion", true);
+            PREF_ENABLE_TAB_COMPLETE = prefs.getBoolean("tab_completion", true);
         else if (key.equals("sendbtn_show") && sendButton != null)
             sendButton.setVisibility(prefs.getBoolean("sendbtn_show", true) ? View.VISIBLE : View.GONE);
         else if (key.equals("tabbtn_show") && tabButton != null)
@@ -465,7 +459,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     
     /** attempts to perform tab completion on the current input */
     private void tryTabComplete() {
-        if (!enableTabComplete || nicks == null)
+        if (!PREF_ENABLE_TAB_COMPLETE || nicks == null)
             return;
         String txt = inputBox.getText().toString();
         if (!tc_inprogress) {

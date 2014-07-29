@@ -67,7 +67,7 @@ public class MainPagerAdapter extends PagerAdapter {
         Fragment f = manager.findFragmentByTag(tag);
         if (f != null) {
             if (DEBUG) logger.info("instantiateItem(): attach");  // show can be used instead
-            transaction.attach(f);
+            if (phone_mode && i == 0) transaction.show(f); else transaction.attach(f);
         } else {
             f = fragments.get(i); //TODO
             if (DEBUG) logger.info("instantiateItem(): add");
@@ -85,7 +85,7 @@ public class MainPagerAdapter extends PagerAdapter {
             transaction = manager.beginTransaction();
         if (fragments.size() > i && fragments.get(i) == object) {
             if (DEBUG) logger.info("destroyItem(): detach");  // hide can be used instead
-            transaction.detach((Fragment) object);
+            if (phone_mode && i == 0) transaction.hide((Fragment) object); else transaction.detach((Fragment) object);
         } else {
             if (DEBUG) logger.info("destroyItem(): remove");
             transaction.remove((Fragment) object);
@@ -99,7 +99,7 @@ public class MainPagerAdapter extends PagerAdapter {
 
     /** this should return index for fragments or POSITION_NONE if a fragment has been removed
      ** providing proper indexes instead of POSITION_NONE allows buffers not to be
-     ** fully recreated on every buffer list change */
+     ** fully recreated on every ui_buffer list change */
     @Override
     public int getItemPosition(Object object) {
         int idx = fragments.indexOf(object);
@@ -127,13 +127,13 @@ public class MainPagerAdapter extends PagerAdapter {
         return (phone_mode && i == 0) ? "Buffer List" : ((BufferFragment) fragments.get(i)).getShortBufferName();
     }
 
-    /** switch to already open buffer OR create a new buffer, putting it into BOTH pointers and fragments,
-     ** run notifyDataSetChanged() which will in turn call instantiateItem(), and set new buffer as the current one */
+    /** switch to already open ui_buffer OR create a new ui_buffer, putting it into BOTH pointers and fragments,
+     ** run notifyDataSetChanged() which will in turn call instantiateItem(), and set new ui_buffer as the current one */
     public void openBuffer(int pointer) {
         if (DEBUG) logger.info("openBuffer({})", pointer);
         int idx = pointers.indexOf(pointer);
         if (idx >= 0) {
-            // found buffer by name, switch to it
+            // found ui_buffer by name, switch to it
             pager.setCurrentItem(idx);
         } else {
             // create a new one
@@ -148,7 +148,7 @@ public class MainPagerAdapter extends PagerAdapter {
         }
     }
 
-    /** close buffer if open, removing it from BOTH pointers and fragments.
+    /** close ui_buffer if open, removing it from BOTH pointers and fragments.
      ** destroyItem() checks the lists to see if it has to remove the item for good */
     public void closeBuffer(String name) {
         if (DEBUG) logger.info("closeBuffer({})", name);

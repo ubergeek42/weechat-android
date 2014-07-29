@@ -490,12 +490,6 @@ public class RelayService extends Service implements RelayConnectionHandler,
         upgrading.start();
     }
 
-    public void requestLinesForBuffer(int pointer) {
-        relayConnection.sendMsg("(listlines_reverse) hdata buffer:"
-                + "0x" + Integer.toHexString(pointer) + "/own_lines/last_line(-" + Buffer.MAXLINES
-                + ")/data date,displayed,prefix,message,highlight,notify,tags_array");
-    }
-
     public void requestNicklist(String bufferPointerOrName) {
         relayConnection.sendMsg("nicklist", "nicklist", bufferPointerOrName);
     }

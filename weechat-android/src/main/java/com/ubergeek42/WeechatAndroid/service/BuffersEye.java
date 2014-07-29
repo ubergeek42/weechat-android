@@ -6,4 +6,6 @@ package com.ubergeek42.WeechatAndroid.service;
 public interface BuffersEye {
 
     public void onBuffersChanged();
+
+    public void onBuffersSlightlyChanged();
 }

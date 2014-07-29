@@ -20,6 +20,11 @@ public class Buffers {
     private static Logger logger = LoggerFactory.getLogger("Buffers!");
     final private static boolean DEBUG = false;
 
+    // preferences
+    public static boolean SHOW_TITLE = true;
+    public static boolean FILTER_NONHUMAN_BUFFERS = true;
+    public static String  FILTER = null;                    // TODO race condition
+
     final private RelayServiceBackbone bone;
     final private RelayConnection connection;
     final private ArrayList<Buffer> buffers = new ArrayList<Buffer>();
@@ -29,6 +34,7 @@ public class Buffers {
     Buffers(RelayServiceBackbone bone) {
         this.bone = bone;
         this.connection = bone.connection;
+        Buffer.buffers = this;
 
         // Handle us getting a listing of the this
         connection.addHandler("listbuffers", buffer_list_watcher);
@@ -51,18 +57,33 @@ public class Buffers {
         connection.sendMsg("hotlist", "hdata", "hotlist:gui_hotlist(*) buffer,count");
     }
 
-    synchronized public ArrayList<Buffer> getBuffersCopy() {return new ArrayList<Buffer>(buffers);}
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// called from
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    synchronized public ArrayList<Buffer> getBuffersCopy() {
+        ArrayList<Buffer> new_bufs = new ArrayList<Buffer>();
+        for (Buffer buffer : buffers) {
+            if (FILTER_NONHUMAN_BUFFERS && !buffer.is_a_human_buffer) continue;
+            if (FILTER != null && !buffer.full_name.toLowerCase().contains(FILTER)) continue;
+            new_bufs.add(buffer);
+        }
+        return new_bufs;
+    }
 
     synchronized public Buffer findByPointer(int pointer) {
         for (Buffer buffer : buffers) if (buffer.pointer == pointer) return buffer;
         return null;
     }
 
-    synchronized public Buffer findByFullName(String name) {
-        for (Buffer buffer : buffers) {
-            if (buffer.full_name.equals(name)) return buffer;
-        }
-        return null;
+    public void requestLinesForBufferByPointer(int pointer) {
+        connection.sendMsg("listlines_reverse", "hdata", String.format(
+                "buffer:0x%x/own_lines/last_line(-%d)/data date,displayed,prefix,message,highlight,notify,tags_array",
+                pointer, Buffer.MAX_LINES));
+
+//        connection.sendMsg("listlines_reverse", "hdata", "buffer:0x" + Integer.toHexString(pointer)
+//                + "/own_lines/last_line(-" + Buffer.MAX_LINES
+//                + ")/data date,displayed,prefix,message,highlight,notify,tags_array");
     }
 
     synchronized public void setBuffersEye(BuffersEye buffers_eye) {this.buffers_eye = buffers_eye;}
@@ -73,6 +94,10 @@ public class Buffers {
 
     synchronized private void notifyBuffersChanged() {
         if (buffers_eye != null) buffers_eye.onBuffersChanged();
+    }
+
+    synchronized public void notifyBuffersSlightlyChanged() {
+        if (buffers_eye != null) buffers_eye.onBuffersSlightlyChanged();
     }
 
     synchronized public void notifyBufferPropertiesChanged(Buffer buffer) {

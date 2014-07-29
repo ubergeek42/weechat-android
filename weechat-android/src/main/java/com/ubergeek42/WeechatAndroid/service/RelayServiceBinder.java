@@ -32,167 +32,104 @@ import org.slf4j.LoggerFactory;
  * 
  */
 public class RelayServiceBinder extends Binder {
-
     private static Logger logger = LoggerFactory.getLogger("RelayServiceBinder");
     final private static boolean DEBUG = BuildConfig.DEBUG && true;
 
-    private RelayService relayService;
+    private RelayService service;
 
-    public RelayServiceBinder(RelayService relayService) {
-        this.relayService = relayService;
+    public RelayServiceBinder(RelayService service) {
+        this.service = service;
     }
 
-//    public void setHost(String host) {
-//        relayService.host = host;
-//    }
-//
-//    public void setPort(String port) {
-//        relayService.port = Integer.parseInt(port);
-//    }
-//
-//    public void setPassword(String password) {
-//        relayService.pass = password;
-//    }
-//
-//    public String getHost() {
-//        return relayService.host;
-//    }
-//
-//    public String getPort() {
-//        return relayService.port+"";
-//    }
-//
-//    public String getPassword() {
-//        return relayService.pass;
-//    }
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     /** returns true if connection status corresponds to given connection */
     public boolean isConnection(int status) {
-        return relayService.isConnection(status);
+        return service.isConnection(status);
     }
 
     public boolean connect() {
-        return relayService.connect();
+        return service.connect();
     }
 
-    public void addRelayConnectionHandler(RelayConnectionHandler rch) {
-        relayService.connectionHandlers.add(rch);
+    public void addRelayConnectionHandler(RelayConnectionHandler handler) {
+        service.connectionHandlers.add(handler);
     }
 
-    public void removeRelayConnectionHandler(RelayConnectionHandler rch) {
-        relayService.connectionHandlers.remove(rch);
+    public void removeRelayConnectionHandler(RelayConnectionHandler handler) {
+        service.connectionHandlers.remove(handler);
     }
 
-    /**
-     * Disconnect from the server and stop the background service
-     */
+    /** Disconnect from the server and stop the background service */
     public void shutdown() {
-        relayService.shutdown();
+        service.shutdown();
     }
 
-//    /**
-//     * Return a buffer object based on its full name
-//     *
-//     * @param bufferName
-//     *            - Full buffer name(e.g. irc.freenode.#weechat)
-//     * @return a Buffer object for the given buffer
-//     */
-////    public Buffer getBufferByName(String bufferName) {
-////        if (isConnection(RelayService.CONNECTED))
-////            return relayService.bufferManager.findByName(bufferName);
-////        return null;
-////    }
-//
-//    /**
-//     * Returns the BufferManager object for the current connection
-//     *
-//     * @return The BufferManager object
-//     */
-//    public BufferManager getBufferManager() {
-//        return relayService.bufferManager;
-//    }
-
-//    /**
-//     * Returns the HotlistManager object for the current connection
-//     *
-//     * @return The HotlistManager object
-//     */
-//
-//    public HotlistManager getHotlistManager() {
-//        return relayService.hotlistManager;
-//    }
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     public Buffer getBufferByPointer(int id) {
-        logger.error("getBufferByPointer({}) -> {}", id, relayService.bone.buffers.findByPointer(id));
-        return relayService.bone.buffers.findByPointer(id);
-    }
-
-    public Buffer getBufferByFullName(String name) {
-        logger.error("getBufferByFullName({}) -> {}", name, relayService.bone.buffers.findByFullName(name));
-        return relayService.bone.buffers.findByFullName(name);
+        if (DEBUG) logger.error("getBufferByPointer({})");
+        return service.bone.buffers.findByPointer(id);
     }
 
     public Buffers getBuffers() {
-        return relayService.bone.buffers;
+        if (DEBUG) logger.error("getBuffers()");
+        return service.bone.buffers;
     }
-    /**
-     * Send a message to the server(expected to be formatted appropriately)
-     * 
-     * @param string
-     */
+
+    /** Send a message to the server(expected to be formatted appropriately) */
     public void sendMessage(String string) {
-        relayService.relayConnection.sendMsg(string);
+        service.relayConnection.sendMsg(string);
     }
 
     public void resetNotifications() {
-        relayService.resetNotification();
+        service.resetNotification();
     }
 
-    /**
-     * Subscribes to a buffer. Gets the last MAXLINES of lines, and subscribes to nicklist changes
-     * 
-     * @param pointer
-     */
-    // Get the last MAXLINES for each buffer if needed
-    // Get the nicklist for any buffers we have
+    /** subscribes to a buffer. Gets the last MAXLINES of lines, and subscribes to nicklist changes */
     public void subscribeBuffer(int pointer) {
-        Buffer buffer = relayService.bone.buffers.findByPointer(pointer);
-        if (DEBUG) logger.error("subscribeBuffer({}): {}", pointer, buffer.full_name);
+        Buffer buffer = service.bone.buffers.findByPointer(pointer);
+        if (DEBUG) logger.error("subscribeBuffer({}) ({})", pointer, buffer.full_name);
         if (!buffer.holds_all_lines_it_is_supposed_to_hold) {
             if (DEBUG) logger.error("subscribeBuffer(): requesting all lines");
-            relayService.requestLinesForBuffer(pointer);
+            service.bone.buffers.requestLinesForBufferByPointer(pointer);
         }
 //        if (!buffer.holds_all_nicknames) {
 //            if (DEBUG) logger.error("subscribeBuffer(): requesting full nicklist");
-//            //relayService.requestNicklist(pointer);
+//            //service.requestNicklist(pointer);
 //        }
-//        if (relayService.optimize_traffic) {
+//        if (service.optimize_traffic) {
 //            if (DEBUG) logger.error("subscribeBuffer(): syncing");
-//            relayService.relayConnection.sendMsg("sync " + pointer);
+//            service.relayConnection.sendMsg("sync " + pointer);
 //        }
     }
 
     public void unsubscribeBuffer(int bufferPointer) {
         if (DEBUG) logger.error("unsubscribeBuffer({})", bufferPointer);
-        if (relayService.optimize_traffic) {
-            if (DEBUG) logger.error("unsubscribeBuffer(): desyncing");
-            relayService.relayConnection.sendMsg("desync " + bufferPointer);
-        }
+        //if (service.optimize_traffic) service.relayConnection.sendMsg("desync " + bufferPointer);
     }
-    
-    /**
-     * SSL Certificate related functions 
-     */
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
     public void setCertificateError(X509Certificate cert) {
-        relayService.untrustedCert = cert;
+        service.untrustedCert = cert;
     }
+
     public X509Certificate getCertificateError() {
-        return relayService.untrustedCert;
+        return service.untrustedCert;
     }
+
     public void acceptCertificate() {
-        relayService.certmanager.trustCertificate(relayService.untrustedCert);
+        service.certmanager.trustCertificate(service.untrustedCert);
     }
+
     public void rejectCertificate() {
-        relayService.untrustedCert = null;
+        service.untrustedCert = null;
     }
 }

@@ -15,6 +15,7 @@ import android.text.util.Linkify;
 
 import com.ubergeek42.weechat.Color;
 import com.ubergeek42.weechat.relay.protocol.Hashtable;
+import com.ubergeek42.weechat.relay.protocol.RelayObject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,9 +29,11 @@ import java.util.List;
 
 public class Buffer {
     private static Logger logger = LoggerFactory.getLogger("Buffer");
-    final private static boolean DEBUG = true;
+    final private static boolean DEBUG = false;
 
-    private final static int MAX_LINES = 200;
+    public final static int MAX_LINES = 200;
+    public static Buffers buffers;
+
     private BufferEye buffer_eye;
 
     public final int pointer;
@@ -42,6 +45,7 @@ public class Buffer {
     private int visible_lines_count = 0;
 
     public boolean holds_all_lines_it_is_supposed_to_hold = false;
+    public boolean is_a_human_buffer = false;
     public int unreads = 0;
     public int highlights = 0;
 
@@ -53,6 +57,7 @@ public class Buffer {
         this.title = title;
         this.notify_level = notify_level;
         this.local_vars = local_vars;
+        this.is_a_human_buffer = isAHumanBuffer();
     }
 
     /** better call off the main thread */
@@ -70,18 +75,22 @@ public class Buffer {
 
     /** better call off the main thread */
     synchronized public void setBufferEye(BufferEye buffer_eye) {
-        logger.warn("{} setBufferEye(...)", this.short_name);
+        if (DEBUG) logger.warn("{} setBufferEye(...)", this.short_name);
         this.buffer_eye = buffer_eye;
-        for (Line line : lines) if (line.spannable == null) line.processMessage(true);
+        for (Line line : lines) line.processMessageIfNeeded();
     }
 
     synchronized public void forceProcessAllMessages() {
-        logger.warn("{} processAllMessages()", this.short_name);
-        for (Line line : lines) line.processMessage(true);
+        if (DEBUG) logger.warn("{} processAllMessages()", this.short_name);
+        for (Line line : lines) line.processMessage();
     }
 
     synchronized public void eraseAllprocessedMessages() {
-        for (Line line : lines) line.processMessage(false);
+        for (Line line : lines) line.eraseProcessedMessage();
+    }
+
+    public boolean isOpen() {
+        return this.buffer_eye != null;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -97,9 +106,14 @@ public class Buffer {
         else lines.addFirst(line);
         if (line.visible) visible_lines_count++;
 
-        if (buffer_eye != null) line.processMessage(true);
-        if (line.from_human && notify_level >= 0) unreads += 1;
-        if (line.highlighted && notify_level >= 0) highlights += 1;
+        if (buffer_eye != null) line.processMessage();
+        if (is_last && notify_level >= 0) {
+            if (line.highlighted) highlights += 1;
+            if (line.from_human) {
+                unreads += 1;
+                buffers.notifyBuffersSlightlyChanged();
+            }
+        }
         if (buffer_eye != null) buffer_eye.onLinesChanged();
     }
 
@@ -109,6 +123,11 @@ public class Buffer {
 
     synchronized  public void onBufferClosed() {
         if (buffer_eye != null) buffer_eye.onBufferClosed();
+    }
+
+    private boolean isAHumanBuffer() {
+        RelayObject type = local_vars.get("type");
+        return type != null && (type.asString().equals("private") || type.asString().equals("channel"));
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -174,41 +193,45 @@ public class Buffer {
                     || list.contains("notify_private");
         }
 
-        public void processMessage(boolean parse) {
-            logger.warn("processMessage({})", parse);
-            if (!parse) {
-                spannable = null;
-            } else {
-                String timestamp = (DATEFORMAT == null) ? null : DATEFORMAT.format(date);
-                Color.parse(timestamp, prefix, message, highlighted, MAX_WIDTH, ALIGN == ALIGN_RIGHT);
-                Spannable spannable = new SpannableString(Color.clean_message);
+        public void eraseProcessedMessage() {
+            spannable = null;
+        }
 
-                Object javaspan;
-                for (Color.Span span : Color.final_span_list) {
-                    switch (span.type) {
-                        case Color.Span.FGCOLOR:   javaspan = new ForegroundColorSpan(span.color | 0xFF000000); break;
-                        case Color.Span.BGCOLOR:   javaspan = new BackgroundColorSpan(span.color | 0xFF000000); break;
-                        case Color.Span.ITALIC:    javaspan = new StyleSpan(Typeface.ITALIC);                   break;
-                        case Color.Span.BOLD:      javaspan = new StyleSpan(Typeface.BOLD);                     break;
-                        case Color.Span.UNDERLINE: javaspan = new UnderlineSpan();                              break;
-                        default: continue;
-                    }
-                    spannable.setSpan(javaspan, span.start, span.end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        public void processMessageIfNeeded() {
+            if (spannable == null) processMessage();
+        }
+
+        public void processMessage() {
+            if (DEBUG) logger.warn("processMessage()");
+            String timestamp = (DATEFORMAT == null) ? null : DATEFORMAT.format(date);
+            Color.parse(timestamp, prefix, message, highlighted, MAX_WIDTH, ALIGN == ALIGN_RIGHT);
+            Spannable spannable = new SpannableString(Color.clean_message);
+
+            Object javaspan;
+            for (Color.Span span : Color.final_span_list) {
+                switch (span.type) {
+                    case Color.Span.FGCOLOR:   javaspan = new ForegroundColorSpan(span.color | 0xFF000000); break;
+                    case Color.Span.BGCOLOR:   javaspan = new BackgroundColorSpan(span.color | 0xFF000000); break;
+                    case Color.Span.ITALIC:    javaspan = new StyleSpan(Typeface.ITALIC);                   break;
+                    case Color.Span.BOLD:      javaspan = new StyleSpan(Typeface.BOLD);                     break;
+                    case Color.Span.UNDERLINE: javaspan = new UnderlineSpan();                              break;
+                    default: continue;
                 }
-
-                if (ALIGN != ALIGN_NONE) {
-                    LeadingMarginSpan margin_span = new LeadingMarginSpan.Standard(0, (int) (LETTER_WIDTH * Color.margin));
-                    spannable.setSpan(margin_span, 0, spannable.length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
-                }
-
-                Linkify.addLinks(spannable, Linkify.WEB_URLS);
-                for (URLSpan urlspan : spannable.getSpans(0, spannable.length(), URLSpan.class)) {
-                    spannable.setSpan(new URLSpan2(urlspan.getURL()), spannable.getSpanStart(urlspan), spannable.getSpanEnd(urlspan), 0);
-                    spannable.removeSpan(urlspan);
-                }
-
-                this.spannable = spannable;
+                spannable.setSpan(javaspan, span.start, span.end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             }
+
+            if (ALIGN != ALIGN_NONE) {
+                LeadingMarginSpan margin_span = new LeadingMarginSpan.Standard(0, (int) (LETTER_WIDTH * Color.margin));
+                spannable.setSpan(margin_span, 0, spannable.length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
+            }
+
+            Linkify.addLinks(spannable, Linkify.WEB_URLS);
+            for (URLSpan urlspan : spannable.getSpans(0, spannable.length(), URLSpan.class)) {
+                spannable.setSpan(new URLSpan2(urlspan.getURL()), spannable.getSpanStart(urlspan), spannable.getSpanEnd(urlspan), 0);
+                spannable.removeSpan(urlspan);
+            }
+
+            this.spannable = spannable;
         }
     }
 

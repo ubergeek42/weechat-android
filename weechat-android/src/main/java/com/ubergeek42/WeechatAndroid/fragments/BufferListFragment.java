@@ -36,12 +36,11 @@ import com.ubergeek42.WeechatAndroid.service.BuffersEye;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
 import com.ubergeek42.WeechatAndroid.service.RelayServiceBinder;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
-import com.ubergeek42.weechat.relay.protocol.RelayObject;
 
 public class BufferListFragment extends SherlockListFragment implements RelayConnectionHandler,
         BuffersEye, OnSharedPreferenceChangeListener {
 
-    private static Logger logger = LoggerFactory.getLogger("list");
+    private static Logger logger = LoggerFactory.getLogger("BufferListFragment");
     final private static boolean DEBUG = BuildConfig.DEBUG && true;
 
     private static final String[] empty_list = { "Press Menu->Connect to get started" };
@@ -68,6 +67,8 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
             throw new ClassCastException(activity.toString() + " must be WeechatActivity");
     }
 
+    /** Supposed to be called only once
+     ** since we are setting setRetainInstance(true) */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         if (DEBUG) logger.warn("onCreate()");
@@ -81,7 +82,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         if (DEBUG) logger.warn("onCreateView()");
-        View v = inflater.inflate(R.layout.bufferlist, null);
+        View v = inflater.inflate(R.layout.bufferlist, container, false);
         bufferlistFilter = (EditText) v.findViewById(R.id.bufferlist_filter);
         bufferlistFilter.addTextChangedListener(filterTextWatcher);
         bufferlistFilter.setVisibility(prefs.getBoolean("show_buffer_filter", false) ? View.VISIBLE : View.GONE);
@@ -119,7 +120,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
         if (DEBUG) logger.warn("onStop()");
         super.onStop();
         if (buffers != null) {
-            buffers.setBuffersEye(null);                                     // buffer change watcher (safe to call)
+            buffers.setBuffersEye(null);                                                // buffer change watcher (safe to call)
             buffers = null;
         }
         if (relay != null) {
@@ -165,6 +166,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
         if (obj instanceof Buffer) {
             Buffer buffer = (Buffer) obj;
             ((WeechatActivity) getActivity()).openBuffer(buffer.pointer);
+            adapter.onBuffersSlightlyChanged();
         }
     }
 
@@ -180,11 +182,11 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     @Override
     public void onConnect() {
         if (DEBUG) logger.warn("onConnect()");
-        adapter = new BufferListAdapter(getActivity());
         buffers = relay.getBuffers();
+        adapter = new BufferListAdapter(getActivity(), buffers);
         buffers.setBuffersEye(this);                                       // buffer change watcher
-        adapter.enableSorting(prefs.getBoolean("sort_buffers", true));
-        adapter.filterBuffers(bufferlistFilter.getText().toString());  // resume sorting
+        //adapter.enableSorting(prefs.getBoolean("sort_buffers", true));
+        //adapter.filterBuffers(bufferlistFilter.getText().toString());  // resume sorting
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -229,25 +231,17 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     ///////////////////////// BuffersChangedObserver
     /////////////////////////
 
-    /** the only method and the only implementer of BuffersChangedObserver */
+    /** TODO */
     @Override
     public void onBuffersChanged() {
-        if (false && DEBUG) logger.warn("onBuffersChanged()");
-        final ArrayList<Buffer> bufs = buffers.getBuffersCopy();
-//        if (hide_server_buffers) {
-//            Iterator<Buffer> iter = bufs.iterator();
-//            while (iter.hasNext()) {
-//                RelayObject relayobj = iter.next().getLocalVar("type");
-//                if (relayobj != null && relayobj.asString().equals("server"))
-//                    iter.remove();
-//            }
-//        }
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (buffers != null) adapter.setBuffers(buffers.getBuffersCopy());               // are we still online?
-            }
-        });
+        if (DEBUG) logger.warn("onBuffersChanged()");
+        adapter.onBuffersChanged();
+    }
+
+    @Override
+    public void onBuffersSlightlyChanged() {
+        if (DEBUG) logger.warn("onBuffersSlightlyChanged()");
+        adapter.onBuffersSlightlyChanged();
     }
 
     /////////////////////////
@@ -257,10 +251,11 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         if (DEBUG) logger.warn("onSharedPreferenceChanged()");
-        if (key.equals("sort_buffers")) {
-            if (adapter != null)
-                adapter.enableSorting(prefs.getBoolean("sort_buffers", true));
-        } else if (key.equals("hide_server_buffers")) {
+//        if (key.equals("sort_buffers")) {
+//            if (adapter != null)
+//                adapter.enableSorting(prefs.getBoolean("sort_buffers", true));
+//        } else
+        if (key.equals("hide_server_buffers")) {
             hide_server_buffers = prefs.getBoolean("hide_server_buffers", true);
         } else if(key.equals("show_buffer_filter") && bufferlistFilter != null) {
             if (prefs.getBoolean("show_buffer_filter", false)) {
@@ -283,7 +278,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
         public void onTextChanged(CharSequence s, int start, int before, int count) {
             if (false && DEBUG) logger.warn("onTextChanged({}, ...)", s);
             if (adapter != null)
-                adapter.filterBuffers(s.toString());
+               ;// adapter.filterBuffers(s.toString());
         }
     };
 

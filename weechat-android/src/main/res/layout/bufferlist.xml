@@ -9,9 +9,10 @@
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
-        android:layout_below="@+id/bufferlist_filter" >
+        android:layout_below="@+id/bufferlist_filter"
+        android:dividerHeight="0dp"
+        android:divider="@null" />
 
-    </ListView>
 
     <EditText
         android:id="@+id/bufferlist_filter"

@@ -112,7 +112,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         setTitle(getString(R.string.app_version));
         getSupportActionBar().setHomeButtonEnabled(true);
         
-        // TODO: make notification load the right buffer
+        // TODO: make notification load the right ui_buffer
         // TODO: add preference to hide the TitlePageIndicator
     }
 
@@ -172,7 +172,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
             if (relay.isConnection(RelayService.CONNECTED))
                 WeechatActivity.this.onConnect();
 
-            // open the buffer we want
+            // open the ui_buffer we want
             handleIntent();
         }
 
@@ -411,7 +411,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         if (extras != null) {
             int pointer = extras.getInt("pointer");
             if (pointer != 0) {
-                if (DEBUG) logger.debug("handleIntent(): opening buffer '{}' from extras", pointer);
+                if (DEBUG) logger.debug("handleIntent(): opening ui_buffer '{}' from extras", pointer);
                 openBuffer(pointer); //TODO
             }
         }

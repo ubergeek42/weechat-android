@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
 public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, OnSharedPreferenceChangeListener, BufferEye {
 
     private static Logger logger = LoggerFactory.getLogger("ChatLinesAdapter");
-    final private static boolean DEBUG = BuildConfig.DEBUG && true;
+    final private static boolean DEBUG = BuildConfig.DEBUG && false;
 
     private FragmentActivity activity = null;
 
@@ -51,7 +51,7 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, OnShar
     private float TEXT_SIZE;
 
     public ChatLinesAdapter(FragmentActivity activity, Buffer buffer) {
-        logger.error("ChatLinesAdapter({}, {})", activity, buffer);
+        if (DEBUG) logger.error("ChatLinesAdapter({}, {})", activity, buffer);
         this.activity = activity;
         this.buffer = buffer;
         this.inflater = LayoutInflater.from(activity);
@@ -122,7 +122,7 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, OnShar
     // Change preferences immediatelyBu
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        logger.error("onSharedPreferenceChanged(..., {})", key);
+        if (DEBUG) logger.error("onSharedPreferenceChanged(..., {})", key);
         if (key.equals("chatview_filters")) {
             onLinesChanged();
         } else if (key.equals("timestamp_format")) {
@@ -145,7 +145,7 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, OnShar
 
     @Override
     public void onLinesChanged() {
-        logger.error("onLinesChanged()");
+        if (DEBUG) logger.error("onLinesChanged()");
         final Buffer.Line[] l = prefs.getBoolean("chatview_filters", true) ?
                 buffer.getLinesFilteredCopy() : buffer.getLinesCopy();
         activity.runOnUiThread(new Runnable() {
