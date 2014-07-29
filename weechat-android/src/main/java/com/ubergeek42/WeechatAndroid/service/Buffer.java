@@ -88,6 +88,7 @@ public class Buffer {
                 BufferList.open_buffers_pointers.remove((Integer) pointer);
                 for (Line line : lines) line.eraseProcessedMessage();
             }
+            buffer_list.notifyBuffersSlightlyChanged();
         }
     }
 
@@ -100,6 +101,12 @@ public class Buffer {
     synchronized public void forceProcessAllMessages() {
         if (DEBUG) logger.warn("{} forceProcessAllMessages()", this.short_name);
         for (Line line : lines) line.processMessage();
+    }
+
+    synchronized public void resetUnreadsAndHighlights() {
+        int old = unreads | highlights;
+        unreads = highlights = 0;
+        if (old != 0) buffer_list.notifyBuffersSlightlyChanged();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -127,10 +134,13 @@ public class Buffer {
     }
 
     synchronized public void onPropertiesChanged() {
+        // TODO parse also title
+        this.is_a_human_buffer = isAHumanBuffer();
         if (buffer_eye != null) buffer_eye.onPropertiesChanged();
     }
 
-    synchronized  public void onBufferClosed() {
+    synchronized public void onBufferClosed() {
+        if (DEBUG) logger.warn("{} onBufferClosed() (buffer_eye = {})", short_name, buffer_eye);
         if (buffer_eye != null) buffer_eye.onBufferClosed();
     }
 

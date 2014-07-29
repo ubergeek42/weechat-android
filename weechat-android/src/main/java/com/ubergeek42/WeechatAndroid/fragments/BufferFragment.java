@@ -257,13 +257,15 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
             // and the name should be accessible between calls to this function
             shortname = buffer.short_name;
 
-            // remove this from hotlist
-//            if (relay.getHotlistManager() != null)
-//                relay.getHotlistManager().removeHotlistItem(name);                      // remove from hotlist
-
             chatlines_adapter = new ChatLinesAdapter(getActivity(), buffer);
+            buffer.setBufferEye(this);                                                      // buffer watcher
+            chatlines_adapter.onLinesChanged();
             //else logger.error("CHATLINES ADAPTER IS NOT NULL");
             registerForContextMenu(chatLines);
+
+            // attach this fragment to buffer and
+            // subscribe to the buffer (gets the lines for it, and gets nicklist)
+            relay.subscribeBuffer(buffer.pointer);                                          // subscription
 
             getActivity().runOnUiThread(new Runnable() {
                 @Override
@@ -277,11 +279,6 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
                     chatLines.setAdapter(chatlines_adapter);
                 }
             });
-
-            // attach this fragment to buffer and
-            // subscribe to the buffer (gets the lines for it, and gets nicklist)
-            //buffer.setBufferEye(this);                                                    // buffer watcher
-            relay.subscribeBuffer(buffer.pointer);                                          // subscription
         }
     }
 
@@ -323,38 +320,20 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     ///////////////////////// BufferObserver stuff
     /////////////////////////
 
-//    @Override
-//    public void onManyLinesAdded() {
-//        chatlines_adapter.onManyLinesAdded();
-//    }
-//
-//    /** */
-//    @Override
-//    public void onLineAdded() {
-//        if (false && DEBUG) logger.warn("{} onLineAdded()", shortname);
-//        if (DEBUG && relay == null) {throw new AssertionError("relay can't be null in onLineAdded()");}
-//        //relay.resetNotifications(); //TODO
-//
-//        //buffer.resetHighlight(); //TODO
-//        //buffer.resetUnread(); //TODO
-//
-//        chatlines_adapter.onLineAdded();
-//    }
-
     @Override
     public void onLinesChanged() {
-
+        chatlines_adapter.onLinesChanged();
     }
 
     @Override
     public void onPropertiesChanged() {
-
+        chatlines_adapter.onPropertiesChanged();
     }
 
     @Override
     public void onBufferClosed() {
         if (DEBUG) logger.warn("{} onBufferClosed()", shortname);
-        ((WeechatActivity) getActivity()).closeBuffer(buffer.full_name);
+        ((WeechatActivity) getActivity()).closeBuffer(pointer);
     }
 
 //    @Override

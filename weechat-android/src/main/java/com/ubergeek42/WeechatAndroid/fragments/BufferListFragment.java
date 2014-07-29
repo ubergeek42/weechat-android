@@ -163,7 +163,6 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
         if (obj instanceof Buffer) {
             Buffer buffer = (Buffer) obj;
             ((WeechatActivity) getActivity()).openBuffer(buffer.pointer, true);
-            adapter.onBuffersSlightlyChanged();
         }
     }
 
@@ -182,8 +181,6 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
         buffer_list = relay.getBuffers();
         adapter = new BufferListAdapter(getActivity(), buffer_list);
         buffer_list.setBuffersEye(this);                                       // buffer change watcher
-        //adapter.enableSorting(prefs.getBoolean("sort_buffers", true));
-        //adapter.filterBuffers(bufferlistFilter.getText().toString());  // resume sorting
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {

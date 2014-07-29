@@ -60,7 +60,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     private static Logger logger = LoggerFactory.getLogger("WA");
     final private static boolean DEBUG = BuildConfig.DEBUG && true;
 
-    private RelayServiceBinder relay;
+    public RelayServiceBinder relay;
     private SocketToggleConnection connection_state_toggler;
     private Menu actionBarMenu;
     private ViewPager viewPager;
@@ -87,7 +87,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
 
         FragmentManager manager = getSupportFragmentManager();
         viewPager = (ViewPager) findViewById(R.id.main_viewpager);
-        mainPagerAdapter = new MainPagerAdapter(manager, viewPager);
+        mainPagerAdapter = new MainPagerAdapter(this, manager, viewPager);
 
         // run adapter.firstTimeInit() only the first time application is started
         // adapter.restoreState() will take care of setting phone_mode other times
@@ -271,6 +271,8 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     ///////////////////////// OnPageChangeListener
     /////////////////////////
 
+    private int old_page = 0;
+
     @Override
     public void onPageScrollStateChanged(int state) {}
 
@@ -281,6 +283,12 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     @Override
     public void onPageSelected(int position) {
         if (DEBUG) logger.debug("onPageSelected({})", position);
+        int pointer = mainPagerAdapter.getPointerAt(old_page);
+        if (pointer != -1) {
+            Buffer buffer = relay.getBufferByPointer(pointer);
+            if (buffer != null) buffer.resetUnreadsAndHighlights();
+        }
+        old_page = position;
         invalidateOptionsMenu();
         hideSoftwareKeyboard();
     }
@@ -447,22 +455,13 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
 
     public void openBuffer(int pointer, boolean focus) {
         if (DEBUG) logger.debug("openBuffer({})", pointer);
-        if (relay == null) return;
-        Buffer buffer = relay.getBufferByPointer(pointer);
-        if (buffer != null) buffer.setOpen(true);               // TODO move somewhere
         mainPagerAdapter.openBuffer(pointer, focus);
     }
 
     // In own thread to prevent things from breaking
-    public void closeBuffer(final String name) {
-        if (DEBUG) logger.debug("closeBuffer({})", name);
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                mainPagerAdapter.closeBuffer(name);
-                titleIndicator.setCurrentItem(viewPager.getCurrentItem());
-            }
-        });
+    public void closeBuffer(int pointer) {
+        if (DEBUG) logger.debug("closeBuffer({})", pointer);
+        mainPagerAdapter.closeBuffer(pointer);
     }
 
     /** hides the software keyboard, if any */

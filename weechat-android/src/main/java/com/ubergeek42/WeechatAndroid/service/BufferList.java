@@ -11,6 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 
 /**
@@ -18,7 +20,7 @@ import java.util.Date;
  */
 public class BufferList {
     private static Logger logger = LoggerFactory.getLogger("Buffers!");
-    final private static boolean DEBUG = false;
+    final private static boolean DEBUG = true;
 
     // preferences
     public static boolean SHOW_TITLE = true;
@@ -107,23 +109,34 @@ public class BufferList {
         buffer.onPropertiesChanged();
     }
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private void sortBuffers() {
+        Collections.sort(buffers, sortByNumberComparator);
+    }
+
     RelayMessageHandler buffer_list_watcher = new RelayMessageHandler() {
         @Override
         public void handleMessage(RelayObject obj, String id) {
+            if (DEBUG) logger.warn("handleMessage(..., {}", id);
             Hdata data = (Hdata) obj;
 
             for (int i = 0, size = data.getCount(); i < size; i++) {
                 HdataEntry entry = data.getItem(i);
 
                 if (id.equals("listbuffers") || id.equals("_buffer_opened")) {
+                    RelayObject r;
                     Buffer buffer = new Buffer(entry.getPointerInt(),
                             entry.getItem("number").asInt(),
                             entry.getItem("full_name").asString(),
                             entry.getItem("short_name").asString(),
                             entry.getItem("title").asString(),
-                            entry.getItem("notify").asInt(),
-                            (Hashtable) entry.getItem("local_variables"));
+                            ((r = entry.getItem("notify")) != null) ? r.asInt() : 1,            // TODO request notify level afterwards???
+                            (Hashtable) entry.getItem("local_variables"));                      // TODO because _buffer_opened doesn't provide notify level
                     buffers.add(buffer);
+                    sortBuffers();
                     notifyBuffersChanged();
                 } else if (id.equals("hotlist")) {
                     String buffer_pointer = entry.getItem("buffer").asPointer();
@@ -133,27 +146,29 @@ public class BufferList {
                     // & highlight (02)
                 } else {
                     Buffer buffer = findByPointer(entry.getPointerInt(0));
-                    if (buffer == null) throw new AssertionError("no buffer to update!!");
-                    if (id.equals("_buffer_renamed")) {
-                        buffer.full_name = entry.getItem("full_name").asString();
-                        buffer.short_name = entry.getItem("short_name").asString();
-                        buffer.local_vars = (Hashtable) entry.getItem("local_variables");
-                        notifyBufferPropertiesChanged(buffer);
-                    } else if (id.equals("_buffer_title_changed")) {
-                        buffer.title = entry.getItem("title").asString();
-                        notifyBufferPropertiesChanged(buffer);
-                    } else if (id.startsWith("_buffer_localvar_")) {
-                        buffer.local_vars = (Hashtable) entry.getItem("local_variables");
-                        notifyBufferPropertiesChanged(buffer);
-                    } else if (id.equals("_buffer_closing")) {
-                        buffer.onBufferClosed();
-                        buffers.remove(buffer);
-                        notifyBuffersChanged();
+                    if (buffer == null) {
+                        logger.error("handleMessage(..., {}): buffer is not present!", id);
                     } else {
-                        if (DEBUG) logger.warn("Unknown message ID: '{}'", id);
+                        if (id.equals("_buffer_renamed")) {
+                            buffer.full_name = entry.getItem("full_name").asString();
+                            buffer.short_name = entry.getItem("short_name").asString();
+                            buffer.local_vars = (Hashtable) entry.getItem("local_variables");
+                            notifyBufferPropertiesChanged(buffer);
+                        } else if (id.equals("_buffer_title_changed")) {
+                            buffer.title = entry.getItem("title").asString();
+                            notifyBufferPropertiesChanged(buffer);
+                        } else if (id.startsWith("_buffer_localvar_")) {
+                            buffer.local_vars = (Hashtable) entry.getItem("local_variables");
+                            notifyBufferPropertiesChanged(buffer);
+                        } else if (id.equals("_buffer_closing")) {
+                            buffer.onBufferClosed();
+                            buffers.remove(buffer);
+                            notifyBuffersChanged();
+                        } else {
+                            if (DEBUG) logger.warn("Unknown message ID: '{}'", id);
+                        }
                     }
                 }
-
             }
         }
     };
@@ -194,6 +209,13 @@ public class BufferList {
 
                 if (!is_bottom) buffer.holds_all_lines_it_is_supposed_to_hold = true;
             }
+        }
+    };
+
+    private final Comparator<Buffer> sortByNumberComparator = new Comparator<Buffer>() {
+        @Override
+        public int compare(Buffer b1, Buffer b2) {
+            return b1.number - b2.number;
         }
     };
 }

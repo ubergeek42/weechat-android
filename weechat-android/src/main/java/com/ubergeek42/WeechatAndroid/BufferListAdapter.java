@@ -34,7 +34,14 @@ import com.ubergeek42.WeechatAndroid.service.Buffer;
 import com.ubergeek42.WeechatAndroid.service.BufferList;
 import com.ubergeek42.WeechatAndroid.service.BufferListEye;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class BufferListAdapter extends BaseAdapter implements OnSharedPreferenceChangeListener, BufferListEye {
+
+    private static Logger logger = LoggerFactory.getLogger("BufferListAdapter");
+    final private static boolean DEBUG = BuildConfig.DEBUG && true;
+
     Activity activity;
     LayoutInflater inflater;
     BufferList buffer_list;

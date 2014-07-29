@@ -69,8 +69,8 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, OnShar
         TEXT_SIZE = Float.parseFloat(prefs.getString("text_size", "10"));;
         setLetterWidth();
 
-        buffer.setBufferEye(this);
-        onLinesChanged();
+        //buffer.setBufferEye(this);
+        //onLinesChanged();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
