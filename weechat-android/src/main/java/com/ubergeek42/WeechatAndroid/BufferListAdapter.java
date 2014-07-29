@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
-import android.app.ActionBar;
 import android.app.Activity;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
@@ -28,23 +27,31 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.ubergeek42.WeechatAndroid.service.Buffer;
-import com.ubergeek42.WeechatAndroid.service.Buffers;
-import com.ubergeek42.WeechatAndroid.service.BuffersEye;
+import com.ubergeek42.WeechatAndroid.service.BufferList;
+import com.ubergeek42.WeechatAndroid.service.BufferListEye;
 
-public class BufferListAdapter extends BaseAdapter implements OnSharedPreferenceChangeListener, BuffersEye {
+public class BufferListAdapter extends BaseAdapter implements OnSharedPreferenceChangeListener, BufferListEye {
     Activity activity;
     LayoutInflater inflater;
-    Buffers buffer_list;
+    BufferList buffer_list;
     private SharedPreferences prefs;
     private ArrayList<Buffer> buffers = new ArrayList<Buffer>();
-    private String currentFilter = null;
-    
+
     private boolean SORT_BUFFERS = false;
+
+    private static RelativeLayout.LayoutParams layout_params_closed;
+    private static RelativeLayout.LayoutParams layout_params_open;
+
+    static {
+        layout_params_closed = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+        layout_params_open = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+        layout_params_closed.setMargins(0, 0, 0, 0);
+        layout_params_open.setMargins(4, 0, 0, 0);
+    }
 
     final static int[][] COLORS = new int[][] {
             {0xff0C131C, 0xff1D3A63},
@@ -61,7 +68,7 @@ public class BufferListAdapter extends BaseAdapter implements OnSharedPreference
             {0xff201C0E, 0xff736322}
     };
     
-    public BufferListAdapter(Activity activity, Buffers buffer_list) {
+    public BufferListAdapter(Activity activity, BufferList buffer_list) {
         this.activity = activity;
         this.inflater = LayoutInflater.from(activity);
         this.buffer_list = buffer_list;
@@ -82,12 +89,12 @@ public class BufferListAdapter extends BaseAdapter implements OnSharedPreference
 
     @Override
     public void onBuffersChanged() {
-        final ArrayList<Buffer> temp_buffers = buffer_list.getBuffersCopy();
-        if (SORT_BUFFERS) Collections.sort(temp_buffers, bufferComparator);
+        final ArrayList<Buffer> buffers = buffer_list.getBuffersCopy();
+        if (SORT_BUFFERS) Collections.sort(buffers, bufferComparator);
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                buffers = temp_buffers;
+                BufferListAdapter.this.buffers = buffers;
                 notifyDataSetChanged();
             }
         });
@@ -128,13 +135,8 @@ public class BufferListAdapter extends BaseAdapter implements OnSharedPreference
         int unreads = buffer.unreads;
         int highlights = buffer.highlights;
 
-        holder.ui_buffer.setBackgroundColor(COLORS[buffer.number % COLORS.length][buffer.isOpen() ? 1 : 0]);
-
-//        if (buffer.isOpen()) {
-//            RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) holder.ui_buffer.getLayoutParams();
-//            params.setMargins(4, 0, 0, 0);
-//            holder.ui_buffer.setLayoutParams(params);
-//        }
+        holder.ui_buffer.setBackgroundColor(COLORS[buffer.number % COLORS.length][highlights > 0 ? 1 : 0]);
+        holder.ui_buffer.setLayoutParams(buffer.is_open ? layout_params_open : layout_params_closed);
 
         if (highlights > 0) {
             holder.ui_hot.setText(Integer.toString(highlights));

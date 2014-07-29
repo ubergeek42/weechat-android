@@ -61,8 +61,8 @@
     <string name="pref_bufferlist_group">Buffer List Settings</string>
 	    <string name="pref_sort_buffers">Sort bufferlist</string>
 	    <string name="pref_sort_buffers_summary">Sort by number of highlights/unread messages</string>
-	    <string name="pref_hide_server_buffers">Hide Server Buffers</string>
-	    <string name="pref_hide_server_buffers_summary">Hides server buffers(eg. irc.freenode)</string>
+	    <string name="pref_hide_server_buffers">Hide non-conversation buffers</string>
+	    <string name="pref_hide_server_buffers_summary">E.g. server buffers and various plugin buffers</string>
 	    <string name="pref_hide_buffer_titles">Hide buffer titles</string>
 	    <string name="pref_hide_buffer_titles_summary">Provides a more compact view allowing more buffers to be shown.</string>
 	    <string name="pref_show_buffer_filter">Show buffer filter</string>
@@ -73,7 +73,7 @@
 	    <string name="pref_chatview_colors">Show colors in chat</string>
 	    <string name="pref_chatview_colors_summary">Note: May be slow when changing</string>
 	    <string name="pref_chatview_filters">Filter messages</string>
-	    <string name="pref_chatview_filters_summary">If enabled, messages that were filtered will be hidden.(e.g. irc_smart_filter)</string>
+	    <string name="pref_chatview_filters_summary">If enabled, messages that were filtered will be hidden. (e.g. irc_smart_filter)</string>
 	    <string name="pref_prefix_align">Prefix Alignment</string>
    	        <string-array name="pref_prefix_align_names">
 		        <item>Left Aligned</item>

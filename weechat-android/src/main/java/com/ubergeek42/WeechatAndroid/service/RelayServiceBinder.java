@@ -73,12 +73,13 @@ public class RelayServiceBinder extends Binder {
 
     public Buffer getBufferByPointer(int id) {
         if (DEBUG) logger.error("getBufferByPointer({})");
-        return service.bone.buffers.findByPointer(id);
+        return service.bone.buffer_list.findByPointer(id);
     }
 
-    public Buffers getBuffers() {
+    public BufferList getBuffers() {
         if (DEBUG) logger.error("getBuffers()");
-        return service.bone.buffers;
+        if (service.bone == null) return null;
+        return service.bone.buffer_list;
     }
 
     /** Send a message to the server(expected to be formatted appropriately) */
@@ -92,11 +93,11 @@ public class RelayServiceBinder extends Binder {
 
     /** subscribes to a buffer. Gets the last MAXLINES of lines, and subscribes to nicklist changes */
     public void subscribeBuffer(int pointer) {
-        Buffer buffer = service.bone.buffers.findByPointer(pointer);
+        Buffer buffer = service.bone.buffer_list.findByPointer(pointer);
         if (DEBUG) logger.error("subscribeBuffer({}) ({})", pointer, buffer.full_name);
         if (!buffer.holds_all_lines_it_is_supposed_to_hold) {
             if (DEBUG) logger.error("subscribeBuffer(): requesting all lines");
-            service.bone.buffers.requestLinesForBufferByPointer(pointer);
+            service.bone.buffer_list.requestLinesForBufferByPointer(pointer);
         }
 //        if (!buffer.holds_all_nicknames) {
 //            if (DEBUG) logger.error("subscribeBuffer(): requesting full nicklist");

@@ -16,25 +16,27 @@ import java.util.Date;
 /**
  * Created by sq on 25/07/2014.
  */
-public class Buffers {
+public class BufferList {
     private static Logger logger = LoggerFactory.getLogger("Buffers!");
     final private static boolean DEBUG = false;
 
     // preferences
     public static boolean SHOW_TITLE = true;
     public static boolean FILTER_NONHUMAN_BUFFERS = true;
-    public static String  FILTER = null;                    // TODO race condition
+    public static String  FILTER = null;                                                // TODO race condition
+
+    final static public ArrayList<Integer> open_buffers_pointers = new ArrayList<Integer>();   // TODO race condition?
 
     final private RelayServiceBackbone bone;
     final private RelayConnection connection;
     final private ArrayList<Buffer> buffers = new ArrayList<Buffer>();
 
-    private BuffersEye buffers_eye;
+    private BufferListEye buffers_eye;
 
-    Buffers(RelayServiceBackbone bone) {
+    BufferList(RelayServiceBackbone bone) {
         this.bone = bone;
         this.connection = bone.connection;
-        Buffer.buffers = this;
+        Buffer.buffer_list = this;
 
         // Handle us getting a listing of the this
         connection.addHandler("listbuffers", buffer_list_watcher);
@@ -86,7 +88,7 @@ public class Buffers {
 //                + ")/data date,displayed,prefix,message,highlight,notify,tags_array");
     }
 
-    synchronized public void setBuffersEye(BuffersEye buffers_eye) {this.buffers_eye = buffers_eye;}
+    synchronized public void setBuffersEye(BufferListEye buffers_eye) {this.buffers_eye = buffers_eye;}
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////

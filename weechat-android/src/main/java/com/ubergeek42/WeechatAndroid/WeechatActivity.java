@@ -47,6 +47,8 @@ import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragment;
+import com.ubergeek42.WeechatAndroid.service.Buffer;
+import com.ubergeek42.WeechatAndroid.service.BufferList;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
 import com.ubergeek42.WeechatAndroid.service.RelayServiceBinder;
 import com.ubergeek42.weechat.HotlistItem;
@@ -74,7 +76,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        if (DEBUG) logger.debug("onCreate(...)");
+        if (DEBUG) logger.debug("onCreate({})", savedInstanceState);
         super.onCreate(savedInstanceState);
 
         // Start the background service (if necessary)
@@ -171,6 +173,11 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
             // Check if the service is already connected to the weechat relay, and if so load it up
             if (relay.isConnection(RelayService.CONNECTED))
                 WeechatActivity.this.onConnect();
+
+            // open buffer that MIGHT be open in the service
+            if (relay.getBuffers() != null)
+                for (int pointer : BufferList.open_buffers_pointers)
+                    mainPagerAdapter.openBuffer(pointer, false);
 
             // open the ui_buffer we want
             handleIntent();
@@ -412,7 +419,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
             int pointer = extras.getInt("pointer");
             if (pointer != 0) {
                 if (DEBUG) logger.debug("handleIntent(): opening ui_buffer '{}' from extras", pointer);
-                openBuffer(pointer); //TODO
+                openBuffer(pointer, true); //TODO
             }
         }
     }
@@ -438,12 +445,12 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     ///////////////////////// misc
     /////////////////////////
 
-    public void openBuffer(int pointer) {
+    public void openBuffer(int pointer, boolean focus) {
         if (DEBUG) logger.debug("openBuffer({})", pointer);
-        if (relay != null && relay.getBufferByPointer(pointer) != null) {
-            mainPagerAdapter.openBuffer(pointer);
-            titleIndicator.setCurrentItem(viewPager.getCurrentItem());
-        }
+        if (relay == null) return;
+        Buffer buffer = relay.getBufferByPointer(pointer);
+        if (buffer != null) buffer.setOpen(true);               // TODO move somewhere
+        mainPagerAdapter.openBuffer(pointer, focus);
     }
 
     // In own thread to prevent things from breaking
@@ -461,5 +468,18 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     /** hides the software keyboard, if any */
     public void hideSoftwareKeyboard() {
         imm.hideSoftInputFromWindow(viewPager.getWindowToken(), 0);
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (DEBUG) logger.debug("onBackPressed()");
+        if (phone_mode && viewPager.getCurrentItem() != 0) viewPager.setCurrentItem(0);
+        else super.onBackPressed();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        if (DEBUG) logger.debug("onSaveInstanceState()");
+        super.onSaveInstanceState(outState);
     }
 }

@@ -1,8 +1,5 @@
 package com.ubergeek42.WeechatAndroid.fragments;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,14 +28,14 @@ import com.ubergeek42.WeechatAndroid.BuildConfig;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.service.Buffer;
-import com.ubergeek42.WeechatAndroid.service.Buffers;
-import com.ubergeek42.WeechatAndroid.service.BuffersEye;
+import com.ubergeek42.WeechatAndroid.service.BufferList;
+import com.ubergeek42.WeechatAndroid.service.BufferListEye;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
 import com.ubergeek42.WeechatAndroid.service.RelayServiceBinder;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
 
 public class BufferListFragment extends SherlockListFragment implements RelayConnectionHandler,
-        BuffersEye, OnSharedPreferenceChangeListener {
+        BufferListEye, OnSharedPreferenceChangeListener {
 
     private static Logger logger = LoggerFactory.getLogger("BufferListFragment");
     final private static boolean DEBUG = BuildConfig.DEBUG && true;
@@ -47,7 +44,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
 
     private RelayServiceBinder relay;
     private BufferListAdapter adapter;
-    private Buffers buffers;
+    private BufferList buffer_list;
 
     private EditText bufferlistFilter;
     private SharedPreferences prefs;
@@ -119,9 +116,9 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     public void onStop() {
         if (DEBUG) logger.warn("onStop()");
         super.onStop();
-        if (buffers != null) {
-            buffers.setBuffersEye(null);                                                // buffer change watcher (safe to call)
-            buffers = null;
+        if (buffer_list != null) {
+            buffer_list.setBuffersEye(null);                                                // buffer change watcher (safe to call)
+            buffer_list = null;
         }
         if (relay != null) {
             relay.removeRelayConnectionHandler(BufferListFragment.this);                // connect/disconnect watcher (safe to call)
@@ -150,7 +147,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
         public void onServiceDisconnected(ComponentName name) {
             if (DEBUG) logger.error("onServiceDisconnected() <- should not happen!");
             relay = null;
-            buffers = null;
+            buffer_list = null;
         }
     };
 
@@ -165,7 +162,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
         Object obj = getListView().getItemAtPosition(position);
         if (obj instanceof Buffer) {
             Buffer buffer = (Buffer) obj;
-            ((WeechatActivity) getActivity()).openBuffer(buffer.pointer);
+            ((WeechatActivity) getActivity()).openBuffer(buffer.pointer, true);
             adapter.onBuffersSlightlyChanged();
         }
     }
@@ -182,9 +179,9 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     @Override
     public void onConnect() {
         if (DEBUG) logger.warn("onConnect()");
-        buffers = relay.getBuffers();
-        adapter = new BufferListAdapter(getActivity(), buffers);
-        buffers.setBuffersEye(this);                                       // buffer change watcher
+        buffer_list = relay.getBuffers();
+        adapter = new BufferListAdapter(getActivity(), buffer_list);
+        buffer_list.setBuffersEye(this);                                       // buffer change watcher
         //adapter.enableSorting(prefs.getBoolean("sort_buffers", true));
         //adapter.filterBuffers(bufferlistFilter.getText().toString());  // resume sorting
         getActivity().runOnUiThread(new Runnable() {
