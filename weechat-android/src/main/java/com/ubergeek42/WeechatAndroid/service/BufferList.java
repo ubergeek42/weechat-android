@@ -24,7 +24,7 @@ public class BufferList {
 
     // preferences
     public static boolean SHOW_TITLE = true;
-    public static boolean FILTER_NONHUMAN_BUFFERS = true;
+    public static boolean FILTER_NONHUMAN_BUFFERS = false;
     public static String  FILTER = null;                                                // TODO race condition
 
     final static public ArrayList<Integer> open_buffers_pointers = new ArrayList<Integer>();   // TODO race condition?
@@ -51,6 +51,8 @@ public class BufferList {
         connection.addHandler("_buffer_localvar_changed", buffer_list_watcher);
         connection.addHandler("_buffer_localvar_removed", buffer_list_watcher);
         connection.addHandler("_buffer_closing", buffer_list_watcher);
+        connection.addHandler("_buffer_moved", buffer_list_watcher);
+        connection.addHandler("_buffer_merged", buffer_list_watcher);
 
         connection.addHandler("_buffer_line_added", buffer_line_watcher);
         connection.addHandler("listlines_reverse", buffer_line_watcher);
@@ -68,7 +70,7 @@ public class BufferList {
     synchronized public ArrayList<Buffer> getBuffersCopy() {
         ArrayList<Buffer> new_bufs = new ArrayList<Buffer>();
         for (Buffer buffer : buffers) {
-            if (FILTER_NONHUMAN_BUFFERS && !buffer.is_a_human_buffer) continue;
+            if (FILTER_NONHUMAN_BUFFERS && buffer.type == Buffer.OTHER) continue;
             if (FILTER != null && !buffer.full_name.toLowerCase().contains(FILTER)) continue;
             new_bufs.add(buffer);
         }
@@ -97,6 +99,7 @@ public class BufferList {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     synchronized private void notifyBuffersChanged() {
+        sortBuffers();
         if (buffers_eye != null) buffers_eye.onBuffersChanged();
     }
 
@@ -105,8 +108,9 @@ public class BufferList {
     }
 
     synchronized public void notifyBufferPropertiesChanged(Buffer buffer) {
-        if (buffers_eye != null) buffers_eye.onBuffersChanged();
+        sortBuffers();
         buffer.onPropertiesChanged();
+        if (buffers_eye != null) buffers_eye.onBuffersChanged();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -136,7 +140,6 @@ public class BufferList {
                             ((r = entry.getItem("notify")) != null) ? r.asInt() : 1,            // TODO request notify level afterwards???
                             (Hashtable) entry.getItem("local_variables"));                      // TODO because _buffer_opened doesn't provide notify level
                     buffers.add(buffer);
-                    sortBuffers();
                     notifyBuffersChanged();
                 } else if (id.equals("hotlist")) {
                     String buffer_pointer = entry.getItem("buffer").asPointer();
@@ -159,6 +162,9 @@ public class BufferList {
                             notifyBufferPropertiesChanged(buffer);
                         } else if (id.startsWith("_buffer_localvar_")) {
                             buffer.local_vars = (Hashtable) entry.getItem("local_variables");
+                            notifyBufferPropertiesChanged(buffer);
+                        } else if (id.equals("_buffer_moved") || id.equals("_buffer_merged")) {
+                            buffer.number = entry.getItem("number").asInt();
                             notifyBufferPropertiesChanged(buffer);
                         } else if (id.equals("_buffer_closing")) {
                             buffer.onBufferClosed();

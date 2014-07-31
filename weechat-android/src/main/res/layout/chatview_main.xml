@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/chatview_layout"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
@@ -8,10 +8,8 @@
     <ListView
         android:id="@+id/chatview_lines"
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/chatview_bottombar"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
+        android:layout_height="0dp"
+        android:layout_weight="1.0"
         android:clickable="false"
         android:divider="#00000000"
         android:dividerHeight="0px"
@@ -24,22 +22,24 @@
 
     <LinearLayout
         android:id="@+id/chatview_bottombar"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true" >
+        android:background="@drawable/bottom_bar"
+        android:layout_weight="0">
 
         <EditText
             android:id="@+id/chatview_input"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight=".75"
+            android:layout_weight="1.0"
             android:inputType="textShortMessage|textMultiLine|textAutoCorrect"
             android:imeOptions="actionSend"
             android:maxLines="4"
             android:minLines="1"
-            android:scrollbars="vertical">
+            android:scrollbars="vertical"
+            android:text="lorem asd awd awda wdaw daw daw ad wd awd awd awd aw dawd"
+            android:layout_gravity="center"
+            >
 
             <requestFocus />
         </EditText>
@@ -48,13 +48,15 @@
             android:id="@+id/chatview_tab"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/tabkey" />
+            android:text="@string/tabkey"
+            android:layout_gravity="bottom"/>
 
         <Button
             android:id="@+id/chatview_send"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/sendButton" />
+            android:text="@string/sendButton"
+            android:layout_gravity="bottom"/>
     </LinearLayout>
 
-</RelativeLayout>
+</LinearLayout>

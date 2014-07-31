@@ -31,6 +31,10 @@ public class Buffer {
     private static Logger logger = LoggerFactory.getLogger("Buffer");
     final private static boolean DEBUG = true;
 
+    final public static int PRIVATE = 2;
+    final public static int CHANNEL = 1;
+    final public static int OTHER = 0;
+
     public final static int MAX_LINES = 200;
     public static BufferList buffer_list;
 
@@ -46,11 +50,12 @@ public class Buffer {
 
     public boolean is_open = false;
     public boolean holds_all_lines_it_is_supposed_to_hold = false;
-    public boolean is_a_human_buffer = false;
+    public int type = OTHER;
     public int unreads = 0;
     public int highlights = 0;
 
     Buffer(int pointer, int number, String full_name, String short_name, String title, int notify_level, Hashtable local_vars) {
+        logger.error("NEW BUFAR {}. {}", number, full_name);
         this.pointer = pointer;
         this.number = number;
         this.full_name = full_name;
@@ -58,7 +63,7 @@ public class Buffer {
         this.title = title;
         this.notify_level = notify_level;
         this.local_vars = local_vars;
-        this.is_a_human_buffer = isAHumanBuffer();
+        this.type = getBufferType();
         if (BufferList.open_buffers_pointers.contains((Integer) pointer)) is_open = true;
     }
 
@@ -135,7 +140,7 @@ public class Buffer {
 
     synchronized public void onPropertiesChanged() {
         // TODO parse also title
-        this.is_a_human_buffer = isAHumanBuffer();
+        type = getBufferType();
         if (buffer_eye != null) buffer_eye.onPropertiesChanged();
     }
 
@@ -144,9 +149,12 @@ public class Buffer {
         if (buffer_eye != null) buffer_eye.onBufferClosed();
     }
 
-    private boolean isAHumanBuffer() {
+    private int getBufferType() {
         RelayObject type = local_vars.get("type");
-        return type != null && (type.asString().equals("private") || type.asString().equals("channel"));
+        if (type == null) return OTHER;
+        if (type.asString().equals("private")) return PRIVATE;
+        if (type.asString().equals("channel")) return CHANNEL;
+        return OTHER;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

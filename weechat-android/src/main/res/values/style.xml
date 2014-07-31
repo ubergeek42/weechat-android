@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+    <style name="Weechat" parent="@style/Theme.Sherlock">
+        <item name="android:actionBarStyle">@style/Weechat.ActionBar</item>
+        <item name="actionBarStyle">@style/Weechat.ActionBar</item>
+    </style>
+
+    <style name="Weechat.ActionBar" parent="Widget.Sherlock.ActionBar">
+        <item name="background">@drawable/action_bar</item>
+        <item name="android:background">@drawable/action_bar</item>
+    </style>
+</resources>

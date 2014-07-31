@@ -271,7 +271,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     ///////////////////////// OnPageChangeListener
     /////////////////////////
 
-    private int old_page = 0;
+    private int old_pointer = -1;
 
     @Override
     public void onPageScrollStateChanged(int state) {}
@@ -283,12 +283,11 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     @Override
     public void onPageSelected(int position) {
         if (DEBUG) logger.debug("onPageSelected({})", position);
-        int pointer = mainPagerAdapter.getPointerAt(old_page);
-        if (pointer != -1) {
-            Buffer buffer = relay.getBufferByPointer(pointer);
+        if (old_pointer != -1) {
+            Buffer buffer = relay.getBufferByPointer(old_pointer);
             if (buffer != null) buffer.resetUnreadsAndHighlights();
         }
-        old_page = position;
+        old_pointer = mainPagerAdapter.getPointerAt(position);
         invalidateOptionsMenu();
         hideSoftwareKeyboard();
     }

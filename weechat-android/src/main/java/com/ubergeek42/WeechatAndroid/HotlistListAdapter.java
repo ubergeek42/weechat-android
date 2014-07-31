@@ -56,7 +56,7 @@ public class HotlistListAdapter extends BaseAdapter implements ListAdapter, Hotl
         parentActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                hotlist = hotlistManager.getHotlist();
+                hotlist = hotlistManager.getHotlist(); //TODO NPE
                 notifyDataSetChanged();
             }
         });

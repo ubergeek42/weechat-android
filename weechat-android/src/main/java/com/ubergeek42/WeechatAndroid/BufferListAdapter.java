@@ -74,6 +74,12 @@ public class BufferListAdapter extends BaseAdapter implements OnSharedPreference
             {0xff160C1C, 0xff4C1D63},
             {0xff201C0E, 0xff736322}
     };
+
+    final static int[][] COLORS2 = new int[][] {
+            {0xff525252, 0xff6c6c6c}, // other
+            {0xff44525f, 0xff596c7d}, // channel
+            {0xff57474f, 0xff735e69}, // private
+    };
     
     public BufferListAdapter(Activity activity, BufferList buffer_list) {
         this.activity = activity;
@@ -126,7 +132,7 @@ public class BufferListAdapter extends BaseAdapter implements OnSharedPreference
         ViewHolder holder;
 
         if (convertView == null) {
-            convertView = inflater.inflate(R.layout.bufferlist_item, null);
+            convertView = inflater.inflate(R.layout.bufferlist_item, parent, false);
             holder = new ViewHolder();
             holder.ui_buffer = (TextView) convertView.findViewById(R.id.buffer);
             holder.ui_warm = (TextView) convertView.findViewById(R.id.buffer_warm);
@@ -142,7 +148,10 @@ public class BufferListAdapter extends BaseAdapter implements OnSharedPreference
         int unreads = buffer.unreads;
         int highlights = buffer.highlights;
 
-        holder.ui_buffer.setBackgroundColor(COLORS[buffer.number % COLORS.length][highlights > 0 ? 1 : 0]);
+        int important = (highlights > 0 || (unreads > 0 && buffer.type == Buffer.PRIVATE)) ? 1 : 0;
+
+        //holder.ui_buffer.setBackgroundColor(COLORS[buffer.number % COLORS.length][important]);
+        holder.ui_buffer.setBackgroundColor(COLORS2[buffer.type][important]);
         holder.ui_buffer.setLayoutParams(buffer.is_open ? layout_params_open : layout_params_closed);
 
         if (highlights > 0) {
