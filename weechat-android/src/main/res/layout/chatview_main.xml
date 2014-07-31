@@ -1,43 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/chatview_layout"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:orientation="vertical">
-
-    <ListView
-        android:id="@+id/chatview_lines"
-        android:layout_width="fill_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1.0"
-        android:clickable="false"
-        android:divider="#00000000"
-        android:dividerHeight="0px"
-        android:focusable="false"
-        android:focusableInTouchMode="false"
-        android:listSelector="#00000000"
-        android:stackFromBottom="true"
-        android:transcriptMode="normal" >
-    </ListView>
 
     <LinearLayout
         android:id="@+id/chatview_bottombar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/bottom_bar"
-        android:layout_weight="0">
+        android:layout_alignParentBottom="true">
 
         <EditText
             android:id="@+id/chatview_input"
+            android:layout_weight="1.0"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1.0"
             android:inputType="textShortMessage|textMultiLine|textAutoCorrect"
             android:imeOptions="actionSend"
             android:maxLines="4"
             android:minLines="1"
             android:scrollbars="vertical"
-            android:text="lorem asd awd awda wdaw daw daw ad wd awd awd awd aw dawd"
             android:layout_gravity="center"
             >
 
@@ -59,4 +43,20 @@
             android:layout_gravity="bottom"/>
     </LinearLayout>
 
-</LinearLayout>
+    <ListView
+        android:id="@+id/chatview_lines"
+        android:layout_width="fill_parent"
+        android:layout_height="0dp"
+        android:clickable="false"
+        android:divider="#00000000"
+        android:dividerHeight="0px"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
+        android:listSelector="#00000000"
+        android:stackFromBottom="true"
+        android:transcriptMode="normal"
+        android:layout_alignParentTop="true"
+        android:paddingBottom="1dp"
+        android:layout_above="@+id/chatview_bottombar"/>
+
+</RelativeLayout>
