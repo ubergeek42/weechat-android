@@ -26,6 +26,7 @@ import javax.net.ssl.SSLException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import android.app.ActionBar;
 import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
@@ -39,6 +40,7 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
+import android.view.LayoutInflater;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
 
@@ -53,7 +55,8 @@ import com.ubergeek42.WeechatAndroid.service.RelayService;
 import com.ubergeek42.WeechatAndroid.service.RelayServiceBinder;
 import com.ubergeek42.weechat.HotlistItem;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
-import com.viewpagerindicator.TitlePageIndicator;
+
+import android.support.v4.view.PagerTitleStrip;
 
 public class WeechatActivity extends SherlockFragmentActivity implements RelayConnectionHandler, OnPageChangeListener {
     
@@ -65,7 +68,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     private Menu actionBarMenu;
     private ViewPager viewPager;
     private MainPagerAdapter mainPagerAdapter;
-    private TitlePageIndicator titleIndicator;
+    private PagerTitleStrip titleIndicator;
     private InputMethodManager imm;
     
     private boolean phone_mode;
@@ -101,10 +104,22 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         // the other pages are NOT destroyed, merely their views are
         viewPager.setOffscreenPageLimit(0);
 
-        titleIndicator = (TitlePageIndicator) findViewById(R.id.main_titleviewpager);
-        titleIndicator.setViewPager(viewPager);
-        titleIndicator.setOnPageChangeListener(this);
-        titleIndicator.setCurrentItem(0);
+
+//        TabPageIndicator
+        ActionBar ab = getActionBar();
+        ab.setDisplayShowCustomEnabled(true);
+        ab.setDisplayShowTitleEnabled(false);
+        LayoutInflater inflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        CutePagerTitleStrip strip = (CutePagerTitleStrip) inflater.inflate(R.layout.cute_pager_title_strip_layout, null);
+        strip.setViewPager(viewPager);
+        ab.setCustomView(strip);
+
+//
+//        titleIndicator = (TitlePageIndicator) findViewById(R.id.cute_pager_title_strip);
+//        titleIndicator.
+//        titleIndicator.setViewPager(viewPager);
+//        titleIndicator.setOnPageChangeListener(this);
+//        titleIndicator.setCurrentItem(0);
 
         // TODO Read preferences from background, its IO, 31ms strict mode!
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);

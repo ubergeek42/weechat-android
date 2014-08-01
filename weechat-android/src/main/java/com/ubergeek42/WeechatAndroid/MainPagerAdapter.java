@@ -1,7 +1,6 @@
 package com.ubergeek42.WeechatAndroid;
 
 
-import android.app.Activity;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.v4.app.Fragment;
@@ -15,6 +14,7 @@ import android.view.ViewGroup;
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragment;
 import com.ubergeek42.WeechatAndroid.fragments.BufferListFragment;
 import com.ubergeek42.WeechatAndroid.service.Buffer;
+import com.viewpagerindicator.TabPageIndicator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

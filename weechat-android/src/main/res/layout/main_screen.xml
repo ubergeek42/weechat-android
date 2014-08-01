@@ -6,11 +6,6 @@
     android:background="#000000"
     >
 
-    <com.viewpagerindicator.TitlePageIndicator
-        android:id="@+id/main_titleviewpager"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content" />
-
     <android.support.v4.view.ViewPager
         android:id="@+id/main_viewpager"
         android:layout_width="match_parent"
