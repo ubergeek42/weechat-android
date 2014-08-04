@@ -36,6 +36,7 @@ import android.content.ServiceConnection;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
@@ -114,6 +115,8 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         strip.setViewPager(viewPager);
         ab.setCustomView(strip);
 
+        //strip.setOnP
+
 //
 //        titleIndicator = (TitlePageIndicator) findViewById(R.id.cute_pager_title_strip);
 //        titleIndicator.
@@ -144,6 +147,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     protected void onStart() {
         if (DEBUG) logger.debug("onStart()");
         super.onStart();
+        if (DEBUG) logger.debug("...calling bindService()");
         bindService(new Intent(this, RelayService.class), service_connection, Context.BIND_AUTO_CREATE);
     }
 
@@ -162,6 +166,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         }
 
         if (relay != null) {
+            if (DEBUG) logger.debug("...calling unbindService()");
             relay.removeRelayConnectionHandler(WeechatActivity.this);
             unbindService(service_connection);
             relay = null;
@@ -181,7 +186,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     ServiceConnection service_connection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            if (DEBUG) logger.debug("onServiceConnected()");
+            if (DEBUG) logger.debug("onServiceConnected(), main thread? {}", Looper.myLooper() == Looper.getMainLooper());
             relay = (RelayServiceBinder) service;
             relay.addRelayConnectionHandler(WeechatActivity.this);
 
@@ -191,7 +196,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
 
             // open buffer that MIGHT be open in the service
             if (relay.getBuffers() != null)
-                for (int pointer : BufferList.open_buffers_pointers)
+                for (int pointer : BufferList.synced_buffers_pointers)
                     mainPagerAdapter.openBuffer(pointer, false);
 
             // open the ui_buffer we want

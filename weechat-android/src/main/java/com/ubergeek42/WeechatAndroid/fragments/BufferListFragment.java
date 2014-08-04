@@ -48,7 +48,6 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
 
     private EditText bufferlistFilter;
     private SharedPreferences prefs;
-    private boolean hide_server_buffers;    // a preference
 
     /////////////////////////
     ///////////////////////// lifecycle
@@ -73,7 +72,6 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
         setRetainInstance(true);
         prefs = PreferenceManager.getDefaultSharedPreferences(getActivity().getBaseContext());
         prefs.registerOnSharedPreferenceChangeListener(this);
-        hide_server_buffers = prefs.getBoolean("hide_server_buffers", true);
     }
 
     @Override
@@ -106,6 +104,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     public void onStart() {
         if (DEBUG) logger.warn("onStart()");
         super.onStart();
+        if (DEBUG) logger.warn("...calling bindService()");
         getActivity().bindService(new Intent(getActivity(), RelayService.class), service_connection,
                 Context.BIND_AUTO_CREATE);
     }
@@ -117,13 +116,14 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
         if (DEBUG) logger.warn("onStop()");
         super.onStop();
         if (buffer_list != null) {
-            buffer_list.setBuffersEye(null);                                                // buffer change watcher (safe to call)
+            buffer_list.setBufferListEye(null);                                         // buffer change watcher (safe to call)
             buffer_list = null;
         }
         if (relay != null) {
             relay.removeRelayConnectionHandler(BufferListFragment.this);                // connect/disconnect watcher (safe to call)
             relay = null;
         }
+        if (DEBUG) logger.warn("...calling unbindService()");
         getActivity().unbindService(service_connection);                                // TODO safe to call?
     }
 
@@ -177,10 +177,10 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
      ** creates and updates the buffer list */
     @Override
     public void onConnect() {
-        if (DEBUG) logger.warn("onConnect()");
+        if (DEBUG) logger.warn("onConnect(), buffer_list = {}", relay.getBuffers());
         buffer_list = relay.getBuffers();
         adapter = new BufferListAdapter(getActivity(), buffer_list);
-        buffer_list.setBuffersEye(this);                                       // buffer change watcher
+        buffer_list.setBufferListEye(this);                                       // buffer change watcher
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -243,21 +243,10 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     /////////////////////////
 
     @Override
-    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+         public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         if (DEBUG) logger.warn("onSharedPreferenceChanged()");
-//        if (key.equals("sort_buffers")) {
-//            if (adapter != null)
-//                adapter.enableSorting(prefs.getBoolean("sort_buffers", true));
-//        } else
-        if (key.equals("hide_server_buffers")) {
-            hide_server_buffers = prefs.getBoolean("hide_server_buffers", true);
-        } else if(key.equals("show_buffer_filter") && bufferlistFilter != null) {
-            if (prefs.getBoolean("show_buffer_filter", false)) {
-                bufferlistFilter.setVisibility(View.VISIBLE);
-            } else {
-                bufferlistFilter.setVisibility(View.GONE);
-            }
-        }
+        if (key.equals("show_buffer_filter"))
+            bufferlistFilter.setVisibility(prefs.getBoolean("show_buffer_filter", false) ? View.VISIBLE : View.GONE);
     }
 
     /** TextWatcher object used for filtering the buffer list */
@@ -271,8 +260,10 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
         @Override
         public void onTextChanged(CharSequence s, int start, int before, int count) {
             if (false && DEBUG) logger.warn("onTextChanged({}, ...)", s);
-            if (adapter != null)
-               ;// adapter.filterBuffers(s.toString());
+            if (adapter != null) {
+                BufferList.FILTER = (s.length() == 0) ? null : s.toString();
+                adapter.onBuffersChanged();
+            }
         }
     };
 

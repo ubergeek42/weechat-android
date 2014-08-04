@@ -231,37 +231,9 @@ public class CutePagerTitleStrip extends ViewGroup {
         pager.setOnPageChangeListener(mPageListener);
         mPager = pager;
         updateAdapter(mWatchingAdapter != null ? mWatchingAdapter.get() : null, adapter);
-   }
+    }
 
-//    @Override
-//    protected void onAttachedToWindow() {
-//        super.onAttachedToWindow();
-//
-//        final ViewParent parent = getParent();
-//        if (!(parent instanceof ViewPager)) {
-//            throw new IllegalStateException(
-//                    "PagerTitleStrip must be a direct child of a ViewPager.");
-//        }
-//
-//        final ViewPager pager = (ViewPager) parent;
-//        final PagerAdapter adapter = pager.getAdapter();
-//
-//        pager.setInternalPageChangeListener(mPageListener);
-//        pager.setOnAdapterChangeListener(mPageListener);
-//        mPager = pager;
-//        updateAdapter(mWatchingAdapter != null ? mWatchingAdapter.get() : null, adapter);
-//    }
-//
-//    @Override
-//    protected void onDetachedFromWindow() {
-//        super.onDetachedFromWindow();
-//        if (mPager != null) {
-//            updateAdapter(mPager.getAdapter(), null);
-//            mPager.setInternalPageChangeListener(null);
-//            mPager.setOnAdapterChangeListener(null);
-//            mPager = null;
-//        }
-//    }
+
 
     void updateText(int currentItem, PagerAdapter adapter) {
         final int itemCount = adapter != null ? adapter.getCount() : 0;

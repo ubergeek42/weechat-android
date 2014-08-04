@@ -13,8 +13,11 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.Looper;
+import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.text.ClipboardManager;
 import android.text.Editable;
@@ -140,6 +143,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
 
         prefs.registerOnSharedPreferenceChangeListener(this);
         PREF_ENABLE_TAB_COMPLETE = prefs.getBoolean("tab_completion", true);
+        if (DEBUG) logger.warn("...calling bindService()");
         getActivity().bindService(new Intent(getActivity(), RelayService.class), service_connection,
                 Context.BIND_AUTO_CREATE);
     }
@@ -169,7 +173,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
         if (DEBUG) logger.warn("{} onStop()", shortname);
         super.onStop();
         if (relay != null) {
-            if (buffer != null) relay.unsubscribeBuffer(buffer.pointer);            // unsubscribe
+            //if (buffer != null) relay.unsubscribeBuffer(buffer.pointer);            // unsubscribe
             relay.removeRelayConnectionHandler(BufferFragment.this);                // remove connect / disconnect watcher
             relay = null;
         }
@@ -177,6 +181,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
             buffer.setBufferEye(null);                                              // remove buffer watcher
             buffer = null;
         }
+        if (DEBUG) logger.warn("...calling unbindService()");
         getActivity().unbindService(service_connection);
     }
 
@@ -206,7 +211,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
         @Override
         public void onServiceConnected(ComponentName name, IBinder
                 service) {
-            if (DEBUG) logger.warn("{} onServiceConnected() <{}>", BufferFragment.this.shortname, BufferFragment.this);
+            if (DEBUG) logger.warn("{} onServiceConnected(): main thread? {}", BufferFragment.this.shortname, Looper.myLooper() == Looper.getMainLooper());
             relay = (RelayServiceBinder) service;
             if (relay.isConnection(RelayService.BUFFERS_LISTED))
                 BufferFragment.this.onBuffersListed();                                  // TODO: run this in a thread
@@ -244,32 +249,37 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
      ** it's not necessary that the buffers have been listed just now, though */
     public void onBuffersListed() {
         if (DEBUG) logger.warn("{} onBuffersListed() <{}>",shortname, this);
-        if (DEBUG && shortname.equals("")) throw new AssertionError("name can't be empty in onBuffersListed");
 
-        // check if the buffer is still there
-        // it should be there at ALL times EXCEPT when we RE-connect to the service and find it missing
-        buffer = relay.getBufferByPointer(pointer);
-        //buffer = relay.getBufferByFullName("irc.free.##latvija");
-        if (buffer == null) {
-            showEmpty();
-        } else {
-            // set short name. we set it here because it's the buffer won't change
-            // and the name should be accessible between calls to this function
-            shortname = buffer.short_name;
+        (new AsyncTask<Void, Void, Boolean>() {
+            @Override
+            protected Boolean doInBackground(Void... params) {
+                // check if the buffer is still there
+                // it should be there at ALL times EXCEPT when we RE-connect to the service and find it missing
+                buffer = relay.getBufferByPointer(pointer);
+                //buffer = relay.getBufferByFullName("irc.free.##latvija");
+                if (buffer == null) {
+                    return false;
+                } else {
+                    // set short name. we set it here because it's the buffer won't change
+                    // and the name should be accessible between calls to this function
+                    shortname = buffer.short_name;
 
-            chatlines_adapter = new ChatLinesAdapter(getActivity(), buffer);
-            buffer.setBufferEye(this);                                                      // buffer watcher
-            chatlines_adapter.onLinesChanged();
-            //else logger.error("CHATLINES ADAPTER IS NOT NULL");
-            registerForContextMenu(chatLines);
+                    chatlines_adapter = new ChatLinesAdapter(getActivity(), buffer);
+                    buffer.setBufferEye(BufferFragment.this);                                       // buffer watcher
+                    chatlines_adapter.onLinesChanged();
+                    //else logger.error("CHATLINES ADAPTER IS NOT NULL");
+                    registerForContextMenu(chatLines);
 
-            // attach this fragment to buffer and
-            // subscribe to the buffer (gets the lines for it, and gets nicklist)
-            relay.subscribeBuffer(buffer.pointer);                                          // subscription
+                    // attach this fragment to buffer and
+                    // subscribe to the buffer (gets the lines for it, and gets nicklist)
+                    //relay.subscribeBuffer(buffer.pointer);                                          // subscription
+                    return true;
+                }
+            }
 
-            getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
+            @Override
+            protected void onPostExecute(Boolean we_have_buffer) {
+                if (we_have_buffer) {
                     inputBox.setFocusable(true);
                     inputBox.setFocusableInTouchMode(true);
                     sendButton.setEnabled(true);
@@ -277,22 +287,15 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
                     sendButton.setVisibility(prefs.getBoolean("sendbtn_show", true) ? View.VISIBLE : View.GONE);
                     tabButton.setVisibility(prefs.getBoolean("tabbtn_show", false) ? View.VISIBLE : View.GONE);
                     chatLines.setAdapter(chatlines_adapter);
-                }
-            });
-        }
-    }
+                } else {
+                    // TODO: replace with a notification that the buffer's been closed (?) in weechat?
+                    ViewGroup vg = (ViewGroup) getView().findViewById(R.id.chatview_layout);
+                    vg.removeAllViews();
+                    vg.addView(getActivity().getLayoutInflater().inflate(R.layout.buffer_not_loaded, vg, false));
 
-    /** loads the “no buffer, choose from list” thing */
-    private void showEmpty() {                                                          // TODO: replace with a notification that the buffer's been closed (?) in weechat?
-        if (DEBUG) logger.warn("{} showEmpty()", shortname);
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                ViewGroup vg = (ViewGroup) getView().findViewById(R.id.chatview_layout);
-                vg.removeAllViews();
-                vg.addView(getActivity().getLayoutInflater().inflate(R.layout.buffer_not_loaded, vg, false));
+                }
             }
-        });
+        }).execute();
     }
 
     /** on disconnect, restore chat lines if any

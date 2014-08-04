@@ -14,30 +14,34 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.LinkedHashSet;
+import java.util.NoSuchElementException;
+import java.util.StringTokenizer;
 
 /**
  * Created by sq on 25/07/2014.
  */
 public class BufferList {
-    private static Logger logger = LoggerFactory.getLogger("Buffers!");
+    private static Logger logger = LoggerFactory.getLogger("BufferList");
     final private static boolean DEBUG = true;
 
     // preferences
+    public static boolean SORT_BUFFERS = false;
     public static boolean SHOW_TITLE = true;
     public static boolean FILTER_NONHUMAN_BUFFERS = false;
     public static String  FILTER = null;                                                // TODO race condition
 
-    final static public ArrayList<Integer> open_buffers_pointers = new ArrayList<Integer>();   // TODO race condition?
+    final static public LinkedHashSet<Integer> synced_buffers_pointers = new LinkedHashSet<Integer>();   // TODO race condition?
 
-    final private RelayServiceBackbone bone;
+    final RelayServiceBackbone relay;
     final private RelayConnection connection;
     final private ArrayList<Buffer> buffers = new ArrayList<Buffer>();
 
     private BufferListEye buffers_eye;
 
-    BufferList(RelayServiceBackbone bone) {
-        this.bone = bone;
-        this.connection = bone.connection;
+    BufferList(RelayService relay) {
+        this.relay = relay;
+        this.connection = this.relay.connection;
         Buffer.buffer_list = this;
 
         // Handle us getting a listing of the this
@@ -67,7 +71,7 @@ public class BufferList {
     //////////////////////////////////////////////////////////////////////////////////////////////// called from
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    synchronized public ArrayList<Buffer> getBuffersCopy() {
+    synchronized public ArrayList<Buffer> getBufferListCopy() {
         ArrayList<Buffer> new_bufs = new ArrayList<Buffer>();
         for (Buffer buffer : buffers) {
             if (FILTER_NONHUMAN_BUFFERS && buffer.type == Buffer.OTHER) continue;
@@ -83,16 +87,18 @@ public class BufferList {
     }
 
     public void requestLinesForBufferByPointer(int pointer) {
+        if (DEBUG) logger.error("requestLinesForBufferByPointer({})", pointer);
         connection.sendMsg("listlines_reverse", "hdata", String.format(
                 "buffer:0x%x/own_lines/last_line(-%d)/data date,displayed,prefix,message,highlight,notify,tags_array",
                 pointer, Buffer.MAX_LINES));
-
-//        connection.sendMsg("listlines_reverse", "hdata", "buffer:0x" + Integer.toHexString(pointer)
-//                + "/own_lines/last_line(-" + Buffer.MAX_LINES
-//                + ")/data date,displayed,prefix,message,highlight,notify,tags_array");
     }
 
-    synchronized public void setBuffersEye(BufferListEye buffers_eye) {this.buffers_eye = buffers_eye;}
+    synchronized public void setBufferListEye(BufferListEye buffers_eye) {this.buffers_eye = buffers_eye;}
+
+    synchronized public void processAllBufferTitles() {
+        for (Buffer buffer : buffers)
+            buffer.processBufferTitle();
+    }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -117,6 +123,46 @@ public class BufferList {
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
+    synchronized public boolean isSynced(int pointer) {
+        return synced_buffers_pointers.contains(pointer);
+    }
+
+    synchronized public void syncBuffer(int pointer) {
+        if (DEBUG) logger.error("syncBuffer({})", pointer);
+        BufferList.synced_buffers_pointers.add((Integer) pointer);
+        relay.connection.sendMsg("sync 0x" + Integer.toHexString(pointer));
+    }
+
+    synchronized public void desyncBuffer(int pointer) {
+        if (DEBUG) logger.error("desyncBuffer({})", pointer);
+        BufferList.synced_buffers_pointers.remove((Integer) pointer);
+        relay.connection.sendMsg("desync 0x" + Integer.toHexString(pointer));
+    }
+
+    synchronized static public String getSyncedBuffersAsString() {
+        if (DEBUG) logger.error("getSyncedBuffersAsString() -> ...");
+        StringBuilder sb = new StringBuilder();
+        for (int pointer : BufferList.synced_buffers_pointers)
+            sb.append(pointer).append("\0");
+        return sb.toString();
+    }
+
+    synchronized static public void setSyncedBuffersFromString(String synced_buffers) {
+        if (DEBUG) logger.error("setSyncedBuffersFromString({})", synced_buffers);
+        StringTokenizer st = new StringTokenizer(synced_buffers, "\0");
+        while (true) {
+            try {
+                BufferList.synced_buffers_pointers.add(Integer.parseInt(st.nextToken()));
+            } catch (NoSuchElementException e) {
+                return;
+            }
+        }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
     private void sortBuffers() {
         Collections.sort(buffers, sortByNumberComparator);
     }
@@ -124,7 +170,7 @@ public class BufferList {
     RelayMessageHandler buffer_list_watcher = new RelayMessageHandler() {
         @Override
         public void handleMessage(RelayObject obj, String id) {
-            if (DEBUG) logger.warn("handleMessage(..., {}", id);
+            if (DEBUG) logger.warn("handleMessage(..., {}) (hdata size = {})", id, ((Hdata) obj).getCount());
             Hdata data = (Hdata) obj;
 
             for (int i = 0, size = data.getCount(); i < size; i++) {

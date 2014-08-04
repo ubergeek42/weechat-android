@@ -21,8 +21,6 @@ import java.util.Comparator;
 
 import android.app.Activity;
 import android.content.SharedPreferences;
-import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
-import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,7 +35,7 @@ import com.ubergeek42.WeechatAndroid.service.BufferListEye;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class BufferListAdapter extends BaseAdapter implements OnSharedPreferenceChangeListener, BufferListEye {
+public class BufferListAdapter extends BaseAdapter implements BufferListEye {
 
     private static Logger logger = LoggerFactory.getLogger("BufferListAdapter");
     final private static boolean DEBUG = BuildConfig.DEBUG && true;
@@ -47,8 +45,6 @@ public class BufferListAdapter extends BaseAdapter implements OnSharedPreference
     BufferList buffer_list;
     private SharedPreferences prefs;
     private ArrayList<Buffer> buffers = new ArrayList<Buffer>();
-
-    private boolean SORT_BUFFERS = false;
 
     private static RelativeLayout.LayoutParams layout_params_closed;
     private static RelativeLayout.LayoutParams layout_params_open;
@@ -85,9 +81,6 @@ public class BufferListAdapter extends BaseAdapter implements OnSharedPreference
         this.activity = activity;
         this.inflater = LayoutInflater.from(activity);
         this.buffer_list = buffer_list;
-        prefs = PreferenceManager.getDefaultSharedPreferences(activity.getBaseContext());
-        prefs.registerOnSharedPreferenceChangeListener(this);
-        SORT_BUFFERS = prefs.getBoolean("sort_buffers", false);
     }
 
     @Override
@@ -102,8 +95,8 @@ public class BufferListAdapter extends BaseAdapter implements OnSharedPreference
 
     @Override
     public void onBuffersChanged() {
-        final ArrayList<Buffer> buffers = buffer_list.getBuffersCopy();
-        if (SORT_BUFFERS) Collections.sort(buffers, bufferComparator);
+        final ArrayList<Buffer> buffers = buffer_list.getBufferListCopy();
+        if (BufferList.SORT_BUFFERS) Collections.sort(buffers, bufferComparator);
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -115,8 +108,8 @@ public class BufferListAdapter extends BaseAdapter implements OnSharedPreference
 
     @Override
     public void onBuffersSlightlyChanged() {
-        if (SORT_BUFFERS) Collections.sort(buffers, bufferComparator);                      // TODO: is this thread safe???
-        else activity.runOnUiThread(new Runnable() {
+        if (BufferList.SORT_BUFFERS) Collections.sort(buffers, bufferComparator);            // TODO: is this thread safe???
+        activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 notifyDataSetChanged();
@@ -143,7 +136,7 @@ public class BufferListAdapter extends BaseAdapter implements OnSharedPreference
 
         Buffer buffer = getItem(position);
 
-        holder.ui_buffer.setText(buffer.short_name);
+        holder.ui_buffer.setText((BufferList.SHOW_TITLE && buffer.printable2 != null) ? buffer.printable2 : buffer.printable1);
 
         int unreads = buffer.unreads;
         int highlights = buffer.highlights;
@@ -167,11 +160,6 @@ public class BufferListAdapter extends BaseAdapter implements OnSharedPreference
             holder.ui_warm.setVisibility(View.INVISIBLE);
 
         return convertView;
-    }
-
-    @Override
-    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        if (key.equals("sort_buffers")) SORT_BUFFERS = prefs.getBoolean("sort_buffers", true);
     }
 
     private static class ViewHolder {

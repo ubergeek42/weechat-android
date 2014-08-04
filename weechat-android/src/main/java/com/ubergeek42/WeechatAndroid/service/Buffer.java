@@ -8,7 +8,9 @@ import android.text.TextPaint;
 import android.text.style.BackgroundColorSpan;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.LeadingMarginSpan;
+import android.text.style.RelativeSizeSpan;
 import android.text.style.StyleSpan;
+import android.text.style.SuperscriptSpan;
 import android.text.style.URLSpan;
 import android.text.style.UnderlineSpan;
 import android.text.util.Linkify;
@@ -54,17 +56,21 @@ public class Buffer {
     public int unreads = 0;
     public int highlights = 0;
 
+    public Spannable printable1 = null;
+    public Spannable printable2 = null;
+
     Buffer(int pointer, int number, String full_name, String short_name, String title, int notify_level, Hashtable local_vars) {
-        logger.error("NEW BUFAR {}. {}", number, full_name);
         this.pointer = pointer;
         this.number = number;
         this.full_name = full_name;
-        this.short_name = short_name;
+        this.short_name = (short_name != null) ? short_name : full_name;
         this.title = title;
         this.notify_level = notify_level;
         this.local_vars = local_vars;
         this.type = getBufferType();
-        if (BufferList.open_buffers_pointers.contains((Integer) pointer)) is_open = true;
+        processBufferTitle();
+        if (buffer_list.isSynced(pointer)) setOpen(true);
+        if (DEBUG) logger.warn("new Buffer(..., {}, {}, ...) is_open? {}", new Object[]{number, full_name, is_open});
     }
 
     /** better call off the main thread */
@@ -86,11 +92,13 @@ public class Buffer {
         if (this.is_open != open) {
             this.is_open = open;
             if (open) {
-                BufferList.open_buffers_pointers.add((Integer) pointer);
+                buffer_list.syncBuffer(pointer);
+                if (DEBUG) logger.error("...processMessageIfNeeded(): {}", (lines.size() > 0 && lines.getLast().spannable == null) ? "MOST LIKELY NEEDED: " + lines.size() : "nah");
                 for (Line line : lines) line.processMessageIfNeeded();
             }
             else {
-                BufferList.open_buffers_pointers.remove((Integer) pointer);
+                buffer_list.desyncBuffer(pointer);
+                if (DEBUG) logger.error("...eraseProcessedMessage()");
                 for (Line line : lines) line.eraseProcessedMessage();
             }
             buffer_list.notifyBuffersSlightlyChanged();
@@ -100,11 +108,13 @@ public class Buffer {
     synchronized public void setBufferEye(BufferEye buffer_eye) {
         if (DEBUG) logger.warn("{} setBufferEye({})", short_name, buffer_eye);
         this.buffer_eye = buffer_eye;
+        if (!holds_all_lines_it_is_supposed_to_hold && lines.size() < MAX_LINES)
+            buffer_list.requestLinesForBufferByPointer(pointer);
     }
 
     /** to be called when options has changed and the messages should be processed */
     synchronized public void forceProcessAllMessages() {
-        if (DEBUG) logger.warn("{} forceProcessAllMessages()", this.short_name);
+        if (DEBUG) logger.error("{} forceProcessAllMessages()", this.short_name);
         for (Line line : lines) line.processMessage();
     }
 
@@ -139,8 +149,8 @@ public class Buffer {
     }
 
     synchronized public void onPropertiesChanged() {
-        // TODO parse also title
         type = getBufferType();
+        processBufferTitle();
         if (buffer_eye != null) buffer_eye.onPropertiesChanged();
     }
 
@@ -155,6 +165,29 @@ public class Buffer {
         if (type.asString().equals("private")) return PRIVATE;
         if (type.asString().equals("channel")) return CHANNEL;
         return OTHER;
+    }
+
+    private final static SuperscriptSpan SUPER = new SuperscriptSpan();
+    private final static RelativeSizeSpan SMALL1 = new RelativeSizeSpan(0.6f);
+    private final static RelativeSizeSpan SMALL2 = new RelativeSizeSpan(0.6f);
+    private final static int EX = Spanned.SPAN_EXCLUSIVE_EXCLUSIVE;
+
+    public void processBufferTitle() {
+        Spannable spannable;
+        final String number = Integer.toString(this.number) + " ";
+        spannable = new SpannableString(number + short_name);
+        spannable.setSpan(SUPER, 0, number.length(), EX);
+        spannable.setSpan(SMALL1, 0, number.length(), EX);
+        printable1 = spannable;
+        if (title == null || title.equals("")) {
+            printable2 = printable1;
+        } else {
+            spannable = new SpannableString(number + short_name + "\n" + Color.stripEverything(title));
+            spannable.setSpan(SUPER, 0, number.length(), EX);
+            spannable.setSpan(SMALL1, 0, number.length(), EX);
+            spannable.setSpan(SMALL2, number.length() + short_name.length() + 1, spannable.length(), EX);
+            printable2 = spannable;
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -187,7 +220,7 @@ public class Buffer {
 
         // processed data
         // might not be present
-        public Spannable spannable = null;
+        volatile public Spannable spannable = null;
 
         public Line(int pointer, Date date, String prefix, String message,
                           boolean displayed, boolean highlighted, String[] tags) {
@@ -221,15 +254,17 @@ public class Buffer {
         }
 
         public void eraseProcessedMessage() {
+            if (false && DEBUG) logger.warn("eraseProcessedMessage()");
             spannable = null;
         }
 
         public void processMessageIfNeeded() {
+            if (false && DEBUG) logger.warn("processMessageIfNeeded()");
             if (spannable == null) processMessage();
         }
 
         public void processMessage() {
-            if (DEBUG) logger.warn("processMessage()");
+            if (false && DEBUG) logger.warn("processMessage()");
             String timestamp = (DATEFORMAT == null) ? null : DATEFORMAT.format(date);
             Color.parse(timestamp, prefix, message, highlighted, MAX_WIDTH, ALIGN == ALIGN_RIGHT);
             Spannable spannable = new SpannableString(Color.clean_message);

@@ -135,6 +135,11 @@ public class Color {
     public static String stripColors(String text) { return text; }
     public static String stripAllColorsAndAttributes(String text) { return text; }
 
+    public static String stripEverything(String text) {
+        parseColors(text);
+        return out.toString();
+    }
+
     public static String clean_message;
     public static int margin;
     public static ArrayList<Span> final_span_list;
@@ -388,7 +393,7 @@ public class Color {
 
     /** takes text as input
      ** sets out and span_list */
-    private static void parseColors(String msg) {
+    synchronized private static void parseColors(String msg) {
         Color.msg = msg;
         index = 0;
         out = new StringBuffer();

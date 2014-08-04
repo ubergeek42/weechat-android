@@ -235,7 +235,6 @@ public class RelayConnection implements RelayConnectionHandler {
 
     @Override
     public void onConnecting() {
-        System.out.println("onConnecting()");
         if (DEBUG) logger.debug("RelayConnection.onConnecting");
     }
 
