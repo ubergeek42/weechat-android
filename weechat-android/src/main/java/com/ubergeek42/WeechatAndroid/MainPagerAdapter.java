@@ -14,7 +14,6 @@ import android.view.ViewGroup;
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragment;
 import com.ubergeek42.WeechatAndroid.fragments.BufferListFragment;
 import com.ubergeek42.WeechatAndroid.service.Buffer;
-import com.viewpagerindicator.TabPageIndicator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +26,7 @@ public class MainPagerAdapter extends PagerAdapter {
     final private static boolean DEBUG = BuildConfig.DEBUG && true;
 
     private boolean phone_mode = false;
-    private ArrayList<Integer> pointers = new ArrayList<Integer>();
+    private ArrayList<String> full_names = new ArrayList<String>();
     private ArrayList<Fragment> fragments = new ArrayList<Fragment>();
     private WeechatActivity activity;
     private ViewPager pager;
@@ -45,13 +44,13 @@ public class MainPagerAdapter extends PagerAdapter {
     public void firstTimeInit(boolean phone_mode) {
         this.phone_mode = phone_mode;
         if (phone_mode) {
-            pointers.add(-1);
+            full_names.add("");
             fragments.add(new BufferListFragment());
         }
     }
 
-    public int getPointerAt(int i) {
-        return pointers.get(i);
+    public String getFullNameAt(int i) {
+        return full_names.get(i);
     }
 
     ///////////////////////
@@ -60,7 +59,7 @@ public class MainPagerAdapter extends PagerAdapter {
 
     @Override
     public int getCount() {
-        return pointers.size();
+        return full_names.size();
     }
 
     /** this can be called either when a new fragment is being added or the old one is being
@@ -69,19 +68,17 @@ public class MainPagerAdapter extends PagerAdapter {
     @Override
     public Object instantiateItem(ViewGroup container, int i) {
         if (DEBUG) logger.info("instantiateItem(..., {})", i);
-        if (transaction == null)
-            transaction = manager.beginTransaction();
-        String tag = Integer.toString(pointers.get(i));
-        Fragment f = manager.findFragmentByTag(tag);
-        if (f != null) {
-            if (DEBUG) logger.info("instantiateItem(): attach");  // show can be used instead
-            if (phone_mode && i == 0) transaction.show(f); else transaction.attach(f);
+        if (transaction == null) transaction = manager.beginTransaction();
+        String tag = full_names.get(i);
+        Fragment frag = manager.findFragmentByTag(tag);
+        if (frag != null) {
+            if (DEBUG) logger.info((phone_mode && i == 0) ? "...show()" : "...attach()");
+            if (phone_mode && i == 0) transaction.show(frag); else transaction.attach(frag);
         } else {
-            f = fragments.get(i); //TODO
-            if (DEBUG) logger.info("instantiateItem(): add");
-            transaction.add(container.getId(), f, tag);
+            if (DEBUG) logger.info("...add()");
+            transaction.add(container.getId(), frag = fragments.get(i), tag);
         }
-        return f;
+        return frag;
     }
 
     /** this can be called either when a fragment has been removed by closeBuffer or when it's
@@ -89,14 +86,14 @@ public class MainPagerAdapter extends PagerAdapter {
     @Override
     public void destroyItem(ViewGroup container, int i, Object object) {
         if (DEBUG) logger.info("destroyItem(..., {}, {})", i, object);
-        if (transaction == null)
-            transaction = manager.beginTransaction();
-        if (fragments.size() > i && fragments.get(i) == object) {
-            if (DEBUG) logger.info("destroyItem(): detach");  // hide can be used instead
-            if (phone_mode && i == 0) transaction.hide((Fragment) object); else transaction.detach((Fragment) object);
+        if (transaction == null) transaction = manager.beginTransaction();
+        Fragment frag = (Fragment) object;
+        if (fragments.size() > i && fragments.get(i) == frag) {
+            if (DEBUG) logger.info((phone_mode && i == 0) ? "...hide()" : "...detach()");
+            if (phone_mode && i == 0) transaction.hide(frag); else transaction.detach(frag);
         } else {
             if (DEBUG) logger.info("destroyItem(): remove");
-            transaction.remove((Fragment) object);
+            transaction.remove(frag);
         }
     }
 
@@ -116,7 +113,7 @@ public class MainPagerAdapter extends PagerAdapter {
     }
 
     /** this one's empty because instantiateItem and destroyItem create transactions as needed
-     ** this function is called too frequently to create a transaction inside it*/
+     ** this function is called too frequently to create a transaction inside it */
     @Override
     public void startUpdate(ViewGroup container) {}
 
@@ -135,56 +132,54 @@ public class MainPagerAdapter extends PagerAdapter {
         return (phone_mode && i == 0) ? "Buffer List" : ((BufferFragment) fragments.get(i)).getShortBufferName();
     }
 
-    /** switch to already open ui_buffer OR create a new ui_buffer, putting it into BOTH pointers and fragments,
+    /** switch to already open ui_buffer OR create a new ui_buffer, putting it into BOTH full_names and fragments,
      ** run notifyDataSetChanged() which will in turn call instantiateItem(), and set new ui_buffer as the current one */
-    public void openBuffer(final int pointer, final boolean focus) {
-        if (DEBUG) logger.info("openBuffer({})", pointer);
-        int idx = pointers.indexOf(pointer);
+    public void openBuffer(final String full_name, final boolean focus) {
+        if (DEBUG) logger.info("openBuffer({})", full_name);
+        int idx = full_names.indexOf(full_name);
         if (idx >= 0) {
-            // found ui_buffer by name, switch to it
             if (focus) pager.setCurrentItem(idx);
         } else {
-            // create a new one
             if (activity.relay != null) {
-                    Buffer buffer = activity.relay.getBufferByPointer(pointer);
+                    Buffer buffer = activity.relay.getBufferByFullName(full_name);
                     if (buffer != null) buffer.setOpen(true);
             }
-            fragments.add(newBufferFragment(pointer));
+            fragments.add(newBufferFragment(full_name));
             activity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    pointers.add(pointer);
+                    full_names.add(full_name);
                     notifyDataSetChanged();
-                    if (focus) pager.setCurrentItem(pointers.size());
+                    if (focus) pager.setCurrentItem(full_names.size());
                 }
             });
         }
     }
 
-    private Fragment newBufferFragment(int pointer) {
+    private Fragment newBufferFragment(String full_name) {
         Fragment fragment = new BufferFragment();
         Bundle args = new Bundle();
-        args.putInt("pointer", pointer);
+        args.putString("full_name", full_name);
         fragment.setArguments(args);
         return fragment;
     }
 
-    /** close ui_buffer if open, removing it from BOTH pointers and fragments.
+    /** close ui_buffer if open, removing it from BOTH full_names and fragments.
      ** destroyItem() checks the lists to see if it has to remove the item for good */
-    public void closeBuffer(int pointer) {
-        if (DEBUG) logger.info("closeBuffer({})", pointer);
-        final int idx = pointers.indexOf(pointer);
+    public void closeBuffer(String full_name) {
+        if (DEBUG) logger.info("closeBuffer({})", full_name);
+        final int idx = full_names.indexOf(full_name);
         if (idx >= 0) {
             activity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    pointers.remove(idx);
+                    full_names.remove(idx);
                     fragments.remove(idx);
                     notifyDataSetChanged();
                 }
             });
             if (activity.relay != null) {
-                Buffer buffer = activity.relay.getBufferByPointer(pointer);
+                Buffer buffer = activity.relay.getBufferByFullName(full_name);
                 if (buffer != null) buffer.setOpen(false);
             }
         }
@@ -192,7 +187,7 @@ public class MainPagerAdapter extends PagerAdapter {
 
     /** returns BufferFragment that is currently focused
      ** or null if nothing or BufferListFragment is focused */
-    public BufferFragment getCurrentBuffer() {
+    public BufferFragment getCurrentBufferFragment() {
         int i = pager.getCurrentItem();
         if ((phone_mode && i == 0) || fragments.size() == 0)
             return null;
@@ -208,11 +203,10 @@ public class MainPagerAdapter extends PagerAdapter {
         if (fragments.size() == 0)
             return null;
         Bundle state = new Bundle();
-        state.putIntegerArrayList("\0", pointers);
-        for (Integer pointer : pointers) {
-            String tag = Integer.toString(pointer);
-            Fragment fragment = manager.findFragmentByTag(tag);
-            if (fragment != null) manager.putFragment(state, tag, fragment);
+        state.putStringArrayList("\0", full_names);
+        for (String full_name : full_names) {
+            Fragment fragment = manager.findFragmentByTag(full_name);
+            if (fragment != null) manager.putFragment(state, full_name, fragment);
         }
         return state;
     }
@@ -224,13 +218,13 @@ public class MainPagerAdapter extends PagerAdapter {
             return;
         Bundle state = (Bundle) parcel;
         state.setClassLoader(loader);
-        pointers = state.getIntegerArrayList("\0");
-        if (pointers.size() > 0) {
-            for (int pointer : pointers) {
-                Fragment fragment = manager.getFragment(state, Integer.toString(pointer));
-                fragments.add((fragment != null) ? fragment : newBufferFragment(pointer));
+        full_names = state.getStringArrayList("\0");
+        if (full_names.size() > 0) {
+            for (String full_name : full_names) {
+                Fragment fragment = manager.getFragment(state, full_name);
+                fragments.add((fragment != null) ? fragment : newBufferFragment(full_name));
             }
-            phone_mode = pointers.get(0).equals(-1);
+            phone_mode = full_names.get(0).equals("");
             notifyDataSetChanged();
         }
     }

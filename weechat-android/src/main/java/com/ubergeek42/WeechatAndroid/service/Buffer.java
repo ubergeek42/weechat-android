@@ -51,6 +51,7 @@ public class Buffer {
     private int visible_lines_count = 0;
 
     public boolean is_open = false;
+    public boolean is_watched = false;
     public boolean holds_all_lines_it_is_supposed_to_hold = false;
     public int type = OTHER;
     public int unreads = 0;
@@ -69,7 +70,7 @@ public class Buffer {
         this.local_vars = local_vars;
         this.type = getBufferType();
         processBufferTitle();
-        if (buffer_list.isSynced(pointer)) setOpen(true);
+        if (buffer_list.isSynced(full_name)) setOpen(true);
         if (DEBUG) logger.warn("new Buffer(..., {}, {}, ...) is_open? {}", new Object[]{number, full_name, is_open});
     }
 
@@ -89,20 +90,19 @@ public class Buffer {
     /** better call off the main thread */
     synchronized public void setOpen(boolean open) {
         if (DEBUG) logger.warn("{} setOpen({})", short_name, open);
-        if (this.is_open != open) {
-            this.is_open = open;
-            if (open) {
-                buffer_list.syncBuffer(pointer);
-                if (DEBUG) logger.error("...processMessageIfNeeded(): {}", (lines.size() > 0 && lines.getLast().spannable == null) ? "MOST LIKELY NEEDED: " + lines.size() : "nah");
-                for (Line line : lines) line.processMessageIfNeeded();
-            }
-            else {
-                buffer_list.desyncBuffer(pointer);
-                if (DEBUG) logger.error("...eraseProcessedMessage()");
-                for (Line line : lines) line.eraseProcessedMessage();
-            }
-            buffer_list.notifyBuffersSlightlyChanged();
+        if (this.is_open == open) return;
+        this.is_open = open;
+        if (open) {
+            buffer_list.syncBuffer(full_name);
+            if (DEBUG) logger.error("...processMessageIfNeeded(): {}", (lines.size() > 0 && lines.getLast().spannable == null) ? "MOST LIKELY NEEDED: " + lines.size() : "nah");
+            for (Line line : lines) line.processMessageIfNeeded();
         }
+        else {
+            buffer_list.desyncBuffer(full_name);
+            if (DEBUG) logger.error("...eraseProcessedMessage()");
+            for (Line line : lines) line.eraseProcessedMessage();
+        }
+        buffer_list.notifyBuffersSlightlyChanged();
     }
 
     synchronized public void setBufferEye(BufferEye buffer_eye) {
@@ -112,6 +112,12 @@ public class Buffer {
             buffer_list.requestLinesForBufferByPointer(pointer);
     }
 
+    synchronized public void setWatched(boolean watched) {
+        if (is_watched == watched) return;
+        is_watched = watched;
+        if (!watched) resetUnreadsAndHighlights();
+    }
+
     /** to be called when options has changed and the messages should be processed */
     synchronized public void forceProcessAllMessages() {
         if (DEBUG) logger.error("{} forceProcessAllMessages()", this.short_name);
@@ -119,9 +125,9 @@ public class Buffer {
     }
 
     synchronized public void resetUnreadsAndHighlights() {
-        int old = unreads | highlights;
+        if ((unreads | highlights) == 0) return;
         unreads = highlights = 0;
-        if (old != 0) buffer_list.notifyBuffersSlightlyChanged();
+        buffer_list.notifyBuffersSlightlyChanged();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -139,8 +145,11 @@ public class Buffer {
 
         if (is_open) line.processMessage();
         if (is_last && notify_level >= 0) {
-            if (line.highlighted) highlights += 1;
-            if (line.from_human) {
+            if (line.highlighted) {
+                highlights += 1;
+                buffer_list.notifyBuffersSlightlyChanged();
+            }
+            else if (line.from_human) {
                 unreads += 1;
                 buffer_list.notifyBuffersSlightlyChanged();
             }

@@ -157,7 +157,7 @@ public class BufferListAdapter extends BaseAdapter implements BufferListEye {
             holder.ui_warm.setText(Integer.toString(unreads));
             holder.ui_warm.setVisibility(View.VISIBLE);
         } else
-            holder.ui_warm.setVisibility(View.INVISIBLE);
+            holder.ui_warm.setVisibility(View.GONE);
 
         return convertView;
     }

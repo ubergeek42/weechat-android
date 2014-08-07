@@ -62,9 +62,9 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, OnShar
         String timeformat = prefs.getString("timestamp_format", "HH:mm:ss");
         Buffer.Line.DATEFORMAT = (timeformat.equals("")) ? null : new SimpleDateFormat(timeformat);
         String alignment = prefs.getString("prefix_align", "right");
-        if (alignment.equals("right")) Buffer.Line.ALIGN = 2;
-        else if (alignment.equals("left")) Buffer.Line.ALIGN = 1;
-        else Buffer.Line.ALIGN = 0;
+        if (alignment.equals("right")) Buffer.Line.ALIGN = Buffer.Line.ALIGN_RIGHT;
+        else if (alignment.equals("left")) Buffer.Line.ALIGN = Buffer.Line.ALIGN_LEFT;
+        else Buffer.Line.ALIGN = Buffer.Line.ALIGN_NONE;
         Buffer.Line.MAX_WIDTH = 8;
         TEXT_SIZE = Float.parseFloat(prefs.getString("text_size", "10"));;
         setLetterWidth();
@@ -130,7 +130,10 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, OnShar
             buffer.forceProcessAllMessages();
             onLinesChanged();
         } else if (key.equals("prefix_align")) {
-            Buffer.Line.ALIGN = (prefs.getString("prefix_align", "right").equals("right")) ? 2 : 1;
+            String alignment = prefs.getString("prefix_align", "right");
+            if (alignment.equals("right")) Buffer.Line.ALIGN = Buffer.Line.ALIGN_RIGHT;
+            else if (alignment.equals("left")) Buffer.Line.ALIGN = Buffer.Line.ALIGN_LEFT;
+            else Buffer.Line.ALIGN = Buffer.Line.ALIGN_NONE;
             buffer.forceProcessAllMessages();
             onLinesChanged();
         } else if (key.equals("text_size")) {

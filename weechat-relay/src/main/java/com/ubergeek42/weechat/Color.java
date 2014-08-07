@@ -399,6 +399,8 @@ public class Color {
         out = new StringBuffer();
         span_list.clear();
 
+        if (msg == null) return;
+
         char c;
         while (index < msg.length()) {
             c = getChar();

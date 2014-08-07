@@ -26,7 +26,6 @@ import javax.net.ssl.SSLException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import android.app.ActionBar;
 import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
@@ -45,6 +44,7 @@ import android.view.LayoutInflater;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
 
+import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuInflater;
@@ -105,24 +105,15 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         // the other pages are NOT destroyed, merely their views are
         viewPager.setOffscreenPageLimit(0);
 
-
-//        TabPageIndicator
-        ActionBar ab = getActionBar();
+        ActionBar ab = getSupportActionBar();
+        ab.setHomeButtonEnabled(true);
         ab.setDisplayShowCustomEnabled(true);
         ab.setDisplayShowTitleEnabled(false);
         LayoutInflater inflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         CutePagerTitleStrip strip = (CutePagerTitleStrip) inflater.inflate(R.layout.cute_pager_title_strip_layout, null);
         strip.setViewPager(viewPager);
+        strip.setOnPageChangeListener(this);
         ab.setCustomView(strip);
-
-        //strip.setOnP
-
-//
-//        titleIndicator = (TitlePageIndicator) findViewById(R.id.cute_pager_title_strip);
-//        titleIndicator.
-//        titleIndicator.setViewPager(viewPager);
-//        titleIndicator.setOnPageChangeListener(this);
-//        titleIndicator.setCurrentItem(0);
 
         // TODO Read preferences from background, its IO, 31ms strict mode!
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
@@ -130,8 +121,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 
         setTitle(getString(R.string.app_version));
-        getSupportActionBar().setHomeButtonEnabled(true);
-        
+
         // TODO: make notification load the right ui_buffer
         // TODO: add preference to hide the TitlePageIndicator
     }
@@ -195,9 +185,9 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
                 WeechatActivity.this.onConnect();
 
             // open buffer that MIGHT be open in the service
-            if (relay.getBuffers() != null)
-                for (int pointer : BufferList.synced_buffers_pointers)
-                    mainPagerAdapter.openBuffer(pointer, false);
+            if (relay.getBufferList() != null)
+                for (String full_name : BufferList.synced_buffers_full_names)
+                    mainPagerAdapter.openBuffer(full_name, false);
 
             // open the ui_buffer we want
             handleIntent();
@@ -291,7 +281,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     ///////////////////////// OnPageChangeListener
     /////////////////////////
 
-    private int old_pointer = -1;
+    private String full_name = null;
 
     @Override
     public void onPageScrollStateChanged(int state) {}
@@ -303,11 +293,10 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     @Override
     public void onPageSelected(int position) {
         if (DEBUG) logger.debug("onPageSelected({})", position);
-        if (old_pointer != -1) {
-            Buffer buffer = relay.getBufferByPointer(old_pointer);
-            if (buffer != null) buffer.resetUnreadsAndHighlights();
-        }
-        old_pointer = mainPagerAdapter.getPointerAt(position);
+        Buffer buffer;
+        if ((buffer = relay.getBufferByFullName(full_name)) != null) buffer.setWatched(false);
+        full_name = mainPagerAdapter.getFullNameAt(position);
+        if ((buffer = relay.getBufferByFullName(full_name)) != null) buffer.setWatched(true);
         invalidateOptionsMenu();
         hideSoftwareKeyboard();
     }
@@ -368,7 +357,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
                 break;
             }
             case R.id.menu_close: {
-                BufferFragment currentBuffer = mainPagerAdapter.getCurrentBuffer();
+                BufferFragment currentBuffer = mainPagerAdapter.getCurrentBufferFragment();
                 if (currentBuffer != null) {
                     currentBuffer.onBufferClosed();
                 }
@@ -407,7 +396,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
                 break;
             }
             case R.id.menu_nicklist: {
-                BufferFragment currentBuffer = mainPagerAdapter.getCurrentBuffer();
+                BufferFragment currentBuffer = mainPagerAdapter.getCurrentBufferFragment();
                 if (currentBuffer == null)
                     break;
                 ArrayList<String> nicks = currentBuffer.getNicklist();
@@ -443,10 +432,10 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         if (DEBUG) logger.debug("handleIntent()");
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
-            int pointer = extras.getInt("pointer");
-            if (pointer != 0) {
-                if (DEBUG) logger.debug("handleIntent(): opening ui_buffer '{}' from extras", pointer);
-                openBuffer(pointer, true); //TODO
+            String full_name = extras.getString("full_name");
+            if (full_name != null) {
+                if (DEBUG) logger.debug("handleIntent(): opening ui_buffer '{}' from extras", full_name);
+                openBuffer(full_name, true);
             }
         }
     }
@@ -472,15 +461,15 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     ///////////////////////// misc
     /////////////////////////
 
-    public void openBuffer(int pointer, boolean focus) {
-        if (DEBUG) logger.debug("openBuffer({})", pointer);
-        mainPagerAdapter.openBuffer(pointer, focus);
+    public void openBuffer(String full_name, boolean focus) {
+        if (DEBUG) logger.debug("openBuffer({})", full_name);
+        mainPagerAdapter.openBuffer(full_name, focus);
     }
 
     // In own thread to prevent things from breaking
-    public void closeBuffer(int pointer) {
-        if (DEBUG) logger.debug("closeBuffer({})", pointer);
-        mainPagerAdapter.closeBuffer(pointer);
+    public void closeBuffer(String full_name) {
+        if (DEBUG) logger.debug("closeBuffer({})", full_name);
+        mainPagerAdapter.closeBuffer(full_name);
     }
 
     /** hides the software keyboard, if any */

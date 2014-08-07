@@ -18,7 +18,9 @@
 
     <TextView
         android:id="@+id/buffer_warm"
-        android:layout_margin="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginLeft="0dp"
         android:background="@drawable/warm"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -27,13 +29,14 @@
         android:paddingRight="4dp"
         android:text="@null"
         android:textAppearance="?android:attr/textAppearanceMedium"
+        android:visibility="invisible"
     />
 
     <TextView
         android:id="@+id/buffer_hot"
         android:layout_marginTop="10dp"
         android:layout_marginBottom="10dp"
-        android:layout_marginRight="0dp"
+        android:layout_marginRight="10dp"
         android:background="@drawable/hot"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -41,6 +44,7 @@
         android:paddingLeft="4dp"
         android:paddingRight="4dp"
         android:text="@null"
+        android:layout_alignWithParentIfMissing="true"
         android:textAppearance="?android:attr/textAppearanceMedium"
     />
 

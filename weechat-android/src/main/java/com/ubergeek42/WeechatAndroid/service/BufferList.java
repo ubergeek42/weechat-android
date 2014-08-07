@@ -2,6 +2,7 @@ package com.ubergeek42.WeechatAndroid.service;
 
 import com.ubergeek42.weechat.relay.RelayConnection;
 import com.ubergeek42.weechat.relay.RelayMessageHandler;
+import com.ubergeek42.weechat.relay.protocol.Array;
 import com.ubergeek42.weechat.relay.protocol.Hashtable;
 import com.ubergeek42.weechat.relay.protocol.Hdata;
 import com.ubergeek42.weechat.relay.protocol.HdataEntry;
@@ -29,9 +30,9 @@ public class BufferList {
     public static boolean SORT_BUFFERS = false;
     public static boolean SHOW_TITLE = true;
     public static boolean FILTER_NONHUMAN_BUFFERS = false;
-    public static String  FILTER = null;                                                // TODO race condition
+    public static String  FILTER = null;                                                                // TODO race condition?
 
-    final static public LinkedHashSet<Integer> synced_buffers_pointers = new LinkedHashSet<Integer>();   // TODO race condition?
+    final static public LinkedHashSet<String> synced_buffers_full_names = new LinkedHashSet<String>();  // TODO race condition?
 
     final RelayServiceBackbone relay;
     final private RelayConnection connection;
@@ -57,6 +58,7 @@ public class BufferList {
         connection.addHandler("_buffer_closing", buffer_list_watcher);
         connection.addHandler("_buffer_moved", buffer_list_watcher);
         connection.addHandler("_buffer_merged", buffer_list_watcher);
+        connection.addHandler("hotlist", hotlist_watcher);
 
         connection.addHandler("_buffer_line_added", buffer_line_watcher);
         connection.addHandler("listlines_reverse", buffer_line_watcher);
@@ -81,8 +83,9 @@ public class BufferList {
         return new_bufs;
     }
 
-    synchronized public Buffer findByPointer(int pointer) {
-        for (Buffer buffer : buffers) if (buffer.pointer == pointer) return buffer;
+    synchronized public Buffer findByFullName(String full_name) {
+        if (full_name == null) return null;
+        for (Buffer buffer : buffers) if (buffer.full_name.equals(full_name)) return buffer;
         return null;
     }
 
@@ -94,11 +97,6 @@ public class BufferList {
     }
 
     synchronized public void setBufferListEye(BufferListEye buffers_eye) {this.buffers_eye = buffers_eye;}
-
-    synchronized public void processAllBufferTitles() {
-        for (Buffer buffer : buffers)
-            buffer.processBufferTitle();
-    }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -123,27 +121,27 @@ public class BufferList {
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    synchronized public boolean isSynced(int pointer) {
-        return synced_buffers_pointers.contains(pointer);
+    synchronized public boolean isSynced(String full_name) {
+        return synced_buffers_full_names.contains(full_name);
     }
 
-    synchronized public void syncBuffer(int pointer) {
-        if (DEBUG) logger.error("syncBuffer({})", pointer);
-        BufferList.synced_buffers_pointers.add((Integer) pointer);
-        relay.connection.sendMsg("sync 0x" + Integer.toHexString(pointer));
+    synchronized public void syncBuffer(String full_name) {
+        if (DEBUG) logger.error("syncBuffer({})", full_name);
+        BufferList.synced_buffers_full_names.add(full_name);
+        relay.connection.sendMsg("sync " + full_name);
     }
 
-    synchronized public void desyncBuffer(int pointer) {
-        if (DEBUG) logger.error("desyncBuffer({})", pointer);
-        BufferList.synced_buffers_pointers.remove((Integer) pointer);
-        relay.connection.sendMsg("desync 0x" + Integer.toHexString(pointer));
+    synchronized public void desyncBuffer(String full_name) {
+        if (DEBUG) logger.error("desyncBuffer({})", full_name);
+        BufferList.synced_buffers_full_names.remove(full_name);
+        relay.connection.sendMsg("desync " + full_name);
     }
 
     synchronized static public String getSyncedBuffersAsString() {
         if (DEBUG) logger.error("getSyncedBuffersAsString() -> ...");
         StringBuilder sb = new StringBuilder();
-        for (int pointer : BufferList.synced_buffers_pointers)
-            sb.append(pointer).append("\0");
+        for (String full_name : BufferList.synced_buffers_full_names)
+            sb.append(full_name).append("\0");
         return sb.toString();
     }
 
@@ -152,7 +150,7 @@ public class BufferList {
         StringTokenizer st = new StringTokenizer(synced_buffers, "\0");
         while (true) {
             try {
-                BufferList.synced_buffers_pointers.add(Integer.parseInt(st.nextToken()));
+                synced_buffers_full_names.add(st.nextToken());
             } catch (NoSuchElementException e) {
                 return;
             }
@@ -163,7 +161,12 @@ public class BufferList {
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private void sortBuffers() {
+    synchronized private Buffer findByPointer(int pointer) {
+        for (Buffer buffer : buffers) if (buffer.pointer == pointer) return buffer;
+        return null;
+    }
+
+    synchronized private void sortBuffers() {
         Collections.sort(buffers, sortByNumberComparator);
     }
 
@@ -185,14 +188,8 @@ public class BufferList {
                             entry.getItem("title").asString(),
                             ((r = entry.getItem("notify")) != null) ? r.asInt() : 1,            // TODO request notify level afterwards???
                             (Hashtable) entry.getItem("local_variables"));                      // TODO because _buffer_opened doesn't provide notify level
-                    buffers.add(buffer);
+                    synchronized (BufferList.this) {buffers.add(buffer);}
                     notifyBuffersChanged();
-                } else if (id.equals("hotlist")) {
-                    String buffer_pointer = entry.getItem("buffer").asPointer();
-                    String[] count = entry.getItem("count").asArray().asStringArray();
-                    // update buffer
-                    // setting from_human (01)
-                    // & highlight (02)
                 } else {
                     Buffer buffer = findByPointer(entry.getPointerInt(0));
                     if (buffer == null) {
@@ -214,7 +211,7 @@ public class BufferList {
                             notifyBufferPropertiesChanged(buffer);
                         } else if (id.equals("_buffer_closing")) {
                             buffer.onBufferClosed();
-                            buffers.remove(buffer);
+                            synchronized (BufferList.this) {buffers.remove(buffer);}
                             notifyBuffersChanged();
                         } else {
                             if (DEBUG) logger.warn("Unknown message ID: '{}'", id);
@@ -222,6 +219,26 @@ public class BufferList {
                     }
                 }
             }
+        }
+    };
+
+    // only tackles "hotlist" id
+    RelayMessageHandler hotlist_watcher = new RelayMessageHandler() {
+        @Override
+        public void handleMessage(RelayObject obj, String id) {
+            Hdata data = (Hdata) obj;
+            for (int i = 0, size = data.getCount(); i < size; i++) {
+                HdataEntry entry = data.getItem(i);
+                Integer pointer = entry.getItem("buffer").asPointerInt();
+                Buffer buffer = findByPointer(pointer);
+                if (buffer != null) {
+                    if (DEBUG) logger.warn("hotlist: buffer {}, count {}", buffer.short_name, entry.getItem("count").asArray());
+                    Array count = entry.getItem("count").asArray();
+                    buffer.unreads = count.get(1).asInt() + count.get(2).asInt();   // chat messages & private messages
+                    buffer.highlights = count.get(3).asInt();                       // highlights
+                }
+            }
+            notifyBuffersSlightlyChanged();
         }
     };
 

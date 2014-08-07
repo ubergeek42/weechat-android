@@ -100,25 +100,15 @@ public class RelayService extends RelayServiceBackbone {
         preferences.edit().remove("open_buffers").commit();
     }
 
-    private static enum PREFS {
-        sort_buffers, show_buffer_filter, show_buffer_titles, filter_nonhuman_buffers
-    }
-
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         if (DEBUG) logger.warn("onSharedPreferenceChanged()");
         super.onSharedPreferenceChanged(sharedPreferences, key);
-
-        switch(PREFS.valueOf(key)) {
-            case sort_buffers: //nothing
-                BufferList.SORT_BUFFERS = prefs.getBoolean("sort_buffers", false);
-                break;
-            case show_buffer_titles:
-                BufferList.SHOW_TITLE = prefs.getBoolean("show_buffer_titles", false);
-                break;
-            case filter_nonhuman_buffers:
-                BufferList.FILTER_NONHUMAN_BUFFERS = prefs.getBoolean("filter_nonhuman_buffers", false);
-                break;
-        }
+        if (key.equals("sort_buffers"))
+            BufferList.SORT_BUFFERS = prefs.getBoolean("sort_buffers", false);
+        else if (key.equals("show_buffer_titles"))
+            BufferList.SHOW_TITLE = prefs.getBoolean("show_buffer_titles", false);
+        else if (key.equals("filter_nonhuman_buffers"))
+            BufferList.FILTER_NONHUMAN_BUFFERS = prefs.getBoolean("filter_nonhuman_buffers", false);
     }
 }

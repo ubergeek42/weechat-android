@@ -233,7 +233,10 @@ public class CutePagerTitleStrip extends ViewGroup {
         updateAdapter(mWatchingAdapter != null ? mWatchingAdapter.get() : null, adapter);
     }
 
-
+    private ViewPager.OnPageChangeListener listener = null;
+    public void setOnPageChangeListener(ViewPager.OnPageChangeListener listener) {
+        this.listener = listener;
+    }
 
     void updateText(int currentItem, PagerAdapter adapter) {
         final int itemCount = adapter != null ? adapter.getCount() : 0;
@@ -444,6 +447,7 @@ public class CutePagerTitleStrip extends ViewGroup {
                 position++;
             }
             updateTextPositions(position, positionOffset, false);
+            if (listener != null) listener.onPageScrolled(position, positionOffset, positionOffsetPixels);
         }
 
         @Override
@@ -455,11 +459,13 @@ public class CutePagerTitleStrip extends ViewGroup {
                 final float offset = mLastKnownPositionOffset >= 0 ? mLastKnownPositionOffset : 0;
                 updateTextPositions(mPager.getCurrentItem(), offset, true);
             }
+            if (listener != null) listener.onPageSelected(position);
         }
 
         @Override
         public void onPageScrollStateChanged(int state) {
             mScrollState = state;
+            if (listener != null) listener.onPageScrollStateChanged(state);
         }
 
 //        @Override

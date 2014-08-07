@@ -162,7 +162,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
         Object obj = getListView().getItemAtPosition(position);
         if (obj instanceof Buffer) {
             Buffer buffer = (Buffer) obj;
-            ((WeechatActivity) getActivity()).openBuffer(buffer.pointer, true);
+            ((WeechatActivity) getActivity()).openBuffer(buffer.full_name, true);
         }
     }
 
@@ -177,8 +177,8 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
      ** creates and updates the buffer list */
     @Override
     public void onConnect() {
-        if (DEBUG) logger.warn("onConnect(), buffer_list = {}", relay.getBuffers());
-        buffer_list = relay.getBuffers();
+        if (DEBUG) logger.warn("onConnect(), buffer_list = {}", relay.getBufferList());
+        buffer_list = relay.getBufferList();
         adapter = new BufferListAdapter(getActivity(), buffer_list);
         buffer_list.setBufferListEye(this);                                       // buffer change watcher
         getActivity().runOnUiThread(new Runnable() {

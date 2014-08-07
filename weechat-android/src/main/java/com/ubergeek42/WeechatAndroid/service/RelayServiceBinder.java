@@ -71,13 +71,13 @@ public class RelayServiceBinder extends Binder {
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public Buffer getBufferByPointer(int id) {
-        if (DEBUG) logger.warn("getBufferByPointer({})");
-        return service.buffer_list.findByPointer(id);
+    public Buffer getBufferByFullName(String full_name) {
+        if (DEBUG) logger.warn("getBufferByFullName({})", full_name);
+        return service.buffer_list.findByFullName(full_name);
     }
 
-    public BufferList getBuffers() {
-        if (DEBUG) logger.warn("getBuffers()");
+    public BufferList getBufferList() {
+        if (DEBUG) logger.warn("getBufferList()");
         return service.buffer_list;
     }
 
