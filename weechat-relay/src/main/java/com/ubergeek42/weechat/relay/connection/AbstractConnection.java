@@ -60,38 +60,43 @@ public abstract class AbstractConnection implements IConnection {
         if (!connected) {
             return;
         }
-        try {
-            // If we're in the process of connecting, kill the thread and let us die
-            if (connector.isAlive()) {
-                connector.interrupt();
-                //connector.stop(); // FIXME: deprecated, should probably find a better way to do this
-            }
+
+        // If we're in the process of connecting, kill the thread and let us die
+        if (connector.isAlive()) {
+            connector.interrupt();
+            //connector.stop(); // FIXME: deprecated, should probably find a better way to do this
+        }
 
             // If we're connected, tell weechat we're going away
-            if (connected) {
-                out_stream.write("quit\n".getBytes());
-            }
-
-            // Close all of our streams/sockets
-            connected = false;
-            if (in_stream != null) {
-                in_stream.close();
-                in_stream = null;
-            }
-            if (out_stream != null) {
-                out_stream.close();
-                out_stream = null;
-            }
-            if (sock != null) {
-                sock.close();
-                sock = null;
-            }
-
-            // Call any registered disconnect handlers
-            notifyHandlers(STATE.DISCONNECTED);
+        try {
+            out_stream.write("quit\n".getBytes());
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        // Close all of our streams/sockets
+        connected = false;
+        if (in_stream != null) {
+            try {
+                in_stream.close();
+            } catch (IOException e) {}
+            in_stream = null;
+        }
+        if (out_stream != null) {
+            try {
+                out_stream.close();
+            } catch (IOException e) {}
+            out_stream = null;
+        }
+        if (sock != null) {
+            try {
+                sock.close();
+            } catch (IOException e) {}
+            sock = null;
+        }
+
+        // Call any registered disconnect handlers
+        notifyHandlers(STATE.DISCONNECTED);
     }
     /**
      * Register a connection handler to receive onConnected/onDisconnected events
