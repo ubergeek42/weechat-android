@@ -168,7 +168,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     private void handleIntent() {
         // Load a buffer if necessary
         Bundle extras = getIntent().getExtras();
-        if (extras != null) {
+        if (extras != null && extras.containsKey("buffer")) {
             // Load the given buffer
             onBufferSelected(extras.getString("buffer"));
         } else {
