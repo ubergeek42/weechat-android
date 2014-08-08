@@ -48,6 +48,8 @@
 		        <item>Weechat SSL</item>
 		        <item>SSH Tunnel</item>
 		        <item>Stunnel</item>
+                <item>WebSocket</item>
+                <item>WebSocket(SSL)</item>
     		</string-array>
 	    <string name="pref_stunnel_group">Stunnel Settings</string>
 		    <string name="pref_stunnel_cert">Stunnel Certificate File</string>

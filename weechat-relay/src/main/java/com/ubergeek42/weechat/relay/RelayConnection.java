@@ -15,35 +15,21 @@
  ******************************************************************************/
 package com.ubergeek42.weechat.relay;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.Socket;
-import java.security.KeyStore;
-import java.security.SecureRandom;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-
-import javax.net.SocketFactory;
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocket;
-import javax.net.ssl.TrustManagerFactory;
+import com.ubergeek42.weechat.Helper;
+import com.ubergeek42.weechat.relay.connection.IConnection;
+import com.ubergeek42.weechat.relay.messagehandler.LoginHandler;
+import com.ubergeek42.weechat.relay.protocol.Data;
+import com.ubergeek42.weechat.relay.protocol.RelayObject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.Session;
-import com.ubergeek42.weechat.Helper;
-import com.ubergeek42.weechat.relay.connection.IConnection;
-import com.ubergeek42.weechat.relay.connection.PlainConnection;
-import com.ubergeek42.weechat.relay.protocol.Data;
-import com.ubergeek42.weechat.relay.protocol.RelayObject;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Class to provide and manage a connection to a weechat relay server
@@ -57,6 +43,7 @@ public class RelayConnection implements RelayConnectionHandler {
     private HashMap<String, HashSet<RelayMessageHandler>> messageHandlers = new HashMap<String, HashSet<RelayMessageHandler>>();
 
     IConnection conn;
+    LinkedBlockingQueue<String> outbox = new LinkedBlockingQueue<String>();
 
     /**
      * Sets up a connection to a weechat relay server
@@ -67,6 +54,12 @@ public class RelayConnection implements RelayConnectionHandler {
     public RelayConnection(IConnection conn, String password) {
         this.conn = conn;
         this.password = password;
+
+        // Used to determine if we are actually logged in(weechat gives no indication otherwise)
+        // TODO: hookup some timeout on this to say the connection failed if we receive no reply
+        //       after some set amount of time
+        LoginHandler loginHandler = new LoginHandler(conn);
+        addHandler("checklogin", loginHandler);
 
         conn.addConnectionHandler(this);
     }
@@ -124,14 +117,7 @@ public class RelayConnection implements RelayConnectionHandler {
         }
         msg = msg + "\n";
 
-        final String message = msg;
-        Runnable sender = new Runnable() {
-            @Override
-            public void run() {
-                conn.write(message.getBytes());
-            }
-        };
-        new Thread(sender).start();
+        outbox.add(msg);
     }
 
 
@@ -140,10 +126,26 @@ public class RelayConnection implements RelayConnectionHandler {
      */
     private void postConnectionSetup() {
         sendMsg(null, "init", "password=" + password + ",compression=zlib");
+        sendMsg("checklogin", "info", "version");
 
         socketReader.start();
-        conn.notifyHandlers(IConnection.STATE.AUTHENTICATED);
+        socketWriter.start();
     }
+
+    private Thread socketWriter = new Thread(new Runnable() {
+        @Override
+        public void run() {
+            while(conn.isConnected()) {
+                try {
+                    String msg = outbox.poll(250, TimeUnit.MILLISECONDS);
+                    if (msg != null)
+                        conn.write(msg.getBytes());
+                } catch (InterruptedException e) {
+                    // Shouldn't be an issue I don't think, we'll just try again
+                }
+            }
+        }
+    });
 
     /**
      * Reads data from the socket, breaks it into messages, and dispatches the handlers
@@ -180,7 +182,6 @@ public class RelayConnection implements RelayConnectionHandler {
                         byte[] remainder = Helper.copyOfRange(bdata, length, bdata.length);
                         RelayMessage wm = new RelayMessage(msgdata);
 
-                        System.currentTimeMillis();
                         handleMessage(wm);
                         // logger.trace("handleMessage took " + (System.currentTimeMillis()-start) +
                         // "ms(id: "+wm.getID()+")");

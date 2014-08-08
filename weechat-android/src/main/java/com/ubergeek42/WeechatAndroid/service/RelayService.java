@@ -59,6 +59,7 @@ import com.ubergeek42.weechat.relay.connection.PlainConnection;
 import com.ubergeek42.weechat.relay.connection.SSHConnection;
 import com.ubergeek42.weechat.relay.connection.SSLConnection;
 import com.ubergeek42.weechat.relay.connection.StunnelConnection;
+import com.ubergeek42.weechat.relay.connection.WebSocketConnection;
 import com.ubergeek42.weechat.relay.messagehandler.BufferManager;
 import com.ubergeek42.weechat.relay.messagehandler.HotlistManager;
 import com.ubergeek42.weechat.relay.messagehandler.LineHandler;
@@ -219,6 +220,13 @@ public class RelayService extends Service implements RelayConnectionHandler,
             conn = tmp;
         } else if (connType.equals("ssl")) {
             SSLConnection tmp = new SSLConnection(host, port);
+            tmp.setSSLKeystore(certmanager.sslKeystore);
+            conn = tmp;
+        } else if (connType.equals("websocket")) {
+            WebSocketConnection tmp = new WebSocketConnection(host, port, false);
+            conn = tmp;
+        } else if (connType.equals("websocket-ssl")) {
+            WebSocketConnection tmp = new WebSocketConnection(host, port, true);
             tmp.setSSLKeystore(certmanager.sslKeystore);
             conn = tmp;
         } else {

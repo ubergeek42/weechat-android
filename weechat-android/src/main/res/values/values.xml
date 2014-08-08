@@ -11,5 +11,7 @@
         <item >ssl</item>
         <item >ssh</item>
         <item >stunnel</item>
+        <item >websocket</item>
+        <item >websocket-ssl</item>
     </string-array>
 </resources>
