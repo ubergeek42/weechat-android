@@ -102,6 +102,23 @@ public class MainPagerAdapter extends PagerAdapter {
         return ((Fragment) object).getView() == view;
     }
 
+    private Fragment old_frag;
+
+    @Override
+    public void setPrimaryItem(ViewGroup container, int position, Object object) {
+        Fragment frag = (Fragment) object;
+        if (frag == old_frag) return;
+        if (old_frag != null) {
+            old_frag.setMenuVisibility(false);
+            old_frag.setUserVisibleHint(false);
+        }
+        if (frag != null) {
+            frag.setMenuVisibility(true);
+            frag.setUserVisibleHint(true);
+        }
+        old_frag = frag;
+    }
+
     /** this should return index for fragments or POSITION_NONE if a fragment has been removed
      ** providing proper indexes instead of POSITION_NONE allows buffers not to be
      ** fully recreated on every ui_buffer list change */

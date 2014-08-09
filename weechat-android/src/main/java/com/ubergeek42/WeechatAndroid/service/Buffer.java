@@ -115,12 +115,12 @@ public class Buffer {
     synchronized public void setWatched(boolean watched) {
         if (is_watched == watched) return;
         is_watched = watched;
-        if (!watched) resetUnreadsAndHighlights();
+        if (watched) resetUnreadsAndHighlights();
     }
 
     /** to be called when options has changed and the messages should be processed */
     synchronized public void forceProcessAllMessages() {
-        if (DEBUG) logger.error("{} forceProcessAllMessages()", this.short_name);
+        if (DEBUG) logger.error("{} forceProcessAllMessages()", short_name);
         for (Line line : lines) line.processMessage();
     }
 
@@ -135,7 +135,7 @@ public class Buffer {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     synchronized public void addLine(final Line line, final boolean is_last) {
-        //logger.warn("{} addLine({}, {})", new Object[]{this, line, is_last});
+        if (DEBUG) logger.warn("{} addLine('{}', {})", new Object[]{short_name, line.message, is_last});
         for (Line l: lines) if (l.pointer == line.pointer) return;
 
         if (lines.size() > MAX_LINES) {if (lines.getFirst().visible) visible_lines_count--; lines.removeFirst();}
@@ -144,15 +144,10 @@ public class Buffer {
         if (line.visible) visible_lines_count++;
 
         if (is_open) line.processMessage();
-        if (is_last && notify_level >= 0) {
-            if (line.highlighted) {
-                highlights += 1;
-                buffer_list.notifyBuffersSlightlyChanged();
-            }
-            else if (line.from_human) {
-                unreads += 1;
-                buffer_list.notifyBuffersSlightlyChanged();
-            }
+        if (!is_watched && is_last && notify_level >= 0) {
+            if (line.highlighted) highlights += 1;
+            else if (line.from_human) unreads += 1;
+            if (line.highlighted || line.from_human) buffer_list.notifyBuffersSlightlyChanged();
         }
         if (buffer_eye != null) buffer_eye.onLinesChanged();
     }

@@ -32,7 +32,7 @@ import java.util.Iterator;
  * href="http://www.weechat.org/files/doc/devel/weechat_dev.en.html#color_codes_in_strings">here</a>
  */
 public class Color {
-    final private static boolean DEBUG = true;
+    final private static boolean DEBUG = false;
     final private static Logger logger = LoggerFactory.getLogger("Color");
 
     // Default weechat colors...00-16
@@ -146,6 +146,8 @@ public class Color {
 
     // prepares: clean_message, margin, final_span_list
     public static void parse(String timestamp, String prefix, String message, final boolean highlight, final int max, final boolean align_right) {
+        if (DEBUG) logger.debug("parse(timestamp='{}', prefix='{}', message='{}', highlight={}, max={}, align_right={})",
+                new Object[]{timestamp, prefix, message, highlight, max, align_right});
         int puff;
         int color;
         StringBuilder sb = new StringBuilder();
@@ -166,7 +168,12 @@ public class Color {
         if (prefix.length() > max) {
             nick_has_been_cut = true;
             prefix = prefix.substring(0, max);
-            for (Span span: span_list) if (span.end > max) span.end = max;
+            Span span;
+            for (Iterator<Span> it = span_list.iterator(); it.hasNext();) {
+                span = it.next();
+                if (span.end > max) span.end = max;
+                if (span.end <= span.start) it.remove();
+            }
         }
         else if (align_right && prefix.length() < max) {
             int diff = max - prefix.length();
@@ -248,7 +255,7 @@ public class Color {
      ** closing a similar span if it's been open and,
      ** if possible, extending a recently closed span */
     private static void addSpan(int type) {addSpan(type, -1);}
-    private static  void addSpan(int type, int color) {
+    private static void addSpan(int type, int color) {
         finalizeSpan(type);
         int pos = out.length();
         // get the old span if the same span is ending at this same spot
@@ -281,8 +288,10 @@ public class Color {
         if (span != null) {
             spans[type] = null;
             span.end = out.length();
-            if (span.start != span.end)
+            if (span.start != span.end) {
+                if (DEBUG) logger.debug("finalizeSpan(...): type={}, start={}, end={}, color={}", new Object[]{span.type, span.start, span.end, span.color});
                 span_list.add(span);
+            }
         }
     }
 
@@ -394,6 +403,8 @@ public class Color {
     /** takes text as input
      ** sets out and span_list */
     synchronized private static void parseColors(String msg) {
+        if (DEBUG) logger.debug("parseColors({})", msg);
+
         Color.msg = msg;
         index = 0;
         out = new StringBuffer();
@@ -448,7 +459,5 @@ public class Color {
             }
         }
         for (int i = 0; i <= 5; i++) finalizeSpan(i);
-        //logger.error("processed message: [{}]", msg);
-        //for (Span span : span_list) logger.warn("> span #{} ({}-"+span.end+"): color " + span.color, span.type, span.start);
     }
 }

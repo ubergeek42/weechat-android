@@ -202,6 +202,20 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     }
 
     /////////////////////////
+    ///////////////////////// visibility (set by pager adapter)
+    /////////////////////////
+
+    private boolean visible = false;
+
+    @Override
+    public void setUserVisibleHint(boolean visible) {
+        if (DEBUG) logger.warn("{} setUserVisibleHint({})", full_name, visible);
+        super.setUserVisibleHint(visible);
+        this.visible = visible;
+        if (buffer != null) buffer.setWatched(visible);
+    }
+
+    /////////////////////////
     ///////////////////////// service connection
     /////////////////////////
 
@@ -254,25 +268,17 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
                 // check if the buffer is still there
                 // it should be there at ALL times EXCEPT when we RE-connect to the service and find it missing
                 buffer = relay.getBufferByFullName(full_name);
-                //buffer = relay.getBufferByFullName("irc.free.##latvija");
-                if (buffer == null) {
-                    return false;
-                } else {
-                    // set short name. we set it here because it's the buffer won't change
-                    // and the name should be accessible between calls to this function
-                    short_name = buffer.short_name;
+                if (buffer == null) return false;
 
-                    chatlines_adapter = new ChatLinesAdapter(getActivity(), buffer);
-                    buffer.setBufferEye(BufferFragment.this);                                       // buffer watcher
-                    chatlines_adapter.onLinesChanged();
-                    //else logger.error("CHATLINES ADAPTER IS NOT NULL");
-                    registerForContextMenu(chatLines);
-
-                    // attach this fragment to buffer and
-                    // subscribe to the buffer (gets the lines for it, and gets nicklist)
-                    //relay.subscribeBuffer(buffer.full_name);                                          // subscription
-                    return true;
-                }
+                // set short name. we set it here because it's the buffer won't change
+                // and the name should be accessible between calls to this function
+                short_name = buffer.short_name;
+                chatlines_adapter = new ChatLinesAdapter(getActivity(), buffer);
+                buffer.setBufferEye(BufferFragment.this);                                       // buffer watcher
+                buffer.setWatched(visible);
+                chatlines_adapter.onLinesChanged();
+                registerForContextMenu(chatLines);
+                return true;
             }
 
             @Override

@@ -281,22 +281,14 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     ///////////////////////// OnPageChangeListener
     /////////////////////////
 
-    private String full_name = null;
-
     @Override
     public void onPageScrollStateChanged(int state) {}
 
     @Override
     public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {}
 
-    // change the title of the window when the user switches tabs
     @Override
     public void onPageSelected(int position) {
-        if (DEBUG) logger.debug("onPageSelected({})", position);
-        Buffer buffer;
-        if ((buffer = relay.getBufferByFullName(full_name)) != null) buffer.setWatched(false);
-        full_name = mainPagerAdapter.getFullNameAt(position);
-        if ((buffer = relay.getBufferByFullName(full_name)) != null) buffer.setWatched(true);
         invalidateOptionsMenu();
         hideSoftwareKeyboard();
     }

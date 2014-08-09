@@ -18,7 +18,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:inputType="textShortMessage|textMultiLine|textAutoCorrect"
-            android:imeOptions="actionSend"
+            android:imeOptions="flagNoFullscreen|flagNoExtractUi"
             android:maxLines="4"
             android:minLines="1"
             android:scrollbars="vertical"
