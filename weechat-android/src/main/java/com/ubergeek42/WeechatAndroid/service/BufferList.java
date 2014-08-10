@@ -30,7 +30,7 @@ public class BufferList {
     public static boolean SORT_BUFFERS = false;
     public static boolean SHOW_TITLE = true;
     public static boolean FILTER_NONHUMAN_BUFFERS = false;
-    public static String  FILTER = null;                                                                // TODO race condition?
+    public static String FILTER = null;                                                                 // TODO race condition?
 
     final static public LinkedHashSet<String> synced_buffers_full_names = new LinkedHashSet<String>();  // TODO race condition?
 
@@ -45,10 +45,10 @@ public class BufferList {
         this.connection = this.relay.connection;
         Buffer.buffer_list = this;
 
-        // Handle us getting a listing of the this
+        // handle buffer list changes
+        // including initial hotlist
         connection.addHandler("listbuffers", buffer_list_watcher);
 
-        // Handle weechat event messages regarding this
         connection.addHandler("_buffer_opened", buffer_list_watcher);
         connection.addHandler("_buffer_renamed", buffer_list_watcher);
         connection.addHandler("_buffer_title_changed", buffer_list_watcher);
@@ -58,19 +58,28 @@ public class BufferList {
         connection.addHandler("_buffer_closing", buffer_list_watcher);
         connection.addHandler("_buffer_moved", buffer_list_watcher);
         connection.addHandler("_buffer_merged", buffer_list_watcher);
-        connection.addHandler("hotlist", hotlist_watcher);
 
+        connection.addHandler("hotlist", hotlist_init_watcher);
+
+        // handle newly arriving chat lines
+        // and chatlines we are reading in reverse
         connection.addHandler("_buffer_line_added", buffer_line_watcher);
         connection.addHandler("listlines_reverse", buffer_line_watcher);
 
-        // get a list of buffers current open, along with some information about them
-        // also nicklist
+        // handle nicklist init and changes
+        connection.addHandler("nicklist", nicklist_watcher);
+        connection.addHandler("_nicklist", nicklist_watcher);
+        connection.addHandler("_nicklist_diff", nicklist_watcher);
+
+        // request a list of buffers current open, along with some information about them
+        // also request hotlist
+        // and nicklist
         connection.sendMsg("listbuffers", "hdata", "buffer:gui_buffers(*) number,full_name,short_name,type,title,nicklist,local_variables,notify");
         connection.sendMsg("hotlist", "hdata", "hotlist:gui_hotlist(*) buffer,count");
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// called from
+    //////////////////////////////////////////////////////////////////////////////////////////////// called by the Eye
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     synchronized public ArrayList<Buffer> getBufferListCopy() {
@@ -89,55 +98,50 @@ public class BufferList {
         return null;
     }
 
-    public void requestLinesForBufferByPointer(int pointer) {
-        if (DEBUG) logger.error("requestLinesForBufferByPointer({})", pointer);
-        connection.sendMsg("listlines_reverse", "hdata", String.format(
-                "buffer:0x%x/own_lines/last_line(-%d)/data date,displayed,prefix,message,highlight,notify,tags_array",
-                pointer, Buffer.MAX_LINES));
+    synchronized public void setBufferListEye(BufferListEye buffers_eye) {
+        this.buffers_eye = buffers_eye;
     }
 
-    synchronized public void setBufferListEye(BufferListEye buffers_eye) {this.buffers_eye = buffers_eye;}
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// called on the Eye
+    ////////////////////////////////////////////////////////////////////////////////////////////////    from this and Buffer (local)
+    ////////////////////////////////////////////////////////////////////////////////////////////////    (also alert Buffer)
 
     synchronized private void notifyBuffersChanged() {
         sortBuffers();
         if (buffers_eye != null) buffers_eye.onBuffersChanged();
     }
 
-    synchronized public void notifyBuffersSlightlyChanged() {
+    synchronized void notifyBuffersSlightlyChanged() {
         if (buffers_eye != null) buffers_eye.onBuffersSlightlyChanged();
     }
 
-    synchronized public void notifyBufferPropertiesChanged(Buffer buffer) {
+    synchronized private void notifyBufferPropertiesChanged(Buffer buffer) {
         sortBuffers();
         buffer.onPropertiesChanged();
         if (buffers_eye != null) buffers_eye.onBuffersChanged();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// called from Buffer & RelayService (local)
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    synchronized public boolean isSynced(String full_name) {
+    synchronized boolean isSynced(String full_name) {
         return synced_buffers_full_names.contains(full_name);
     }
 
-    synchronized public void syncBuffer(String full_name) {
+    synchronized void syncBuffer(String full_name) {
         if (DEBUG) logger.error("syncBuffer({})", full_name);
         BufferList.synced_buffers_full_names.add(full_name);
         relay.connection.sendMsg("sync " + full_name);
     }
 
-    synchronized public void desyncBuffer(String full_name) {
+    synchronized void desyncBuffer(String full_name) {
         if (DEBUG) logger.error("desyncBuffer({})", full_name);
         BufferList.synced_buffers_full_names.remove(full_name);
         relay.connection.sendMsg("desync " + full_name);
     }
 
-    synchronized static public String getSyncedBuffersAsString() {
+    synchronized static String getSyncedBuffersAsString() {
         if (DEBUG) logger.error("getSyncedBuffersAsString() -> ...");
         StringBuilder sb = new StringBuilder();
         for (String full_name : BufferList.synced_buffers_full_names)
@@ -145,7 +149,7 @@ public class BufferList {
         return sb.toString();
     }
 
-    synchronized static public void setSyncedBuffersFromString(String synced_buffers) {
+    synchronized static void setSyncedBuffersFromString(String synced_buffers) {
         if (DEBUG) logger.error("setSyncedBuffersFromString({})", synced_buffers);
         StringTokenizer st = new StringTokenizer(synced_buffers, "\0");
         while (true) {
@@ -157,6 +161,19 @@ public class BufferList {
         }
     }
 
+    public void requestLinesForBufferByPointer(int pointer) {
+        if (DEBUG) logger.error("requestLinesForBufferByPointer({})", pointer);
+        connection.sendMsg("listlines_reverse", "hdata", String.format(
+                "buffer:0x%x/own_lines/last_line(-%d)/data date,displayed,prefix,message,highlight,notify,tags_array",
+                pointer, Buffer.MAX_LINES));
+    }
+
+    public void requestNicklistForBufferByPointer(int pointer) {
+        if (DEBUG) logger.error("requestNicklistForBufferByPointer({})", pointer);
+        connection.sendMsg(String.format("(nicklist) nicklist 0x%x", pointer));
+    }
+
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -165,6 +182,13 @@ public class BufferList {
         for (Buffer buffer : buffers) if (buffer.pointer == pointer) return buffer;
         return null;
     }
+
+    private final Comparator<Buffer> sortByNumberComparator = new Comparator<Buffer>() {
+        @Override
+        public int compare(Buffer b1, Buffer b2) {
+            return b1.number - b2.number;
+        }
+    };
 
     synchronized private void sortBuffers() {
         Collections.sort(buffers, sortByNumberComparator);
@@ -222,8 +246,8 @@ public class BufferList {
         }
     };
 
-    // only tackles "hotlist" id
-    RelayMessageHandler hotlist_watcher = new RelayMessageHandler() {
+    // hotlist (ONLY)
+    RelayMessageHandler hotlist_init_watcher = new RelayMessageHandler() {
         @Override
         public void handleMessage(RelayObject obj, String id) {
             Hdata data = (Hdata) obj;
@@ -246,6 +270,8 @@ public class BufferList {
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
+    // _buffer_line_added
+    // listlines_reverse
     RelayMessageHandler buffer_line_watcher = new RelayMessageHandler() {
         @Override
         public void handleMessage(RelayObject obj, String id) {
@@ -256,16 +282,16 @@ public class BufferList {
                 boolean is_bottom = id.equals("_buffer_line_added");
 
                 HdataEntry entry = data.getItem(i);
-                int buffer_pointer = (is_bottom) ? entry.getItem("buffer").asPointerInt() :  entry.getPointerInt(0);
+                int buffer_pointer = (is_bottom) ? entry.getItem("buffer").asPointerInt() : entry.getPointerInt(0);
                 Buffer buffer = findByPointer(buffer_pointer);
                 if (buffer == null) {
-                    if (DEBUG) logger.warn("no buffer to update!");
+                    if (DEBUG) logger.warn("buffer_line_watcher: no buffer to update!");
                     continue;
                 }
                 String message = entry.getItem("message").asString();
-                String prefix =  entry.getItem("prefix").asString();
-                boolean displayed = ( entry.getItem("displayed").asChar() == 0x01);
-                Date time =  entry.getItem("date").asTime();
+                String prefix = entry.getItem("prefix").asString();
+                boolean displayed = (entry.getItem("displayed").asChar() == 0x01);
+                Date time = entry.getItem("date").asTime();
                 RelayObject high = entry.getItem("highlight");
                 boolean highlight = (high != null && high.asChar() == 0x01);
                 RelayObject tagsobj = entry.getItem("tags_array");
@@ -281,34 +307,57 @@ public class BufferList {
         }
     };
 
-    private final Comparator<Buffer> sortByNumberComparator = new Comparator<Buffer>() {
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private static final char GROUP = '^';
+    private static final char ADD = '+';
+    private static final char REMOVE = '-';
+    private static final char UPDATE = '*';
+
+    // the following two are rather the same thing. so check if it's not _diff
+    // nicklist
+    // _nicklist
+    // _nicklist_diff
+    RelayMessageHandler nicklist_watcher = new RelayMessageHandler() {
         @Override
-        public int compare(Buffer b1, Buffer b2) {
-            return b1.number - b2.number;
+        public void handleMessage(RelayObject obj, String id) {
+            if (DEBUG) logger.debug("nicklist_watcher:handleMessage(..., {})", id);
+            Hdata data = (Hdata) obj;
+            boolean diff = id.equals("_nicklist_diff");
+            for (int i = 0, size = data.getCount(); i < size; i++) {
+                HdataEntry entry = data.getItem(i);
+
+                // find buffer
+                Buffer buffer = findByPointer(entry.getPointerInt(0));
+                if (buffer == null) {
+                    if (DEBUG) logger.warn("nicklist_watcher: no buffer to update!");
+                    continue;
+                }
+
+                // decide whether it's adding, removing or updating nicks
+                // if _nicklist, treat as if we have _diff = '+'
+                char command = (diff) ? entry.getItem("_diff").asChar() : ADD;
+
+                // do the job, but
+                // care only for items that are visible (e.g. not 'root')
+                // and that are not grouping items
+                if (command == ADD || command == UPDATE) {
+                    if (entry.getItem("visible").asChar() != 0 && entry.getItem("group").asChar() != 1) {
+                        int pointer = entry.getPointerInt();
+                        String prefix = entry.getItem("prefix").asString();
+                        String name = entry.getItem("name").asString();
+                        if (command == ADD)
+                            buffer.addNick(pointer, prefix, name);
+                        else
+                            buffer.updateNick(pointer, prefix, name);
+                    }
+                } else if (command == REMOVE) {
+                    buffer.removeNick(entry.getPointerInt());
+                }
+                if (!diff) buffer.holds_all_nicks = true;                           // setting it earlier doesn't really harm
+            }
         }
     };
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

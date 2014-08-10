@@ -1,6 +1,7 @@
 package com.ubergeek42.WeechatAndroid.service;
 
 import android.graphics.Typeface;
+import android.support.annotation.NonNull;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -24,8 +25,12 @@ import org.slf4j.LoggerFactory;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -47,12 +52,16 @@ public class Buffer {
     public int number, notify_level;
     public Hashtable local_vars;
 
-    public LinkedList<Line> lines = new LinkedList<Line>();
+    private LinkedList<Line> lines = new LinkedList<Line>();
     private int visible_lines_count = 0;
+
+    private List<Nick> nicks = new ArrayList<Nick>();
+    private LinkedList<String> last_used_nicks = new LinkedList<String>();
 
     public boolean is_open = false;
     public boolean is_watched = false;
     public boolean holds_all_lines_it_is_supposed_to_hold = false;
+    public boolean holds_all_nicks = false;
     public int type = OTHER;
     public int unreads = 0;
     public int highlights = 0;
@@ -87,6 +96,10 @@ public class Buffer {
         return l;
     }
 
+    synchronized  public String[] getLastUsedNicksCopy() {
+        return last_used_nicks.toArray(new String[last_used_nicks.size()]);
+    }
+
     /** better call off the main thread */
     synchronized public void setOpen(boolean open) {
         if (DEBUG) logger.warn("{} setOpen({})", short_name, open);
@@ -110,6 +123,8 @@ public class Buffer {
         this.buffer_eye = buffer_eye;
         if (!holds_all_lines_it_is_supposed_to_hold && lines.size() < MAX_LINES)
             buffer_list.requestLinesForBufferByPointer(pointer);
+        if (!holds_all_nicks)
+            buffer_list.requestNicklistForBufferByPointer(pointer);
     }
 
     synchronized public void setWatched(boolean watched) {
@@ -150,6 +165,24 @@ public class Buffer {
             if (line.highlighted || line.from_human) buffer_list.notifyBuffersSlightlyChanged();
         }
         if (buffer_eye != null) buffer_eye.onLinesChanged();
+
+        // this is a line that comes with a nickname (at all times?)
+        // change snicks accordingly, placing last used nickname first
+        if (line.from_human)
+            for (String tag : line.tags)
+                if (tag.startsWith("nick_")) {
+                    String nick = tag.substring(5);
+                    if (is_last) {
+                        last_used_nicks.remove(nick);
+                        last_used_nicks.addFirst(nick);
+                    }
+                    else {
+                        // this should run before addNick stuff
+                        if (!last_used_nicks.contains(nick))
+                            last_used_nicks.addLast(nick);
+                    }
+                    break;
+                }
     }
 
     synchronized public void onPropertiesChanged() {
@@ -196,6 +229,56 @@ public class Buffer {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    synchronized public void addNick(int pointer, String prefix, String name) {
+        if (DEBUG) logger.debug("{} addNick({}, {}, {})", new Object[]{short_name, pointer, prefix, name});
+        nicks.add(new Nick(pointer, prefix, name));
+        sortNicks();
+        if (!last_used_nicks.contains(name)) last_used_nicks.addLast(name);
+    }
+
+    synchronized public void removeNick(int pointer) {
+        if (DEBUG) logger.debug("{} removeNick({})", new Object[]{short_name, pointer});
+        for (Iterator<Nick> it = nicks.iterator(); it.hasNext();) {
+            Nick nick = it.next();
+            if (nick.pointer == pointer) {
+                it.remove();
+                last_used_nicks.remove(nick.name);
+                return;
+            }
+        }
+    }
+
+    synchronized public void updateNick(int pointer, String prefix, String name) {
+        if (DEBUG) logger.debug("{} updateNick({}, {}, {})", new Object[]{short_name, pointer, prefix, name});
+        for (Nick nick: nicks) {
+            if (nick.pointer == pointer) {
+                int idx = last_used_nicks.indexOf(nick.name);
+                if (idx != -1) last_used_nicks.set(idx, name);
+                nick.prefix = prefix;
+                nick.name = name;
+                break;
+            }
+        }
+        sortNicks();
+    }
+
+    private final Comparator<Nick> sortByNumberPrefixAndNameComparator = new Comparator<Nick>() {
+        @Override
+        public int compare(Nick n1, Nick n2) {
+            int diff = n1.prefix.compareTo(n2.prefix);
+            return (diff != 0) ? diff : n1.name.compareTo(n2.name);
+        }
+    };
+
+    private void sortNicks() {
+        Collections.sort(nicks, sortByNumberPrefixAndNameComparator);
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// Line
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     public static class Line {
@@ -305,7 +388,23 @@ public class Buffer {
         public URLSpan2(String url) {super(url);}
 
         @Override
-        public void updateDrawState(TextPaint ds) {ds.setUnderlineText(true);}
+        public void updateDrawState(@NonNull TextPaint ds) {ds.setUnderlineText(true);}
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// Nick
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    public static class Nick {
+        public int pointer;
+        public String prefix;
+        public String name;
+
+        public Nick(int pointer, String prefix, String name) {
+            this.prefix = prefix;
+            this.name = name;
+            this.pointer = pointer;
+        }
     }
 }
 

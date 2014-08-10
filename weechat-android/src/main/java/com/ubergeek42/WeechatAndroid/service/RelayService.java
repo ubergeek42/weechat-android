@@ -34,7 +34,6 @@ public class RelayService extends RelayServiceBackbone {
     public static final String PREFS_NAME = "kittens!";
 
     public BufferList buffer_list;
-    public Nicklists nicklists;
 
     /** super method sets 'prefs' */
     @Override
@@ -65,7 +64,6 @@ public class RelayService extends RelayServiceBackbone {
     void startHandlingBoneEvents() {
         restoreStuff();
         buffer_list = new BufferList(this);
-        nicklists = new Nicklists(this);
 
         // Subscribe to any future changes
         connection.sendMsg("sync");

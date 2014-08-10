@@ -70,8 +70,6 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
 
     private ChatLinesAdapter chatlines_adapter;
 
-    private ArrayList<String> nicks;
-
     // Settings for keeping track of the current tab completion stuff
     private boolean tc_inprogress;
     private Vector<String> tc_matches;
@@ -445,8 +443,9 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     
     /** attempts to perform tab completion on the current input */
     private void tryTabComplete() {
-        if (!PREF_ENABLE_TAB_COMPLETE || nicks == null)
-            return;
+        if (buffer == null) return;
+        if (!PREF_ENABLE_TAB_COMPLETE) return;
+
         String txt = inputBox.getText().toString();
         if (!tc_inprogress) {
             // find the end of the word to be completed
@@ -470,7 +469,10 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
             // nicks is ordered in last used comes first way, so we just pick whatever comes first
             // if computed list is empty, abort
             tc_matches = new Vector<String>();
-            for (String nick : nicks)
+
+            String[] nicka = buffer.getLastUsedNicksCopy();
+            logger.debug("last used nicks: {}, length = {}", nicka, nicka.length);
+            for (String nick : buffer.getLastUsedNicksCopy())
                 if (nick.toLowerCase().trim().startsWith(prefix))
                     tc_matches.add(nick.trim());
             if (tc_matches.size() == 0)
@@ -494,9 +496,9 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
         tc_inprogress = true;
     }
 
-    public ArrayList<String> getNicklist() {
-        return nicks;
-    }
+//    public ArrayList<String> getNicklist() {
+//        return nicks;
+//    }
 
     public String getShortBufferName() {
         return short_name;

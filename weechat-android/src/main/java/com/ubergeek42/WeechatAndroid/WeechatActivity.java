@@ -391,7 +391,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
                 BufferFragment currentBuffer = mainPagerAdapter.getCurrentBufferFragment();
                 if (currentBuffer == null)
                     break;
-                ArrayList<String> nicks = currentBuffer.getNicklist();
+                ArrayList<String> nicks = null; // currentBuffer.getNicklist();
                 if (nicks == null)
                     break;
 
