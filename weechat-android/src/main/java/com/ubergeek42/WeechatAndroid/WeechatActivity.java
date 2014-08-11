@@ -19,7 +19,6 @@ import java.security.cert.CertPath;
 import java.security.cert.CertPathValidatorException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
 
 import javax.net.ssl.SSLException;
 
@@ -41,10 +40,10 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
-import android.text.Spannable;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.ArrayAdapter;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.actionbarsherlock.app.ActionBar;
@@ -57,7 +56,6 @@ import com.ubergeek42.WeechatAndroid.service.Buffer;
 import com.ubergeek42.WeechatAndroid.service.BufferList;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
 import com.ubergeek42.WeechatAndroid.service.RelayServiceBinder;
-import com.ubergeek42.weechat.HotlistItem;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
 
 import android.support.v4.view.PagerTitleStrip;
@@ -308,13 +306,36 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         handleIntent();
     }
 
+    private int hot_number = 0;
+
+    public void setHotCount(int hot_number) {
+        if (this.hot_number == hot_number)
+            return;
+        this.hot_number = hot_number;
+        invalidateOptionsMenu();
+    }
+
     /** Can safely hold on to this according to docs
      ** http://developer.android.com/reference/android/app/Activity.html#onCreateOptionsMenu(android.view.Menu) **/
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
+    public boolean onCreateOptionsMenu(final Menu menu) {
         if (false && DEBUG) logger.debug("onCreateOptionsMenu(...)");
         MenuInflater menuInflater = getSupportMenuInflater();
         menuInflater.inflate(R.menu.menu_actionbar, menu);
+        View menu_hotlist = menu.findItem(R.id.menu_hotlist).getActionView();
+        TextView hot = (TextView) menu_hotlist.findViewById(R.id.hotlist_hot);
+        if (hot_number == 0)
+            hot.setVisibility(View.INVISIBLE);
+        else {
+            hot.setVisibility(View.VISIBLE);
+            hot.setText(Integer.toString(hot_number));
+        }
+        menu_hotlist.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onOptionsItemSelected(menu.findItem(R.id.menu_hotlist));
+            }
+        });
         actionBarMenu = menu;
         makeMenuReflectConnectionStatus();
         return super.onCreateOptionsMenu(menu);
@@ -374,10 +395,10 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
                 finish();
                 break;
             }
-            case R.id.menu_hotlist: {
+            case R.id.menu_hotlist:
+                if (DEBUG) logger.debug("HOTLIST CLICKED");
                 // TODO
                 break;
-            }
             case R.id.menu_nicklist:
                 if (relay == null) break;
                 Buffer buffer = relay.getBufferByFullName(mainPagerAdapter.getFullNameAt(viewPager.getCurrentItem()));

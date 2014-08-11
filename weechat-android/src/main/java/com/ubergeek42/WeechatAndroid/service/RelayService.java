@@ -109,4 +109,8 @@ public class RelayService extends RelayServiceBackbone {
         else if (key.equals("filter_nonhuman_buffers"))
             BufferList.FILTER_NONHUMAN_BUFFERS = prefs.getBoolean("filter_nonhuman_buffers", false);
     }
+
+    public void doSomethingAboutNotifications() {
+
+    }
 }

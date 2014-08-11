@@ -32,11 +32,13 @@ public class BufferList {
     public static boolean SORT_BUFFERS = false;
     public static boolean SHOW_TITLE = true;
     public static boolean FILTER_NONHUMAN_BUFFERS = false;
-    public static String FILTER = null;                                                                 // TODO race condition?
+    public static String FILTER = null;                                                            // TODO race condition?
 
     final static public LinkedHashSet<String> synced_buffers_full_names = new LinkedHashSet<String>();  // TODO race condition?
 
-    final RelayServiceBackbone relay;
+    static public int hot_count = 0;
+
+    final RelayService relay;
     final private RelayConnection connection;
     final private ArrayList<Buffer> buffers = new ArrayList<Buffer>();
 
@@ -110,11 +112,15 @@ public class BufferList {
 
     synchronized private void notifyBuffersChanged() {
         sortBuffers();
+        computeHotCount();
         if (buffers_eye != null) buffers_eye.onBuffersChanged();
+        relay.doSomethingAboutNotifications();
     }
 
     synchronized void notifyBuffersSlightlyChanged() {
+        computeHotCount();
         if (buffers_eye != null) buffers_eye.onBuffersSlightlyChanged();
+        relay.doSomethingAboutNotifications();
     }
 
     synchronized private void notifyBufferPropertiesChanged(Buffer buffer) {
@@ -179,6 +185,16 @@ public class BufferList {
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+    private void computeHotCount() {
+        int hot = 0;
+        for (Buffer buffer : buffers) {
+            hot += buffer.highlights;
+            if (buffer.type == Buffer.PRIVATE) hot += buffer.unreads;
+        }
+        hot_count = hot;
+    }
 
     synchronized private Buffer findByPointer(int pointer) {
         for (Buffer buffer : buffers) if (buffer.pointer == pointer) return buffer;

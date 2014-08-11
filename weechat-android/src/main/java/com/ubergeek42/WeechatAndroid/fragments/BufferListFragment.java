@@ -236,6 +236,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     public void onBuffersSlightlyChanged() {
         if (DEBUG) logger.warn("onBuffersSlightlyChanged()");
         adapter.onBuffersSlightlyChanged();
+        ((WeechatActivity) getActivity()).setHotCount(BufferList.hot_count);
     }
 
     /////////////////////////
