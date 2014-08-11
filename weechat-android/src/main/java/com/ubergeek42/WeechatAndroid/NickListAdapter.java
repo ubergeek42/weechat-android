@@ -1,36 +1,45 @@
 package com.ubergeek42.WeechatAndroid;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-
-import android.util.Log;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
-import com.ubergeek42.weechat.Buffer;
-import com.ubergeek42.weechat.BufferObserver;
-import com.ubergeek42.weechat.NickItem;
+import com.ubergeek42.WeechatAndroid.service.Buffer;
+import com.ubergeek42.WeechatAndroid.service.BufferNicklistEye;
 
-public class NickListAdapter extends BaseAdapter implements BufferObserver {
-    WeechatActivity parentActivity;
-    LayoutInflater inflater;
-    private static final String TAG = "NickListAdapter";
-    private ArrayList<String> nickCache;
-    private Buffer buffer;
-    protected ArrayList<NickItem> nicklist = new ArrayList<NickItem>();
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-    public NickListAdapter(WeechatActivity parentActivity, ArrayList<String> nickCache) {
-        this.parentActivity = parentActivity;
-        this.inflater = LayoutInflater.from(parentActivity);
-        this.nickCache = nickCache;
+public class NickListAdapter extends BaseAdapter implements BufferNicklistEye,
+        DialogInterface.OnDismissListener, DialogInterface.OnShowListener {
+    private static Logger logger = LoggerFactory.getLogger("NickListAdapter");
+    final private static boolean DEBUG = BuildConfig.DEBUG && true;
+
+    private final @NonNull WeechatActivity activity;
+    private final @NonNull LayoutInflater inflater;
+    private final @NonNull Buffer buffer;
+    private @NonNull Buffer.Nick[] nicks = new Buffer.Nick[0];
+    private @NonNull AlertDialog dialog;
+
+    public NickListAdapter(WeechatActivity activity, Buffer buffer) {
+        this.activity = activity;
+        this.inflater = LayoutInflater.from(activity);
+        this.buffer = buffer;
     }
 
     @Override
-    public String getItem(int position) {
-        return nickCache.get(position);
+    public int getCount() {
+        return nicks.length;
+    }
+
+    @Override
+    public Buffer.Nick getItem(int position) {
+        return nicks[position];
     }
 
     @Override
@@ -38,56 +47,42 @@ public class NickListAdapter extends BaseAdapter implements BufferObserver {
         return position;
     }
 
-    static class ViewHolder {
-        TextView nick;
-    }
-
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
+        if (convertView == null)
+            convertView = inflater.inflate(android.R.layout.simple_list_item_1, parent, false);
+        TextView textview = (TextView) convertView;
 
-        ViewHolder holder;
-
-        if (convertView == null) {
-            convertView = inflater.inflate(R.layout.nicklist_item, null);
-            holder = new ViewHolder();
-            holder.nick = (TextView) convertView.findViewById(R.id.nicklist_nick);
-
-            convertView.setTag(holder);
-        } else {
-            holder = (ViewHolder) convertView.getTag();
-        }
-
-        holder.nick.setText(nickCache.get(position));
-
+        Buffer.Nick nick = getItem(position);
+        textview.setText(nick.prefix + nick.name);
         return convertView;
     }
 
-    @Override
-    public void onManyLinesAdded() {}
-
-    @Override
-    public void onLineAdded() {}
-
-    @Override
-    public void onBufferClosed() {}
-
-    @Override
     public void onNicklistChanged() {
-        Log.d(TAG, "onNicklistChanged()");
-        parentActivity.runOnUiThread(new Runnable() {
+        if (DEBUG) logger.debug("onNicklistChanged()");
+        final Buffer.Nick[] tmp = buffer.getNicksCopy();
+        final String title = String.format("%s (%s users)", buffer.short_name, tmp.length);
+        activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                nickCache = buffer.getNicks();
+                nicks = tmp;
                 notifyDataSetChanged();
+                dialog.setTitle(title);
             }
         });
     }
 
     @Override
-    public int getCount() {
-        if (nickCache == null) {
-            return 0;
-        }
-        return nickCache.size();
+    public void onShow(DialogInterface dialog) {
+        if (DEBUG) logger.debug("onShow()");
+        this.dialog = (AlertDialog) dialog;
+        buffer.setBufferNicklistEye(this);
+        onNicklistChanged();
+    }
+
+    @Override
+    public void onDismiss(DialogInterface dialog) {
+        if (DEBUG) logger.debug("onDismiss()");
+        buffer.setBufferNicklistEye(null);
     }
 }

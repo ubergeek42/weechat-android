@@ -1,5 +1,7 @@
 package com.ubergeek42.WeechatAndroid.service;
 
+import android.support.annotation.Nullable;
+
 import com.ubergeek42.weechat.relay.RelayConnection;
 import com.ubergeek42.weechat.relay.RelayMessageHandler;
 import com.ubergeek42.weechat.relay.protocol.Array;
@@ -92,7 +94,7 @@ public class BufferList {
         return new_bufs;
     }
 
-    synchronized public Buffer findByFullName(String full_name) {
+    synchronized public @Nullable Buffer findByFullName(@Nullable String full_name) {
         if (full_name == null) return null;
         for (Buffer buffer : buffers) if (buffer.full_name.equals(full_name)) return buffer;
         return null;
@@ -330,11 +332,16 @@ public class BufferList {
                 HdataEntry entry = data.getItem(i);
 
                 // find buffer
+                // if buffer doesn't hold all nicknames yet, break execution,
+                // since nicks will be requested anyway and we don't want to check if
+                // the nicknames are already there
                 Buffer buffer = findByPointer(entry.getPointerInt(0));
                 if (buffer == null) {
                     if (DEBUG) logger.warn("nicklist_watcher: no buffer to update!");
                     continue;
                 }
+                if (diff && !buffer.holds_all_nicks)
+                    continue;
 
                 // decide whether it's adding, removing or updating nicks
                 // if _nicklist, treat as if we have _diff = '+'

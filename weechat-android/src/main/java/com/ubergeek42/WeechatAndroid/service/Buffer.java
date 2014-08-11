@@ -2,6 +2,7 @@ package com.ubergeek42.WeechatAndroid.service;
 
 import android.graphics.Typeface;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -16,6 +17,7 @@ import android.text.style.URLSpan;
 import android.text.style.UnderlineSpan;
 import android.text.util.Linkify;
 
+import com.ubergeek42.WeechatAndroid.BuildConfig;
 import com.ubergeek42.weechat.Color;
 import com.ubergeek42.weechat.relay.protocol.Hashtable;
 import com.ubergeek42.weechat.relay.protocol.RelayObject;
@@ -36,7 +38,10 @@ import java.util.List;
 
 public class Buffer {
     private static Logger logger = LoggerFactory.getLogger("Buffer");
-    final private static boolean DEBUG = true;
+    final private static boolean DEBUG = BuildConfig.DEBUG && true;
+    final private static boolean DEBUG_BUFFER = DEBUG && true;
+    final private static boolean DEBUG_LINE = DEBUG && false;
+    final private static boolean DEBUG_NICK = DEBUG && false;
 
     final public static int PRIVATE = 2;
     final public static int CHANNEL = 1;
@@ -46,6 +51,7 @@ public class Buffer {
     public static BufferList buffer_list;
 
     private BufferEye buffer_eye;
+    private BufferNicklistEye buffer_nicklist_eye;
 
     public final int pointer;
     public String full_name, short_name, title;
@@ -80,11 +86,15 @@ public class Buffer {
         this.type = getBufferType();
         processBufferTitle();
         if (buffer_list.isSynced(full_name)) setOpen(true);
-        if (DEBUG) logger.warn("new Buffer(..., {}, {}, ...) is_open? {}", new Object[]{number, full_name, is_open});
+        if (DEBUG_BUFFER) logger.warn("new Buffer(..., {}, {}, ...) is_open? {}", new Object[]{number, full_name, is_open});
     }
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
     /** better call off the main thread */
-    synchronized public Line[] getLinesCopy() {return lines.toArray(new Line[lines.size()]);}
+    synchronized public @NonNull Line[] getLinesCopy() {return lines.toArray(new Line[lines.size()]);}
 
     /** better call off the main thread */
     synchronized public Line[] getLinesFilteredCopy() {
@@ -96,38 +106,41 @@ public class Buffer {
         return l;
     }
 
-    synchronized  public String[] getLastUsedNicksCopy() {
+    synchronized public @NonNull String[] getLastUsedNicksCopy() {
         return last_used_nicks.toArray(new String[last_used_nicks.size()]);
     }
 
     /** better call off the main thread */
     synchronized public void setOpen(boolean open) {
-        if (DEBUG) logger.warn("{} setOpen({})", short_name, open);
+        if (DEBUG_BUFFER) logger.warn("{} setOpen({})", short_name, open);
         if (this.is_open == open) return;
         this.is_open = open;
         if (open) {
             buffer_list.syncBuffer(full_name);
-            if (DEBUG) logger.error("...processMessageIfNeeded(): {}", (lines.size() > 0 && lines.getLast().spannable == null) ? "MOST LIKELY NEEDED: " + lines.size() : "nah");
+            if (DEBUG_BUFFER) logger.error("...processMessageIfNeeded(): {}", (lines.size() > 0 && lines.getLast().spannable == null) ? "MOST LIKELY NEEDED: " + lines.size() : "nah");
             for (Line line : lines) line.processMessageIfNeeded();
         }
         else {
             buffer_list.desyncBuffer(full_name);
-            if (DEBUG) logger.error("...eraseProcessedMessage()");
+            if (DEBUG_BUFFER) logger.error("...eraseProcessedMessage()");
             for (Line line : lines) line.eraseProcessedMessage();
         }
         buffer_list.notifyBuffersSlightlyChanged();
     }
 
-    synchronized public void setBufferEye(BufferEye buffer_eye) {
-        if (DEBUG) logger.warn("{} setBufferEye({})", short_name, buffer_eye);
+    synchronized public void setBufferEye(@Nullable BufferEye buffer_eye) {
+        if (DEBUG_BUFFER) logger.warn("{} setBufferEye({})", short_name, buffer_eye);
         this.buffer_eye = buffer_eye;
-        if (!holds_all_lines_it_is_supposed_to_hold && lines.size() < MAX_LINES)
-            buffer_list.requestLinesForBufferByPointer(pointer);
-        if (!holds_all_nicks)
-            buffer_list.requestNicklistForBufferByPointer(pointer);
+        if (buffer_eye != null) {
+            if (!holds_all_lines_it_is_supposed_to_hold && lines.size() < MAX_LINES)
+                buffer_list.requestLinesForBufferByPointer(pointer);
+            if (!holds_all_nicks)
+                buffer_list.requestNicklistForBufferByPointer(pointer);
+        }
     }
 
     synchronized public void setWatched(boolean watched) {
+        if (DEBUG_BUFFER) logger.warn("{} setWatched({})", short_name, watched);
         if (is_watched == watched) return;
         is_watched = watched;
         if (watched) resetUnreadsAndHighlights();
@@ -135,11 +148,12 @@ public class Buffer {
 
     /** to be called when options has changed and the messages should be processed */
     synchronized public void forceProcessAllMessages() {
-        if (DEBUG) logger.error("{} forceProcessAllMessages()", short_name);
+        if (DEBUG_BUFFER) logger.error("{} forceProcessAllMessages()", short_name);
         for (Line line : lines) line.processMessage();
     }
 
     synchronized public void resetUnreadsAndHighlights() {
+        if (DEBUG_BUFFER) logger.error("{} resetUnreadsAndHighlights()", short_name);
         if ((unreads | highlights) == 0) return;
         unreads = highlights = 0;
         buffer_list.notifyBuffersSlightlyChanged();
@@ -150,7 +164,7 @@ public class Buffer {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     synchronized public void addLine(final Line line, final boolean is_last) {
-        if (DEBUG) logger.warn("{} addLine('{}', {})", new Object[]{short_name, line.message, is_last});
+        if (DEBUG_LINE) logger.warn("{} addLine('{}', {})", new Object[]{short_name, line.message, is_last});
         for (Line l: lines) if (l.pointer == line.pointer) return;
 
         if (lines.size() > MAX_LINES) {if (lines.getFirst().visible) visible_lines_count--; lines.removeFirst();}
@@ -192,7 +206,7 @@ public class Buffer {
     }
 
     synchronized public void onBufferClosed() {
-        if (DEBUG) logger.warn("{} onBufferClosed() (buffer_eye = {})", short_name, buffer_eye);
+        if (DEBUG_BUFFER) logger.warn("{} onBufferClosed() (buffer_eye = {})", short_name, buffer_eye);
         if (buffer_eye != null) buffer_eye.onBufferClosed();
     }
 
@@ -231,27 +245,58 @@ public class Buffer {
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    synchronized public void addNick(int pointer, String prefix, String name) {
-        if (DEBUG) logger.debug("{} addNick({}, {}, {})", new Object[]{short_name, pointer, prefix, name});
-        nicks.add(new Nick(pointer, prefix, name));
+    synchronized public void setBufferNicklistEye(@Nullable BufferNicklistEye buffer_nicklist_eye) {
+        if (DEBUG_NICK) logger.warn("{} setBufferNicklistEye({})", short_name, buffer_nicklist_eye);
+        this.buffer_nicklist_eye = buffer_nicklist_eye;
+    }
+
+    synchronized public @NonNull Nick[] getNicksCopy() {
         sortNicks();
+        return nicks.toArray(new Nick[nicks.size()]);
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private void notifyNicklistChanged() {
+        if (buffer_nicklist_eye != null) buffer_nicklist_eye.onNicklistChanged();
+    }
+
+    private void sortNicks() {
+        Collections.sort(nicks, sortByNumberPrefixAndNameComparator);
+    }
+
+    private final Comparator<Nick> sortByNumberPrefixAndNameComparator = new Comparator<Nick>() {
+        @Override
+        public int compare(Nick n1, Nick n2) {
+            int diff = n2.prefix.compareTo(n1.prefix);
+            return (diff != 0) ? diff : n1.name.compareTo(n2.name);
+        }
+    };
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    synchronized public void addNick(int pointer, String prefix, String name) {
+        if (DEBUG_NICK) logger.debug("{} addNick({}, {}, {})", new Object[]{short_name, pointer, prefix, name});
+        nicks.add(new Nick(pointer, prefix, name));
         if (!last_used_nicks.contains(name)) last_used_nicks.addLast(name);
+        notifyNicklistChanged();
     }
 
     synchronized public void removeNick(int pointer) {
-        if (DEBUG) logger.debug("{} removeNick({})", new Object[]{short_name, pointer});
+        if (DEBUG_NICK) logger.debug("{} removeNick({})", new Object[]{short_name, pointer});
         for (Iterator<Nick> it = nicks.iterator(); it.hasNext();) {
             Nick nick = it.next();
             if (nick.pointer == pointer) {
                 it.remove();
                 last_used_nicks.remove(nick.name);
-                return;
+                break;
             }
         }
+        notifyNicklistChanged();
     }
 
     synchronized public void updateNick(int pointer, String prefix, String name) {
-        if (DEBUG) logger.debug("{} updateNick({}, {}, {})", new Object[]{short_name, pointer, prefix, name});
+        if (DEBUG_NICK) logger.debug("{} updateNick({}, {}, {})", new Object[]{short_name, pointer, prefix, name});
         for (Nick nick: nicks) {
             if (nick.pointer == pointer) {
                 int idx = last_used_nicks.indexOf(nick.name);
@@ -261,21 +306,8 @@ public class Buffer {
                 break;
             }
         }
-        sortNicks();
+        notifyNicklistChanged();
     }
-
-    private final Comparator<Nick> sortByNumberPrefixAndNameComparator = new Comparator<Nick>() {
-        @Override
-        public int compare(Nick n1, Nick n2) {
-            int diff = n1.prefix.compareTo(n2.prefix);
-            return (diff != 0) ? diff : n1.name.compareTo(n2.name);
-        }
-    };
-
-    private void sortNicks() {
-        Collections.sort(nicks, sortByNumberPrefixAndNameComparator);
-    }
-
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// Line
@@ -309,7 +341,7 @@ public class Buffer {
         // might not be present
         volatile public Spannable spannable = null;
 
-        public Line(int pointer, Date date, String prefix, String message,
+        public Line(int pointer, Date date, String prefix, @Nullable String message,
                           boolean displayed, boolean highlighted, String[] tags) {
             this.pointer = pointer;
             this.date = date;
@@ -341,17 +373,17 @@ public class Buffer {
         }
 
         public void eraseProcessedMessage() {
-            if (false && DEBUG) logger.warn("eraseProcessedMessage()");
+            if (DEBUG_LINE) logger.warn("eraseProcessedMessage()");
             spannable = null;
         }
 
         public void processMessageIfNeeded() {
-            if (false && DEBUG) logger.warn("processMessageIfNeeded()");
+            if (DEBUG_LINE) logger.warn("processMessageIfNeeded()");
             if (spannable == null) processMessage();
         }
 
         public void processMessage() {
-            if (false && DEBUG) logger.warn("processMessage()");
+            if (DEBUG_LINE) logger.warn("processMessage()");
             String timestamp = (DATEFORMAT == null) ? null : DATEFORMAT.format(date);
             Color.parse(timestamp, prefix, message, highlighted, MAX_WIDTH, ALIGN == ALIGN_RIGHT);
             Spannable spannable = new SpannableString(Color.clean_message);

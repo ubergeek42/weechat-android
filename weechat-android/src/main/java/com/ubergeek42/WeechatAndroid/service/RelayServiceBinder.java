@@ -18,6 +18,7 @@ package com.ubergeek42.WeechatAndroid.service;
 import java.security.cert.X509Certificate;
 
 import android.os.Binder;
+import android.support.annotation.Nullable;
 
 import com.ubergeek42.WeechatAndroid.BuildConfig;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
@@ -71,7 +72,7 @@ public class RelayServiceBinder extends Binder {
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public Buffer getBufferByFullName(String full_name) {
+    public @Nullable Buffer getBufferByFullName(@Nullable String full_name) {
         if (DEBUG) logger.warn("getBufferByFullName({})", full_name);
         return service.buffer_list.findByFullName(full_name);
     }

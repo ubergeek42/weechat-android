@@ -3,6 +3,7 @@ package com.ubergeek42.WeechatAndroid;
 
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -49,7 +50,7 @@ public class MainPagerAdapter extends PagerAdapter {
         }
     }
 
-    public String getFullNameAt(int i) {
+    public @NonNull String getFullNameAt(int i) {
         return full_names.get(i);
     }
 

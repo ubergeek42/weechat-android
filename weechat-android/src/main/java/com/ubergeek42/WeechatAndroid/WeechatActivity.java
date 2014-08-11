@@ -37,11 +37,14 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Looper;
 import android.preference.PreferenceManager;
+import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
+import android.text.Spannable;
 import android.view.LayoutInflater;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
 import com.actionbarsherlock.app.ActionBar;
@@ -330,6 +333,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     /** handle the options when the user presses the menu button */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        if (DEBUG) logger.debug("onOptionsItemSelected({})", item);
         switch (item.getItemId()) {
             case android.R.id.home: {
                 if (viewPager != null)
@@ -371,43 +375,29 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
                 break;
             }
             case R.id.menu_hotlist: {
-                if (relay != null && relay.isConnection(RelayService.CONNECTED)) {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                    builder.setTitle(R.string.hotlist);
-                    final HotlistListAdapter hla = new HotlistListAdapter(WeechatActivity.this, relay);
-                    builder.setAdapter(hla, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int position) {
-                            HotlistItem hotlistItem = hla.getItem(position);
-//                            String name = hotlistItem.getFullName();
-//                            openBuffer(name);
-                        }
-                    });
-                    builder.create().show();
-                }
+                // TODO
                 break;
             }
-            case R.id.menu_nicklist: {
-                BufferFragment currentBuffer = mainPagerAdapter.getCurrentBufferFragment();
-                if (currentBuffer == null)
-                    break;
-                ArrayList<String> nicks = null; // currentBuffer.getNicklist();
-                if (nicks == null)
-                    break;
+            case R.id.menu_nicklist:
+                if (relay == null) break;
+                Buffer buffer = relay.getBufferByFullName(mainPagerAdapter.getFullNameAt(viewPager.getCurrentItem()));
+                if (buffer == null) break;
 
-                NickListAdapter nicklistAdapter = new NickListAdapter(WeechatActivity.this, nicks);
+                NickListAdapter nicklistAdapter = new NickListAdapter(WeechatActivity.this, buffer);
 
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setTitle(getString(R.string.nicklist_menu) + " (" + nicks.size() + ")");
                 builder.setAdapter(nicklistAdapter, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int position) {
                         // TODO define something to happen here
                     }
                 });
-                builder.create().show();
+                AlertDialog dialog = builder.create();
+                dialog.setTitle("squirrels are awesome");
+                dialog.setOnShowListener(nicklistAdapter);
+                dialog.setOnDismissListener(nicklistAdapter);
+                dialog.show();
                 break;
-            }
         }
         return super.onOptionsItemSelected(item);
     }
