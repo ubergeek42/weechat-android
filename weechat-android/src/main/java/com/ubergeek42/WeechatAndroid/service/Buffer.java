@@ -174,8 +174,18 @@ public class Buffer {
 
         if (is_open) line.processMessage();
         if (!is_watched && is_last && notify_level >= 0) {
-            if (line.highlighted) highlights += 1;
-            else if (line.from_human) unreads += 1;
+            if (line.highlighted) {
+                highlights += 1;
+                BufferList.last_hot_line = line;
+                BufferList.last_hot_buffer = this;
+            }
+            else if (line.from_human) {
+                unreads += 1;
+                if (type == PRIVATE) {
+                    BufferList.last_hot_line = line;
+                    BufferList.last_hot_buffer = this;
+                }
+            }
             if (line.highlighted || line.from_human) buffer_list.notifyBuffersSlightlyChanged();
         }
         if (buffer_eye != null) buffer_eye.onLinesChanged();

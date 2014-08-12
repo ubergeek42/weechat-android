@@ -3,6 +3,7 @@ package com.ubergeek42.WeechatAndroid.service;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.IBinder;
+import android.support.annotation.Nullable;
 
 import com.ubergeek42.WeechatAndroid.BuildConfig;
 
@@ -111,6 +112,16 @@ public class RelayService extends RelayServiceBackbone {
     }
 
     public void doSomethingAboutNotifications() {
-
+        if (DEBUG) logger.warn("doSomethingAboutNotifications()");
+        if (hot_count == buffer_list.hot_count)
+            return;
+        boolean is_new_highlight = buffer_list.hot_count > hot_count;
+        hot_count = buffer_list.hot_count;
+        if (is_new_highlight && BufferList.last_hot_line != null) {
+            BufferList.last_hot_line.processMessageIfNeeded();
+            onHighlight(BufferList.last_hot_buffer.full_name, BufferList.last_hot_line.spannable.toString());
+        }
+        else
+            displayDefaultNotification();
     }
 }

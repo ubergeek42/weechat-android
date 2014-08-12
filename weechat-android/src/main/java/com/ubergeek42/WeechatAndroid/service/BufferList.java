@@ -36,7 +36,9 @@ public class BufferList {
 
     final static public LinkedHashSet<String> synced_buffers_full_names = new LinkedHashSet<String>();  // TODO race condition?
 
-    static public int hot_count = 0;
+    public int hot_count = 0;
+    static Buffer.Line last_hot_line = null;
+    static Buffer last_hot_buffer = null;
 
     final RelayService relay;
     final private RelayConnection connection;

@@ -136,8 +136,8 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
         public void onServiceConnected(ComponentName name, IBinder service) {           // TODO can this be called after Fragment.onStop()?
             if (DEBUG) logger.warn("onServiceConnected()");
             relay = (RelayServiceBinder) service;
-            if (relay.isConnection(RelayService.CONNECTED))
-                BufferListFragment.this.onConnect();
+            if (relay.isConnection(RelayService.BUFFERS_LISTED))
+                BufferListFragment.this.onBuffersListed();
             else
                 BufferListFragment.this.onDisconnect();
             relay.addRelayConnectionHandler(BufferListFragment.this);                   // connect/disconnect watcher
@@ -177,7 +177,18 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
      ** creates and updates the buffer list */
     @Override
     public void onConnect() {
-        if (DEBUG) logger.warn("onConnect(), buffer_list = {}", relay.getBufferList());
+        if (DEBUG) logger.warn("onConnect()");
+
+    }
+
+    @Override
+    public void onAuthenticated() {}
+
+    /** this is called when the list of buffers has been finalised
+     ** technically buffers should be listening to this but let's do it here for now... */
+    @Override
+    public void onBuffersListed() {
+        if (DEBUG) logger.warn("onBuffersListed()");
         buffer_list = relay.getBufferList();
         adapter = new BufferListAdapter(getActivity(), buffer_list);
         buffer_list.setBufferListEye(this);                                       // buffer change watcher
@@ -188,16 +199,6 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
             }
         });
         onBuffersChanged();
-    }
-
-    @Override
-    public void onAuthenticated() {}
-
-    /** this is called when the list of buffers has been finalised
-     ** technically buffers should be listening to this but let's do it here for now... */
-    @Override
-    public void onBuffersListed() {
-        logger.warn("onBuffersListed()");
     }
 
     /** called on actual disconnect even and from other methods
@@ -230,13 +231,14 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     public void onBuffersChanged() {
         if (DEBUG) logger.warn("onBuffersChanged()");
         adapter.onBuffersChanged();
+        ((WeechatActivity) getActivity()).maybeUpdateHotCount(buffer_list.hot_count);
     }
 
     @Override
     public void onBuffersSlightlyChanged() {
         if (DEBUG) logger.warn("onBuffersSlightlyChanged()");
         adapter.onBuffersSlightlyChanged();
-        ((WeechatActivity) getActivity()).setHotCount(BufferList.hot_count);
+        ((WeechatActivity) getActivity()).maybeUpdateHotCount(buffer_list.hot_count);
     }
 
     /////////////////////////

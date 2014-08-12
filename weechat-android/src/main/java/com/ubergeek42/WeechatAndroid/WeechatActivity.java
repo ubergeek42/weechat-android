@@ -189,9 +189,6 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
             if (relay.getBufferList() != null)
                 for (String full_name : BufferList.synced_buffers_full_names)
                     mainPagerAdapter.openBuffer(full_name, false);
-
-            // open the ui_buffer we want
-            handleIntent();
         }
 
         @Override
@@ -308,10 +305,11 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
 
     private int hot_number = 0;
 
-    public void setHotCount(int hot_number) {
-        if (this.hot_number == hot_number)
+    public void maybeUpdateHotCount(int new_hot_number) {
+        if (DEBUG) logger.debug("maybeUpdateHotCount(), relay = {}", relay);
+        if (hot_number == new_hot_number)
             return;
-        this.hot_number = hot_number;
+        hot_number = new_hot_number;
         invalidateOptionsMenu();
     }
 
@@ -319,7 +317,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
      ** http://developer.android.com/reference/android/app/Activity.html#onCreateOptionsMenu(android.view.Menu) **/
     @Override
     public boolean onCreateOptionsMenu(final Menu menu) {
-        if (false && DEBUG) logger.debug("onCreateOptionsMenu(...)");
+        if (DEBUG) logger.debug("onCreateOptionsMenu(...)");
         MenuInflater menuInflater = getSupportMenuInflater();
         menuInflater.inflate(R.menu.menu_actionbar, menu);
         View menu_hotlist = menu.findItem(R.id.menu_hotlist).getActionView();
