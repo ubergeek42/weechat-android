@@ -169,12 +169,12 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
         if (DEBUG) logger.warn("{} onStop()", full_name);
         super.onStop();
         if (relay != null) {
-            //if (buffer != null) relay.unsubscribeBuffer(buffer.full_name);            // unsubscribe
             relay.removeRelayConnectionHandler(BufferFragment.this);                // remove connect / disconnect watcher
             relay = null;
         }
         if (buffer != null) {
             buffer.setBufferEye(null);                                              // remove buffer watcher
+            buffer.setWatched(false);       // 123
             buffer = null;
         }
         if (DEBUG) logger.warn("...calling unbindService()");
@@ -273,7 +273,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
                 short_name = buffer.short_name;
                 chatlines_adapter = new ChatLinesAdapter(getActivity(), buffer);
                 buffer.setBufferEye(BufferFragment.this);                                       // buffer watcher
-                buffer.setWatched(visible);
+                buffer.setWatched(visible);                 // 123
                 chatlines_adapter.onLinesChanged();
                 registerForContextMenu(chatLines);
                 return true;

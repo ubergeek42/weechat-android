@@ -50,7 +50,6 @@ public abstract class AbstractConnection implements IConnection {
 
     @Override
     public void connect() {
-        System.out.println("abstract: 111 connect()");
         notifyHandlers(STATE.CONNECTING);
 
         if (connector.isAlive()) {
@@ -113,23 +112,18 @@ public abstract class AbstractConnection implements IConnection {
 
     @Override
     public void notifyHandlers(IConnection.STATE s) {
-        System.out.println("111  notifyHandlers(), handlers = " + connectionHandlers.size());
         for (RelayConnectionHandler rch: connectionHandlers) {
             switch (s) {
                 case CONNECTING:
-                    System.out.println("111 C O N N E C T I N G " + this);
                     rch.onConnecting();
                     break;
                 case CONNECTED:
-                    System.out.println("111 C O N N E C T E D "  + this);
                     rch.onConnect();
                     break;
                 case AUTHENTICATED:
-                    System.out.println("111 A U T H E N T I C A T E D " +  this);
                     rch.onAuthenticated();
                     break;
                 case DISCONNECTED:
-                    System.out.println("111 D I S C O N N E C T E D");
                     rch.onDisconnect();
                     break;
                 case ERROR:

@@ -117,10 +117,9 @@ public class RelayService extends RelayServiceBackbone {
             return;
         boolean is_new_highlight = buffer_list.hot_count > hot_count;
         hot_count = buffer_list.hot_count;
-        if (is_new_highlight && BufferList.last_hot_line != null) {
-            BufferList.last_hot_line.processMessageIfNeeded();
-            onHighlight(BufferList.last_hot_buffer.full_name, BufferList.last_hot_line.spannable.toString());
-        }
+        if (is_new_highlight && BufferList.last_hot_line != null)
+            displayHighlightNotification(BufferList.last_hot_buffer.full_name,
+                    BufferList.last_hot_line.getNotificationString());
         else
             displayDefaultNotification();
     }

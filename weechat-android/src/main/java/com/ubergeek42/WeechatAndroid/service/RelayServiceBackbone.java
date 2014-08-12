@@ -41,7 +41,6 @@ import com.ubergeek42.WeechatAndroid.BuildConfig;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.WeechatPreferencesActivity;
-import com.ubergeek42.WeechatAndroid.notifications.HotlistObserver;
 import com.ubergeek42.weechat.relay.RelayConnection;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
 import com.ubergeek42.weechat.relay.RelayMessageHandler;
@@ -55,7 +54,7 @@ import com.ubergeek42.weechat.relay.messagehandler.UpgradeObserver;
 import com.ubergeek42.weechat.relay.protocol.RelayObject;
 
 public class RelayServiceBackbone extends Service implements RelayConnectionHandler,
-        OnSharedPreferenceChangeListener, HotlistObserver, UpgradeObserver {
+        OnSharedPreferenceChangeListener, UpgradeObserver {
 
     private static Logger logger = LoggerFactory.getLogger("RelayServiceBackbone");
     final private static boolean DEBUG = BuildConfig.DEBUG && true;
@@ -288,8 +287,7 @@ public class RelayServiceBackbone extends Service implements RelayConnectionHand
         notificationManger.notify(NOTIFICATION_ID, buildNotification(tickerText, content, null, false));
     }
 
-    @Override
-    public void onHighlight(String full_name, String message) {
+    public void displayHighlightNotification(String full_name, String message) {
         if (DEBUG) logger.debug("onHighlight({}, {}", full_name, message);
         Intent intent = new Intent(this, WeechatActivity.class);
         intent.putExtra("full_name", full_name);

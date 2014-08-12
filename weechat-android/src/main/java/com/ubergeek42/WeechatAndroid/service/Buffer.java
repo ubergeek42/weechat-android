@@ -38,10 +38,10 @@ import java.util.List;
 
 public class Buffer {
     private static Logger logger = LoggerFactory.getLogger("Buffer");
-    final private static boolean DEBUG = BuildConfig.DEBUG && true;
-    final private static boolean DEBUG_BUFFER = DEBUG && true;
-    final private static boolean DEBUG_LINE = DEBUG && false;
-    final private static boolean DEBUG_NICK = DEBUG && false;
+    final private static boolean DEBUG = BuildConfig.DEBUG;
+    final private static boolean DEBUG_BUFFER = DEBUG;
+    final private static boolean DEBUG_LINE = DEBUG;
+    final private static boolean DEBUG_NICK = DEBUG;
 
     final public static int PRIVATE = 2;
     final public static int CHANNEL = 1;
@@ -91,13 +91,21 @@ public class Buffer {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// LINES
+    ////////////////////////////////////////////////////////////////////////////////////////////////    stuff called by the UI
+    ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    /** better call off the main thread */
-    synchronized public @NonNull Line[] getLinesCopy() {return lines.toArray(new Line[lines.size()]);}
 
-    /** better call off the main thread */
-    synchronized public Line[] getLinesFilteredCopy() {
+    /** get a copy of all 200 lines.
+     ** better call off the main thread */
+    synchronized public @NonNull Line[] getLinesCopy() {
+        return lines.toArray(new Line[lines.size()]);
+    }
+
+    /** get only lines that are not filtered using weechat filters.
+     ** better call off the main thread */
+    synchronized public @NonNull Line[] getLinesFilteredCopy() {
         Line[] l = new Line[visible_lines_count];
         int i = 0;
         for (Line line: lines) {
@@ -106,28 +114,43 @@ public class Buffer {
         return l;
     }
 
+    /** get a copy of last used nicknames
+     ** to be used by tab completion thingie */
     synchronized public @NonNull String[] getLastUsedNicksCopy() {
         return last_used_nicks.toArray(new String[last_used_nicks.size()]);
     }
 
-    /** better call off the main thread */
+    /** sets buffer as open or closed
+     ** an open buffer is such that:
+     **     has processed lines and processes lines as they come by
+     **     is synced
+     **     is marked as "open" in the buffer list fragment or wherever
+     ** that's it, really
+     ** can be called multiple times without harm
+     ** somewhat heavy, better be called off the main thread */
     synchronized public void setOpen(boolean open) {
         if (DEBUG_BUFFER) logger.warn("{} setOpen({})", short_name, open);
         if (this.is_open == open) return;
         this.is_open = open;
         if (open) {
             buffer_list.syncBuffer(full_name);
-            if (DEBUG_BUFFER) logger.error("...processMessageIfNeeded(): {}", (lines.size() > 0 && lines.getLast().spannable == null) ? "MOST LIKELY NEEDED: " + lines.size() : "nah");
             for (Line line : lines) line.processMessageIfNeeded();
         }
         else {
             buffer_list.desyncBuffer(full_name);
-            if (DEBUG_BUFFER) logger.error("...eraseProcessedMessage()");
             for (Line line : lines) line.eraseProcessedMessage();
         }
         buffer_list.notifyBuffersSlightlyChanged();
     }
 
+    /** set buffer eye, i.e. something that watches buffer events
+     ** also requests all lines and nicknames, if needed (usually only done once per buffer)
+     ** we are requesting it here and not in setOpen() because:
+     **     when the process gets killed and restored, we want to receive messages, including
+     **     notifications, for that buffer. BUT the user might not visit that buffer at all.
+     **     so we request lines and nicks upon user actually (getting close to) opening the buffer.
+     ** we are requesting nicks along with the lines because:
+     **     nick completion */
     synchronized public void setBufferEye(@Nullable BufferEye buffer_eye) {
         if (DEBUG_BUFFER) logger.warn("{} setBufferEye({})", short_name, buffer_eye);
         this.buffer_eye = buffer_eye;
@@ -139,6 +162,9 @@ public class Buffer {
         }
     }
 
+    /** tells Buffer if it is ACTIVELY display on screen
+     ** affects the way buffer advertises highlights/unreads count and notifications
+     ** can be called multiple times without harm */
     synchronized public void setWatched(boolean watched) {
         if (DEBUG_BUFFER) logger.warn("{} setWatched({})", short_name, watched);
         if (is_watched == watched) return;
@@ -146,53 +172,58 @@ public class Buffer {
         if (watched) resetUnreadsAndHighlights();
     }
 
-    /** to be called when options has changed and the messages should be processed */
+    /** called when options has changed and the messages should be processed */
     synchronized public void forceProcessAllMessages() {
         if (DEBUG_BUFFER) logger.error("{} forceProcessAllMessages()", short_name);
         for (Line line : lines) line.processMessage();
     }
 
-    synchronized public void resetUnreadsAndHighlights() {
-        if (DEBUG_BUFFER) logger.error("{} resetUnreadsAndHighlights()", short_name);
-        if ((unreads | highlights) == 0) return;
-        unreads = highlights = 0;
-        buffer_list.notifyBuffersSlightlyChanged();
-    }
-
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// stuff called by message handlers
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     synchronized public void addLine(final Line line, final boolean is_last) {
         if (DEBUG_LINE) logger.warn("{} addLine('{}', {})", new Object[]{short_name, line.message, is_last});
+
+        // check if the line in question is already in the buffer
+        // happens when reverse request throws in lines even though some are already here
         for (Line l: lines) if (l.pointer == line.pointer) return;
 
+        // remove a line if we are over the limit and add the new line
+        // correct visible_lines_count accordingly
         if (lines.size() > MAX_LINES) {if (lines.getFirst().visible) visible_lines_count--; lines.removeFirst();}
         if (is_last) lines.add(line);
         else lines.addFirst(line);
         if (line.visible) visible_lines_count++;
 
+        // calculate spannable, if needed
         if (is_open) line.processMessage();
+
+        // for messages that ARRIVE AS WE USE THE APPLICATION:
+        // set unreads / highlights and notify BufferList
+        // if the number of messages has increased, something will be wise enough to use
+        //      provided by setMostRecentHotLine()
+        // we are not using OLDER messages arriving from reverse request as well because
+        //      unreads and highlights is filled by hotlist request
         if (!is_watched && is_last && notify_level >= 0) {
             if (line.highlighted) {
                 highlights += 1;
-                BufferList.last_hot_line = line;
-                BufferList.last_hot_buffer = this;
+                BufferList.setMostRecentHotLine(this, line);
+                buffer_list.notifyBuffersSlightlyChanged();
             }
-            else if (line.from_human) {
+            else if (line.from_human_and_visible) {
                 unreads += 1;
-                if (type == PRIVATE) {
-                    BufferList.last_hot_line = line;
-                    BufferList.last_hot_buffer = this;
-                }
+                if (type == PRIVATE) BufferList.setMostRecentHotLine(this, line);
+                buffer_list.notifyBuffersSlightlyChanged();
             }
-            if (line.highlighted || line.from_human) buffer_list.notifyBuffersSlightlyChanged();
         }
+
+        // notify our listener
         if (buffer_eye != null) buffer_eye.onLinesChanged();
 
         // this is a line that comes with a nickname (at all times?)
         // change snicks accordingly, placing last used nickname first
-        if (line.from_human)
+        if (line.from_human_and_visible)
             for (String tag : line.tags)
                 if (tag.startsWith("nick_")) {
                     String nick = tag.substring(5);
@@ -216,10 +247,13 @@ public class Buffer {
     }
 
     synchronized public void onBufferClosed() {
-        if (DEBUG_BUFFER) logger.warn("{} onBufferClosed() (buffer_eye = {})", short_name, buffer_eye);
+        if (DEBUG_BUFFER) logger.warn("{} onBufferClosed()", short_name);
         if (buffer_eye != null) buffer_eye.onBufferClosed();
     }
 
+    //////////////////////////////////////////////////////////////////////////////////////////////// private stuffs
+
+    /** determine if the buffer is PRIVATE, CHANNEL, or OTHER */
     private int getBufferType() {
         RelayObject type = local_vars.get("type");
         if (type == null) return OTHER;
@@ -233,7 +267,7 @@ public class Buffer {
     private final static RelativeSizeSpan SMALL2 = new RelativeSizeSpan(0.6f);
     private final static int EX = Spanned.SPAN_EXCLUSIVE_EXCLUSIVE;
 
-    public void processBufferTitle() {
+    private void processBufferTitle() {
         Spannable spannable;
         final String number = Integer.toString(this.number) + " ";
         spannable = new SpannableString(number + short_name);
@@ -251,10 +285,24 @@ public class Buffer {
         }
     }
 
+    /** sets highlights/unreads to 0 and,
+     ** if something has actually changed, notifies whoever cares about it */
+    synchronized public void resetUnreadsAndHighlights() {
+        if (DEBUG_BUFFER) logger.error("{} resetUnreadsAndHighlights()", short_name);
+        if ((unreads | highlights) == 0) return;
+        unreads = highlights = 0;
+        buffer_list.notifyBuffersSlightlyChanged();
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// NICKS
+    ////////////////////////////////////////////////////////////////////////////////////////////////    stuff called by the UI
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
+    /** sets and removes a single nicklist watcher
+     ** used to notify of nicklist changes as new nicks arrive and others quit */
     synchronized public void setBufferNicklistEye(@Nullable BufferNicklistEye buffer_nicklist_eye) {
         if (DEBUG_NICK) logger.warn("{} setBufferNicklistEye({})", short_name, buffer_nicklist_eye);
         this.buffer_nicklist_eye = buffer_nicklist_eye;
@@ -266,23 +314,7 @@ public class Buffer {
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    private void notifyNicklistChanged() {
-        if (buffer_nicklist_eye != null) buffer_nicklist_eye.onNicklistChanged();
-    }
-
-    private void sortNicks() {
-        Collections.sort(nicks, sortByNumberPrefixAndNameComparator);
-    }
-
-    private final Comparator<Nick> sortByNumberPrefixAndNameComparator = new Comparator<Nick>() {
-        @Override
-        public int compare(Nick n1, Nick n2) {
-            int diff = n2.prefix.compareTo(n1.prefix);
-            return (diff != 0) ? diff : n1.name.compareTo(n2.name);
-        }
-    };
-
+    //////////////////////////////////////////////////////////////////////////////////////////////// called by event handlers
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     synchronized public void addNick(int pointer, String prefix, String name) {
@@ -319,8 +351,32 @@ public class Buffer {
         notifyNicklistChanged();
     }
 
+    //////////////////////////////////////////////////////////////////////////////////////////////// private stuffs
+
+    synchronized private void notifyNicklistChanged() {
+        if (buffer_nicklist_eye != null) buffer_nicklist_eye.onNicklistChanged();
+    }
+
+    private void sortNicks() {
+        Collections.sort(nicks, sortByNumberPrefixAndNameComparator);
+    }
+
+    /** this comparator sorts by prefix first
+     ** sorting by prefix is done in a dumb way, this will order prexis like this:
+     **      ' ', '%', '&', '+', '@'
+     ** well. it's almost good... */
+    private final static Comparator<Nick> sortByNumberPrefixAndNameComparator = new Comparator<Nick>() {
+        @Override public int compare(Nick n1, Nick n2) {
+            int diff = n2.prefix.compareTo(n1.prefix);
+            return (diff != 0) ? diff : n1.name.compareTo(n2.name);
+        }
+    };
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// Line
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// Buffer.Line CLASS
+    ////////////////////////////////////////////////////////////////////////////////////////////////    really should've put that into a separate file, but—
+    ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     public static class Line {
@@ -343,13 +399,13 @@ public class Buffer {
 
         // additional data
         final public boolean visible;
-        final public boolean from_human;
+        final public boolean from_human_and_visible;
         final public boolean highlighted;
         final private String[] tags;
 
         // processed data
         // might not be present
-        volatile public Spannable spannable = null;
+        volatile public @Nullable Spannable spannable = null;
 
         public Line(int pointer, Date date, String prefix, @Nullable String message,
                           boolean displayed, boolean highlighted, String[] tags) {
@@ -360,10 +416,7 @@ public class Buffer {
             this.visible = displayed;
             this.highlighted = highlighted;
             this.tags = tags;
-
-            from_human = findOutIfFromHuman();
-
-            //logger.warn("NEWLINE: [{}/{}] {} ", new Object[]{from_human, highlighted, message});
+            from_human_and_visible = findOutIfFromHuman();
         }
 
         private boolean findOutIfFromHuman() {
@@ -371,7 +424,7 @@ public class Buffer {
             if (!visible) return false;
 
             // there's no tags, probably it's an old version of weechat, so we err
-            // on the safe side and treat it as from_human
+            // on the safe side and treat it as from human
             if (tags == null) return true;
 
             // Every "message" to user should have one or more of these tags
@@ -381,6 +434,8 @@ public class Buffer {
             return list.contains("notify_message") || list.contains("notify_highlight")
                     || list.contains("notify_private");
         }
+
+        //////////////////////////////////////////////////////////////////////////////////////////// processing stuff
 
         public void eraseProcessedMessage() {
             if (DEBUG_LINE) logger.warn("eraseProcessedMessage()");
@@ -392,23 +447,27 @@ public class Buffer {
             if (spannable == null) processMessage();
         }
 
+        /** process the message and create a spannable object according to settings
+         ** TODO: reuse span objects (how? would that do any good?)
+         ** the problem is that one has to use distinct spans on the same string
+         ** TODO: allow variable width font (should be simple enough */
         public void processMessage() {
             if (DEBUG_LINE) logger.warn("processMessage()");
             String timestamp = (DATEFORMAT == null) ? null : DATEFORMAT.format(date);
             Color.parse(timestamp, prefix, message, highlighted, MAX_WIDTH, ALIGN == ALIGN_RIGHT);
             Spannable spannable = new SpannableString(Color.clean_message);
 
-            Object javaspan;
+            Object droid_span;
             for (Color.Span span : Color.final_span_list) {
                 switch (span.type) {
-                    case Color.Span.FGCOLOR:   javaspan = new ForegroundColorSpan(span.color | 0xFF000000); break;
-                    case Color.Span.BGCOLOR:   javaspan = new BackgroundColorSpan(span.color | 0xFF000000); break;
-                    case Color.Span.ITALIC:    javaspan = new StyleSpan(Typeface.ITALIC);                   break;
-                    case Color.Span.BOLD:      javaspan = new StyleSpan(Typeface.BOLD);                     break;
-                    case Color.Span.UNDERLINE: javaspan = new UnderlineSpan();                              break;
+                    case Color.Span.FGCOLOR:   droid_span = new ForegroundColorSpan(span.color | 0xFF000000); break;
+                    case Color.Span.BGCOLOR:   droid_span = new BackgroundColorSpan(span.color | 0xFF000000); break;
+                    case Color.Span.ITALIC:    droid_span = new StyleSpan(Typeface.ITALIC);                   break;
+                    case Color.Span.BOLD:      droid_span = new StyleSpan(Typeface.BOLD);                     break;
+                    case Color.Span.UNDERLINE: droid_span = new UnderlineSpan();                              break;
                     default: continue;
                 }
-                spannable.setSpan(javaspan, span.start, span.end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                spannable.setSpan(droid_span, span.start, span.end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             }
 
             if (ALIGN != ALIGN_NONE) {
@@ -416,6 +475,7 @@ public class Buffer {
                 spannable.setSpan(margin_span, 0, spannable.length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
             }
 
+            // now this is extremely stupid.
             Linkify.addLinks(spannable, Linkify.WEB_URLS);
             for (URLSpan urlspan : spannable.getSpans(0, spannable.length(), URLSpan.class)) {
                 spannable.setSpan(new URLSpan2(urlspan.getURL()), spannable.getSpanStart(urlspan), spannable.getSpanEnd(urlspan), 0);
@@ -424,21 +484,43 @@ public class Buffer {
 
             this.spannable = spannable;
         }
-    }
 
-    private static class URLSpan2 extends URLSpan {
-        public URLSpan2(String url) {super(url);}
+        /** is to be run rarely—only when we need to display a notification */
+        public String getNotificationString() {
+            boolean action = false;
+            for (String tag: tags)
+                if (tag.endsWith("action")) {
+                    action = true;
+                    break;
+                }
+            return String.format(action ? "%s %s" : "<%s> %s",
+                    Color.stripEverything(prefix),
+                    Color.stripEverything(message));
+        }
 
-        @Override
-        public void updateDrawState(@NonNull TextPaint ds) {ds.setUnderlineText(true);}
+        //////////////////////////////////////////////////////////////////////////////////////////// private stuffs
+
+        /** just an url span that doesn't change the color of the link */
+        private static class URLSpan2 extends URLSpan {
+            public URLSpan2(String url) {
+                super(url);
+            }
+
+            @Override public void updateDrawState(@NonNull TextPaint ds) {
+                ds.setUnderlineText(true);
+            }
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// Nick
+    ////////////////////////////////////////////////////////////////////////////////////////////////    wow such abstracshun
+    ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     public static class Nick {
-        public int pointer;
+        public final int pointer;
         public String prefix;
         public String name;
 
