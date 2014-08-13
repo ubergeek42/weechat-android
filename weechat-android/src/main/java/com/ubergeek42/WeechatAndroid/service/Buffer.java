@@ -39,9 +39,9 @@ import java.util.List;
 public class Buffer {
     private static Logger logger = LoggerFactory.getLogger("Buffer");
     final private static boolean DEBUG = BuildConfig.DEBUG;
-    final private static boolean DEBUG_BUFFER = DEBUG;
-    final private static boolean DEBUG_LINE = DEBUG;
-    final private static boolean DEBUG_NICK = DEBUG;
+    final private static boolean DEBUG_BUFFER = false;
+    final private static boolean DEBUG_LINE = false;
+    final private static boolean DEBUG_NICK = false;
 
     final public static int PRIVATE = 2;
     final public static int CHANNEL = 1;

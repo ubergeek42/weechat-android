@@ -64,6 +64,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     
     private static Logger logger = LoggerFactory.getLogger("WA");
     final private static boolean DEBUG = BuildConfig.DEBUG && true;
+    final private static boolean DEBUG_OPTIONS_MENU = false;
 
     public RelayServiceBinder relay;
     private SocketToggleConnection connection_state_toggler;
@@ -123,7 +124,6 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
 
         setTitle(getString(R.string.app_version));
 
-        // TODO: make notification load the right ui_buffer
         // TODO: add preference to hide the TitlePageIndicator
     }
 
@@ -189,6 +189,11 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
             if (relay.getBufferList() != null)
                 for (String full_name : BufferList.synced_buffers_full_names)
                     mainPagerAdapter.openBuffer(full_name, false);
+
+            if (buffer_to_open_from_intent != null) {
+                openBuffer(buffer_to_open_from_intent, true);
+                buffer_to_open_from_intent = null;
+            }
         }
 
         @Override
@@ -295,18 +300,31 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     ///////////////////////// other fragment methods
     /////////////////////////
 
+    private String buffer_to_open_from_intent = null;
+
+    /** when we get an intent, do something with it
+     ** apparently on certain systems android passes an extra key "profile"
+     ** containing an android.os.UserHandle object, so it might be non-null
+     ** even if doesn't contain "buffers" */
     @Override
     protected void onNewIntent(Intent intent) {
         if (DEBUG) logger.debug("onNewIntent({})", intent);
         super.onNewIntent(intent);
-        setIntent(intent);
-        handleIntent();
+
+        Bundle extras = intent.getExtras();
+        if (extras != null) {
+            String full_name = extras.getString("full_name");
+            if (full_name != null) {
+                if (relay != null) openBuffer(full_name, true);
+                else buffer_to_open_from_intent = extras.getString("full_name");
+            }
+        }
     }
 
     private int hot_number = 0;
 
     public void maybeUpdateHotCount(int new_hot_number) {
-        if (DEBUG) logger.debug("maybeUpdateHotCount(), relay = {}", relay);
+        if (DEBUG_OPTIONS_MENU) logger.debug("maybeUpdateHotCount(), relay = {}", relay);
         if (hot_number == new_hot_number)
             return;
         hot_number = new_hot_number;
@@ -317,7 +335,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
      ** http://developer.android.com/reference/android/app/Activity.html#onCreateOptionsMenu(android.view.Menu) **/
     @Override
     public boolean onCreateOptionsMenu(final Menu menu) {
-        if (DEBUG) logger.debug("onCreateOptionsMenu(...)");
+        if (DEBUG_OPTIONS_MENU) logger.debug("onCreateOptionsMenu(...)");
         MenuInflater menuInflater = getSupportMenuInflater();
         menuInflater.inflate(R.menu.menu_actionbar, menu);
         View menu_hotlist = menu.findItem(R.id.menu_hotlist).getActionView();
@@ -341,7 +359,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-        if (false && DEBUG) logger.debug("onPrepareOptionsMenu(...)");
+        if (DEBUG_OPTIONS_MENU) logger.debug("onPrepareOptionsMenu(...)");
         super.onPrepareOptionsMenu(menu);
         boolean buffer_visible = !(phone_mode && viewPager.getCurrentItem() == 0);
         menu.findItem(R.id.menu_nicklist).setVisible(buffer_visible);
@@ -352,7 +370,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     /** handle the options when the user presses the menu button */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (DEBUG) logger.debug("onOptionsItemSelected({})", item);
+        if (DEBUG_OPTIONS_MENU) logger.debug("onOptionsItemSelected({})", item);
         switch (item.getItemId()) {
             case android.R.id.home: {
                 if (viewPager != null)
@@ -419,26 +437,6 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
                 break;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    /////////////////////////
-    ///////////////////////// private stuff
-    /////////////////////////
-
-    /** when we get an intent, do something with it
-     ** apparently on certain systems android passes an extra key "profile"
-     ** containing an android.os.UserHandle object, so it might be non-null
-     ** even if doesn't contain "buffers" */
-    private void handleIntent() {
-        if (DEBUG) logger.debug("handleIntent()");
-        Bundle extras = getIntent().getExtras();
-        if (extras != null) {
-            String full_name = extras.getString("full_name");
-            if (full_name != null) {
-                if (DEBUG) logger.debug("handleIntent(): opening ui_buffer '{}' from extras", full_name);
-                openBuffer(full_name, true);
-            }
-        }
     }
 
     /** change first menu item from connect to disconnect or back depending on connection status */
