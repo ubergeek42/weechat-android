@@ -92,9 +92,10 @@ public class BufferList {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     synchronized public @NonNull ArrayList<Buffer> getBufferListCopy() {
+        sortBuffers();
         ArrayList<Buffer> new_bufs = new ArrayList<Buffer>();
         for (Buffer buffer : buffers) {
-            if (FILTER_NONHUMAN_BUFFERS && buffer.type == Buffer.OTHER) continue;
+            if (FILTER_NONHUMAN_BUFFERS && buffer.type == Buffer.OTHER && buffer.highlights == 0 && buffer.unreads == 0) continue;
             if (FILTER != null && !buffer.full_name.toLowerCase().contains(FILTER)) continue;
             new_bufs.add(buffer);
         }
@@ -118,23 +119,32 @@ public class BufferList {
 
     /** called when a buffer has been added or removed */
     synchronized private void notifyBuffersChanged() {
-        sortBuffers();
         computeHotCount();
         if (buffers_eye != null) buffers_eye.onBuffersChanged();
         relay.doSomethingAboutNotifications();
     }
 
-    /** called when buffer data has been changed, but the no of buffers is the same */
-    synchronized void notifyBuffersSlightlyChanged() {
+    /** called when buffer data has been changed, but the no of buffers is the same
+     ** other_messages_changed signifies if buffer type is OTHER and message count has changed
+     ** used to temporarily display the said buffer if OTHER buffers are filtered */
+    synchronized void notifyBuffersSlightlyChanged(boolean other_messages_changed) {
         computeHotCount();
-        if (buffers_eye != null) buffers_eye.onBuffersSlightlyChanged();
+        if (buffers_eye != null) {
+            if (other_messages_changed && FILTER_NONHUMAN_BUFFERS)
+                buffers_eye.onBuffersChanged();
+            else
+                buffers_eye.onBuffersSlightlyChanged();
+        }
         relay.doSomethingAboutNotifications();
+    }
+
+    synchronized void notifyBuffersSlightlyChanged() {
+        notifyBuffersSlightlyChanged(false);
     }
 
     /** called when no buffers has been added or removed, but
      ** buffer changes are such that we should reorder the buffer list */
     synchronized private void notifyBufferPropertiesChanged(Buffer buffer) {
-        sortBuffers();
         buffer.onPropertiesChanged();
         if (buffers_eye != null) buffers_eye.onBuffersChanged();
     }

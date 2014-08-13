@@ -209,12 +209,12 @@ public class Buffer {
             if (line.highlighted) {
                 highlights += 1;
                 BufferList.setMostRecentHotLine(this, line);
-                buffer_list.notifyBuffersSlightlyChanged();
+                buffer_list.notifyBuffersSlightlyChanged(type == OTHER);
             }
             else if (line.from_human_and_visible) {
                 unreads += 1;
                 if (type == PRIVATE) BufferList.setMostRecentHotLine(this, line);
-                buffer_list.notifyBuffersSlightlyChanged();
+                buffer_list.notifyBuffersSlightlyChanged(type == OTHER);
             }
         }
 
@@ -291,7 +291,7 @@ public class Buffer {
         if (DEBUG_BUFFER) logger.error("{} resetUnreadsAndHighlights()", short_name);
         if ((unreads | highlights) == 0) return;
         unreads = highlights = 0;
-        buffer_list.notifyBuffersSlightlyChanged();
+        buffer_list.notifyBuffersSlightlyChanged(true);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
