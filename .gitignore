@@ -1,5 +1,6 @@
 # Android
 local.properties
+*.apk
 
 # Android Studio/InteliJ IDEA
 .idea

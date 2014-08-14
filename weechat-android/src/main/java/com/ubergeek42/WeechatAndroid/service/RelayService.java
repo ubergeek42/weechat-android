@@ -15,6 +15,7 @@
  ******************************************************************************/
 package com.ubergeek42.WeechatAndroid.service;
 
+import android.annotation.TargetApi;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -23,6 +24,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
+import android.os.Build;
 import android.os.IBinder;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
@@ -235,6 +237,7 @@ public class RelayService extends Service implements RelayConnectionHandler,
         showNotification(null, getString(R.string.notification_connected_to) + host);
     }
 
+    @TargetApi(16)
     private Notification buildNotification(String tickerText, String content, PendingIntent intent) {
         PendingIntent contentIntent;
         if (intent == null) {
@@ -249,7 +252,9 @@ public class RelayService extends Service implements RelayConnectionHandler,
                 .setTicker(tickerText).setWhen(System.currentTimeMillis());
 
         final Notification notification = builder.build();
-        notification.priority = Notification.PRIORITY_MIN;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            notification.priority = Notification.PRIORITY_MIN;
+        }
         notification.flags |= Notification.FLAG_ONGOING_EVENT;
         return notification;
     }
