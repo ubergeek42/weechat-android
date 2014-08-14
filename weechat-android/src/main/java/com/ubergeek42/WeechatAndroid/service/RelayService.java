@@ -29,6 +29,10 @@ import android.os.IBinder;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.TextUtils;
+import android.text.style.StyleSpan;
 
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
@@ -51,11 +55,15 @@ import com.ubergeek42.weechat.relay.messagehandler.NicklistHandler;
 import com.ubergeek42.weechat.relay.messagehandler.UpgradeHandler;
 import com.ubergeek42.weechat.relay.messagehandler.UpgradeObserver;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.security.cert.X509Certificate;
+import java.text.SimpleDateFormat;
 import java.util.HashSet;
 
 public class RelayService extends Service implements RelayConnectionHandler,
@@ -63,7 +71,7 @@ public class RelayService extends Service implements RelayConnectionHandler,
 
     private static Logger logger = LoggerFactory.getLogger(RelayService.class);
     private static final int NOTIFICATION_ID = 42;
-    private static final int NOTIFICATION_HIGHTLIGHT_ID = 43;
+    public static final int NOTIFICATION_HIGHTLIGHT_ID = 43;
 
     private NotificationManager notificationManger;
 
@@ -440,10 +448,62 @@ public class RelayService extends Service implements RelayConnectionHandler,
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0, i,
                 PendingIntent.FLAG_UPDATE_CURRENT);
 
+        Intent dismissIntent = new Intent("com.ubergeek42.WeechatAndroid.REMOVE_ALL_SAVED_HIGHLIGHTS");
+        dismissIntent.setPackage(getPackageName());
+
+        PendingIntent dismissPI = PendingIntent.getBroadcast(this, 0, dismissIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
         builder.setContentIntent(contentIntent).setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(getString(R.string.highlight)).setContentText(message)
-                .setTicker(message).setWhen(System.currentTimeMillis());
+                .setTicker(message).setWhen(System.currentTimeMillis())
+                .setAutoCancel(true)
+                .setDeleteIntent(dismissPI);
+
+
+        //Generating a JSONObject for current highlight
+
+        final JSONObject currentHighlight = new JSONObject();
+        try {
+            currentHighlight.put("text", message);
+            currentHighlight.put("timestamp", System.currentTimeMillis());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        //Using an Inbox notification if there is more than 1 highlight
+        final String previousHighlights = prefs.getString("previous_highlights", "");
+        if (!TextUtils.isEmpty(previousHighlights)) {
+            NotificationCompat.InboxStyle inboxStyle = new NotificationCompat.InboxStyle();
+
+            try {
+                JSONArray highlights = new JSONArray(previousHighlights);
+                SimpleDateFormat format = new SimpleDateFormat(prefs.getString("timestamp_format", "HH:mm:ss"));
+                for (int j = 0; j < highlights.length(); j++) {
+                    JSONObject highlight = highlights.getJSONObject(j);
+
+                    final String timestamp = format.format(highlight.getLong("timestamp"));
+                    final Spannable line = new SpannableString(timestamp + " " + highlight.getString("text"));
+                    line.setSpan(new StyleSpan(android.graphics.Typeface.BOLD), 0, timestamp.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                    inboxStyle.addLine(line);
+
+                }
+
+                inboxStyle.setSummaryText("");
+                builder.setContentInfo(String.valueOf(highlights.length()));
+                builder.setStyle(inboxStyle);
+
+                highlights.put(currentHighlight);
+                prefs.edit().putString("previous_highlights", highlights.toString()).commit();
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        } else {
+            JSONArray highlights = new JSONArray();
+            highlights.put(currentHighlight);
+            prefs.edit().putString("previous_highlights", highlights.toString()).commit();
+        }
 
         Notification notification = builder.build();
 

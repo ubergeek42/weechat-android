@@ -15,24 +15,16 @@
  ******************************************************************************/
 package com.ubergeek42.WeechatAndroid;
 
-import java.security.cert.CertPath;
-import java.security.cert.CertPathValidatorException;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-
-import javax.net.ssl.SSLException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import android.app.AlertDialog;
+import android.app.NotificationManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
@@ -54,6 +46,17 @@ import com.ubergeek42.WeechatAndroid.service.RelayServiceBinder;
 import com.ubergeek42.weechat.HotlistItem;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
 import com.viewpagerindicator.TitlePageIndicator;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.security.cert.CertPath;
+import java.security.cert.CertPathValidatorException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+
+import javax.net.ssl.SSLException;
 
 public class WeechatActivity extends SherlockFragmentActivity implements RelayConnectionHandler, OnBufferSelectedListener, OnPageChangeListener {
     
@@ -135,6 +138,22 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         // TODO: make notification load the right buffer
         // TODO: add preference to hide the TitlePageIndicator
     }
+
+    @Override
+    protected void onResume() {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        if (Build.VERSION.SDK_INT >= 9) {
+            prefs.edit().putString("previous_highlights", "").apply();
+        } else {
+            prefs.edit().putString("previous_highlights", "").commit();
+        }
+
+        String ns = Context.NOTIFICATION_SERVICE;
+        NotificationManager nMgr = (NotificationManager) getApplicationContext().getSystemService(ns);
+        nMgr.cancel(RelayService.NOTIFICATION_HIGHTLIGHT_ID);
+        super.onResume();
+    }
+
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
