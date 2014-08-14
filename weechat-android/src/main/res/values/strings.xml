@@ -117,4 +117,5 @@
 	    to assist in having this issue resolved, please click Ok to send details about the crash to the developer.
 	    Note: Usernames/passwords will not be sent.</string>
     <string name="crash_dialog_comment_prompt">Any additional comments(or your email if you\'d like a reply):</string>
+    <string name="highlight">Hightlight</string>
 </resources>
