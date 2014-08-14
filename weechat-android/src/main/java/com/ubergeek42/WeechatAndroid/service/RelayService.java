@@ -15,24 +15,6 @@
  ******************************************************************************/
 package com.ubergeek42.WeechatAndroid.service;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.util.HashSet;
-
-import javax.net.ssl.TrustManagerFactory;
-import javax.net.ssl.X509TrustManager;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -67,12 +49,20 @@ import com.ubergeek42.weechat.relay.messagehandler.NicklistHandler;
 import com.ubergeek42.weechat.relay.messagehandler.UpgradeHandler;
 import com.ubergeek42.weechat.relay.messagehandler.UpgradeObserver;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.security.cert.X509Certificate;
+import java.util.HashSet;
+
 public class RelayService extends Service implements RelayConnectionHandler,
         OnSharedPreferenceChangeListener, HotlistObserver, UpgradeObserver {
 
     private static Logger logger = LoggerFactory.getLogger(RelayService.class);
-
     private static final int NOTIFICATION_ID = 42;
+    private static final int NOTIFICATION_HIGHTLIGHT_ID = 43;
+
     private NotificationManager notificationManger;
 
     boolean optimize_traffic = false;
@@ -258,7 +248,10 @@ public class RelayService extends Service implements RelayConnectionHandler,
                 .setContentTitle(getString(R.string.app_version)).setContentText(content)
                 .setTicker(tickerText).setWhen(System.currentTimeMillis());
 
-        return builder.getNotification();
+        final Notification notification = builder.build();
+        notification.priority = Notification.PRIORITY_MIN;
+        notification.flags |= Notification.FLAG_ONGOING_EVENT;
+        return notification;
     }
 
     private void showNotification(String tickerText, String content, PendingIntent intent) {
@@ -444,18 +437,17 @@ public class RelayService extends Service implements RelayConnectionHandler,
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
         builder.setContentIntent(contentIntent).setSmallIcon(R.drawable.ic_notification)
-                .setContentTitle(getString(R.string.app_version)).setContentText(message)
+                .setContentTitle(getString(R.string.highlight)).setContentText(message)
                 .setTicker(message).setWhen(System.currentTimeMillis());
 
-        Notification notification = builder.getNotification();
-        notification.flags |= Notification.FLAG_ONGOING_EVENT | Notification.FLAG_NO_CLEAR;
+        Notification notification = builder.build();
 
         // Default notification sound if enabled
         if (prefs.getBoolean("notification_sounds", false)) {
             notification.defaults |= Notification.DEFAULT_SOUND;
         }
 
-        notificationManger.notify(NOTIFICATION_ID, notification);
+        notificationManger.notify(NOTIFICATION_HIGHTLIGHT_ID, notification);
     }
 
     @Override
