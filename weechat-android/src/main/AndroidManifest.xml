@@ -23,5 +23,10 @@
         <activity android:name=".SSLCertActivity"></activity>
         <activity android:name=".WeechatPreferencesActivity"></activity>
         <activity android:name=".WeechatAboutActivity"></activity>
+        <receiver android:name=".notifications.NotificationReceiver" >
+            <intent-filter>
+                <action android:name="com.ubergeek42.WeechatAndroid.REMOVE_ALL_SAVED_HIGHLIGHTS" />
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>
