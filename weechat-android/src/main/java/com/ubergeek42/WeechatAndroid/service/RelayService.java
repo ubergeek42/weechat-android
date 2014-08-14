@@ -475,6 +475,7 @@ public class RelayService extends Service implements RelayConnectionHandler,
         final String previousHighlights = prefs.getString("previous_highlights", "");
         if (!TextUtils.isEmpty(previousHighlights)) {
             NotificationCompat.InboxStyle inboxStyle = new NotificationCompat.InboxStyle();
+            builder.setContentTitle(getString(R.string.highlights));
 
             try {
                 JSONArray highlights = new JSONArray(previousHighlights);
