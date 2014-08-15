@@ -71,7 +71,7 @@ public class RelayService extends Service implements RelayConnectionHandler,
 
     private static Logger logger = LoggerFactory.getLogger(RelayService.class);
     private static final int NOTIFICATION_ID = 42;
-    public static final int NOTIFICATION_HIGHTLIGHT_ID = 43;
+    public static final int NOTIFICATION_HIGHLIGHT_ID = 43;
 
     private NotificationManager notificationManger;
 
@@ -519,7 +519,7 @@ public class RelayService extends Service implements RelayConnectionHandler,
             notification.defaults |= Notification.DEFAULT_SOUND;
         }
 
-        notificationManger.notify(NOTIFICATION_HIGHTLIGHT_ID, notification);
+        notificationManger.notify(NOTIFICATION_HIGHLIGHT_ID, notification);
     }
 
     @Override

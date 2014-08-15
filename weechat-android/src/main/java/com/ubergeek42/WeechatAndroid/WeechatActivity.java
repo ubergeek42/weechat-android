@@ -150,7 +150,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
 
         String ns = Context.NOTIFICATION_SERVICE;
         NotificationManager nMgr = (NotificationManager) getApplicationContext().getSystemService(ns);
-        nMgr.cancel(RelayService.NOTIFICATION_HIGHTLIGHT_ID);
+        nMgr.cancel(RelayService.NOTIFICATION_HIGHLIGHT_ID);
         super.onResume();
     }
 
