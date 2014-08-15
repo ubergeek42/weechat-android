@@ -27,14 +27,17 @@ import org.slf4j.LoggerFactory;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 public class Buffer {
     private static Logger logger = LoggerFactory.getLogger("Buffer");
@@ -61,8 +64,7 @@ public class Buffer {
     private LinkedList<Line> lines = new LinkedList<Line>();
     private int visible_lines_count = 0;
 
-    private List<Nick> nicks = new ArrayList<Nick>();
-    private LinkedList<String> last_used_nicks = new LinkedList<String>();
+    private LinkedList<Nick> nicks = new LinkedList<Nick>();
 
     public boolean is_open = false;
     public boolean is_watched = false;
@@ -117,7 +119,10 @@ public class Buffer {
     /** get a copy of last used nicknames
      ** to be used by tab completion thingie */
     synchronized public @NonNull String[] getLastUsedNicksCopy() {
-        return last_used_nicks.toArray(new String[last_used_nicks.size()]);
+        String[] out = new String[nicks.size()];
+        int i = 0;
+        for (Nick nick : nicks) out[i++] = nick.name;
+        return out;
     }
 
     /** sets buffer as open or closed
@@ -182,6 +187,7 @@ public class Buffer {
     //////////////////////////////////////////////////////////////////////////////////////////////// stuff called by message handlers
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
+    private final Nick dummy_nick = new Nick(0, null, null);
     synchronized public void addLine(final Line line, final boolean is_last) {
         if (DEBUG_LINE) logger.warn("{} addLine('{}', {})", new Object[]{short_name, line.message, is_last});
 
@@ -221,23 +227,19 @@ public class Buffer {
         // notify our listener
         if (buffer_eye != null) buffer_eye.onLinesChanged();
 
-        // this is a line that comes with a nickname (at all times?)
-        // change snicks accordingly, placing last used nickname first
-        if (line.from_human_and_visible)
-            for (String tag : line.tags)
-                if (tag.startsWith("nick_")) {
-                    String nick = tag.substring(5);
-                    if (is_last) {
-                        last_used_nicks.remove(nick);
-                        last_used_nicks.addFirst(nick);
-                    }
-                    else {
-                        // this should run before addNick stuff
-                        if (!last_used_nicks.contains(nick))
-                            last_used_nicks.addLast(nick);
-                    }
+        // if current line's an event line and we've got a speaker, move nick to fist position
+        // nick in question is supposed to be in the nicks already, for we only shuffle these
+        // nicks when someone spoke, i.e. NOT when user joins.
+        String name = line.findSpeakingNick();
+        if (name != null && is_last)
+            for (Iterator<Nick> it = nicks.iterator(); it.hasNext(); ) {
+                Nick nick = it.next();
+                if (name.equals(nick.name)) {
+                    it.remove();
+                    nicks.addFirst(nick);
                     break;
                 }
+            }
     }
 
     synchronized public void onPropertiesChanged() {
@@ -320,17 +322,14 @@ public class Buffer {
     synchronized public void addNick(int pointer, String prefix, String name) {
         if (DEBUG_NICK) logger.debug("{} addNick({}, {}, {})", new Object[]{short_name, pointer, prefix, name});
         nicks.add(new Nick(pointer, prefix, name));
-        if (!last_used_nicks.contains(name)) last_used_nicks.addLast(name);
         notifyNicklistChanged();
     }
 
     synchronized public void removeNick(int pointer) {
         if (DEBUG_NICK) logger.debug("{} removeNick({})", new Object[]{short_name, pointer});
         for (Iterator<Nick> it = nicks.iterator(); it.hasNext();) {
-            Nick nick = it.next();
-            if (nick.pointer == pointer) {
+            if (it.next().pointer == pointer) {
                 it.remove();
-                last_used_nicks.remove(nick.name);
                 break;
             }
         }
@@ -341,14 +340,33 @@ public class Buffer {
         if (DEBUG_NICK) logger.debug("{} updateNick({}, {}, {})", new Object[]{short_name, pointer, prefix, name});
         for (Nick nick: nicks) {
             if (nick.pointer == pointer) {
-                int idx = last_used_nicks.indexOf(nick.name);
-                if (idx != -1) last_used_nicks.set(idx, name);
                 nick.prefix = prefix;
                 nick.name = name;
                 break;
             }
         }
         notifyNicklistChanged();
+    }
+
+    synchronized public void sortNicksByLines() {
+        if (DEBUG_NICK) logger.debug("{} sortNicksByLines({})", short_name);
+        final HashMap<String, Integer> name_to_position = new HashMap<String, Integer>();
+
+        for (int i = lines.size() - 1; i >= 0; i--) {
+            String name = lines.get(i).findSpeakingNick();
+            if (name != null && !name_to_position.containsKey(name))
+                name_to_position.put(name, name_to_position.size());
+        }
+
+        Collections.sort(nicks, new Comparator<Nick>() {
+            @Override public int compare(Nick left, Nick right) {
+                Integer l = name_to_position.get(left.name);
+                Integer r = name_to_position.get(right.name);
+                if (l == null) l = Integer.MAX_VALUE;
+                if (r == null) r = Integer.MAX_VALUE;
+                return l - r;
+            }
+        });
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////// private stuffs
@@ -433,6 +451,14 @@ public class Buffer {
             final List list = Arrays.asList(tags);
             return list.contains("notify_message") || list.contains("notify_highlight")
                     || list.contains("notify_private");
+        }
+
+        private @Nullable String findSpeakingNick() {
+            if (!from_human_and_visible) return null;
+            for (String tag : tags)
+                if (tag.startsWith("nick_"))
+                    return tag.substring(5);
+            return null;
         }
 
         //////////////////////////////////////////////////////////////////////////////////////////// processing stuff

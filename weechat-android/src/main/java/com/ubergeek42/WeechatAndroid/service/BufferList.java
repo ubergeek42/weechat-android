@@ -371,6 +371,7 @@ public class BufferList {
         @Override
         public void handleMessage(RelayObject obj, String id) {
             if (DEBUG_HANDLERS) logger.debug("nicklist_watcher:handleMessage(..., {})", id);
+            Buffer buffer = null;
             Hdata data = (Hdata) obj;
             boolean diff = id.equals("_nicklist_diff");
             for (int i = 0, size = data.getCount(); i < size; i++) {
@@ -380,7 +381,7 @@ public class BufferList {
                 // if buffer doesn't hold all nicknames yet, break execution,
                 // since nicks will be requested anyway and we don't want to check if
                 // the nicknames are already there
-                Buffer buffer = findByPointer(entry.getPointerInt(0));
+                buffer = findByPointer(entry.getPointerInt(0));
                 if (buffer == null) {
                     if (DEBUG_HANDLERS) logger.warn("nicklist_watcher: no buffer to update!");
                     continue;
@@ -408,7 +409,10 @@ public class BufferList {
                 } else if (command == REMOVE) {
                     buffer.removeNick(entry.getPointerInt());
                 }
-                if (!diff) buffer.holds_all_nicks = true;                           // setting it earlier doesn't really harm
+            }
+            if (!diff && buffer != null) {
+                buffer.holds_all_nicks = true;
+                buffer.sortNicksByLines();
             }
         }
     };
