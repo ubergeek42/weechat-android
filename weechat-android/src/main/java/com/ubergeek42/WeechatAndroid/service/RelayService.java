@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright 2012 Keith Johnson
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -76,7 +76,7 @@ public class RelayService extends Service implements RelayConnectionHandler,
     private NotificationManager notificationManger;
 
     boolean optimize_traffic = false;
-    
+
     String host;
     int port;
     String pass;
@@ -122,19 +122,18 @@ public class RelayService extends Service implements RelayConnectionHandler,
         //showNotification(null, "Tap to connect");
 
 
-
-        startForeground(NOTIFICATION_ID, buildNotification(null,"Tap to connect", null));
+        startForeground(NOTIFICATION_ID, buildNotification(null, "Tap to connect", null));
 
         disconnected = false;
 
         // Prepare for dealing with SSL certs
         certmanager = new SSLHandler(new File(getDir("sslDir", Context.MODE_PRIVATE), "keystore.jks"));
-        
+
         if (prefs.getBoolean("autoconnect", false)) {
             connect();
         }
     }
-    
+
 
     @Override
     public void onDestroy() {
@@ -171,7 +170,7 @@ public class RelayService extends Service implements RelayConnectionHandler,
         sshPass = prefs.getString("ssh_pass", "");
         sshPort = prefs.getString("ssh_port", "22");
         sshKeyfile = prefs.getString("ssh_keyfile", "");
-        
+
         optimize_traffic = prefs.getBoolean("optimize_traffic", false);
 
         // If no host defined, signal them to edit their preferences
@@ -181,8 +180,8 @@ public class RelayService extends Service implements RelayConnectionHandler,
                     PendingIntent.FLAG_CANCEL_CURRENT);
 
             showNotification(getString(R.string.notification_update_settings_details),
-                             getString(R.string.notification_update_settings),
-                             contentIntent);
+                    getString(R.string.notification_update_settings),
+                    contentIntent);
             return false;
         }
 
@@ -270,6 +269,7 @@ public class RelayService extends Service implements RelayConnectionHandler,
     private void showNotification(String tickerText, String content, PendingIntent intent) {
         notificationManger.notify(NOTIFICATION_ID, buildNotification(tickerText, content, intent));
     }
+
     private void showNotification(String tickerText, String content) {
         notificationManger.notify(NOTIFICATION_ID, buildNotification(tickerText, content, null));
     }
@@ -281,12 +281,12 @@ public class RelayService extends Service implements RelayConnectionHandler,
             return;
         }
         reconnector = new Thread(new Runnable() {
-            long delays[] = new long[] { 0, 5, 15, 30, 60, 120, 300, 600, 900 };
+            long delays[] = new long[]{0, 5, 15, 30, 60, 120, 300, 600, 900};
             int numReconnects = 0;// how many times we've tried this...
 
             @Override
             public void run() {
-                for (;;) {
+                for (; ; ) {
                     long currentDelay = 0;
                     if (numReconnects >= delays.length) {
                         currentDelay = delays[delays.length - 1];
@@ -294,7 +294,7 @@ public class RelayService extends Service implements RelayConnectionHandler,
                         currentDelay = delays[numReconnects];
                     }
                     if (currentDelay > 0) {
-                        showNotification(getString(R.string.notification_reconnecting), String.format(getString(R.string.notification_reconnecting_details),currentDelay));
+                        showNotification(getString(R.string.notification_reconnecting), String.format(getString(R.string.notification_reconnecting_details), currentDelay));
                     }
                     // Sleep for a bit
                     SystemClock.sleep(currentDelay * 1000);
@@ -329,7 +329,7 @@ public class RelayService extends Service implements RelayConnectionHandler,
             showNotification(getString(R.string.notification_reconnected_to) + host, getString(R.string.notification_connected_to) + host);
         } else {
             String tmp = getString(R.string.notification_connected_to) + host;
-            showNotification(tmp,tmp);
+            showNotification(tmp, tmp);
         }
         disconnected = false;
 
@@ -398,10 +398,10 @@ public class RelayService extends Service implements RelayConnectionHandler,
         if (!shutdown && prefs.getBoolean("reconnect", true)) {
             reconnect();
             String tmp = getString(R.string.notification_reconnecting);
-            showNotification(tmp,tmp);
+            showNotification(tmp, tmp);
         } else {
             String tmp = getString(R.string.notification_disconnected);
-            showNotification(tmp,tmp);
+            showNotification(tmp, tmp);
         }
     }
 
@@ -480,18 +480,24 @@ public class RelayService extends Service implements RelayConnectionHandler,
             try {
                 JSONArray highlights = new JSONArray(previousHighlights);
                 SimpleDateFormat format = new SimpleDateFormat(prefs.getString("timestamp_format", "HH:mm:ss"));
-                for (int j = 0; j < highlights.length(); j++) {
+
+                String timestamp = format.format(currentHighlight.getLong("timestamp"));
+                Spannable line = new SpannableString(timestamp + " " + currentHighlight.getString("text"));
+                line.setSpan(new StyleSpan(android.graphics.Typeface.BOLD), 0, timestamp.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                inboxStyle.addLine(line);
+
+                for (int j = highlights.length()-1; j >= 0; j--) {
                     JSONObject highlight = highlights.getJSONObject(j);
 
-                    final String timestamp = format.format(highlight.getLong("timestamp"));
-                    final Spannable line = new SpannableString(timestamp + " " + highlight.getString("text"));
+                    timestamp = format.format(highlight.getLong("timestamp"));
+                    line = new SpannableString(timestamp + " " + highlight.getString("text"));
                     line.setSpan(new StyleSpan(android.graphics.Typeface.BOLD), 0, timestamp.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                     inboxStyle.addLine(line);
 
                 }
 
                 inboxStyle.setSummaryText("");
-                builder.setContentInfo(String.valueOf(highlights.length()));
+                builder.setContentInfo(String.valueOf(highlights.length()+1));
                 builder.setStyle(inboxStyle);
 
                 highlights.put(currentHighlight);
