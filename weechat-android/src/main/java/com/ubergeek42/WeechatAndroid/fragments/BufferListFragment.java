@@ -38,7 +38,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
         BufferListEye, OnSharedPreferenceChangeListener {
 
     private static Logger logger = LoggerFactory.getLogger("BufferListFragment");
-    final private static boolean DEBUG = BuildConfig.DEBUG && true;
+    final private static boolean DEBUG = BuildConfig.DEBUG;
 
     private static final String[] empty_list = { "Press Menu->Connect to get started" };
 
@@ -49,9 +49,9 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     private EditText bufferlistFilter;
     private SharedPreferences prefs;
 
-    /////////////////////////
-    ///////////////////////// lifecycle
-    /////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// lifecycle
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     /** This makes sure that the container activity has implemented
      ** the callback interface. If not, it throws an exception. */
@@ -127,9 +127,9 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
         getActivity().unbindService(service_connection);                                // TODO safe to call?
     }
 
-    /////////////////////////
-    /////////////////////////
-    /////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// service connection
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     ServiceConnection service_connection = new ServiceConnection() {
         @Override
@@ -151,47 +151,36 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
         }
     };
 
-    /////////////////////////
-    ///////////////////////// method of android.support.v4.app.ListFragment
-    /////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// on click
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     /** this is the mother method, it actually opens buffers */
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
         if (DEBUG) logger.warn("onListItemClick(..., ..., {}, ...)", position);
         Object obj = getListView().getItemAtPosition(position);
-        if (obj instanceof Buffer) {
-            Buffer buffer = (Buffer) obj;
-            ((WeechatActivity) getActivity()).openBuffer(buffer.full_name, true);
-        }
+        if (obj instanceof Buffer)
+            ((WeechatActivity) getActivity()).openBuffer(((Buffer) obj).full_name, true);
     }
 
-    /////////////////////////
-    ///////////////////////// methods of RelayConnectionHandler
-    /////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// RelayConnectionHandler
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @Override
-    public void onConnecting() {}
+    @Override public void onConnecting() {}
 
-    /** called on actual connection event and from other methods
-     ** creates and updates the buffer list */
-    @Override
-    public void onConnect() {
-        if (DEBUG) logger.warn("onConnect()");
+    @Override public void onConnect() {}
 
-    }
+    @Override public void onAuthenticated() {}
 
-    @Override
-    public void onAuthenticated() {}
-
-    /** this is called when the list of buffers has been finalised
-     ** technically buffers should be listening to this but let's do it here for now... */
+    /** this is called when the list of buffers has been finalised */
     @Override
     public void onBuffersListed() {
         if (DEBUG) logger.warn("onBuffersListed()");
         buffer_list = relay.getBufferList();
         adapter = new BufferListAdapter(getActivity(), buffer_list);
-        buffer_list.setBufferListEye(this);                                       // buffer change watcher
+        buffer_list.setBufferListEye(this);
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -218,35 +207,32 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
         }
     }
 
-    /** do nothing: activity is handling errors */
-    @Override
-    public void onError(String err, Object extraInfo) {}
+    @Override public void onError(String err, Object extraInfo) {}
 
-    /////////////////////////
-    ///////////////////////// BuffersChangedObserver
-    /////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// BufferListEye
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    /** TODO */
-    @Override
-    public void onBuffersChanged() {
+    @Override public void onBuffersChanged() {
         if (DEBUG) logger.warn("onBuffersChanged()");
         adapter.onBuffersChanged();
-        ((WeechatActivity) getActivity()).maybeUpdateHotCount(buffer_list.hot_count);
     }
 
-    @Override
-    public void onBuffersSlightlyChanged() {
+    @Override public void onBuffersSlightlyChanged() {
         if (DEBUG) logger.warn("onBuffersSlightlyChanged()");
         adapter.onBuffersSlightlyChanged();
-        ((WeechatActivity) getActivity()).maybeUpdateHotCount(buffer_list.hot_count);
     }
 
-    /////////////////////////
-    ///////////////////////// other
-    /////////////////////////
+    @Override public void onHotCountChanged() {
+        if (DEBUG) logger.warn("onHotCountChanged()");
+        ((WeechatActivity) getActivity()).updateHotCount(buffer_list.hot_count);
+    }
 
-    @Override
-         public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// other
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    @Override public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         if (DEBUG) logger.warn("onSharedPreferenceChanged()");
         if (key.equals("show_buffer_filter"))
             bufferlistFilter.setVisibility(prefs.getBoolean("show_buffer_filter", false) ? View.VISIBLE : View.GONE);
@@ -254,15 +240,12 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
 
     /** TextWatcher object used for filtering the buffer list */
     private TextWatcher filterTextWatcher = new TextWatcher() {
-        @Override
-        public void afterTextChanged(Editable a) {}
+        @Override public void afterTextChanged(Editable a) {}
 
-        @Override
-        public void beforeTextChanged(CharSequence arg0, int a, int b, int c) {}
+        @Override public void beforeTextChanged(CharSequence arg0, int a, int b, int c) {}
 
-        @Override
-        public void onTextChanged(CharSequence s, int start, int before, int count) {
-            if (false && DEBUG) logger.warn("onTextChanged({}, ...)", s);
+        @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+            if (DEBUG) logger.warn("onTextChanged({}, ...)", s);
             if (adapter != null) {
                 BufferList.FILTER = (s.length() == 0) ? null : s.toString();
                 adapter.onBuffersChanged();

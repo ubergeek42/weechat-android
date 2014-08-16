@@ -54,7 +54,8 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
         TextView.OnEditorActionListener {
 
     private static Logger logger = LoggerFactory.getLogger("BufferFragment");
-    final private static boolean DEBUG = BuildConfig.DEBUG && true;
+    final private static boolean DEBUG = BuildConfig.DEBUG;
+    final private static boolean DEBUG_TAB_COMPLETE = false;
 
     private ListView chatLines;
     private EditText inputBox;
@@ -78,7 +79,6 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
 
     // Preference things
     private SharedPreferences prefs;
-    private boolean PREF_ENABLE_TAB_COMPLETE = true;
 
     /////////////////////////
     ///////////////////////// lifecycle
@@ -137,7 +137,6 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
             throw new AssertionError("shit shouldn't be empty");
 
         prefs.registerOnSharedPreferenceChangeListener(this);
-        PREF_ENABLE_TAB_COMPLETE = prefs.getBoolean("tab_completion", true);
         if (DEBUG) logger.warn("...calling bindService()");
         getActivity().bindService(new Intent(getActivity(), RelayService.class), service_connection,
                 Context.BIND_AUTO_CREATE);
@@ -271,7 +270,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
                 // and the name should be accessible between calls to this function
                 short_name = buffer.short_name;
                 chatlines_adapter = new ChatLinesAdapter(getActivity(), buffer);
-                buffer.setBufferEye(BufferFragment.this);                                       // buffer watcher
+                buffer.setBufferEye(BufferFragment.this);   // buffer watcher TODO: java.lang.NullPointerException ?!?!
                 buffer.setWatched(visible);                 // 123
                 chatlines_adapter.onLinesChanged();
                 registerForContextMenu(chatLines);
@@ -409,9 +408,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     /** the only OnSharedPreferenceChangeListener's method */
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        if (key.equals("tab_completion"))
-            PREF_ENABLE_TAB_COMPLETE = prefs.getBoolean("tab_completion", true);
-        else if (key.equals("sendbtn_show") && sendButton != null)
+        if (key.equals("sendbtn_show") && sendButton != null)
             sendButton.setVisibility(prefs.getBoolean("sendbtn_show", true) ? View.VISIBLE : View.GONE);
         else if (key.equals("tabbtn_show") && tabButton != null)
             tabButton.setVisibility(prefs.getBoolean("tabbtn_show", true) ? View.VISIBLE : View.GONE);
@@ -442,8 +439,8 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     
     /** attempts to perform tab completion on the current input */
     private void tryTabComplete() {
+        if (DEBUG_TAB_COMPLETE) logger.warn("tryTabComplete()");
         if (buffer == null) return;
-        if (!PREF_ENABLE_TAB_COMPLETE) return;
 
         String txt = inputBox.getText().toString();
         if (!tc_inprogress) {
@@ -492,10 +489,6 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
         // so this is the last thing we do in this function:
         tc_inprogress = true;
     }
-
-//    public ArrayList<String> getNicklist() {
-//        return nicks;
-//    }
 
     public String getShortBufferName() {
         return short_name;
@@ -556,17 +549,15 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     ///////////////////////// TextWatcher stuff
     /////////////////////////
 
-    @Override
-    public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+    @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
-    @Override
-    public void onTextChanged(CharSequence s, int start, int before, int count) {}
+    @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
 
     /** invalidate tab completion progress on input box text change
      ** tryTabComplete() will set it back if it modified the text causing this function to run */
     @Override
     public void afterTextChanged(Editable s) {
-        if (false && DEBUG) logger.warn("{} afterTextChanged(...)", full_name);
+        if (DEBUG_TAB_COMPLETE) logger.warn("{} afterTextChanged(...)", full_name);
         tc_inprogress = false;
     }
 }

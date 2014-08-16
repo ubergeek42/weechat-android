@@ -111,18 +111,11 @@ public class RelayService extends RelayServiceBackbone {
             BufferList.FILTER_NONHUMAN_BUFFERS = prefs.getBoolean("filter_nonhuman_buffers", false);
     }
 
-    public void doSomethingAboutNotifications() {
-        if (DEBUG) logger.warn("doSomethingAboutNotifications()");
-        if (hot_count == buffer_list.hot_count)
-            return;
-        boolean is_new_highlight = buffer_list.hot_count > hot_count;
-        hot_count = buffer_list.hot_count;
-        if (is_new_highlight && BufferList.last_hot_line != null) {
-            displayHighlightNotification(BufferList.last_hot_buffer.full_name,
-                    BufferList.last_hot_line.getNotificationString());
-            BufferList.last_hot_buffer = null;
-            BufferList.last_hot_line = null;
-        }
+    public void changeNotification(boolean new_highlight, int new_hot_count, @Nullable Buffer buffer, @Nullable Buffer.Line line) {
+        if (DEBUG) logger.warn("changeNotification({}, {}, {}, {})", new Object[]{new_highlight, new_hot_count, buffer, line});
+        hot_count = new_hot_count;
+        if (new_highlight && buffer != null && line != null)
+            displayHighlightNotification(buffer.full_name, line.getNotificationString());
         else
             displayDefaultNotification();
     }

@@ -119,23 +119,21 @@ public class BufferList {
 
     /** called when a buffer has been added or removed */
     synchronized private void notifyBuffersChanged() {
-        computeHotCount();
+        checkIfHotCountHasChanged();
         if (buffers_eye != null) buffers_eye.onBuffersChanged();
-        relay.doSomethingAboutNotifications();
     }
 
     /** called when buffer data has been changed, but the no of buffers is the same
      ** other_messages_changed signifies if buffer type is OTHER and message count has changed
      ** used to temporarily display the said buffer if OTHER buffers are filtered */
     synchronized void notifyBuffersSlightlyChanged(boolean other_messages_changed) {
-        computeHotCount();
+        checkIfHotCountHasChanged();
         if (buffers_eye != null) {
             if (other_messages_changed && FILTER_NONHUMAN_BUFFERS)
                 buffers_eye.onBuffersChanged();
             else
                 buffers_eye.onBuffersSlightlyChanged();
         }
-        relay.doSomethingAboutNotifications();
     }
 
     synchronized void notifyBuffersSlightlyChanged() {
@@ -210,16 +208,29 @@ public class BufferList {
     //////////////////////////////////////////////////////////////////////////////////////////////// private stuffs
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private void computeHotCount() {
+    private void checkIfHotCountHasChanged() {
+        if (DEBUG) logger.warn("checkIfHotCountHasChanged()");
         int hot = 0;
         for (Buffer buffer : buffers) {
             hot += buffer.highlights;
             if (buffer.type == Buffer.PRIVATE) hot += buffer.unreads;
         }
-        hot_count = hot;
+        if (hot != hot_count) {
+            boolean new_highlight = hot > hot_count;
+            boolean must_switch_icon = hot == 0 || hot_count == 0;
+            hot_count = hot;
+            if (buffers_eye != null)
+                buffers_eye.onHotCountChanged();
+            if (new_highlight) {
+                relay.changeNotification(true, hot, last_hot_buffer, last_hot_line);
+                last_hot_buffer = null;
+                last_hot_line = null;
+            } else if (must_switch_icon)
+                relay.changeNotification(false, hot, null, null);
+        }
     }
 
-    synchronized private Buffer findByPointer(int pointer) {
+    synchronized private @Nullable Buffer findByPointer(int pointer) {
         for (Buffer buffer : buffers) if (buffer.pointer == pointer) return buffer;
         return null;
     }

@@ -38,8 +38,7 @@ import java.util.List;
 
 public class Buffer {
     private static Logger logger = LoggerFactory.getLogger("Buffer");
-    final private static boolean DEBUG = BuildConfig.DEBUG;
-    final private static boolean DEBUG_BUFFER = false;
+    final private static boolean DEBUG_BUFFER = BuildConfig.DEBUG;
     final private static boolean DEBUG_LINE = false;
     final private static boolean DEBUG_NICK = false;
 
@@ -291,7 +290,7 @@ public class Buffer {
         if (DEBUG_BUFFER) logger.error("{} resetUnreadsAndHighlights()", short_name);
         if ((unreads | highlights) == 0) return;
         unreads = highlights = 0;
-        buffer_list.notifyBuffersSlightlyChanged(true);
+        buffer_list.notifyBuffersSlightlyChanged(type == OTHER);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -417,14 +416,14 @@ public class Buffer {
         final public boolean visible;
         final public boolean from_human_and_visible;
         final public boolean highlighted;
-        final private String[] tags;
+        final private @Nullable String[] tags;
 
         // processed data
         // might not be present
         volatile public @Nullable Spannable spannable = null;
 
         public Line(int pointer, Date date, String prefix, @Nullable String message,
-                          boolean displayed, boolean highlighted, String[] tags) {
+                          boolean displayed, boolean highlighted, @Nullable String[] tags) {
             this.pointer = pointer;
             this.date = date;
             this.prefix = prefix;
@@ -452,7 +451,7 @@ public class Buffer {
         }
 
         private @Nullable String findSpeakingNick() {
-            if (!from_human_and_visible) return null;
+            if (!from_human_and_visible || tags == null) return null;
             for (String tag : tags)
                 if (tag.startsWith("nick_"))
                     return tag.substring(5);
@@ -512,11 +511,12 @@ public class Buffer {
         /** is to be run rarely—only when we need to display a notification */
         public String getNotificationString() {
             boolean action = false;
-            for (String tag: tags)
-                if (tag.endsWith("action")) {
-                    action = true;
-                    break;
-                }
+            if (tags != null)
+                for (String tag: tags)
+                    if (tag.endsWith("action")) {
+                        action = true;
+                        break;
+                    }
             return String.format(action ? "%s %s" : "<%s> %s",
                     Color.stripEverything(prefix),
                     Color.stripEverything(message));
