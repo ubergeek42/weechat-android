@@ -1,6 +1,5 @@
 package com.ubergeek42.WeechatAndroid.fragments;
 
-import java.util.ArrayList;
 import java.util.Vector;
 
 import org.slf4j.Logger;
@@ -470,10 +469,8 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
             // if computed list is empty, abort
             tc_matches = new Vector<String>();
 
-            String[] nicka = buffer.getLastUsedNicksCopy();
-            logger.debug("last used nicks: {}, length = {}", nicka, nicka.length);
             for (String nick : buffer.getLastUsedNicksCopy())
-                if (nick.toLowerCase().trim().startsWith(prefix))
+                if (nick.toLowerCase().startsWith(prefix))
                     tc_matches.add(nick.trim());
             if (tc_matches.size() == 0)
                 return;

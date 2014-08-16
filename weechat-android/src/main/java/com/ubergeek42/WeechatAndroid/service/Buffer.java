@@ -33,11 +33,8 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 public class Buffer {
     private static Logger logger = LoggerFactory.getLogger("Buffer");
@@ -187,7 +184,6 @@ public class Buffer {
     //////////////////////////////////////////////////////////////////////////////////////////////// stuff called by message handlers
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private final Nick dummy_nick = new Nick(0, null, null);
     synchronized public void addLine(final Line line, final boolean is_last) {
         if (DEBUG_LINE) logger.warn("{} addLine('{}', {})", new Object[]{short_name, line.message, is_last});
 
@@ -230,16 +226,18 @@ public class Buffer {
         // if current line's an event line and we've got a speaker, move nick to fist position
         // nick in question is supposed to be in the nicks already, for we only shuffle these
         // nicks when someone spoke, i.e. NOT when user joins.
-        String name = line.findSpeakingNick();
-        if (name != null && is_last)
-            for (Iterator<Nick> it = nicks.iterator(); it.hasNext(); ) {
-                Nick nick = it.next();
-                if (name.equals(nick.name)) {
-                    it.remove();
-                    nicks.addFirst(nick);
-                    break;
+        if (holds_all_nicks && is_last) {
+            String name = line.findSpeakingNick();
+            if (name != null)
+                for (Iterator<Nick> it = nicks.iterator(); it.hasNext(); ) {
+                    Nick nick = it.next();
+                    if (name.equals(nick.name)) {
+                        it.remove();
+                        nicks.addFirst(nick);
+                        break;
+                    }
                 }
-            }
+        }
     }
 
     synchronized public void onPropertiesChanged() {
