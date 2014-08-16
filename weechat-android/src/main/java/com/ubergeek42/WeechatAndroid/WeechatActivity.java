@@ -36,7 +36,6 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Looper;
 import android.preference.PreferenceManager;
-import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
@@ -185,14 +184,15 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
                 WeechatActivity.this.onConnect();
 
             // open buffer that MIGHT be open in the service
-            if (relay.getBufferList() != null)
+            // update hot count
+            BufferList buffer_list = relay.getBufferList();
+            if (buffer_list != null) {
                 for (String full_name : BufferList.synced_buffers_full_names)
                     mainPagerAdapter.openBuffer(full_name, false);
-
-            if (buffer_to_open_from_intent != null) {
-                openBuffer(buffer_to_open_from_intent, true);
-                buffer_to_open_from_intent = null;
+                updateHotCount(buffer_list.hot_count);
             }
+
+            maybeHandleIntent();
         }
 
         @Override
@@ -286,26 +286,32 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     //////////////////////////////////////////////////////////////////////////////////////////////// INTENT
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private @Nullable String buffer_to_open_from_intent = null;
-
-    /** in case we have an intent of opening a buffer, put the name of said buffer
-     ** into {@link #buffer_to_open_from_intent}
-     **     (apparently on certain systems android passes an extra key "profile"
-     **      containing an android.os.UserHandle object, so it might be non-null
-     **      even if doesn't contain "buffers")
-     ** see {@link #service_connection} */
+    /** this function only gets called from when the activity is running.
+     ** also, it might get called when we are connected to relay and we are not
+     ** we SET INTENT here and call maybeHandleIntent from here OR
+     ** from {@link #service_connection onServiceConnected()}. */
     @Override protected void onNewIntent(Intent intent) {
         if (DEBUG) logger.debug("onNewIntent({})", intent);
         super.onNewIntent(intent);
+        setIntent(intent);
+        if (relay != null) maybeHandleIntent();
+    }
 
+    /** in case we have an intent of opening a buffer, open buffer & clear the intent
+     ** so that it doesn't get triggered multiple times
+     ** see {@link #service_connection}
+     **     (apparently on certain systems android passes an extra key "profile"
+     **      containing an android.os.UserHandle object, so it might be non-null
+     **      even if doesn't contain "buffers") */
+    private void maybeHandleIntent() {
+        Intent intent = getIntent();
         Bundle extras = intent.getExtras();
         if (extras != null) {
             String full_name = extras.getString("full_name");
-            if (full_name != null) {
-                if (relay != null) openBuffer(full_name, true);
-                else buffer_to_open_from_intent = extras.getString("full_name");
-            }
+            if (full_name != null)
+                openBuffer(full_name, true);
         }
+       intent.setData(null);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -321,6 +327,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     public void updateHotCount(final int new_hot_number) {
         if (DEBUG_OPTIONS_MENU) logger.debug("updateHotCount(), hot: {} -> {}", hot_number, new_hot_number);
         hot_number = new_hot_number;
+        if (ui_hot == null) return;
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
