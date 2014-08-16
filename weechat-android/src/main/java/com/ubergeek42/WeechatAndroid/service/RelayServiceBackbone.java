@@ -337,12 +337,14 @@ public class RelayServiceBackbone extends Service implements RelayConnectionHand
         if (DEBUG) logger.debug("onConnecting()");
         connection_status = CONNECTING;
         showNotification(null, "Connecting to " + host);
+        for (RelayConnectionHandler rch : connectionHandlers) rch.onConnecting();
     }
 
     @Override
     public void onConnect() {
         if (DEBUG) logger.debug("onConnect()");
         connection_status = CONNECTED;
+        for (RelayConnectionHandler rch : connectionHandlers) rch.onConnect();
     }
 
     @Override
@@ -370,9 +372,7 @@ public class RelayServiceBackbone extends Service implements RelayConnectionHand
         if (!optimize_traffic)
             connection.sendMsg("sync");
 
-        for (RelayConnectionHandler rch : connectionHandlers) {
-            rch.onAuthenticated(); //TODO
-        }
+        for (RelayConnectionHandler rch : connectionHandlers) rch.onAuthenticated();
     }
 
     void startHandlingBoneEvents() {}

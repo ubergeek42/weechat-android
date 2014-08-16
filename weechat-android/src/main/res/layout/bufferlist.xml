@@ -13,6 +13,17 @@
         android:dividerHeight="0dp"
         android:divider="@null" />
 
+    <TextView
+        android:id="@android:id/empty"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentBottom="true"
+        android:gravity="center"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="..."
+        android:layout_below="@+id/bufferlist_filter"
+        android:visibility="gone" />
 
     <EditText
         android:id="@+id/bufferlist_filter"

@@ -18,9 +18,9 @@ import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.actionbarsherlock.app.SherlockListFragment;
 import com.ubergeek42.WeechatAndroid.BufferListAdapter;
@@ -46,7 +46,8 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     private BufferListAdapter adapter;
     private BufferList buffer_list;
 
-    private EditText bufferlistFilter;
+    private TextView ui_empty;
+    private EditText ui_filter;
     private SharedPreferences prefs;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -78,9 +79,10 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         if (DEBUG) logger.warn("onCreateView()");
         View v = inflater.inflate(R.layout.bufferlist, container, false);
-        bufferlistFilter = (EditText) v.findViewById(R.id.bufferlist_filter);
-        bufferlistFilter.addTextChangedListener(filterTextWatcher);
-        bufferlistFilter.setVisibility(prefs.getBoolean("show_buffer_filter", false) ? View.VISIBLE : View.GONE);
+        ui_empty = (TextView) v.findViewById(android.R.id.empty);
+        ui_filter = (EditText) v.findViewById(R.id.bufferlist_filter);
+        ui_filter.addTextChangedListener(filterTextWatcher);
+        ui_filter.setVisibility(prefs.getBoolean("show_buffer_filter", false) ? View.VISIBLE : View.GONE);
         return v;
     }
 
@@ -88,7 +90,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     public void onDestroyView() {
         if (DEBUG) logger.warn("onDestroyView()");
         super.onDestroyView();
-        bufferlistFilter.removeTextChangedListener(filterTextWatcher);
+        ui_filter.removeTextChangedListener(filterTextWatcher);
     }
 
     /** relay is ALWAYS null on start
@@ -138,7 +140,9 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
             relay = (RelayServiceBinder) service;
             if (relay.isConnection(RelayService.BUFFERS_LISTED))
                 BufferListFragment.this.onBuffersListed();
-            else
+            else if (relay.isConnection(RelayService.CONNECTING))
+                BufferListFragment.this.onConnecting();
+            else if (relay.isConnection(RelayService.DISCONNECTED))
                 BufferListFragment.this.onDisconnect();
             relay.addRelayConnectionHandler(BufferListFragment.this);                   // connect/disconnect watcher
         }
@@ -168,11 +172,17 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     //////////////////////////////////////////////////////////////////////////////////////////////// RelayConnectionHandler
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @Override public void onConnecting() {}
+    @Override public void onConnecting() {
+        if (DEBUG) logger.warn("onConnecting()");
+        setEmptyText("Connecting 🏃", false);
+    }
 
     @Override public void onConnect() {}
 
-    @Override public void onAuthenticated() {}
+    @Override public void onAuthenticated() {
+        if (DEBUG) logger.warn("onAuthenticated()");
+        setEmptyText("Connected! 😎", false);
+    }
 
     /** this is called when the list of buffers has been finalised */
     @Override
@@ -195,19 +205,19 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     @Override
     public void onDisconnect() {
         if (DEBUG) logger.warn("onDisconnect()");
-        // Create and update the buffer list when we connect to the service
-        if (getActivity() != null) {
-            getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    setListAdapter(new ArrayAdapter<String>(getActivity(), R.layout.tips_list_item,
-                            empty_list));
-                }
-            });
-        }
+        setEmptyText("Disconnected 😨", true);
     }
 
     @Override public void onError(String err, Object extraInfo) {}
+
+    public void setEmptyText(final CharSequence text, final boolean remove_adapter) {
+        getActivity().runOnUiThread(new Runnable() {
+            @Override public void run() {
+                ui_empty.setText(text);
+                if (remove_adapter) setListAdapter(null);
+            }
+        });
+    }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// BufferListEye
@@ -235,7 +245,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     @Override public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         if (DEBUG) logger.warn("onSharedPreferenceChanged()");
         if (key.equals("show_buffer_filter"))
-            bufferlistFilter.setVisibility(prefs.getBoolean("show_buffer_filter", false) ? View.VISIBLE : View.GONE);
+            ui_filter.setVisibility(prefs.getBoolean("show_buffer_filter", false) ? View.VISIBLE : View.GONE);
     }
 
     /** TextWatcher object used for filtering the buffer list */
