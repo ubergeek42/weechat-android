@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
@@ -19,7 +20,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.actionbarsherlock.app.SherlockListFragment;
@@ -35,7 +38,7 @@ import com.ubergeek42.WeechatAndroid.service.RelayServiceBinder;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
 
 public class BufferListFragment extends SherlockListFragment implements RelayConnectionHandler,
-        BufferListEye, OnSharedPreferenceChangeListener {
+        BufferListEye, OnSharedPreferenceChangeListener, View.OnClickListener {
 
     private static Logger logger = LoggerFactory.getLogger("BufferListFragment");
     final private static boolean DEBUG = BuildConfig.DEBUG;
@@ -46,6 +49,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     private BufferListAdapter adapter;
     private BufferList buffer_list;
 
+    private RelativeLayout ui_filter_bar;
     private TextView ui_empty;
     private EditText ui_filter;
     private SharedPreferences prefs;
@@ -79,10 +83,13 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         if (DEBUG) logger.warn("onCreateView()");
         View v = inflater.inflate(R.layout.bufferlist, container, false);
+        ui_filter_bar = (RelativeLayout) v.findViewById(R.id.filter_bar);
         ui_empty = (TextView) v.findViewById(android.R.id.empty);
         ui_filter = (EditText) v.findViewById(R.id.bufferlist_filter);
         ui_filter.addTextChangedListener(filterTextWatcher);
-        ui_filter.setVisibility(prefs.getBoolean("show_buffer_filter", false) ? View.VISIBLE : View.GONE);
+        ui_filter_bar.setVisibility(prefs.getBoolean("show_buffer_filter", false) ? View.VISIBLE : View.GONE);
+        ImageButton ui_filter_clear = (ImageButton) v.findViewById(R.id.bufferlist_filter_clear);
+        ui_filter_clear.setOnClickListener(this);
         return v;
     }
 
@@ -198,6 +205,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
             }
         });
         onBuffersChanged();
+        setEmptyText("Whatcha lookin' at? 😾", false);
     }
 
     /** called on actual disconnect even and from other methods
@@ -245,7 +253,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     @Override public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         if (DEBUG) logger.warn("onSharedPreferenceChanged()");
         if (key.equals("show_buffer_filter"))
-            ui_filter.setVisibility(prefs.getBoolean("show_buffer_filter", false) ? View.VISIBLE : View.GONE);
+            ui_filter_bar.setVisibility(prefs.getBoolean("show_buffer_filter", false) ? View.VISIBLE : View.GONE);
     }
 
     /** TextWatcher object used for filtering the buffer list */
@@ -263,5 +271,9 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
         }
     };
 
-
+    /** the only button we've got: clear text in the filter */
+    @Override
+    public void onClick(View v) {
+        ui_filter.setText(null);
+    }
 }

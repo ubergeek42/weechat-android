@@ -57,6 +57,7 @@
         android:transcriptMode="normal"
         android:layout_alignParentTop="true"
         android:paddingBottom="1dp"
-        android:layout_above="@+id/chatview_bottombar"/>
+        android:layout_above="@+id/chatview_bottombar"
+        android:background="@drawable/background"/>
 
 </RelativeLayout>
