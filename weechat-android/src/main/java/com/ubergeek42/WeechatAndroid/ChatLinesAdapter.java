@@ -35,7 +35,7 @@ import com.ubergeek42.WeechatAndroid.service.BufferEye;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, OnSharedPreferenceChangeListener, BufferEye {
+public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, BufferEye {
 
     private static Logger logger = LoggerFactory.getLogger("ChatLinesAdapter");
     final private static boolean DEBUG = BuildConfig.DEBUG && false;
@@ -46,9 +46,6 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, OnShar
     private Buffer.Line[] lines = new Buffer.Line[0];
 
     private LayoutInflater inflater;
-    private SharedPreferences prefs;
-
-    private float TEXT_SIZE;
 
     public ChatLinesAdapter(FragmentActivity activity, Buffer buffer) {
         if (DEBUG) logger.error("ChatLinesAdapter({}, {})", activity, buffer);
@@ -56,18 +53,6 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, OnShar
         this.buffer = buffer;
         this.inflater = LayoutInflater.from(activity);
 
-        prefs = PreferenceManager.getDefaultSharedPreferences(activity.getBaseContext());
-        prefs.registerOnSharedPreferenceChangeListener(this);
-
-        String timeformat = prefs.getString("timestamp_format", "HH:mm:ss");
-        Buffer.Line.DATEFORMAT = (timeformat.equals("")) ? null : new SimpleDateFormat(timeformat);
-        String alignment = prefs.getString("prefix_align", "right");
-        if (alignment.equals("right")) Buffer.Line.ALIGN = Buffer.Line.ALIGN_RIGHT;
-        else if (alignment.equals("left")) Buffer.Line.ALIGN = Buffer.Line.ALIGN_LEFT;
-        else Buffer.Line.ALIGN = Buffer.Line.ALIGN_NONE;
-        Buffer.Line.MAX_WIDTH = 8;
-        TEXT_SIZE = Float.parseFloat(prefs.getString("text_size", "10"));;
-        setLetterWidth();
 
         //buffer.setBufferEye(this);
         //onLinesChanged();
@@ -77,11 +62,7 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, OnShar
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private void setLetterWidth() {
-        TextView textview = (TextView) inflater.inflate(R.layout.chatview_line, null).findViewById(R.id.chatline_message);
-        textview.setTextSize(TEXT_SIZE);
-        Buffer.Line.LETTER_WIDTH = (textview.getPaint().measureText("m"));
-    }
+
 
     @Override
     public int getCount() {
@@ -112,36 +93,11 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, OnShar
             textview = (TextView) convertView.getTag();
         }
 
-        textview.setTextSize(TEXT_SIZE);
+        textview.setTextSize(Buffer.Line.TEXT_SIZE);
         Buffer.Line line = (Buffer.Line) getItem(position);
         textview.setText(line.spannable);
 
         return convertView;
-    }
-
-    // Change preferences immediatelyBu
-    @Override
-    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        if (DEBUG) logger.error("onSharedPreferenceChanged(..., {})", key);
-        if (key.equals("chatview_filters")) {
-            onLinesChanged();
-        } else if (key.equals("timestamp_format")) {
-            Buffer.Line.DATEFORMAT = new SimpleDateFormat(prefs.getString("timestamp_format", "HH:mm:ss"));
-            buffer.forceProcessAllMessages();
-            onLinesChanged();
-        } else if (key.equals("prefix_align")) {
-            String alignment = prefs.getString("prefix_align", "right");
-            if (alignment.equals("right")) Buffer.Line.ALIGN = Buffer.Line.ALIGN_RIGHT;
-            else if (alignment.equals("left")) Buffer.Line.ALIGN = Buffer.Line.ALIGN_LEFT;
-            else Buffer.Line.ALIGN = Buffer.Line.ALIGN_NONE;
-            buffer.forceProcessAllMessages();
-            onLinesChanged();
-        } else if (key.equals("text_size")) {
-            TEXT_SIZE = Float.parseFloat(prefs.getString("text_size", "10"));
-            setLetterWidth();
-            buffer.forceProcessAllMessages();
-            onLinesChanged();
-        }
     }
 
     public void clearLines() {}
@@ -149,8 +105,7 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, OnShar
     @Override
     public void onLinesChanged() {
         if (DEBUG) logger.error("onLinesChanged()");
-        final Buffer.Line[] l = prefs.getBoolean("chatview_filters", true) ?
-                buffer.getLinesFilteredCopy() : buffer.getLinesCopy();
+        final Buffer.Line[] l = buffer.getLinesCopy();
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {

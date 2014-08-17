@@ -42,6 +42,9 @@ public class Buffer {
     final private static boolean DEBUG_LINE = false;
     final private static boolean DEBUG_NICK = false;
 
+    //prefs
+    public static boolean FILTER_LINES = false;
+
     final public static int PRIVATE = 2;
     final public static int CHANNEL = 1;
     final public static int OTHER = 0;
@@ -95,21 +98,19 @@ public class Buffer {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-    /** get a copy of all 200 lines.
+    /** get a copy of all 200 lines or of lines that are not filtered using weechat filters.
      ** better call off the main thread */
     synchronized public @NonNull Line[] getLinesCopy() {
-        return lines.toArray(new Line[lines.size()]);
-    }
-
-    /** get only lines that are not filtered using weechat filters.
-     ** better call off the main thread */
-    synchronized public @NonNull Line[] getLinesFilteredCopy() {
-        Line[] l = new Line[visible_lines_count];
-        int i = 0;
-        for (Line line: lines) {
-            if (line.visible) l[i++] = line;
+        if (!FILTER_LINES)
+            return lines.toArray(new Line[lines.size()]);
+        else {
+            Line[] l = new Line[visible_lines_count];
+            int i = 0;
+            for (Line line: lines) {
+                if (line.visible) l[i++] = line;
+            }
+            return l;
         }
-        return l;
     }
 
     /** get a copy of last used nicknames
@@ -220,7 +221,7 @@ public class Buffer {
         }
 
         // notify our listener
-        if (buffer_eye != null) buffer_eye.onLinesChanged();
+        onLinesChanged();
 
         // if current line's an event line and we've got a speaker, move nick to fist position
         // nick in question is supposed to be in the nicks already, for we only shuffle these
@@ -237,6 +238,10 @@ public class Buffer {
                     }
                 }
         }
+    }
+
+    synchronized public void onLinesChanged() {
+        if (buffer_eye != null) buffer_eye.onLinesChanged();
     }
 
     synchronized public void onPropertiesChanged() {
@@ -401,6 +406,7 @@ public class Buffer {
         public final static int ALIGN_RIGHT = 2;
 
         // preferences for all lines
+        public static float TEXT_SIZE = 10;
         public static DateFormat DATEFORMAT = new SimpleDateFormat("HH:mm");
         public static int ALIGN = ALIGN_RIGHT;
         public static int MAX_WIDTH = 7;

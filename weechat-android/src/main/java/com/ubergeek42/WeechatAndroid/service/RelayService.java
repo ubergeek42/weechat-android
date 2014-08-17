@@ -4,11 +4,16 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.view.LayoutInflater;
+import android.widget.TextView;
 
 import com.ubergeek42.WeechatAndroid.BuildConfig;
+import com.ubergeek42.WeechatAndroid.R;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.text.SimpleDateFormat;
 
 /**
  ** the service can be started by:
@@ -40,9 +45,20 @@ public class RelayService extends RelayServiceBackbone {
     @Override
     public void onCreate() {
         super.onCreate();
+
+        // buffer list preferences
         BufferList.SORT_BUFFERS = prefs.getBoolean("sort_buffers", false);
         BufferList.SHOW_TITLE = prefs.getBoolean("show_buffer_titles", true);
         BufferList.FILTER_NONHUMAN_BUFFERS = prefs.getBoolean("filter_nonhuman_buffers", false);
+
+        // buffer-wide preferences
+        Buffer.FILTER_LINES = prefs.getBoolean("chatview_filters", true);
+
+        // buffer line-wide preferences
+        Buffer.Line.MAX_WIDTH = Integer.parseInt(prefs.getString("prefix_max_width", "7"));
+        setTimestampFormat();
+        setAlignment();
+        setTextSizeAndLetterWidth();
     }
 
     @Override
@@ -99,17 +115,66 @@ public class RelayService extends RelayServiceBackbone {
         preferences.edit().remove("open_buffers").commit();
     }
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// prefs
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         if (DEBUG) logger.warn("onSharedPreferenceChanged()");
+
+        // buffer list preferences
         super.onSharedPreferenceChanged(sharedPreferences, key);
-        if (key.equals("sort_buffers"))
+        if (key.equals("sort_buffers")) {
             BufferList.SORT_BUFFERS = prefs.getBoolean("sort_buffers", false);
-        else if (key.equals("show_buffer_titles"))
+        } else if (key.equals("show_buffer_titles")) {
             BufferList.SHOW_TITLE = prefs.getBoolean("show_buffer_titles", false);
-        else if (key.equals("filter_nonhuman_buffers"))
+        } else if (key.equals("filter_nonhuman_buffers")) {
             BufferList.FILTER_NONHUMAN_BUFFERS = prefs.getBoolean("filter_nonhuman_buffers", false);
+
+            // buffer-wide preferences
+        } else if (key.equals("chatview_filters")) {
+            Buffer.FILTER_LINES = prefs.getBoolean("chatview_filters", true);
+
+        // chat lines-wide preferences
+        } else if (key.equals("prefix_max_width")) {
+            Buffer.Line.MAX_WIDTH = Integer.parseInt(prefs.getString(key, "7"));
+            buffer_list.notifyOpenBuffersMustBeProcessed(false);
+        } else if (key.equals("timestamp_format")) {
+            setTimestampFormat();
+            buffer_list.notifyOpenBuffersMustBeProcessed(false);
+        } else if (key.equals("prefix_align")) {
+            setAlignment();
+            buffer_list.notifyOpenBuffersMustBeProcessed(false);
+        } else if (key.equals("text_size")) {
+            setTextSizeAndLetterWidth();
+            buffer_list.notifyOpenBuffersMustBeProcessed(true);
+        }
     }
+
+    private void setTimestampFormat() {
+        String timeformat = prefs.getString("timestamp_format", "HH:mm:ss");
+        Buffer.Line.DATEFORMAT = (timeformat.equals("")) ? null : new SimpleDateFormat(timeformat);
+    }
+
+    private void setAlignment() {
+        String alignment = prefs.getString("prefix_align", "right");
+        if (alignment.equals("right")) Buffer.Line.ALIGN = Buffer.Line.ALIGN_RIGHT;
+        else if (alignment.equals("left")) Buffer.Line.ALIGN = Buffer.Line.ALIGN_LEFT;
+        else Buffer.Line.ALIGN = Buffer.Line.ALIGN_NONE;
+    }
+
+    private void setTextSizeAndLetterWidth() {
+        Buffer.Line.TEXT_SIZE = Float.parseFloat(prefs.getString("text_size", "10"));
+        LayoutInflater li = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+        TextView textview = (TextView) li.inflate(R.layout.chatview_line, null).findViewById(R.id.chatline_message);
+        textview.setTextSize(Buffer.Line.TEXT_SIZE);
+        Buffer.Line.LETTER_WIDTH = (textview.getPaint().measureText("m"));
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// notifications
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     public void changeNotification(boolean new_highlight, int new_hot_count, @Nullable Buffer buffer, @Nullable Buffer.Line line) {
         if (DEBUG) logger.warn("changeNotification({}, {}, {}, {})", new Object[]{new_highlight, new_hot_count, buffer, line});

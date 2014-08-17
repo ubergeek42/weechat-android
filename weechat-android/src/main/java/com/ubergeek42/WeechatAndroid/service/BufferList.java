@@ -147,6 +147,18 @@ public class BufferList {
         if (buffers_eye != null) buffers_eye.onBuffersChanged();
     }
 
+    /** process all open buffers and, if specified, notify them of the change
+     ** practically notifying is only needed when pressing volume up/dn keys,
+     ** which means we are not in the preferences window and the activity will not
+     ** get re-rendered */
+    synchronized void notifyOpenBuffersMustBeProcessed(boolean notify) {
+        for (Buffer buffer : buffers)
+            if (buffer.is_open) {
+                buffer.forceProcessAllMessages();
+                if (notify) buffer.onLinesChanged();
+            }
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// called from Buffer & RelayService (local)
     ////////////////////////////////////////////////////////////////////////////////////////////////

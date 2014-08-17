@@ -35,11 +35,10 @@
     
     <PreferenceCategory android:key="lookfeel_group" android:title="@string/pref_lookfeel_group">
         <EditTextPreference android:key="text_size" android:title="@string/pref_text_size" android:defaultValue="10" android:numeric="integer" android:summary="@string/pref_text_size_summary"/>
-        <CheckBoxPreference android:key="chatview_colors" android:title="@string/pref_chatview_colors" android:summary="@string/pref_chatview_colors_summary" android:defaultValue="true" />
         <CheckBoxPreference android:key="chatview_filters" android:title="@string/pref_chatview_filters" android:summary="@string/pref_chatview_filters_summary" android:defaultValue="true" />
         <ListPreference android:key="prefix_align" android:title="@string/pref_prefix_align" android:defaultValue="right" android:entries="@array/pref_prefix_align_names" android:entryValues="@array/settings_prefix_alignment_values" />
-		<CheckBoxPreference android:key="chatview_timestamps" android:title="@string/pref_chatview_timestamps" android:summary="@string/pref_chatview_timestamps_summary" android:defaultValue="true" />
-		<EditTextPreference android:key="timestamp_format" android:title="@string/pref_timestamp_format" android:defaultValue="HH:mm:ss" android:singleLine="true" />
+        <EditTextPreference android:key="prefix_max_width" android:title="Maximum width of prefix" android:summary="In terms of letters. Longer nicknames will be cut." android:numeric="integer" android:defaultValue="7" />
+		<EditTextPreference android:key="timestamp_format" android:title="@string/pref_timestamp_format" android:summary="Default: &quot;HH:mm:ss&quot;. Empty turns off the prefix completely." android:defaultValue="HH:mm:ss" android:singleLine="true" />
     </PreferenceCategory>
     
     <PreferenceCategory android:key="misc_group" android:title="@string/pref_misc_group">
