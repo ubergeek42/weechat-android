@@ -311,7 +311,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
             if (full_name != null)
                 openBuffer(full_name, true);
         }
-       intent.setData(null);
+       intent.removeExtra("full_name");
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
