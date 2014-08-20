@@ -93,15 +93,28 @@ public class BufferList {
     //////////////////////////////////////////////////////////////////////////////////////////////// called by the Eye
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    synchronized public @NonNull ArrayList<Buffer> getBufferListCopy() {
-        sortBuffers();
-        ArrayList<Buffer> new_bufs = new ArrayList<Buffer>();
-        for (Buffer buffer : buffers) {
-            if (FILTER_NONHUMAN_BUFFERS && buffer.type == Buffer.OTHER && buffer.highlights == 0 && buffer.unreads == 0) continue;
-            if (FILTER != null && !buffer.full_name.toLowerCase().contains(FILTER)) continue;
-            new_bufs.add(buffer);
+    private static @Nullable ArrayList<Buffer> sent_buffers = null;
+
+    /** returns an independent copy of the buffer list
+     ** MIGHT return the same object (albeit sorted as needed) */
+    synchronized public @NonNull ArrayList<Buffer> getBufferList() {
+        if (sent_buffers == null) {
+            sent_buffers = new ArrayList<Buffer>();
+            for (Buffer buffer : buffers) {
+                if (FILTER_NONHUMAN_BUFFERS && buffer.type == Buffer.OTHER && buffer.highlights == 0 && buffer.unreads == 0)
+                    continue;
+                if (FILTER != null && !buffer.full_name.toLowerCase().contains(FILTER)) continue;
+                sent_buffers.add(buffer);
+            }
         }
-        return new_bufs;
+        if (SORT_BUFFERS) Collections.sort(sent_buffers, sortByHotAndMessageCountComparator);
+        else Collections.sort(sent_buffers, sortByHotCountAndNumberComparator);
+        return sent_buffers;
+    }
+
+    synchronized static public void setFilter(CharSequence filter) {
+        FILTER = (filter.length() == 0) ? null : filter.toString();
+        sent_buffers = null;
     }
 
     synchronized public @Nullable Buffer findByFullName(@Nullable String full_name) {
@@ -122,6 +135,7 @@ public class BufferList {
     /** called when a buffer has been added or removed */
     synchronized private void notifyBuffersChanged() {
         checkIfHotCountHasChanged();
+        sent_buffers = null;
         if (buffers_eye != null) buffers_eye.onBuffersChanged();
     }
 
@@ -131,10 +145,8 @@ public class BufferList {
     synchronized void notifyBuffersSlightlyChanged(boolean other_messages_changed) {
         checkIfHotCountHasChanged();
         if (buffers_eye != null) {
-            if (other_messages_changed && FILTER_NONHUMAN_BUFFERS)
-                buffers_eye.onBuffersChanged();
-            else
-                buffers_eye.onBuffersSlightlyChanged();
+            if (other_messages_changed && FILTER_NONHUMAN_BUFFERS) sent_buffers = null;
+            buffers_eye.onBuffersChanged();
         }
     }
 
@@ -146,6 +158,7 @@ public class BufferList {
      ** buffer changes are such that we should reorder the buffer list */
     synchronized private void notifyBufferPropertiesChanged(Buffer buffer) {
         buffer.onPropertiesChanged();
+        sent_buffers = null;
         if (buffers_eye != null) buffers_eye.onBuffersChanged();
     }
 
@@ -249,16 +262,32 @@ public class BufferList {
         return null;
     }
 
-    /** compares buffers by their number */
     private final Comparator<Buffer> sortByNumberComparator = new Comparator<Buffer>() {
         @Override public int compare(Buffer b1, Buffer b2) {
             return b1.number - b2.number;
         }
     };
 
-    synchronized private void sortBuffers() {
-        Collections.sort(buffers, sortByNumberComparator);
-    }
+    private final Comparator<Buffer> sortByHotCountAndNumberComparator = new Comparator<Buffer>() {
+        @Override public int compare(Buffer left, Buffer right) {
+            int l, r;
+            if ((l = left.highlights) != (r = right.highlights)) return r - l;
+            if ((l = left.type == Buffer.PRIVATE ? left.unreads : 0) !=
+                    (r = right.type == Buffer.PRIVATE ? right.unreads : 0)) return r - l;
+            return left.number - right.number;
+        }
+    };
+
+    private final Comparator<Buffer> sortByHotAndMessageCountComparator = new Comparator<Buffer>() {
+        @Override
+        public int compare(Buffer left, Buffer right) {
+            int l, r;
+            if ((l = left.highlights) != (r = right.highlights)) return r - l;
+            if ((l = left.type == Buffer.PRIVATE ? left.unreads : 0) !=
+                    (r = right.type == Buffer.PRIVATE ? right.unreads : 0)) return r - l;
+            return right.unreads - left.unreads;
+        }
+    };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// yay!! message handlers!! the joy

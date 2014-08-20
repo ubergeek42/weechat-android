@@ -16,11 +16,8 @@
 package com.ubergeek42.WeechatAndroid;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 
 import android.app.Activity;
-import android.content.SharedPreferences;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -43,7 +40,6 @@ public class BufferListAdapter extends BaseAdapter implements BufferListEye {
     Activity activity;
     LayoutInflater inflater;
     BufferList buffer_list;
-    private SharedPreferences prefs;
     private ArrayList<Buffer> buffers = new ArrayList<Buffer>();
 
     private static RelativeLayout.LayoutParams layout_params_closed;
@@ -56,22 +52,7 @@ public class BufferListAdapter extends BaseAdapter implements BufferListEye {
         layout_params_open.setMargins(4, 0, 0, 0);
     }
 
-    final static int[][] COLORS = new int[][] {
-            {0xff0C131C, 0xff1D3A63},
-            {0xff20140E, 0xff734222},
-            {0xff0D1C0C, 0xff1D631D},
-            {0xff1D0C17, 0xff671E48},
-            {0xff201F0E, 0xff737322},
-            {0xff0E0C1C, 0xff291D63},
-            {0xff20180E, 0xff735322},
-            {0xff0C191C, 0xff1D5163},
-            {0xff1F0D0E, 0xff732222},
-            {0xff1A1E0D, 0xff586B1F},
-            {0xff160C1C, 0xff4C1D63},
-            {0xff201C0E, 0xff736322}
-    };
-
-    final static int[][] COLORS2 = new int[][] {
+    final private static int[][] COLORS = new int[][] {
             {0xff525252, 0xff6c6c6c}, // other
             {0xff44525f, 0xff596c7d}, // channel
             {0xff57474f, 0xff735e69}, // private
@@ -83,6 +64,10 @@ public class BufferListAdapter extends BaseAdapter implements BufferListEye {
         this.buffer_list = buffer_list;
     }
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// adapter methods
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
     @Override
     public int getCount() {
         return buffers.size();
@@ -92,40 +77,6 @@ public class BufferListAdapter extends BaseAdapter implements BufferListEye {
     public Buffer getItem(int position) {
         return buffers.get(position);
     }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// BufferListEye
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    @Override
-    public void onBuffersChanged() {
-        final ArrayList<Buffer> buffers = buffer_list.getBufferListCopy();
-        if (BufferList.SORT_BUFFERS) Collections.sort(buffers, bufferComparator);
-        activity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                BufferListAdapter.this.buffers = buffers;
-                notifyDataSetChanged();
-            }
-        });
-    }
-
-    @Override
-    public void onBuffersSlightlyChanged() {
-        if (BufferList.SORT_BUFFERS) Collections.sort(buffers, bufferComparator);            // TODO: is this thread safe???
-        activity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                notifyDataSetChanged();
-            }
-        });
-    }
-
-    @Override public void onHotCountChanged() {}
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @Override
     public long getItemId(int position) {return position;}
@@ -153,8 +104,7 @@ public class BufferListAdapter extends BaseAdapter implements BufferListEye {
 
         int important = (highlights > 0 || (unreads > 0 && buffer.type == Buffer.PRIVATE)) ? 1 : 0;
 
-        //holder.ui_buffer.setBackgroundColor(COLORS[buffer.number % COLORS.length][important]);
-        holder.ui_buffer.setBackgroundColor(COLORS2[buffer.type][important]);
+        holder.ui_buffer.setBackgroundColor(COLORS[buffer.type][important]);
         holder.ui_buffer.setLayoutParams(buffer.is_open ? layout_params_open : layout_params_closed);
 
         if (highlights > 0) {
@@ -178,13 +128,22 @@ public class BufferListAdapter extends BaseAdapter implements BufferListEye {
         TextView ui_buffer;
     }
 
-    private final Comparator<Buffer> bufferComparator = new Comparator<Buffer>() {
-        @Override
-        public int compare(Buffer b1, Buffer b2) {
-            int h1 = b1.highlights;
-            int h2 = b2.highlights;
-            if (h1 == h2) return b2.unreads - b1.unreads;
-            else return b2.highlights - b1.highlights;
-        }
-    };
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// BufferListEye
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    @Override
+    public void onBuffersChanged() {
+        final ArrayList<Buffer> buffers = buffer_list.getBufferList();
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                BufferListAdapter.this.buffers = buffers;
+                notifyDataSetChanged();
+            }
+        });
+    }
+
+    @Override
+    public void onHotCountChanged() {}
 }

@@ -7,7 +7,5 @@ public interface BufferListEye {
 
     public void onBuffersChanged();
 
-    public void onBuffersSlightlyChanged();
-
     public void onHotCountChanged();
 }

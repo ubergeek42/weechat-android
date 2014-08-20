@@ -43,8 +43,6 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     private static Logger logger = LoggerFactory.getLogger("BufferListFragment");
     final private static boolean DEBUG = BuildConfig.DEBUG;
 
-    private static final String[] empty_list = { "Press Menu->Connect to get started" };
-
     private RelayServiceBinder relay;
     private BufferListAdapter adapter;
     private BufferList buffer_list;
@@ -204,6 +202,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
                 setListAdapter(adapter);
             }
         });
+        BufferList.setFilter(ui_filter.getText());
         onBuffersChanged();
         setEmptyText("Whatcha lookin' at? 😾", false);
     }
@@ -236,11 +235,6 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
         adapter.onBuffersChanged();
     }
 
-    @Override public void onBuffersSlightlyChanged() {
-        if (DEBUG) logger.warn("onBuffersSlightlyChanged()");
-        adapter.onBuffersSlightlyChanged();
-    }
-
     @Override public void onHotCountChanged() {
         if (DEBUG) logger.warn("onHotCountChanged()");
         ((WeechatActivity) getActivity()).updateHotCount(buffer_list.hot_count);
@@ -265,7 +259,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
         @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
             if (DEBUG) logger.warn("onTextChanged({}, ...)", s);
             if (adapter != null) {
-                BufferList.FILTER = (s.length() == 0) ? null : s.toString();
+                BufferList.setFilter(s);
                 adapter.onBuffersChanged();
             }
         }
