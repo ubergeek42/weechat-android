@@ -50,6 +50,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     private RelativeLayout ui_filter_bar;
     private TextView ui_empty;
     private EditText ui_filter;
+    private ImageButton ui_filter_clear;
     private SharedPreferences prefs;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -85,6 +86,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
         ui_empty = (TextView) v.findViewById(android.R.id.empty);
         ui_filter = (EditText) v.findViewById(R.id.bufferlist_filter);
         ui_filter.addTextChangedListener(filterTextWatcher);
+        ui_filter_clear = (ImageButton) v.findViewById(R.id.bufferlist_filter_clear);
         ui_filter_bar.setVisibility(prefs.getBoolean("show_buffer_filter", false) ? View.VISIBLE : View.GONE);
         ImageButton ui_filter_clear = (ImageButton) v.findViewById(R.id.bufferlist_filter_clear);
         ui_filter_clear.setOnClickListener(this);
@@ -202,7 +204,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
                 setListAdapter(adapter);
             }
         });
-        BufferList.setFilter(ui_filter.getText());
+        setFilter(ui_filter.getText());
         onBuffersChanged();
         setEmptyText("Whatcha lookin' at? 😾", false);
     }
@@ -259,11 +261,16 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
         @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
             if (DEBUG) logger.warn("onTextChanged({}, ...)", s);
             if (adapter != null) {
-                BufferList.setFilter(s);
+                setFilter(s);
                 adapter.onBuffersChanged();
             }
         }
     };
+
+    private void setFilter(CharSequence s) {
+        BufferList.setFilter(s);
+        ui_filter_clear.setVisibility((s.length() == 0) ? View.INVISIBLE : View.VISIBLE);
+    }
 
     /** the only button we've got: clear text in the filter */
     @Override

@@ -27,7 +27,8 @@
             android:layout_alignTop="@+id/bufferlist_filter"
             android:layout_alignBottom="@+id/bufferlist_filter"
             android:background="@android:drawable/ic_input_delete"
-            android:layout_marginRight="8dp" />
+            android:layout_marginRight="8dp"
+            android:visibility="invisible" />
     </RelativeLayout>
 
     <ListView
