@@ -350,6 +350,10 @@ public class Buffer {
         notifyNicklistChanged();
     }
 
+    synchronized public void removeAllNicks() {
+        nicks.clear();
+    }
+
     synchronized public void sortNicksByLines() {
         if (DEBUG_NICK) logger.debug("{} sortNicksByLines({})", short_name);
         final HashMap<String, Integer> name_to_position = new HashMap<String, Integer>();

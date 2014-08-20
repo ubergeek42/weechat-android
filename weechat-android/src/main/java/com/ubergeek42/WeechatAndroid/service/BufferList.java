@@ -19,7 +19,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 
@@ -394,23 +396,24 @@ public class BufferList {
         @Override
         public void handleMessage(RelayObject obj, String id) {
             if (DEBUG_HANDLERS) logger.debug("nicklist_watcher:handleMessage(..., {})", id);
-            Buffer buffer = null;
             Hdata data = (Hdata) obj;
             boolean diff = id.equals("_nicklist_diff");
+            HashSet<Buffer> renicked_buffers = new HashSet<Buffer>();
+
             for (int i = 0, size = data.getCount(); i < size; i++) {
                 HdataEntry entry = data.getItem(i);
 
                 // find buffer
-                // if buffer doesn't hold all nicknames yet, break execution,
-                // since nicks will be requested anyway and we don't want to check if
-                // the nicknames are already there
-                buffer = findByPointer(entry.getPointerInt(0));
+                Buffer buffer = findByPointer(entry.getPointerInt(0));
                 if (buffer == null) {
                     if (DEBUG_HANDLERS) logger.warn("nicklist_watcher: no buffer to update!");
                     continue;
                 }
-                if (diff && !buffer.holds_all_nicks)
-                    continue;
+
+                // if buffer doesn't hold all nicknames yet, break execution, since full nicks will be requested anyway later
+                // erase nicklist if we have a full list here
+                if (diff && !buffer.holds_all_nicks) continue;
+                if (!diff && renicked_buffers.add(buffer)) buffer.removeAllNicks();
 
                 // decide whether it's adding, removing or updating nicks
                 // if _nicklist, treat as if we have _diff = '+'
@@ -433,10 +436,13 @@ public class BufferList {
                     buffer.removeNick(entry.getPointerInt());
                 }
             }
-            if (!diff && buffer != null) {
-                buffer.holds_all_nicks = true;
-                buffer.sortNicksByLines();
-            }
+
+            // sort nicknames when we receive them for the very first time
+            if (id.equals("nicklist"))
+                for (Buffer buffer : renicked_buffers) {
+                    buffer.holds_all_nicks = true;
+                    buffer.sortNicksByLines();
+                }
         }
     };
 }
