@@ -31,6 +31,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.graphics.Rect;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -39,7 +40,9 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
+import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
@@ -48,6 +51,7 @@ import android.widget.Toast;
 import com.actionbarsherlock.ActionBarSherlock;
 import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockFragmentActivity;
+import com.actionbarsherlock.internal.widget.IcsToast;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
@@ -357,15 +361,15 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         if (DEBUG_OPTIONS_MENU) logger.debug("onCreateOptionsMenu(...)");
         MenuInflater menuInflater = getSupportMenuInflater();
         menuInflater.inflate(R.menu.menu_actionbar, menu);
-        View menu_hotlist = menu.findItem(R.id.menu_hotlist).getActionView();
+        final View menu_hotlist = menu.findItem(R.id.menu_hotlist).getActionView();
         ui_hot = (TextView) menu_hotlist.findViewById(R.id.hotlist_hot);
         updateHotCount(hot_number);
-        menu_hotlist.setOnClickListener(new View.OnClickListener() {
+        new MyMenuItemStuffListener(menu_hotlist, "Show hot message") {
             @Override
             public void onClick(View v) {
                 onHotlistSelected();
             }
-        });
+        };
         actionBarMenu = menu;
         makeMenuReflectConnectionStatus();
         return super.onCreateOptionsMenu(menu);
@@ -505,5 +509,40 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     protected void onSaveInstanceState(Bundle outState) {
         if (DEBUG) logger.debug("onSaveInstanceState()");
         super.onSaveInstanceState(outState);
+    }
+
+    static abstract class MyMenuItemStuffListener implements View.OnClickListener, View.OnLongClickListener {
+        private String hint;
+        private View view;
+
+        MyMenuItemStuffListener(View view, String hint) {
+            this.view = view;
+            this.hint = hint;
+            view.setOnClickListener(this);
+            view.setOnLongClickListener(this);
+        }
+
+        @Override abstract public void onClick(View v);
+
+        @Override public boolean onLongClick(View v) {
+            final int[] screenPos = new int[2];
+            final Rect displayFrame = new Rect();
+            view.getLocationOnScreen(screenPos);
+            view.getWindowVisibleDisplayFrame(displayFrame);
+            final Context context = view.getContext();
+            final int width = view.getWidth();
+            final int height = view.getHeight();
+            final int midy = screenPos[1] + height / 2;
+            final int screenWidth = context.getResources().getDisplayMetrics().widthPixels;
+            Toast cheatSheet = Toast.makeText(context, hint, Toast.LENGTH_SHORT);
+            if (midy < displayFrame.height()) {
+                cheatSheet.setGravity(Gravity.TOP | Gravity.RIGHT,
+                        screenWidth - screenPos[0] - width / 2, height);
+            } else {
+                cheatSheet.setGravity(Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL, 0, height);
+            }
+            cheatSheet.show();
+            return true;
+        }
     }
 }
