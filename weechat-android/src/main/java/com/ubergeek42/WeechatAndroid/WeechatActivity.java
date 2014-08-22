@@ -313,7 +313,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         if (extras != null) {
             String full_name = extras.getString("full_name");
             if (full_name != null)
-                openBuffer(full_name, true);
+                mainPagerAdapter.openBuffer(full_name, true, true);
         }
        intent.removeExtra("full_name");
     }
@@ -451,11 +451,9 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
 
         for (Buffer buffer : relay.getBufferList().getBufferList()) {
             logger.debug("name {} buffer {} 111", buffer.full_name, buffer);
-            if (buffer.type == Buffer.PRIVATE && buffer.unreads != 0) {
-                mainPagerAdapter.openBuffer(buffer.full_name, true, 1);
-                return;
-            } else if (buffer.highlights != 0) {
-                mainPagerAdapter.openBuffer(buffer.full_name, true, -1);
+            if ((buffer.type == Buffer.PRIVATE && buffer.unreads > 0) ||
+                    buffer.highlights > 0) {
+                mainPagerAdapter.openBuffer(buffer.full_name, true, true);
                 return;
             }
         }
@@ -484,7 +482,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
 
     public void openBuffer(String full_name, boolean focus) {
         if (DEBUG) logger.debug("openBuffer({})", full_name);
-        mainPagerAdapter.openBuffer(full_name, focus, 0);
+        mainPagerAdapter.openBuffer(full_name, focus, false);
     }
 
     // In own thread to prevent things from breaking

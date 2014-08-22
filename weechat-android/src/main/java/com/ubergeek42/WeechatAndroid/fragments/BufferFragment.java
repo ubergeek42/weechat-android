@@ -12,7 +12,6 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Looper;
@@ -68,7 +67,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     private String short_name = "Unknown";
     private Buffer buffer;
 
-    private int focus_line = 0;
+    private boolean must_focus_hot = false;
 
     private ChatLinesAdapter chatlines_adapter;
 
@@ -99,9 +98,9 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
         if (savedInstanceState != null) short_name = savedInstanceState.getString("short_name");
         setRetainInstance(true);
         short_name = full_name = getArguments().getString("full_name");
-        focus_line = getArguments().getInt("focus_line");
-        getArguments().remove("focus_line");
-        logger.warn("111 FOCUS LINE = {}", focus_line);
+        must_focus_hot = getArguments().getBoolean("must_focus_hot", false);
+        getArguments().remove("must_focus_hot");
+        logger.warn("111 FOCUS LINE = {}", must_focus_hot);
         prefs = PreferenceManager.getDefaultSharedPreferences(getActivity().getBaseContext());
     }
 
@@ -214,6 +213,8 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
         super.setUserVisibleHint(visible);
         this.visible = visible;
         if (buffer != null) buffer.setWatched(visible);
+        logger.error("calling maybeScrollToLine() from setUserVisibleHint()");
+        maybeScrollToLine();
     }
 
     /////////////////////////
@@ -292,6 +293,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
                     tabButton.setVisibility(prefs.getBoolean("tabbtn_show", false) ? View.VISIBLE : View.GONE);
                     chatLines.setAdapter(chatlines_adapter);
                     buffer.setWatched(visible);
+                    logger.error("calling maybeScrollToLine() from onBuffersListed() 111");
                     maybeScrollToLine();
                 }
             }
@@ -331,6 +333,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     @Override
     public void onLinesListed() {
         if (DEBUG) logger.warn("{} onLinesListed() 111", full_name);
+        logger.error("calling maybeScrollToLine() from onBuffersListed() 111");
         maybeScrollToLine();
     }
 
@@ -349,36 +352,40 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     ///////////////////////// misc
     /////////////////////////
 
-    public void maybeScrollToLine(int line_offset) {
-        focus_line = line_offset;
+    public void maybeScrollToLine(boolean must_focus_hot) {
+        this.must_focus_hot = must_focus_hot;
         maybeScrollToLine();
     }
 
     public void maybeScrollToLine() {
-        if (DEBUG) logger.warn("{} maybeScrollToLine(), focus_line = {} 111", full_name, focus_line);
-        logger.warn("111 buffer == {}, all_lines = {}", buffer, buffer.holds_all_lines_it_is_supposed_to_hold);
-        if (focus_line == 0 || buffer == null || !buffer.holds_all_lines_it_is_supposed_to_hold)
+        if (DEBUG) logger.error("{} maybeScrollToLine(), must_focus_hot = {} 111", full_name, must_focus_hot);
+        if (!must_focus_hot || buffer == null || (!visible) || (!buffer.holds_all_lines_it_is_supposed_to_hold))
             return;
-
-
-        getActivity().runOnUiThread(new Runnable() {
+        if (DEBUG) logger.error("running! buf.type = {}, buf.old_highlights = {}", buffer.type, buffer.old_highlights);
+        chatLines.post(new Runnable() {
             @Override
             public void run() {
                 int count = chatlines_adapter.getCount(), idx = -1, highlights = 0;
-                if (focus_line > 0)
+                logger.error("::: {}", buffer.type == Buffer.PRIVATE && buffer.old_unreads > 0);
+                logger.error("::: {}", buffer.old_highlights > 0);
+                if (buffer.type == Buffer.PRIVATE && buffer.old_unreads > 0) {
                     idx = count - buffer.old_unreads;
-                else if (focus_line < 0)
-                    for (idx = count-1; idx >= 0; idx--) {
+                }
+                else if (buffer.old_highlights > 0) {
+                    for (idx = count - 1; idx >= 0; idx--) {
                         Buffer.Line line = (Buffer.Line) chatlines_adapter.getItem(idx);
+                        logger.error("::: {} : {}", idx, line.highlighted);
+                        logger.error("::: hi", highlights);
                         if (line.highlighted) highlights++;
                         if (highlights == buffer.old_highlights) break;
                     }
+                }
                 if (idx != -1) {
                     logger.warn("111 high = {}", buffer.old_highlights);
                     logger.warn("111 idx = {}, count = {}", idx, count);
                     chatLines.smoothScrollToPosition(idx);
                 }
-                focus_line = 0;
+                must_focus_hot = false;
             }
         });
 
