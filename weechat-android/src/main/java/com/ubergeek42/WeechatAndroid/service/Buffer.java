@@ -244,6 +244,11 @@ public class Buffer {
         if (buffer_eye != null) buffer_eye.onLinesChanged();
     }
 
+    synchronized public void onLinesListed() {
+        holds_all_lines_it_is_supposed_to_hold = true;
+        if (buffer_eye != null) buffer_eye.onLinesListed();
+    }
+
     synchronized public void onPropertiesChanged() {
         type = getBufferType();
         processBufferTitle();
@@ -289,11 +294,16 @@ public class Buffer {
         }
     }
 
+    public int old_unreads = 0;
+    public int old_highlights = 0;
+
     /** sets highlights/unreads to 0 and,
      ** if something has actually changed, notifies whoever cares about it */
     synchronized public void resetUnreadsAndHighlights() {
         if (DEBUG_BUFFER) logger.error("{} resetUnreadsAndHighlights()", short_name);
         if ((unreads | highlights) == 0) return;
+        old_unreads = unreads;
+        old_highlights = highlights;
         unreads = highlights = 0;
         buffer_list.notifyBuffersSlightlyChanged(type == OTHER);
     }

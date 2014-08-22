@@ -7,6 +7,8 @@ public interface BufferEye {
 
     public void onLinesChanged();
 
+    public void onLinesListed();
+
     public void onPropertiesChanged();
 
     public void onBufferClosed();

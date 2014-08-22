@@ -115,6 +115,8 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
         });
     }
 
+    @Override public void onLinesListed() {}
+
     @Override
     public void onPropertiesChanged() {}
 

@@ -188,7 +188,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
             BufferList buffer_list = relay.getBufferList();
             if (buffer_list != null) {
                 for (String full_name : BufferList.synced_buffers_full_names)
-                    mainPagerAdapter.openBuffer(full_name, false);
+                    openBuffer(full_name, false);
                 updateHotCount(buffer_list.hot_count);
             }
 
@@ -363,7 +363,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         menu_hotlist.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                onOptionsItemSelected(menu.findItem(R.id.menu_hotlist));
+                onHotlistSelected();
             }
         });
         actionBarMenu = menu;
@@ -416,8 +416,6 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
                 break;
             }
             case R.id.menu_hotlist:
-                if (DEBUG) logger.debug("HOTLIST CLICKED");
-                // TODO
                 break;
             case R.id.menu_nicklist:
                 if (relay == null) break;
@@ -443,6 +441,22 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         return super.onOptionsItemSelected(item);
     }
 
+    private void onHotlistSelected() {
+        if (DEBUG_OPTIONS_MENU) logger.debug("onHotlistSelected() 111");
+        if (relay == null) return;
+
+        for (Buffer buffer : relay.getBufferList().getBufferList()) {
+            logger.debug("name {} buffer {} 111", buffer.full_name, buffer);
+            if (buffer.type == Buffer.PRIVATE && buffer.unreads != 0) {
+                mainPagerAdapter.openBuffer(buffer.full_name, true, 1);
+                return;
+            } else if (buffer.highlights != 0) {
+                mainPagerAdapter.openBuffer(buffer.full_name, true, -1);
+                return;
+            }
+        }
+    }
+
     /** change first menu item from connect to disconnect or back depending on connection status */
     private void makeMenuReflectConnectionStatus() {
         if (DEBUG_OPTIONS_MENU) logger.debug("makeMenuReflectConnectionStatus()");
@@ -466,7 +480,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
 
     public void openBuffer(String full_name, boolean focus) {
         if (DEBUG) logger.debug("openBuffer({})", full_name);
-        mainPagerAdapter.openBuffer(full_name, focus);
+        mainPagerAdapter.openBuffer(full_name, focus, 0);
     }
 
     // In own thread to prevent things from breaking

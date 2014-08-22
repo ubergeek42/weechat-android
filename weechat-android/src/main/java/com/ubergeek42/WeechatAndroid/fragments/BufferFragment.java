@@ -68,6 +68,8 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     private String short_name = "Unknown";
     private Buffer buffer;
 
+    private int focus_line = 0;
+
     private ChatLinesAdapter chatlines_adapter;
 
     // Settings for keeping track of the current tab completion stuff
@@ -97,6 +99,9 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
         if (savedInstanceState != null) short_name = savedInstanceState.getString("short_name");
         setRetainInstance(true);
         short_name = full_name = getArguments().getString("full_name");
+        focus_line = getArguments().getInt("focus_line");
+        getArguments().remove("focus_line");
+        logger.warn("111 FOCUS LINE = {}", focus_line);
         prefs = PreferenceManager.getDefaultSharedPreferences(getActivity().getBaseContext());
     }
 
@@ -257,29 +262,28 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
      ** it's not necessary that the buffers have been listed just now, though */
     public void onBuffersListed() {
         if (DEBUG) logger.warn("{} onBuffersListed() <{}>", full_name, this);
-
-        (new AsyncTask<Void, Void, Boolean>() {
+        getActivity().runOnUiThread(new Runnable() {
             @Override
-            protected Boolean doInBackground(Void... params) {
+            public void run() {
+                boolean we_have_buffer;
+
                 // check if the buffer is still there
                 // it should be there at ALL times EXCEPT when we RE-connect to the service and find it missing
                 buffer = relay.getBufferByFullName(full_name);
-                if (buffer == null) return false;
-
-                // set short name. we set it here because it's the buffer won't change
-                // and the name should be accessible between calls to this function
-                short_name = buffer.short_name;
-                chatlines_adapter = new ChatLinesAdapter(getActivity(), buffer);
-                buffer.setBufferEye(BufferFragment.this);   // buffer watcher TODO: java.lang.NullPointerException ?!?!
-                buffer.setWatched(visible);                 // 123
-                chatlines_adapter.onLinesChanged();
-                registerForContextMenu(chatLines);
-                return true;
-            }
-
-            @Override
-            protected void onPostExecute(Boolean we_have_buffer) {
-                if (we_have_buffer) {
+                if (buffer == null) {
+                    // TODO: replace with a notification that the buffer's been closed (?) in weechat?
+                    ViewGroup vg = (ViewGroup) getView().findViewById(R.id.chatview_layout);
+                    vg.removeAllViews();
+                    vg.addView(getActivity().getLayoutInflater().inflate(R.layout.buffer_not_loaded, vg, false));
+                }
+                else {
+                    // set short name. we set it here because it's the buffer won't change
+                    // and the name should be accessible between calls to this function
+                    short_name = buffer.short_name;
+                    chatlines_adapter = new ChatLinesAdapter(getActivity(), buffer);
+                    buffer.setBufferEye(BufferFragment.this);   // buffer watcher TODO: java.lang.NullPointerException if run in thread ?!?!
+                    chatlines_adapter.onLinesChanged();
+                    registerForContextMenu(chatLines);
                     inputBox.setFocusable(true);
                     inputBox.setFocusableInTouchMode(true);
                     sendButton.setEnabled(true);
@@ -287,15 +291,11 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
                     sendButton.setVisibility(prefs.getBoolean("sendbtn_show", true) ? View.VISIBLE : View.GONE);
                     tabButton.setVisibility(prefs.getBoolean("tabbtn_show", false) ? View.VISIBLE : View.GONE);
                     chatLines.setAdapter(chatlines_adapter);
-                } else {
-                    // TODO: replace with a notification that the buffer's been closed (?) in weechat?
-                    ViewGroup vg = (ViewGroup) getView().findViewById(R.id.chatview_layout);
-                    vg.removeAllViews();
-                    vg.addView(getActivity().getLayoutInflater().inflate(R.layout.buffer_not_loaded, vg, false));
-
+                    buffer.setWatched(visible);
+                    maybeScrollToLine();
                 }
             }
-        }).execute();
+        });
     }
 
     /** on disconnect, restore chat lines if any
@@ -329,6 +329,12 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     }
 
     @Override
+    public void onLinesListed() {
+        if (DEBUG) logger.warn("{} onLinesListed() 111", full_name);
+        maybeScrollToLine();
+    }
+
+    @Override
     public void onPropertiesChanged() {
         chatlines_adapter.onPropertiesChanged();
     }
@@ -339,14 +345,45 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
         ((WeechatActivity) getActivity()).closeBuffer(full_name);
     }
 
-//    @Override
-//    public void onNicklistChanged() {
-//        //nicks = buffer.getNicks();
-//    }
-
     /////////////////////////
     ///////////////////////// misc
     /////////////////////////
+
+    public void maybeScrollToLine(int line_offset) {
+        focus_line = line_offset;
+        maybeScrollToLine();
+    }
+
+    public void maybeScrollToLine() {
+        if (DEBUG) logger.warn("{} maybeScrollToLine(), focus_line = {} 111", full_name, focus_line);
+        logger.warn("111 buffer == {}, all_lines = {}", buffer, buffer.holds_all_lines_it_is_supposed_to_hold);
+        if (focus_line == 0 || buffer == null || !buffer.holds_all_lines_it_is_supposed_to_hold)
+            return;
+
+
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                int count = chatlines_adapter.getCount(), idx = -1, highlights = 0;
+                if (focus_line > 0)
+                    idx = count - buffer.old_unreads;
+                else if (focus_line < 0)
+                    for (idx = count-1; idx >= 0; idx--) {
+                        Buffer.Line line = (Buffer.Line) chatlines_adapter.getItem(idx);
+                        if (line.highlighted) highlights++;
+                        if (highlights == buffer.old_highlights) break;
+                    }
+                if (idx != -1) {
+                    logger.warn("111 high = {}", buffer.old_highlights);
+                    logger.warn("111 idx = {}, count = {}", idx, count);
+                    chatLines.smoothScrollToPosition(idx);
+                }
+                focus_line = 0;
+            }
+        });
+
+
+    }
 
     /** the only OnKeyListener's method
      ** User pressed some key in the input box, check for what it was

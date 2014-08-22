@@ -152,17 +152,18 @@ public class MainPagerAdapter extends PagerAdapter {
 
     /** switch to already open ui_buffer OR create a new ui_buffer, putting it into BOTH full_names and fragments,
      ** run notifyDataSetChanged() which will in turn call instantiateItem(), and set new ui_buffer as the current one */
-    public void openBuffer(final String full_name, final boolean focus) {
-        if (DEBUG) logger.info("openBuffer({})", full_name);
+    public void openBuffer(final String full_name, final boolean focus, final int focus_line) {
+        if (DEBUG) logger.info("openBuffer({}, {}, {})", new Object[]{full_name, focus, focus_line});
         int idx = full_names.indexOf(full_name);
         if (idx >= 0) {
             if (focus) pager.setCurrentItem(idx);
+            if (focus_line != 0) ((BufferFragment) fragments.get(idx)).maybeScrollToLine(focus_line);
         } else {
             if (activity.relay != null) {
                     Buffer buffer = activity.relay.getBufferByFullName(full_name);
                     if (buffer != null) buffer.setOpen(true);
             }
-            fragments.add(newBufferFragment(full_name));
+            fragments.add(newBufferFragment(full_name, focus_line));
             activity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -174,10 +175,11 @@ public class MainPagerAdapter extends PagerAdapter {
         }
     }
 
-    private Fragment newBufferFragment(String full_name) {
+    private Fragment newBufferFragment(String full_name, int focus_line) {
         Fragment fragment = new BufferFragment();
         Bundle args = new Bundle();
         args.putString("full_name", full_name);
+        if (focus_line != 0) args.putInt("focus_line", focus_line);
         fragment.setArguments(args);
         return fragment;
     }
@@ -240,7 +242,7 @@ public class MainPagerAdapter extends PagerAdapter {
         if (full_names.size() > 0) {
             for (String full_name : full_names) {
                 Fragment fragment = manager.getFragment(state, full_name);
-                fragments.add((fragment != null) ? fragment : newBufferFragment(full_name));
+                fragments.add((fragment != null) ? fragment : newBufferFragment(full_name, 0));
             }
             phone_mode = full_names.get(0).equals("");
             notifyDataSetChanged();

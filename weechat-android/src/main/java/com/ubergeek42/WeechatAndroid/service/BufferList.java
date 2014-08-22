@@ -379,6 +379,7 @@ public class BufferList {
         public void handleMessage(RelayObject obj, String id) {
             if (DEBUG_HANDLERS) logger.debug("buffer_line_watcher:handleMessage(..., {})", id);
             Hdata data = (Hdata) obj;
+            HashSet<Buffer> fresh_buffers = new HashSet<Buffer>();
 
             for (int i = 0, size = data.getCount(); i < size; i++) {
                 HdataEntry entry = data.getItem(i);
@@ -386,6 +387,8 @@ public class BufferList {
 
                 int buffer_pointer = (is_bottom) ? entry.getItem("buffer").asPointerInt() : entry.getPointerInt(0);
                 Buffer buffer = findByPointer(buffer_pointer);
+                if (!is_bottom)
+                    fresh_buffers.add(buffer);
                 if (buffer == null) {
                     if (DEBUG_HANDLERS) logger.warn("buffer_line_watcher: no buffer to update!");
                     continue;
@@ -404,8 +407,9 @@ public class BufferList {
                 Buffer.Line line = new Buffer.Line(entry.getPointerInt(), time, prefix, message, displayed, highlight, tags);
                 buffer.addLine(line, is_bottom);
 
-                if (!is_bottom) buffer.holds_all_lines_it_is_supposed_to_hold = true;
             }
+
+            for (Buffer buffer : fresh_buffers) buffer.onLinesListed();
         }
     };
 
