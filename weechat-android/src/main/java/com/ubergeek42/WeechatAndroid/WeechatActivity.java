@@ -42,7 +42,6 @@ import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
@@ -51,7 +50,6 @@ import android.widget.Toast;
 import com.actionbarsherlock.ActionBarSherlock;
 import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockFragmentActivity;
-import com.actionbarsherlock.internal.widget.IcsToast;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
@@ -501,12 +499,6 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         if (DEBUG) logger.debug("onBackPressed()");
         if (phone_mode && viewPager.getCurrentItem() != 0) viewPager.setCurrentItem(0);
         else super.onBackPressed();
-    }
-
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        if (DEBUG) logger.debug("onSaveInstanceState()");
-        super.onSaveInstanceState(outState);
     }
 
     static abstract class MyMenuItemStuffListener implements View.OnClickListener, View.OnLongClickListener {

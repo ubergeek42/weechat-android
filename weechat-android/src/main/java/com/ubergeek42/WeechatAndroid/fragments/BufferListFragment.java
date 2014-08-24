@@ -198,6 +198,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
         buffer_list = relay.getBufferList();
         adapter = new BufferListAdapter(getActivity(), buffer_list);
         buffer_list.setBufferListEye(this);
+        onHotCountChanged();
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
