@@ -213,7 +213,6 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
         super.setUserVisibleHint(visible);
         this.visible = visible;
         if (buffer != null) buffer.setWatched(visible);
-        logger.error("calling maybeScrollToLine() from setUserVisibleHint()");
         maybeScrollToLine();
     }
 

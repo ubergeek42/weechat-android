@@ -105,7 +105,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
 
         // pages to each side of the on-screen page that should stay in memory
         // the other pages are NOT destroyed, merely their views are
-        viewPager.setOffscreenPageLimit(0);
+        viewPager.setOffscreenPageLimit(1);
 
         ActionBar ab = getSupportActionBar();
         ab.setHomeButtonEnabled(true);

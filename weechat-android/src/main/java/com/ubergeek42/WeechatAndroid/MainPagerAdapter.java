@@ -4,6 +4,7 @@ package com.ubergeek42.WeechatAndroid;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -24,7 +25,7 @@ import java.util.ArrayList;
 public class MainPagerAdapter extends PagerAdapter {
 
     private static Logger logger = LoggerFactory.getLogger("MainPagerAdapter");
-    final private static boolean DEBUG = BuildConfig.DEBUG && true;
+    final private static boolean DEBUG = BuildConfig.DEBUG;
 
     private boolean phone_mode = false;
     private ArrayList<String> full_names = new ArrayList<String>();
@@ -147,7 +148,7 @@ public class MainPagerAdapter extends PagerAdapter {
 
     @Override
     public CharSequence getPageTitle(int i) {
-        return (phone_mode && i == 0) ? "Buffer List" : ((BufferFragment) fragments.get(i)).getShortBufferName();
+        return (phone_mode && i == 0) ? "Buffer list" : ((BufferFragment) fragments.get(i)).getShortBufferName();
     }
 
     /** switch to already open ui_buffer OR create a new ui_buffer, putting it into BOTH full_names and fragments,
@@ -207,7 +208,7 @@ public class MainPagerAdapter extends PagerAdapter {
 
     /** returns BufferFragment that is currently focused
      ** or null if nothing or BufferListFragment is focused */
-    public BufferFragment getCurrentBufferFragment() {
+    public @Nullable BufferFragment getCurrentBufferFragment() {
         int i = pager.getCurrentItem();
         if ((phone_mode && i == 0) || fragments.size() == 0)
             return null;
@@ -217,8 +218,7 @@ public class MainPagerAdapter extends PagerAdapter {
 
     /** the following two methods magically get called on application recreation,
      ** so put all our save/restore state here */
-    @Override
-    public Parcelable saveState() {
+    @Override public @Nullable Parcelable saveState() {
         if (DEBUG) logger.info("saveState()");
         if (fragments.size() == 0)
             return null;
