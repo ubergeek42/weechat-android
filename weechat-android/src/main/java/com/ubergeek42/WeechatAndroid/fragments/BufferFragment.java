@@ -36,6 +36,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.actionbarsherlock.app.SherlockFragment;
 import com.ubergeek42.WeechatAndroid.BuildConfig;
@@ -100,7 +101,6 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
         short_name = full_name = getArguments().getString("full_name");
         must_focus_hot = getArguments().getBoolean("must_focus_hot", false);
         getArguments().remove("must_focus_hot");
-        logger.warn("111 FOCUS LINE = {}", must_focus_hot);
         prefs = PreferenceManager.getDefaultSharedPreferences(getActivity().getBaseContext());
     }
 
@@ -293,7 +293,6 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
                     tabButton.setVisibility(prefs.getBoolean("tabbtn_show", false) ? View.VISIBLE : View.GONE);
                     chatLines.setAdapter(chatlines_adapter);
                     buffer.setWatched(visible);
-                    logger.error("calling maybeScrollToLine() from onBuffersListed() 111");
                     maybeScrollToLine();
                 }
             }
@@ -332,8 +331,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
 
     @Override
     public void onLinesListed() {
-        if (DEBUG) logger.warn("{} onLinesListed() 111", full_name);
-        logger.error("calling maybeScrollToLine() from onBuffersListed() 111");
+        if (DEBUG) logger.warn("{} onLinesListed()", full_name);
         maybeScrollToLine();
     }
 
@@ -357,39 +355,32 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
         maybeScrollToLine();
     }
 
+    /** scroll to the first hot line, if possible  (that is, first unread line in a private buffer
+     **     or the first unread highlight)
+     ** can be called multiple times, resets {@link #must_focus_hot} when done
+     ** posts to the listview to make sure it's fully completed loading the items
+     ** after setting the adapter or updating lines */
     public void maybeScrollToLine() {
-        if (DEBUG) logger.error("{} maybeScrollToLine(), must_focus_hot = {} 111", full_name, must_focus_hot);
+        if (DEBUG) logger.error("{} maybeScrollToLine(), must_focus_hot = {}", full_name, must_focus_hot);
         if (!must_focus_hot || buffer == null || (!visible) || (!buffer.holds_all_lines_it_is_supposed_to_hold))
             return;
-        if (DEBUG) logger.error("running! buf.type = {}, buf.old_highlights = {}", buffer.type, buffer.old_highlights);
         chatLines.post(new Runnable() {
             @Override
             public void run() {
                 int count = chatlines_adapter.getCount(), idx = -1, highlights = 0;
-                logger.error("::: {}", buffer.type == Buffer.PRIVATE && buffer.old_unreads > 0);
-                logger.error("::: {}", buffer.old_highlights > 0);
-                if (buffer.type == Buffer.PRIVATE && buffer.old_unreads > 0) {
+                if (buffer.type == Buffer.PRIVATE && buffer.old_unreads > 0)
                     idx = count - buffer.old_unreads;
-                }
-                else if (buffer.old_highlights > 0) {
+                else if (buffer.old_highlights > 0)
                     for (idx = count - 1; idx >= 0; idx--) {
                         Buffer.Line line = (Buffer.Line) chatlines_adapter.getItem(idx);
-                        logger.error("::: {} : {}", idx, line.highlighted);
-                        logger.error("::: hi", highlights);
                         if (line.highlighted) highlights++;
                         if (highlights == buffer.old_highlights) break;
                     }
-                }
-                if (idx != -1) {
-                    logger.warn("111 high = {}", buffer.old_highlights);
-                    logger.warn("111 idx = {}, count = {}", idx, count);
-                    chatLines.smoothScrollToPosition(idx);
-                }
+                if (idx > 0) chatLines.smoothScrollToPosition(idx);
+                else Toast.makeText(getActivity(), "Can't find the line to scroll to", Toast.LENGTH_SHORT).show();
                 must_focus_hot = false;
             }
         });
-
-
     }
 
     /** the only OnKeyListener's method
