@@ -421,7 +421,7 @@ public class Buffer {
 
         // preferences for all lines
         public static float TEXT_SIZE = 10;
-        public static DateFormat DATEFORMAT = new SimpleDateFormat("HH:mm");
+        public static @Nullable DateFormat DATEFORMAT = new SimpleDateFormat("HH:mm");
         public static int ALIGN = ALIGN_RIGHT;
         public static int MAX_WIDTH = 7;
         public static float LETTER_WIDTH = 12;

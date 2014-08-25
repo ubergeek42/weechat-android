@@ -7,7 +7,7 @@
     <RelativeLayout
         android:id="@+id/filter_bar"
         android:layout_width="wrap_content"
-        android:layout_height="48dp"
+        android:layout_height="?actionBarSize"
         android:background="@drawable/bottom_bar"
         android:layout_alignParentBottom="true" >
         <EditText

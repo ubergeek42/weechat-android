@@ -388,8 +388,8 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
         if (DEBUG) logger.warn("{} onKey(..., {}, ...)", full_name, keycode);
         int action = event.getAction();
         // Enter key sends the message
-        if (keycode == KeyEvent.KEYCODE_ENTER && action == KeyEvent.ACTION_UP) {
-            getActivity().runOnUiThread(message_sender);
+        if (keycode == KeyEvent.KEYCODE_ENTER) {
+            if (action == KeyEvent.ACTION_UP) getActivity().runOnUiThread(message_sender);
             return true;
         }
         // Check for text resizing keys (volume buttons)
