@@ -37,6 +37,7 @@ public class BufferList {
     public static boolean SORT_BUFFERS = false;
     public static boolean SHOW_TITLE = true;
     public static boolean FILTER_NONHUMAN_BUFFERS = false;
+    public static boolean OPTIMIZE_TRAFFIC = false;
     public static String FILTER = null;                                                            // TODO race condition?
 
     final static public LinkedHashSet<String> synced_buffers_full_names = new LinkedHashSet<String>();  // TODO race condition?
@@ -101,8 +102,7 @@ public class BufferList {
         if (sent_buffers == null) {
             sent_buffers = new ArrayList<Buffer>();
             for (Buffer buffer : buffers) {
-                if (FILTER_NONHUMAN_BUFFERS && buffer.type == Buffer.OTHER && buffer.highlights == 0 && buffer.unreads == 0)
-                    continue;
+                if (FILTER_NONHUMAN_BUFFERS && buffer.type == Buffer.OTHER && buffer.highlights == 0 && buffer.unreads == 0) continue;
                 if (FILTER != null && !buffer.full_name.toLowerCase().contains(FILTER)) continue;
                 sent_buffers.add(buffer);
             }
@@ -182,16 +182,18 @@ public class BufferList {
         return synced_buffers_full_names.contains(full_name);
     }
 
+    /** send sync command to relay (if traffic is set to optimized) and
+     ** add it to the synced buffers (=open buffers) list */
     synchronized void syncBuffer(String full_name) {
         if (DEBUG) logger.warn("syncBuffer({})", full_name);
         BufferList.synced_buffers_full_names.add(full_name);
-        relay.connection.sendMsg("sync " + full_name);
+        if (OPTIMIZE_TRAFFIC) relay.connection.sendMsg("sync " + full_name);
     }
 
     synchronized void desyncBuffer(String full_name) {
         if (DEBUG) logger.warn("desyncBuffer({})", full_name);
         BufferList.synced_buffers_full_names.remove(full_name);
-        relay.connection.sendMsg("desync " + full_name);
+        if (OPTIMIZE_TRAFFIC) relay.connection.sendMsg("desync " + full_name);
     }
 
     synchronized static String getSyncedBuffersAsString() {

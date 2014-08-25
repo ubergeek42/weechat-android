@@ -50,6 +50,7 @@ public class RelayService extends RelayServiceBackbone {
         BufferList.SORT_BUFFERS = prefs.getBoolean("sort_buffers", false);
         BufferList.SHOW_TITLE = prefs.getBoolean("show_buffer_titles", true);
         BufferList.FILTER_NONHUMAN_BUFFERS = prefs.getBoolean("filter_nonhuman_buffers", false);
+        BufferList.OPTIMIZE_TRAFFIC = prefs.getBoolean("optimize_traffic", false);
 
         // buffer-wide preferences
         Buffer.FILTER_LINES = prefs.getBoolean("chatview_filters", true);
@@ -83,7 +84,8 @@ public class RelayService extends RelayServiceBackbone {
         buffer_list = new BufferList(this);
 
         // Subscribe to any future changes
-        connection.sendMsg("sync");
+        if (!BufferList.OPTIMIZE_TRAFFIC)
+            connection.sendMsg("sync");
     }
 
     /** onDestroy will only be called when properly exiting the application
@@ -132,7 +134,11 @@ public class RelayService extends RelayServiceBackbone {
         } else if (key.equals("filter_nonhuman_buffers")) {
             BufferList.FILTER_NONHUMAN_BUFFERS = prefs.getBoolean("filter_nonhuman_buffers", false);
 
-            // buffer-wide preferences
+        // traffic preference
+        } else if (key.equals("optimize_traffic")) {
+            BufferList.OPTIMIZE_TRAFFIC = prefs.getBoolean("optimize_traffic", false);
+
+        // buffer-wide preferences
         } else if (key.equals("chatview_filters")) {
             Buffer.FILTER_LINES = prefs.getBoolean("chatview_filters", true);
 

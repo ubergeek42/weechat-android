@@ -265,8 +265,6 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                boolean we_have_buffer;
-
                 // check if the buffer is still there
                 // it should be there at ALL times EXCEPT when we RE-connect to the service and find it missing
                 buffer = relay.getBufferByFullName(full_name);

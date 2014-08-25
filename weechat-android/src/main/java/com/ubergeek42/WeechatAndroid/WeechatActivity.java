@@ -123,8 +123,6 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 
         setTitle(getString(R.string.app_version));
-
-        // TODO: add preference to hide the TitlePageIndicator
     }
 
     /** bind to relay service, which results in:

@@ -57,13 +57,11 @@ public class RelayServiceBackbone extends Service implements RelayConnectionHand
         OnSharedPreferenceChangeListener, UpgradeObserver {
 
     private static Logger logger = LoggerFactory.getLogger("RelayServiceBackbone");
-    final private static boolean DEBUG = BuildConfig.DEBUG && true;
+    final private static boolean DEBUG = false;
 
     private static final int NOTIFICATION_ID = 42;
     private NotificationManager notificationManger;
 
-    boolean optimize_traffic = false;
-    
     String host;
     int port;
     String pass;
@@ -171,8 +169,6 @@ public class RelayServiceBackbone extends Service implements RelayConnectionHand
         sshPort = prefs.getString("ssh_port", "22");
         sshKeyfile = prefs.getString("ssh_keyfile", "");
         
-        optimize_traffic = prefs.getBoolean("optimize_traffic", false);
-
         // If no host defined, signal them to edit their preferences
         if (host == null) {
             Intent i = new Intent(this, WeechatPreferencesActivity.class);
@@ -235,15 +231,10 @@ public class RelayServiceBackbone extends Service implements RelayConnectionHand
     private Notification buildNotification(@Nullable String tickerText, @NonNull String content, @Nullable PendingIntent intent, boolean beep) {
         if (DEBUG) logger.debug("buildNotification({}, {}, {}, {})", new Object[]{tickerText, content, intent, beep});
         PendingIntent contentIntent;
-        if (intent == null) {
-            contentIntent = PendingIntent.getActivity(this, 0, new Intent(this, WeechatActivity.class), PendingIntent.FLAG_CANCEL_CURRENT);
-        }
-        else {
-            contentIntent = intent;
-        }
+        contentIntent = (intent != null) ? intent :
+            PendingIntent.getActivity(this, 0, new Intent(this, WeechatActivity.class), PendingIntent.FLAG_CANCEL_CURRENT);
 
-        int icon = 0;
-        logger.debug("connection = {} hot_count = {}", Integer.toString(connection_status, 2), hot_count);
+        int icon;
         if (!isConnection(AUTHENTICATED)) {
             if (isConnection(CONNECTING)) icon = R.drawable.ic_connecting;
             else icon = R.drawable.ic_disconnected;
@@ -271,7 +262,7 @@ public class RelayServiceBackbone extends Service implements RelayConnectionHand
         showNotification(null, getString(R.string.notification_connected_to) + host);
     }
 
-    /** display custom notification with specific intent */
+    /** display custom notification with specific intent & beep */
     private void showNotification(@Nullable String tickerText, @NonNull String content, @NonNull PendingIntent intent, boolean beep) {
         notificationManger.notify(NOTIFICATION_ID, buildNotification(tickerText, content, intent, beep));
     }
@@ -287,6 +278,8 @@ public class RelayServiceBackbone extends Service implements RelayConnectionHand
         notificationManger.notify(NOTIFICATION_ID, buildNotification(tickerText, content, null, false));
     }
 
+    /** display notification with a hot message
+     ** clicking on it will open the buffer & scroll up to the hot line, if needed */
     public void displayHighlightNotification(String full_name, String message) {
         if (DEBUG) logger.debug("onHighlight({}, {}", full_name, message);
         Intent intent = new Intent(this, WeechatActivity.class);
@@ -369,9 +362,6 @@ public class RelayServiceBackbone extends Service implements RelayConnectionHand
 
         connection.addHandler("hotlist", new BuffersListedObserver());
 
-        if (!optimize_traffic)
-            connection.sendMsg("sync");
-
         for (RelayConnectionHandler rch : connectionHandlers) rch.onAuthenticated();
     }
 
@@ -441,8 +431,6 @@ public class RelayServiceBackbone extends Service implements RelayConnectionHand
             pass = prefs.getString("password", "password");
         } else if (key.equals("port")) {
             port = Integer.parseInt(prefs.getString("port", "8001"));
-        } else if (key.equals("optimize_traffic")) {
-            optimize_traffic = prefs.getBoolean("optimize_traffic", false);
         }
     }
 
