@@ -7,9 +7,9 @@
         <item>none</item>
     </string-array>
     <string-array name="settings_connection_type_values">
-        <item >plain</item>
-        <item >ssl</item>
-        <item >ssh</item>
-        <item >stunnel</item>
+        <item>plain</item>
+        <item>ssl</item>
+        <item>ssh</item>
+        <item>stunnel</item>
     </string-array>
 </resources>

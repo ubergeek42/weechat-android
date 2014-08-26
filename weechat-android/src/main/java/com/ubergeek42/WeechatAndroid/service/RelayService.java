@@ -38,6 +38,16 @@ public class RelayService extends RelayServiceBackbone {
     final private static boolean DEBUG = BuildConfig.DEBUG && true;
 
     public static final String PREFS_NAME = "kittens!";
+    public static final String PREFS_SORT_BUFFERS = "sort_buffers";
+    public static final String PREFS_SHOW_BUFFER_TITLES = "show_buffer_titles";
+    public static final String PREFS_FILTER_NONHUMAN_BUFFERS = "filter_nonhuman_buffers";
+    public static final String PREFS_OPTIMIZE_TRAFFIC = "optimize_traffic";
+    public static final String PREFS_FILTER_LINES = "chatview_filters";
+    public static final String PREFS_MAX_WIDTH = "prefix_max_width";
+    public static final String PREFS_DIM_DOWN = "dim_down";
+    public static final String PREFS_TIMESTAMP_FORMAT = "timestamp_format";
+    public static final String PREFS_PREFIX_ALIGN = "prefix_align";
+    public static final String PREFS_TEXT_SIZE = "text_size";
 
     public BufferList buffer_list;
 
@@ -47,16 +57,17 @@ public class RelayService extends RelayServiceBackbone {
         super.onCreate();
 
         // buffer list preferences
-        BufferList.SORT_BUFFERS = prefs.getBoolean("sort_buffers", false);
-        BufferList.SHOW_TITLE = prefs.getBoolean("show_buffer_titles", true);
-        BufferList.FILTER_NONHUMAN_BUFFERS = prefs.getBoolean("filter_nonhuman_buffers", false);
-        BufferList.OPTIMIZE_TRAFFIC = prefs.getBoolean("optimize_traffic", false);
+        BufferList.SORT_BUFFERS = prefs.getBoolean(PREFS_SORT_BUFFERS, false);
+        BufferList.SHOW_TITLE = prefs.getBoolean(PREFS_SHOW_BUFFER_TITLES, true);
+        BufferList.FILTER_NONHUMAN_BUFFERS = prefs.getBoolean(PREFS_FILTER_NONHUMAN_BUFFERS, false);
+        BufferList.OPTIMIZE_TRAFFIC = prefs.getBoolean(PREFS_OPTIMIZE_TRAFFIC, false);
 
         // buffer-wide preferences
-        Buffer.FILTER_LINES = prefs.getBoolean("chatview_filters", true);
+        Buffer.FILTER_LINES = prefs.getBoolean(PREFS_FILTER_LINES, true);
 
         // buffer line-wide preferences
-        Buffer.Line.MAX_WIDTH = Integer.parseInt(prefs.getString("prefix_max_width", "7"));
+        Buffer.Line.MAX_WIDTH = Integer.parseInt(prefs.getString(PREFS_MAX_WIDTH, "7"));
+        Buffer.Line.DIM_DOWN_NON_HUMAN_LINES = prefs.getBoolean(PREFS_DIM_DOWN, false);
         setTimestampFormat();
         setAlignment();
         setTextSizeAndLetterWidth();
@@ -127,51 +138,54 @@ public class RelayService extends RelayServiceBackbone {
 
         // buffer list preferences
         super.onSharedPreferenceChanged(sharedPreferences, key);
-        if (key.equals("sort_buffers")) {
-            BufferList.SORT_BUFFERS = prefs.getBoolean("sort_buffers", false);
-        } else if (key.equals("show_buffer_titles")) {
-            BufferList.SHOW_TITLE = prefs.getBoolean("show_buffer_titles", false);
-        } else if (key.equals("filter_nonhuman_buffers")) {
-            BufferList.FILTER_NONHUMAN_BUFFERS = prefs.getBoolean("filter_nonhuman_buffers", false);
+        if (key.equals(PREFS_SORT_BUFFERS)) {
+            BufferList.SORT_BUFFERS = prefs.getBoolean(key, false);
+        } else if (key.equals(PREFS_SHOW_BUFFER_TITLES)) {
+            BufferList.SHOW_TITLE = prefs.getBoolean(key, false);
+        } else if (key.equals(PREFS_FILTER_NONHUMAN_BUFFERS)) {
+            BufferList.FILTER_NONHUMAN_BUFFERS = prefs.getBoolean(key, false);
 
-        // traffic preference
-        } else if (key.equals("optimize_traffic")) {
-            BufferList.OPTIMIZE_TRAFFIC = prefs.getBoolean("optimize_traffic", false);
+            // traffic preference
+        } else if (key.equals(PREFS_OPTIMIZE_TRAFFIC)) {
+            BufferList.OPTIMIZE_TRAFFIC = prefs.getBoolean(key, false);
 
-        // buffer-wide preferences
-        } else if (key.equals("chatview_filters")) {
-            Buffer.FILTER_LINES = prefs.getBoolean("chatview_filters", true);
+            // buffer-wide preferences
+        } else if (key.equals(PREFS_FILTER_LINES)) {
+            Buffer.FILTER_LINES = prefs.getBoolean(key, true);
 
-        // chat lines-wide preferences
-        } else if (key.equals("prefix_max_width")) {
+            // chat lines-wide preferences
+        } else if (key.equals(PREFS_MAX_WIDTH)) {
             Buffer.Line.MAX_WIDTH = Integer.parseInt(prefs.getString(key, "7"));
             buffer_list.notifyOpenBuffersMustBeProcessed(false);
-        } else if (key.equals("timestamp_format")) {
+        } else if (key.equals(PREFS_DIM_DOWN)) {
+            Buffer.Line.DIM_DOWN_NON_HUMAN_LINES = prefs.getBoolean(key, false);
+            buffer_list.notifyOpenBuffersMustBeProcessed(true);
+        } else if (key.equals(PREFS_TIMESTAMP_FORMAT)) {
             setTimestampFormat();
             buffer_list.notifyOpenBuffersMustBeProcessed(false);
-        } else if (key.equals("prefix_align")) {
+        } else if (key.equals(PREFS_PREFIX_ALIGN)) {
             setAlignment();
             buffer_list.notifyOpenBuffersMustBeProcessed(false);
-        } else if (key.equals("text_size")) {
+        } else if (key.equals(PREFS_TEXT_SIZE)) {
             setTextSizeAndLetterWidth();
             buffer_list.notifyOpenBuffersMustBeProcessed(true);
         }
     }
 
     private void setTimestampFormat() {
-        String timeformat = prefs.getString("timestamp_format", "HH:mm:ss");
+        String timeformat = prefs.getString(PREFS_TIMESTAMP_FORMAT, "HH:mm:ss");
         Buffer.Line.DATEFORMAT = (timeformat.equals("")) ? null : new SimpleDateFormat(timeformat);
     }
 
     private void setAlignment() {
-        String alignment = prefs.getString("prefix_align", "right");
+        String alignment = prefs.getString(PREFS_PREFIX_ALIGN, "right");
         if (alignment.equals("right")) Buffer.Line.ALIGN = Buffer.Line.ALIGN_RIGHT;
         else if (alignment.equals("left")) Buffer.Line.ALIGN = Buffer.Line.ALIGN_LEFT;
         else Buffer.Line.ALIGN = Buffer.Line.ALIGN_NONE;
     }
 
     private void setTextSizeAndLetterWidth() {
-        Buffer.Line.TEXT_SIZE = Float.parseFloat(prefs.getString("text_size", "10"));
+        Buffer.Line.TEXT_SIZE = Float.parseFloat(prefs.getString(PREFS_TEXT_SIZE, "10"));
         LayoutInflater li = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
         TextView textview = (TextView) li.inflate(R.layout.chatview_line, null).findViewById(R.id.chatline_message);
         textview.setTextSize(Buffer.Line.TEXT_SIZE);

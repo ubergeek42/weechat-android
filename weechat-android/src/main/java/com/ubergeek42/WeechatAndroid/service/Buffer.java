@@ -8,6 +8,7 @@ import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextPaint;
 import android.text.style.BackgroundColorSpan;
+import android.text.style.CharacterStyle;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.LeadingMarginSpan;
 import android.text.style.RelativeSizeSpan;
@@ -213,7 +214,7 @@ public class Buffer {
                 BufferList.setMostRecentHotLine(this, line);
                 buffer_list.notifyBuffersSlightlyChanged(type == OTHER);
             }
-            else if (line.from_human_and_visible) {
+            else if (line.type != Line.LINE_OTHER) {
                 unreads += 1;
                 if (type == PRIVATE) BufferList.setMostRecentHotLine(this, line);
                 buffer_list.notifyBuffersSlightlyChanged(type == OTHER);
@@ -425,6 +426,7 @@ public class Buffer {
         public static int ALIGN = ALIGN_RIGHT;
         public static int MAX_WIDTH = 7;
         public static float LETTER_WIDTH = 12;
+        public static boolean DIM_DOWN_NON_HUMAN_LINES = true;
 
         // core message data
         final public int pointer;
@@ -434,7 +436,7 @@ public class Buffer {
 
         // additional data
         final public boolean visible;
-        final public boolean from_human_and_visible;
+        final public int type;
         final public boolean highlighted;
         final private @Nullable String[] tags;
 
@@ -451,27 +453,29 @@ public class Buffer {
             this.visible = displayed;
             this.highlighted = highlighted;
             this.tags = tags;
-            from_human_and_visible = findOutIfFromHuman();
+            this.type = findOutMessageType();
         }
 
-        private boolean findOutIfFromHuman() {
-            if (highlighted) return true;
-            if (!visible) return false;
+        final public static int LINE_OTHER = 0;
+        final public static int LINE_OWN = 1;
+        final public static int LINE_MESSAGE = 2;
 
+        private int findOutMessageType() {
             // there's no tags, probably it's an old version of weechat, so we err
             // on the safe side and treat it as from human
-            if (tags == null) return true;
+            if (tags == null) return LINE_MESSAGE;
 
             // Every "message" to user should have one or more of these tags
             // notify_message, notify_highlight or notify_message
-            if (tags.length == 0) return false;
+            if (tags.length == 0) return LINE_OTHER;
+
             final List list = Arrays.asList(tags);
-            return list.contains("notify_message") || list.contains("notify_highlight")
-                    || list.contains("notify_private");
+            if (!list.contains("log1")) return LINE_OTHER;
+            return list.contains("notify_none") ? LINE_OWN : LINE_MESSAGE;
         }
 
         private @Nullable String findSpeakingNick() {
-            if (!from_human_and_visible || tags == null) return null;
+            if (type != LINE_MESSAGE || tags == null) return null;
             for (String tag : tags)
                 if (tag.startsWith("nick_"))
                     return tag.substring(5);
@@ -500,17 +504,21 @@ public class Buffer {
             Color.parse(timestamp, prefix, message, highlighted, MAX_WIDTH, ALIGN == ALIGN_RIGHT);
             Spannable spannable = new SpannableString(Color.clean_message);
 
-            Object droid_span;
-            for (Color.Span span : Color.final_span_list) {
-                switch (span.type) {
-                    case Color.Span.FGCOLOR:   droid_span = new ForegroundColorSpan(span.color | 0xFF000000); break;
-                    case Color.Span.BGCOLOR:   droid_span = new BackgroundColorSpan(span.color | 0xFF000000); break;
-                    case Color.Span.ITALIC:    droid_span = new StyleSpan(Typeface.ITALIC);                   break;
-                    case Color.Span.BOLD:      droid_span = new StyleSpan(Typeface.BOLD);                     break;
-                    case Color.Span.UNDERLINE: droid_span = new UnderlineSpan();                              break;
-                    default: continue;
+            if (this.type == LINE_OTHER && DIM_DOWN_NON_HUMAN_LINES) {
+                spannable.setSpan(new ForegroundColorSpan(Color.weechatOptions[2][0] | 0xFF000000), 0, spannable.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            } else {
+                CharacterStyle droid_span;
+                for (Color.Span span : Color.final_span_list) {
+                    switch (span.type) {
+                        case Color.Span.FGCOLOR:   droid_span = new ForegroundColorSpan(span.color | 0xFF000000); break;
+                        case Color.Span.BGCOLOR:   droid_span = new BackgroundColorSpan(span.color | 0xFF000000); break;
+                        case Color.Span.ITALIC:    droid_span = new StyleSpan(Typeface.ITALIC);                   break;
+                        case Color.Span.BOLD:      droid_span = new StyleSpan(Typeface.BOLD);                     break;
+                        case Color.Span.UNDERLINE: droid_span = new UnderlineSpan();                              break;
+                        default: continue;
+                    }
+                    spannable.setSpan(droid_span, span.start, span.end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                 }
-                spannable.setSpan(droid_span, span.start, span.end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             }
 
             if (ALIGN != ALIGN_NONE) {

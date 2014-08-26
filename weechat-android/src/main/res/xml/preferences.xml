@@ -6,7 +6,7 @@
 	    <EditTextPreference android:key="password" android:title="@string/pref_relay_password" android:password="true" android:singleLine="true" />
     	<CheckBoxPreference android:key="autoconnect" android:summary="@string/pref_autoconnect_summary" android:title="@string/pref_autoconnect" />
 
-    	<CheckBoxPreference android:key="optimize_traffic" android:layout="@layout/preference_long_summary" android:summary="@string/pref_optimize_traffic_summary" android:title="@string/pref_optimize_traffic" android:defaultValue="false"/>
+    	<CheckBoxPreference android:key="optimize_traffic" android:summary="@string/pref_optimize_traffic_summary" android:title="@string/pref_optimize_traffic" android:defaultValue="false"/>
 
 		<PreferenceCategory android:key="adv_connection_group" android:title="@string/pref_adv_connection_group">
 			<ListPreference android:key="connection_type" android:title="@string/pref_connection_type" android:defaultValue="plain" android:entries="@array/pref_connection_type_names" android:entryValues="@array/settings_connection_type_values"/>
@@ -37,12 +37,12 @@
         <EditTextPreference android:key="text_size" android:title="@string/pref_text_size" android:defaultValue="10" android:numeric="integer" android:summary="@string/pref_text_size_summary"/>
         <CheckBoxPreference android:key="chatview_filters" android:title="@string/pref_chatview_filters" android:summary="@string/pref_chatview_filters_summary" android:defaultValue="true" />
         <ListPreference android:key="prefix_align" android:title="@string/pref_prefix_align" android:defaultValue="right" android:entries="@array/pref_prefix_align_names" android:entryValues="@array/settings_prefix_alignment_values" />
-        <EditTextPreference android:key="prefix_max_width" android:title="Maximum width of prefix" android:summary="In terms of letters. Longer nicknames will be cut." android:numeric="integer" android:defaultValue="7" />
-		<EditTextPreference android:key="timestamp_format" android:title="@string/pref_timestamp_format" android:summary="Default: &quot;HH:mm:ss&quot;. Empty turns off the prefix completely." android:defaultValue="HH:mm:ss" android:singleLine="true" />
+        <EditTextPreference android:key="prefix_max_width" android:title="@string/pref_max_width" android:summary="@string/pref_max_width_summary" android:numeric="integer" android:defaultValue="7" />
+		<EditTextPreference android:key="timestamp_format" android:title="@string/pref_timestamp_format" android:summary="@string/pref_timestamp_format_summary" android:defaultValue="HH:mm:ss" android:singleLine="true" />
+        <CheckBoxPreference android:key="dim_down" android:title="@string/pref_dim_down" android:summary="@string/pref_dim_down_summary" android:defaultValue="false" />
     </PreferenceCategory>
     
     <PreferenceCategory android:key="misc_group" android:title="@string/pref_misc_group">
-		<CheckBoxPreference android:key="tab_completion" android:title="@string/pref_tab_completion" android:summary="@string/pref_tab_completion_summary" android:defaultValue="true" />
 		<CheckBoxPreference android:key="tabbtn_show" android:title="@string/pref_tabbtn_show" android:summary="@string/pref_tabbtn_show_summary"  android:defaultValue="false" />
 		<CheckBoxPreference android:key="sendbtn_show" android:title="@string/pref_sendbtn_show" android:summary="@string/pref_sendbtn_show_summary" android:defaultValue="true" />
 		<CheckBoxPreference android:key="notification_sounds" android:title="@string/pref_notification_sounds" android:summary="@string/pref_notification_sounds_summary" android:defaultValue="false" />

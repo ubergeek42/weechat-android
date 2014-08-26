@@ -57,10 +57,10 @@ public class Color {
     };
 
     // these are weechat options
-    private static final int[][] weechatOptions = new int[][] {
+    public static final int[][] weechatOptions = new int[][] {
             {0xFFFFFF,       -1}, // #  0 default
             {0xFFFFFF,       -1}, // #  1 chat
-            {0x999999,       -1}, // #  2 chat_time
+            {0x555555,       -1}, // #  2 chat_time
             {0xFFFFFF,       -1}, // #  3 chat_time_delimiters
             {0xFF6633,       -1}, // #  4 chat_prefix_error
             {0x990099,       -1}, // #  5 chat_prefix_network
@@ -156,6 +156,7 @@ public class Color {
         // timestamp uses no colors
         if (timestamp != null) {
             sb.append(timestamp);
+            Span fg = new Span(); fg.start = 0; fg.end = sb.length(); fg.type = Span.FGCOLOR; fg.color = weechatOptions[2][0]; final_span_list.add(fg);
             sb.append(" ");
         }
 
