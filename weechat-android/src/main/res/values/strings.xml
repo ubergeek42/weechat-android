@@ -39,7 +39,7 @@
     <string name="pref_relay_password">Relay password</string>
     <string name="pref_autoconnect">Connect automatically</string>
     <string name="pref_autoconnect_summary">Connect automatically on app launch</string>
-    <string name="pref_optimize_traffic">Don’t sync unopened channels</string>
+    <string name="pref_optimize_traffic">Only sync open buffers</string>
     <string name="pref_optimize_traffic_summary">Reduces traffic but you won’t receive any updates for buffers that haven’t been open. Only enable if running WeeChat 0.4.1–dev or newer. Requires restart.</string>
     <string name="pref_adv_connection_group">Advanced connection settings</string>
 	    <string name="pref_connection_type">Connection type</string>
