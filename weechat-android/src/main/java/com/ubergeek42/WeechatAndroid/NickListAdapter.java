@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 public class NickListAdapter extends BaseAdapter implements BufferNicklistEye,
         DialogInterface.OnDismissListener, DialogInterface.OnShowListener {
     private static Logger logger = LoggerFactory.getLogger("NickListAdapter");
-    final private static boolean DEBUG = BuildConfig.DEBUG && true;
+    final private static boolean DEBUG = BuildConfig.DEBUG;
 
     private final @NonNull WeechatActivity activity;
     private final @NonNull LayoutInflater inflater;
@@ -26,7 +26,7 @@ public class NickListAdapter extends BaseAdapter implements BufferNicklistEye,
     private @NonNull Buffer.Nick[] nicks = new Buffer.Nick[0];
     private @NonNull AlertDialog dialog;
 
-    public NickListAdapter(WeechatActivity activity, Buffer buffer) {
+    public NickListAdapter(@NonNull WeechatActivity activity, @NonNull Buffer buffer) {
         this.activity = activity;
         this.inflater = LayoutInflater.from(activity);
         this.buffer = buffer;

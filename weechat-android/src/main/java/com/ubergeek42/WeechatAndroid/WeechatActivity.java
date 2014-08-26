@@ -33,6 +33,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.Rect;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Looper;
@@ -433,6 +434,12 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
                 });
                 AlertDialog dialog = builder.create();
                 dialog.setTitle("squirrels are awesome");
+
+                // workaround for a bug in earlier versions of android where
+                // alert dialogs would display black on black or white on white
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB)
+                    dialog.getListView().setBackgroundColor(0xff000000);
+
                 dialog.setOnShowListener(nicklistAdapter);
                 dialog.setOnDismissListener(nicklistAdapter);
                 dialog.show();
