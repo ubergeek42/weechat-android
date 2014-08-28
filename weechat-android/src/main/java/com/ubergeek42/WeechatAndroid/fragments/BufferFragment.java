@@ -278,7 +278,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
                     // set short name. we set it here because it's the buffer won't change
                     // and the name should be accessible between calls to this function
                     short_name = buffer.short_name;
-                    chatlines_adapter = new ChatLinesAdapter(getActivity(), buffer);
+                    chatlines_adapter = new ChatLinesAdapter(getActivity(), buffer, chatLines);
                     buffer.setBufferEye(BufferFragment.this);   // buffer watcher TODO: java.lang.NullPointerException if run in thread ?!?!
                     chatlines_adapter.onLinesChanged();
                     registerForContextMenu(chatLines);

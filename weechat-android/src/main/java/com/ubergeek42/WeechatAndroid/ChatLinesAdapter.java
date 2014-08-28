@@ -15,18 +15,15 @@
  ******************************************************************************/
 package com.ubergeek42.WeechatAndroid;
 
-import java.text.SimpleDateFormat;
-
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
-import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
 import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.BaseAdapter;
 import android.widget.ListAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.ubergeek42.WeechatAndroid.service.Buffer;
@@ -35,7 +32,7 @@ import com.ubergeek42.WeechatAndroid.service.BufferEye;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, BufferEye {
+public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, BufferEye, AbsListView.OnScrollListener {
 
     private static Logger logger = LoggerFactory.getLogger("ChatLinesAdapter");
     final private static boolean DEBUG = BuildConfig.DEBUG && false;
@@ -44,25 +41,25 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
 
     private Buffer buffer;
     private Buffer.Line[] lines = new Buffer.Line[0];
-
     private LayoutInflater inflater;
+    private ListView ui_listview;
 
-    public ChatLinesAdapter(FragmentActivity activity, Buffer buffer) {
-        if (DEBUG) logger.error("ChatLinesAdapter({}, {})", activity, buffer);
+    private boolean last_item_visible = true;
+
+    public ChatLinesAdapter(FragmentActivity activity, Buffer buffer, ListView ui_listview) {
+        if (DEBUG) logger.debug("ChatLinesAdapter({}, {})", activity, buffer);
         this.activity = activity;
         this.buffer = buffer;
         this.inflater = LayoutInflater.from(activity);
-
-
-        //buffer.setBufferEye(this);
-        //onLinesChanged();
+        this.ui_listview = ui_listview;
+        ui_listview.setOnScrollListener(this);
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////
+    public void clearLines() {}
 
-
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @Override
     public int getCount() {
@@ -76,14 +73,13 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
 
     @Override
     public long getItemId(int position) {
-        return position;
+        return ((Buffer.Line) getItem(position)).pointer;
     }
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-
-        // If we don't have the view, or we were using a filteredView, inflate a new one
         TextView textview;
+
         if (convertView == null) {
             convertView = inflater.inflate(R.layout.chatview_line, null);
             textview = (TextView) convertView.findViewById(R.id.chatline_message);
@@ -100,26 +96,66 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
         return convertView;
     }
 
-    public void clearLines() {}
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @Override
     public void onLinesChanged() {
         if (DEBUG) logger.error("onLinesChanged()");
         final Buffer.Line[] l = buffer.getLinesCopy();
-        activity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                lines = l;
-                notifyDataSetChanged();
-            }
-        });
+        if (l.length == 0) return;
+
+        final Buffer.Line prev_last_line = lines.length == 0 ? null : lines[lines.length -1];
+        final Buffer.Line last_line = l[l.length -1];
+        final boolean line_count_unchanged = lines.length == l.length;
+
+        // return if there's nothing to update
+        if (line_count_unchanged && last_line.equals(prev_last_line))
+            return;
+
+        // if last line is visible, scroll to bottom
+        // this is required for earlier versions of android, apparently
+        // if last line is not visible, and if the first line was deleted,
+        // scroll one line up accordingly, so we stay in place
+        // TODO: http://chris.banes.me/2013/02/21/listview-keeping-position/
+        if (last_item_visible) {
+            activity.runOnUiThread(new Runnable() {
+                @Override public void run() {
+                    lines = l;
+                    notifyDataSetChanged();
+                    ui_listview.setSelection(ui_listview.getCount() - 1);
+                }
+            });
+        } else if (line_count_unchanged) {
+            final int index = ui_listview.getFirstVisiblePosition();
+            View v = ui_listview.getChildAt(0);
+            final int top = (v == null) ? 0 : v.getTop();
+            activity.runOnUiThread(new Runnable() {
+                @Override public void run() {
+                    lines = l;
+                    notifyDataSetChanged();
+                    ui_listview.setSelectionFromTop(index - 1, top);
+                }
+            });
+        }
     }
 
     @Override public void onLinesListed() {}
 
-    @Override
-    public void onPropertiesChanged() {}
+    @Override public void onPropertiesChanged() {}
 
-    @Override
-    public void onBufferClosed() {}
+    @Override public void onBufferClosed() {}
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// AbsListView.OnScrollListener
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    @Override public void onScrollStateChanged(AbsListView absListView, int i) {}
+
+    // this determines if the last item is visible
+    // seriously, android?! is this this the only way to do that?!?! ffs
+    @Override public void onScroll(AbsListView lw, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+        last_item_visible = (firstVisibleItem + visibleItemCount == totalItemCount);
+    }
 }
