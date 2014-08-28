@@ -541,9 +541,10 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     @Override
     public boolean onContextItemSelected(MenuItem item) {
         if (contextMenuView != null) {
+            @SuppressWarnings("deprecation")
             ClipboardManager cm = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
             if (item.getItemId() == CONTEXT_MENU_COPY_TXT) {
-                CharSequence txt = contextMenuView.getText();
+                CharSequence txt = ((Buffer.Line) contextMenuView.getTag()).getNotificationString();
                 cm.setText(txt.toString());
             } else if (item.getItemId() >= CONTEXT_MENU_COPY_URL) {                     // TODO: don't follow the url immediately
                 URLSpan[] urls = contextMenuView.getUrls();
@@ -565,9 +566,8 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
         if (msg == null) return;
 
         contextMenuView = msg;
-        
-        menu.setHeaderTitle("Copy?");
-        menu.add(0, CONTEXT_MENU_COPY_TXT, 0, "Copy message text");
+        menu.setHeaderTitle("Copy");
+        menu.add(0, CONTEXT_MENU_COPY_TXT, 0, ((Buffer.Line) contextMenuView.getTag()).getNotificationString());
         
         URLSpan[] urls = contextMenuView.getUrls();
         int i = 0;

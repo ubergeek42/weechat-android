@@ -91,6 +91,7 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
         textview.setTextSize(Buffer.Line.TEXT_SIZE);
         Buffer.Line line = (Buffer.Line) getItem(position);
         textview.setText(line.spannable);
+        textview.setTag(line);
 
         return textview;
     }
