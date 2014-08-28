@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
 public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, BufferEye, AbsListView.OnScrollListener {
 
     private static Logger logger = LoggerFactory.getLogger("ChatLinesAdapter");
-    final private static boolean DEBUG = BuildConfig.DEBUG && false;
+    final private static boolean DEBUG = false;
 
     private FragmentActivity activity = null;
 
@@ -100,15 +100,21 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @Override
-    public void onLinesChanged() {
-        if (DEBUG) logger.error("onLinesChanged()");
-        final Buffer.Line[] l = buffer.getLinesCopy();
-        if (l.length == 0) return;
+    @Override public void onLinesChanged() {
+        if (DEBUG) logger.debug("onLinesChanged()");
 
-        final Buffer.Line prev_last_line = lines.length == 0 ? null : lines[lines.length -1];
-        final Buffer.Line last_line = l[l.length -1];
-        final boolean line_count_unchanged = lines.length == l.length;
+        final int index, top;
+        final Buffer.Line[] l;
+        final Buffer.Line prev_last_line, last_line;
+        final boolean line_count_unchanged, last_item_visible, must_scroll_one_line_up;
+
+        l = buffer.getLinesCopy();
+        if (l.length == 0)
+            return;
+
+        prev_last_line = lines.length == 0 ? null : lines[lines.length -1];
+        last_line = l[l.length -1];
+        line_count_unchanged = lines.length == l.length;
 
         // return if there's nothing to update
         if (line_count_unchanged && last_line.equals(prev_last_line))
@@ -116,29 +122,28 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
 
         // if last line is visible, scroll to bottom
         // this is required for earlier versions of android, apparently
-        // if last line is not visible, and if the first line was deleted,
+        // if last line is not visible,
         // scroll one line up accordingly, so we stay in place
         // TODO: http://chris.banes.me/2013/02/21/listview-keeping-position/
-        if (last_item_visible) {
-            activity.runOnUiThread(new Runnable() {
-                @Override public void run() {
-                    lines = l;
-                    notifyDataSetChanged();
-                    ui_listview.setSelection(ui_listview.getCount() - 1);
-                }
-            });
-        } else if (line_count_unchanged) {
-            final int index = ui_listview.getFirstVisiblePosition();
+        last_item_visible = this.last_item_visible;
+        must_scroll_one_line_up = !last_item_visible && line_count_unchanged;
+        if (must_scroll_one_line_up) {
+            index = ui_listview.getFirstVisiblePosition();
             View v = ui_listview.getChildAt(0);
-            final int top = (v == null) ? 0 : v.getTop();
-            activity.runOnUiThread(new Runnable() {
-                @Override public void run() {
-                    lines = l;
-                    notifyDataSetChanged();
+            top = (v == null) ? 0 : v.getTop();
+        } else
+            index = top = 0;
+
+        activity.runOnUiThread(new Runnable() {
+            @Override public void run() {
+                lines = l;
+                notifyDataSetChanged();
+                if (last_item_visible)
+                    ui_listview.setSelection(ui_listview.getCount() - 1);
+                else if (must_scroll_one_line_up)
                     ui_listview.setSelectionFromTop(index - 1, top);
-                }
-            });
-        }
+            }
+        });
     }
 
     @Override public void onLinesListed() {}
