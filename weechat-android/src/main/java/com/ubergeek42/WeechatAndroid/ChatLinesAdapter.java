@@ -16,6 +16,7 @@
 package com.ubergeek42.WeechatAndroid;
 
 import android.support.v4.app.FragmentActivity;
+import android.text.Spannable;
 import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -100,6 +101,8 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
+    private Spannable old_last_spannable = null;
+
     @Override public void onLinesChanged() {
         if (DEBUG) logger.debug("onLinesChanged()");
 
@@ -112,13 +115,12 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
         if (l.length == 0)
             return;
 
-        prev_last_line = lines.length == 0 ? null : lines[lines.length -1];
-        last_line = l[l.length -1];
         line_count_unchanged = lines.length == l.length;
+        Spannable last_spannable = l[l.length -1].spannable;
 
         // return if there's nothing to update
-        if (line_count_unchanged && last_line.equals(prev_last_line))
-            return;
+        if (line_count_unchanged && last_spannable == old_last_spannable) return;
+        old_last_spannable = last_spannable;
 
         // if last line is visible, scroll to bottom
         // this is required for earlier versions of android, apparently
