@@ -82,19 +82,17 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
         TextView textview;
 
         if (convertView == null) {
-            convertView = inflater.inflate(R.layout.chatview_line, null);
-            textview = (TextView) convertView.findViewById(R.id.chatline_message);
+            textview = (TextView) inflater.inflate(R.layout.chatview_line, null);
             textview.setMovementMethod(LinkMovementMethod.getInstance());
-            convertView.setTag(textview);
         } else {
-            textview = (TextView) convertView.getTag();
+            textview = (TextView) convertView;
         }
 
         textview.setTextSize(Buffer.Line.TEXT_SIZE);
         Buffer.Line line = (Buffer.Line) getItem(position);
         textview.setText(line.spannable);
 
-        return convertView;
+        return textview;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -108,7 +106,7 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
 
         final int index, top;
         final Buffer.Line[] l;
-        final Buffer.Line prev_last_line, last_line;
+        final Spannable last_spannable;
         final boolean line_count_unchanged, last_item_visible, must_scroll_one_line_up;
 
         l = buffer.getLinesCopy();
@@ -116,7 +114,7 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
             return;
 
         line_count_unchanged = lines.length == l.length;
-        Spannable last_spannable = l[l.length -1].spannable;
+        last_spannable = l[l.length - 1].spannable;
 
         // return if there's nothing to update
         if (line_count_unchanged && last_spannable == old_last_spannable) return;
