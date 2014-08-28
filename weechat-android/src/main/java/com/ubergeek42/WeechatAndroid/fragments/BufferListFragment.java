@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory;
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
@@ -45,7 +44,6 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
 
     private RelayServiceBinder relay;
     private BufferListAdapter adapter;
-    private BufferList buffer_list;
 
     private RelativeLayout ui_filter_bar;
     private TextView ui_empty;
@@ -124,10 +122,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     public void onStop() {
         if (DEBUG) logger.warn("onStop()");
         super.onStop();
-        if (buffer_list != null) {
-            buffer_list.setBufferListEye(null);                                         // buffer change watcher (safe to call)
-            buffer_list = null;
-        }
+        BufferList.setBufferListEye(null);                                              // buffer change watcher (safe to call)
         if (relay != null) {
             relay.removeRelayConnectionHandler(BufferListFragment.this);                // connect/disconnect watcher (safe to call)
             relay = null;
@@ -158,7 +153,6 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
         public void onServiceDisconnected(ComponentName name) {
             if (DEBUG) logger.error("onServiceDisconnected() <- should not happen!");
             relay = null;
-            buffer_list = null;
         }
     };
 
@@ -195,9 +189,8 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     @Override
     public void onBuffersListed() {
         if (DEBUG) logger.warn("onBuffersListed()");
-        buffer_list = relay.getBufferList();
-        adapter = new BufferListAdapter(getActivity(), buffer_list);
-        buffer_list.setBufferListEye(this);
+        adapter = new BufferListAdapter(getActivity());
+        BufferList.setBufferListEye(this);
         onHotCountChanged();
         getActivity().runOnUiThread(new Runnable() {
             @Override
@@ -240,7 +233,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
 
     @Override public void onHotCountChanged() {
         if (DEBUG) logger.warn("onHotCountChanged()");
-        ((WeechatActivity) getActivity()).updateHotCount(buffer_list.hot_count);
+        ((WeechatActivity) getActivity()).updateHotCount(BufferList.hot_count);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

@@ -35,11 +35,10 @@ import org.slf4j.LoggerFactory;
 public class BufferListAdapter extends BaseAdapter implements BufferListEye {
 
     private static Logger logger = LoggerFactory.getLogger("BufferListAdapter");
-    final private static boolean DEBUG = BuildConfig.DEBUG && true;
+    final private static boolean DEBUG = BuildConfig.DEBUG;
 
     Activity activity;
     LayoutInflater inflater;
-    BufferList buffer_list;
     private ArrayList<Buffer> buffers = new ArrayList<Buffer>();
 
     private static RelativeLayout.LayoutParams layout_params_closed;
@@ -58,10 +57,9 @@ public class BufferListAdapter extends BaseAdapter implements BufferListEye {
             {0xff57474f, 0xff735e69}, // private
     };
     
-    public BufferListAdapter(Activity activity, BufferList buffer_list) {
+    public BufferListAdapter(Activity activity) {
         this.activity = activity;
         this.inflater = LayoutInflater.from(activity);
-        this.buffer_list = buffer_list;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -134,7 +132,7 @@ public class BufferListAdapter extends BaseAdapter implements BufferListEye {
 
     @Override
     public void onBuffersChanged() {
-        final ArrayList<Buffer> buffers = buffer_list.getBufferList();
+        final ArrayList<Buffer> buffers = BufferList.getBufferList();
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {

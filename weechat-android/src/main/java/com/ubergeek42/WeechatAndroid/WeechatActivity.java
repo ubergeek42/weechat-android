@@ -186,12 +186,9 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
 
             // open buffer that MIGHT be open in the service
             // update hot count
-            BufferList buffer_list = relay.getBufferList();
-            if (buffer_list != null) {
-                for (String full_name : BufferList.synced_buffers_full_names)
-                    openBuffer(full_name, false);
-                updateHotCount(buffer_list.hot_count);
-            }
+            for (String full_name : BufferList.synced_buffers_full_names)
+                openBuffer(full_name, false);
+            updateHotCount(BufferList.hot_count);
 
             maybeHandleIntent();
         }
@@ -452,7 +449,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         if (DEBUG_OPTIONS_MENU) logger.debug("onHotlistSelected()");
         if (relay == null) return;
 
-        for (Buffer buffer : relay.getBufferList().getBufferList()) {
+        for (Buffer buffer : BufferList.getBufferList()) {
             if ((buffer.type == Buffer.PRIVATE && buffer.unreads > 0) ||
                     buffer.highlights > 0) {
                 mainPagerAdapter.openBuffer(buffer.full_name, true, true);

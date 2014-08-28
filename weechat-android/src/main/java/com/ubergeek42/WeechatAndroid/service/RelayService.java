@@ -49,8 +49,6 @@ public class RelayService extends RelayServiceBackbone {
     public static final String PREFS_PREFIX_ALIGN = "prefix_align";
     public static final String PREFS_TEXT_SIZE = "text_size";
 
-    public BufferList buffer_list;
-
     /** super method sets 'prefs' */
     @Override
     public void onCreate() {
@@ -92,7 +90,7 @@ public class RelayService extends RelayServiceBackbone {
     @Override
     void startHandlingBoneEvents() {
         restoreStuff();
-        buffer_list = new BufferList(this);
+        BufferList.launch(this);
 
         // Subscribe to any future changes
         if (!BufferList.OPTIMIZE_TRAFFIC)
@@ -156,19 +154,19 @@ public class RelayService extends RelayServiceBackbone {
             // chat lines-wide preferences
         } else if (key.equals(PREFS_MAX_WIDTH)) {
             Buffer.Line.MAX_WIDTH = Integer.parseInt(prefs.getString(key, "7"));
-            buffer_list.notifyOpenBuffersMustBeProcessed(false);
+            BufferList.notifyOpenBuffersMustBeProcessed(false);
         } else if (key.equals(PREFS_DIM_DOWN)) {
             Buffer.Line.DIM_DOWN_NON_HUMAN_LINES = prefs.getBoolean(key, false);
-            buffer_list.notifyOpenBuffersMustBeProcessed(true);
+            BufferList.notifyOpenBuffersMustBeProcessed(true);
         } else if (key.equals(PREFS_TIMESTAMP_FORMAT)) {
             setTimestampFormat();
-            buffer_list.notifyOpenBuffersMustBeProcessed(false);
+            BufferList.notifyOpenBuffersMustBeProcessed(false);
         } else if (key.equals(PREFS_PREFIX_ALIGN)) {
             setAlignment();
-            buffer_list.notifyOpenBuffersMustBeProcessed(false);
+            BufferList.notifyOpenBuffersMustBeProcessed(false);
         } else if (key.equals(PREFS_TEXT_SIZE)) {
             setTextSizeAndLetterWidth();
-            buffer_list.notifyOpenBuffersMustBeProcessed(true);
+            BufferList.notifyOpenBuffersMustBeProcessed(true);
         }
     }
 

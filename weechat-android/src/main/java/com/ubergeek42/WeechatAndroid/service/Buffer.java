@@ -51,7 +51,6 @@ public class Buffer {
     final public static int OTHER = 0;
 
     public final static int MAX_LINES = 200;
-    public static BufferList buffer_list;
 
     private BufferEye buffer_eye;
     private BufferNicklistEye buffer_nicklist_eye;
@@ -87,7 +86,7 @@ public class Buffer {
         this.local_vars = local_vars;
         this.type = getBufferType();
         processBufferTitle();
-        if (buffer_list.isSynced(full_name)) setOpen(true);
+        if (BufferList.isSynced(full_name)) setOpen(true);
         if (DEBUG_BUFFER) logger.warn("new Buffer(..., {}, {}, ...) is_open? {}", new Object[]{number, full_name, is_open});
     }
 
@@ -136,14 +135,14 @@ public class Buffer {
         if (this.is_open == open) return;
         this.is_open = open;
         if (open) {
-            buffer_list.syncBuffer(full_name);
+            BufferList.syncBuffer(full_name);
             for (Line line : lines) line.processMessageIfNeeded();
         }
         else {
-            buffer_list.desyncBuffer(full_name);
+            BufferList.desyncBuffer(full_name);
             for (Line line : lines) line.eraseProcessedMessage();
         }
-        buffer_list.notifyBuffersSlightlyChanged();
+        BufferList.notifyBuffersSlightlyChanged();
     }
 
     /** set buffer eye, i.e. something that watches buffer events
@@ -159,9 +158,9 @@ public class Buffer {
         this.buffer_eye = buffer_eye;
         if (buffer_eye != null) {
             if (!holds_all_lines_it_is_supposed_to_hold && lines.size() < MAX_LINES)
-                buffer_list.requestLinesForBufferByPointer(pointer);
+                BufferList.requestLinesForBufferByPointer(pointer);
             if (!holds_all_nicks)
-                buffer_list.requestNicklistForBufferByPointer(pointer);
+                BufferList.requestNicklistForBufferByPointer(pointer);
         }
     }
 
@@ -212,12 +211,12 @@ public class Buffer {
             if (line.highlighted) {
                 highlights += 1;
                 BufferList.setMostRecentHotLine(this, line);
-                buffer_list.notifyBuffersSlightlyChanged(type == OTHER);
+                BufferList.notifyBuffersSlightlyChanged(type == OTHER);
             }
             else if (line.type != Line.LINE_OTHER) {
                 unreads += 1;
                 if (type == PRIVATE) BufferList.setMostRecentHotLine(this, line);
-                buffer_list.notifyBuffersSlightlyChanged(type == OTHER);
+                BufferList.notifyBuffersSlightlyChanged(type == OTHER);
             }
         }
 
@@ -306,7 +305,7 @@ public class Buffer {
         old_unreads = unreads;
         old_highlights = highlights;
         unreads = highlights = 0;
-        buffer_list.notifyBuffersSlightlyChanged(type == OTHER);
+        BufferList.notifyBuffersSlightlyChanged(type == OTHER);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

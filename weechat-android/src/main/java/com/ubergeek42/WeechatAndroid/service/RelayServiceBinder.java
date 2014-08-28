@@ -74,12 +74,7 @@ public class RelayServiceBinder extends Binder {
 
     public @Nullable Buffer getBufferByFullName(@Nullable String full_name) {
         if (DEBUG) logger.warn("getBufferByFullName({})", full_name);
-        return service.buffer_list.findByFullName(full_name);
-    }
-
-    public BufferList getBufferList() {
-        if (DEBUG) logger.warn("getBufferList()");
-        return service.buffer_list;
+        return BufferList.findByFullName(full_name);
     }
 
     /** Send a message to the server(expected to be formatted appropriately) */

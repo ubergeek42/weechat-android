@@ -158,7 +158,7 @@ public class MainPagerAdapter extends PagerAdapter {
         int idx = full_names.indexOf(full_name);
         if (idx >= 0) {
             if (focus) pager.setCurrentItem(idx);
-            if (must_focus_hot) ((BufferFragment) fragments.get(idx)).maybeScrollToLine(must_focus_hot);
+            if (must_focus_hot) ((BufferFragment) fragments.get(idx)).maybeScrollToLine(true);
         } else {
             if (activity.relay != null) {
                     Buffer buffer = activity.relay.getBufferByFullName(full_name);
