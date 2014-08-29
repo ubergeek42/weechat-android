@@ -35,7 +35,10 @@ import java.text.SimpleDateFormat;
 
 public class RelayService extends RelayServiceBackbone {
     private static Logger logger = LoggerFactory.getLogger("RelayService");
-    final private static boolean DEBUG = BuildConfig.DEBUG && true;
+    final private static boolean DEBUG = BuildConfig.DEBUG;
+    final private static boolean DEBUG_PREFS = false;
+    final private static boolean DEBUG_SAVE_RESTORE = false;
+    final private static boolean DEBUG_NOTIFICATIONS = false;
 
     public static final String PREFS_NAME = "kittens!";
     public static final String PREFS_SORT_BUFFERS = "sort_buffers";
@@ -107,21 +110,21 @@ public class RelayService extends RelayServiceBackbone {
 
     /** save everything that is needed for successful restoration of the service */
     private void saveStuff() {
-        if (DEBUG) logger.debug("saveStuff()");
+        if (DEBUG_SAVE_RESTORE) logger.debug("saveStuff()");
         SharedPreferences preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         preferences.edit().putString("open_buffers", BufferList.getSyncedBuffersAsString()).commit();
     }
 
     /** restore everything */
     private void restoreStuff() {
-        if (DEBUG) logger.debug("restoreStuff()");
+        if (DEBUG_SAVE_RESTORE) logger.debug("restoreStuff()");
         SharedPreferences preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         BufferList.setSyncedBuffersFromString(preferences.getString("open_buffers", ""));
     }
 
     /** erase stuff as we no longer need it */
     private void eraseStoredStuff() {
-        if (DEBUG) logger.debug("eraseStoredStuff()");
+        if (DEBUG_SAVE_RESTORE) logger.debug("eraseStoredStuff()");
         SharedPreferences preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         preferences.edit().remove("open_buffers").commit();
     }
@@ -132,7 +135,7 @@ public class RelayService extends RelayServiceBackbone {
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        if (DEBUG) logger.warn("onSharedPreferenceChanged()");
+        if (DEBUG_PREFS) logger.warn("onSharedPreferenceChanged()");
 
         // buffer list preferences
         super.onSharedPreferenceChanged(sharedPreferences, key);
@@ -195,7 +198,7 @@ public class RelayService extends RelayServiceBackbone {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     public void changeNotification(boolean new_highlight, int new_hot_count, @Nullable Buffer buffer, @Nullable Buffer.Line line) {
-        if (DEBUG) logger.warn("changeNotification({}, {}, {}, {})", new Object[]{new_highlight, new_hot_count, buffer, line});
+        if (DEBUG_NOTIFICATIONS) logger.warn("changeNotification({}, {}, {}, {})", new Object[]{new_highlight, new_hot_count, buffer, line});
         hot_count = new_hot_count;
         if (new_highlight && buffer != null && line != null)
             displayHighlightNotification(buffer.full_name, line.getNotificationString());
