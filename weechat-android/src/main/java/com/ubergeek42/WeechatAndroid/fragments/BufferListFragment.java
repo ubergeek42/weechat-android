@@ -261,9 +261,13 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
         }
     };
 
-    private void setFilter(CharSequence s) {
+    private void setFilter(final CharSequence s) {
         BufferList.setFilter(s);
-        ui_filter_clear.setVisibility((s.length() == 0) ? View.INVISIBLE : View.VISIBLE);
+        getActivity().runOnUiThread(new Runnable() {
+            @Override public void run() {
+                ui_filter_clear.setVisibility((s.length() == 0) ? View.INVISIBLE : View.VISIBLE);
+            }
+        });
     }
 
     /** the only button we've got: clear text in the filter */

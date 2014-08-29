@@ -26,9 +26,11 @@
             android:layout_alignRight="@+id/bufferlist_filter"
             android:layout_alignTop="@+id/bufferlist_filter"
             android:layout_alignBottom="@+id/bufferlist_filter"
-            android:background="@android:drawable/ic_input_delete"
-            android:layout_marginRight="8dp"
-            android:visibility="invisible" />
+            android:src="@android:drawable/ic_menu_close_clear_cancel"
+            android:background="@null"
+            android:padding="6dp"
+            android:visibility="invisible"
+            android:scaleType="fitEnd" />
     </RelativeLayout>
 
     <ListView
@@ -42,7 +44,8 @@
         android:layout_above="@+id/filter_bar"
         android:dividerHeight="0dp"
         android:divider="@null"
-        android:background="#111111" />
+        android:background="#111111"
+        android:fadingEdge="none" />
 
     <TextView
         android:id="@android:id/empty"
