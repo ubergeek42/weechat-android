@@ -26,6 +26,8 @@ public class MainPagerAdapter extends PagerAdapter {
 
     private static Logger logger = LoggerFactory.getLogger("MainPagerAdapter");
     final private static boolean DEBUG = BuildConfig.DEBUG;
+    final private static boolean DEBUG_SUPER = false;
+    final private static boolean DEBUG_BUFFERS = false;
 
     private boolean phone_mode = false;
     private ArrayList<String> full_names = new ArrayList<String>();
@@ -69,15 +71,15 @@ public class MainPagerAdapter extends PagerAdapter {
      ** will not have been added to the fragment manager */
     @Override
     public Object instantiateItem(ViewGroup container, int i) {
-        if (DEBUG) logger.info("instantiateItem(..., {})", i);
+        if (DEBUG_SUPER) logger.info("instantiateItem(..., {})", i);
         if (transaction == null) transaction = manager.beginTransaction();
         String tag = full_names.get(i);
         Fragment frag = manager.findFragmentByTag(tag);
         if (frag != null) {
-            if (DEBUG) logger.info((phone_mode && i == 0) ? "...show()" : "...attach()");
+            if (DEBUG_SUPER) logger.info((phone_mode && i == 0) ? "...show()" : "...attach()");
             if (phone_mode && i == 0) transaction.show(frag); else transaction.attach(frag);
         } else {
-            if (DEBUG) logger.info("...add()");
+            if (DEBUG_SUPER) logger.info("...add()");
             transaction.add(container.getId(), frag = fragments.get(i), tag);
         }
         return frag;
@@ -87,14 +89,14 @@ public class MainPagerAdapter extends PagerAdapter {
      ** getting off-screen. in the first case the fragment will still be in this.fragments */
     @Override
     public void destroyItem(ViewGroup container, int i, Object object) {
-        if (DEBUG) logger.info("destroyItem(..., {}, {})", i, object);
+        if (DEBUG_SUPER) logger.info("destroyItem(..., {}, {})", i, object);
         if (transaction == null) transaction = manager.beginTransaction();
         Fragment frag = (Fragment) object;
         if (fragments.size() > i && fragments.get(i) == frag) {
-            if (DEBUG) logger.info((phone_mode && i == 0) ? "...hide()" : "...detach()");
+            if (DEBUG_SUPER) logger.info((phone_mode && i == 0) ? "...hide()" : "...detach()");
             if (phone_mode && i == 0) transaction.hide(frag); else transaction.detach(frag);
         } else {
-            if (DEBUG) logger.info("destroyItem(): remove");
+            if (DEBUG_SUPER) logger.info("destroyItem(): remove");
             transaction.remove(frag);
         }
     }
@@ -127,7 +129,7 @@ public class MainPagerAdapter extends PagerAdapter {
     @Override
     public int getItemPosition(Object object) {
         int idx = fragments.indexOf(object);
-        if (DEBUG) logger.info("getItemPosition(...) -> {}", (idx >= 0) ? idx : POSITION_NONE);
+        if (DEBUG_SUPER) logger.info("getItemPosition(...) -> {}", (idx >= 0) ? idx : POSITION_NONE);
         return (idx >= 0) ? idx : POSITION_NONE;
     }
 
@@ -154,7 +156,7 @@ public class MainPagerAdapter extends PagerAdapter {
     /** switch to already open ui_buffer OR create a new ui_buffer, putting it into BOTH full_names and fragments,
      ** run notifyDataSetChanged() which will in turn call instantiateItem(), and set new ui_buffer as the current one */
     public void openBuffer(final String full_name, final boolean focus, final boolean must_focus_hot) {
-        if (DEBUG) logger.info("openBuffer({}, {}, {})", new Object[]{full_name, focus, must_focus_hot});
+        if (DEBUG_BUFFERS) logger.info("openBuffer({}, {}, {})", new Object[]{full_name, focus, must_focus_hot});
         int idx = full_names.indexOf(full_name);
         if (idx >= 0) {
             if (focus) pager.setCurrentItem(idx);
@@ -188,7 +190,7 @@ public class MainPagerAdapter extends PagerAdapter {
     /** close ui_buffer if open, removing it from BOTH full_names and fragments.
      ** destroyItem() checks the lists to see if it has to remove the item for good */
     public void closeBuffer(String full_name) {
-        if (DEBUG) logger.info("closeBuffer({})", full_name);
+        if (DEBUG_BUFFERS) logger.info("closeBuffer({})", full_name);
         final int idx = full_names.indexOf(full_name);
         if (idx >= 0) {
             activity.runOnUiThread(new Runnable() {
@@ -219,7 +221,7 @@ public class MainPagerAdapter extends PagerAdapter {
     /** the following two methods magically get called on application recreation,
      ** so put all our save/restore state here */
     @Override public @Nullable Parcelable saveState() {
-        if (DEBUG) logger.info("saveState()");
+        if (DEBUG_SUPER) logger.info("saveState()");
         if (fragments.size() == 0)
             return null;
         Bundle state = new Bundle();
@@ -233,7 +235,7 @@ public class MainPagerAdapter extends PagerAdapter {
 
     @Override
     public void restoreState(Parcelable parcel, ClassLoader loader) {
-        if (DEBUG) logger.info("restoreState()");
+        if (DEBUG_SUPER) logger.info("restoreState()");
         if (parcel == null)
             return;
         Bundle state = (Bundle) parcel;

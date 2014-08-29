@@ -65,8 +65,10 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     
     private static Logger logger = LoggerFactory.getLogger("WA");
     final private static boolean DEBUG = BuildConfig.DEBUG;
-    final private static boolean DEBUG_OPTIONS_MENU = true;
-    final private static boolean DEBUG_LIFECYCLE = true;
+    final private static boolean DEBUG_OPTIONS_MENU = false;
+    final private static boolean DEBUG_LIFECYCLE = false;
+    final private static boolean DEBUG_INTENT = false;
+    final private static boolean DEBUG_BUFFERS = false;
 
     public RelayServiceBinder relay;
     private SocketToggleConnection connection_state_toggler;
@@ -104,10 +106,6 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
             mainPagerAdapter.firstTimeInit(phone_mode);
 
         viewPager.setAdapter(mainPagerAdapter);
-
-        // pages to each side of the on-screen page that should stay in memory
-        // the other pages are NOT destroyed, merely their views are
-        viewPager.setOffscreenPageLimit(1);
 
         ActionBar ab = getSupportActionBar();
         ab.setHomeButtonEnabled(true);
@@ -157,7 +155,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         }
 
         if (relay != null) {
-            if (DEBUG) logger.debug("...calling unbindService()");
+            if (DEBUG_LIFECYCLE) logger.debug("...calling unbindService()");
             relay.removeRelayConnectionHandler(WeechatActivity.this);
             unbindService(service_connection);
             relay = null;
@@ -290,7 +288,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
      ** we SET INTENT here and call maybeHandleIntent from here OR
      ** from {@link #service_connection onServiceConnected()}. */
     @Override protected void onNewIntent(Intent intent) {
-        if (DEBUG) logger.debug("onNewIntent({})", intent);
+        if (DEBUG_INTENT) logger.debug("onNewIntent({})", intent);
         super.onNewIntent(intent);
         setIntent(intent);
         if (relay != null) maybeHandleIntent();
@@ -482,13 +480,13 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     public void openBuffer(String full_name, boolean focus) {
-        if (DEBUG) logger.debug("openBuffer({})", full_name);
+        if (DEBUG_BUFFERS) logger.debug("openBuffer({})", full_name);
         mainPagerAdapter.openBuffer(full_name, focus, false);
     }
 
     // In own thread to prevent things from breaking
     public void closeBuffer(String full_name) {
-        if (DEBUG) logger.debug("closeBuffer({})", full_name);
+        if (DEBUG_BUFFERS) logger.debug("closeBuffer({})", full_name);
         mainPagerAdapter.closeBuffer(full_name);
     }
 
@@ -499,7 +497,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
 
     @Override
     public void onBackPressed() {
-        if (DEBUG) logger.debug("onBackPressed()");
+        if (DEBUG_LIFECYCLE) logger.debug("onBackPressed()");
         if (phone_mode && viewPager.getCurrentItem() != 0) viewPager.setCurrentItem(0);
         else super.onBackPressed();
     }

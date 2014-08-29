@@ -45,7 +45,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     final private static boolean DEBUG_MESSAGES = false;
     final private static boolean DEBUG_CONNECTION = false;
     final private static boolean DEBUG_PREFERENCES = false;
-
+    final private static boolean DEBUG_CLICK = false;
 
     private RelayServiceBinder relay;
     private BufferListAdapter adapter;
@@ -168,7 +168,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     /** this is the mother method, it actually opens buffers */
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
-        if (DEBUG) logger.warn("onListItemClick(..., ..., {}, ...)", position);
+        if (DEBUG_CLICK) logger.warn("onListItemClick(..., ..., {}, ...)", position);
         Object obj = getListView().getItemAtPosition(position);
         if (obj instanceof Buffer)
             ((WeechatActivity) getActivity()).openBuffer(((Buffer) obj).full_name, true);
