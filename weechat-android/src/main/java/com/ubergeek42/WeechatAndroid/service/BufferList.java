@@ -30,7 +30,9 @@ import java.util.StringTokenizer;
 public class BufferList {
     private static Logger logger = LoggerFactory.getLogger("BufferList");
     final private static boolean DEBUG = BuildConfig.DEBUG;
+    final private static boolean DEBUG_SYNCING = false;
     final private static boolean DEBUG_HANDLERS = false;
+    final private static boolean DEBUG_HOT = false;
 
     // preferences
     public static boolean SORT_BUFFERS = false;
@@ -183,19 +185,19 @@ public class BufferList {
     /** send sync command to relay (if traffic is set to optimized) and
      ** add it to the synced buffers (=open buffers) list */
     synchronized static void syncBuffer(String full_name) {
-        if (DEBUG) logger.warn("syncBuffer({})", full_name);
+        if (DEBUG_SYNCING) logger.warn("syncBuffer({})", full_name);
         BufferList.synced_buffers_full_names.add(full_name);
         if (OPTIMIZE_TRAFFIC) relay.connection.sendMsg("sync " + full_name);
     }
 
     synchronized static void desyncBuffer(String full_name) {
-        if (DEBUG) logger.warn("desyncBuffer({})", full_name);
+        if (DEBUG_SYNCING) logger.warn("desyncBuffer({})", full_name);
         BufferList.synced_buffers_full_names.remove(full_name);
         if (OPTIMIZE_TRAFFIC) relay.connection.sendMsg("desync " + full_name);
     }
 
     synchronized static String getSyncedBuffersAsString() {
-        if (DEBUG) logger.error("getSyncedBuffersAsString() -> ...");
+        if (DEBUG_SYNCING) logger.error("getSyncedBuffersAsString() -> ...");
         StringBuilder sb = new StringBuilder();
         for (String full_name : BufferList.synced_buffers_full_names)
             sb.append(full_name).append("\0");
@@ -203,7 +205,7 @@ public class BufferList {
     }
 
     synchronized static void setSyncedBuffersFromString(String synced_buffers) {
-        if (DEBUG) logger.warn("setSyncedBuffersFromString({})", synced_buffers);
+        if (DEBUG_SYNCING) logger.warn("setSyncedBuffersFromString({})", synced_buffers);
         StringTokenizer st = new StringTokenizer(synced_buffers, "\0");
         while (true) {
             try {
@@ -215,14 +217,14 @@ public class BufferList {
     }
 
     public static void requestLinesForBufferByPointer(int pointer) {
-        if (DEBUG) logger.warn("requestLinesForBufferByPointer({})", pointer);
+        if (DEBUG_SYNCING) logger.warn("requestLinesForBufferByPointer({})", pointer);
         connection.sendMsg("listlines_reverse", "hdata", String.format(
                 "buffer:0x%x/own_lines/last_line(-%d)/data date,displayed,prefix,message,highlight,notify,tags_array",
                 pointer, Buffer.MAX_LINES));
     }
 
     public static void requestNicklistForBufferByPointer(int pointer) {
-        if (DEBUG) logger.warn("requestNicklistForBufferByPointer({})", pointer);
+        if (DEBUG_SYNCING) logger.warn("requestNicklistForBufferByPointer({})", pointer);
         connection.sendMsg(String.format("(nicklist) nicklist 0x%x", pointer));
     }
 
@@ -236,7 +238,7 @@ public class BufferList {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     static private void checkIfHotCountHasChanged() {
-        if (DEBUG) logger.warn("checkIfHotCountHasChanged()");
+        if (DEBUG_HOT) logger.warn("checkIfHotCountHasChanged()");
         int hot = 0;
         for (Buffer buffer : buffers) {
             hot += buffer.highlights;
