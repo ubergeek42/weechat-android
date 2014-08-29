@@ -238,6 +238,10 @@ public class CutePagerTitleStrip extends ViewGroup {
         this.listener = listener;
     }
 
+    public void updateText() {
+        if (mPager != null) updateText(mPager.getCurrentItem(), mPager.getAdapter());
+    }
+
     void updateText(int currentItem, PagerAdapter adapter) {
         final int itemCount = adapter != null ? adapter.getCount() : 0;
         mUpdatingText = true;

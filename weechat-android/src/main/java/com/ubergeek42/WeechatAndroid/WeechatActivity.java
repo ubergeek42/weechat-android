@@ -74,6 +74,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     private ViewPager viewPager;
     private MainPagerAdapter mainPagerAdapter;
     private InputMethodManager imm;
+    private CutePagerTitleStrip strip;
     
     private boolean phone_mode;
 
@@ -113,7 +114,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         ab.setDisplayShowCustomEnabled(true);
         ab.setDisplayShowTitleEnabled(false);
         LayoutInflater inflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        CutePagerTitleStrip strip = (CutePagerTitleStrip) inflater.inflate(R.layout.cute_pager_title_strip_layout, null);
+        strip = (CutePagerTitleStrip) inflater.inflate(R.layout.cute_pager_title_strip_layout, null);
         strip.setViewPager(viewPager);
         strip.setOnPageChangeListener(this);
         ab.setCustomView(strip);
@@ -501,6 +502,12 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         if (DEBUG) logger.debug("onBackPressed()");
         if (phone_mode && viewPager.getCurrentItem() != 0) viewPager.setCurrentItem(0);
         else super.onBackPressed();
+    }
+
+    /** called if the text of one of the buffers has been changed
+     ** and the strip doesn't update itself because there's no scrolling */
+    public void updateCutePagerTitleStrip() {
+        strip.updateText();
     }
 
     static abstract class MyMenuItemStuffListener implements View.OnClickListener, View.OnLongClickListener {

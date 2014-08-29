@@ -14,7 +14,6 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.text.ClipboardManager;
 import android.text.Editable;
@@ -71,8 +70,8 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
 
     private RelayServiceBinder relay;
 
-    private String full_name = "???";
-    private String short_name = "Unknown";
+    private String full_name = "…";
+    private String short_name = full_name;
     private Buffer buffer;
 
     private boolean must_focus_hot = false;
@@ -285,6 +284,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
                     // set short name. we set it here because it's the buffer won't change
                     // and the name should be accessible between calls to this function
                     short_name = buffer.short_name;
+                    ((WeechatActivity) getActivity()).updateCutePagerTitleStrip();
                     chatlines_adapter = new ChatLinesAdapter(getActivity(), buffer, chatLines);
                     buffer.setBufferEye(BufferFragment.this);   // buffer watcher TODO: java.lang.NullPointerException if run in thread ?!?!
                     chatlines_adapter.onLinesChanged();
