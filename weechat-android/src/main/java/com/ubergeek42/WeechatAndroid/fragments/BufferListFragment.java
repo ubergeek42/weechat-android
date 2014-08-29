@@ -41,6 +41,11 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
 
     private static Logger logger = LoggerFactory.getLogger("BufferListFragment");
     final private static boolean DEBUG = BuildConfig.DEBUG;
+    final private static boolean DEBUG_LIFECYCLE = false;
+    final private static boolean DEBUG_MESSAGES = false;
+    final private static boolean DEBUG_CONNECTION = false;
+    final private static boolean DEBUG_PREFERENCES = false;
+
 
     private RelayServiceBinder relay;
     private BufferListAdapter adapter;
@@ -59,7 +64,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
      ** the callback interface. If not, it throws an exception. */
     @Override
     public void onAttach(Activity activity) {
-        if (DEBUG) logger.warn("onAttach()");
+        if (DEBUG_LIFECYCLE) logger.warn("onAttach()");
         super.onAttach(activity);
         if (!(activity instanceof WeechatActivity))
             throw new ClassCastException(activity.toString() + " must be WeechatActivity");
@@ -69,7 +74,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
      ** since we are setting setRetainInstance(true) */
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        if (DEBUG) logger.warn("onCreate()");
+        if (DEBUG_LIFECYCLE) logger.warn("onCreate()");
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
         prefs = PreferenceManager.getDefaultSharedPreferences(getActivity().getBaseContext());
@@ -78,7 +83,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        if (DEBUG) logger.warn("onCreateView()");
+        if (DEBUG_LIFECYCLE) logger.warn("onCreateView()");
         View v = inflater.inflate(R.layout.bufferlist, container, false);
         ui_filter_bar = (RelativeLayout) v.findViewById(R.id.filter_bar);
         ui_empty = (TextView) v.findViewById(android.R.id.empty);
@@ -93,7 +98,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
 
     @Override
     public void onDestroyView() {
-        if (DEBUG) logger.warn("onDestroyView()");
+        if (DEBUG_LIFECYCLE) logger.warn("onDestroyView()");
         super.onDestroyView();
         ui_filter.removeTextChangedListener(filterTextWatcher);
     }
@@ -109,9 +114,9 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
      **       calls onDisconnect(), which sets the “please connect” message */
     @Override
     public void onStart() {
-        if (DEBUG) logger.warn("onStart()");
+        if (DEBUG_LIFECYCLE) logger.warn("onStart()");
         super.onStart();
-        if (DEBUG) logger.warn("...calling bindService()");
+        if (DEBUG_LIFECYCLE) logger.warn("...calling bindService()");
         getActivity().bindService(new Intent(getActivity(), RelayService.class), service_connection,
                 Context.BIND_AUTO_CREATE);
     }
@@ -120,14 +125,14 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
      ** it should be safe to call all unbinding functions */
     @Override
     public void onStop() {
-        if (DEBUG) logger.warn("onStop()");
+        if (DEBUG_LIFECYCLE) logger.warn("onStop()");
         super.onStop();
         BufferList.setBufferListEye(null);                                              // buffer change watcher (safe to call)
         if (relay != null) {
             relay.removeRelayConnectionHandler(BufferListFragment.this);                // connect/disconnect watcher (safe to call)
             relay = null;
         }
-        if (DEBUG) logger.warn("...calling unbindService()");
+        if (DEBUG_LIFECYCLE) logger.warn("...calling unbindService()");
         getActivity().unbindService(service_connection);                                // TODO safe to call?
     }
 
@@ -138,7 +143,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     ServiceConnection service_connection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {           // TODO can this be called after Fragment.onStop()?
-            if (DEBUG) logger.warn("onServiceConnected()");
+            if (DEBUG_LIFECYCLE) logger.warn("onServiceConnected()");
             relay = (RelayServiceBinder) service;
             if (relay.isConnection(RelayService.BUFFERS_LISTED))
                 BufferListFragment.this.onBuffersListed();
@@ -174,21 +179,21 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @Override public void onConnecting() {
-        if (DEBUG) logger.warn("onConnecting()");
+        if (DEBUG_CONNECTION) logger.warn("onConnecting()");
         setEmptyText("Connecting 🏃", false);
     }
 
     @Override public void onConnect() {}
 
     @Override public void onAuthenticated() {
-        if (DEBUG) logger.warn("onAuthenticated()");
+        if (DEBUG_CONNECTION) logger.warn("onAuthenticated()");
         setEmptyText("Connected! 😎", false);
     }
 
     /** this is called when the list of buffers has been finalised */
     @Override
     public void onBuffersListed() {
-        if (DEBUG) logger.warn("onBuffersListed()");
+        if (DEBUG_CONNECTION) logger.warn("onBuffersListed()");
         adapter = new BufferListAdapter(getActivity());
         BufferList.setBufferListEye(this);
         onHotCountChanged();
@@ -207,7 +212,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
      ** displays empty list */
     @Override
     public void onDisconnect() {
-        if (DEBUG) logger.warn("onDisconnect()");
+        if (DEBUG_CONNECTION) logger.warn("onDisconnect()");
         setEmptyText("Disconnected 😨", true);
     }
 
@@ -227,12 +232,12 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @Override public void onBuffersChanged() {
-        if (DEBUG) logger.warn("onBuffersChanged()");
+        if (DEBUG_MESSAGES) logger.warn("onBuffersChanged()");
         adapter.onBuffersChanged();
     }
 
     @Override public void onHotCountChanged() {
-        if (DEBUG) logger.warn("onHotCountChanged()");
+        if (DEBUG_MESSAGES) logger.warn("onHotCountChanged()");
         ((WeechatActivity) getActivity()).updateHotCount(BufferList.hot_count);
     }
 
@@ -241,7 +246,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @Override public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        if (DEBUG) logger.warn("onSharedPreferenceChanged()");
+        if (DEBUG_PREFERENCES) logger.warn("onSharedPreferenceChanged()");
         if (key.equals("show_buffer_filter"))
             ui_filter_bar.setVisibility(prefs.getBoolean("show_buffer_filter", false) ? View.VISIBLE : View.GONE);
     }
@@ -253,7 +258,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
         @Override public void beforeTextChanged(CharSequence arg0, int a, int b, int c) {}
 
         @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
-            if (DEBUG) logger.warn("onTextChanged({}, ...)", s);
+            if (DEBUG_PREFERENCES) logger.warn("onTextChanged({}, ...)", s);
             if (adapter != null) {
                 setFilter(s);
                 adapter.onBuffersChanged();

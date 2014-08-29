@@ -56,6 +56,13 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     private static Logger logger = LoggerFactory.getLogger("BufferFragment");
     final private static boolean DEBUG = BuildConfig.DEBUG;
     final private static boolean DEBUG_TAB_COMPLETE = false;
+    final private static boolean DEBUG_LIFECYCLE = false;
+    final private static boolean DEBUG_MESSAGES = false;
+    final private static boolean DEBUG_CONNECTION = false;
+    final private static boolean DEBUG_AUTOSCROLLING = false;
+
+    private final static String PREF_SHOW_SEND = "sendbtn_show";
+    private final static String PREF_SHOW_TAB = "tabbtn_show";
 
     private ListView chatLines;
     private EditText inputBox;
@@ -88,13 +95,13 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
 
     @Override
     public void onAttach(Activity activity) {
-        if (DEBUG) logger.warn("{} onAttach(...)", full_name);
+        if (DEBUG_LIFECYCLE) logger.warn("{} onAttach(...)", full_name);
         super.onAttach(activity);
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        if (DEBUG) logger.warn("{} onCreate()", full_name);
+        if (DEBUG_LIFECYCLE) logger.warn("{} onCreate()", full_name);
         super.onCreate(savedInstanceState);
         if (savedInstanceState != null) short_name = savedInstanceState.getString("short_name");
         setRetainInstance(true);
@@ -106,7 +113,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        if (DEBUG) logger.warn("{} onCreateView()", full_name);
+        if (DEBUG_LIFECYCLE) logger.warn("{} onCreateView()", full_name);
         View v = inflater.inflate(R.layout.chatview_main, container, false);
 
         chatLines = (ListView) v.findViewById(R.id.chatview_lines);
@@ -134,21 +141,21 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
      **       calls onDisconnect(), which sets the “please connect” message */
     @Override
     public void onStart() {
-        if (DEBUG) logger.warn("{} onStart()", full_name);
+        if (DEBUG_LIFECYCLE) logger.warn("{} onStart()", full_name);
         super.onStart();
 
         if (BuildConfig.DEBUG && (short_name.equals("") || relay != null || buffer != null)) // sanity check
             throw new AssertionError("shit shouldn't be empty");
 
         prefs.registerOnSharedPreferenceChangeListener(this);
-        if (DEBUG) logger.warn("...calling bindService()");
+        if (DEBUG_LIFECYCLE) logger.warn("...calling bindService()");
         getActivity().bindService(new Intent(getActivity(), RelayService.class), service_connection,
                 Context.BIND_AUTO_CREATE);
     }
 
     @Override
     public void onResume() {
-        if (DEBUG) logger.warn("{} onResume()", full_name);
+        if (DEBUG_LIFECYCLE) logger.warn("{} onResume()", full_name);
         super.onResume();
     }
 
@@ -160,7 +167,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
 
     @Override
     public void onPause() {
-        if (DEBUG) logger.warn("{} onPause()", full_name);
+        if (DEBUG_LIFECYCLE) logger.warn("{} onPause()", full_name);
         super.onPause();
     }
 
@@ -168,7 +175,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
      ** we want to disconnect from all things here */
     @Override
     public void onStop() {
-        if (DEBUG) logger.warn("{} onStop()", full_name);
+        if (DEBUG_LIFECYCLE) logger.warn("{} onStop()", full_name);
         super.onStop();
         if (relay != null) {
             relay.removeRelayConnectionHandler(BufferFragment.this);                // remove connect / disconnect watcher
@@ -179,25 +186,25 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
             buffer.setWatched(false);       // 123
             buffer = null;
         }
-        if (DEBUG) logger.warn("...calling unbindService()");
+        if (DEBUG_LIFECYCLE) logger.warn("...calling unbindService()");
         getActivity().unbindService(service_connection);
     }
 
     @Override
     public void onDestroyView() {
-        if (DEBUG) logger.warn("{} onDestroyView()", full_name);
+        if (DEBUG_LIFECYCLE) logger.warn("{} onDestroyView()", full_name);
         super.onDestroyView();
     }
 
     @Override
     public void onDestroy() {
-        if (DEBUG) logger.warn("{} onDestroy()", full_name);
+        if (DEBUG_LIFECYCLE) logger.warn("{} onDestroy()", full_name);
         super.onDestroy();
     }
 
     @Override
     public void onDetach() {
-        if (DEBUG) logger.warn("{} onDetach()", full_name);
+        if (DEBUG_LIFECYCLE) logger.warn("{} onDetach()", full_name);
         super.onDetach();
     }
 
@@ -209,7 +216,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
 
     @Override
     public void setUserVisibleHint(boolean visible) {
-        if (DEBUG) logger.warn("{} setUserVisibleHint({})", full_name, visible);
+        if (DEBUG_LIFECYCLE) logger.warn("{} setUserVisibleHint({})", full_name, visible);
         super.setUserVisibleHint(visible);
         this.visible = visible;
         if (buffer != null) buffer.setWatched(visible);
@@ -224,7 +231,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
         @Override
         public void onServiceConnected(ComponentName name, IBinder
                 service) {
-            if (DEBUG) logger.warn("{} onServiceConnected(): main thread? {}", BufferFragment.this.full_name, Looper.myLooper() == Looper.getMainLooper());
+            if (DEBUG_LIFECYCLE) logger.warn("{} onServiceConnected()", BufferFragment.this.full_name);
             relay = (RelayServiceBinder) service;
             if (relay.isConnection(RelayService.BUFFERS_LISTED))
                 BufferFragment.this.onBuffersListed();                                  // TODO: run this in a thread
@@ -252,7 +259,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     public void onConnecting() {}
 
     @Override
-    public void onConnect() {if (DEBUG) logger.warn("{} onConnect()", full_name);}
+    public void onConnect() {if (DEBUG_CONNECTION) logger.warn("{} onConnect()", full_name);}
 
     @Override
     public void onAuthenticated() {}
@@ -261,7 +268,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
      ** attaching to the buffer and fetching lines and sending messages and whatnot
      ** it's not necessary that the buffers have been listed just now, though */
     public void onBuffersListed() {
-        if (DEBUG) logger.warn("{} onBuffersListed() <{}>", full_name, this);
+        if (DEBUG_CONNECTION) logger.warn("{} onBuffersListed() <{}>", full_name, this);
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -286,8 +293,8 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
                     inputBox.setFocusableInTouchMode(true);
                     sendButton.setEnabled(true);
                     tabButton.setEnabled(true);
-                    sendButton.setVisibility(prefs.getBoolean("sendbtn_show", true) ? View.VISIBLE : View.GONE);
-                    tabButton.setVisibility(prefs.getBoolean("tabbtn_show", false) ? View.VISIBLE : View.GONE);
+                    sendButton.setVisibility(prefs.getBoolean(PREF_SHOW_SEND, true) ? View.VISIBLE : View.GONE);
+                    tabButton.setVisibility(prefs.getBoolean(PREF_SHOW_TAB, false) ? View.VISIBLE : View.GONE);
                     chatLines.setAdapter(chatlines_adapter);
                     buffer.setWatched(visible);
                     maybeScrollToLine();
@@ -301,7 +308,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
      ** also remove the keyboard, if any */
     @Override
     public void onDisconnect() {
-        if (DEBUG) logger.warn("{} onDisconnect()", full_name);
+        if (DEBUG_CONNECTION) logger.warn("{} onDisconnect()", full_name);
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -328,7 +335,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
 
     @Override
     public void onLinesListed() {
-        if (DEBUG) logger.warn("{} onLinesListed()", full_name);
+        if (DEBUG_MESSAGES) logger.warn("{} onLinesListed()", full_name);
         maybeScrollToLine();
     }
 
@@ -339,7 +346,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
 
     @Override
     public void onBufferClosed() {
-        if (DEBUG) logger.warn("{} onBufferClosed()", full_name);
+        if (DEBUG_CONNECTION) logger.warn("{} onBufferClosed()", full_name);
         ((WeechatActivity) getActivity()).closeBuffer(full_name);
     }
 
@@ -358,7 +365,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
      ** posts to the listview to make sure it's fully completed loading the items
      ** after setting the adapter or updating lines */
     public void maybeScrollToLine() {
-        if (DEBUG) logger.error("{} maybeScrollToLine(), must_focus_hot = {}", full_name, must_focus_hot);
+        if (DEBUG_AUTOSCROLLING) logger.error("{} maybeScrollToLine(), must_focus_hot = {}", full_name, must_focus_hot);
         if (!must_focus_hot || buffer == null || (!visible) || (!buffer.holds_all_lines))
             return;
         chatLines.post(new Runnable() {
@@ -385,7 +392,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
      ** NOTE: this only applies to HARDWARE buttons */
     @Override
     public boolean onKey(View v, int keycode, KeyEvent event) {
-        if (DEBUG) logger.warn("{} onKey(..., {}, ...)", full_name, keycode);
+        if (DEBUG_TAB_COMPLETE) logger.warn("{} onKey(..., {}, ...)", full_name, keycode);
         int action = event.getAction();
         // Enter key sends the message
         if (keycode == KeyEvent.KEYCODE_ENTER) {
@@ -440,10 +447,10 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     /** the only OnSharedPreferenceChangeListener's method */
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        if (key.equals("sendbtn_show") && sendButton != null)
-            sendButton.setVisibility(prefs.getBoolean("sendbtn_show", true) ? View.VISIBLE : View.GONE);
-        else if (key.equals("tabbtn_show") && tabButton != null)
-            tabButton.setVisibility(prefs.getBoolean("tabbtn_show", true) ? View.VISIBLE : View.GONE);
+        if (key.equals(PREF_SHOW_SEND) && sendButton != null)
+            sendButton.setVisibility(prefs.getBoolean(key, true) ? View.VISIBLE : View.GONE);
+        else if (key.equals(PREF_SHOW_TAB) && tabButton != null)
+            tabButton.setVisibility(prefs.getBoolean(key, true) ? View.VISIBLE : View.GONE);
     }
 
     /////////////////////////
