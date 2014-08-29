@@ -157,7 +157,7 @@ public class Color {
         if (timestamp != null) {
             sb.append(timestamp);
             Span fg = new Span(); fg.start = 0; fg.end = sb.length(); fg.type = Span.FGCOLOR; fg.color = weechatOptions[2][0]; final_span_list.add(fg);
-            sb.append(" ");
+            sb.append("\u00a0"); // non-breaking space
         }
 
         // prefix should be adjusted accoring to the settings
@@ -178,7 +178,7 @@ public class Color {
         }
         else if (align_right && prefix.length() < max) {
             int diff = max - prefix.length();
-            for (int x = 0; x < diff; x++) sb.append(" ");
+            for (int x = 0; x < diff; x++) sb.append("\u00a0"); // non-breaking space
         }
         if (highlight) {
             color = weechatOptions[29][0];
