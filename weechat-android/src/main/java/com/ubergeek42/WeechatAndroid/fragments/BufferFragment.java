@@ -359,7 +359,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
      ** after setting the adapter or updating lines */
     public void maybeScrollToLine() {
         if (DEBUG) logger.error("{} maybeScrollToLine(), must_focus_hot = {}", full_name, must_focus_hot);
-        if (!must_focus_hot || buffer == null || (!visible) || (!buffer.holds_all_lines_it_is_supposed_to_hold))
+        if (!must_focus_hot || buffer == null || (!visible) || (!buffer.holds_all_lines))
             return;
         chatLines.post(new Runnable() {
             @Override

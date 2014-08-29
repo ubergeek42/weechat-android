@@ -67,7 +67,7 @@ public class Buffer {
 
     public boolean is_open = false;
     public boolean is_watched = false;
-    public boolean holds_all_lines_it_is_supposed_to_hold = false;
+    public boolean holds_all_lines = false;
     public boolean holds_all_nicks = false;
     public int type = OTHER;
     public int unreads = 0;
@@ -157,7 +157,7 @@ public class Buffer {
         if (DEBUG_BUFFER) logger.warn("{} setBufferEye({})", short_name, buffer_eye);
         this.buffer_eye = buffer_eye;
         if (buffer_eye != null) {
-            if (!holds_all_lines_it_is_supposed_to_hold && lines.size() < MAX_LINES)
+            if (!holds_all_lines && lines.size() < MAX_LINES)
                 BufferList.requestLinesForBufferByPointer(pointer);
             if (!holds_all_nicks)
                 BufferList.requestNicklistForBufferByPointer(pointer);
@@ -193,7 +193,7 @@ public class Buffer {
 
         // remove a line if we are over the limit and add the new line
         // correct visible_lines_count accordingly
-        if (lines.size() > MAX_LINES) {if (lines.getFirst().visible) visible_lines_count--; lines.removeFirst();}
+        if (lines.size() > MAX_LINES) if (lines.removeFirst().visible) visible_lines_count--;
         if (is_last) lines.add(line);
         else lines.addFirst(line);
         if (line.visible) visible_lines_count++;
@@ -209,12 +209,12 @@ public class Buffer {
         //      unreads and highlights is filled by hotlist request
         if (!is_watched && is_last && notify_level >= 0) {
             if (line.highlighted) {
-                highlights += 1;
+                highlights++;
                 BufferList.setMostRecentHotLine(this, line);
                 BufferList.notifyBuffersSlightlyChanged(type == OTHER);
             }
-            else if (line.type != Line.LINE_OTHER) {
-                unreads += 1;
+            else if (line.type == Line.LINE_MESSAGE) {
+                unreads ++;
                 if (type == PRIVATE) BufferList.setMostRecentHotLine(this, line);
                 BufferList.notifyBuffersSlightlyChanged(type == OTHER);
             }
@@ -245,7 +245,7 @@ public class Buffer {
     }
 
     synchronized public void onLinesListed() {
-        holds_all_lines_it_is_supposed_to_hold = true;
+        holds_all_lines = true;
         if (buffer_eye != null) buffer_eye.onLinesListed();
     }
 
