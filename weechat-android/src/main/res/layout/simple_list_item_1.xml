@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- this is meant for older versions of android
+     in some of those, text is displayed black on black in a dialogue -->
+
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@android:id/text1"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:textAppearance="?android:attr/textAppearanceLarge"
+    android:gravity="center_vertical"
+    android:paddingLeft="6dip"
+    android:paddingRight="6dip"
+    android:background="#ffffffff"
+    android:textColor="#ff000000"
+    android:minHeight="?android:attr/listPreferredItemHeight"
+    />
