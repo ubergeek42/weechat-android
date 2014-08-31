@@ -102,6 +102,11 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
 
     private Spannable old_last_spannable = null;
 
+    public void readLinesFromBuffer() {
+        old_last_spannable = null;
+        onLinesChanged();
+    }
+
     @Override public void onLinesChanged() {
         if (DEBUG) logger.debug("onLinesChanged()");
 
