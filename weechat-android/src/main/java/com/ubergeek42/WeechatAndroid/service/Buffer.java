@@ -18,7 +18,6 @@ import android.text.style.URLSpan;
 import android.text.style.UnderlineSpan;
 import android.text.util.Linkify;
 
-import com.ubergeek42.WeechatAndroid.BuildConfig;
 import com.ubergeek42.weechat.Color;
 import com.ubergeek42.weechat.relay.protocol.Hashtable;
 import com.ubergeek42.weechat.relay.protocol.RelayObject;
@@ -60,6 +59,15 @@ public class Buffer {
     public int number, notify_level;
     public Hashtable local_vars;
 
+    /** the following four variables are needed to determine if the buffer was changed and,
+     ** if not, the last two are substracted from the newly arrived hotlist data, to make up
+     ** for the lines that was read in relay.
+     ** last_read_line stores id of the last read line *in weechat*. -1 means all lines unread. */
+    public int last_read_line = -1;
+    public boolean wants_full_hotlist_update = false; // must be false for buffers without last_read_line!
+    public int total_read_unreads = 0;
+    public int total_read_highlights = 0;
+
     private LinkedList<Line> lines = new LinkedList<Line>();
     private int visible_lines_count = 0;
 
@@ -73,8 +81,8 @@ public class Buffer {
     public int unreads = 0;
     public int highlights = 0;
 
-    public Spannable printable1 = null;
-    public Spannable printable2 = null;
+    public Spannable printable1 = null; // printable buffer without title (for TextView)
+    public Spannable printable2 = null; // printable buffer with title
 
     Buffer(int pointer, int number, String full_name, String short_name, String title, int notify_level, Hashtable local_vars) {
         this.pointer = pointer;
@@ -86,7 +94,9 @@ public class Buffer {
         this.local_vars = local_vars;
         this.type = getBufferType();
         processBufferTitle();
+
         if (BufferList.isSynced(full_name)) setOpen(true);
+        BufferList.restoreLastReadLine(this);
         if (DEBUG_BUFFER) logger.warn("new Buffer(..., {}, {}, ...) is_open? {}", new Object[]{number, full_name, is_open});
     }
 
@@ -106,9 +116,7 @@ public class Buffer {
         else {
             Line[] l = new Line[visible_lines_count];
             int i = 0;
-            for (Line line: lines) {
-                if (line.visible) l[i++] = line;
-            }
+            for (Line line: lines) if (line.visible) l[i++] = line;
             return l;
         }
     }
@@ -294,6 +302,7 @@ public class Buffer {
         }
     }
 
+    /** these two are needed for the autoscrolling to the unread lines and all */
     public int old_unreads = 0;
     public int old_highlights = 0;
 
@@ -302,8 +311,8 @@ public class Buffer {
     synchronized public void resetUnreadsAndHighlights() {
         if (DEBUG_BUFFER) logger.error("{} resetUnreadsAndHighlights()", short_name);
         if ((unreads | highlights) == 0) return;
-        old_unreads = unreads;
-        old_highlights = highlights;
+        total_read_unreads += (old_unreads = unreads);
+        total_read_highlights += (old_highlights = highlights);
         unreads = highlights = 0;
         BufferList.notifyBuffersSlightlyChanged(type == OTHER);
     }

@@ -75,6 +75,12 @@ public class RelayService extends RelayServiceBackbone {
     }
 
     @Override
+    public void onDisconnect() {
+        saveStuff();
+        super.onDisconnect();
+    }
+
+    @Override
     public IBinder onBind(Intent intent) {
         return new RelayServiceBinder(this);
     }
@@ -108,25 +114,38 @@ public class RelayService extends RelayServiceBackbone {
         super.onDestroy();
     }
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// save/restore
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private final static String PREF_SYNCED_BUFFERS = "sb";
+    private final static String PREF_LAST_READ_LINES = "lrl";
+    private final static String PREF_PROTOCOL_ID = "pid";
+
     /** save everything that is needed for successful restoration of the service */
     private void saveStuff() {
         if (DEBUG_SAVE_RESTORE) logger.debug("saveStuff()");
         SharedPreferences preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        preferences.edit().putString("open_buffers", BufferList.getSyncedBuffersAsString()).commit();
+        preferences.edit().putString(PREF_SYNCED_BUFFERS, BufferList.getSyncedBuffersAsString())
+                          .putString(PREF_LAST_READ_LINES, BufferList.getBufferToLastReadLineAsString())
+                          .putInt(PREF_PROTOCOL_ID, BufferList.SERIALIZATION_PROTOCOL_ID).commit();
     }
 
-    /** restore everything */
+    /** restore everything. if data is an invalid protocol, 'restore' null */
     private void restoreStuff() {
         if (DEBUG_SAVE_RESTORE) logger.debug("restoreStuff()");
         SharedPreferences preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        BufferList.setSyncedBuffersFromString(preferences.getString("open_buffers", ""));
+        boolean valid = preferences.getInt(PREF_PROTOCOL_ID, -1) == BufferList.SERIALIZATION_PROTOCOL_ID;
+        BufferList.setSyncedBuffersFromString(valid ? preferences.getString(PREF_SYNCED_BUFFERS, null) : null);
+        BufferList.setBufferToLastReadLineFromString(valid ? preferences.getString(PREF_LAST_READ_LINES, null) : null);
     }
 
-    /** erase stuff as we no longer need it */
+    /** delete open buffers, so that buffers don't remain open (after Quit).
+     ** don't delete protocol id & buffer to lrl. */
     private void eraseStoredStuff() {
         if (DEBUG_SAVE_RESTORE) logger.debug("eraseStoredStuff()");
         SharedPreferences preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        preferences.edit().remove("open_buffers").commit();
+        preferences.edit().remove(PREF_SYNCED_BUFFERS).commit();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

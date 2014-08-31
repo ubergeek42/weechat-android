@@ -2,6 +2,7 @@ package com.ubergeek42.WeechatAndroid.service;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Base64;
 
 import com.ubergeek42.WeechatAndroid.BuildConfig;
 import com.ubergeek42.weechat.relay.RelayConnection;
@@ -15,14 +16,18 @@ import com.ubergeek42.weechat.relay.protocol.RelayObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.NoSuchElementException;
-import java.util.StringTokenizer;
 
 /** a class that holds information about buffers
  ** probably should be made static */
@@ -30,32 +35,50 @@ import java.util.StringTokenizer;
 public class BufferList {
     private static Logger logger = LoggerFactory.getLogger("BufferList");
     final private static boolean DEBUG = BuildConfig.DEBUG;
-    final private static boolean DEBUG_SYNCING = false;
+    final private static boolean DEBUG_SYNCING = true;
     final private static boolean DEBUG_HANDLERS = false;
     final private static boolean DEBUG_HOT = false;
+    final private static boolean DEBUG_SAVE_RESTORE = false;
 
-    // preferences
+    /** preferences related to the list of buffers.
+     ** actually WRITABLE from outside */
     public static boolean SORT_BUFFERS = false;
     public static boolean SHOW_TITLE = true;
     public static boolean FILTER_NONHUMAN_BUFFERS = false;
     public static boolean OPTIMIZE_TRAFFIC = false;
-    public static String FILTER = null;                                                            // TODO race condition?
+    public static String FILTER = null;                                                                     // TODO race condition?
 
-    final static public LinkedHashSet<String> synced_buffers_full_names = new LinkedHashSet<String>();  // TODO race condition?
+    /** contains names of open buffers. this is written to the shared preferences
+     ** and restored upon service restart (by the system). also this is used to
+     ** reopen buffers in case user pressed "back" */
+    static public @NonNull LinkedHashSet<String> synced_buffers_full_names = new LinkedHashSet<String>();   // TODO race condition?
 
+    /** this stores information about last read line (in `desktop` weechat) and according
+     ** number of read lines/highlights. this is substracted from highlight counts client
+     ** receives from the server */
+    static private @NonNull LinkedHashMap<String, BufferHotData> buffer_to_last_read_line = new LinkedHashMap<String, BufferHotData>();
+
+    /** information about total hot message and
+     ** according last hot line and buffer (used for notification intent) */
     public static int hot_count = 0;
     static Buffer.Line last_hot_line = null;
     static Buffer last_hot_buffer = null;
 
     static RelayService relay;
     private static RelayConnection connection;
+    private static BufferListEye buffers_eye;
+
+    /** the mother variable. list of current buffers */
     private static ArrayList<Buffer> buffers = new ArrayList<Buffer>();
 
-    private static BufferListEye buffers_eye;
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     public static void launch(RelayService relay) {
         BufferList.relay = relay;
         BufferList.connection = relay.connection;
+        buffers.clear();
 
         // handle buffer list changes
         // including initial hotlist
@@ -72,6 +95,7 @@ public class BufferList {
         connection.addHandler("_buffer_merged", buffer_list_watcher);
 
         connection.addHandler("hotlist", hotlist_init_watcher);
+        connection.addHandler("last_read_lines", last_read_lines_watcher);
 
         // handle newly arriving chat lines
         // and chatlines we are reading in reverse
@@ -87,6 +111,7 @@ public class BufferList {
         // also request hotlist
         // and nicklist
         connection.sendMsg("listbuffers", "hdata", "buffer:gui_buffers(*) number,full_name,short_name,type,title,nicklist,local_variables,notify");
+        connection.sendMsg("last_read_lines", "hdata", "buffer:gui_buffers(*)/own_lines/last_read_line/data buffer");
         connection.sendMsg("hotlist", "hdata", "hotlist:gui_hotlist(*) buffer,count");
     }
 
@@ -194,26 +219,6 @@ public class BufferList {
         if (DEBUG_SYNCING) logger.warn("desyncBuffer({})", full_name);
         BufferList.synced_buffers_full_names.remove(full_name);
         if (OPTIMIZE_TRAFFIC) relay.connection.sendMsg("desync " + full_name);
-    }
-
-    synchronized static String getSyncedBuffersAsString() {
-        if (DEBUG_SYNCING) logger.error("getSyncedBuffersAsString() -> ...");
-        StringBuilder sb = new StringBuilder();
-        for (String full_name : BufferList.synced_buffers_full_names)
-            sb.append(full_name).append("\0");
-        return sb.toString();
-    }
-
-    synchronized static void setSyncedBuffersFromString(String synced_buffers) {
-        if (DEBUG_SYNCING) logger.warn("setSyncedBuffersFromString({})", synced_buffers);
-        StringTokenizer st = new StringTokenizer(synced_buffers, "\0");
-        while (true) {
-            try {
-                synced_buffers_full_names.add(st.nextToken());
-            } catch (NoSuchElementException e) {
-                return;
-            }
-        }
     }
 
     public static void requestLinesForBufferByPointer(int pointer) {
@@ -342,13 +347,47 @@ public class BufferList {
         }
     };
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// hotlist
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    // last_read_lines (ONLY)
+    // a buffer NOT will want a complete update if the last line unread stored in weechat buffer
+    // matches the one stored in our buffer. if they are not equal, the user must've read the buffer
+    // in weechat. assuming he read the very last line, total old highlights and unreads bear no meaning,
+    // so they should be erased.
+    static RelayMessageHandler last_read_lines_watcher = new RelayMessageHandler() {
+        @Override
+        public void handleMessage(RelayObject obj, String id) {
+            if (DEBUG_HANDLERS) logger.error("last_read_lines_watcher:handleMessage(..., {})", id);
+            Hdata data = (Hdata) obj;
+            for (int i = 0, size = data.getCount(); i < size; i++) {
+                HdataEntry entry = data.getItem(i);
+                int buffer_pointer = entry.getItem("buffer").asPointerInt();
+                int line_pointer = entry.getPointerInt();
+                Buffer buffer = findByPointer(buffer_pointer);
+                if (buffer == null)
+                    continue;
+                if (DEBUG_HANDLERS) logger.debug("buffer={}, wants_updates={} (old={}, new={})", new Object[]{buffer.short_name, buffer.last_read_line != line_pointer, buffer.last_read_line, line_pointer});
+                if (buffer.wants_full_hotlist_update = buffer.last_read_line != line_pointer) {
+                    buffer.last_read_line = line_pointer;
+                    buffer.total_read_highlights = buffer.total_read_unreads = 0;
+                }
+            }
+        }
+    };
 
     // hotlist (ONLY)
+    // buffer will want full updates if it doesn't have a last read line
+    // that can happen if the last read line is so far in the queue it got erased (past 4096 lines or so)
+    // in most cases, that is OK with us, but in rare cases when the buffer was READ in weechat BUT
+    // has lost its last read lines again our read count will not have any meaning. AND it might happen
+    // that our number is actually HIGHER than amount of unread lines in the buffer. as a workaround,
+    // we check that we are not getting negative numbers. not perfect, but—!
     static RelayMessageHandler hotlist_init_watcher = new RelayMessageHandler() {
         @Override
         public void handleMessage(RelayObject obj, String id) {
-            if (DEBUG_HANDLERS) logger.debug("hotlist_init_watcher:handleMessage(..., {})", id);
+            if (DEBUG_HANDLERS) logger.error("hotlist_init_watcher:handleMessage(..., {})", id);
             Hdata data = (Hdata) obj;
             for (int i = 0, size = data.getCount(); i < size; i++) {
                 HdataEntry entry = data.getItem(i);
@@ -356,8 +395,14 @@ public class BufferList {
                 Buffer buffer = findByPointer(pointer);
                 if (buffer != null) {
                     Array count = entry.getItem("count").asArray();
-                    buffer.unreads = count.get(1).asInt() + count.get(2).asInt();   // chat messages & private messages
-                    buffer.highlights = count.get(3).asInt();                       // highlights
+                    int unreads = count.get(1).asInt() + count.get(2).asInt();   // chat messages & private messages
+                    int highlights = count.get(3).asInt();                       // highlights
+                    if (DEBUG_HANDLERS) logger.debug("buffer={}, wants_updates={} (messages: unread/read={}/{}, highlights: unread/read={}/{})", new Object[]{buffer.short_name, buffer.wants_full_hotlist_update, unreads, buffer.total_read_unreads, highlights, buffer.total_read_highlights, });
+                    boolean full_update = buffer.wants_full_hotlist_update ||
+                            (buffer.total_read_unreads > unreads) ||
+                            (buffer.total_read_highlights > highlights);
+                    buffer.unreads = full_update ? unreads : unreads - buffer.total_read_unreads;
+                    buffer.highlights = full_update ? highlights : highlights - buffer.total_read_highlights;
                 }
             }
             notifyBuffersSlightlyChanged();
@@ -474,4 +519,99 @@ public class BufferList {
                 }
         }
     };
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// saving/restoring stuff
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    /** restore buffer's stuff. this is called for every buffer upon buffer creation */
+    synchronized static void restoreLastReadLine(Buffer buffer) {
+        BufferHotData data = buffer_to_last_read_line.get(buffer.full_name);
+        if (data != null) {
+            buffer.last_read_line = data.last_read_line;
+            buffer.total_read_unreads = data.total_old_unreads;
+            buffer.total_read_highlights = data.total_old_highlights;
+        }
+    }
+
+    /** save buffer's stuff. this is called when information is about to be written to disk */
+    synchronized static void saveLastReadLine(Buffer buffer) {
+        BufferHotData data = buffer_to_last_read_line.get(buffer.full_name);
+        if (data == null) {
+            data = new BufferHotData();
+            buffer_to_last_read_line.put(buffer.full_name, data);
+        }
+        data.last_read_line = buffer.last_read_line;
+        data.total_old_unreads = buffer.total_read_unreads;
+        data.total_old_highlights = buffer.total_read_highlights;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    synchronized static @Nullable String getSyncedBuffersAsString() {
+        if (DEBUG_SAVE_RESTORE) logger.warn("getSyncedBuffersAsString() -> ...");
+        return serialize(synced_buffers_full_names);
+    }
+
+    @SuppressWarnings("unchecked")
+    synchronized static void setSyncedBuffersFromString(@Nullable String synced_buffers) {
+        if (DEBUG_SAVE_RESTORE) logger.warn("setSyncedBuffersFromString(...)");
+        Object o = deserialize(synced_buffers);
+        if (o instanceof LinkedHashSet)
+            synced_buffers_full_names = (LinkedHashSet<String>) o;
+    }
+
+    synchronized static @Nullable String getBufferToLastReadLineAsString() {
+        if (DEBUG_SAVE_RESTORE) logger.warn("getBufferToLastReadLineAsString() -> ...");
+        if (buffers != null) for (Buffer buffer : buffers) saveLastReadLine(buffer);
+        return serialize(buffer_to_last_read_line);
+    }
+
+    @SuppressWarnings("unchecked")
+    synchronized static void setBufferToLastReadLineFromString(@Nullable String buffers_read_lines) {
+        if (DEBUG_SAVE_RESTORE) logger.warn("setBufferToLastReadLineFromString(...)");
+        Object o = deserialize(buffers_read_lines);
+        if (o instanceof LinkedHashMap)
+            buffer_to_last_read_line = (LinkedHashMap<String, BufferHotData>) o;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private static class BufferHotData implements Serializable {
+        int last_read_line = -1;
+        int total_old_unreads = 0;
+        int total_old_highlights = 0;
+    }
+
+    public static final int SERIALIZATION_PROTOCOL_ID = 2;
+
+    @SuppressWarnings("unchecked")
+    static @Nullable Object deserialize(@Nullable String string) {
+        if (string == null) return null;
+        try {
+            byte[] data = Base64.decode(string, Base64.DEFAULT);
+            ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(data));
+            Object o = ois.readObject();
+            ois.close();
+            return o;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    static @Nullable String serialize(@Nullable Serializable serializable) {
+        if (serializable == null) return null;
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(baos);
+            oos.writeObject(serializable);
+            oos.close();
+            return Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
 }
