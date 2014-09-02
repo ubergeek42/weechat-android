@@ -32,7 +32,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.Rect;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Looper;
@@ -70,7 +69,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     final private static boolean DEBUG_BUFFERS = false;
 
     public RelayServiceBinder relay;
-    private SocketToggleConnection connection_state_toggler;
+//    private SocketToggleConnection connection_state_toggler;
     private Menu actionBarMenu;
     private ViewPager viewPager;
     private MainPagerAdapter mainPagerAdapter;
@@ -146,12 +145,6 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     protected void onStop() {
         if (DEBUG_LIFECYCLE) logger.debug("onStop()");
         super.onStop();
-
-        if (connection_state_toggler != null
-                && connection_state_toggler.getStatus() != AsyncTask.Status.FINISHED) {
-            connection_state_toggler.cancel(true);
-            connection_state_toggler = null;
-        }
 
         if (relay != null) {
             if (DEBUG_LIFECYCLE) logger.debug("...calling unbindService()");
@@ -250,19 +243,11 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     //////////////////////////////////////////////////////////////////////////////////////////////// connection toggler
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private class SocketToggleConnection extends AsyncTask<Void, Void, Boolean> {
-        @Override protected Boolean doInBackground(Void... voids) {
-            if (relay.isConnection(RelayService.CONNECTED)) {
-                relay.shutdown();
-                return true;
-            } else {
-                return relay.connect();
-            }
-        }
-
-        @Override protected void onPostExecute(Boolean success) {
-            supportInvalidateOptionsMenu();
-        }
+    private void toggleConnection() {
+        if (relay.isConnection(RelayService.CONNECTED))
+            relay.disconnect();
+        else
+            relay.connect();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -379,8 +364,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
             }
             case R.id.menu_connection_state: {
                 if (relay != null) {
-                    connection_state_toggler = new SocketToggleConnection();
-                    connection_state_toggler.execute();
+                    toggleConnection();
                 }
                 break;
             }
@@ -403,7 +387,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
             }
             case R.id.menu_quit: {
                 if (relay != null) {
-                    relay.shutdown();
+                    relay.disconnect();
                 }
                 unbindService(service_connection);
                 relay = null;

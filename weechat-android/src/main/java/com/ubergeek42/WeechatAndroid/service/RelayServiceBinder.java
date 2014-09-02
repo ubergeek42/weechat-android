@@ -51,8 +51,13 @@ public class RelayServiceBinder extends Binder {
         return service.isConnection(status);
     }
 
-    public boolean connect() {
-        return service.connect();
+    public void connect() {
+        service.startThreadedConnectLoop(false);
+    }
+
+    /** Disconnect from the server and stop the background service */
+    public void disconnect() {
+        service.startThreadedDisconnect();
     }
 
     public void addRelayConnectionHandler(RelayConnectionHandler handler) {
@@ -61,11 +66,6 @@ public class RelayServiceBinder extends Binder {
 
     public void removeRelayConnectionHandler(RelayConnectionHandler handler) {
         service.connectionHandlers.remove(handler);
-    }
-
-    /** Disconnect from the server and stop the background service */
-    public void shutdown() {
-        service.shutdown();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

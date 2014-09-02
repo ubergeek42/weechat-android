@@ -25,8 +25,14 @@
     <string name="notification_connected_to">"Connected to "</string>
 	<string name="notification_reconnected_to">"Reconnected to "</string>
     <string name="notification_disconnected">Disconnected</string>
-    <string name="notification_reconnecting">Reconnecting…</string>
+
+    <string name="notification_connecting">Connecting to %s…</string>
+    <string name="notification_connecting_details_now">Connecting now…</string>
+    <string name="notification_connecting_details">Will connect in %d seconds…</string>
+    <string name="notification_reconnecting">Reconnecting to %s…</string>
+    <string name="notification_reconnecting_details_now">Reconnecting now…</string>
     <string name="notification_reconnecting_details">Will reconnect in %d seconds…</string>
+
     <string name="notification_update_settings">Update settings</string>
     <string name="notification_update_settings_details">Click to edit your preferences and connect</string>
     <string name="notification_upgrading">Upgrading…</string>

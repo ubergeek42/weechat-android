@@ -30,14 +30,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
-import android.os.IBinder;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 
-import com.ubergeek42.WeechatAndroid.BuildConfig;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.WeechatPreferencesActivity;
@@ -53,40 +53,59 @@ import com.ubergeek42.weechat.relay.messagehandler.UpgradeHandler;
 import com.ubergeek42.weechat.relay.messagehandler.UpgradeObserver;
 import com.ubergeek42.weechat.relay.protocol.RelayObject;
 
-public class RelayServiceBackbone extends Service implements RelayConnectionHandler,
+public abstract class RelayServiceBackbone extends Service implements RelayConnectionHandler,
         OnSharedPreferenceChangeListener, UpgradeObserver {
 
     private static Logger logger = LoggerFactory.getLogger("RelayServiceBackbone");
     final private static boolean DEBUG = false;
+    final private static boolean DEBUG_CONNECTION = false;
 
     private static final int NOTIFICATION_ID = 42;
     private NotificationManager notificationManger;
+    private Thread upgrading;
 
-    String host;
-    int port;
-    String pass;
+    final static private String PREF_AUTO_CONNECT = "autoconnect";
 
-    String stunnelCert;
-    String stunnelPass;
+    final static private String PREF_HOST = "host";
+    final static private String PREF_PASSWORD = "password";
+    final static private String PREF_PORT = "port";
 
-    String sshHost;
-    String sshPass;
-    String sshPort;
-    String sshUser;
-    String sshKeyfile;
+    final static private String PREF_STUNNEL_CERT = "stunnel_cert";
+    final static private String PREF_STUNNEL_PASS = "stunnel_pass";
+    final static private String PREF_SSH_HOST = "ssh_host";
+    final static private String PREF_SSH_USER = "ssh_user";
+    final static private String PREF_SSH_PASS = "ssh_pass";
+    final static private String PREF_SSH_KEYFILE = "ssh_keyfile";
+
+    final static private String PREF_CONNECTION_TYPE = "connection_type";
+    final static private String PREF_TYPE_SSH = "ssh";
+    final static private String PREF_TYPE_STUNNEL = "stunnel";
+    final static private String PREF_TYPE_SSL = "ssl";
+    final static private String PREF_TYPE_PLAIN = "plain";
+
+    private String host;
+    private int port;
+    private String pass;
 
     RelayConnection connection;
     HashSet<RelayConnectionHandler> connectionHandlers = new HashSet<RelayConnectionHandler>();
-    SharedPreferences prefs;
-    private boolean shutdown;
-    private boolean disconnected;
-    private Thread reconnector = null;
-    private Thread upgrading;
 
+    SharedPreferences prefs;
     SSLHandler certmanager;
     X509Certificate untrustedCert;
 
     int hot_count = 0;
+
+
+    /** a variable that prevents the service from reconnecting on user's disconnect
+     ** TODO save in case app is killed by system */
+    private volatile boolean must_stay_disconnected;
+
+    /** mainly used to tell the user if we are REconnected */
+    private volatile boolean disconnected;
+
+    /** handler that resides on a separate thread. useful for connection/etc */
+    private Handler thandler;
 
     // for some reason, this java can't have binary literals...
     public final static int DISCONNECTED =   Integer.parseInt("00001", 2);
@@ -95,6 +114,10 @@ public class RelayServiceBackbone extends Service implements RelayConnectionHand
     public final static int AUTHENTICATED =  Integer.parseInt("01000", 2);
     public final static int BUFFERS_LISTED = Integer.parseInt("10000", 2);
     int connection_status = DISCONNECTED;
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// status & life cycle
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     /** check status of connection
      ** @param status one of DISCONNECTED, CONNECTING, CONNECTED, AUTHENTICATED, BUFFERS_LISTED
@@ -110,22 +133,22 @@ public class RelayServiceBackbone extends Service implements RelayConnectionHand
 
         prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         prefs.registerOnSharedPreferenceChangeListener(this);
-
         notificationManger = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        //showNotification(null, "Tap to connect");
 
+        // prepare handler that will run on a separate thread
+        HandlerThread handler_thread = new HandlerThread("doge");
+        handler_thread.start();
+        thandler = new Handler(handler_thread.getLooper());
 
-
-        startForeground(NOTIFICATION_ID, buildNotification(null,"Tap to connect", null, false));
+        startForeground(NOTIFICATION_ID, buildNotification(null, "Tap to connect", null, false));
 
         disconnected = false;
 
         // Prepare for dealing with SSL certs
         certmanager = new SSLHandler(new File(getDir("sslDir", Context.MODE_PRIVATE), "keystore.jks"));
         
-        if (prefs.getBoolean("autoconnect", false)) {
-            connect();
-        }
+        if (prefs.getBoolean(PREF_AUTO_CONNECT, false))
+            startThreadedConnectLoop(false);
     }
 
     // TODO: decide whether killing the process is necessary...
@@ -137,84 +160,10 @@ public class RelayServiceBackbone extends Service implements RelayConnectionHand
         android.os.Process.killProcess(android.os.Process.myPid());
     }
 
-    /** overridden */
-    @Override
-    public IBinder onBind(Intent intent) {return null;}
-
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (DEBUG) logger.debug("onStartCommand()");
-        if (intent != null) {
-            // Autoconnect if possible
-            // if (prefs.getBoolean("autoconnect", false)) {
-            // connect();
-            // }
-        }
+        if (DEBUG_CONNECTION) logger.debug("onStartCommand()");
         return START_STICKY;
-    }
-
-    public boolean connect() {
-        if (DEBUG) logger.debug("connect()");
-        // Load the preferences
-        host = prefs.getString("host", null);
-        pass = prefs.getString("password", "password");
-        port = Integer.parseInt(prefs.getString("port", "8001"));
-
-        stunnelCert = prefs.getString("stunnel_cert", "");
-        stunnelPass = prefs.getString("stunnel_pass", "");
-
-        sshHost = prefs.getString("ssh_host", "");
-        sshUser = prefs.getString("ssh_user", "");
-        sshPass = prefs.getString("ssh_pass", "");
-        sshPort = prefs.getString("ssh_port", "22");
-        sshKeyfile = prefs.getString("ssh_keyfile", "");
-        
-        // If no host defined, signal them to edit their preferences
-        if (host == null) {
-            Intent i = new Intent(this, WeechatPreferencesActivity.class);
-            PendingIntent contentIntent = PendingIntent.getActivity(this, 0, i,
-                    PendingIntent.FLAG_CANCEL_CURRENT);
-
-            showNotification(getString(R.string.notification_update_settings_details),
-                             getString(R.string.notification_update_settings),
-                             contentIntent);
-            return false;
-        }
-
-        // Only connect if we aren't already connected
-        if ((connection != null) && (connection.isConnected())) {
-            return false;
-        }
-
-        shutdown = false;
-
-        IConnection conn;
-        String connType = prefs.getString("connection_type", "plain");
-        if (connType.equals("ssh")) {
-            SSHConnection tmp = new SSHConnection(host, port);
-            tmp.setSSHHost(sshHost);
-            tmp.setSSHUsername(sshUser);
-            tmp.setSSHKeyFile(sshKeyfile);
-            tmp.setSSHPassword(sshPass);
-            conn = tmp;
-        } else if (connType.equals("stunnel")) {
-            StunnelConnection tmp = new StunnelConnection(host, port);
-            tmp.setStunnelCert(stunnelCert);
-            tmp.setStunnelKey(stunnelPass);
-            conn = tmp;
-        } else if (connType.equals("ssl")) {
-            SSLConnection tmp = new SSLConnection(host, port);
-            tmp.setSSLKeystore(certmanager.sslKeystore);
-            conn = tmp;
-        } else {
-            PlainConnection pc = new PlainConnection(host, port);
-            conn = pc;
-        }
-        conn.addConnectionHandler(this);
-        connection = new RelayConnection(conn, pass);
-
-        connection.connect();
-        return true;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -229,7 +178,7 @@ public class RelayServiceBackbone extends Service implements RelayConnectionHand
      * @param beep if true, beep
      * @return built notification */
     private Notification buildNotification(@Nullable String tickerText, @NonNull String content, @Nullable PendingIntent intent, boolean beep) {
-        if (DEBUG) logger.debug("buildNotification({}, {}, {}, {})", new Object[]{tickerText, content, intent, beep});
+        if (DEBUG_CONNECTION) logger.debug("buildNotification({}, {}, {}, {})", new Object[]{tickerText, content, intent, beep});
         PendingIntent contentIntent;
         contentIntent = (intent != null) ? intent :
             PendingIntent.getActivity(this, 0, new Intent(this, WeechatActivity.class), PendingIntent.FLAG_CANCEL_CURRENT);
@@ -289,47 +238,125 @@ public class RelayServiceBackbone extends Service implements RelayConnectionHand
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// connect/disconnect
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    static final long DELAYS[] = new long[] { 0, 5, 15, 30, 60, 120, 300, 600, 900 };
+    private static final boolean CONNECTION_IMPOSSIBLE = false;
+    private static final long WAIT_BEFORE_WAIT_MESSAGE_DELAY = 2;
+    private static final long DELAYS[] = new long[] {5, 15, 30, 60, 120, 300, 600, 900};
 
-    // Spawn a thread that attempts to reconnect us.
-    // stop if we are already trying to reconnect
-    private void reconnect() {
-        if (reconnector != null && reconnector.isAlive())
-            return;
+    public void startThreadedConnectLoop(final boolean reconnecting) {
+        if (DEBUG_CONNECTION) logger.debug("startThreadedConnectLoop()");
+        must_stay_disconnected = false;
+        thandler.removeCallbacksAndMessages(null);
+        thandler.post(new Runnable() {
+            int reconnects = 0;
+            int ticker = reconnecting ? R.string.notification_reconnecting : R.string.notification_connecting;
+            int content = reconnecting ? R.string.notification_reconnecting_details : R.string.notification_connecting_details;
+            int content_now = reconnecting ? R.string.notification_reconnecting_details_now : R.string.notification_connecting_details_now;
+            boolean jumper = false;
 
-        reconnector = new Thread(new Runnable() {
-            int numReconnects = 0;                                              // how many times we've tried this...
-
+            @SuppressWarnings("PointlessBooleanExpression")
             @Override
             public void run() {
-                for (;;) {
-                    long currentDelay = (numReconnects < DELAYS.length) ?
-                            DELAYS[numReconnects] : DELAYS[DELAYS.length - 1];
-                    if (currentDelay > 0)
-                        showNotification(getString(R.string.notification_reconnecting), String.format(getString(R.string.notification_reconnecting_details),currentDelay));
-
-                    // sleep for a bit, after that
-                    // see if we are connected, if so we can stop trying to reconnect
-                    // and try connecting again
-                    SystemClock.sleep(currentDelay * 1000);
-                    if (connection != null && connection.isConnected())
+                if (DEBUG_CONNECTION) logger.debug("...run()");
+                if (connection != null && connection.isConnected())
+                    return;
+                if (jumper = !jumper) {
+                    if (DEBUG_CONNECTION) logger.debug("...not connected; connecting now");
+                    showNotification(String.format(getString(ticker), prefs.getString("host", null)),
+                            String.format(getString(content_now)));
+                    if (connect() == CONNECTION_IMPOSSIBLE)
                         return;
-                    connect();
-                    numReconnects++;
+                    thandler.postDelayed(this, WAIT_BEFORE_WAIT_MESSAGE_DELAY * 1000);
+                } else {
+                    long delay = DELAYS[reconnects < DELAYS.length ? reconnects : DELAYS.length];
+                    if (DEBUG_CONNECTION) logger.debug("...waiting {} seconds", delay);
+                    showNotification(String.format(getString(ticker), host),
+                            String.format(getString(content), delay));
+                    reconnects++;
+                    thandler.postDelayed(this, delay * 1000);
                 }
             }
         });
-        reconnector.start();
     }
+
+    // Do the actual shutdown on its own thread(to avoid an error on Android 3.0+)
+    public void startThreadedDisconnect() {
+        if (DEBUG_CONNECTION) logger.debug("startThreadedDisconnect()");
+        must_stay_disconnected = true;
+        thandler.removeCallbacksAndMessages(null);
+        thandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (connection != null) connection.disconnect();
+            }
+        });
+        // TODO: possibly call stopself?
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    /** try connect once
+     ** @return true if connection attempt has been made and false if connection is not possible */
+    private boolean connect() {
+        if (DEBUG_CONNECTION) logger.debug("connect()");
+
+        // only connect if we aren't already connected
+        if ((connection != null) && (connection.isConnected()))
+            return false;
+
+        // load the preferences
+        host = prefs.getString(PREF_HOST, null);
+        pass = prefs.getString(PREF_PASSWORD, null);
+        port = Integer.parseInt(prefs.getString(PREF_PORT, "8001"));
+
+        // if no host defined, signal user to edit their preferences
+        if (host == null || pass == null) {
+            Intent i = new Intent(this, WeechatPreferencesActivity.class);
+            PendingIntent contentIntent = PendingIntent.getActivity(this, 0, i,
+                    PendingIntent.FLAG_CANCEL_CURRENT);
+            showNotification(getString(R.string.notification_update_settings_details),
+                    getString(R.string.notification_update_settings),
+                    contentIntent);
+            return false;
+        }
+
+        IConnection conn;
+        String connType = prefs.getString(PREF_CONNECTION_TYPE, PREF_TYPE_PLAIN);
+        if (connType.equals(PREF_TYPE_SSH)) {
+            SSHConnection tmp = new SSHConnection(host, port);
+            tmp.setSSHHost(prefs.getString(PREF_SSH_HOST, ""));
+            tmp.setSSHUsername(prefs.getString(PREF_SSH_USER, ""));
+            tmp.setSSHKeyFile(prefs.getString(PREF_SSH_KEYFILE, ""));
+            tmp.setSSHPassword(prefs.getString(PREF_SSH_PASS, ""));
+            conn = tmp;
+        } else if (connType.equals(PREF_TYPE_STUNNEL)) {
+            StunnelConnection tmp = new StunnelConnection(host, port);
+            tmp.setStunnelCert(prefs.getString(PREF_STUNNEL_CERT, ""));
+            tmp.setStunnelKey(prefs.getString(PREF_STUNNEL_PASS, ""));
+            conn = tmp;
+        } else if (connType.equals(PREF_TYPE_SSL)) {
+            SSLConnection tmp = new SSLConnection(host, port);
+            tmp.setSSLKeystore(certmanager.sslKeystore);
+            conn = tmp;
+        } else {
+            conn = new PlainConnection(host, port);
+        }
+        conn.addConnectionHandler(this);
+        connection = new RelayConnection(conn, pass);
+        connection.connect();
+        return true;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// callbacks
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @Override
     public void onConnecting() {
         if (DEBUG) logger.debug("onConnecting()");
         connection_status = CONNECTING;
-        showNotification(null, "Connecting to " + host);
         for (RelayConnectionHandler rch : connectionHandlers) rch.onConnecting();
     }
 
@@ -355,72 +382,53 @@ public class RelayServiceBackbone extends Service implements RelayConnectionHand
 
         startHandlingBoneEvents();
 
-        // Handle weechat upgrading
+        // handle weechat upgrading & buffer listed event
         UpgradeHandler uh = new UpgradeHandler(this);
         connection.addHandler("_upgrade", uh);
         connection.addHandler("_upgrade_ended", uh);
-
         connection.addHandler("hotlist", new BuffersListedObserver());
 
         for (RelayConnectionHandler rch : connectionHandlers) rch.onAuthenticated();
     }
 
-    void startHandlingBoneEvents() {}
+    abstract void startHandlingBoneEvents();
 
     @Override
     public void onBuffersListed() {
         if (DEBUG) logger.debug("onBuffersListed()");
         connection_status = CONNECTED | AUTHENTICATED | BUFFERS_LISTED;
-        for (RelayConnectionHandler rch : connectionHandlers) {
-            rch.onBuffersListed();
-        }
+        for (RelayConnectionHandler rch : connectionHandlers) rch.onBuffersListed();
     }
 
     @Override
     public void onDisconnect() {
+        if (DEBUG) logger.debug("onDisconnect()");
         connection_status = DISCONNECTED;
-        if (disconnected) {
-            return; // Only do the disconnect handler once
-        }
-        // :( aww disconnected
-        for (RelayConnectionHandler rch : connectionHandlers) {
-            rch.onDisconnect();
-        }
 
+        // Only do the disconnect handler once
+        if (disconnected) return;
         disconnected = true;
 
-        // Automatically attempt reconnection if enabled(and if we aren't shutting down)
-        if (!shutdown && prefs.getBoolean("reconnect", true)) {
-            reconnect();
-            String tmp = getString(R.string.notification_reconnecting);
-            showNotification(tmp,tmp);
+        // automatically attempt reconnection if enabled (and if we aren't shutting down)
+        if (!must_stay_disconnected && prefs.getBoolean(PREF_AUTO_CONNECT, true)) {
+            startThreadedConnectLoop(true);
         } else {
             String tmp = getString(R.string.notification_disconnected);
-            showNotification(tmp,tmp);
+            showNotification(tmp, tmp);
         }
+
+        for (RelayConnectionHandler rch : connectionHandlers) rch.onDisconnect();
     }
 
     @Override
     public void onError(String error, Object extraData) {
-        logger.error("relayservice - error!");
-        for (RelayConnectionHandler rch : connectionHandlers) {
-            rch.onError(error, extraData);
-        }
+        if (DEBUG) logger.error("onError(..., ...)", error, extraData);
+        for (RelayConnectionHandler rch : connectionHandlers) rch.onError(error, extraData);
     }
 
-    public void shutdown() {
-        if (connection != null) {
-            shutdown = true;
-            // Do the actual shutdown on its own thread(to avoid an error on Android 3.0+)
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    connection.disconnect();
-                }
-            }).start();
-        }
-        // TODO: possibly call stopself?
-    }
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
@@ -446,9 +454,9 @@ public class RelayServiceBackbone extends Service implements RelayConnectionHand
             public void run() {
                 showNotification(getString(R.string.notification_upgrading),
                         getString(R.string.notification_upgrading_details));
-                shutdown();
+                startThreadedDisconnect();
                 SystemClock.sleep(5000);
-                connect();
+                startThreadedConnectLoop(true);
             }
         });
         upgrading.start();
