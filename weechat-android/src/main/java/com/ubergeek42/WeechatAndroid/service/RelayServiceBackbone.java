@@ -58,7 +58,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
 
     private static Logger logger = LoggerFactory.getLogger("RelayServiceBackbone");
     final private static boolean DEBUG = false;
-    final private static boolean DEBUG_CONNECTION = false;
+    final private static boolean DEBUG_CONNECTION = true;
 
     private static final int NOTIFICATION_ID = 42;
     private NotificationManager notificationManger;
@@ -143,9 +143,6 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
 
         // Prepare for dealing with SSL certs
         certmanager = new SSLHandler(new File(getDir("sslDir", Context.MODE_PRIVATE), "keystore.jks"));
-        
-        if (mustAutoConnect())
-            startThreadedConnectLoop(false);
     }
 
     // TODO: decide whether killing the process is necessary...
@@ -159,7 +156,12 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (DEBUG_CONNECTION) logger.debug("onStartCommand()");
+        if (DEBUG_CONNECTION) logger.debug("onStartCommand({}, {}, {})", new Object[]{intent, flags, startId});
+        if (intent != null) {
+            if (mustAutoConnect()) startThreadedConnectLoop(false);
+        } else {
+            if (mustAutoReconnect()) startThreadedConnectLoop(true);
+        }
         return START_STICKY;
     }
 
@@ -238,13 +240,16 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
     //////////////////////////////////////////////////////////////////////////////////////////////// connect/disconnect
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private boolean mustAutoConnect () {
-        return !prefs.getBoolean(PREF_MUST_STAY_DISCONNECTED, false) &&
-                prefs.getBoolean(PREF_AUTO_CONNECT, true);
+    private boolean mustAutoConnect() {
+         return prefs.getBoolean(PREF_AUTO_CONNECT, true);
+    }
+
+    private boolean mustAutoReconnect() {
+        return mustAutoConnect() && !prefs.getBoolean(PREF_MUST_STAY_DISCONNECTED, false);
     }
 
     private static final boolean CONNECTION_IMPOSSIBLE = false;
-    private static final long WAIT_BEFORE_WAIT_MESSAGE_DELAY = 2;
+    private static final long WAIT_BEFORE_WAIT_MESSAGE_DELAY = 5;
     private static final long DELAYS[] = new long[] {5, 15, 30, 60, 120, 300, 600, 900};
 
     public void startThreadedConnectLoop(final boolean reconnecting) {
@@ -415,7 +420,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
         disconnected = true;
 
         // automatically attempt reconnection if enabled (and if we aren't shutting down)
-        if (mustAutoConnect()) {
+        if (mustAutoReconnect()) {
             startThreadedConnectLoop(true);
         } else {
             String tmp = getString(R.string.notification_disconnected);
