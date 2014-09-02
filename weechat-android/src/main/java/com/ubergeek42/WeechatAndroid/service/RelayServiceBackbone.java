@@ -83,6 +83,8 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
     final static private String PREF_TYPE_SSL = "ssl";
     final static private String PREF_TYPE_PLAIN = "plain";
 
+    final static private String PREF_MUST_STAY_DISCONNECTED = "wow!";
+
     private String host;
     private int port;
     private String pass;
@@ -95,11 +97,6 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
     X509Certificate untrustedCert;
 
     int hot_count = 0;
-
-
-    /** a variable that prevents the service from reconnecting on user's disconnect
-     ** TODO save in case app is killed by system */
-    private volatile boolean must_stay_disconnected;
 
     /** mainly used to tell the user if we are REconnected */
     private volatile boolean disconnected;
@@ -147,7 +144,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
         // Prepare for dealing with SSL certs
         certmanager = new SSLHandler(new File(getDir("sslDir", Context.MODE_PRIVATE), "keystore.jks"));
         
-        if (prefs.getBoolean(PREF_AUTO_CONNECT, false))
+        if (mustAutoConnect())
             startThreadedConnectLoop(false);
     }
 
@@ -241,13 +238,18 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
     //////////////////////////////////////////////////////////////////////////////////////////////// connect/disconnect
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
+    private boolean mustAutoConnect () {
+        return !prefs.getBoolean(PREF_MUST_STAY_DISCONNECTED, false) &&
+                prefs.getBoolean(PREF_AUTO_CONNECT, true);
+    }
+
     private static final boolean CONNECTION_IMPOSSIBLE = false;
     private static final long WAIT_BEFORE_WAIT_MESSAGE_DELAY = 2;
     private static final long DELAYS[] = new long[] {5, 15, 30, 60, 120, 300, 600, 900};
 
     public void startThreadedConnectLoop(final boolean reconnecting) {
         if (DEBUG_CONNECTION) logger.debug("startThreadedConnectLoop()");
-        must_stay_disconnected = false;
+        prefs.edit().putBoolean(PREF_MUST_STAY_DISCONNECTED, false).commit();
         thandler.removeCallbacksAndMessages(null);
         thandler.post(new Runnable() {
             int reconnects = 0;
@@ -264,6 +266,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
                     return;
                 if (jumper = !jumper) {
                     if (DEBUG_CONNECTION) logger.debug("...not connected; connecting now");
+                    connection_status = CONNECTING;
                     showNotification(String.format(getString(ticker), prefs.getString("host", null)),
                             String.format(getString(content_now)));
                     if (connect() == CONNECTION_IMPOSSIBLE)
@@ -281,10 +284,12 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
         });
     }
 
-    // Do the actual shutdown on its own thread(to avoid an error on Android 3.0+)
+    // do the actual shutdown on its own thread (to avoid an error on Android 3.0+)
+    // remember that we are down lest we are reconnected when application
+    // kills the service and restores it back later
     public void startThreadedDisconnect() {
         if (DEBUG_CONNECTION) logger.debug("startThreadedDisconnect()");
-        must_stay_disconnected = true;
+        prefs.edit().putBoolean(PREF_MUST_STAY_DISCONNECTED, true).commit();
         thandler.removeCallbacksAndMessages(null);
         thandler.post(new Runnable() {
             @Override
@@ -410,7 +415,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
         disconnected = true;
 
         // automatically attempt reconnection if enabled (and if we aren't shutting down)
-        if (!must_stay_disconnected && prefs.getBoolean(PREF_AUTO_CONNECT, true)) {
+        if (mustAutoConnect()) {
             startThreadedConnectLoop(true);
         } else {
             String tmp = getString(R.string.notification_disconnected);
