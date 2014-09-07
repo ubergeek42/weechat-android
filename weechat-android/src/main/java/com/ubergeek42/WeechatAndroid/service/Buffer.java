@@ -92,7 +92,7 @@ public class Buffer {
         this.title = title;
         this.notify_level = notify_level;
         this.local_vars = local_vars;
-        this.type = getBufferType();
+        processBufferType();
         processBufferTitle();
 
         if (BufferList.isSynced(full_name)) setOpen(true);
@@ -215,16 +215,23 @@ public class Buffer {
         //      provided by setMostRecentHotLine()
         // we are not using OLDER messages arriving from reverse request as well because
         //      unreads and highlights is filled by hotlist request
-        if (!is_watched && is_last && notify_level >= 0) {
-            if (line.highlighted) {
-                highlights++;
-                BufferList.setMostRecentHotLine(this, line);
-                BufferList.notifyBuffersSlightlyChanged(type == OTHER);
+        //
+        // if the buffer IS watched, remember that the lines in question are read
+        if (is_last && notify_level >= 0) {
+            if (!is_watched) {
+                if (line.highlighted) {
+                    highlights++;
+                    BufferList.setMostRecentHotLine(this, line);
+                    BufferList.notifyBuffersSlightlyChanged(type == OTHER);
+                } else if (line.type == Line.LINE_MESSAGE) {
+                    unreads++;
+                    if (type == PRIVATE) BufferList.setMostRecentHotLine(this, line);
+                    BufferList.notifyBuffersSlightlyChanged(type == OTHER);
+                }
             }
-            else if (line.type == Line.LINE_MESSAGE) {
-                unreads ++;
-                if (type == PRIVATE) BufferList.setMostRecentHotLine(this, line);
-                BufferList.notifyBuffersSlightlyChanged(type == OTHER);
+            else {
+                if (line.highlighted) total_read_highlights++;
+                else if (line.type == Line.LINE_MESSAGE) total_read_unreads++;
             }
         }
 
@@ -248,6 +255,43 @@ public class Buffer {
         }
     }
 
+    /** a buffer NOT will want a complete update if the last line unread stored in weechat buffer
+     ** matches the one stored in our buffer. if they are not equal, the user must've read the buffer
+     ** in weechat. assuming he read the very last line, total old highlights and unreads bear no meaning,
+     ** so they should be erased. */
+    synchronized public void updateLastReadLine(int line_pointer) {
+        wants_full_hotlist_update = last_read_line != line_pointer;
+        if (wants_full_hotlist_update) {
+            last_read_line = line_pointer;
+            total_read_highlights = total_read_unreads = 0;
+        }
+    }
+
+    /** buffer will want full updates if it doesn't have a last read line
+     ** that can happen if the last read line is so far in the queue it got erased (past 4096 lines or so)
+     ** in most cases, that is OK with us, but in rare cases when the buffer was READ in weechat BUT
+     ** has lost its last read lines again our read count will not have any meaning. AND it might happen
+     ** that our number is actually HIGHER than amount of unread lines in the buffer. as a workaround,
+     ** we check that we are not getting negative numbers. not perfect, but—! */
+     synchronized public void updateHighlightsAndUnreads(int highlights, int unreads) {
+        if (is_watched) {
+            total_read_unreads = unreads;
+            total_read_highlights = highlights;
+        } else {
+            final boolean full_update = wants_full_hotlist_update ||
+                    (total_read_unreads > unreads) ||
+                    (total_read_highlights > highlights);
+            if (full_update) {
+                this.unreads = unreads;
+                this.highlights = highlights;
+                total_read_unreads = total_read_highlights = 0;
+            } else {
+                this.unreads = unreads - total_read_unreads;
+                this.highlights = highlights - total_read_highlights;
+            }
+        }
+    }
+
     synchronized public void onLinesChanged() {
         if (buffer_eye != null) buffer_eye.onLinesChanged();
     }
@@ -258,7 +302,7 @@ public class Buffer {
     }
 
     synchronized public void onPropertiesChanged() {
-        type = getBufferType();
+        processBufferType();
         processBufferTitle();
         if (buffer_eye != null) buffer_eye.onPropertiesChanged();
     }
@@ -271,12 +315,12 @@ public class Buffer {
     //////////////////////////////////////////////////////////////////////////////////////////////// private stuffs
 
     /** determine if the buffer is PRIVATE, CHANNEL, or OTHER */
-    private int getBufferType() {
-        RelayObject type = local_vars.get("type");
-        if (type == null) return OTHER;
-        if (type.asString().equals("private")) return PRIVATE;
-        if (type.asString().equals("channel")) return CHANNEL;
-        return OTHER;
+    private void processBufferType() {
+        final RelayObject t = local_vars.get("type");
+        if (t == null) type = OTHER;
+        else if ("private".equals(t.asString())) type = PRIVATE;
+        else if ("channel".equals(t.asString())) type = CHANNEL;
+        else type = OTHER;
     }
 
     private final static SuperscriptSpan SUPER = new SuperscriptSpan();
