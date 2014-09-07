@@ -40,6 +40,8 @@ public class BufferList {
     final private static boolean DEBUG_HOT = false;
     final private static boolean DEBUG_SAVE_RESTORE = false;
 
+    final private static int SYNC_LAST_READ_LINE_EVERY_MS = 60 * 30 * 1000; // 30 minutes
+
     /** preferences related to the list of buffers.
      ** actually WRITABLE from outside */
     public static boolean SORT_BUFFERS = false;
@@ -75,7 +77,7 @@ public class BufferList {
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public static void launch(RelayService relay) {
+    public static void launch(final RelayService relay) {
         BufferList.relay = relay;
         BufferList.connection = relay.connection;
         buffers.clear();
@@ -113,6 +115,13 @@ public class BufferList {
         connection.sendMsg("listbuffers", "hdata", "buffer:gui_buffers(*) number,full_name,short_name,type,title,nicklist,local_variables,notify");
         connection.sendMsg("last_read_lines", "hdata", "buffer:gui_buffers(*)/own_lines/last_read_line/data buffer");
         connection.sendMsg("hotlist", "hdata", "hotlist:gui_hotlist(*) buffer,count");
+        relay.thandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                connection.sendMsg("last_read_lines", "hdata", "buffer:gui_buffers(*)/own_lines/last_read_line/data buffer");
+                relay.thandler.postDelayed(this, SYNC_LAST_READ_LINE_EVERY_MS);
+            }
+        }, SYNC_LAST_READ_LINE_EVERY_MS);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -351,11 +360,7 @@ public class BufferList {
     //////////////////////////////////////////////////////////////////////////////////////////////// hotlist
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    // last_read_lines (ONLY)
-    // a buffer NOT will want a complete update if the last line unread stored in weechat buffer
-    // matches the one stored in our buffer. if they are not equal, the user must've read the buffer
-    // in weechat. assuming he read the very last line, total old highlights and unreads bear no meaning,
-    // so they should be erased.
+    // last_read_lines
     static RelayMessageHandler last_read_lines_watcher = new RelayMessageHandler() {
         @Override
         public void handleMessage(RelayObject obj, String id) {
@@ -366,24 +371,13 @@ public class BufferList {
                 int buffer_pointer = entry.getItem("buffer").asPointerInt();
                 int line_pointer = entry.getPointerInt();
                 Buffer buffer = findByPointer(buffer_pointer);
-                if (buffer == null)
-                    continue;
-                if (DEBUG_HANDLERS) logger.debug("buffer={}, wants_updates={} (old={}, new={})", new Object[]{buffer.short_name, buffer.last_read_line != line_pointer, buffer.last_read_line, line_pointer});
-                if (buffer.wants_full_hotlist_update = buffer.last_read_line != line_pointer) {
-                    buffer.last_read_line = line_pointer;
-                    buffer.total_read_highlights = buffer.total_read_unreads = 0;
-                }
+                if (buffer != null)
+                    buffer.updateLastReadLine(line_pointer);
             }
         }
     };
 
     // hotlist (ONLY)
-    // buffer will want full updates if it doesn't have a last read line
-    // that can happen if the last read line is so far in the queue it got erased (past 4096 lines or so)
-    // in most cases, that is OK with us, but in rare cases when the buffer was READ in weechat BUT
-    // has lost its last read lines again our read count will not have any meaning. AND it might happen
-    // that our number is actually HIGHER than amount of unread lines in the buffer. as a workaround,
-    // we check that we are not getting negative numbers. not perfect, but—!
     static RelayMessageHandler hotlist_init_watcher = new RelayMessageHandler() {
         @Override
         public void handleMessage(RelayObject obj, String id) {
@@ -397,12 +391,7 @@ public class BufferList {
                     Array count = entry.getItem("count").asArray();
                     int unreads = count.get(1).asInt() + count.get(2).asInt();   // chat messages & private messages
                     int highlights = count.get(3).asInt();                       // highlights
-                    if (DEBUG_HANDLERS) logger.debug("buffer={}, wants_updates={} (messages: unread/read={}/{}, highlights: unread/read={}/{})", new Object[]{buffer.short_name, buffer.wants_full_hotlist_update, unreads, buffer.total_read_unreads, highlights, buffer.total_read_highlights, });
-                    boolean full_update = buffer.wants_full_hotlist_update ||
-                            (buffer.total_read_unreads > unreads) ||
-                            (buffer.total_read_highlights > highlights);
-                    buffer.unreads = full_update ? unreads : unreads - buffer.total_read_unreads;
-                    buffer.highlights = full_update ? highlights : highlights - buffer.total_read_highlights;
+                    buffer.updateHighlightsAndUnreads(highlights, unreads);
                 }
             }
             notifyBuffersSlightlyChanged();
@@ -428,12 +417,12 @@ public class BufferList {
 
                 int buffer_pointer = (is_bottom) ? entry.getItem("buffer").asPointerInt() : entry.getPointerInt(0);
                 Buffer buffer = findByPointer(buffer_pointer);
-                if (!is_bottom)
-                    fresh_buffers.add(buffer);
                 if (buffer == null) {
                     if (DEBUG_HANDLERS) logger.warn("buffer_line_watcher: no buffer to update!");
                     continue;
                 }
+                if (!is_bottom)
+                    fresh_buffers.add(buffer);
                 String message = entry.getItem("message").asString();
                 String prefix = entry.getItem("prefix").asString();
                 boolean displayed = (entry.getItem("displayed").asChar() == 0x01);

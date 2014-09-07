@@ -69,7 +69,6 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     final private static boolean DEBUG_BUFFERS = false;
 
     public RelayServiceBinder relay;
-//    private SocketToggleConnection connection_state_toggler;
     private Menu actionBarMenu;
     private ViewPager viewPager;
     private MainPagerAdapter mainPagerAdapter;

@@ -102,7 +102,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
     private volatile boolean disconnected;
 
     /** handler that resides on a separate thread. useful for connection/etc */
-    private Handler thandler;
+    Handler thandler;
 
     // for some reason, this java can't have binary literals...
     public final static int DISCONNECTED =   Integer.parseInt("00001", 2);
