@@ -45,7 +45,7 @@
             android:layout_width="wrap_content"
             android:layout_height="?actionBarSize"
             android:src="@drawable/ic_send"
-            android:contentDescription="@string/sendButton"
+            android:contentDescription="@string/sendkey"
             android:layout_gravity="bottom"
             android:layout_margin="0dp"
             style="@style/ActionButton" />
