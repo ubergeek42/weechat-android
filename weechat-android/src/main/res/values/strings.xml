@@ -19,7 +19,7 @@
     <string name="tabkey">⇥</string>
     
     <!--  The text shown in the buffer list filter edit text as a placeholder -->
-    <string name="filter_bufferlist_placeholder">Filter buffer list</string>
+    <string name="filter_bufferlist_placeholder"><i>filter</i></string>
     
     <!-- Some of the notifications the application displays during certain events -->
     <string name="notification_connected_to">"Connected to "</string>

@@ -38,7 +38,7 @@
             android:contentDescription="@string/tabkey"
             android:layout_gravity="bottom"
             android:layout_margin="0dp"
-            style="@style/ActionButton"/>
+            style="@style/ActionButton" />
 
         <ImageButton
             android:id="@+id/chatview_send"
