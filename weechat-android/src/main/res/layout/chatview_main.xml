@@ -30,21 +30,25 @@
             <requestFocus />
         </EditText>
 
-        <Button
+        <ImageButton
             android:id="@+id/chatview_tab"
             android:layout_width="wrap_content"
             android:layout_height="?actionBarSize"
-            android:text="@string/tabkey"
+            android:src="@drawable/ic_tab"
+            android:contentDescription="@string/tabkey"
             android:layout_gravity="bottom"
-            android:layout_margin="0dp" />
+            android:layout_margin="0dp"
+            style="@style/ActionButton"/>
 
-        <Button
+        <ImageButton
             android:id="@+id/chatview_send"
             android:layout_width="wrap_content"
             android:layout_height="?actionBarSize"
-            android:text="@string/sendButton"
+            android:src="@drawable/ic_send"
+            android:contentDescription="@string/sendButton"
             android:layout_gravity="bottom"
-            android:layout_margin="0dp" />
+            android:layout_margin="0dp"
+            style="@style/ActionButton" />
     </LinearLayout>
 
     <ListView

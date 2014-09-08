@@ -31,9 +31,9 @@ import android.view.View.OnClickListener;
 import android.view.View.OnKeyListener;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
-import android.widget.AdapterView;
-import android.widget.Button;
 import android.widget.EditText;
+import android.widget.AdapterView;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -66,8 +66,8 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
 
     private ListView chatLines;
     private EditText inputBox;
-    private Button sendButton;
-    private Button tabButton;
+    private ImageButton sendButton;
+    private ImageButton tabButton;
 
     private RelayServiceBinder relay;
 
@@ -118,8 +118,8 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
 
         chatLines = (ListView) v.findViewById(R.id.chatview_lines);
         inputBox = (EditText) v.findViewById(R.id.chatview_input);
-        sendButton = (Button) v.findViewById(R.id.chatview_send);
-        tabButton = (Button) v.findViewById(R.id.chatview_tab);
+        sendButton = (ImageButton) v.findViewById(R.id.chatview_send);
+        tabButton = (ImageButton) v.findViewById(R.id.chatview_tab);
 
         sendButton.setOnClickListener(this);
         tabButton.setOnClickListener(this);
