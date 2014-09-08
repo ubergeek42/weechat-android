@@ -36,7 +36,7 @@ public class BufferList {
     private static Logger logger = LoggerFactory.getLogger("BufferList");
     final private static boolean DEBUG = BuildConfig.DEBUG;
     final private static boolean DEBUG_SYNCING = true;
-    final private static boolean DEBUG_HANDLERS = false;
+    final private static boolean DEBUG_HANDLERS = true;
     final private static boolean DEBUG_HOT = false;
     final private static boolean DEBUG_SAVE_RESTORE = false;
 
@@ -251,6 +251,7 @@ public class BufferList {
     //////////////////////////////////////////////////////////////////////////////////////////////// private stuffs
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
+    // called from synchronized methods
     static private void checkIfHotCountHasChanged() {
         if (DEBUG_HOT) logger.warn("checkIfHotCountHasChanged()");
         int hot = 0;

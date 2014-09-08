@@ -1,5 +1,6 @@
 package com.ubergeek42.WeechatAndroid.fragments;
 
+import java.util.ArrayList;
 import java.util.Vector;
 
 import org.slf4j.Logger;
@@ -541,46 +542,43 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     ///////////////////////// context menu
     /////////////////////////
 
-    /** This is related to the tap and hold menu that appears when clicking on a message */
-    private static final int CONTEXT_MENU_COPY_TXT = Menu.FIRST;
-    private static final int CONTEXT_MENU_COPY_URL = CONTEXT_MENU_COPY_TXT+1;
-    private TextView contextMenuView = null;
-    @Override
-    public boolean onContextItemSelected(MenuItem item) {
-        if (contextMenuView != null) {
+    private static final int CONTEXT_MENU_COPY_FIRST = Menu.FIRST;
+    private ArrayList<String> copy_list = null;
+
+    /** This is related to the tap and hold menu that appears when clicking on a message
+     ** check for visibility is required because this is called for ALL fragments at once
+     ** see http://stackoverflow.com/questions/5297842/how-to-handle-oncontextitemselected-in-a-multi-fragment-activity */
+    @Override public boolean onContextItemSelected(MenuItem item) {
+        if (visible && copy_list != null) {
             @SuppressWarnings("deprecation")
             ClipboardManager cm = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
-            if (item.getItemId() == CONTEXT_MENU_COPY_TXT) {
-                CharSequence txt = ((Buffer.Line) contextMenuView.getTag()).getNotificationString();
-                cm.setText(txt.toString());
-            } else if (item.getItemId() >= CONTEXT_MENU_COPY_URL) {                     // TODO: don't follow the url immediately
-                URLSpan[] urls = contextMenuView.getUrls();
-                cm.setText(urls[item.getItemId() - CONTEXT_MENU_COPY_URL].getURL());
-            }
+            cm.setText(copy_list.get(item.getItemId() - CONTEXT_MENU_COPY_FIRST));
+            return true;
         }
-        return super.onContextItemSelected(item);
+        return false;
     }
 
-    @Override
-    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
+    @Override public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
         if (!(v instanceof ListView)) return;
         
         View selected = ((AdapterView.AdapterContextMenuInfo) menuInfo).targetView;
         if (selected == null) return;
-        
-        TextView msg = (TextView) selected.findViewById(R.id.chatline_message);
-        if (msg == null) return;
+        TextView textview = (TextView) selected;
 
-        contextMenuView = msg;
         menu.setHeaderTitle("Copy");
-        menu.add(0, CONTEXT_MENU_COPY_TXT, 0, ((Buffer.Line) contextMenuView.getTag()).getNotificationString());
+        copy_list = new ArrayList<String>();
+
+        // add message
+        String message = ((Buffer.Line) textview.getTag()).getNotificationString();
+        menu.add(0, CONTEXT_MENU_COPY_FIRST, 0, message);
+        copy_list.add(message);
         
-        URLSpan[] urls = contextMenuView.getUrls();
-        int i = 0;
-        for (URLSpan url: urls) {
-            menu.add(0, CONTEXT_MENU_COPY_URL + i, 1, "URL: " + url.getURL());
-            i++;
+        // add urls
+        int i = 1;
+        for (URLSpan url: textview.getUrls()) {
+            menu.add(0, CONTEXT_MENU_COPY_FIRST + i++, 1, url.getURL());
+            copy_list.add(url.getURL());
         }
     }
 
