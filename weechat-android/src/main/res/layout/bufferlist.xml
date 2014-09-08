@@ -44,7 +44,7 @@
         android:layout_above="@+id/filter_bar"
         android:dividerHeight="0dp"
         android:divider="@null"
-        android:background="#1B1F22"
+        android:background="@null"
         android:fadingEdge="none" />
 
     <TextView
@@ -56,7 +56,7 @@
         android:layout_alignParentRight="true"
         android:layout_alignWithParentIfMissing="true"
         android:layout_above="@+id/filter_bar"
-        android:background="#1B1F22"
+        android:background="@null"
         android:gravity="center"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:text="..."

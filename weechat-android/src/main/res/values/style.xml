@@ -5,6 +5,7 @@
     <style name="Weechat" parent="@style/Theme.Sherlock">
         <item name="android:actionBarStyle">@style/Weechat.ActionBar</item>
         <item name="actionBarStyle">@style/Weechat.ActionBar</item>
+        <item name="android:windowBackground">@color/doge</item>
     </style>
 
     <style name="Weechat.ActionBar" parent="Widget.Sherlock.ActionBar">
@@ -23,5 +24,7 @@
         <item name="android:gravity">center</item>
         <item name="android:maxLines">2</item>
     </style>
+
+    <color name="doge">#FF1B1F22</color>
 
 </resources>
