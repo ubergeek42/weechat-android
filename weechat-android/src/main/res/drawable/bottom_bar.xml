@@ -4,8 +4,8 @@
     <item>
         <nine-patch android:src="@drawable/bb_background" />
     </item>
-    <item>
+    <!--item>
         <bitmap android:src="@drawable/background_tile" android:tileMode="repeat" />
-    </item>
+    </item-->
 
 </layer-list>
