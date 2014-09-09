@@ -16,7 +16,7 @@
     <string name="disconnect">Disconnect</string>
     <string name="hotlist">Hotlist</string>
     <string name="nicklist_menu">Nicks</string>
-    <string name="tabkey">⇥</string>
+    <string name="tabkey">Tab</string>
     
     <!--  The text shown in the buffer list filter edit text as a placeholder -->
     <string name="filter_bufferlist_placeholder"><i>filter</i></string>

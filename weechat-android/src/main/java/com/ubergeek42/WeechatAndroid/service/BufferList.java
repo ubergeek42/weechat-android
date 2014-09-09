@@ -48,7 +48,7 @@ public class BufferList {
     public static boolean SHOW_TITLE = true;
     public static boolean FILTER_NONHUMAN_BUFFERS = false;
     public static boolean OPTIMIZE_TRAFFIC = false;
-    public static String FILTER = null;                                                                     // TODO race condition?
+    public static String FILTER = null;                                                                // TODO race condition?
 
     /** contains names of open buffers. this is written to the shared preferences
      ** and restored upon service restart (by the system). also this is used to
