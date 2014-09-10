@@ -1,4 +1,4 @@
-package com.ubergeek42.WeechatAndroid;
+package com.ubergeek42.WeechatAndroid.adapters;
 
 
 import android.os.Bundle;
@@ -13,6 +13,8 @@ import android.support.v4.view.ViewPager;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.ubergeek42.WeechatAndroid.BuildConfig;
+import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragment;
 import com.ubergeek42.WeechatAndroid.fragments.BufferListFragment;
 import com.ubergeek42.WeechatAndroid.service.Buffer;

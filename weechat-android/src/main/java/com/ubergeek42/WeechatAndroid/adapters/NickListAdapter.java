@@ -1,4 +1,4 @@
-package com.ubergeek42.WeechatAndroid;
+package com.ubergeek42.WeechatAndroid.adapters;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -10,6 +10,9 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
+import com.ubergeek42.WeechatAndroid.BuildConfig;
+import com.ubergeek42.WeechatAndroid.R;
+import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.service.Buffer;
 import com.ubergeek42.WeechatAndroid.service.BufferNicklistEye;
 
@@ -21,7 +24,8 @@ public class NickListAdapter extends BaseAdapter implements BufferNicklistEye,
     private static Logger logger = LoggerFactory.getLogger("NickListAdapter");
     final private static boolean DEBUG = BuildConfig.DEBUG;
 
-    private final @NonNull WeechatActivity activity;
+    private final @NonNull
+    WeechatActivity activity;
     private final @NonNull LayoutInflater inflater;
     private final @NonNull Buffer buffer;
     private @NonNull Buffer.Nick[] nicks = new Buffer.Nick[0];

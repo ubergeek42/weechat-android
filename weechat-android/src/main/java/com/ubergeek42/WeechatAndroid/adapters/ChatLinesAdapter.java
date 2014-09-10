@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package com.ubergeek42.WeechatAndroid;
+package com.ubergeek42.WeechatAndroid.adapters;
 
 import android.support.v4.app.FragmentActivity;
 import android.text.Spannable;
@@ -27,6 +27,7 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.service.Buffer;
 import com.ubergeek42.WeechatAndroid.service.BufferEye;
 

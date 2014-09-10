@@ -40,7 +40,7 @@ import android.widget.Toast;
 
 import com.actionbarsherlock.app.SherlockFragment;
 import com.ubergeek42.WeechatAndroid.BuildConfig;
-import com.ubergeek42.WeechatAndroid.ChatLinesAdapter;
+import com.ubergeek42.WeechatAndroid.adapters.ChatLinesAdapter;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.service.Buffer;

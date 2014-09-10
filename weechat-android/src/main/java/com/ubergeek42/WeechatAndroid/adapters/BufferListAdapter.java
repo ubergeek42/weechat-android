@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package com.ubergeek42.WeechatAndroid;
+package com.ubergeek42.WeechatAndroid.adapters;
 
 import java.util.ArrayList;
 
@@ -25,6 +25,8 @@ import android.widget.BaseAdapter;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.ubergeek42.WeechatAndroid.BuildConfig;
+import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.service.Buffer;
 import com.ubergeek42.WeechatAndroid.service.BufferList;
 import com.ubergeek42.WeechatAndroid.service.BufferListEye;
