@@ -38,7 +38,7 @@ import java.util.List;
 
 public class Buffer {
     private static Logger logger = LoggerFactory.getLogger("Buffer");
-    final private static boolean DEBUG_BUFFER = false;
+    final private static boolean DEBUG_BUFFER = true;
     final private static boolean DEBUG_LINE = false;
     final private static boolean DEBUG_NICK = false;
 
@@ -97,7 +97,7 @@ public class Buffer {
 
         if (BufferList.isSynced(full_name)) setOpen(true);
         BufferList.restoreLastReadLine(this);
-        if (DEBUG_BUFFER) logger.warn("new Buffer(..., {}, {}, ...) is_open? {}", new Object[]{number, full_name, is_open});
+        if (DEBUG_BUFFER) logger.warn("new Buffer({}, {}, {}, ...) is_open? {}", new Object[]{Long.toHexString(pointer), number, full_name, is_open});
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
