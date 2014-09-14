@@ -36,7 +36,7 @@ public class BufferList {
     private static Logger logger = LoggerFactory.getLogger("BufferList");
     final private static boolean DEBUG = BuildConfig.DEBUG;
     final private static boolean DEBUG_SYNCING = true;
-    final private static boolean DEBUG_HANDLERS = false;
+    final private static boolean DEBUG_HANDLERS = true;
     final private static boolean DEBUG_HOT = false;
     final private static boolean DEBUG_SAVE_RESTORE = false;
 
@@ -366,6 +366,7 @@ public class BufferList {
         @Override
         public void handleMessage(RelayObject obj, String id) {
             if (DEBUG_HANDLERS) logger.error("last_read_lines_watcher:handleMessage(..., {})", id);
+            if (!(obj instanceof Hdata)) return;
             Hdata data = (Hdata) obj;
             for (int i = 0, size = data.getCount(); i < size; i++) {
                 HdataEntry entry = data.getItem(i);
@@ -383,6 +384,7 @@ public class BufferList {
         @Override
         public void handleMessage(RelayObject obj, String id) {
             if (DEBUG_HANDLERS) logger.error("hotlist_init_watcher:handleMessage(..., {})", id);
+            if (!(obj instanceof Hdata)) return;
             Hdata data = (Hdata) obj;
             for (int i = 0, size = data.getCount(); i < size; i++) {
                 HdataEntry entry = data.getItem(i);
@@ -409,6 +411,7 @@ public class BufferList {
         @Override
         public void handleMessage(RelayObject obj, String id) {
             if (DEBUG_HANDLERS) logger.debug("buffer_line_watcher:handleMessage(..., {})", id);
+            if (!(obj instanceof Hdata)) return;
             Hdata data = (Hdata) obj;
             HashSet<Buffer> fresh_buffers = new HashSet<Buffer>();
 
@@ -460,6 +463,7 @@ public class BufferList {
         @Override
         public void handleMessage(RelayObject obj, String id) {
             if (DEBUG_HANDLERS) logger.debug("nicklist_watcher:handleMessage(..., {})", id);
+            if (!(obj instanceof Hdata)) return;
             Hdata data = (Hdata) obj;
             boolean diff = id.equals("_nicklist_diff");
             HashSet<Buffer> renicked_buffers = new HashSet<Buffer>();
