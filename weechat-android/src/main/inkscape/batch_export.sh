@@ -20,7 +20,7 @@ ICONS="ic_bell ic_hot ic_send ic_tab ic_send_disabled ic_tab_disabled"
 NOTIFICATIONS="ic_connected ic_connecting ic_disconnected ic_hot"
 
 function render {
-        inkscape --file="$1.svg" --export-png="../drawable-$2/$1.png" --export-area-page --export-width=$3  --export-height=$3
+        inkscape --file="$1.svg" --export-png="../res/drawable-$2/$1.png" --export-area-page --export-width=$3  --export-height=$3
 }
 
 for FILE in $ICONS; do
