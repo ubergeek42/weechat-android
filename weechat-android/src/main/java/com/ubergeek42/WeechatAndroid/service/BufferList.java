@@ -230,14 +230,14 @@ public class BufferList {
         if (OPTIMIZE_TRAFFIC) relay.connection.sendMsg("desync " + full_name);
     }
 
-    public static void requestLinesForBufferByPointer(int pointer) {
+    public static void requestLinesForBufferByPointer(long pointer) {
         if (DEBUG_SYNCING) logger.warn("requestLinesForBufferByPointer({})", pointer);
         connection.sendMsg("listlines_reverse", "hdata", String.format(
                 "buffer:0x%x/own_lines/last_line(-%d)/data date,displayed,prefix,message,highlight,notify,tags_array",
                 pointer, Buffer.MAX_LINES));
     }
 
-    public static void requestNicklistForBufferByPointer(int pointer) {
+    public static void requestNicklistForBufferByPointer(long  pointer) {
         if (DEBUG_SYNCING) logger.warn("requestNicklistForBufferByPointer({})", pointer);
         connection.sendMsg(String.format("(nicklist) nicklist 0x%x", pointer));
     }
@@ -274,7 +274,7 @@ public class BufferList {
         }
     }
 
-    synchronized static private @Nullable Buffer findByPointer(int pointer) {
+    synchronized static private @Nullable Buffer findByPointer(long pointer) {
         for (Buffer buffer : buffers) if (buffer.pointer == pointer) return buffer;
         return null;
     }
@@ -316,7 +316,7 @@ public class BufferList {
 
                 if (id.equals("listbuffers") || id.equals("_buffer_opened")) {
                     RelayObject r;
-                    Buffer buffer = new Buffer(entry.getPointerInt(),
+                    Buffer buffer = new Buffer(entry.getPointerLong(),
                             entry.getItem("number").asInt(),
                             entry.getItem("full_name").asString(),
                             entry.getItem("short_name").asString(),
@@ -326,7 +326,7 @@ public class BufferList {
                     synchronized (BufferList.class) {buffers.add(buffer);}
                     notifyBuffersChanged();
                 } else {
-                    Buffer buffer = findByPointer(entry.getPointerInt(0));
+                    Buffer buffer = findByPointer(entry.getPointerLong(0));
                     if (buffer == null) {
                         logger.error("handleMessage(..., {}): buffer is not present!", id);
                     } else {
@@ -371,7 +371,7 @@ public class BufferList {
             for (int i = 0, size = data.getCount(); i < size; i++) {
                 HdataEntry entry = data.getItem(i);
                 int buffer_pointer = entry.getItem("buffer").asPointerInt();
-                int line_pointer = entry.getPointerInt();
+                long line_pointer = entry.getPointerLong();
                 Buffer buffer = findByPointer(buffer_pointer);
                 if (buffer != null)
                     buffer.updateLastReadLine(line_pointer);
@@ -419,7 +419,7 @@ public class BufferList {
                 HdataEntry entry = data.getItem(i);
                 boolean is_bottom = id.equals("_buffer_line_added");
 
-                int buffer_pointer = (is_bottom) ? entry.getItem("buffer").asPointerInt() : entry.getPointerInt(0);
+                long buffer_pointer = (is_bottom) ? entry.getItem("buffer").asPointerInt() : entry.getPointerLong(0);
                 Buffer buffer = findByPointer(buffer_pointer);
                 if (buffer == null) {
                     if (DEBUG_HANDLERS) logger.warn("buffer_line_watcher: no buffer to update!");
@@ -438,7 +438,7 @@ public class BufferList {
                 String[] tags = (tagsobj != null && tagsobj.getType() == RelayObject.WType.ARR) ?
                         tagsobj.asArray().asStringArray() : null;
 
-                Buffer.Line line = new Buffer.Line(entry.getPointerInt(), time, prefix, message, displayed, highlight, tags);
+                Buffer.Line line = new Buffer.Line(entry.getPointerLong(), time, prefix, message, displayed, highlight, tags);
                 buffer.addLine(line, is_bottom);
 
             }
@@ -472,7 +472,7 @@ public class BufferList {
                 HdataEntry entry = data.getItem(i);
 
                 // find buffer
-                Buffer buffer = findByPointer(entry.getPointerInt(0));
+                Buffer buffer = findByPointer(entry.getPointerLong(0));
                 if (buffer == null) {
                     if (DEBUG_HANDLERS) logger.warn("nicklist_watcher: no buffer to update!");
                     continue;
@@ -492,7 +492,7 @@ public class BufferList {
                 // and that are not grouping items
                 if (command == ADD || command == UPDATE) {
                     if (entry.getItem("visible").asChar() != 0 && entry.getItem("group").asChar() != 1) {
-                        int pointer = entry.getPointerInt();
+                        long pointer = entry.getPointerLong();
                         String prefix = entry.getItem("prefix").asString();
                         String name = entry.getItem("name").asString();
                         if (command == ADD)
@@ -501,7 +501,7 @@ public class BufferList {
                             buffer.updateNick(pointer, prefix, name);
                     }
                 } else if (command == REMOVE) {
-                    buffer.removeNick(entry.getPointerInt());
+                    buffer.removeNick(entry.getPointerLong());
                 }
             }
 
@@ -572,12 +572,12 @@ public class BufferList {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private static class BufferHotData implements Serializable {
-        int last_read_line = -1;
+        long last_read_line = -1;
         int total_old_unreads = 0;
         int total_old_highlights = 0;
     }
 
-    public static final int SERIALIZATION_PROTOCOL_ID = 2;
+    public static final int SERIALIZATION_PROTOCOL_ID = 3;
 
     @SuppressWarnings("unchecked")
     static @Nullable Object deserialize(@Nullable String string) {

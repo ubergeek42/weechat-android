@@ -81,9 +81,9 @@ public class HdataEntry extends RelayObject {
         return pointers.get(pointers.size() - 1);
     }
 
-    public int getPointerInt() {
+    public long getPointerLong() {
         try {
-            return Integer.parseInt(getPointer().substring(2), 16);
+            return Long.parseLong(getPointer().substring(2), 16);
         } catch (Exception e) {
             return -1;
         }
@@ -100,9 +100,9 @@ public class HdataEntry extends RelayObject {
         return pointers.get(index);
     }
 
-    public int getPointerInt(int index) {
+    public long getPointerLong(int index) {
         try {
-            return Integer.parseInt(getPointer(index).substring(2), 16);
+            return Long.parseLong(getPointer(index).substring(2), 16);
         } catch (Exception e) {
             return -1;
         }

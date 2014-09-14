@@ -54,7 +54,7 @@ public class Buffer {
     private BufferEye buffer_eye;
     private BufferNicklistEye buffer_nicklist_eye;
 
-    public final int pointer;
+    public final long pointer;
     public String full_name, short_name, title;
     public int number, notify_level;
     public Hashtable local_vars;
@@ -63,7 +63,7 @@ public class Buffer {
      ** if not, the last two are substracted from the newly arrived hotlist data, to make up
      ** for the lines that was read in relay.
      ** last_read_line stores id of the last read line *in weechat*. -1 means all lines unread. */
-    public int last_read_line = -1;
+    public long last_read_line = -1;
     public boolean wants_full_hotlist_update = false; // must be false for buffers without last_read_line!
     public int total_read_unreads = 0;
     public int total_read_highlights = 0;
@@ -84,7 +84,7 @@ public class Buffer {
     public Spannable printable1 = null; // printable buffer without title (for TextView)
     public Spannable printable2 = null; // printable buffer with title
 
-    Buffer(int pointer, int number, String full_name, String short_name, String title, int notify_level, Hashtable local_vars) {
+    Buffer(long pointer, int number, String full_name, String short_name, String title, int notify_level, Hashtable local_vars) {
         this.pointer = pointer;
         this.number = number;
         this.full_name = full_name;
@@ -259,7 +259,7 @@ public class Buffer {
      ** matches the one stored in our buffer. if they are not equal, the user must've read the buffer
      ** in weechat. assuming he read the very last line, total old highlights and unreads bear no meaning,
      ** so they should be erased. */
-    synchronized public void updateLastReadLine(int line_pointer) {
+    synchronized public void updateLastReadLine(long line_pointer) {
         wants_full_hotlist_update = last_read_line != line_pointer;
         if (wants_full_hotlist_update) {
             last_read_line = line_pointer;
@@ -384,13 +384,13 @@ public class Buffer {
     //////////////////////////////////////////////////////////////////////////////////////////////// called by event handlers
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    synchronized public void addNick(int pointer, String prefix, String name) {
+    synchronized public void addNick(long pointer, String prefix, String name) {
         if (DEBUG_NICK) logger.debug("{} addNick({}, {}, {})", new Object[]{short_name, pointer, prefix, name});
         nicks.add(new Nick(pointer, prefix, name));
         notifyNicklistChanged();
     }
 
-    synchronized public void removeNick(int pointer) {
+    synchronized public void removeNick(long pointer) {
         if (DEBUG_NICK) logger.debug("{} removeNick({})", new Object[]{short_name, pointer});
         for (Iterator<Nick> it = nicks.iterator(); it.hasNext();) {
             if (it.next().pointer == pointer) {
@@ -401,7 +401,7 @@ public class Buffer {
         notifyNicklistChanged();
     }
 
-    synchronized public void updateNick(int pointer, String prefix, String name) {
+    synchronized public void updateNick(long pointer, String prefix, String name) {
         if (DEBUG_NICK) logger.debug("{} updateNick({}, {}, {})", new Object[]{short_name, pointer, prefix, name});
         for (Nick nick: nicks) {
             if (nick.pointer == pointer) {
@@ -481,7 +481,7 @@ public class Buffer {
         public static boolean DIM_DOWN_NON_HUMAN_LINES = true;
 
         // core message data
-        final public int pointer;
+        final public long pointer;
         final public Date date;
         final public String prefix;
         final public String message;
@@ -496,7 +496,7 @@ public class Buffer {
         // might not be present
         volatile public @Nullable Spannable spannable = null;
 
-        public Line(int pointer, Date date, String prefix, @Nullable String message,
+        public Line(long pointer, Date date, String prefix, @Nullable String message,
                           boolean displayed, boolean highlighted, @Nullable String[] tags) {
             this.pointer = pointer;
             this.date = date;
@@ -624,11 +624,11 @@ public class Buffer {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     public static class Nick {
-        public final int pointer;
+        public final long pointer;
         public String prefix;
         public String name;
 
-        public Nick(int pointer, String prefix, String name) {
+        public Nick(long pointer, String prefix, String name) {
             this.prefix = prefix;
             this.name = name;
             this.pointer = pointer;
