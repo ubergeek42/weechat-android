@@ -150,9 +150,9 @@ public class RelayObject {
     }
 
 
-    public int asPointerInt() {
+    public long asPointerLong() {
         try {
-            return Integer.parseInt(asPointer().substring(2), 16);
+            return Long.parseLong(asPointer().substring(2), 16);
         } catch (Exception e) {
             return -1;
         }

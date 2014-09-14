@@ -370,7 +370,7 @@ public class BufferList {
             Hdata data = (Hdata) obj;
             for (int i = 0, size = data.getCount(); i < size; i++) {
                 HdataEntry entry = data.getItem(i);
-                int buffer_pointer = entry.getItem("buffer").asPointerInt();
+                long buffer_pointer = entry.getItem("buffer").asPointerLong();
                 long line_pointer = entry.getPointerLong();
                 Buffer buffer = findByPointer(buffer_pointer);
                 if (buffer != null)
@@ -388,7 +388,7 @@ public class BufferList {
             Hdata data = (Hdata) obj;
             for (int i = 0, size = data.getCount(); i < size; i++) {
                 HdataEntry entry = data.getItem(i);
-                Integer pointer = entry.getItem("buffer").asPointerInt();
+                long pointer = entry.getItem("buffer").asPointerLong();
                 Buffer buffer = findByPointer(pointer);
                 if (buffer != null) {
                     Array count = entry.getItem("count").asArray();
@@ -419,7 +419,7 @@ public class BufferList {
                 HdataEntry entry = data.getItem(i);
                 boolean is_bottom = id.equals("_buffer_line_added");
 
-                long buffer_pointer = (is_bottom) ? entry.getItem("buffer").asPointerInt() : entry.getPointerLong(0);
+                long buffer_pointer = (is_bottom) ? entry.getItem("buffer").asPointerLong() : entry.getPointerLong(0);
                 Buffer buffer = findByPointer(buffer_pointer);
                 if (buffer == null) {
                     if (DEBUG_HANDLERS) logger.warn("buffer_line_watcher: no buffer to update!");
