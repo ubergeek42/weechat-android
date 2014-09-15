@@ -38,7 +38,7 @@ import java.util.List;
 
 public class Buffer {
     private static Logger logger = LoggerFactory.getLogger("Buffer");
-    final private static boolean DEBUG_BUFFER = true;
+    final private static boolean DEBUG_BUFFER = false;
     final private static boolean DEBUG_LINE = false;
     final private static boolean DEBUG_NICK = false;
 

@@ -94,8 +94,8 @@
 	    <string name="pref_tabbtn_show_summary">Show tab button next to input bar</string>
 	    <string name="pref_sendbtn_show">Show send button</string>
 	    <string name="pref_sendbtn_show_summary">Show send button next to input bar</string>
-	    <string name="pref_notification_sounds">Notification sound</string>
-	    <string name="pref_notification_sounds_summary">Use default notification sound when a private message or highlight is received</string>
+	    <string name="pref_notification_sound">Notification sound</string>
+	    <string name="pref_notification_sound_summary">Played when a private message or a highlight is received</string>
     
     
     <!--  ACRA(Application Crash Reports for Android) related strings -->

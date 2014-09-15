@@ -35,8 +35,8 @@ import java.util.LinkedHashSet;
 public class BufferList {
     private static Logger logger = LoggerFactory.getLogger("BufferList");
     final private static boolean DEBUG = BuildConfig.DEBUG;
-    final private static boolean DEBUG_SYNCING = true;
-    final private static boolean DEBUG_HANDLERS = true;
+    final private static boolean DEBUG_SYNCING = false;
+    final private static boolean DEBUG_HANDLERS = false;
     final private static boolean DEBUG_HOT = false;
     final private static boolean DEBUG_SAVE_RESTORE = false;
 
@@ -420,7 +420,6 @@ public class BufferList {
                 HdataEntry entry = data.getItem(i);
 
                 long buffer_pointer = (is_bottom) ? entry.getItem("buffer").asPointerLong() : entry.getPointerLong(0);
-                logger.debug("...buffer_pointer = {}", Long.toHexString(buffer_pointer));
                 Buffer buffer = findByPointer(buffer_pointer);
                 if (buffer == null) {
                     if (DEBUG_HANDLERS) logger.warn("buffer_line_watcher: no buffer to update!");
