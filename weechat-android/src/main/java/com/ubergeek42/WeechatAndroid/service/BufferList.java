@@ -136,6 +136,7 @@ public class BufferList {
         if (sent_buffers == null) {
             sent_buffers = new ArrayList<Buffer>();
             for (Buffer buffer : buffers) {
+                if (buffer.type == Buffer.HARD_HIDDEN) continue;
                 if (FILTER_NONHUMAN_BUFFERS && buffer.type == Buffer.OTHER && buffer.highlights == 0 && buffer.unreads == 0) continue;
                 if (FILTER != null && !buffer.full_name.toLowerCase().contains(FILTER)) continue;
                 sent_buffers.add(buffer);

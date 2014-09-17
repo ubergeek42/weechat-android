@@ -48,6 +48,7 @@ public class Buffer {
     final public static int PRIVATE = 2;
     final public static int CHANNEL = 1;
     final public static int OTHER = 0;
+    final public static int HARD_HIDDEN = -1;
 
     public final static int MAX_LINES = 200;
 
@@ -217,7 +218,7 @@ public class Buffer {
         //      unreads and highlights is filled by hotlist request
         //
         // if the buffer IS watched, remember that the lines in question are read
-        if (is_last && notify_level >= 0) {
+        if (is_last && notify_level >= 0 && type != HARD_HIDDEN) {
             if (!is_watched) {
                 if (line.highlighted) {
                     highlights++;
@@ -314,13 +315,21 @@ public class Buffer {
 
     //////////////////////////////////////////////////////////////////////////////////////////////// private stuffs
 
-    /** determine if the buffer is PRIVATE, CHANNEL, or OTHER */
+    /** determine if the buffer is PRIVATE, CHANNEL, OTHER or HARD_HIDDEN
+     ** hard-hidden channels do not show in any way. to hide a cannel,
+     ** do "/buffer set localvar_set_relay hard-hide" */
     private void processBufferType() {
-        final RelayObject t = local_vars.get("type");
-        if (t == null) type = OTHER;
-        else if ("private".equals(t.asString())) type = PRIVATE;
-        else if ("channel".equals(t.asString())) type = CHANNEL;
-        else type = OTHER;
+        RelayObject t;
+        t = local_vars.get("relay");
+        if (t != null && Arrays.asList(t.asString().split(",")).contains("hard-hide"))
+            type = HARD_HIDDEN;
+        else {
+            t = local_vars.get("type");
+            if (t == null) type = OTHER;
+            else if ("private".equals(t.asString())) type = PRIVATE;
+            else if ("channel".equals(t.asString())) type = CHANNEL;
+            else type = OTHER;
+        }
     }
 
     private final static SuperscriptSpan SUPER = new SuperscriptSpan();
