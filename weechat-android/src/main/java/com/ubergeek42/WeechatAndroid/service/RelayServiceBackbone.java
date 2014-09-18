@@ -32,6 +32,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Build;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.SystemClock;
@@ -242,12 +243,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
                 .setTicker(message).setWhen(System.currentTimeMillis());
 
         Notification notification = builder.build();
-
-        // Default notification sound if enabled
-        if (prefs.getBoolean("notification_sounds", false)) {
-            notification.defaults |= Notification.DEFAULT_SOUND;
-        }
-
+        notification.sound = Uri.parse(prefs.getString("notification_sound", ""));
         notificationManger.notify(NOTIFICATION_HIGHLIGHT_ID, notification);
     }
 
