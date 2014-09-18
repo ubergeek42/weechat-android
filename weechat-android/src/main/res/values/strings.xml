@@ -121,7 +121,7 @@
 	    to assist in having this issue resolved, please click OK to send details about the crash to the developer.
 	    Note: username and password will not be sent.</string>
     <string name="crash_dialog_comment_prompt">Any additional comments(or your email if you\'d like a reply):</string>
-    <string name="highlight">Hightlight</string>
+    <string name="highlight">Highlight</string>
     <string name="pref_dim_down">Dim down non-human lines</string>
     <string name="pref_dim_down_summary">Display joins/quits in a darker color</string>
     <string name="pref_timestamp_format_summary"><![CDATA[Default: &quot;HH:mm:ss&quot;; empty turns off the prefix completely]]></string>
