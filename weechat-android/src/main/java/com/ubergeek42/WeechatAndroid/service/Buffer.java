@@ -98,7 +98,7 @@ public class Buffer {
 
         if (BufferList.isSynced(full_name)) setOpen(true);
         BufferList.restoreLastReadLine(this);
-        if (DEBUG_BUFFER) logger.warn("new Buffer({}, {}, {}, ...) is_open? {}", new Object[]{Long.toHexString(pointer), number, full_name, is_open});
+        if (DEBUG_BUFFER) logger.warn("new Buffer(..., {}, {}, ...) is_open? {}", new Object[]{number, full_name, is_open});
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

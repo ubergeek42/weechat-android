@@ -415,10 +415,10 @@ public class BufferList {
             if (!(obj instanceof Hdata)) return;
             Hdata data = (Hdata) obj;
             HashSet<Buffer> fresh_buffers = new HashSet<Buffer>();
-            boolean is_bottom = id.equals("_buffer_line_added");
 
             for (int i = 0, size = data.getCount(); i < size; i++) {
                 HdataEntry entry = data.getItem(i);
+                boolean is_bottom = id.equals("_buffer_line_added");
 
                 long buffer_pointer = (is_bottom) ? entry.getItem("buffer").asPointerLong() : entry.getPointerLong(0);
                 Buffer buffer = findByPointer(buffer_pointer);
