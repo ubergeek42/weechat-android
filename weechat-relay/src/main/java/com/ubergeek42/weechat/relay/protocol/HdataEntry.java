@@ -81,6 +81,14 @@ public class HdataEntry extends RelayObject {
         return pointers.get(pointers.size() - 1);
     }
 
+    public long getPointerLong() {
+        try {
+            return Long.parseLong(getPointer().substring(2), 16);
+        } catch (Exception e) {
+            return -1;
+        }
+    }
+
     /**
      * Returns a pointer from the hdata path
      * 
@@ -90,5 +98,13 @@ public class HdataEntry extends RelayObject {
      */
     public String getPointer(int index) {
         return pointers.get(index);
+    }
+
+    public long getPointerLong(int index) {
+        try {
+            return Long.parseLong(getPointer(index).substring(2), 16);
+        } catch (Exception e) {
+            return -1;
+        }
     }
 }

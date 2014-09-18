@@ -31,7 +31,8 @@ import com.ubergeek42.weechat.relay.protocol.RelayObject;
 import com.ubergeek42.weechat.relay.protocol.RelayObject.WType;
 
 public class LineHandler implements RelayMessageHandler {
-    private static Logger logger = LoggerFactory.getLogger(LineHandler.class);
+    final private static boolean DEBUG = false;
+    private static Logger logger = LoggerFactory.getLogger("LineHandler");
 
     private final BufferManager cb;
 
@@ -41,6 +42,9 @@ public class LineHandler implements RelayMessageHandler {
 
     @Override
     public void handleMessage(RelayObject obj, String id) {
+        if (DEBUG) logger.debug("handleMessage(..., {}): whdata.getCount() = {}", id, ((Hdata) obj).getCount());
+
+        Buffer buffer = null;
         Hdata whdata = (Hdata) obj;
         HashSet<Buffer> toUpdate = new HashSet<Buffer>();
 
@@ -76,7 +80,7 @@ public class LineHandler implements RelayMessageHandler {
                 tags = tagsArray.asStringArray();
             }
             // Find the buffer to put the line in
-            Buffer buffer = cb.findByPointer(bPointer);
+            buffer = cb.findByPointer(bPointer);
             if (buffer == null) {
                 logger.debug("Unable to find buffer to update");
                 return;
@@ -84,14 +88,10 @@ public class LineHandler implements RelayMessageHandler {
             // Do we already have this line?
             if (!buffer.hasLine(hde.getPointer())) {
                 // Create a new message object, and add it to the correct buffer
-                BufferLine cm = new BufferLine();
-                cm.setPrefix(prefix);
-                cm.setMessage(message);
-                cm.setTimestamp(time);
-                cm.setVisible(displayed);
-                cm.setHighlight(highlight);
-                cm.setPointer(hde.getPointer());
-                cm.setTags(tags);
+                // #################### DEBUG
+                //logger.warn("handleMessage(): new [{}] [{}]", prefix, message);
+                // #################### DEBUG
+                BufferLine cm = new BufferLine(hde.getPointer(), time, prefix, message, displayed, highlight, tags);
                 if (id.equals("_buffer_line_added")) {
                     // Check if this line should be added as an unread line
                     // TODO make this into a preference as users might have
@@ -103,16 +103,23 @@ public class LineHandler implements RelayMessageHandler {
                         buffer.addLineNoUnread(cm);
                     }
                     cb.buffersChanged();
-                } else if (id.equals("listlines_reverse")) { // lines come in most recent to least
-                                                             // recent
+                } else if (id.equals("listlines_reverse")) { // lines come in most recent to least recent
                     // TODO: check buffer isn't null...
                     buffer.addLineFirstNoNotify(cm);
-                    toUpdate.add(buffer);
+                    //toUpdate.add(buffer);
                 }
             }
         }
+        // this loop probably should be written more neatly, but—
+        // listlines_reverse usually comes in a bulk
+        // after these were listed we can assume the buffer holds the maximum amount of lines
+        // for the time being
+        if (id.equals("listlines_reverse") && buffer != null) {
+            buffer.holds_all_lines_it_is_supposed_to_hold = true;
+            buffer.notifyManyLinesAdded();
+        }
         for (Buffer wb : toUpdate) {
-            wb.notifyObservers();
+            wb.notifyLineAdded();
         }
     }
 }

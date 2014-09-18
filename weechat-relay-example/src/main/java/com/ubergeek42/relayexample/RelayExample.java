@@ -16,20 +16,15 @@
 package com.ubergeek42.relayexample;
 
 import java.io.IOException;
-import java.util.LinkedList;
 
 import com.ubergeek42.weechat.Buffer;
-import com.ubergeek42.weechat.BufferLine;
 import com.ubergeek42.weechat.relay.RelayConnection;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
-import com.ubergeek42.weechat.relay.connection.PlainConnection;
 import com.ubergeek42.weechat.relay.connection.SSLConnection;
 import com.ubergeek42.weechat.relay.messagehandler.BufferManager;
-import com.ubergeek42.weechat.relay.messagehandler.BufferManagerObserver;
-import com.ubergeek42.weechat.relay.messagehandler.LineHandler;
-import com.ubergeek42.weechat.relay.messagehandler.NicklistHandler;
+import com.ubergeek42.weechat.relay.messagehandler.BuffersChangedObserver;
 
-public class RelayExample implements BufferManagerObserver, RelayConnectionHandler {
+public class RelayExample implements BuffersChangedObserver, RelayConnectionHandler {
 	static BufferManager bufferManager = new BufferManager();
 	private RelayConnection relay;
 	public static void main(String[] args) throws IOException {
@@ -118,6 +113,9 @@ public class RelayExample implements BufferManagerObserver, RelayConnectionHandl
         System.out.println("Cleaning up");
         relay.disconnect();
     }
+
+    @Override
+    public void onBuffersListed() {}
 
     @Override
 	public void onDisconnect() {

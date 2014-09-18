@@ -34,7 +34,8 @@ import com.ubergeek42.weechat.relay.protocol.RelayObject;
  * 
  */
 public class NicklistHandler implements RelayMessageHandler {
-    private static Logger logger = LoggerFactory.getLogger(NicklistHandler.class);
+    final private static boolean DEBUG = false;
+    private static Logger logger = LoggerFactory.getLogger("NicklistHandler");
     private BufferManager cbs;
 
     public NicklistHandler(BufferManager cbs) {
@@ -43,6 +44,7 @@ public class NicklistHandler implements RelayMessageHandler {
 
     @Override
     public void handleMessage(RelayObject obj, String id) {
+        if (DEBUG) logger.debug("handleMessage(..., {})", id);
         if (id.equals("_nicklist") || id.equals("nicklist")) {
             // TODO: verify path is nicklist_item, that obj is Hdata
 
@@ -66,6 +68,8 @@ public class NicklistHandler implements RelayMessageHandler {
                 }
                 wb.addNick(ni);
             }
+            for (Buffer wb : nicklistCleared)
+                wb.holds_all_nicknames = true;
         } else if (id.equals("_nicklist_diff")) {
         	Hdata whdata = (Hdata) obj;
         	for (int i=0; i< whdata.getCount(); i++) {

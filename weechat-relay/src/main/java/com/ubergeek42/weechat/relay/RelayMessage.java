@@ -18,6 +18,7 @@ package com.ubergeek42.weechat.relay;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.zip.InflaterInputStream;
 
@@ -34,7 +35,8 @@ import com.ubergeek42.weechat.relay.protocol.RelayObject;
  */
 public class RelayMessage {
 
-    private static Logger logger = LoggerFactory.getLogger(RelayMessage.class);
+    final private static boolean DEBUG = false;
+    private static Logger logger = LoggerFactory.getLogger("RelayMessage");
 
     private ArrayList<RelayObject> objects = new ArrayList<RelayObject>();
     private boolean compressed = false;

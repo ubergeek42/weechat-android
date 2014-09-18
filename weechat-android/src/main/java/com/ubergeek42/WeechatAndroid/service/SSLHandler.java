@@ -18,7 +18,7 @@ import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
 public class SSLHandler {
-    private static Logger logger = LoggerFactory.getLogger(SSLHandler.class);
+    private static Logger logger = LoggerFactory.getLogger("SSLHandler");
     private static final String KEYSTORE_PASSWORD = "weechat-android";
 
     File keystoreFile;

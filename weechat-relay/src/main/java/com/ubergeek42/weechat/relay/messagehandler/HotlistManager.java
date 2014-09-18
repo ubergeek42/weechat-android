@@ -40,7 +40,8 @@ import com.ubergeek42.weechat.relay.protocol.RelayObject.WType;
  * 
  */
 public class HotlistManager implements RelayMessageHandler {
-    private static Logger logger = LoggerFactory.getLogger(HotlistManager.class);
+    final private static boolean DEBUG = false;
+    private static Logger logger = LoggerFactory.getLogger("HotlistManager");
 
     ArrayList<HotlistItem> hotlist = new ArrayList<HotlistItem>();
     private HotlistManagerObserver onChangeObserver;
@@ -129,8 +130,7 @@ public class HotlistManager implements RelayMessageHandler {
                     int tagCount = tagsArray.length();
                     if (tagCount == 0) {
                         // All important messages have tags
-                        logger.debug("Found no tags in buffer:" + b.getFullName()
-                                + ",skipping line.");
+                        if (DEBUG) logger.debug("handleMessage(): found no tags in buffer '{}', ,skipping line.", b.getFullName());
                         continue;
                     }
                     for (int ai = 0; ai < tagCount; ai++) {
@@ -138,7 +138,7 @@ public class HotlistManager implements RelayMessageHandler {
                         if (tag.equals("irc_smart_filter") || tag.equals("irc_mode")
                                 || tag.equals("irc_quit") || tag.equals("irc_join")
                                 || tag.equals("notify_none")) {
-                            logger.debug("Found tag:" + tag + ",skipping line.");
+                            if (DEBUG) logger.debug("handleMessage(): found tag: '{}', skipping line.", tag);
                             continue outer;
                         }
                     }

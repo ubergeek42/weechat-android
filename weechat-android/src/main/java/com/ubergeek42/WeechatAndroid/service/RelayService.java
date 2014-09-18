@@ -1,478 +1,226 @@
-/*******************************************************************************
- * Copyright 2012 Keith Johnson
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- ******************************************************************************/
 package com.ubergeek42.WeechatAndroid.service;
 
-import android.annotation.TargetApi;
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
-import android.os.Build;
 import android.os.IBinder;
-import android.os.SystemClock;
-import android.preference.PreferenceManager;
-import android.support.v4.app.NotificationCompat;
+import android.support.annotation.Nullable;
+import android.view.LayoutInflater;
+import android.widget.TextView;
 
+import com.ubergeek42.WeechatAndroid.BuildConfig;
 import com.ubergeek42.WeechatAndroid.R;
-import com.ubergeek42.WeechatAndroid.WeechatActivity;
-import com.ubergeek42.WeechatAndroid.WeechatPreferencesActivity;
-import com.ubergeek42.WeechatAndroid.notifications.HotlistHandler;
-import com.ubergeek42.WeechatAndroid.notifications.HotlistObserver;
-import com.ubergeek42.weechat.relay.RelayConnection;
-import com.ubergeek42.weechat.relay.RelayConnectionHandler;
-import com.ubergeek42.weechat.relay.RelayMessageHandler;
-import com.ubergeek42.weechat.relay.connection.IConnection;
-import com.ubergeek42.weechat.relay.connection.PlainConnection;
-import com.ubergeek42.weechat.relay.connection.SSHConnection;
-import com.ubergeek42.weechat.relay.connection.SSLConnection;
-import com.ubergeek42.weechat.relay.connection.StunnelConnection;
-import com.ubergeek42.weechat.relay.connection.WebSocketConnection;
-import com.ubergeek42.weechat.relay.messagehandler.BufferManager;
-import com.ubergeek42.weechat.relay.messagehandler.HotlistManager;
-import com.ubergeek42.weechat.relay.messagehandler.LineHandler;
-import com.ubergeek42.weechat.relay.messagehandler.NicklistHandler;
-import com.ubergeek42.weechat.relay.messagehandler.UpgradeHandler;
-import com.ubergeek42.weechat.relay.messagehandler.UpgradeObserver;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.security.cert.X509Certificate;
-import java.util.HashSet;
+import java.text.SimpleDateFormat;
 
-public class RelayService extends Service implements RelayConnectionHandler,
-        OnSharedPreferenceChangeListener, HotlistObserver, UpgradeObserver {
+/**
+ ** the service can be started by:
+ **     * activity
+ **         in which case we don't want to anything special
+ **     * system, when it restores the app after it's been shut down
+ **         in which case we want to "reattach" ourselves to all buffers we had open
+ **         but we don't want to request all lines for every buffer since user might
+ **         not be coming back before another disconnection or service destruction
+ **
+ ** hence we maintain a list of open buffers.
+ **
+ ** upon Buffer creation, buffer determines if it's open and if so, subscribes to changes
+ ** and starts processing all future incoming lines.
+ **
+ ** upon Buffer's attachment to a fragment, if needed, that Buffer should request missing lines
+ ** and nicklist (TODO)
+ **/
 
-    private static Logger logger = LoggerFactory.getLogger(RelayService.class);
-    private static final int NOTIFICATION_ID = 42;
-    private static final int NOTIFICATION_HIGHTLIGHT_ID = 43;
+public class RelayService extends RelayServiceBackbone {
+    private static Logger logger = LoggerFactory.getLogger("RelayService");
+    final private static boolean DEBUG = BuildConfig.DEBUG;
+    final private static boolean DEBUG_PREFS = false;
+    final private static boolean DEBUG_SAVE_RESTORE = false;
+    final private static boolean DEBUG_NOTIFICATIONS = false;
 
-    private NotificationManager notificationManger;
+    public static final String PREFS_NAME = "kittens!";
+    public static final String PREFS_SORT_BUFFERS = "sort_buffers";
+    public static final String PREFS_SHOW_BUFFER_TITLES = "show_buffer_titles";
+    public static final String PREFS_FILTER_NONHUMAN_BUFFERS = "filter_nonhuman_buffers";
+    public static final String PREFS_OPTIMIZE_TRAFFIC = "optimize_traffic";
+    public static final String PREFS_FILTER_LINES = "chatview_filters";
+    public static final String PREFS_MAX_WIDTH = "prefix_max_width";
+    public static final String PREFS_DIM_DOWN = "dim_down";
+    public static final String PREFS_TIMESTAMP_FORMAT = "timestamp_format";
+    public static final String PREFS_PREFIX_ALIGN = "prefix_align";
+    public static final String PREFS_TEXT_SIZE = "text_size";
 
-    boolean optimize_traffic = false;
-    
-    String host;
-    int port;
-    String pass;
-
-    String stunnelCert;
-    String stunnelPass;
-
-    String sshHost;
-    String sshPass;
-    String sshPort;
-    String sshUser;
-    String sshKeyfile;
-
-    RelayConnection relayConnection;
-    BufferManager bufferManager;
-    RelayMessageHandler msgHandler;
-    NicklistHandler nickHandler;
-    HotlistHandler hotlistHandler;
-    HotlistManager hotlistManager;
-    HashSet<RelayConnectionHandler> connectionHandlers = new HashSet<RelayConnectionHandler>();
-    private SharedPreferences prefs;
-    private boolean shutdown;
-    private boolean disconnected;
-    private Thread reconnector = null;
-    private Thread upgrading;
-
-    SSLHandler certmanager;
-    X509Certificate untrustedCert;
-
-    @Override
-    public IBinder onBind(Intent arg0) {
-        return new RelayServiceBinder(this);
-    }
-
+    /** super method sets 'prefs' */
     @Override
     public void onCreate() {
         super.onCreate();
 
-        prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-        prefs.registerOnSharedPreferenceChangeListener(this);
+        // buffer list preferences
+        BufferList.SORT_BUFFERS = prefs.getBoolean(PREFS_SORT_BUFFERS, false);
+        BufferList.SHOW_TITLE = prefs.getBoolean(PREFS_SHOW_BUFFER_TITLES, true);
+        BufferList.FILTER_NONHUMAN_BUFFERS = prefs.getBoolean(PREFS_FILTER_NONHUMAN_BUFFERS, false);
+        BufferList.OPTIMIZE_TRAFFIC = prefs.getBoolean(PREFS_OPTIMIZE_TRAFFIC, false);
 
-        notificationManger = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        //showNotification(null, "Tap to connect");
+        // buffer-wide preferences
+        Buffer.FILTER_LINES = prefs.getBoolean(PREFS_FILTER_LINES, true);
 
-
-
-        startForeground(NOTIFICATION_ID, buildNotification(null,"Tap to connect", null));
-
-        disconnected = false;
-
-        // Prepare for dealing with SSL certs
-        certmanager = new SSLHandler(new File(getDir("sslDir", Context.MODE_PRIVATE), "keystore.jks"));
-        
-        if (prefs.getBoolean("autoconnect", false)) {
-            connect();
-        }
-    }
-    
-
-    @Override
-    public void onDestroy() {
-        logger.debug("relayservice destroyed");
-        notificationManger.cancel(NOTIFICATION_ID);
-        super.onDestroy();
-
-        // TODO: decide whether killing the process is necessary...
-        android.os.Process.killProcess(android.os.Process.myPid());
-    }
-
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        if (intent != null) {
-            // Autoconnect if possible
-            // if (prefs.getBoolean("autoconnect", false)) {
-            // connect();
-            // }
-        }
-        return START_STICKY;
-    }
-
-    public boolean connect() {
-        // Load the preferences
-        host = prefs.getString("host", null);
-        pass = prefs.getString("password", "password");
-        port = Integer.parseInt(prefs.getString("port", "8001"));
-
-        stunnelCert = prefs.getString("stunnel_cert", "");
-        stunnelPass = prefs.getString("stunnel_pass", "");
-
-        sshHost = prefs.getString("ssh_host", "");
-        sshUser = prefs.getString("ssh_user", "");
-        sshPass = prefs.getString("ssh_pass", "");
-        sshPort = prefs.getString("ssh_port", "22");
-        sshKeyfile = prefs.getString("ssh_keyfile", "");
-        
-        optimize_traffic = prefs.getBoolean("optimize_traffic", false);
-
-        // If no host defined, signal them to edit their preferences
-        if (host == null) {
-            Intent i = new Intent(this, WeechatPreferencesActivity.class);
-            PendingIntent contentIntent = PendingIntent.getActivity(this, 0, i,
-                    PendingIntent.FLAG_CANCEL_CURRENT);
-
-            showNotification(getString(R.string.notification_update_settings_details),
-                             getString(R.string.notification_update_settings),
-                             contentIntent);
-            return false;
-        }
-
-        // Only connect if we aren't already connected
-        if ((relayConnection != null) && (relayConnection.isConnected())) {
-            return false;
-        }
-
-        shutdown = false;
-
-        bufferManager = new BufferManager();
-        hotlistManager = new HotlistManager();
-
-        hotlistManager.setBufferManager(bufferManager);
-        msgHandler = new LineHandler(bufferManager);
-        nickHandler = new NicklistHandler(bufferManager);
-        hotlistHandler = new HotlistHandler(bufferManager, hotlistManager);
-
-        hotlistHandler.registerHighlightHandler(this);
-
-        IConnection conn;
-        String connType = prefs.getString("connection_type", "plain");
-        if (connType.equals("ssh")) {
-            SSHConnection tmp = new SSHConnection(host, port);
-            tmp.setSSHHost(sshHost);
-            tmp.setSSHPort(sshPort);
-            tmp.setSSHUsername(sshUser);
-            tmp.setSSHKeyFile(sshKeyfile);
-            tmp.setSSHPassword(sshPass);
-            conn = tmp;
-        } else if (connType.equals("stunnel")) {
-            StunnelConnection tmp = new StunnelConnection(host, port);
-            tmp.setStunnelCert(stunnelCert);
-            tmp.setStunnelKey(stunnelPass);
-            conn = tmp;
-        } else if (connType.equals("ssl")) {
-            SSLConnection tmp = new SSLConnection(host, port);
-            tmp.setSSLKeystore(certmanager.sslKeystore);
-            conn = tmp;
-        } else if (connType.equals("websocket")) {
-            WebSocketConnection tmp = new WebSocketConnection(host, port, false);
-            conn = tmp;
-        } else if (connType.equals("websocket-ssl")) {
-            WebSocketConnection tmp = new WebSocketConnection(host, port, true);
-            tmp.setSSLKeystore(certmanager.sslKeystore);
-            conn = tmp;
-        } else {
-            PlainConnection pc = new PlainConnection(host, port);
-            conn = pc;
-        }
-
-        relayConnection = new RelayConnection(conn, pass);
-        conn.addConnectionHandler(this);
-
-        relayConnection.connect();
-        return true;
-    }
-
-    void resetNotification() {
-        showNotification(null, getString(R.string.notification_connected_to) + host);
-    }
-
-    @TargetApi(16)
-    private Notification buildNotification(String tickerText, String content, PendingIntent intent) {
-        PendingIntent contentIntent;
-        if (intent == null) {
-            contentIntent = PendingIntent.getActivity(this, 0, new Intent(this, WeechatActivity.class), PendingIntent.FLAG_CANCEL_CURRENT);
-        } else {
-            contentIntent = intent;
-        }
-
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
-        builder.setContentIntent(contentIntent).setSmallIcon(R.drawable.ic_notification)
-                .setContentTitle(getString(R.string.app_version)).setContentText(content)
-                .setTicker(tickerText).setWhen(System.currentTimeMillis());
-
-        final Notification notification = builder.build();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-            notification.priority = Notification.PRIORITY_MIN;
-        }
-        notification.flags |= Notification.FLAG_ONGOING_EVENT;
-        return notification;
-    }
-
-    private void showNotification(String tickerText, String content, PendingIntent intent) {
-        notificationManger.notify(NOTIFICATION_ID, buildNotification(tickerText, content, intent));
-    }
-    private void showNotification(String tickerText, String content) {
-        notificationManger.notify(NOTIFICATION_ID, buildNotification(tickerText, content, null));
-    }
-
-    // Spawn a thread that attempts to reconnect us.
-    private void reconnect() {
-        // stop if we are already trying to reconnect
-        if (reconnector != null && reconnector.isAlive()) {
-            return;
-        }
-        reconnector = new Thread(new Runnable() {
-            long delays[] = new long[] { 0, 5, 15, 30, 60, 120, 300, 600, 900 };
-            int numReconnects = 0;// how many times we've tried this...
-
-            @Override
-            public void run() {
-                for (;;) {
-                    long currentDelay = 0;
-                    if (numReconnects >= delays.length) {
-                        currentDelay = delays[delays.length - 1];
-                    } else {
-                        currentDelay = delays[numReconnects];
-                    }
-                    if (currentDelay > 0) {
-                        showNotification(getString(R.string.notification_reconnecting), String.format(getString(R.string.notification_reconnecting_details),currentDelay));
-                    }
-                    // Sleep for a bit
-                    SystemClock.sleep(currentDelay * 1000);
-
-                    // See if we are connected, if so we can stop trying to reconnect
-                    if (relayConnection != null && relayConnection.isConnected()) {
-                        return;
-                    }
-
-                    // Try connecting again
-                    connect();
-                    numReconnects++;
-                }
-            }
-        });
-        reconnector.start();
-    }
-
-    @Override
-    public void onConnecting() {
-
-    }
-
-    @Override
-    public void onConnect() {
-
-    }
-
-    @Override
-    public void onAuthenticated() {
-        if (disconnected == true) {
-            showNotification(getString(R.string.notification_reconnected_to) + host, getString(R.string.notification_connected_to) + host);
-        } else {
-            String tmp = getString(R.string.notification_connected_to) + host;
-            showNotification(tmp,tmp);
-        }
-        disconnected = false;
-
-        // Handle weechat upgrading
-        UpgradeHandler uh = new UpgradeHandler(this);
-        relayConnection.addHandler("_upgrade", uh);
-        relayConnection.addHandler("_upgrade_ended", uh);
-
-        // Handle us getting a listing of the buffers
-        relayConnection.addHandler("listbuffers", bufferManager);
-
-        // Handle weechat event messages regarding buffers
-        relayConnection.addHandler("_buffer_opened", bufferManager);
-        relayConnection.addHandler("_buffer_type_changed", bufferManager);
-        relayConnection.addHandler("_buffer_moved", bufferManager);
-        relayConnection.addHandler("_buffer_merged", bufferManager);
-        relayConnection.addHandler("_buffer_unmerged", bufferManager);
-        relayConnection.addHandler("_buffer_renamed", bufferManager);
-        relayConnection.addHandler("_buffer_title_changed", bufferManager);
-        relayConnection.addHandler("_buffer_localvar_added", bufferManager);
-        relayConnection.addHandler("_buffer_localvar_changed", bufferManager);
-        relayConnection.addHandler("_buffer_localvar_removed", bufferManager);
-        relayConnection.addHandler("_buffer_closing", bufferManager);
-
-        // Handle lines being added to buffers
-        relayConnection.addHandler("_buffer_line_added", hotlistHandler);
-        relayConnection.addHandler("_buffer_line_added", msgHandler);
-        relayConnection.addHandler("listlines_reverse", msgHandler);
-
-        // Handle changes to the nicklist for buffers
-        relayConnection.addHandler("nicklist", nickHandler);
-        relayConnection.addHandler("_nicklist", nickHandler);
-        relayConnection.addHandler("_nicklist_diff", nickHandler);
-
-        // Handle getting infolist hotlist for initial hotlist sync
-        relayConnection.addHandler("initialinfolist", hotlistManager);
-
-        // Get a list of buffers current open, along with some information about them
-        relayConnection
-                .sendMsg("(listbuffers) hdata buffer:gui_buffers(*) number,full_name,short_name,type,title,nicklist,local_variables,notify");
-        // Get the current hotlist
-        relayConnection.sendMsg("initialinfolist", "infolist", "hotlist");
-
-        // Subscribe to any future changes
-        if (!optimize_traffic)
-            relayConnection.sendMsg("sync");
-
-        for (RelayConnectionHandler rch : connectionHandlers) {
-            rch.onConnect();
-        }
+        // buffer line-wide preferences
+        Buffer.Line.MAX_WIDTH = Integer.parseInt(prefs.getString(PREFS_MAX_WIDTH, "7"));
+        Buffer.Line.DIM_DOWN_NON_HUMAN_LINES = prefs.getBoolean(PREFS_DIM_DOWN, false);
+        setTimestampFormat();
+        setAlignment();
+        setTextSizeAndLetterWidth();
     }
 
     @Override
     public void onDisconnect() {
-        if (disconnected) {
-            return; // Only do the disconnect handler once
-        }
-        // :( aww disconnected
-        for (RelayConnectionHandler rch : connectionHandlers) {
-            rch.onDisconnect();
-        }
-
-        disconnected = true;
-
-        // Automatically attempt reconnection if enabled(and if we aren't shutting down)
-        if (!shutdown && prefs.getBoolean("reconnect", true)) {
-            reconnect();
-            String tmp = getString(R.string.notification_reconnecting);
-            showNotification(tmp,tmp);
-        } else {
-            String tmp = getString(R.string.notification_disconnected);
-            showNotification(tmp,tmp);
-        }
+        saveStuff();
+        super.onDisconnect();
     }
 
     @Override
-    public void onError(String error, Object extraData) {
-        logger.error("relayservice - error!");
-        for (RelayConnectionHandler rch : connectionHandlers) {
-            rch.onError(error, extraData);
-        }
+    public IBinder onBind(Intent intent) {
+        return new RelayServiceBinder(this);
     }
 
-    public void shutdown() {
-        if (relayConnection != null) {
-            shutdown = true;
-            // Do the actual shutdown on its own thread(to avoid an error on Android 3.0+)
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    relayConnection.disconnect();
-                }
-            }).start();
-        }
-        // TODO: possibly call stopself?
+    /** called when all fragments et al detached, i.e. on app minimize
+     ** it's not guaranteed that this will be called but it's called virtually always
+     ** must return true in order to be called again. a bug within android? */
+    @Override
+    public boolean onUnbind(Intent intent) {
+        saveStuff();
+        return true;
     }
+
+    /** called upon authenticating. let's do our job!
+     ** TODO although it might be wise not to create everything from scratch...  */
+    @Override
+    void startHandlingBoneEvents() {
+        restoreStuff();
+        BufferList.launch(this);
+
+        // Subscribe to any future changes
+        if (!BufferList.OPTIMIZE_TRAFFIC)
+            connection.sendMsg("sync");
+    }
+
+    /** onDestroy will only be called when properly exiting the application
+     ** maybe. anyways, user pressed Quit — erase open buffers */
+    @Override
+    public void onDestroy() {
+        eraseStoredStuff();
+        super.onDestroy();
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// save/restore
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private final static String PREF_SYNCED_BUFFERS = "sb";
+    private final static String PREF_LAST_READ_LINES = "lrl";
+    private final static String PREF_PROTOCOL_ID = "pid";
+
+    /** save everything that is needed for successful restoration of the service */
+    private void saveStuff() {
+        if (DEBUG_SAVE_RESTORE) logger.debug("saveStuff()");
+        SharedPreferences preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        preferences.edit().putString(PREF_SYNCED_BUFFERS, BufferList.getSyncedBuffersAsString())
+                          .putString(PREF_LAST_READ_LINES, BufferList.getBufferToLastReadLineAsString())
+                          .putInt(PREF_PROTOCOL_ID, BufferList.SERIALIZATION_PROTOCOL_ID).commit();
+    }
+
+    /** restore everything. if data is an invalid protocol, 'restore' null */
+    private void restoreStuff() {
+        if (DEBUG_SAVE_RESTORE) logger.debug("restoreStuff()");
+        SharedPreferences preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        boolean valid = preferences.getInt(PREF_PROTOCOL_ID, -1) == BufferList.SERIALIZATION_PROTOCOL_ID;
+        BufferList.setSyncedBuffersFromString(valid ? preferences.getString(PREF_SYNCED_BUFFERS, null) : null);
+        BufferList.setBufferToLastReadLineFromString(valid ? preferences.getString(PREF_LAST_READ_LINES, null) : null);
+    }
+
+    /** delete open buffers, so that buffers don't remain open (after Quit).
+     ** don't delete protocol id & buffer to lrl. */
+    private void eraseStoredStuff() {
+        if (DEBUG_SAVE_RESTORE) logger.debug("eraseStoredStuff()");
+        SharedPreferences preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        preferences.edit().remove(PREF_SYNCED_BUFFERS).commit();
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// prefs
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        // Load/refresh preferences
-        if (key.equals("host")) {
-            host = prefs.getString("host", null);
-        } else if (key.equals("password")) {
-            pass = prefs.getString("password", "password");
-        } else if (key.equals("port")) {
-            port = Integer.parseInt(prefs.getString("port", "8001"));
-        } else if (key.equals("optimize_traffic")) {
-            optimize_traffic = prefs.getBoolean("optimize_traffic", false);
+        if (DEBUG_PREFS) logger.warn("onSharedPreferenceChanged()");
+
+        // buffer list preferences
+        super.onSharedPreferenceChanged(sharedPreferences, key);
+        if (key.equals(PREFS_SORT_BUFFERS)) {
+            BufferList.SORT_BUFFERS = prefs.getBoolean(key, false);
+        } else if (key.equals(PREFS_SHOW_BUFFER_TITLES)) {
+            BufferList.SHOW_TITLE = prefs.getBoolean(key, false);
+        } else if (key.equals(PREFS_FILTER_NONHUMAN_BUFFERS)) {
+            BufferList.FILTER_NONHUMAN_BUFFERS = prefs.getBoolean(key, false);
+
+            // traffic preference
+        } else if (key.equals(PREFS_OPTIMIZE_TRAFFIC)) {
+            BufferList.OPTIMIZE_TRAFFIC = prefs.getBoolean(key, false);
+
+            // buffer-wide preferences
+        } else if (key.equals(PREFS_FILTER_LINES)) {
+            Buffer.FILTER_LINES = prefs.getBoolean(key, true);
+
+            // chat lines-wide preferences
+        } else if (key.equals(PREFS_MAX_WIDTH)) {
+            Buffer.Line.MAX_WIDTH = Integer.parseInt(prefs.getString(key, "7"));
+            BufferList.notifyOpenBuffersMustBeProcessed(false);
+        } else if (key.equals(PREFS_DIM_DOWN)) {
+            Buffer.Line.DIM_DOWN_NON_HUMAN_LINES = prefs.getBoolean(key, false);
+            BufferList.notifyOpenBuffersMustBeProcessed(true);
+        } else if (key.equals(PREFS_TIMESTAMP_FORMAT)) {
+            setTimestampFormat();
+            BufferList.notifyOpenBuffersMustBeProcessed(false);
+        } else if (key.equals(PREFS_PREFIX_ALIGN)) {
+            setAlignment();
+            BufferList.notifyOpenBuffersMustBeProcessed(false);
+        } else if (key.equals(PREFS_TEXT_SIZE)) {
+            setTextSizeAndLetterWidth();
+            BufferList.notifyOpenBuffersMustBeProcessed(true);
         }
     }
 
-    @Override
-    public void onHighlight(String bufferName, String message) {
-        Intent i = new Intent(this, WeechatActivity.class);
-        i.putExtra("buffer", bufferName);
-        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, i,
-                PendingIntent.FLAG_UPDATE_CURRENT);
-
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
-        builder.setContentIntent(contentIntent).setSmallIcon(R.drawable.ic_notification)
-                .setContentTitle(getString(R.string.highlight)).setContentText(message)
-                .setTicker(message).setWhen(System.currentTimeMillis());
-
-        Notification notification = builder.build();
-
-        // Default notification sound if enabled
-        if (prefs.getBoolean("notification_sounds", false)) {
-            notification.defaults |= Notification.DEFAULT_SOUND;
-        }
-
-        notificationManger.notify(NOTIFICATION_HIGHTLIGHT_ID, notification);
+    private void setTimestampFormat() {
+        String timeformat = prefs.getString(PREFS_TIMESTAMP_FORMAT, "HH:mm:ss");
+        Buffer.Line.DATEFORMAT = (timeformat.equals("")) ? null : new SimpleDateFormat(timeformat);
     }
 
-    @Override
-    public void onUpgrade() {
-        // Don't do this twice
-        if (upgrading != null && upgrading.isAlive()) {
-            return;
-        }
+    private void setAlignment() {
+        String alignment = prefs.getString(PREFS_PREFIX_ALIGN, "right");
+        if (alignment.equals("right")) Buffer.Line.ALIGN = Buffer.Line.ALIGN_RIGHT;
+        else if (alignment.equals("left")) Buffer.Line.ALIGN = Buffer.Line.ALIGN_LEFT;
+        else Buffer.Line.ALIGN = Buffer.Line.ALIGN_NONE;
+    }
 
-        // Basically just reconnect on upgrade
-        upgrading = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                showNotification(getString(R.string.notification_upgrading),
-                        getString(R.string.notification_upgrading_details));
-                shutdown();
-                SystemClock.sleep(5000);
-                connect();
-            }
-        });
-        upgrading.start();
+    private void setTextSizeAndLetterWidth() {
+        Buffer.Line.TEXT_SIZE = Float.parseFloat(prefs.getString(PREFS_TEXT_SIZE, "10"));
+        LayoutInflater li = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+        TextView textview = (TextView) li.inflate(R.layout.chatview_line, null).findViewById(R.id.chatline_message);
+        textview.setTextSize(Buffer.Line.TEXT_SIZE);
+        Buffer.Line.LETTER_WIDTH = (textview.getPaint().measureText("m"));
+    }
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// notifications
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    public void changeNotification(boolean new_highlight, int new_hot_count, @Nullable Buffer buffer, @Nullable Buffer.Line line) {
+        if (DEBUG_NOTIFICATIONS) logger.warn("changeNotification({}, {}, {}, {})", new Object[]{new_highlight, new_hot_count, buffer, line});
+        hot_count = new_hot_count;
+        if (new_highlight && buffer != null && line != null)
+            displayHighlightNotification(buffer.full_name, line.getNotificationString());
+        else
+            displayDefaultNotification();
     }
 }
