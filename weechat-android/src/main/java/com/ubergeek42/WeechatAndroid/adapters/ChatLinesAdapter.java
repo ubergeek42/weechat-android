@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright 2012 Keith Johnson
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,10 +18,12 @@ package com.ubergeek42.WeechatAndroid.adapters;
 import android.support.v4.app.FragmentActivity;
 import android.text.Spannable;
 import android.text.method.LinkMovementMethod;
+import android.text.style.URLSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ListAdapter;
 import android.widget.ListView;
@@ -34,7 +36,7 @@ import com.ubergeek42.WeechatAndroid.service.BufferEye;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, BufferEye, AbsListView.OnScrollListener {
+public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, BufferEye, AbsListView.OnScrollListener, AdapterView.OnItemLongClickListener {
 
     private static Logger logger = LoggerFactory.getLogger("ChatLinesAdapter");
     final private static boolean DEBUG = false;
@@ -55,6 +57,7 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
         this.inflater = LayoutInflater.from(activity);
         this.ui_listview = ui_listview;
         ui_listview.setOnScrollListener(this);
+        ui_listview.setOnItemLongClickListener(this);
     }
 
     public void clearLines() {}
@@ -169,5 +172,11 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
     // seriously, android?! is this this the only way to do that?!?! ffs
     @Override public void onScroll(AbsListView lw, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
         last_item_visible = (firstVisibleItem + visibleItemCount == totalItemCount);
+    }
+
+    @Override public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+        Buffer.Line line = (Buffer.Line) parent.getItemAtPosition(position);
+        line.disableClick();
+        return false;
     }
 }
