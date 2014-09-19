@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
 
     <style name="Weechat" parent="@style/Theme.Sherlock">
-        <item name="android:actionBarStyle">@style/Weechat.ActionBar</item>
+        <item name="android:actionBarStyle" tools:targetApi="11">@style/Weechat.ActionBar</item>
         <item name="actionBarStyle">@style/Weechat.ActionBar</item>
         <item name="android:windowBackground">@color/doge</item>
     </style>
