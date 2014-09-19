@@ -54,6 +54,12 @@ If you'd like to help with this project, please get in touch with me.  Email/IRC
 * Translation:
 If you would like to help translating this app, all of the strings are in weechat-android/res/values/strings.xml; and there aren't a terribly large number of them.
 
+## Special Settings/Features
+
+#### Hide buffer in weechat android
+To prevent a buffer from showing up in weechat-android, set the following buffer local variable.
+
+`/buffer set localvar_set_relay hard-hide`
 
 ## Changelog
 
