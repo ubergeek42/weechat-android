@@ -221,6 +221,6 @@ public class RelayService extends RelayServiceBackbone {
         if (new_highlight && buffer != null && line != null)
             displayHighlightNotification(buffer.full_name, line.getNotificationString());
         else
-            displayDefaultNotification();
+            clearHighlightNotification();
     }
 }

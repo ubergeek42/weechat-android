@@ -185,7 +185,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
 
     @TargetApi(16)
      private Notification buildNotification(@Nullable String tickerText, @NonNull String content, @Nullable PendingIntent intent) {
-        if (DEBUG_CONNECTION) logger.debug("buildNotification({}, {}, {}, {})", new Object[]{tickerText, content, intent});
+        if (DEBUG_CONNECTION) logger.debug("buildNotification({}, {}, {})", new Object[]{tickerText, content, intent});
         PendingIntent contentIntent;
         contentIntent = (intent != null) ? intent :
             PendingIntent.getActivity(this, 0, new Intent(this, WeechatActivity.class), PendingIntent.FLAG_CANCEL_CURRENT);
@@ -245,6 +245,10 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
         Notification notification = builder.build();
         notification.sound = Uri.parse(prefs.getString("notification_sound", ""));
         notificationManger.notify(NOTIFICATION_HIGHLIGHT_ID, notification);
+    }
+
+    public void clearHighlightNotification() {
+        notificationManger.cancel(NOTIFICATION_HIGHLIGHT_ID);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
