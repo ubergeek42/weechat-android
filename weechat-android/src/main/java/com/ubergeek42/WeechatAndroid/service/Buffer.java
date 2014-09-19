@@ -17,6 +17,7 @@ import android.text.style.SuperscriptSpan;
 import android.text.style.URLSpan;
 import android.text.style.UnderlineSpan;
 import android.text.util.Linkify;
+import android.view.View;
 
 import com.ubergeek42.weechat.Color;
 import com.ubergeek42.weechat.relay.protocol.Hashtable;
@@ -500,6 +501,7 @@ public class Buffer {
         final public int type;
         final public boolean highlighted;
         final private @Nullable String[] tags;
+        private boolean clickDisabled = false;
 
         // processed data
         // might not be present
@@ -541,6 +543,10 @@ public class Buffer {
                 if (tag.startsWith("nick_"))
                     return tag.substring(5);
             return null;
+        }
+
+        public void disableClick() {
+            this.clickDisabled = true;
         }
 
         //////////////////////////////////////////////////////////////////////////////////////////// processing stuff
@@ -614,9 +620,16 @@ public class Buffer {
         //////////////////////////////////////////////////////////////////////////////////////////// private stuffs
 
         /** just an url span that doesn't change the color of the link */
-        private static class URLSpan2 extends URLSpan {
+        private class URLSpan2 extends URLSpan {
+
             public URLSpan2(String url) {
                 super(url);
+            }
+
+            @Override public void onClick(View v) {
+                if (!Line.this.clickDisabled)
+                    super.onClick(v);
+                Line.this.clickDisabled = false;
             }
 
             @Override public void updateDrawState(@NonNull TextPaint ds) {
