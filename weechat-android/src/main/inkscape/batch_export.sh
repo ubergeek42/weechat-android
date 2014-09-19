@@ -16,7 +16,7 @@
 # ACTION BAR     32    48      64       96      128
 # NOTIFICATION   24    36      48       72       96
 
-ICONS="ic_bell ic_hot ic_send ic_tab ic_send_disabled ic_tab_disabled"
+ICONS="ic_bell ic_users ic_send ic_tab ic_send_disabled ic_tab_disabled"
 NOTIFICATIONS="ic_connected ic_connecting ic_disconnected ic_hot"
 
 function render {
