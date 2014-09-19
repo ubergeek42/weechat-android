@@ -5,27 +5,34 @@ It is currently in beta status, with most things working.  I use it daily withou
 
 This requires weechat to be running somewhere and it connects to it.  It is not a standalone weechat for your phone.  If you are looking for a standalone irc client for android, you will need to look elsewhere.
 
-##Download
-####Stable(ish) version - Google Play Store
+## Download
+#### Stable(ish) version - Google Play Store (OUTDATED)
 Either scan the QR code, or download it from the [Google Play Store](https://play.google.com/store/apps/details?id=com.ubergeek42.WeechatAndroid).
 
 ![Download](https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=https://play.google.com/store/apps/details?id=com.ubergeek42.WeechatAndroid)
 
-####Latest Development Snapshot - v0.08-dev
-[![Build Status](https://ubergeek42.ci.cloudbees.com/buildStatus/icon?job=weechat-android)](http://repository-ubergeek42.forge.cloudbees.com/release/index.html)
-
+#### Latest Development Snapshot - v0.09-dev (INSTALL THIS ONE!)
 If you're feeling adventurous, you can try the latest development version.  This is built after every commit, and while I try to keep a working build, it may fail or have major bugs.
 
-[Get the latest development version here](http://repository-ubergeek42.forge.cloudbees.com/release/index.html) (Note: This is signed with a different key than the stable version, so you will have to uninstall to move between them)
+[Get the latest development version here](http://repository-ubergeek42.forge.cloudbees.com/release/index.html)
 
 ## Installation and usage:
 Please refer to the quick start guide for details:
 
 https://github.com/ubergeek42/weechat-android/wiki/Quickstart-Guide
 
-##Screenshots
-Please see the screenshots in the google play store:
+## Screenshots
+Brand new look and feel!
+
+<a href="https://github.com/ubergeek42/weechat-android/raw/master/releases/chat-channel.png"><img src="https://github.com/ubergeek42/weechat-android/raw/master/releases/chat-channel-toggles.png" height="400px"></a>
+<a href="https://github.com/ubergeek42/weechat-android/raw/master/releases/preferences.png"><img src="https://github.com/ubergeek42/weechat-android/raw/master/releases/preferences.png" height="400px"></a>
+
+<a href="https://github.com/ubergeek42/weechat-android/raw/master/releases/buffers.png"><img src="https://github.com/ubergeek42/weechat-android/raw/master/releases/buffers.png" height="400px"></a>
+<a href="https://github.com/ubergeek42/weechat-android/raw/master/releases/notifications.png"><img src="https://github.com/ubergeek42/weechat-android/raw/master/releases/notifications.png" height="400px"></a>
+
+Also see the screenshots in the google play store:
 https://play.google.com/store/apps/details?id=com.ubergeek42.WeechatAndroid
+
 
 ## Bug Reports and Feature Requests Welcome!
 Please report any bugs or feature requests here on github(See the Issues tab), or send me an email: kj@ubergeek42.com.  You can also ping me in #weechat on freenode(I'm also in the mostly inactive #weechat-android).
@@ -47,9 +54,14 @@ If you'd like to help with this project, please get in touch with me.  Email/IRC
 * Translation:
 If you would like to help translating this app, all of the strings are in weechat-android/res/values/strings.xml; and there aren't a terribly large number of them.
 
+
 ## Changelog
 
-#### v0.08-dev - In progress
+#### v0.9-dev - Sept 19th, 2014
+* Too much to list, lots and lots and lots of fixes, UI tweaks, and changes
+* Special thanks to @oakkitten and @mhoran for their help and contributions
+
+#### v0.08-dev
 * SSL Support
 * Swiping to change buffers
 * SSH Keyfile support
@@ -93,13 +105,3 @@ If you would like to help translating this app, all of the strings are in weecha
 
 #### v0.01
 * Initial Release
-
-
-##Screenshots(old)
-Note these are from 0.06/0.07-dev, but it looks roughly the same.
-
-<a href="https://github.com/ubergeek42/weechat-android/raw/master/releases/chat-channel-toggles.png"><img src="https://github.com/ubergeek42/weechat-android/raw/master/releases/chat-channel-toggles.png" height="400px"></a>
-<a href="https://github.com/ubergeek42/weechat-android/raw/master/releases/preferences.png"><img src="https://github.com/ubergeek42/weechat-android/raw/master/releases/preferences.png" height="400px"></a>
-
-<a href="https://github.com/ubergeek42/weechat-android/raw/master/releases/buffers.png"><img src="https://github.com/ubergeek42/weechat-android/raw/master/releases/buffers.png" height="400px"></a>
-<a href="https://github.com/ubergeek42/weechat-android/raw/master/releases/notifications.png"><img src="https://github.com/ubergeek42/weechat-android/raw/master/releases/notifications.png" height="400px"></a>
