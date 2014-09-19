@@ -10,6 +10,7 @@ apply plugin: 'com.android.application'
 
 dependencies {
     compile 'com.android.support:support-v4:18.0.+'
+    compile 'com.android.support:support-annotations:+' // For @Nullable/@NonNull
 
     compile "org.slf4j:slf4j-android:1.6.1-RC1"  // Android Logging API
 
@@ -26,8 +27,12 @@ dependencies {
     }
 }
 
+tasks.withType(Compile) {
+    options.encoding = 'UTF-8'
+}
+
 android {
-    compileSdkVersion 17
+    compileSdkVersion 20
     buildToolsVersion "19.1.0"
 
     defaultConfig {
@@ -35,7 +40,7 @@ android {
         versionName "0.08"
 
         minSdkVersion 8
-        targetSdkVersion 17
+        targetSdkVersion 20
     }
 
     signingConfigs {
@@ -54,6 +59,9 @@ android {
 
         // These are the real releases in the Google Play Store
         release {
+            runProguard true
+            proguardFile file('proguard.txt')
+            proguardFile getDefaultProguardFile('proguard-android-optimize.txt')
             buildConfigField "String", "VERSION_BANNER", "\"" + versionBanner() + "\""
             signingConfig signingConfigs.releasePlayConfig
         }
@@ -61,6 +69,9 @@ android {
         // Development releases in the Google Play Store(signed same as the cloudbees site)
         devrelease.initWith(buildTypes.release)
         devrelease {
+            runProguard true
+            proguardFile file('proguard.txt')
+            proguardFile getDefaultProguardFile('proguard-android-optimize.txt')
             applicationIdSuffix ".dev"
             versionNameSuffix "-dev"
             buildConfigField "String", "VERSION_BANNER", "\""+versionBanner()+"\""

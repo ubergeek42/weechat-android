@@ -1,58 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    android:paddingTop="6dp"
-    android:paddingBottom="6dp"
-    android:paddingLeft="3dp"
-    android:paddingRight="3dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#ffffff"
     >
 
     <TextView
-        android:id="@+id/bufferlist_shortname"
-        android:layout_width="wrap_content"
+        android:padding="10dp"
+        android:id="@+id/buffer"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
-        android:text="Buffer Short Name"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
+        android:text="@null"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+    />
+
 
     <TextView
-        android:id="@+id/bufferlist_fullname"
+        android:id="@+id/buffer_warm"
+        android:layout_marginTop="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginLeft="0dp"
+        android:background="@drawable/warm"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_toRightOf="@id/bufferlist_shortname"
-        android:layout_alignBaseline="@id/bufferlist_shortname"
-        android:layout_marginLeft="6dp"
-        android:text="long name"
-        android:textAppearance="?android:attr/textAppearanceSmall" />
-
-    <TextView
-        android:id="@+id/bufferlist_title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_below="@+id/bufferlist_fullname"
-        android:text="title for the channel"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:padding="2dp"
-        />
-
-
-     <TextView
-        android:id="@+id/bufferlist_hotlist_highlightcount"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
         android:layout_alignParentRight="true"
-        android:layout_marginLeft="4dp"
-        android:text="H:005"
-        android:textAppearance="?android:attr/textAppearanceSmall" />
+        android:paddingLeft="4dp"
+        android:paddingRight="4dp"
+        android:text="@null"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:visibility="invisible"
+    />
+
     <TextView
-        android:id="@+id/bufferlist_hotlist_messagecount"
+        android:id="@+id/buffer_hot"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:layout_marginRight="10dp"
+        android:background="@drawable/hot"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_toLeftOf="@id/bufferlist_hotlist_highlightcount"
-        android:layout_centerInParent="true"
-        android:text="U:005"
-        android:textAppearance="?android:attr/textAppearanceSmall" />
+        android:layout_toLeftOf="@id/buffer_warm"
+        android:paddingLeft="4dp"
+        android:paddingRight="4dp"
+        android:text="@null"
+        android:layout_alignWithParentIfMissing="true"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+    />
+
 </RelativeLayout>

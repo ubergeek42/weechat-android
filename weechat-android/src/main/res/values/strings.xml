@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">weechat</string>
-    <string name="sendButton">Send</string>
+    <string name="sendkey">Send</string>
     <string name="app_version">Weechat v0.08-dev</string>
     <string name="loading_please_wait">"Retrieving lines from buffer.\nPlease wait."</string>
 
@@ -16,88 +16,92 @@
     <string name="disconnect">Disconnect</string>
     <string name="hotlist">Hotlist</string>
     <string name="nicklist_menu">Nicks</string>
-    <string name="tabkey">⇥</string>
+    <string name="tabkey">Tab</string>
     
     <!--  The text shown in the buffer list filter edit text as a placeholder -->
-    <string name="filter_bufferlist_placeholder">Filter bufferlist</string>
+    <string name="filter_bufferlist_placeholder"><i>filter</i></string>
     
     <!-- Some of the notifications the application displays during certain events -->
     <string name="notification_connected_to">"Connected to "</string>
 	<string name="notification_reconnected_to">"Reconnected to "</string>
     <string name="notification_disconnected">Disconnected</string>
-    <string name="notification_reconnecting">Reconnecting…</string>
+
+    <string name="notification_connecting">Connecting to %s…</string>
+    <string name="notification_connecting_details_now">Connecting now…</string>
+    <string name="notification_connecting_details">Will connect in %d seconds…</string>
+    <string name="notification_reconnecting">Reconnecting to %s…</string>
+    <string name="notification_reconnecting_details_now">Reconnecting now…</string>
     <string name="notification_reconnecting_details">Will reconnect in %d seconds…</string>
+
     <string name="notification_update_settings">Update settings</string>
     <string name="notification_update_settings_details">Click to edit your preferences and connect</string>
     <string name="notification_upgrading">Upgrading…</string>
-    <string name="notification_upgrading_details">Weechat is upgrading, please wait for reconnection</string>
+    <string name="notification_upgrading_details">WeeChat is upgrading, please wait for reconnection</string>
     
     <!-- Preferences -->
-    <string name="pref_connection_group">Connection Settings…</string>
-    <string name="pref_relay_host">Relay Host</string>
-    <string name="pref_relay_port">Relay Port</string>
-    <string name="pref_relay_password">Relay Password</string>
-    <string name="pref_autoconnect">Connect Automatically</string>
+    <string name="pref_connection_group">Connection settings</string>
+    <string name="pref_relay_host">Relay host</string>
+    <string name="pref_relay_port">Relay port</string>
+    <string name="pref_relay_password">Relay password</string>
+    <string name="pref_autoconnect">Connect automatically</string>
     <string name="pref_autoconnect_summary">Connect automatically on app launch</string>
-    <string name="pref_optimize_traffic">Reduce network traffic</string>
-    <string name="pref_optimize_traffic_summary">Only enable if running WeeChat 0.4.1–dev (git: v0.4.0–35-g7a1f9a1) or newer (Requires restart)</string>
-    <string name="pref_adv_connection_group">Advanced Connection Settings</string>
-	    <string name="pref_connection_type">Connection Type</string>
+    <string name="pref_optimize_traffic">Only sync open buffers</string>
+    <string name="pref_optimize_traffic_summary">Reduces traffic but you won’t receive any updates for buffers that haven’t been open. Only enable if running WeeChat 0.4.1–dev or newer. Requires restart.</string>
+    <string name="pref_adv_connection_group">Advanced connection settings</string>
+	    <string name="pref_connection_type">Connection type</string>
 		    <string-array name="pref_connection_type_names">
-		        <item>Plain Connection</item>
-		        <item>Weechat SSL</item>
-		        <item>SSH Tunnel</item>
+		        <item>Plain connection</item>
+		        <item>WeeChat SSL</item>
+		        <item>SSH tunnel</item>
 		        <item>Stunnel</item>
                 <item>WebSocket</item>
                 <item>WebSocket(SSL)</item>
     		</string-array>
-	    <string name="pref_stunnel_group">Stunnel Settings</string>
-		    <string name="pref_stunnel_cert">Stunnel Certificate File</string>
-		    <string name="pref_stunnel_pass">Stunnel Password</string>
-	    <string name="pref_ssh_group">SSH Tunnel Settings</string>
-		    <string name="pref_ssh_host">SSH Host</string>
-		    <string name="pref_ssh_user">SSH Username</string>
-		    <string name="pref_ssh_port">SSH Port</string>
-		    <string name="pref_ssh_pass">SSH Password/Key Passphrase</string>
-		    <string name="pref_ssh_keyfile">SSH Private Key File</string>
-    <string name="pref_bufferlist_group">Buffer List Settings</string>
-	    <string name="pref_sort_buffers">Sort bufferlist</string>
-	    <string name="pref_sort_buffers_summary">Sort by number of highlights/unread messages</string>
-	    <string name="pref_hide_server_buffers">Hide Server Buffers</string>
-	    <string name="pref_hide_server_buffers_summary">Hides server buffers(eg. irc.freenode)</string>
-	    <string name="pref_hide_buffer_titles">Hide buffer titles</string>
-	    <string name="pref_hide_buffer_titles_summary">Provides a more compact view allowing more buffers to be shown.</string>
+	    <string name="pref_stunnel_group">Stunnel settings</string>
+		    <string name="pref_stunnel_cert">Stunnel certificate file</string>
+		    <string name="pref_stunnel_pass">Stunnel password</string>
+	    <string name="pref_ssh_group">SSH tunnel settings</string>
+		    <string name="pref_ssh_host">SSH host</string>
+		    <string name="pref_ssh_user">SSH username</string>
+		    <string name="pref_ssh_port">SSH port</string>
+		    <string name="pref_ssh_pass">SSH password/key passphrase</string>
+		    <string name="pref_ssh_keyfile">SSH private key file</string>
+    <string name="pref_bufferlist_group">Buffer list settings</string>
+	    <string name="pref_sort_buffers">Sort buffer list</string>
+	    <string name="pref_sort_buffers_summary">Sort by number of highlights/private messages/unread messages</string>
+	    <string name="pref_hide_server_buffers">Hide non-conversation buffers</string>
+	    <string name="pref_hide_server_buffers_summary">E.g. server buffers and plugin buffers</string>
+	    <string name="pref_hide_buffer_titles">Show buffer titles</string>
+	    <string name="pref_hide_buffer_titles_summary">These tend to take considerable space though</string>
 	    <string name="pref_show_buffer_filter">Show buffer filter</string>
-	    <string name="pref_show_buffer_filter_summary">Provides a text box to filter the buffer list by buffer name</string>
-    <string name="pref_lookfeel_group">Look &amp; Feel</string>
+	    <string name="pref_show_buffer_filter_summary">Provides a text box to filter the buffer list by full name</string>
+    <string name="pref_lookfeel_group">Look &amp; feel</string>
 	    <string name="pref_text_size">Text Size</string>
-	    <string name="pref_text_size_summary">Note: you can change this during chat with volume buttons</string>
-	    <string name="pref_chatview_colors">Show colors in chat</string>
-	    <string name="pref_chatview_colors_summary">Note: May be slow when changing</string>
+	    <string name="pref_text_size_summary">You can also use volume buttons to change this</string>
 	    <string name="pref_chatview_filters">Filter messages</string>
-	    <string name="pref_chatview_filters_summary">If enabled, messages that were filtered will be hidden.(e.g. irc_smart_filter)</string>
-	    <string name="pref_prefix_align">Prefix Alignment</string>
+	    <string name="pref_chatview_filters_summary">Hide messages filtered by WeeChat (e.g. irc_smart_filter)</string>
+	    <string name="pref_prefix_align">Prefix alignment</string>
    	        <string-array name="pref_prefix_align_names">
-		        <item>Left Aligned</item>
-		        <item>Right Aligned</item>
-		        <item>No Alignment</item>
+		        <item>Left aligned</item>
+		        <item>Right aligned</item>
+		        <item>No alignment</item>
 		    </string-array>
 	    <string name="pref_chatview_timestamps">Show timestamps</string>
 	    <string name="pref_chatview_timestamps_summary">Whether to display timestamps in chat. Saves space when disabled.</string>
 	    <string name="pref_timestamp_format">Timestamp format</string>
-    <string name="pref_misc_group">Misc. Settings</string>
-	    <string name="pref_tab_completion">Tab Completion for Nicks</string>
+    <string name="pref_misc_group">Miscellaneous settings</string>
+	    <string name="pref_tab_completion">Tab completion for nicks</string>
 	    <string name="pref_tab_completion_summary">Use tab key to complete nicks</string>
-	    <string name="pref_tabbtn_show">Show tab button(⇥)</string>
-	    <string name="pref_tabbtn_show_summary">Show a tab button next to the input bar(⇥)</string>
+	    <string name="pref_tabbtn_show">Show tab button (⇥)</string>
+	    <string name="pref_tabbtn_show_summary">Show tab button next to input bar</string>
 	    <string name="pref_sendbtn_show">Show send button</string>
 	    <string name="pref_sendbtn_show_summary">Show send button next to input bar</string>
-	    <string name="pref_notification_sounds">Notification Sound</string>
-	    <string name="pref_notification_sounds_summary">Use default notification sound when a private message or highlight is received</string>
+	    <string name="pref_notification_sound">Notification sound</string>
+	    <string name="pref_notification_sound_summary">Played when a private message or a highlight is received</string>
     
     
     <!--  ACRA(Application Crash Reports for Android) related strings -->
-    <string name="pref_debug_screen">Crash Reporting</string>
+    <string name="pref_debug_screen">Crash reporting</string>
     <string name="pref_disable_acra">Disable crash reporting</string>
     <string name="pref_acra_enabled">Crash reporting currently enabled</string>
     <string name="pref_acra_disabled">Crash reporting currently disabled</string>
@@ -111,11 +115,16 @@
     <string name="pref_acra_alwaysaccept_disabled">A dialog will prompt you to send each crash report</string>
     
     <string name="crash_notif_ticker_text">Unexpected error, please send a report…</string>
-	<string name="crash_notif_title">Weechat has crashed…</string>
+	<string name="crash_notif_title">WeeChat has crashed…</string>
 	<string name="crash_notif_text">Please click here to help fix the issue.</string>
-	<string name="crash_dialog_text">Sorry, but weechat-android appears to have crashed.  If you would like
-	    to assist in having this issue resolved, please click Ok to send details about the crash to the developer.
-	    Note: Usernames/passwords will not be sent.</string>
+	<string name="crash_dialog_text">Sorry, but weechat-android appears to have crashed. If you would like
+	    to assist in having this issue resolved, please click OK to send details about the crash to the developer.
+	    Note: username and password will not be sent.</string>
     <string name="crash_dialog_comment_prompt">Any additional comments(or your email if you\'d like a reply):</string>
-    <string name="highlight">Hightlight</string>
+    <string name="highlight">Highlight</string>
+    <string name="pref_dim_down">Dim down non-human lines</string>
+    <string name="pref_dim_down_summary">Display joins/quits in a darker color</string>
+    <string name="pref_timestamp_format_summary"><![CDATA[Default: &quot;HH:mm:ss&quot;; empty turns off the prefix completely]]></string>
+    <string name="pref_max_width">Maximum width of prefix</string>
+    <string name="pref_max_width_summary">In terms of letters; longer nicknames will be cut</string>
 </resources>

@@ -1,9 +1,9 @@
 apply plugin: 'java'
-apply from:'https://raw.github.com/breskeby/gradleplugins/master/emmaPlugin/emma.gradle'
+//apply from:'https://raw.github.com/breskeby/gradleplugins/master/emmaPlugin/emma.gradle'
 
 dependencies {
-    emma "emma:emma:2.1.5320"
-    emma "emma:emma_ant:2.1.5320"
+    //emma "emma:emma:2.1.5320"
+    //emma "emma:emma_ant:2.1.5320"
     compile 'org.slf4j:slf4j-api:1.6.6'
     compile 'com.jcraft:jsch:0.1.+'                   // for ssh tunnel support
     compile 'org.java-websocket:Java-WebSocket:1.3.0' // For websocket support
@@ -14,4 +14,7 @@ dependencies {
 compileJava {
     sourceCompatibility = 1.6
     targetCompatibility = 1.6
+}
+tasks.withType(Compile) {
+    options.encoding = 'UTF-8'
 }

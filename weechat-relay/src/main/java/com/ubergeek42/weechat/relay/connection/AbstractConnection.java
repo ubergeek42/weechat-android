@@ -2,13 +2,20 @@ package com.ubergeek42.weechat.relay.connection;
 
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.ArrayList;
 
 public abstract class AbstractConnection implements IConnection {
+    final private static boolean DEBUG = false;
+    private static Logger logger = LoggerFactory.getLogger("AbstractConnection");
+
     String server = null;
     int port = 0;
 

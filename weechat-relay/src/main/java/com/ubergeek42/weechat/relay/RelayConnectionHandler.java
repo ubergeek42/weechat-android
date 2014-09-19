@@ -41,6 +41,12 @@ public interface RelayConnectionHandler {
     public void onAuthenticated();
 
     /**
+     * Called when the initial list of buffers has been passed to the relay client. After this
+     * method call client can assume normal workflow follows.
+     */
+    public void onBuffersListed();
+
+    /**
      * Called when the server is disconnected, either through error, timeout, or because the client
      * requested a disconnect.
      */

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- the only difference from the main layout version is
+the left padding, so that the line doesn't touch the buffer list -->
+
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/chatline_message"
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
+    android:maxLines="25"
+    android:text="@null"
+    android:textSize="10sp"
+    android:typeface="monospace"
+    android:paddingLeft="2dp"
+     />

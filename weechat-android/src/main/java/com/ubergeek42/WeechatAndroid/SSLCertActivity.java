@@ -5,6 +5,8 @@ import java.security.cert.X509Certificate;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import android.app.Activity;
 import android.content.ComponentName;
@@ -23,6 +25,9 @@ import com.ubergeek42.WeechatAndroid.service.RelayService;
 import com.ubergeek42.WeechatAndroid.service.RelayServiceBinder;
 
 public class SSLCertActivity extends Activity {
+    private static Logger logger = LoggerFactory.getLogger("SSLCertActivity");
+    final private static boolean DEBUG = true;
+
 
     private TextView certDetails;
     private boolean mBound = false;
@@ -49,12 +54,14 @@ public class SSLCertActivity extends Activity {
         super.onStart();
 
         // Bind to the Relay Service
+        if (DEBUG) logger.debug("...calling bindService()");
         bindService(new Intent(this, RelayService.class), mConnection, Context.BIND_AUTO_CREATE);
     }
     @Override
     protected void onStop() {
         super.onStop();
         if (mBound) {
+            if (DEBUG) logger.debug("...calling unbindService()");
             unbindService(mConnection);
             mBound = false;
         }

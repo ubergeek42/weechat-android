@@ -3,16 +3,58 @@
     android:id="@+id/chatview_layout"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:orientation="vertical"
-    android:paddingLeft="6dip" >
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:id="@+id/chatview_bottombar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="?actionBarSize"
+        android:background="@drawable/bottom_bar"
+        android:layout_alignParentBottom="true"
+        android:padding="0dp">
+
+        <EditText
+            android:id="@+id/chatview_input"
+            android:layout_weight="1.0"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:inputType="textShortMessage|textMultiLine|textAutoCorrect"
+            android:imeOptions="flagNoFullscreen|flagNoExtractUi"
+            android:maxLines="4"
+            android:minLines="1"
+            android:scrollbars="vertical"
+            android:layout_gravity="center"
+            >
+
+            <requestFocus />
+        </EditText>
+
+        <ImageButton
+            android:id="@+id/chatview_tab"
+            android:layout_width="wrap_content"
+            android:layout_height="?actionBarSize"
+            android:src="@drawable/tab_selector"
+            android:contentDescription="@string/tabkey"
+            android:layout_gravity="bottom"
+            android:layout_margin="0dp"
+            style="@style/ActionButton" />
+
+        <ImageButton
+            android:id="@+id/chatview_send"
+            android:layout_width="wrap_content"
+            android:layout_height="?actionBarSize"
+            android:src="@drawable/send_selector"
+            android:contentDescription="@string/sendkey"
+            android:layout_gravity="bottom"
+            android:layout_margin="0dp"
+            style="@style/ActionButton" />
+    </LinearLayout>
 
     <ListView
         android:id="@+id/chatview_lines"
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/chatview_bottombar"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
+        android:layout_height="0dp"
         android:clickable="false"
         android:divider="#00000000"
         android:dividerHeight="0px"
@@ -20,42 +62,11 @@
         android:focusableInTouchMode="false"
         android:listSelector="#00000000"
         android:stackFromBottom="true"
-        android:transcriptMode="normal" >
-    </ListView>
-
-    <LinearLayout
-        android:id="@+id/chatview_bottombar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true" >
-
-        <EditText
-            android:id="@+id/chatview_input"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight=".75"
-            android:inputType="textShortMessage|textMultiLine|textAutoCorrect"
-            android:imeOptions="actionSend"
-            android:maxLines="4"
-            android:minLines="1"
-            android:scrollbars="vertical">
-
-            <requestFocus />
-        </EditText>
-
-        <Button
-            android:id="@+id/chatview_tab"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/tabkey" />
-
-        <Button
-            android:id="@+id/chatview_send"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/sendButton" />
-    </LinearLayout>
+        android:transcriptMode="normal"
+        android:layout_alignParentTop="true"
+        android:paddingBottom="1dp"
+        android:layout_above="@+id/chatview_bottombar"
+        android:background="@drawable/background"
+        android:fadingEdge="none" />
 
 </RelativeLayout>

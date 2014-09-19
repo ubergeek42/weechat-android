@@ -18,11 +18,13 @@ package com.ubergeek42.WeechatAndroid.service;
 import java.security.cert.X509Certificate;
 
 import android.os.Binder;
+import android.support.annotation.Nullable;
 
-import com.ubergeek42.weechat.Buffer;
+import com.ubergeek42.WeechatAndroid.BuildConfig;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
-import com.ubergeek42.weechat.relay.messagehandler.BufferManager;
-import com.ubergeek42.weechat.relay.messagehandler.HotlistManager;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Provides functions that are available to clients of the relay service
@@ -31,147 +33,71 @@ import com.ubergeek42.weechat.relay.messagehandler.HotlistManager;
  * 
  */
 public class RelayServiceBinder extends Binder {
-    private RelayService relayService;
+    private static Logger logger = LoggerFactory.getLogger("RelayServiceBinder");
+    final private static boolean DEBUG = BuildConfig.DEBUG && true;
 
-    public RelayServiceBinder(RelayService relayService) {
-        this.relayService = relayService;
+    private RelayService service;
+
+    public RelayServiceBinder(RelayService service) {
+        this.service = service;
     }
 
-    public void setHost(String host) {
-        relayService.host = host;
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    /** returns true if connection status corresponds to given connection */
+    public boolean isConnection(int status) {
+        return service.isConnection(status);
     }
 
-    public void setPort(String port) {
-        relayService.port = Integer.parseInt(port);
+    public void connect() {
+        service.startThreadedConnectLoop(false);
     }
 
-    public void setPassword(String password) {
-        relayService.pass = password;
+    /** Disconnect from the server and stop the background service */
+    public void disconnect() {
+        service.startThreadedDisconnect();
     }
 
-    public String getHost() {
-        return relayService.host;
+    public void addRelayConnectionHandler(RelayConnectionHandler handler) {
+        service.connectionHandlers.add(handler);
     }
 
-    public String getPort() {
-        return relayService.port+"";
+    public void removeRelayConnectionHandler(RelayConnectionHandler handler) {
+        service.connectionHandlers.remove(handler);
     }
 
-    public String getPassword() {
-        return relayService.pass;
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    public @Nullable Buffer getBufferByFullName(@Nullable String full_name) {
+        return BufferList.findByFullName(full_name);
     }
 
-    public boolean isConnected() {
-        if (relayService.relayConnection == null) {
-            return false;
-        }
-        return relayService.relayConnection.isConnected();
-    }
-
-    public boolean connect() {
-        return relayService.connect();
-    }
-
-    public void addRelayConnectionHandler(RelayConnectionHandler rch) {
-        relayService.connectionHandlers.add(rch);
-    }
-
-    public void removeRelayConnectionHandler(RelayConnectionHandler rch) {
-        relayService.connectionHandlers.remove(rch);
-    }
-
-    /**
-     * Disconnect from the server and stop the background service
-     */
-    public void shutdown() {
-        relayService.shutdown();
-    }
-
-    /**
-     * Return a buffer object based on its full name
-     * 
-     * @param bufferName
-     *            - Full buffer name(e.g. irc.freenode.#weechat)
-     * @return a Buffer object for the given buffer
-     */
-    public Buffer getBufferByName(String bufferName) {
-        if (isConnected())
-            return relayService.bufferManager.findByName(bufferName);
-        return null;
-    }
-
-    /**
-     * Returns the BufferManager object for the current connection
-     * 
-     * @return The BufferManager object
-     */
-    public BufferManager getBufferManager() {
-        return relayService.bufferManager;
-    }
-
-    /**
-     * Returns the HotlistManager object for the current connection
-     * 
-     * @return The HotlistManager object
-     */
-
-    public HotlistManager getHotlistManager() {
-        return relayService.hotlistManager;
-    }
-
-    /**
-     * Send a message to the server(expected to be formatted appropriately)
-     * 
-     * @param string
-     */
+    /** Send a message to the server(expected to be formatted appropriately) */
     public void sendMessage(String string) {
-        relayService.relayConnection.sendMsg(string);
+        service.connection.sendMsg(string);
     }
 
-    public void resetNotifications() {
-        relayService.resetNotification();
-    }
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    /**
-     * Subscribes to a buffer. Gets the last MAXLINES of lines, and subscribes to nicklist changes
-     * 
-     * @param bufferPointer
-     */
-    public void subscribeBuffer(String bufferPointer) {
-        Buffer buf = relayService.bufferManager.findByPointer(bufferPointer);
-        // Get the last MAXLINES for each buffer(only if we don't already have at least MAXLINES)
-        if (buf.getLines().size() < Buffer.MAXLINES) {
-            relayService.relayConnection.sendMsg("(listlines_reverse) hdata buffer:"
-                    + bufferPointer + "/own_lines/last_line(-" + Buffer.MAXLINES
-                    + ")/data date,displayed,prefix,message,highlight,tags_array");
-        }
-        // Get the nicklist for any buffers we have
-        relayService.relayConnection.sendMsg("nicklist", "nicklist", buf.getFullName());
-        if (relayService.optimize_traffic) {
-            relayService.relayConnection.sendMsg("sync "+buf.getFullName());
-        }
-    }
-
-    public void unsubscribeBuffer(String bufferPointer) {
-        if (relayService.optimize_traffic) {
-            Buffer buf = relayService.bufferManager.findByPointer(bufferPointer);
-            relayService.relayConnection.sendMsg("desync "+buf.getFullName());
-        }
-    }
-    
-    /**
-     * SSL Certificate related functions 
-     */
     public void setCertificateError(X509Certificate cert) {
-        relayService.untrustedCert = cert;
+        service.untrustedCert = cert;
     }
+
     public X509Certificate getCertificateError() {
-        return relayService.untrustedCert;
+        return service.untrustedCert;
     }
+
     public void acceptCertificate() {
-        relayService.certmanager.trustCertificate(relayService.untrustedCert);
+        service.certmanager.trustCertificate(service.untrustedCert);
     }
+
     public void rejectCertificate() {
-        relayService.untrustedCert = null;
+        service.untrustedCert = null;
     }
 }

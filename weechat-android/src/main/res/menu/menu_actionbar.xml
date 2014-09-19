@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:id="@+id/menu_hotlist"
-          android:showAsAction="always"
-          android:icon="@drawable/ic_3_rating_important"
-          android:title="@string/hotlist"/>
     <item android:id="@+id/menu_nicklist"
-          android:icon="@drawable/ic_6_social_group"
+          android:icon="@drawable/ic_users"
           android:title="@string/nicklist_menu"
           android:showAsAction="always"/>
+    <item android:id="@+id/menu_hotlist"
+        android:actionLayout="@layout/action_bar_notification_icon"
+        android:showAsAction="always"
+        android:icon="@drawable/ic_bell"
+        android:title="@string/hotlist"/>
     <item android:id="@+id/menu_connection_state"
           android:menuCategory="secondary"
           android:showAsAction="never"

@@ -7,9 +7,11 @@
 
 
     <application
+        android:allowBackup="false"
         android:icon="@drawable/ic_launcher"
-        android:label="@string/app_name" android:theme="@style/Theme.Sherlock">
-        <service android:name=".service.RelayService"></service>
+        android:label="@string/app_name" android:theme="@style/Weechat"
+        android:windowSoftInputMode="adjustResize">
+        <service android:name=".service.RelayService" />
         <activity 
             android:name=".WeechatActivity" 
             android:launchMode="singleTask"
@@ -20,8 +22,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".SSLCertActivity"></activity>
-        <activity android:name=".WeechatPreferencesActivity"></activity>
-        <activity android:name=".WeechatAboutActivity"></activity>
+        <activity android:name=".SSLCertActivity" />
+        <activity android:name=".WeechatPreferencesActivity" />
+        <activity android:name=".WeechatAboutActivity" />
     </application>
 </manifest>
