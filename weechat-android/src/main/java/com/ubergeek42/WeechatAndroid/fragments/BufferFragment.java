@@ -287,6 +287,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
                     short_name = buffer.short_name;
                     ((WeechatActivity) getActivity()).updateCutePagerTitleStrip();
                     chatlines_adapter = new ChatLinesAdapter(getActivity(), buffer, chatLines);
+                    buffer.setOpen(true);                       // in case it was open before relay
                     buffer.setBufferEye(BufferFragment.this);   // buffer watcher TODO: java.lang.NullPointerException if run in thread ?!?!
                     chatlines_adapter.readLinesFromBuffer();
                     registerForContextMenu(chatLines);

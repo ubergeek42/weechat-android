@@ -181,8 +181,6 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
             for (String full_name : BufferList.synced_buffers_full_names)
                 openBuffer(full_name, false);
             updateHotCount(BufferList.hot_count);
-
-            maybeHandleIntent();
         }
 
         @Override
@@ -276,7 +274,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         if (DEBUG_INTENT) logger.debug("onNewIntent({})", intent);
         super.onNewIntent(intent);
         setIntent(intent);
-        if (relay != null) maybeHandleIntent();
+        maybeHandleIntent();
     }
 
     /** in case we have an intent of opening a buffer, open buffer & clear the intent
@@ -284,6 +282,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
      ** empty string ("") signifies buffer list.
      ** also see {@link #service_connection} */
     private void maybeHandleIntent() {
+        if (DEBUG_INTENT) logger.debug("maybeHandleIntent()");
         String full_name = getIntent().getStringExtra("full_name");
         if (full_name != null) {
             if ("".equals(full_name)) mainPagerAdapter.openBufferList();
