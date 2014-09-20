@@ -34,6 +34,9 @@ public class WeechatAboutActivity extends Activity implements OnClickListener {
         setContentView(R.layout.about);
         TextView tv = (TextView) this.findViewById(R.id.versionID);
         tv.setText(com.ubergeek42.WeechatAndroid.BuildConfig.VERSION_BANNER);
+
+        tv = (TextView) this.findViewById(R.id.versionStr);
+        tv.setText("WeechatAndroid v" + com.ubergeek42.WeechatAndroid.BuildConfig.VERSION_NAME);
         
         Button clearCerts = (Button)findViewById(R.id.btn_clear_certs);
         clearCerts.setOnClickListener(this);

@@ -42,6 +42,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 
+import com.ubergeek42.WeechatAndroid.BuildConfig;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.WeechatPreferencesActivity;
@@ -202,7 +203,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
         builder.setContentIntent(contentIntent)
                .setSmallIcon(icon)
-               .setContentTitle(getString(R.string.app_version))
+               .setContentTitle("WeechatAndroid v" + BuildConfig.VERSION_NAME)
                .setContentText(content)
                .setTicker(tickerText)
                .setWhen(System.currentTimeMillis());
