@@ -64,7 +64,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
 
     private static Logger logger = LoggerFactory.getLogger("RelayServiceBackbone");
     final private static boolean DEBUG = false;
-    final private static boolean DEBUG_CONNECTION = true;
+    final private static boolean DEBUG_CONNECTION = false;
 
     private static final int NOTIFICATION_ID = 42;
     private static final int NOTIFICATION_HIGHLIGHT_ID = 43;
@@ -186,7 +186,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
      * @return built notification */
 
     @TargetApi(16)
-     private Notification buildNotification(@Nullable String tickerText, @NonNull String content, @Nullable PendingIntent intent) {
+    private Notification buildNotification(@Nullable String tickerText, @NonNull String content, @Nullable PendingIntent intent) {
         if (DEBUG_CONNECTION) logger.debug("buildNotification({}, {}, {})", new Object[]{tickerText, content, intent});
         PendingIntent contentIntent;
         contentIntent = (intent != null) ? intent :
@@ -231,6 +231,8 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
         notificationManger.notify(NOTIFICATION_ID, buildNotification(tickerText, content, null));
     }
 
+    private static final int BUFFER = 0, LINE = 1;
+
     /** display notification with a hot message
      ** clicking on it will open the buffer & scroll up to the hot line, if needed
      ** mind that SOMETIMES hot_count will be larger than hot_list, because
@@ -244,17 +246,21 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
         if (hot_count == 0) {
             notificationManger.cancel(NOTIFICATION_HIGHLIGHT_ID);
         } else {
+            // find our target buffer. if ALL items point to the same buffer, use it,
+            // otherwise, go to buffer list
+            String target_buffer = "";  // buffer list
+ all_equal: if (hot_list.size() == hot_count && hot_list.size() > 0) {
+                String full_name = hot_list.get(0)[BUFFER];
+                for (String[] s: hot_list) if (!s[BUFFER].equals(full_name)) break all_equal;
+                target_buffer = full_name;
+            }
             // prepare intent
-            // make it point to the FIRST unread buffer
-            Intent i = new Intent(this, WeechatActivity.class);
-            if (hot_list.size() == 1)
-                i.putExtra("full_name", hot_list.get(0)[0]);
-            PendingIntent contentIntent = PendingIntent.getActivity(this, 0, i,
-                    PendingIntent.FLAG_UPDATE_CURRENT);
+            Intent i = new Intent(this, WeechatActivity.class).putExtra("full_name", target_buffer);
+            PendingIntent contentIntent = PendingIntent.getActivity(this, 0, i, PendingIntent.FLAG_UPDATE_CURRENT);
 
             // prepare notification
             // make the ticker the LAST message
-            String message = hot_list.size() == 0 ? getString(R.string.hot_message_not_available) : hot_list.get(hot_list.size() - 1)[1];
+            String message = hot_list.size() == 0 ? getString(R.string.hot_message_not_available) : hot_list.get(hot_list.size() - 1)[LINE];
             NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
             builder.setContentIntent(contentIntent)
                     .setSmallIcon(R.drawable.ic_hot)
@@ -268,7 +274,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
                 NotificationCompat.InboxStyle inboxStyle = new NotificationCompat.InboxStyle()
                         .setSummaryText(host);
 
-                for (String[] buffer_to_line : hot_list) inboxStyle.addLine(buffer_to_line[1]);
+                for (String[] buffer_to_line : hot_list) inboxStyle.addLine(buffer_to_line[LINE]);
                 if (hot_list.size() < hot_count) inboxStyle.addLine("…");
 
                 builder.setContentInfo(String.valueOf(hot_count))
@@ -498,12 +504,12 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         // Load/refresh preferences
-        if (key.equals("host")) {
-            host = prefs.getString("host", null);
-        } else if (key.equals("password")) {
-            pass = prefs.getString("password", "password");
-        } else if (key.equals("port")) {
-            port = Integer.parseInt(prefs.getString("port", "8001"));
+        if (key.equals(PREF_HOST)) {
+            host = prefs.getString(key, null);
+        } else if (key.equals(PREF_PASSWORD)) {
+            pass = prefs.getString(key, null);
+        } else if (key.equals(PREF_PORT)) {
+            port = Integer.parseInt(prefs.getString(key, "8001"));
         }
     }
 

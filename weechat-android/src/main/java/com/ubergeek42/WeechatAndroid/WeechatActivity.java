@@ -280,20 +280,16 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     }
 
     /** in case we have an intent of opening a buffer, open buffer & clear the intent
-     ** so that it doesn't get triggered multiple times
-     ** see {@link #service_connection}
-     **     (apparently on certain systems android passes an extra key "profile"
-     **      containing an android.os.UserHandle object, so it might be non-null
-     **      even if doesn't contain "buffers") */
+     ** so that it doesn't get triggered multiple times.
+     ** empty string ("") signifies buffer list.
+     ** also see {@link #service_connection} */
     private void maybeHandleIntent() {
-        Intent intent = getIntent();
-        Bundle extras = intent.getExtras();
-
-        String full_name = (extras != null) ? extras.getString("full_name") : null;
-        if (full_name != null) mainPagerAdapter.openBuffer(full_name, true, true);
-        else mainPagerAdapter.openBufferList();
-
-        intent.removeExtra("full_name");
+        String full_name = getIntent().getStringExtra("full_name");
+        if (full_name != null) {
+            if ("".equals(full_name)) mainPagerAdapter.openBufferList();
+            else mainPagerAdapter.openBuffer(full_name, true, true);
+            getIntent().removeExtra("full_name");
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
