@@ -181,8 +181,6 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
             for (String full_name : BufferList.synced_buffers_full_names)
                 openBuffer(full_name, false);
             updateHotCount(BufferList.hot_count);
-
-            maybeHandleIntent();
         }
 
         @Override
@@ -276,24 +274,21 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         if (DEBUG_INTENT) logger.debug("onNewIntent({})", intent);
         super.onNewIntent(intent);
         setIntent(intent);
-        if (relay != null) maybeHandleIntent();
+        maybeHandleIntent();
     }
 
     /** in case we have an intent of opening a buffer, open buffer & clear the intent
-     ** so that it doesn't get triggered multiple times
-     ** see {@link #service_connection}
-     **     (apparently on certain systems android passes an extra key "profile"
-     **      containing an android.os.UserHandle object, so it might be non-null
-     **      even if doesn't contain "buffers") */
+     ** so that it doesn't get triggered multiple times.
+     ** empty string ("") signifies buffer list.
+     ** also see {@link #service_connection} */
     private void maybeHandleIntent() {
-        Intent intent = getIntent();
-        Bundle extras = intent.getExtras();
-        if (extras != null) {
-            String full_name = extras.getString("full_name");
-            if (full_name != null)
-                mainPagerAdapter.openBuffer(full_name, true, true);
+        if (DEBUG_INTENT) logger.debug("maybeHandleIntent()");
+        String full_name = getIntent().getStringExtra("full_name");
+        if (full_name != null) {
+            if ("".equals(full_name)) mainPagerAdapter.openBufferList();
+            else mainPagerAdapter.openBuffer(full_name, true, true);
+            getIntent().removeExtra("full_name");
         }
-       intent.removeExtra("full_name");
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

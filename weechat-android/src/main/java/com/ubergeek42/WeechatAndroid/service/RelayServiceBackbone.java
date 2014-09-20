@@ -18,6 +18,8 @@ package com.ubergeek42.WeechatAndroid.service;
 import java.io.File;
 import java.security.cert.X509Certificate;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,7 +65,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
 
     private static Logger logger = LoggerFactory.getLogger("RelayServiceBackbone");
     final private static boolean DEBUG = false;
-    final private static boolean DEBUG_CONNECTION = true;
+    final private static boolean DEBUG_CONNECTION = false;
 
     private static final int NOTIFICATION_ID = 42;
     private static final int NOTIFICATION_HIGHLIGHT_ID = 43;
@@ -90,6 +92,8 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
     final static private String PREF_TYPE_WEBSOCKET = "websocket";
     final static private String PREF_TYPE_WEBSOCKET_SSL = "websocket-ssl";
     final static private String PREF_TYPE_PLAIN = "plain";
+
+    final static private String PREF_NOTIFICATION_SOUND = "notification_sound";
 
     final static private String PREF_MUST_STAY_DISCONNECTED = "wow!";
 
@@ -157,7 +161,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
     @Override
     public void onDestroy() {
         if (DEBUG) logger.debug("onDestroy()");
-        notificationManger.cancel(NOTIFICATION_ID);
+        notificationManger.cancelAll();
         super.onDestroy();
         android.os.Process.killProcess(android.os.Process.myPid());
     }
@@ -185,8 +189,8 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
      * @return built notification */
 
     @TargetApi(16)
-     private Notification buildNotification(@Nullable String tickerText, @NonNull String content, @Nullable PendingIntent intent) {
-        if (DEBUG_CONNECTION) logger.debug("buildNotification({}, {}, {}, {})", new Object[]{tickerText, content, intent});
+    private Notification buildNotification(@Nullable String tickerText, @NonNull String content, @Nullable PendingIntent intent) {
+        if (DEBUG_CONNECTION) logger.debug("buildNotification({}, {}, {})", new Object[]{tickerText, content, intent});
         PendingIntent contentIntent;
         contentIntent = (intent != null) ? intent :
             PendingIntent.getActivity(this, 0, new Intent(this, WeechatActivity.class), PendingIntent.FLAG_CANCEL_CURRENT);
@@ -230,22 +234,61 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
         notificationManger.notify(NOTIFICATION_ID, buildNotification(tickerText, content, null));
     }
 
+    private static final int BUFFER = 0, LINE = 1;
+
     /** display notification with a hot message
-     ** clicking on it will open the buffer & scroll up to the hot line, if needed */
-    public void displayHighlightNotification(String full_name, String message) {
-        Intent i = new Intent(this, WeechatActivity.class);
-        i.putExtra("full_name", full_name);
-        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, i,
-                PendingIntent.FLAG_UPDATE_CURRENT);
+     ** clicking on it will open the buffer & scroll up to the hot line, if needed
+     ** mind that SOMETIMES hot_count will be larger than hot_list, because
+     ** it's filled from hotlist data and hot_list only contains lines that
+     ** arrived in real time. so we add (message not available) if there are NO lines to display
+     ** and add "..." if there are some lines to display, but not all */
+    public void changeHotNotification(boolean new_highlight) {
+        final int hot_count = BufferList.hot_count;
+        final List<String[]> hot_list = BufferList.hot_list;
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
-        builder.setContentIntent(contentIntent).setSmallIcon(R.drawable.ic_hot)
-                .setContentTitle(getString(R.string.highlight)).setContentText(message)
-                .setTicker(message).setWhen(System.currentTimeMillis());
+        if (hot_count == 0) {
+            notificationManger.cancel(NOTIFICATION_HIGHLIGHT_ID);
+        } else {
+            // find our target buffer. if ALL items point to the same buffer, use it,
+            // otherwise, go to buffer list (→ "")
+            Set<String> set = new HashSet<String>();
+            for (String[] h: hot_list) set.add(h[BUFFER]);
+            String target_buffer = set.size() == 1 ? hot_list.get(0)[BUFFER] : "";
 
-        Notification notification = builder.build();
-        notification.sound = Uri.parse(prefs.getString("notification_sound", ""));
-        notificationManger.notify(NOTIFICATION_HIGHLIGHT_ID, notification);
+            // prepare intent
+            Intent i = new Intent(this, WeechatActivity.class).putExtra("full_name", target_buffer);
+            PendingIntent contentIntent = PendingIntent.getActivity(this, 0, i, PendingIntent.FLAG_UPDATE_CURRENT);
+
+            // prepare notification
+            // make the ticker the LAST message
+            String message = hot_list.size() == 0 ? getString(R.string.hot_message_not_available) : hot_list.get(hot_list.size() - 1)[LINE];
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
+                    .setContentIntent(contentIntent)
+                    .setSmallIcon(R.drawable.ic_hot)
+                    .setContentTitle(getResources().getQuantityString(R.plurals.hot_messages, hot_count, hot_count))
+                    .setContentText(message);
+
+            // display several lines only if we have at least one visible line and
+            // 2 or more lines total. that is, either display full list of lines or
+            // one ore more visible lines and "..."
+            if (hot_list.size() > 0 && hot_count > 1) {
+                NotificationCompat.InboxStyle inbox = new NotificationCompat.InboxStyle()
+                        .setSummaryText(host);
+
+                for (String[] buffer_to_line : hot_list) inbox.addLine(buffer_to_line[LINE]);
+                if (hot_list.size() < hot_count) inbox.addLine("…");
+
+                builder.setContentInfo(String.valueOf(hot_count));
+                builder.setStyle(inbox);
+            }
+
+            if (new_highlight) {
+                builder.setTicker(message);
+                builder.setSound(Uri.parse(prefs.getString(PREF_NOTIFICATION_SOUND, "")));
+            }
+
+            notificationManger.notify(NOTIFICATION_HIGHLIGHT_ID, builder.build());
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -462,12 +505,12 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         // Load/refresh preferences
-        if (key.equals("host")) {
-            host = prefs.getString("host", null);
-        } else if (key.equals("password")) {
-            pass = prefs.getString("password", "password");
-        } else if (key.equals("port")) {
-            port = Integer.parseInt(prefs.getString("port", "8001"));
+        if (key.equals(PREF_HOST)) {
+            host = prefs.getString(key, null);
+        } else if (key.equals(PREF_PASSWORD)) {
+            pass = prefs.getString(key, null);
+        } else if (key.equals(PREF_PORT)) {
+            port = Integer.parseInt(prefs.getString(key, "8001"));
         }
     }
 

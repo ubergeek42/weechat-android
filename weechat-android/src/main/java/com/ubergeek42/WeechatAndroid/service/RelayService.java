@@ -211,16 +211,4 @@ public class RelayService extends RelayServiceBackbone {
         textview.setTextSize(Buffer.Line.TEXT_SIZE);
         Buffer.Line.LETTER_WIDTH = (textview.getPaint().measureText("m"));
     }
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// notifications
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    public void changeNotification(boolean new_highlight, int new_hot_count, @Nullable Buffer buffer, @Nullable Buffer.Line line) {
-        if (DEBUG_NOTIFICATIONS) logger.warn("changeNotification({}, {}, {}, {})", new Object[]{new_highlight, new_hot_count, buffer, line});
-        hot_count = new_hot_count;
-        if (new_highlight && buffer != null && line != null)
-            displayHighlightNotification(buffer.full_name, line.getNotificationString());
-        else
-            displayDefaultNotification();
-    }
 }

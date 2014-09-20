@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 
@@ -48,7 +49,7 @@ public class BufferList {
     public static boolean SHOW_TITLE = true;
     public static boolean FILTER_NONHUMAN_BUFFERS = false;
     public static boolean OPTIMIZE_TRAFFIC = false;
-    public static String FILTER = null;                                                                // TODO race condition?
+    public static @Nullable String FILTER = null;                                                      // TODO race condition?
 
     /** contains names of open buffers. this is written to the shared preferences
      ** and restored upon service restart (by the system). also this is used to
@@ -59,12 +60,6 @@ public class BufferList {
      ** number of read lines/highlights. this is substracted from highlight counts client
      ** receives from the server */
     static private @NonNull LinkedHashMap<String, BufferHotData> buffer_to_last_read_line = new LinkedHashMap<String, BufferHotData>();
-
-    /** information about total hot message and
-     ** according last hot line and buffer (used for notification intent) */
-    public static int hot_count = 0;
-    static Buffer.Line last_hot_line = null;
-    static Buffer last_hot_buffer = null;
 
     static RelayService relay;
     private static RelayConnection connection;
@@ -169,7 +164,6 @@ public class BufferList {
 
     /** called when a buffer has been added or removed */
     synchronized static private void notifyBuffersChanged() {
-        checkIfHotCountHasChanged();
         sent_buffers = null;
         if (buffers_eye != null) buffers_eye.onBuffersChanged();
     }
@@ -178,7 +172,6 @@ public class BufferList {
      ** other_messages_changed signifies if buffer type is OTHER and message count has changed
      ** used to temporarily display the said buffer if OTHER buffers are filtered */
     synchronized static void notifyBuffersSlightlyChanged(boolean other_messages_changed) {
-        checkIfHotCountHasChanged();
         if (buffers_eye != null) {
             if (other_messages_changed && FILTER_NONHUMAN_BUFFERS) sent_buffers = null;
             buffers_eye.onBuffersChanged();
@@ -243,37 +236,57 @@ public class BufferList {
         connection.sendMsg(String.format("(nicklist) nicklist 0x%x", pointer));
     }
 
-    synchronized static void setMostRecentHotLine(@NonNull Buffer buffer, @NonNull Buffer.Line line) {
-        last_hot_buffer = buffer;
-        last_hot_line = line;
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// hotlist stuff
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    static public ArrayList<String[]> hot_list = new ArrayList<String[]>();     // {"irc.free.#123", "<nick> hi there"}
+    static public int hot_count = 0;                                     // might be greater than size of hot_list
+
+    /** called when a new new hot message just arrived */
+    synchronized static void newHotLine(final @NonNull Buffer buffer, final @NonNull Buffer.Line line) {
+        hot_list.add(new String[]{buffer.full_name, line.getNotificationString()});
+        if (processHotCountAndTellIfChanged())
+            notifyHotCountChanged(true);
+    }
+
+    /** called when buffer is read or closed
+     ** must be called AFTER buffer hot count adjustments / buffer removal from the list */
+    synchronized static void removeHotMessagesForBuffer(final @NonNull Buffer buffer) {
+        for (Iterator<String[]> it = hot_list.iterator(); it.hasNext(); )
+            if (it.next()[0].equals(buffer.full_name)) it.remove();
+        if (processHotCountAndTellIfChanged())
+            notifyHotCountChanged(false);
+    }
+
+    synchronized static void onHotlistFinished() {
+        if (processHotCountAndTellIfChanged())
+            notifyHotCountChanged(false);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// private stuffs
-    ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    // called from synchronized methods
-    static private void checkIfHotCountHasChanged() {
-        if (DEBUG_HOT) logger.warn("checkIfHotCountHasChanged()");
+    /** HELPER. stores hot_count;
+     ** returns true if hot count has changed */
+    static private boolean processHotCountAndTellIfChanged() {
         int hot = 0;
         for (Buffer buffer : buffers) {
             hot += buffer.highlights;
             if (buffer.type == Buffer.PRIVATE) hot += buffer.unreads;
         }
-        if (hot != hot_count) {
-            boolean new_highlight = hot > hot_count;
-            boolean must_switch_icon = hot == 0 || hot_count == 0;
-            hot_count = hot;
-            if (buffers_eye != null)
-                buffers_eye.onHotCountChanged();
-            if (new_highlight) {
-                relay.changeNotification(true, hot, last_hot_buffer, last_hot_line);
-                last_hot_buffer = null;
-                last_hot_line = null;
-            } else if (must_switch_icon)
-                relay.changeNotification(false, hot, null, null);
-        }
+        return hot_count != (hot_count = hot); // har har
     }
+
+    /** HELPER. notifies everyone interested of hotlist changes */
+    static private void notifyHotCountChanged(boolean new_highlight) {
+        relay.changeHotNotification(new_highlight);
+        if (buffers_eye != null)
+            buffers_eye.onHotCountChanged();
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// private stuffs
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     synchronized static private @Nullable Buffer findByPointer(long pointer) {
         for (Buffer buffer : buffers) if (buffer.pointer == pointer) return buffer;
@@ -343,11 +356,11 @@ public class BufferList {
                             buffer.local_vars = (Hashtable) entry.getItem("local_variables");
                             notifyBufferPropertiesChanged(buffer);
                         } else if (id.equals("_buffer_moved") || id.equals("_buffer_merged")) { // TODO if buffer is moved, reorder others?
-                            buffer.number = entry.getItem("number").asInt();
+                            buffer.number = entry.getItem("number").asInt();                    // TODO this is not our issue; it's going to be resolved in future versions of weechat
                             notifyBufferPropertiesChanged(buffer);
                         } else if (id.equals("_buffer_closing")) {
-                            buffer.onBufferClosed();
                             synchronized (BufferList.class) {buffers.remove(buffer);}
+                            buffer.onBufferClosed();
                             notifyBuffersChanged();
                         } else {
                             if (DEBUG_HANDLERS) logger.warn("Unknown message ID: '{}'", id);
@@ -398,6 +411,7 @@ public class BufferList {
                     buffer.updateHighlightsAndUnreads(highlights, unreads);
                 }
             }
+            onHotlistFinished();
             notifyBuffersSlightlyChanged();
         }
     };
