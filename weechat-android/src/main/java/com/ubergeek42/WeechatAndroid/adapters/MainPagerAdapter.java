@@ -180,6 +180,10 @@ public class MainPagerAdapter extends PagerAdapter {
         }
     }
 
+    public void openBufferList() {
+        if (phone_mode) pager.setCurrentItem(0);
+    }
+
     private Fragment newBufferFragment(String full_name, boolean must_focus_hot) {
         Fragment fragment = new BufferFragment();
         Bundle args = new Bundle();

@@ -223,11 +223,11 @@ public class Buffer {
             if (!is_watched) {
                 if (line.highlighted) {
                     highlights++;
-                    BufferList.setMostRecentHotLine(this, line);
+                    BufferList.newHotLine(this, line);
                     BufferList.notifyBuffersSlightlyChanged(type == OTHER);
                 } else if (line.type == Line.LINE_MESSAGE) {
                     unreads++;
-                    if (type == PRIVATE) BufferList.setMostRecentHotLine(this, line);
+                    if (type == PRIVATE) BufferList.newHotLine(this, line);
                     BufferList.notifyBuffersSlightlyChanged(type == OTHER);
                 }
             }
@@ -311,6 +311,7 @@ public class Buffer {
 
     synchronized public void onBufferClosed() {
         if (DEBUG_BUFFER) logger.warn("{} onBufferClosed()", short_name);
+        BufferList.removeHotMessagesForBuffer(this);
         if (buffer_eye != null) buffer_eye.onBufferClosed();
     }
 
@@ -368,6 +369,7 @@ public class Buffer {
         total_read_unreads += (old_unreads = unreads);
         total_read_highlights += (old_highlights = highlights);
         unreads = highlights = 0;
+        BufferList.removeHotMessagesForBuffer(this);
         BufferList.notifyBuffersSlightlyChanged(type == OTHER);
     }
 

@@ -288,12 +288,12 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     private void maybeHandleIntent() {
         Intent intent = getIntent();
         Bundle extras = intent.getExtras();
-        if (extras != null) {
-            String full_name = extras.getString("full_name");
-            if (full_name != null)
-                mainPagerAdapter.openBuffer(full_name, true, true);
-        }
-       intent.removeExtra("full_name");
+
+        String full_name = (extras != null) ? extras.getString("full_name") : null;
+        if (full_name != null) mainPagerAdapter.openBuffer(full_name, true, true);
+        else mainPagerAdapter.openBufferList();
+
+        intent.removeExtra("full_name");
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

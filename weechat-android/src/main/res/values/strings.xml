@@ -127,4 +127,10 @@
     <string name="pref_timestamp_format_summary"><![CDATA[Default: &quot;HH:mm:ss&quot;; empty turns off the prefix completely]]></string>
     <string name="pref_max_width">Maximum width of prefix</string>
     <string name="pref_max_width_summary">In terms of letters; longer nicknames will be cut</string>
+
+    <string name="hot_message_not_available">(message not available)</string>
+    <plurals name="hot_messages">
+        <item quantity="one">Hot message!</item>
+        <item quantity="other">%d hot messages</item>
+    </plurals>
 </resources>
