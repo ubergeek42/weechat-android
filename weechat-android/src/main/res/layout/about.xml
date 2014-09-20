@@ -5,13 +5,13 @@
     android:layout_height="fill_parent" >
 
     <TextView
-        android:id="@+id/textView1"
+        android:id="@+id/versionStr"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="20dp"
-        android:text="@string/app_version"
+        android:text="WeechatAndroid"
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
     <TextView
@@ -38,7 +38,7 @@
         android:id="@+id/TextView05"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/textView1"
+        android:layout_below="@+id/versionStr"
         android:layout_centerHorizontal="true"
         android:text="for Android"
         android:textAppearance="?android:attr/textAppearanceMedium" />

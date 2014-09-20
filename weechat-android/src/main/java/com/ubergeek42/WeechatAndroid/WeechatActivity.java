@@ -121,7 +121,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
 
         imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 
-        setTitle(getString(R.string.app_version));
+        setTitle("WeechatAndroid v" + BuildConfig.VERSION_NAME);
     }
 
     /** bind to relay service, which results in:

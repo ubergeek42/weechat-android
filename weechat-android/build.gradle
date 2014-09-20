@@ -59,23 +59,25 @@ android {
 
         // These are the real releases in the Google Play Store
         release {
+            buildConfigField "String", "VERSION_BANNER", "\"" + versionBanner() + "\""
+            signingConfig signingConfigs.releasePlayConfig
+
             runProguard true
             proguardFile file('proguard.txt')
             proguardFile getDefaultProguardFile('proguard-android-optimize.txt')
-            buildConfigField "String", "VERSION_BANNER", "\"" + versionBanner() + "\""
-            signingConfig signingConfigs.releasePlayConfig
         }
 
         // Development releases in the Google Play Store(signed same as the cloudbees site)
         devrelease.initWith(buildTypes.release)
         devrelease {
-            runProguard true
-            proguardFile file('proguard.txt')
-            proguardFile getDefaultProguardFile('proguard-android-optimize.txt')
             applicationIdSuffix ".dev"
             versionNameSuffix "-dev"
             buildConfigField "String", "VERSION_BANNER", "\""+versionBanner()+"\""
 	        signingConfig signingConfigs.devPlayConfig
+
+            runProguard true
+            proguardFile file('proguard.txt')
+            proguardFile getDefaultProguardFile('proguard-android-optimize.txt')
         }
     }
 }
