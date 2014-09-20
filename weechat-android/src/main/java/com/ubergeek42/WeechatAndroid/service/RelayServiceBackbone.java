@@ -19,6 +19,7 @@ import java.io.File;
 import java.security.cert.X509Certificate;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,6 +92,8 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
     final static private String PREF_TYPE_WEBSOCKET = "websocket";
     final static private String PREF_TYPE_WEBSOCKET_SSL = "websocket-ssl";
     final static private String PREF_TYPE_PLAIN = "plain";
+
+    final static private String PREF_NOTIFICATION_SOUND = "notification_sound";
 
     final static private String PREF_MUST_STAY_DISCONNECTED = "wow!";
 
@@ -247,13 +250,11 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
             notificationManger.cancel(NOTIFICATION_HIGHLIGHT_ID);
         } else {
             // find our target buffer. if ALL items point to the same buffer, use it,
-            // otherwise, go to buffer list
-            String target_buffer = "";  // buffer list
- all_equal: if (hot_list.size() == hot_count && hot_list.size() > 0) {
-                String full_name = hot_list.get(0)[BUFFER];
-                for (String[] s: hot_list) if (!s[BUFFER].equals(full_name)) break all_equal;
-                target_buffer = full_name;
-            }
+            // otherwise, go to buffer list (→ "")
+            Set<String> set = new HashSet<String>();
+            for (String[] h: hot_list) set.add(h[BUFFER]);
+            String target_buffer = set.size() == 1 ? hot_list.get(0)[BUFFER] : "";
+
             // prepare intent
             Intent i = new Intent(this, WeechatActivity.class).putExtra("full_name", target_buffer);
             PendingIntent contentIntent = PendingIntent.getActivity(this, 0, i, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -261,8 +262,8 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
             // prepare notification
             // make the ticker the LAST message
             String message = hot_list.size() == 0 ? getString(R.string.hot_message_not_available) : hot_list.get(hot_list.size() - 1)[LINE];
-            NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
-            builder.setContentIntent(contentIntent)
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
+                    .setContentIntent(contentIntent)
                     .setSmallIcon(R.drawable.ic_hot)
                     .setContentTitle(getResources().getQuantityString(R.plurals.hot_messages, hot_count, hot_count))
                     .setContentText(message);
@@ -271,19 +272,19 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
             // 2 or more lines total. that is, either display full list of lines or
             // one ore more visible lines and "..."
             if (hot_list.size() > 0 && hot_count > 1) {
-                NotificationCompat.InboxStyle inboxStyle = new NotificationCompat.InboxStyle()
+                NotificationCompat.InboxStyle inbox = new NotificationCompat.InboxStyle()
                         .setSummaryText(host);
 
-                for (String[] buffer_to_line : hot_list) inboxStyle.addLine(buffer_to_line[LINE]);
-                if (hot_list.size() < hot_count) inboxStyle.addLine("…");
+                for (String[] buffer_to_line : hot_list) inbox.addLine(buffer_to_line[LINE]);
+                if (hot_list.size() < hot_count) inbox.addLine("…");
 
-                builder.setContentInfo(String.valueOf(hot_count))
-                        .setStyle(inboxStyle);
+                builder.setContentInfo(String.valueOf(hot_count));
+                builder.setStyle(inbox);
             }
 
             if (new_highlight) {
                 builder.setTicker(message);
-                builder.setSound(Uri.parse(prefs.getString("notification_sound", "")));
+                builder.setSound(Uri.parse(prefs.getString(PREF_NOTIFICATION_SOUND, "")));
             }
 
             notificationManger.notify(NOTIFICATION_HIGHLIGHT_ID, builder.build());
