@@ -257,7 +257,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
 
             // prepare intent
             Intent i = new Intent(this, WeechatActivity.class).putExtra("full_name", target_buffer);
-            PendingIntent contentIntent = PendingIntent.getActivity(this, 0, i, PendingIntent.FLAG_UPDATE_CURRENT);
+            PendingIntent contentIntent = PendingIntent.getActivity(this, 1, i, PendingIntent.FLAG_UPDATE_CURRENT);
 
             // prepare notification
             // make the ticker the LAST message
