@@ -33,6 +33,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
+import android.graphics.Color;
 import android.os.Build;
 import android.net.Uri;
 import android.os.Handler;
@@ -94,6 +95,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
     final static private String PREF_TYPE_PLAIN = "plain";
 
     final static private String PREF_NOTIFICATION_SOUND = "notification_sound";
+    final static private String PREF_NOTIFICATION_LIGHT = "notification_light";
 
     final static private String PREF_MUST_STAY_DISCONNECTED = "wow!";
 
@@ -285,6 +287,9 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
             if (new_highlight) {
                 builder.setTicker(message);
                 builder.setSound(Uri.parse(prefs.getString(PREF_NOTIFICATION_SOUND, "")));
+                if (prefs.getBoolean(PREF_NOTIFICATION_LIGHT, false)) {
+                    builder.setLights(Color.WHITE, 100, 100);
+                }
             }
 
             notificationManger.notify(NOTIFICATION_HIGHLIGHT_ID, builder.build());
