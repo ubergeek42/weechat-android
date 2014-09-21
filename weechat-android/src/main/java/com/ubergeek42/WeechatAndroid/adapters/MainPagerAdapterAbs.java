@@ -82,13 +82,16 @@ public abstract class MainPagerAdapterAbs extends PagerAdapter {
      ** if it /is/ found, show or attach it, according to alternative action */
     Fragment addOrAttachOrShow(ViewGroup container, @NonNull String tag, Fragment fragment, int alt_action) {
         Fragment frag = manager.findFragmentByTag(tag);
-        if (DEBUG_SUPER) logger.info("...action = {}", (frag == null) ? 0 : alt_action);
-        if (frag == null)
+        if (frag == null) {
+            if (DEBUG_SUPER) logger.info("...add()");
             transaction.add(container.getId(), frag = fragment, tag);
-        else if (alt_action == ATTACH)
+        } else if (alt_action == ATTACH) {
+            if (DEBUG_SUPER) logger.info("...attach()");
             transaction.attach(frag);
-        else if (alt_action == SHOW)
+        } else if (alt_action == SHOW) {
+            if (DEBUG_SUPER) logger.info("...show()");
             transaction.show(frag);
+        }
         return frag;
     }
 
