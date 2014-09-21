@@ -16,7 +16,6 @@ import android.view.ViewGroup;
 import com.ubergeek42.WeechatAndroid.BuildConfig;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragment;
-import com.ubergeek42.WeechatAndroid.fragments.BufferListFragment;
 import com.ubergeek42.WeechatAndroid.service.Buffer;
 
 import org.slf4j.Logger;
@@ -24,49 +23,37 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 
-public class MainPagerAdapter extends PagerAdapter {
+public abstract class MainPagerAdapterAbs extends PagerAdapter {
 
-    private static Logger logger = LoggerFactory.getLogger("MainPagerAdapter");
-    final private static boolean DEBUG = BuildConfig.DEBUG;
-    final private static boolean DEBUG_SUPER = false;
-    final private static boolean DEBUG_BUFFERS = false;
+    static Logger logger = LoggerFactory.getLogger("MainPagerAdapter");
+    final static boolean DEBUG = BuildConfig.DEBUG;
+    final static boolean DEBUG_SUPER = true;
+    final static boolean DEBUG_BUFFERS = true;
 
-    private boolean phone_mode = false;
-    private ArrayList<String> full_names = new ArrayList<String>();
-    private ArrayList<Fragment> fragments = new ArrayList<Fragment>();
-    private WeechatActivity activity;
-    private ViewPager pager;
-    private FragmentManager manager;
-    private FragmentTransaction transaction = null;
+    ArrayList<String> full_names = new ArrayList<String>();
+    ArrayList<Fragment> fragments = new ArrayList<Fragment>();
+    WeechatActivity activity;
+    ViewPager pager;
+    FragmentManager manager;
+    FragmentTransaction transaction = null;
 
-
-    public MainPagerAdapter(WeechatActivity activity, FragmentManager manager, ViewPager pager) {
+    public MainPagerAdapterAbs(WeechatActivity activity, FragmentManager manager, ViewPager pager) {
         super();
         this.activity = activity;
         this.manager = manager;
         this.pager = pager;
     }
 
-    public void firstTimeInit(boolean phone_mode) {
-        this.phone_mode = phone_mode;
-        if (phone_mode) {
-            full_names.add("");
-            fragments.add(new BufferListFragment());
-        }
-    }
+    public abstract @NonNull String getFullNameAt(int i);
 
-    public @NonNull String getFullNameAt(int i) {
-        return full_names.get(i);
-    }
-
-    ///////////////////////
-    ///////////////////////
-    ///////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @Override
-    public int getCount() {
-        return full_names.size();
-    }
+    public abstract int getCount();
+
+    //////////////////////////////////////////////////////////////////////////////////////////////// instantiation / destruction
 
     /** this can be called either when a new fragment is being added or the old one is being
      ** shown. in both cases the fragment will be in this.fragments, but in the latter case it
@@ -75,16 +62,8 @@ public class MainPagerAdapter extends PagerAdapter {
     public Object instantiateItem(ViewGroup container, int i) {
         if (DEBUG_SUPER) logger.info("instantiateItem(..., {})", i);
         if (transaction == null) transaction = manager.beginTransaction();
-        String tag = full_names.get(i);
-        Fragment frag = manager.findFragmentByTag(tag);
-        if (frag != null) {
-            if (DEBUG_SUPER) logger.info((phone_mode && i == 0) ? "...show()" : "...attach()");
-            if (phone_mode && i == 0) transaction.show(frag); else transaction.attach(frag);
-        } else {
-            if (DEBUG_SUPER) logger.info("...add()");
-            transaction.add(container.getId(), frag = fragments.get(i), tag);
-        }
-        return frag;
+        return null;
+        // !
     }
 
     /** this can be called either when a fragment has been removed by closeBuffer or when it's
@@ -93,15 +72,39 @@ public class MainPagerAdapter extends PagerAdapter {
     public void destroyItem(ViewGroup container, int i, Object object) {
         if (DEBUG_SUPER) logger.info("destroyItem(..., {}, {})", i, object);
         if (transaction == null) transaction = manager.beginTransaction();
-        Fragment frag = (Fragment) object;
+        // !
+    }
+
+    final static int SHOW = 1;
+    final static int ATTACH = 2;
+
+    /** if fragment known by tag 'tag' is not found in the manager, add it ('fragment')
+     ** if it /is/ found, show or attach it, according to alternative action */
+    Fragment addOrAttachOrShow(ViewGroup container, @NonNull String tag, Fragment fragment, int alt_action) {
+        Fragment frag = manager.findFragmentByTag(tag);
+        if (DEBUG_SUPER) logger.info("...action = {}", (frag == null) ? 0 : alt_action);
+        if (frag == null)
+            transaction.add(container.getId(), frag = fragment, tag);
+        else if (alt_action == ATTACH)
+            transaction.attach(frag);
+        else if (alt_action == SHOW)
+            transaction.show(frag);
+        return frag;
+    }
+
+    /** if BufferFragment fragment corresponds to position in the list, detach it
+     ** else it's been deleted, remove */
+    void removeOrDetach(Fragment frag, int i) {
         if (fragments.size() > i && fragments.get(i) == frag) {
-            if (DEBUG_SUPER) logger.info((phone_mode && i == 0) ? "...hide()" : "...detach()");
-            if (phone_mode && i == 0) transaction.hide(frag); else transaction.detach(frag);
+            if (DEBUG_SUPER) logger.info("...detach");
+            transaction.detach(frag);
         } else {
-            if (DEBUG_SUPER) logger.info("destroyItem(): remove");
+            if (DEBUG_SUPER) logger.info("...remove");
             transaction.remove(frag);
         }
     }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @Override
     public boolean isViewFromObject(View view, Object object) {
@@ -129,11 +132,7 @@ public class MainPagerAdapter extends PagerAdapter {
      ** providing proper indexes instead of POSITION_NONE allows buffers not to be
      ** fully recreated on every ui_buffer list change */
     @Override
-    public int getItemPosition(Object object) {
-        int idx = fragments.indexOf(object);
-        if (DEBUG_SUPER) logger.info("getItemPosition(...) -> {}", (idx >= 0) ? idx : POSITION_NONE);
-        return (idx >= 0) ? idx : POSITION_NONE;
-    }
+    public abstract int getItemPosition(Object object);
 
     /** this one's empty because instantiateItem and destroyItem create transactions as needed
      ** this function is called too frequently to create a transaction inside it */
@@ -151,9 +150,7 @@ public class MainPagerAdapter extends PagerAdapter {
     }
 
     @Override
-    public CharSequence getPageTitle(int i) {
-        return (phone_mode && i == 0) ? "Buffer list" : ((BufferFragment) fragments.get(i)).getShortBufferName();
-    }
+    public abstract CharSequence getPageTitle(int i);
 
     /** switch to already open ui_buffer OR create a new ui_buffer, putting it into BOTH full_names and fragments,
      ** run notifyDataSetChanged() which will in turn call instantiateItem(), and set new ui_buffer as the current one */
@@ -165,8 +162,8 @@ public class MainPagerAdapter extends PagerAdapter {
             if (must_focus_hot) ((BufferFragment) fragments.get(idx)).maybeScrollToLine(true);
         } else {
             if (activity.relay != null) {
-                    Buffer buffer = activity.relay.getBufferByFullName(full_name);
-                    if (buffer != null) buffer.setOpen(true);
+                Buffer buffer = activity.relay.getBufferByFullName(full_name);
+                if (buffer != null) buffer.setOpen(true);
             }
             fragments.add(newBufferFragment(full_name, must_focus_hot));
             activity.runOnUiThread(new Runnable() {
@@ -180,9 +177,7 @@ public class MainPagerAdapter extends PagerAdapter {
         }
     }
 
-    public void openBufferList() {
-        if (phone_mode) pager.setCurrentItem(0);
-    }
+    public abstract void openBufferList();
 
     private Fragment newBufferFragment(String full_name, boolean must_focus_hot) {
         Fragment fragment = new BufferFragment();
@@ -216,22 +211,24 @@ public class MainPagerAdapter extends PagerAdapter {
 
     /** returns BufferFragment that is currently focused
      ** or null if nothing or BufferListFragment is focused */
-    public @Nullable BufferFragment getCurrentBufferFragment() {
-        int i = pager.getCurrentItem();
-        if ((phone_mode && i == 0) || fragments.size() == 0)
-            return null;
-        else
-            return (BufferFragment) fragments.get(i);
-    }
+    public abstract @Nullable BufferFragment getCurrentBufferFragment();
 
-    /** the following two methods magically get called on application recreation,
-     ** so put all our save/restore state here */
+    /** represents number at which BufferFragments start */
+    abstract int getOffset();
+
+    static final String FULL_NAMES = "\0";
+    static final String OLD_OFFSET = "\1";
+    static final String OLD_PAGE = "\2";
+
+    /** the following two methods magically get called on application recreation */
     @Override public @Nullable Parcelable saveState() {
         if (DEBUG_SUPER) logger.info("saveState()");
         if (fragments.size() == 0)
             return null;
         Bundle state = new Bundle();
-        state.putStringArrayList("\0", full_names);
+        state.putStringArrayList(FULL_NAMES, full_names);
+        state.putInt(OLD_OFFSET, getOffset());
+        state.putInt(OLD_PAGE, pager.getCurrentItem());
         for (String full_name : full_names) {
             Fragment fragment = manager.findFragmentByTag(full_name);
             if (fragment != null) manager.putFragment(state, full_name, fragment);
@@ -246,14 +243,25 @@ public class MainPagerAdapter extends PagerAdapter {
             return;
         Bundle state = (Bundle) parcel;
         state.setClassLoader(loader);
-        full_names = state.getStringArrayList("\0");
+        full_names = state.getStringArrayList(FULL_NAMES);
         if (full_names.size() > 0) {
             for (String full_name : full_names) {
                 Fragment fragment = manager.getFragment(state, full_name);
                 fragments.add((fragment != null) ? fragment : newBufferFragment(full_name, false));
             }
-            phone_mode = full_names.get(0).equals("");
             notifyDataSetChanged();
+
+            // restore page in case BufferListFragment was added or removed
+            final int delta = getOffset() - state.getInt(OLD_OFFSET);
+            if (delta != 0) {
+                final int new_page = state.getInt(OLD_PAGE) + delta;
+                pager.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        pager.setCurrentItem(new_page);
+                    }
+                });
+            }
         }
     }
 }

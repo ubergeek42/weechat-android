@@ -52,7 +52,9 @@ import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
-import com.ubergeek42.WeechatAndroid.adapters.MainPagerAdapter;
+import com.ubergeek42.WeechatAndroid.adapters.MainPagerAdapterAbs;
+import com.ubergeek42.WeechatAndroid.adapters.MainPagerAdapterWithBufferList;
+import com.ubergeek42.WeechatAndroid.adapters.MainPagerAdapterWithoutBufferList;
 import com.ubergeek42.WeechatAndroid.adapters.NickListAdapter;
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragment;
 import com.ubergeek42.WeechatAndroid.service.Buffer;
@@ -73,7 +75,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     public RelayServiceBinder relay;
     private Menu actionBarMenu;
     private ViewPager viewPager;
-    private MainPagerAdapter mainPagerAdapter;
+    private MainPagerAdapterAbs mainPagerAdapter;
     private InputMethodManager imm;
     private CutePagerTitleStrip strip;
     
@@ -96,14 +98,11 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
 
         FragmentManager manager = getSupportFragmentManager();
         viewPager = (ViewPager) findViewById(R.id.main_viewpager);
-        mainPagerAdapter = new MainPagerAdapter(this, manager, viewPager);
 
-        // run adapter.firstTimeInit() only the first time application is started
-        // adapter.restoreState() will take care of setting phone_mode other times
-        phone_mode = manager.findFragmentById(R.id.bufferlist_fragment) == null;
-        if (savedInstanceState == null)
-            mainPagerAdapter.firstTimeInit(phone_mode);
-
+        // adapter.restoreState() will take care of restoring buffers
+        phone_mode = findViewById(R.id.bufferlist_fragment) == null;
+        mainPagerAdapter = phone_mode ? new MainPagerAdapterWithBufferList(this, manager, viewPager) :
+                new MainPagerAdapterWithoutBufferList(this, manager, viewPager);
         viewPager.setAdapter(mainPagerAdapter);
 
         ActionBar ab = getSupportActionBar();
