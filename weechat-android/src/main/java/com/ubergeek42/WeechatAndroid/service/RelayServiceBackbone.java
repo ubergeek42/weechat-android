@@ -112,6 +112,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
 
     /** mainly used to tell the user if we are REconnected */
     private volatile boolean disconnected;
+    private boolean already_had_intent;
 
     /** handler that resides on a separate thread. useful for connection/etc */
     Handler thandler;
@@ -152,6 +153,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
         startForeground(NOTIFICATION_ID, buildNotification(null, "Tap to connect", null));
 
         disconnected = false;
+        already_had_intent = false;
 
         // Prepare for dealing with SSL certs
         certmanager = new SSLHandler(new File(getDir("sslDir", Context.MODE_PRIVATE), "keystore.jks"));
@@ -161,18 +163,24 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
     @Override
     public void onDestroy() {
         if (DEBUG) logger.debug("onDestroy()");
+        prefs.edit().remove(PREF_MUST_STAY_DISCONNECTED).commit(); // forget current connection status
         notificationManger.cancelAll();
         super.onDestroy();
         android.os.Process.killProcess(android.os.Process.myPid());
     }
 
+    /** this method is called:
+     **     * whenever app calls startService() (that means on each screen rotate)
+     **     * when service is recreated by system after OOM kill. in this case,
+     **       the intent is 'null' (and we can say we are 're'connecting.
+     ** we are using this method because it's the only way to know if we are returning from OOM kill.
+     ** but we want to only run this ONCE after onCreate*/
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (DEBUG_CONNECTION) logger.debug("onStartCommand({}, {}, {})", new Object[]{intent, flags, startId});
-        if (intent != null) {
-            if (mustAutoConnect()) startThreadedConnectLoop(false);
-        } else {
-            if (mustAutoReconnect()) startThreadedConnectLoop(true);
+        if (DEBUG_CONNECTION) logger.debug("onStartCommand({}, {}, {}); had intent? {}", new Object[]{intent, flags, startId, already_had_intent});
+        if (!already_had_intent) {
+            if (mustAutoConnect()) startThreadedConnectLoop(intent == null);
+            already_had_intent = true;
         }
         return START_STICKY;
     }
@@ -295,12 +303,10 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
     //////////////////////////////////////////////////////////////////////////////////////////////// connect/disconnect
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
+    /** only auto-connect if auto-connect is on ON in the prefs and
+     ** the user did not disconnect by tapping disconnect in menu */
     private boolean mustAutoConnect() {
-         return prefs.getBoolean(PREF_AUTO_CONNECT, true);
-    }
-
-    private boolean mustAutoReconnect() {
-        return mustAutoConnect() && !prefs.getBoolean(PREF_MUST_STAY_DISCONNECTED, false);
+         return prefs.getBoolean(PREF_AUTO_CONNECT, true) && !prefs.getBoolean(PREF_MUST_STAY_DISCONNECTED, false);
     }
 
     private static final boolean CONNECTION_IMPOSSIBLE = false;
@@ -309,6 +315,10 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
 
     public void startThreadedConnectLoop(final boolean reconnecting) {
         if (DEBUG_CONNECTION) logger.debug("startThreadedConnectLoop()");
+        if (connection != null && connection.isConnected()) {
+            logger.error("startThreadedConnectLoop() run while connected!!");
+            return;
+        }
         prefs.edit().putBoolean(PREF_MUST_STAY_DISCONNECTED, false).commit();
         thandler.removeCallbacksAndMessages(null);
         thandler.post(new Runnable() {
@@ -344,7 +354,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
         });
     }
 
-    // do the actual shutdown on its own thread (to avoid an error on Android 3.0+)
+    // do the actual shutdown on its own thread (to avoid an error on Android 3.0+) (why?)
     // remember that we are down lest we are reconnected when application
     // kills the service and restores it back later
     public void startThreadedDisconnect() {
@@ -357,7 +367,6 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
                 if (connection != null) connection.disconnect();
             }
         });
-        // TODO: possibly call stopself?
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -482,7 +491,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
         disconnected = true;
 
         // automatically attempt reconnection if enabled (and if we aren't shutting down)
-        if (mustAutoReconnect()) {
+        if (mustAutoConnect()) {
             startThreadedConnectLoop(true);
         } else {
             String tmp = getString(R.string.notification_disconnected);

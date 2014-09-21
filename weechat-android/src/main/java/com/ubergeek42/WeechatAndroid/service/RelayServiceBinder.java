@@ -55,7 +55,6 @@ public class RelayServiceBinder extends Binder {
         service.startThreadedConnectLoop(false);
     }
 
-    /** Disconnect from the server and stop the background service */
     public void disconnect() {
         service.startThreadedDisconnect();
     }
