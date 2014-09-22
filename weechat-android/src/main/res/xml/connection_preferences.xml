@@ -5,6 +5,7 @@
 	    <EditTextPreference android:key="port" android:title="@string/pref_relay_port" android:numeric="integer" />
 	    <EditTextPreference android:key="password" android:title="@string/pref_relay_password" android:password="true" android:singleLine="true" />
     	<CheckBoxPreference android:key="autoconnect" android:summary="@string/pref_autoconnect_summary" android:title="@string/pref_autoconnect" />
+    	<CheckBoxPreference android:key="autostart" android:summary="@string/pref_autostart_summary" android:title="@string/pref_autostart" />
     	
     	<CheckBoxPreference android:key="optimize_traffic" android:summary="@string/pref_optimize_traffic_summary" android:title="@string/pref_optimize_traffic" android:defaultValue="false"/>
     	
