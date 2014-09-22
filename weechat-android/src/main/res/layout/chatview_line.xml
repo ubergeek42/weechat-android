@@ -7,4 +7,5 @@
     android:text="@null"
     android:textSize="10sp"
     android:typeface="monospace"
+    android:paddingLeft="@dimen/chat_item_left_margin"
      />

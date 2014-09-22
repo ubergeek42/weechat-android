@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 
-public abstract class MainPagerAdapterAbs extends PagerAdapter {
+public class MainPagerAdapter extends PagerAdapter {
 
     static Logger logger = LoggerFactory.getLogger("MainPagerAdapter");
     final static boolean DEBUG = BuildConfig.DEBUG;
@@ -37,21 +37,25 @@ public abstract class MainPagerAdapterAbs extends PagerAdapter {
     FragmentManager manager;
     FragmentTransaction transaction = null;
 
-    public MainPagerAdapterAbs(WeechatActivity activity, FragmentManager manager, ViewPager pager) {
+    public MainPagerAdapter(WeechatActivity activity, FragmentManager manager, ViewPager pager) {
         super();
         this.activity = activity;
         this.manager = manager;
         this.pager = pager;
     }
 
-    public abstract @NonNull String getFullNameAt(int i);
+    public @NonNull String getFullNameAt(int i) {
+        return full_names.get(i);
+    }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @Override
-    public abstract int getCount();
+    public int getCount() {
+        return full_names.size();
+    }
 
     //////////////////////////////////////////////////////////////////////////////////////////////// instantiation / destruction
 
@@ -62,8 +66,7 @@ public abstract class MainPagerAdapterAbs extends PagerAdapter {
     public Object instantiateItem(ViewGroup container, int i) {
         if (DEBUG_SUPER) logger.info("instantiateItem(..., {})", i);
         if (transaction == null) transaction = manager.beginTransaction();
-        return null;
-        // !
+        return addOrAttachOrShow(container, full_names.get(i), fragments.get(i), ATTACH);
     }
 
     /** this can be called either when a fragment has been removed by closeBuffer or when it's
@@ -72,7 +75,7 @@ public abstract class MainPagerAdapterAbs extends PagerAdapter {
     public void destroyItem(ViewGroup container, int i, Object object) {
         if (DEBUG_SUPER) logger.info("destroyItem(..., {}, {})", i, object);
         if (transaction == null) transaction = manager.beginTransaction();
-        // !
+        removeOrDetach((Fragment) object, i);
     }
 
     final static int SHOW = 1;
@@ -135,7 +138,10 @@ public abstract class MainPagerAdapterAbs extends PagerAdapter {
      ** providing proper indexes instead of POSITION_NONE allows buffers not to be
      ** fully recreated on every ui_buffer list change */
     @Override
-    public abstract int getItemPosition(Object object);
+    public int getItemPosition(Object object) {
+        int idx = fragments.indexOf(object);
+        return (idx >= 0) ? idx : POSITION_NONE;
+    }
 
     /** this one's empty because instantiateItem and destroyItem create transactions as needed
      ** this function is called too frequently to create a transaction inside it */
@@ -153,16 +159,17 @@ public abstract class MainPagerAdapterAbs extends PagerAdapter {
     }
 
     @Override
-    public abstract CharSequence getPageTitle(int i);
+    public CharSequence getPageTitle(int i) {
+        return ((BufferFragment) fragments.get(i)).getShortBufferName();
+    }
 
     /** switch to already open ui_buffer OR create a new ui_buffer, putting it into BOTH full_names and fragments,
      ** run notifyDataSetChanged() which will in turn call instantiateItem(), and set new ui_buffer as the current one */
     public void openBuffer(final String full_name, final boolean focus, final boolean must_focus_hot) {
         if (DEBUG_BUFFERS) logger.info("openBuffer({}, {}, {})", new Object[]{full_name, focus, must_focus_hot});
-        cancelRestoringPosition();
         int idx = full_names.indexOf(full_name);
         if (idx >= 0) {
-            if (focus) pager.setCurrentItem(idx  + getOffset());
+            if (focus) pager.setCurrentItem(idx);
             if (must_focus_hot) ((BufferFragment) fragments.get(idx)).maybeScrollToLine(true);
         } else {
             if (activity.relay != null) {
@@ -180,8 +187,6 @@ public abstract class MainPagerAdapterAbs extends PagerAdapter {
             });
         }
     }
-
-    public abstract void openBufferList();
 
     private Fragment newBufferFragment(String full_name, boolean must_focus_hot) {
         Fragment fragment = new BufferFragment();
@@ -215,17 +220,12 @@ public abstract class MainPagerAdapterAbs extends PagerAdapter {
 
     /** returns BufferFragment that is currently focused
      ** or null if nothing or BufferListFragment is focused */
-    public abstract @Nullable BufferFragment getCurrentBufferFragment();
-
-    /** represents number at which BufferFragments start */
-    public abstract int getOffset();
-
-//    private Integer old_offset = null;
-//    private int old_page = 0;
+    public @Nullable BufferFragment getCurrentBufferFragment() {
+        int i = pager.getCurrentItem();
+        return (fragments.size() > i) ? (BufferFragment) fragments.get(i) : null;
+    }
 
     static final String FULL_NAMES = "\0";
-    static final String OLD_OFFSET = "\1";
-    static final String OLD_PAGE = "\2";
 
     /** the following two methods magically get called on application recreation */
     @Override public @Nullable Parcelable saveState() {
@@ -234,8 +234,6 @@ public abstract class MainPagerAdapterAbs extends PagerAdapter {
             return null;
         Bundle state = new Bundle();
         state.putStringArrayList(FULL_NAMES, full_names);
-        state.putInt(OLD_OFFSET, getOffset());
-        state.putInt(OLD_PAGE, pager.getCurrentItem());
         for (String full_name : full_names) {
             Fragment fragment = manager.findFragmentByTag(full_name);
             if (fragment != null) manager.putFragment(state, full_name, fragment);
@@ -257,25 +255,6 @@ public abstract class MainPagerAdapterAbs extends PagerAdapter {
                 fragments.add((fragment != null) ? fragment : newBufferFragment(full_name, false));
             }
             notifyDataSetChanged();
-
-            // restore position that might have changed due to screen rotation/appearance or
-            // disappearance of buffer list. MUST BE CALLED AFTER SETTING THE ADAPTER
-            // this is CANCELABLE (needed for intents)
-            final int old_offset = state.getInt(OLD_OFFSET);
-            final int old_page = state.getInt(OLD_PAGE);
-            final int delta = getOffset() - old_offset;
-            pager.post(new Runnable() {
-                @Override
-                public void run() {
-                    if (must_restore_position) pager.setCurrentItem(old_page + delta);
-                }
-            });
         }
-    }
-
-    volatile boolean must_restore_position = true;
-
-    public void cancelRestoringPosition() {
-        must_restore_position = false;
     }
 }
