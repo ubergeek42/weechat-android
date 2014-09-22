@@ -186,6 +186,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
             buffer.setWatched(false);       // 123
             buffer = null;
         }
+        visible = false;
         if (DEBUG_LIFECYCLE) logger.warn("...calling unbindService()");
         getActivity().unbindService(service_connection);
     }

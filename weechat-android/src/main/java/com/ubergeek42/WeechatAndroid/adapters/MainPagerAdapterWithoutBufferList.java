@@ -17,10 +17,6 @@ public class MainPagerAdapterWithoutBufferList extends MainPagerAdapterAbs {
         super(activity, manager, pager);
     }
 
-    int getOffset() {
-        return 0;
-    }
-
     public @NonNull String getFullNameAt(int i) {
         return full_names.get(i);
     }
@@ -60,5 +56,10 @@ public class MainPagerAdapterWithoutBufferList extends MainPagerAdapterAbs {
     public @Nullable BufferFragment getCurrentBufferFragment() {
         int i = pager.getCurrentItem();
         return (fragments.size() > i) ? (BufferFragment) fragments.get(i) : null;
+    }
+
+    @Override
+    public int getOffset() {
+        return 0;
     }
 }

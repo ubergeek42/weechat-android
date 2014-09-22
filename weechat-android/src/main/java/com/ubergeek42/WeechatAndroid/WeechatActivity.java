@@ -68,8 +68,8 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     private static Logger logger = LoggerFactory.getLogger("WA");
     final private static boolean DEBUG = BuildConfig.DEBUG;
     final private static boolean DEBUG_OPTIONS_MENU = false;
-    final private static boolean DEBUG_LIFECYCLE = false;
-    final private static boolean DEBUG_INTENT = false;
+    final private static boolean DEBUG_LIFECYCLE = true;
+    final private static boolean DEBUG_INTENT = true;
     final private static boolean DEBUG_BUFFERS = false;
 
     public RelayServiceBinder relay;
@@ -104,6 +104,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         mainPagerAdapter = phone_mode ? new MainPagerAdapterWithBufferList(this, manager, viewPager) :
                 new MainPagerAdapterWithoutBufferList(this, manager, viewPager);
         viewPager.setAdapter(mainPagerAdapter);
+        //mainPagerAdapter.maybeRestorePosition();
 
         ActionBar ab = getSupportActionBar();
         ab.setHomeButtonEnabled(true);
@@ -284,6 +285,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         if (DEBUG_INTENT) logger.debug("maybeHandleIntent()");
         String full_name = getIntent().getStringExtra("full_name");
         if (full_name != null) {
+            logger.error("OPENING BUFFER LIST? {}", "".equals(full_name));
             if ("".equals(full_name)) mainPagerAdapter.openBufferList();
             else mainPagerAdapter.openBuffer(full_name, true, true);
             getIntent().removeExtra("full_name");

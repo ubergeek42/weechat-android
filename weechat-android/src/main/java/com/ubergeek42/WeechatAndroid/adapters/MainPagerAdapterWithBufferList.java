@@ -21,10 +21,6 @@ public class MainPagerAdapterWithBufferList extends MainPagerAdapterAbs {
         buffer_list_fragment = new BufferListFragment();
     }
 
-    int getOffset() {
-        return 1;
-    }
-
     public @NonNull String getFullNameAt(int i) { //TODO
         return i == 0 ? "" : full_names.get(i - 1);
     }
@@ -64,11 +60,20 @@ public class MainPagerAdapterWithBufferList extends MainPagerAdapterAbs {
     }
 
     @Override
-    public void openBufferList() {}
+    public void openBufferList() {
+        logger.error("OPENING BUFFER LIST!!!!");
+        cancelRestoringPosition();
+        pager.setCurrentItem(0);
+    }
 
     public @Nullable BufferFragment getCurrentBufferFragment() {
         int i = pager.getCurrentItem() - 1;
         if (i < 0 || i >= fragments.size()) return null;
         else return (BufferFragment) fragments.get(i);
+    }
+
+    @Override
+    public int getOffset() {
+        return 1;
     }
 }

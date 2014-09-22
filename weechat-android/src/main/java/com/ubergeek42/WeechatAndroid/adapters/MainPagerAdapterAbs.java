@@ -159,9 +159,10 @@ public abstract class MainPagerAdapterAbs extends PagerAdapter {
      ** run notifyDataSetChanged() which will in turn call instantiateItem(), and set new ui_buffer as the current one */
     public void openBuffer(final String full_name, final boolean focus, final boolean must_focus_hot) {
         if (DEBUG_BUFFERS) logger.info("openBuffer({}, {}, {})", new Object[]{full_name, focus, must_focus_hot});
+        cancelRestoringPosition();
         int idx = full_names.indexOf(full_name);
         if (idx >= 0) {
-            if (focus) pager.setCurrentItem(idx);
+            if (focus) pager.setCurrentItem(idx  + getOffset());
             if (must_focus_hot) ((BufferFragment) fragments.get(idx)).maybeScrollToLine(true);
         } else {
             if (activity.relay != null) {
@@ -217,7 +218,10 @@ public abstract class MainPagerAdapterAbs extends PagerAdapter {
     public abstract @Nullable BufferFragment getCurrentBufferFragment();
 
     /** represents number at which BufferFragments start */
-    abstract int getOffset();
+    public abstract int getOffset();
+
+//    private Integer old_offset = null;
+//    private int old_page = 0;
 
     static final String FULL_NAMES = "\0";
     static final String OLD_OFFSET = "\1";
@@ -254,17 +258,24 @@ public abstract class MainPagerAdapterAbs extends PagerAdapter {
             }
             notifyDataSetChanged();
 
-            // restore page in case BufferListFragment was added or removed
-            final int delta = getOffset() - state.getInt(OLD_OFFSET);
-            if (delta != 0) {
-                final int new_page = state.getInt(OLD_PAGE) + delta;
-                pager.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        pager.setCurrentItem(new_page);
-                    }
-                });
-            }
+            // restore position that might have changed due to screen rotation/appearance or
+            // disappearance of buffer list. MUST BE CALLED AFTER SETTING THE ADAPTER
+            // this is CANCELABLE (needed for intents)
+            final int old_offset = state.getInt(OLD_OFFSET);
+            final int old_page = state.getInt(OLD_PAGE);
+            final int delta = getOffset() - old_offset;
+            pager.post(new Runnable() {
+                @Override
+                public void run() {
+                    if (must_restore_position) pager.setCurrentItem(old_page + delta);
+                }
+            });
         }
+    }
+
+    volatile boolean must_restore_position = true;
+
+    public void cancelRestoringPosition() {
+        must_restore_position = false;
     }
 }
