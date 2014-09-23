@@ -134,4 +134,7 @@
         <item quantity="one">Hot message!</item>
         <item quantity="other">%d hot messages</item>
     </plurals>
+
+    <string name="open_drawer">Open drawer</string>
+    <string name="close_drawer">Close drawer</string>
 </resources>

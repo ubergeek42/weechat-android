@@ -138,8 +138,22 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
             drawer_toggle = new ActionBarDrawerToggle(this,
                     ui_drawer_layout,
                     R.drawable.ic_drawer,
-                    R.string.app_name,
-                    R.string.close);
+                    R.string.open_drawer,
+                    R.string.close_drawer) {
+
+                @SuppressWarnings("SimplifiableConditionalExpression")
+                @Override
+                public void onDrawerStateChanged(int newState) {
+                    super.onDrawerStateChanged(newState);
+                    boolean showing = (newState == DrawerLayout.STATE_IDLE) ?
+                            ui_drawer_layout.isDrawerVisible(ui_drawer) : true;
+                    if (drawer_showing != showing) {
+                        drawer_showing = showing;
+                        drawerVisibilityChanged();
+                    }
+
+                }
+            };
             ui_drawer_layout.setDrawerListener(drawer_toggle);
             ui_action_bar.setDisplayHomeAsUpEnabled(true);
         }
@@ -153,9 +167,24 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    public void drawerVisibilityChanged() {
+        if (true) logger.debug("drawerVisibilityChanged()");
+        BufferFragment current = adapter.getCurrentBufferFragment();
+        if (current != null)
+            current.maybeChangeVisibilityState();
+    }
+
+    public boolean isPagerNoticeablyObscured() {
+        if (!drawer_showing) return false;
+        return true;
+        //todo
+    }
 
     public void enableDrawer() {
-        logger.error("enableDrawer()");
+        if (DEBUG_DRAWER) logger.debug("enableDrawer()");
         drawer_enabled = true;
         ui_pager.post(new Runnable() {
             @Override public void run() {
@@ -165,9 +194,8 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     }
 
     public void disableDrawer() {
-        logger.error("disableDrawer()");
+        if (DEBUG_DRAWER) logger.debug("disableDrawer()");
         drawer_enabled = false;
-        drawer_showing = false;
         ui_pager.post(new Runnable() {
             @Override public void run() {
                 ui_drawer_layout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
@@ -176,8 +204,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     }
 
     public void showDrawer() {
-        logger.error("showDrawer()");
-        drawer_showing = true;
+        if (DEBUG_DRAWER) logger.debug("showDrawer()");
         ui_pager.post(new Runnable() {
             @Override public void run() {
                 ui_drawer_layout.openDrawer(ui_drawer);
@@ -186,8 +213,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     }
 
     public void hideDrawer() {
-        logger.error("hideDrawer()");
-        drawer_showing = false;
+        if (DEBUG_DRAWER) logger.debug("hideDrawer()");
         ui_pager.post(new Runnable() {
                 @Override public void run() {
                     ui_drawer_layout.closeDrawer(ui_drawer);
@@ -195,11 +221,9 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
             });
     }
 
-
-
     /** pop up ui_drawer if connected & no pages in the adapter **/
     public void maybeShowDrawer() {
-        logger.error("maybeShowDrawer()");
+        if (DEBUG_DRAWER) logger.debug("maybeShowDrawer()");
         if (!drawer_showing)
             ui_pager.post(new Runnable() {
                 @Override
@@ -221,11 +245,12 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
 
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
-        logger.error("onConfigurationChanged()");
         super.onConfigurationChanged(newConfig);
         if (slidy) drawer_toggle.onConfigurationChanged(newConfig);
     }
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     /** bind to relay service, which results in:
@@ -295,7 +320,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
             // open buffer that MIGHT be open in the service
             // update hot count
             for (String full_name : BufferList.synced_buffers_full_names)
-                openBuffer(full_name, false, false);
+                openBufferButDontHideBufferList(full_name, false, false);
             updateHotCount(BufferList.hot_count);
 
             if (slidy) maybeShowDrawer();
@@ -344,7 +369,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     }
 
     @Override public void onError(final String errorMsg, Object extraData) {
-        if (DEBUG_CONNECION) logger.error("onError({}, ...)", errorMsg);
+        if (DEBUG_CONNECION) logger.debug("onError({}, ...)", errorMsg);
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -392,6 +417,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     @Override public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {}
 
     @Override public void onPageSelected(int position) {
+        logger.debug("======= onPageSelected({})", position);
         updateMenuItems();
         hideSoftwareKeyboard();
     }
@@ -419,7 +445,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         if (DEBUG_INTENT) logger.debug("maybeHandleIntent()");
         String full_name = getIntent().getStringExtra("full_name");
         if (full_name != null) {
-            logger.error("OPENING BUFFER LIST? {}", "".equals(full_name));
+            logger.debug("OPENING BUFFER LIST? {}", "".equals(full_name));
             if ("".equals(full_name)) openBufferList();
             else openBuffer(full_name, true, true);
             getIntent().removeExtra("full_name");
@@ -590,15 +616,15 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     //////////////////////////////////////////////////////////////////////////////////////////////// MISC
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public void openBuffer(String full_name, boolean focus, boolean scroll) {
-        if (DEBUG_BUFFERS) logger.debug("openBuffer({})", full_name);
+    public void openBufferButDontHideBufferList(String full_name, boolean focus, boolean scroll) {
+        if (DEBUG_BUFFERS) logger.debug("openBufferButDontHideBufferList({})", full_name);
         adapter.openBuffer(full_name, focus, scroll);
     }
 
-    public void openBufferFromBufferList(String full_name, boolean focus, boolean scroll) {
-        if (DEBUG_BUFFERS) logger.debug("openBufferFromBufferList({})", full_name);
+    public void openBuffer(String full_name, boolean focus, boolean scroll) {
+        if (DEBUG_BUFFERS) logger.debug("openBuffer({})", full_name);
         if (slidy) hideDrawer();
-        openBuffer(full_name, focus, scroll);
+        adapter.openBuffer(full_name, focus, scroll);
     }
 
     public void openBufferList() {

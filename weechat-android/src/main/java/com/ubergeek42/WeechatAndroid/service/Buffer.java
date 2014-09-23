@@ -178,7 +178,7 @@ public class Buffer {
      ** affects the way buffer advertises highlights/unreads count and notifications
      ** can be called multiple times without harm */
     synchronized public void setWatched(boolean watched) {
-        if (DEBUG_BUFFER) logger.warn("{} setWatched({})", short_name, watched);
+        if (DEBUG_BUFFER || true) logger.error("{} setWatched({})", short_name, watched);
         if (is_watched == watched) return;
         is_watched = watched;
         if (watched) resetUnreadsAndHighlights();

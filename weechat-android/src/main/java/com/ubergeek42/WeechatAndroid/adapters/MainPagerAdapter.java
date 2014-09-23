@@ -27,8 +27,8 @@ public class MainPagerAdapter extends PagerAdapter {
 
     static Logger logger = LoggerFactory.getLogger("MainPagerAdapter");
     final static boolean DEBUG = BuildConfig.DEBUG;
-    final static boolean DEBUG_SUPER = true;
-    final static boolean DEBUG_BUFFERS = true;
+    final static boolean DEBUG_SUPER = false;
+    final static boolean DEBUG_BUFFERS = false;
 
     ArrayList<String> full_names = new ArrayList<String>();
     ArrayList<Fragment> fragments = new ArrayList<Fragment>();
