@@ -217,17 +217,17 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
         super.onDetach();
     }
 
-    /////////////////////////
-    ///////////////////////// visibility (set by pager adapter)
-    /////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// visibility (set by pager adapter)
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private boolean visible = false;
 
     public void maybeChangeVisibilityState() {
         if (DEBUG_LIFECYCLE) logger.error("{} maybeChangeVisibilityState()", full_name);
-        if (activity == null) return;
+        if (activity == null || buffer == null) return;
         boolean obscured = activity.isPagerNoticeablyObscured();
-        if (buffer != null) buffer.setWatched(started && visible && !obscured);
+        buffer.setWatched(started && visible && !obscured);
     }
 
     @Override
@@ -239,9 +239,9 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
         maybeScrollToLine();
     }
 
-    /////////////////////////
-    ///////////////////////// service connection
-    /////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// service connection
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private ServiceConnection service_connection = new ServiceConnection() {
         @Override
@@ -257,7 +257,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
         }
 
         @Override
-        public void onServiceDisconnected(ComponentName name) {                         // TODO: wut
+        public void onServiceDisconnected(ComponentName name) {
             if (DEBUG) logger.warn("{} onServiceDisconnected() <- should not happen!", BufferFragment.this.full_name);
             if (buffer != null) {
                 buffer.setBufferEye(null);                             // buffer watcher
