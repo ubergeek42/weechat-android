@@ -67,6 +67,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
     private static Logger logger = LoggerFactory.getLogger("RelayServiceBackbone");
     final private static boolean DEBUG = false;
     final private static boolean DEBUG_CONNECTION = false;
+    final private static boolean DEBUG_NOTIFICATIONS = false;
 
     private static final int NOTIFICATION_ID = 42;
     private static final int NOTIFICATION_HIGHLIGHT_ID = 43;
@@ -200,7 +201,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
 
     @TargetApi(16)
     private Notification buildNotification(@Nullable String tickerText, @NonNull String content, @Nullable PendingIntent intent) {
-        if (DEBUG_CONNECTION) logger.debug("buildNotification({}, {}, {})", new Object[]{tickerText, content, intent});
+        if (DEBUG_NOTIFICATIONS) logger.debug("buildNotification({}, {}, {})", new Object[]{tickerText, content, intent});
         PendingIntent contentIntent;
         contentIntent = (intent != null) ? intent :
             PendingIntent.getActivity(this, 0, new Intent(this, WeechatActivity.class), PendingIntent.FLAG_CANCEL_CURRENT);
@@ -253,6 +254,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
      ** arrived in real time. so we add (message not available) if there are NO lines to display
      ** and add "..." if there are some lines to display, but not all */
     public void changeHotNotification(boolean new_highlight) {
+        if (DEBUG_NOTIFICATIONS) logger.warn("changeHotNotification({})", new_highlight);
         final int hot_count = BufferList.hot_count;
         final List<String[]> hot_list = BufferList.hot_list;
 

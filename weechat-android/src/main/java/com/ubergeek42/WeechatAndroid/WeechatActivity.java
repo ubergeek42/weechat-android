@@ -19,6 +19,7 @@ import java.security.cert.CertPath;
 import java.security.cert.CertPathValidatorException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.HashSet;
 
 import javax.net.ssl.SSLException;
 
@@ -66,7 +67,8 @@ import com.ubergeek42.WeechatAndroid.service.RelayServiceBinder;
 import com.ubergeek42.WeechatAndroid.utils.MyMenuItemStuffListener;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
 
-public class WeechatActivity extends SherlockFragmentActivity implements RelayConnectionHandler, OnPageChangeListener, ActionBarSherlock.OnCreateOptionsMenuListener {
+public class WeechatActivity extends SherlockFragmentActivity implements RelayConnectionHandler,
+        OnPageChangeListener, ActionBarSherlock.OnCreateOptionsMenuListener, ServiceConnection {
 
     private static Logger logger = LoggerFactory.getLogger("WA");
     final private static boolean DEBUG = BuildConfig.DEBUG;
@@ -77,7 +79,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     final private static boolean DEBUG_BUFFERS = false;
     final private static boolean DEBUG_DRAWER = true;
 
-    public @Nullable RelayServiceBinder relay;
+    public RelayServiceBinder relay;
     private Menu menu;
     private ViewPager ui_pager;
     private MainPagerAdapter adapter;
@@ -147,7 +149,6 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
                         drawer_showing = showing;
                         drawerVisibilityChanged();
                     }
-
                 }
             };
             ui_drawer_layout.setDrawerListener(drawer_toggle);
@@ -173,7 +174,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     protected void onStart() {
         if (DEBUG_LIFECYCLE) logger.debug("onStart()");
         super.onStart();
-        bindService(new Intent(this, RelayService.class), service_connection, Context.BIND_AUTO_CREATE);
+        bindService(new Intent(this, RelayService.class), this, Context.BIND_AUTO_CREATE);
     }
 
     /** remove relay connection handler and
@@ -185,7 +186,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
 
         if (relay != null) {
             relay.removeRelayConnectionHandler(WeechatActivity.this);
-            unbindService(service_connection);
+            unbindService(this);
             relay = null;
         }
     }
@@ -214,38 +215,52 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     //////////////////////////////////////////////////////////////////////////////////////////////// relay connection
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    ServiceConnection service_connection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            if (DEBUG_LIFECYCLE) logger.debug("onServiceConnected(), main thread? {}", Looper.myLooper() == Looper.getMainLooper());
-            relay = (RelayServiceBinder) service;
-            relay.addRelayConnectionHandler(WeechatActivity.this);
+    private HashSet<BufferFragment> fragments = new HashSet<BufferFragment>();
 
-            // Check if the service is already connected to the weechat relay, and if so load it up
-            if (relay.isConnection(RelayService.BUFFERS_LISTED))
-                WeechatActivity.this.onBuffersListed();
-            if (relay.isConnection(RelayService.CONNECTED))
-                WeechatActivity.this.onConnect();
-            else if (relay.isConnection(RelayService.DISCONNECTED))
-                WeechatActivity.this.onDisconnect();
-            else if (relay.isConnection(RelayService.CONNECTING))
-                WeechatActivity.this.onConnecting();
+    public void bind(BufferFragment fragment) {
+        fragments.add(fragment);
+        if (relay != null) fragment.onServiceConnected(relay);
+    }
 
-            // open buffer that MIGHT be open in the service
-            // update hot count
-            for (String full_name : BufferList.synced_buffers_full_names)
-                openBufferButDontHideBufferList(full_name, false, false);
-            updateHotCount(BufferList.hot_count);
+    public void unbind(BufferFragment fragment) {
+        fragments.remove(fragment);
+    }
 
-            if (slidy) maybeShowDrawer();
-        }
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            if (DEBUG_LIFECYCLE) logger.debug("onServiceDisconnected()");
-            relay = null;
-        }
-    };
+    @Override
+    public void onServiceConnected(ComponentName name, IBinder service) {
+        if (DEBUG_LIFECYCLE) logger.debug("onServiceConnected(), main thread? {}", Looper.myLooper() == Looper.getMainLooper());
+        relay = (RelayServiceBinder) service;
+        relay.addRelayConnectionHandler(WeechatActivity.this);
+
+        // Check if the service is already connected to the weechat relay, and if so load it up
+        if (relay.isConnection(RelayService.BUFFERS_LISTED))    onBuffersListed();
+        if (relay.isConnection(RelayService.CONNECTED))         onConnect();
+        else if (relay.isConnection(RelayService.DISCONNECTED)) onDisconnect();
+        else if (relay.isConnection(RelayService.CONNECTING))   onConnecting();
+
+        // open buffer that MIGHT be open in the service
+        // update hot count
+        for (String full_name : BufferList.synced_buffers_full_names)
+            openBufferSilently(full_name, false, false);
+        updateHotCount(BufferList.hot_count);
+
+        maybeOpenBufferFromIntent();
+
+        if (slidy) maybeShowDrawer();
+
+        for (BufferFragment fragment: fragments)
+            fragment.onServiceConnected(relay);
+    }
+
+    @Override
+    public void onServiceDisconnected(ComponentName name) {
+        if (DEBUG_LIFECYCLE) logger.debug("onServiceDisconnected() <- should not happen!");
+        for (BufferFragment fragment: fragments)
+            fragment.onServiceDisconnected();
+        relay = null;
+    }
 
     //////////////////////////////////////////////////////////////////////////////////////////////// RelayConnectionHandler
 
@@ -418,7 +433,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
                 if (relay != null) {
                     relay.disconnect();
                 }
-                unbindService(service_connection);
+                unbindService(this);
                 relay = null;
                 stopService(new Intent(this, RelayService.class));
                 finish();
@@ -427,7 +442,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
             case R.id.menu_hotlist:
                 break;
             case R.id.menu_nicklist:
-                if (relay == null) break;
+                if (relay == null || adapter.getCount() == 0) break;
                 Buffer buffer = relay.getBufferByFullName(adapter.getFullNameAt(ui_pager.getCurrentItem()));
                 if (buffer == null) break;
 
@@ -485,8 +500,9 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     //////////////////////////////////////////////////////////////////////////////////////////////// MISC
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public void openBufferButDontHideBufferList(String full_name, boolean focus, boolean scroll) {
-        if (DEBUG_BUFFERS) logger.debug("openBufferButDontHideBufferList({})", full_name);
+    /** open a buffer WITHOUT hiding the drawer and checking if we are connected */
+    public void openBufferSilently(String full_name, boolean focus, boolean scroll) {
+        if (DEBUG_BUFFERS) logger.debug("openBufferSilently({})", full_name);
         adapter.openBuffer(full_name, focus, scroll);
     }
 
@@ -524,14 +540,12 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         ui_strip.updateText();
     }
 
-
-
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// drawer stuff
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     public void drawerVisibilityChanged() {
-        if (DEBUG_DRAWER || true) logger.debug("drawerVisibilityChanged()");
+        if (DEBUG_DRAWER) logger.debug("drawerVisibilityChanged()");
         BufferFragment current = adapter.getCurrentBufferFragment();
         if (current != null)
             current.maybeChangeVisibilityState();
@@ -605,18 +619,32 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     //////////////////////////////////////////////////////////////////////////////////////////////// intent
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
+    private @Nullable String intent_buffer_full_name = null;
+
     /** we may get intent while we are connected to the service and when we are not.
      ** empty (but present) full_name means open the drawer (in case we have highlights
      ** on multiple buffers */
     @Override protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
 
-        String full_name = getIntent().getStringExtra("full_name");
-        if (DEBUG_INTENT) logger.debug("onNewIntent(...), full_name='{}'", intent);
+        String full_name = intent.getStringExtra("full_name");
+        if (DEBUG_INTENT) logger.debug("onNewIntent(...), full_name='{}'", full_name);
 
         if (full_name != null) {
-            if ("".equals(full_name)) maybeShowDrawer();
-            else openBuffer(full_name, true, true);
+            if ("".equals(full_name)) showDrawer();
+            else {
+                intent_buffer_full_name = full_name;
+                maybeOpenBufferFromIntent();
+            }
+        }
+    }
+
+    private void maybeOpenBufferFromIntent() {
+        if (DEBUG_INTENT) logger.debug("maybeOpenBufferFromIntent()");
+        if (relay != null && intent_buffer_full_name != null) {
+            if (DEBUG_INTENT) logger.debug("...opening {}!", intent_buffer_full_name);
+            openBuffer(intent_buffer_full_name, true, true);
+            intent_buffer_full_name = null;
         }
     }
 }

@@ -2,6 +2,7 @@ package com.ubergeek42.WeechatAndroid.adapters;
 
 
 import android.os.Bundle;
+import android.os.Looper;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -163,29 +164,24 @@ public class MainPagerAdapter extends PagerAdapter {
         return ((BufferFragment) fragments.get(i)).getShortBufferName();
     }
 
-    /** switch to already open ui_buffer OR create a new ui_buffer, putting it into BOTH full_names and fragments,
+    /** MUST BE RUN ON MAIN THREAD
+     ** switch to already open ui_buffer OR create a new ui_buffer, putting it into BOTH full_names and fragments,
      ** run notifyDataSetChanged() which will in turn call instantiateItem(), and set new ui_buffer as the current one */
     public void openBuffer(final String full_name, final boolean focus, final boolean must_focus_hot) {
         if (DEBUG_BUFFERS) logger.info("openBuffer({}, {}, {})", new Object[]{full_name, focus, must_focus_hot});
+        if (Looper.myLooper() != Looper.getMainLooper()) logger.error("...NOT MAIN THREAD"); //TODO
         int idx = full_names.indexOf(full_name);
         if (idx >= 0) {
             if (focus) pager.setCurrentItem(idx);
-            if (must_focus_hot) ((BufferFragment) fragments.get(idx)).maybeScrollToLine(true);
         } else {
-            if (activity.relay != null) {
-                Buffer buffer = activity.relay.getBufferByFullName(full_name);
-                if (buffer != null) buffer.setOpen(true);
-            }
+            Buffer buffer = activity.relay.getBufferByFullName(full_name);
+            if (buffer != null) buffer.setOpen(true);
             fragments.add(newBufferFragment(full_name, must_focus_hot));
-            activity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    full_names.add(full_name);
-                    notifyDataSetChanged();
-                    if (focus) pager.setCurrentItem(full_names.size());
-                }
-            });
+            full_names.add(full_name);
+            notifyDataSetChanged();
+            if (focus) pager.setCurrentItem(full_names.size());
         }
+        if (must_focus_hot) ((BufferFragment) fragments.get(idx)).maybeScrollToLine(true);
     }
 
     private Fragment newBufferFragment(String full_name, boolean must_focus_hot) {
@@ -197,20 +193,17 @@ public class MainPagerAdapter extends PagerAdapter {
         return fragment;
     }
 
-    /** close ui_buffer if open, removing it from BOTH full_names and fragments.
+    /** MUST BE RUN ON MAIN THREAD
+     ** close buffer if open, removing it from BOTH full_names and fragments.
      ** destroyItem() checks the lists to see if it has to remove the item for good */
     public void closeBuffer(String full_name) {
         if (DEBUG_BUFFERS) logger.info("closeBuffer({})", full_name);
+        if (Looper.myLooper() != Looper.getMainLooper()) logger.error("...NOT MAIN THREAD"); //TODO
         final int idx = full_names.indexOf(full_name);
         if (idx >= 0) {
-            activity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    full_names.remove(idx);
-                    fragments.remove(idx);
-                    notifyDataSetChanged();
-                }
-            });
+            full_names.remove(idx);
+            fragments.remove(idx);
+            notifyDataSetChanged();
             if (activity.relay != null) {
                 Buffer buffer = activity.relay.getBufferByFullName(full_name);
                 if (buffer != null) buffer.setOpen(false);

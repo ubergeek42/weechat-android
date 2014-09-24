@@ -10,7 +10,6 @@ import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
@@ -65,7 +64,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     private final static String PREF_SHOW_SEND = "sendbtn_show";
     private final static String PREF_SHOW_TAB = "tabbtn_show";
 
-    private @Nullable WeechatActivity activity = null;
+    private WeechatActivity activity = null;
     private boolean started = false;
 
     private ListView chatLines;
@@ -149,14 +148,8 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
         if (DEBUG_LIFECYCLE) logger.warn("{} onStart()", full_name);
         super.onStart();
         started = true;
-
-        if (BuildConfig.DEBUG && (short_name.equals("") || relay != null || buffer != null)) // sanity check
-            throw new AssertionError("shit shouldn't be empty");
-
         prefs.registerOnSharedPreferenceChangeListener(this);
-        if (DEBUG_LIFECYCLE) logger.warn("...calling bindService()");
-        getActivity().bindService(new Intent(getActivity(), RelayService.class), service_connection,
-                Context.BIND_AUTO_CREATE);
+        activity.bind(this);
     }
 
     @Override
@@ -194,8 +187,8 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
             //buffer.setWatched(false);       // 123
             buffer = null;
         }
-        if (DEBUG_LIFECYCLE) logger.warn("...calling unbindService()");
-        getActivity().unbindService(service_connection);
+        prefs.unregisterOnSharedPreferenceChangeListener(this);
+        activity.unbind(this);
     }
 
     @Override
@@ -243,33 +236,27 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     //////////////////////////////////////////////////////////////////////////////////////////////// service connection
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private ServiceConnection service_connection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder
-                service) {
-            if (DEBUG_LIFECYCLE) logger.warn("{} onServiceConnected()", BufferFragment.this.full_name);
-            relay = (RelayServiceBinder) service;
-            if (relay.isConnection(RelayService.BUFFERS_LISTED))
-                BufferFragment.this.onBuffersListed();                                  // TODO: run this in a thread
-            else
-                BufferFragment.this.onDisconnect();
-            relay.addRelayConnectionHandler(BufferFragment.this);                       // connect/disconnect watcher
-        }
+    public void onServiceConnected(IBinder relay) {
+        if (DEBUG_LIFECYCLE) logger.warn("{} onServiceConnected()", full_name);
+        this.relay = (RelayServiceBinder) relay;
+        if (this.relay.isConnection(RelayService.BUFFERS_LISTED))
+            onBuffersListed();                                                           // TODO: run this in a thread
+        else
+            onDisconnect();
+        this.relay.addRelayConnectionHandler(BufferFragment.this);                       // connect/disconnect watcher
+    }
 
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            if (DEBUG) logger.warn("{} onServiceDisconnected() <- should not happen!", BufferFragment.this.full_name);
-            if (buffer != null) {
-                buffer.setBufferEye(null);                             // buffer watcher
-                buffer = null;
-            }
-            relay = null;
+    public void onServiceDisconnected() {
+        if (buffer != null) {
+            buffer.setBufferEye(null);                             // buffer watcher
+            buffer = null;
         }
-    };
+        relay = null;
+    }
 
-    /////////////////////////
-    ///////////////////////// RelayConnectionHandler stuff
-    /////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// RelayConnectionHandler stuff
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @Override public void onConnecting() {}
     @Override public void onConnect() {}
@@ -358,7 +345,11 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     @Override
     public void onBufferClosed() {
         if (DEBUG_CONNECTION) logger.warn("{} onBufferClosed()", full_name);
-        ((WeechatActivity) getActivity()).closeBuffer(full_name);
+        activity.runOnUiThread(new Runnable() {
+            @Override public void run() {
+                activity.closeBuffer(full_name);
+            }
+        });
     }
 
     /////////////////////////
