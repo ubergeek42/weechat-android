@@ -42,7 +42,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     private static Logger logger = LoggerFactory.getLogger("BufferListFragment");
     final private static boolean DEBUG = BuildConfig.DEBUG;
     final private static boolean DEBUG_LIFECYCLE = true;
-    final private static boolean DEBUG_MESSAGES = true;
+    final private static boolean DEBUG_MESSAGES = false;
     final private static boolean DEBUG_CONNECTION = false;
     final private static boolean DEBUG_PREFERENCES = false;
     final private static boolean DEBUG_CLICK = false;

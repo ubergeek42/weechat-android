@@ -157,7 +157,10 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         // TODO Read preferences from background, its IO, 31ms strict mode!
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
         imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        setTitle("WeechatAndroid v" + BuildConfig.VERSION_NAME);
+        String title = "WA v" + BuildConfig.VERSION_NAME;
+        setTitle(title);
+        ui_strip.setEmptyText(title);
+        updateCutePagerTitleStrip();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
