@@ -54,7 +54,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     final private static boolean DEBUG = BuildConfig.DEBUG;
     final private static boolean DEBUG_TAB_COMPLETE = false;
     final private static boolean DEBUG_LIFECYCLE = false;
-    final private static boolean DEBUG_VISIBILITY = true;
+    final private static boolean DEBUG_VISIBILITY = false;
     final private static boolean DEBUG_MESSAGES = false;
     final private static boolean DEBUG_CONNECTION = false;
     final private static boolean DEBUG_AUTOSCROLLING = false;
@@ -179,6 +179,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
         started = false;
         detachFromBuffer();
         prefs.unregisterOnSharedPreferenceChangeListener(this);
+        relay = null;
         activity.unbind(this);
     }
 
@@ -254,6 +255,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     //////////////////////////////////////////////////////////////////////////////////////////////// RelayConnectionHandler stuff
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
+    // there's relay now
     private void attachToBufferOrClose() {
         if (DEBUG_LIFECYCLE) logger.warn("{} attachToBufferOrClose()", full_name);
         buffer = relay.getBufferByFullName(full_name);
@@ -261,7 +263,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
             onBufferClosed();
         short_name = buffer.short_name;
         buffer.setOpen(true);                           // in case it was open before relay
-        buffer.setBufferEye(BufferFragment.this);       // buffer watcher TODO: java.lang.NullPointerException if run in thread ?!?!
+        buffer.setBufferEye(this);                      // buffer watcher TODO: java.lang.NullPointerException if run in thread ?!?!
 
         chatlines_adapter = new ChatLinesAdapter(activity, buffer, ui_listview);
         chatlines_adapter.readLinesFromBuffer();
@@ -274,20 +276,18 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
             }
         });
 
-        this.relay.addRelayConnectionHandler(this);     // connect/disconnect watcher
+        relay.addRelayConnectionHandler(this);          // connect/disconnect watcher
         maybeChangeVisibilityState();
         maybeScrollToLine();
     }
 
+    // no relay after dis :<
     private void detachFromBuffer() {
         if (DEBUG_LIFECYCLE) logger.warn("{} detachFromBuffer()", full_name);
         maybeChangeVisibilityState();
-        relay.removeRelayConnectionHandler(BufferFragment.this);                // remove connect / disconnect watcher
-        relay = null;
-        buffer.setBufferEye(null);                                              // remove buffer watcher
+        if (relay != null) relay.removeRelayConnectionHandler(this);        // remove connect / disconnect watcher
+        buffer.setBufferEye(null);                                          // remove buffer watcher
         buffer = null;
-        prefs.unregisterOnSharedPreferenceChangeListener(this);
-        activity.unbind(this);
     }
 
 

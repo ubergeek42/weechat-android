@@ -41,8 +41,8 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
 
     private static Logger logger = LoggerFactory.getLogger("BufferListFragment");
     final private static boolean DEBUG = BuildConfig.DEBUG;
-    final private static boolean DEBUG_LIFECYCLE = false;
-    final private static boolean DEBUG_MESSAGES = false;
+    final private static boolean DEBUG_LIFECYCLE = true;
+    final private static boolean DEBUG_MESSAGES = true;
     final private static boolean DEBUG_CONNECTION = false;
     final private static boolean DEBUG_PREFERENCES = false;
     final private static boolean DEBUG_CLICK = false;
@@ -124,11 +124,8 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     public void onStop() {
         if (DEBUG_LIFECYCLE) logger.warn("onStop()");
         super.onStop();
-        BufferList.setBufferListEye(null);                                              // buffer change watcher (safe to call)
-        if (relay != null) {
-            relay.removeRelayConnectionHandler(BufferListFragment.this);                // connect/disconnect watcher (safe to call)
-            relay = null;
-        }
+        detachFromBufferList();
+        relay = null;
         if (DEBUG_LIFECYCLE) logger.warn("...calling unbindService()");
         getActivity().unbindService(service_connection);                                // TODO safe to call?
     }
@@ -142,9 +139,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
         public void onServiceConnected(ComponentName name, IBinder service) {           // TODO can this be called after Fragment.onStop()?
             if (DEBUG_LIFECYCLE) logger.warn("onServiceConnected()");
             relay = (RelayServiceBinder) service;
-            if (relay.isConnection(RelayService.BUFFERS_LISTED))
-                BufferListFragment.this.onBuffersListed();
-            relay.addRelayConnectionHandler(BufferListFragment.this);                   // connect/disconnect watcher
+            attachToBufferList();
         }
 
         @Override
@@ -172,6 +167,26 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     //////////////////////////////////////////////////////////////////////////////////////////////// RelayConnectionHandler
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
+    private void attachToBufferList() {
+        adapter = new BufferListAdapter(getActivity());
+        BufferList.setBufferListEye(this);
+        onHotCountChanged();
+        getActivity().runOnUiThread(new Runnable() {
+            @Override public void run() {
+                setListAdapter(adapter);
+            }
+        });
+        setFilter(ui_filter.getText());
+        onBuffersChanged();
+        relay.addRelayConnectionHandler(BufferListFragment.this);                   // connect/disconnect watcher
+    }
+
+    private void detachFromBufferList() {
+        if (relay != null)
+            relay.removeRelayConnectionHandler(BufferListFragment.this);                // connect/disconnect watcher (safe to call)
+        BufferList.setBufferListEye(null);                                              // buffer change watcher (safe to call)
+    }
+
     @Override public void onConnecting() {}
     @Override public void onConnect() {}
     @Override public void onAuthenticated() {}
@@ -180,17 +195,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     @Override
     public void onBuffersListed() {
         if (DEBUG_CONNECTION) logger.warn("onBuffersListed()");
-        adapter = new BufferListAdapter(getActivity());
-        BufferList.setBufferListEye(this);
-        onHotCountChanged();
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                setListAdapter(adapter);
-            }
-        });
-        setFilter(ui_filter.getText());
-        onBuffersChanged();
+        attachToBufferList();
     }
 
     @Override public void onDisconnect() {}
