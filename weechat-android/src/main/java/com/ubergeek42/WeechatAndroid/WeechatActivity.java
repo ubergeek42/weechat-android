@@ -33,6 +33,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.res.Configuration;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Looper;
@@ -64,10 +65,11 @@ import com.ubergeek42.WeechatAndroid.service.BufferList;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
 import com.ubergeek42.WeechatAndroid.service.RelayServiceBinder;
 import com.ubergeek42.WeechatAndroid.utils.MyMenuItemStuffListener;
+import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
 
 public class WeechatActivity extends SherlockFragmentActivity implements RelayConnectionHandler,
-        OnPageChangeListener, ActionBarSherlock.OnCreateOptionsMenuListener, ServiceConnection {
+        CutePagerTitleStrip.CutePageChangeListener, ActionBarSherlock.OnCreateOptionsMenuListener, ServiceConnection {
 
     private static Logger logger = LoggerFactory.getLogger("WA");
     final private static boolean DEBUG = BuildConfig.DEBUG;
@@ -336,11 +338,15 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     @Override public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {}
 
     @Override public void onPageSelected(int position) {
+        hideSoftwareKeyboard();
+    }
+
+    @Override public void onChange() {
         updateMenuItems();
         hideSoftwareKeyboard();
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// MENU
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -523,6 +529,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     public void closeBuffer(String full_name) {
         if (DEBUG_BUFFERS) logger.debug("closeBuffer({})", full_name);
         adapter.closeBuffer(full_name);
+        updateMenuItems();
         if (slidy) showDrawerIfPagerIsEmpty();
     }
 
@@ -583,7 +590,8 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     public void showDrawer() {
         if (DEBUG_DRAWER) logger.debug("showDrawer()");
         runOnUiThread(new Runnable() {
-            @Override public void run() {
+            @Override
+            public void run() {
                 ui_drawer_layout.openDrawer(ui_drawer);
             }
         });
@@ -592,7 +600,8 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     public void hideDrawer() {
         if (DEBUG_DRAWER) logger.debug("hideDrawer()");
         runOnUiThread(new Runnable() {
-            @Override public void run() {
+            @Override
+            public void run() {
                 ui_drawer_layout.closeDrawer(ui_drawer);
             }
         });
@@ -612,9 +621,11 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
 
     /** set image that appears in the pager when no pages are open */
     private void setInfoImage(final int id) {
+        final Drawable d = getResources().getDrawable(id);
         ui_info.post(new Runnable() {
             @Override public void run() {
-                ui_info.setImageResource(id);
+                Utils.setImageDrawableWithFade(ui_info, d, 350);
+                //ui_info.setImageResource(id);
             }
         });
     }

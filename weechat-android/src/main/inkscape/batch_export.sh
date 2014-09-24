@@ -26,7 +26,7 @@ function render {
 }
 
 for FILE in $BIG_ICONS; do
-    echo processing icon: ${FILE}.svg
+    echo processing big icon: ${FILE}.svg
     render $FILE "mdpi" 200
     render $FILE "hdpi" 300
     render $FILE "xhdpi" 400

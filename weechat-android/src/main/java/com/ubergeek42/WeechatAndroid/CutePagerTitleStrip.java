@@ -231,8 +231,13 @@ public class CutePagerTitleStrip extends ViewGroup {
         updateAdapter(mWatchingAdapter != null ? mWatchingAdapter.get() : null, adapter);
     }
 
-    private ViewPager.OnPageChangeListener listener = null;
-    public void setOnPageChangeListener(ViewPager.OnPageChangeListener listener) {
+    public static interface CutePageChangeListener extends ViewPager.OnPageChangeListener {
+        public void onChange();
+    }
+
+    private CutePageChangeListener listener = null;
+
+    public void setOnPageChangeListener(CutePageChangeListener listener) {
         this.listener = listener;
     }
 
@@ -494,6 +499,8 @@ public class CutePagerTitleStrip extends ViewGroup {
 
             final float offset = mLastKnownPositionOffset >= 0 ? mLastKnownPositionOffset : 0;
             updateTextPositions(mPager.getCurrentItem(), offset, true);
+            if (listener != null) listener.onChange();
+
         }
     }
 }
