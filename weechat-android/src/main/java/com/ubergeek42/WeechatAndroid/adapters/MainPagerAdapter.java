@@ -19,6 +19,8 @@ import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragment;
 import com.ubergeek42.WeechatAndroid.service.Buffer;
 
+import junit.framework.Assert;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -164,15 +166,22 @@ public class MainPagerAdapter extends PagerAdapter {
         return ((BufferFragment) fragments.get(i)).getShortBufferName();
     }
 
+    /** try focusing a buffer. return true if it was possible */
+    public boolean isBufferOpen(final String full_name) {
+        return full_names.indexOf(full_name) >= 0;
+
+    }
+
     /** MUST BE RUN ON MAIN THREAD
      ** switch to already open ui_buffer OR create a new ui_buffer, putting it into BOTH full_names and fragments,
      ** run notifyDataSetChanged() which will in turn call instantiateItem(), and set new ui_buffer as the current one */
     public void openBuffer(final String full_name, final boolean focus, final boolean must_focus_hot) {
-        if (DEBUG_BUFFERS) logger.info("openBuffer({}, {}, {})", new Object[]{full_name, focus, must_focus_hot});
-        if (Looper.myLooper() != Looper.getMainLooper()) logger.error("...NOT MAIN THREAD"); //TODO
+        if (DEBUG_BUFFERS) logger.info("openBuffer({}, can create={}, focus={}, focus line={})", new Object[]{full_name, focus, must_focus_hot});
+        Assert.assertEquals("...must be called on main thread!", Looper.myLooper(), Looper.getMainLooper()); //TODO
         int idx = full_names.indexOf(full_name);
         if (idx >= 0) {
             if (focus) pager.setCurrentItem(idx);
+            if (must_focus_hot) ((BufferFragment) fragments.get(idx)).maybeScrollToLine(true);
         } else {
             Buffer buffer = activity.relay.getBufferByFullName(full_name);
             if (buffer != null) buffer.setOpen(true);
@@ -181,7 +190,6 @@ public class MainPagerAdapter extends PagerAdapter {
             notifyDataSetChanged();
             if (focus) pager.setCurrentItem(full_names.size());
         }
-        if (must_focus_hot) ((BufferFragment) fragments.get(idx)).maybeScrollToLine(true);
     }
 
     private Fragment newBufferFragment(String full_name, boolean must_focus_hot) {
@@ -198,7 +206,7 @@ public class MainPagerAdapter extends PagerAdapter {
      ** destroyItem() checks the lists to see if it has to remove the item for good */
     public void closeBuffer(String full_name) {
         if (DEBUG_BUFFERS) logger.info("closeBuffer({})", full_name);
-        if (Looper.myLooper() != Looper.getMainLooper()) logger.error("...NOT MAIN THREAD"); //TODO
+        Assert.assertEquals("...must be called on main thread!", Looper.myLooper(), Looper.getMainLooper()); //TODO
         final int idx = full_names.indexOf(full_name);
         if (idx >= 0) {
             full_names.remove(idx);

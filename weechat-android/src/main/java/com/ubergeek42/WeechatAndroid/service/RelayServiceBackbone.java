@@ -265,7 +265,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
             // otherwise, go to buffer list (→ "")
             Set<String> set = new HashSet<String>();
             for (String[] h: hot_list) set.add(h[BUFFER]);
-            String target_buffer = set.size() == 1 ? hot_list.get(0)[BUFFER] : "";
+            String target_buffer = (hot_count == 1 && set.size() == 1) ? hot_list.get(0)[BUFFER] : "";
 
             // prepare intent
             Intent i = new Intent(this, WeechatActivity.class).putExtra("full_name", target_buffer);

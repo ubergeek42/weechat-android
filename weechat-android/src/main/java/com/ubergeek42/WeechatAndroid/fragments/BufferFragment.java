@@ -7,15 +7,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import android.app.Activity;
-import android.content.ComponentName;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
-import android.support.annotation.Nullable;
 import android.text.ClipboardManager;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -56,7 +53,8 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     private static Logger logger = LoggerFactory.getLogger("BufferFragment");
     final private static boolean DEBUG = BuildConfig.DEBUG;
     final private static boolean DEBUG_TAB_COMPLETE = false;
-    final private static boolean DEBUG_LIFECYCLE = true;
+    final private static boolean DEBUG_LIFECYCLE = false;
+    final private static boolean DEBUG_VISIBILITY = true;
     final private static boolean DEBUG_MESSAGES = false;
     final private static boolean DEBUG_CONNECTION = false;
     final private static boolean DEBUG_AUTOSCROLLING = false;
@@ -67,10 +65,10 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     private WeechatActivity activity = null;
     private boolean started = false;
 
-    private ListView chatLines;
-    private EditText inputBox;
-    private ImageButton sendButton;
-    private ImageButton tabButton;
+    private ListView ui_listview;
+    private EditText ui_input;
+    private ImageButton ui_send;
+    private ImageButton ui_tab;
 
     private RelayServiceBinder relay;
 
@@ -120,16 +118,18 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
         if (DEBUG_LIFECYCLE) logger.warn("{} onCreateView()", full_name);
         View v = inflater.inflate(R.layout.chatview_main, container, false);
 
-        chatLines = (ListView) v.findViewById(R.id.chatview_lines);
-        inputBox = (EditText) v.findViewById(R.id.chatview_input);
-        sendButton = (ImageButton) v.findViewById(R.id.chatview_send);
-        tabButton = (ImageButton) v.findViewById(R.id.chatview_tab);
+        ui_listview = (ListView) v.findViewById(R.id.chatview_lines);
+        ui_input = (EditText) v.findViewById(R.id.chatview_input);
+        ui_send = (ImageButton) v.findViewById(R.id.chatview_send);
+        ui_tab = (ImageButton) v.findViewById(R.id.chatview_tab);
 
-        sendButton.setOnClickListener(this);
-        tabButton.setOnClickListener(this);
-        inputBox.setOnKeyListener(this);            // listen for hardware keyboard
-        inputBox.addTextChangedListener(this);      // listen for software keyboard through watching input box text
-        inputBox.setOnEditorActionListener(this);   // listen for software keyboard's “send” click. see onEditorAction()
+        registerForContextMenu(ui_listview);
+
+        ui_send.setOnClickListener(this);
+        ui_tab.setOnClickListener(this);
+        ui_input.setOnKeyListener(this);            // listen for hardware keyboard
+        ui_input.addTextChangedListener(this);      // listen for software keyboard through watching input box text
+        ui_input.setOnEditorActionListener(this);   // listen for software keyboard's “send” click. see onEditorAction()
 
         return v;
     }
@@ -177,16 +177,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
         if (DEBUG_LIFECYCLE) logger.warn("{} onStop()", full_name);
         super.onStop();
         started = false;
-        maybeChangeVisibilityState();
-        if (relay != null) {
-            relay.removeRelayConnectionHandler(BufferFragment.this);                // remove connect / disconnect watcher
-            relay = null;
-        }
-        if (buffer != null) {
-            buffer.setBufferEye(null);                                              // remove buffer watcher
-            //buffer.setWatched(false);       // 123
-            buffer = null;
-        }
+        detachFromBuffer();
         prefs.unregisterOnSharedPreferenceChangeListener(this);
         activity.unbind(this);
     }
@@ -217,15 +208,21 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     private boolean visible = false;
 
     public void maybeChangeVisibilityState() {
-        if (DEBUG_LIFECYCLE) logger.error("{} maybeChangeVisibilityState()", full_name);
-        if (activity == null || buffer == null) return;
+        if (DEBUG_VISIBILITY) logger.warn("{} maybeChangeVisibilityState()", full_name);
+        if (activity == null || buffer == null) {
+            if (DEBUG_VISIBILITY) logger.warn("...activity={}, buffer={}", activity, buffer);
+            return;
+        }
+
         boolean obscured = activity.isPagerNoticeablyObscured();
         buffer.setWatched(started && visible && !obscured);
+        if (DEBUG_VISIBILITY) logger.warn("...started={}, visible={}, obscured={} (visible=t&t&f)", new Object[]{started, visible, obscured});
+
     }
 
     @Override
     public void setUserVisibleHint(boolean visible) {
-        if (DEBUG_LIFECYCLE) logger.warn("{} setUserVisibleHint({})", full_name, visible);
+        if (DEBUG_VISIBILITY) logger.warn("{} setUserVisibleHint({})", full_name, visible);
         super.setUserVisibleHint(visible);
         this.visible = visible;
         maybeChangeVisibilityState();
@@ -236,19 +233,18 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     //////////////////////////////////////////////////////////////////////////////////////////////// service connection
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public void onServiceConnected(IBinder relay) {
+    public void onServiceConnected(IBinder service) {
         if (DEBUG_LIFECYCLE) logger.warn("{} onServiceConnected()", full_name);
-        this.relay = (RelayServiceBinder) relay;
-        if (this.relay.isConnection(RelayService.BUFFERS_LISTED))
-            onBuffersListed();                                                           // TODO: run this in a thread
-        else
-            onDisconnect();
-        this.relay.addRelayConnectionHandler(BufferFragment.this);                       // connect/disconnect watcher
+        relay = (RelayServiceBinder) service;
+        boolean online = relay.isConnection(RelayService.BUFFERS_LISTED);
+        initUI(online);
+        attachToBufferOrClose();
     }
 
+    // should never ever happen
     public void onServiceDisconnected() {
         if (buffer != null) {
-            buffer.setBufferEye(null);                             // buffer watcher
+            buffer.setBufferEye(null);
             buffer = null;
         }
         relay = null;
@@ -258,73 +254,78 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     //////////////////////////////////////////////////////////////////////////////////////////////// RelayConnectionHandler stuff
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
+    private void attachToBufferOrClose() {
+        if (DEBUG_LIFECYCLE) logger.warn("{} attachToBufferOrClose()", full_name);
+        buffer = relay.getBufferByFullName(full_name);
+        if (buffer == null)
+            onBufferClosed();
+        short_name = buffer.short_name;
+        buffer.setOpen(true);                           // in case it was open before relay
+        buffer.setBufferEye(BufferFragment.this);       // buffer watcher TODO: java.lang.NullPointerException if run in thread ?!?!
+
+        chatlines_adapter = new ChatLinesAdapter(activity, buffer, ui_listview);
+        chatlines_adapter.readLinesFromBuffer();
+
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                activity.updateCutePagerTitleStrip();
+                ui_listview.setAdapter(chatlines_adapter);
+            }
+        });
+
+        this.relay.addRelayConnectionHandler(this);     // connect/disconnect watcher
+        maybeChangeVisibilityState();
+        maybeScrollToLine();
+    }
+
+    private void detachFromBuffer() {
+        if (DEBUG_LIFECYCLE) logger.warn("{} detachFromBuffer()", full_name);
+        maybeChangeVisibilityState();
+        relay.removeRelayConnectionHandler(BufferFragment.this);                // remove connect / disconnect watcher
+        relay = null;
+        buffer.setBufferEye(null);                                              // remove buffer watcher
+        buffer = null;
+        prefs.unregisterOnSharedPreferenceChangeListener(this);
+        activity.unbind(this);
+    }
+
+
+    public void initUI(final boolean online) {
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                ui_input.setFocusable(online);
+                ui_input.setFocusableInTouchMode(online);
+                ui_send.setEnabled(online);
+                ui_tab.setEnabled(online);
+                if (!online)
+                    activity.hideSoftwareKeyboard();
+            }
+        });
+    }
+
     @Override public void onConnecting() {}
     @Override public void onConnect() {}
     @Override public void onAuthenticated() {}
     @Override public void onError(String err, Object extraInfo) {}
 
-    /** this function is called when the buffers have been listed, i.e. when we can TRY
-     ** attaching to the buffer and fetching lines and sending messages and whatnot
-     ** it's not necessary that the buffers have been listed just now, though */
     public void onBuffersListed() {
         if (DEBUG_CONNECTION) logger.warn("{} onBuffersListed() <{}>", full_name, this);
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                // check if the buffer is still there
-                // it should be there at ALL times EXCEPT when we RE-connect to the service and find it missing
-                buffer = relay.getBufferByFullName(full_name);
-                if (buffer == null) {
-                    // TODO: replace with a notification that the buffer's been closed (?) in weechat?
-                    ViewGroup vg = (ViewGroup) getView().findViewById(R.id.chatview_layout);
-                    vg.removeAllViews();
-                    vg.addView(getActivity().getLayoutInflater().inflate(R.layout.buffer_not_loaded, vg, false));
-                }
-                else {
-                    // set short name. we set it here because it's the buffer won't change
-                    // and the name should be accessible between calls to this function
-                    short_name = buffer.short_name;
-                    ((WeechatActivity) getActivity()).updateCutePagerTitleStrip();
-                    chatlines_adapter = new ChatLinesAdapter(getActivity(), buffer, chatLines);
-                    buffer.setOpen(true);                       // in case it was open before relay
-                    buffer.setBufferEye(BufferFragment.this);   // buffer watcher TODO: java.lang.NullPointerException if run in thread ?!?!
-                    chatlines_adapter.readLinesFromBuffer();
-                    registerForContextMenu(chatLines);
-                    inputBox.setFocusable(true);
-                    inputBox.setFocusableInTouchMode(true);
-                    sendButton.setEnabled(true);
-                    tabButton.setEnabled(true);
-                    sendButton.setVisibility(prefs.getBoolean(PREF_SHOW_SEND, true) ? View.VISIBLE : View.GONE);
-                    tabButton.setVisibility(prefs.getBoolean(PREF_SHOW_TAB, false) ? View.VISIBLE : View.GONE);
-                    chatLines.setAdapter(chatlines_adapter);
-                    maybeChangeVisibilityState();
-                    maybeScrollToLine();
-                }
-            }
-        });
+        initUI(true);
+        attachToBufferOrClose();
     }
 
-    /** on disconnect, restore chat lines if any
-     ** remove the bottom bar to indicate that we are offline
-     ** also remove the keyboard, if any */
     @Override
     public void onDisconnect() {
         if (DEBUG_CONNECTION) logger.warn("{} onDisconnect()", full_name);
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (chatlines_adapter != null) chatLines.setAdapter(chatlines_adapter);
-                inputBox.setFocusable(false);
-                sendButton.setEnabled(false);
-                tabButton.setEnabled(false);
-                ((WeechatActivity) getActivity()).hideSoftwareKeyboard();
-            }
-        });
+        initUI(false);
     }
 
-    /////////////////////////
-    ///////////////////////// BufferObserver stuff
-    /////////////////////////
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// BufferObserver stuff
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @Override
     public void onLinesChanged() {
@@ -346,7 +347,8 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     public void onBufferClosed() {
         if (DEBUG_CONNECTION) logger.warn("{} onBufferClosed()", full_name);
         activity.runOnUiThread(new Runnable() {
-            @Override public void run() {
+            @Override
+            public void run() {
                 activity.closeBuffer(full_name);
             }
         });
@@ -370,7 +372,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
         if (DEBUG_AUTOSCROLLING) logger.error("{} maybeScrollToLine(), must_focus_hot = {}", full_name, must_focus_hot);
         if (!must_focus_hot || buffer == null || (!visible) || (!buffer.holds_all_lines))
             return;
-        chatLines.post(new Runnable() {
+        ui_listview.post(new Runnable() {
             @Override
             public void run() {
                 int count = chatlines_adapter.getCount(), idx = -1, highlights = 0;
@@ -382,8 +384,9 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
                         if (line.highlighted) highlights++;
                         if (highlights == buffer.old_highlights) break;
                     }
-                if (idx > 0) chatLines.smoothScrollToPosition(idx);
-                else Toast.makeText(getActivity(), "Can't find the line to scroll to", Toast.LENGTH_SHORT).show();
+                if (idx > 0) ui_listview.smoothScrollToPosition(idx);
+                else
+                    Toast.makeText(getActivity(), "Can't find the line to scroll to", Toast.LENGTH_SHORT).show();
                 must_focus_hot = false;
             }
         });
@@ -429,9 +432,9 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
      ** our own send button or tab button pressed */
     @Override
     public void onClick(View v) {
-        if (v.getId() == sendButton.getId())
+        if (v.getId() == ui_send.getId())
             getActivity().runOnUiThread(message_sender);
-        else if (v.getId() == tabButton.getId())
+        else if (v.getId() == ui_tab.getId())
             tryTabComplete();
     }
 
@@ -449,10 +452,10 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     /** the only OnSharedPreferenceChangeListener's method */
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        if (key.equals(PREF_SHOW_SEND) && sendButton != null)
-            sendButton.setVisibility(prefs.getBoolean(key, true) ? View.VISIBLE : View.GONE);
-        else if (key.equals(PREF_SHOW_TAB) && tabButton != null)
-            tabButton.setVisibility(prefs.getBoolean(key, true) ? View.VISIBLE : View.GONE);
+        if (key.equals(PREF_SHOW_SEND) && ui_send != null)
+            ui_send.setVisibility(prefs.getBoolean(key, true) ? View.VISIBLE : View.GONE);
+        else if (key.equals(PREF_SHOW_TAB) && ui_tab != null)
+            ui_tab.setVisibility(prefs.getBoolean(key, true) ? View.VISIBLE : View.GONE);
     }
 
     /////////////////////////
@@ -464,12 +467,12 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     private Runnable message_sender = new Runnable() {
         @Override
         public void run() {
-            String input = inputBox.getText().toString();
+            String input = ui_input.getText().toString();
             if (input.length() > 0) {
                 if (input.equals("/CL") || input.equals("/buffer clear"))
                     chatlines_adapter.clearLines();
                 relay.sendMessage("input " + buffer.full_name + " " + input + "\n");
-                inputBox.setText("");   // this will reset tab completion
+                ui_input.setText("");   // this will reset tab completion
             }
         }
     };
@@ -483,11 +486,11 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
         if (DEBUG_TAB_COMPLETE) logger.warn("tryTabComplete()");
         if (buffer == null) return;
 
-        String txt = inputBox.getText().toString();
+        String txt = ui_input.getText().toString();
         if (!tc_inprogress) {
             // find the end of the word to be completed
             // blabla nick|
-            tc_wordend = inputBox.getSelectionStart();
+            tc_wordend = ui_input.getSelectionStart();
             if (tc_wordend <= 0)
                 return;
 
@@ -523,9 +526,9 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
         String nick = tc_matches.get(tc_index);
         if (tc_wordstart == 0)
             nick += ": ";
-        inputBox.setText(txt.substring(0, tc_wordstart) + nick + txt.substring(tc_wordend));
+        ui_input.setText(txt.substring(0, tc_wordstart) + nick + txt.substring(tc_wordend));
         tc_wordend = tc_wordstart + nick.length();
-        inputBox.setSelection(tc_wordend);
+        ui_input.setSelection(tc_wordend);
         // altering text in the input box sets tc_inprogress to false,
         // so this is the last thing we do in this function:
         tc_inprogress = true;
