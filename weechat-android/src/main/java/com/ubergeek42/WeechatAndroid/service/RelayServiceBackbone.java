@@ -311,7 +311,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
     /** only auto-connect if auto-connect is on ON in the prefs and
      ** the user did not disconnect by tapping disconnect in menu */
     private boolean mustAutoConnect() {
-         return prefs.getBoolean(PREF_AUTO_CONNECT, true) && !prefs.getBoolean(PREF_MUST_STAY_DISCONNECTED, false);
+         return prefs.getBoolean(PREF_AUTO_CONNECT, false) && !prefs.getBoolean(PREF_MUST_STAY_DISCONNECTED, false);
     }
 
     private static final boolean CONNECTION_IMPOSSIBLE = false;
