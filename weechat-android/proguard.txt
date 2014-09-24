@@ -16,6 +16,13 @@
 -keep interface com.actionbarsherlock.** { *; }
 -keepattributes *Annotation*
 
+-keep class com.jcraft.jsch.jce.*
+-keep class * extends com.jcraft.jsch.KeyExchange
+-keep class com.jcraft.jsch.**
+-keep interface com.jcraft.jsch.**
+-dontwarn org.ietf.jgss.*
+-dontwarn com.jcraft.jzlib.ZStream
+
 # strip all logger calls
 # i hope the if (DEBUG) checks will get stripped too
 -assumenosideeffects class org.slf4j.Logger {
