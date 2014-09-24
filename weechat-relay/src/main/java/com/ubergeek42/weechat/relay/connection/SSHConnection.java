@@ -2,9 +2,12 @@ package com.ubergeek42.weechat.relay.connection;
 
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
+import com.jcraft.jsch.UIKeyboardInteractive;
+import com.jcraft.jsch.UserInfo;
 import com.ubergeek42.weechat.relay.JschLogger;
 
 import java.net.Socket;
+import java.util.regex.Pattern;
 
 public class SSHConnection extends AbstractConnection {
     /** SSH Tunnel Settings */
@@ -88,7 +91,7 @@ public class SSHConnection extends AbstractConnection {
                 sshSession = jsch.getSession(sshUsername, sshHost, sshPort);
 
                 if (sshKeyFilePath == null || sshKeyFilePath.length()==0)
-                    sshSession.setPassword(sshPassword);
+                    sshSession.setUserInfo(new WeechatUserInfo());
                 sshSession.setConfig("StrictHostKeyChecking", "no");
                 sshSession.connect();
                 sshSession.setPortForwardingL(sshLocalPort, server, port);
@@ -112,4 +115,24 @@ public class SSHConnection extends AbstractConnection {
         }
     });
     //TODO: override disconnect/other methods to make sure the tunnel is closed/cleaned up nicely
+
+    private class WeechatUserInfo implements UserInfo, UIKeyboardInteractive {
+        public String getPassphrase() { return null; }
+        public String getPassword() { return sshPassword; }
+        public boolean promptPassphrase(String message) { return false; }
+        public boolean promptPassword(String message) { return true; }
+        public boolean promptYesNo(String message) { return false; }
+        public void	showMessage(String message) { }
+        public String[] promptKeyboardInteractive(String destination, String name, String instruction, String[] prompt, boolean[] echo) {
+            String[] response = null;
+
+            Pattern passwordPrompt = Pattern.compile("(?i)password[^:]*:");
+            if (prompt.length==1 && !echo[0] && passwordPrompt.matcher(prompt[0]).find()) {
+                response = new String[1];
+                response[0] = sshPassword;
+            }
+
+            return response;
+        }
+    }
 }
