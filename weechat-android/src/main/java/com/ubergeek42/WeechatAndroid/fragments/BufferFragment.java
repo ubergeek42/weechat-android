@@ -261,7 +261,6 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
             return;
         }
         short_name = buffer.short_name;
-        //buffer.setOpen(true);                           // in case it was open before relay
         buffer.setBufferEye(this);                      // buffer watcher TODO: java.lang.NullPointerException if run in thread ?!?!
 
         chatlines_adapter = new ChatLinesAdapter(activity, buffer, ui_listview);
