@@ -53,7 +53,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     private static Logger logger = LoggerFactory.getLogger("BufferFragment");
     final private static boolean DEBUG = BuildConfig.DEBUG;
     final private static boolean DEBUG_TAB_COMPLETE = false;
-    final private static boolean DEBUG_LIFECYCLE = false;
+    final private static boolean DEBUG_LIFECYCLE = true;
     final private static boolean DEBUG_VISIBILITY = false;
     final private static boolean DEBUG_MESSAGES = false;
     final private static boolean DEBUG_CONNECTION = false;
@@ -210,11 +210,8 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
 
     public void maybeChangeVisibilityState() {
         if (DEBUG_VISIBILITY) logger.warn("{} maybeChangeVisibilityState()", full_name);
-        if (activity == null || buffer == null) {
-            if (DEBUG_VISIBILITY) logger.warn("...activity={}, buffer={}", activity, buffer);
+        if (activity == null || buffer == null)
             return;
-        }
-
         boolean obscured = activity.isPagerNoticeablyObscured();
         buffer.setWatched(started && visible && !obscured);
         if (DEBUG_VISIBILITY) logger.warn("...started={}, visible={}, obscured={} (visible=t&t&f)", new Object[]{started, visible, obscured});
@@ -259,10 +256,12 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     private void attachToBufferOrClose() {
         if (DEBUG_LIFECYCLE) logger.warn("{} attachToBufferOrClose()", full_name);
         buffer = relay.getBufferByFullName(full_name);
-        if (buffer == null)
+        if (buffer == null) {
             onBufferClosed();
+            return;
+        }
         short_name = buffer.short_name;
-        buffer.setOpen(true);                           // in case it was open before relay
+        //buffer.setOpen(true);                           // in case it was open before relay
         buffer.setBufferEye(this);                      // buffer watcher TODO: java.lang.NullPointerException if run in thread ?!?!
 
         chatlines_adapter = new ChatLinesAdapter(activity, buffer, ui_listview);
@@ -282,11 +281,12 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     }
 
     // no relay after dis :<
+    // buffer might be null if we are closing fragment that is not connected
     private void detachFromBuffer() {
         if (DEBUG_LIFECYCLE) logger.warn("{} detachFromBuffer()", full_name);
         maybeChangeVisibilityState();
         if (relay != null) relay.removeRelayConnectionHandler(this);        // remove connect / disconnect watcher
-        buffer.setBufferEye(null);                                          // remove buffer watcher
+        if (buffer != null) buffer.setBufferEye(null);                      // remove buffer watcher
         buffer = null;
     }
 

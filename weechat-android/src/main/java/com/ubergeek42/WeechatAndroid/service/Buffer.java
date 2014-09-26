@@ -312,6 +312,7 @@ public class Buffer {
     synchronized public void onBufferClosed() {
         if (DEBUG_BUFFER) logger.warn("{} onBufferClosed()", short_name);
         BufferList.removeHotMessagesForBuffer(this);
+        setOpen(false);
         if (buffer_eye != null) buffer_eye.onBufferClosed();
     }
 

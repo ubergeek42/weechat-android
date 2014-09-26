@@ -158,7 +158,7 @@ public class MainPagerAdapter extends PagerAdapter {
             return;
         transaction.commitAllowingStateLoss();
         transaction = null;
-        manager.executePendingTransactions();
+        //dmanager.executePendingTransactions();
     }
 
     @Override
