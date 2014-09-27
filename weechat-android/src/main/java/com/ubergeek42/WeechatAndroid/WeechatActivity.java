@@ -246,7 +246,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
 
     @Override
     public void onServiceConnected(ComponentName name, IBinder service) {
-        if (DEBUG_LIFECYCLE) logger.debug("onServiceConnected(), main thread? {}", Looper.myLooper() == Looper.getMainLooper());
+        if (DEBUG_LIFECYCLE) logger.debug("onServiceConnected()");
         relay = (RelayServiceBinder) service;
         relay.addRelayConnectionHandler(WeechatActivity.this);
 

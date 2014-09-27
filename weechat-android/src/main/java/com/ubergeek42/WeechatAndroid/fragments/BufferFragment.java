@@ -224,7 +224,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
         super.setUserVisibleHint(visible);
         this.visible = visible;
         maybeChangeVisibilityState();
-        maybeScrollToHotLine();
+        scrollToHotLineIfNeeded();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -276,7 +276,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
 
         relay.addRelayConnectionHandler(this);          // connect/disconnect watcher
         maybeChangeVisibilityState();
-        maybeScrollToHotLine();
+        scrollToHotLineIfNeeded();
     }
 
     // no relay after dis :<
@@ -334,7 +334,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     @Override
     public void onLinesListed() {
         if (DEBUG_MESSAGES) logger.warn("{} onLinesListed()", full_name);
-        maybeScrollToHotLine();
+        scrollToHotLineIfNeeded();
     }
 
     @Override
@@ -357,9 +357,11 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     //////////////////////////////////////////////////////////////////////////////////////////////// scrolling
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
+    private boolean must_scroll = false;
+
     public void scrollToHotLine() {
-        getArguments().putBoolean(LOCAL_PREF_FOCUS_HOT, true);
-        maybeScrollToHotLine();
+        must_scroll = true;
+        scrollToHotLineIfNeeded();
     }
 
     /** scroll to the first hot line, if possible (that is, first unread line in a private buffer
@@ -367,33 +369,32 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
      ** can be called multiple times, resets option when done
      ** posts to the listview to make sure it's fully completed loading the items
      ** after setting the adapter or updating lines */
-    public void maybeScrollToHotLine() {
-        if (DEBUG_AUTOSCROLLING) logger.error("{} maybeScrollToHotLine())");
-        if (!getArguments().getBoolean(LOCAL_PREF_FOCUS_HOT, false) || buffer == null || (!visible) || (!buffer.holds_all_lines))
-            return;
-        if (DEBUG_AUTOSCROLLING) logger.error("...proceeding");
-        ui_listview.post(new Runnable() {
-            @Override
-            public void run() {
-                int count = chatlines_adapter.getCount(), idx = -1, highlights = 0;
-                if (buffer.type == Buffer.PRIVATE && buffer.old_unreads > 0) {
-                    if (DEBUG_AUTOSCROLLING) logger.error("...private: count ({}) - old_unreads ({})", count, buffer.old_unreads);
-                    idx = count - buffer.old_unreads;
-                }
-                else if (buffer.old_highlights > 0) {
-                    if (DEBUG_AUTOSCROLLING) logger.error("...private: count ({}) -- old_highlights ({})", count, buffer.old_highlights);
-                    for (idx = count - 1; idx >= 0; idx--) {
-                        Buffer.Line line = (Buffer.Line) chatlines_adapter.getItem(idx);
-                        if (line.highlighted) highlights++;
-                        if (highlights == buffer.old_highlights) break;
+    public void scrollToHotLineIfNeeded() {
+        if (DEBUG_AUTOSCROLLING) logger.error("{} scrollToHotLineIfNeeded()", short_name);
+        if (must_scroll && buffer != null && visible && buffer.holds_all_lines) {
+            if (DEBUG_AUTOSCROLLING) logger.error("...proceeding");
+            ui_listview.post(new Runnable() {
+                @Override
+                public void run() {
+                    int count = chatlines_adapter.getCount(), idx = -1, highlights = 0;
+                    if (buffer.type == Buffer.PRIVATE && buffer.old_unreads > 0) {
+                        if (DEBUG_AUTOSCROLLING) logger.error("...private: count ({}) - old_unreads ({})", count, buffer.old_unreads);
+                        idx = count - buffer.old_unreads;
+                    } else if (buffer.old_highlights > 0) {
+                        if (DEBUG_AUTOSCROLLING) logger.error("...private: count ({}) -- old_highlights ({})", count, buffer.old_highlights);
+                        for (idx = count - 1; idx >= 0; idx--) {
+                            Buffer.Line line = (Buffer.Line) chatlines_adapter.getItem(idx);
+                            if (line.highlighted) highlights++;
+                            if (highlights == buffer.old_highlights) break;
+                        }
                     }
+                    if (idx > 0) ui_listview.smoothScrollToPosition(idx);
+                    else
+                        Toast.makeText(getActivity(), "Can't find the line to scroll to", Toast.LENGTH_SHORT).show();
+                    must_scroll = false;
                 }
-                if (idx > 0) ui_listview.smoothScrollToPosition(idx);
-                else
-                    Toast.makeText(getActivity(), "Can't find the line to scroll to", Toast.LENGTH_SHORT).show();
-                getArguments().remove(LOCAL_PREF_FOCUS_HOT);
-            }
-        });
+            });
+        }
     }
 
     /** the only OnKeyListener's method
