@@ -45,6 +45,10 @@
         android:dividerHeight="0dp"
         android:divider="@null"
         android:background="@color/doge"
-        android:fadingEdge="none" />
+        android:fadingEdge="none"
+        android:clickable="true"
+        android:longClickable="true"
+        android:listSelector="@android:color/darker_gray"
+        android:drawSelectorOnTop="false" />
 
 </RelativeLayout>

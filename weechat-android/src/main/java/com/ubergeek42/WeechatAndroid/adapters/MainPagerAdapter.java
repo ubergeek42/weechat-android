@@ -158,8 +158,14 @@ public class MainPagerAdapter extends PagerAdapter {
             return;
         transaction.commitAllowingStateLoss();
         transaction = null;
-        //dmanager.executePendingTransactions();
+        if (!executing_transaction) {
+            executing_transaction = true;
+            manager.executePendingTransactions();
+            executing_transaction = false;
+        }
     }
+
+    private boolean executing_transaction = false;
 
     @Override
     public CharSequence getPageTitle(int i) {
@@ -177,7 +183,7 @@ public class MainPagerAdapter extends PagerAdapter {
      ** run notifyDataSetChanged() which will in turn call instantiateItem(), and set new ui_buffer as the current one */
     public void openBuffer(final String full_name, final boolean focus, final boolean must_focus_hot) {
         if (DEBUG_BUFFERS) logger.info("openBuffer({}, focus={}, focus line={})", new Object[]{full_name, focus, must_focus_hot});
-        Assert.assertEquals("...must be called on main thread!", Looper.myLooper(), Looper.getMainLooper()); //TODO
+        Assert.assertEquals("...must be called on main thread!", Looper.myLooper(), Looper.getMainLooper());
         BufferFragment fragment;
         int idx = full_names.indexOf(full_name);
         if (idx >= 0) {
@@ -209,7 +215,7 @@ public class MainPagerAdapter extends PagerAdapter {
      ** destroyItem() checks the lists to see if it has to remove the item for good */
     public void closeBuffer(String full_name) {
         if (DEBUG_BUFFERS) logger.info("closeBuffer({})", full_name);
-        Assert.assertEquals("...must be called on main thread!", Looper.myLooper(), Looper.getMainLooper()); //TODO
+        Assert.assertEquals("...must be called on main thread!", Looper.myLooper(), Looper.getMainLooper());
         final int idx = full_names.indexOf(full_name);
         if (idx >= 0) {
             full_names.remove(idx);

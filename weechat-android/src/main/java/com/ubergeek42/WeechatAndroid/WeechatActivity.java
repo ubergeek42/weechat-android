@@ -36,7 +36,6 @@ import android.content.res.Configuration;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -152,10 +151,8 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
                     super.onDrawerStateChanged(newState);
                     boolean showing = (newState == DrawerLayout.STATE_IDLE) ?
                             ui_drawer_layout.isDrawerVisible(ui_drawer) : true;
-                    if (drawer_showing != showing) {
-                        drawer_showing = showing;
-                        drawerVisibilityChanged();
-                    }
+                    if (drawer_showing != showing)
+                        drawerVisibilityChanged(showing);
                 }
             };
             ui_drawer_layout.setDrawerListener(drawer_toggle);
@@ -233,19 +230,19 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
 
     private HashSet<BufferFragment> fragments = new HashSet<BufferFragment>();
 
-    public void bind(BufferFragment fragment) {
+    synchronized public void bind(BufferFragment fragment) {
         fragments.add(fragment);
         if (relay != null) fragment.onServiceConnected(relay);
     }
 
-    public void unbind(BufferFragment fragment) {
+    synchronized public void unbind(BufferFragment fragment) {
         fragments.remove(fragment);
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////// S E R V I C E
 
     @Override
-    public void onServiceConnected(ComponentName name, IBinder service) {
+    synchronized public void onServiceConnected(ComponentName name, IBinder service) {
         if (DEBUG_LIFECYCLE) logger.debug("onServiceConnected()");
         relay = (RelayServiceBinder) service;
         relay.addRelayConnectionHandler(WeechatActivity.this);
@@ -574,8 +571,9 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     //////////////////////////////////////////////////////////////////////////////////////////////// drawer stuff
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public void drawerVisibilityChanged() {
-        if (DEBUG_DRAWER) logger.debug("drawerVisibilityChanged()");
+    public void drawerVisibilityChanged(boolean showing) {
+        if (DEBUG_DRAWER) logger.debug("drawerVisibilityChanged({})", showing);
+        drawer_showing = showing;
         BufferFragment current = adapter.getCurrentBufferFragment();
         if (current != null)
             current.maybeChangeVisibilityState();
@@ -608,7 +606,8 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
 
     public void showDrawer() {
         if (DEBUG_DRAWER) logger.debug("showDrawer()");
-        runOnUiThread(new Runnable() {
+        if (!drawer_showing) drawerVisibilityChanged(true); // we need this so that drawer_showing is set immediately
+        ui_pager.post(new Runnable() {
             @Override
             public void run() {
                 ui_drawer_layout.openDrawer(ui_drawer);
@@ -618,7 +617,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
 
     public void hideDrawer() {
         if (DEBUG_DRAWER) logger.debug("hideDrawer()");
-        runOnUiThread(new Runnable() {
+        ui_pager.post(new Runnable() {
             @Override
             public void run() {
                 ui_drawer_layout.closeDrawer(ui_drawer);
