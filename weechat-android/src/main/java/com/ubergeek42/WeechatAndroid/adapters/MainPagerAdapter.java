@@ -31,10 +31,10 @@ public class MainPagerAdapter extends PagerAdapter {
     static Logger logger = LoggerFactory.getLogger("MainPagerAdapter");
     final static boolean DEBUG = BuildConfig.DEBUG;
     final static boolean DEBUG_SUPER = false;
-    final static boolean DEBUG_BUFFERS = false;
+    final static boolean DEBUG_BUFFERS = true;
 
     ArrayList<String> full_names = new ArrayList<String>();
-    ArrayList<Fragment> fragments = new ArrayList<Fragment>();
+    ArrayList<BufferFragment> fragments = new ArrayList<BufferFragment>();
     WeechatActivity activity;
     ViewPager pager;
     FragmentManager manager;
@@ -176,27 +176,30 @@ public class MainPagerAdapter extends PagerAdapter {
      ** switch to already open ui_buffer OR create a new ui_buffer, putting it into BOTH full_names and fragments,
      ** run notifyDataSetChanged() which will in turn call instantiateItem(), and set new ui_buffer as the current one */
     public void openBuffer(final String full_name, final boolean focus, final boolean must_focus_hot) {
-        if (DEBUG_BUFFERS) logger.info("openBuffer({}, can create={}, focus={}, focus line={})", new Object[]{full_name, focus, must_focus_hot});
+        if (DEBUG_BUFFERS) logger.info("openBuffer({}, focus={}, focus line={})", new Object[]{full_name, focus, must_focus_hot});
         Assert.assertEquals("...must be called on main thread!", Looper.myLooper(), Looper.getMainLooper()); //TODO
+        BufferFragment fragment;
         int idx = full_names.indexOf(full_name);
         if (idx >= 0) {
             if (focus) pager.setCurrentItem(idx);
-            if (must_focus_hot) ((BufferFragment) fragments.get(idx)).maybeScrollToLine(true);
+            fragment = fragments.get(idx);
         } else {
             Buffer buffer = activity.relay.getBufferByFullName(full_name);
-            if (buffer != null) buffer.setOpen(true);
-            fragments.add(newBufferFragment(full_name, must_focus_hot));
+            if (buffer != null)
+                buffer.setOpen(true);
+            fragment = newBufferFragment(full_name);
+            fragments.add(fragment);
             full_names.add(full_name);
             notifyDataSetChanged();
             if (focus) pager.setCurrentItem(full_names.size());
         }
+        if (must_focus_hot) fragment.scrollToHotLine();
     }
 
-    private Fragment newBufferFragment(String full_name, boolean must_focus_hot) {
-        Fragment fragment = new BufferFragment();
+    private BufferFragment newBufferFragment(String full_name) {
+        BufferFragment fragment = new BufferFragment();
         Bundle args = new Bundle();
-        args.putString("full_name", full_name);
-        if (must_focus_hot) args.putBoolean("must_focus_hot", true);
+        args.putString(BufferFragment.LOCAL_PREF_FULL_NAME, full_name);
         fragment.setArguments(args);
         return fragment;
     }
@@ -252,8 +255,8 @@ public class MainPagerAdapter extends PagerAdapter {
         full_names = state.getStringArrayList(FULL_NAMES);
         if (full_names.size() > 0) {
             for (String full_name : full_names) {
-                Fragment fragment = manager.getFragment(state, full_name);
-                fragments.add((fragment != null) ? fragment : newBufferFragment(full_name, false));
+                BufferFragment fragment = (BufferFragment) manager.getFragment(state, full_name);
+                fragments.add((fragment != null) ? fragment : newBufferFragment(full_name));
             }
             notifyDataSetChanged();
         }

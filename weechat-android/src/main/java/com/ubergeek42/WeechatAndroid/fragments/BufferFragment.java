@@ -57,10 +57,13 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     final private static boolean DEBUG_VISIBILITY = false;
     final private static boolean DEBUG_MESSAGES = false;
     final private static boolean DEBUG_CONNECTION = false;
-    final private static boolean DEBUG_AUTOSCROLLING = false;
+    final private static boolean DEBUG_AUTOSCROLLING = true;
 
     private final static String PREF_SHOW_SEND = "sendbtn_show";
     private final static String PREF_SHOW_TAB = "tabbtn_show";
+
+    public final static String LOCAL_PREF_FULL_NAME = "full_name";
+    public final static String LOCAL_PREF_FOCUS_HOT = "must_focus_hot";
 
     private WeechatActivity activity = null;
     private boolean started = false;
@@ -75,8 +78,6 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     private String full_name = "…";
     private String short_name = full_name;
     private Buffer buffer;
-
-    private boolean must_focus_hot = false;
 
     private ChatLinesAdapter chatlines_adapter;
 
@@ -108,7 +109,6 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
         if (savedInstanceState != null) short_name = savedInstanceState.getString("short_name");
         setRetainInstance(true);
         short_name = full_name = getArguments().getString("full_name");
-        must_focus_hot = getArguments().getBoolean("must_focus_hot", false);
         getArguments().remove("must_focus_hot");
         prefs = PreferenceManager.getDefaultSharedPreferences(getActivity().getBaseContext());
     }
@@ -224,7 +224,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
         super.setUserVisibleHint(visible);
         this.visible = visible;
         maybeChangeVisibilityState();
-        maybeScrollToLine();
+        maybeScrollToHotLine();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -276,7 +276,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
 
         relay.addRelayConnectionHandler(this);          // connect/disconnect watcher
         maybeChangeVisibilityState();
-        maybeScrollToLine();
+        maybeScrollToHotLine();
     }
 
     // no relay after dis :<
@@ -334,7 +334,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     @Override
     public void onLinesListed() {
         if (DEBUG_MESSAGES) logger.warn("{} onLinesListed()", full_name);
-        maybeScrollToLine();
+        maybeScrollToHotLine();
     }
 
     @Override
@@ -353,40 +353,45 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
         });
     }
 
-    /////////////////////////
-    ///////////////////////// misc
-    /////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// scrolling
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public void maybeScrollToLine(boolean must_focus_hot) {
-        this.must_focus_hot = must_focus_hot;
-        maybeScrollToLine();
+    public void scrollToHotLine() {
+        getArguments().putBoolean(LOCAL_PREF_FOCUS_HOT, true);
+        maybeScrollToHotLine();
     }
 
-    /** scroll to the first hot line, if possible  (that is, first unread line in a private buffer
+    /** scroll to the first hot line, if possible (that is, first unread line in a private buffer
      **     or the first unread highlight)
-     ** can be called multiple times, resets {@link #must_focus_hot} when done
+     ** can be called multiple times, resets option when done
      ** posts to the listview to make sure it's fully completed loading the items
      ** after setting the adapter or updating lines */
-    public void maybeScrollToLine() {
-        if (DEBUG_AUTOSCROLLING) logger.error("{} maybeScrollToLine(), must_focus_hot = {}", full_name, must_focus_hot);
-        if (!must_focus_hot || buffer == null || (!visible) || (!buffer.holds_all_lines))
+    public void maybeScrollToHotLine() {
+        if (DEBUG_AUTOSCROLLING) logger.error("{} maybeScrollToHotLine())");
+        if (!getArguments().getBoolean(LOCAL_PREF_FOCUS_HOT, false) || buffer == null || (!visible) || (!buffer.holds_all_lines))
             return;
+        if (DEBUG_AUTOSCROLLING) logger.error("...proceeding");
         ui_listview.post(new Runnable() {
             @Override
             public void run() {
                 int count = chatlines_adapter.getCount(), idx = -1, highlights = 0;
-                if (buffer.type == Buffer.PRIVATE && buffer.old_unreads > 0)
+                if (buffer.type == Buffer.PRIVATE && buffer.old_unreads > 0) {
+                    if (DEBUG_AUTOSCROLLING) logger.error("...private: count ({}) - old_unreads ({})", count, buffer.old_unreads);
                     idx = count - buffer.old_unreads;
-                else if (buffer.old_highlights > 0)
+                }
+                else if (buffer.old_highlights > 0) {
+                    if (DEBUG_AUTOSCROLLING) logger.error("...private: count ({}) -- old_highlights ({})", count, buffer.old_highlights);
                     for (idx = count - 1; idx >= 0; idx--) {
                         Buffer.Line line = (Buffer.Line) chatlines_adapter.getItem(idx);
                         if (line.highlighted) highlights++;
                         if (highlights == buffer.old_highlights) break;
                     }
+                }
                 if (idx > 0) ui_listview.smoothScrollToPosition(idx);
                 else
                     Toast.makeText(getActivity(), "Can't find the line to scroll to", Toast.LENGTH_SHORT).show();
-                must_focus_hot = false;
+                getArguments().remove(LOCAL_PREF_FOCUS_HOT);
             }
         });
     }

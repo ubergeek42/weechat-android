@@ -259,7 +259,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
 
         // if we have intent, handle it
         // if not, open drawer if the number of highlights has increased
-        if (intent_buffer_full_name != null)                    openBufferFromIntent();
+        if (getIntent().hasExtra(EXTRA_NAME))                   openBufferFromIntent();
         else if (slidy && BufferList.hot_count > hot_number)    showDrawer();
 
         for (BufferFragment fragment: fragments)
@@ -276,6 +276,9 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
 
 
     private void adjustUI() {
+        if (relay == null)
+            return;
+
         // set image
         if (relay.isConnection(RelayService.DISCONNECTED))      setInfoImage(R.drawable.ic_big_disconnected);
         else if (relay.isConnection(RelayService.CONNECTING))   setInfoImage(R.drawable.ic_big_connecting);
@@ -649,25 +652,30 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     //////////////////////////////////////////////////////////////////////////////////////////////// intent
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private String intent_buffer_full_name = null;
+    //private String intent_buffer_full_name = null;
+    private final String EXTRA_NAME = "full_name";
 
     /** we may get intent while we are connected to the service and when we are not.
      ** empty (but present) full_name means open the drawer (in case we have highlights
      ** on multiple buffers */
     @Override protected void onNewIntent(Intent intent) {
+        if (DEBUG_INTENT) logger.debug("onNewIntent(...), full_name='{}'", intent.getStringExtra(EXTRA_NAME));
         super.onNewIntent(intent);
-        intent_buffer_full_name = intent.getStringExtra("full_name");
-        if (DEBUG_INTENT) logger.debug("onNewIntent(...), full_name='{}'", intent_buffer_full_name);
-        if (relay != null) openBufferFromIntent();
+        if (intent.hasExtra(EXTRA_NAME)) {
+            setIntent(intent);
+            if (relay != null) openBufferFromIntent();
+        }
     }
 
+    /** the extra must be non-null */
     private void openBufferFromIntent() {
         if (DEBUG_INTENT) logger.debug("openBufferFromIntent()");
-        if ("".equals(intent_buffer_full_name)) {
+        String name = getIntent().getStringExtra(EXTRA_NAME);
+        if ("".equals(name)) {
             if (slidy) showDrawer();
         } else {
-            openBuffer(intent_buffer_full_name, true, true);
+            openBuffer(name, true, true);
         }
-        intent_buffer_full_name = null;
+        getIntent().removeExtra(EXTRA_NAME);
     }
 }
