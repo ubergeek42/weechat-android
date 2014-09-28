@@ -82,6 +82,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
     final static private String PREF_STUNNEL_CERT = "stunnel_cert";
     final static private String PREF_STUNNEL_PASS = "stunnel_pass";
     final static private String PREF_SSH_HOST = "ssh_host";
+    final static private String PREF_SSH_PORT = "ssh_port";
     final static private String PREF_SSH_USER = "ssh_user";
     final static private String PREF_SSH_PASS = "ssh_pass";
     final static private String PREF_SSH_KEYFILE = "ssh_keyfile";
@@ -406,6 +407,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
         if (connType.equals(PREF_TYPE_SSH)) {
             SSHConnection tmp = new SSHConnection(host, port);
             tmp.setSSHHost(prefs.getString(PREF_SSH_HOST, ""));
+            tmp.setSSHPort(prefs.getString(PREF_SSH_PORT, "22"));
             tmp.setSSHUsername(prefs.getString(PREF_SSH_USER, ""));
             tmp.setSSHKeyFile(prefs.getString(PREF_SSH_KEYFILE, ""));
             tmp.setSSHPassword(prefs.getString(PREF_SSH_PASS, ""));
