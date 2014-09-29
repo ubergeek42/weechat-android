@@ -47,6 +47,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     final private static boolean DEBUG_PREFERENCES = false;
     final private static boolean DEBUG_CLICK = false;
 
+    private WeechatActivity activity;
     private RelayServiceBinder relay;
     private BufferListAdapter adapter;
 
@@ -65,8 +66,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     public void onAttach(Activity activity) {
         if (DEBUG_LIFECYCLE) logger.warn("onAttach()");
         super.onAttach(activity);
-        if (!(activity instanceof WeechatActivity))
-            throw new ClassCastException(activity.toString() + " must be WeechatActivity");
+        this.activity = (WeechatActivity) activity;
     }
 
     /** Supposed to be called only once
@@ -113,8 +113,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     public void onStart() {
         if (DEBUG_LIFECYCLE) logger.warn("onStart()");
         super.onStart();
-        if (DEBUG_LIFECYCLE) logger.warn("...calling bindService()");
-        getActivity().bindService(new Intent(getActivity(), RelayService.class), service_connection,
+        activity.bindService(new Intent(getActivity(), RelayService.class), service_connection,
                 Context.BIND_AUTO_CREATE);
     }
 
@@ -126,8 +125,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
         super.onStop();
         detachFromBufferList();
         relay = null;
-        if (DEBUG_LIFECYCLE) logger.warn("...calling unbindService()");
-        getActivity().unbindService(service_connection);                                // TODO safe to call?
+        activity.unbindService(service_connection);                                     // TODO safe to call?
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -159,7 +157,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
         if (DEBUG_CLICK) logger.warn("onListItemClick(..., ..., {}, ...)", position);
         Object obj = getListView().getItemAtPosition(position);
         if (obj instanceof Buffer) {
-            ((WeechatActivity) getActivity()).openBuffer(((Buffer) obj).full_name, true, false);
+            activity.openBuffer(((Buffer) obj).full_name, true, false);
         }
     }
 
@@ -168,17 +166,17 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private void attachToBufferList() {
-        adapter = new BufferListAdapter(getActivity());
+        adapter = new BufferListAdapter(activity);
         BufferList.setBufferListEye(this);
         onHotCountChanged();
-        getActivity().runOnUiThread(new Runnable() {
+        activity.runOnUiThread(new Runnable() {
             @Override public void run() {
                 setListAdapter(adapter);
             }
         });
         setFilter(ui_filter.getText());
         onBuffersChanged();
-        relay.addRelayConnectionHandler(BufferListFragment.this);                   // connect/disconnect watcher
+        relay.addRelayConnectionHandler(BufferListFragment.this);                       // connect/disconnect watcher
     }
 
     private void detachFromBufferList() {
@@ -212,7 +210,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
 
     @Override public void onHotCountChanged() {
         if (DEBUG_MESSAGES) logger.warn("onHotCountChanged()");
-        ((WeechatActivity) getActivity()).updateHotCount(BufferList.hot_count);
+        activity.updateHotCount(BufferList.getHotCount());
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -228,7 +226,6 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     /** TextWatcher object used for filtering the buffer list */
     private TextWatcher filterTextWatcher = new TextWatcher() {
         @Override public void afterTextChanged(Editable a) {}
-
         @Override public void beforeTextChanged(CharSequence arg0, int a, int b, int c) {}
 
         @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -242,7 +239,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
 
     private void setFilter(final CharSequence s) {
         BufferList.setFilter(s);
-        getActivity().runOnUiThread(new Runnable() {
+        activity.runOnUiThread(new Runnable() {
             @Override public void run() {
                 ui_filter_clear.setVisibility((s.length() == 0) ? View.INVISIBLE : View.VISIBLE);
             }

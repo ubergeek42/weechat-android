@@ -206,6 +206,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     //////////////////////////////////////////////////////////////////////////////////////////////// visibility (set by pager adapter)
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
+    private boolean pager_visible = false;
     private boolean visible = false;
 
     public void maybeChangeVisibilityState() {
@@ -213,18 +214,18 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
         if (activity == null || buffer == null)
             return;
         boolean obscured = activity.isPagerNoticeablyObscured();
-        buffer.setWatched(started && visible && !obscured);
-        if (DEBUG_VISIBILITY) logger.warn("...started={}, visible={}, obscured={} (visible=t&t&f)", new Object[]{started, visible, obscured});
-
+        visible = started && pager_visible && !obscured;
+        if (DEBUG_VISIBILITY) logger.warn("...started={}, pager_visible={}, obscured={} (pager_visible=t&t&f)", new Object[]{started, pager_visible, obscured});
+        buffer.setWatched(visible);
+        scrollToHotLineIfNeeded();
     }
 
     @Override
     public void setUserVisibleHint(boolean visible) {
         if (DEBUG_VISIBILITY) logger.warn("{} setUserVisibleHint({})", full_name, visible);
         super.setUserVisibleHint(visible);
-        this.visible = visible;
+        this.pager_visible = visible;
         maybeChangeVisibilityState();
-        scrollToHotLineIfNeeded();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -376,21 +377,34 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
             ui_listview.post(new Runnable() {
                 @Override
                 public void run() {
-                    int count = chatlines_adapter.getCount(), idx = -1, highlights = 0;
+                    if (DEBUG_AUTOSCROLLING) logger.error("...u/h: {}/{}", buffer.old_unreads, buffer.old_highlights);
+                    int count = chatlines_adapter.getCount();
+                    Integer idx = null;
+
                     if (buffer.type == Buffer.PRIVATE && buffer.old_unreads > 0) {
-                        if (DEBUG_AUTOSCROLLING) logger.error("...private: count ({}) - old_unreads ({})", count, buffer.old_unreads);
-                        idx = count - buffer.old_unreads;
-                    } else if (buffer.old_highlights > 0) {
-                        if (DEBUG_AUTOSCROLLING) logger.error("...private: count ({}) -- old_highlights ({})", count, buffer.old_highlights);
+                        int privates = 0;
                         for (idx = count - 1; idx >= 0; idx--) {
                             Buffer.Line line = (Buffer.Line) chatlines_adapter.getItem(idx);
-                            if (line.highlighted) highlights++;
-                            if (highlights == buffer.old_highlights) break;
+                            if (line.type == Buffer.Line.LINE_MESSAGE && ++privates == buffer.old_unreads) break;
+                        }
+                    } else if (buffer.old_highlights > 0) {
+                        int highlights = 0;
+                        for (idx = count - 1; idx >= 0; idx--) {
+                            Buffer.Line line = (Buffer.Line) chatlines_adapter.getItem(idx);
+                            if (line.highlighted && ++highlights == buffer.old_highlights) break;
                         }
                     }
-                    if (idx > 0) ui_listview.smoothScrollToPosition(idx);
-                    else
+
+
+                    if (idx == null) {
+                        Toast.makeText(getActivity(), "The buffer must have been read in weechat", Toast.LENGTH_SHORT).show();
+                    } else if (idx < 0) {
                         Toast.makeText(getActivity(), "Can't find the line to scroll to", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(getActivity(), "Scrolling to: "+ idx + "/" + count + "(ohl:"+buffer.old_highlights+" our:"+buffer.old_unreads+")", Toast.LENGTH_SHORT).show();
+                        ui_listview.smoothScrollToPosition(idx);
+                    }
+
                     must_scroll = false;
                 }
             });
@@ -558,7 +572,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
      ** check for visibility is required because this is called for ALL fragments at once
      ** see http://stackoverflow.com/questions/5297842/how-to-handle-oncontextitemselected-in-a-multi-fragment-activity */
     @Override public boolean onContextItemSelected(MenuItem item) {
-        if (visible && copy_list != null) {
+        if (pager_visible && copy_list != null) {
             @SuppressWarnings("deprecation")
             ClipboardManager cm = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
             cm.setText(copy_list.get(item.getItemId() - CONTEXT_MENU_COPY_FIRST));

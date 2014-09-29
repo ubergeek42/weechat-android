@@ -2,7 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#ffffff"
+    android:background="@null"
     >
 
     <TextView
@@ -14,6 +14,18 @@
         android:text="@null"
         android:textAppearance="?android:attr/textAppearanceMedium"
     />
+
+    <!-- WHY CAN'T I USE android:layout_alignParentBottom=true?!?!
+     this doesn't make any sense whatsoever my ass -->
+    <View
+        android:id="@+id/open"
+        android:layout_width="2dp"
+        android:layout_height="match_parent"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignBottom="@+id/buffer"
+        android:background="@android:color/white"
+        android:visibility="gone" />
 
 
     <TextView

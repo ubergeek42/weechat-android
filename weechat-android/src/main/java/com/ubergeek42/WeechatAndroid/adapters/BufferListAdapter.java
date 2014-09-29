@@ -22,7 +22,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.ubergeek42.WeechatAndroid.BuildConfig;
@@ -43,20 +42,10 @@ public class BufferListAdapter extends BaseAdapter implements BufferListEye {
     LayoutInflater inflater;
     private ArrayList<Buffer> buffers = new ArrayList<Buffer>();
 
-    private static RelativeLayout.LayoutParams layout_params_closed;
-    private static RelativeLayout.LayoutParams layout_params_open;
-
-    static {
-        layout_params_closed = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-        layout_params_open = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-        layout_params_closed.setMargins(0, 0, 0, 0);
-        layout_params_open.setMargins(4, 0, 0, 0);
-    }
-
     final private static int[][] COLORS = new int[][] {
-            {0xff525252, 0xff6c6c6c}, // other
-            {0xff44525f, 0xff596c7d}, // channel
-            {0xff57474f, 0xff735e69}, // private
+            {0xaa525252, 0xaa6c6c6c}, // other
+            {0xaa44525f, 0xaa596c7d}, // channel
+            {0xaa57474f, 0xaa735e69}, // private
     };
     
     public BufferListAdapter(Activity activity) {
@@ -88,6 +77,7 @@ public class BufferListAdapter extends BaseAdapter implements BufferListEye {
         if (convertView == null) {
             convertView = inflater.inflate(R.layout.bufferlist_item, parent, false);
             holder = new ViewHolder();
+            holder.ui_open = convertView.findViewById(R.id.open);
             holder.ui_buffer = (TextView) convertView.findViewById(R.id.buffer);
             holder.ui_warm = (TextView) convertView.findViewById(R.id.buffer_warm);
             holder.ui_hot = (TextView) convertView.findViewById(R.id.buffer_hot);
@@ -105,7 +95,7 @@ public class BufferListAdapter extends BaseAdapter implements BufferListEye {
         int important = (highlights > 0 || (unreads > 0 && buffer.type == Buffer.PRIVATE)) ? 1 : 0;
 
         holder.ui_buffer.setBackgroundColor(COLORS[buffer.type][important]);
-        holder.ui_buffer.setLayoutParams(buffer.is_open ? layout_params_open : layout_params_closed);
+        holder.ui_open.setVisibility(buffer.is_open ? View.VISIBLE : View.GONE);
 
         if (highlights > 0) {
             holder.ui_hot.setText(Integer.toString(highlights));
@@ -126,6 +116,7 @@ public class BufferListAdapter extends BaseAdapter implements BufferListEye {
         TextView ui_hot;
         TextView ui_warm;
         TextView ui_buffer;
+        View ui_open;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

@@ -256,8 +256,8 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
 
         // if we have intent, handle it
         // if not, open drawer if the number of highlights has increased
-        if (getIntent().hasExtra(EXTRA_NAME))                   openBufferFromIntent();
-        else if (slidy && BufferList.hot_count > hot_number)    showDrawer();
+        if (getIntent().hasExtra(EXTRA_NAME))                       openBufferFromIntent();
+        else if (slidy && BufferList.getHotCount() > hot_number)    showDrawer();
 
         for (BufferFragment fragment: fragments)
             fragment.onServiceConnected(relay);
@@ -574,6 +574,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     public void drawerVisibilityChanged(boolean showing) {
         if (DEBUG_DRAWER) logger.debug("drawerVisibilityChanged({})", showing);
         drawer_showing = showing;
+        hideSoftwareKeyboard();
         BufferFragment current = adapter.getCurrentBufferFragment();
         if (current != null)
             current.maybeChangeVisibilityState();

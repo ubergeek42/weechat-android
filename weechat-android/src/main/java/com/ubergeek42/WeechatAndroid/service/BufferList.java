@@ -240,8 +240,19 @@ public class BufferList {
     //////////////////////////////////////////////////////////////////////////////////////////////// hotlist stuff
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    static public ArrayList<String[]> hot_list = new ArrayList<String[]>();     // {"irc.free.#123", "<nick> hi there"}
-    static public int hot_count = 0;                                     // might be greater than size of hot_list
+    /** a list of most recent ACTUALLY RECEIVED hot messages
+     ** each entry has a form of {"irc.free.#123", "<nick> hi there"} */
+    static public ArrayList<String[]> hot_list = new ArrayList<String[]>();
+
+    /** this is the value calculated from hotlist received from weechat
+     ** it MIGHT BE GREATER than size of hot_list
+     ** initialized, it's -1, so that on service restart we know to remove notification 43 */
+    static private int hot_count = -1;
+
+    /** returns hot count or 0 if unknown */
+    static public int getHotCount() {
+        return hot_count == -1 ? 0 : hot_count;
+    }
 
     /** called when a new new hot message just arrived */
     synchronized static void newHotLine(final @NonNull Buffer buffer, final @NonNull Buffer.Line line) {
