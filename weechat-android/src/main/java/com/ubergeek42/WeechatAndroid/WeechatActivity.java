@@ -498,7 +498,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         for (Buffer buffer : BufferList.getBufferList()) {
             if ((buffer.type == Buffer.PRIVATE && buffer.unreads > 0) ||
                     buffer.highlights > 0) {
-                openBuffer(buffer.full_name, true, true);
+                openBuffer(buffer.full_name, true);
                 return;
             }
         }
@@ -532,10 +532,10 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         adapter.openBuffer(full_name, false, false);
     }
 
-    public void openBuffer(@NonNull String full_name, boolean focus, boolean scroll) {
+    public void openBuffer(@NonNull String full_name, boolean scroll) {
         if (DEBUG_BUFFERS) logger.debug("openBuffer({})", full_name);
         if (adapter.isBufferOpen(full_name) || relay.isConnection(RelayService.CONNECTED)) {
-            adapter.openBuffer(full_name, focus, scroll);
+            adapter.openBuffer(full_name, true, scroll);
             if (slidy) hideDrawer();
         } else {
             Toast.makeText(this, "Not connected", Toast.LENGTH_SHORT).show();
@@ -674,7 +674,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         if ("".equals(name)) {
             if (slidy) showDrawer();
         } else {
-            openBuffer(name, true, true);
+            openBuffer(name, true);
         }
         getIntent().removeExtra(EXTRA_NAME);
     }

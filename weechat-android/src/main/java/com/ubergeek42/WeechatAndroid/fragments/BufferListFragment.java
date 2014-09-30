@@ -157,7 +157,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
         if (DEBUG_CLICK) logger.warn("onListItemClick(..., ..., {}, ...)", position);
         Object obj = getListView().getItemAtPosition(position);
         if (obj instanceof Buffer) {
-            activity.openBuffer(((Buffer) obj).full_name, true, false);
+            activity.openBuffer(((Buffer) obj).full_name, false);
         }
     }
 
