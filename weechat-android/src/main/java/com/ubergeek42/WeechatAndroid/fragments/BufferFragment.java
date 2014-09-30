@@ -258,7 +258,13 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
         if (DEBUG_LIFECYCLE) logger.warn("{} attachToBufferOrClose()", full_name);
         buffer = relay.getBufferByFullName(full_name);
         if (buffer == null) {
-            onBufferClosed();
+            // no buffer? it might happen if:
+            //  * the buffer was closed in weechat. if so, close here as well
+            //    (post so that closing doesn't get executed on current loop to avoid issues)
+            //  * we are not yet connected, e.g., after service shutdown. if so,
+            //    wait for onBuffersListed event
+            if (relay.isConnection(RelayService.BUFFERS_LISTED))
+                ui_listview.post(new Runnable() {@Override public void run() {onBufferClosed();}});
             return;
         }
         short_name = buffer.short_name;
@@ -277,7 +283,6 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
 
         relay.addRelayConnectionHandler(this);          // connect/disconnect watcher
         maybeChangeVisibilityState();
-        scrollToHotLineIfNeeded();
     }
 
     // no relay after dis :<
@@ -374,6 +379,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
         if (DEBUG_AUTOSCROLLING) logger.error("{} scrollToHotLineIfNeeded()", short_name);
         if (must_scroll && buffer != null && visible && buffer.holds_all_lines) {
             if (DEBUG_AUTOSCROLLING) logger.error("...proceeding");
+            must_scroll = false;
             ui_listview.post(new Runnable() {
                 @Override
                 public void run() {
@@ -404,8 +410,6 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
                         Toast.makeText(getActivity(), "Scrolling to: "+ idx + "/" + count + "(ohl:"+buffer.old_highlights+" our:"+buffer.old_unreads+")", Toast.LENGTH_LONG).show();
                         ui_listview.smoothScrollToPosition(idx);
                     }
-
-                    must_scroll = false;
                 }
             });
         }
