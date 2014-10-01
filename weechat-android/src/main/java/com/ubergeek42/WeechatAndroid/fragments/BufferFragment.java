@@ -63,7 +63,6 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     private final static String PREF_SHOW_TAB = "tabbtn_show";
 
     public final static String LOCAL_PREF_FULL_NAME = "full_name";
-    public final static String LOCAL_PREF_FOCUS_HOT = "must_focus_hot";
 
     private WeechatActivity activity = null;
     private boolean started = false;
@@ -108,8 +107,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
         super.onCreate(savedInstanceState);
         if (savedInstanceState != null) short_name = savedInstanceState.getString("short_name");
         setRetainInstance(true);
-        short_name = full_name = getArguments().getString("full_name");
-        getArguments().remove("must_focus_hot");
+        short_name = full_name = getArguments().getString(LOCAL_PREF_FULL_NAME);
         prefs = PreferenceManager.getDefaultSharedPreferences(getActivity().getBaseContext());
     }
 

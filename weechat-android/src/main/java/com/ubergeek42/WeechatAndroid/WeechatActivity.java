@@ -468,8 +468,8 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
             case R.id.menu_hotlist:
                 break;
             case R.id.menu_nicklist:
-                if (relay == null || adapter.getCount() == 0) break;
-                Buffer buffer = relay.getBufferByFullName(adapter.getFullNameAt(ui_pager.getCurrentItem()));
+                if (relay == null) break;
+                Buffer buffer = relay.getBufferByFullName(adapter.getCurrentBufferFullName());
                 if (buffer == null) break;
 
                 NickListAdapter nicklistAdapter = new NickListAdapter(WeechatActivity.this, buffer);
