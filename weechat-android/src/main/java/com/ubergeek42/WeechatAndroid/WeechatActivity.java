@@ -581,8 +581,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     }
 
     public boolean isPagerNoticeablyObscured() {
-        return drawer_showing;
-        //todo
+        return drawer_showing;                          //todo?
     }
 
     public void enableDrawer() {
