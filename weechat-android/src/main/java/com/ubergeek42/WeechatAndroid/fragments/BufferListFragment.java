@@ -22,11 +22,9 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
 
 import com.actionbarsherlock.app.SherlockListFragment;
 import com.ubergeek42.WeechatAndroid.adapters.BufferListAdapter;
-import com.ubergeek42.WeechatAndroid.BuildConfig;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.service.Buffer;
@@ -40,7 +38,6 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
         BufferListEye, OnSharedPreferenceChangeListener, View.OnClickListener {
 
     private static Logger logger = LoggerFactory.getLogger("BufferListFragment");
-    final private static boolean DEBUG = BuildConfig.DEBUG;
     final private static boolean DEBUG_LIFECYCLE = false;
     final private static boolean DEBUG_MESSAGES = false;
     final private static boolean DEBUG_CONNECTION = false;
@@ -100,15 +97,6 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
         ui_filter.removeTextChangedListener(filterTextWatcher);
     }
 
-    /** relay is ALWAYS null on start
-     ** binding to relay service results in:
-     **   service_connection.onServiceConnected() which:
-     **     binds to RelayConnectionHandler, and,
-     **     if connected,
-     **       calls on Connect()
-     **         which results in buffer_manager.setOnChangedHandler()
-     **     else
-     **       calls onDisconnect(), which sets the “please connect” message */
     @Override
     public void onStart() {
         if (DEBUG_LIFECYCLE) logger.warn("onStart()");
@@ -117,8 +105,6 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
                 Context.BIND_AUTO_CREATE);
     }
 
-    /** here we remove RelayConnectionHandler & buffer_manager's onchange handler
-     ** it should be safe to call all unbinding functions */
     @Override
     public void onStop() {
         if (DEBUG_LIFECYCLE) logger.warn("onStop()");
@@ -142,33 +128,32 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-            if (DEBUG) logger.error("onServiceDisconnected() <- should not happen!");
+            if (DEBUG_LIFECYCLE) logger.error("onServiceDisconnected() <- should not happen!");
             relay = null;
         }
     };
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// on click
-    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// RelayConnectionHandler
 
-    /** this is the mother method, it actually opens buffers */
+    @Override public void onConnecting() {}
+    @Override public void onConnect() {}
+    @Override public void onAuthenticated() {}
+    @Override public void onDisconnect() {}
+    @Override public void onError(String err, Object extraInfo) {}
+
+    /** this is called when the list of buffers has been finalised */
     @Override
-    public void onListItemClick(ListView l, View v, int position, long id) {
-        if (DEBUG_CLICK) logger.warn("onListItemClick(..., ..., {}, ...)", position);
-        Object obj = getListView().getItemAtPosition(position);
-        if (obj instanceof Buffer) {
-            activity.openBuffer(((Buffer) obj).full_name, false);
-        }
+    public void onBuffersListed() {
+        if (DEBUG_CONNECTION) logger.warn("onBuffersListed()");
+        attachToBufferList();
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// RelayConnectionHandler
-    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// the juice
 
     private void attachToBufferList() {
         adapter = new BufferListAdapter(activity);
         BufferList.setBufferListEye(this);
-        onHotCountChanged();
+        onHotCountChanged();                                                            // todo unnecessary?
         activity.runOnUiThread(new Runnable() {
             @Override public void run() {
                 setListAdapter(adapter);
@@ -185,19 +170,18 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
         BufferList.setBufferListEye(null);                                              // buffer change watcher (safe to call)
     }
 
-    @Override public void onConnecting() {}
-    @Override public void onConnect() {}
-    @Override public void onAuthenticated() {}
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// on click
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    /** this is called when the list of buffers has been finalised */
+    /** this is the mother method, it actually opens buffers */
     @Override
-    public void onBuffersListed() {
-        if (DEBUG_CONNECTION) logger.warn("onBuffersListed()");
-        attachToBufferList();
+    public void onListItemClick(ListView l, View v, int position, long id) {
+        if (DEBUG_CLICK) logger.warn("onListItemClick(..., ..., {}, ...)", position);
+        Object obj = getListView().getItemAtPosition(position);
+        if (obj instanceof Buffer)
+            activity.openBuffer(((Buffer) obj).full_name, false);
     }
-
-    @Override public void onDisconnect() {}
-    @Override public void onError(String err, Object extraInfo) {}
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// BufferListEye
