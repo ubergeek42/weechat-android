@@ -307,16 +307,10 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
         lines_adapter.onPropertiesChanged();
     }
 
-    // post so that closing buffer never happens in the same loop as opening it
-    // must prevent concurrent modification errors & possibly recursive transaction execution?
     @Override
     public void onBufferClosed() {
         if (DEBUG_CONNECTION) logger.warn("{} onBufferClosed()", full_name);
-        ui_lines.post(new Runnable() {
-            @Override public void run() {
-                activity.closeBuffer(full_name);
-            }
-        });
+        activity.closeBuffer(full_name);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -336,7 +330,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
      ** posts to the listview to make sure it's fully completed loading the items
      **     after setting the adapter or updating lines */
     public void scrollToHotLineIfNeeded() {
-        if (DEBUG_AUTOSCROLLING) logger.error("{} scrollToHotLineIfNeeded()", short_name);
+        if (DEBUG_AUTOSCROLLING) logger.error("{} scrollToHotLineIfNeeded(), must scroll? {}", short_name, must_scroll);
         if (must_scroll && buffer != null && visible && buffer.holds_all_lines) {
             if (DEBUG_AUTOSCROLLING) logger.error("...proceeding");
             must_scroll = false;

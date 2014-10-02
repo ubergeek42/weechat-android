@@ -2,6 +2,8 @@ package com.ubergeek42.WeechatAndroid.adapters;
 
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.Parcelable;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -24,14 +26,17 @@ import java.util.ArrayList;
 public class MainPagerAdapter extends PagerAdapter {
 
     static Logger logger = LoggerFactory.getLogger("MainPagerAdapter");
-    final static boolean DEBUG_SUPER = false;
-    final static boolean DEBUG_BUFFERS = true;
+    final private static boolean DEBUG_SUPER = false;
+    final private static boolean DEBUG_BUFFERS = true;
 
-    ArrayList<String> full_names = new ArrayList<String>();
-    ArrayList<BufferFragment> fragments = new ArrayList<BufferFragment>();
-    WeechatActivity activity;
-    ViewPager pager;
-    FragmentManager manager;
+    private ArrayList<String> full_names = new ArrayList<String>();
+    private ArrayList<BufferFragment> fragments = new ArrayList<BufferFragment>();
+
+    final private WeechatActivity activity;
+    final private ViewPager pager;
+    final private FragmentManager manager;
+    final private Handler handler;
+
     FragmentTransaction transaction = null;
 
     public MainPagerAdapter(WeechatActivity activity, FragmentManager manager, ViewPager pager) {
@@ -39,6 +44,7 @@ public class MainPagerAdapter extends PagerAdapter {
         this.activity = activity;
         this.manager = manager;
         this.pager = pager;
+        handler = new Handler(Looper.getMainLooper());
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -198,23 +204,18 @@ public class MainPagerAdapter extends PagerAdapter {
     @Override
     public void startUpdate(ViewGroup container) {}
 
-    private boolean executing_transaction = false;
-
-    /** commit the transaction and execute it at once—in the current loop—if possible
-     ** the check is necessary because calls to executePendingTransactions() can't be recursive
-     ** if it's not possible to execute now, transaction will be executed some time later
-     ** on the main thread */
+    /** commit the transaction and execute it ASAP, but NOT on the current loop */
     @Override
     public void finishUpdate(ViewGroup container) {
         if (transaction == null)
             return;
         transaction.commitAllowingStateLoss();
         transaction = null;
-        if (!executing_transaction) {
-            executing_transaction = true;
-            manager.executePendingTransactions();
-            executing_transaction = false;
-        }
+        handler.postAtFrontOfQueue(new Runnable() {
+            @Override public void run() {
+                manager.executePendingTransactions();
+            }
+        });
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////// save / restore

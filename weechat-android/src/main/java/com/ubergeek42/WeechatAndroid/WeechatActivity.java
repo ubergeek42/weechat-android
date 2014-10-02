@@ -155,6 +155,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
                         drawerVisibilityChanged(showing);
                 }
             };
+            drawer_showing = ui_drawer_layout.isDrawerVisible(ui_drawer);
             ui_drawer_layout.setDrawerListener(drawer_toggle);
             ui_action_bar.setDisplayHomeAsUpEnabled(true);
         }
