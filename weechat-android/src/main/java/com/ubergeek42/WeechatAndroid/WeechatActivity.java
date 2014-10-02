@@ -80,7 +80,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     final private static boolean DEBUG_DRAWER = true;
 
     public RelayServiceBinder relay;
-    private Menu menu;
+    private Menu ui_menu;
     private ViewPager ui_pager;
     private MainPagerAdapter adapter;
     private InputMethodManager imm;
@@ -393,10 +393,10 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     /** hide or show nicklist/close menu item according to buffer
      ** MUST be called on main thread */
     private void updateMenuItems() {
-        if (menu == null) return;
+        if (ui_menu == null) return;
         boolean buffer_visible = adapter.getCount() > 0;
-        menu.findItem(R.id.menu_nicklist).setVisible(buffer_visible);
-        menu.findItem(R.id.menu_close).setVisible(buffer_visible);
+        ui_menu.findItem(R.id.menu_nicklist).setVisible(buffer_visible);
+        ui_menu.findItem(R.id.menu_close).setVisible(buffer_visible);
     }
 
     /** Can safely hold on to this according to docs
@@ -415,7 +415,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
                 onHotlistSelected();
             }
         };
-        this.menu = menu;
+        this.ui_menu = menu;
         makeMenuReflectConnectionStatus();
         return super.onCreateOptionsMenu(menu);
     }
@@ -511,8 +511,8 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if (WeechatActivity.this.menu != null) {
-                    MenuItem connectionStatus = WeechatActivity.this.menu.findItem(R.id.menu_connection_state);
+                if (WeechatActivity.this.ui_menu != null) {
+                    MenuItem connectionStatus = WeechatActivity.this.ui_menu.findItem(R.id.menu_connection_state);
                     if (relay != null && (relay.isConnection(RelayService.CONNECTED)))
                         connectionStatus.setTitle(R.string.disconnect);
                     else
