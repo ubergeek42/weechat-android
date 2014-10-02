@@ -97,6 +97,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
 
     final static private String PREF_NOTIFICATION_SOUND = "notification_sound";
     final static private String PREF_NOTIFICATION_LIGHT = "notification_light";
+    final static private String PREF_NOTIFICATION_TICKER = "notification_ticker";
 
     final static private String PREF_MUST_STAY_DISCONNECTED = "wow!";
 
@@ -219,8 +220,11 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
                .setSmallIcon(icon)
                .setContentTitle("WeechatAndroid v" + BuildConfig.VERSION_NAME)
                .setContentText(content)
-               .setTicker(tickerText)
                .setWhen(System.currentTimeMillis());
+
+        if (prefs.getBoolean(PREF_NOTIFICATION_TICKER, true)) {
+            builder.setTicker(tickerText);
+        }
 
         Notification notification = builder.build();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
