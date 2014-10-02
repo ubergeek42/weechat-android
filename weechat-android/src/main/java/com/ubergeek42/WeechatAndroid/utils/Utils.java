@@ -39,9 +39,7 @@ public class Utils {
      ** needed to make sure nothing crashes if we cannot restore the data */
     public static final int SERIALIZATION_PROTOCOL_ID = 3;
 
-    @SuppressWarnings("unchecked")
-    public static @Nullable
-    Object deserialize(@Nullable String string) {
+    public static @Nullable Object deserialize(@Nullable String string) {
         if (string == null) return null;
         try {
             byte[] data = Base64.decode(string, Base64.DEFAULT);
