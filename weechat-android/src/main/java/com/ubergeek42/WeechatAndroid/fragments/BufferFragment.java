@@ -437,11 +437,13 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     private Runnable message_sender = new Runnable() {
         @Override
         public void run() {
-            String input = ui_input.getText().toString();
-            if (input.length() > 0) {
-                relay.sendMessage("input " + buffer.full_name + " " + input + "\n");
-                ui_input.setText("");   // this will reset tab completion
+            String[] input = ui_input.getText().toString().split("\n");
+            for (String line : input) {
+                if (line.length() == 0)
+                    continue;
+                relay.sendMessage("input " + buffer.full_name + " " + line + "\n");
             }
+            ui_input.setText("");   // this will reset tab completion
         }
     };
 
