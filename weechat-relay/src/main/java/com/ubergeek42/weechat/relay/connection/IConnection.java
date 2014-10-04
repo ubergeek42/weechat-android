@@ -21,7 +21,7 @@ public interface IConnection {
     public void disconnect();
     public boolean isConnected();
 
-    int read(byte[] bytes) throws IOException;
+    int read(byte[] bytes, int off, int len) throws IOException;
     void write(byte[] bytes);
 
     void notifyHandlers(STATE s);

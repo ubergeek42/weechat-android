@@ -35,11 +35,11 @@ public abstract class AbstractConnection implements IConnection {
     }
 
     @Override
-    public int read(byte[] bytes) throws IOException {
+    public int read(byte[] bytes, int off, int len) throws IOException {
         InputStream in = in_stream;
         if (in == null)
             return -1;
-        return in.read(bytes);
+        return in.read(bytes, off, len);
     }
 
     @Override
