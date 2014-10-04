@@ -495,15 +495,11 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     private void onHotlistSelected() {
         if (DEBUG_OPTIONS_MENU) logger.debug("onHotlistSelected()");
         if (relay == null) return;
-
-        for (Buffer buffer : BufferList.getBufferList()) {
-            if ((buffer.type == Buffer.PRIVATE && buffer.unreads > 0) ||
-                    buffer.highlights > 0) {
-                openBuffer(buffer.full_name, true);
-                return;
-            }
-        }
-        Toast.makeText(this, "There are no hot buffers for now", Toast.LENGTH_SHORT).show();
+        Buffer buffer = BufferList.getHotBuffer();
+        if (buffer != null)
+            openBuffer(buffer.full_name, true);
+        else
+            Toast.makeText(this, "There are no hot buffers for now", Toast.LENGTH_SHORT).show();
     }
 
     /** change first menu item from connect to disconnect or back depending on connection status */
