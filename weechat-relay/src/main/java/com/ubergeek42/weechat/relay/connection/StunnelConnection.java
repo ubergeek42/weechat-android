@@ -79,7 +79,7 @@ public class StunnelConnection extends AbstractConnection {
                 context.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
             } catch (Exception e) {
                 e.printStackTrace();
-                notifyHandlers(STATE.ERROR);
+                notifyHandlersOfError(e);
                 return;
             }
 
@@ -92,7 +92,7 @@ public class StunnelConnection extends AbstractConnection {
                 notifyHandlers(STATE.CONNECTED);
             } catch (Exception e) {
                 e.printStackTrace();
-                notifyHandlers(STATE.ERROR);
+                notifyHandlersOfError(e);
             }
         }
     });
