@@ -384,7 +384,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
         int action = event.getAction();
         // Enter key sends the message
         if (keycode == KeyEvent.KEYCODE_ENTER) {
-            if (action == KeyEvent.ACTION_UP) activity.runOnUiThread(message_sender);
+            if (action == KeyEvent.ACTION_UP) sendMessage();
             return true;
         }
         // Check for text resizing keys (volume buttons)
@@ -414,7 +414,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     @Override
     public void onClick(View v) {
         if (v.getId() == ui_send.getId())
-            activity.runOnUiThread(message_sender);
+            sendMessage();
         else if (v.getId() == ui_tab.getId())
             tryTabComplete();
     }
@@ -424,28 +424,24 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     @Override
     public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
         if (actionId == EditorInfo.IME_ACTION_SEND) {
-            activity.runOnUiThread(message_sender);
+            sendMessage();
             return true;
         }
         return false;
     }
 
-    //////////////////////////////////////////////////////////////////////////////////////////////// send todo why runnable?
+    //////////////////////////////////////////////////////////////////////////////////////////////// send message
 
-    /** ends the message if there's anything to send
-     ** if user entered /buffer clear or /CL command, then clear the lines */
-    private Runnable message_sender = new Runnable() {
-        @Override
-        public void run() {
-            String[] input = ui_input.getText().toString().split("\n");
-            for (String line : input) {
-                if (line.length() == 0)
-                    continue;
-                relay.sendMessage("input " + buffer.full_name + " " + line + "\n");
-            }
-            ui_input.setText("");   // this will reset tab completion
+    /** sends the message if there's anything to send */
+    private void sendMessage() {
+        String[] input = ui_input.getText().toString().split("\n");
+        for (String line : input) {
+            if (line.length() == 0)
+                continue;
+            relay.sendMessage("input " + buffer.full_name + " " + line);
         }
-    };
+        ui_input.setText("");   // this will reset tab completion
+    }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// tab completion
