@@ -1,6 +1,10 @@
 package com.ubergeek42.WeechatAndroid.service;
 
+import android.content.Context;
+import android.content.Intent;
 import android.graphics.Typeface;
+import android.net.Uri;
+import android.provider.Browser;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.Spannable;
@@ -628,9 +632,15 @@ public class Buffer {
                 super(url);
             }
 
-            @Override public void onClick(View v) {
-                if (!Line.this.clickDisabled)
-                    super.onClick(v);
+            @Override public void onClick(View widget) {
+                if (!Line.this.clickDisabled) {
+                    Uri uri = Uri.parse(getURL());
+                    Context context = widget.getContext();
+                    Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+                    intent.putExtra(Browser.EXTRA_APPLICATION_ID, context.getPackageName());
+                    intent.putExtra(Browser.EXTRA_CREATE_NEW_TAB, true);
+                    context.startActivity(intent);
+                }
                 Line.this.clickDisabled = false;
             }
 
