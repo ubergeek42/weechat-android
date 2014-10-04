@@ -40,6 +40,7 @@
         <CheckBoxPreference android:key="chatview_filters" android:title="@string/pref_chatview_filters" android:summary="@string/pref_chatview_filters_summary" android:defaultValue="true" />
         <ListPreference android:key="prefix_align" android:title="@string/pref_prefix_align" android:defaultValue="right" android:entries="@array/pref_prefix_align_names" android:entryValues="@array/settings_prefix_alignment_values" />
         <EditTextPreference android:key="prefix_max_width" android:title="@string/pref_max_width" android:summary="@string/pref_max_width_summary" android:numeric="integer" android:defaultValue="7" />
+        <CheckBoxPreference android:key="enclose_nick" android:title="@string/pref_enclose_nick" android:summary="@string/pref_enclose_nick_summary" android:defaultValue="false" />
 		<EditTextPreference android:key="timestamp_format" android:title="@string/pref_timestamp_format" android:summary="@string/pref_timestamp_format_summary" android:defaultValue="HH:mm:ss" android:singleLine="true" />
         <CheckBoxPreference android:key="dim_down" android:title="@string/pref_dim_down" android:summary="@string/pref_dim_down_summary" android:defaultValue="false" />
     </PreferenceCategory>

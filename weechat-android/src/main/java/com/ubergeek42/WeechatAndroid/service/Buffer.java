@@ -490,6 +490,7 @@ public class Buffer {
         public static int ALIGN = ALIGN_RIGHT;
         public static int MAX_WIDTH = 7;
         public static float LETTER_WIDTH = 12;
+        public static boolean ENCLOSE_NICK = false;
         public static boolean DIM_DOWN_NON_HUMAN_LINES = true;
 
         // core message data
@@ -502,7 +503,9 @@ public class Buffer {
         final public boolean visible;
         final public int type;
         final public boolean highlighted;
-        final private @Nullable String[] tags;
+        private @Nullable String speakingNick;
+        private boolean privmsg;
+        private boolean action;
         private boolean clickDisabled = false;
 
         // processed data
@@ -517,34 +520,45 @@ public class Buffer {
             this.message = (message == null) ? "" : message;
             this.visible = displayed;
             this.highlighted = highlighted;
-            this.tags = tags;
-            this.type = findOutMessageType();
+
+            if (tags != null) {
+                boolean log1 = false;
+                boolean notify_none = false;
+
+                for (String tag : tags) {
+                    if (tag.equals("log1"))
+                        log1 = true;
+                    else if (tag.equals("notify_none"))
+                        notify_none = true;
+                    else if (tag.startsWith("nick_"))
+                        this.speakingNick = tag.substring(5);
+                    else if (tag.endsWith("_privmsg"))
+                        this.privmsg = true;
+                    else if (tag.endsWith("_action"))
+                        this.action = true;
+                }
+
+                if (tags.length == 0 || !log1) {
+                    this.type = LINE_OTHER;
+                } else {
+                    // Every "message" to user should have one or more of these tags
+                    // notify_none, notify_highlight or notify_message
+                    this.type = notify_none ? LINE_OWN : LINE_MESSAGE;
+                }
+            } else {
+                // there are no tags, it's probably an old version of weechat, so we err
+                // on the safe side and treat it as from human
+                this.type = LINE_MESSAGE;
+            }
         }
 
         final public static int LINE_OTHER = 0;
         final public static int LINE_OWN = 1;
         final public static int LINE_MESSAGE = 2;
 
-        private int findOutMessageType() {
-            // there's no tags, probably it's an old version of weechat, so we err
-            // on the safe side and treat it as from human
-            if (tags == null) return LINE_MESSAGE;
-
-            // Every "message" to user should have one or more of these tags
-            // notify_message, notify_highlight or notify_message
-            if (tags.length == 0) return LINE_OTHER;
-
-            final List list = Arrays.asList(tags);
-            if (!list.contains("log1")) return LINE_OTHER;
-            return list.contains("notify_none") ? LINE_OWN : LINE_MESSAGE;
-        }
-
         private @Nullable String findSpeakingNick() {
-            if (type != LINE_MESSAGE || tags == null) return null;
-            for (String tag : tags)
-                if (tag.startsWith("nick_"))
-                    return tag.substring(5);
-            return null;
+            if (type != LINE_MESSAGE) return null;
+            return speakingNick;
         }
 
         public void disableClick() {
@@ -570,7 +584,8 @@ public class Buffer {
         public void processMessage() {
             if (DEBUG_LINE) logger.warn("processMessage()");
             String timestamp = (DATEFORMAT == null) ? null : DATEFORMAT.format(date);
-            Color.parse(timestamp, prefix, message, highlighted, MAX_WIDTH, ALIGN == ALIGN_RIGHT);
+            boolean encloseNick = ENCLOSE_NICK && privmsg && !action;
+            Color.parse(timestamp, prefix, message, encloseNick, highlighted, MAX_WIDTH, ALIGN == ALIGN_RIGHT);
             Spannable spannable = new SpannableString(Color.clean_message);
 
             if (this.type == LINE_OTHER && DIM_DOWN_NON_HUMAN_LINES) {
@@ -607,14 +622,7 @@ public class Buffer {
 
         /** is to be run rarely—only when we need to display a notification */
         public String getNotificationString() {
-            boolean action = false;
-            if (tags != null)
-                for (String tag: tags)
-                    if (tag.endsWith("action")) {
-                        action = true;
-                        break;
-                    }
-            return String.format(action ? "%s %s" : "<%s> %s",
+            return String.format((!privmsg || action) ? "%s %s" : "<%s> %s",
                     Color.stripEverything(prefix),
                     Color.stripEverything(message));
         }
