@@ -89,6 +89,8 @@
 		        <item>Right aligned</item>
 		        <item>No alignment</item>
 		    </string-array>
+	    <string name="pref_enclose_nick">Enclose nicknames</string>
+	    <string name="pref_enclose_nick_summary">Enclose nicknames of messages with &lt;&#xA0;and&#xA0;&gt;</string>
 	    <string name="pref_chatview_timestamps">Show timestamps</string>
 	    <string name="pref_chatview_timestamps_summary">Whether to display timestamps in chat. Saves space when disabled.</string>
 	    <string name="pref_timestamp_format">Timestamp format</string>

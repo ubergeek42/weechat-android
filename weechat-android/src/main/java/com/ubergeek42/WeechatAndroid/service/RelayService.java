@@ -50,6 +50,7 @@ public class RelayService extends RelayServiceBackbone {
     public static final String PREFS_DIM_DOWN = "dim_down";
     public static final String PREFS_TIMESTAMP_FORMAT = "timestamp_format";
     public static final String PREFS_PREFIX_ALIGN = "prefix_align";
+    public static final String PREFS_ENCLOSE_NICK = "enclose_nick";
     public static final String PREFS_TEXT_SIZE = "text_size";
 
     /** super method sets 'prefs' */
@@ -68,6 +69,7 @@ public class RelayService extends RelayServiceBackbone {
 
         // buffer line-wide preferences
         Buffer.Line.MAX_WIDTH = Integer.parseInt(prefs.getString(PREFS_MAX_WIDTH, "7"));
+        Buffer.Line.ENCLOSE_NICK = prefs.getBoolean(PREFS_ENCLOSE_NICK, false);
         Buffer.Line.DIM_DOWN_NON_HUMAN_LINES = prefs.getBoolean(PREFS_DIM_DOWN, false);
         setTimestampFormat();
         setAlignment();
@@ -185,6 +187,9 @@ public class RelayService extends RelayServiceBackbone {
             BufferList.notifyOpenBuffersMustBeProcessed(false);
         } else if (key.equals(PREFS_PREFIX_ALIGN)) {
             setAlignment();
+            BufferList.notifyOpenBuffersMustBeProcessed(false);
+        } else if (key.equals(PREFS_ENCLOSE_NICK)) {
+            Buffer.Line.ENCLOSE_NICK = prefs.getBoolean(PREFS_ENCLOSE_NICK, false);
             BufferList.notifyOpenBuffersMustBeProcessed(false);
         } else if (key.equals(PREFS_TEXT_SIZE)) {
             setTextSizeAndLetterWidth();

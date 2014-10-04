@@ -145,9 +145,9 @@ public class Color {
     public static ArrayList<Span> final_span_list;
 
     // prepares: clean_message, margin, final_span_list
-    public static void parse(String timestamp, String prefix, String message, final boolean highlight, final int max, final boolean align_right) {
-        if (DEBUG) logger.debug("parse(timestamp='{}', prefix='{}', message='{}', highlight={}, max={}, align_right={})",
-                new Object[]{timestamp, prefix, message, highlight, max, align_right});
+    public static void parse(String timestamp, String prefix, String message, final boolean enclose_nick, final boolean highlight, final int max, final boolean align_right) {
+        if (DEBUG) logger.debug("parse(timestamp='{}', prefix='{}', message='{}', enclose_nick={}, highlight={}, max={}, align_right={})",
+                new Object[]{timestamp, prefix, message, enclose_nick, highlight, max, align_right});
         int puff;
         int color;
         StringBuilder sb = new StringBuilder();
@@ -186,6 +186,7 @@ public class Color {
             color = weechatOptions[29][1];
             if (color != -1) {Span bg = new Span(); bg.start = 0; bg.end = prefix.length(); bg.type = Span.BGCOLOR; bg.color = color; span_list.add(bg);}
         }
+        if (enclose_nick) sb.append("<");
         puff = sb.length();
         for (Span span : span_list) {
             span.start += puff;
@@ -194,9 +195,11 @@ public class Color {
         }
         sb.append(prefix);
         if (nick_has_been_cut) {
+            if (enclose_nick) sb.append(">");
             sb.append("+");
             Span fg = new Span(); fg.start = sb.length() - 1; fg.end = sb.length(); fg.type = Span.FGCOLOR; fg.color = 0x444444; final_span_list.add(fg);
         }
+        else if (enclose_nick) sb.append("> ");
         else sb.append(" ");
 
         // here's our margin
