@@ -24,13 +24,11 @@ import com.ubergeek42.weechat.relay.protocol.RelayObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Class to provide and manage a connection to a weechat relay server
@@ -89,6 +87,8 @@ public class RelayConnection implements RelayConnectionHandler {
      */
     public void disconnect() {
         conn.disconnect();
+        socketReader.interrupt();
+        socketWriter.interrupt();
     }
 
 
@@ -139,11 +139,10 @@ public class RelayConnection implements RelayConnectionHandler {
         public void run() {
             while(conn.isConnected()) {
                 try {
-                    String msg = outbox.poll(250, TimeUnit.MILLISECONDS);
-                    if (msg != null)
-                        conn.write(msg.getBytes());
+                    String msg = outbox.take();
+                    conn.write(msg.getBytes());
                 } catch (InterruptedException e) {
-                    // Shouldn't be an issue I don't think, we'll just try again
+                    // Ensure that conn is disconnected before interrupting the thread
                 }
             }
         }
@@ -155,42 +154,47 @@ public class RelayConnection implements RelayConnectionHandler {
     private Thread socketReader = new Thread(new Runnable() {
         @Override
         public void run() {
-            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-            byte b[] = new byte[1024];
+            byte header[] = new byte[4];
+            int header_pos = 0;
+            byte data[] = null;
+            int data_pos = 0;
             while (conn.isConnected()) {
                 try {
-                    int r = conn.read(b);
+                    if (data == null) {
+                        int r = conn.read(header, header_pos, header.length - header_pos);
+                        if (r > 0) {
+                            header_pos += r;
+                        } else if (r == -1) { // Stream closed
+                            break;
+                        }
+
+                        if (header_pos == header.length) {
+                            data = Helper.copyOfRange(header, 0, new Data(header).getUnsignedInt());
+                            data_pos = header.length;
+                            if (data_pos > data.length)
+                                 data = null;
+                            header_pos = 0;
+                        } else {
+                            continue;
+                        }
+                    }
+
+                    int r = conn.read(data, data_pos, data.length - data_pos);
                     if (r > 0) {
-                        buffer.write(b, 0, r);
+                        data_pos += r;
                     } else if (r == -1) { // Stream closed
                         break;
                     }
 
-                    while (buffer.size() >= 4) {
-                        // Calculate length
-
-                        // TODO: wasteful...
-                        int length = new Data(buffer.toByteArray()).getUnsignedInt();
-
-                        // Still have more message to read
-                        if (buffer.size() < length) {
-                            break;
-                        }
-
-                        // logger.trace("socketReader got message, size: " + length);
-                        // We have a full message, so let's do something with it
-                        byte[] bdata = buffer.toByteArray();
-                        byte[] msgdata = Helper.copyOfRange(bdata, 0, length);
-                        byte[] remainder = Helper.copyOfRange(bdata, length, bdata.length);
-                        RelayMessage wm = new RelayMessage(msgdata);
+                    if (data_pos == data.length) {
+                        // logger.trace("socketReader got message, size: " + data.length);
+                        RelayMessage wm = new RelayMessage(data);
 
                         handleMessage(wm);
                         // logger.trace("handleMessage took " + (System.currentTimeMillis()-start) +
                         // "ms(id: "+wm.getID()+")");
 
-                        // Reset the buffer, and put back any additional data
-                        buffer.reset();
-                        buffer.write(remainder);
+                        data = null;
                     }
 
                 } catch (IOException e) {
@@ -274,10 +278,8 @@ public class RelayConnection implements RelayConnectionHandler {
     public void onDisconnect() {
         if (DEBUG) logger.debug("onDisconnect()");
 
-        // If the thread is still reading data
-        if (socketReader.isAlive()) {
-            // TODO: kill the thread if necessary
-        }
+        socketReader.interrupt();
+        socketWriter.interrupt();
     }
 
     @Override
