@@ -67,6 +67,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
     private static Logger logger = LoggerFactory.getLogger("RelayServiceBackbone");
     final private static boolean DEBUG = false;
     final private static boolean DEBUG_CONNECTION = false;
+    final private static boolean DEBUG_NOTIFICATIONS = true;
 
     private static final int NOTIFICATION_ID = 42;
     private static final int NOTIFICATION_HIGHLIGHT_ID = 43;
@@ -202,7 +203,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
 
     @TargetApi(16)
     private Notification buildNotification(@Nullable String tickerText, @NonNull String content, @Nullable PendingIntent intent) {
-        if (DEBUG_CONNECTION) logger.debug("buildNotification({}, {}, {})", new Object[]{tickerText, content, intent});
+        if (DEBUG_NOTIFICATIONS) logger.debug("buildNotification({}, {}, {})", new Object[]{tickerText, content, intent});
         PendingIntent contentIntent;
         contentIntent = (intent != null) ? intent :
             PendingIntent.getActivity(this, 0, new Intent(this, WeechatActivity.class), PendingIntent.FLAG_CANCEL_CURRENT);
@@ -258,7 +259,8 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
      ** arrived in real time. so we add (message not available) if there are NO lines to display
      ** and add "..." if there are some lines to display, but not all */
     public void changeHotNotification(boolean new_highlight) {
-        final int hot_count = BufferList.hot_count;
+        if (DEBUG_NOTIFICATIONS) logger.warn("changeHotNotification({})", new_highlight);
+        final int hot_count = BufferList.getHotCount();
         final List<String[]> hot_list = BufferList.hot_list;
 
         if (hot_count == 0) {
@@ -268,7 +270,8 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
             // otherwise, go to buffer list (→ "")
             Set<String> set = new HashSet<String>();
             for (String[] h: hot_list) set.add(h[BUFFER]);
-            String target_buffer = set.size() == 1 ? hot_list.get(0)[BUFFER] : "";
+            String target_buffer = (hot_count == hot_list.size() && set.size() == 1) ? hot_list.get(0)[BUFFER] : "";
+            if (DEBUG_NOTIFICATIONS) logger.warn("...target='{}', hot_count={}, set.size()={}", new Object[]{target_buffer, hot_count, set.size()});
 
             // prepare intent
             Intent i = new Intent(this, WeechatActivity.class).putExtra("full_name", target_buffer);

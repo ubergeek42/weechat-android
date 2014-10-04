@@ -20,6 +20,7 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.database.DataSetObserver;
 import android.graphics.drawable.Drawable;
+import android.support.annotation.Nullable;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.text.TextUtils.TruncateAt;
@@ -28,6 +29,9 @@ import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.ref.WeakReference;
 
@@ -80,12 +84,6 @@ public class CutePagerTitleStrip extends ViewGroup {
             text.setSingleLine();
         }
     }
-
-//    static class PagerTitleStripImplIcs implements PagerTitleStripImpl {
-//        public void setSingleLineAllCaps(TextView text) {
-//            PagerTitleStripIcs.setSingleLineAllCaps(text);
-//        }
-//    }
 
     private static final PagerTitleStripImpl IMPL;
     static {
@@ -233,32 +231,50 @@ public class CutePagerTitleStrip extends ViewGroup {
         updateAdapter(mWatchingAdapter != null ? mWatchingAdapter.get() : null, adapter);
     }
 
-    private ViewPager.OnPageChangeListener listener = null;
-    public void setOnPageChangeListener(ViewPager.OnPageChangeListener listener) {
+    public static interface CutePageChangeListener extends ViewPager.OnPageChangeListener {
+        public void onChange();
+    }
+
+    private CutePageChangeListener listener = null;
+
+    public void setOnPageChangeListener(CutePageChangeListener listener) {
         this.listener = listener;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private @Nullable String mEmptyText = null;
+
+    public void setEmptyText(@Nullable String text) {
+        mEmptyText = text;
     }
 
     public void updateText() {
         if (mPager != null) updateText(mPager.getCurrentItem(), mPager.getAdapter());
+        requestLayout();
     }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     void updateText(int currentItem, PagerAdapter adapter) {
         final int itemCount = adapter != null ? adapter.getCount() : 0;
         mUpdatingText = true;
 
+
         CharSequence text = null;
-        if (currentItem >= 1 && adapter != null) {
-            text = adapter.getPageTitle(currentItem - 1);
-        }
+        if (currentItem >= 1 && adapter != null) text = adapter.getPageTitle(currentItem - 1);
         mPrevText.setText(text);
 
-        mCurrText.setText(adapter != null && currentItem < itemCount ?
-                adapter.getPageTitle(currentItem) : null);
 
         text = null;
-        if (currentItem + 1 < itemCount && adapter != null) {
-            text = adapter.getPageTitle(currentItem + 1);
-        }
+        if (adapter != null && currentItem < itemCount) text = adapter.getPageTitle(currentItem);
+        if (adapter != null && itemCount == 0) text = mEmptyText;
+        mCurrText.setText(text);
+
+
+
+        text = null;
+        if (currentItem + 1 < itemCount && adapter != null) text = adapter.getPageTitle(currentItem + 1);
         mNextText.setText(text);
 
         // Measure everything
@@ -483,6 +499,8 @@ public class CutePagerTitleStrip extends ViewGroup {
 
             final float offset = mLastKnownPositionOffset >= 0 ? mLastKnownPositionOffset : 0;
             updateTextPositions(mPager.getCurrentItem(), offset, true);
+            if (listener != null) listener.onChange();
+
         }
     }
 }

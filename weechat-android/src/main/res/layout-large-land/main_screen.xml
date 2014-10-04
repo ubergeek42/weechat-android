@@ -1,11 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v4.widget.DrawerLayout
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/drawer_layout"
+    android:id="@+id/not_drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@null" >
+    android:background="@null"
+    android:orientation="horizontal" >
+
+    <!-- drawer -->
+    <fragment
+        android:id="@+id/bufferlist_fragment"
+        android:name="com.ubergeek42.WeechatAndroid.fragments.BufferListFragment"
+        android:layout_width="@dimen/drawer_width"
+        android:layout_height="match_parent"
+        android:layout_gravity="left"
+        tools:layout="@layout/bufferlist" />
 
     <!-- main content -->
     <FrameLayout
@@ -24,14 +34,4 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
     </FrameLayout>
-
-    <!-- drawer -->
-    <fragment
-        android:id="@+id/bufferlist_fragment"
-        android:name="com.ubergeek42.WeechatAndroid.fragments.BufferListFragment"
-        android:layout_width="@dimen/drawer_width"
-        android:layout_height="match_parent"
-        android:layout_gravity="left"
-        tools:layout="@layout/bufferlist" />
-
-</android.support.v4.widget.DrawerLayout>
+</LinearLayout>

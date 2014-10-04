@@ -19,6 +19,7 @@ import java.security.cert.CertPath;
 import java.security.cert.CertPathValidatorException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.HashSet;
 
 import javax.net.ssl.SSLException;
 
@@ -31,18 +32,21 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.graphics.Rect;
+import android.content.res.Configuration;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.os.Looper;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
-import android.support.v4.view.ViewPager.OnPageChangeListener;
-import android.view.Gravity;
+import android.support.v4.widget.DrawerLayout;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -59,70 +63,113 @@ import com.ubergeek42.WeechatAndroid.service.Buffer;
 import com.ubergeek42.WeechatAndroid.service.BufferList;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
 import com.ubergeek42.WeechatAndroid.service.RelayServiceBinder;
+import com.ubergeek42.WeechatAndroid.utils.MyMenuItemStuffListener;
+import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
 
-public class WeechatActivity extends SherlockFragmentActivity implements RelayConnectionHandler, OnPageChangeListener, ActionBarSherlock.OnCreateOptionsMenuListener {
-    
+public class WeechatActivity extends SherlockFragmentActivity implements RelayConnectionHandler,
+        CutePagerTitleStrip.CutePageChangeListener, ActionBarSherlock.OnCreateOptionsMenuListener, ServiceConnection {
+
     private static Logger logger = LoggerFactory.getLogger("WA");
     final private static boolean DEBUG = BuildConfig.DEBUG;
-    final private static boolean DEBUG_OPTIONS_MENU = false;
-    final private static boolean DEBUG_LIFECYCLE = false;
-    final private static boolean DEBUG_INTENT = false;
-    final private static boolean DEBUG_BUFFERS = false;
+    final private static boolean DEBUG_OPTIONS_MENU = true;
+    final private static boolean DEBUG_LIFECYCLE = true;
+    final private static boolean DEBUG_CONNECION = true;
+    final private static boolean DEBUG_INTENT = true;
+    final private static boolean DEBUG_BUFFERS = true;
+    final private static boolean DEBUG_DRAWER = true;
 
     public RelayServiceBinder relay;
-    private Menu actionBarMenu;
-    private ViewPager viewPager;
-    private MainPagerAdapter mainPagerAdapter;
+    private Menu ui_menu;
+    private ViewPager ui_pager;
+    private MainPagerAdapter adapter;
     private InputMethodManager imm;
-    private CutePagerTitleStrip strip;
+    private CutePagerTitleStrip ui_strip;
     
-    private boolean phone_mode;
+    private boolean slidy;
+    private boolean drawer_enabled = true;
+    private boolean drawer_showing = false;
+    private DrawerLayout ui_drawer_layout = null;
+    private View ui_drawer = null;
+    private ActionBarDrawerToggle drawer_toggle = null;
+    private @NonNull ImageView ui_info;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// life cycle
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    public void onCreate(@Nullable Bundle savedInstanceState) {
         if (DEBUG_LIFECYCLE) logger.debug("onCreate({})", savedInstanceState);
         super.onCreate(savedInstanceState);
 
-        // Start the background service (if necessary)
+        // start background service (if necessary)
         startService(new Intent(this, RelayService.class));
 
-        // Load the layout
+        // load layout
         setContentView(R.layout.main_screen);
 
+        // restore hot number
+        // needed to see if we have to pop up the drawer if the number
+        // increased since the last time the app was opened
+        if (savedInstanceState != null)
+            hot_number = savedInstanceState.getInt("hot_number", 0);
+
+        // prepare pager
         FragmentManager manager = getSupportFragmentManager();
-        viewPager = (ViewPager) findViewById(R.id.main_viewpager);
-        mainPagerAdapter = new MainPagerAdapter(this, manager, viewPager);
+        ui_pager = (ViewPager) findViewById(R.id.main_viewpager);
+        adapter = new MainPagerAdapter(this, manager, ui_pager);
+        ui_pager.setAdapter(adapter);
 
-        // run adapter.firstTimeInit() only the first time application is started
-        // adapter.restoreState() will take care of setting phone_mode other times
-        phone_mode = manager.findFragmentById(R.id.bufferlist_fragment) == null;
-        if (savedInstanceState == null)
-            mainPagerAdapter.firstTimeInit(phone_mode);
-
-        viewPager.setAdapter(mainPagerAdapter);
-
-        ActionBar ab = getSupportActionBar();
-        ab.setHomeButtonEnabled(true);
-        ab.setDisplayShowCustomEnabled(true);
-        ab.setDisplayShowTitleEnabled(false);
+        // prepare action bar
+        ActionBar ui_action_bar = getSupportActionBar();
+        ui_action_bar.setHomeButtonEnabled(true);
+        ui_action_bar.setDisplayShowCustomEnabled(true);
+        ui_action_bar.setDisplayShowTitleEnabled(false);
         LayoutInflater inflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        strip = (CutePagerTitleStrip) inflater.inflate(R.layout.cute_pager_title_strip_layout, null);
-        strip.setViewPager(viewPager);
-        strip.setOnPageChangeListener(this);
-        ab.setCustomView(strip);
+        ui_strip = (CutePagerTitleStrip) inflater.inflate(R.layout.cute_pager_title_strip_layout, null);
+        ui_strip.setViewPager(ui_pager);
+        ui_strip.setOnPageChangeListener(this);
+        ui_action_bar.setCustomView(ui_strip);
+
+        // this is the text view behind the ui_pager
+        // it says stuff like 'connecting', 'disconnected' et al
+        ui_info = (ImageView) findViewById(R.id.info);
+
+        // if this is true, we've got notification drawer and have to deal with it
+        // setup drawer toggle, which calls drawerVisibilityChanged()
+        slidy = getResources().getBoolean(R.bool.slidy);
+        if (slidy) {
+            ui_drawer_layout = (DrawerLayout) findViewById(R.id.drawer_layout);
+            ui_drawer = findViewById(R.id.bufferlist_fragment);
+            drawer_toggle = new ActionBarDrawerToggle(this, ui_drawer_layout, R.drawable.ic_drawer,
+                    R.string.open_drawer, R.string.close_drawer) {
+
+                @SuppressWarnings("SimplifiableConditionalExpression")
+                @Override
+                public void onDrawerStateChanged(int newState) {
+                    super.onDrawerStateChanged(newState);
+                    boolean showing = (newState == DrawerLayout.STATE_IDLE) ?
+                            ui_drawer_layout.isDrawerVisible(ui_drawer) : true;
+                    if (drawer_showing != showing)
+                        drawerVisibilityChanged(showing);
+                }
+            };
+            drawer_showing = ui_drawer_layout.isDrawerVisible(ui_drawer);
+            ui_drawer_layout.setDrawerListener(drawer_toggle);
+            ui_action_bar.setDisplayHomeAsUpEnabled(true);
+        }
 
         // TODO Read preferences from background, its IO, 31ms strict mode!
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
-
         imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-
-        setTitle("WeechatAndroid v" + BuildConfig.VERSION_NAME);
+        String title = "WA v" + BuildConfig.VERSION_NAME;
+        setTitle(title);
+        ui_strip.setEmptyText(title);
+        updateCutePagerTitleStrip();
     }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     /** bind to relay service, which results in:
      **   onServiceConnected, which
@@ -135,12 +182,10 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     protected void onStart() {
         if (DEBUG_LIFECYCLE) logger.debug("onStart()");
         super.onStart();
-        if (DEBUG_LIFECYCLE) logger.debug("...calling bindService()");
-        bindService(new Intent(this, RelayService.class), service_connection, Context.BIND_AUTO_CREATE);
+        bindService(new Intent(this, RelayService.class), this, Context.BIND_AUTO_CREATE);
     }
 
-    /** if connection toggler is active, cancel it,
-     ** remove relay connection handler and
+    /** remove relay connection handler and
      ** unbind from service */
     @Override
     protected void onStop() {
@@ -148,9 +193,8 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         super.onStop();
 
         if (relay != null) {
-            if (DEBUG_LIFECYCLE) logger.debug("...calling unbindService()");
             relay.removeRelayConnectionHandler(WeechatActivity.this);
-            unbindService(service_connection);
+            unbindService(this);
             relay = null;
         }
     }
@@ -161,63 +205,129 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         super.onDestroy();
     }
 
+    //////////////////////////////////////////////////////////////////////////////////////////////// these two are necessary for the drawer
+
+    @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        if (slidy) drawer_toggle.syncState();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt("hot_number", hot_number);
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        if (slidy) drawer_toggle.onConfigurationChanged(newConfig);
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// relay connection
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    ServiceConnection service_connection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            if (DEBUG_LIFECYCLE) logger.debug("onServiceConnected(), main thread? {}", Looper.myLooper() == Looper.getMainLooper());
-            relay = (RelayServiceBinder) service;
-            relay.addRelayConnectionHandler(WeechatActivity.this);
+    private HashSet<BufferFragment> fragments = new HashSet<BufferFragment>();
 
-            // Check if the service is already connected to the weechat relay, and if so load it up
-            if (relay.isConnection(RelayService.CONNECTED))
-                WeechatActivity.this.onConnect();
+    synchronized public void bind(BufferFragment fragment) {
+        fragments.add(fragment);
+        if (relay != null) fragment.onServiceConnected(relay);
+    }
 
-            // open buffer that MIGHT be open in the service
-            // update hot count
-            for (String full_name : BufferList.synced_buffers_full_names)
-                openBuffer(full_name, false);
-            updateHotCount(BufferList.hot_count);
+    synchronized public void unbind(BufferFragment fragment) {
+        fragments.remove(fragment);
+    }
+
+    //////////////////////////////////////////////////////////////////////////////////////////////// S E R V I C E
+
+    @Override
+    synchronized public void onServiceConnected(ComponentName name, IBinder service) {
+        if (DEBUG_LIFECYCLE) logger.debug("onServiceConnected()");
+        relay = (RelayServiceBinder) service;
+        relay.addRelayConnectionHandler(WeechatActivity.this);
+
+        // open buffer that MIGHT be open in the service
+        for (String full_name : BufferList.synced_buffers_full_names)
+            openBufferSilently(full_name);
+
+        // this doesn't tamper with the drawer in any way
+        adjustUI();
+
+        // if we have intent, handle it
+        // if not, open drawer if the number of highlights has increased
+        if (getIntent().hasExtra(EXTRA_NAME))                       openBufferFromIntent();
+        else if (slidy && BufferList.getHotCount() > hot_number)    showDrawer();
+
+        for (BufferFragment fragment: fragments)
+            fragment.onServiceConnected(relay);
+    }
+
+    @Override
+    public void onServiceDisconnected(ComponentName name) {
+        if (DEBUG_LIFECYCLE) logger.debug("onServiceDisconnected() <- should not happen!");
+        for (BufferFragment fragment: fragments)
+            fragment.onServiceDisconnected();
+        relay = null;
+    }
+
+
+    private void adjustUI() {
+        if (relay == null)
+            return;
+
+        // set image
+        if (relay.isConnection(RelayService.DISCONNECTED))      setInfoImage(R.drawable.ic_big_disconnected);
+        else if (relay.isConnection(RelayService.CONNECTING))   setInfoImage(R.drawable.ic_big_connecting);
+        else if (relay.isConnection(RelayService.CONNECTED))    setInfoImage(R.drawable.ic_big_connected);
+
+        // enable/disable drawer
+        if (slidy) {
+            if (relay.isConnection(RelayService.BUFFERS_LISTED)) enableDrawer();
+            else disableDrawer();
         }
 
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            if (DEBUG_LIFECYCLE) logger.debug("onServiceDisconnected()");
-            relay = null;
-        }
-    };
+        // adjust menu
+        makeMenuReflectConnectionStatus();
+    }
 
     //////////////////////////////////////////////////////////////////////////////////////////////// RelayConnectionHandler
 
-    @Override public void onConnecting() {}
+    @Override public void onConnecting() {
+        if (DEBUG_CONNECION) logger.debug("onConnecting()");
+        adjustUI();
+    }
 
     /** creates and updates the hotlist
      ** makes sure we update action bar menu after a connection change */
     @Override public void onConnect() {
-        makeMenuReflectConnectionStatus();
+        if (DEBUG_CONNECION) logger.debug("onConnect()");
+        adjustUI();
     }
 
     @Override public void onAuthenticated() {}
 
-    @Override public void onBuffersListed() {}
+    @Override public void onBuffersListed() {
+        if (DEBUG_CONNECION) logger.debug("onBuffersListed()");
+        adjustUI();
+        if (slidy) showDrawerIfPagerIsEmpty();
+    }
 
     /** makes sure we update action bar menu after a connection change */
     @Override public void onDisconnect() {
-        makeMenuReflectConnectionStatus();
+        if (DEBUG_CONNECION) logger.debug("onDisconnect()");
+        adjustUI();
     }
 
     @Override public void onError(final String errorMsg, Object extraData) {
+        if (DEBUG_CONNECION) logger.debug("onError({}, ...)", errorMsg);
         runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
+            @Override public void run() {
                 Toast.makeText(getBaseContext(), "Error: " + errorMsg, Toast.LENGTH_LONG).show();
             }
         });        
-        if (DEBUG) logger.error("onError({}, ...)", errorMsg);
-        if (extraData instanceof SSLException) {
+        if (extraData instanceof SSLException && relay != null) {
             if (DEBUG) logger.error("...cause: {}", ((Throwable) extraData).getCause());
             SSLException e1 = (SSLException) extraData;
             if (e1.getCause() instanceof CertificateException) {
@@ -239,59 +349,22 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// connection toggler
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    private void toggleConnection() {
-        if (relay.isConnection(RelayService.CONNECTED))
-            relay.disconnect();
-        else
-            relay.connect();
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// OnPageChangeListener
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @Override public void onPageScrollStateChanged(int state) {}
-
     @Override public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {}
 
     @Override public void onPageSelected(int position) {
+        hideSoftwareKeyboard();
+    }
+
+    @Override public void onChange() {
         updateMenuItems();
         hideSoftwareKeyboard();
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// INTENT
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    /** this function only gets called from when the activity is running.
-     ** also, it might get called when we are connected to relay and we are not
-     ** we SET INTENT here and call maybeHandleIntent from here OR
-     ** from {@link #service_connection onServiceConnected()}. */
-    @Override protected void onNewIntent(Intent intent) {
-        if (DEBUG_INTENT) logger.debug("onNewIntent({})", intent);
-        super.onNewIntent(intent);
-        setIntent(intent);
-        maybeHandleIntent();
-    }
-
-    /** in case we have an intent of opening a buffer, open buffer & clear the intent
-     ** so that it doesn't get triggered multiple times.
-     ** empty string ("") signifies buffer list.
-     ** also see {@link #service_connection} */
-    private void maybeHandleIntent() {
-        if (DEBUG_INTENT) logger.debug("maybeHandleIntent()");
-        String full_name = getIntent().getStringExtra("full_name");
-        if (full_name != null) {
-            if ("".equals(full_name)) mainPagerAdapter.openBufferList();
-            else mainPagerAdapter.openBuffer(full_name, true, true);
-            getIntent().removeExtra("full_name");
-        }
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// MENU
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -321,10 +394,10 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     /** hide or show nicklist/close menu item according to buffer
      ** MUST be called on main thread */
     private void updateMenuItems() {
-        if (actionBarMenu == null) return;
-        boolean buffer_visible = !(phone_mode && viewPager.getCurrentItem() == 0);
-        actionBarMenu.findItem(R.id.menu_nicklist).setVisible(buffer_visible);
-        actionBarMenu.findItem(R.id.menu_close).setVisible(buffer_visible);
+        if (ui_menu == null) return;
+        boolean buffer_visible = adapter.getCount() > 0;
+        ui_menu.findItem(R.id.menu_nicklist).setVisible(buffer_visible);
+        ui_menu.findItem(R.id.menu_close).setVisible(buffer_visible);
     }
 
     /** Can safely hold on to this according to docs
@@ -343,7 +416,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
                 onHotlistSelected();
             }
         };
-        actionBarMenu = menu;
+        this.ui_menu = menu;
         makeMenuReflectConnectionStatus();
         return super.onCreateOptionsMenu(menu);
     }
@@ -354,13 +427,16 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         if (DEBUG_OPTIONS_MENU) logger.debug("onOptionsItemSelected({})", item);
         switch (item.getItemId()) {
             case android.R.id.home: {
-                if (viewPager != null)
-                    viewPager.setCurrentItem(0);
+                if (slidy && drawer_enabled) {
+                    if (drawer_showing) hideDrawer();
+                    else showDrawer();
+                }
                 break;
             }
             case R.id.menu_connection_state: {
                 if (relay != null) {
-                    toggleConnection();
+                    if (relay.isConnection(RelayService.CONNECTED)) relay.disconnect();
+                    else relay.connect();
                 }
                 break;
             }
@@ -370,10 +446,9 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
                 break;
             }
             case R.id.menu_close: {
-                BufferFragment currentBuffer = mainPagerAdapter.getCurrentBufferFragment();
-                if (currentBuffer != null) {
-                    currentBuffer.onBufferClosed();
-                }
+                BufferFragment current = adapter.getCurrentBufferFragment();
+                if (current != null)
+                    current.onBufferClosed();
                 break;
             }
             case R.id.menu_about: {
@@ -385,7 +460,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
                 if (relay != null) {
                     relay.disconnect();
                 }
-                unbindService(service_connection);
+                unbindService(this);
                 relay = null;
                 stopService(new Intent(this, RelayService.class));
                 finish();
@@ -395,7 +470,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
                 break;
             case R.id.menu_nicklist:
                 if (relay == null) break;
-                Buffer buffer = relay.getBufferByFullName(mainPagerAdapter.getFullNameAt(viewPager.getCurrentItem()));
+                Buffer buffer = relay.getBufferByFullName(adapter.getCurrentBufferFullName());
                 if (buffer == null) break;
 
                 NickListAdapter nicklistAdapter = new NickListAdapter(WeechatActivity.this, buffer);
@@ -424,7 +499,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         for (Buffer buffer : BufferList.getBufferList()) {
             if ((buffer.type == Buffer.PRIVATE && buffer.unreads > 0) ||
                     buffer.highlights > 0) {
-                mainPagerAdapter.openBuffer(buffer.full_name, true, true);
+                openBuffer(buffer.full_name, true);
                 return;
             }
         }
@@ -437,8 +512,8 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if (WeechatActivity.this.actionBarMenu != null) {
-                    MenuItem connectionStatus = WeechatActivity.this.actionBarMenu.findItem(R.id.menu_connection_state);
+                if (WeechatActivity.this.ui_menu != null) {
+                    MenuItem connectionStatus = WeechatActivity.this.ui_menu.findItem(R.id.menu_connection_state);
                     if (relay != null && (relay.isConnection(RelayService.CONNECTED)))
                         connectionStatus.setTitle(R.string.disconnect);
                     else
@@ -452,67 +527,155 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     //////////////////////////////////////////////////////////////////////////////////////////////// MISC
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public void openBuffer(String full_name, boolean focus) {
+    /** open a buffer WITHOUT hiding the drawer and checking if we are connected */
+    public void openBufferSilently(@NonNull String full_name) {
+        if (DEBUG_BUFFERS) logger.debug("openBufferSilently({})", full_name);
+        adapter.openBuffer(full_name, false, false);
+    }
+
+    public void openBuffer(@NonNull String full_name, boolean scroll) {
         if (DEBUG_BUFFERS) logger.debug("openBuffer({})", full_name);
-        mainPagerAdapter.openBuffer(full_name, focus, false);
+        if (adapter.isBufferOpen(full_name) || relay.isConnection(RelayService.CONNECTED)) {
+            adapter.openBuffer(full_name, true, scroll);
+            if (slidy) hideDrawer();
+        } else {
+            Toast.makeText(this, "Not connected", Toast.LENGTH_SHORT).show();
+        }
     }
 
     // In own thread to prevent things from breaking
     public void closeBuffer(String full_name) {
         if (DEBUG_BUFFERS) logger.debug("closeBuffer({})", full_name);
-        mainPagerAdapter.closeBuffer(full_name);
+        adapter.closeBuffer(full_name);
+        if (slidy) showDrawerIfPagerIsEmpty();
     }
 
     /** hides the software keyboard, if any */
     public void hideSoftwareKeyboard() {
-        imm.hideSoftInputFromWindow(viewPager.getWindowToken(), 0);
+        imm.hideSoftInputFromWindow(ui_pager.getWindowToken(), 0);
     }
 
     @Override
     public void onBackPressed() {
         if (DEBUG_LIFECYCLE) logger.debug("onBackPressed()");
-        if (phone_mode && viewPager.getCurrentItem() != 0) viewPager.setCurrentItem(0);
+        if (slidy && drawer_showing) hideDrawer();
         else super.onBackPressed();
     }
 
     /** called if the text of one of the buffers has been changed
-     ** and the strip doesn't update itself because there's no scrolling */
+     ** and the ui_strip doesn't update itself because there's no scrolling */
     public void updateCutePagerTitleStrip() {
-        strip.updateText();
+        ui_strip.updateText();
     }
 
-    static abstract class MyMenuItemStuffListener implements View.OnClickListener, View.OnLongClickListener {
-        private String hint;
-        private View view;
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// drawer stuff
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
-        MyMenuItemStuffListener(View view, String hint) {
-            this.view = view;
-            this.hint = hint;
-            view.setOnClickListener(this);
-            view.setOnLongClickListener(this);
-        }
+    public void drawerVisibilityChanged(boolean showing) {
+        if (DEBUG_DRAWER) logger.debug("drawerVisibilityChanged({})", showing);
+        drawer_showing = showing;
+        hideSoftwareKeyboard();
+        BufferFragment current = adapter.getCurrentBufferFragment();
+        if (current != null)
+            current.maybeChangeVisibilityState();
+    }
 
-        @Override abstract public void onClick(View v);
+    public boolean isPagerNoticeablyObscured() {
+        return drawer_showing;                          //todo?
+    }
 
-        @Override public boolean onLongClick(View v) {
-            final int[] screenPos = new int[2];
-            final Rect displayFrame = new Rect();
-            view.getLocationOnScreen(screenPos);
-            view.getWindowVisibleDisplayFrame(displayFrame);
-            final Context context = view.getContext();
-            final int width = view.getWidth();
-            final int height = view.getHeight();
-            final int midy = screenPos[1] + height / 2;
-            final int screenWidth = context.getResources().getDisplayMetrics().widthPixels;
-            Toast cheatSheet = Toast.makeText(context, hint, Toast.LENGTH_SHORT);
-            if (midy < displayFrame.height()) {
-                cheatSheet.setGravity(Gravity.TOP | Gravity.RIGHT,
-                        screenWidth - screenPos[0] - width / 2, height);
-            } else {
-                cheatSheet.setGravity(Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL, 0, height);
+    public void enableDrawer() {
+        if (DEBUG_DRAWER) logger.debug("enableDrawer()");
+        drawer_enabled = true;
+        ui_pager.post(new Runnable() {
+            @Override public void run() {
+                ui_drawer_layout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
             }
-            cheatSheet.show();
-            return true;
+        });
+    }
+
+    public void disableDrawer() {
+        if (DEBUG_DRAWER) logger.debug("disableDrawer()");
+        drawer_enabled = false;
+        ui_pager.post(new Runnable() {
+            @Override public void run() {
+                ui_drawer_layout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+            }
+        });
+    }
+
+    public void showDrawer() {
+        if (DEBUG_DRAWER) logger.debug("showDrawer()");
+        if (!drawer_showing) drawerVisibilityChanged(true); // we need this so that drawer_showing is set immediately
+        ui_pager.post(new Runnable() {
+            @Override
+            public void run() {
+                ui_drawer_layout.openDrawer(ui_drawer);
+            }
+        });
+    }
+
+    public void hideDrawer() {
+        if (DEBUG_DRAWER) logger.debug("hideDrawer()");
+        ui_pager.post(new Runnable() {
+            @Override
+            public void run() {
+                ui_drawer_layout.closeDrawer(ui_drawer);
+            }
+        });
+    }
+
+    /** pop up drawer if connected & no pages in the adapter **/
+    public void showDrawerIfPagerIsEmpty() {
+        if (DEBUG_DRAWER) logger.debug("showDrawerIfPagerIsEmpty()");
+        if (!drawer_showing)
+            ui_pager.post(new Runnable() {
+                @Override public void run() {
+                    if (relay != null && relay.isConnection(RelayService.BUFFERS_LISTED) && adapter.getCount() == 0)
+                        showDrawer();
+                }
+            });
+    }
+
+    /** set image that appears in the pager when no pages are open */
+    private void setInfoImage(final int id) {
+        final Drawable d = getResources().getDrawable(id);
+        ui_info.post(new Runnable() {
+            @Override public void run() {
+                Utils.setImageDrawableWithFade(ui_info, d, 350);
+            }
+        });
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// intent
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    //private String intent_buffer_full_name = null;
+    private final String EXTRA_NAME = "full_name";
+
+    /** we may get intent while we are connected to the service and when we are not.
+     ** empty (but present) full_name means open the drawer (in case we have highlights
+     ** on multiple buffers */
+    @Override protected void onNewIntent(Intent intent) {
+        if (DEBUG_INTENT) logger.debug("onNewIntent(...), full_name='{}'", intent.getStringExtra(EXTRA_NAME));
+        super.onNewIntent(intent);
+        if (intent.hasExtra(EXTRA_NAME)) {
+            setIntent(intent);
+            if (relay != null) openBufferFromIntent();
         }
+    }
+
+    /** the extra must be non-null */
+    private void openBufferFromIntent() {
+        if (DEBUG_INTENT) logger.debug("openBufferFromIntent()");
+        String name = getIntent().getStringExtra(EXTRA_NAME);
+        if ("".equals(name)) {
+            if (slidy) showDrawer();
+        } else {
+            openBuffer(name, true);
+        }
+        getIntent().removeExtra(EXTRA_NAME);
     }
 }

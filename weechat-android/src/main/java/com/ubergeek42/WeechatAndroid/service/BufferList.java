@@ -2,9 +2,9 @@ package com.ubergeek42.WeechatAndroid.service;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.util.Base64;
 
 import com.ubergeek42.WeechatAndroid.BuildConfig;
+import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.weechat.relay.RelayConnection;
 import com.ubergeek42.weechat.relay.RelayMessageHandler;
 import com.ubergeek42.weechat.relay.protocol.Array;
@@ -16,10 +16,6 @@ import com.ubergeek42.weechat.relay.protocol.RelayObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -240,8 +236,19 @@ public class BufferList {
     //////////////////////////////////////////////////////////////////////////////////////////////// hotlist stuff
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    static public ArrayList<String[]> hot_list = new ArrayList<String[]>();     // {"irc.free.#123", "<nick> hi there"}
-    static public int hot_count = 0;                                     // might be greater than size of hot_list
+    /** a list of most recent ACTUALLY RECEIVED hot messages
+     ** each entry has a form of {"irc.free.#123", "<nick> hi there"} */
+    static public ArrayList<String[]> hot_list = new ArrayList<String[]>();
+
+    /** this is the value calculated from hotlist received from weechat
+     ** it MIGHT BE GREATER than size of hot_list
+     ** initialized, it's -1, so that on service restart we know to remove notification 43 */
+    static private int hot_count = -1;
+
+    /** returns hot count or 0 if unknown */
+    static public int getHotCount() {
+        return hot_count == -1 ? 0 : hot_count;
+    }
 
     /** called when a new new hot message just arrived */
     synchronized static void newHotLine(final @NonNull Buffer buffer, final @NonNull Buffer.Line line) {
@@ -559,13 +566,13 @@ public class BufferList {
 
     synchronized static @Nullable String getSyncedBuffersAsString() {
         if (DEBUG_SAVE_RESTORE) logger.warn("getSyncedBuffersAsString() -> ...");
-        return serialize(synced_buffers_full_names);
+        return Utils.serialize(synced_buffers_full_names);
     }
 
     @SuppressWarnings("unchecked")
     synchronized static void setSyncedBuffersFromString(@Nullable String synced_buffers) {
         if (DEBUG_SAVE_RESTORE) logger.warn("setSyncedBuffersFromString(...)");
-        Object o = deserialize(synced_buffers);
+        Object o = Utils.deserialize(synced_buffers);
         if (o instanceof LinkedHashSet)
             synced_buffers_full_names = (LinkedHashSet<String>) o;
     }
@@ -573,13 +580,13 @@ public class BufferList {
     synchronized static @Nullable String getBufferToLastReadLineAsString() {
         if (DEBUG_SAVE_RESTORE) logger.warn("getBufferToLastReadLineAsString() -> ...");
         if (buffers != null) for (Buffer buffer : buffers) saveLastReadLine(buffer);
-        return serialize(buffer_to_last_read_line);
+        return Utils.serialize(buffer_to_last_read_line);
     }
 
     @SuppressWarnings("unchecked")
     synchronized static void setBufferToLastReadLineFromString(@Nullable String buffers_read_lines) {
         if (DEBUG_SAVE_RESTORE) logger.warn("setBufferToLastReadLineFromString(...)");
-        Object o = deserialize(buffers_read_lines);
+        Object o = Utils.deserialize(buffers_read_lines);
         if (o instanceof LinkedHashMap)
             buffer_to_last_read_line = (LinkedHashMap<String, BufferHotData>) o;
     }
@@ -591,36 +598,4 @@ public class BufferList {
         int total_old_unreads = 0;
         int total_old_highlights = 0;
     }
-
-    public static final int SERIALIZATION_PROTOCOL_ID = 3;
-
-    @SuppressWarnings("unchecked")
-    static @Nullable Object deserialize(@Nullable String string) {
-        if (string == null) return null;
-        try {
-            byte[] data = Base64.decode(string, Base64.DEFAULT);
-            ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(data));
-            Object o = ois.readObject();
-            ois.close();
-            return o;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    static @Nullable String serialize(@Nullable Serializable serializable) {
-        if (serializable == null) return null;
-        try {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ObjectOutputStream oos = new ObjectOutputStream(baos);
-            oos.writeObject(serializable);
-            oos.close();
-            return Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
 }

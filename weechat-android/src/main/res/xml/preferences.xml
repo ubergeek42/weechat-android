@@ -29,8 +29,8 @@
     </PreferenceScreen>
 
     <PreferenceCategory android:key="bufferlist_group" android:title="@string/pref_bufferlist_group">
-		<CheckBoxPreference android:key="sort_buffers" android:summary="@string/pref_sort_buffers_summary" android:title="@string/pref_sort_buffers" android:defaultValue="true" />
-		<CheckBoxPreference android:key="filter_nonhuman_buffers" android:title="@string/pref_hide_server_buffers" android:summary="@string/pref_hide_server_buffers_summary" android:defaultValue="true" />
+		<CheckBoxPreference android:key="sort_buffers" android:summary="@string/pref_sort_buffers_summary" android:title="@string/pref_sort_buffers" android:defaultValue="false" />
+		<CheckBoxPreference android:key="filter_nonhuman_buffers" android:title="@string/pref_hide_server_buffers" android:summary="@string/pref_hide_server_buffers_summary" android:defaultValue="false" />
 		<CheckBoxPreference android:key="show_buffer_titles" android:title="@string/pref_hide_buffer_titles" android:summary="@string/pref_hide_buffer_titles_summary" android:defaultValue="false" />
 		<CheckBoxPreference android:key="show_buffer_filter" android:title="@string/pref_show_buffer_filter" android:summary="@string/pref_show_buffer_filter_summary" android:defaultValue="false" />
     </PreferenceCategory>

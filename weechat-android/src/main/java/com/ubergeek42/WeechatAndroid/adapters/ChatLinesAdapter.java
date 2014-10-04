@@ -60,8 +60,6 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
         ui_listview.setOnItemLongClickListener(this);
     }
 
-    public void clearLines() {}
-
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -78,7 +76,7 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
 
     @Override
     public long getItemId(int position) {
-        return ((Buffer.Line) getItem(position)).pointer;
+        return lines[position].pointer;
     }
 
     @Override

@@ -26,5 +26,6 @@
     </style>
 
     <color name="doge">#FF1B1F22</color>
+    <color name="open">@android:color/white</color>
 
 </resources>

@@ -15,13 +15,24 @@
 # LAUNCHER       48    72      96      144      192
 # ACTION BAR     32    48      64       96      128
 # NOTIFICATION   24    36      48       72       96
+# BIG (200dp)   200   300     400      600      800
 
+BIG_ICONS="ic_big_connected ic_big_connecting ic_big_disconnected"
 ICONS="ic_bell ic_users ic_send ic_tab ic_send_disabled ic_tab_disabled"
 NOTIFICATIONS="ic_connected ic_connecting ic_disconnected ic_hot"
 
 function render {
         inkscape --file="$1.svg" --export-png="../res/drawable-$2/$1.png" --export-area-page --export-width=$3  --export-height=$3
 }
+
+for FILE in $BIG_ICONS; do
+    echo processing big icon: ${FILE}.svg
+    render $FILE "mdpi" 200
+    render $FILE "hdpi" 300
+    render $FILE "xhdpi" 400
+    render $FILE "xxhdpi" 600
+    render $FILE "xxxhdpi" 800
+done
 
 for FILE in $ICONS; do
     echo processing icon: ${FILE}.svg

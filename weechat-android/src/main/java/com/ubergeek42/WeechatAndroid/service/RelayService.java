@@ -3,12 +3,12 @@ package com.ubergeek42.WeechatAndroid.service;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.IBinder;
-import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.widget.TextView;
 
 import com.ubergeek42.WeechatAndroid.BuildConfig;
 import com.ubergeek42.WeechatAndroid.R;
+import com.ubergeek42.WeechatAndroid.utils.Utils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,7 +59,7 @@ public class RelayService extends RelayServiceBackbone {
 
         // buffer list preferences
         BufferList.SORT_BUFFERS = prefs.getBoolean(PREFS_SORT_BUFFERS, false);
-        BufferList.SHOW_TITLE = prefs.getBoolean(PREFS_SHOW_BUFFER_TITLES, true);
+        BufferList.SHOW_TITLE = prefs.getBoolean(PREFS_SHOW_BUFFER_TITLES, false);
         BufferList.FILTER_NONHUMAN_BUFFERS = prefs.getBoolean(PREFS_FILTER_NONHUMAN_BUFFERS, false);
         BufferList.OPTIMIZE_TRAFFIC = prefs.getBoolean(PREFS_OPTIMIZE_TRAFFIC, false);
 
@@ -128,14 +128,14 @@ public class RelayService extends RelayServiceBackbone {
         SharedPreferences preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         preferences.edit().putString(PREF_SYNCED_BUFFERS, BufferList.getSyncedBuffersAsString())
                           .putString(PREF_LAST_READ_LINES, BufferList.getBufferToLastReadLineAsString())
-                          .putInt(PREF_PROTOCOL_ID, BufferList.SERIALIZATION_PROTOCOL_ID).commit();
+                          .putInt(PREF_PROTOCOL_ID, Utils.SERIALIZATION_PROTOCOL_ID).commit();
     }
 
     /** restore everything. if data is an invalid protocol, 'restore' null */
     private void restoreStuff() {
         if (DEBUG_SAVE_RESTORE) logger.debug("restoreStuff()");
         SharedPreferences preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        boolean valid = preferences.getInt(PREF_PROTOCOL_ID, -1) == BufferList.SERIALIZATION_PROTOCOL_ID;
+        boolean valid = preferences.getInt(PREF_PROTOCOL_ID, -1) == Utils.SERIALIZATION_PROTOCOL_ID;
         BufferList.setSyncedBuffersFromString(valid ? preferences.getString(PREF_SYNCED_BUFFERS, null) : null);
         BufferList.setBufferToLastReadLineFromString(valid ? preferences.getString(PREF_LAST_READ_LINES, null) : null);
     }
