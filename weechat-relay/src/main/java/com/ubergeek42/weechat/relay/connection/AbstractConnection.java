@@ -22,7 +22,7 @@ public abstract class AbstractConnection implements IConnection {
     Socket sock = null;
     OutputStream out_stream = null;
     InputStream in_stream = null;
-    boolean connected = false;
+    volatile boolean connected = false;
     Object errordata = null;
 
     ArrayList<RelayConnectionHandler> connectionHandlers = new ArrayList<RelayConnectionHandler>();
@@ -30,18 +30,25 @@ public abstract class AbstractConnection implements IConnection {
 
     @Override
     public boolean isConnected() {
-        return (sock!= null && !sock.isClosed() && connected);
+        Socket s = sock;
+        return (s != null && !s.isClosed() && connected);
     }
 
     @Override
     public int read(byte[] bytes) throws IOException {
-        return in_stream.read(bytes);
+        InputStream in = in_stream;
+        if (in == null)
+            return -1;
+        return in.read(bytes);
     }
 
     @Override
     public void write(byte[] bytes) {
+        OutputStream out = out_stream;
+        if (out == null)
+            return;
         try {
-            out_stream.write(bytes);
+            out.write(bytes);
         } catch (IOException e) {
             // TODO: better this part
             e.printStackTrace();

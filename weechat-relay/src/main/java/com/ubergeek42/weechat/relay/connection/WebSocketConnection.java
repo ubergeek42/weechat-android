@@ -132,7 +132,10 @@ public class WebSocketConnection extends AbstractConnection {
 
     @Override
     public int read(byte[] bytes) throws IOException {
-        return in_stream.read(bytes);
+        PipedInputStream in = in_stream;
+        if (in == null)
+            return -1;
+        return in.read(bytes);
     }
 
     @Override
