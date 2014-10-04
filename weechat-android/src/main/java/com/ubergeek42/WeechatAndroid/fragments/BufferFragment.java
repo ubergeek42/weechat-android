@@ -364,7 +364,6 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
                     } else if (idx < 0) {
                         Toast.makeText(getActivity(), "Can't find the line to scroll to", Toast.LENGTH_SHORT).show();
                     } else {
-                        Toast.makeText(getActivity(), "Scrolling to: " + idx + "/" + count + "(ohl:" + buffer.old_highlights + " our:" + buffer.old_unreads + ")", Toast.LENGTH_LONG).show();
                         ui_lines.smoothScrollToPosition(idx);
                     }
                 }
