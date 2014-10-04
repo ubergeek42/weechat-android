@@ -310,7 +310,11 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     @Override
     public void onBufferClosed() {
         if (DEBUG_CONNECTION) logger.warn("{} onBufferClosed()", full_name);
-        activity.closeBuffer(full_name);
+        activity.runOnUiThread(new Runnable() {
+            @Override public void run() {
+                activity.closeBuffer(full_name);
+            }
+        });
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
