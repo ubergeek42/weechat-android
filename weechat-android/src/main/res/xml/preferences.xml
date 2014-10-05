@@ -25,6 +25,13 @@
 				<EditTextPreference android:key="ssh_pass" android:title="@string/pref_ssh_pass" android:password="true" android:singleLine="true"/>
 				<EditTextPreference android:key="ssh_keyfile" android:title="@string/pref_ssh_keyfile" android:singleLine="true" android:summary="/sdcard/weechat/sshkey.id_rsa" />
 			</PreferenceScreen>
+
+			<PreferenceScreen android:key="tcp_keepalive_group" android:title="@string/pref_tcp_keepalive_group">
+				<CheckBoxPreference android:key="tcp_keepalive" android:title="@string/pref_tcp_keepalive" android:defaultValue="true" />
+				<EditTextPreference android:key="tcp_keepidle" android:title="@string/pref_tcp_keepidle" android:summary="@string/pref_tcp_keepidle_summary" android:numeric="integer" android:defaultValue="60" />
+				<EditTextPreference android:key="tcp_keepintvl" android:title="@string/pref_tcp_keepintvl" android:summary="@string/pref_tcp_keepintvl_summary" android:numeric="integer" android:defaultValue="12" />
+				<EditTextPreference android:key="tcp_keepcnt" android:title="@string/pref_tcp_keepcnt" android:summary="@string/pref_tcp_keepcnt_summary" android:numeric="integer" android:defaultValue="12" />
+			</PreferenceScreen>
 		</PreferenceCategory>
     </PreferenceScreen>
 

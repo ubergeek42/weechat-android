@@ -42,6 +42,9 @@ public class WeechatPreferencesActivity extends PreferenceActivity implements
     private EditTextPreference sshPassPref;
     private EditTextPreference sshUserPref;
     private EditTextPreference sshKeyFilePref;
+    private EditTextPreference tcpKeepIdlePref;
+    private EditTextPreference tcpKeepIntervalPref;
+    private EditTextPreference tcpKeepCountPref;
     private ListPreference prefixPref;
     private ListPreference connectionTypePref;
 
@@ -80,6 +83,10 @@ public class WeechatPreferencesActivity extends PreferenceActivity implements
         sshPassPref = (EditTextPreference) getPreferenceScreen().findPreference("ssh_pass");
         sshKeyFilePref = (EditTextPreference) getPreferenceScreen().findPreference("ssh_keyfile");
 
+        tcpKeepIdlePref = (EditTextPreference) getPreferenceScreen().findPreference("tcp_keepidle");
+        tcpKeepIntervalPref = (EditTextPreference) getPreferenceScreen().findPreference("tcp_keepintvl");
+        tcpKeepCountPref = (EditTextPreference) getPreferenceScreen().findPreference("tcp_keepcnt");
+
         prefixPref = (ListPreference) getPreferenceScreen().findPreference("prefix_align");
         connectionTypePref = (ListPreference) getPreferenceScreen().findPreference("connection_type");
         setTitle(R.string.preferences);
@@ -107,6 +114,10 @@ public class WeechatPreferencesActivity extends PreferenceActivity implements
         sshUserPref.setSummary(sharedPreferences.getString("ssh_user", ""));
         sshPortPref.setSummary(sharedPreferences.getString("ssh_port", "22"));
         sshKeyFilePref.setSummary(sharedPreferences.getString("ssh_keyfile", "Not Set"));
+
+        tcpKeepIdlePref.setSummary(sharedPreferences.getString("tcp_keepidle", "60"));
+        tcpKeepIntervalPref.setSummary(sharedPreferences.getString("tcp_keepintvl", "15"));
+        tcpKeepCountPref.setSummary(sharedPreferences.getString("tcp_keepcnt", "12"));
 
         prefixPref.setSummary(prefixPref.getEntry());
         connectionTypePref.setSummary(connectionTypePref.getEntry());
@@ -174,6 +185,12 @@ public class WeechatPreferencesActivity extends PreferenceActivity implements
             }
         } else if (key.equals("ssh_keyfile")) {
             sshKeyFilePref.setSummary(sharedPreferences.getString(key, "/sdcard/weechat/sshkey.id_rsa"));
+        } else if (key.equals("tcp_keepidle")) {
+            tcpKeepIdlePref.setSummary(sharedPreferences.getString("tcp_keepidle", "60"));
+        } else if (key.equals("tcp_keepintvl")) {
+            tcpKeepIntervalPref.setSummary(sharedPreferences.getString("tcp_keepintvl", "15"));
+        } else if (key.equals("tcp_keepcnt")) {
+            tcpKeepCountPref.setSummary(sharedPreferences.getString("tcp_keepcnt", "12"));
         } else if (key.equals("prefix_align")) {
             prefixPref.setSummary(prefixPref.getEntry());
         } else if (key.equals("connection_type")) {

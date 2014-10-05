@@ -43,6 +43,7 @@ public class SSLConnection extends AbstractConnection {
                 channel.connect(new InetSocketAddress(server, port));
                 SSLSocketFactory socketFactory = sslContext.getSocketFactory();
                 sock = socketFactory.createSocket(channel.socket(), server, port, true);
+                tcpSock = channel.socket();
 
                 out_stream = sock.getOutputStream();
                 in_stream = sock.getInputStream();

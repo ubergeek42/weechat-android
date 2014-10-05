@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.Socket;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -66,6 +67,11 @@ public class RelayConnection implements RelayConnectionHandler {
 
     public String getServer() {
         return "Weechat Server(Placeholder)";
+    }
+
+    /* Exposed for additional configuration (keepalive), may be null */
+    public Socket getTCPSocket() {
+        return conn.getTCPSocket();
     }
 
     public boolean isConnected() {

@@ -16,6 +16,7 @@
 package com.ubergeek42.WeechatAndroid.service;
 
 import java.io.File;
+import java.net.Socket;
 import java.security.cert.X509Certificate;
 import java.util.HashSet;
 import java.util.List;
@@ -83,6 +84,11 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
     final static private String PREF_HOST = "host";
     final static private String PREF_PASSWORD = "password";
     final static private String PREF_PORT = "port";
+
+    final static private String PREF_TCP_KEEPALIVE = "tcp_keepalive";
+    final static private String PREF_TCP_KEEPIDLE = "tcp_keepidle";
+    final static private String PREF_TCP_KEEPINTVL = "tcp_keepintvl";
+    final static private String PREF_TCP_KEEPCNT = "tcp_keepcnt";
 
     final static private String PREF_STUNNEL_CERT = "stunnel_cert";
     final static private String PREF_STUNNEL_PASS = "stunnel_pass";
@@ -503,6 +509,14 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
     @Override
     public void onConnect() {
         if (DEBUG) logger.debug("onConnect()");
+        Socket tcpSock = connection.getTCPSocket();
+        if (tcpSock != null) {
+            if (prefs.getBoolean(PREF_TCP_KEEPALIVE, true))
+                TCPKeepAlive.configureKeepAlive(tcpSock,
+                    Integer.parseInt(prefs.getString(PREF_TCP_KEEPIDLE, "60")),
+                    Integer.parseInt(prefs.getString(PREF_TCP_KEEPINTVL, "15")),
+                    Integer.parseInt(prefs.getString(PREF_TCP_KEEPCNT, "12")));
+        }
         connection_status = CONNECTED;
         for (RelayConnectionHandler rch : connectionHandlers) rch.onConnect();
     }

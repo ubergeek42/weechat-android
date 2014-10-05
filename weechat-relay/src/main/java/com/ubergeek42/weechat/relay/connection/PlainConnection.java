@@ -22,6 +22,7 @@ public class PlainConnection extends AbstractConnection {
                 SocketChannel channel = SocketChannel.open();
                 channel.connect(new InetSocketAddress(server, port));
                 sock = channel.socket();
+                tcpSock = sock;
                 out_stream = sock.getOutputStream();
                 in_stream = sock.getInputStream();
                 connected = true;

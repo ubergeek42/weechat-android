@@ -71,6 +71,14 @@
 		    <string name="pref_ssh_port">SSH port</string>
 		    <string name="pref_ssh_pass">SSH password/key passphrase</string>
 		    <string name="pref_ssh_keyfile">SSH private key file</string>
+	    <string name="pref_tcp_keepalive_group">TCP Keepalive settings</string>
+		    <string name="pref_tcp_keepalive">Enable TCP Keepalive</string>
+		    <string name="pref_tcp_keepidle">Idle time</string>
+		    <string name="pref_tcp_keepidle_summary">Idle time with no data before sending a keepalive probe</string>
+		    <string name="pref_tcp_keepintvl">Transmit interval</string>
+		    <string name="pref_tcp_keepintvl_summary">Interval at which to transmit subsequent keepalive probes when there is no response</string>
+		    <string name="pref_tcp_keepcnt">Retry count</string>
+		    <string name="pref_tcp_keepcnt_summary">Maximum number of unacknowledged keepalive probes before closing the connection</string>
     <string name="pref_bufferlist_group">Buffer list settings</string>
 	    <string name="pref_sort_buffers">Sort buffer list</string>
 	    <string name="pref_sort_buffers_summary">Sort by number of highlights/private messages/unread messages</string>
