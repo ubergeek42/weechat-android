@@ -138,8 +138,8 @@ public class BufferList {
         return sent_buffers;
     }
 
-    synchronized static public void setFilter(CharSequence filter) {
-        FILTER = (filter.length() == 0) ? null : filter.toString();
+    synchronized static public void setFilter(String filter) {
+        FILTER = (filter.length() == 0) ? null : filter.toLowerCase();
         sent_buffers = null;
     }
 

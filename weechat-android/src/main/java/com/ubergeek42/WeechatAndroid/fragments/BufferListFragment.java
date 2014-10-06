@@ -222,7 +222,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     };
 
     private void setFilter(final CharSequence s) {
-        BufferList.setFilter(s);
+        BufferList.setFilter(s.toString());
         activity.runOnUiThread(new Runnable() {
             @Override public void run() {
                 ui_filter_clear.setVisibility((s.length() == 0) ? View.INVISIBLE : View.VISIBLE);
