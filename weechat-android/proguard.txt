@@ -28,6 +28,7 @@
 -assumenosideeffects class org.slf4j.Logger {
     public void error(...);
     public void warn(...);
+    public void info(...);
     public void debug(...);
     public void trace(...);
 }
