@@ -39,7 +39,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
 
 public class Buffer {
     private static Logger logger = LoggerFactory.getLogger("Buffer");
@@ -155,6 +154,17 @@ public class Buffer {
         else {
             BufferList.desyncBuffer(full_name);
             for (Line line : lines) line.eraseProcessedMessage();
+            if (BufferList.OPTIMIZE_TRAFFIC) {
+                // if traffic is optimized, the next time we open the buffer, it might have been updated
+                // this presents two problems. first, we will not be able to update if we think
+                // that we have all the lines needed. second, if we have lines and request lines again,
+                // it'd be cumbersome to find the place to put lines. like, for iteration #3,
+                // [[old lines] [#3] [#2] [#1]] unless #3 is inside old lines. hence, reset everything!
+                holds_all_lines = holds_all_nicks = false;
+                lines.clear();
+                nicks.clear();
+                visible_lines_count = 0;
+            }
         }
         BufferList.notifyBuffersSlightlyChanged();
     }
@@ -182,7 +192,7 @@ public class Buffer {
      ** affects the way buffer advertises highlights/unreads count and notifications
      ** can be called multiple times without harm */
     synchronized public void setWatched(boolean watched) {
-        if (DEBUG_BUFFER || true) logger.error("{} setWatched({})", short_name, watched);
+        if (DEBUG_BUFFER) logger.error("{} setWatched({})", short_name, watched);
         if (is_watched == watched) return;
         is_watched = watched;
         if (watched) resetUnreadsAndHighlights();
