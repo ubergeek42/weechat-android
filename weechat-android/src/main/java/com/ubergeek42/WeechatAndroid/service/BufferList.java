@@ -45,7 +45,8 @@ public class BufferList {
     public static boolean SHOW_TITLE = true;
     public static boolean FILTER_NONHUMAN_BUFFERS = false;
     public static boolean OPTIMIZE_TRAFFIC = false;
-    public static @Nullable String FILTER = null;                                                      // TODO race condition?
+    public static @Nullable String FILTER_LC = null;
+    public static @Nullable String FILTER_UC = null;
 
     /** contains names of open buffers. this is written to the shared preferences
      ** and restored upon service restart (by the system). also this is used to
@@ -129,7 +130,7 @@ public class BufferList {
             for (Buffer buffer : buffers) {
                 if (buffer.type == Buffer.HARD_HIDDEN) continue;
                 if (FILTER_NONHUMAN_BUFFERS && buffer.type == Buffer.OTHER && buffer.highlights == 0 && buffer.unreads == 0) continue;
-                if (FILTER != null && !buffer.full_name.toLowerCase().contains(FILTER)) continue;
+                if (FILTER_LC != null && FILTER_UC != null && !buffer.full_name.toLowerCase().contains(FILTER_LC) && !buffer.full_name.toUpperCase().contains(FILTER_UC)) continue;
                 sent_buffers.add(buffer);
             }
         }
@@ -139,7 +140,8 @@ public class BufferList {
     }
 
     synchronized static public void setFilter(String filter) {
-        FILTER = (filter.length() == 0) ? null : filter.toLowerCase();
+        FILTER_LC = (filter.length() == 0) ? null : filter.toLowerCase();
+        FILTER_UC = (filter.length() == 0) ? null : filter.toUpperCase();
         sent_buffers = null;
     }
 
