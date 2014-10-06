@@ -16,6 +16,7 @@
 package com.ubergeek42.weechat.relay.protocol;
 
 import java.util.ArrayList;
+import java.util.Locale;
 
 /**
  * Hdata Object from Weechat; basically a list of assocative arrays See the following URL for more
@@ -43,7 +44,7 @@ public class Hdata extends RelayObject {
         for (int i = 0; i < keys.length; i++) {
             String kt[] = keys[i].split(":");
             key_list[i] = kt[0];
-            type_list[i] = WType.valueOf(kt[1].toUpperCase());
+            type_list[i] = WType.valueOf(kt[1].toUpperCase(Locale.ENGLISH));
         }
     }
 
