@@ -23,7 +23,6 @@ public abstract class AbstractConnection implements IConnection {
     OutputStream out_stream = null;
     InputStream in_stream = null;
     volatile boolean connected = false;
-    Object errordata = null;
 
     ArrayList<RelayConnectionHandler> connectionHandlers = new ArrayList<RelayConnectionHandler>();
     Thread connector = null;
@@ -138,10 +137,14 @@ public abstract class AbstractConnection implements IConnection {
                 case DISCONNECTED:
                     rch.onDisconnect();
                     break;
-                case ERROR:
-                    rch.onError("unknown error", errordata);
-                    break;
             }
+        }
+    }
+
+    @Override
+    public void notifyHandlersOfError(Exception e) {
+        for (RelayConnectionHandler rch : connectionHandlers) {
+            rch.onError(e.getMessage(), e);
         }
     }
 }

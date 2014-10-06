@@ -45,8 +45,7 @@ public class SSLConnection extends AbstractConnection {
                 notifyHandlers(STATE.CONNECTED);
             } catch (Exception e) {
                 e.printStackTrace();
-                errordata = e;
-                notifyHandlers(STATE.ERROR);
+                notifyHandlersOfError(e);
             }
         }
     });

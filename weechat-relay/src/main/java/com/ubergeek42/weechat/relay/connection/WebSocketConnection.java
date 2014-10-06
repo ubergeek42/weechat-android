@@ -85,12 +85,10 @@ public class WebSocketConnection extends AbstractConnection {
             }
 
             @Override
-            public void onError(Exception ex) {
-                System.out.println("Error");
-                System.out.println(ex);
+            public void onError(Exception e) {
                 connected = false;
-                // TODO: print error exception here
-                notifyHandlers(STATE.ERROR);
+                e.printStackTrace();
+                notifyHandlersOfError(e);
             }
         };
     }

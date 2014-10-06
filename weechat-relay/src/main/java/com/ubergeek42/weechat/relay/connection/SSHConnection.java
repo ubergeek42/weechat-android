@@ -97,7 +97,7 @@ public class SSHConnection extends AbstractConnection {
                 sshSession.setPortForwardingL(sshLocalPort, server, port);
             } catch (Exception e) {
                 e.printStackTrace();
-                notifyHandlers(STATE.ERROR);
+                notifyHandlersOfError(e);
                 return;
             }
 
@@ -110,7 +110,7 @@ public class SSHConnection extends AbstractConnection {
                 notifyHandlers(STATE.CONNECTED);
             } catch (Exception e) {
                 e.printStackTrace();
-                notifyHandlers(STATE.ERROR);
+                notifyHandlersOfError(e);
             }
         }
     });

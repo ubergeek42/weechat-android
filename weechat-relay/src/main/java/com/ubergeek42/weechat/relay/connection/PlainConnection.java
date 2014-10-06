@@ -24,7 +24,7 @@ public class PlainConnection extends AbstractConnection {
             } catch (Exception e) {
                 // TODO: better error handling
                 e.printStackTrace();
-                notifyHandlers(STATE.ERROR);
+                notifyHandlersOfError(e);
             }
         }
     });
