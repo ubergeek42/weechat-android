@@ -17,6 +17,7 @@ package com.ubergeek42.weechat.relay.protocol;
 
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
+import java.util.Locale;
 
 import com.ubergeek42.weechat.Helper;
 import com.ubergeek42.weechat.relay.protocol.RelayObject.WType;
@@ -133,7 +134,7 @@ public class Data {
             sb.append(getChar());
         }
 
-        if (length == 1 && Long.parseLong(sb.toString().toUpperCase(), 16) == 0) {
+        if (length == 1 && Long.parseLong(sb.toString().toUpperCase(Locale.ENGLISH), 16) == 0) {
             // Null Pointer
             return "0x0";
         }
@@ -228,7 +229,7 @@ public class Data {
         char a = getChar();
         char b = getChar();
         char c = getChar();
-        WType type = WType.valueOf(new String("" + a + b + c).toUpperCase());
+        WType type = WType.valueOf(new String("" + a + b + c).toUpperCase(Locale.ENGLISH));
         return type;
     }
 
