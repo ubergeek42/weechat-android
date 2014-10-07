@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.text.ClipboardManager;
@@ -45,7 +44,7 @@ import com.ubergeek42.WeechatAndroid.service.RelayServiceBinder;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
 
 public class BufferFragment extends SherlockFragment implements BufferEye, OnKeyListener,
-        OnClickListener, TextWatcher, RelayConnectionHandler, //OnSharedPreferenceChangeListener,
+        OnClickListener, TextWatcher, RelayConnectionHandler,
         TextView.OnEditorActionListener {
 
     private static Logger logger = LoggerFactory.getLogger("BufferFragment");
@@ -124,7 +123,6 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
         if (DEBUG_LIFECYCLE) logger.warn("{} onStart()", full_name);
         super.onStart();
         started = true;
-        //prefs.registerOnSharedPreferenceChangeListener(this);
         activity.bind(this);
     }
 
@@ -134,7 +132,6 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
         super.onStop();
         started = false;
         detachFromBuffer();
-        //prefs.unregisterOnSharedPreferenceChangeListener(this);
         relay = null;
         activity.unbind(this);
     }
@@ -277,15 +274,6 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
             }
         });
     }
-
-//    @Override
-//    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-//        if (DEBUG_LIFECYCLE) logger.warn("onSharedPreferenceChanged(..., {})", key);
-//        if (key.equals(PREF_SHOW_SEND) && ui_send != null)
-//            ui_send.setVisibility(prefs.getBoolean(key, true) ? View.VISIBLE : View.GONE);
-//        else if (key.equals(PREF_SHOW_TAB) && ui_tab != null)
-//            ui_tab.setVisibility(prefs.getBoolean(key, true) ? View.VISIBLE : View.GONE);
-//    }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// BufferEye stuff
