@@ -656,8 +656,6 @@ public class Buffer {
                     Uri uri = Uri.parse(getURL());
                     Context context = widget.getContext();
                     Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-                    intent.putExtra(Browser.EXTRA_APPLICATION_ID, context.getPackageName());
-                    intent.putExtra(Browser.EXTRA_CREATE_NEW_TAB, true);
                     context.startActivity(intent);
                 }
                 Line.this.clickDisabled = false;
