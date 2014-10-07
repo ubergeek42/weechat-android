@@ -180,10 +180,8 @@ public class Buffer {
         if (DEBUG_BUFFER) logger.warn("{} setBufferEye({})", short_name, buffer_eye);
         this.buffer_eye = buffer_eye;
         if (buffer_eye != null) {
-            if (!holds_all_lines && lines.size() < MAX_LINES)
-                BufferList.requestLinesForBufferByPointer(pointer);
-            if (!holds_all_nicks)
-                BufferList.requestNicklistForBufferByPointer(pointer);
+            if (!holds_all_lines) BufferList.requestLinesForBufferByPointer(pointer);
+            if (!holds_all_nicks) BufferList.requestNicklistForBufferByPointer(pointer);
         }
     }
 
@@ -216,7 +214,7 @@ public class Buffer {
 
         // remove a line if we are over the limit and add the new line
         // correct visible_lines_count accordingly
-        if (lines.size() > MAX_LINES) if (lines.removeFirst().visible) visible_lines_count--;
+        if (lines.size() >= MAX_LINES) if (lines.removeFirst().visible) visible_lines_count--;
         if (is_last) lines.add(line);
         else lines.addFirst(line);
         if (line.visible) visible_lines_count++;
@@ -268,6 +266,8 @@ public class Buffer {
                     }
                 }
         }
+
+        if (lines.size() >= MAX_LINES) holds_all_lines = true;
     }
 
     /** a buffer NOT will want a complete update if the last line unread stored in weechat buffer
