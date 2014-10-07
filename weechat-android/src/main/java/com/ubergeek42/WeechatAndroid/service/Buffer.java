@@ -402,8 +402,9 @@ public class Buffer {
     }
 
     synchronized public @NonNull Nick[] getNicksCopy() {
-        sortNicks();
-        return nicks.toArray(new Nick[nicks.size()]);
+        Nick[] n = nicks.toArray(new Nick[nicks.size()]);
+        Arrays.sort(n, sortByNumberPrefixAndNameComparator);
+        return n;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -470,10 +471,6 @@ public class Buffer {
         if (buffer_nicklist_eye != null) buffer_nicklist_eye.onNicklistChanged();
     }
 
-    private void sortNicks() {
-        Collections.sort(nicks, sortByNumberPrefixAndNameComparator);
-    }
-
     /** this comparator sorts by prefix first
      ** sorting by prefix is done in a dumb way, this will order prexis like this:
      **      ' ', '%', '&', '+', '@'
@@ -481,7 +478,7 @@ public class Buffer {
     private final static Comparator<Nick> sortByNumberPrefixAndNameComparator = new Comparator<Nick>() {
         @Override public int compare(Nick n1, Nick n2) {
             int diff = n2.prefix.compareTo(n1.prefix);
-            return (diff != 0) ? diff : n1.name.compareTo(n2.name);
+            return (diff != 0) ? diff : n1.name.compareToIgnoreCase(n2.name);
         }
     };
 
