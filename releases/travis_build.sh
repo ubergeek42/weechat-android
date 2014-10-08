@@ -8,7 +8,7 @@ if [ -z "$DEVKEYALIAS" ]; then
     DEVKEYALIAS="weechat"
 fi
 
-DEV_RELEASE="1"
+DEVRELEASE="1"
 if [ -z "$DEVSTOREPASSWORD" ]; then
     echo "\$DEVSTOREPASSWORD must be set to build a release"
     DEVRELEASE="0"
