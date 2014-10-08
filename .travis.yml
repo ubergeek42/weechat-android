@@ -1,5 +1,5 @@
 language: android
-script: releases/travis-build.sh
+script: releases/travis_build.sh
 
 after_script:
     - releases/publish_s3.sh
