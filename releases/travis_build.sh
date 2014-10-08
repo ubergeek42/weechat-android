@@ -22,8 +22,8 @@ fi
 if [ "$DEVRELEASE" == "1" ]; then
     ./gradlew assembleDevRelease \
         -PdevStorefile="$DEVSTOREFILE" \
-        -PdevStorePassword="$DEVSTOREPASSWORD"
-        -PdevKeyAlias="$DEVKEYALIAS"
+        -PdevStorePassword="$DEVSTOREPASSWORD" \
+        -PdevKeyAlias="$DEVKEYALIAS" \
         -PdevKeyPassword="$DEVKEYPASSWORD"
 else
     ./gradlew assembleDebug
