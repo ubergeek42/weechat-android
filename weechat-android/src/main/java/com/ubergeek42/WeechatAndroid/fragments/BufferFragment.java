@@ -41,6 +41,7 @@ import com.ubergeek42.WeechatAndroid.service.Buffer;
 import com.ubergeek42.WeechatAndroid.service.BufferEye;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
 import com.ubergeek42.WeechatAndroid.service.RelayServiceBinder;
+import com.ubergeek42.WeechatAndroid.utils.FixedRadialDrawable;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
 
 public class BufferFragment extends SherlockFragment implements BufferEye, OnKeyListener,
@@ -114,6 +115,9 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
         ui_input.setOnKeyListener(this);            // listen for hardware keyboard
         ui_input.addTextChangedListener(this);      // listen for software keyboard through watching input box text
         ui_input.setOnEditorActionListener(this);   // listen for software keyboard's “send” click. see onEditorAction()
+
+        //noinspection deprecation
+        ui_lines.setBackgroundDrawable(new FixedRadialDrawable());
 
         return v;
     }
