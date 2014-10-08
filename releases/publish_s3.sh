@@ -3,11 +3,6 @@ BRANCH=$(git rev-parse --abbrev-ref HEAD)
 HASH=$(git log --pretty=format:'%h' -n 1)
 APK="weechat-$BRANCH-$HASH.apk"
 
-# Can't upload if we don't have the variables
-if [ "$TRAVIS_SECURE_ENV_VARS" == "false" ]; then
-    exit
-fi
-
 ORIG_APK="weechat-android/build/outputs/apk/weechat-android-devrelease.apk"
 
 if [ -z "$S3_BUCKET" ];then
