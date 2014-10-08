@@ -2,12 +2,10 @@ package com.ubergeek42.WeechatAndroid.service;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Paint;
+import android.graphics.Typeface;
 import android.os.IBinder;
-import android.view.LayoutInflater;
-import android.widget.TextView;
 
-import com.ubergeek42.WeechatAndroid.BuildConfig;
-import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 
 import org.slf4j.Logger;
@@ -35,10 +33,8 @@ import java.text.SimpleDateFormat;
 
 public class RelayService extends RelayServiceBackbone {
     private static Logger logger = LoggerFactory.getLogger("RelayService");
-    final private static boolean DEBUG = BuildConfig.DEBUG;
     final private static boolean DEBUG_PREFS = false;
     final private static boolean DEBUG_SAVE_RESTORE = false;
-    final private static boolean DEBUG_NOTIFICATIONS = false;
 
     public static final String PREFS_NAME = "kittens!";
     public static final String PREFS_SORT_BUFFERS = "sort_buffers";
@@ -211,9 +207,9 @@ public class RelayService extends RelayServiceBackbone {
 
     private void setTextSizeAndLetterWidth() {
         Buffer.Line.TEXT_SIZE = Float.parseFloat(prefs.getString(PREFS_TEXT_SIZE, "10"));
-        LayoutInflater li = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
-        TextView textview = (TextView) li.inflate(R.layout.chatview_line, null).findViewById(R.id.chatline_message);
-        textview.setTextSize(Buffer.Line.TEXT_SIZE);
-        Buffer.Line.LETTER_WIDTH = (textview.getPaint().measureText("m"));
+        Paint p = new Paint();
+        p.setTypeface(Typeface.MONOSPACE);
+        p.setTextSize(Buffer.Line.TEXT_SIZE * getResources().getDisplayMetrics().density);
+        Buffer.Line.LETTER_WIDTH = (p.measureText("m"));
     }
 }
