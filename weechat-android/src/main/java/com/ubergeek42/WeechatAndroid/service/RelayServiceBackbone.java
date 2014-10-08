@@ -71,7 +71,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
     private static Logger logger = LoggerFactory.getLogger("RelayServiceBackbone");
     final private static boolean DEBUG = false;
     final private static boolean DEBUG_CONNECTION = false;
-    final private static boolean DEBUG_NOTIFICATIONS = true;
+    final private static boolean DEBUG_NOTIFICATIONS = false;
 
     private static final int NOTIFICATION_ID = 42;
     private static final int NOTIFICATION_HIGHLIGHT_ID = 43;
