@@ -339,30 +339,41 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
             int ticker = reconnecting ? R.string.notification_reconnecting : R.string.notification_connecting;
             int content = reconnecting ? R.string.notification_reconnecting_details : R.string.notification_connecting_details;
             int content_now = reconnecting ? R.string.notification_reconnecting_details_now : R.string.notification_connecting_details_now;
-            boolean jumper = false;
 
-            @SuppressWarnings("PointlessBooleanExpression")
-            @Override
-            public void run() {
-                if (DEBUG_CONNECTION) logger.debug("...run()");
-                if (connection != null && connection.isConnected())
-                    return;
-                if (jumper = !jumper) {
+            Runnable connectRunner = new Runnable() {
+                @Override
+                public void run() {
+                    if (DEBUG_CONNECTION) logger.debug("...run()");
+                    if (connection != null && connection.isConnected())
+                        return;
                     if (DEBUG_CONNECTION) logger.debug("...not connected; connecting now");
                     connection_status = CONNECTING;
                     showNotification(String.format(getString(ticker), prefs.getString("host", null)),
                             String.format(getString(content_now)));
                     if (connect() == CONNECTION_IMPOSSIBLE)
                         return;
-                    thandler.postDelayed(this, WAIT_BEFORE_WAIT_MESSAGE_DELAY * 1000);
-                } else {
+                    thandler.postDelayed(notifyRunner, WAIT_BEFORE_WAIT_MESSAGE_DELAY * 1000);
+                }
+            };
+
+            Runnable notifyRunner = new Runnable() {
+                @Override
+                public void run() {
+                    if (DEBUG_CONNECTION) logger.debug("...run()");
+                    if (connection != null && connection.isConnected())
+                        return;
                     long delay = DELAYS[reconnects < DELAYS.length ? reconnects : DELAYS.length];
                     if (DEBUG_CONNECTION) logger.debug("...waiting {} seconds", delay);
                     showNotification(String.format(getString(ticker), host),
                             String.format(getString(content), delay));
                     reconnects++;
-                    thandler.postDelayed(this, delay * 1000);
+                    thandler.postDelayed(connectRunner, delay * 1000);
                 }
+            };
+
+            @Override
+            public void run() {
+                connectRunner.run();
             }
         });
     }
