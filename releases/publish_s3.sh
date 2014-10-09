@@ -21,12 +21,13 @@ fi
 contentType="application/vnd.android.package-archive"
 dateValue=$(date -R)
 signature=$(echo -en "PUT\n\n${contentType}\n${dateValue}\n/${S3_BUCKET}/${APK}" | openssl sha1 -hmac ${S3_SECRET_KEY} -binary | base64)
-curl -k -X PUT -T "${ORIG_APK}" \
-    -H "Host: weechat-android.ubergeek42.com.s3.amazonaws.com" \
+echo "Uploading ${APK}"
+curl -X PUT -T "${ORIG_APK}" \
+    -H "Host: s3.amazonaws.com" \
     -H "Date: ${dateValue}" \
     -H "Content-Type: ${contentType}" \
     -H "Authorization: AWS ${S3_ACCESS_KEY}:${signature}" \
-    https://${S3_BUCKET}.s3.amazonaws.com/${APK}
+    https://s3.amazonaws.com/${S3_BUCKET}/${APK}
 
 
 
@@ -70,9 +71,10 @@ EOF
 contentType="text/html"
 dateValue=$(date -R)
 signature=$(echo -en "PUT\n\n${contentType}\n${dateValue}\n/${S3_BUCKET}/${HTMLFILE}" | openssl sha1 -hmac ${S3_SECRET_KEY} -binary | base64)
-curl -k -X PUT -T "${HTMLFILE}" \
-    -H "Host: ${S3_BUCKET}.s3.amazonaws.com" \
+echo "Uploading ${HTMLFILE}"
+curl -X PUT -T "${HTMLFILE}" \
+    -H "Host: s3.amazonaws.com" \
     -H "Date: ${dateValue}" \
     -H "Content-Type: ${contentType}" \
     -H "Authorization: AWS ${S3_ACCESS_KEY}:${signature}" \
-    https://${S3_BUCKET}.s3.amazonaws.com/${HTMLFILE}
+    https://s3.amazonaws.com/${S3_BUCKET}/${HTMLFILE}
