@@ -29,13 +29,17 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.graphics.Color;
-import android.os.Build;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.SystemClock;
@@ -118,6 +122,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
     /** mainly used to tell the user if we are REconnected */
     private volatile boolean disconnected;
     private boolean already_had_intent;
+    private volatile boolean network_unavailable;
 
     /** handler that resides on a separate thread. useful for connection/etc */
     Handler thandler;
@@ -159,9 +164,20 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
 
         disconnected = false;
         already_had_intent = false;
+        network_unavailable = false;
 
         // Prepare for dealing with SSL certs
         certmanager = new SSLHandler(new File(getDir("sslDir", Context.MODE_PRIVATE), "keystore.jks"));
+
+        registerReceiver(new BroadcastReceiver() {
+            public void onReceive(Context context, Intent intent) {
+                NetworkInfo networkInfo = connectivityManager().getActiveNetworkInfo();
+                if (networkInfo != null && networkInfo.isConnected()) {
+                    if (network_unavailable && mustAutoConnect()) startThreadedConnectLoop(true);
+                    network_unavailable = false;
+                }
+            }
+        }, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
     }
 
     // TODO: decide whether killing the process is necessary...
@@ -350,9 +366,8 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
                     connection_status = CONNECTING;
                     showNotification(String.format(getString(ticker), prefs.getString("host", null)),
                             String.format(getString(content_now)));
-                    if (connect() == CONNECTION_IMPOSSIBLE)
-                        return;
-                    thandler.postDelayed(notifyRunner, WAIT_BEFORE_WAIT_MESSAGE_DELAY * 1000);
+                    if (connect() != CONNECTION_IMPOSSIBLE)
+                        thandler.postDelayed(notifyRunner, WAIT_BEFORE_WAIT_MESSAGE_DELAY * 1000);
                 }
             };
 
@@ -423,6 +438,18 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
             return false;
         }
 
+        NetworkInfo networkInfo = connectivityManager().getActiveNetworkInfo();
+        if (networkInfo == null || !networkInfo.isConnected()) {
+            Intent i = new Intent(this, WeechatActivity.class);
+            PendingIntent contentIntent = PendingIntent.getActivity(this, 0, i,
+                    PendingIntent.FLAG_CANCEL_CURRENT);
+            showNotification(getString(R.string.notification_network_unavailable_details),
+                    getString(R.string.notification_network_unavailable),
+                    contentIntent);
+            network_unavailable = true;
+            return false;
+        }
+
         IConnection conn;
         String connType = prefs.getString(PREF_CONNECTION_TYPE, PREF_TYPE_PLAIN);
         if (connType.equals(PREF_TYPE_SSH)) {
@@ -456,6 +483,10 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
         connection = new RelayConnection(conn, pass);
         connection.connect();
         return true;
+    }
+
+    private ConnectivityManager connectivityManager() {
+        return (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
