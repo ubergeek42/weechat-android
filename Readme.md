@@ -12,9 +12,12 @@ Either scan the QR code, or download it from the [Google Play Store](https://pla
 ![Download](https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=https://play.google.com/store/apps/details?id=com.ubergeek42.WeechatAndroid)
 
 #### Latest Development Snapshot - v0.09-dev (INSTALL THIS ONE!)
+[![Build Status](https://travis-ci.org/ubergeek42/weechat-android.svg?branch=master)](https://travis-ci.org/ubergeek42/weechat-android)
+
 If you're feeling adventurous, you can try the latest development version.  This is built after every commit, and while I try to keep a working build, it may fail or have major bugs.
 
-[Get the latest development version here](http://repository-ubergeek42.forge.cloudbees.com/release/index.html)
+[Get the latest development version here](http://weechat-android.ubergeek42.com/)
+
 
 ## Installation and usage:
 Please refer to the quick start guide for details:
