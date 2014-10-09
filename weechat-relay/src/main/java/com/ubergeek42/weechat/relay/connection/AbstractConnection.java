@@ -70,14 +70,13 @@ public abstract class AbstractConnection implements IConnection {
      */
     @Override
     public void disconnect() {
-        if (!connected) {
-            return;
-        }
-
         // If we're in the process of connecting, kill the thread and let us die
         if (connector.isAlive()) {
             connector.interrupt();
-            //connector.stop(); // FIXME: deprecated, should probably find a better way to do this
+        }
+
+        if (!connected) {
+            return;
         }
 
             // If we're connected, tell weechat we're going away

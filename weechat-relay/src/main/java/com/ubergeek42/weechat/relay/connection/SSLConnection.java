@@ -1,10 +1,14 @@
 package com.ubergeek42.weechat.relay.connection;
 
+import java.net.InetSocketAddress;
+import java.nio.channels.ClosedByInterruptException;
+import java.nio.channels.SocketChannel;
 import java.security.KeyStore;
 import java.security.SecureRandom;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
 
 public class SSLConnection extends AbstractConnection {
@@ -35,14 +39,17 @@ public class SSLConnection extends AbstractConnection {
 
                 SSLContext sslContext = SSLContext.getInstance("TLS");
                 sslContext.init(null, tmf.getTrustManagers(), new SecureRandom());
-                SSLSocket sslSock = (SSLSocket) sslContext.getSocketFactory().createSocket(server, port);
-                sslSock.setKeepAlive(true);
+                SocketChannel channel = SocketChannel.open();
+                channel.connect(new InetSocketAddress(server, port));
+                SSLSocketFactory socketFactory = sslContext.getSocketFactory();
+                sock = socketFactory.createSocket(channel.socket(), server, port, true);
 
-                sock = sslSock;
                 out_stream = sock.getOutputStream();
                 in_stream = sock.getInputStream();
                 connected = true;
                 notifyHandlers(STATE.CONNECTED);
+            } catch (ClosedByInterruptException e) {
+                // Thread interrupted during connect.
             } catch (Exception e) {
                 e.printStackTrace();
                 notifyHandlersOfError(e);

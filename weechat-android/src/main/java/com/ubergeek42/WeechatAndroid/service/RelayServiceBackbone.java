@@ -404,6 +404,9 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
         if ((connection != null) && (connection.isConnected()))
             return false;
 
+        if (connection != null)
+            connection.disconnect();
+
         // load the preferences
         host = prefs.getString(PREF_HOST, null);
         pass = prefs.getString(PREF_PASSWORD, null);

@@ -1,12 +1,20 @@
 package com.ubergeek42.weechat.relay.connection;
 
 import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
+import com.jcraft.jsch.SocketFactory;
 import com.jcraft.jsch.UIKeyboardInteractive;
 import com.jcraft.jsch.UserInfo;
 import com.ubergeek42.weechat.relay.JschLogger;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.nio.channels.SocketChannel;
+import java.nio.channels.ClosedByInterruptException;
 import java.util.regex.Pattern;
 
 public class SSHConnection extends AbstractConnection {
@@ -70,6 +78,14 @@ public class SSHConnection extends AbstractConnection {
         sshKeyFilePath = keyfile;
     }
 
+    @Override
+    public void disconnect() {
+        try {
+            sshSession.delPortForwardingL(sshLocalPort);
+        } catch (Exception e) { }
+        super.disconnect();
+    }
+
     /**
      * Connects to the server(via an ssh tunnel) in a new thread, so we can interrupt it if we want
      * to cancel the connection
@@ -83,18 +99,51 @@ public class SSHConnection extends AbstractConnection {
                 JSch.setLogger(new JschLogger());
                 JSch jsch = new JSch();
                 System.out.println("[KeyAuth] " + sshKeyFilePath + " - " + sshPassword);
-                if (sshKeyFilePath != null && sshKeyFilePath.length()>0) {
+                if (sshKeyFilePath != null && sshKeyFilePath.length() > 0) {
                     jsch.addIdentity(sshKeyFilePath, sshPassword);
                 }
                 System.out.println("[identities] " + jsch.getIdentityNames());
 
                 sshSession = jsch.getSession(sshUsername, sshHost, sshPort);
+                sshSession.setSocketFactory(new SocketFactory() {
+                    @Override
+                    public Socket createSocket(String host, int port) throws IOException {
+                        try {
+                            SocketChannel channel = SocketChannel.open();
+                            channel.connect(new InetSocketAddress(host, port));
+                            return channel.socket();
+                        } catch (ClosedByInterruptException e) {
+                            // JSch doesn't expose the cause of exceptions raised by createSocket.
+                            // Throw a RuntimeException so we know if we were interrupted or if
+                            // there was some other connection failure.
+                            throw new RuntimeException(e);
+                        }
+                    }
 
-                if (sshKeyFilePath == null || sshKeyFilePath.length()==0)
+                    @Override
+                    public InputStream getInputStream(Socket socket) throws IOException {
+                        return socket.getInputStream();
+                    }
+
+                    @Override
+                    public OutputStream getOutputStream(Socket socket) throws IOException {
+                        return socket.getOutputStream();
+                    }
+                });
+
+                if (sshKeyFilePath == null || sshKeyFilePath.length() == 0)
                     sshSession.setUserInfo(new WeechatUserInfo());
                 sshSession.setConfig("StrictHostKeyChecking", "no");
                 sshSession.connect();
                 sshSession.setPortForwardingL(sshLocalPort, server, port);
+            } catch (RuntimeException e) {
+                if (e.getCause() instanceof ClosedByInterruptException) {
+                    // Thread interrupted during connect.
+                } else {
+                    e.printStackTrace();
+                    notifyHandlersOfError(e);
+                }
+                return;
             } catch (Exception e) {
                 e.printStackTrace();
                 notifyHandlersOfError(e);
