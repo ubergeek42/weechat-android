@@ -50,11 +50,11 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
 
     private static Logger logger = LoggerFactory.getLogger("BufferFragment");
     final private static boolean DEBUG_TAB_COMPLETE = false;
-    final private static boolean DEBUG_LIFECYCLE = true;
+    final private static boolean DEBUG_LIFECYCLE = false;
     final private static boolean DEBUG_VISIBILITY = false;
     final private static boolean DEBUG_MESSAGES = false;
     final private static boolean DEBUG_CONNECTION = false;
-    final private static boolean DEBUG_AUTOSCROLLING = true;
+    final private static boolean DEBUG_AUTOSCROLLING = false;
 
     private static final String PREFS_TEXT_SIZE = "text_size";
     private final static String PREF_SHOW_SEND = "sendbtn_show";

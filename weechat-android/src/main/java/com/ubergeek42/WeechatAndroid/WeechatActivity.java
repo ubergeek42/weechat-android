@@ -72,12 +72,12 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
 
     private static Logger logger = LoggerFactory.getLogger("WA");
     final private static boolean DEBUG = BuildConfig.DEBUG;
-    final private static boolean DEBUG_OPTIONS_MENU = true;
-    final private static boolean DEBUG_LIFECYCLE = true;
-    final private static boolean DEBUG_CONNECION = true;
-    final private static boolean DEBUG_INTENT = true;
-    final private static boolean DEBUG_BUFFERS = true;
-    final private static boolean DEBUG_DRAWER = true;
+    final private static boolean DEBUG_OPTIONS_MENU = false;
+    final private static boolean DEBUG_LIFECYCLE = false;
+    final private static boolean DEBUG_CONNECION = false;
+    final private static boolean DEBUG_INTENT = false;
+    final private static boolean DEBUG_BUFFERS = false;
+    final private static boolean DEBUG_DRAWER = false;
 
     public RelayServiceBinder relay;
     private Menu ui_menu;
@@ -353,12 +353,12 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         hideSoftwareKeyboard();
     }
 
-////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// MENU
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     volatile private int hot_number = 0;
-    private TextView ui_hot = null;
+    private @Nullable TextView ui_hot = null;
 
     /** update hot count (that red square over the bell icon) at any time
      ** also sets "hot_number" in case menu has to be recreated
@@ -366,18 +366,17 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     public void updateHotCount(final int new_hot_number) {
         if (DEBUG_OPTIONS_MENU) logger.debug("updateHotCount(), hot: {} -> {}", hot_number, new_hot_number);
         hot_number = new_hot_number;
-        if (ui_hot == null) return;
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (new_hot_number == 0)
-                    ui_hot.setVisibility(View.INVISIBLE);
-                else {
-                    ui_hot.setVisibility(View.VISIBLE);
-                    ui_hot.setText(Integer.toString(new_hot_number));
+        if (ui_hot != null)
+            ui_hot.post(new Runnable() {
+                @Override public void run() {
+                    if (new_hot_number == 0)
+                        ui_hot.setVisibility(View.INVISIBLE);
+                    else {
+                        ui_hot.setVisibility(View.VISIBLE);
+                        ui_hot.setText(Integer.toString(new_hot_number));
+                    }
                 }
-            }
-        });
+            });
     }
 
     /** hide or show nicklist/close menu item according to buffer
