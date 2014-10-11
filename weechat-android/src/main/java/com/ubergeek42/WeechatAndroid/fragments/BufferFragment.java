@@ -171,11 +171,9 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
 
         // see if visibility has changed. if it hasn't, do nothing
         boolean obscured = activity.isPagerNoticeablyObscured();
-        if (visible == (started && pager_visible && !obscured))
-            return;
+        visible = started && pager_visible && !obscured;
 
         // visibility has changed.
-        visible = !visible;
         if (visible) {
             highlights = buffer.highlights;
             privates = (buffer.type == Buffer.PRIVATE) ? buffer.unreads : 0;
@@ -335,26 +333,27 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
      **     after setting the adapter or updating lines */
     public void scrollToHotLineIfNeeded() {
         if (DEBUG_AUTOSCROLLING) logger.error("{} scrollToHotLineIfNeeded()", short_name);
-        if (buffer != null && visible && buffer.holds_all_lines &&
-                (highlights > 0 || privates > 0)) {
+        if (buffer != null && visible && buffer.holds_all_lines && (highlights > 0 || privates > 0)) {
+            final int hi = highlights, pr = privates;
+            highlights = privates = 0;
             if (DEBUG_AUTOSCROLLING) logger.error("...proceeding");
             ui_lines.post(new Runnable() {
                 @Override public void run() {
-                    if (DEBUG_AUTOSCROLLING) logger.error("...u/h: {}/{}", privates, highlights);
+                    if (DEBUG_AUTOSCROLLING) logger.error("...u/h: {}/{}", pr, hi);
                     int count = lines_adapter.getCount();
                     Integer idx = null;
 
-                    if (privates > 0) {
+                    if (pr > 0) {
                         int p = 0;
                         for (idx = count - 1; idx >= 0; idx--) {
                             Buffer.Line line = (Buffer.Line) lines_adapter.getItem(idx);
-                            if (line.type == Buffer.Line.LINE_MESSAGE && ++p == privates) break;
+                            if (line.type == Buffer.Line.LINE_MESSAGE && ++p == pr) break;
                         }
-                    } else if (highlights > 0) {
+                    } else if (hi > 0) {
                         int h = 0;
                         for (idx = count - 1; idx >= 0; idx--) {
                             Buffer.Line line = (Buffer.Line) lines_adapter.getItem(idx);
-                            if (line.highlighted && ++h == highlights) break;
+                            if (line.highlighted && ++h == hi) break;
                         }
                     }
 
@@ -367,7 +366,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
                         ui_lines.smoothScrollToPosition(idx);
                     }
 
-                    highlights = privates = 0;
+
                 }
             });
         }
