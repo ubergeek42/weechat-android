@@ -1,7 +1,6 @@
 package com.ubergeek42.weechat.relay.connection;
 
 import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import com.jcraft.jsch.SocketFactory;
 import com.jcraft.jsch.UIKeyboardInteractive;
@@ -13,8 +12,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.nio.channels.SocketChannel;
 import java.nio.channels.ClosedByInterruptException;
+import java.nio.channels.SocketChannel;
 import java.util.regex.Pattern;
 
 public class SSHConnection extends AbstractConnection {
@@ -80,10 +79,10 @@ public class SSHConnection extends AbstractConnection {
 
     @Override
     public void disconnect() {
-        try {
-            sshSession.delPortForwardingL(sshLocalPort);
-        } catch (Exception e) { }
         super.disconnect();
+        if (sshSession != null)
+            sshSession.disconnect();
+        sshSession = null;
     }
 
     /**
@@ -163,7 +162,6 @@ public class SSHConnection extends AbstractConnection {
             }
         }
     });
-    //TODO: override disconnect/other methods to make sure the tunnel is closed/cleaned up nicely
 
     private class WeechatUserInfo implements UserInfo, UIKeyboardInteractive {
         public String getPassphrase() { return null; }
