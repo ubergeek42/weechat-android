@@ -336,12 +336,9 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
         if (buffer != null && visible && buffer.holds_all_lines && (highlights > 0 || privates > 0)) {
             final int hi = highlights, pr = privates;
             highlights = privates = 0;
-            if (DEBUG_AUTOSCROLLING) logger.error("...proceeding");
             ui_lines.post(new Runnable() {
                 @Override public void run() {
-                    if (DEBUG_AUTOSCROLLING) logger.error("...u/h: {}/{}", pr, hi);
-                    int count = lines_adapter.getCount();
-                    Integer idx = null;
+                    int count = lines_adapter.getCount(), idx = -1;
 
                     if (pr > 0) {
                         int p = 0;
@@ -357,16 +354,10 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
                         }
                     }
 
-                    if (idx == null) {
-                        Toast.makeText(getActivity(), "This should not happen", Toast.LENGTH_SHORT).show();
-                    } else if (idx < 0) {
-                        Toast.makeText(getActivity(), "Can't find the line to scroll to", Toast.LENGTH_SHORT).show();
-                    } else {
-                        Toast.makeText(getActivity(), "Scrolling to: "+idx+ "/"+count, Toast.LENGTH_LONG).show();
+                    if (idx < 0)
+                        Toast.makeText(getActivity(), activity.getString(R.string.autoscroll_no_line), Toast.LENGTH_SHORT).show();
+                    else
                         ui_lines.smoothScrollToPosition(idx);
-                    }
-
-
                 }
             });
         }

@@ -487,7 +487,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         if (buffer != null)
             openBuffer(buffer.full_name);
         else
-            Toast.makeText(this, "There are no hot buffers for now", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.no_hot_buffers), Toast.LENGTH_SHORT).show();
     }
 
     /** change first menu item from connect to disconnect or back depending on connection status */
