@@ -334,30 +334,30 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     public void scrollToHotLineIfNeeded() {
         if (DEBUG_AUTOSCROLLING) logger.error("{} scrollToHotLineIfNeeded()", short_name);
         if (buffer != null && visible && buffer.holds_all_lines && (highlights > 0 || privates > 0)) {
-            final int hi = highlights, pr = privates;
-            highlights = privates = 0;
             ui_lines.post(new Runnable() {
                 @Override public void run() {
-                    int count = lines_adapter.getCount(), idx = -1;
+                    int count = lines_adapter.getCount(), idx = -2;
 
-                    if (pr > 0) {
+                    if (privates > 0) {
                         int p = 0;
                         for (idx = count - 1; idx >= 0; idx--) {
                             Buffer.Line line = (Buffer.Line) lines_adapter.getItem(idx);
-                            if (line.type == Buffer.Line.LINE_MESSAGE && ++p == pr) break;
+                            if (line.type == Buffer.Line.LINE_MESSAGE && ++p == privates) break;
                         }
-                    } else if (hi > 0) {
+                    } else if (highlights > 0) {
                         int h = 0;
                         for (idx = count - 1; idx >= 0; idx--) {
                             Buffer.Line line = (Buffer.Line) lines_adapter.getItem(idx);
-                            if (line.highlighted && ++h == hi) break;
+                            if (line.highlighted && ++h == highlights) break;
                         }
                     }
 
-                    if (idx < 0)
+                    if (idx == -1)
                         Toast.makeText(getActivity(), activity.getString(R.string.autoscroll_no_line), Toast.LENGTH_SHORT).show();
-                    else
+                    else if (idx > 0)
                         ui_lines.smoothScrollToPosition(idx);
+
+                    highlights = privates = 0;
                 }
             });
         }
