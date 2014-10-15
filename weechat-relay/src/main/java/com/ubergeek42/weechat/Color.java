@@ -166,18 +166,19 @@ public class Color {
         prefix = out.toString();
         if (highlight) span_list.clear();
         boolean nick_has_been_cut = false;
-        if (prefix.length() > max) {
+        int max_adjusted = enclose_nick ? Math.max(0, max - 2) : max;
+        if (prefix.length() > max_adjusted) {
             nick_has_been_cut = true;
-            prefix = prefix.substring(0, max);
+            prefix = prefix.substring(0, max_adjusted);
             Span span;
             for (Iterator<Span> it = span_list.iterator(); it.hasNext();) {
                 span = it.next();
-                if (span.end > max) span.end = max;
+                if (span.end > max_adjusted) span.end = max_adjusted;
                 if (span.end <= span.start) it.remove();
             }
         }
-        else if (align_right && prefix.length() < max) {
-            int diff = max - prefix.length();
+        else if (align_right && prefix.length() < max_adjusted) {
+            int diff = max_adjusted - prefix.length();
             for (int x = 0; x < diff; x++) sb.append("\u00a0"); // non-breaking space
         }
         if (highlight) {
@@ -186,7 +187,10 @@ public class Color {
             color = weechatOptions[29][1];
             if (color != -1) {Span bg = new Span(); bg.start = 0; bg.end = prefix.length(); bg.type = Span.BGCOLOR; bg.color = color; span_list.add(bg);}
         }
-        if (enclose_nick) sb.append("<");
+        if (enclose_nick && max >= 1) {
+            sb.append("<");
+            Span fg = new Span(); fg.start = sb.length() - 1; fg.end = sb.length(); fg.type = Span.FGCOLOR; fg.color = weechatOptions[2][0]; final_span_list.add(fg);
+        }
         puff = sb.length();
         for (Span span : span_list) {
             span.start += puff;
@@ -195,11 +199,17 @@ public class Color {
         }
         sb.append(prefix);
         if (nick_has_been_cut) {
-            if (enclose_nick) sb.append(">");
+            if (enclose_nick && max >= 2) {
+                sb.append(">");
+                Span fg = new Span(); fg.start = sb.length() - 1; fg.end = sb.length(); fg.type = Span.FGCOLOR; fg.color = weechatOptions[2][0]; final_span_list.add(fg);
+            }
             sb.append("+");
             Span fg = new Span(); fg.start = sb.length() - 1; fg.end = sb.length(); fg.type = Span.FGCOLOR; fg.color = 0x444444; final_span_list.add(fg);
         }
-        else if (enclose_nick) sb.append("> ");
+        else if (enclose_nick && max >= 2) {
+            sb.append("> ");
+            Span fg = new Span(); fg.start = sb.length() - 2; fg.end = sb.length() - 1; fg.type = Span.FGCOLOR; fg.color = weechatOptions[2][0]; final_span_list.add(fg);
+        }
         else sb.append(" ");
 
         // here's our margin
