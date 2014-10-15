@@ -72,12 +72,12 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
 
     private static Logger logger = LoggerFactory.getLogger("WA");
     final private static boolean DEBUG = BuildConfig.DEBUG;
-    final private static boolean DEBUG_OPTIONS_MENU = true;
-    final private static boolean DEBUG_LIFECYCLE = true;
-    final private static boolean DEBUG_CONNECION = true;
-    final private static boolean DEBUG_INTENT = true;
-    final private static boolean DEBUG_BUFFERS = true;
-    final private static boolean DEBUG_DRAWER = true;
+    final private static boolean DEBUG_OPTIONS_MENU = false;
+    final private static boolean DEBUG_LIFECYCLE = false;
+    final private static boolean DEBUG_CONNECION = false;
+    final private static boolean DEBUG_INTENT = false;
+    final private static boolean DEBUG_BUFFERS = false;
+    final private static boolean DEBUG_DRAWER = false;
 
     public RelayServiceBinder relay;
     private Menu ui_menu;
@@ -108,12 +108,6 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
 
         // load layout
         setContentView(R.layout.main_screen);
-
-        // restore hot number
-        // needed to see if we have to pop up the drawer if the number
-        // increased since the last time the app was opened
-        if (savedInstanceState != null)
-            hot_number = savedInstanceState.getInt("hot_number", 0);
 
         // prepare pager
         FragmentManager manager = getSupportFragmentManager();
@@ -214,12 +208,6 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     }
 
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putInt("hot_number", hot_number);
-    }
-
-    @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         if (slidy) drawer_toggle.onConfigurationChanged(newConfig);
@@ -256,9 +244,10 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         adjustUI();
 
         // if we have intent, handle it
-        // if not, open drawer if the number of highlights has increased
-        if (getIntent().hasExtra(EXTRA_NAME))                       openBufferFromIntent();
-        else if (slidy && BufferList.getHotCount() > hot_number)    showDrawer();
+        if (getIntent().hasExtra(EXTRA_NAME))
+            openBufferFromIntent();
+
+        updateHotCount(BufferList.getHotCount());
 
         for (BufferFragment fragment: fragments)
             fragment.onServiceConnected(relay);
@@ -364,12 +353,12 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         hideSoftwareKeyboard();
     }
 
-////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// MENU
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     volatile private int hot_number = 0;
-    private TextView ui_hot = null;
+    private @Nullable TextView ui_hot = null;
 
     /** update hot count (that red square over the bell icon) at any time
      ** also sets "hot_number" in case menu has to be recreated
@@ -377,18 +366,17 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     public void updateHotCount(final int new_hot_number) {
         if (DEBUG_OPTIONS_MENU) logger.debug("updateHotCount(), hot: {} -> {}", hot_number, new_hot_number);
         hot_number = new_hot_number;
-        if (ui_hot == null) return;
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (new_hot_number == 0)
-                    ui_hot.setVisibility(View.INVISIBLE);
-                else {
-                    ui_hot.setVisibility(View.VISIBLE);
-                    ui_hot.setText(Integer.toString(new_hot_number));
+        if (ui_hot != null)
+            ui_hot.post(new Runnable() {
+                @Override public void run() {
+                    if (new_hot_number == 0)
+                        ui_hot.setVisibility(View.INVISIBLE);
+                    else {
+                        ui_hot.setVisibility(View.VISIBLE);
+                        ui_hot.setText(Integer.toString(new_hot_number));
+                    }
                 }
-            }
-        });
+            });
     }
 
     /** hide or show nicklist/close menu item according to buffer
@@ -497,9 +485,9 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         if (relay == null) return;
         Buffer buffer = BufferList.getHotBuffer();
         if (buffer != null)
-            openBuffer(buffer.full_name, true);
+            openBuffer(buffer.full_name);
         else
-            Toast.makeText(this, "There are no hot buffers for now", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.no_hot_buffers), Toast.LENGTH_SHORT).show();
     }
 
     /** change first menu item from connect to disconnect or back depending on connection status */
@@ -526,13 +514,13 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     /** open a buffer WITHOUT hiding the drawer and checking if we are connected */
     public void openBufferSilently(@NonNull String full_name) {
         if (DEBUG_BUFFERS) logger.debug("openBufferSilently({})", full_name);
-        adapter.openBuffer(full_name, false, false);
+        adapter.openBuffer(full_name, false);
     }
 
-    public void openBuffer(@NonNull String full_name, boolean scroll) {
+    public void openBuffer(@NonNull String full_name) {
         if (DEBUG_BUFFERS) logger.debug("openBuffer({})", full_name);
         if (adapter.isBufferOpen(full_name) || relay.isConnection(RelayService.CONNECTED)) {
-            adapter.openBuffer(full_name, true, scroll);
+            adapter.openBuffer(full_name, true);
             if (slidy) hideDrawer();
         } else {
             Toast.makeText(this, "Not connected", Toast.LENGTH_SHORT).show();
@@ -670,7 +658,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         if ("".equals(name)) {
             if (slidy) showDrawer();
         } else {
-            openBuffer(name, true);
+            openBuffer(name);
         }
         getIntent().removeExtra(EXTRA_NAME);
     }

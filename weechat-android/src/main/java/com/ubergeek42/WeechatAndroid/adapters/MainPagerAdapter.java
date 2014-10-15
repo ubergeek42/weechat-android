@@ -54,24 +54,21 @@ public class MainPagerAdapter extends PagerAdapter {
     /** MUST BE RUN ON MAIN THREAD
      ** switch to already open ui_buffer OR create a new ui_buffer, putting it into BOTH full_names and fragments,
      ** run notifyDataSetChanged() which will in turn call instantiateItem(), and set new ui_buffer as the current one */
-    public void openBuffer(final String full_name, final boolean focus, final boolean focus_line) {
-        if (DEBUG_BUFFERS) logger.info("openBuffer({}, focus={}, focus line={})", new Object[]{full_name, focus, focus_line});
-        BufferFragment fragment;
+    public void openBuffer(final String full_name, final boolean focus) {
+        if (DEBUG_BUFFERS) logger.info("openBuffer({}, focus={})", full_name, focus);
         int idx = full_names.indexOf(full_name);
         if (idx >= 0) {
             if (focus) pager.setCurrentItem(idx);
-            fragment = fragments.get(idx);
         } else {
             Buffer buffer = activity.relay.getBufferByFullName(full_name);
             if (buffer != null)
                 buffer.setOpen(true);
-            fragment = newBufferFragment(full_name);
+            BufferFragment fragment = newBufferFragment(full_name);
             fragments.add(fragment);
             full_names.add(full_name);
             notifyDataSetChanged();
             if (focus) pager.setCurrentItem(full_names.size());
         }
-        if (focus_line) fragment.scrollToHotLine();
     }
 
     private BufferFragment newBufferFragment(String full_name) {

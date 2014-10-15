@@ -50,11 +50,11 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
 
     private static Logger logger = LoggerFactory.getLogger("BufferFragment");
     final private static boolean DEBUG_TAB_COMPLETE = false;
-    final private static boolean DEBUG_LIFECYCLE = true;
+    final private static boolean DEBUG_LIFECYCLE = false;
     final private static boolean DEBUG_VISIBILITY = false;
     final private static boolean DEBUG_MESSAGES = false;
     final private static boolean DEBUG_CONNECTION = false;
-    final private static boolean DEBUG_AUTOSCROLLING = true;
+    final private static boolean DEBUG_AUTOSCROLLING = false;
 
     private static final String PREFS_TEXT_SIZE = "text_size";
     private final static String PREF_SHOW_SEND = "sendbtn_show";
@@ -154,6 +154,11 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     private boolean pager_visible = false;
     private boolean visible = false;
 
+    /** these are the highlight and private counts that we are supposed to scroll
+     ** they are reset after the scroll has been completed */
+    private int highlights = 0;
+    private int privates = 0;
+
     /** called when visibility of current fragment is (potentially) altered by
      **   * drawer being shown/hidden
      **   * whether buffer is shown in the pager (see MainPagerAdapter)
@@ -163,8 +168,16 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
         if (DEBUG_VISIBILITY) logger.warn("{} maybeChangeVisibilityState()", full_name);
         if (activity == null || buffer == null)
             return;
+
+        // see if visibility has changed. if it hasn't, do nothing
         boolean obscured = activity.isPagerNoticeablyObscured();
         visible = started && pager_visible && !obscured;
+
+        // visibility has changed.
+        if (visible) {
+            highlights = buffer.highlights;
+            privates = (buffer.type == Buffer.PRIVATE) ? buffer.unreads : 0;
+        }
         buffer.setWatched(visible);
         scrollToHotLineIfNeeded();
     }
@@ -313,51 +326,38 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     //////////////////////////////////////////////////////////////////////////////////////////////// scrolling
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private boolean must_scroll = false;
-
-    public void scrollToHotLine() {
-        must_scroll = true;
-        scrollToHotLineIfNeeded();
-    }
-
     /** scroll to the first hot line, if possible (that is, first unread line in a private buffer
      **     or the first unread highlight)
      ** can be called multiple times, will only run once
      ** posts to the listview to make sure it's fully completed loading the items
      **     after setting the adapter or updating lines */
     public void scrollToHotLineIfNeeded() {
-        if (DEBUG_AUTOSCROLLING) logger.error("{} scrollToHotLineIfNeeded(), must scroll? {}", short_name, must_scroll);
-        if (must_scroll && buffer != null && visible && buffer.holds_all_lines) {
-            if (DEBUG_AUTOSCROLLING) logger.error("...proceeding");
-            must_scroll = false;
+        if (DEBUG_AUTOSCROLLING) logger.error("{} scrollToHotLineIfNeeded()", short_name);
+        if (buffer != null && visible && buffer.holds_all_lines && (highlights > 0 || privates > 0)) {
             ui_lines.post(new Runnable() {
                 @Override public void run() {
-                    if (DEBUG_AUTOSCROLLING) logger.error("...u/h: {}/{}", buffer.old_unreads, buffer.old_highlights);
-                    int count = lines_adapter.getCount();
-                    Integer idx = null;
+                    int count = lines_adapter.getCount(), idx = -2;
 
-                    if (buffer.type == Buffer.PRIVATE && buffer.old_unreads > 0) {
-                        int privates = 0;
+                    if (privates > 0) {
+                        int p = 0;
                         for (idx = count - 1; idx >= 0; idx--) {
                             Buffer.Line line = (Buffer.Line) lines_adapter.getItem(idx);
-                            if (line.type == Buffer.Line.LINE_MESSAGE && ++privates == buffer.old_unreads)
-                                break;
+                            if (line.type == Buffer.Line.LINE_MESSAGE && ++p == privates) break;
                         }
-                    } else if (buffer.old_highlights > 0) {
-                        int highlights = 0;
+                    } else if (highlights > 0) {
+                        int h = 0;
                         for (idx = count - 1; idx >= 0; idx--) {
                             Buffer.Line line = (Buffer.Line) lines_adapter.getItem(idx);
-                            if (line.highlighted && ++highlights == buffer.old_highlights) break;
+                            if (line.highlighted && ++h == highlights) break;
                         }
                     }
 
-                    if (idx == null) {
-                        Toast.makeText(getActivity(), "The buffer must have been read in weechat", Toast.LENGTH_SHORT).show();
-                    } else if (idx < 0) {
-                        Toast.makeText(getActivity(), "Can't find the line to scroll to", Toast.LENGTH_SHORT).show();
-                    } else {
+                    if (idx == -1)
+                        Toast.makeText(getActivity(), activity.getString(R.string.autoscroll_no_line), Toast.LENGTH_SHORT).show();
+                    else if (idx > 0)
                         ui_lines.smoothScrollToPosition(idx);
-                    }
+
+                    highlights = privates = 0;
                 }
             });
         }

@@ -371,17 +371,13 @@ public class Buffer {
         }
     }
 
-    /** these two are needed for the autoscrolling to the unread lines and all */
-    public int old_unreads = 0;
-    public int old_highlights = 0;
-
     /** sets highlights/unreads to 0 and,
      ** if something has actually changed, notifies whoever cares about it */
     synchronized public void resetUnreadsAndHighlights() {
         if (DEBUG_BUFFER) logger.error("{} resetUnreadsAndHighlights()", short_name);
         if ((unreads | highlights) == 0) return;
-        total_read_unreads += (old_unreads = unreads);
-        total_read_highlights += (old_highlights = highlights);
+        total_read_unreads += unreads;
+        total_read_highlights += highlights;
         unreads = highlights = 0;
         BufferList.removeHotMessagesForBuffer(this);
         BufferList.notifyBuffersSlightlyChanged(type == OTHER);
