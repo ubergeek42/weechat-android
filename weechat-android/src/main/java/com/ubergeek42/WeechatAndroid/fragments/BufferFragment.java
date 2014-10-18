@@ -238,6 +238,8 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     // there's relay now
     private void attachToBufferOrClose() {
         if (DEBUG_LIFECYCLE) logger.warn("{} attachToBufferOrClose()", full_name);
+        relay.addRelayConnectionHandler(this);          // connect/disconnect watcher
+
         buffer = relay.getBufferByFullName(full_name);
         if (buffer == null) {
             // no buffer? it might happen if:
@@ -261,7 +263,6 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
             }
         });
 
-        relay.addRelayConnectionHandler(this);          // connect/disconnect watcher
         maybeChangeVisibilityState();
     }
 
