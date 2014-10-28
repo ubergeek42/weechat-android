@@ -6,15 +6,24 @@ It is currently in beta status, with most things working.  I use it daily withou
 This requires weechat to be running somewhere and it connects to it.  It is not a standalone weechat for your phone.  If you are looking for a standalone irc client for android, you will need to look elsewhere.
 
 ## Download
-#### Stable(ish) version - Google Play Store (OUTDATED)
+Weechat Android is available in the major app stores for Android.
+
+#### Google Play
 Either scan the QR code, or download it from the [Google Play Store](https://play.google.com/store/apps/details?id=com.ubergeek42.WeechatAndroid).
 
 ![Download](https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=https://play.google.com/store/apps/details?id=com.ubergeek42.WeechatAndroid)
 
-#### Latest Development Snapshot - v0.09-dev (INSTALL THIS ONE!)
+#### Amazon
+http://www.amazon.com/Keith-Johnson-Weechat-Android/dp/B00OWI1ZRS
+
+#### F-Droid
+https://f-droid.org/repository/browse/?fdid=com.ubergeek42.WeechatAndroid
+
+
+#### Latest Development Snapshot
 [![Build Status](https://travis-ci.org/ubergeek42/weechat-android.svg?branch=master)](https://travis-ci.org/ubergeek42/weechat-android)
 
-If you're feeling adventurous, you can try the latest development version.  This is built after every commit, and while I try to keep a working build, it may fail or have major bugs.
+If you're feeling adventurous, you can try the latest development version.  This is built after every commit, and while we try to keep a working build, it may fail or have major bugs. Use at your own risk.
 
 [Get the latest development version here](http://weechat-android.ubergeek42.com/)
 
@@ -38,7 +47,7 @@ https://play.google.com/store/apps/details?id=com.ubergeek42.WeechatAndroid
 
 
 ## Bug Reports and Feature Requests Welcome!
-Please report any bugs or feature requests here on github(See the Issues tab), or send me an email: kj@ubergeek42.com.  You can also ping me in #weechat on freenode(I'm also in the mostly inactive #weechat-android).
+Please report any bugs or feature requests here on github(See the Issues tab), or send me an email: kj@ubergeek42.com.  You can also ping me in #weechat-android on freenode.
 
 Please include the Build Identifier found in the about screen if possible.
 
@@ -66,7 +75,7 @@ To prevent a buffer from showing up in weechat-android, set the following buffer
 
 ## Changelog
 
-#### v0.9-dev - Sept 19th, 2014
+#### v0.9-rc1 - Oct 25th, 2014
 * Too much to list, lots and lots and lots of fixes, UI tweaks, and changes
 * Special thanks to @oakkitten and @mhoran for their help and contributions
 
