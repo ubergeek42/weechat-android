@@ -96,6 +96,8 @@
 	    <string name="pref_chatview_timestamps">Show timestamps</string>
 	    <string name="pref_chatview_timestamps_summary">Whether to display timestamps in chat. Saves space when disabled.</string>
 	    <string name="pref_timestamp_format">Timestamp format</string>
+	    <string name="pref_timestamp_invalid">Invalid timestamp format</string>
+
     <string name="pref_misc_group">Miscellaneous settings</string>
 	    <string name="pref_tab_completion">Tab completion for nicks</string>
 	    <string name="pref_tab_completion_summary">Use tab key to complete nicks</string>

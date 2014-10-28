@@ -20,7 +20,11 @@ import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
 import android.preference.EditTextPreference;
 import android.preference.ListPreference;
+import android.preference.Preference;
 import android.preference.PreferenceActivity;
+import android.widget.Toast;
+
+import java.text.SimpleDateFormat;
 
 public class WeechatPreferencesActivity extends PreferenceActivity implements
         OnSharedPreferenceChangeListener {
@@ -54,6 +58,19 @@ public class WeechatPreferencesActivity extends PreferenceActivity implements
         textSizePref = (EditTextPreference) getPreferenceScreen().findPreference("text_size");
         timestampformatPref = (EditTextPreference) getPreferenceScreen().findPreference(
                 "timestamp_format");
+        timestampformatPref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object pattern) {
+                try {
+                    new SimpleDateFormat((String)pattern);
+                } catch (IllegalArgumentException e) {
+                    Toast.makeText(WeechatPreferencesActivity.this, R.string.pref_timestamp_invalid, Toast.LENGTH_SHORT).show();
+                    return false;
+                }
+
+                return true;
+            }
+        });
         stunnelCert = (EditTextPreference) getPreferenceScreen().findPreference("stunnel_cert");
         stunnelPass = (EditTextPreference) getPreferenceScreen().findPreference("stunnel_pass");
 
