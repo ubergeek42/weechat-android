@@ -304,6 +304,10 @@ public class Buffer {
                 this.unreads = unreads - total_read_unreads;
                 this.highlights = highlights - total_read_highlights;
             }
+
+            int hots = this.highlights;
+            if (type == PRIVATE) hots += this.unreads;
+            BufferList.adjustHotMessagesForBuffer(this, hots);
         }
     }
 

@@ -26,6 +26,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.ListIterator;
 
 /** a class that holds information about buffers
  ** probably should be made static */
@@ -38,7 +39,7 @@ public class BufferList {
     final private static boolean DEBUG_HOT = false;
     final private static boolean DEBUG_SAVE_RESTORE = false;
 
-    final private static int SYNC_LAST_READ_LINE_EVERY_MS = 60 * 30 * 1000; // 30 minutes
+    final private static int SYNC_LAST_READ_LINE_EVERY_MS = 60 * 5 * 1000; // 5 minutes
 
     /** preferences related to the list of buffers.
      ** actually WRITABLE from outside */
@@ -112,6 +113,7 @@ public class BufferList {
             @Override
             public void run() {
                 connection.sendMsg("last_read_lines", "hdata", "buffer:gui_buffers(*)/own_lines/last_read_line/data buffer");
+                connection.sendMsg("hotlist", "hdata", "hotlist:gui_hotlist(*) buffer,count");
                 relay.thandler.postDelayed(this, SYNC_LAST_READ_LINE_EVERY_MS);
             }
         }, SYNC_LAST_READ_LINE_EVERY_MS);
@@ -277,6 +279,15 @@ public class BufferList {
             if (it.next()[0].equals(buffer.full_name)) it.remove();
         if (processHotCountAndTellIfChanged())
             notifyHotCountChanged(false);
+    }
+
+    /** remove a number of messages for a given buffer, leaving last 'leave' messages
+     ** DOES NOT notify anyone of the change */
+    synchronized static void adjustHotMessagesForBuffer(final @NonNull Buffer buffer, int leave) {
+        for (ListIterator<String[]> it = hot_list.listIterator(hot_list.size()); it.hasPrevious();) {
+            if (it.previous()[0].equals(buffer.full_name) && (leave-- <= 0))
+                it.remove();
+        }
     }
 
     synchronized static void onHotlistFinished() {
