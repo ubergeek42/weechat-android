@@ -97,6 +97,7 @@ public class RelayService extends RelayServiceBackbone {
     @Override
     void startHandlingBoneEvents() {
         restoreStuff();
+        BufferList.OPTIMIZE_TRAFFIC = prefs.getBoolean(PREFS_OPTIMIZE_TRAFFIC, false);
         BufferList.launch(this);
 
         // subscribe to any future changes
@@ -164,9 +165,10 @@ public class RelayService extends RelayServiceBackbone {
         } else if (key.equals(PREFS_FILTER_NONHUMAN_BUFFERS)) {
             BufferList.FILTER_NONHUMAN_BUFFERS = prefs.getBoolean(key, false);
 
-            // traffic preference
-        } else if (key.equals(PREFS_OPTIMIZE_TRAFFIC)) {
-            BufferList.OPTIMIZE_TRAFFIC = prefs.getBoolean(key, false);
+        // only update traffic optimization on connect
+        //    // traffic preference
+        //} else if (key.equals(PREFS_OPTIMIZE_TRAFFIC)) {
+        //    BufferList.OPTIMIZE_TRAFFIC = prefs.getBoolean(key, false);
 
             // buffer-wide preferences
         } else if (key.equals(PREFS_FILTER_LINES)) {

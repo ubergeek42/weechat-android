@@ -502,6 +502,9 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
                         connectionStatus.setTitle(R.string.disconnect);
                     else
                         connectionStatus.setTitle(R.string.connect);
+
+                    ((ImageView) ui_menu.findItem(R.id.menu_hotlist).getActionView().findViewById(R.id.hotlist_bell))
+                            .setImageResource(BufferList.OPTIMIZE_TRAFFIC ? R.drawable.ic_bell_cracked : R.drawable.ic_bell);
                 }
             }
         });
