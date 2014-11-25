@@ -39,8 +39,6 @@ public class BufferList {
     final private static boolean DEBUG_HOT = false;
     final private static boolean DEBUG_SAVE_RESTORE = false;
 
-    final private static int SYNC_LAST_READ_LINE_EVERY_MS = 60 * 5 * 1000; // 5 minutes
-
     /** preferences related to the list of buffers.
      ** actually WRITABLE from outside */
     public static boolean SORT_BUFFERS = false;
@@ -104,19 +102,13 @@ public class BufferList {
         connection.addHandler("_nicklist_diff", nicklist_watcher);
 
         // request a list of buffers current open, along with some information about them
-        // also request hotlist
-        // and nicklist
         connection.sendMsg("listbuffers", "hdata", "buffer:gui_buffers(*) number,full_name,short_name,type,title,nicklist,local_variables,notify");
+        syncHotlist();
+    }
+
+    public static void syncHotlist() {
         connection.sendMsg("last_read_lines", "hdata", "buffer:gui_buffers(*)/own_lines/last_read_line/data buffer");
         connection.sendMsg("hotlist", "hdata", "hotlist:gui_hotlist(*) buffer,count");
-        relay.thandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                connection.sendMsg("last_read_lines", "hdata", "buffer:gui_buffers(*)/own_lines/last_read_line/data buffer");
-                connection.sendMsg("hotlist", "hdata", "hotlist:gui_hotlist(*) buffer,count");
-                relay.thandler.postDelayed(this, SYNC_LAST_READ_LINE_EVERY_MS);
-            }
-        }, SYNC_LAST_READ_LINE_EVERY_MS);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

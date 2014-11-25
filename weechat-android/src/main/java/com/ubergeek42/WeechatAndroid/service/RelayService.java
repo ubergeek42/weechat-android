@@ -1,10 +1,16 @@
 package com.ubergeek42.WeechatAndroid.service;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.os.IBinder;
+import android.os.SystemClock;
+import android.util.Log;
 
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 
@@ -92,6 +98,8 @@ public class RelayService extends RelayServiceBackbone {
         return true;
     }
 
+    final private static int SYNC_EVERY_MS = 60 * 5 * 1000; // 5 minutes
+
     /** called upon authenticating. let's do our job!
      ** TODO although it might be wise not to create everything from scratch...  */
     @Override
@@ -99,6 +107,12 @@ public class RelayService extends RelayServiceBackbone {
         restoreStuff();
         BufferList.OPTIMIZE_TRAFFIC = prefs.getBoolean(PREFS_OPTIMIZE_TRAFFIC, false);
         BufferList.launch(this);
+
+        // schedule updates
+        AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(this, AlarmReceiver.class);
+        PendingIntent pi = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
+        am.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + SYNC_EVERY_MS, SYNC_EVERY_MS, pi);
 
         // subscribe to any future changes
         // starting with weechat 1.1, "sync * buffers" also gets use buffer localvars,
