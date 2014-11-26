@@ -6,7 +6,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
-public class AlarmReceiver extends BroadcastReceiver {
+public class SyncAlarmReceiver extends BroadcastReceiver {
 
     @Override public void onReceive(Context context, Intent intent) {
         RelayServiceBinder relay = (RelayServiceBinder) peekService(context, new Intent(context, RelayService.class));

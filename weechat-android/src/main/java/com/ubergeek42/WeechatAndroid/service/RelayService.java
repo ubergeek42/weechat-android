@@ -2,7 +2,6 @@ package com.ubergeek42.WeechatAndroid.service;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -10,7 +9,6 @@ import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.os.IBinder;
 import android.os.SystemClock;
-import android.util.Log;
 
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 
@@ -110,7 +108,7 @@ public class RelayService extends RelayServiceBackbone {
 
         // schedule updates
         AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        Intent intent = new Intent(this, AlarmReceiver.class);
+        Intent intent = new Intent(this, SyncAlarmReceiver.class);
         PendingIntent pi = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
         am.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + SYNC_EVERY_MS, SYNC_EVERY_MS, pi);
 
