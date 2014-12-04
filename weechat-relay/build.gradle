@@ -15,6 +15,6 @@ compileJava {
     sourceCompatibility = 1.6
     targetCompatibility = 1.6
 }
-tasks.withType(Compile) {
+tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
 }

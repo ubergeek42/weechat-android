@@ -3,7 +3,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.12.+'
+        classpath 'com.android.tools.build:gradle:1.0.0-rc1'
     }
 }
 apply plugin: 'com.android.application'
@@ -27,7 +27,7 @@ dependencies {
     }
 }
 
-tasks.withType(Compile) {
+tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
 }
 
@@ -62,7 +62,7 @@ android {
             buildConfigField "String", "VERSION_BANNER", "\"" + versionBanner() + "\""
             signingConfig signingConfigs.releasePlayConfig
 
-            runProguard true
+            minifyEnabled true
             proguardFile file('proguard.txt')
             proguardFile getDefaultProguardFile('proguard-android-optimize.txt')
         }
@@ -75,7 +75,7 @@ android {
             buildConfigField "String", "VERSION_BANNER", "\""+versionBanner()+"\""
 	        signingConfig signingConfigs.devPlayConfig
 
-            runProguard true
+            minifyEnabled true
             proguardFile file('proguard.txt')
             proguardFile getDefaultProguardFile('proguard-android-optimize.txt')
         }
