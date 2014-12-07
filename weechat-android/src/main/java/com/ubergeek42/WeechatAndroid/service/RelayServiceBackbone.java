@@ -377,7 +377,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
                     if (DEBUG_CONNECTION) logger.debug("...run()");
                     if (connection != null && connection.isConnected())
                         return;
-                    long delay = DELAYS[reconnects < DELAYS.length ? reconnects : DELAYS.length];
+                    long delay = DELAYS[reconnects < DELAYS.length ? reconnects : DELAYS.length - 1];
                     if (DEBUG_CONNECTION) logger.debug("...waiting {} seconds", delay);
                     showNotification(String.format(getString(ticker), host),
                             String.format(getString(content), delay));
