@@ -106,9 +106,13 @@ public class BufferList {
         syncHotlist();
     }
 
-    public static void syncHotlist() {
+    /** send synchronization data to weechat and return true. if not connected, return false. */
+    public static boolean syncHotlist() {
+        if (relay == null || !relay.isConnection(RelayServiceBackbone.CONNECTED))
+            return false;
         connection.sendMsg("last_read_lines", "hdata", "buffer:gui_buffers(*)/own_lines/last_read_line/data buffer");
         connection.sendMsg("hotlist", "hdata", "hotlist:gui_hotlist(*) buffer,count");
+        return true;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
