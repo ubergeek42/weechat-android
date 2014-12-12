@@ -21,10 +21,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.ListIterator;
 
 /** a class that holds information about buffers
  ** probably should be made static */
@@ -36,8 +38,6 @@ public class BufferList {
     final private static boolean DEBUG_HANDLERS = false;
     final private static boolean DEBUG_HOT = false;
     final private static boolean DEBUG_SAVE_RESTORE = false;
-
-    final private static int SYNC_LAST_READ_LINE_EVERY_MS = 60 * 30 * 1000; // 30 minutes
 
     /** preferences related to the list of buffers.
      ** actually WRITABLE from outside */
@@ -102,18 +102,17 @@ public class BufferList {
         connection.addHandler("_nicklist_diff", nicklist_watcher);
 
         // request a list of buffers current open, along with some information about them
-        // also request hotlist
-        // and nicklist
         connection.sendMsg("listbuffers", "hdata", "buffer:gui_buffers(*) number,full_name,short_name,type,title,nicklist,local_variables,notify");
+        syncHotlist();
+    }
+
+    /** send synchronization data to weechat and return true. if not connected, return false. */
+    public static boolean syncHotlist() {
+        if (relay == null || !relay.isConnection(RelayServiceBackbone.CONNECTED))
+            return false;
         connection.sendMsg("last_read_lines", "hdata", "buffer:gui_buffers(*)/own_lines/last_read_line/data buffer");
         connection.sendMsg("hotlist", "hdata", "hotlist:gui_hotlist(*) buffer,count");
-        relay.thandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                connection.sendMsg("last_read_lines", "hdata", "buffer:gui_buffers(*)/own_lines/last_read_line/data buffer");
-                relay.thandler.postDelayed(this, SYNC_LAST_READ_LINE_EVERY_MS);
-            }
-        }, SYNC_LAST_READ_LINE_EVERY_MS);
+        return true;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -278,6 +277,15 @@ public class BufferList {
             notifyHotCountChanged(false);
     }
 
+    /** remove a number of messages for a given buffer, leaving last 'leave' messages
+     ** DOES NOT notify anyone of the change */
+    synchronized static void adjustHotMessagesForBuffer(final @NonNull Buffer buffer, int leave) {
+        for (ListIterator<String[]> it = hot_list.listIterator(hot_list.size()); it.hasPrevious();) {
+            if (it.previous()[0].equals(buffer.full_name) && (leave-- <= 0))
+                it.remove();
+        }
+    }
+
     synchronized static void onHotlistFinished() {
         if (processHotCountAndTellIfChanged())
             notifyHotCountChanged(false);
@@ -400,14 +408,22 @@ public class BufferList {
         public void handleMessage(RelayObject obj, String id) {
             if (DEBUG_HANDLERS) logger.error("last_read_lines_watcher:handleMessage(..., {})", id);
             if (!(obj instanceof Hdata)) return;
+
+            HashMap<Long, Long> buffer_to_lrl = new HashMap<Long, Long>();
+
             Hdata data = (Hdata) obj;
             for (int i = 0, size = data.getCount(); i < size; i++) {
                 HdataEntry entry = data.getItem(i);
                 long buffer_pointer = entry.getItem("buffer").asPointerLong();
                 long line_pointer = entry.getPointerLong();
-                Buffer buffer = findByPointer(buffer_pointer);
-                if (buffer != null)
-                    buffer.updateLastReadLine(line_pointer);
+                buffer_to_lrl.put(buffer_pointer, line_pointer);
+            }
+
+            synchronized (BufferList.class) {
+                for (Buffer buffer : buffers) {
+                    Long line_pointer = buffer_to_lrl.get(buffer.pointer);
+                    buffer.updateLastReadLine(line_pointer == null ? -1 : line_pointer);
+                }
             }
         }
     };
@@ -418,18 +434,24 @@ public class BufferList {
         public void handleMessage(RelayObject obj, String id) {
             if (DEBUG_HANDLERS) logger.error("hotlist_init_watcher:handleMessage(..., {})", id);
             if (!(obj instanceof Hdata)) return;
+
+            HashMap<Long, Array> buffer_to_hotlist = new HashMap<Long, Array>();
+
             Hdata data = (Hdata) obj;
             for (int i = 0, size = data.getCount(); i < size; i++) {
                 HdataEntry entry = data.getItem(i);
                 long pointer = entry.getItem("buffer").asPointerLong();
-                Buffer buffer = findByPointer(pointer);
-                if (buffer != null) {
-                    Array count = entry.getItem("count").asArray();
-                    int unreads = count.get(1).asInt() + count.get(2).asInt();   // chat messages & private messages
-                    int highlights = count.get(3).asInt();                       // highlights
-                    buffer.updateHighlightsAndUnreads(highlights, unreads);
-                }
+                Array count = entry.getItem("count").asArray();
+                buffer_to_hotlist.put(pointer, count);
             }
+
+            for (Buffer buffer: buffers) {
+                Array count = buffer_to_hotlist.get(buffer.pointer);
+                int unreads = count == null ? 0 : count.get(1).asInt() + count.get(2).asInt();   // chat messages & private messages
+                int highlights = count == null ? 0 : count.get(3).asInt();                       // highlights
+                buffer.updateHighlightsAndUnreads(highlights, unreads);
+            }
+
             onHotlistFinished();
             notifyBuffersSlightlyChanged();
         }

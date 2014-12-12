@@ -1,10 +1,14 @@
 package com.ubergeek42.WeechatAndroid.service;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.os.IBinder;
+import android.os.SystemClock;
 
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 
@@ -92,16 +96,26 @@ public class RelayService extends RelayServiceBackbone {
         return true;
     }
 
+    final private static int SYNC_EVERY_MS = 60 * 5 * 1000; // 5 minutes
+
     /** called upon authenticating. let's do our job!
      ** TODO although it might be wise not to create everything from scratch...  */
     @Override
     void startHandlingBoneEvents() {
         restoreStuff();
+        BufferList.OPTIMIZE_TRAFFIC = prefs.getBoolean(PREFS_OPTIMIZE_TRAFFIC, false);
         BufferList.launch(this);
 
-        // Subscribe to any future changes
-        if (!BufferList.OPTIMIZE_TRAFFIC)
-            connection.sendMsg("sync");
+        // schedule updates
+        AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(this, SyncAlarmReceiver.class);
+        PendingIntent pi = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
+        am.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + SYNC_EVERY_MS, SYNC_EVERY_MS, pi);
+
+        // subscribe to any future changes
+        // starting with weechat 1.1, "sync * buffers" also gets use buffer localvars,
+        // so it's safe to request them; handling of these is no different from full sync
+        connection.sendMsg(BufferList.OPTIMIZE_TRAFFIC ? "sync * buffers,upgrade" : "sync");
     }
 
     /** onDestroy will only be called when properly exiting the application
@@ -163,9 +177,10 @@ public class RelayService extends RelayServiceBackbone {
         } else if (key.equals(PREFS_FILTER_NONHUMAN_BUFFERS)) {
             BufferList.FILTER_NONHUMAN_BUFFERS = prefs.getBoolean(key, false);
 
-            // traffic preference
-        } else if (key.equals(PREFS_OPTIMIZE_TRAFFIC)) {
-            BufferList.OPTIMIZE_TRAFFIC = prefs.getBoolean(key, false);
+        // only update traffic optimization on connect
+        //    // traffic preference
+        //} else if (key.equals(PREFS_OPTIMIZE_TRAFFIC)) {
+        //    BufferList.OPTIMIZE_TRAFFIC = prefs.getBoolean(key, false);
 
             // buffer-wide preferences
         } else if (key.equals(PREFS_FILTER_LINES)) {

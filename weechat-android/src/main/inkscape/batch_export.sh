@@ -18,7 +18,7 @@
 # BIG (200dp)   200   300     400      600      800
 
 BIG_ICONS="ic_big_connected ic_big_connecting ic_big_disconnected"
-ICONS="ic_bell ic_users ic_send ic_tab ic_send_disabled ic_tab_disabled"
+ICONS="ic_bell ic_bell_cracked ic_users ic_send ic_tab ic_send_disabled ic_tab_disabled"
 NOTIFICATIONS="ic_connected ic_connecting ic_disconnected ic_hot"
 
 function render {
