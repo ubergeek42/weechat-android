@@ -373,7 +373,8 @@ public class BufferList {
                     } else {
                         if (id.equals("_buffer_renamed")) {
                             buffer.full_name = entry.getItem("full_name").asString();
-                            buffer.short_name = entry.getItem("short_name").asString();
+                            String short_name = entry.getItem("short_name").asString();
+                            buffer.short_name = (short_name != null) ? short_name : buffer.full_name;
                             buffer.local_vars = (Hashtable) entry.getItem("local_variables");
                             notifyBufferPropertiesChanged(buffer);
                         } else if (id.equals("_buffer_title_changed")) {
