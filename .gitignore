@@ -17,4 +17,6 @@ gradle.properties
 .classpath
 .metadata
 
-
+# vim
+*.swp
+*.swo
