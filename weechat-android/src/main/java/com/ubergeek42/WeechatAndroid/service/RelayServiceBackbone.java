@@ -135,6 +135,16 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
     public final static int BUFFERS_LISTED = Integer.parseInt("10000", 2);
     int connection_status = DISCONNECTED;
 
+    private BroadcastReceiver connectivityActionReceiver = new BroadcastReceiver() {
+        public void onReceive(Context context, Intent intent) {
+            NetworkInfo networkInfo = connectivityManager().getActiveNetworkInfo();
+            if (networkInfo != null && networkInfo.isConnected()) {
+                if (network_unavailable && mustAutoConnect()) startThreadedConnectLoop(true);
+                network_unavailable = false;
+            }
+        }
+    };
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// status & life cycle
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -169,15 +179,10 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
         // Prepare for dealing with SSL certs
         certmanager = new SSLHandler(new File(getDir("sslDir", Context.MODE_PRIVATE), "keystore.jks"));
 
-        registerReceiver(new BroadcastReceiver() {
-            public void onReceive(Context context, Intent intent) {
-                NetworkInfo networkInfo = connectivityManager().getActiveNetworkInfo();
-                if (networkInfo != null && networkInfo.isConnected()) {
-                    if (network_unavailable && mustAutoConnect()) startThreadedConnectLoop(true);
-                    network_unavailable = false;
-                }
-            }
-        }, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+        registerReceiver(
+                connectivityActionReceiver,
+                new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
+        );
     }
 
     @Override
@@ -185,6 +190,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
         if (DEBUG) logger.debug("onDestroy()");
         prefs.edit().remove(PREF_MUST_STAY_DISCONNECTED).commit(); // forget current connection status
         notificationManger.cancelAll();
+        unregisterReceiver(connectivityActionReceiver);
         super.onDestroy();
     }
 
