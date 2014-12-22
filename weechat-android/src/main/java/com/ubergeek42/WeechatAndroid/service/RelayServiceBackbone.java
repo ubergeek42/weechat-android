@@ -180,14 +180,12 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
         }, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
     }
 
-    // TODO: decide whether killing the process is necessary...
     @Override
     public void onDestroy() {
         if (DEBUG) logger.debug("onDestroy()");
         prefs.edit().remove(PREF_MUST_STAY_DISCONNECTED).commit(); // forget current connection status
         notificationManger.cancelAll();
         super.onDestroy();
-        android.os.Process.killProcess(android.os.Process.myPid());
     }
 
     /** this method is called:
