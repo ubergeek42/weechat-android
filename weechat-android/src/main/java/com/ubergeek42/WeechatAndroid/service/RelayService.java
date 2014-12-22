@@ -4,6 +4,7 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Paint;
 import android.graphics.Typeface;
@@ -53,10 +54,20 @@ public class RelayService extends RelayServiceBackbone {
     public static final String PREFS_ENCLOSE_NICK = "enclose_nick";
     public static final String PREFS_TEXT_SIZE = "text_size";
 
+    private PingActionReceiver pingActionReceiver;
+
     /** super method sets 'prefs' */
     @Override
     public void onCreate() {
         super.onCreate();
+
+        pingActionReceiver = new PingActionReceiver(this);
+        registerReceiver(
+                pingActionReceiver,
+                new IntentFilter(PingActionReceiver.PING_ACTION),
+                PingActionReceiver.PING_ACTION,
+                null
+        );
 
         // buffer list preferences
         BufferList.SORT_BUFFERS = prefs.getBoolean(PREFS_SORT_BUFFERS, false);
@@ -123,6 +134,7 @@ public class RelayService extends RelayServiceBackbone {
     @Override
     public void onDestroy() {
         eraseStoredStuff();
+        unregisterReceiver(pingActionReceiver);
         super.onDestroy();
     }
 

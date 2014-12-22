@@ -244,19 +244,25 @@ public class RelayConnection implements RelayConnectionHandler {
     private void handleMessage(RelayMessage msg) {
         String id = msg.getID();
         if (DEBUG) logger.debug("handling message {}", id);
+        HashSet<RelayMessageHandler> handlers = new HashSet<RelayMessageHandler>();
+
         if (messageHandlers.containsKey(id)) {
-            HashSet<RelayMessageHandler> handlers = messageHandlers.get(id);
-            for (RelayMessageHandler rmh : handlers) {
-                if (msg.getObjects().length == 0) {
-                    rmh.handleMessage(null, id);
-                } else {
-                    for (RelayObject obj : msg.getObjects()) {
-                        rmh.handleMessage(obj, id);
-                    }
-                }
-            }
+            handlers.addAll(messageHandlers.get(id));
         } else {
             if (DEBUG) logger.debug("Unhandled message: {}", id);
+        }
+
+        if (messageHandlers.containsKey("*"))
+            handlers.addAll(messageHandlers.get("*"));
+
+        for (RelayMessageHandler rmh : handlers) {
+            if (msg.getObjects().length == 0) {
+                rmh.handleMessage(null, id);
+            } else {
+                for (RelayObject obj : msg.getObjects()) {
+                    rmh.handleMessage(obj, id);
+                }
+            }
         }
     }
 

@@ -15,16 +15,8 @@
  ******************************************************************************/
 package com.ubergeek42.WeechatAndroid.service;
 
-import java.io.File;
-import java.security.cert.X509Certificate;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import android.annotation.TargetApi;
+import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -40,6 +32,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.SystemClock;
@@ -64,6 +57,15 @@ import com.ubergeek42.weechat.relay.connection.WebSocketConnection;
 import com.ubergeek42.weechat.relay.messagehandler.UpgradeHandler;
 import com.ubergeek42.weechat.relay.messagehandler.UpgradeObserver;
 import com.ubergeek42.weechat.relay.protocol.RelayObject;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.security.cert.X509Certificate;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public abstract class RelayServiceBackbone extends Service implements RelayConnectionHandler,
         OnSharedPreferenceChangeListener, UpgradeObserver {
@@ -116,8 +118,10 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
     SharedPreferences prefs;
     SSLHandler certmanager;
     X509Certificate untrustedCert;
+    private AlarmManager alarmMgr;
 
     int hot_count = 0;
+    volatile long lastMessageReceivedAt = 0;
 
     /** mainly used to tell the user if we are REconnected */
     private volatile boolean disconnected;
@@ -183,6 +187,8 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
                 connectivityActionReceiver,
                 new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
         );
+
+        alarmMgr = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
     }
 
     @Override
@@ -397,12 +403,12 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
         });
     }
 
-    // do the actual shutdown on its own thread (to avoid an error on Android 3.0+) (why?)
+    // do the actual shutdown on a separate thread (to avoid NetworkOnMainThreadException on Android 3.0+)
     // remember that we are down lest we are reconnected when application
     // kills the service and restores it back later
-    public void startThreadedDisconnect() {
+    public void startThreadedDisconnect(boolean mustStayDisconnected) {
         if (DEBUG_CONNECTION) logger.debug("startThreadedDisconnect()");
-        prefs.edit().putBoolean(PREF_MUST_STAY_DISCONNECTED, true).commit();
+        prefs.edit().putBoolean(PREF_MUST_STAY_DISCONNECTED, mustStayDisconnected).commit();
         thandler.removeCallbacksAndMessages(null);
         thandler.post(new Runnable() {
             @Override
@@ -410,6 +416,32 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
                 if (connection != null) connection.disconnect();
             }
         });
+    }
+
+    public void startThreadedDisconnect() {
+        startThreadedDisconnect(true);
+    }
+
+    @TargetApi(19)
+    void schedulePing(long triggerAt, Bundle extras) {
+        Intent intent = new Intent(PingActionReceiver.PING_ACTION);
+        intent.putExtras(extras);
+
+        PendingIntent alarmIntent = PendingIntent.getBroadcast(
+                this, 0,
+                intent,
+                PendingIntent.FLAG_CANCEL_CURRENT
+        );
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            alarmMgr.setExact(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAt, alarmIntent);
+        } else {
+            alarmMgr.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAt, alarmIntent);
+        }
+    }
+
+    void schedulePing(long triggerAt) {
+        schedulePing(triggerAt, new Bundle());
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -508,6 +540,12 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
     public void onConnect() {
         if (DEBUG) logger.debug("onConnect()");
         connection_status = CONNECTED;
+
+        long triggerAt = SystemClock.elapsedRealtime() + 30 * 1000;
+        schedulePing(triggerAt);
+
+        connection.addHandler("*", lastMessageHandler);
+
         for (RelayConnectionHandler rch : connectionHandlers) rch.onConnect();
     }
 
@@ -558,6 +596,10 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
         // Only do the disconnect handler once
         if (disconnected) return;
         disconnected = true;
+
+        Intent intent = new Intent(PingActionReceiver.PING_ACTION);
+        PendingIntent alarmIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_NO_CREATE);
+        alarmMgr.cancel(alarmIntent);
 
         // automatically attempt reconnection if enabled (and if we aren't shutting down)
         if (mustAutoConnect()) {
@@ -611,4 +653,11 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
         });
         upgrading.start();
     }
+
+    private RelayMessageHandler lastMessageHandler = new RelayMessageHandler() {
+        @Override
+        public void handleMessage(RelayObject obj, String id) {
+            lastMessageReceivedAt = SystemClock.elapsedRealtime();
+        }
+    };
 }
