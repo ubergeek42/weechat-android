@@ -158,6 +158,7 @@ public class RelayService extends RelayServiceBackbone {
         if (DEBUG_SAVE_RESTORE) logger.debug("eraseStoredStuff()");
         SharedPreferences preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         preferences.edit().remove(PREF_SYNCED_BUFFERS).commit();
+        BufferList.synced_buffers_full_names.clear();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
