@@ -42,11 +42,11 @@ public class Color {
             0x545454,	// Dark Gray
             0xDC143C,	// Dark Red
             0xFF0000,	// Light Red
-            0x006400,	// Dark Green
+            0x108810,	// Dark Green
             0x90EE90,	// Light Green
             0xA52A2A,	// Brown
             0xFFFF00,	// Yellow
-            0x00008B,	// Dark Blue
+            0x1080FF,	// Dark Blue
             0xADD8E6,	// Light Blue
             0x8B008B,	// Dark Magenta
             0xFF00FF,	// Light Magenta
