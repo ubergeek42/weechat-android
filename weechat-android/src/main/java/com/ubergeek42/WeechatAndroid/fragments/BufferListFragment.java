@@ -138,6 +138,7 @@ public class BufferListFragment extends SherlockListFragment implements RelayCon
     @Override public void onConnecting() {}
     @Override public void onConnect() {}
     @Override public void onAuthenticated() {}
+    @Override public void onAuthenticationFailed() {}
     @Override public void onDisconnect() {}
     @Override public void onError(String err, Object extraInfo) {}
 

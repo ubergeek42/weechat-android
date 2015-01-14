@@ -45,6 +45,10 @@ public class RelayConnection implements RelayConnectionHandler {
     IConnection conn;
     LinkedBlockingQueue<String> outbox = new LinkedBlockingQueue<String>();
 
+    // Tri-state boolean
+    private Boolean messageReceivedOnCurrentConnection = null;
+
+
     /**
      * Sets up a connection to a weechat relay server
      * 
@@ -127,6 +131,8 @@ public class RelayConnection implements RelayConnectionHandler {
      * Does post connection setup(Sends initial commands/etc)
      */
     private void postConnectionSetup() {
+        messageReceivedOnCurrentConnection = false;
+
         sendMsg(null, "init", "password=" + password + ",compression=zlib");
         sendMsg("checklogin", "info", "version");
 
@@ -187,6 +193,8 @@ public class RelayConnection implements RelayConnectionHandler {
                     }
 
                     if (data_pos == data.length) {
+                        messageReceivedOnCurrentConnection = true;
+
                         // logger.trace("socketReader got message, size: " + data.length);
                         RelayMessage wm = new RelayMessage(data);
 
@@ -272,11 +280,20 @@ public class RelayConnection implements RelayConnectionHandler {
     }
 
     @Override
+    public void onAuthenticationFailed() {
+        if (DEBUG) logger.debug("onAuthenticationFailed()");
+    }
+
     public void onBuffersListed() {}
 
     @Override
     public void onDisconnect() {
         if (DEBUG) logger.debug("onDisconnect()");
+
+        if (messageReceivedOnCurrentConnection == Boolean.FALSE) {
+            conn.notifyHandlers(IConnection.STATE.AUTHENTICATION_FAILED);
+            messageReceivedOnCurrentConnection = null;
+        }
 
         socketReader.interrupt();
         socketWriter.interrupt();

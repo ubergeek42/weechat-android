@@ -11,6 +11,7 @@ public interface IConnection {
         CONNECTING,
         CONNECTED,
         AUTHENTICATED,
+        AUTHENTICATION_FAILED,
         DISCONNECTED,
     }
 

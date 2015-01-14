@@ -41,6 +41,12 @@ public interface RelayConnectionHandler {
     public void onAuthenticated();
 
     /**
+     * Called when a connection to the server is established, but connection was aborted before any
+     * received messages. It most likely means that password was wrong.
+     */
+    public void onAuthenticationFailed();
+
+    /**
      * Called when the initial list of buffers has been passed to the relay client. After this
      * method call client can assume normal workflow follows.
      */

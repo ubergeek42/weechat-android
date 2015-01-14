@@ -531,6 +531,13 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
         for (RelayConnectionHandler rch : connectionHandlers) rch.onAuthenticated();
     }
 
+    @Override
+    public void onAuthenticationFailed() {
+        if (DEBUG) logger.debug("onAuthenticateFailed()");
+
+        for (RelayConnectionHandler rch : connectionHandlers) rch.onAuthenticationFailed();
+    }
+
     abstract void startHandlingBoneEvents();
 
     @Override
