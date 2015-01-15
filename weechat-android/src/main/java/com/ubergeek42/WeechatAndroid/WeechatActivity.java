@@ -300,7 +300,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     @Override public void onAuthenticationFailed() {
         runOnUiThread(new Runnable() {
             @Override public void run() {
-                Toast.makeText(getBaseContext(), "Wrong password.", Toast.LENGTH_LONG).show();
+                Toast.makeText(getBaseContext(), getString(R.string.notification_wrong_password), Toast.LENGTH_LONG).show();
             }
         });
     }

@@ -38,6 +38,7 @@
     <string name="notification_upgrading_details">WeeChat is upgrading, please wait for reconnection</string>
     <string name="notification_network_unavailable">Network unavailable</string>
     <string name="notification_network_unavailable_details">Failed to connect, network unavailable</string>
+    <string name="notification_wrong_password">Wrong password</string>
     
     <!-- Preferences -->
     <string name="pref_connection_group">Connection settings</string>
