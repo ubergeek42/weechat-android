@@ -46,7 +46,7 @@ public class RelayConnection implements RelayConnectionHandler {
     LinkedBlockingQueue<String> outbox = new LinkedBlockingQueue<String>();
 
     // Tri-state boolean
-    private Boolean messageReceivedOnCurrentConnection = null;
+    private volatile Boolean hasAuthenticatedOnCurrentConnection = null;
 
 
     /**
@@ -131,7 +131,7 @@ public class RelayConnection implements RelayConnectionHandler {
      * Does post connection setup(Sends initial commands/etc)
      */
     private void postConnectionSetup() {
-        messageReceivedOnCurrentConnection = false;
+        hasAuthenticatedOnCurrentConnection = false;
 
         sendMsg(null, "init", "password=" + password + ",compression=zlib");
         sendMsg("checklogin", "info", "version");
@@ -193,7 +193,6 @@ public class RelayConnection implements RelayConnectionHandler {
                     }
 
                     if (data_pos == data.length) {
-                        messageReceivedOnCurrentConnection = true;
 
                         // logger.trace("socketReader got message, size: " + data.length);
                         RelayMessage wm = new RelayMessage(data);
@@ -277,6 +276,7 @@ public class RelayConnection implements RelayConnectionHandler {
     @Override
     public void onAuthenticated() {
         if (DEBUG) logger.debug("onAuthenticated()");
+        hasAuthenticatedOnCurrentConnection = Boolean.TRUE;
     }
 
     @Override
@@ -290,9 +290,9 @@ public class RelayConnection implements RelayConnectionHandler {
     public void onDisconnect() {
         if (DEBUG) logger.debug("onDisconnect()");
 
-        if (messageReceivedOnCurrentConnection == Boolean.FALSE) {
+        if (hasAuthenticatedOnCurrentConnection == Boolean.FALSE) {
             conn.notifyHandlers(IConnection.STATE.AUTHENTICATION_FAILED);
-            messageReceivedOnCurrentConnection = null;
+            hasAuthenticatedOnCurrentConnection = null;
         }
 
         socketReader.interrupt();
