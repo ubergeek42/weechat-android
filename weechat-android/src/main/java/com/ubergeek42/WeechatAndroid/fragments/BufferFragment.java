@@ -116,10 +116,6 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
         ui_input.addTextChangedListener(this);      // listen for software keyboard through watching input box text
         ui_input.setOnEditorActionListener(this);   // listen for software keyboard's “send” click. see onEditorAction()
 
-        // These options must be set programmatically, instead of in the manifest.
-        ui_input.setMaxLines(4);
-        ui_input.setHorizontallyScrolling(false);
-
         //noinspection deprecation
         ui_lines.setBackgroundDrawable(new FixedRadialDrawable());
 

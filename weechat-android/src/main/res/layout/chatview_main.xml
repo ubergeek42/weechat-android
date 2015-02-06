@@ -14,20 +14,21 @@
         android:layout_alignParentBottom="true"
         android:padding="0dp">
 
-        <EditText
+        <com.ubergeek42.WeechatAndroid.utils.ActionEditText
             android:id="@+id/chatview_input"
             android:layout_weight="1.0"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:inputType="textCapSentences|textAutoCorrect"
+            android:inputType="textCapSentences|textMultiLine|textAutoCorrect"
             android:imeOptions="flagNoFullscreen|flagNoExtractUi|actionSend"
+            android:maxLines="4"
             android:minLines="1"
             android:scrollbars="vertical"
             android:layout_gravity="center"
             >
 
             <requestFocus />
-        </EditText>
+        </com.ubergeek42.WeechatAndroid.utils.ActionEditText>
 
         <ImageButton
             android:id="@+id/chatview_tab"
