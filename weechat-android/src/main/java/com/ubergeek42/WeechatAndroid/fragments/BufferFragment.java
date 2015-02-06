@@ -118,6 +118,8 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
 
         //noinspection deprecation
         ui_lines.setBackgroundDrawable(new FixedRadialDrawable());
+        ui_lines.setFocusable(false);
+        ui_lines.setFocusableInTouchMode(false);
 
         return v;
     }
