@@ -396,6 +396,9 @@ public class BufferList {
                     }
                 }
             }
+
+            if (id.equals("listbuffers"))
+                relay.onBuffersListed();
         }
     };
 

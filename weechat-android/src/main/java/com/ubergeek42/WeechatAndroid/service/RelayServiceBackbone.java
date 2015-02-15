@@ -526,7 +526,6 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
         UpgradeHandler uh = new UpgradeHandler(this);
         connection.addHandler("_upgrade", uh);
         connection.addHandler("_upgrade_ended", uh);
-        connection.addHandler("listbuffers", new BuffersListedObserver());
 
         for (RelayConnectionHandler rch : connectionHandlers) rch.onAuthenticated();
     }
@@ -600,12 +599,5 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
             }
         });
         upgrading.start();
-    }
-
-    private class BuffersListedObserver implements RelayMessageHandler {
-        @Override
-        public void handleMessage(RelayObject obj, String id) {
-            RelayServiceBackbone.this.onBuffersListed();
-        }
     }
 }
