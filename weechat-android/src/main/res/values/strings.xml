@@ -38,7 +38,7 @@
     <string name="notification_upgrading_details">WeeChat is upgrading, please wait for reconnection</string>
     <string name="notification_network_unavailable">Network unavailable</string>
     <string name="notification_network_unavailable_details">Failed to connect, network unavailable</string>
-    
+
     <!-- Preferences -->
     <string name="pref_connection_group">Connection settings</string>
     <string name="pref_relay_host">Relay host</string>
@@ -149,4 +149,5 @@
     <string name="close_drawer">Close drawer</string>
     <string name="autoscroll_no_line">Buffer lost some hot messages because of new lines</string>
     <string name="no_hot_buffers">There are no hot buffers for now</string>
+    <string name="wrong_password">Wrong password</string>
 </resources>

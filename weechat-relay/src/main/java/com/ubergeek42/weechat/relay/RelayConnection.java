@@ -45,6 +45,10 @@ public class RelayConnection implements RelayConnectionHandler {
     IConnection conn;
     LinkedBlockingQueue<String> outbox = new LinkedBlockingQueue<String>();
 
+    // Tri-state boolean
+    private volatile Boolean hasAuthenticatedOnCurrentConnection = null;
+
+
     /**
      * Sets up a connection to a weechat relay server
      * 
@@ -127,6 +131,8 @@ public class RelayConnection implements RelayConnectionHandler {
      * Does post connection setup(Sends initial commands/etc)
      */
     private void postConnectionSetup() {
+        hasAuthenticatedOnCurrentConnection = false;
+
         sendMsg(null, "init", "password=" + password + ",compression=zlib");
         sendMsg("checklogin", "info", "version");
 
@@ -269,14 +275,24 @@ public class RelayConnection implements RelayConnectionHandler {
     @Override
     public void onAuthenticated() {
         if (DEBUG) logger.debug("onAuthenticated()");
+        hasAuthenticatedOnCurrentConnection = Boolean.TRUE;
     }
 
     @Override
+    public void onAuthenticationFailed() {
+        if (DEBUG) logger.debug("onAuthenticationFailed()");
+    }
+
     public void onBuffersListed() {}
 
     @Override
     public void onDisconnect() {
         if (DEBUG) logger.debug("onDisconnect()");
+
+        if (hasAuthenticatedOnCurrentConnection == Boolean.FALSE) {
+            conn.notifyHandlers(IConnection.STATE.AUTHENTICATION_FAILED);
+            hasAuthenticatedOnCurrentConnection = null;
+        }
 
         socketReader.interrupt();
         socketWriter.interrupt();

@@ -133,6 +133,9 @@ public abstract class AbstractConnection implements IConnection {
                 case AUTHENTICATED:
                     rch.onAuthenticated();
                     break;
+                case AUTHENTICATION_FAILED:
+                    rch.onAuthenticationFailed();
+                    break;
                 case DISCONNECTED:
                     rch.onDisconnect();
                     break;

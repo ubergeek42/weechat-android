@@ -219,6 +219,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     @Override public void onConnecting() {}
     @Override public void onConnect() {}
     @Override public void onAuthenticated() {}
+    @Override public void onAuthenticationFailed() {}
     @Override public void onError(String err, Object extraInfo) {}
 
     public void onBuffersListed() {
