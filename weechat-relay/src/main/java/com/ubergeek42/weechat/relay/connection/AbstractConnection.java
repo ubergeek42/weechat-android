@@ -20,6 +20,7 @@ public abstract class AbstractConnection implements IConnection {
     int port = 0;
 
     Socket sock = null;
+    Socket tcpSock = null;
     OutputStream out_stream = null;
     InputStream in_stream = null;
     volatile boolean connected = false;
@@ -106,10 +107,17 @@ public abstract class AbstractConnection implements IConnection {
             } catch (IOException e) {}
             sock = null;
         }
+        tcpSock = null;
 
         // Call any registered disconnect handlers
         notifyHandlers(STATE.DISCONNECTED);
     }
+
+    @Override
+    public Socket getTCPSocket() {
+        return tcpSock;
+    }
+
     /**
      * Register a connection handler to receive onConnected/onDisconnected events
      *

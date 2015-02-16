@@ -3,6 +3,7 @@ package com.ubergeek42.weechat.relay.connection;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
 
 import java.io.IOException;
+import java.net.Socket;
 
 public interface IConnection {
     void addConnectionHandler(RelayConnectionHandler relayConnection);
@@ -20,6 +21,9 @@ public interface IConnection {
     public void disconnect();
 
     public boolean isConnected();
+
+    /* Exposed for additional configuration (keepalive), may be null */
+    public Socket getTCPSocket();
 
     int read(byte[] bytes, int off, int len) throws IOException;
 

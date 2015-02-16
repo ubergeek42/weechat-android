@@ -92,6 +92,7 @@ public class StunnelConnection extends AbstractConnection {
                 SocketChannel channel = SocketChannel.open();
                 channel.connect(new InetSocketAddress(server, port));
                 sock = socketFactory.createSocket(channel.socket(), server, port, true);
+                tcpSock = channel.socket();
                 out_stream = sock.getOutputStream();
                 in_stream = sock.getInputStream();
                 connected = true;
