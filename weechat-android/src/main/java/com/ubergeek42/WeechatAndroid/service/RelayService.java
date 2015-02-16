@@ -225,7 +225,7 @@ public class RelayService extends RelayServiceBackbone {
         Buffer.Line.TEXT_SIZE = Float.parseFloat(prefs.getString(PREFS_TEXT_SIZE, "10"));
         Paint p = new Paint();
         p.setTypeface(Typeface.MONOSPACE);
-        p.setTextSize(Buffer.Line.TEXT_SIZE * getResources().getDisplayMetrics().density);
+        p.setTextSize(Buffer.Line.TEXT_SIZE * getResources().getDisplayMetrics().scaledDensity);
         Buffer.Line.LETTER_WIDTH = (p.measureText("m"));
     }
 }
