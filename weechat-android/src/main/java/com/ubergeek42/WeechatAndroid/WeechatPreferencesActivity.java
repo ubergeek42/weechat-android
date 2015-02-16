@@ -22,6 +22,7 @@ import android.preference.EditTextPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import java.text.SimpleDateFormat;
@@ -81,6 +82,20 @@ public class WeechatPreferencesActivity extends PreferenceActivity implements
         sshKeyFilePref = (EditTextPreference) getPreferenceScreen().findPreference("ssh_keyfile");
 
         prefixPref = (ListPreference) getPreferenceScreen().findPreference("prefix_align");
+        Preference prefixWidthPref = getPreferenceScreen().findPreference("prefix_max_width");
+        prefixWidthPref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                try {
+                    Integer.parseInt((String)newValue);
+                } catch (IllegalArgumentException e) {
+                    Toast.makeText(WeechatPreferencesActivity.this, R.string.pref_prefix_width_invalid, Toast.LENGTH_SHORT).show();
+                    return false;
+                }
+
+                return true;
+            }
+        });
         connectionTypePref = (ListPreference) getPreferenceScreen().findPreference("connection_type");
         setTitle(R.string.preferences);
     }
