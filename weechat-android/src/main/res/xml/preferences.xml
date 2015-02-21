@@ -25,6 +25,12 @@
 				<EditTextPreference android:key="ssh_pass" android:title="@string/pref_ssh_pass" android:password="true" android:singleLine="true"/>
 				<EditTextPreference android:key="ssh_keyfile" android:title="@string/pref_ssh_keyfile" android:singleLine="true" android:summary="/sdcard/weechat/sshkey.id_rsa" />
 			</PreferenceScreen>
+
+			<PreferenceScreen android:key="ping_group" android:title="@string/pref_ping_group">
+				<CheckBoxPreference android:key="ping_enabled" android:title="@string/pref_ping_enabled" android:summary="@string/pref_ping_enabled_summary" android:defaultValue="true" />
+				<EditTextPreference android:key="ping_idle" android:title="@string/pref_ping_idle" android:summary="@string/pref_ping_idle_summary" android:numeric="integer" android:defaultValue="300" />
+				<EditTextPreference android:key="ping_timeout" android:title="@string/pref_ping_timeout" android:summary="@string/pref_ping_timeout_summary" android:numeric="integer" android:defaultValue="30" />
+			</PreferenceScreen>
 		</PreferenceCategory>
     </PreferenceScreen>
 

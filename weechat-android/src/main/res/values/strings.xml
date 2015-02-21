@@ -71,6 +71,13 @@
 		    <string name="pref_ssh_port">SSH port</string>
 		    <string name="pref_ssh_pass">SSH password/key passphrase</string>
 		    <string name="pref_ssh_keyfile">SSH private key file</string>
+	    <string name="pref_ping_group">Ping settings</string>
+		    <string name="pref_ping_enabled">Enable Ping</string>
+		    <string name="pref_ping_idle">Idle Time</string>
+		    <string name="pref_ping_timeout">Ping Timeout</string>
+		    <string name="pref_ping_enabled_summary">Periodically check that the relay connection is still alive when idle</string>
+		    <string name="pref_ping_idle_summary">Number of seconds to wait before sending a ping when the connection is idle</string>
+		    <string name="pref_ping_timeout_summary">Number of seconds to wait before closing an unresponsive connection</string>
     <string name="pref_bufferlist_group">Buffer list settings</string>
 	    <string name="pref_sort_buffers">Sort buffer list</string>
 	    <string name="pref_sort_buffers_summary">Sort by number of highlights/private messages/unread messages</string>

@@ -18,11 +18,13 @@ package com.ubergeek42.WeechatAndroid;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
+import android.preference.CheckBoxPreference;
 import android.preference.EditTextPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
-import android.widget.EditText;
+import android.preference.PreferenceScreen;
+import android.widget.BaseAdapter;
 import android.widget.Toast;
 
 import java.text.SimpleDateFormat;
@@ -31,6 +33,7 @@ public class WeechatPreferencesActivity extends PreferenceActivity implements
         OnSharedPreferenceChangeListener {
 
     private SharedPreferences sharedPreferences;
+    private PreferenceScreen connectionSettings;
     private EditTextPreference hostPref;
     private EditTextPreference portPref;
     private EditTextPreference textSizePref;
@@ -45,6 +48,8 @@ public class WeechatPreferencesActivity extends PreferenceActivity implements
     private EditTextPreference sshKeyFilePref;
     private ListPreference prefixPref;
     private ListPreference connectionTypePref;
+    private PreferenceScreen pingPreferences;
+    private CheckBoxPreference pingEnabledPref;
 
     /** Called when the activity is first created. */
     @Override
@@ -53,6 +58,7 @@ public class WeechatPreferencesActivity extends PreferenceActivity implements
         addPreferencesFromResource(R.xml.preferences);
         sharedPreferences = getPreferenceScreen().getSharedPreferences();
 
+        connectionSettings = (PreferenceScreen) getPreferenceScreen().findPreference("connection_group");
         hostPref = (EditTextPreference) getPreferenceScreen().findPreference("host");
         portPref = (EditTextPreference) getPreferenceScreen().findPreference("port");
         passPref = (EditTextPreference) getPreferenceScreen().findPreference("password");
@@ -97,6 +103,8 @@ public class WeechatPreferencesActivity extends PreferenceActivity implements
             }
         });
         connectionTypePref = (ListPreference) getPreferenceScreen().findPreference("connection_type");
+        pingPreferences = (PreferenceScreen) getPreferenceScreen().findPreference("ping_group");
+        pingEnabledPref = (CheckBoxPreference) getPreferenceScreen().findPreference("ping_enabled");
         setTitle(R.string.preferences);
     }
 
@@ -125,6 +133,12 @@ public class WeechatPreferencesActivity extends PreferenceActivity implements
 
         prefixPref.setSummary(prefixPref.getEntry());
         connectionTypePref.setSummary(connectionTypePref.getEntry());
+
+        if (pingEnabledPref.isChecked()) {
+            pingPreferences.setSummary("Enabled");
+        } else {
+            pingPreferences.setSummary("Disabled");
+        }
 
         String tmp;
         tmp = sharedPreferences.getString("password", null);
@@ -193,6 +207,14 @@ public class WeechatPreferencesActivity extends PreferenceActivity implements
             prefixPref.setSummary(prefixPref.getEntry());
         } else if (key.equals("connection_type")) {
             connectionTypePref.setSummary(connectionTypePref.getEntry());
+        } else if (key.equals("ping_enabled")) {
+            boolean pingEnabled = sharedPreferences.getBoolean("ping_enabled", true);
+            if (pingEnabled) {
+                pingPreferences.setSummary("Enabled");
+            } else {
+                pingPreferences.setSummary("Disabled");
+            }
+            ((BaseAdapter) connectionSettings.getRootAdapter()).notifyDataSetChanged();
         }
     }
 }

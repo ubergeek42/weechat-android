@@ -86,6 +86,10 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
     final static private String PREF_PASSWORD = "password";
     final static private String PREF_PORT = "port";
 
+    final static private String PREF_PING_ENABLED = "ping_enabled";
+    final static private String PREF_PING_IDLE = "ping_idle";
+    final static private String PREF_PING_TIMEOUT = "ping_timeout";
+
     final static private String PREF_STUNNEL_CERT = "stunnel_cert";
     final static private String PREF_STUNNEL_PASS = "stunnel_pass";
     final static private String PREF_SSH_HOST = "ssh_host";
@@ -444,6 +448,14 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
         schedulePing(triggerAt, new Bundle());
     }
 
+    long pingIdleTime() {
+        return Integer.parseInt(prefs.getString(PREF_PING_IDLE, "300")) * 1000;
+    }
+
+    long pingTimeout() {
+        return Integer.parseInt(prefs.getString(PREF_PING_TIMEOUT, "30")) * 1000;
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     /** try connect once
@@ -541,8 +553,10 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
         if (DEBUG) logger.debug("onConnect()");
         connection_status = CONNECTED;
 
-        long triggerAt = SystemClock.elapsedRealtime() + 30 * 1000;
-        schedulePing(triggerAt);
+        if (prefs.getBoolean(PREF_PING_ENABLED, true)) {
+            long triggerAt = SystemClock.elapsedRealtime() + pingTimeout();
+            schedulePing(triggerAt);
+        }
 
         connection.addHandler("*", lastMessageHandler);
 

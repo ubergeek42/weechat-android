@@ -44,11 +44,11 @@ public class PingActionReceiver extends BroadcastReceiver {
         long triggerAt;
         Bundle extras = new Bundle();
 
-        if (SystemClock.elapsedRealtime() - relayService.lastMessageReceivedAt > 60 * 5 * 1000) {
+        if (SystemClock.elapsedRealtime() - relayService.lastMessageReceivedAt > pingIdleTime()) {
             if (!intent.getBooleanExtra("sentPing", false)) {
                 logger.debug("last message too old, sending ping");
                 relayService.connection.sendMsg("ping");
-                triggerAt = SystemClock.elapsedRealtime() + 30 * 1000;
+                triggerAt = SystemClock.elapsedRealtime() + pingTimeout();
                 extras.putBoolean("sentPing", true);
             } else {
                 logger.debug("no message received, disconnecting");
@@ -56,9 +56,17 @@ public class PingActionReceiver extends BroadcastReceiver {
                 return;
             }
         } else {
-            triggerAt = relayService.lastMessageReceivedAt + 60 * 5 * 1000;
+            triggerAt = relayService.lastMessageReceivedAt + pingIdleTime();
         }
 
         relayService.schedulePing(triggerAt, extras);
+    }
+
+    private long pingIdleTime() {
+        return relayService.pingIdleTime();
+    }
+
+    private long pingTimeout() {
+        return relayService.pingTimeout();
     }
 }
