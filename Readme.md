@@ -13,6 +13,14 @@ Either scan the QR code, or download it from the [Google Play Store](https://pla
 
 ![Download](https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=https://play.google.com/store/apps/details?id=com.ubergeek42.WeechatAndroid)
 
+##### Google Play Beta Version
+Sometimes we make beta versions available in the google play store. These versions may be much more unstable, but are typically more up to date than the released version in the play store. To participate, you need to do two things:
+
+1. Join this google+ community: https://plus.google.com/communities/102731380310451490082
+2. Follow this link to "Become A Tester": https://play.google.com/apps/testing/com.ubergeek42.WeechatAndroid
+
+Once you've done that if you install weechat-android from the play store you'll get the latest beta version. If you already have the app installed your device will update to the latest beta version.
+
 #### Amazon
 http://www.amazon.com/Keith-Johnson-Weechat-Android/dp/B00OWI1ZRS
 
