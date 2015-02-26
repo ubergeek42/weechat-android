@@ -65,8 +65,8 @@ public class RelayService extends RelayServiceBackbone {
         pingActionReceiver = new PingActionReceiver(this);
         registerReceiver(
                 pingActionReceiver,
-                new IntentFilter(Manifest.permission.PING_ACTION),
-                PingActionReceiver.PING_ACTION,
+                new IntentFilter(PingActionReceiver.PING_ACTION),
+                Manifest.permission.PING_ACTION,
                 null
         );
 

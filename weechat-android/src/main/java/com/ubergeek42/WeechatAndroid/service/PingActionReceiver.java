@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 public class PingActionReceiver extends BroadcastReceiver {
     private static Logger logger = LoggerFactory.getLogger("PingActionReceiver");
     private RelayService relayService;
-    public static final String PING_ACTION = BuildConfig.APPLICATION_ID + "PING_ACTION";
+    public static final String PING_ACTION = BuildConfig.APPLICATION_ID + ".PING_ACTION";
 
     public PingActionReceiver(RelayService relayService) {
         super();
