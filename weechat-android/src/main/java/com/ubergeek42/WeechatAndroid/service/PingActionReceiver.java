@@ -21,13 +21,15 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.SystemClock;
 
+import com.ubergeek42.WeechatAndroid.BuildConfig;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class PingActionReceiver extends BroadcastReceiver {
     private static Logger logger = LoggerFactory.getLogger("PingActionReceiver");
     private RelayService relayService;
-    public static final String PING_ACTION = "com.ubergeek42.WeechatAndroid.PING_ACTION";
+    public static final String PING_ACTION = BuildConfig.APPLICATION_ID + "PING_ACTION";
 
     public PingActionReceiver(RelayService relayService) {
         super();

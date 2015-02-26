@@ -3,14 +3,14 @@
     package="com.ubergeek42.WeechatAndroid" >
 
     <permission
-        android:name="com.ubergeek42.WeechatAndroid.PING_ACTION"
+        android:name="${applicationId}.PING_ACTION"
         android:protectionLevel="signature" />
 
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-    <uses-permission android:name="com.ubergeek42.WeechatAndroid.PING_ACTION"/>
+    <uses-permission android:name="${applicationId}.PING_ACTION"/>
 
     <application
         android:allowBackup="false"

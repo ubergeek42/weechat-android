@@ -11,6 +11,7 @@ import android.graphics.Typeface;
 import android.os.IBinder;
 import android.os.SystemClock;
 
+import com.ubergeek42.WeechatAndroid.Manifest;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 
 import org.slf4j.Logger;
@@ -64,7 +65,7 @@ public class RelayService extends RelayServiceBackbone {
         pingActionReceiver = new PingActionReceiver(this);
         registerReceiver(
                 pingActionReceiver,
-                new IntentFilter(PingActionReceiver.PING_ACTION),
+                new IntentFilter(Manifest.permission.PING_ACTION),
                 PingActionReceiver.PING_ACTION,
                 null
         );
