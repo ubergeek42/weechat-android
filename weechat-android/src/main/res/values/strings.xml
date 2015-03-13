@@ -117,6 +117,8 @@
 	    <string name="pref_notification_sound_summary">Played when a private message or a highlight is received</string>
 	    <string name="pref_notification_light">Notification light</string>
 	    <string name="pref_notification_light_summary">Blink when a private message or a highlight is received</string>
+            <string name="pref_notification_vibrate">Notification vibration</string>
+            <string name="pref_notification_vibrate_summary">Vibrate when a private message or a highlight is received</string>
     
     
     <!--  ACRA(Application Crash Reports for Android) related strings -->
