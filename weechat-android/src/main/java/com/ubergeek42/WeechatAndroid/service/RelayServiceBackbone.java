@@ -108,6 +108,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
 
     final static private String PREF_NOTIFICATION_SOUND = "notification_sound";
     final static private String PREF_NOTIFICATION_LIGHT = "notification_light";
+    final static private String PREF_NOTIFICATION_VIBRATE = "notification_vibrate";
     final static private String PREF_NOTIFICATION_TICKER = "notification_ticker";
 
     final static private String PREF_MUST_STAY_DISCONNECTED = "wow!";
@@ -333,6 +334,8 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
             if (new_highlight) {
                 builder.setTicker(message);
                 builder.setSound(Uri.parse(prefs.getString(PREF_NOTIFICATION_SOUND, "")));
+                if (prefs.getBoolean(PREF_NOTIFICATION_VIBRATE, false)) {
+                    builder.setVibrate(new long[] {0, 0, 0, 0});
                 if (prefs.getBoolean(PREF_NOTIFICATION_LIGHT, false)) {
                     builder.setLights(Color.WHITE, 100, 100);
                 }
