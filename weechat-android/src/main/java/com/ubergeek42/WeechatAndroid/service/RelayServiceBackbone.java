@@ -300,7 +300,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
         } else {
             // find our target buffer. if ALL items point to the same buffer, use it,
             // otherwise, go to buffer list (→ "")
-            if (prefs.getBoolean(PREF_NOTIFICATION_ENABLE, false)) {
+            if (!prefs.getBoolean(PREF_NOTIFICATION_ENABLE, true)) {
                 return;
             }
             Set<String> set = new HashSet<String>();
@@ -338,7 +338,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
             if (new_highlight) {
                 builder.setTicker(message);
                 builder.setSound(Uri.parse(prefs.getString(PREF_NOTIFICATION_SOUND, "")));
-                if (prefs.getBoolean(PREF_NOTIFICATION_VIBRATE, false)) {
+                if (!prefs.getBoolean(PREF_NOTIFICATION_VIBRATE, true)) {
                     builder.setVibrate(new long[] {0, 0, 0, 0});
                 }
                 if (prefs.getBoolean(PREF_NOTIFICATION_LIGHT, false)) {
