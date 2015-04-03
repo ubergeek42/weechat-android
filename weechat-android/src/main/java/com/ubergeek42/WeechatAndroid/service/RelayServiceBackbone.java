@@ -106,8 +106,10 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
     final static private String PREF_TYPE_WEBSOCKET_SSL = "websocket-ssl";
     final static private String PREF_TYPE_PLAIN = "plain";
 
+    final static private String PREF_NOTIFICATION_ENABLE = "notification_enable";
     final static private String PREF_NOTIFICATION_SOUND = "notification_sound";
     final static private String PREF_NOTIFICATION_LIGHT = "notification_light";
+    final static private String PREF_NOTIFICATION_VIBRATE = "notification_vibrate";
     final static private String PREF_NOTIFICATION_TICKER = "notification_ticker";
 
     final static private String PREF_MUST_STAY_DISCONNECTED = "wow!";
@@ -298,6 +300,9 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
         } else {
             // find our target buffer. if ALL items point to the same buffer, use it,
             // otherwise, go to buffer list (→ "")
+            if (!prefs.getBoolean(PREF_NOTIFICATION_ENABLE, true)) {
+                return;
+            }
             Set<String> set = new HashSet<String>();
             for (String[] h: hot_list) set.add(h[BUFFER]);
             String target_buffer = (hot_count == hot_list.size() && set.size() == 1) ? hot_list.get(0)[BUFFER] : "";
@@ -333,6 +338,9 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
             if (new_highlight) {
                 builder.setTicker(message);
                 builder.setSound(Uri.parse(prefs.getString(PREF_NOTIFICATION_SOUND, "")));
+                if (!prefs.getBoolean(PREF_NOTIFICATION_VIBRATE, true)) {
+                    builder.setVibrate(new long[] {0, 0, 0, 0});
+                }
                 if (prefs.getBoolean(PREF_NOTIFICATION_LIGHT, false)) {
                     builder.setLights(Color.WHITE, 100, 100);
                 }
