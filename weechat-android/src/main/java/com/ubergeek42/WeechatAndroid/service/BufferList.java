@@ -198,9 +198,8 @@ public class BufferList {
     }
 
     /** process all open buffers and, if specified, notify them of the change
-     ** practically notifying is only needed when pressing volume up/dn keys,
-     ** which means we are not in the preferences window and the activity will not
-     ** get re-rendered */
+     ** notifying is only needed when the activity does not get re-rendered
+     ** and the change affects the message lines. */
     synchronized static void notifyOpenBuffersMustBeProcessed(boolean notify) {
         for (Buffer buffer : buffers)
             if (buffer.is_open) {

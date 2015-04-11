@@ -383,19 +383,6 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
             if (action == KeyEvent.ACTION_UP) sendMessage();
             return true;
         }
-        // Check for text resizing keys (volume buttons)
-        if (keycode == KeyEvent.KEYCODE_VOLUME_DOWN || keycode == KeyEvent.KEYCODE_VOLUME_UP) {
-            if (action == KeyEvent.ACTION_UP) {
-                float text_size = Float.parseFloat(prefs.getString(PREFS_TEXT_SIZE, "10"));
-                if (keycode == KeyEvent.KEYCODE_VOLUME_UP) {
-                    if (text_size < 30) text_size += 1;
-                } else {
-                    if (text_size > 5) text_size -= 1;
-                }
-                prefs.edit().putString(PREFS_TEXT_SIZE, Float.toString(text_size)).commit();
-            }
-            return true;
-        }
         // try tab completion if we press tab or search
         if ((keycode == KeyEvent.KEYCODE_TAB || keycode == KeyEvent.KEYCODE_SEARCH) &&
                 action == KeyEvent.ACTION_DOWN) {
