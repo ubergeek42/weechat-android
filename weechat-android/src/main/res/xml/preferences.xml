@@ -9,6 +9,7 @@
     	<CheckBoxPreference android:key="notification_ticker" android:summary="@string/pref_notification_ticker_summary" android:title="@string/pref_notification_ticker" android:defaultValue="true" />
 
     	<CheckBoxPreference android:key="optimize_traffic" android:summary="@string/pref_optimize_traffic_summary" android:title="@string/pref_optimize_traffic" android:defaultValue="false"/>
+		<CheckBoxPreference android:key="hotlist_sync" android:summary="@string/pref_hotlist_sync_summary" android:title="@string/pref_hotlist_sync" android:defaultValue="false"/>
 
 		<PreferenceCategory android:key="adv_connection_group" android:title="@string/pref_adv_connection_group">
 			<ListPreference android:key="connection_type" android:title="@string/pref_connection_type" android:defaultValue="plain" android:entries="@array/pref_connection_type_names" android:entryValues="@array/settings_connection_type_values"/>

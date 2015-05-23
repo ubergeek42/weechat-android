@@ -52,6 +52,8 @@
     <string name="pref_notification_ticker_summary">Display connection changes as ticker</string>
     <string name="pref_optimize_traffic">Only sync open buffers</string>
     <string name="pref_optimize_traffic_summary">Can significantly reduce traffic, but hotlist updates will only happen once 5 minutes. Requires WeeChat 1.1 or newer. Takes effect after re-connection.</string>
+    <string name="pref_hotlist_sync">Sync buffer read status</string>
+    <string name="pref_hotlist_sync_summary">Mark buffers as read in weechat when you read them in this app. Requires Weechat 1.0 or newer.</string>
     <string name="pref_adv_connection_group">Advanced connection settings</string>
 	    <string name="pref_connection_type">Connection type</string>
 		    <string-array name="pref_connection_type_names">

@@ -59,6 +59,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     private static final String PREFS_TEXT_SIZE = "text_size";
     private final static String PREF_SHOW_SEND = "sendbtn_show";
     private final static String PREF_SHOW_TAB = "tabbtn_show";
+    private final static String PREF_HOTLIST_SYNC = "hotlist_sync";
 
     public final static String LOCAL_PREF_FULL_NAME = "full_name";
 
@@ -155,6 +156,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
 
     private boolean pager_visible = false;
     private boolean visible = false;
+    private boolean need_sync_read_marker = false;
 
     /** these are the highlight and private counts that we are supposed to scroll
      ** they are reset after the scroll has been completed */
@@ -182,6 +184,15 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
         }
         buffer.setWatched(visible);
         scrollToHotLineIfNeeded();
+
+        // Move the read marker in weechat(if preferences dictate)
+        if (need_sync_read_marker) {
+            if (prefs.getBoolean(PREF_HOTLIST_SYNC, false)) {
+                relay.sendMessage("input " + buffer.full_name + " /buffer set hotlist -1");
+                relay.sendMessage("input " + buffer.full_name + " /input set_unread_current_buffer");
+            }
+            need_sync_read_marker = false;
+        }
     }
 
     /** called by MainPagerAdapter
@@ -190,6 +201,11 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     public void setUserVisibleHint(boolean visible) {
         if (DEBUG_VISIBILITY) logger.warn("{} setUserVisibleHint({})", full_name, visible);
         super.setUserVisibleHint(visible);
+
+        if (!this.pager_visible &&  // we weren't visible
+                visible == true) {  // but now we are
+            need_sync_read_marker = true; // sync our read status with weechat(see maybeChangeVisibilityState)
+        }
 
         if (this.pager_visible == true &&   // we were visible
                 visible==false) {           // but now we aren't
