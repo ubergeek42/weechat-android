@@ -45,6 +45,7 @@ import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -129,6 +130,14 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         // this is the text view behind the ui_pager
         // it says stuff like 'connecting', 'disconnected' et al
         ui_info = (ImageView) findViewById(R.id.info);
+        ui_info.setOnClickListener(new OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                if (relay.isConnection(RelayService.DISCONNECTED)) {
+                    relay.connect();
+                }
+            }
+        });
 
         // if this is true, we've got notification drawer and have to deal with it
         // setup drawer toggle, which calls drawerVisibilityChanged()
