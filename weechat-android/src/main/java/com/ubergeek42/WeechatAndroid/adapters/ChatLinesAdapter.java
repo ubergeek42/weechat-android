@@ -27,6 +27,7 @@ import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.ubergeek42.WeechatAndroid.R;
@@ -60,6 +61,10 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
         ui_listview.setOnItemLongClickListener(this);
     }
 
+    public void moveLastReadLine() {
+        buffer.setLastViewedLine(getItemId(lines.length-1)); // save this in the buffer object
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -81,13 +86,28 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
+        View retview; // The view to return
         TextView textview;
 
+        long lineID = getItemId(position);
+        long last_line_read = buffer.getLastViewedLine();
+        // We only want to reuse textviews, not the special last_line_read view
+        if (lineID == last_line_read || convertView instanceof RelativeLayout) {
+            convertView = null; // Force re-creating this line
+        }
+
         if (convertView == null) {
-            textview = (TextView) inflater.inflate(R.layout.chatview_line, null);
+            if (lineID == last_line_read) {
+                retview = inflater.inflate(R.layout.chatview_line_last_read, null);
+                textview = (TextView)retview.findViewById(R.id.chatline_message);
+            } else {
+                textview = (TextView) inflater.inflate(R.layout.chatview_line, null);
+                retview = textview;
+            }
             textview.setMovementMethod(LinkMovementMethod.getInstance());
-        } else {
+        } else { // convertview is only ever not null for the simple case
             textview = (TextView) convertView;
+            retview = textview;
         }
 
         textview.setTextSize(Buffer.Line.TEXT_SIZE);
@@ -95,7 +115,7 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
         textview.setText(line.spannable);
         textview.setTag(line);
 
-        return textview;
+        return retview;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -177,4 +197,6 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
         line.disableClick();
         return false;
     }
+
+
 }

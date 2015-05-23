@@ -190,6 +190,12 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     public void setUserVisibleHint(boolean visible) {
         if (DEBUG_VISIBILITY) logger.warn("{} setUserVisibleHint({})", full_name, visible);
         super.setUserVisibleHint(visible);
+
+        if (this.pager_visible == true &&   // we were visible
+                visible==false) {           // but now we aren't
+            lines_adapter.moveLastReadLine();
+            lines_adapter.notifyDataSetChanged();
+        }
         this.pager_visible = visible;
         maybeChangeVisibilityState();
     }
@@ -283,7 +289,8 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
 
     public void initUI(final boolean online) {
         activity.runOnUiThread(new Runnable() {
-            @Override public void run() {
+            @Override
+            public void run() {
                 ui_input.setFocusable(online);
                 ui_input.setFocusableInTouchMode(online);
                 ui_send.setVisibility(prefs.getBoolean(PREF_SHOW_SEND, true) ? View.VISIBLE : View.GONE);

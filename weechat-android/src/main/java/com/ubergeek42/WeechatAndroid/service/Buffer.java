@@ -72,6 +72,11 @@ public class Buffer {
     public int total_read_unreads = 0;
     public int total_read_highlights = 0;
 
+    // This is used purely by the GUI to show a last line read marker
+    // It is a buffer line id(pointer)
+    public long ui_last_viewed_line = -1;
+
+
     private LinkedList<Line> lines = new LinkedList<Line>();
     private int visible_lines_count = 0;
 
@@ -201,6 +206,12 @@ public class Buffer {
         for (Line line : lines) line.processMessage();
     }
 
+    public void setLastViewedLine(long id) {
+        ui_last_viewed_line = id;
+    }
+    public long getLastViewedLine() {
+        return ui_last_viewed_line;
+    }
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// stuff called by message handlers
     ////////////////////////////////////////////////////////////////////////////////////////////////
