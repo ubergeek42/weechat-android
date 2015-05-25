@@ -50,6 +50,7 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
     private ListView ui_listview;
 
     private boolean last_item_visible = true;
+    private boolean need_move_last_read_marker = false;
 
     public ChatLinesAdapter(FragmentActivity activity, Buffer buffer, ListView ui_listview) {
         if (DEBUG) logger.debug("ChatLinesAdapter({}, {})", activity, buffer);
@@ -62,7 +63,10 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
     }
 
     public void moveLastReadLine() {
-        buffer.setLastViewedLine(getItemId(lines.length-1)); // save this in the buffer object
+        if (!need_move_last_read_marker) {
+            need_move_last_read_marker = true;
+            onLinesChanged();
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -145,8 +149,13 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
         last_spannable = l[l.length - 1].spannable;
 
         // return if there's nothing to update
-        if (line_count_unchanged && last_spannable == old_last_spannable) return;
+        if (!need_move_last_read_marker && line_count_unchanged && last_spannable == old_last_spannable) return;
         old_last_spannable = last_spannable;
+
+        if (need_move_last_read_marker) {
+            buffer.setLastViewedLine(l[l.length-1].pointer); // save this in the buffer object
+            need_move_last_read_marker = false;
+        }
 
         // if last line is visible, scroll to bottom
         // this is required for earlier versions of android, apparently

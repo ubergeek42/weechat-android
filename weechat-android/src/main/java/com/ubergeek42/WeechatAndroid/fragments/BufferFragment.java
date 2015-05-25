@@ -157,7 +157,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
     private boolean pager_visible = false;
     private boolean visible = false;
     private boolean need_sync_read_marker = false;
-
+    private boolean need_move_read_marker = false;
     /** these are the highlight and private counts that we are supposed to scroll
      ** they are reset after the scroll has been completed */
     private int highlights = 0;
@@ -193,6 +193,10 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
             }
             need_sync_read_marker = false;
         }
+        if (need_move_read_marker) {
+            lines_adapter.moveLastReadLine();
+            need_move_read_marker = false;
+        }
     }
 
     /** called by MainPagerAdapter
@@ -209,8 +213,7 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
 
         if (this.pager_visible == true &&   // we were visible
                 visible==false) {           // but now we aren't
-            lines_adapter.moveLastReadLine();
-            lines_adapter.notifyDataSetChanged();
+            need_move_read_marker = true;
         }
         this.pager_visible = visible;
         maybeChangeVisibilityState();
@@ -282,12 +285,14 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
         lines_adapter.readLinesFromBuffer();
 
         activity.runOnUiThread(new Runnable() {
-            @Override public void run() {
+            @Override
+            public void run() {
                 activity.updateCutePagerTitleStrip();
                 ui_lines.setAdapter(lines_adapter);
             }
         });
 
+        need_move_read_marker = true;
         maybeChangeVisibilityState();
     }
 
