@@ -291,8 +291,9 @@ public class BufferFragment extends SherlockFragment implements BufferEye, OnKey
                 ui_lines.setAdapter(lines_adapter);
             }
         });
-
-        need_move_read_marker = true;
+        if (buffer.getLastViewedLine() == -1) { // We only want to reset it if it's never been set
+            need_move_read_marker = true;
+        }
         maybeChangeVisibilityState();
     }
 
