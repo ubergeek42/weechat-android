@@ -1,5 +1,6 @@
 package com.ubergeek42.WeechatAndroid.fragments;
 
+import android.support.v4.app.ListFragment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,7 +24,6 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 
-import com.actionbarsherlock.app.SherlockListFragment;
 import com.ubergeek42.WeechatAndroid.adapters.BufferListAdapter;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
@@ -34,7 +34,7 @@ import com.ubergeek42.WeechatAndroid.service.RelayService;
 import com.ubergeek42.WeechatAndroid.service.RelayServiceBinder;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
 
-public class BufferListFragment extends SherlockListFragment implements RelayConnectionHandler,
+public class BufferListFragment extends ListFragment implements RelayConnectionHandler,
         BufferListEye, OnSharedPreferenceChangeListener, View.OnClickListener {
 
     private static Logger logger = LoggerFactory.getLogger("BufferListFragment");
