@@ -23,6 +23,11 @@ import java.util.HashSet;
 
 import javax.net.ssl.SSLException;
 
+import android.support.v4.view.MenuItemCompat;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AppCompatActivity;
+import android.view.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,24 +44,16 @@ import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
-import android.view.LayoutInflater;
-import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.actionbarsherlock.ActionBarSherlock;
-import com.actionbarsherlock.app.ActionBar;
-import com.actionbarsherlock.app.SherlockFragmentActivity;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuInflater;
-import com.actionbarsherlock.view.MenuItem;
+
 import com.ubergeek42.WeechatAndroid.adapters.MainPagerAdapter;
 import com.ubergeek42.WeechatAndroid.adapters.NickListAdapter;
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragment;
@@ -68,8 +65,8 @@ import com.ubergeek42.WeechatAndroid.utils.MyMenuItemStuffListener;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
 
-public class WeechatActivity extends SherlockFragmentActivity implements RelayConnectionHandler,
-        CutePagerTitleStrip.CutePageChangeListener, ActionBarSherlock.OnCreateOptionsMenuListener, ServiceConnection {
+public class WeechatActivity extends AppCompatActivity implements RelayConnectionHandler,
+        CutePagerTitleStrip.CutePageChangeListener, ServiceConnection {
 
     private static Logger logger = LoggerFactory.getLogger("WA");
     final private static boolean DEBUG = BuildConfig.DEBUG;
@@ -145,7 +142,7 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
         if (slidy) {
             ui_drawer_layout = (DrawerLayout) findViewById(R.id.drawer_layout);
             ui_drawer = findViewById(R.id.bufferlist_fragment);
-            drawer_toggle = new ActionBarDrawerToggle(this, ui_drawer_layout, R.drawable.ic_drawer,
+            drawer_toggle = new ActionBarDrawerToggle(this, ui_drawer_layout,
                     R.string.open_drawer, R.string.close_drawer) {
 
                 @SuppressWarnings("SimplifiableConditionalExpression")
@@ -410,9 +407,9 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
     @Override
     public boolean onCreateOptionsMenu(final Menu menu) {
         if (DEBUG_OPTIONS_MENU) logger.debug("onCreateOptionsMenu(...)");
-        MenuInflater menuInflater = getSupportMenuInflater();
+        MenuInflater menuInflater = getMenuInflater();
         menuInflater.inflate(R.menu.menu_actionbar, menu);
-        final View menu_hotlist = menu.findItem(R.id.menu_hotlist).getActionView();
+        final View menu_hotlist = MenuItemCompat.getActionView(menu.findItem(R.id.menu_hotlist));
         ui_hot = (TextView) menu_hotlist.findViewById(R.id.hotlist_hot);
         updateHotCount(hot_number);
         new MyMenuItemStuffListener(menu_hotlist, "Show hot message") {
@@ -520,8 +517,8 @@ public class WeechatActivity extends SherlockFragmentActivity implements RelayCo
                     else
                         connectionStatus.setTitle(R.string.connect);
 
-                    ((ImageView) ui_menu.findItem(R.id.menu_hotlist).getActionView().findViewById(R.id.hotlist_bell))
-                            .setImageResource(BufferList.OPTIMIZE_TRAFFIC ? R.drawable.ic_bell_cracked : R.drawable.ic_bell);
+                    final MenuItem item = ui_menu.findItem(R.id.menu_hotlist);
+                    item.setIcon(BufferList.OPTIMIZE_TRAFFIC ? R.drawable.ic_bell_cracked : R.drawable.ic_bell);
                 }
             }
         });

@@ -2,15 +2,8 @@
 
 <resources xmlns:tools="http://schemas.android.com/tools">
 
-    <style name="Weechat" parent="@style/Theme.Sherlock">
-        <item name="android:actionBarStyle" tools:targetApi="11">@style/Weechat.ActionBar</item>
-        <item name="actionBarStyle">@style/Weechat.ActionBar</item>
+    <style name="Weechat" parent="Theme.AppCompat">
         <item name="android:windowBackground">@color/doge</item>
-    </style>
-
-    <style name="Weechat.ActionBar" parent="Widget.Sherlock.ActionBar">
-        <item name="background">@drawable/action_bar</item>
-        <item name="android:background">@drawable/action_bar</item>
     </style>
 
     <!-- honey comb & lower action button approximation -->
@@ -19,7 +12,6 @@
         <item name="android:background">?actionBarItemBackground</item>
         <item name="android:paddingLeft">12dip</item>
         <item name="android:paddingRight">12dip</item>
-        <item name="android:minWidth">@dimen/abs__action_button_min_width</item>
         <item name="android:minHeight">?actionBarSize</item>
         <item name="android:gravity">center</item>
         <item name="android:maxLines">2</item>

@@ -114,7 +114,12 @@ public class RelayExample implements BuffersChangedObserver, RelayConnectionHand
         relay.disconnect();
     }
 
-    @Override
+	@Override
+	public void onAuthenticationFailed() {
+
+	}
+
+	@Override
     public void onBuffersListed() {}
 
     @Override

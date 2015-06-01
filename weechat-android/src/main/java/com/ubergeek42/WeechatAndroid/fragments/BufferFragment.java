@@ -3,6 +3,7 @@ package com.ubergeek42.WeechatAndroid.fragments;
 import java.util.ArrayList;
 import java.util.Vector;
 
+import android.support.v4.app.Fragment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +34,6 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.actionbarsherlock.app.SherlockFragment;
 import com.ubergeek42.WeechatAndroid.adapters.ChatLinesAdapter;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
@@ -44,7 +44,7 @@ import com.ubergeek42.WeechatAndroid.service.RelayServiceBinder;
 import com.ubergeek42.WeechatAndroid.utils.FixedRadialDrawable;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
 
-public class BufferFragment extends SherlockFragment implements BufferEye, OnKeyListener,
+public class BufferFragment extends Fragment implements BufferEye, OnKeyListener,
         OnClickListener, TextWatcher, RelayConnectionHandler,
         TextView.OnEditorActionListener {
 
