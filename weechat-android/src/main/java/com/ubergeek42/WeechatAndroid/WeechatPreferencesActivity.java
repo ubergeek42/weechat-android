@@ -163,58 +163,77 @@ public class WeechatPreferencesActivity extends PreferenceActivity implements
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        if (key.equals("host")) {
-            hostPref.setSummary(sharedPreferences.getString(key, ""));
-        } else if (key.equals("port")) {
-            portPref.setSummary(sharedPreferences.getString("port", "8001"));
-        } else if (key.equals("password")) {
-            String tmp = sharedPreferences.getString("password", null);
-            if (tmp == null || tmp.equals("")) {
-                passPref.setSummary("None Set");
-            } else {
-                passPref.setSummary("******");
+        switch (key) {
+            case "host":
+                hostPref.setSummary(sharedPreferences.getString(key, ""));
+                break;
+            case "port":
+                portPref.setSummary(sharedPreferences.getString("port", "8001"));
+                break;
+            case "password": {
+                String tmp = sharedPreferences.getString("password", null);
+                if (tmp == null || tmp.equals("")) {
+                    passPref.setSummary("None Set");
+                } else {
+                    passPref.setSummary("******");
+                }
+                break;
             }
-        } else if (key.equals("text_size")) {
-            textSizePref.setSummary(sharedPreferences.getString("text_size", "10"));
-        } else if (key.equals("timestamp_format")) {
-            timestampformatPref.setSummary(sharedPreferences.getString("timestamp_format",
-                    "HH:mm:ss"));
-        } else if (key.equals("stunnel_cert")) {
-            stunnelCert.setSummary(sharedPreferences.getString("stunnel_cert", "/sdcard/weechat/client.p12"));
-        } else if (key.equals("stunnel_pass")) {
-            String tmp = sharedPreferences.getString("stunnel_pass", null);
-            if (tmp == null || tmp.equals("")) {
-                stunnelPass.setSummary("None Set");
-            } else {
-                stunnelPass.setSummary("******");
+            case "text_size":
+                textSizePref.setSummary(sharedPreferences.getString("text_size", "10"));
+                break;
+            case "timestamp_format":
+                timestampformatPref.setSummary(sharedPreferences.getString("timestamp_format",
+                        "HH:mm:ss"));
+                break;
+            case "stunnel_cert":
+                stunnelCert.setSummary(sharedPreferences.getString("stunnel_cert", "/sdcard/weechat/client.p12"));
+                break;
+            case "stunnel_pass": {
+                String tmp = sharedPreferences.getString("stunnel_pass", null);
+                if (tmp == null || tmp.equals("")) {
+                    stunnelPass.setSummary("None Set");
+                } else {
+                    stunnelPass.setSummary("******");
+                }
+                break;
             }
-        } else if (key.equals("ssh_host")) {
-            sshHostPref.setSummary(sharedPreferences.getString(key, ""));
-        } else if (key.equals("ssh_user")) {
-            sshUserPref.setSummary(sharedPreferences.getString(key, ""));
-        } else if (key.equals("ssh_port")) {
-            sshPortPref.setSummary(sharedPreferences.getString(key, "22"));
-        } else if (key.equals("ssh_pass")) {
-            String tmp = sharedPreferences.getString("ssh_pass", null);
-            if (tmp == null || tmp.equals("")) {
-                sshPassPref.setSummary("None Set");
-            } else {
-                sshPassPref.setSummary("******");
+            case "ssh_host":
+                sshHostPref.setSummary(sharedPreferences.getString(key, ""));
+                break;
+            case "ssh_user":
+                sshUserPref.setSummary(sharedPreferences.getString(key, ""));
+                break;
+            case "ssh_port":
+                sshPortPref.setSummary(sharedPreferences.getString(key, "22"));
+                break;
+            case "ssh_pass": {
+                String tmp = sharedPreferences.getString("ssh_pass", null);
+                if (tmp == null || tmp.equals("")) {
+                    sshPassPref.setSummary("None Set");
+                } else {
+                    sshPassPref.setSummary("******");
+                }
+                break;
             }
-        } else if (key.equals("ssh_keyfile")) {
-            sshKeyFilePref.setSummary(sharedPreferences.getString(key, "/sdcard/weechat/sshkey.id_rsa"));
-        } else if (key.equals("prefix_align")) {
-            prefixPref.setSummary(prefixPref.getEntry());
-        } else if (key.equals("connection_type")) {
-            connectionTypePref.setSummary(connectionTypePref.getEntry());
-        } else if (key.equals("ping_enabled")) {
-            boolean pingEnabled = sharedPreferences.getBoolean("ping_enabled", true);
-            if (pingEnabled) {
-                pingPreferences.setSummary("Enabled");
-            } else {
-                pingPreferences.setSummary("Disabled");
-            }
-            ((BaseAdapter) connectionSettings.getRootAdapter()).notifyDataSetChanged();
+            case "ssh_keyfile":
+                sshKeyFilePref.setSummary(sharedPreferences.getString(key, "/sdcard/weechat/sshkey.id_rsa"));
+                break;
+            case "prefix_align":
+                prefixPref.setSummary(prefixPref.getEntry());
+                break;
+            case "connection_type":
+                connectionTypePref.setSummary(connectionTypePref.getEntry());
+                break;
+            case "ping_enabled":
+                boolean pingEnabled = sharedPreferences.getBoolean("ping_enabled", true);
+                if (pingEnabled) {
+                    pingPreferences.setSummary("Enabled");
+                } else {
+                    pingPreferences.setSummary("Disabled");
+                }
+                ((BaseAdapter) connectionSettings.getRootAdapter()).notifyDataSetChanged();
+                break;
         }
     }
 }
