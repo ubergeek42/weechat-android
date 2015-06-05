@@ -164,4 +164,6 @@
     <string name="autoscroll_no_line">Buffer lost some hot messages because of new lines</string>
     <string name="no_hot_buffers">There are no hot buffers for now</string>
     <string name="wrong_password">Wrong password</string>
+    <string name="pref_volumebtn_size">Volume buttons change text size</string>
+    <string name="pref_volumebtn_size_summary">Whether volume buttons are hooked to change text size instead of volume</string>
 </resources>
