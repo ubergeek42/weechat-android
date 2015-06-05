@@ -501,15 +501,12 @@ public class Buffer {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     public static class Line {
-        // constants
-        public final static int ALIGN_NONE = 0;
-        public final static int ALIGN_LEFT = 1;
-        public final static int ALIGN_RIGHT = 2;
+
 
         // preferences for all lines
         public static float TEXT_SIZE = 10;
         public static @Nullable DateFormat DATEFORMAT = new SimpleDateFormat("HH:mm");
-        public static int ALIGN = ALIGN_RIGHT;
+        public static int ALIGN = Color.ALIGN_RIGHT;
         public static int MAX_WIDTH = 7;
         public static float LETTER_WIDTH = 12;
         public static boolean ENCLOSE_NICK = false;
@@ -607,7 +604,7 @@ public class Buffer {
             if (DEBUG_LINE) logger.warn("processMessage()");
             String timestamp = (DATEFORMAT == null) ? null : DATEFORMAT.format(date);
             boolean encloseNick = ENCLOSE_NICK && privmsg && !action;
-            Color.parse(timestamp, prefix, message, encloseNick, highlighted, MAX_WIDTH, ALIGN == ALIGN_RIGHT);
+            Color.parse(timestamp, prefix, message, encloseNick, highlighted, MAX_WIDTH, ALIGN);
             Spannable spannable = new SpannableString(Color.clean_message);
 
             if (this.type == LINE_OTHER && DIM_DOWN_NON_HUMAN_LINES) {
@@ -627,7 +624,7 @@ public class Buffer {
                 }
             }
 
-            if (ALIGN != ALIGN_NONE) {
+            if (ALIGN != Color.ALIGN_NONE) {
                 LeadingMarginSpan margin_span = new LeadingMarginSpan.Standard(0, (int) (LETTER_WIDTH * Color.margin));
                 spannable.setSpan(margin_span, 0, spannable.length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
             }

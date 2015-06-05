@@ -4,6 +4,7 @@
     <string-array name="settings_prefix_alignment_values">
         <item>left</item>
         <item>right</item>
+        <item>timestamp</item>
         <item>none</item>
     </string-array>
     <string-array name="settings_connection_type_values">

@@ -132,6 +132,13 @@ public class Color {
         }
     }
 
+    // constants
+    public final static int ALIGN_NONE = 0;
+    public final static int ALIGN_LEFT = 1;
+    public final static int ALIGN_RIGHT = 2;
+    public final static int ALIGN_TIMESTAMP = 3;
+
+
     public static String stripColors(String text) { return text; }
     public static String stripAllColorsAndAttributes(String text) { return text; }
 
@@ -145,9 +152,9 @@ public class Color {
     public static ArrayList<Span> final_span_list;
 
     // prepares: clean_message, margin, final_span_list
-    public static void parse(String timestamp, String prefix, String message, final boolean enclose_nick, final boolean highlight, final int max, final boolean align_right) {
+    public static void parse(String timestamp, String prefix, String message, final boolean enclose_nick, final boolean highlight, final int max, final int alignment) {
         if (DEBUG) logger.debug("parse(timestamp='{}', prefix='{}', message='{}', enclose_nick={}, highlight={}, max={}, align_right={})",
-                new Object[]{timestamp, prefix, message, enclose_nick, highlight, max, align_right});
+                new Object[]{timestamp, prefix, message, enclose_nick, highlight, max, alignment});
         int puff;
         int color;
         StringBuilder sb = new StringBuilder();
@@ -159,6 +166,12 @@ public class Color {
             Span fg = new Span(); fg.start = 0; fg.end = sb.length(); fg.type = Span.FGCOLOR; fg.color = weechatOptions[2][0]; final_span_list.add(fg);
             sb.append("\u00a0"); // non-breaking space
         }
+
+        // here's our margin
+        if (alignment == ALIGN_TIMESTAMP) {
+            margin = sb.length();
+        }
+
 
         // prefix should be adjusted accoring to the settings
         // also, if highlight is enabled, remove all colors from here and add highlight color later
@@ -177,7 +190,7 @@ public class Color {
                 if (span.end <= span.start) it.remove();
             }
         }
-        else if (align_right && prefix.length() < max_adjusted) {
+        else if (alignment==ALIGN_RIGHT && prefix.length() < max_adjusted) {
             int diff = max_adjusted - prefix.length();
             for (int x = 0; x < diff; x++) sb.append("\u00a0"); // non-breaking space
         }
@@ -213,7 +226,9 @@ public class Color {
         else sb.append(" ");
 
         // here's our margin
-        margin = sb.length();
+        if (alignment != ALIGN_TIMESTAMP) {
+            margin = sb.length();
+        }
 
         // the rest of the message
         parseColors(message);

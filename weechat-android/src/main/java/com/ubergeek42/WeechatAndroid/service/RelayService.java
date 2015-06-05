@@ -13,6 +13,7 @@ import android.os.SystemClock;
 
 import com.ubergeek42.WeechatAndroid.Manifest;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
+import com.ubergeek42.weechat.Color;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -229,9 +230,10 @@ public class RelayService extends RelayServiceBackbone {
 
     private void setAlignment() {
         String alignment = prefs.getString(PREFS_PREFIX_ALIGN, "right");
-        if (alignment.equals("right")) Buffer.Line.ALIGN = Buffer.Line.ALIGN_RIGHT;
-        else if (alignment.equals("left")) Buffer.Line.ALIGN = Buffer.Line.ALIGN_LEFT;
-        else Buffer.Line.ALIGN = Buffer.Line.ALIGN_NONE;
+        if (alignment.equals("right")) Buffer.Line.ALIGN = Color.ALIGN_RIGHT;
+        else if (alignment.equals("left")) Buffer.Line.ALIGN = Color.ALIGN_LEFT;
+        else if (alignment.equals("timestamp")) Buffer.Line.ALIGN = Color.ALIGN_TIMESTAMP;
+        else Buffer.Line.ALIGN = Color.ALIGN_NONE;
     }
 
     private void setTextSizeAndLetterWidth() {

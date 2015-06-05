@@ -98,6 +98,7 @@
    	        <string-array name="pref_prefix_align_names">
 		        <item>Left aligned</item>
 		        <item>Right aligned</item>
+                <item>Timestamp aligned</item>
 		        <item>No alignment</item>
 		    </string-array>
 	    <string name="pref_enclose_nick">Enclose nicknames</string>
