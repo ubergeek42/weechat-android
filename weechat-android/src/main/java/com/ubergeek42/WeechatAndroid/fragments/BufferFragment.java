@@ -58,6 +58,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
 
     private static final String PREFS_TEXT_SIZE = "text_size";
     private final static String PREF_SHOW_SEND = "sendbtn_show";
+    private final static String PREF_VOLUME_BTN_SIZE = "volumebtn_size";
     private final static String PREF_SHOW_TAB = "tabbtn_show";
     private final static String PREF_HOTLIST_SYNC = "hotlist_sync";
 
@@ -78,6 +79,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     private RelayServiceBinder relay;
     private ChatLinesAdapter lines_adapter;
     private SharedPreferences prefs;
+    private boolean volumeButtonsChangeTextSize = true;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// life cycle
@@ -408,28 +410,54 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         if (DEBUG_TAB_COMPLETE) logger.warn("{} onKey(..., {}, ...)", full_name, keycode);
         int action = event.getAction();
         // Enter key sends the message
+        if (checkSendMessage(keycode, action)) {
+            return true;
+        }
+
+        if (checkVolumeButtonResize(keycode, action)) {
+            return true;
+        }
+
+        if (checkForTabCompletion(keycode, action)) {
+            return true;
+        }
+        return false;
+    }
+
+    private boolean checkSendMessage(int keycode, int action) {
         if (keycode == KeyEvent.KEYCODE_ENTER) {
             if (action == KeyEvent.ACTION_UP) sendMessage();
             return true;
         }
-        // Check for text resizing keys (volume buttons)
-        if (keycode == KeyEvent.KEYCODE_VOLUME_DOWN || keycode == KeyEvent.KEYCODE_VOLUME_UP) {
-            if (action == KeyEvent.ACTION_UP) {
-                float text_size = Float.parseFloat(prefs.getString(PREFS_TEXT_SIZE, "10"));
-                if (keycode == KeyEvent.KEYCODE_VOLUME_UP) {
-                    if (text_size < 30) text_size += 1;
-                } else {
-                    if (text_size > 5) text_size -= 1;
-                }
-                prefs.edit().putString(PREFS_TEXT_SIZE, Float.toString(text_size)).commit();
-            }
-            return true;
-        }
-        // try tab completion if we press tab or search
+        return false;
+    }
+
+    private boolean checkForTabCompletion(int keycode, int action) {
         if ((keycode == KeyEvent.KEYCODE_TAB || keycode == KeyEvent.KEYCODE_SEARCH) &&
                 action == KeyEvent.ACTION_DOWN) {
             tryTabComplete();
             return true;
+        }
+        return false;
+    }
+
+    private boolean checkVolumeButtonResize(int keycode, int action) {
+        if (keycode == KeyEvent.KEYCODE_VOLUME_DOWN || keycode == KeyEvent.KEYCODE_VOLUME_UP) {
+            if (prefs.getBoolean(PREF_VOLUME_BTN_SIZE, true)) {
+                if (action == KeyEvent.ACTION_UP) {
+                    float text_size = Float.parseFloat(prefs.getString(PREFS_TEXT_SIZE, "10"));
+                    switch (keycode) {
+                        case KeyEvent.KEYCODE_VOLUME_UP:
+                            if (text_size < 30) text_size += 1;
+                            break;
+                        case KeyEvent.KEYCODE_VOLUME_DOWN:
+                            if (text_size > 5) text_size -= 1;
+                            break;
+                    }
+                    prefs.edit().putString(PREFS_TEXT_SIZE, Float.toString(text_size)).commit();
+                }
+                return true;
+            }
         }
         return false;
     }
@@ -477,7 +505,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     private int tc_index;
     private int tc_wordstart;
     private int tc_wordend;
-    
+
     /** attempts to perform tab completion on the current input */
     private void tryTabComplete() {
         if (DEBUG_TAB_COMPLETE) logger.warn("tryTabComplete()");
@@ -580,7 +608,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         String message = ((Buffer.Line) ui_textview.getTag()).getNotificationString();
         menu.add(0, Menu.FIRST, 0, message);
         copy_list.add(message);
-        
+
         // add urls
         int i = 1;
         for (URLSpan url: ui_textview.getUrls()) {

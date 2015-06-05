@@ -55,6 +55,7 @@
     <PreferenceCategory android:key="misc_group" android:title="@string/pref_misc_group">
 		<CheckBoxPreference android:key="tabbtn_show" android:title="@string/pref_tabbtn_show" android:summary="@string/pref_tabbtn_show_summary"  android:defaultValue="false" />
 		<CheckBoxPreference android:key="sendbtn_show" android:title="@string/pref_sendbtn_show" android:summary="@string/pref_sendbtn_show_summary" android:defaultValue="true" />
+		<CheckBoxPreference android:key="volumebtn_size" android:title="@string/pref_volumebtn_size" android:summary="@string/pref_volumebtn_size_summary" android:defaultValue="true" />
 		<CheckBoxPreference android:key="notification_enable" android:title="@string/pref_notification_enable" android:summary="@string/pref_notification_enable_summary" android:defaultValue="true" />
         <RingtonePreference android:key="notification_sound" android:title="@string/pref_notification_sound" android:summary="@string/pref_notification_sound_summary" android:showDefault="true" 
             android:showSilent="true" android:ringtoneType="notification" android:dependency="notification_enable"/>
