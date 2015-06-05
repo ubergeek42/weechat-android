@@ -567,7 +567,10 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         super.onCreateContextMenu(menu, v, menuInfo);
         if (!(v instanceof ListView)) return;
 
-        TextView ui_textview = (TextView) ((AdapterView.AdapterContextMenuInfo) menuInfo).targetView;
+        View tv = ((AdapterView.AdapterContextMenuInfo) menuInfo).targetView;
+        if (tv == null) return;
+
+        TextView ui_textview = (TextView) tv.findViewById(R.id.chatline_message);
         if (ui_textview == null) return;
 
         menu.setHeaderTitle("Copy");
