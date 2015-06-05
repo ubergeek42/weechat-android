@@ -1,5 +1,6 @@
 package com.ubergeek42.WeechatAndroid.service;
 
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Typeface;
@@ -19,7 +20,6 @@ import android.text.style.StyleSpan;
 import android.text.style.SuperscriptSpan;
 import android.text.style.URLSpan;
 import android.text.style.UnderlineSpan;
-import android.text.util.Linkify;
 import android.view.View;
 
 import com.ubergeek42.weechat.Color;
@@ -633,7 +633,7 @@ public class Buffer {
             }
 
             // now this is extremely stupid.
-            Linkify.addLinks(spannable, Linkify.WEB_URLS);
+            com.ubergeek42.WeechatAndroid.backported.Linkify.addLinks(spannable, com.ubergeek42.WeechatAndroid.backported.Linkify.WEB_URLS);
             for (URLSpan urlspan : spannable.getSpans(0, spannable.length(), URLSpan.class)) {
                 spannable.setSpan(new URLSpan2(urlspan.getURL()), spannable.getSpanStart(urlspan), spannable.getSpanEnd(urlspan), 0);
                 spannable.removeSpan(urlspan);
@@ -663,7 +663,11 @@ public class Buffer {
                     Uri uri = Uri.parse(getURL());
                     Context context = widget.getContext();
                     Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-                    context.startActivity(intent);
+                    try {
+                        context.startActivity(intent);
+                    } catch (ActivityNotFoundException e) {
+                        logger.debug("URLSpan2","Activity not found for intent " + intent.toString());
+                    }
                 }
                 Line.this.clickDisabled = false;
             }
