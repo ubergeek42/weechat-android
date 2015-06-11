@@ -15,6 +15,7 @@
  ******************************************************************************/
 package com.ubergeek42.WeechatAndroid.adapters;
 
+import android.graphics.Typeface;
 import android.support.v4.app.FragmentActivity;
 import android.text.Spannable;
 import android.text.method.LinkMovementMethod;
@@ -48,6 +49,7 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
     private Buffer.Line[] lines = new Buffer.Line[0];
     private LayoutInflater inflater;
     private ListView ui_listview;
+    private Typeface typeface = null;
 
     private boolean last_item_visible = true;
     private boolean need_move_last_read_marker = false;
@@ -61,7 +63,12 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
         ui_listview.setOnScrollListener(this);
         ui_listview.setOnItemLongClickListener(this);
     }
-
+    public void setFont(String font_path) {
+        if (font_path == null) {
+            return;
+        }
+        typeface = Typeface.createFromFile(font_path);
+    }
     public void moveLastReadLine() {
         if (!need_move_last_read_marker) {
             need_move_last_read_marker = true;
@@ -118,6 +125,8 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
         Buffer.Line line = (Buffer.Line) getItem(position);
         textview.setText(line.spannable);
         textview.setTag(line);
+        if (typeface != null)
+            textview.setTypeface(typeface);
 
         return retview;
     }
@@ -206,6 +215,7 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
         line.disableClick();
         return false;
     }
+
 
 
 }

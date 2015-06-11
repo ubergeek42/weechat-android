@@ -164,7 +164,7 @@ public class Color {
         if (timestamp != null) {
             sb.append(timestamp);
             Span fg = new Span(); fg.start = 0; fg.end = sb.length(); fg.type = Span.FGCOLOR; fg.color = weechatOptions[2][0]; final_span_list.add(fg);
-            sb.append("\u00a0"); // non-breaking space
+            sb.append(" ");
         }
 
         // here's our margin
@@ -192,7 +192,7 @@ public class Color {
         }
         else if (alignment==ALIGN_RIGHT && prefix.length() < max_adjusted) {
             int diff = max_adjusted - prefix.length();
-            for (int x = 0; x < diff; x++) sb.append("\u00a0"); // non-breaking space
+            for (int x = 0; x < diff; x++) sb.append(" "); // spaces for padding
         }
         if (highlight) {
             color = weechatOptions[29][0];

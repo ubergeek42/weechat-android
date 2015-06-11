@@ -55,6 +55,7 @@ public class RelayService extends RelayServiceBackbone {
     public static final String PREFS_PREFIX_ALIGN = "prefix_align";
     public static final String PREFS_ENCLOSE_NICK = "enclose_nick";
     public static final String PREFS_TEXT_SIZE = "text_size";
+    public static final String PREFS_BUFFER_FONT = "buffer_font";
 
     private PingActionReceiver pingActionReceiver;
 
@@ -220,6 +221,9 @@ public class RelayService extends RelayServiceBackbone {
         } else if (key.equals(PREFS_TEXT_SIZE)) {
             setTextSizeAndLetterWidth();
             BufferList.notifyOpenBuffersMustBeProcessed(true);
+        } else if (key.equals(PREFS_BUFFER_FONT)) {
+            setTextSizeAndLetterWidth();
+            BufferList.notifyOpenBuffersMustBeProcessed(true);
         }
     }
 
@@ -239,7 +243,13 @@ public class RelayService extends RelayServiceBackbone {
     private void setTextSizeAndLetterWidth() {
         Buffer.Line.TEXT_SIZE = Float.parseFloat(prefs.getString(PREFS_TEXT_SIZE, "10"));
         Paint p = new Paint();
-        p.setTypeface(Typeface.MONOSPACE);
+        String font_path = prefs.getString(PREFS_BUFFER_FONT, null);
+        if ( font_path != null) {
+            Typeface tf = Typeface.createFromFile(font_path);
+            p.setTypeface(tf);
+        } else {
+            p.setTypeface(Typeface.MONOSPACE);
+        }
         p.setTextSize(Buffer.Line.TEXT_SIZE * getResources().getDisplayMetrics().scaledDensity);
         Buffer.Line.LETTER_WIDTH = (p.measureText("m"));
     }
