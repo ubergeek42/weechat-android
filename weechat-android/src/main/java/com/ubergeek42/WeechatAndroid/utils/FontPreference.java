@@ -8,6 +8,7 @@ package com.ubergeek42.WeechatAndroid.utils;
  */
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -117,7 +118,10 @@ public class FontPreference extends DialogPreference implements DialogInterface.
         String selectedFontPath = getSharedPreferences().getString( getKey(), "");
         int idx = 1, checked_item = 0; // idx starts at one since we inserted our own thing first
 
-        for ( String path : fonts.keySet() )
+        List<String> sortedFonts = new ArrayList<String>(fonts.keySet());
+        Collections.sort(sortedFonts);
+
+        for ( String path : sortedFonts )
         {
             if ( path.equals( selectedFontPath ) )
                 checked_item = idx;

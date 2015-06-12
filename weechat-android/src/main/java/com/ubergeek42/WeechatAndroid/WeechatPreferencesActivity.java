@@ -22,7 +22,11 @@ import android.preference.*;
 import android.widget.BaseAdapter;
 import android.widget.Toast;
 
+import com.ubergeek42.WeechatAndroid.utils.FontManager;
+import com.ubergeek42.WeechatAndroid.utils.FontPreference;
+
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 
 public class WeechatPreferencesActivity extends PreferenceActivity implements
         OnSharedPreferenceChangeListener {
@@ -45,6 +49,7 @@ public class WeechatPreferencesActivity extends PreferenceActivity implements
     private ListPreference connectionTypePref;
     private PreferenceScreen pingPreferences;
     private CheckBoxPreference pingEnabledPref;
+    private FontPreference bufferFontPref;
 
     /** Called when the activity is first created. */
     @Override
@@ -58,6 +63,7 @@ public class WeechatPreferencesActivity extends PreferenceActivity implements
         portPref = (EditTextPreference) getPreferenceScreen().findPreference("port");
         passPref = (EditTextPreference) getPreferenceScreen().findPreference("password");
         textSizePref = (EditTextPreference) getPreferenceScreen().findPreference("text_size");
+        bufferFontPref = (FontPreference) getPreferenceScreen().findPreference("buffer_font");
         timestampformatPref = (EditTextPreference) getPreferenceScreen().findPreference(
                 "timestamp_format");
         timestampformatPref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
@@ -118,6 +124,8 @@ public class WeechatPreferencesActivity extends PreferenceActivity implements
         hostPref.setSummary(sharedPreferences.getString("host", ""));
         portPref.setSummary(sharedPreferences.getString("port", "8001"));
         textSizePref.setSummary(sharedPreferences.getString("text_size", "10"));
+        updateBufferFontSummary();
+
         timestampformatPref.setSummary(sharedPreferences.getString("timestamp_format", "HH:mm:ss"));
         stunnelCert.setSummary(sharedPreferences.getString("stunnel_cert", "Not Set"));
 
@@ -229,6 +237,20 @@ public class WeechatPreferencesActivity extends PreferenceActivity implements
                 }
                 ((BaseAdapter) connectionSettings.getRootAdapter()).notifyDataSetChanged();
                 break;
+            case "buffer_font":
+                updateBufferFontSummary();
+                break;
         }
+    }
+
+    private void updateBufferFontSummary() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(getString(R.string.pref_font_summary));
+        sb.append("\n\nSearch Path:\n");
+        for (String p: FontManager.fontdirs)
+            sb.append("   " + p + "\n");
+        sb.append("\nCurrent Value:\n" + sharedPreferences.getString("buffer_font", "Not Set"));
+        bufferFontPref.setSummary(sb.toString());
+
     }
 }
