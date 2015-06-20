@@ -245,7 +245,12 @@ public class RelayService extends RelayServiceBackbone {
         Paint p = new Paint();
         String font_path = prefs.getString(PREFS_BUFFER_FONT, null);
         if ( font_path != null) {
-            Typeface tf = Typeface.createFromFile(font_path);
+            Typeface tf;
+            try {
+                tf = Typeface.createFromFile(font_path);
+            } catch (RuntimeException r) {
+                tf = Typeface.MONOSPACE;
+            }
             p.setTypeface(tf);
         } else {
             p.setTypeface(Typeface.MONOSPACE);
