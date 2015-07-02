@@ -25,20 +25,20 @@ public interface BufferObserver {
     /**
      * Called when a lot of lines are added to a buffer
      */
-    public void onManyLinesAdded();
+    void onManyLinesAdded();
 
     /**
      * Called when a line is added to a buffer
      */
-    public void onLineAdded();
+    void onLineAdded();
 
     /**
      * Called when the buffer is closed in weechat
      */
-    public void onBufferClosed();
+    void onBufferClosed();
 
     /**
      * Called when the nicklist changes
      */
-    public void onNicklistChanged();
+    void onNicklistChanged();
 }

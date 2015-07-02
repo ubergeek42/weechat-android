@@ -10,3 +10,7 @@ dependencies {
 
 mainClassName="com.ubergeek42.relayexample.RelayExample"
 
+compileJava {
+    sourceCompatibility = 1.7
+    targetCompatibility = 1.7
+}

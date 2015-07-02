@@ -48,9 +48,9 @@ public class BufferListFragment extends ListFragment implements RelayConnectionH
     private RelayServiceBinder relay;
     private BufferListAdapter adapter;
 
-    private RelativeLayout ui_filter_bar;
-    private EditText ui_filter;
-    private ImageButton ui_filter_clear;
+    private RelativeLayout uiFilterBar;
+    private EditText uiFilter;
+    private ImageButton uiFilterClear;
     private SharedPreferences prefs;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -80,21 +80,21 @@ public class BufferListFragment extends ListFragment implements RelayConnectionH
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         if (DEBUG_LIFECYCLE) logger.warn("onCreateView()");
-        View v = inflater.inflate(R.layout.bufferlist, container, false);
-        ui_filter = (EditText) v.findViewById(R.id.bufferlist_filter);
-        ui_filter.addTextChangedListener(filterTextWatcher);
-        ui_filter_clear = (ImageButton) v.findViewById(R.id.bufferlist_filter_clear);
-        ui_filter_clear.setOnClickListener(this);
-        ui_filter_bar = (RelativeLayout) v.findViewById(R.id.filter_bar);
-        ui_filter_bar.setVisibility(prefs.getBoolean("show_buffer_filter", false) ? View.VISIBLE : View.GONE);
-        return v;
+        View view = inflater.inflate(R.layout.bufferlist, container, false);
+        uiFilter = (EditText) view.findViewById(R.id.bufferlist_filter);
+        uiFilter.addTextChangedListener(filterTextWatcher);
+        uiFilterClear = (ImageButton) view.findViewById(R.id.bufferlist_filter_clear);
+        uiFilterClear.setOnClickListener(this);
+        uiFilterBar = (RelativeLayout) view.findViewById(R.id.filter_bar);
+        uiFilterBar.setVisibility(prefs.getBoolean("show_buffer_filter", false) ? View.VISIBLE : View.GONE);
+        return view;
     }
 
     @Override
     public void onDestroyView() {
         if (DEBUG_LIFECYCLE) logger.warn("onDestroyView()");
         super.onDestroyView();
-        ui_filter.removeTextChangedListener(filterTextWatcher);
+        uiFilter.removeTextChangedListener(filterTextWatcher);
     }
 
     @Override
@@ -159,7 +159,7 @@ public class BufferListFragment extends ListFragment implements RelayConnectionH
                 setListAdapter(adapter);
             }
         });
-        setFilter(ui_filter.getText());
+        setFilter(uiFilter.getText());
         onBuffersChanged();
         relay.addRelayConnectionHandler(BufferListFragment.this);                       // connect/disconnect watcher
     }
@@ -176,11 +176,11 @@ public class BufferListFragment extends ListFragment implements RelayConnectionH
 
     /** this is the mother method, it actually opens buffers */
     @Override
-    public void onListItemClick(ListView l, View v, int position, long id) {
+    public void onListItemClick(ListView listView, View view, int position, long id) {
         if (DEBUG_CLICK) logger.warn("onListItemClick(..., ..., {}, ...)", position);
         Object obj = getListView().getItemAtPosition(position);
         if (obj instanceof Buffer)
-            activity.openBuffer(((Buffer) obj).full_name);
+            activity.openBuffer(((Buffer) obj).fullName);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -204,7 +204,7 @@ public class BufferListFragment extends ListFragment implements RelayConnectionH
     @Override public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         if (DEBUG_PREFERENCES) logger.warn("onSharedPreferenceChanged()");
         if (key.equals("show_buffer_filter"))
-            ui_filter_bar.setVisibility(prefs.getBoolean("show_buffer_filter", false) ? View.VISIBLE : View.GONE);
+            uiFilterBar.setVisibility(prefs.getBoolean("show_buffer_filter", false) ? View.VISIBLE : View.GONE);
     }
 
     /** TextWatcher object used for filtering the buffer list */
@@ -225,7 +225,7 @@ public class BufferListFragment extends ListFragment implements RelayConnectionH
         BufferList.setFilter(s.toString());
         activity.runOnUiThread(new Runnable() {
             @Override public void run() {
-                ui_filter_clear.setVisibility((s.length() == 0) ? View.INVISIBLE : View.VISIBLE);
+                uiFilterClear.setVisibility((s.length() == 0) ? View.INVISIBLE : View.VISIBLE);
             }
         });
     }
@@ -233,6 +233,6 @@ public class BufferListFragment extends ListFragment implements RelayConnectionH
     /** the only button we've got: clear text in the filter */
     @Override
     public void onClick(View v) {
-        ui_filter.setText(null);
+        uiFilter.setText(null);
     }
 }

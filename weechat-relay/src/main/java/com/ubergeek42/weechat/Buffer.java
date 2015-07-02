@@ -47,14 +47,14 @@ public class Buffer {
 
     private int numUnread = 0;
     private int numHighlights = 0;
-    private ArrayList<BufferObserver> observers = new ArrayList<BufferObserver>();
-    private LinkedList<BufferLine> lines = new LinkedList<BufferLine>();
-    private ArrayList<NickItem> nicks = new ArrayList<NickItem>();
-    private ArrayList<String> snicks = new ArrayList<String>();
-    private Hashtable local_vars;
+    private ArrayList<BufferObserver> observers = new ArrayList<>();
+    private LinkedList<BufferLine> lines = new LinkedList<>();
+    private ArrayList<NickItem> nicks = new ArrayList<>();
+    private ArrayList<String> snicks = new ArrayList<>();
+    private Hashtable localVars;
 
-    public boolean holds_all_lines_it_is_supposed_to_hold = false;
-    public boolean holds_all_nicknames = false;
+    public boolean holdsAllLinesItIsSupposedToHold = false;
+    public boolean holdsAllNicknames = false;
 
     public void addLine(BufferLine m) {
         addLineNoNotify(m);
@@ -153,7 +153,7 @@ public class Buffer {
     }
 
     public void setLocals(Hashtable ht) {
-        this.local_vars = ht;
+        this.localVars = ht;
     }
 
     public void setNotifyLevel(int i) {
@@ -185,10 +185,10 @@ public class Buffer {
     }
 
     public RelayObject getLocalVar(String key) {
-        if (this.local_vars == null) {
+        if (this.localVars == null) {
             return null;
         }
-        return this.local_vars.get(key);
+        return this.localVars.get(key);
     }
 
     public void resetHighlight() {

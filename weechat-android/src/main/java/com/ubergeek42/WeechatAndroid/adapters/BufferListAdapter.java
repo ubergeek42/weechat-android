@@ -40,7 +40,7 @@ public class BufferListAdapter extends BaseAdapter implements BufferListEye {
 
     Activity activity;
     LayoutInflater inflater;
-    private ArrayList<Buffer> buffers = new ArrayList<Buffer>();
+    private ArrayList<Buffer> buffers = new ArrayList<>();
 
     final private static int[][] COLORS = new int[][] {
             {0xaa525252, 0xaa6c6c6c}, // other
@@ -77,46 +77,46 @@ public class BufferListAdapter extends BaseAdapter implements BufferListEye {
         if (convertView == null) {
             convertView = inflater.inflate(R.layout.bufferlist_item, parent, false);
             holder = new ViewHolder();
-            holder.ui_open = convertView.findViewById(R.id.open);
-            holder.ui_buffer = (TextView) convertView.findViewById(R.id.buffer);
-            holder.ui_warm = (TextView) convertView.findViewById(R.id.buffer_warm);
-            holder.ui_hot = (TextView) convertView.findViewById(R.id.buffer_hot);
+            holder.uiOpen = convertView.findViewById(R.id.open);
+            holder.uiBuffer = (TextView) convertView.findViewById(R.id.buffer);
+            holder.uiWarm = (TextView) convertView.findViewById(R.id.buffer_warm);
+            holder.uiHot = (TextView) convertView.findViewById(R.id.buffer_hot);
             convertView.setTag(holder);
         } else
             holder = (ViewHolder) convertView.getTag();
 
         Buffer buffer = getItem(position);
 
-        holder.ui_buffer.setText((BufferList.SHOW_TITLE && buffer.printable2 != null) ? buffer.printable2 : buffer.printable1);
+        holder.uiBuffer.setText((BufferList.SHOW_TITLE && buffer.printableWithTitle != null) ? buffer.printableWithTitle : buffer.printableWithoutTitle);
 
         int unreads = buffer.unreads;
         int highlights = buffer.highlights;
 
         int important = (highlights > 0 || (unreads > 0 && buffer.type == Buffer.PRIVATE)) ? 1 : 0;
 
-        holder.ui_buffer.setBackgroundColor(COLORS[buffer.type][important]);
-        holder.ui_open.setVisibility(buffer.is_open ? View.VISIBLE : View.GONE);
+        holder.uiBuffer.setBackgroundColor(COLORS[buffer.type][important]);
+        holder.uiOpen.setVisibility(buffer.isOpen ? View.VISIBLE : View.GONE);
 
         if (highlights > 0) {
-            holder.ui_hot.setText(Integer.toString(highlights));
-            holder.ui_hot.setVisibility(View.VISIBLE);
+            holder.uiHot.setText(Integer.toString(highlights));
+            holder.uiHot.setVisibility(View.VISIBLE);
         } else
-            holder.ui_hot.setVisibility(View.INVISIBLE);
+            holder.uiHot.setVisibility(View.INVISIBLE);
 
         if (unreads > 0) {
-            holder.ui_warm.setText(Integer.toString(unreads));
-            holder.ui_warm.setVisibility(View.VISIBLE);
+            holder.uiWarm.setText(Integer.toString(unreads));
+            holder.uiWarm.setVisibility(View.VISIBLE);
         } else
-            holder.ui_warm.setVisibility(View.GONE);
+            holder.uiWarm.setVisibility(View.GONE);
 
         return convertView;
     }
 
     private static class ViewHolder {
-        TextView ui_hot;
-        TextView ui_warm;
-        TextView ui_buffer;
-        View ui_open;
+        TextView uiHot;
+        TextView uiWarm;
+        TextView uiBuffer;
+        View uiOpen;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

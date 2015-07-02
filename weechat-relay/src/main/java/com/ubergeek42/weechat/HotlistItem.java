@@ -24,34 +24,34 @@ public class HotlistItem {
     /*
      * priority......................: int 1 color.........................: str 'white'
      * creation_time.................: buf buffer_pointer................: ptr 0x227f5b0
-     * buffer_number.................: int 3 plugin_name...................: str 'irc'
-     * buffer_name...................: str 'network.#channel' count_00......................: int 0
-     * count_01......................: int 2 count_02......................: int 0
-     * count_03......................: int 0
+     * bufferNumber.................: int 3 pluginName...................: str 'irc'
+     * bufferName...................: str 'network.#channel' count00......................: int 0
+     * count01......................: int 2 count02......................: int 0
+     * count03......................: int 0
      */
     public int priority;
     public String color;
     public String buffer;
-    public int buffer_number;
-    public String plugin_name;
-    public String buffer_name;
-    public int count_00;
-    public int count_01;
-    public int count_02;
-    public int count_03;
+    public int bufferNumber;
+    public String pluginName;
+    public String bufferName;
+    public int count00;
+    public int count01;
+    public int count02;
+    public int count03;
 
     public HotlistItem(HashMap<String, RelayObject> item) {
 
         this.priority = item.get("priority").asInt();
         this.color = item.get("color").asString();
         this.buffer = item.get("buffer_pointer").asPointer();
-        this.buffer_number = item.get("buffer_number").asInt();
-        this.plugin_name = item.get("plugin_name").asString();
-        this.buffer_name = item.get("buffer_name").asString();
-        this.count_00 = item.get("count_00").asInt();
-        this.count_01 = item.get("count_01").asInt();
-        this.count_02 = item.get("count_02").asInt();
-        this.count_03 = item.get("count_03").asInt();
+        this.bufferNumber = item.get("buffer_number").asInt();
+        this.pluginName = item.get("plugin_name").asString();
+        this.bufferName = item.get("buffer_name").asString();
+        this.count00 = item.get("count_00").asInt();
+        this.count01 = item.get("count_01").asInt();
+        this.count02 = item.get("count_02").asInt();
+        this.count03 = item.get("count_03").asInt();
 
     }
 
@@ -83,46 +83,46 @@ public class HotlistItem {
                 highlight = true;
             }
         }
-        this.buffer_number = b.getNumber();
+        this.bufferNumber = b.getNumber();
         this.buffer = bPointer;
-        this.buffer_name = b.getFullName();
+        this.bufferName = b.getFullName();
         // FIXME get plugin name from buffer
-        this.plugin_name = "";
-        this.count_00 = 0;
-        this.count_02 = 0;
-        this.count_01 = 0;
+        this.pluginName = "";
+        this.count00 = 0;
+        this.count02 = 0;
+        this.count01 = 0;
         if (highlight) {
             if (displayed) {
-                this.count_02 = 1;
+                this.count02 = 1;
             } else {
-                this.count_00 = 1;
+                this.count00 = 1;
             }
         } else {
             if (displayed) {
-                this.count_01 = 1;
+                this.count01 = 1;
             } else {
-                this.count_00 = 1;
+                this.count00 = 1;
             }
         }
     }
 
     public String getFullName() {
-        if (this.plugin_name != "") {
-            return this.plugin_name + "." + this.buffer_name;
+        if (this.pluginName != "") {
+            return this.pluginName + "." + this.bufferName;
         }
-        return this.buffer_name;
+        return this.bufferName;
     }
 
     public int getUnread() {
-        return this.count_01;
+        return this.count01;
     }
 
     public int getHighlights() {
-        return this.count_02;
+        return this.count02;
     }
 
     @Override
     public String toString() {
-        return buffer_name;
+        return bufferName;
     }
 }

@@ -69,7 +69,7 @@ public class NicklistHandler implements RelayMessageHandler {
                 wb.addNick(ni);
             }
             for (Buffer wb : nicklistCleared)
-                wb.holds_all_nicknames = true;
+                wb.holdsAllNicknames = true;
         } else if (id.equals("_nicklist_diff")) {
         	Hdata whdata = (Hdata) obj;
         	for (int i=0; i< whdata.getCount(); i++) {

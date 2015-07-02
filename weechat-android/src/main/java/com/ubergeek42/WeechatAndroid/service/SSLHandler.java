@@ -37,20 +37,8 @@ public class SSLHandler {
         try {
             sslKeystore = KeyStore.getInstance("BKS");
             sslKeystore.load(new FileInputStream(keystoreFile), KEYSTORE_PASSWORD.toCharArray());
-        } catch (KeyStoreException e) {
-            e.printStackTrace();
-        } catch (NoSuchAlgorithmException e) {
-            // Should never happen
-            e.printStackTrace();
-        } catch (CertificateException e) {
-            // Ideally never happens
-            e.printStackTrace();
-        } catch (FileNotFoundException e) {
-            logger.debug("Keystore not found, creating...");
-            createKeystore = true;
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+        } catch (KeyStoreException | NoSuchAlgorithmException | CertificateException  | IOException e) {
+            logger.error("Error: " + e.getMessage());
         }
 
         if (createKeystore) {
@@ -63,7 +51,7 @@ public class SSLHandler {
                 KeyStore.TrustedCertificateEntry x = new KeyStore.TrustedCertificateEntry(cert);
                 sslKeystore.setEntry(cert.getSubjectDN().getName(), x, null);
             } catch (KeyStoreException e) {
-                e.printStackTrace();
+                logger.error("Error: " + e.getMessage());
             }
             saveKeystore();
         }
@@ -81,7 +69,7 @@ public class SSLHandler {
                 sslKeystore.setCertificateEntry(cert.getSubjectDN().getName(), cert);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Error: " + e.getMessage());
         }
 
         saveKeystore();
@@ -91,7 +79,7 @@ public class SSLHandler {
         try {
             sslKeystore.store(new FileOutputStream(keystoreFile), KEYSTORE_PASSWORD.toCharArray());
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Error: " + e.getMessage());
         }
     }
 

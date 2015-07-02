@@ -19,7 +19,6 @@ import android.graphics.Typeface;
 import android.support.v4.app.FragmentActivity;
 import android.text.Spannable;
 import android.text.method.LinkMovementMethod;
-import android.text.style.URLSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -48,30 +47,30 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
     private Buffer buffer;
     private Buffer.Line[] lines = new Buffer.Line[0];
     private LayoutInflater inflater;
-    private ListView ui_listview;
+    private ListView uiListView;
     private Typeface typeface = null;
 
-    private boolean last_item_visible = true;
-    private boolean need_move_last_read_marker = false;
+    private boolean lastItemVisible = true;
+    private boolean needMoveLastReadMarker = false;
 
-    public ChatLinesAdapter(FragmentActivity activity, Buffer buffer, ListView ui_listview) {
+    public ChatLinesAdapter(FragmentActivity activity, Buffer buffer, ListView uiListView) {
         if (DEBUG) logger.debug("ChatLinesAdapter({}, {})", activity, buffer);
         this.activity = activity;
         this.buffer = buffer;
         this.inflater = LayoutInflater.from(activity);
-        this.ui_listview = ui_listview;
-        ui_listview.setOnScrollListener(this);
-        ui_listview.setOnItemLongClickListener(this);
+        this.uiListView = uiListView;
+        uiListView.setOnScrollListener(this);
+        uiListView.setOnItemLongClickListener(this);
     }
-    public void setFont(String font_path) {
-        if (font_path == null) {
+    public void setFont(String fontPath) {
+        if (fontPath == null) {
             return;
         }
-        typeface = Typeface.createFromFile(font_path);
+        typeface = Typeface.createFromFile(fontPath);
     }
     public void moveLastReadLine() {
-        if (!need_move_last_read_marker) {
-            need_move_last_read_marker = true;
+        if (!needMoveLastReadMarker) {
+            needMoveLastReadMarker = true;
             onLinesChanged();
         }
     }
@@ -101,14 +100,14 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
         TextView textview;
 
         long lineID = getItemId(position);
-        long last_line_read = buffer.getLastViewedLine();
-        // We only want to reuse textviews, not the special last_line_read view
-        if (lineID == last_line_read || convertView instanceof RelativeLayout) {
+        long lastLineRead = buffer.getLastViewedLine();
+        // We only want to reuse textviews, not the special lastLineRead view
+        if (lineID == lastLineRead || convertView instanceof RelativeLayout) {
             convertView = null; // Force re-creating this line
         }
 
         if (convertView == null) {
-            if (lineID == last_line_read) {
+            if (lineID == lastLineRead) {
                 retview = inflater.inflate(R.layout.chatview_line_last_read, null);
                 textview = (TextView)retview.findViewById(R.id.chatline_message);
             } else {
@@ -135,10 +134,10 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private Spannable old_last_spannable = null;
+    private Spannable oldLasSpannable = null;
 
     public void readLinesFromBuffer() {
-        old_last_spannable = null;
+        oldLasSpannable = null;
         onLinesChanged();
     }
 
@@ -147,23 +146,23 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
 
         final int index, top;
         final Buffer.Line[] l;
-        final Spannable last_spannable;
-        final boolean line_count_unchanged, last_item_visible, must_scroll_one_line_up;
+        final Spannable lastSpannable;
+        final boolean lineCountUnchanged, lastItemVisible, mustScrollOneLineUp;
 
         l = buffer.getLinesCopy();
         if (l.length == 0)
             return;
 
-        line_count_unchanged = lines.length == l.length;
-        last_spannable = l[l.length - 1].spannable;
+        lineCountUnchanged = lines.length == l.length;
+        lastSpannable = l[l.length - 1].spannable;
 
         // return if there's nothing to update
-        if (!need_move_last_read_marker && line_count_unchanged && last_spannable == old_last_spannable) return;
-        old_last_spannable = last_spannable;
+        if (!needMoveLastReadMarker && lineCountUnchanged && lastSpannable == oldLasSpannable) return;
+        oldLasSpannable = lastSpannable;
 
-        if (need_move_last_read_marker) {
+        if (needMoveLastReadMarker) {
             buffer.setLastViewedLine(l[l.length-1].pointer); // save this in the buffer object
-            need_move_last_read_marker = false;
+            needMoveLastReadMarker = false;
         }
 
         // if last line is visible, scroll to bottom
@@ -171,11 +170,11 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
         // if last line is not visible,
         // scroll one line up accordingly, so we stay in place
         // TODO: http://chris.banes.me/2013/02/21/listview-keeping-position/
-        last_item_visible = this.last_item_visible;
-        must_scroll_one_line_up = !last_item_visible && line_count_unchanged;
-        if (must_scroll_one_line_up) {
-            index = ui_listview.getFirstVisiblePosition();
-            View v = ui_listview.getChildAt(0);
+        lastItemVisible = this.lastItemVisible;
+        mustScrollOneLineUp = !lastItemVisible && lineCountUnchanged;
+        if (mustScrollOneLineUp) {
+            index = uiListView.getFirstVisiblePosition();
+            View v = uiListView.getChildAt(0);
             top = (v == null) ? 0 : v.getTop();
         } else
             index = top = 0;
@@ -184,10 +183,10 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
             @Override public void run() {
                 lines = l;
                 notifyDataSetChanged();
-                if (last_item_visible)
-                    ui_listview.setSelection(ui_listview.getCount() - 1);
-                else if (must_scroll_one_line_up)
-                    ui_listview.setSelectionFromTop(index - 1, top);
+                if (lastItemVisible)
+                    uiListView.setSelection(uiListView.getCount() - 1);
+                else if (mustScrollOneLineUp)
+                    uiListView.setSelectionFromTop(index - 1, top);
             }
         });
     }
@@ -207,7 +206,7 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
     // this determines if the last item is visible
     // seriously, android?! is this this the only way to do that?!?! ffs
     @Override public void onScroll(AbsListView lw, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-        last_item_visible = (firstVisibleItem + visibleItemCount == totalItemCount);
+        lastItemVisible = (firstVisibleItem + visibleItemCount == totalItemCount);
     }
 
     @Override public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {

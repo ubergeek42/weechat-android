@@ -173,7 +173,7 @@ public class RelayService extends RelayServiceBackbone {
         if (DEBUG_SAVE_RESTORE) logger.debug("eraseStoredStuff()");
         SharedPreferences preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         preferences.edit().remove(PREF_SYNCED_BUFFERS).commit();
-        BufferList.synced_buffers_full_names.clear();
+        BufferList.syncedBuffersFullNames.clear();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -243,11 +243,11 @@ public class RelayService extends RelayServiceBackbone {
     private void setTextSizeAndLetterWidth() {
         Buffer.Line.TEXT_SIZE = Float.parseFloat(prefs.getString(PREFS_TEXT_SIZE, "10"));
         Paint p = new Paint();
-        String font_path = prefs.getString(PREFS_BUFFER_FONT, null);
-        if ( font_path != null) {
+        String fontPath = prefs.getString(PREFS_BUFFER_FONT, null);
+        if ( fontPath != null) {
             Typeface tf;
             try {
-                tf = Typeface.createFromFile(font_path);
+                tf = Typeface.createFromFile(fontPath);
             } catch (RuntimeException r) {
                 tf = Typeface.MONOSPACE;
             }

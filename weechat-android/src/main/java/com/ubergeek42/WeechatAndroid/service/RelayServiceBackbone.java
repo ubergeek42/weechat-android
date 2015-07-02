@@ -119,20 +119,20 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
     private String pass;
 
     RelayConnection connection;
-    HashSet<RelayConnectionHandler> connectionHandlers = new HashSet<RelayConnectionHandler>();
+    HashSet<RelayConnectionHandler> connectionHandlers = new HashSet<>();
 
     SharedPreferences prefs;
     SSLHandler certmanager;
     X509Certificate untrustedCert;
     private AlarmManager alarmMgr;
 
-    int hot_count = 0;
+    int hotCount = 0;
     volatile long lastMessageReceivedAt = 0;
 
     /** mainly used to tell the user if we are REconnected */
     private volatile boolean disconnected;
-    private boolean already_had_intent;
-    private volatile boolean network_unavailable;
+    private boolean alreadyHadIntent;
+    private volatile boolean networkUnavailable;
 
     /** handler that resides on a separate thread. useful for connection/etc */
     Handler thandler;
@@ -143,14 +143,14 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
     public final static int CONNECTED =      Integer.parseInt("00100", 2);
     public final static int AUTHENTICATED =  Integer.parseInt("01000", 2);
     public final static int BUFFERS_LISTED = Integer.parseInt("10000", 2);
-    int connection_status = DISCONNECTED;
+    int connectionStatus = DISCONNECTED;
 
     private BroadcastReceiver connectivityActionReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
             NetworkInfo networkInfo = connectivityManager().getActiveNetworkInfo();
             if (networkInfo != null && networkInfo.isConnected()) {
-                if (network_unavailable && mustAutoConnect()) startThreadedConnectLoop(true);
-                network_unavailable = false;
+                if (networkUnavailable && mustAutoConnect()) startThreadedConnectLoop(true);
+                networkUnavailable = false;
             }
         }
     };
@@ -163,7 +163,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
      ** @param status one of DISCONNECTED, CONNECTING, CONNECTED, AUTHENTICATED, BUFFERS_LISTED
      ** @return true if connection corresponds to one of these */
     public boolean isConnection(int status) {
-        return (connection_status & status) != 0;
+        return (connectionStatus & status) != 0;
     }
 
     @Override
@@ -176,15 +176,15 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
         notificationManger = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
         // prepare handler that will run on a separate thread
-        HandlerThread handler_thread = new HandlerThread("doge");
-        handler_thread.start();
-        thandler = new Handler(handler_thread.getLooper());
+        HandlerThread handlerThread = new HandlerThread("doge");
+        handlerThread.start();
+        thandler = new Handler(handlerThread.getLooper());
 
         startForeground(NOTIFICATION_ID, buildNotification(null, "Tap to connect", null));
 
         disconnected = false;
-        already_had_intent = false;
-        network_unavailable = false;
+        alreadyHadIntent = false;
+        networkUnavailable = false;
 
         // Prepare for dealing with SSL certs
         certmanager = new SSLHandler(new File(getDir("sslDir", Context.MODE_PRIVATE), "keystore.jks"));
@@ -214,10 +214,10 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
      ** but we want to only run this ONCE after onCreate*/
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (DEBUG_CONNECTION) logger.debug("onStartCommand({}, {}, {}); had intent? {}", new Object[]{intent, flags, startId, already_had_intent});
-        if (!already_had_intent) {
+        if (DEBUG_CONNECTION) logger.debug("onStartCommand({}, {}, {}); had intent? {}", new Object[]{intent, flags, startId, alreadyHadIntent});
+        if (!alreadyHadIntent) {
             if (mustAutoConnect()) startThreadedConnectLoop(intent == null);
-            already_had_intent = true;
+            alreadyHadIntent = true;
         }
         return START_STICKY;
     }
@@ -245,7 +245,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
             if (isConnection(CONNECTING)) icon = R.drawable.ic_connecting;
             else icon = R.drawable.ic_disconnected;
         }
-        else if (hot_count == 0) icon = R.drawable.ic_connected;
+        else if (hotCount == 0) icon = R.drawable.ic_connected;
         else icon = R.drawable.ic_hot;
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
@@ -286,16 +286,16 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
 
     /** display notification with a hot message
      ** clicking on it will open the buffer & scroll up to the hot line, if needed
-     ** mind that SOMETIMES hot_count will be larger than hot_list, because
-     ** it's filled from hotlist data and hot_list only contains lines that
+     ** mind that SOMETIMES hotCount will be larger than hotList, because
+     ** it's filled from hotlist data and hotList only contains lines that
      ** arrived in real time. so we add (message not available) if there are NO lines to display
      ** and add "..." if there are some lines to display, but not all */
-    public void changeHotNotification(boolean new_highlight) {
-        if (DEBUG_NOTIFICATIONS) logger.warn("changeHotNotification({})", new_highlight);
-        final int hot_count = BufferList.getHotCount();
-        final List<String[]> hot_list = BufferList.hot_list;
+    public void changeHotNotification(boolean newHighlight) {
+        if (DEBUG_NOTIFICATIONS) logger.warn("changeHotNotification({})", newHighlight);
+        final int hotCount = BufferList.getHotCount();
+        final List<String[]> hotList = BufferList.hotList;
 
-        if (hot_count == 0) {
+        if (hotCount == 0) {
             notificationManger.cancel(NOTIFICATION_HIGHLIGHT_ID);
         } else {
             // find our target buffer. if ALL items point to the same buffer, use it,
@@ -303,39 +303,39 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
             if (!prefs.getBoolean(PREF_NOTIFICATION_ENABLE, true)) {
                 return;
             }
-            Set<String> set = new HashSet<String>();
-            for (String[] h: hot_list) set.add(h[BUFFER]);
-            String target_buffer = (hot_count == hot_list.size() && set.size() == 1) ? hot_list.get(0)[BUFFER] : "";
-            if (DEBUG_NOTIFICATIONS) logger.warn("...target='{}', hot_count={}, set.size()={}", new Object[]{target_buffer, hot_count, set.size()});
+            Set<String> set = new HashSet<>();
+            for (String[] h: hotList) set.add(h[BUFFER]);
+            String target_buffer = (hotCount == hotList.size() && set.size() == 1) ? hotList.get(0)[BUFFER] : "";
+            if (DEBUG_NOTIFICATIONS) logger.warn("...target='{}', hotCount={}, set.size()={}", new Object[]{target_buffer, hotCount, set.size()});
 
             // prepare intent
-            Intent i = new Intent(this, WeechatActivity.class).putExtra("full_name", target_buffer);
-            PendingIntent contentIntent = PendingIntent.getActivity(this, 1, i, PendingIntent.FLAG_UPDATE_CURRENT);
+            Intent intent = new Intent(this, WeechatActivity.class).putExtra("fullName", target_buffer);
+            PendingIntent contentIntent = PendingIntent.getActivity(this, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
             // prepare notification
             // make the ticker the LAST message
-            String message = hot_list.size() == 0 ? getString(R.string.hot_message_not_available) : hot_list.get(hot_list.size() - 1)[LINE];
+            String message = hotList.size() == 0 ? getString(R.string.hot_message_not_available) : hotList.get(hotList.size() - 1)[LINE];
             NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
                     .setContentIntent(contentIntent)
                     .setSmallIcon(R.drawable.ic_hot)
-                    .setContentTitle(getResources().getQuantityString(R.plurals.hot_messages, hot_count, hot_count))
+                    .setContentTitle(getResources().getQuantityString(R.plurals.hot_messages, hotCount, hotCount))
                     .setContentText(message);
 
             // display several lines only if we have at least one visible line and
             // 2 or more lines total. that is, either display full list of lines or
             // one ore more visible lines and "..."
-            if (hot_list.size() > 0 && hot_count > 1) {
+            if (hotList.size() > 0 && hotCount > 1) {
                 NotificationCompat.InboxStyle inbox = new NotificationCompat.InboxStyle()
                         .setSummaryText(host);
 
-                for (String[] buffer_to_line : hot_list) inbox.addLine(buffer_to_line[LINE]);
-                if (hot_list.size() < hot_count) inbox.addLine("…");
+                for (String[] bufferToLine : hotList) inbox.addLine(bufferToLine[LINE]);
+                if (hotList.size() < hotCount) inbox.addLine("…");
 
-                builder.setContentInfo(String.valueOf(hot_count));
+                builder.setContentInfo(String.valueOf(hotCount));
                 builder.setStyle(inbox);
             }
 
-            if (new_highlight) {
+            if (newHighlight) {
                 builder.setTicker(message);
                 builder.setSound(Uri.parse(prefs.getString(PREF_NOTIFICATION_SOUND, "")));
                 if (!prefs.getBoolean(PREF_NOTIFICATION_VIBRATE, true)) {
@@ -376,7 +376,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
             int reconnects = 0;
             int ticker = reconnecting ? R.string.notification_reconnecting : R.string.notification_connecting;
             int content = reconnecting ? R.string.notification_reconnecting_details : R.string.notification_connecting_details;
-            int content_now = reconnecting ? R.string.notification_reconnecting_details_now : R.string.notification_connecting_details_now;
+            int contentNow = reconnecting ? R.string.notification_reconnecting_details_now : R.string.notification_connecting_details_now;
 
             Runnable connectRunner = new Runnable() {
                 @Override
@@ -385,9 +385,9 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
                     if (connection != null && connection.isConnected())
                         return;
                     if (DEBUG_CONNECTION) logger.debug("...not connected; connecting now");
-                    connection_status = CONNECTING;
+                    connectionStatus = CONNECTING;
                     showNotification(String.format(getString(ticker), prefs.getString("host", null)),
-                            String.format(getString(content_now)));
+                            String.format(getString(contentNow)));
                     if (connect() != CONNECTION_IMPOSSIBLE)
                         thandler.postDelayed(notifyRunner, WAIT_BEFORE_WAIT_MESSAGE_DELAY * 1000);
                 }
@@ -485,8 +485,8 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
 
         // if no host defined, signal user to edit their preferences
         if (host == null || pass == null) {
-            Intent i = new Intent(this, WeechatPreferencesActivity.class);
-            PendingIntent contentIntent = PendingIntent.getActivity(this, 0, i,
+            Intent intent = new Intent(this, WeechatPreferencesActivity.class);
+            PendingIntent contentIntent = PendingIntent.getActivity(this, 0, intent,
                     PendingIntent.FLAG_CANCEL_CURRENT);
             showNotification(getString(R.string.notification_update_settings_details),
                     getString(R.string.notification_update_settings),
@@ -496,13 +496,13 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
 
         NetworkInfo networkInfo = connectivityManager().getActiveNetworkInfo();
         if (networkInfo == null || !networkInfo.isConnected()) {
-            Intent i = new Intent(this, WeechatActivity.class);
-            PendingIntent contentIntent = PendingIntent.getActivity(this, 0, i,
+            Intent intent = new Intent(this, WeechatActivity.class);
+            PendingIntent contentIntent = PendingIntent.getActivity(this, 0, intent,
                     PendingIntent.FLAG_CANCEL_CURRENT);
             showNotification(getString(R.string.notification_network_unavailable_details),
                     getString(R.string.notification_network_unavailable),
                     contentIntent);
-            network_unavailable = true;
+            networkUnavailable = true;
             return false;
         }
 
@@ -552,14 +552,14 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
     @Override
     public void onConnecting() {
         if (DEBUG) logger.debug("onConnecting()");
-        connection_status = CONNECTING;
+        connectionStatus = CONNECTING;
         for (RelayConnectionHandler rch : connectionHandlers) rch.onConnecting();
     }
 
     @Override
     public void onConnect() {
         if (DEBUG) logger.debug("onConnect()");
-        connection_status = CONNECTED;
+        connectionStatus = CONNECTED;
 
         if (prefs.getBoolean(PREF_PING_ENABLED, true)) {
             long triggerAt = SystemClock.elapsedRealtime() + pingTimeout();
@@ -574,7 +574,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
     @Override
     public void onAuthenticated() {
         if (DEBUG) logger.debug("onAuthenticated()");
-        connection_status = CONNECTED | AUTHENTICATED;
+        connectionStatus = CONNECTED | AUTHENTICATED;
 
         if (disconnected) {
             showNotification(getString(R.string.notification_reconnected_to) + host, getString(R.string.notification_connected_to) + host);
@@ -606,14 +606,14 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
     @Override
     public void onBuffersListed() {
         if (DEBUG) logger.debug("onBuffersListed()");
-        connection_status = CONNECTED | AUTHENTICATED | BUFFERS_LISTED;
+        connectionStatus = CONNECTED | AUTHENTICATED | BUFFERS_LISTED;
         for (RelayConnectionHandler rch : connectionHandlers) rch.onBuffersListed();
     }
 
     @Override
     public void onDisconnect() {
         if (DEBUG) logger.debug("onDisconnect()");
-        connection_status = DISCONNECTED;
+        connectionStatus = DISCONNECTED;
 
         // Only do the disconnect handler once
         if (disconnected) return;

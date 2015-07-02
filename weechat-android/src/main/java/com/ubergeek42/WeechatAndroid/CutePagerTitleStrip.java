@@ -310,7 +310,7 @@ public class CutePagerTitleStrip extends ViewGroup {
         }
         if (newAdapter != null) {
             newAdapter.registerDataSetObserver(mPageListener);
-            mWatchingAdapter = new WeakReference<PagerAdapter>(newAdapter);
+            mWatchingAdapter = new WeakReference<>(newAdapter);
         }
         if (mPager != null) {
             mLastKnownCurrentPage = -1;
