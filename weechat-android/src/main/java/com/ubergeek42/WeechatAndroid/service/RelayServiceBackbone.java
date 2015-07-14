@@ -309,7 +309,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
             if (DEBUG_NOTIFICATIONS) logger.warn("...target='{}', hotCount={}, set.size()={}", new Object[]{target_buffer, hotCount, set.size()});
 
             // prepare intent
-            Intent intent = new Intent(this, WeechatActivity.class).putExtra("fullName", target_buffer);
+            Intent intent = new Intent(this, WeechatActivity.class).putExtra("full_name", target_buffer);
             PendingIntent contentIntent = PendingIntent.getActivity(this, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
             // prepare notification

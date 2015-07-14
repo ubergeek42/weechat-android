@@ -243,8 +243,8 @@ public class WeechatActivity extends AppCompatActivity implements RelayConnectio
         relay.addRelayConnectionHandler(WeechatActivity.this);
 
         // open buffer that MIGHT be open in the service
-        for (String full_name : BufferList.syncedBuffersFullNames)
-            openBufferSilently(full_name);
+        for (String fullName : BufferList.syncedBuffersFullNames)
+            openBufferSilently(fullName);
 
         // this doesn't tamper with the drawer in any way
         adjustUI();
@@ -657,7 +657,7 @@ public class WeechatActivity extends AppCompatActivity implements RelayConnectio
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     //private String intent_buffer_full_name = null;
-    private final String EXTRA_NAME = "fullName";
+    private final String EXTRA_NAME = "full_name";
 
     /** we may get intent while we are connected to the service and when we are not.
      ** empty (but present) fullName means open the drawer (in case we have highlights

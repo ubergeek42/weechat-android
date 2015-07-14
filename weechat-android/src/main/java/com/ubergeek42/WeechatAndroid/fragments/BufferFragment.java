@@ -63,7 +63,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     private final static String PREF_HOTLIST_SYNC = "hotlist_sync";
     private static final String PREF_BUFFER_FONT = "buffer_font";
 
-    public final static String LOCAL_PREF_FULL_NAME = "fullName";
+    public final static String LOCAL_PREF_FULL_NAME = "full_name";
 
     private WeechatActivity activity = null;
     private boolean started = false;

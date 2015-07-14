@@ -102,7 +102,7 @@ public class BufferList {
         connection.addHandler("_nicklist_diff", nickListWatcher);
 
         // request a list of buffers current open, along with some information about them
-        connection.sendMsg("listbuffers", "hdata", "buffer:gui_buffers(*) number,fullName,shortName,type,title,nicklist,local_variables,notify");
+        connection.sendMsg("listbuffers", "hdata", "buffer:gui_buffers(*) number,full_name,short_name,type,title,nicklist,local_variables,notify");
         syncHotlist();
     }
 
