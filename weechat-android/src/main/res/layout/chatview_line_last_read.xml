@@ -10,6 +10,7 @@
         android:text="@null"
         android:textSize="10sp"
         android:typeface="monospace"
+        android:fontFamily="monospace"
         android:paddingLeft="@dimen/chat_item_left_margin"
         />
     <View  xmlns:android="http://schemas.android.com/apk/res/android"
