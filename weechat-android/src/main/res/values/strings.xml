@@ -169,4 +169,5 @@
     <string name="pref_volumebtn_size_summary">Whether volume buttons are hooked to change text size instead of volume</string>
     <string name="pref_font_summary">The font used for each buffer. Non-monospace fonts will not work well with alignment. A restart may be necessary to fix the display.</string>
     <string name="pref_font">Buffer Font</string>
+    <string name="pref_hostname_invalid">No spaces allowed in hostnames</string>
 </resources>

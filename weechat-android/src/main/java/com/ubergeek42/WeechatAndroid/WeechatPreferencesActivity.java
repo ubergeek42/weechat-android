@@ -107,6 +107,30 @@ public class WeechatPreferencesActivity extends PreferenceActivity implements
         pingPreferences = (PreferenceScreen) getPreferenceScreen().findPreference("ping_group");
         pingEnabledPref = (CheckBoxPreference) getPreferenceScreen().findPreference("ping_enabled");
         setTitle(R.string.preferences);
+
+        // Really simple validation to make sure they don't have a space in the hostname(common when using android's autocomplete
+        hostPref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                String val = (String)newValue;
+                if (val.contains(" ")) {
+                    Toast.makeText(WeechatPreferencesActivity.this, R.string.pref_hostname_invalid, Toast.LENGTH_SHORT).show();
+                    return false;
+                }
+                return true;
+            }
+        });
+        sshHostPref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                String val = (String)newValue;
+                if (val.contains(" ")) {
+                    Toast.makeText(WeechatPreferencesActivity.this, R.string.pref_hostname_invalid, Toast.LENGTH_SHORT).show();
+                    return false;
+                }
+                return true;
+            }
+        });
     }
 
     @Override
