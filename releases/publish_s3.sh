@@ -8,6 +8,8 @@ HASH=$(git log --pretty=format:'%h' -n 1)
 APK="weechat-$BRANCH-$HASH.apk"
 
 ORIG_APK="weechat-android/build/outputs/apk/weechat-android-devrelease.apk"
+PROGUARD_DIR="weechat-android/build/outputs/mapping/devrelease/"
+PROGUARD_TGZ="weechat-$BRANCH-$HASH.proguard.tar.gz"
 
 if [ -z "$S3_BUCKET" ];then
     S3_BUCKET="weechat-android.ubergeek42.com"
@@ -22,6 +24,10 @@ if [ -z "$S3_SECRET_KEY" ]; then
     exit
 fi
 
+# Save the proguard mapping files
+tar -czvf "$PROGUARD_TGZ" -C "$PROGUARD_DIR" .
+
+# Upload the apk itself
 contentType="application/vnd.android.package-archive"
 dateValue=$(date -R)
 signature=$(echo -en "PUT\n\n${contentType}\n${dateValue}\n/${S3_BUCKET}/${APK}" | openssl sha1 -hmac ${S3_SECRET_KEY} -binary | base64)
@@ -33,12 +39,22 @@ curl -X PUT -T "${ORIG_APK}" \
     -H "Authorization: AWS ${S3_ACCESS_KEY}:${signature}" \
     https://s3.amazonaws.com/${S3_BUCKET}/${APK}
 
-
+# Upload the mapping files
+contentType="application/x-gzip"
+dateValue=$(date -R)
+signature=$(echo -en "PUT\n\n${contentType}\n${dateValue}\n/${S3_BUCKET}/${PROGUARD_TGZ}" | openssl sha1 -hmac ${S3_SECRET_KEY} -binary | base64)
+echo "Uploading ${PROGUARD_TGZ}"
+curl -X PUT -T "${PROGUARD_TGZ}" \
+    -H "Host: s3.amazonaws.com" \
+    -H "Date: ${dateValue}" \
+    -H "Content-Type: ${contentType}" \
+    -H "Authorization: AWS ${S3_ACCESS_KEY}:${signature}" \
+    https://s3.amazonaws.com/${S3_BUCKET}/${PROGUARD_TGZ}
 
 
 APKURL="http://weechat-android.ubergeek42.com/$APK"
 
-
+# Generate the html file
 HTMLFILE="index-$BRANCH.html"
 cat <<EOF > $HTMLFILE
 <!DOCTYPE html>
@@ -71,7 +87,7 @@ cat <<EOF > $HTMLFILE
 </html>
 EOF
 
-
+# Upload the html file
 contentType="text/html"
 dateValue=$(date -R)
 signature=$(echo -en "PUT\n\n${contentType}\n${dateValue}\n/${S3_BUCKET}/${HTMLFILE}" | openssl sha1 -hmac ${S3_SECRET_KEY} -binary | base64)
