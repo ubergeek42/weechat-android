@@ -147,11 +147,11 @@ public class Color {
         return out.toString();
     }
 
-    public static String cleanmessage;
+    public static String cleanMessage;
     public static int margin;
     public static ArrayList<Span> finalSpanList;
 
-    // prepares: cleanmessage, margin, finalSpanList
+    // prepares: cleanMessage, margin, finalSpanList
     public static void parse(String timestamp, String prefix, String message, final boolean enclose_nick, final boolean highlight, final int max, final int alignment) {
         if (DEBUG) logger.debug("parse(timestamp='{}', prefix='{}', message='{}', enclose_nick={}, highlight={}, max={}, align_right={})",
                 new Object[]{timestamp, prefix, message, enclose_nick, highlight, max, alignment});
@@ -240,7 +240,7 @@ public class Color {
             finalSpanList.add(span);
         }
         sb.append(message);
-        cleanmessage = sb.toString();
+        cleanMessage = sb.toString();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

@@ -605,7 +605,7 @@ public class Buffer {
             String timestamp = (DATEFORMAT == null) ? null : DATEFORMAT.format(date);
             boolean encloseNick = ENCLOSE_NICK && privmsg && !action;
             Color.parse(timestamp, prefix, message, encloseNick, highlighted, MAX_WIDTH, ALIGN);
-            Spannable spannable = new SpannableString(Color.cleanmessage);
+            Spannable spannable = new SpannableString(Color.cleanMessage);
 
             if (this.type == LINE_OTHER && DIM_DOWN_NON_HUMAN_LINES) {
                 spannable.setSpan(new ForegroundColorSpan(Color.weechatOptions[2][0] | 0xFF000000), 0, spannable.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);

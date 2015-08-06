@@ -110,7 +110,7 @@ public class BufferList {
     public static boolean syncHotlist() {
         if (relay == null || !relay.isConnection(RelayServiceBackbone.CONNECTED))
             return false;
-        connection.sendMsg("last_read_lines", "hdata", "buffer:gui_buffers(*)/own_lines/lastReadLine/data buffer");
+        connection.sendMsg("last_read_lines", "hdata", "buffer:gui_buffers(*)/own_lines/last_read_line/data buffer");
         connection.sendMsg("hotlist", "hdata", "hotlist:gui_hotlist(*) buffer,count");
         return true;
     }

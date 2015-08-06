@@ -37,7 +37,12 @@ public class SSLHandler {
         try {
             sslKeystore = KeyStore.getInstance("BKS");
             sslKeystore.load(new FileInputStream(keystoreFile), KEYSTORE_PASSWORD.toCharArray());
-        } catch (KeyStoreException | NoSuchAlgorithmException | CertificateException  | IOException e) {
+        } catch (KeyStoreException | NoSuchAlgorithmException | CertificateException e) {
+            logger.error("Error: " + e.getMessage());
+        } catch (FileNotFoundException e) {
+            logger.error("Error: " + e.getMessage());
+            createKeystore = true;
+        } catch (IOException e) {
             logger.error("Error: " + e.getMessage());
         }
 

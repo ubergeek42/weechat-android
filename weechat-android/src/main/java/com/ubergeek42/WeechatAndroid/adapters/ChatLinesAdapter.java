@@ -134,10 +134,10 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private Spannable oldLasSpannable = null;
+    private Spannable oldLastSpannable = null;
 
     public void readLinesFromBuffer() {
-        oldLasSpannable = null;
+        oldLastSpannable = null;
         onLinesChanged();
     }
 
@@ -157,8 +157,8 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
         lastSpannable = l[l.length - 1].spannable;
 
         // return if there's nothing to update
-        if (!needMoveLastReadMarker && lineCountUnchanged && lastSpannable == oldLasSpannable) return;
-        oldLasSpannable = lastSpannable;
+        if (!needMoveLastReadMarker && lineCountUnchanged && lastSpannable == oldLastSpannable) return;
+        oldLastSpannable = lastSpannable;
 
         if (needMoveLastReadMarker) {
             buffer.setLastViewedLine(l[l.length-1].pointer); // save this in the buffer object

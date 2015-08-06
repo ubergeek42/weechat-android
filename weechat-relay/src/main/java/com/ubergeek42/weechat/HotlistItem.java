@@ -24,10 +24,10 @@ public class HotlistItem {
     /*
      * priority......................: int 1 color.........................: str 'white'
      * creation_time.................: buf buffer_pointer................: ptr 0x227f5b0
-     * bufferNumber.................: int 3 pluginName...................: str 'irc'
-     * bufferName...................: str 'network.#channel' count00......................: int 0
-     * count01......................: int 2 count02......................: int 0
-     * count03......................: int 0
+     * buffer_number.................: int 3 plugin_name...................: str 'irc'
+     * buffer_name...................: str 'network.#channel' count_00......................: int 0
+     * count_01......................: int 2 count_02......................: int 0
+     * count_03......................: int 0
      */
     public int priority;
     public String color;
