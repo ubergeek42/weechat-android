@@ -115,7 +115,7 @@ public class LineHandler implements RelayMessageHandler {
         // after these were listed we can assume the buffer holds the maximum amount of lines
         // for the time being
         if (id.equals("listlines_reverse") && buffer != null) {
-            buffer.holds_all_lines_it_is_supposed_to_hold = true;
+            buffer.holdsAllLinesItIsSupposedToHold = true;
             buffer.notifyManyLinesAdded();
         }
         for (Buffer wb : toUpdate) {

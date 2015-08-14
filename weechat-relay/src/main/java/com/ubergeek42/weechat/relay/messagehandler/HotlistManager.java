@@ -150,10 +150,10 @@ public class HotlistManager implements RelayMessageHandler {
                 for (HotlistItem oldhli : hotlist) {
                     // FIXME implement comparator ?
                     if (oldhli.getFullName().equals(hli.getFullName())) {
-                        oldhli.count_00 += hli.count_00;
-                        oldhli.count_01 += hli.count_01;
-                        oldhli.count_02 += hli.count_02;
-                        oldhli.count_03 += hli.count_03;
+                        oldhli.count00 += hli.count00;
+                        oldhli.count01 += hli.count01;
+                        oldhli.count02 += hli.count02;
+                        oldhli.count03 += hli.count03;
                         found = true;
                         break;
                     }
@@ -182,7 +182,7 @@ public class HotlistManager implements RelayMessageHandler {
 
                 // Only add messages and highlights to hotlist
                 // TODO: this could be a preference
-                if (hli.count_01 > 0 || hli.count_02 > 0) {
+                if (hli.count01 > 0 || hli.count02 > 0) {
                     // We got count, check and see if we already have buffer in hotlist
                     hotlist.add(hli);
                     if (b != null) {
@@ -202,7 +202,7 @@ public class HotlistManager implements RelayMessageHandler {
                 if (b2Highlights > 0 || b1Highlights > 0) {
                     return b2Highlights - b1Highlights;
                 }
-                return b1.buffer_number - b2.buffer_number;
+                return b1.bufferNumber - b2.bufferNumber;
             }
         });
 

@@ -71,7 +71,7 @@ public class NickListAdapter extends BaseAdapter implements BufferNicklistEye,
     public void onNicklistChanged() {
         if (DEBUG) logger.debug("onNicklistChanged()");
         final Buffer.Nick[] tmp = buffer.getNicksCopy();
-        final String title = String.format("%s (%s users)", buffer.short_name, tmp.length);
+        final String title = String.format("%s (%s users)", buffer.shortName, tmp.length);
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {

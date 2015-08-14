@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="wrap_content">
-    <TextView xmlns:android="http://schemas.android.com/apk/res/android"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+    <TextView
         android:id="@+id/chatline_message"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
@@ -13,12 +15,13 @@
         android:fontFamily="monospace"
         android:paddingLeft="@dimen/chat_item_left_margin"
         />
-    <View  xmlns:android="http://schemas.android.com/apk/res/android"
+
+    <View
         android:id="@+id/separator"
         android:background="#580000"
-        android:layout_width = "fill_parent"
+        android:layout_width="fill_parent"
         android:layout_height="1dp"
-        android:layout_centerVertical ="true"
+        android:layout_centerVertical="true"
         android:layout_marginTop="3dp"
         android:layout_marginBottom="3dp"
         android:layout_below="@id/chatline_message"/>

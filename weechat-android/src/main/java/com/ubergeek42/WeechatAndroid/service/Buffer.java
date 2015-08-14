@@ -55,58 +55,58 @@ public class Buffer {
 
     public final static int MAX_LINES = 200;
 
-    private BufferEye buffer_eye;
-    private BufferNicklistEye buffer_nicklist_eye;
+    private BufferEye bufferEye;
+    private BufferNicklistEye bufferNickListEye;
 
     public final long pointer;
-    public String full_name, short_name, title;
-    public int number, notify_level;
-    public Hashtable local_vars;
+    public String fullName, shortName, title;
+    public int number, notifyLevel;
+    public Hashtable localVars;
 
     /** the following four variables are needed to determine if the buffer was changed and,
      ** if not, the last two are substracted from the newly arrived hotlist data, to make up
      ** for the lines that was read in relay.
-     ** last_read_line stores id of the last read line *in weechat*. -1 means all lines unread. */
-    public long last_read_line = -1;
-    public boolean wants_full_hotlist_update = false; // must be false for buffers without last_read_line!
-    public int total_read_unreads = 0;
-    public int total_read_highlights = 0;
+     ** lastReadLine stores id of the last read line *in weechat*. -1 means all lines unread. */
+    public long lastReadLine = -1;
+    public boolean wantsFullHotListUpdate = false; // must be false for buffers without lastReadLine!
+    public int totalReadUnreads = 0;
+    public int totalReadHighlights = 0;
 
     // This is used purely by the GUI to show a last line read marker
     // It is a buffer line id(pointer)
-    public long ui_last_viewed_line = -1;
+    public long uiLastViewedLine = -1;
 
 
-    private LinkedList<Line> lines = new LinkedList<Line>();
-    private int visible_lines_count = 0;
+    private LinkedList<Line> lines = new LinkedList<>();
+    private int visibleLinesCount = 0;
 
-    private LinkedList<Nick> nicks = new LinkedList<Nick>();
+    private LinkedList<Nick> nicks = new LinkedList<>();
 
-    public boolean is_open = false;
-    public boolean is_watched = false;
-    public boolean holds_all_lines = false;
-    public boolean holds_all_nicks = false;
+    public boolean isOpen = false;
+    public boolean isWatched = false;
+    public boolean holdsAllLines = false;
+    public boolean holdsAllNicks = false;
     public int type = OTHER;
     public int unreads = 0;
     public int highlights = 0;
 
-    public Spannable printable1 = null; // printable buffer without title (for TextView)
-    public Spannable printable2 = null; // printable buffer with title
+    public Spannable printableWithoutTitle = null; // printable buffer without title (for TextView)
+    public Spannable printableWithTitle = null; // printable buffer with title
 
-    Buffer(long pointer, int number, String full_name, String short_name, String title, int notify_level, Hashtable local_vars) {
+    Buffer(long pointer, int number, String fullName, String shortName, String title, int notifyLevel, Hashtable localVars) {
         this.pointer = pointer;
         this.number = number;
-        this.full_name = full_name;
-        this.short_name = (short_name != null) ? short_name : full_name;
+        this.fullName = fullName;
+        this.shortName = (shortName != null) ? shortName : fullName;
         this.title = title;
-        this.notify_level = notify_level;
-        this.local_vars = local_vars;
+        this.notifyLevel = notifyLevel;
+        this.localVars = localVars;
         processBufferType();
         processBufferTitle();
 
-        if (BufferList.isSynced(full_name)) setOpen(true);
+        if (BufferList.isSynced(fullName)) setOpen(true);
         BufferList.restoreLastReadLine(this);
-        if (DEBUG_BUFFER) logger.warn("new Buffer(..., {}, {}, ...) is_open? {}", new Object[]{number, full_name, is_open});
+        if (DEBUG_BUFFER) logger.warn("new Buffer(..., {}, {}, ...) isOpen? {}", new Object[]{number, fullName, isOpen});
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -123,7 +123,7 @@ public class Buffer {
         if (!FILTER_LINES)
             return lines.toArray(new Line[lines.size()]);
         else {
-            Line[] l = new Line[visible_lines_count];
+            Line[] l = new Line[visibleLinesCount];
             int i = 0;
             for (Line line: lines) if (line.visible) l[i++] = line;
             return l;
@@ -148,15 +148,15 @@ public class Buffer {
      ** can be called multiple times without harm
      ** somewhat heavy, better be called off the main thread */
     synchronized public void setOpen(boolean open) {
-        if (DEBUG_BUFFER) logger.warn("{} setOpen({})", short_name, open);
-        if (this.is_open == open) return;
-        this.is_open = open;
+        if (DEBUG_BUFFER) logger.warn("{} setOpen({})", shortName, open);
+        if (this.isOpen == open) return;
+        this.isOpen = open;
         if (open) {
-            BufferList.syncBuffer(full_name);
+            BufferList.syncBuffer(fullName);
             for (Line line : lines) line.processMessageIfNeeded();
         }
         else {
-            BufferList.desyncBuffer(full_name);
+            BufferList.desyncBuffer(fullName);
             for (Line line : lines) line.eraseProcessedMessage();
             if (BufferList.OPTIMIZE_TRAFFIC) {
                 // if traffic is optimized, the next time we open the buffer, it might have been updated
@@ -164,10 +164,10 @@ public class Buffer {
                 // that we have all the lines needed. second, if we have lines and request lines again,
                 // it'd be cumbersome to find the place to put lines. like, for iteration #3,
                 // [[old lines] [#3] [#2] [#1]] unless #3 is inside old lines. hence, reset everything!
-                holds_all_lines = holds_all_nicks = false;
+                holdsAllLines = holdsAllNicks = false;
                 lines.clear();
                 nicks.clear();
-                visible_lines_count = 0;
+                visibleLinesCount = 0;
             }
         }
         BufferList.notifyBuffersSlightlyChanged();
@@ -181,12 +181,12 @@ public class Buffer {
      **     so we request lines and nicks upon user actually (getting close to) opening the buffer.
      ** we are requesting nicks along with the lines because:
      **     nick completion */
-    synchronized public void setBufferEye(@Nullable BufferEye buffer_eye) {
-        if (DEBUG_BUFFER) logger.warn("{} setBufferEye({})", short_name, buffer_eye);
-        this.buffer_eye = buffer_eye;
-        if (buffer_eye != null) {
-            if (!holds_all_lines) BufferList.requestLinesForBufferByPointer(pointer);
-            if (!holds_all_nicks) BufferList.requestNicklistForBufferByPointer(pointer);
+    synchronized public void setBufferEye(@Nullable BufferEye bufferEye) {
+        if (DEBUG_BUFFER) logger.warn("{} setBufferEye({})", shortName, bufferEye);
+        this.bufferEye = bufferEye;
+        if (bufferEye != null) {
+            if (!holdsAllLines) BufferList.requestLinesForBufferByPointer(pointer);
+            if (!holdsAllNicks) BufferList.requestNicklistForBufferByPointer(pointer);
         }
     }
 
@@ -194,44 +194,44 @@ public class Buffer {
      ** affects the way buffer advertises highlights/unreads count and notifications
      ** can be called multiple times without harm */
     synchronized public void setWatched(boolean watched) {
-        if (DEBUG_BUFFER) logger.error("{} setWatched({})", short_name, watched);
-        if (is_watched == watched) return;
-        is_watched = watched;
+        if (DEBUG_BUFFER) logger.error("{} setWatched({})", shortName, watched);
+        if (isWatched == watched) return;
+        isWatched = watched;
         if (watched) resetUnreadsAndHighlights();
     }
 
     /** called when options has changed and the messages should be processed */
     synchronized public void forceProcessAllMessages() {
-        if (DEBUG_BUFFER) logger.error("{} forceProcessAllMessages()", short_name);
+        if (DEBUG_BUFFER) logger.error("{} forceProcessAllMessages()", shortName);
         for (Line line : lines) line.processMessage();
     }
 
     public void setLastViewedLine(long id) {
-        ui_last_viewed_line = id;
+        uiLastViewedLine = id;
     }
     public long getLastViewedLine() {
-        return ui_last_viewed_line;
+        return uiLastViewedLine;
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// stuff called by message handlers
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    synchronized public void addLine(final Line line, final boolean is_last) {
-        if (DEBUG_LINE) logger.warn("{} addLine('{}', {})", new Object[]{short_name, line.message, is_last});
+    synchronized public void addLine(final Line line, final boolean isLast) {
+        if (DEBUG_LINE) logger.warn("{} addLine('{}', {})", new Object[]{shortName, line.message, isLast});
 
         // check if the line in question is already in the buffer
         // happens when reverse request throws in lines even though some are already here
         for (Line l: lines) if (l.pointer == line.pointer) return;
 
         // remove a line if we are over the limit and add the new line
-        // correct visible_lines_count accordingly
-        if (lines.size() >= MAX_LINES) if (lines.removeFirst().visible) visible_lines_count--;
-        if (is_last) lines.add(line);
+        // correct visibleLinesCount accordingly
+        if (lines.size() >= MAX_LINES) if (lines.removeFirst().visible) visibleLinesCount--;
+        if (isLast) lines.add(line);
         else lines.addFirst(line);
-        if (line.visible) visible_lines_count++;
+        if (line.visible) visibleLinesCount++;
 
         // calculate spannable, if needed
-        if (is_open) line.processMessage();
+        if (isOpen) line.processMessage();
 
         // for messages that ARRIVE AS WE USE THE APPLICATION:
         // set unreads / highlights and notify BufferList
@@ -241,8 +241,8 @@ public class Buffer {
         //      unreads and highlights is filled by hotlist request
         //
         // if the buffer IS watched, remember that the lines in question are read
-        if (is_last && notify_level >= 0 && type != HARD_HIDDEN) {
-            if (!is_watched) {
+        if (isLast && notifyLevel >= 0 && type != HARD_HIDDEN) {
+            if (!isWatched) {
                 if (line.highlighted) {
                     highlights++;
                     BufferList.newHotLine(this, line);
@@ -254,8 +254,8 @@ public class Buffer {
                 }
             }
             else {
-                if (line.highlighted) total_read_highlights++;
-                else if (line.type == Line.LINE_MESSAGE) total_read_unreads++;
+                if (line.highlighted) totalReadHighlights++;
+                else if (line.type == Line.LINE_MESSAGE) totalReadUnreads++;
             }
         }
 
@@ -265,7 +265,7 @@ public class Buffer {
         // if current line's an event line and we've got a speaker, move nick to fist position
         // nick in question is supposed to be in the nicks already, for we only shuffle these
         // nicks when someone spoke, i.e. NOT when user joins.
-        if (holds_all_nicks && is_last) {
+        if (holdsAllNicks && isLast) {
             String name = line.findSpeakingNick();
             if (name != null)
                 for (Iterator<Nick> it = nicks.iterator(); it.hasNext(); ) {
@@ -278,18 +278,18 @@ public class Buffer {
                 }
         }
 
-        if (lines.size() >= MAX_LINES) holds_all_lines = true;
+        if (lines.size() >= MAX_LINES) holdsAllLines = true;
     }
 
     /** a buffer NOT will want a complete update if the last line unread stored in weechat buffer
      ** matches the one stored in our buffer. if they are not equal, the user must've read the buffer
      ** in weechat. assuming he read the very last line, total old highlights and unreads bear no meaning,
      ** so they should be erased. */
-    synchronized public void updateLastReadLine(long line_pointer) {
-        wants_full_hotlist_update = last_read_line != line_pointer;
-        if (wants_full_hotlist_update) {
-            last_read_line = line_pointer;
-            total_read_highlights = total_read_unreads = 0;
+    synchronized public void updateLastReadLine(long linePointer) {
+        wantsFullHotListUpdate = lastReadLine != linePointer;
+        if (wantsFullHotListUpdate) {
+            lastReadLine = linePointer;
+            totalReadHighlights = totalReadUnreads = 0;
         }
     }
 
@@ -300,20 +300,20 @@ public class Buffer {
      ** that our number is actually HIGHER than amount of unread lines in the buffer. as a workaround,
      ** we check that we are not getting negative numbers. not perfect, but—! */
      synchronized public void updateHighlightsAndUnreads(int highlights, int unreads) {
-        if (is_watched) {
-            total_read_unreads = unreads;
-            total_read_highlights = highlights;
+        if (isWatched) {
+            totalReadUnreads = unreads;
+            totalReadHighlights = highlights;
         } else {
-            final boolean full_update = wants_full_hotlist_update ||
-                    (total_read_unreads > unreads) ||
-                    (total_read_highlights > highlights);
+            final boolean full_update = wantsFullHotListUpdate ||
+                    (totalReadUnreads > unreads) ||
+                    (totalReadHighlights > highlights);
             if (full_update) {
                 this.unreads = unreads;
                 this.highlights = highlights;
-                total_read_unreads = total_read_highlights = 0;
+                totalReadUnreads = totalReadHighlights = 0;
             } else {
-                this.unreads = unreads - total_read_unreads;
-                this.highlights = highlights - total_read_highlights;
+                this.unreads = unreads - totalReadUnreads;
+                this.highlights = highlights - totalReadHighlights;
             }
 
             int hots = this.highlights;
@@ -323,25 +323,25 @@ public class Buffer {
     }
 
     synchronized public void onLinesChanged() {
-        if (buffer_eye != null) buffer_eye.onLinesChanged();
+        if (bufferEye != null) bufferEye.onLinesChanged();
     }
 
     synchronized public void onLinesListed() {
-        holds_all_lines = true;
-        if (buffer_eye != null) buffer_eye.onLinesListed();
+        holdsAllLines = true;
+        if (bufferEye != null) bufferEye.onLinesListed();
     }
 
     synchronized public void onPropertiesChanged() {
         processBufferType();
         processBufferTitle();
-        if (buffer_eye != null) buffer_eye.onPropertiesChanged();
+        if (bufferEye != null) bufferEye.onPropertiesChanged();
     }
 
     synchronized public void onBufferClosed() {
-        if (DEBUG_BUFFER) logger.warn("{} onBufferClosed()", short_name);
+        if (DEBUG_BUFFER) logger.warn("{} onBufferClosed()", shortName);
         BufferList.removeHotMessagesForBuffer(this);
         setOpen(false);
-        if (buffer_eye != null) buffer_eye.onBufferClosed();
+        if (bufferEye != null) bufferEye.onBufferClosed();
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////// private stuffs
@@ -351,11 +351,11 @@ public class Buffer {
      ** do "/buffer set localvar_set_relay hard-hide" */
     private void processBufferType() {
         RelayObject t;
-        t = local_vars.get("relay");
+        t = localVars.get("relay");
         if (t != null && Arrays.asList(t.asString().split(",")).contains("hard-hide"))
             type = HARD_HIDDEN;
         else {
-            t = local_vars.get("type");
+            t = localVars.get("type");
             if (t == null) type = OTHER;
             else if ("private".equals(t.asString())) type = PRIVATE;
             else if ("channel".equals(t.asString())) type = CHANNEL;
@@ -371,28 +371,28 @@ public class Buffer {
     private void processBufferTitle() {
         Spannable spannable;
         final String number = Integer.toString(this.number) + " ";
-        spannable = new SpannableString(number + short_name);
+        spannable = new SpannableString(number + shortName);
         spannable.setSpan(SUPER, 0, number.length(), EX);
         spannable.setSpan(SMALL1, 0, number.length(), EX);
-        printable1 = spannable;
+        printableWithoutTitle = spannable;
         if (title == null || title.equals("")) {
-            printable2 = printable1;
+            printableWithTitle = printableWithoutTitle;
         } else {
-            spannable = new SpannableString(number + short_name + "\n" + Color.stripEverything(title));
+            spannable = new SpannableString(number + shortName + "\n" + Color.stripEverything(title));
             spannable.setSpan(SUPER, 0, number.length(), EX);
             spannable.setSpan(SMALL1, 0, number.length(), EX);
-            spannable.setSpan(SMALL2, number.length() + short_name.length() + 1, spannable.length(), EX);
-            printable2 = spannable;
+            spannable.setSpan(SMALL2, number.length() + shortName.length() + 1, spannable.length(), EX);
+            printableWithTitle = spannable;
         }
     }
 
     /** sets highlights/unreads to 0 and,
      ** if something has actually changed, notifies whoever cares about it */
     synchronized public void resetUnreadsAndHighlights() {
-        if (DEBUG_BUFFER) logger.error("{} resetUnreadsAndHighlights()", short_name);
+        if (DEBUG_BUFFER) logger.error("{} resetUnreadsAndHighlights()", shortName);
         if ((unreads | highlights) == 0) return;
-        total_read_unreads += unreads;
-        total_read_highlights += highlights;
+        totalReadUnreads += unreads;
+        totalReadHighlights += highlights;
         unreads = highlights = 0;
         BufferList.removeHotMessagesForBuffer(this);
         BufferList.notifyBuffersSlightlyChanged(type == OTHER);
@@ -407,9 +407,9 @@ public class Buffer {
 
     /** sets and removes a single nicklist watcher
      ** used to notify of nicklist changes as new nicks arrive and others quit */
-    synchronized public void setBufferNicklistEye(@Nullable BufferNicklistEye buffer_nicklist_eye) {
-        if (DEBUG_NICK) logger.warn("{} setBufferNicklistEye({})", short_name, buffer_nicklist_eye);
-        this.buffer_nicklist_eye = buffer_nicklist_eye;
+    synchronized public void setBufferNicklistEye(@Nullable BufferNicklistEye bufferNickListEye) {
+        if (DEBUG_NICK) logger.warn("{} setBufferNicklistEye({})", shortName, bufferNickListEye);
+        this.bufferNickListEye = bufferNickListEye;
     }
 
     synchronized public @NonNull Nick[] getNicksCopy() {
@@ -423,13 +423,13 @@ public class Buffer {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     synchronized public void addNick(long pointer, String prefix, String name) {
-        if (DEBUG_NICK) logger.debug("{} addNick({}, {}, {})", new Object[]{short_name, pointer, prefix, name});
+        if (DEBUG_NICK) logger.debug("{} addNick({}, {}, {})", new Object[]{shortName, pointer, prefix, name});
         nicks.add(new Nick(pointer, prefix, name));
         notifyNicklistChanged();
     }
 
     synchronized public void removeNick(long pointer) {
-        if (DEBUG_NICK) logger.debug("{} removeNick({})", new Object[]{short_name, pointer});
+        if (DEBUG_NICK) logger.debug("{} removeNick({})", new Object[]{shortName, pointer});
         for (Iterator<Nick> it = nicks.iterator(); it.hasNext();) {
             if (it.next().pointer == pointer) {
                 it.remove();
@@ -440,7 +440,7 @@ public class Buffer {
     }
 
     synchronized public void updateNick(long pointer, String prefix, String name) {
-        if (DEBUG_NICK) logger.debug("{} updateNick({}, {}, {})", new Object[]{short_name, pointer, prefix, name});
+        if (DEBUG_NICK) logger.debug("{} updateNick({}, {}, {})", new Object[]{shortName, pointer, prefix, name});
         for (Nick nick: nicks) {
             if (nick.pointer == pointer) {
                 nick.prefix = prefix;
@@ -456,19 +456,19 @@ public class Buffer {
     }
 
     synchronized public void sortNicksByLines() {
-        if (DEBUG_NICK) logger.debug("{} sortNicksByLines({})", short_name);
-        final HashMap<String, Integer> name_to_position = new HashMap<String, Integer>();
+        if (DEBUG_NICK) logger.debug("{} sortNicksByLines({})", shortName);
+        final HashMap<String, Integer> nameToPosition = new HashMap<>();
 
         for (int i = lines.size() - 1; i >= 0; i--) {
             String name = lines.get(i).findSpeakingNick();
-            if (name != null && !name_to_position.containsKey(name))
-                name_to_position.put(name, name_to_position.size());
+            if (name != null && !nameToPosition.containsKey(name))
+                nameToPosition.put(name, nameToPosition.size());
         }
 
         Collections.sort(nicks, new Comparator<Nick>() {
             @Override public int compare(Nick left, Nick right) {
-                Integer l = name_to_position.get(left.name);
-                Integer r = name_to_position.get(right.name);
+                Integer l = nameToPosition.get(left.name);
+                Integer r = nameToPosition.get(right.name);
                 if (l == null) l = Integer.MAX_VALUE;
                 if (r == null) r = Integer.MAX_VALUE;
                 return l - r;
@@ -479,7 +479,7 @@ public class Buffer {
     //////////////////////////////////////////////////////////////////////////////////////////////// private stuffs
 
     synchronized private void notifyNicklistChanged() {
-        if (buffer_nicklist_eye != null) buffer_nicklist_eye.onNicklistChanged();
+        if (bufferNickListEye != null) bufferNickListEye.onNicklistChanged();
     }
 
     /** this comparator sorts by prefix first
@@ -542,13 +542,13 @@ public class Buffer {
 
             if (tags != null) {
                 boolean log1 = false;
-                boolean notify_none = false;
+                boolean notifyNone = false;
 
                 for (String tag : tags) {
                     if (tag.equals("log1"))
                         log1 = true;
                     else if (tag.equals("notify_none"))
-                        notify_none = true;
+                        notifyNone = true;
                     else if (tag.startsWith("nick_"))
                         this.speakingNick = tag.substring(5);
                     else if (tag.endsWith("_privmsg"))
@@ -561,8 +561,8 @@ public class Buffer {
                     this.type = LINE_OTHER;
                 } else {
                     // Every "message" to user should have one or more of these tags
-                    // notify_none, notify_highlight or notify_message
-                    this.type = notify_none ? LINE_OWN : LINE_MESSAGE;
+                    // notifyNone, notify_highlight or notify_message
+                    this.type = notifyNone ? LINE_OWN : LINE_MESSAGE;
                 }
             } else {
                 // there are no tags, it's probably an old version of weechat, so we err
@@ -605,22 +605,22 @@ public class Buffer {
             String timestamp = (DATEFORMAT == null) ? null : DATEFORMAT.format(date);
             boolean encloseNick = ENCLOSE_NICK && privmsg && !action;
             Color.parse(timestamp, prefix, message, encloseNick, highlighted, MAX_WIDTH, ALIGN);
-            Spannable spannable = new SpannableString(Color.clean_message);
+            Spannable spannable = new SpannableString(Color.cleanMessage);
 
             if (this.type == LINE_OTHER && DIM_DOWN_NON_HUMAN_LINES) {
                 spannable.setSpan(new ForegroundColorSpan(Color.weechatOptions[2][0] | 0xFF000000), 0, spannable.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             } else {
-                CharacterStyle droid_span;
-                for (Color.Span span : Color.final_span_list) {
+                CharacterStyle droidSpan;
+                for (Color.Span span : Color.finalSpanList) {
                     switch (span.type) {
-                        case Color.Span.FGCOLOR:   droid_span = new ForegroundColorSpan(span.color | 0xFF000000); break;
-                        case Color.Span.BGCOLOR:   droid_span = new BackgroundColorSpan(span.color | 0xFF000000); break;
-                        case Color.Span.ITALIC:    droid_span = new StyleSpan(Typeface.ITALIC);                   break;
-                        case Color.Span.BOLD:      droid_span = new StyleSpan(Typeface.BOLD);                     break;
-                        case Color.Span.UNDERLINE: droid_span = new UnderlineSpan();                              break;
+                        case Color.Span.FGCOLOR:   droidSpan = new ForegroundColorSpan(span.color | 0xFF000000); break;
+                        case Color.Span.BGCOLOR:   droidSpan = new BackgroundColorSpan(span.color | 0xFF000000); break;
+                        case Color.Span.ITALIC:    droidSpan = new StyleSpan(Typeface.ITALIC);                   break;
+                        case Color.Span.BOLD:      droidSpan = new StyleSpan(Typeface.BOLD);                     break;
+                        case Color.Span.UNDERLINE: droidSpan = new UnderlineSpan();                              break;
                         default: continue;
                     }
-                    spannable.setSpan(droid_span, span.start, span.end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                    spannable.setSpan(droidSpan, span.start, span.end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                 }
             }
 

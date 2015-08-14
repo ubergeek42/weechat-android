@@ -147,23 +147,23 @@ public class Color {
         return out.toString();
     }
 
-    public static String clean_message;
+    public static String cleanMessage;
     public static int margin;
-    public static ArrayList<Span> final_span_list;
+    public static ArrayList<Span> finalSpanList;
 
-    // prepares: clean_message, margin, final_span_list
+    // prepares: cleanMessage, margin, finalSpanList
     public static void parse(String timestamp, String prefix, String message, final boolean enclose_nick, final boolean highlight, final int max, final int alignment) {
         if (DEBUG) logger.debug("parse(timestamp='{}', prefix='{}', message='{}', enclose_nick={}, highlight={}, max={}, align_right={})",
                 new Object[]{timestamp, prefix, message, enclose_nick, highlight, max, alignment});
         int puff;
         int color;
         StringBuilder sb = new StringBuilder();
-        final_span_list = new ArrayList<Span>();
+        finalSpanList = new ArrayList<>();
 
         // timestamp uses no colors
         if (timestamp != null) {
             sb.append(timestamp);
-            Span fg = new Span(); fg.start = 0; fg.end = sb.length(); fg.type = Span.FGCOLOR; fg.color = weechatOptions[2][0]; final_span_list.add(fg);
+            Span fg = new Span(); fg.start = 0; fg.end = sb.length(); fg.type = Span.FGCOLOR; fg.color = weechatOptions[2][0]; finalSpanList.add(fg);
             sb.append(" ");
         }
 
@@ -177,51 +177,51 @@ public class Color {
         // also, if highlight is enabled, remove all colors from here and add highlight color later
         parseColors(prefix);
         prefix = out.toString();
-        if (highlight) span_list.clear();
-        boolean nick_has_been_cut = false;
-        int max_adjusted = enclose_nick ? Math.max(0, max - 2) : max;
-        if (prefix.length() > max_adjusted) {
-            nick_has_been_cut = true;
-            prefix = prefix.substring(0, max_adjusted);
+        if (highlight) spanList.clear();
+        boolean nickHasBeenCut = false;
+        int maxAdjusted = enclose_nick ? Math.max(0, max - 2) : max;
+        if (prefix.length() > maxAdjusted) {
+            nickHasBeenCut = true;
+            prefix = prefix.substring(0, maxAdjusted);
             Span span;
-            for (Iterator<Span> it = span_list.iterator(); it.hasNext();) {
+            for (Iterator<Span> it = spanList.iterator(); it.hasNext();) {
                 span = it.next();
-                if (span.end > max_adjusted) span.end = max_adjusted;
+                if (span.end > maxAdjusted) span.end = maxAdjusted;
                 if (span.end <= span.start) it.remove();
             }
         }
-        else if (alignment==ALIGN_RIGHT && prefix.length() < max_adjusted) {
-            int diff = max_adjusted - prefix.length();
+        else if (alignment==ALIGN_RIGHT && prefix.length() < maxAdjusted) {
+            int diff = maxAdjusted - prefix.length();
             for (int x = 0; x < diff; x++) sb.append(" "); // spaces for padding
         }
         if (highlight) {
             color = weechatOptions[29][0];
-            if (color != -1) {Span fg = new Span(); fg.start = 0; fg.end = prefix.length(); fg.type = Span.FGCOLOR; fg.color = color; span_list.add(fg);}
+            if (color != -1) {Span fg = new Span(); fg.start = 0; fg.end = prefix.length(); fg.type = Span.FGCOLOR; fg.color = color; spanList.add(fg);}
             color = weechatOptions[29][1];
-            if (color != -1) {Span bg = new Span(); bg.start = 0; bg.end = prefix.length(); bg.type = Span.BGCOLOR; bg.color = color; span_list.add(bg);}
+            if (color != -1) {Span bg = new Span(); bg.start = 0; bg.end = prefix.length(); bg.type = Span.BGCOLOR; bg.color = color; spanList.add(bg);}
         }
         if (enclose_nick && max >= 1) {
             sb.append("<");
-            Span fg = new Span(); fg.start = sb.length() - 1; fg.end = sb.length(); fg.type = Span.FGCOLOR; fg.color = weechatOptions[2][0]; final_span_list.add(fg);
+            Span fg = new Span(); fg.start = sb.length() - 1; fg.end = sb.length(); fg.type = Span.FGCOLOR; fg.color = weechatOptions[2][0]; finalSpanList.add(fg);
         }
         puff = sb.length();
-        for (Span span : span_list) {
+        for (Span span : spanList) {
             span.start += puff;
             span.end += puff;
-            final_span_list.add(span);
+            finalSpanList.add(span);
         }
         sb.append(prefix);
-        if (nick_has_been_cut) {
+        if (nickHasBeenCut) {
             if (enclose_nick && max >= 2) {
                 sb.append(">");
-                Span fg = new Span(); fg.start = sb.length() - 1; fg.end = sb.length(); fg.type = Span.FGCOLOR; fg.color = weechatOptions[2][0]; final_span_list.add(fg);
+                Span fg = new Span(); fg.start = sb.length() - 1; fg.end = sb.length(); fg.type = Span.FGCOLOR; fg.color = weechatOptions[2][0]; finalSpanList.add(fg);
             }
             sb.append("+");
-            Span fg = new Span(); fg.start = sb.length() - 1; fg.end = sb.length(); fg.type = Span.FGCOLOR; fg.color = 0x444444; final_span_list.add(fg);
+            Span fg = new Span(); fg.start = sb.length() - 1; fg.end = sb.length(); fg.type = Span.FGCOLOR; fg.color = 0x444444; finalSpanList.add(fg);
         }
         else if (enclose_nick && max >= 2) {
             sb.append("> ");
-            Span fg = new Span(); fg.start = sb.length() - 2; fg.end = sb.length() - 1; fg.type = Span.FGCOLOR; fg.color = weechatOptions[2][0]; final_span_list.add(fg);
+            Span fg = new Span(); fg.start = sb.length() - 2; fg.end = sb.length() - 1; fg.type = Span.FGCOLOR; fg.color = weechatOptions[2][0]; finalSpanList.add(fg);
         }
         else sb.append(" ");
 
@@ -234,13 +234,13 @@ public class Color {
         parseColors(message);
         message = out.toString();
         puff = sb.length();
-        for (Span span : span_list) {
+        for (Span span : spanList) {
             span.start += puff;
             span.end += puff;
-            final_span_list.add(span);
+            finalSpanList.add(span);
         }
         sb.append(message);
-        clean_message = sb.toString();
+        cleanMessage = sb.toString();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -249,7 +249,7 @@ public class Color {
 
     // output of parseColors()
     private static StringBuffer out;                                   // printable characters
-    private static ArrayList<Span> span_list = new ArrayList<Span>();  // list of spans in “out”
+    private static ArrayList<Span> spanList = new ArrayList<>();  // list of spans in “out”
 
     // working vars of parseColor()
     private static String msg;                                         // text currently being parsed by parseColors
@@ -291,7 +291,7 @@ public class Color {
         // if found, remove it from the list
         Span span = null;
         boolean found = false;
-        for (Iterator<Span> it = span_list.iterator(); it.hasNext();) {
+        for (Iterator<Span> it = spanList.iterator(); it.hasNext();) {
             span = it.next();
             if (span.end == pos && span.type == type && span.color == color) {
                 it.remove();
@@ -319,7 +319,7 @@ public class Color {
             span.end = out.length();
             if (span.start != span.end) {
                 if (DEBUG) logger.debug("finalizeSpan(...): type={}, start={}, end={}, color={}", new Object[]{span.type, span.start, span.end, span.color});
-                span_list.add(span);
+                spanList.add(span);
             }
         }
     }
@@ -430,14 +430,14 @@ public class Color {
     /////////////////////////////////
 
     /** takes text as input
-     ** sets out and span_list */
+     ** sets out and spanList */
     synchronized private static void parseColors(String msg) {
         if (DEBUG) logger.debug("parseColors({})", msg);
 
         Color.msg = msg;
         index = 0;
         out = new StringBuffer();
-        span_list.clear();
+        spanList.clear();
 
         if (msg == null) return;
 

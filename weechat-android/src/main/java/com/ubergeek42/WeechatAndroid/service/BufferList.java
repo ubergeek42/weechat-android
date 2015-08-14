@@ -51,16 +51,16 @@ public class BufferList {
     /** contains names of open buffers. this is written to the shared preferences
      ** and restored upon service restart (by the system). also this is used to
      ** reopen buffers in case user pressed "back" */
-    static public @NonNull LinkedHashSet<String> synced_buffers_full_names = new LinkedHashSet<String>();   // TODO race condition?
+    static public @NonNull LinkedHashSet<String> syncedBuffersFullNames = new LinkedHashSet<>();   // TODO race condition?
 
     /** this stores information about last read line (in `desktop` weechat) and according
      ** number of read lines/highlights. this is substracted from highlight counts client
      ** receives from the server */
-    static private @NonNull LinkedHashMap<String, BufferHotData> buffer_to_last_read_line = new LinkedHashMap<String, BufferHotData>();
+    static private @NonNull LinkedHashMap<String, BufferHotData> bufferToLastReadLine = new LinkedHashMap<>();
 
     static RelayService relay;
     private static RelayConnection connection;
-    private static BufferListEye buffers_eye;
+    private static BufferListEye buffersEye;
 
     /** the mother variable. list of current buffers */
     private static ArrayList<Buffer> buffers = new ArrayList<Buffer>();
@@ -76,30 +76,30 @@ public class BufferList {
 
         // handle buffer list changes
         // including initial hotlist
-        connection.addHandler("listbuffers", buffer_list_watcher);
+        connection.addHandler("listbuffers", bufferListWatcher);
 
-        connection.addHandler("_buffer_opened", buffer_list_watcher);
-        connection.addHandler("_buffer_renamed", buffer_list_watcher);
-        connection.addHandler("_buffer_title_changed", buffer_list_watcher);
-        connection.addHandler("_buffer_localvar_added", buffer_list_watcher);
-        connection.addHandler("_buffer_localvar_changed", buffer_list_watcher);
-        connection.addHandler("_buffer_localvar_removed", buffer_list_watcher);
-        connection.addHandler("_buffer_closing", buffer_list_watcher);
-        connection.addHandler("_buffer_moved", buffer_list_watcher);
-        connection.addHandler("_buffer_merged", buffer_list_watcher);
+        connection.addHandler("_buffer_opened", bufferListWatcher);
+        connection.addHandler("_buffer_renamed", bufferListWatcher);
+        connection.addHandler("_buffer_title_changed", bufferListWatcher);
+        connection.addHandler("_buffer_localvar_added", bufferListWatcher);
+        connection.addHandler("_buffer_localvar_changed", bufferListWatcher);
+        connection.addHandler("_buffer_localvar_removed", bufferListWatcher);
+        connection.addHandler("_buffer_closing", bufferListWatcher);
+        connection.addHandler("_buffer_moved", bufferListWatcher);
+        connection.addHandler("_buffer_merged", bufferListWatcher);
 
-        connection.addHandler("hotlist", hotlist_init_watcher);
-        connection.addHandler("last_read_lines", last_read_lines_watcher);
+        connection.addHandler("hotlist", hotlistInitWatcher);
+        connection.addHandler("last_read_lines", lastReadLinesWatcher);
 
         // handle newly arriving chat lines
         // and chatlines we are reading in reverse
-        connection.addHandler("_buffer_line_added", buffer_line_watcher);
-        connection.addHandler("listlines_reverse", buffer_line_watcher);
+        connection.addHandler("_buffer_line_added", bufferLineWatcher);
+        connection.addHandler("listlines_reverse", bufferLineWatcher);
 
         // handle nicklist init and changes
-        connection.addHandler("nicklist", nicklist_watcher);
-        connection.addHandler("_nicklist", nicklist_watcher);
-        connection.addHandler("_nicklist_diff", nicklist_watcher);
+        connection.addHandler("nicklist", nickListWatcher);
+        connection.addHandler("_nicklist", nickListWatcher);
+        connection.addHandler("_nicklist_diff", nickListWatcher);
 
         // request a list of buffers current open, along with some information about them
         connection.sendMsg("listbuffers", "hdata", "buffer:gui_buffers(*) number,full_name,short_name,type,title,nicklist,local_variables,notify");
@@ -119,40 +119,40 @@ public class BufferList {
     //////////////////////////////////////////////////////////////////////////////////////////////// called by the Eye
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private static @Nullable ArrayList<Buffer> sent_buffers = null;
+    private static @Nullable ArrayList<Buffer> sentBuffers = null;
 
     /** returns an independent copy of the buffer list
      ** MIGHT return the same object (albeit sorted as needed) */
     synchronized static public @NonNull ArrayList<Buffer> getBufferList() {
-        if (sent_buffers == null) {
-            sent_buffers = new ArrayList<Buffer>();
+        if (sentBuffers == null) {
+            sentBuffers = new ArrayList<>();
             for (Buffer buffer : buffers) {
                 if (buffer.type == Buffer.HARD_HIDDEN) continue;
                 if (FILTER_NONHUMAN_BUFFERS && buffer.type == Buffer.OTHER && buffer.highlights == 0 && buffer.unreads == 0) continue;
-                if (FILTER_LC != null && FILTER_UC != null && !buffer.full_name.toLowerCase().contains(FILTER_LC) && !buffer.full_name.toUpperCase().contains(FILTER_UC)) continue;
-                sent_buffers.add(buffer);
+                if (FILTER_LC != null && FILTER_UC != null && !buffer.fullName.toLowerCase().contains(FILTER_LC) && !buffer.fullName.toUpperCase().contains(FILTER_UC)) continue;
+                sentBuffers.add(buffer);
             }
         }
-        if (SORT_BUFFERS) Collections.sort(sent_buffers, sortByHotAndMessageCountComparator);
-        else Collections.sort(sent_buffers, sortByHotCountAndNumberComparator);
-        return sent_buffers;
+        if (SORT_BUFFERS) Collections.sort(sentBuffers, sortByHotAndMessageCountComparator);
+        else Collections.sort(sentBuffers, sortByHotCountAndNumberComparator);
+        return sentBuffers;
     }
 
     synchronized static public void setFilter(String filter) {
         FILTER_LC = (filter.length() == 0) ? null : filter.toLowerCase();
         FILTER_UC = (filter.length() == 0) ? null : filter.toUpperCase();
-        sent_buffers = null;
+        sentBuffers = null;
     }
 
-    synchronized static public @Nullable Buffer findByFullName(@Nullable String full_name) {
-        if (full_name == null) return null;
-        for (Buffer buffer : buffers) if (buffer.full_name.equals(full_name)) return buffer;
+    synchronized static public @Nullable Buffer findByFullName(@Nullable String fullName) {
+        if (fullName == null) return null;
+        for (Buffer buffer : buffers) if (buffer.fullName.equals(fullName)) return buffer;
         return null;
     }
 
     /** sets or remove (using null) buffer list change watcher */
-    synchronized static public void setBufferListEye(@Nullable BufferListEye buffers_eye) {
-        BufferList.buffers_eye = buffers_eye;
+    synchronized static public void setBufferListEye(@Nullable BufferListEye buffersEye) {
+        BufferList.buffersEye = buffersEye;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -171,17 +171,17 @@ public class BufferList {
 
     /** called when a buffer has been added or removed */
     synchronized static private void notifyBuffersChanged() {
-        sent_buffers = null;
-        if (buffers_eye != null) buffers_eye.onBuffersChanged();
+        sentBuffers = null;
+        if (buffersEye != null) buffersEye.onBuffersChanged();
     }
 
     /** called when buffer data has been changed, but the no of buffers is the same
-     ** other_messages_changed signifies if buffer type is OTHER and message count has changed
+     ** otherMessagesChanged signifies if buffer type is OTHER and message count has changed
      ** used to temporarily display the said buffer if OTHER buffers are filtered */
-    synchronized static void notifyBuffersSlightlyChanged(boolean other_messages_changed) {
-        if (buffers_eye != null) {
-            if (other_messages_changed && FILTER_NONHUMAN_BUFFERS) sent_buffers = null;
-            buffers_eye.onBuffersChanged();
+    synchronized static void notifyBuffersSlightlyChanged(boolean otherMessagesChanged) {
+        if (buffersEye != null) {
+            if (otherMessagesChanged && FILTER_NONHUMAN_BUFFERS) sentBuffers = null;
+            buffersEye.onBuffersChanged();
         }
     }
 
@@ -193,8 +193,8 @@ public class BufferList {
      ** buffer changes are such that we should reorder the buffer list */
     synchronized static private void notifyBufferPropertiesChanged(Buffer buffer) {
         buffer.onPropertiesChanged();
-        sent_buffers = null;
-        if (buffers_eye != null) buffers_eye.onBuffersChanged();
+        sentBuffers = null;
+        if (buffersEye != null) buffersEye.onBuffersChanged();
     }
 
     /** process all open buffers and, if specified, notify them of the change
@@ -203,7 +203,7 @@ public class BufferList {
      ** get re-rendered */
     synchronized static void notifyOpenBuffersMustBeProcessed(boolean notify) {
         for (Buffer buffer : buffers)
-            if (buffer.is_open) {
+            if (buffer.isOpen) {
                 buffer.forceProcessAllMessages();
                 if (notify) buffer.onLinesChanged();
             }
@@ -213,22 +213,22 @@ public class BufferList {
     //////////////////////////////////////////////////////////////////////////////////////////////// called from Buffer & RelayService (local)
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    synchronized static boolean isSynced(String full_name) {
-        return synced_buffers_full_names.contains(full_name);
+    synchronized static boolean isSynced(String fullName) {
+        return syncedBuffersFullNames.contains(fullName);
     }
 
     /** send sync command to relay (if traffic is set to optimized) and
      ** add it to the synced buffers (=open buffers) list */
-    synchronized static void syncBuffer(String full_name) {
-        if (DEBUG_SYNCING) logger.warn("syncBuffer({})", full_name);
-        BufferList.synced_buffers_full_names.add(full_name);
-        if (OPTIMIZE_TRAFFIC) relay.connection.sendMsg("sync " + full_name);
+    synchronized static void syncBuffer(String fullName) {
+        if (DEBUG_SYNCING) logger.warn("syncBuffer({})", fullName);
+        BufferList.syncedBuffersFullNames.add(fullName);
+        if (OPTIMIZE_TRAFFIC) relay.connection.sendMsg("sync " + fullName);
     }
 
-    synchronized static void desyncBuffer(String full_name) {
-        if (DEBUG_SYNCING) logger.warn("desyncBuffer({})", full_name);
-        BufferList.synced_buffers_full_names.remove(full_name);
-        if (OPTIMIZE_TRAFFIC) relay.connection.sendMsg("desync " + full_name);
+    synchronized static void desyncBuffer(String fullName) {
+        if (DEBUG_SYNCING) logger.warn("desyncBuffer({})", fullName);
+        BufferList.syncedBuffersFullNames.remove(fullName);
+        if (OPTIMIZE_TRAFFIC) relay.connection.sendMsg("desync " + fullName);
     }
 
     public static void requestLinesForBufferByPointer(long pointer) {
@@ -249,21 +249,21 @@ public class BufferList {
 
     /** a list of most recent ACTUALLY RECEIVED hot messages
      ** each entry has a form of {"irc.free.#123", "<nick> hi there"} */
-    static public ArrayList<String[]> hot_list = new ArrayList<String[]>();
+    static public ArrayList<String[]> hotList = new ArrayList<>();
 
     /** this is the value calculated from hotlist received from weechat
-     ** it MIGHT BE GREATER than size of hot_list
+     ** it MIGHT BE GREATER than size of hotList
      ** initialized, it's -1, so that on service restart we know to remove notification 43 */
-    static private int hot_count = -1;
+    static private int hotCount = -1;
 
     /** returns hot count or 0 if unknown */
     static public int getHotCount() {
-        return hot_count == -1 ? 0 : hot_count;
+        return hotCount == -1 ? 0 : hotCount;
     }
 
     /** called when a new new hot message just arrived */
     synchronized static void newHotLine(final @NonNull Buffer buffer, final @NonNull Buffer.Line line) {
-        hot_list.add(new String[]{buffer.full_name, line.getNotificationString()});
+        hotList.add(new String[]{buffer.fullName, line.getNotificationString()});
         if (processHotCountAndTellIfChanged())
             notifyHotCountChanged(true);
     }
@@ -271,8 +271,8 @@ public class BufferList {
     /** called when buffer is read or closed
      ** must be called AFTER buffer hot count adjustments / buffer removal from the list */
     synchronized static void removeHotMessagesForBuffer(final @NonNull Buffer buffer) {
-        for (Iterator<String[]> it = hot_list.iterator(); it.hasNext(); )
-            if (it.next()[0].equals(buffer.full_name)) it.remove();
+        for (Iterator<String[]> it = hotList.iterator(); it.hasNext(); )
+            if (it.next()[0].equals(buffer.fullName)) it.remove();
         if (processHotCountAndTellIfChanged())
             notifyHotCountChanged(false);
     }
@@ -280,8 +280,8 @@ public class BufferList {
     /** remove a number of messages for a given buffer, leaving last 'leave' messages
      ** DOES NOT notify anyone of the change */
     synchronized static void adjustHotMessagesForBuffer(final @NonNull Buffer buffer, int leave) {
-        for (ListIterator<String[]> it = hot_list.listIterator(hot_list.size()); it.hasPrevious();) {
-            if (it.previous()[0].equals(buffer.full_name) && (leave-- <= 0))
+        for (ListIterator<String[]> it = hotList.listIterator(hotList.size()); it.hasPrevious();) {
+            if (it.previous()[0].equals(buffer.fullName) && (leave-- <= 0))
                 it.remove();
         }
     }
@@ -293,7 +293,7 @@ public class BufferList {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    /** HELPER. stores hot_count;
+    /** HELPER. stores hotCount;
      ** returns true if hot count has changed */
     static private boolean processHotCountAndTellIfChanged() {
         int hot = 0;
@@ -301,14 +301,14 @@ public class BufferList {
             hot += buffer.highlights;
             if (buffer.type == Buffer.PRIVATE) hot += buffer.unreads;
         }
-        return hot_count != (hot_count = hot); // har har
+        return hotCount != (hotCount = hot); // har har
     }
 
     /** HELPER. notifies everyone interested of hotlist changes */
-    static private void notifyHotCountChanged(boolean new_highlight) {
-        relay.changeHotNotification(new_highlight);
-        if (buffers_eye != null)
-            buffers_eye.onHotCountChanged();
+    static private void notifyHotCountChanged(boolean newHighlight) {
+        relay.changeHotNotification(newHighlight);
+        if (buffersEye != null)
+            buffersEye.onHotCountChanged();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -346,7 +346,7 @@ public class BufferList {
     //////////////////////////////////////////////////////////////////////////////////////////////// buffer list
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    static RelayMessageHandler buffer_list_watcher = new RelayMessageHandler() {
+    static RelayMessageHandler bufferListWatcher = new RelayMessageHandler() {
         @Override
         public void handleMessage(RelayObject obj, String id) {
             if (DEBUG_HANDLERS) logger.warn("handleMessage(..., {}) (hdata size = {})", id, ((Hdata) obj).getCount());
@@ -372,16 +372,16 @@ public class BufferList {
                         logger.error("handleMessage(..., {}): buffer is not present!", id);
                     } else {
                         if (id.equals("_buffer_renamed")) {
-                            buffer.full_name = entry.getItem("full_name").asString();
+                            buffer.fullName = entry.getItem("full_name").asString();
                             String short_name = entry.getItem("short_name").asString();
-                            buffer.short_name = (short_name != null) ? short_name : buffer.full_name;
-                            buffer.local_vars = (Hashtable) entry.getItem("local_variables");
+                            buffer.shortName = (short_name != null) ? short_name : buffer.fullName;
+                            buffer.localVars = (Hashtable) entry.getItem("local_variables");
                             notifyBufferPropertiesChanged(buffer);
                         } else if (id.equals("_buffer_title_changed")) {
                             buffer.title = entry.getItem("title").asString();
                             notifyBufferPropertiesChanged(buffer);
                         } else if (id.startsWith("_buffer_localvar_")) {
-                            buffer.local_vars = (Hashtable) entry.getItem("local_variables");
+                            buffer.localVars = (Hashtable) entry.getItem("local_variables");
                             notifyBufferPropertiesChanged(buffer);
                         } else if (id.equals("_buffer_moved") || id.equals("_buffer_merged")) { // TODO if buffer is moved, reorder others?
                             buffer.number = entry.getItem("number").asInt();                    // TODO this is not our issue; it's going to be resolved in future versions of weechat
@@ -407,50 +407,50 @@ public class BufferList {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     // last_read_lines
-    static RelayMessageHandler last_read_lines_watcher = new RelayMessageHandler() {
+    static RelayMessageHandler lastReadLinesWatcher = new RelayMessageHandler() {
         @Override
         public void handleMessage(RelayObject obj, String id) {
-            if (DEBUG_HANDLERS) logger.error("last_read_lines_watcher:handleMessage(..., {})", id);
+            if (DEBUG_HANDLERS) logger.error("lastReadLinesWatcher:handleMessage(..., {})", id);
             if (!(obj instanceof Hdata)) return;
 
-            HashMap<Long, Long> buffer_to_lrl = new HashMap<Long, Long>();
+            HashMap<Long, Long> bufferToLrl = new HashMap<>();
 
             Hdata data = (Hdata) obj;
             for (int i = 0, size = data.getCount(); i < size; i++) {
                 HdataEntry entry = data.getItem(i);
-                long buffer_pointer = entry.getItem("buffer").asPointerLong();
-                long line_pointer = entry.getPointerLong();
-                buffer_to_lrl.put(buffer_pointer, line_pointer);
+                long bufferPointer = entry.getItem("buffer").asPointerLong();
+                long linePointer = entry.getPointerLong();
+                bufferToLrl.put(bufferPointer, linePointer);
             }
 
             synchronized (BufferList.class) {
                 for (Buffer buffer : buffers) {
-                    Long line_pointer = buffer_to_lrl.get(buffer.pointer);
-                    buffer.updateLastReadLine(line_pointer == null ? -1 : line_pointer);
+                    Long linePointer = bufferToLrl.get(buffer.pointer);
+                    buffer.updateLastReadLine(linePointer == null ? -1 : linePointer);
                 }
             }
         }
     };
 
     // hotlist (ONLY)
-    static RelayMessageHandler hotlist_init_watcher = new RelayMessageHandler() {
+    static RelayMessageHandler hotlistInitWatcher = new RelayMessageHandler() {
         @Override
         public void handleMessage(RelayObject obj, String id) {
-            if (DEBUG_HANDLERS) logger.error("hotlist_init_watcher:handleMessage(..., {})", id);
+            if (DEBUG_HANDLERS) logger.error("hotlistInitWatcher:handleMessage(..., {})", id);
             if (!(obj instanceof Hdata)) return;
 
-            HashMap<Long, Array> buffer_to_hotlist = new HashMap<Long, Array>();
+            HashMap<Long, Array> bufferToHotlist = new HashMap<>();
 
             Hdata data = (Hdata) obj;
             for (int i = 0, size = data.getCount(); i < size; i++) {
                 HdataEntry entry = data.getItem(i);
                 long pointer = entry.getItem("buffer").asPointerLong();
                 Array count = entry.getItem("count").asArray();
-                buffer_to_hotlist.put(pointer, count);
+                bufferToHotlist.put(pointer, count);
             }
 
             for (Buffer buffer: buffers) {
-                Array count = buffer_to_hotlist.get(buffer.pointer);
+                Array count = bufferToHotlist.get(buffer.pointer);
                 int unreads = count == null ? 0 : count.get(1).asInt() + count.get(2).asInt();   // chat messages & private messages
                 int highlights = count == null ? 0 : count.get(3).asInt();                       // highlights
                 buffer.updateHighlightsAndUnreads(highlights, unreads);
@@ -467,26 +467,26 @@ public class BufferList {
 
     // _buffer_line_added
     // listlines_reverse
-    static RelayMessageHandler buffer_line_watcher = new RelayMessageHandler() {
+    static RelayMessageHandler bufferLineWatcher = new RelayMessageHandler() {
         @Override
         public void handleMessage(RelayObject obj, String id) {
-            if (DEBUG_HANDLERS) logger.debug("buffer_line_watcher:handleMessage(..., {})", id);
+            if (DEBUG_HANDLERS) logger.debug("bufferLineWatcher:handleMessage(..., {})", id);
             if (!(obj instanceof Hdata)) return;
             Hdata data = (Hdata) obj;
-            HashSet<Buffer> fresh_buffers = new HashSet<Buffer>();
+            HashSet<Buffer> freshBuffers = new HashSet<>();
 
             for (int i = 0, size = data.getCount(); i < size; i++) {
                 HdataEntry entry = data.getItem(i);
-                boolean is_bottom = id.equals("_buffer_line_added");
+                boolean isBottom = id.equals("_buffer_line_added");
 
-                long buffer_pointer = (is_bottom) ? entry.getItem("buffer").asPointerLong() : entry.getPointerLong(0);
+                long buffer_pointer = (isBottom) ? entry.getItem("buffer").asPointerLong() : entry.getPointerLong(0);
                 Buffer buffer = findByPointer(buffer_pointer);
                 if (buffer == null) {
-                    if (DEBUG_HANDLERS) logger.warn("buffer_line_watcher: no buffer to update!");
+                    if (DEBUG_HANDLERS) logger.warn("bufferLineWatcher: no buffer to update!");
                     continue;
                 }
-                if (!is_bottom)
-                    fresh_buffers.add(buffer);
+                if (!isBottom)
+                    freshBuffers.add(buffer);
                 String message = entry.getItem("message").asString();
                 String prefix = entry.getItem("prefix").asString();
                 boolean displayed = (entry.getItem("displayed").asChar() == 0x01);
@@ -499,11 +499,11 @@ public class BufferList {
                         tagsobj.asArray().asStringArray() : null;
 
                 Buffer.Line line = new Buffer.Line(entry.getPointerLong(), time, prefix, message, displayed, highlight, tags);
-                buffer.addLine(line, is_bottom);
+                buffer.addLine(line, isBottom);
 
             }
 
-            for (Buffer buffer : fresh_buffers) buffer.onLinesListed();
+            for (Buffer buffer : freshBuffers) buffer.onLinesListed();
         }
     };
 
@@ -519,14 +519,14 @@ public class BufferList {
     // nicklist
     // _nicklist
     // _nicklist_diff
-    static RelayMessageHandler nicklist_watcher = new RelayMessageHandler() {
+    static RelayMessageHandler nickListWatcher = new RelayMessageHandler() {
         @Override
         public void handleMessage(RelayObject obj, String id) {
-            if (DEBUG_HANDLERS) logger.debug("nicklist_watcher:handleMessage(..., {})", id);
+            if (DEBUG_HANDLERS) logger.debug("nickListWatcher:handleMessage(..., {})", id);
             if (!(obj instanceof Hdata)) return;
             Hdata data = (Hdata) obj;
             boolean diff = id.equals("_nicklist_diff");
-            HashSet<Buffer> renicked_buffers = new HashSet<Buffer>();
+            HashSet<Buffer> renickedBuffers = new HashSet<>();
 
             for (int i = 0, size = data.getCount(); i < size; i++) {
                 HdataEntry entry = data.getItem(i);
@@ -534,14 +534,14 @@ public class BufferList {
                 // find buffer
                 Buffer buffer = findByPointer(entry.getPointerLong(0));
                 if (buffer == null) {
-                    if (DEBUG_HANDLERS) logger.warn("nicklist_watcher: no buffer to update!");
+                    if (DEBUG_HANDLERS) logger.warn("nickListWatcher: no buffer to update!");
                     continue;
                 }
 
                 // if buffer doesn't hold all nicknames yet, break execution, since full nicks will be requested anyway later
                 // erase nicklist if we have a full list here
-                if (diff && !buffer.holds_all_nicks) continue;
-                if (!diff && renicked_buffers.add(buffer)) buffer.removeAllNicks();
+                if (diff && !buffer.holdsAllNicks) continue;
+                if (!diff && renickedBuffers.add(buffer)) buffer.removeAllNicks();
 
                 // decide whether it's adding, removing or updating nicks
                 // if _nicklist, treat as if we have _diff = '+'
@@ -567,8 +567,8 @@ public class BufferList {
 
             // sort nicknames when we receive them for the very first time
             if (id.equals("nicklist"))
-                for (Buffer buffer : renicked_buffers) {
-                    buffer.holds_all_nicks = true;
+                for (Buffer buffer : renickedBuffers) {
+                    buffer.holdsAllNicks = true;
                     buffer.sortNicksByLines();
                 }
         }
@@ -580,60 +580,60 @@ public class BufferList {
 
     /** restore buffer's stuff. this is called for every buffer upon buffer creation */
     synchronized static void restoreLastReadLine(Buffer buffer) {
-        BufferHotData data = buffer_to_last_read_line.get(buffer.full_name);
+        BufferHotData data = bufferToLastReadLine.get(buffer.fullName);
         if (data != null) {
-            buffer.last_read_line = data.last_read_line;
-            buffer.total_read_unreads = data.total_old_unreads;
-            buffer.total_read_highlights = data.total_old_highlights;
+            buffer.lastReadLine = data.lastReadLine;
+            buffer.totalReadUnreads = data.totalOldUnreads;
+            buffer.totalReadHighlights = data.totalOldHighlights;
         }
     }
 
     /** save buffer's stuff. this is called when information is about to be written to disk */
     synchronized static void saveLastReadLine(Buffer buffer) {
-        BufferHotData data = buffer_to_last_read_line.get(buffer.full_name);
+        BufferHotData data = bufferToLastReadLine.get(buffer.fullName);
         if (data == null) {
             data = new BufferHotData();
-            buffer_to_last_read_line.put(buffer.full_name, data);
+            bufferToLastReadLine.put(buffer.fullName, data);
         }
-        data.last_read_line = buffer.last_read_line;
-        data.total_old_unreads = buffer.total_read_unreads;
-        data.total_old_highlights = buffer.total_read_highlights;
+        data.lastReadLine = buffer.lastReadLine;
+        data.totalOldUnreads = buffer.totalReadUnreads;
+        data.totalOldHighlights = buffer.totalReadHighlights;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     synchronized static @Nullable String getSyncedBuffersAsString() {
         if (DEBUG_SAVE_RESTORE) logger.warn("getSyncedBuffersAsString() -> ...");
-        return Utils.serialize(synced_buffers_full_names);
+        return Utils.serialize(syncedBuffersFullNames);
     }
 
     @SuppressWarnings("unchecked")
-    synchronized static void setSyncedBuffersFromString(@Nullable String synced_buffers) {
+    synchronized static void setSyncedBuffersFromString(@Nullable String syncedBuffers) {
         if (DEBUG_SAVE_RESTORE) logger.warn("setSyncedBuffersFromString(...)");
-        Object o = Utils.deserialize(synced_buffers);
+        Object o = Utils.deserialize(syncedBuffers);
         if (o instanceof LinkedHashSet)
-            synced_buffers_full_names = (LinkedHashSet<String>) o;
+            syncedBuffersFullNames = (LinkedHashSet<String>) o;
     }
 
     synchronized static @Nullable String getBufferToLastReadLineAsString() {
         if (DEBUG_SAVE_RESTORE) logger.warn("getBufferToLastReadLineAsString() -> ...");
         if (buffers != null) for (Buffer buffer : buffers) saveLastReadLine(buffer);
-        return Utils.serialize(buffer_to_last_read_line);
+        return Utils.serialize(bufferToLastReadLine);
     }
 
     @SuppressWarnings("unchecked")
-    synchronized static void setBufferToLastReadLineFromString(@Nullable String buffers_read_lines) {
+    synchronized static void setBufferToLastReadLineFromString(@Nullable String buffersReadLines) {
         if (DEBUG_SAVE_RESTORE) logger.warn("setBufferToLastReadLineFromString(...)");
-        Object o = Utils.deserialize(buffers_read_lines);
+        Object o = Utils.deserialize(buffersReadLines);
         if (o instanceof LinkedHashMap)
-            buffer_to_last_read_line = (LinkedHashMap<String, BufferHotData>) o;
+            bufferToLastReadLine = (LinkedHashMap<String, BufferHotData>) o;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private static class BufferHotData implements Serializable {
-        long last_read_line = -1;
-        int total_old_unreads = 0;
-        int total_old_highlights = 0;
+        long lastReadLine = -1;
+        int totalOldUnreads = 0;
+        int totalOldHighlights = 0;
     }
 }
