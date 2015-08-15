@@ -482,13 +482,27 @@ public class Buffer {
         if (bufferNickListEye != null) bufferNickListEye.onNicklistChanged();
     }
 
-    /** this comparator sorts by prefix first
-     ** sorting by prefix is done in a dumb way, this will order prexis like this:
-     **      ' ', '%', '&', '+', '@'
-     ** well. it's almost good... */
+    /**
+     *  this comparator sorts by prefix first
+     */
     private final static Comparator<Nick> sortByNumberPrefixAndNameComparator = new Comparator<Nick>() {
+        // Lower values = higher priority
+        private int prioritizePrefix(String p) {
+            if (p.length() == 0) return 100;
+            char c = p.charAt(0);
+            switch(c) {
+                case '~': return 1; // Owners
+                case '&': return 2; // Admins
+                case '@': return 3; // Ops
+                case '%': return 4; // Half-Ops
+                case '+': return 5; // Voiced
+            }
+            return 100; // Other
+        }
         @Override public int compare(Nick n1, Nick n2) {
-            int diff = n2.prefix.compareTo(n1.prefix);
+            int p1 = prioritizePrefix(n1.prefix);
+            int p2 = prioritizePrefix(n2.prefix);
+            int diff = p1 - p2;
             return (diff != 0) ? diff : n1.name.compareToIgnoreCase(n2.name);
         }
     };
