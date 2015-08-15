@@ -35,30 +35,9 @@ public class Color {
     final private static boolean DEBUG = false;
     final private static Logger logger = LoggerFactory.getLogger("Color");
 
-    // Default weechat colors...00-16
-    private static final int weechatColors[] = new int[] {
-            0xD3D3D3,	// Grey
-            0x000000,	// Black
-            0x545454,	// Dark Gray
-            0xDC143C,	// Dark Red
-            0xFF0000,	// Light Red
-            0x108810,	// Dark Green
-            0x90EE90,	// Light Green
-            0xA52A2A,	// Brown
-            0xFFFF00,	// Yellow
-            0x1080FF,	// Dark Blue
-            0xADD8E6,	// Light Blue
-            0x8B008B,	// Dark Magenta
-            0xFF00FF,	// Light Magenta
-            0x008B8B,	// Dark Cyan
-            0x00FFFF,	// Cyan
-            0xD3D3D3,	// Gray
-            0xFFFFFF	// White
-    };
-
     // these are weechat options
     public static final int[][] weechatOptions = new int[][] {
-            {0xFFFFFF,       -1}, // #  0 default
+            {0xFFFFFF,       -1}, // #  0 separator
             {0xFFFFFF,       -1}, // #  1 chat
             {0x555555,       -1}, // #  2 chat_time
             {0xFFFFFF,       -1}, // #  3 chat_time_delimiters
@@ -96,28 +75,55 @@ public class Color {
             {      -1,       -1}, // # 35 chat_inactive_window
             {      -1,       -1}, // # 36 chat_inactive_buffer
             {      -1,       -1}, // # 37 chat_prefix_buffer_inactive_buffer
+            {      -1,       -1}, // # 38 chat_nick_offline
+            {      -1,       -1}, // # 39 chat_nick_offline_highlight
+            {      -1,       -1}, // # 40 chat_nick_prefix
+            {      -1,       -1}, // # 41 chat_nick_suffix
+            {      -1,       -1}, // # 42 emphasis
+            {      -1,       -1}, // # 43 chat_day_change
+    };
+
+    // Default weechat colors...00-16
+    private static final int weechatColors[] = new int[] {
+            0xD3D3D3,	// Default
+            0x000000,	// Black
+            0x545454,	// Dark Gray
+            0xDC143C,	// Dark Red
+            0xFF0000,	// Light Red
+            0x108810,	// Dark Green
+            0x90EE90,	// Light Green
+            0xA52A2A,	// Brown
+            0xFFFF00,	// Yellow
+            0x1080FF,	// Dark Blue
+            0xADD8E6,	// Light Blue
+            0x8B008B,	// Dark Magenta
+            0xFF00FF,	// Light Magenta
+            0x008B8B,	// Dark Cyan
+            0x00FFFF,	// Cyan
+            0xD3D3D3,	// Gray
+            0xFFFFFF	// White
     };
 
     private static int extendedColors[] = new int[256];
     static {
         // 16 basic terminal colors(from:
-        // http://docs.oracle.com/cd/E19728-01/820-2550/term_em_colormaps.html)
+        // http://www.calmar.ws/vim/256-xterm-24bit-rgb-color-chart.html
         extendedColors[0] =  0x000000; // Black
-        extendedColors[1] =  0xFF0000; // Light Red
-        extendedColors[2] =  0x00FF00; // Light Green
-        extendedColors[3] =  0xFFFF00; // Yellow
-        extendedColors[4] =  0x0000FF; // Light blue
-        extendedColors[5] =  0xFF00FF; // Light magenta
-        extendedColors[6] =  0x00FFFF; // Light cyan
-        extendedColors[7] =  0xFFFFFF; // High White
+        extendedColors[1] =  0x800000; // Light Red
+        extendedColors[2] =  0x008000; // Light Green
+        extendedColors[3] =  0x808000; // Brown
+        extendedColors[4] =  0x000080; // Light blue
+        extendedColors[5] =  0x800080; // Light magenta
+        extendedColors[6] =  0x008080; // Light cyan
+        extendedColors[7] =  0xC0C0C0; // High White
         extendedColors[8] =  0x808080; // Gray
-        extendedColors[9] =  0x800000; // Red
-        extendedColors[10] = 0x008000; // Green
-        extendedColors[11] = 0x808000; // Brown
-        extendedColors[12] = 0x000080; // Blue
-        extendedColors[13] = 0x800080; // Magenta
-        extendedColors[14] = 0x008080; // Cyan
-        extendedColors[15] = 0xC0C0C0; // White
+        extendedColors[9] =  0xFF0000; // Red
+        extendedColors[10] = 0x00FF00; // Green
+        extendedColors[11] = 0xFFFF00; // Yellow
+        extendedColors[12] = 0x0000FF; // Blue
+        extendedColors[13] = 0xFF00FF; // Magenta
+        extendedColors[14] = 0x00FFFF; // Cyan
+        extendedColors[15] = 0xFFFFFF; // White
 
         // Extended terminal colors, from colortest.vim:
         // http://www.vim.org/scripts/script.php?script_id=1349
