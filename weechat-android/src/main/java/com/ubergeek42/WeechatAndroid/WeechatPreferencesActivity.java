@@ -18,15 +18,17 @@ package com.ubergeek42.WeechatAndroid;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
+import android.os.Environment;
 import android.preference.*;
 import android.widget.BaseAdapter;
 import android.widget.Toast;
 
 import com.ubergeek42.WeechatAndroid.utils.FontManager;
 import com.ubergeek42.WeechatAndroid.utils.FontPreference;
+import com.ubergeek42.WeechatAndroid.utils.ThemePreference;
 
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
+
 
 public class WeechatPreferencesActivity extends PreferenceActivity implements
         OnSharedPreferenceChangeListener {
@@ -50,6 +52,7 @@ public class WeechatPreferencesActivity extends PreferenceActivity implements
     private PreferenceScreen pingPreferences;
     private CheckBoxPreference pingEnabledPref;
     private FontPreference bufferFontPref;
+    private ThemePreference colorSchemePref;
 
     /** Called when the activity is first created. */
     @Override
@@ -63,6 +66,8 @@ public class WeechatPreferencesActivity extends PreferenceActivity implements
         portPref = (EditTextPreference) getPreferenceScreen().findPreference("port");
         passPref = (EditTextPreference) getPreferenceScreen().findPreference("password");
         textSizePref = (EditTextPreference) getPreferenceScreen().findPreference("text_size");
+        colorSchemePref = (ThemePreference) getPreferenceScreen().findPreference("color_scheme");
+
         bufferFontPref = (FontPreference) getPreferenceScreen().findPreference("buffer_font");
         timestampformatPref = (EditTextPreference) getPreferenceScreen().findPreference(
                 "timestamp_format");
@@ -149,6 +154,7 @@ public class WeechatPreferencesActivity extends PreferenceActivity implements
         portPref.setSummary(sharedPreferences.getString("port", "8001"));
         textSizePref.setSummary(sharedPreferences.getString("text_size", "10"));
         updateBufferFontSummary();
+        updateColorSchemeSummary();
 
         timestampformatPref.setSummary(sharedPreferences.getString("timestamp_format", "HH:mm:ss"));
         stunnelCert.setSummary(sharedPreferences.getString("stunnel_cert", "Not Set"));
@@ -264,7 +270,19 @@ public class WeechatPreferencesActivity extends PreferenceActivity implements
             case "buffer_font":
                 updateBufferFontSummary();
                 break;
+            case "color_scheme":
+                updateColorSchemeSummary();
+                break;
         }
+    }
+
+    private void updateColorSchemeSummary() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(getString(R.string.pref_color_scheme_summary));
+        sb.append("\n\nSearch Path:\n");
+        sb.append("   " + Environment.getExternalStorageDirectory().toString() + "/weechat" + "\n");
+        sb.append("\nCurrent Value:\n" + sharedPreferences.getString("color_scheme", "Not Set"));
+        colorSchemePref.setSummary(sb.toString());
     }
 
     private void updateBufferFontSummary() {
@@ -275,6 +293,5 @@ public class WeechatPreferencesActivity extends PreferenceActivity implements
             sb.append("   " + p + "\n");
         sb.append("\nCurrent Value:\n" + sharedPreferences.getString("buffer_font", "Not Set"));
         bufferFontPref.setSummary(sb.toString());
-
     }
 }

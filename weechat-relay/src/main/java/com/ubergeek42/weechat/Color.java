@@ -35,115 +35,11 @@ public class Color {
     final private static boolean DEBUG = false;
     final private static Logger logger = LoggerFactory.getLogger("Color");
 
-    // these are weechat options
-    public static final int[][] weechatOptions = new int[][] {
-            {0xFFFFFF,       -1}, // #  0 separator
-            {0xFFFFFF,       -1}, // #  1 chat
-            {0x555555,       -1}, // #  2 chat_time
-            {0xFFFFFF,       -1}, // #  3 chat_time_delimiters
-            {0xFF6633,       -1}, // #  4 chat_prefix_error
-            {0x990099,       -1}, // #  5 chat_prefix_network
-            {0x999999,       -1}, // #  6 chat_prefix_action
-            {0x00CC00,       -1}, // #  7 chat_prefix_join
-            {0xCC0000,       -1}, // #  8 chat_prefix_quit
-            {0xCC00FF,       -1}, // #  9 chat_prefix_more
-            {0x330099,       -1}, // # 10 chat_prefix_suffix
-            {0xFFFFFF,       -1}, // # 11 chat_buffer
-            {0xFFFFFF,       -1}, // # 12 chat_server
-            {0xFFFFFF,       -1}, // # 13 chat_channel
-            {0xFFFFFF,       -1}, // # 14 chat_nick
-            {0xFFFFFF,       -1}, // # 15 chat_nick_self
-            {0xFFFFFF,       -1}, // # 16 chat_nick_other
-            {      -1,       -1}, // # 17 (nick1 -- obsolete)
-            {      -1,       -1}, // # 18 (nick2 -- obsolete)
-            {      -1,       -1}, // # 19 (nick3 -- obsolete)
-            {      -1,       -1}, // # 20 (nick4 -- obsolete)
-            {      -1,       -1}, // # 21 (nick5 -- obsolete)
-            {      -1,       -1}, // # 22 (nick6 -- obsolete)
-            {      -1,       -1}, // # 23 (nick7 -- obsolete)
-            {      -1,       -1}, // # 24 (nick8 -- obsolete)
-            {      -1,       -1}, // # 25 (nick9 -- obsolete)
-            {      -1,       -1}, // # 26 (nick10 -- obsolete)
-            {0x666666,       -1}, // # 27 chat_host
-            {0x9999FF,       -1}, // # 28 chat_delimiters
-            {0xFFFFFF, 0xFF1155}, // # 29 chat_highlight
-            {      -1,       -1}, // # 30 chat_read_marker
-            {      -1,       -1}, // # 31 chat_text_found
-            {      -1,       -1}, // # 32 chat_value
-            {      -1,       -1}, // # 33 chat_prefix_buffer
-            {      -1,       -1}, // # 34 chat_tags
-            {      -1,       -1}, // # 35 chat_inactive_window
-            {      -1,       -1}, // # 36 chat_inactive_buffer
-            {      -1,       -1}, // # 37 chat_prefix_buffer_inactive_buffer
-            {      -1,       -1}, // # 38 chat_nick_offline
-            {      -1,       -1}, // # 39 chat_nick_offline_highlight
-            {      -1,       -1}, // # 40 chat_nick_prefix
-            {      -1,       -1}, // # 41 chat_nick_suffix
-            {      -1,       -1}, // # 42 emphasis
-            {      -1,       -1}, // # 43 chat_day_change
-    };
-
-    // Default weechat colors...00-16
-    private static final int weechatColors[] = new int[] {
-            0xD3D3D3,	// Default
-            0x000000,	// Black
-            0x545454,	// Dark Gray
-            0xDC143C,	// Dark Red
-            0xFF0000,	// Light Red
-            0x108810,	// Dark Green
-            0x90EE90,	// Light Green
-            0xA52A2A,	// Brown
-            0xFFFF00,	// Yellow
-            0x1080FF,	// Dark Blue
-            0xADD8E6,	// Light Blue
-            0x8B008B,	// Dark Magenta
-            0xFF00FF,	// Light Magenta
-            0x008B8B,	// Dark Cyan
-            0x00FFFF,	// Cyan
-            0xD3D3D3,	// Gray
-            0xFFFFFF	// White
-    };
-
-    private static int extendedColors[] = new int[256];
-    static {
-        // 16 basic terminal colors(from:
-        // http://www.calmar.ws/vim/256-xterm-24bit-rgb-color-chart.html
-        extendedColors[0] =  0x000000; // Black
-        extendedColors[1] =  0x800000; // Light Red
-        extendedColors[2] =  0x008000; // Light Green
-        extendedColors[3] =  0x808000; // Brown
-        extendedColors[4] =  0x000080; // Light blue
-        extendedColors[5] =  0x800080; // Light magenta
-        extendedColors[6] =  0x008080; // Light cyan
-        extendedColors[7] =  0xC0C0C0; // High White
-        extendedColors[8] =  0x808080; // Gray
-        extendedColors[9] =  0xFF0000; // Red
-        extendedColors[10] = 0x00FF00; // Green
-        extendedColors[11] = 0xFFFF00; // Yellow
-        extendedColors[12] = 0x0000FF; // Blue
-        extendedColors[13] = 0xFF00FF; // Magenta
-        extendedColors[14] = 0x00FFFF; // Cyan
-        extendedColors[15] = 0xFFFFFF; // White
-
-        // Extended terminal colors, from colortest.vim:
-        // http://www.vim.org/scripts/script.php?script_id=1349
-        int base[] = new int[] { 0, 95, 135, 175, 215, 255 };
-        for (int i = 16; i < 232; i++) {
-            int j = i - 16;
-            extendedColors[i] = (base[(j / 36) % 6]) << 16 | (base[(j / 6) % 6] << 8 | (base[j % 6]));
-        }
-        for (int i = 232; i < 256; i++) {
-            int j = 8 + i * 10;
-            extendedColors[i] = j << 16 | j << 8 | j;
-        }
-    }
-
     // constants
     public final static int ALIGN_NONE = 0;
     public final static int ALIGN_LEFT = 1;
     public final static int ALIGN_RIGHT = 2;
     public final static int ALIGN_TIMESTAMP = 3;
-
 
     public static String stripColors(String text) { return text; }
     public static String stripAllColorsAndAttributes(String text) { return text; }
@@ -163,13 +59,13 @@ public class Color {
                 new Object[]{timestamp, prefix, message, enclose_nick, highlight, max, alignment});
         int puff;
         int color;
+        ColorScheme cs = ColorScheme.currentScheme();
         StringBuilder sb = new StringBuilder();
         finalSpanList = new ArrayList<>();
 
-        // timestamp uses no colors
         if (timestamp != null) {
             sb.append(timestamp);
-            Span fg = new Span(); fg.start = 0; fg.end = sb.length(); fg.type = Span.FGCOLOR; fg.color = weechatOptions[2][0]; finalSpanList.add(fg);
+            Span fg = new Span(); fg.start = 0; fg.end = sb.length(); fg.type = Span.FGCOLOR; fg.color = cs.getOptionColor("chat_time")[ColorScheme.OPT_FG]; finalSpanList.add(fg);
             sb.append(" ");
         }
 
@@ -201,14 +97,14 @@ public class Color {
             for (int x = 0; x < diff; x++) sb.append(" "); // spaces for padding
         }
         if (highlight) {
-            color = weechatOptions[29][0];
+            color = cs.getOptionColor("chat_highlight")[0];
             if (color != -1) {Span fg = new Span(); fg.start = 0; fg.end = prefix.length(); fg.type = Span.FGCOLOR; fg.color = color; spanList.add(fg);}
-            color = weechatOptions[29][1];
+            color = cs.getOptionColor("chat_highlight")[1];
             if (color != -1) {Span bg = new Span(); bg.start = 0; bg.end = prefix.length(); bg.type = Span.BGCOLOR; bg.color = color; spanList.add(bg);}
         }
         if (enclose_nick && max >= 1) {
             sb.append("<");
-            Span fg = new Span(); fg.start = sb.length() - 1; fg.end = sb.length(); fg.type = Span.FGCOLOR; fg.color = weechatOptions[2][0]; finalSpanList.add(fg);
+            Span fg = new Span(); fg.start = sb.length() - 1; fg.end = sb.length(); fg.type = Span.FGCOLOR; fg.color = cs.getOptionColor("chat_time")[ColorScheme.OPT_FG]; finalSpanList.add(fg);
         }
         puff = sb.length();
         for (Span span : spanList) {
@@ -220,14 +116,14 @@ public class Color {
         if (nickHasBeenCut) {
             if (enclose_nick && max >= 2) {
                 sb.append(">");
-                Span fg = new Span(); fg.start = sb.length() - 1; fg.end = sb.length(); fg.type = Span.FGCOLOR; fg.color = weechatOptions[2][0]; finalSpanList.add(fg);
+                Span fg = new Span(); fg.start = sb.length() - 1; fg.end = sb.length(); fg.type = Span.FGCOLOR; fg.color = cs.getOptionColor("chat_prefix_suffix")[ColorScheme.OPT_FG]; finalSpanList.add(fg);
             }
             sb.append("+");
-            Span fg = new Span(); fg.start = sb.length() - 1; fg.end = sb.length(); fg.type = Span.FGCOLOR; fg.color = 0x444444; finalSpanList.add(fg);
+            Span fg = new Span(); fg.start = sb.length() - 1; fg.end = sb.length(); fg.type = Span.FGCOLOR; fg.color = cs.getOptionColor("chat_prefix_more")[ColorScheme.OPT_FG]; finalSpanList.add(fg);
         }
         else if (enclose_nick && max >= 2) {
             sb.append("> ");
-            Span fg = new Span(); fg.start = sb.length() - 2; fg.end = sb.length() - 1; fg.type = Span.FGCOLOR; fg.color = weechatOptions[2][0]; finalSpanList.add(fg);
+            Span fg = new Span(); fg.start = sb.length() - 2; fg.end = sb.length() - 1; fg.type = Span.FGCOLOR; fg.color =cs.getOptionColor("chat_prefix_suffix")[ColorScheme.OPT_FG]; finalSpanList.add(fg);
         }
         else sb.append(" ");
 
@@ -340,10 +236,10 @@ public class Color {
     private static void setWeechatColor() {
         int color;
         int color_index = getNumberOfLengthUpTo(2);
-        if (color_index < 0 || color_index >= weechatOptions.length) return;
-        color = weechatOptions[color_index][0];
+        ColorScheme cs = ColorScheme.currentScheme();
+        color = cs.getOptionColor(color_index)[ColorScheme.OPT_FG];
         if (color != -1) addSpan(Span.FGCOLOR, color);
-        color = weechatOptions[color_index][1];
+        color = cs.getOptionColor(color_index)[ColorScheme.OPT_BG];
         if (color != -1) addSpan(Span.BGCOLOR, color);
     }
 
@@ -361,15 +257,15 @@ public class Color {
     // returns color in the form 0xfffff or -1
     private static int getColor() {
         int color_index = getNumberOfLengthUpTo(2);
-        if (color_index < 0 || color_index >= weechatColors.length) return -1;
-        return weechatColors[color_index];
+        ColorScheme cs = ColorScheme.currentScheme();
+        return cs.getWeechatColor(color_index);
     }
 
     // returns color in the form 0xfffff or -1
     private static int getColorExtended() {
         int color_index = getNumberOfLengthUpTo(5);
-        if (color_index < 0 || color_index >= extendedColors.length) return -1;
-        return extendedColors[color_index];
+        ColorScheme cs = ColorScheme.currentScheme();
+        return cs.getColor(color_index);
     }
 
     // returns a number stored in the next “amount” characters

@@ -3,6 +3,7 @@ package com.ubergeek42.WeechatAndroid.fragments;
 import java.util.ArrayList;
 import java.util.Vector;
 
+import android.graphics.drawable.ColorDrawable;
 import android.support.v4.app.Fragment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +42,7 @@ import com.ubergeek42.WeechatAndroid.service.Buffer;
 import com.ubergeek42.WeechatAndroid.service.BufferEye;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
 import com.ubergeek42.WeechatAndroid.service.RelayServiceBinder;
-import com.ubergeek42.WeechatAndroid.utils.FixedRadialDrawable;
+import com.ubergeek42.weechat.ColorScheme;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
 
 public class BufferFragment extends Fragment implements BufferEye, OnKeyListener,
@@ -121,7 +122,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         uiInput.setOnEditorActionListener(this);   // listen for software keyboard's “send” click. see onEditorAction()
 
         //noinspection deprecation
-        uiLines.setBackgroundDrawable(new FixedRadialDrawable());
+        uiLines.setBackgroundDrawable(new ColorDrawable(0xFF000000 | ColorScheme.currentScheme().getOptionColor("default")[ColorScheme.OPT_BG]));
         uiLines.setFocusable(false);
         uiLines.setFocusableInTouchMode(false);
 

@@ -51,6 +51,7 @@
 		<EditTextPreference android:key="timestamp_format" android:title="@string/pref_timestamp_format" android:summary="@string/pref_timestamp_format_summary" android:defaultValue="HH:mm:ss" android:singleLine="true" />
         <CheckBoxPreference android:key="dim_down" android:title="@string/pref_dim_down" android:summary="@string/pref_dim_down_summary" android:defaultValue="false" />
 		<com.ubergeek42.WeechatAndroid.utils.FontPreference android:key="buffer_font" android:title="@string/pref_font" android:summary="@string/pref_font_summary" />
+		<com.ubergeek42.WeechatAndroid.utils.ThemePreference android:key="color_scheme" android:title="@string/color_scheme" android:summary="@string/color_scheme_summary" />
     </PreferenceCategory>
     
     <PreferenceCategory android:key="misc_group" android:title="@string/pref_misc_group">

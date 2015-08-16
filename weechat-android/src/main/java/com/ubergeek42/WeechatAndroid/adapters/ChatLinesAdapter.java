@@ -16,6 +16,7 @@
 package com.ubergeek42.WeechatAndroid.adapters;
 
 import android.graphics.Typeface;
+import android.graphics.drawable.ColorDrawable;
 import android.support.v4.app.FragmentActivity;
 import android.text.Spannable;
 import android.text.method.LinkMovementMethod;
@@ -33,6 +34,7 @@ import android.widget.TextView;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.service.Buffer;
 import com.ubergeek42.WeechatAndroid.service.BufferEye;
+import com.ubergeek42.weechat.ColorScheme;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -110,10 +112,12 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
             if (lineID == lastLineRead) {
                 retview = inflater.inflate(R.layout.chatview_line_last_read, null);
                 textview = (TextView)retview.findViewById(R.id.chatline_message);
+                retview.findViewById(R.id.separator).setBackgroundDrawable(new ColorDrawable(0xFF000000 | ColorScheme.currentScheme().getOptionColor("chat_read_marker")[0]));
             } else {
                 textview = (TextView) inflater.inflate(R.layout.chatview_line, null);
                 retview = textview;
             }
+            textview.setTextColor(0xFF000000 | ColorScheme.currentScheme().getOptionColor("default")[0]);
             textview.setMovementMethod(LinkMovementMethod.getInstance());
         } else { // convertview is only ever not null for the simple case
             textview = (TextView) convertView;
@@ -181,6 +185,9 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
 
         activity.runOnUiThread(new Runnable() {
             @Override public void run() {
+                // Update background color
+                uiListView.setBackgroundDrawable(new ColorDrawable(0xFF000000 | ColorScheme.currentScheme().getOptionColor("default")[ColorScheme.OPT_BG]));
+
                 lines = l;
                 notifyDataSetChanged();
                 if (lastItemVisible)
