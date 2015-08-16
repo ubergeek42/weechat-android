@@ -242,7 +242,7 @@ public class RelayService extends RelayServiceBackbone {
 
     private void loadColorScheme() {
         // Load color scheme
-        String colorScheme = prefs.getString(PREFS_COLOR_SCHEME, null);
+        String colorScheme = prefs.getString(PREFS_COLOR_SCHEME, "weechat-android-theme.properties");
         if (colorScheme != null) {
             Properties p = new Properties();
             try {
