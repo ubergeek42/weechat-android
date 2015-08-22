@@ -27,6 +27,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.ListIterator;
+import java.util.Locale;
 
 /** a class that holds information about buffers
  ** probably should be made static */
@@ -233,7 +234,7 @@ public class BufferList {
 
     public static void requestLinesForBufferByPointer(long pointer) {
         if (DEBUG_SYNCING) logger.warn("requestLinesForBufferByPointer({})", pointer);
-        connection.sendMsg("listlines_reverse", "hdata", String.format(
+        connection.sendMsg("listlines_reverse", "hdata", String.format(Locale.ROOT,
                 "buffer:0x%x/own_lines/last_line(-%d)/data date,displayed,prefix,message,highlight,notify,tags_array",
                 pointer, Buffer.MAX_LINES));
     }
