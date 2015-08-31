@@ -117,7 +117,7 @@ public class SSLCertActivity extends Activity {
         details.append("Issued On:  " + cert.getNotBefore() + "<br>");
         details.append("Expires On: " + cert.getNotAfter() + "<br><br>");
         
-        details.append("<b>Fingerprint:</b><br>");
+        details.append("<b>SHA-1 Fingerprint:</b><br>");
         try {
             String fingerprint = new String(Hex.encodeHex(DigestUtils.sha1(cert.getEncoded())));
             details.append(fingerprint);
