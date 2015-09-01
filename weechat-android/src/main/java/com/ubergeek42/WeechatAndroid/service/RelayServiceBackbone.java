@@ -342,7 +342,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
                     builder.setVibrate(new long[] {0, 0, 0, 0});
                 }
                 if (prefs.getBoolean(PREF_NOTIFICATION_LIGHT, false)) {
-                    builder.setLights(Color.WHITE, 100, 100);
+                    builder.setLights(Color.WHITE, 100, 1000);
                 }
             }
 
