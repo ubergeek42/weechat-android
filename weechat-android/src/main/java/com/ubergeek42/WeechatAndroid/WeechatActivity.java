@@ -517,8 +517,9 @@ public class WeechatActivity extends AppCompatActivity implements RelayConnectio
                     else
                         connectionStatus.setTitle(R.string.connect);
 
-                    final MenuItem item = uiMenu.findItem(R.id.menu_hotlist);
-                    item.setIcon(BufferList.OPTIMIZE_TRAFFIC ? R.drawable.ic_bell_cracked : R.drawable.ic_bell);
+                    final View menuHotlist = MenuItemCompat.getActionView(uiMenu.findItem(R.id.menu_hotlist));
+                    ImageView bellImage = (ImageView) menuHotlist.findViewById(R.id.hotlist_bell);
+                    bellImage.setImageResource(BufferList.OPTIMIZE_TRAFFIC ? R.drawable.ic_bell_cracked : R.drawable.ic_bell);
                 }
             }
         });
