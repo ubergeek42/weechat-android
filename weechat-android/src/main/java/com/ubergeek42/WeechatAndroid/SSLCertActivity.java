@@ -8,7 +8,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import android.app.Activity;
+import android.support.v7.app.AppCompatActivity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -24,7 +24,7 @@ import android.widget.TextView;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
 import com.ubergeek42.WeechatAndroid.service.RelayServiceBinder;
 
-public class SSLCertActivity extends Activity {
+public class SSLCertActivity extends AppCompatActivity {
     private static Logger logger = LoggerFactory.getLogger("SSLCertActivity");
     final private static boolean DEBUG = true;
 

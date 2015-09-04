@@ -88,10 +88,10 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @Override
-    public void onAttach(Activity activity) {
+    public void onAttach(Context context) {
         if (DEBUG_LIFECYCLE) logger.warn("{} onAttach(...)", fullName);
-        super.onAttach(activity);
-        this.activity = (WeechatActivity) activity;
+        super.onAttach(context);
+        this.activity = (WeechatActivity) context;
     }
 
     @Override

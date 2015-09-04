@@ -4,7 +4,6 @@ import android.support.v4.app.ListFragment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -60,10 +59,10 @@ public class BufferListFragment extends ListFragment implements RelayConnectionH
     /** This makes sure that the container activity has implemented
      ** the callback interface. If not, it throws an exception. */
     @Override
-    public void onAttach(Activity activity) {
+    public void onAttach(Context context) {
         if (DEBUG_LIFECYCLE) logger.warn("onAttach()");
-        super.onAttach(activity);
-        this.activity = (WeechatActivity) activity;
+        super.onAttach(context);
+        this.activity = (WeechatActivity) context;
     }
 
     /** Supposed to be called only once

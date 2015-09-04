@@ -17,7 +17,7 @@ package com.ubergeek42.WeechatAndroid.adapters;
 
 import java.util.ArrayList;
 
-import android.app.Activity;
+import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -38,7 +38,7 @@ public class BufferListAdapter extends BaseAdapter implements BufferListEye {
     private static Logger logger = LoggerFactory.getLogger("BufferListAdapter");
     final private static boolean DEBUG = BuildConfig.DEBUG;
 
-    Activity activity;
+    AppCompatActivity activity;
     LayoutInflater inflater;
     private ArrayList<Buffer> buffers = new ArrayList<>();
 
@@ -48,7 +48,7 @@ public class BufferListAdapter extends BaseAdapter implements BufferListEye {
             {0xaa57474f, 0xaa735e69}, // private
     };
     
-    public BufferListAdapter(Activity activity) {
+    public BufferListAdapter(AppCompatActivity activity) {
         this.activity = activity;
         this.inflater = LayoutInflater.from(activity);
     }

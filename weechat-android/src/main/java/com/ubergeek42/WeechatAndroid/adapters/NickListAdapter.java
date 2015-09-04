@@ -1,6 +1,6 @@
 package com.ubergeek42.WeechatAndroid.adapters;
 
-import android.app.AlertDialog;
+import android.support.v7.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Build;
 import android.support.annotation.NonNull;
