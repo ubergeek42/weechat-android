@@ -1,16 +1,11 @@
 package com.ubergeek42.WeechatAndroid.service;
 
-import android.content.ActivityNotFoundException;
-import android.content.Context;
-import android.content.Intent;
 import android.graphics.Typeface;
-import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.Spanned;
-import android.text.TextPaint;
 import android.text.style.BackgroundColorSpan;
 import android.text.style.CharacterStyle;
 import android.text.style.ForegroundColorSpan;
@@ -18,10 +13,9 @@ import android.text.style.LeadingMarginSpan;
 import android.text.style.RelativeSizeSpan;
 import android.text.style.StyleSpan;
 import android.text.style.SuperscriptSpan;
-import android.text.style.URLSpan;
 import android.text.style.UnderlineSpan;
-import android.view.View;
 
+import com.ubergeek42.WeechatAndroid.utils.Linkify;
 import com.ubergeek42.weechat.Color;
 import com.ubergeek42.weechat.ColorScheme;
 import com.ubergeek42.weechat.relay.protocol.Hashtable;
@@ -540,7 +534,10 @@ public class Buffer {
         private @Nullable String speakingNick;
         private boolean privmsg;
         private boolean action;
-        private boolean clickDisabled = false;
+
+        // sole purpose of this is to prevent onClick event on inner URLSpans to be fired
+        // when user long-presses on the screen and a context menu is shown
+        public boolean clickDisabled = false;
 
         // processed data
         // might not be present
@@ -595,10 +592,6 @@ public class Buffer {
             return speakingNick;
         }
 
-        public void disableClick() {
-            this.clickDisabled = true;
-        }
-
         //////////////////////////////////////////////////////////////////////////////////////////// processing stuff
 
         public void eraseProcessedMessage() {
@@ -644,12 +637,8 @@ public class Buffer {
                 spannable.setSpan(margin_span, 0, spannable.length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
             }
 
-            // now this is extremely stupid.
-            com.ubergeek42.WeechatAndroid.backported.Linkify.addLinks(spannable, com.ubergeek42.WeechatAndroid.backported.Linkify.WEB_URLS);
-            for (URLSpan urlspan : spannable.getSpans(0, spannable.length(), URLSpan.class)) {
-                spannable.setSpan(new URLSpan2(urlspan.getURL()), spannable.getSpanStart(urlspan), spannable.getSpanEnd(urlspan), 0);
-                spannable.removeSpan(urlspan);
-            }
+            // what a nice little custom linkifier we've got us here
+            Linkify.linkify(spannable);
 
             this.spannable = spannable;
         }
@@ -659,34 +648,6 @@ public class Buffer {
             return String.format((!privmsg || action) ? "%s %s" : "<%s> %s",
                     Color.stripEverything(prefix),
                     Color.stripEverything(message));
-        }
-
-        //////////////////////////////////////////////////////////////////////////////////////////// private stuffs
-
-        /** just an url span that doesn't change the color of the link */
-        private class URLSpan2 extends URLSpan {
-
-            public URLSpan2(String url) {
-                super(url);
-            }
-
-            @Override public void onClick(View widget) {
-                if (!Line.this.clickDisabled) {
-                    Uri uri = Uri.parse(getURL());
-                    Context context = widget.getContext();
-                    Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-                    try {
-                        context.startActivity(intent);
-                    } catch (ActivityNotFoundException e) {
-                        logger.debug("URLSpan2","Activity not found for intent " + intent.toString());
-                    }
-                }
-                Line.this.clickDisabled = false;
-            }
-
-            @Override public void updateDrawState(@NonNull TextPaint ds) {
-                ds.setUnderlineText(true);
-            }
         }
     }
 

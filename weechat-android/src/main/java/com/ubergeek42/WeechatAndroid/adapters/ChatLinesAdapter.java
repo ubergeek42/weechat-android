@@ -218,7 +218,7 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
 
     @Override public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
         Buffer.Line line = (Buffer.Line) parent.getItemAtPosition(position);
-        line.disableClick();
+        line.clickDisabled = true;
         return false;
     }
 
