@@ -3,7 +3,18 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
 
     <style name="Weechat" parent="Theme.AppCompat">
-        <item name="android:windowBackground">@color/doge</item>
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryDark">@color/primary_dark</item>
+        <item name="android:windowBackground">@color/primary</item>
+        <item name="android:colorBackground">@color/primary</item>
+        <item name="android:navigationBarColor" tools:targetApi="lollipop">@color/primary_dark</item>
+        <item name="alertDialogTheme">@style/DialogStyle</item>
+    </style>
+
+    <style name="DialogStyle" parent="Theme.AppCompat.Dialog.Alert">
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryDark">@color/primary_dark</item>
+        <item name="android:background">@color/primary</item>
     </style>
 
     <!-- honey comb & lower action button approximation -->
@@ -17,7 +28,7 @@
         <item name="android:maxLines">2</item>
     </style>
 
-    <color name="doge">#FF1B1F22</color>
-    <color name="open">@android:color/white</color>
+    <color name="primary">#FF1B1F22</color>
+    <color name="primary_dark">#FF0f1315</color>
 
 </resources>
