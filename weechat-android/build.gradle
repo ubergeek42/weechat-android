@@ -9,9 +9,9 @@ buildscript {
 apply plugin: 'com.android.application'
 
 dependencies {
-    compile 'com.android.support:support-v4:22.1.+'
+    compile 'com.android.support:support-v4:23.0.+'
     compile 'com.android.support:support-annotations:+' // For @Nullable/@NonNull
-    compile 'com.android.support:appcompat-v7:22.1.+'
+    compile 'com.android.support:appcompat-v7:23.0.+'
 
     compile "org.slf4j:slf4j-android:1.7.12"  // Android Logging API
 
@@ -29,7 +29,7 @@ tasks.withType(JavaCompile) {
 }
 
 android {
-    compileSdkVersion 21
+    compileSdkVersion 23
     buildToolsVersion "22.0.1"
 
     defaultConfig {
@@ -37,7 +37,7 @@ android {
         versionName "0.10"
 
         minSdkVersion 9
-        targetSdkVersion 21
+        targetSdkVersion 23
     }
 
     signingConfigs {
