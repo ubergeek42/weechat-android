@@ -60,6 +60,9 @@ public class Linkify {
         }
     }
 
+    final private static String IRIC = "[a-zA-Z0-9\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]";
+    final private static String GLTDC = "[a-zA-Z\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]";
+
     final private static Pattern URL = Pattern.compile(
         // url must be preceded by a word boundary
         "\\b" +
@@ -78,10 +81,9 @@ public class Linkify {
               "(?:\\.(?:1?\\d{1,2}|2[0-4]\\d|25[0-5])){2}" +
               "(?:\\.(?:[1-9]\\d?|1\\d\\d|2[0-4]\\d|25[0-4]))" +
         "|" +
-              //# domain name (a.b.c.com)
-              "(?:(?:[a-z\\u00a1-\\uffff0-9]+-?)*[a-z\\u00a1-\\uffff0-9]+)" +     // a, a-b
-              "(?:\\.(?:[a-z\\u00a1-\\uffff0-9]+-?)*[a-z\\u00a1-\\uffff0-9]+)*" + // .c, .c-d
-              "(?:\\.(?:[a-z\\u00a1-\\uffff]{2,}))" +                             // .ru, .com, etc
+              // domain name (a.b.c.com)
+              "(?:" + IRIC + "+(?:-" + IRIC + "+)*\\.)+" +  // (\w+(-\w+)*\.)+      a. a-b. a-b.a-b.
+              GLTDC + "{2,63}" +                            // (\w){2,63}           com ninja
         ")" +
         // port?
         "(?::\\d{2,5})?" +
@@ -106,7 +108,7 @@ public class Linkify {
         "(?=" +
               // some possible punctuation
               // AND space or end of string
-              "[,.)!?:]*" +
+              "[\\])>,.!?:\"”]*" +
               "(?:\\s|$)" +
         ")"
         , Pattern.CASE_INSENSITIVE | Pattern.COMMENTS);
