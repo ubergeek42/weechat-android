@@ -32,6 +32,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.ubergeek42.WeechatAndroid.R;
+import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.service.Buffer;
 import com.ubergeek42.WeechatAndroid.service.BufferEye;
 import com.ubergeek42.weechat.ColorScheme;
@@ -44,7 +45,7 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
     private static Logger logger = LoggerFactory.getLogger("ChatLinesAdapter");
     final private static boolean DEBUG = false;
 
-    private FragmentActivity activity = null;
+    private WeechatActivity activity = null;
 
     private Buffer buffer;
     private Buffer.Line[] lines = new Buffer.Line[0];
@@ -53,11 +54,11 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
     private Typeface typeface = null;
 
     private boolean lastItemVisible = true;
-    private boolean needMoveLastReadMarker = false;
+    public boolean needMoveLastReadMarker = false;
 
     public ChatLinesAdapter(FragmentActivity activity, Buffer buffer, ListView uiListView) {
         if (DEBUG) logger.debug("ChatLinesAdapter({}, {})", activity, buffer);
-        this.activity = activity;
+        this.activity = (WeechatActivity) activity;
         this.buffer = buffer;
         this.inflater = LayoutInflater.from(activity);
         this.uiListView = uiListView;
@@ -69,12 +70,6 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
             return;
         }
         typeface = Typeface.createFromFile(fontPath);
-    }
-    public void moveLastReadLine() {
-        if (!needMoveLastReadMarker) {
-            needMoveLastReadMarker = true;
-            onLinesChanged();
-        }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -101,16 +96,16 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
         View retview; // The view to return
         TextView textview;
 
-        long lineID = getItemId(position);
-        long lastLineRead = buffer.getLastViewedLine();
-        // We only want to reuse textviews, not the special lastLineRead view
-        if (lineID == lastLineRead || convertView instanceof RelativeLayout) {
-            convertView = null; // Force re-creating this line
-        }
+        boolean mustDrawReadMarker = getItemId(position) == buffer.readMarkerLine;
+
+        // we only want to reuse TextViews, not the special lastLineRead view,
+        // so force view recreation
+        if (mustDrawReadMarker || convertView instanceof RelativeLayout)
+            convertView = null;
 
         if (convertView == null) {
-            if (lineID == lastLineRead) {
-                retview = inflater.inflate(R.layout.chatview_line_last_read, null);
+            if (mustDrawReadMarker) {
+                retview = inflater.inflate(R.layout.chatview_line_read_marker, null);
                 textview = (TextView)retview.findViewById(R.id.chatline_message);
                 retview.findViewById(R.id.separator).setBackgroundDrawable(new ColorDrawable(0xFF000000 | ColorScheme.currentScheme().getOptionColor("chat_read_marker")[0]));
             } else {
@@ -164,19 +159,15 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
         if (!needMoveLastReadMarker && lineCountUnchanged && lastSpannable == oldLastSpannable) return;
         oldLastSpannable = lastSpannable;
 
-        if (needMoveLastReadMarker) {
-            buffer.setLastViewedLine(l[l.length-1].pointer); // save this in the buffer object
-            needMoveLastReadMarker = false;
-        }
-
         // if last line is visible, scroll to bottom
         // this is required for earlier versions of android, apparently
         // if last line is not visible,
         // scroll one line up accordingly, so we stay in place
         // TODO: http://chris.banes.me/2013/02/21/listview-keeping-position/
         lastItemVisible = this.lastItemVisible;
-        mustScrollOneLineUp = !lastItemVisible && lineCountUnchanged;
+        mustScrollOneLineUp = !lastItemVisible && lineCountUnchanged && !needMoveLastReadMarker;    //TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! last piece here
         if (mustScrollOneLineUp) {
+            logger.info("ONE LINE UP");
             index = uiListView.getFirstVisiblePosition();
             View v = uiListView.getChildAt(0);
             top = (v == null) ? 0 : v.getTop();
@@ -185,9 +176,6 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
 
         activity.runOnUiThread(new Runnable() {
             @Override public void run() {
-                // Update background color
-                uiListView.setBackgroundDrawable(new ColorDrawable(0xFF000000 | ColorScheme.currentScheme().getOptionColor("default")[ColorScheme.OPT_BG]));
-
                 lines = l;
                 notifyDataSetChanged();
                 if (lastItemVisible)
@@ -196,6 +184,8 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
                     uiListView.setSelectionFromTop(index - 1, top);
             }
         });
+
+        needMoveLastReadMarker = false;
     }
 
     @Override public void onLinesListed() {}
@@ -208,12 +198,23 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
     //////////////////////////////////////////////////////////////////////////////////////////////// AbsListView.OnScrollListener
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @Override public void onScrollStateChanged(AbsListView absListView, int i) {}
+    boolean userIsScrolling = false;
+    private int prevBottomHidden = 0;
 
-    // this determines if the last item is visible
-    // seriously, android?! is this this the only way to do that?!?! ffs
+    @Override public void onScrollStateChanged(AbsListView absListView, int i) {
+        userIsScrolling = (i != SCROLL_STATE_IDLE);
+    }
+
+    // this determines how many items are not visible in the ListView
+    // the difference, if any, and if user is actually scrolling, is sent to toolbar controller
+    //   (this is needed to prevent inadvertent toolbar showing/hiding when changing lines)
+    // also, determine if we are on our last line
     @Override public void onScroll(AbsListView lw, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-        lastItemVisible = (firstVisibleItem + visibleItemCount == totalItemCount);
+        final int bottomHidden = totalItemCount - firstVisibleItem - visibleItemCount;
+        lastItemVisible = bottomHidden == 0;
+        if (userIsScrolling)
+            activity.toolbarController.onUserScroll(bottomHidden, prevBottomHidden);
+        prevBottomHidden = bottomHidden;
     }
 
     @Override public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
@@ -221,7 +222,4 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
         line.clickDisabled = true;
         return false;
     }
-
-
-
 }

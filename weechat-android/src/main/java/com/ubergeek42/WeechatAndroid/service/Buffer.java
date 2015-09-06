@@ -61,16 +61,16 @@ public class Buffer {
     /** the following four variables are needed to determine if the buffer was changed and,
      ** if not, the last two are substracted from the newly arrived hotlist data, to make up
      ** for the lines that was read in relay.
-     ** lastReadLine stores id of the last read line *in weechat*. -1 means all lines unread. */
-    public long lastReadLine = -1;
-    public boolean wantsFullHotListUpdate = false; // must be false for buffers without lastReadLine!
+     ** lastReadLineServer stores id of the last read line *in weechat*. -1 means all lines unread. */
+    public long lastReadLineServer = -1;
+    public boolean wantsFullHotListUpdate = false; // must be false for buffers without lastReadLineServer!
     public int totalReadUnreads = 0;
     public int totalReadHighlights = 0;
 
-    // This is used purely by the GUI to show a last line read marker
-    // It is a buffer line id(pointer)
-    public long uiLastViewedLine = -1;
-
+    // see BufferFragment.dealWithReadMarkerOnVisibilityChange
+    public long readMarkerLine = -1;
+    public long lastReadLine = -1;
+    public long lastVisibleLine = -1;
 
     private LinkedList<Line> lines = new LinkedList<>();
     private int visibleLinesCount = 0;
@@ -115,14 +115,16 @@ public class Buffer {
     /** get a copy of all 200 lines or of lines that are not filtered using weechat filters.
      ** better call off the main thread */
     synchronized public @NonNull Line[] getLinesCopy() {
+        Line[] l;
         if (!FILTER_LINES)
-            return lines.toArray(new Line[lines.size()]);
+            l = lines.toArray(new Line[lines.size()]);
         else {
-            Line[] l = new Line[visibleLinesCount];
+            l = new Line[visibleLinesCount];
             int i = 0;
             for (Line line: lines) if (line.visible) l[i++] = line;
-            return l;
         }
+        if (l.length > 0) lastVisibleLine = l[l.length-1].pointer;
+        return l;
     }
 
     /** get a copy of last used nicknames
@@ -201,12 +203,6 @@ public class Buffer {
         for (Line line : lines) line.processMessage();
     }
 
-    public void setLastViewedLine(long id) {
-        uiLastViewedLine = id;
-    }
-    public long getLastViewedLine() {
-        return uiLastViewedLine;
-    }
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// stuff called by message handlers
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -281,9 +277,10 @@ public class Buffer {
      ** in weechat. assuming he read the very last line, total old highlights and unreads bear no meaning,
      ** so they should be erased. */
     synchronized public void updateLastReadLine(long linePointer) {
-        wantsFullHotListUpdate = lastReadLine != linePointer;
+        wantsFullHotListUpdate = lastReadLineServer != linePointer;
+        if (DEBUG_BUFFER) logger.info("{} updateLastReadLine({})", shortName, linePointer);
         if (wantsFullHotListUpdate) {
-            lastReadLine = linePointer;
+            lastReadLine = lastReadLineServer = linePointer;
             totalReadHighlights = totalReadUnreads = 0;
         }
     }

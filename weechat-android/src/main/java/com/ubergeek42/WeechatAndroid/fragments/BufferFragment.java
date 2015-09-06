@@ -8,7 +8,6 @@ import android.support.v4.app.Fragment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -81,7 +80,6 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     private RelayServiceBinder relay;
     private ChatLinesAdapter linesAdapter;
     private SharedPreferences prefs;
-    private boolean volumeButtonsChangeTextSize = true;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// life cycle
@@ -160,8 +158,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
 
     private boolean pagerVisible = false;
     private boolean visible = false;
-    private boolean needSyncReadMarker = false;
-    private boolean needMoveReadMarker = false;
+
     /** these are the highlight and private counts that we are supposed to scroll
      ** they are reset after the scroll has been completed */
     private int highlights = 0;
@@ -173,13 +170,16 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
      **   * availability of buffer & activity
      **   * lifecycle (todo) */
     public void maybeChangeVisibilityState() {
-        if (DEBUG_VISIBILITY) logger.warn("{} maybeChangeVisibilityState()", fullName);
+        if (DEBUG_VISIBILITY) logger.warn("{} maybeChangeVisibilityState()", shortName);
         if (activity == null || buffer == null)
             return;
 
         // see if visibility has changed. if it hasn't, do nothing
         boolean obscured = activity.isPagerNoticeablyObscured();
-        visible = started && pagerVisible && !obscured;
+        boolean visible = started && pagerVisible && !obscured;
+
+        if (this.visible == visible) return;
+        this.visible = visible;
 
         // visibility has changed.
         if (visible) {
@@ -189,17 +189,41 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         buffer.setWatched(visible);
         scrollToHotLineIfNeeded();
 
-        // Move the read marker in weechat(if preferences dictate)
-        if (needSyncReadMarker) {
-            if (prefs.getBoolean(PREF_HOTLIST_SYNC, false)) {
+        // move the read marker in weechat (if preferences dictate)
+        if (!visible && prefs.getBoolean(PREF_HOTLIST_SYNC, false)) {
                 relay.sendMessage("input " + buffer.fullName + " /buffer set hotlist -1");
                 relay.sendMessage("input " + buffer.fullName + " /input set_unread_current_buffer");
-            }
-            needSyncReadMarker = false;
         }
-        if (needMoveReadMarker) {
-            linesAdapter.moveLastReadLine();
-            needMoveReadMarker = false;
+
+        dealWithReadMarkerOnVisibilityChange(visible);
+    }
+
+    // this method is using the following:
+    // lastReadLine         pointer to the last line user has seen in a fully opened buffer
+    // lastVisibleLine      last line that exists in the buffer, visible or not
+    // readMarkerLine       used for display
+    // lastReadLineServer   like lastReadLine but obtained from weechat's relay server
+    private void dealWithReadMarkerOnVisibilityChange(boolean visible) {
+        if (DEBUG_VISIBILITY) logger.warn("{} dealWithReadMarkerOnVisibilityChange({})", shortName, visible);
+        if (!visible) {
+            // on navigation away from buffer, store its last read line information
+            buffer.lastReadLine = buffer.lastVisibleLine;
+
+        } else {
+            // buffer becomes visible! at this point, we may not yet have last read line info
+            // in this case, we use last read line info from the server.
+            // that pointer can also be -1. in this case, we don't do anything, because
+            // pointer with value -1 will result in no read marker which is what we want
+            // except this issue: https://github.com/weechat/weechat/issues/517
+            if (buffer.lastReadLine == -1)
+                buffer.lastReadLine = buffer.lastReadLineServer;
+
+            // we are setting this flag for ChatLinesAdapter.onLinesChanged()
+            // it will be reset after.. use
+            if (linesAdapter.needMoveLastReadMarker = (buffer.readMarkerLine != buffer.lastReadLine)) {
+                buffer.readMarkerLine = buffer.lastReadLine;
+                onLinesChanged();
+            }
         }
     }
 
@@ -209,16 +233,6 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     public void setUserVisibleHint(boolean visible) {
         if (DEBUG_VISIBILITY) logger.warn("{} setUserVisibleHint({})", fullName, visible);
         super.setUserVisibleHint(visible);
-
-        if (!this.pagerVisible &&  // we weren't visible
-                visible == true) {  // but now we are
-            needSyncReadMarker = true; // sync our read status with weechat(see maybeChangeVisibilityState)
-        }
-
-        if (this.pagerVisible == true &&   // we were visible
-                visible==false) {           // but now we aren't
-            needMoveReadMarker = true;
-        }
         this.pagerVisible = visible;
         maybeChangeVisibilityState();
     }
@@ -296,9 +310,6 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
                 uiLines.setAdapter(linesAdapter);
             }
         });
-        if (buffer.getLastViewedLine() == -1) { // We only want to reset it if it's never been set
-            needMoveReadMarker = true;
-        }
         maybeChangeVisibilityState();
     }
 

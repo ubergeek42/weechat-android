@@ -17,21 +17,33 @@
         android:layout_gravity="left"
         tools:layout="@layout/bufferlist" />
 
-    <!-- main content -->
-    <FrameLayout
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent" >
+        android:layout_height="match_parent">
 
-        <ImageView
-            android:id="@+id/info"
-            android:gravity="center"
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_height="wrap_content"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scaleType="center" />
+            android:minHeight="?attr/actionBarSize"
+            android:theme="@style/ThemeOverlay.AppCompat.ActionBar" />
 
-        <android.support.v4.view.ViewPager
-            android:id="@+id/main_viewpager"
+        <!-- main content -->
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-    </FrameLayout>
+            android:layout_height="match_parent" >
+
+            <ImageView
+                android:id="@+id/info"
+                android:gravity="center"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="center" />
+
+            <android.support.v4.view.ViewPager
+                android:id="@+id/main_viewpager"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+        </FrameLayout>
+    </LinearLayout>
 </LinearLayout>

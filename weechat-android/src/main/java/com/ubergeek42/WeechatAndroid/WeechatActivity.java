@@ -29,6 +29,7 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.AlertDialog;
 
+import android.support.v7.widget.Toolbar;
 import android.view.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,7 +55,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-
 import com.ubergeek42.WeechatAndroid.adapters.MainPagerAdapter;
 import com.ubergeek42.WeechatAndroid.adapters.NickListAdapter;
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragment;
@@ -63,6 +63,7 @@ import com.ubergeek42.WeechatAndroid.service.BufferList;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
 import com.ubergeek42.WeechatAndroid.service.RelayServiceBinder;
 import com.ubergeek42.WeechatAndroid.utils.MyMenuItemStuffListener;
+import com.ubergeek42.WeechatAndroid.utils.ToolbarController;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
 
@@ -93,6 +94,8 @@ public class WeechatActivity extends AppCompatActivity implements RelayConnectio
     private ActionBarDrawerToggle drawerToggle = null;
     private @NonNull ImageView uiInfo;
 
+    public ToolbarController toolbarController;
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// life cycle
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -115,7 +118,8 @@ public class WeechatActivity extends AppCompatActivity implements RelayConnectio
         uiPager.setAdapter(adapter);
 
         // prepare action bar
-        ActionBar uiActionBar = getSupportActionBar();
+        setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
+        final ActionBar uiActionBar = getSupportActionBar();
         uiActionBar.setHomeButtonEnabled(true);
         uiActionBar.setDisplayShowCustomEnabled(true);
         uiActionBar.setDisplayShowTitleEnabled(false);
@@ -160,6 +164,21 @@ public class WeechatActivity extends AppCompatActivity implements RelayConnectio
             uiDrawerLayout.setDrawerListener(drawerToggle);
             uiActionBar.setDisplayHomeAsUpEnabled(true);
         }
+
+        toolbarController = new ToolbarController((Toolbar) findViewById(R.id.toolbar), uiActionBar);
+
+        final View layout = slidy ? findViewById(R.id.drawer_layout) : findViewById(R.id.not_drawer_layout);
+        final View root = ((ViewGroup) layout).getChildAt(0);
+        root.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override public void onGlobalLayout() {
+                // if more than 300 pixels, its probably a keyboard...
+                int heightDiff = root.getRootView().getHeight() - root.getHeight();
+                if (heightDiff > 300)
+                    toolbarController.onSoftwareKeyboardStateChanged(true);
+                else if (heightDiff < 300)
+                    toolbarController.onSoftwareKeyboardStateChanged(false);
+            }
+        });
 
         // TODO Read preferences from background, its IO, 31ms strict mode!
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
@@ -361,11 +380,13 @@ public class WeechatActivity extends AppCompatActivity implements RelayConnectio
 
     @Override public void onPageSelected(int position) {
         hideSoftwareKeyboard();
+        toolbarController.onPageChangedOrSelected();
     }
 
     @Override public void onChange() {
         updateMenuItems();
         hideSoftwareKeyboard();
+        toolbarController.onPageChangedOrSelected();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

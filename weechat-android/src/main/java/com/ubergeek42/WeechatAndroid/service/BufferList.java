@@ -584,6 +584,7 @@ public class BufferList {
         BufferHotData data = bufferToLastReadLine.get(buffer.fullName);
         if (data != null) {
             buffer.lastReadLine = data.lastReadLine;
+            buffer.lastReadLineServer = data.lastReadLineServer;
             buffer.totalReadUnreads = data.totalOldUnreads;
             buffer.totalReadHighlights = data.totalOldHighlights;
         }
@@ -597,6 +598,7 @@ public class BufferList {
             bufferToLastReadLine.put(buffer.fullName, data);
         }
         data.lastReadLine = buffer.lastReadLine;
+        data.lastReadLineServer = buffer.lastReadLineServer;
         data.totalOldUnreads = buffer.totalReadUnreads;
         data.totalOldHighlights = buffer.totalReadHighlights;
     }
@@ -634,6 +636,7 @@ public class BufferList {
 
     private static class BufferHotData implements Serializable {
         long lastReadLine = -1;
+        long lastReadLineServer = -1;
         int totalOldUnreads = 0;
         int totalOldHighlights = 0;
     }
