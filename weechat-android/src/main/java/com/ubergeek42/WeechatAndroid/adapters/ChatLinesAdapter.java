@@ -40,7 +40,7 @@ import com.ubergeek42.weechat.ColorScheme;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, BufferEye, AbsListView.OnScrollListener, AdapterView.OnItemLongClickListener {
+public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, BufferEye, AbsListView.OnScrollListener {
 
     private static Logger logger = LoggerFactory.getLogger("ChatLinesAdapter");
     final private static boolean DEBUG = false;
@@ -63,7 +63,6 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
         this.inflater = LayoutInflater.from(activity);
         this.uiListView = uiListView;
         uiListView.setOnScrollListener(this);
-        uiListView.setOnItemLongClickListener(this);
     }
     public void setFont(String fontPath) {
         if (fontPath == null) {
@@ -215,11 +214,5 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
         if (userIsScrolling)
             activity.toolbarController.onUserScroll(bottomHidden, prevBottomHidden);
         prevBottomHidden = bottomHidden;
-    }
-
-    @Override public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-        Buffer.Line line = (Buffer.Line) parent.getItemAtPosition(position);
-        line.clickDisabled = true;
-        return false;
     }
 }

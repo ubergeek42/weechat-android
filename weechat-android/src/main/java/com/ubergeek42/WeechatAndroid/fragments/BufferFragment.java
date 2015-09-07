@@ -3,6 +3,7 @@ package com.ubergeek42.WeechatAndroid.fragments;
 import java.util.ArrayList;
 import java.util.Vector;
 
+import android.content.DialogInterface;
 import android.graphics.drawable.ColorDrawable;
 import android.support.v4.app.Fragment;
 import org.slf4j.Logger;
@@ -12,16 +13,13 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.v7.app.AlertDialog;
 import android.text.ClipboardManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.style.URLSpan;
-import android.view.ContextMenu;
-import android.view.ContextMenu.ContextMenuInfo;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnKeyListener;
@@ -46,7 +44,7 @@ import com.ubergeek42.weechat.relay.RelayConnectionHandler;
 
 public class BufferFragment extends Fragment implements BufferEye, OnKeyListener,
         OnClickListener, TextWatcher, RelayConnectionHandler,
-        TextView.OnEditorActionListener {
+        TextView.OnEditorActionListener, AdapterView.OnItemLongClickListener {
 
     private static Logger logger = LoggerFactory.getLogger("BufferFragment");
     final private static boolean DEBUG_TAB_COMPLETE = false;
@@ -111,8 +109,6 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         uiSend = (ImageButton) v.findViewById(R.id.chatview_send);
         uiTab = (ImageButton) v.findViewById(R.id.chatview_tab);
 
-        registerForContextMenu(uiLines);
-
         uiSend.setOnClickListener(this);
         uiTab.setOnClickListener(this);
         uiInput.setOnKeyListener(this);            // listen for hardware keyboard
@@ -123,6 +119,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         uiLines.setBackgroundDrawable(new ColorDrawable(0xFF000000 | ColorScheme.currentScheme().getOptionColor("default")[ColorScheme.OPT_BG]));
         uiLines.setFocusable(false);
         uiLines.setFocusableInTouchMode(false);
+        uiLines.setOnItemLongClickListener(this);
 
         return v;
     }
@@ -195,6 +192,8 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         boolean obscured = activity.isPagerNoticeablyObscured();
         boolean visible = started && pagerVisible && !obscured;
 
+        if (!started || !pagerVisible) maybeMoveReadMarker();   // ignore the drawer
+
         if (this.visible == visible) return;
         this.visible = visible;
 
@@ -211,8 +210,6 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
                 relay.sendMessage("input " + buffer.fullName + " /buffer set hotlist -1");
                 relay.sendMessage("input " + buffer.fullName + " /input set_unread_current_buffer");
         }
-
-        if (!visible) maybeMoveReadMarker();
     }
 
     /** called by MainPagerAdapter
@@ -576,48 +573,34 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// context menu
+    //////////////////////////////////////////////////////////////////////////////////////////////// copy menu
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private ArrayList<String> copyList = null;
 
-    /** This is related to the tap and hold menu that appears when clicking on a message
-     ** check for visibility is required because this is called for ALL fragments at once
-     ** see http://stackoverflow.com/questions/5297842/how-to-handle-oncontextitemselected-in-a-multi-fragment-activity */
-    @Override public boolean onContextItemSelected(MenuItem item) {
-        if (pagerVisible && copyList != null) {
-            @SuppressWarnings("deprecation")
-            ClipboardManager cm = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
-            cm.setText(copyList.get(item.getItemId() - Menu.FIRST));
-            return true;
-        }
+    @Override public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+        TextView uiTextView = (TextView) view.findViewById(R.id.chatline_message);
+        if (uiTextView == null) return false;
+
+        Buffer.Line line = (Buffer.Line) uiTextView.getTag();
+        final ArrayList<String> list = new ArrayList<>();
+
+        list.add(line.getNotificationString());
+        for (URLSpan url: uiTextView.getUrls())
+            list.add(url.getURL());
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+        builder.setTitle("Copy").setItems(list.toArray(new CharSequence[list.size()]),
+                new DialogInterface.OnClickListener() {
+                    @Override public void onClick(DialogInterface dialog, int which) {
+                        @SuppressWarnings("deprecation")
+                        ClipboardManager cm = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
+                        cm.setText(list.get(which));
+                    }
+                });
+        builder.create().show();
+
+        line.clickDisabled = true;
         return false;
-    }
-
-    @Override public void onCreateContextMenu(ContextMenu menu, View view, ContextMenuInfo menuInfo) {
-        super.onCreateContextMenu(menu, view, menuInfo);
-        if (!(view instanceof ListView)) return;
-
-        View tv = ((AdapterView.AdapterContextMenuInfo) menuInfo).targetView;
-        if (tv == null) return;
-
-        TextView uiTextView = (TextView) tv.findViewById(R.id.chatline_message);
-        if (uiTextView == null) return;
-
-        menu.setHeaderTitle("Copy");
-        copyList = new ArrayList<>();
-
-        // add message
-        String message = ((Buffer.Line) uiTextView.getTag()).getNotificationString();
-        menu.add(0, Menu.FIRST, 0, message);
-        copyList.add(message);
-
-        // add urls
-        int i = 1;
-        for (URLSpan url: uiTextView.getUrls()) {
-            menu.add(0, Menu.FIRST + i++, 1, url.getURL());
-            copyList.add(url.getURL());
-        }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
