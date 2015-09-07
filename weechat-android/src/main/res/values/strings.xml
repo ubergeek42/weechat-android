@@ -80,7 +80,7 @@
 		    <string name="pref_ping_enabled_summary">Periodically check that the relay connection is still alive when idle</string>
 		    <string name="pref_ping_idle_summary">Number of seconds to wait before sending a ping when the connection is idle</string>
 		    <string name="pref_ping_timeout_summary">Number of seconds to wait before closing an unresponsive connection</string>
-    <string name="pref_bufferlist_group">Buffer list settings</string>
+    <string name="pref_bufferlist_group">Buffer list</string>
 	    <string name="pref_sort_buffers">Sort buffer list</string>
 	    <string name="pref_sort_buffers_summary">Sort by number of highlights/private messages/unread messages</string>
 	    <string name="pref_hide_server_buffers">Hide non-conversation buffers</string>
@@ -88,7 +88,6 @@
 	    <string name="pref_hide_buffer_titles">Show buffer titles</string>
 	    <string name="pref_hide_buffer_titles_summary">These tend to take considerable space though</string>
 	    <string name="pref_show_buffer_filter">Show buffer filter</string>
-	    <string name="pref_show_buffer_filter_summary">Provides a text box to filter the buffer list by full name</string>
     <string name="pref_lookfeel_group">Look &amp; feel</string>
 	    <string name="pref_text_size">Text Size</string>
 	    <string name="pref_text_size_summary">You can also use volume buttons to change this</string>
@@ -109,21 +108,19 @@
 	    <string name="pref_timestamp_invalid">Invalid timestamp format</string>
 	    <string name="pref_prefix_width_invalid">Invalid prefix width</string>
 
-    <string name="pref_misc_group">Miscellaneous settings</string>
+    <string name="pref_misc_group">Miscellaneous</string>
 	    <string name="pref_tab_completion">Tab completion for nicks</string>
 	    <string name="pref_tab_completion_summary">Use tab key to complete nicks</string>
 	    <string name="pref_tabbtn_show">Show tab button (⇥)</string>
 	    <string name="pref_tabbtn_show_summary">Show tab button next to input bar</string>
 	    <string name="pref_sendbtn_show">Show send button</string>
 	    <string name="pref_sendbtn_show_summary">Show send button next to input bar</string>
+    <string name="pref_notif_group">Notifications</string>
 	    <string name="pref_notification_enable">Enable notifications</string>
-	    <string name="pref_notification_enable_summary">Enable notifications for hot messages</string>
+	    <string name="pref_notification_enable_summary">Notify about hot messages such as private messages or highlights</string>
 	    <string name="pref_notification_sound">Notification sound</string>
-	    <string name="pref_notification_sound_summary">Played when a private message or a highlight is received</string>
 	    <string name="pref_notification_vibrate">Vibration</string>
-	    <string name="pref_notification_vibrate_summary">Vibrate device when a private message or a highlight is received</string>
 	    <string name="pref_notification_light">Notification light</string>
-	    <string name="pref_notification_light_summary">Blink when a private message or a highlight is received</string>
     
     
     <!--  ACRA(Application Crash Reports for Android) related strings -->

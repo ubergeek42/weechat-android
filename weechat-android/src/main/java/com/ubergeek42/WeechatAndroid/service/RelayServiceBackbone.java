@@ -27,7 +27,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
-import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -337,13 +336,17 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
 
             if (newHighlight) {
                 builder.setTicker(message);
-                builder.setSound(Uri.parse(prefs.getString(PREF_NOTIFICATION_SOUND, "")));
-                if (!prefs.getBoolean(PREF_NOTIFICATION_VIBRATE, true)) {
-                    builder.setVibrate(new long[] {0, 0, 0, 0});
-                }
-                if (prefs.getBoolean(PREF_NOTIFICATION_LIGHT, false)) {
-                    builder.setLights(Color.WHITE, 100, 1000);
-                }
+
+                String ringtone = prefs.getString(PREF_NOTIFICATION_SOUND, "");
+                if (!"".equals(ringtone))
+                    builder.setSound(Uri.parse(ringtone));
+
+                int flags = 0;
+                if (prefs.getBoolean(PREF_NOTIFICATION_LIGHT, false))
+                    flags |= Notification.DEFAULT_LIGHTS;
+                if (prefs.getBoolean(PREF_NOTIFICATION_VIBRATE, false))
+                    flags |= Notification.DEFAULT_VIBRATE;
+                builder.setDefaults(flags);
             }
 
             notificationManger.notify(NOTIFICATION_HIGHLIGHT_ID, builder.build());

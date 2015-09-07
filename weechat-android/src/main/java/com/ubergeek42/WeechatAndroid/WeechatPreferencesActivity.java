@@ -17,6 +17,8 @@ package com.ubergeek42.WeechatAndroid;
 
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.*;
@@ -53,6 +55,7 @@ public class WeechatPreferencesActivity extends PreferenceActivity implements
     private CheckBoxPreference pingEnabledPref;
     private FontPreference bufferFontPref;
     private ThemePreference colorSchemePref;
+    private RingtonePreference ringtonePreference;
 
     /** Called when the activity is first created. */
     @Override
@@ -136,6 +139,7 @@ public class WeechatPreferencesActivity extends PreferenceActivity implements
                 return true;
             }
         });
+        ringtonePreference = (RingtonePreference) getPreferenceScreen().findPreference("notification_sound");
     }
 
     @Override
@@ -192,6 +196,7 @@ public class WeechatPreferencesActivity extends PreferenceActivity implements
         } else {
             sshPassPref.setSummary("******");
         }
+        onSharedPreferenceChanged(sharedPreferences, "notification_sound");
     }
 
     @Override
@@ -272,6 +277,12 @@ public class WeechatPreferencesActivity extends PreferenceActivity implements
                 break;
             case "color_scheme":
                 updateColorSchemeSummary();
+                break;
+            case "notification_sound":
+                String tmp = sharedPreferences.getString(key, "");
+                tmp = ("".equals(tmp)) ? "None" :
+                        RingtoneManager.getRingtone(this, Uri.parse(tmp)).getTitle(this);
+                ringtonePreference.setSummary(tmp);
                 break;
         }
     }
