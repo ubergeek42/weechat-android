@@ -63,8 +63,8 @@
 	<PreferenceCategory android:key="notif_group" android:title="@string/pref_notif_group">
 		<CheckBoxPreference android:key="notification_enable" android:title="@string/pref_notification_enable" android:summary="@string/pref_notification_enable_summary" android:defaultValue="true" />
         <RingtonePreference android:key="notification_sound" android:title="@string/pref_notification_sound" android:showDefault="true"
-            android:showSilent="true" android:ringtoneType="notification" android:dependency="notification_enable"/>
-		<CheckBoxPreference android:key="notification_vibrate" android:title="@string/pref_notification_vibrate" android:defaultValue="true" android:dependency="notification_enable"/>
+            android:showSilent="true" android:ringtoneType="notification" android:dependency="notification_enable" android:defaultValue="content://settings/system/notification_sound" />
+		<CheckBoxPreference android:key="notification_vibrate" android:title="@string/pref_notification_vibrate" android:defaultValue="false" android:dependency="notification_enable" />
 		<CheckBoxPreference android:key="notification_light" android:title="@string/pref_notification_light" android:defaultValue="false" android:dependency="notification_enable"/>
 	</PreferenceCategory>
 </PreferenceScreen>

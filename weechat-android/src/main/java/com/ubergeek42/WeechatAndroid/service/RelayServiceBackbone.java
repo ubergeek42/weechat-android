@@ -337,7 +337,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
             if (newHighlight) {
                 builder.setTicker(message);
 
-                String ringtone = prefs.getString(PREF_NOTIFICATION_SOUND, "");
+                String ringtone = prefs.getString(PREF_NOTIFICATION_SOUND, "content://settings/system/notification_sound");
                 if (!"".equals(ringtone))
                     builder.setSound(Uri.parse(ringtone));
 
