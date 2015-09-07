@@ -67,9 +67,8 @@ public class Buffer {
     public int totalReadUnreads = 0;
     public int totalReadHighlights = 0;
 
-    // see BufferFragment.dealWithReadMarkerOnVisibilityChange
+    // see BufferFragment.maybeMoveReadMarker()
     public long readMarkerLine = -1;
-    public long lastReadLine = -1;
     public long lastVisibleLine = -1;
 
     private LinkedList<Line> lines = new LinkedList<>();
@@ -121,7 +120,12 @@ public class Buffer {
         else {
             l = new Line[visibleLinesCount];
             int i = 0;
-            for (Line line: lines) if (line.visible) l[i++] = line;
+            for (Line line: lines) {
+                if (line.visible) l[i++] = line;
+                // if read marker is on a line that is invisible
+                // move it to the previous visible line
+                else if (line.pointer == readMarkerLine && i > 0) readMarkerLine = l[i-1].pointer;
+            }
         }
         if (l.length > 0) lastVisibleLine = l[l.length-1].pointer;
         return l;
@@ -278,9 +282,9 @@ public class Buffer {
      ** so they should be erased. */
     synchronized public void updateLastReadLine(long linePointer) {
         wantsFullHotListUpdate = lastReadLineServer != linePointer;
-        if (DEBUG_BUFFER) logger.info("{} updateLastReadLine({})", shortName, linePointer);
         if (wantsFullHotListUpdate) {
-            lastReadLine = lastReadLineServer = linePointer;
+            lastReadLineServer = linePointer;
+            readMarkerLine = linePointer;
             totalReadHighlights = totalReadUnreads = 0;
         }
     }

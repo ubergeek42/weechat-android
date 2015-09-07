@@ -162,6 +162,23 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     /** these are the highlight and private counts that we are supposed to scroll
      ** they are reset after the scroll has been completed */
     private int highlights = 0;
+
+    // this method is using the following:
+    // lastVisibleLine      last line that exists in the buffer. NOTE: "visible" here means line is not filtered in weechat
+    // readMarkerLine       used for display. it is:
+    //     * saved on app shutdown and restored on start
+    //     * altered if a buffer has been read in weechat (see BufferList.saveLastReadLine)
+    //     * set to the last displayed line when user navigates away from a buffer
+    //     * shifted from invisible line to last visible line if buffer is filtered
+    private void maybeMoveReadMarker() {
+        if (DEBUG_VISIBILITY) logger.warn("{} maybeMoveReadMarker({})", shortName);
+        if (buffer.readMarkerLine != buffer.lastVisibleLine) {
+            buffer.readMarkerLine = buffer.lastVisibleLine;
+            linesAdapter.needMoveLastReadMarker = true;
+            onLinesChanged();
+        }
+    }
+
     private int privates = 0;
 
     /** called when visibility of current fragment is (potentially) altered by
@@ -195,36 +212,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
                 relay.sendMessage("input " + buffer.fullName + " /input set_unread_current_buffer");
         }
 
-        dealWithReadMarkerOnVisibilityChange(visible);
-    }
-
-    // this method is using the following:
-    // lastReadLine         pointer to the last line user has seen in a fully opened buffer
-    // lastVisibleLine      last line that exists in the buffer, visible or not
-    // readMarkerLine       used for display
-    // lastReadLineServer   like lastReadLine but obtained from weechat's relay server
-    private void dealWithReadMarkerOnVisibilityChange(boolean visible) {
-        if (DEBUG_VISIBILITY) logger.warn("{} dealWithReadMarkerOnVisibilityChange({})", shortName, visible);
-        if (!visible) {
-            // on navigation away from buffer, store its last read line information
-            buffer.lastReadLine = buffer.lastVisibleLine;
-
-        } else {
-            // buffer becomes visible! at this point, we may not yet have last read line info
-            // in this case, we use last read line info from the server.
-            // that pointer can also be -1. in this case, we don't do anything, because
-            // pointer with value -1 will result in no read marker which is what we want
-            // except this issue: https://github.com/weechat/weechat/issues/517
-            if (buffer.lastReadLine == -1)
-                buffer.lastReadLine = buffer.lastReadLineServer;
-
-            // we are setting this flag for ChatLinesAdapter.onLinesChanged()
-            // it will be reset after.. use
-            if (linesAdapter.needMoveLastReadMarker = (buffer.readMarkerLine != buffer.lastReadLine)) {
-                buffer.readMarkerLine = buffer.lastReadLine;
-                onLinesChanged();
-            }
-        }
+        if (!visible) maybeMoveReadMarker();
     }
 
     /** called by MainPagerAdapter

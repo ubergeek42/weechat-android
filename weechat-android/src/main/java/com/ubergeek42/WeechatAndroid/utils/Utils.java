@@ -37,7 +37,7 @@ public class Utils {
 
     /** protocol must be changed each time anything that uses the following function changes
      ** needed to make sure nothing crashes if we cannot restore the data */
-    public static final int SERIALIZATION_PROTOCOL_ID = 4;
+    public static final int SERIALIZATION_PROTOCOL_ID = 8;
 
     public static @Nullable Object deserialize(@Nullable String string) {
         if (string == null) return null;
