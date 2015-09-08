@@ -5,7 +5,7 @@
     android:layout_height="wrap_content"
     android:maxLines="25"
     android:text="@null"
-    android:textSize="10sp"
+    android:textSize="12sp"
     android:typeface="monospace"
     android:fontFamily="monospace"
     android:paddingLeft="@dimen/chat_item_left_margin"

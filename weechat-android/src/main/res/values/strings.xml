@@ -2,11 +2,7 @@
 <resources>
     <string name="app_name">weechat</string>
     <string name="sendkey">Send</string>
-    <string name="loading_please_wait">"Retrieving lines from buffer.\nPlease wait."</string>
 
-    <string name="menu_wee">WeeMenu</string>
-    <string name="menu_connection_state">connection state</string>
-    <string name="wee_submenu">Weechat Android Submenu</string>
     <string name="preferences">Settings</string>
     <string name="close">Close</string>
     <string name="about">About</string>
@@ -102,49 +98,20 @@
 		    </string-array>
 	    <string name="pref_enclose_nick">Enclose nicknames</string>
 	    <string name="pref_enclose_nick_summary">Enclose nicknames of messages with &lt;&#xA0;and&#xA0;&gt;</string>
-	    <string name="pref_chatview_timestamps">Show timestamps</string>
-	    <string name="pref_chatview_timestamps_summary">Whether to display timestamps in chat. Saves space when disabled.</string>
 	    <string name="pref_timestamp_format">Timestamp format</string>
 	    <string name="pref_timestamp_invalid">Invalid timestamp format</string>
 	    <string name="pref_prefix_width_invalid">Invalid prefix width</string>
 
     <string name="pref_misc_group">Miscellaneous</string>
-	    <string name="pref_tab_completion">Tab completion for nicks</string>
-	    <string name="pref_tab_completion_summary">Use tab key to complete nicks</string>
 	    <string name="pref_tabbtn_show">Show tab button (⇥)</string>
-	    <string name="pref_tabbtn_show_summary">Show tab button next to input bar</string>
 	    <string name="pref_sendbtn_show">Show send button</string>
-	    <string name="pref_sendbtn_show_summary">Show send button next to input bar</string>
     <string name="pref_notif_group">Notifications</string>
 	    <string name="pref_notification_enable">Enable notifications</string>
 	    <string name="pref_notification_enable_summary">Notify about hot messages such as private messages or highlights</string>
 	    <string name="pref_notification_sound">Notification sound</string>
 	    <string name="pref_notification_vibrate">Vibration</string>
 	    <string name="pref_notification_light">Notification light</string>
-    
-    
-    <!--  ACRA(Application Crash Reports for Android) related strings -->
-    <string name="pref_debug_screen">Crash reporting</string>
-    <string name="pref_disable_acra">Disable crash reporting</string>
-    <string name="pref_acra_enabled">Crash reporting currently enabled</string>
-    <string name="pref_acra_disabled">Crash reporting currently disabled</string>
-    
-    <string name="pref_acra_user_email">Email for crash reports</string>
-    <string name="pref_acra_user_email_summary">Included in crash reports so the developer
-        can contact regarding the crash.</string>
-    
-    <string name="pref_acra_alwaysaccept">Send automatically</string>
-    <string name="pref_acra_alwaysaccept_enabled">Crash reports will be sent automatically</string>
-    <string name="pref_acra_alwaysaccept_disabled">A dialog will prompt you to send each crash report</string>
-    
-    <string name="crash_notif_ticker_text">Unexpected error, please send a report…</string>
-	<string name="crash_notif_title">WeeChat has crashed…</string>
-	<string name="crash_notif_text">Please click here to help fix the issue.</string>
-	<string name="crash_dialog_text">Sorry, but weechat-android appears to have crashed. If you would like
-	    to assist in having this issue resolved, please click OK to send details about the crash to the developer.
-	    Note: username and password will not be sent.</string>
-    <string name="crash_dialog_comment_prompt">Any additional comments(or your email if you\'d like a reply):</string>
-    <string name="highlight">Highlight</string>
+
     <string name="pref_dim_down">Dim down non-human lines</string>
     <string name="pref_dim_down_summary">Display joins/quits in a darker color</string>
     <string name="pref_timestamp_format_summary"><![CDATA[Default: &quot;HH:mm:ss&quot;; empty turns off the prefix completely]]></string>

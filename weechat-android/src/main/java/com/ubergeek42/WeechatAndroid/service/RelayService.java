@@ -14,7 +14,6 @@ import android.os.SystemClock;
 import android.widget.Toast;
 
 import com.ubergeek42.WeechatAndroid.Manifest;
-import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.weechat.Color;
 import com.ubergeek42.weechat.ColorScheme;
@@ -243,24 +242,22 @@ public class RelayService extends RelayServiceBackbone {
     private void loadColorScheme() {
         // Load color scheme
         String colorScheme = prefs.getString(PREFS_COLOR_SCHEME, "weechat-android-theme.properties");
-        if (colorScheme != null) {
-            Properties p = new Properties();
-            try {
-                InputStream inputStream;
-                if (colorScheme.startsWith("/")) {
-                    inputStream = new FileInputStream(colorScheme);
-                } else {
-                    AssetManager assetManager = getApplicationContext().getAssets();
-                    inputStream = assetManager.open(colorScheme);
-                }
-                p.load(inputStream);
-                ColorScheme cs = new ColorScheme(p);
-                ColorScheme.setColorScheme(cs);
-            } catch (IOException e) {
-                Toast.makeText(this, "Error loading color scheme", Toast.LENGTH_SHORT).show();
-                logger.debug("Failed to load color scheme properties file");
-                logger.debug(e.toString());
+        Properties p = new Properties();
+        try {
+            InputStream inputStream;
+            if (colorScheme.startsWith("/")) {
+                inputStream = new FileInputStream(colorScheme);
+            } else {
+                AssetManager assetManager = getApplicationContext().getAssets();
+                inputStream = assetManager.open(colorScheme);
             }
+            p.load(inputStream);
+            ColorScheme cs = new ColorScheme(p);
+            ColorScheme.setColorScheme(cs);
+        } catch (IOException e) {
+            Toast.makeText(this, "Error loading color scheme", Toast.LENGTH_SHORT).show();
+            logger.debug("Failed to load color scheme properties file");
+            logger.debug(e.toString());
         }
     }
 

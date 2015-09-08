@@ -59,7 +59,7 @@ public class Buffer {
     public Hashtable localVars;
 
     /** the following four variables are needed to determine if the buffer was changed and,
-     ** if not, the last two are substracted from the newly arrived hotlist data, to make up
+     ** if not, the last two are subtracted from the newly arrived hotlist data, to make up
      ** for the lines that was read in relay.
      ** lastReadLineServer stores id of the last read line *in weechat*. -1 means all lines unread. */
     public long lastReadLineServer = -1;
@@ -100,7 +100,7 @@ public class Buffer {
 
         if (BufferList.isSynced(fullName)) setOpen(true);
         BufferList.restoreLastReadLine(this);
-        if (DEBUG_BUFFER) logger.warn("new Buffer(..., {}, {}, ...) isOpen? {}", new Object[]{number, fullName, isOpen});
+        if (DEBUG_BUFFER) logger.warn("new Buffer(..., {}, {}, ...) isOpen? {}", number, fullName, isOpen);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -212,7 +212,7 @@ public class Buffer {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     synchronized public void addLine(final Line line, final boolean isLast) {
-        if (DEBUG_LINE) logger.warn("{} addLine('{}', {})", new Object[]{shortName, line.message, isLast});
+        if (DEBUG_LINE) logger.warn("{} addLine('{}', {})", shortName, line.message, isLast);
 
         // check if the line in question is already in the buffer
         // happens when reverse request throws in lines even though some are already here
@@ -343,7 +343,7 @@ public class Buffer {
     //////////////////////////////////////////////////////////////////////////////////////////////// private stuffs
 
     /** determine if the buffer is PRIVATE, CHANNEL, OTHER or HARD_HIDDEN
-     ** hard-hidden channels do not show in any way. to hide a cannel,
+     ** hard-hidden channels do not show in any way. to hide a channel,
      ** do "/buffer set localvar_set_relay hard-hide" */
     private void processBufferType() {
         RelayObject t;
@@ -419,7 +419,7 @@ public class Buffer {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     synchronized public void addNick(long pointer, String prefix, String name) {
-        if (DEBUG_NICK) logger.debug("{} addNick({}, {}, {})", new Object[]{shortName, pointer, prefix, name});
+        if (DEBUG_NICK) logger.debug("{} addNick({}, {}, {})", shortName, pointer, prefix, name);
         nicks.add(new Nick(pointer, prefix, name));
         notifyNicklistChanged();
     }
@@ -436,7 +436,7 @@ public class Buffer {
     }
 
     synchronized public void updateNick(long pointer, String prefix, String name) {
-        if (DEBUG_NICK) logger.debug("{} updateNick({}, {}, {})", new Object[]{shortName, pointer, prefix, name});
+        if (DEBUG_NICK) logger.debug("{} updateNick({}, {}, {})", shortName, pointer, prefix, name);
         for (Nick nick: nicks) {
             if (nick.pointer == pointer) {
                 nick.prefix = prefix;

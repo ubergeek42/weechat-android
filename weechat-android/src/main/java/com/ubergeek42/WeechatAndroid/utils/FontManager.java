@@ -9,9 +9,6 @@ import android.graphics.Typeface;
 import android.os.Environment;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.util.HashMap;
 
 public class FontManager
@@ -21,7 +18,7 @@ public class FontManager
     // absolute file name as key, and the font literal name (embedded into the font) as value.
     static public HashMap< String, String > enumerateFonts()
     {
-        HashMap< String, String > fonts = new HashMap< String, String >();
+        HashMap< String, String > fonts = new HashMap<>();
 
         for ( String fontdir : fontdirs )
         {
@@ -41,10 +38,10 @@ public class FontManager
                 if (file.getName().toLowerCase().endsWith(".ttf") || file.getName().toLowerCase().endsWith(".otf")) {
                     // See if it is a valid typeface
                     try {
-                        Typeface tf = Typeface.createFromFile(file.getAbsolutePath());
+                        Typeface.createFromFile(file.getAbsolutePath());
                         fonts.put(file.getAbsolutePath(), file.getName());
                     } catch (RuntimeException r) {
-                        continue;// Invalid font
+                        // Invalid font
                     }
                 }
             }

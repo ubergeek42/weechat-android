@@ -246,7 +246,7 @@ public class WeechatActivity extends AppCompatActivity implements RelayConnectio
     //////////////////////////////////////////////////////////////////////////////////////////////// relay connection
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private HashSet<BufferFragment> fragments = new HashSet<BufferFragment>();
+    private HashSet<BufferFragment> fragments = new HashSet<>();
 
     synchronized public void bind(BufferFragment fragment) {
         fragments.add(fragment);

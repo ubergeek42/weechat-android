@@ -408,18 +408,10 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         if (DEBUG_TAB_COMPLETE) logger.warn("{} onKey(..., {}, ...)", fullName, keycode);
         int action = event.getAction();
         // Enter key sends the message
-        if (checkSendMessage(keycode, action)) {
-            return true;
-        }
+        return checkSendMessage(keycode, action) ||
+                checkVolumeButtonResize(keycode, action) ||
+                checkForTabCompletion(keycode, action);
 
-        if (checkVolumeButtonResize(keycode, action)) {
-            return true;
-        }
-
-        if (checkForTabCompletion(keycode, action)) {
-            return true;
-        }
-        return false;
     }
 
     private boolean checkSendMessage(int keycode, int action) {

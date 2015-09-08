@@ -128,7 +128,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
     int hotCount = 0;
     volatile long lastMessageReceivedAt = 0;
 
-    /** mainly used to tell the user if we are REconnected */
+    /** mainly used to tell the user if we are reconnected */
     private volatile boolean disconnected;
     private boolean alreadyHadIntent;
     private volatile boolean networkUnavailable;
@@ -213,7 +213,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
      ** but we want to only run this ONCE after onCreate*/
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (DEBUG_CONNECTION) logger.debug("onStartCommand({}, {}, {}); had intent? {}", new Object[]{intent, flags, startId, alreadyHadIntent});
+        if (DEBUG_CONNECTION) logger.debug("onStartCommand({}, {}, {}); had intent? {}", intent, flags, startId, alreadyHadIntent);
         if (!alreadyHadIntent) {
             if (mustAutoConnect()) startThreadedConnectLoop(intent == null);
             alreadyHadIntent = true;
@@ -234,7 +234,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
 
     @TargetApi(16)
     private Notification buildNotification(@Nullable String tickerText, @NonNull String content, @Nullable PendingIntent intent) {
-        if (DEBUG_NOTIFICATIONS) logger.debug("buildNotification({}, {}, {})", new Object[]{tickerText, content, intent});
+        if (DEBUG_NOTIFICATIONS) logger.debug("buildNotification({}, {}, {})", tickerText, content, intent);
         PendingIntent contentIntent;
         contentIntent = (intent != null) ? intent :
             PendingIntent.getActivity(this, 0, new Intent(this, WeechatActivity.class), PendingIntent.FLAG_CANCEL_CURRENT);
@@ -305,7 +305,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
             Set<String> set = new HashSet<>();
             for (String[] h: hotList) set.add(h[BUFFER]);
             String target_buffer = (hotCount == hotList.size() && set.size() == 1) ? hotList.get(0)[BUFFER] : "";
-            if (DEBUG_NOTIFICATIONS) logger.warn("...target='{}', hotCount={}, set.size()={}", new Object[]{target_buffer, hotCount, set.size()});
+            if (DEBUG_NOTIFICATIONS) logger.warn("...target='{}', hotCount={}, set.size()={}", target_buffer, hotCount, set.size());
 
             // prepare intent
             Intent intent = new Intent(this, WeechatActivity.class).putExtra("full_name", target_buffer);
@@ -390,7 +390,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
                     if (DEBUG_CONNECTION) logger.debug("...not connected; connecting now");
                     connectionStatus = CONNECTING;
                     showNotification(String.format(getString(ticker), prefs.getString("host", null)),
-                            String.format(getString(contentNow)));
+                            getString(contentNow));
                     if (connect() != CONNECTION_IMPOSSIBLE)
                         thandler.postDelayed(notifyRunner, WAIT_BEFORE_WAIT_MESSAGE_DELAY * 1000);
                 }

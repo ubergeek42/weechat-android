@@ -39,8 +39,8 @@ public class ThemePreference extends DialogPreference implements DialogInterface
     protected void onPrepareDialogBuilder( AlertDialog.Builder builder )
     {
         super.onPrepareDialogBuilder(builder);
-        m_themePaths = new ArrayList< String >();
-        m_themeNames = new ArrayList< String >();
+        m_themePaths = new ArrayList<>();
+        m_themeNames = new ArrayList<>();
 
         AssetManager assetManager = getContext().getAssets();
         try {

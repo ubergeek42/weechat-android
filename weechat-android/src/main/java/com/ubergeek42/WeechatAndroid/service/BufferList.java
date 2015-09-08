@@ -55,7 +55,7 @@ public class BufferList {
     static public @NonNull LinkedHashSet<String> syncedBuffersFullNames = new LinkedHashSet<>();   // TODO race condition?
 
     /** this stores information about last read line (in `desktop` weechat) and according
-     ** number of read lines/highlights. this is substracted from highlight counts client
+     ** number of read lines/highlights. this is subtracted from highlight counts client
      ** receives from the server */
     static private @NonNull LinkedHashMap<String, BufferHotData> bufferToLastReadLine = new LinkedHashMap<>();
 
@@ -64,7 +64,7 @@ public class BufferList {
     private static BufferListEye buffersEye;
 
     /** the mother variable. list of current buffers */
-    private static ArrayList<Buffer> buffers = new ArrayList<Buffer>();
+    private static ArrayList<Buffer> buffers = new ArrayList<>();
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////

@@ -2,7 +2,6 @@ package com.ubergeek42.WeechatAndroid.adapters;
 
 import android.support.v7.app.AlertDialog;
 import android.content.DialogInterface;
-import android.os.Build;
 import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,7 +10,6 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import com.ubergeek42.WeechatAndroid.BuildConfig;
-import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.service.Buffer;
 import com.ubergeek42.WeechatAndroid.service.BufferNicklistEye;

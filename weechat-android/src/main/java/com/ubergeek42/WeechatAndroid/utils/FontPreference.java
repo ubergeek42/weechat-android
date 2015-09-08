@@ -109,8 +109,8 @@ public class FontPreference extends DialogPreference implements DialogInterface.
 
         // Get the fonts on the device
         HashMap< String, String > fonts = FontManager.enumerateFonts();
-        m_fontPaths = new ArrayList< String >();
-        m_fontNames = new ArrayList< String >();
+        m_fontPaths = new ArrayList<>();
+        m_fontNames = new ArrayList<>();
         m_fontPaths.add(null);
         m_fontNames.add("System Default");
 
@@ -118,7 +118,7 @@ public class FontPreference extends DialogPreference implements DialogInterface.
         String selectedFontPath = getSharedPreferences().getString( getKey(), "");
         int idx = 1, checked_item = 0; // idx starts at one since we inserted our own thing first
 
-        List<String> sortedFonts = new ArrayList<String>(fonts.keySet());
+        List<String> sortedFonts = new ArrayList<>(fonts.keySet());
         Collections.sort(sortedFonts);
 
         for ( String path : sortedFonts )

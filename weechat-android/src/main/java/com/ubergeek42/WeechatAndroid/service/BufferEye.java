@@ -2,11 +2,11 @@ package com.ubergeek42.WeechatAndroid.service;
 
 public interface BufferEye {
 
-    public void onLinesChanged();
+    void onLinesChanged();
 
-    public void onLinesListed();
+    void onLinesListed();
 
-    public void onPropertiesChanged();
+    void onPropertiesChanged();
 
-    public void onBufferClosed();
+    void onBufferClosed();
 }
