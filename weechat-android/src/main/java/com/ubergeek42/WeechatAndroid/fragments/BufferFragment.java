@@ -192,8 +192,6 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         boolean obscured = activity.isPagerNoticeablyObscured();
         boolean visible = started && pagerVisible && !obscured;
 
-        if (!started || !pagerVisible) maybeMoveReadMarker();   // ignore the drawer
-
         if (this.visible == visible) return;
         this.visible = visible;
 
@@ -219,6 +217,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         if (DEBUG_VISIBILITY) logger.warn("{} setUserVisibleHint({})", fullName, visible);
         super.setUserVisibleHint(visible);
         this.pagerVisible = visible;
+        if (!visible) maybeMoveReadMarker();
         maybeChangeVisibilityState();
     }
 
@@ -591,7 +590,8 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
         builder.setTitle("Copy").setItems(list.toArray(new CharSequence[list.size()]),
                 new DialogInterface.OnClickListener() {
-                    @Override public void onClick(DialogInterface dialog, int which) {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
                         @SuppressWarnings("deprecation")
                         ClipboardManager cm = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
                         cm.setText(list.get(which));
