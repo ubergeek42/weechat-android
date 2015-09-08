@@ -17,6 +17,7 @@ package com.ubergeek42.WeechatAndroid;
 
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
+import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -280,8 +281,11 @@ public class WeechatPreferencesActivity extends PreferenceActivity implements
                 break;
             case "notification_sound":
                 String tmp = sharedPreferences.getString(key, "");
-                tmp = ("".equals(tmp)) ? "None" :
-                        RingtoneManager.getRingtone(this, Uri.parse(tmp)).getTitle(this);
+                if ("".equals(tmp)) tmp = "None";
+                else {
+                    Ringtone ringtone = RingtoneManager.getRingtone(this, Uri.parse(tmp));
+                    tmp = (ringtone == null) ? "Unknown" : ringtone.getTitle(this);
+                }
                 ringtonePreference.setSummary(tmp);
                 break;
         }
