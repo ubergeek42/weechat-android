@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- a cute kitty with a background, positioned “under” the toolbar
+    is hidden when ViewPager gets pages and is shown when it becomes empty
+    there is no background behind it -->
+    <ImageView
+        android:id="@+id/kitty"
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="center"
+        android:layout_marginTop="?attr/actionBarSize"
+        android:background="?attr/colorPrimary" />
+
+    <!-- has transparent background. frames get to color themselves -->
+    <android.support.v4.view.ViewPager
+        android:id="@+id/main_viewpager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- the toolbar is positioned over the pager.
+    it is hidden when user scrolls up in the chat. -->
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_height="?attr/actionBarSize"
+        android:layout_width="match_parent"
+        android:background="?attr/colorPrimary" />
+
+</FrameLayout>

@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Vector;
 
 import android.content.DialogInterface;
-import android.graphics.drawable.ColorDrawable;
 import android.support.v4.app.Fragment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -115,8 +114,6 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         uiInput.addTextChangedListener(this);      // listen for software keyboard through watching input box text
         uiInput.setOnEditorActionListener(this);   // listen for software keyboard's “send” click. see onEditorAction()
 
-        //noinspection deprecation
-        uiLines.setBackgroundDrawable(new ColorDrawable(0xFF000000 | ColorScheme.currentScheme().getOptionColor("default")[ColorScheme.OPT_BG]));
         uiLines.setFocusable(false);
         uiLines.setFocusableInTouchMode(false);
         uiLines.setOnItemLongClickListener(this);
@@ -130,6 +127,8 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         super.onStart();
         started = true;
         activity.bind(this);
+        //noinspection deprecation
+        uiLines.setBackgroundColor(0xFF000000 | ColorScheme.currentScheme().getOptionColor("default")[ColorScheme.OPT_BG]);
     }
 
     @Override

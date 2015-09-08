@@ -111,6 +111,9 @@ public class WeechatActivity extends AppCompatActivity implements RelayConnectio
         // load layout
         setContentView(R.layout.main_screen);
 
+        // remove window color so that we get low overdraw
+        getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+
         // prepare pager
         FragmentManager manager = getSupportFragmentManager();
         uiPager = (ViewPager) findViewById(R.id.main_viewpager);
@@ -131,7 +134,7 @@ public class WeechatActivity extends AppCompatActivity implements RelayConnectio
 
         // this is the text view behind the uiPager
         // it says stuff like 'connecting', 'disconnected' et al
-        uiInfo = (ImageView) findViewById(R.id.info);
+        uiInfo = (ImageView) findViewById(R.id.kitty);
         uiInfo.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -387,6 +390,8 @@ public class WeechatActivity extends AppCompatActivity implements RelayConnectio
         updateMenuItems();
         hideSoftwareKeyboard();
         toolbarController.onPageChangedOrSelected();
+        findViewById(R.id.kitty).setVisibility(
+                (uiPager.getAdapter().getCount() == 0) ? View.VISIBLE : View.GONE);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

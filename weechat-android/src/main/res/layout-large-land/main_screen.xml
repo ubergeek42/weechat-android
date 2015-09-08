@@ -17,33 +17,6 @@
         android:layout_gravity="left"
         tools:layout="@layout/bufferlist" />
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-        <android.support.v7.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_height="wrap_content"
-            android:layout_width="match_parent"
-            android:minHeight="?attr/actionBarSize"
-            android:theme="@style/ThemeOverlay.AppCompat.ActionBar" />
-
-        <!-- main content -->
-        <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" >
-
-            <ImageView
-                android:id="@+id/info"
-                android:gravity="center"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:scaleType="center" />
-
-            <android.support.v4.view.ViewPager
-                android:id="@+id/main_viewpager"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
-        </FrameLayout>
-    </LinearLayout>
+    <!-- main content -->
+    <include layout="@layout/weasel" />
 </LinearLayout>
