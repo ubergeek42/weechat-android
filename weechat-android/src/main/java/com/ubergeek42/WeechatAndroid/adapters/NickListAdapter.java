@@ -31,11 +31,6 @@ public class NickListAdapter extends BaseAdapter implements BufferNicklistEye,
     private @NonNull Buffer.Nick[] nicks = new Buffer.Nick[0];
     private @NonNull AlertDialog dialog;
 
-    // for earlier versions of android, draw another view, black text on white
-    // this fixes a bug in earlier versions where background and text color would be the same
-    private final static int resource = (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) ?
-            R.layout.simple_list_item_1 : android.R.layout.simple_list_item_1;
-
     public NickListAdapter(@NonNull WeechatActivity activity, @NonNull Buffer buffer) {
         this.activity = activity;
         this.inflater = LayoutInflater.from(activity);
@@ -60,7 +55,7 @@ public class NickListAdapter extends BaseAdapter implements BufferNicklistEye,
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         if (convertView == null)
-            convertView = inflater.inflate(resource, parent, false);
+            convertView = inflater.inflate(android.R.layout.simple_list_item_1, parent, false);
         TextView textview = (TextView) convertView;
 
         Buffer.Nick nick = getItem(position);
