@@ -169,7 +169,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     //     * shifted from invisible line to last visible line if buffer is filtered
     private void maybeMoveReadMarker() {
         if (DEBUG_VISIBILITY) logger.warn("{} maybeMoveReadMarker({})", shortName);
-        if (buffer.readMarkerLine != buffer.lastVisibleLine) {
+        if (buffer != null && buffer.readMarkerLine != buffer.lastVisibleLine) {
             buffer.readMarkerLine = buffer.lastVisibleLine;
             linesAdapter.needMoveLastReadMarker = true;
             onLinesChanged();
