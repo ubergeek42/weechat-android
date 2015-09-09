@@ -36,6 +36,7 @@ import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.service.Buffer;
 import com.ubergeek42.WeechatAndroid.service.BufferEye;
+import com.ubergeek42.WeechatAndroid.service.BufferList;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
 import com.ubergeek42.WeechatAndroid.service.RelayServiceBinder;
 import com.ubergeek42.weechat.ColorScheme;
@@ -113,6 +114,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         uiInput.setOnKeyListener(this);            // listen for hardware keyboard
         uiInput.addTextChangedListener(this);      // listen for software keyboard through watching input box text
         uiInput.setOnEditorActionListener(this);   // listen for software keyboard's “send” click. see onEditorAction()
+        uiInput.setOnLongClickListener(pastListener);
 
         uiLines.setFocusable(false);
         uiLines.setFocusableInTouchMode(false);
@@ -482,6 +484,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
             if (line.length() == 0)
                 continue;
             relay.sendMessage("input " + buffer.fullName + " " + line);
+            BufferList.addSentMessage(line);
         }
         uiInput.setText("");   // this will reset tab completion
     }
@@ -591,7 +594,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         builder.create().show();
 
         line.clickDisabled = true;
-        return false;
+        return true;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -599,4 +602,55 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     public String getShortBufferName() {
         return shortName;
     }
+
+    private EditText.OnLongClickListener pastListener = new EditText.OnLongClickListener() {
+        @Override public boolean onLongClick(View v) {
+            String text = ((TextView) v).getText().toString();
+            if ("".equals(text) && BufferList.sentMessages.size() != 0) {
+                final ArrayList<String> list = new ArrayList<>();
+
+                // read clipboard
+                // noinspection deprecation
+                ClipboardManager cm = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
+                final String clip = cm.getText().toString().trim();
+
+                // copy last messages if they do not equal clipboard
+                for (String m : BufferList.sentMessages)
+                    if (!m.equals(clip)) list.add(m);
+
+                // clean and add clipboard
+                // note if it's added or not
+                final boolean clipAdded = !"".equals(clip);
+                if (clipAdded) {
+                    int chunks = clip.split("\\r\\n|\\r|\\n").length;
+                    String clean = clip.replaceAll("\\r\\n|\\r|\\n", " ");
+                    if (clean.length() > 100)
+                        clean = clean.substring(0, Math.min(clean.length(), 100)) + "…";
+                    if (chunks > 1)
+                        clean += " (" + chunks + " lines)";
+                    list.add(clean);
+                }
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+                builder.setTitle("Paste").setItems(list.toArray(new CharSequence[list.size()]),
+                        new DialogInterface.OnClickListener() {
+                            @Override public void onClick(DialogInterface dialog, int which) {
+                                if (clipAdded && which == list.size()-1) uiInput.setText(clip);
+                                else uiInput.setText(list.get(which));
+                                uiInput.setSelection(uiInput.getText().length());
+                            }
+                        });
+
+                // create dialogue and scroll to end without showing scroll bars
+                AlertDialog d = builder.create();
+                final ListView l = d.getListView();
+                l.setVerticalScrollBarEnabled(false);
+                d.show();
+                d.getListView().setSelection(list.size() - 1);
+                l.post(new Runnable() {@Override public void run() {l.setVerticalScrollBarEnabled(true);}});
+                return true;
+            }
+            return false;
+        }
+    };
 }

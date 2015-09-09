@@ -26,6 +26,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.ListIterator;
 import java.util.Locale;
 
@@ -640,4 +641,16 @@ public class BufferList {
         int totalOldUnreads = 0;
         int totalOldHighlights = 0;
     }
+
+    public static LinkedList<String> sentMessages = new LinkedList<>();
+    public static void addSentMessage(String line) {
+        for (Iterator<String> it = sentMessages.iterator(); it.hasNext();) {
+            String s = it.next();
+            if (line.equals(s)) it.remove();
+        }
+        sentMessages.add(line);
+        if (sentMessages.size() > 40)
+            sentMessages.pop();
+    }
+
 }
