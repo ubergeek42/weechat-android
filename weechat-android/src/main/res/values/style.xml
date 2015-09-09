@@ -15,6 +15,7 @@
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryDark">@color/primary_dark</item>
         <item name="android:background">@color/primary</item>
+        <item name="android:drawSelectorOnTop">true</item>
     </style>
 
     <!-- honey comb & lower action button approximation -->
