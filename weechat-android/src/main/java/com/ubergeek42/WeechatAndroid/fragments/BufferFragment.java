@@ -1,9 +1,7 @@
 package com.ubergeek42.WeechatAndroid.fragments;
 
-import java.util.ArrayList;
 import java.util.Vector;
 
-import android.content.DialogInterface;
 import android.support.v4.app.Fragment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,11 +10,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.v7.app.AlertDialog;
-import android.text.ClipboardManager;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.text.style.URLSpan;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,7 +20,6 @@ import android.view.View.OnKeyListener;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
-import android.widget.AdapterView;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -39,12 +33,12 @@ import com.ubergeek42.WeechatAndroid.service.BufferEye;
 import com.ubergeek42.WeechatAndroid.service.BufferList;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
 import com.ubergeek42.WeechatAndroid.service.RelayServiceBinder;
+import com.ubergeek42.WeechatAndroid.utils.CopyPaste;
 import com.ubergeek42.weechat.ColorScheme;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
 
 public class BufferFragment extends Fragment implements BufferEye, OnKeyListener,
-        OnClickListener, TextWatcher, RelayConnectionHandler,
-        TextView.OnEditorActionListener, AdapterView.OnItemLongClickListener {
+        OnClickListener, TextWatcher, RelayConnectionHandler, TextView.OnEditorActionListener {
 
     private static Logger logger = LoggerFactory.getLogger("BufferFragment");
     final private static boolean DEBUG_TAB_COMPLETE = false;
@@ -114,11 +108,13 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         uiInput.setOnKeyListener(this);            // listen for hardware keyboard
         uiInput.addTextChangedListener(this);      // listen for software keyboard through watching input box text
         uiInput.setOnEditorActionListener(this);   // listen for software keyboard's “send” click. see onEditorAction()
-        uiInput.setOnLongClickListener(pastListener);
 
         uiLines.setFocusable(false);
         uiLines.setFocusableInTouchMode(false);
-        uiLines.setOnItemLongClickListener(this);
+
+        CopyPaste cp = new CopyPaste(activity, uiInput);
+        uiInput.setOnLongClickListener(cp);
+        uiLines.setOnItemLongClickListener(cp);
 
         return v;
     }
@@ -566,91 +562,8 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// copy menu
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-    @Override public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-        TextView uiTextView = (TextView) view.findViewById(R.id.chatline_message);
-        if (uiTextView == null) return false;
-
-        Buffer.Line line = (Buffer.Line) uiTextView.getTag();
-        final ArrayList<String> list = new ArrayList<>();
-
-        list.add(line.getNotificationString());
-        for (URLSpan url: uiTextView.getUrls())
-            list.add(url.getURL());
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-        builder.setTitle("Copy").setItems(list.toArray(new CharSequence[list.size()]),
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        @SuppressWarnings("deprecation")
-                        ClipboardManager cm = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
-                        cm.setText(list.get(which));
-                    }
-                });
-        builder.create().show();
-
-        line.clickDisabled = true;
-        return true;
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     public String getShortBufferName() {
         return shortName;
     }
-
-    private EditText.OnLongClickListener pastListener = new EditText.OnLongClickListener() {
-        @Override public boolean onLongClick(View v) {
-            String text = ((TextView) v).getText().toString();
-            if ("".equals(text) && BufferList.sentMessages.size() != 0) {
-                final ArrayList<String> list = new ArrayList<>();
-
-                // read clipboard
-                // noinspection deprecation
-                ClipboardManager cm = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
-                final String clip = cm.getText().toString().trim();
-
-                // copy last messages if they do not equal clipboard
-                for (String m : BufferList.sentMessages)
-                    if (!m.equals(clip)) list.add(m);
-
-                // clean and add clipboard
-                // note if it's added or not
-                final boolean clipAdded = !"".equals(clip);
-                if (clipAdded) {
-                    int chunks = clip.split("\\r\\n|\\r|\\n").length;
-                    String clean = clip.replaceAll("\\r\\n|\\r|\\n", " ");
-                    if (clean.length() > 100)
-                        clean = clean.substring(0, Math.min(clean.length(), 100)) + "…";
-                    if (chunks > 1)
-                        clean += " (" + chunks + " lines)";
-                    list.add(clean);
-                }
-
-                AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-                builder.setTitle("Paste").setItems(list.toArray(new CharSequence[list.size()]),
-                        new DialogInterface.OnClickListener() {
-                            @Override public void onClick(DialogInterface dialog, int which) {
-                                if (clipAdded && which == list.size()-1) uiInput.setText(clip);
-                                else uiInput.setText(list.get(which));
-                                uiInput.setSelection(uiInput.getText().length());
-                            }
-                        });
-
-                // create dialogue and scroll to end without showing scroll bars
-                AlertDialog d = builder.create();
-                final ListView l = d.getListView();
-                l.setVerticalScrollBarEnabled(false);
-                d.show();
-                d.getListView().setSelection(list.size() - 1);
-                l.post(new Runnable() {@Override public void run() {l.setVerticalScrollBarEnabled(true);}});
-                return true;
-            }
-            return false;
-        }
-    };
 }

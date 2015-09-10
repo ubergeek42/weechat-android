@@ -37,7 +37,7 @@ public class Utils {
 
     /** protocol must be changed each time anything that uses the following function changes
      ** needed to make sure nothing crashes if we cannot restore the data */
-    public static final int SERIALIZATION_PROTOCOL_ID = 8;
+    public static final int SERIALIZATION_PROTOCOL_ID = 9;
 
     public static @Nullable Object deserialize(@Nullable String string) {
         if (string == null) return null;
@@ -65,5 +65,23 @@ public class Utils {
             e.printStackTrace();
             return null;
         }
+    }
+
+    //////////////////////////////////////////////////////////////////////////////////////////////// string cuts
+
+    // replace multiline text with one string like "foo bar baz… (3 lines)"
+    public static @NonNull String cutFirst(@NonNull String text) {
+        int chunks = text.split("\\r\\n|\\r|\\n").length;
+        String clean = text.replaceAll("\\r\\n|\\r|\\n", " ");
+        clean = cut(clean);
+        if (chunks > 1)
+            clean += " (" + chunks + " lines)";
+        return clean;
+    }
+
+    // cut string at 100 characters
+    public static @NonNull String cut(@NonNull String text) {
+        return (text.length() > 100) ?
+                text.substring(0, Math.min(text.length(), 100)) + "…" : text;
     }
 }

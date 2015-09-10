@@ -154,17 +154,15 @@ public class RelayService extends RelayServiceBackbone {
     //////////////////////////////////////////////////////////////////////////////////////////////// save/restore
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private final static String PREF_SYNCED_BUFFERS = "sb";
-    private final static String PREF_LAST_READ_LINES = "lrl";
+    private final static String PREF_DATA = "sb";
     private final static String PREF_PROTOCOL_ID = "pid";
 
     /** save everything that is needed for successful restoration of the service */
     private void saveStuff() {
         if (DEBUG_SAVE_RESTORE) logger.debug("saveStuff()");
         SharedPreferences preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        preferences.edit().putString(PREF_SYNCED_BUFFERS, BufferList.getSyncedBuffersAsString())
-                          .putString(PREF_LAST_READ_LINES, BufferList.getBufferToLastReadLineAsString())
-                          .putInt(PREF_PROTOCOL_ID, Utils.SERIALIZATION_PROTOCOL_ID).commit();
+        preferences.edit().putString(PREF_DATA, BufferList.getSerializedSaveData(true))
+                          .putInt(PREF_PROTOCOL_ID, Utils.SERIALIZATION_PROTOCOL_ID).apply();
     }
 
     /** restore everything. if data is an invalid protocol, 'restore' null */
@@ -172,8 +170,7 @@ public class RelayService extends RelayServiceBackbone {
         if (DEBUG_SAVE_RESTORE) logger.debug("restoreStuff()");
         SharedPreferences preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         boolean valid = preferences.getInt(PREF_PROTOCOL_ID, -1) == Utils.SERIALIZATION_PROTOCOL_ID;
-        BufferList.setSyncedBuffersFromString(valid ? preferences.getString(PREF_SYNCED_BUFFERS, null) : null);
-        BufferList.setBufferToLastReadLineFromString(valid ? preferences.getString(PREF_LAST_READ_LINES, null) : null);
+        BufferList.setSaveDataFromString(valid ? preferences.getString(PREF_DATA, null) : null);
     }
 
     /** delete open buffers, so that buffers don't remain open (after Quit).
@@ -181,7 +178,7 @@ public class RelayService extends RelayServiceBackbone {
     private void eraseStoredStuff() {
         if (DEBUG_SAVE_RESTORE) logger.debug("eraseStoredStuff()");
         SharedPreferences preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        preferences.edit().remove(PREF_SYNCED_BUFFERS).commit();
+        preferences.edit().putString(PREF_DATA, BufferList.getSerializedSaveData(false)).apply();
         BufferList.syncedBuffersFullNames.clear();
     }
 

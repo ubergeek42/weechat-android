@@ -606,34 +606,22 @@ public class BufferList {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    synchronized static @Nullable String getSyncedBuffersAsString() {
-        if (DEBUG_SAVE_RESTORE) logger.warn("getSyncedBuffersAsString() -> ...");
-        return Utils.serialize(syncedBuffersFullNames);
-    }
-
-    @SuppressWarnings("unchecked")
-    synchronized static void setSyncedBuffersFromString(@Nullable String syncedBuffers) {
-        if (DEBUG_SAVE_RESTORE) logger.warn("setSyncedBuffersFromString(...)");
-        Object o = Utils.deserialize(syncedBuffers);
-        if (o instanceof LinkedHashSet)
-            syncedBuffersFullNames = (LinkedHashSet<String>) o;
-    }
-
-    synchronized static @Nullable String getBufferToLastReadLineAsString() {
-        if (DEBUG_SAVE_RESTORE) logger.warn("getBufferToLastReadLineAsString() -> ...");
+    synchronized static @Nullable String getSerializedSaveData(boolean saveLRL) {
+        if (DEBUG_SAVE_RESTORE) logger.warn("getSerializedSaveData() -> ...");
         if (buffers != null) for (Buffer buffer : buffers) saveLastReadLine(buffer);
-        return Utils.serialize(bufferToLastReadLine);
+        return Utils.serialize(new Object[] {saveLRL ? syncedBuffersFullNames : null, bufferToLastReadLine, sentMessages});
     }
 
     @SuppressWarnings("unchecked")
-    synchronized static void setBufferToLastReadLineFromString(@Nullable String buffersReadLines) {
-        if (DEBUG_SAVE_RESTORE) logger.warn("setBufferToLastReadLineFromString(...)");
-        Object o = Utils.deserialize(buffersReadLines);
-        if (o instanceof LinkedHashMap)
-            bufferToLastReadLine = (LinkedHashMap<String, BufferHotData>) o;
+    synchronized static void setSaveDataFromString(@Nullable String data) {
+        if (DEBUG_SAVE_RESTORE) logger.warn("setSaveDataFromString(...)");
+        Object o = Utils.deserialize(data);
+        if (!(o instanceof Object[])) return;
+        Object[] array = (Object[]) o;
+        if (array[0] instanceof LinkedHashSet) syncedBuffersFullNames = (LinkedHashSet<String>) array[0];
+        if (array[1] instanceof LinkedHashMap) bufferToLastReadLine = (LinkedHashMap<String, BufferHotData>) array[1];
+        if (array[2] instanceof LinkedList) sentMessages = (LinkedList<String>) array[2];
     }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private static class BufferHotData implements Serializable {
         long readMarkerLine = -1;
@@ -641,6 +629,10 @@ public class BufferList {
         int totalOldUnreads = 0;
         int totalOldHighlights = 0;
     }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// saving messages
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     public static LinkedList<String> sentMessages = new LinkedList<>();
     public static void addSentMessage(String line) {
