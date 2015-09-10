@@ -31,9 +31,8 @@ public class CopyPaste implements EditText.OnLongClickListener, AdapterView.OnIt
 
     // called on long click on input field
     @Override public boolean onLongClick(View v) {
-        // do not do anything special if TextView has text or we don't have any saved messages
-        if (!"".equals(((TextView) v).getText().toString()) && BufferList.sentMessages.size() == 0)
-            return false;
+        // do not do anything special if TextView has text
+        if (!"".equals(((TextView) v).getText().toString())) return false;
 
         final ArrayList<String> list = new ArrayList<>();
         final ArrayList<String> printList = new ArrayList<>();
@@ -41,14 +40,16 @@ public class CopyPaste implements EditText.OnLongClickListener, AdapterView.OnIt
         // read & trim clipboard
         // noinspection deprecation
         ClipboardManager cm = (ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE);
-        final String clip = cm.getText().toString().trim();
+        final String clip = (cm.getText() == null) ? "" : cm.getText().toString().trim();
 
         // copy last messages if they do not equal clipboard
+        // if there are no messages, do nothing
         for (String m : BufferList.sentMessages)
             if (!m.equals(clip)) {
                 list.add(m);
                 printList.add(Utils.cut(m));
             }
+        if (list.size() == 0) return false;
 
         // clean and add clipboard
         if (!"".equals(clip)) {
