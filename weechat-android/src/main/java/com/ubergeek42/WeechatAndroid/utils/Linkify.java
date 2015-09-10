@@ -2,6 +2,9 @@ package com.ubergeek42.WeechatAndroid.utils;
 
 
 import android.content.ActivityNotFoundException;
+import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.text.Spannable;
 import android.text.Spanned;
@@ -50,13 +53,17 @@ public class Linkify {
             Buffer.Line line = (Buffer.Line) widget.getTag();
             if (line.clickDisabled)
                 line.clickDisabled = false;
-            else
+            else {
+                // don't call super because super will open urls in the same tab
+                Context context = widget.getContext();
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(getURL()));
                 try {
-                    super.onClick(widget);
+                    context.startActivity(intent);
                 } catch (ActivityNotFoundException e) {
                     CharSequence text = "Activity not found for intent " + getURL();
                     Toast.makeText(widget.getContext(), text, Toast.LENGTH_SHORT).show();
                 }
+            }
         }
     }
 
