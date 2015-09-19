@@ -41,9 +41,9 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 
 import com.ubergeek42.WeechatAndroid.BuildConfig;
+import com.ubergeek42.WeechatAndroid.PreferencesActivity;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
-import com.ubergeek42.WeechatAndroid.WeechatPreferencesActivity;
 import com.ubergeek42.weechat.relay.RelayConnection;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
 import com.ubergeek42.weechat.relay.RelayMessageHandler;
@@ -488,7 +488,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
 
         // if no host defined, signal user to edit their preferences
         if (host == null || pass == null) {
-            Intent intent = new Intent(this, WeechatPreferencesActivity.class);
+            Intent intent = new Intent(this, PreferencesActivity.class);
             PendingIntent contentIntent = PendingIntent.getActivity(this, 0, intent,
                     PendingIntent.FLAG_CANCEL_CURRENT);
             showNotification(getString(R.string.notification_update_settings_details),

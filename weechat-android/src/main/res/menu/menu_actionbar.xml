@@ -26,11 +26,6 @@
           android:icon="@drawable/ic_1_navigation_cancel"
           app:showAsAction="never"
           android:title="@string/close"/>
-    <item android:id="@+id/menu_about"
-          android:menuCategory="secondary"
-          android:icon="@drawable/ic_2_action_about"
-          app:showAsAction="never"
-          android:title="@string/about"/>
     <item android:id="@+id/menu_quit"
           android:menuCategory="secondary"
           android:icon="@drawable/ic_1_navigation_cancel"

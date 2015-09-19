@@ -8,6 +8,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.content.ComponentName;
 import android.content.Context;
@@ -15,7 +16,9 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.v7.widget.Toolbar;
 import android.text.Html;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -40,6 +43,13 @@ public class SSLCertActivity extends AppCompatActivity {
 
         // Load the layout
         setContentView(R.layout.sslcertviewer);
+
+        setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setTitle("Untrusted SSL certificate");
+        }
         
         certDetails = (TextView) findViewById(R.id.cert_details);
         accept = (Button) findViewById(R.id.accept_cert);
@@ -49,6 +59,7 @@ public class SSLCertActivity extends AppCompatActivity {
         accept.setOnClickListener(acceptListener);
         reject.setOnClickListener(rejectListener);
     }
+
     @Override
     protected void onStart() {
         super.onStart();
@@ -128,5 +139,13 @@ public class SSLCertActivity extends AppCompatActivity {
         certDetails.setText(Html.fromHtml(details.toString()),TextView.BufferType.SPANNABLE);
         accept.setEnabled(true);
         reject.setEnabled(true);
+    }
+
+    @Override public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            onBackPressed();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }

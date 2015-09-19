@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">weechat (dev)</string>
+    <string name="package_name">com.ubergeek42.WeechatAndroid.dev</string>
 </resources>

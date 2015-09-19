@@ -2,13 +2,17 @@
 
 <resources xmlns:tools="http://schemas.android.com/tools">
 
-    <style name="Weechat" parent="Theme.AppCompat.NoActionBar">
+    <style name="Weechat" parent="WeechatBase" />
+
+    <style name="WeechatBase" parent="Theme.AppCompat.NoActionBar">
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryDark">@color/primary_dark</item>
         <item name="android:windowBackground">@color/primary</item>
         <item name="android:colorBackground">@color/primary</item>
         <item name="android:navigationBarColor" tools:targetApi="lollipop">@color/primary_dark</item>
         <item name="alertDialogTheme">@style/DialogStyle</item>
+        <item name="preferenceTheme">@style/PreferenceStyle</item>
+        <item name="android:activatedBackgroundIndicator" tools:targetApi="11">?android:attr/selectableItemBackground</item>
     </style>
 
     <style name="DialogStyle" parent="Theme.AppCompat.Dialog.Alert">
@@ -17,6 +21,8 @@
         <item name="android:background">@color/primary</item>
         <item name="android:drawSelectorOnTop">true</item>
     </style>
+
+    <style name="PreferenceStyle" parent="@style/PreferenceThemeOverlay.v14" />
 
     <!-- honey comb & lower action button approximation -->
 

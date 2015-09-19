@@ -281,7 +281,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         buffer.setBufferEye(this);                      // buffer watcher TODO: java.lang.NullPointerException if run in thread ?!?!
 
         linesAdapter = new ChatLinesAdapter(activity, buffer, uiLines);
-        linesAdapter.setFont(prefs.getString(PREF_BUFFER_FONT, null));
+        linesAdapter.setFont(prefs.getString(PREF_BUFFER_FONT, ""));
         linesAdapter.readLinesFromBuffer();
 
         activity.runOnUiThread(new Runnable() {

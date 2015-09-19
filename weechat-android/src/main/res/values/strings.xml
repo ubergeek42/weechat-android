@@ -1,22 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">weechat</string>
-    <string name="sendkey">Send</string>
 
+    <!-- internally used names -->
+    <string name="app_name">weechat</string>
+    <string name="package_name">com.ubergeek42.WeechatAndroid</string>
+
+    <!-- widget and button contentDescription-s -->
+    <string name="sendkey">Send</string>
     <string name="preferences">Settings</string>
     <string name="close">Close</string>
-    <string name="about">About</string>
     <string name="quit">Quit</string>
     <string name="connect">Connect</string>
     <string name="disconnect">Disconnect</string>
     <string name="hotlist">Hotlist</string>
     <string name="nicklist_menu">Nicks</string>
     <string name="tabkey">Tab</string>
-    
-    <!--  The text shown in the buffer list filter edit text as a placeholder -->
+    <string name="open_drawer">Open drawer</string>
+    <string name="close_drawer">Close drawer</string>
+
+
+    <!--  the text shown in the buffer list filter edit text as a placeholder -->
     <string name="filter_bufferlist_placeholder"><i>filter</i></string>
     
     <!-- Some of the notifications the application displays during certain events -->
+    <plurals name="hot_messages">
+        <item quantity="one">Hot message!</item>
+        <item quantity="other">%d hot messages</item>
+    </plurals>
+    <string name="hot_message_not_available">(message not available)</string>
+
     <string name="notification_connected_to">"Connected to "</string>
 	<string name="notification_reconnected_to">"Reconnected to "</string>
     <string name="notification_disconnected">Disconnected</string>
@@ -35,106 +47,126 @@
     <string name="notification_network_unavailable">Network unavailable</string>
     <string name="notification_network_unavailable_details">Failed to connect, network unavailable</string>
 
-    <!-- Preferences -->
-    <string name="pref_connection_group">Connection settings</string>
-    <string name="pref_relay_host">Relay host</string>
-    <string name="pref_relay_port">Relay port</string>
-    <string name="pref_relay_password">Relay password</string>
-    <string name="pref_autoconnect">Connect automatically</string>
-    <string name="pref_autoconnect_summary">Connect automatically on app launch</string>
-    <string name="pref_autostart">Start automatically</string>
-    <string name="pref_autostart_summary">Start Weechat automatically on system start</string>
-    <string name="pref_notification_ticker">Notifications ticker</string>
-    <string name="pref_notification_ticker_summary">Display connection changes as ticker</string>
-    <string name="pref_optimize_traffic">Only sync open buffers</string>
-    <string name="pref_optimize_traffic_summary">Can significantly reduce traffic, but hotlist updates will only happen once 5 minutes. Requires WeeChat 1.1 or newer. Takes effect after re-connection.</string>
-    <string name="pref_hotlist_sync">Sync buffer read status</string>
-    <string name="pref_hotlist_sync_summary">Mark buffers as read in weechat when you read them in this app. Requires Weechat 1.0 or newer.</string>
-    <string name="pref_adv_connection_group">Advanced connection settings</string>
-	    <string name="pref_connection_type">Connection type</string>
-		    <string-array name="pref_connection_type_names">
-		        <item>Plain connection</item>
-		        <item>WeeChat SSL</item>
-		        <item>SSH tunnel</item>
-		        <item>Stunnel</item>
-                <item>WebSocket</item>
-                <item>WebSocket(SSL)</item>
-    		</string-array>
-	    <string name="pref_stunnel_group">Stunnel settings</string>
-		    <string name="pref_stunnel_cert">Stunnel certificate file</string>
-		    <string name="pref_stunnel_pass">Stunnel password</string>
-	    <string name="pref_ssh_group">SSH tunnel settings</string>
-		    <string name="pref_ssh_host">SSH host</string>
-		    <string name="pref_ssh_user">SSH username</string>
-		    <string name="pref_ssh_port">SSH port</string>
-		    <string name="pref_ssh_pass">SSH password/key passphrase</string>
-		    <string name="pref_ssh_keyfile">SSH private key file</string>
-	    <string name="pref_ping_group">Ping settings</string>
-		    <string name="pref_ping_enabled">Enable Ping</string>
-		    <string name="pref_ping_idle">Idle Time</string>
-		    <string name="pref_ping_timeout">Ping Timeout</string>
-		    <string name="pref_ping_enabled_summary">Periodically check that the relay connection is still alive when idle</string>
-		    <string name="pref_ping_idle_summary">Number of seconds to wait before sending a ping when the connection is idle</string>
-		    <string name="pref_ping_timeout_summary">Number of seconds to wait before closing an unresponsive connection</string>
-    <string name="pref_bufferlist_group">Buffer list</string>
-	    <string name="pref_sort_buffers">Sort buffer list</string>
-	    <string name="pref_sort_buffers_summary">Sort by number of highlights/private messages/unread messages</string>
-	    <string name="pref_hide_server_buffers">Hide non-conversation buffers</string>
-	    <string name="pref_hide_server_buffers_summary">E.g. server buffers and plugin buffers</string>
-	    <string name="pref_hide_buffer_titles">Show buffer titles</string>
-	    <string name="pref_hide_buffer_titles_summary">These tend to take considerable space though</string>
-	    <string name="pref_show_buffer_filter">Show buffer filter</string>
-    <string name="pref_lookfeel_group">Look &amp; feel</string>
-	    <string name="pref_text_size">Text Size</string>
-	    <string name="pref_text_size_summary">You can also use volume buttons to change this</string>
-	    <string name="pref_chatview_filters">Filter messages</string>
-	    <string name="pref_chatview_filters_summary">Hide messages filtered by WeeChat (e.g. irc_smart_filter)</string>
-	    <string name="pref_prefix_align">Prefix alignment</string>
-   	        <string-array name="pref_prefix_align_names">
-		        <item>Left aligned</item>
-		        <item>Right aligned</item>
-                <item>Timestamp aligned</item>
-		        <item>No alignment</item>
-		    </string-array>
-	    <string name="pref_enclose_nick">Enclose nicknames</string>
-	    <string name="pref_enclose_nick_summary">Enclose nicknames of messages with &lt;&#xA0;and&#xA0;&gt;</string>
-	    <string name="pref_timestamp_format">Timestamp format</string>
-	    <string name="pref_timestamp_invalid">Invalid timestamp format</string>
-	    <string name="pref_prefix_width_invalid">Invalid prefix width</string>
-
-    <string name="pref_misc_group">Miscellaneous</string>
-	    <string name="pref_tabbtn_show">Show tab button (⇥)</string>
-	    <string name="pref_sendbtn_show">Show send button</string>
-    <string name="pref_notif_group">Notifications</string>
-	    <string name="pref_notification_enable">Enable notifications</string>
-	    <string name="pref_notification_enable_summary">Notify about hot messages such as private messages or highlights</string>
-	    <string name="pref_notification_sound">Notification sound</string>
-	    <string name="pref_notification_vibrate">Vibration</string>
-	    <string name="pref_notification_light">Notification light</string>
-
-    <string name="pref_dim_down">Dim down non-human lines</string>
-    <string name="pref_dim_down_summary">Display joins/quits in a darker color</string>
-    <string name="pref_timestamp_format_summary"><![CDATA[Default: &quot;HH:mm:ss&quot;; empty turns off the prefix completely]]></string>
-    <string name="pref_max_width">Maximum width of prefix</string>
-    <string name="pref_max_width_summary">In terms of letters; longer nicknames will be cut</string>
-
-    <string name="hot_message_not_available">(message not available)</string>
-    <plurals name="hot_messages">
-        <item quantity="one">Hot message!</item>
-        <item quantity="other">%d hot messages</item>
-    </plurals>
-
-    <string name="open_drawer">Open drawer</string>
-    <string name="close_drawer">Close drawer</string>
+    <!-- toasts -->
     <string name="autoscroll_no_line">Buffer lost some hot messages because of new lines</string>
     <string name="no_hot_buffers">There are no hot buffers for now</string>
     <string name="wrong_password">Wrong password</string>
-    <string name="pref_volumebtn_size">Volume buttons change text size</string>
-    <string name="pref_volumebtn_size_summary">Whether volume buttons are hooked to change text size instead of volume</string>
-    <string name="pref_font_summary">The font used for each buffer. Non-monospace fonts will not work well with alignment. A restart may be necessary to fix the display.</string>
-    <string name="pref_font">Buffer Font</string>
-    <string name="pref_hostname_invalid">No spaces allowed in hostnames</string>
-    <string name="color_scheme">Color Scheme</string>
-    <string name="color_scheme_summary">Default</string>
-    <string name="pref_color_scheme_summary">The select color scheme. A restart may be necessary in some cases to fully refresh the interface.</string>
+
+
+    <!-- ##################################### preferences ##################################### -->
+
+
+    <string name="pref_connection_group">Connection</string>
+
+        <!-- connection type -->
+        <string name="pref_connection_type">Connection type</string>
+            <string-array name="pref_connection_type_names">
+                <item>Plain connection</item>
+                <item>WeeChat SSL</item>
+                <item>SSH tunnel</item>
+                <item>Stunnel</item>
+                <item>WebSocket</item>
+                <item>WebSocket (SSL)</item>
+            </string-array>
+
+        <string name="pref_stunnel_group">Stunnel settings</string>
+            <string name="pref_stunnel_cert">Stunnel certificate file</string>
+            <string name="pref_stunnel_pass">Stunnel password</string>
+
+        <string name="pref_ssh_group">SSH tunnel settings</string>
+            <string name="pref_ssh_host">SSH host</string>
+            <string name="pref_ssh_user">SSH username</string>
+            <string name="pref_ssh_port">SSH port</string>
+            <string name="pref_ssh_pass">SSH password/key passphrase</string>
+            <string name="pref_ssh_keyfile">SSH private key file</string>
+
+        <!-- relay type -->
+
+        <string name="pref_relay_group">Relay</string>
+            <string name="pref_relay_host">Relay host</string>
+            <string name="pref_relay_port">Relay port</string>
+            <string name="pref_relay_password">Relay password</string>
+
+        <!-- misc -->
+
+        <string name="pref_misc_group">Miscellaneous</string>
+            <string name="pref_autoconnect">Connect on app launch</string>
+            <string name="pref_autostart">Launch app on system boot</string>
+            <string name="pref_notification_ticker">Notifications ticker</string>
+            <string name="pref_notification_ticker_summary">Display connection changes as ticker (does not work on Lollipop)</string>
+            <string name="pref_optimize_traffic">Only sync open buffers</string>
+            <string name="pref_optimize_traffic_summary">Can significantly reduce traffic and battery usage, but hotlist updates will only happen once 5 minutes. Requires WeeChat 1.1 or newer. Takes effect after re-connection.</string>
+            <string name="pref_hotlist_sync">Sync buffer read status</string>
+            <string name="pref_hotlist_sync_summary">Mark buffers as read in weechat when you read them in this app. Requires Weechat 1.0 or newer.</string>
+
+            <string name="pref_ping_group">Ping settings</string>
+                <string name="pref_ping_enabled">Enable Ping</string>
+                <string name="pref_ping_idle">Idle Time</string>
+                <string name="pref_ping_timeout">Ping Timeout</string>
+                <string name="pref_ping_enabled_summary">Periodically check that the relay connection is still alive when idle</string>
+                <string name="pref_ping_idle_summary">Number of seconds to wait before sending a ping when the connection is idle (%s)</string>
+                <string name="pref_ping_timeout_summary">Number of seconds to wait before closing an unresponsive connection (%s)</string>
+
+        <!-- buffer list -->
+
+        <string name="pref_bufferlist_group">Buffer list</string>
+            <string name="pref_sort_buffers">Sort buffer list</string>
+            <string name="pref_sort_buffers_summary">Sort by number of highlights/private messages/unread messages</string>
+            <string name="pref_hide_server_buffers">Hide non-conversation buffers</string>
+            <string name="pref_hide_server_buffers_summary">E.g. server buffers and plugin buffers</string>
+            <string name="pref_show_buffer_titles">Show buffer titles</string>
+            <string name="pref_show_buffer_titles_summary">These tend to take considerable space though</string>
+            <string name="pref_show_buffer_filter">Show buffer filter</string>
+
+        <!-- look & feel -->
+
+        <string name="pref_lookfeel_group">Look &amp; feel</string>
+            <string name="pref_text_size">Text Size</string>
+            <string name="pref_chatview_filters">Filter messages</string>
+            <string name="pref_chatview_filters_summary">Hide messages filtered by WeeChat (e.g. irc_smart_filter)</string>
+            <string name="pref_prefix_align">Prefix alignment</string>
+                <string-array name="pref_prefix_align_names">
+                    <item>Left aligned</item>
+                    <item>Right aligned</item>
+                    <item>Timestamp aligned</item>
+                    <item>No alignment</item>
+                </string-array>
+            <string name="pref_max_width">Maximum width of prefix</string>
+            <string name="pref_max_width_summary">In terms of letters; longer nicknames will be cut (%s)</string>
+            <string name="pref_enclose_nick">Enclose nicknames</string>
+            <string name="pref_enclose_nick_summary">Enclose the nicknames in &lt;&#xA0;and&#xA0;&gt;</string>
+            <string name="pref_timestamp_format">Timestamp format</string>
+            <string name="pref_timestamp_format_summary">%s (default: HH:mm:ss)</string>
+            <string name="pref_dim_down">Dim down non-human lines</string>
+            <string name="pref_dim_down_summary">Display joins/quits in a darker color</string>
+
+            <string name="pref_font">Buffer Font</string>
+            <string name="pref_color_scheme">Color Scheme</string>
+
+        <!-- buttons -->
+
+        <string name="pref_button_group">Buttons</string>
+            <string name="pref_tabbtn_show">Show tab button</string>
+            <string name="pref_sendbtn_show">Show send button</string>
+            <string name="pref_volumebtn_size">Volume buttons change text size</string>
+            <string name="pref_volumebtn_size_summary">If set, volume buttons will change text size instead of volume</string>
+
+        <!-- notifications -->
+
+        <string name="pref_notif_group">Notifications</string>
+            <string name="pref_notification_enable">Enable notifications</string>
+            <string name="pref_notification_enable_summary">Notify about hot messages such as private messages or highlights</string>
+            <string name="pref_notification_sound">Notification sound</string>
+            <string name="pref_notification_vibrate">Vibration</string>
+            <string name="pref_notification_light">Notification light</string>
+
+        <!-- about -->
+
+        <string name="about">About</string>
+
+        <!-- strings used in error messages of the preferences activity -->
+
+        <!-- TODO <string name="pref_timestamp_invalid">Invalid timestamp format</string> -->
+        <!-- TODO <string name="pref_prefix_width_invalid">Invalid prefix width</string> -->
+        <!-- TODO <string name="pref_hostname_invalid">No spaces allowed in hostnames</string> -->
 </resources>

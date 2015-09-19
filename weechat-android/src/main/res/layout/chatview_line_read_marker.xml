@@ -28,6 +28,4 @@
         android:layout_marginRight="3dp"
         android:layout_below="@id/chatline_message"/>
 
-    <!--<include layout="@layout/chatview_line" />-->
-
 </RelativeLayout>

@@ -17,6 +17,8 @@ package com.ubergeek42.WeechatAndroid.adapters;
 
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentActivity;
 import android.text.Spannable;
 import android.text.method.LinkMovementMethod;
@@ -25,6 +27,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.BaseAdapter;
+import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
@@ -50,7 +53,7 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
     private Buffer.Line[] lines = new Buffer.Line[0];
     private LayoutInflater inflater;
     private ListView uiListView;
-    private Typeface typeface = null;
+    private @Nullable Typeface typeface = null;
 
     private boolean lastItemVisible = true;
     public boolean needMoveLastReadMarker = false;
@@ -63,11 +66,8 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
         this.uiListView = uiListView;
         uiListView.setOnScrollListener(this);
     }
-    public void setFont(String fontPath) {
-        if (fontPath == null) {
-            return;
-        }
-        typeface = Typeface.createFromFile(fontPath);
+    public void setFont(@NonNull String fontPath) {
+        typeface = ("".equals(fontPath)) ? null : Typeface.createFromFile(fontPath);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

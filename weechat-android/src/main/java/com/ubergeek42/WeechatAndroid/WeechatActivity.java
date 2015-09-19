@@ -43,7 +43,6 @@ import android.content.res.Configuration;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentManager;
@@ -184,7 +183,7 @@ public class WeechatActivity extends AppCompatActivity implements RelayConnectio
         });
 
         // TODO Read preferences from background, its IO, 31ms strict mode!
-        PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
+        //PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
         imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         String title = "WA v" + BuildConfig.VERSION_NAME;
         setTitle(title);
@@ -470,7 +469,7 @@ public class WeechatActivity extends AppCompatActivity implements RelayConnectio
                 break;
             }
             case R.id.menu_preferences: {
-                Intent intent = new Intent(this, WeechatPreferencesActivity.class);
+                Intent intent = new Intent(this, PreferencesActivity.class);
                 startActivity(intent);
                 break;
             }
@@ -478,11 +477,6 @@ public class WeechatActivity extends AppCompatActivity implements RelayConnectio
                 BufferFragment current = adapter.getCurrentBufferFragment();
                 if (current != null)
                     current.onBufferClosed();
-                break;
-            }
-            case R.id.menu_about: {
-                Intent intent = new Intent(this, WeechatAboutActivity.class);
-                startActivity(intent);
                 break;
             }
             case R.id.menu_quit: {

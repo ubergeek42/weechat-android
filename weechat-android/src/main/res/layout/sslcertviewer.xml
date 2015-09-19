@@ -3,16 +3,13 @@
     android:id="@+id/RelativeLayout1"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical" >
+    android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/ssl_title"
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
-        android:text="Untrusted SSL Certificate"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary" />
 
     <Button
         android:id="@+id/accept_cert"
@@ -20,6 +17,9 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
+        android:layout_marginBottom="8dp"
+        android:layout_marginRight="12dp"
+        android:layout_marginLeft="4dp"
         android:text="Accept" />
 
     <Button
@@ -27,7 +27,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
+        android:layout_toLeftOf="@id/accept_cert"
+        android:layout_marginBottom="8dp"
         android:text="Reject" />
 
     <ScrollView
@@ -37,14 +38,16 @@
         android:layout_above="@+id/accept_cert"
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
-        android:layout_below="@+id/ssl_title" >
+        android:layout_marginTop="8dp"
+        android:layout_marginRight="12dp"
+        android:layout_marginLeft="12dp"
+        android:layout_below="@+id/toolbar" >
 
         <TextView
             android:id="@+id/cert_details"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="cert details go here"
-            android:textAppearance="?android:attr/textAppearanceSmall" />
+            android:text="cert details go here" />
     </ScrollView>
 
 </RelativeLayout>

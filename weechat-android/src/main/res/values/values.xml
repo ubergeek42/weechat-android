@@ -19,4 +19,5 @@
     <dimen name="drawer_width">320dp</dimen>
     <dimen name="chat_item_left_margin">0dp</dimen>
     <bool name="slidy">true</bool>
+    <dimen name="dialog_padding">20dp</dimen>
 </resources>

@@ -1,93 +1,64 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/about"
+    android:orientation="vertical"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent" >
+    android:layout_height="fill_parent">
 
-    <TextView
-        android:id="@+id/versionStr"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="20dp"
-        android:text="WeechatAndroid"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary" />
 
-    <TextView
-        android:id="@+id/versionID"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true"
-        android:text="Unknown version ID"
-        android:textAppearance="?android:attr/textAppearanceSmall" />
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/about_inner"
+        android:orientation="vertical"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_margin="40dp"
+        android:gravity="center">
 
-    <TextView
-        android:id="@+id/textView3"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/versionID"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true"
-        android:text="Build Identifier(please include in bug reports):"
-        android:textAppearance="?android:attr/textAppearanceSmall" />
+        <TextView
+            android:id="@+id/versionStr"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="WeechatAndroid"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
 
-    <TextView
-        android:id="@+id/TextView05"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/versionStr"
-        android:layout_centerHorizontal="true"
-        android:text="for Android"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
+        <TextView
+            android:id="@+id/textView2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="created by ubergeek42" />
 
-    <TextView
-        android:id="@+id/textView2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/TextView05"
-        android:layout_centerHorizontal="true"
-        android:text="created by ubergeek42"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
+        <TextView
+            android:id="@+id/versionID"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Unknown version ID" />
 
-    <TextView
-        android:id="@+id/TextView01"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_below="@+id/textView2"
-        android:layout_marginTop="30dp"
-        android:text="http://github.com/ubergeek42/weechat-android/"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:autoLink="web"/>
+        <TextView
+            android:id="@+id/TextView01"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="http://github.com/ubergeek42/weechat-android/"
+            android:autoLink="web"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"
+            />
 
-    <TextView
-        android:id="@+id/TextView02"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_below="@+id/TextView01"
-        android:layout_marginTop="19dp"
-        android:text="Find a bug or have a feature request?"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
+        <TextView
+            android:id="@+id/TextView02"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Find a bug or have a feature request? Create an issue on github or email me: kj@ubergeek42.com"
+            android:layout_marginBottom="16dp" />
 
-    <TextView
-        android:id="@+id/TextView03"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_below="@+id/TextView02"
-        android:text="Create an issue on github or email me: kj@ubergeek42.com"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
-
-    <Button
-        android:id="@+id/btn_clear_certs"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/textView3"
-        android:layout_alignParentLeft="true"
-        android:text="Clear SSL Certificates" />
-
-</RelativeLayout>
+        <Button
+            android:id="@+id/btn_clear_certs"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Clear SSL Certificates" />
+    </LinearLayout>
+</LinearLayout>
