@@ -34,7 +34,6 @@
         <PreferenceCategory android:key="connection_misc_group" android:title="@string/pref_misc_group">
             <CheckBoxPreference android:key="autoconnect" android:title="@string/pref_autoconnect" />
             <CheckBoxPreference android:key="autostart" android:title="@string/pref_autostart" />
-            <CheckBoxPreference android:key="notification_ticker" android:summary="@string/pref_notification_ticker_summary" android:title="@string/pref_notification_ticker" android:defaultValue="true" />
             <CheckBoxPreference android:key="optimize_traffic" android:summary="@string/pref_optimize_traffic_summary" android:title="@string/pref_optimize_traffic" android:defaultValue="false"/>
             <CheckBoxPreference android:key="hotlist_sync" android:summary="@string/pref_hotlist_sync_summary" android:title="@string/pref_hotlist_sync" android:defaultValue="false"/>
 
@@ -84,7 +83,8 @@
         <RingtonePreferenceFix android:key="notification_sound" android:title="@string/pref_notification_sound" android:dependency="notification_enable" android:defaultValue="content://settings/system/notification_sound" />
 		<CheckBoxPreference android:key="notification_vibrate" android:title="@string/pref_notification_vibrate" android:defaultValue="false" android:dependency="notification_enable" />
 		<CheckBoxPreference android:key="notification_light" android:title="@string/pref_notification_light" android:defaultValue="false" android:dependency="notification_enable"/>
-	</PreferenceScreen>
+        <CheckBoxPreference android:key="notification_ticker" android:summary="@string/pref_notification_ticker_summary" android:title="@string/pref_notification_ticker" android:defaultValue="true" />
+    </PreferenceScreen>
 
     <!-- about TODO: dev string?? -->
 

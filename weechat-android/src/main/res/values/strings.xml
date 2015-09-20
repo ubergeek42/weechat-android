@@ -166,7 +166,7 @@
 
         <!-- strings used in error messages of the preferences activity -->
 
-        <!-- TODO <string name="pref_timestamp_invalid">Invalid timestamp format</string> -->
-        <!-- TODO <string name="pref_prefix_width_invalid">Invalid prefix width</string> -->
-        <!-- TODO <string name="pref_hostname_invalid">No spaces allowed in hostnames</string> -->
+        <string name="pref_timestamp_invalid">Invalid timestamp format</string>
+        <string name="pref_number_invalid">Invalid number</string>
+        <string name="pref_hostname_invalid">No spaces allowed in hostnames</string>
 </resources>

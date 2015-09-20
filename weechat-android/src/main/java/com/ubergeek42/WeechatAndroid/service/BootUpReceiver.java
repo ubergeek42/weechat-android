@@ -6,9 +6,9 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
-public class BootUpReceiver extends BroadcastReceiver {
+import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
 
-    final static private String PREF_AUTO_START = "autostart";
+public class BootUpReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {

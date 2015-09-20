@@ -13,6 +13,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
 
 public class Utils {
 
@@ -83,5 +84,25 @@ public class Utils {
     public static @NonNull String cut(@NonNull String text) {
         return (text.length() > 100) ?
                 text.substring(0, Math.min(text.length(), 100)) + "…" : text;
+    }
+
+    public static boolean isAllDigits(@Nullable String s) {
+        if (s == null || s.isEmpty())
+            return false;
+        for (int i = 0; i < s.length(); i++)
+            if (!Character.isDigit(s.charAt(i)))
+                return false;
+        return true;
+    }
+
+    public static boolean isValidTimestampFormat(@Nullable String s) {
+        if (s == null)
+            return false;
+        try {
+            new SimpleDateFormat(s);
+            return true;
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
     }
 }

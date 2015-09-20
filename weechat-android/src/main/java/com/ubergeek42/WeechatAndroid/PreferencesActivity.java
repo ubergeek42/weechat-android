@@ -17,18 +17,13 @@ import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 
 import android.support.v7.preference.FontPreference;
+import android.widget.Toast;
+
+import com.ubergeek42.WeechatAndroid.utils.Utils;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
 
 public class PreferencesActivity extends AppCompatActivity implements PreferenceFragmentCompat.OnPreferenceStartScreenCallback {
     final static private String KEY = "key";
-
-    final static private String PREF_CONNECTION_GROUP = "connection_group";
-    final static private String PREF_CONNECTION_TYPE = "connection_type";
-    final static private String PREF_TYPE_SSH = "ssh";
-    final static private String PREF_TYPE_STUNNEL = "stunnel";
-    final static private String PREF_TYPE_PLAIN = "plain";
-    final static private String PREF_STUNNEL_GROUP = "stunnel_group";
-    final static private String PREF_SSH_GROUP = "ssh_group";
-    final static private String PREF_NOTIFICATION_SOUND = "notification_sound";
 
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -104,15 +99,26 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
             f.show(getFragmentManager(), FRAGMENT_DIALOG_TAG);
         }
 
-        // this makes fragment display preferences. rootKey is the key of the preference screen
+        // this makes fragment display preferences. key is the key of the preference screen
         // that this fragment is supposed to display. the key is set in activity's onCreate
-        @Override public void onCreatePreferences(Bundle bundle, String rootKey) {
-            setPreferencesFromResource(R.xml.preferences, key = rootKey);
-            if (PREF_CONNECTION_GROUP.equals(rootKey)) {
+        @Override public void onCreatePreferences(Bundle bundle, String key) {
+            setPreferencesFromResource(R.xml.preferences, this.key = key);
+            if (PREF_CONNECTION_GROUP.equals(key)) {
                 stunnelGroup = findPreference(PREF_STUNNEL_GROUP);
                 sshGroup = findPreference(PREF_SSH_GROUP);
                 findPreference(PREF_CONNECTION_TYPE).setOnPreferenceChangeListener(this);
+                findPreference(PREF_HOST).setOnPreferenceChangeListener(this);
+                findPreference(PREF_PORT).setOnPreferenceChangeListener(this);
                 showHideStuff(getPreferenceScreen().getSharedPreferences().getString(PREF_CONNECTION_TYPE, PREF_TYPE_PLAIN));
+            } else if (PREF_SSH_GROUP.equals(key)) {
+                findPreference(PREF_SSH_HOST).setOnPreferenceChangeListener(this);
+                findPreference(PREF_SSH_PORT).setOnPreferenceChangeListener(this);
+            } else if (PREF_PING_GROUP.equals(key)) {
+                findPreference(PREF_PING_IDLE).setOnPreferenceChangeListener(this);
+                findPreference(PREF_PING_TIMEOUT).setOnPreferenceChangeListener(this);
+            } else if (PREF_LOOKFEEL_GROUP.equals(key)) {
+                findPreference(PREF_MAX_WIDTH).setOnPreferenceChangeListener(this);
+                findPreference(PREF_TIMESTAMP_FORMAT).setOnPreferenceChangeListener(this);
             }
         }
 
@@ -131,9 +137,24 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
         }
 
         @Override public boolean onPreferenceChange(Preference preference, Object o) {
-            showHideStuff((String) o);
-            return true;
-        }
+            String key = preference.getKey();
+            boolean valid = true;
+            int toast = -1;
+            if (PREF_HOST.equals(key) || PREF_SSH_HOST.equals(key)) {
+                valid = !((String) o).contains(" ");
+                toast = R.string.pref_hostname_invalid;
+            } else if (PREF_MAX_WIDTH.equals(key) || PREF_PORT.equals(key) || PREF_SSH_PORT.equals(key) || PREF_PING_IDLE.equals(key) || PREF_PING_TIMEOUT.equals(key)) {
+                valid = Utils.isAllDigits((String) o);
+                toast = R.string.pref_number_invalid;
+            } else if (PREF_TIMESTAMP_FORMAT.equals(key)) {
+                valid = Utils.isValidTimestampFormat((String) o);
+                toast = R.string.pref_timestamp_invalid;
+            } else if (PREF_CONNECTION_TYPE.equals(key))
+                showHideStuff((String) o);
+            if (!valid)
+                Toast.makeText(getContext(), toast, Toast.LENGTH_SHORT).show();
+            return valid;
+         }
 
         // this hides and shows stunnel / ssh preference screens
         // must not be called when the settings do not exist in the tree

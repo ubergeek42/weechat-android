@@ -57,6 +57,8 @@ import com.ubergeek42.weechat.relay.messagehandler.UpgradeHandler;
 import com.ubergeek42.weechat.relay.messagehandler.UpgradeObserver;
 import com.ubergeek42.weechat.relay.protocol.RelayObject;
 
+import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,39 +81,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
     private NotificationManager notificationManger;
     private Thread upgrading;
 
-    final static private String PREF_AUTO_CONNECT = "autoconnect";
 
-    final static private String PREF_HOST = "host";
-    final static private String PREF_PASSWORD = "password";
-    final static private String PREF_PORT = "port";
-
-    final static private String PREF_PING_ENABLED = "ping_enabled";
-    final static private String PREF_PING_IDLE = "ping_idle";
-    final static private String PREF_PING_TIMEOUT = "ping_timeout";
-
-    final static private String PREF_STUNNEL_CERT = "stunnel_cert";
-    final static private String PREF_STUNNEL_PASS = "stunnel_pass";
-    final static private String PREF_SSH_HOST = "ssh_host";
-    final static private String PREF_SSH_PORT = "ssh_port";
-    final static private String PREF_SSH_USER = "ssh_user";
-    final static private String PREF_SSH_PASS = "ssh_pass";
-    final static private String PREF_SSH_KEYFILE = "ssh_keyfile";
-
-    final static private String PREF_CONNECTION_TYPE = "connection_type";
-    final static private String PREF_TYPE_SSH = "ssh";
-    final static private String PREF_TYPE_STUNNEL = "stunnel";
-    final static private String PREF_TYPE_SSL = "ssl";
-    final static private String PREF_TYPE_WEBSOCKET = "websocket";
-    final static private String PREF_TYPE_WEBSOCKET_SSL = "websocket-ssl";
-    final static private String PREF_TYPE_PLAIN = "plain";
-
-    final static private String PREF_NOTIFICATION_ENABLE = "notification_enable";
-    final static private String PREF_NOTIFICATION_SOUND = "notification_sound";
-    final static private String PREF_NOTIFICATION_LIGHT = "notification_light";
-    final static private String PREF_NOTIFICATION_VIBRATE = "notification_vibrate";
-    final static private String PREF_NOTIFICATION_TICKER = "notification_ticker";
-
-    final static private String PREF_MUST_STAY_DISCONNECTED = "wow!";
 
     private String host;
     private int port;

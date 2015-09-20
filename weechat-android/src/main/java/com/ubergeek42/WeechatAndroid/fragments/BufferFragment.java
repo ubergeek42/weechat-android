@@ -37,6 +37,8 @@ import com.ubergeek42.WeechatAndroid.utils.CopyPaste;
 import com.ubergeek42.weechat.ColorScheme;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
 
+import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
+
 public class BufferFragment extends Fragment implements BufferEye, OnKeyListener,
         OnClickListener, TextWatcher, RelayConnectionHandler, TextView.OnEditorActionListener {
 
@@ -47,13 +49,6 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     final private static boolean DEBUG_MESSAGES = false;
     final private static boolean DEBUG_CONNECTION = false;
     final private static boolean DEBUG_AUTOSCROLLING = false;
-
-    private static final String PREFS_TEXT_SIZE = "text_size";
-    private final static String PREF_SHOW_SEND = "sendbtn_show";
-    private final static String PREF_VOLUME_BTN_SIZE = "volumebtn_size";
-    private final static String PREF_SHOW_TAB = "tabbtn_show";
-    private final static String PREF_HOTLIST_SYNC = "hotlist_sync";
-    private static final String PREF_BUFFER_FONT = "buffer_font";
 
     public final static String LOCAL_PREF_FULL_NAME = "full_name";
 
@@ -433,7 +428,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         if (keycode == KeyEvent.KEYCODE_VOLUME_DOWN || keycode == KeyEvent.KEYCODE_VOLUME_UP) {
             if (prefs.getBoolean(PREF_VOLUME_BTN_SIZE, true)) {
                 if (action == KeyEvent.ACTION_UP) {
-                    float textSize = Float.parseFloat(prefs.getString(PREFS_TEXT_SIZE, "10"));
+                    float textSize = Float.parseFloat(prefs.getString(PREF_TEXT_SIZE, "10"));
                     switch (keycode) {
                         case KeyEvent.KEYCODE_VOLUME_UP:
                             if (textSize < 30) textSize += 1;
@@ -442,7 +437,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
                             if (textSize > 5) textSize -= 1;
                             break;
                     }
-                    prefs.edit().putString(PREFS_TEXT_SIZE, Float.toString(textSize)).commit();
+                    prefs.edit().putString(PREF_TEXT_SIZE, Float.toString(textSize)).commit();
                 }
                 return true;
             }
