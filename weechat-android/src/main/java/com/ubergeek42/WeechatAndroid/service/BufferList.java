@@ -640,7 +640,7 @@ public class BufferList {
             String s = it.next();
             if (line.equals(s)) it.remove();
         }
-        sentMessages.add(line);
+        sentMessages.add(Utils.cut(line, 2000));
         if (sentMessages.size() > 40)
             sentMessages.pop();
     }

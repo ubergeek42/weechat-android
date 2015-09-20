@@ -71,19 +71,19 @@ public class Utils {
     //////////////////////////////////////////////////////////////////////////////////////////////// string cuts
 
     // replace multiline text with one string like "foo bar baz… (3 lines)"
-    public static @NonNull String cutFirst(@NonNull String text) {
+    public static @NonNull String cutFirst(@NonNull String text, int at) {
         int chunks = text.split("\\r\\n|\\r|\\n").length;
         String clean = text.replaceAll("\\r\\n|\\r|\\n", " ");
-        clean = cut(clean);
+        clean = cut(clean, at);
         if (chunks > 1)
             clean += " (" + chunks + " lines)";
         return clean;
     }
 
     // cut string at 100 characters
-    public static @NonNull String cut(@NonNull String text) {
-        return (text.length() > 100) ?
-                text.substring(0, Math.min(text.length(), 100)) + "…" : text;
+    public static @NonNull String cut(@NonNull String text, int at) {
+        return (text.length() > at) ?
+                text.substring(0, Math.min(text.length(), at)) + "…" : text;
     }
 
     public static boolean isAllDigits(@Nullable String s) {

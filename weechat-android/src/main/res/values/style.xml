@@ -35,6 +35,7 @@
         <item name="android:maxLines">2</item>
     </style>
 
+    <color name="special">#FF2B2F32</color>
     <color name="primary">#FF1B1F22</color>
     <color name="primary_dark">#FF0f1315</color>
 

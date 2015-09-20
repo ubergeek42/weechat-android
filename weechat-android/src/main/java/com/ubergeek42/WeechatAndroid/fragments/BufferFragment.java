@@ -470,12 +470,13 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
 
     /** sends the message if there's anything to send */
     private void sendMessage() {
-        String[] input = uiInput.getText().toString().split("\n");
-        for (String line : input) {
-            if (line.length() == 0)
-                continue;
-            relay.sendMessage("input " + buffer.fullName + " " + line);
-            BufferList.addSentMessage(line);
+        String input = uiInput.getText().toString();
+        if (input.length() != 0)
+            BufferList.addSentMessage(input);
+        String[] lines = input.split("\n");
+        for (String line : lines) {
+            if (line.length() != 0)
+                relay.sendMessage("input " + buffer.fullName + " " + line);
         }
         uiInput.setText("");   // this will reset tab completion
     }
