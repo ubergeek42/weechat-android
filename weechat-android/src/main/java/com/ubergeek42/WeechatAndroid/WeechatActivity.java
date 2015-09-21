@@ -445,6 +445,7 @@ public class WeechatActivity extends AppCompatActivity implements RelayConnectio
             }
         };
         this.uiMenu = menu;
+        updateMenuItems();
         makeMenuReflectConnectionStatus();
         return super.onCreateOptionsMenu(menu);
     }

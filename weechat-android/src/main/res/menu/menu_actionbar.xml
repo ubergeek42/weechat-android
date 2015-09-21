@@ -11,6 +11,11 @@
           app:showAsAction="always"
           android:icon="@drawable/ic_bell"
           android:title="@string/hotlist"/>
+    <item android:id="@+id/menu_close"
+          android:menuCategory="secondary"
+          android:icon="@drawable/ic_1_navigation_cancel"
+          app:showAsAction="never"
+          android:title="@string/close"/>
     <item android:id="@+id/menu_connection_state"
           android:menuCategory="secondary"
           app:showAsAction="never"
@@ -21,11 +26,6 @@
           android:icon="@drawable/ic_2_action_settings"
           app:showAsAction="never"
           android:title="@string/preferences"/>
-    <item android:id="@+id/menu_close"
-          android:menuCategory="secondary"
-          android:icon="@drawable/ic_1_navigation_cancel"
-          app:showAsAction="never"
-          android:title="@string/close"/>
     <item android:id="@+id/menu_quit"
           android:menuCategory="secondary"
           android:icon="@drawable/ic_1_navigation_cancel"
