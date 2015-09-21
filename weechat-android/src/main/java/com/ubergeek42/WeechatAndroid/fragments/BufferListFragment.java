@@ -87,7 +87,7 @@ public class BufferListFragment extends ListFragment implements RelayConnectionH
         uiFilterClear = (ImageButton) view.findViewById(R.id.bufferlist_filter_clear);
         uiFilterClear.setOnClickListener(this);
         uiFilterBar = (RelativeLayout) view.findViewById(R.id.filter_bar);
-        uiFilterBar.setVisibility(prefs.getBoolean(PREF_SHOW_BUFFER_FILTER, false) ? View.VISIBLE : View.GONE);
+        uiFilterBar.setVisibility(prefs.getBoolean(PREF_SHOW_BUFFER_FILTER, PREF_SHOW_BUFFER_FILTER_D) ? View.VISIBLE : View.GONE);
         return view;
     }
 
@@ -204,8 +204,8 @@ public class BufferListFragment extends ListFragment implements RelayConnectionH
 
     @Override public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         if (DEBUG_PREFERENCES) logger.warn("onSharedPreferenceChanged()");
-        if (key.equals("show_buffer_filter"))
-            uiFilterBar.setVisibility(prefs.getBoolean(PREF_SHOW_BUFFER_FILTER, false) ? View.VISIBLE : View.GONE);
+        if (key.equals(PREF_SHOW_BUFFER_FILTER))
+            uiFilterBar.setVisibility(prefs.getBoolean(PREF_SHOW_BUFFER_FILTER, PREF_SHOW_BUFFER_FILTER_D) ? View.VISIBLE : View.GONE);
     }
 
     /** TextWatcher object used for filtering the buffer list */

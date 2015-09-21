@@ -11,6 +11,7 @@ import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.os.IBinder;
 import android.os.SystemClock;
+import android.text.TextUtils;
 import android.widget.Toast;
 
 import com.ubergeek42.WeechatAndroid.Manifest;
@@ -68,18 +69,18 @@ public class RelayService extends RelayServiceBackbone {
         );
 
         // buffer list preferences
-        BufferList.SORT_BUFFERS = prefs.getBoolean(PREF_SORT_BUFFERS, false);
-        BufferList.SHOW_TITLE = prefs.getBoolean(PREF_SHOW_BUFFER_TITLES, false);
-        BufferList.FILTER_NONHUMAN_BUFFERS = prefs.getBoolean(PREF_FILTER_NONHUMAN_BUFFERS, false);
-        BufferList.OPTIMIZE_TRAFFIC = prefs.getBoolean(PREF_OPTIMIZE_TRAFFIC, false);
+        BufferList.SORT_BUFFERS = prefs.getBoolean(PREF_SORT_BUFFERS, PREF_SORT_BUFFERS_D);
+        BufferList.SHOW_TITLE = prefs.getBoolean(PREF_SHOW_BUFFER_TITLES, PREF_SHOW_BUFFER_TITLES_D);
+        BufferList.FILTER_NONHUMAN_BUFFERS = prefs.getBoolean(PREF_FILTER_NONHUMAN_BUFFERS, PREF_FILTER_NONHUMAN_BUFFERS_D);
+        BufferList.OPTIMIZE_TRAFFIC = prefs.getBoolean(PREF_OPTIMIZE_TRAFFIC, PREF_OPTIMIZE_TRAFFIC_D);
 
         // buffer-wide preferences
-        Buffer.FILTER_LINES = prefs.getBoolean(PREF_FILTER_LINES, true);
+        Buffer.FILTER_LINES = prefs.getBoolean(PREF_FILTER_LINES, PREF_FILTER_LINES_D);
 
         // buffer line-wide preferences
-        Buffer.Line.MAX_WIDTH = Integer.parseInt(prefs.getString(PREF_MAX_WIDTH, "7"));
-        Buffer.Line.ENCLOSE_NICK = prefs.getBoolean(PREF_ENCLOSE_NICK, false);
-        Buffer.Line.DIM_DOWN_NON_HUMAN_LINES = prefs.getBoolean(PREF_DIM_DOWN, false);
+        Buffer.Line.MAX_WIDTH = Integer.parseInt(prefs.getString(PREF_MAX_WIDTH, PREF_MAX_WIDTH_D));
+        Buffer.Line.ENCLOSE_NICK = prefs.getBoolean(PREF_ENCLOSE_NICK, PREF_ENCLOSE_NICK_D);
+        Buffer.Line.DIM_DOWN_NON_HUMAN_LINES = prefs.getBoolean(PREF_DIM_DOWN, PREF_DIM_DOWN_D);
         setTimestampFormat();
         setAlignment();
         setTextSizeAndLetterWidth();
@@ -113,7 +114,7 @@ public class RelayService extends RelayServiceBackbone {
     @Override
     void startHandlingBoneEvents() {
         restoreStuff();
-        BufferList.OPTIMIZE_TRAFFIC = prefs.getBoolean(PREF_OPTIMIZE_TRAFFIC, false);
+        BufferList.OPTIMIZE_TRAFFIC = prefs.getBoolean(PREF_OPTIMIZE_TRAFFIC, PREF_OPTIMIZE_TRAFFIC_D);
         BufferList.launch(this);
 
         // schedule updates
@@ -180,11 +181,11 @@ public class RelayService extends RelayServiceBackbone {
         // buffer list preferences
         super.onSharedPreferenceChanged(sharedPreferences, key);
         if (key.equals(PREF_SORT_BUFFERS)) {
-            BufferList.SORT_BUFFERS = prefs.getBoolean(key, false);
+            BufferList.SORT_BUFFERS = prefs.getBoolean(key, PREF_SORT_BUFFERS_D);
         } else if (key.equals(PREF_SHOW_BUFFER_TITLES)) {
-            BufferList.SHOW_TITLE = prefs.getBoolean(key, false);
+            BufferList.SHOW_TITLE = prefs.getBoolean(key, PREF_SHOW_BUFFER_TITLES_D);
         } else if (key.equals(PREF_FILTER_NONHUMAN_BUFFERS)) {
-            BufferList.FILTER_NONHUMAN_BUFFERS = prefs.getBoolean(key, false);
+            BufferList.FILTER_NONHUMAN_BUFFERS = prefs.getBoolean(key, PREF_FILTER_NONHUMAN_BUFFERS_D);
 
         // only update traffic optimization on connect
         //    // traffic preference
@@ -193,14 +194,14 @@ public class RelayService extends RelayServiceBackbone {
 
             // buffer-wide preferences
         } else if (key.equals(PREF_FILTER_LINES)) {
-            Buffer.FILTER_LINES = prefs.getBoolean(key, true);
+            Buffer.FILTER_LINES = prefs.getBoolean(key, PREF_FILTER_LINES_D);
 
             // chat lines-wide preferences
         } else if (key.equals(PREF_MAX_WIDTH)) {
-            Buffer.Line.MAX_WIDTH = Integer.parseInt(prefs.getString(key, "7"));
+            Buffer.Line.MAX_WIDTH = Integer.parseInt(prefs.getString(key, PREF_MAX_WIDTH_D));
             BufferList.notifyOpenBuffersMustBeProcessed(false);
         } else if (key.equals(PREF_DIM_DOWN)) {
-            Buffer.Line.DIM_DOWN_NON_HUMAN_LINES = prefs.getBoolean(key, false);
+            Buffer.Line.DIM_DOWN_NON_HUMAN_LINES = prefs.getBoolean(key, PREF_DIM_DOWN_D);
             BufferList.notifyOpenBuffersMustBeProcessed(true);
         } else if (key.equals(PREF_TIMESTAMP_FORMAT)) {
             setTimestampFormat();
@@ -209,7 +210,7 @@ public class RelayService extends RelayServiceBackbone {
             setAlignment();
             BufferList.notifyOpenBuffersMustBeProcessed(false);
         } else if (key.equals(PREF_ENCLOSE_NICK)) {
-            Buffer.Line.ENCLOSE_NICK = prefs.getBoolean(PREF_ENCLOSE_NICK, false);
+            Buffer.Line.ENCLOSE_NICK = prefs.getBoolean(key, PREF_ENCLOSE_NICK_D);
             BufferList.notifyOpenBuffersMustBeProcessed(false);
         } else if (key.equals(PREF_TEXT_SIZE)) {
             setTextSizeAndLetterWidth();
@@ -225,7 +226,8 @@ public class RelayService extends RelayServiceBackbone {
 
     private void loadColorScheme() {
         // Load color scheme
-        String colorScheme = prefs.getString(PREF_COLOR_SCHEME, "default-theme.properties");
+        // TODO use theme manager
+        String colorScheme = prefs.getString(PREF_COLOR_SCHEME, PREF_COLOR_SCHEME_D);
         Properties p = new Properties();
         try {
             InputStream inputStream;
@@ -246,12 +248,12 @@ public class RelayService extends RelayServiceBackbone {
     }
 
     private void setTimestampFormat() {
-        String timeformat = prefs.getString(PREF_TIMESTAMP_FORMAT, "HH:mm:ss");
+        String timeformat = prefs.getString(PREF_TIMESTAMP_FORMAT, PREF_TIMESTAMP_FORMAT_D);
         Buffer.Line.DATEFORMAT = (timeformat.equals("")) ? null : new SimpleDateFormat(timeformat);
     }
 
     private void setAlignment() {
-        String alignment = prefs.getString(PREF_PREFIX_ALIGN, "right");
+        String alignment = prefs.getString(PREF_PREFIX_ALIGN, PREF_PREFIX_ALIGN_D);
         if (alignment.equals("right")) Buffer.Line.ALIGN = Color.ALIGN_RIGHT;
         else if (alignment.equals("left")) Buffer.Line.ALIGN = Color.ALIGN_LEFT;
         else if (alignment.equals("timestamp")) Buffer.Line.ALIGN = Color.ALIGN_TIMESTAMP;
@@ -259,10 +261,10 @@ public class RelayService extends RelayServiceBackbone {
     }
 
     private void setTextSizeAndLetterWidth() {
-        Buffer.Line.TEXT_SIZE = Float.parseFloat(prefs.getString(PREF_TEXT_SIZE, "10"));
+        Buffer.Line.TEXT_SIZE = Float.parseFloat(prefs.getString(PREF_TEXT_SIZE, PREF_TEXT_SIZE_D));
         Paint p = new Paint();
-        String fontPath = prefs.getString(PREF_BUFFER_FONT, null);
-        if ( fontPath != null) {
+        String fontPath = prefs.getString(PREF_BUFFER_FONT, PREF_BUFFER_FONT_D);
+        if (!TextUtils.isEmpty(fontPath)) {
             Typeface tf;
             try {
                 tf = Typeface.createFromFile(fontPath);

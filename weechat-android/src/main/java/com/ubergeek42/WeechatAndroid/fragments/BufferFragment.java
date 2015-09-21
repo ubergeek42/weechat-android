@@ -196,7 +196,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         scrollToHotLineIfNeeded();
 
         // move the read marker in weechat (if preferences dictate)
-        if (!visible && prefs.getBoolean(PREF_HOTLIST_SYNC, false)) {
+        if (!visible && prefs.getBoolean(PREF_HOTLIST_SYNC, PREF_HOTLIST_SYNC_D)) {
                 relay.sendMessage("input " + buffer.fullName + " /buffer set hotlist -1");
                 relay.sendMessage("input " + buffer.fullName + " /input set_unread_current_buffer");
         }
@@ -276,7 +276,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         buffer.setBufferEye(this);                      // buffer watcher TODO: java.lang.NullPointerException if run in thread ?!?!
 
         linesAdapter = new ChatLinesAdapter(activity, buffer, uiLines);
-        linesAdapter.setFont(prefs.getString(PREF_BUFFER_FONT, ""));
+        linesAdapter.setFont(prefs.getString(PREF_BUFFER_FONT, PREF_BUFFER_FONT_D));
         linesAdapter.readLinesFromBuffer();
 
         activity.runOnUiThread(new Runnable() {
@@ -307,8 +307,8 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
             public void run() {
                 uiInput.setFocusable(online);
                 uiInput.setFocusableInTouchMode(online);
-                uiSend.setVisibility(prefs.getBoolean(PREF_SHOW_SEND, true) ? View.VISIBLE : View.GONE);
-                uiTab.setVisibility(prefs.getBoolean(PREF_SHOW_TAB, false) ? View.VISIBLE : View.GONE);
+                uiSend.setVisibility(prefs.getBoolean(PREF_SHOW_SEND, PREF_SHOW_SEND_D) ? View.VISIBLE : View.GONE);
+                uiTab.setVisibility(prefs.getBoolean(PREF_SHOW_TAB, PREF_SHOW_TAB_D) ? View.VISIBLE : View.GONE);
                 uiSend.setEnabled(online);
                 uiTab.setEnabled(online);
                 if (!online)
@@ -426,9 +426,9 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
 
     private boolean checkVolumeButtonResize(int keycode, int action) {
         if (keycode == KeyEvent.KEYCODE_VOLUME_DOWN || keycode == KeyEvent.KEYCODE_VOLUME_UP) {
-            if (prefs.getBoolean(PREF_VOLUME_BTN_SIZE, true)) {
+            if (prefs.getBoolean(PREF_VOLUME_BTN_SIZE, PREF_VOLUME_BTN_SIZE_D)) {
                 if (action == KeyEvent.ACTION_UP) {
-                    float textSize = Float.parseFloat(prefs.getString(PREF_TEXT_SIZE, "10"));
+                    float textSize = Float.parseFloat(prefs.getString(PREF_TEXT_SIZE, PREF_TEXT_SIZE_D));
                     switch (keycode) {
                         case KeyEvent.KEYCODE_VOLUME_UP:
                             if (textSize < 30) textSize += 1;

@@ -224,7 +224,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
                .setContentText(content)
                .setWhen(System.currentTimeMillis());
 
-        if (prefs.getBoolean(PREF_NOTIFICATION_TICKER, true)) {
+        if (prefs.getBoolean(PREF_NOTIFICATION_TICKER, PREF_NOTIFICATION_TICKER_D)) {
             builder.setTicker(tickerText);
         }
 
@@ -269,7 +269,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
         } else {
             // find our target buffer. if ALL items point to the same buffer, use it,
             // otherwise, go to buffer list (→ "")
-            if (!prefs.getBoolean(PREF_NOTIFICATION_ENABLE, true)) {
+            if (!prefs.getBoolean(PREF_NOTIFICATION_ENABLE, PREF_NOTIFICATION_ENABLE_D)) {
                 return;
             }
             Set<String> set = new HashSet<>();
@@ -307,14 +307,14 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
             if (newHighlight) {
                 builder.setTicker(message);
 
-                String ringtone = prefs.getString(PREF_NOTIFICATION_SOUND, "content://settings/system/notification_sound");
+                String ringtone = prefs.getString(PREF_NOTIFICATION_SOUND, PREF_NOTIFICATION_SOUND_D);
                 if (!"".equals(ringtone))
                     builder.setSound(Uri.parse(ringtone));
 
                 int flags = 0;
-                if (prefs.getBoolean(PREF_NOTIFICATION_LIGHT, false))
+                if (prefs.getBoolean(PREF_NOTIFICATION_LIGHT, PREF_NOTIFICATION_LIGHT_D))
                     flags |= Notification.DEFAULT_LIGHTS;
-                if (prefs.getBoolean(PREF_NOTIFICATION_VIBRATE, false))
+                if (prefs.getBoolean(PREF_NOTIFICATION_VIBRATE, PREF_NOTIFICATION_VIBRATE_D))
                     flags |= Notification.DEFAULT_VIBRATE;
                 builder.setDefaults(flags);
             }
@@ -330,7 +330,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
     /** only auto-connect if auto-connect is on ON in the prefs and
      ** the user did not disconnect by tapping disconnect in menu */
     private boolean mustAutoConnect() {
-         return prefs.getBoolean(PREF_AUTO_CONNECT, false) && !prefs.getBoolean(PREF_MUST_STAY_DISCONNECTED, false);
+         return prefs.getBoolean(PREF_AUTO_CONNECT, PREF_AUTO_CONNECT_D) && !prefs.getBoolean(PREF_MUST_STAY_DISCONNECTED, false);
     }
 
     private static final boolean CONNECTION_IMPOSSIBLE = false;
@@ -359,7 +359,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
                         return;
                     if (DEBUG_CONNECTION) logger.debug("...not connected; connecting now");
                     connectionStatus = CONNECTING;
-                    showNotification(String.format(getString(ticker), prefs.getString("host", null)),
+                    showNotification(String.format(getString(ticker), prefs.getString(PREF_HOST, PREF_HOST_D)),
                             getString(contentNow));
                     if (connect() != CONNECTION_IMPOSSIBLE)
                         thandler.postDelayed(notifyRunner, WAIT_BEFORE_WAIT_MESSAGE_DELAY * 1000);
@@ -430,11 +430,11 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
     }
 
     long pingIdleTime() {
-        return Integer.parseInt(prefs.getString(PREF_PING_IDLE, "300")) * 1000;
+        return Integer.parseInt(prefs.getString(PREF_PING_IDLE, PREF_PING_IDLE_D)) * 1000;
     }
 
     long pingTimeout() {
-        return Integer.parseInt(prefs.getString(PREF_PING_TIMEOUT, "30")) * 1000;
+        return Integer.parseInt(prefs.getString(PREF_PING_TIMEOUT, PREF_PING_TIMEOUT_D)) * 1000;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -452,9 +452,9 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
             connection.disconnect();
 
         // load the preferences
-        host = prefs.getString(PREF_HOST, null);
-        pass = prefs.getString(PREF_PASSWORD, null);
-        port = Integer.parseInt(prefs.getString(PREF_PORT, "8001"));
+        host = prefs.getString(PREF_HOST, PREF_HOST_D);
+        pass = prefs.getString(PREF_PASSWORD, PREF_PASSWORD_D);
+        port = Integer.parseInt(prefs.getString(PREF_PORT, PREF_PORT_D));
 
         // if no host defined, signal user to edit their preferences
         if (host == null || pass == null) {
@@ -480,19 +480,19 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
         }
 
         IConnection conn;
-        String connType = prefs.getString(PREF_CONNECTION_TYPE, PREF_TYPE_PLAIN);
+        String connType = prefs.getString(PREF_CONNECTION_TYPE, PREF_CONNECTION_TYPE_D);
         if (connType.equals(PREF_TYPE_SSH)) {
             SSHConnection tmp = new SSHConnection(host, port);
-            tmp.setSSHHost(prefs.getString(PREF_SSH_HOST, ""));
-            tmp.setSSHPort(prefs.getString(PREF_SSH_PORT, "22"));
-            tmp.setSSHUsername(prefs.getString(PREF_SSH_USER, ""));
-            tmp.setSSHKeyFile(prefs.getString(PREF_SSH_KEYFILE, ""));
-            tmp.setSSHPassword(prefs.getString(PREF_SSH_PASS, ""));
+            tmp.setSSHHost(prefs.getString(PREF_SSH_HOST, PREF_SSH_HOST_D));
+            tmp.setSSHPort(prefs.getString(PREF_SSH_PORT, PREF_SSH_PORT_D));
+            tmp.setSSHUsername(prefs.getString(PREF_SSH_USER, PREF_SSH_USER_D));
+            tmp.setSSHKeyFile(prefs.getString(PREF_SSH_KEYFILE, PREF_SSH_KEYFILE_D));
+            tmp.setSSHPassword(prefs.getString(PREF_SSH_PASS, PREF_SSH_PASS_D));
             conn = tmp;
         } else if (connType.equals(PREF_TYPE_STUNNEL)) {
             StunnelConnection tmp = new StunnelConnection(host, port);
-            tmp.setStunnelCert(prefs.getString(PREF_STUNNEL_CERT, ""));
-            tmp.setStunnelKey(prefs.getString(PREF_STUNNEL_PASS, ""));
+            tmp.setStunnelCert(prefs.getString(PREF_STUNNEL_CERT, PREF_STUNNEL_CERT_D));
+            tmp.setStunnelKey(prefs.getString(PREF_STUNNEL_PASS, PREF_STUNNEL_PASS_D));
             conn = tmp;
         } else if (connType.equals(PREF_TYPE_SSL)) {
             SSLConnection tmp = new SSLConnection(host, port);
@@ -534,7 +534,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
         if (DEBUG) logger.debug("onConnect()");
         connectionStatus = CONNECTED;
 
-        if (prefs.getBoolean(PREF_PING_ENABLED, true)) {
+        if (prefs.getBoolean(PREF_PING_ENABLED, PREF_PING_ENABLED_D)) {
             long triggerAt = SystemClock.elapsedRealtime() + pingTimeout();
             schedulePing(triggerAt);
         }
@@ -621,11 +621,11 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         // Load/refresh preferences
         if (key.equals(PREF_HOST)) {
-            host = prefs.getString(key, null);
+            host = prefs.getString(key, PREF_HOST_D);
         } else if (key.equals(PREF_PASSWORD)) {
-            pass = prefs.getString(key, null);
+            pass = prefs.getString(key, PREF_PASSWORD_D);
         } else if (key.equals(PREF_PORT)) {
-            port = Integer.parseInt(prefs.getString(key, "8001"));
+            port = Integer.parseInt(prefs.getString(key, PREF_PORT_D));
         }
     }
 

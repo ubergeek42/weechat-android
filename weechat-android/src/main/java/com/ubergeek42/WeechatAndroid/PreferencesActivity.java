@@ -109,7 +109,7 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
                 findPreference(PREF_CONNECTION_TYPE).setOnPreferenceChangeListener(this);
                 findPreference(PREF_HOST).setOnPreferenceChangeListener(this);
                 findPreference(PREF_PORT).setOnPreferenceChangeListener(this);
-                showHideStuff(getPreferenceScreen().getSharedPreferences().getString(PREF_CONNECTION_TYPE, PREF_TYPE_PLAIN));
+                showHideStuff(getPreferenceScreen().getSharedPreferences().getString(PREF_CONNECTION_TYPE, PREF_CONNECTION_TYPE_D));
             } else if (PREF_SSH_GROUP.equals(key)) {
                 findPreference(PREF_SSH_HOST).setOnPreferenceChangeListener(this);
                 findPreference(PREF_SSH_PORT).setOnPreferenceChangeListener(this);
