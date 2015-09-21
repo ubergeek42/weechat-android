@@ -60,6 +60,7 @@ public class CopyPaste implements EditText.OnLongClickListener, AdapterView.OnIt
         }
 
         final int hPadding = (int) activity.getResources().getDimension(R.dimen.dialog_item_padding_horizontal);
+        final int vPadding = (int) activity.getResources().getDimension(R.dimen.dialog_item_padding_vertical);
         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
         builder.setTitle("Paste").setAdapter(
                 new ArrayAdapter<CharSequence>(activity,
@@ -67,10 +68,10 @@ public class CopyPaste implements EditText.OnLongClickListener, AdapterView.OnIt
                         android.R.id.text1, printList.toArray(new CharSequence[printList.size()])) {
                     @Override public View getView(int position, View convertView, ViewGroup parent) {
                         View v = super.getView(position, convertView, parent);
-                        v.setPadding(hPadding, 0, hPadding, 0);
+                        v.setPadding(hPadding, vPadding, hPadding, vPadding);
                         boolean isClip = (!"".equals(clip) && position == list.size() - 1);
                         v.setBackgroundResource(isClip ? R.color.special : 0);
-                        ((TextView) v).setCompoundDrawablesWithIntrinsicBounds(isClip ? R.drawable.ic_paste : 0, 0, 0, 0);
+                        ((TextView) v).setCompoundDrawablesWithIntrinsicBounds(0, 0, isClip ? R.drawable.ic_paste : 0, 0);
                         return v;
                     }
                 }, new DialogInterface.OnClickListener() {
