@@ -9,12 +9,8 @@
 -forceprocessing
 -optimizationpasses 5
 
-# actionbarsherlock stuff
--keep class android.support.v4.app.** { *; }
--keep interface android.support.v4.app.** { *; }
--keep class com.actionbarsherlock.** { *; }
--keep interface com.actionbarsherlock.** { *; }
--keepattributes *Annotation*
+# support library stuff
+-keep public class android.support.v7.preference.** { *; }
 
 -keep class com.jcraft.jsch.jce.*
 -keep class * extends com.jcraft.jsch.KeyExchange
