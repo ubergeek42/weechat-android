@@ -105,4 +105,11 @@ public class Utils {
             return false;
         }
     }
+
+    public static boolean isAnyOf(String left, String ... rights) {
+        for (String right : rights)
+            if (left.equals(right))
+                return true;
+        return false;
+    }
 }

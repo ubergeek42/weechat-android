@@ -103,23 +103,21 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
         // that this fragment is supposed to display. the key is set in activity's onCreate
         @Override public void onCreatePreferences(Bundle bundle, String key) {
             setPreferencesFromResource(R.xml.preferences, this.key = key);
+            String[] listenTo = {};
             if (PREF_CONNECTION_GROUP.equals(key)) {
                 stunnelGroup = findPreference(PREF_STUNNEL_GROUP);
                 sshGroup = findPreference(PREF_SSH_GROUP);
-                findPreference(PREF_CONNECTION_TYPE).setOnPreferenceChangeListener(this);
-                findPreference(PREF_HOST).setOnPreferenceChangeListener(this);
-                findPreference(PREF_PORT).setOnPreferenceChangeListener(this);
                 showHideStuff(getPreferenceScreen().getSharedPreferences().getString(PREF_CONNECTION_TYPE, PREF_CONNECTION_TYPE_D));
-            } else if (PREF_SSH_GROUP.equals(key)) {
-                findPreference(PREF_SSH_HOST).setOnPreferenceChangeListener(this);
-                findPreference(PREF_SSH_PORT).setOnPreferenceChangeListener(this);
-            } else if (PREF_PING_GROUP.equals(key)) {
-                findPreference(PREF_PING_IDLE).setOnPreferenceChangeListener(this);
-                findPreference(PREF_PING_TIMEOUT).setOnPreferenceChangeListener(this);
-            } else if (PREF_LOOKFEEL_GROUP.equals(key)) {
-                findPreference(PREF_MAX_WIDTH).setOnPreferenceChangeListener(this);
-                findPreference(PREF_TIMESTAMP_FORMAT).setOnPreferenceChangeListener(this);
-            }
+                listenTo = new String[] {PREF_CONNECTION_TYPE, PREF_HOST, PREF_PORT};
+            } else if (PREF_SSH_GROUP.equals(key))
+                listenTo = new String[] {PREF_SSH_HOST, PREF_SSH_PORT};
+            else if (PREF_PING_GROUP.equals(key))
+                listenTo = new String[] {PREF_PING_IDLE, PREF_PING_TIMEOUT};
+            else if (PREF_LOOKFEEL_GROUP.equals(key))
+                listenTo = new String[] {PREF_TEXT_SIZE, PREF_MAX_WIDTH, PREF_TIMESTAMP_FORMAT};
+
+            for (String p : listenTo)
+                findPreference(p).setOnPreferenceChangeListener(this);
         }
 
         // this only sets the title of the action bar
@@ -140,10 +138,10 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
             String key = preference.getKey();
             boolean valid = true;
             int toast = -1;
-            if (PREF_HOST.equals(key) || PREF_SSH_HOST.equals(key)) {
+            if (Utils.isAnyOf(key, PREF_HOST, PREF_SSH_HOST)) {
                 valid = !((String) o).contains(" ");
                 toast = R.string.pref_hostname_invalid;
-            } else if (PREF_MAX_WIDTH.equals(key) || PREF_PORT.equals(key) || PREF_SSH_PORT.equals(key) || PREF_PING_IDLE.equals(key) || PREF_PING_TIMEOUT.equals(key)) {
+            } else if (Utils.isAnyOf(key, PREF_TEXT_SIZE, PREF_MAX_WIDTH, PREF_PORT, PREF_SSH_PORT, PREF_PING_IDLE, PREF_PING_TIMEOUT)) {
                 valid = Utils.isAllDigits((String) o);
                 toast = R.string.pref_number_invalid;
             } else if (PREF_TIMESTAMP_FORMAT.equals(key)) {
