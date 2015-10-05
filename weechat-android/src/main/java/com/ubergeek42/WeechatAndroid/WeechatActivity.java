@@ -30,6 +30,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.AlertDialog;
 
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.view.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -347,30 +348,32 @@ public class WeechatActivity extends AppCompatActivity implements RelayConnectio
 
     @Override public void onError(final String errorMsg, Object extraData) {
         if (DEBUG_CONNECION) logger.debug("onError({}, ...)", errorMsg);
-        runOnUiThread(new Runnable() {
-            @Override public void run() {
-                Toast.makeText(getBaseContext(), "Error: " + errorMsg, Toast.LENGTH_LONG).show();
-            }
-        });        
         if (extraData instanceof SSLException && relay != null) {
             if (DEBUG) logger.error("...cause: {}", ((Throwable) extraData).getCause());
             SSLException e1 = (SSLException) extraData;
             if (e1.getCause() instanceof CertificateException) {
                 CertificateException e2 = (CertificateException) e1.getCause();
-                
+
                 if (e2.getCause() instanceof CertPathValidatorException) {
                     CertPathValidatorException e = (CertPathValidatorException) e2.getCause();
-                    CertPath cp = e.getCertPath();                    
-                    
+                    CertPath cp = e.getCertPath();
+
                     // Set the cert error on the backend
                     relay.setCertificateError((X509Certificate) cp.getCertificates().get(0));
-                    
+
                     // Start an activity to attempt establishing trust
                     Intent intent = new Intent(this, SSLCertActivity.class);
                     startActivity(intent);
+                    return;
                 }
             }
         }
+        final String msg = "Error: " + (TextUtils.isEmpty(errorMsg) ? extraData.getClass().getSimpleName() : errorMsg);
+        runOnUiThread(new Runnable() {
+            @Override public void run() {
+                Toast.makeText(getBaseContext(), msg, Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
