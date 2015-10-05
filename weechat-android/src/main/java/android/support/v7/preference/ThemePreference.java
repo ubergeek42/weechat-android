@@ -7,6 +7,8 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.util.AttributeSet;
 
+import com.ubergeek42.WeechatAndroid.utils.Constants;
+
 import java.util.Collections;
 import java.util.LinkedList;
 
@@ -19,7 +21,7 @@ public class ThemePreference extends DialogPreference {
     }
 
     public @NonNull String getThemePath() {
-        return getSharedPreferences().getString(getKey(), "");
+        return getSharedPreferences().getString(getKey(), Constants.PREF_COLOR_SCHEME_D);
     }
 
     public void setThemePath(String path) {
@@ -49,7 +51,7 @@ public class ThemePreference extends DialogPreference {
         protected void onPrepareDialogBuilder(AlertDialog.Builder builder) {
             super.onPrepareDialogBuilder(builder);
 
-            themes = ThemeManager.enumerateThemes(getContext().getAssets());
+            themes = ThemeManager.enumerateThemes(getContext());
             Collections.sort(themes);
 
             // find index of the current theme, and while we are at it

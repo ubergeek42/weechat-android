@@ -6,27 +6,21 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.content.res.AssetManager;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.os.IBinder;
 import android.os.SystemClock;
+import android.support.v7.preference.ThemeManager;
 import android.text.TextUtils;
-import android.widget.Toast;
 
 import com.ubergeek42.WeechatAndroid.Manifest;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.weechat.Color;
-import com.ubergeek42.weechat.ColorScheme;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.text.SimpleDateFormat;
-import java.util.Properties;
 
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
 
@@ -84,7 +78,7 @@ public class RelayService extends RelayServiceBackbone {
         setTimestampFormat();
         setAlignment();
         setTextSizeAndLetterWidth();
-        loadColorScheme();
+        ThemeManager.loadColorSchemeFromPreferences(this);
     }
 
     @Override
@@ -219,31 +213,8 @@ public class RelayService extends RelayServiceBackbone {
             setTextSizeAndLetterWidth();
             BufferList.notifyOpenBuffersMustBeProcessed(true);
         } else if (key.equals(PREF_COLOR_SCHEME)) {
-            loadColorScheme();
+            ThemeManager.loadColorSchemeFromPreferences(this);
             BufferList.notifyOpenBuffersMustBeProcessed(true);
-        }
-    }
-
-    private void loadColorScheme() {
-        // Load color scheme
-        // TODO use theme manager
-        String colorScheme = prefs.getString(PREF_COLOR_SCHEME, PREF_COLOR_SCHEME_D);
-        Properties p = new Properties();
-        try {
-            InputStream inputStream;
-            if (colorScheme.startsWith("/")) {
-                inputStream = new FileInputStream(colorScheme);
-            } else {
-                AssetManager assetManager = getApplicationContext().getAssets();
-                inputStream = assetManager.open(colorScheme);
-            }
-            p.load(inputStream);
-            ColorScheme cs = new ColorScheme(p);
-            ColorScheme.setColorScheme(cs);
-        } catch (IOException e) {
-            Toast.makeText(this, "Error loading color scheme", Toast.LENGTH_SHORT).show();
-            logger.debug("Failed to load color scheme properties file");
-            logger.debug(e.toString());
         }
     }
 
