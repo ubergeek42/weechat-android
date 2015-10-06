@@ -32,7 +32,7 @@ public class ThemeManager {
         if (p == null)
             Toast.makeText(context, "Error loading color scheme " + path, Toast.LENGTH_SHORT).show();
         else
-            ColorScheme.setColorScheme(new ColorScheme(p));
+            ColorScheme.set(new ColorScheme(p));
     }
 
     public static @NonNull LinkedList<ThemeInfo> enumerateThemes(@NonNull Context context) {

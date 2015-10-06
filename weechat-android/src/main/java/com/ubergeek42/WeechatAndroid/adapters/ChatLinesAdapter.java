@@ -105,12 +105,14 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
             if (mustDrawReadMarker) {
                 retview = inflater.inflate(R.layout.chatview_line_read_marker, null);
                 textview = (TextView)retview.findViewById(R.id.chatline_message);
-                retview.findViewById(R.id.separator).setBackgroundDrawable(new ColorDrawable(0xFF000000 | ColorScheme.currentScheme().getOptionColor("chat_read_marker")[0]));
+                //noinspection deprecation
+                retview.findViewById(R.id.separator).setBackgroundDrawable(
+                        new ColorDrawable(0xFF000000 | ColorScheme.get().chat_read_marker[0]));
             } else {
                 textview = (TextView) inflater.inflate(R.layout.chatview_line, null);
                 retview = textview;
             }
-            textview.setTextColor(0xFF000000 | ColorScheme.currentScheme().getOptionColor("default")[0]);
+            textview.setTextColor(0xFF000000 | ColorScheme.get().defaul[0]);
             textview.setMovementMethod(LinkMovementMethod.getInstance());
         } else { // convertview is only ever not null for the simple case
             textview = (TextView) convertView;

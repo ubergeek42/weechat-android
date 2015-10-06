@@ -617,7 +617,7 @@ public class Buffer {
             Spannable spannable = new SpannableString(Color.cleanMessage);
 
             if (this.type == LINE_OTHER && DIM_DOWN_NON_HUMAN_LINES) {
-                spannable.setSpan(new ForegroundColorSpan(ColorScheme.currentScheme().getOptionColor("chat_inactive_buffer")[ColorScheme.OPT_FG] | 0xFF000000), 0, spannable.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                spannable.setSpan(new ForegroundColorSpan(ColorScheme.get().chat_inactive_buffer[0] | 0xFF000000), 0, spannable.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             } else {
                 CharacterStyle droidSpan;
                 for (Color.Span span : Color.finalSpanList) {

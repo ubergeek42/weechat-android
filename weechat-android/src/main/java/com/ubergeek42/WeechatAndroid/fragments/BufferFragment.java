@@ -121,7 +121,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         started = true;
         activity.bind(this);
         //noinspection deprecation
-        uiLines.setBackgroundColor(0xFF000000 | ColorScheme.currentScheme().getOptionColor("default")[ColorScheme.OPT_BG]);
+        uiLines.setBackgroundColor(0xFF000000 | ColorScheme.get().defaul[ColorScheme.OPT_BG]);
     }
 
     @Override
