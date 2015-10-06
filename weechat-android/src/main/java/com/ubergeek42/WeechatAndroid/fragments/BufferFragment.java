@@ -122,7 +122,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         uiInput.setOnEditorActionListener(this);   // listen for software keyboard's “send” click. see onEditorAction()
 
         //noinspection deprecation
-        uiLines.setBackgroundDrawable(new ColorDrawable(0xFF000000 | ColorScheme.currentScheme().getOptionColor("default")[ColorScheme.OPT_BG]));
+        uiLines.setBackgroundDrawable(new ColorDrawable(0xFF000000 | ColorScheme.get().defaul[1]));
         uiLines.setFocusable(false);
         uiLines.setFocusableInTouchMode(false);
 

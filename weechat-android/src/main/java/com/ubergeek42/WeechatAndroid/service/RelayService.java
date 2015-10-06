@@ -14,7 +14,6 @@ import android.os.SystemClock;
 import android.widget.Toast;
 
 import com.ubergeek42.WeechatAndroid.Manifest;
-import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.weechat.Color;
 import com.ubergeek42.weechat.ColorScheme;
@@ -254,8 +253,7 @@ public class RelayService extends RelayServiceBackbone {
                     inputStream = assetManager.open(colorScheme);
                 }
                 p.load(inputStream);
-                ColorScheme cs = new ColorScheme(p);
-                ColorScheme.setColorScheme(cs);
+                ColorScheme.set(new ColorScheme(p));
             } catch (IOException e) {
                 Toast.makeText(this, "Error loading color scheme", Toast.LENGTH_SHORT).show();
                 logger.debug("Failed to load color scheme properties file");

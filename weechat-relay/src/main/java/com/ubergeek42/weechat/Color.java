@@ -58,14 +58,13 @@ public class Color {
         if (DEBUG) logger.debug("parse(timestamp='{}', prefix='{}', message='{}', enclose_nick={}, highlight={}, max={}, align_right={})",
                 new Object[]{timestamp, prefix, message, enclose_nick, highlight, max, alignment});
         int puff;
-        int color;
-        ColorScheme cs = ColorScheme.currentScheme();
+        ColorScheme cs = ColorScheme.get();
         StringBuilder sb = new StringBuilder();
         finalSpanList = new ArrayList<>();
 
         if (timestamp != null) {
             sb.append(timestamp);
-            Span fg = new Span(); fg.start = 0; fg.end = sb.length(); fg.type = Span.FGCOLOR; fg.color = cs.getOptionColor("chat_time")[ColorScheme.OPT_FG]; finalSpanList.add(fg);
+            maybeMakeAndAddSpans(0, sb.length(), cs.chat_time, finalSpanList);
             sb.append(" ");
         }
 
@@ -74,8 +73,7 @@ public class Color {
             margin = sb.length();
         }
 
-
-        // prefix should be adjusted accoring to the settings
+        // prefix should be adjusted according to the settings
         // also, if highlight is enabled, remove all colors from here and add highlight color later
         parseColors(prefix);
         prefix = out.toString();
@@ -97,14 +95,11 @@ public class Color {
             for (int x = 0; x < diff; x++) sb.append(" "); // spaces for padding
         }
         if (highlight) {
-            color = cs.getOptionColor("chat_highlight")[0];
-            if (color != -1) {Span fg = new Span(); fg.start = 0; fg.end = prefix.length(); fg.type = Span.FGCOLOR; fg.color = color; spanList.add(fg);}
-            color = cs.getOptionColor("chat_highlight")[1];
-            if (color != -1) {Span bg = new Span(); bg.start = 0; bg.end = prefix.length(); bg.type = Span.BGCOLOR; bg.color = color; spanList.add(bg);}
+            maybeMakeAndAddSpans(0, prefix.length(), cs.chat_highlight, spanList);
         }
         if (enclose_nick && max >= 1) {
             sb.append("<");
-            Span fg = new Span(); fg.start = sb.length() - 1; fg.end = sb.length(); fg.type = Span.FGCOLOR; fg.color = cs.getOptionColor("chat_time")[ColorScheme.OPT_FG]; finalSpanList.add(fg);
+            maybeMakeAndAddSpans(sb.length() - 1, sb.length(), cs.chat_nick_prefix, finalSpanList);
         }
         puff = sb.length();
         for (Span span : spanList) {
@@ -116,14 +111,14 @@ public class Color {
         if (nickHasBeenCut) {
             if (enclose_nick && max >= 2) {
                 sb.append(">");
-                Span fg = new Span(); fg.start = sb.length() - 1; fg.end = sb.length(); fg.type = Span.FGCOLOR; fg.color = cs.getOptionColor("chat_prefix_suffix")[ColorScheme.OPT_FG]; finalSpanList.add(fg);
+                maybeMakeAndAddSpans(sb.length() - 1, sb.length(), cs.chat_nick_suffix, finalSpanList);
             }
             sb.append("+");
-            Span fg = new Span(); fg.start = sb.length() - 1; fg.end = sb.length(); fg.type = Span.FGCOLOR; fg.color = cs.getOptionColor("chat_prefix_more")[ColorScheme.OPT_FG]; finalSpanList.add(fg);
+            maybeMakeAndAddSpans(sb.length() - 1, sb.length(), cs.chat_prefix_more, finalSpanList);
         }
         else if (enclose_nick && max >= 2) {
             sb.append("> ");
-            Span fg = new Span(); fg.start = sb.length() - 2; fg.end = sb.length() - 1; fg.type = Span.FGCOLOR; fg.color =cs.getOptionColor("chat_prefix_suffix")[ColorScheme.OPT_FG]; finalSpanList.add(fg);
+            maybeMakeAndAddSpans(sb.length() - 2, sb.length() - 1, cs.chat_nick_suffix, finalSpanList);
         }
         else sb.append(" ");
 
@@ -143,6 +138,11 @@ public class Color {
         }
         sb.append(message);
         cleanMessage = sb.toString();
+    }
+
+    private static void maybeMakeAndAddSpans(int start, int end, int[] color, ArrayList<Span> list) {
+        if (color[0] != -1) {Span fg = new Span(); fg.start = start; fg.end = end; fg.type = Span.FGCOLOR; fg.color = color[0]; list.add(fg);}
+        if (color[1] != -1) {Span bg = new Span(); bg.start = start; bg.end = end; bg.type = Span.BGCOLOR; bg.color = color[1]; list.add(bg);}
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -234,13 +234,10 @@ public class Color {
      ** sets, if available, both foreground and background colors.
      **can take form of: 05 */
     private static void setWeechatColor() {
-        int color;
         int color_index = getNumberOfLengthUpTo(2);
-        ColorScheme cs = ColorScheme.currentScheme();
-        color = cs.getOptionColor(color_index)[ColorScheme.OPT_FG];
-        if (color != -1) addSpan(Span.FGCOLOR, color);
-        color = cs.getOptionColor(color_index)[ColorScheme.OPT_BG];
-        if (color != -1) addSpan(Span.BGCOLOR, color);
+        int colors[] = ColorScheme.get().getOptionColor(color_index);
+        if (colors[ColorScheme.OPT_FG] != -1) addSpan(Span.FGCOLOR, colors[ColorScheme.OPT_FG]);
+        if (colors[ColorScheme.OPT_BG] != -1) addSpan(Span.BGCOLOR, colors[ColorScheme.OPT_BG]);
     }
 
     /** parse colors/color & attribute combinations. can take form of:
@@ -257,15 +254,13 @@ public class Color {
     // returns color in the form 0xfffff or -1
     private static int getColor() {
         int color_index = getNumberOfLengthUpTo(2);
-        ColorScheme cs = ColorScheme.currentScheme();
-        return cs.getWeechatColor(color_index);
+        return ColorScheme.get().getWeechatColor(color_index);
     }
 
     // returns color in the form 0xfffff or -1
     private static int getColorExtended() {
         int color_index = getNumberOfLengthUpTo(5);
-        ColorScheme cs = ColorScheme.currentScheme();
-        return cs.getColor(color_index);
+        return ColorScheme.get().getColor(color_index);
     }
 
     // returns a number stored in the next “amount” characters
