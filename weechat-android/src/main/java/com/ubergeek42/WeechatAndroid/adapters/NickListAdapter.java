@@ -10,6 +10,7 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import com.ubergeek42.WeechatAndroid.BuildConfig;
+import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.service.Buffer;
 import com.ubergeek42.WeechatAndroid.service.BufferNicklistEye;
@@ -29,10 +30,15 @@ public class NickListAdapter extends BaseAdapter implements BufferNicklistEye,
     private @NonNull Buffer.Nick[] nicks = new Buffer.Nick[0];
     private @NonNull AlertDialog dialog;
 
+    private int hPadding;
+    private int vPadding;
+
     public NickListAdapter(@NonNull WeechatActivity activity, @NonNull Buffer buffer) {
         this.activity = activity;
         this.inflater = LayoutInflater.from(activity);
         this.buffer = buffer;
+        hPadding = (int) activity.getResources().getDimension(R.dimen.dialog_item_padding_horizontal);
+        vPadding = (int) activity.getResources().getDimension(R.dimen.dialog_item_padding_vertical);
     }
 
     @Override
@@ -52,12 +58,13 @@ public class NickListAdapter extends BaseAdapter implements BufferNicklistEye,
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        if (convertView == null)
-            convertView = inflater.inflate(android.R.layout.simple_list_item_1, parent, false);
-        TextView textview = (TextView) convertView;
+        if (convertView == null) {
+            convertView = inflater.inflate(android.support.v7.appcompat.R.layout.select_dialog_item_material, parent, false);
+            convertView.setPadding(hPadding, vPadding, hPadding, vPadding);
+        }
 
         Buffer.Nick nick = getItem(position);
-        textview.setText(nick.prefix + nick.name);
+        ((TextView) convertView).setText(nick.prefix + nick.name);
         return convertView;
     }
 

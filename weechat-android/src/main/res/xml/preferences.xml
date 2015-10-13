@@ -83,10 +83,10 @@
         <RingtonePreferenceFix android:key="notification_sound" android:title="@string/pref_notification_sound" android:dependency="notification_enable" android:defaultValue="content://settings/system/notification_sound" />
 		<CheckBoxPreference android:key="notification_vibrate" android:title="@string/pref_notification_vibrate" android:defaultValue="false" android:dependency="notification_enable" />
 		<CheckBoxPreference android:key="notification_light" android:title="@string/pref_notification_light" android:defaultValue="false" android:dependency="notification_enable"/>
-        <CheckBoxPreference android:key="notification_ticker" android:summary="@string/pref_notification_ticker_summary" android:title="@string/pref_notification_ticker" android:defaultValue="true" />
+        <CheckBoxPreference android:key="notification_ticker" android:summary="@string/pref_notification_ticker_summary" android:title="@string/pref_notification_ticker" android:defaultValue="true" android:dependency="notification_enable" />
     </PreferenceScreen>
 
-    <!-- about TODO: dev string?? -->
+    <!-- about -->
 
     <PreferenceScreen android:key="about" android:title="@string/about">
         <intent android:action="android.intent.action.VIEW" android:targetPackage="@string/package_name" android:targetClass="com.ubergeek42.WeechatAndroid.WeechatAboutActivity" />

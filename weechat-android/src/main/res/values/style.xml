@@ -22,9 +22,42 @@
         <item name="android:drawSelectorOnTop">true</item>
     </style>
 
-    <style name="PreferenceStyle" parent="@style/PreferenceThemeOverlay.v14" />
+    <!-- styles for preferences for api 10 to 14 -->
 
-    <!-- honey comb & lower action button approximation -->
+    <style name="PreferenceStyle">
+        <item name="preferenceCategoryStyle">@style/CategoryFix</item>
+        <item name="preferenceStyle">@style/PreferenceFix</item>
+        <item name="editTextPreferenceStyle">@style/PreferenceFix.EditText</item>
+        <item name="dialogPreferenceStyle">@style/PreferenceFix.DialogPreference</item>
+        <item name="preferenceScreenStyle">@style/PreferenceFix.ScreenStyle</item>
+        <item name="checkBoxPreferenceStyle">@style/PreferenceFix.CheckBoxStyle</item>
+    </style>
+
+    <style name="CategoryFix" parent="@style/Preference.Category">
+        <item name="layout">@layout/v10_category</item>
+    </style>
+
+    <style name="PreferenceFix">
+        <item name="layout">@layout/v10_preference</item>
+    </style>
+
+    <style name="PreferenceFix.ScreenStyle" parent="@style/Preference.PreferenceScreen">
+        <item name="layout">@layout/v10_preference</item>
+    </style>
+
+    <style name="PreferenceFix.CheckBoxStyle" parent="@style/Preference.CheckBoxPreference">
+        <item name="layout">@layout/v10_preference</item>
+    </style>
+
+    <style name="PreferenceFix.DialogPreference" parent="@style/Preference.DialogPreference">
+        <item name="layout">@layout/v10_preference</item>
+    </style>
+
+    <style name="PreferenceFix.EditText" parent="@style/Preference.DialogPreference.EditTextPreference">
+        <item name="layout">@layout/v10_preference</item>
+    </style>
+
+    <!-- action button approximation for api 10 to 12 -->
 
     <style name="ActionButton">
         <item name="android:background">?actionBarItemBackground</item>
@@ -35,8 +68,10 @@
         <item name="android:maxLines">2</item>
     </style>
 
+    <!-- colors! -->
+
     <color name="special">#FF2B2F32</color>
     <color name="primary">#FF1B1F22</color>
     <color name="primary_dark">#FF0f1315</color>
-
+    <color name="accent">#ff80cbc4</color>
 </resources>

@@ -4,18 +4,18 @@ import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.AppCompatEditText;
 import android.text.InputType;
 import android.util.AttributeSet;
 import android.view.ViewGroup;
 import android.view.ViewParent;
-import android.widget.EditText;
 
 // this is different to EditTextPreference in the following way:
 //   - creates EditText using the attributes and keeps it
 //   - automatically sets summary to *** if is a password edit
 
 public class EditTextPreferenceFix extends EditTextPreference {
-    private EditText editText;
+    private AppCompatEditText editText;
     private boolean isPassword = false;
     private static int PASSWORD_MASK = InputType.TYPE_TEXT_VARIATION_PASSWORD | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD;
     static {if (Build.VERSION.SDK_INT >= 11) PASSWORD_MASK |= (InputType.TYPE_NUMBER_VARIATION_PASSWORD | InputType.TYPE_TEXT_VARIATION_WEB_PASSWORD); }
@@ -34,12 +34,12 @@ public class EditTextPreferenceFix extends EditTextPreference {
 
     public EditTextPreferenceFix(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
-        editText = new EditText(context, attrs);
+        editText = new AppCompatEditText(context, attrs);
         editText.setId(android.R.id.edit);
         isPassword = (editText.getInputType() & PASSWORD_MASK) != 0;
     }
 
-    public EditText getEditText() {
+    public AppCompatEditText getEditText() {
         return editText;
     }
 
@@ -62,7 +62,7 @@ public class EditTextPreferenceFix extends EditTextPreference {
     //   - puts cursor on the end
 
     public static class EditTextPreferenceFixFragment extends PreferenceDialogFragmentCompat {
-        private EditText mEditText;
+        private AppCompatEditText mEditText;
 
         public EditTextPreferenceFixFragment() {}
 
