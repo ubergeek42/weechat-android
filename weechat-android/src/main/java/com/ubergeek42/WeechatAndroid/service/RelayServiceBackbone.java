@@ -15,26 +15,18 @@
  ******************************************************************************/
 package com.ubergeek42.WeechatAndroid.service;
 
-import android.annotation.TargetApi;
-import android.app.Notification;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.NotificationCompat;
 
-import com.ubergeek42.WeechatAndroid.BuildConfig;
 import com.ubergeek42.WeechatAndroid.PreferencesActivity;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
@@ -46,12 +38,8 @@ import com.ubergeek42.weechat.relay.connection.Connection;
 import com.ubergeek42.weechat.relay.connection.PlainConnection;
 import com.ubergeek42.weechat.relay.connection.SSHConnection;
 import com.ubergeek42.weechat.relay.connection.SSLConnection;
-//import com.ubergeek42.weechat.relay.messagehandler.UpgradeHandler;
-//import com.ubergeek42.weechat.relay.messagehandler.UpgradeObserver;
 import com.ubergeek42.weechat.relay.connection.WebSocketConnection;
 import com.ubergeek42.weechat.relay.protocol.RelayObject;
-
-import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,10 +49,10 @@ import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
 
 import javax.net.ssl.SSLContext;
+
+import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
 
 public abstract class RelayServiceBackbone extends Service implements
         RelayConnectionHandler, RelayMessageHandler,
@@ -73,13 +61,10 @@ public abstract class RelayServiceBackbone extends Service implements
     private static Logger logger = LoggerFactory.getLogger("RelayServiceBackbone");
     final private static boolean DEBUG = true;
     final private static boolean DEBUG_CONNECTION = true;
-    final private static boolean DEBUG_NOTIFICATIONS = true;
 
-    private static final int NOTIFICATION_ID = 42;
-    private static final int NOTIFICATION_HIGHLIGHT_ID = 43;
-    private NotificationManager notificationManger;
+    protected Notificator notificator;
 
-    private String host;
+    protected String host;
     private int port;
     private String pass;
 
@@ -89,7 +74,6 @@ public abstract class RelayServiceBackbone extends Service implements
     SSLHandler certmanager;
     X509Certificate untrustedCert;
 
-    int hotCount = 0;
     volatile long lastMessageReceivedAt = 0;
 
     /** mainly used to tell the user if we are reconnected */
@@ -99,12 +83,11 @@ public abstract class RelayServiceBackbone extends Service implements
     /** handler that resides on a separate thread. useful for connection/etc */
     Handler thandler;
 
-    // for some reason, this java can't have binary literals...
-    public final static int DISCONNECTED =   Integer.parseInt("00001", 2);
-    public final static int CONNECTING =     Integer.parseInt("00010", 2);
-    public final static int CONNECTED =      Integer.parseInt("00100", 2);
-    public final static int AUTHENTICATED =  Integer.parseInt("01000", 2);
-    public final static int BUFFERS_LISTED = Integer.parseInt("10000", 2);
+    public final static int DISCONNECTED =   0x00001;
+    public final static int CONNECTING =     0x00010;
+    public final static int CONNECTED =      0x00100;
+    public final static int AUTHENTICATED =  0x01000;
+    public final static int BUFFERS_LISTED = 0x10000;
     int connectionStatus = DISCONNECTED;
 
     private Connectivity connectivity;
@@ -128,14 +111,14 @@ public abstract class RelayServiceBackbone extends Service implements
 
         prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         prefs.registerOnSharedPreferenceChangeListener(this);
-        notificationManger = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        notificator = new Notificator(this);
 
         // prepare handler that will run on a separate thread
         HandlerThread handlerThread = new HandlerThread("doge");
         handlerThread.start();
         thandler = new Handler(handlerThread.getLooper());
 
-        startForeground(NOTIFICATION_ID, buildNotification(null, "Tap to connect", null));
+        notificator.showMain(null, "Tap to connect", null);
 
         disconnected = false;
         alreadyHadIntent = false;
@@ -153,7 +136,7 @@ public abstract class RelayServiceBackbone extends Service implements
     public void onDestroy() {
         if (DEBUG) logger.debug("onDestroy()");
         prefs.edit().remove(PREF_MUST_STAY_DISCONNECTED).commit(); // forget current connection status
-        notificationManger.cancelAll();
+        //notificationManger.cancelAll();
         connectivity.unregister();
         super.onDestroy();
     }
@@ -172,138 +155,6 @@ public abstract class RelayServiceBackbone extends Service implements
             alreadyHadIntent = true;
         }
         return START_STICKY;
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// notifications!
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    /** build notification without displaying it
-     *
-     * @param tickerText text that flashes a bit, can be null
-     * @param content text that appears under title
-     * @param intent intent that's executed on notification click, can be null
-     * @return built notification */
-
-    @TargetApi(16)
-    private Notification buildNotification(@Nullable String tickerText, @NonNull String content, @Nullable PendingIntent intent) {
-        if (DEBUG_NOTIFICATIONS) logger.debug("buildNotification({}, {}, {})", tickerText, content, intent);
-        PendingIntent contentIntent;
-        contentIntent = (intent != null) ? intent :
-            PendingIntent.getActivity(this, 0, new Intent(this, WeechatActivity.class), PendingIntent.FLAG_CANCEL_CURRENT);
-
-        int icon;
-        if (!isConnection(AUTHENTICATED)) {
-            if (isConnection(CONNECTING)) icon = R.drawable.ic_connecting;
-            else icon = R.drawable.ic_disconnected;
-        }
-        else if (hotCount == 0) icon = R.drawable.ic_connected;
-        else icon = R.drawable.ic_hot;
-
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
-        builder.setContentIntent(contentIntent)
-               .setSmallIcon(icon)
-               .setContentTitle("WeechatAndroid v" + BuildConfig.VERSION_NAME)
-               .setContentText(content)
-               .setWhen(System.currentTimeMillis());
-
-        if (prefs.getBoolean(PREF_NOTIFICATION_TICKER, PREF_NOTIFICATION_TICKER_D)) {
-            builder.setTicker(tickerText);
-        }
-
-        Notification notification = builder.build();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-            notification.priority = Notification.PRIORITY_MIN;
-        }
-        notification.flags |= Notification.FLAG_ONGOING_EVENT;
-        return notification;
-    }
-
-    /** display default notification */
-    void displayDefaultNotification() {
-        showNotification(null, getString(R.string.notification_connected_to) + host);
-    }
-
-    /** display custom notification with specific intent */
-    private void showNotification(@Nullable String tickerText, @NonNull String content, @NonNull PendingIntent intent) {
-        notificationManger.notify(NOTIFICATION_ID, buildNotification(tickerText, content, intent));
-    }
-
-    /** display custom notification with default intent */
-    private void showNotification(@Nullable String tickerText, @NonNull String content) {
-        notificationManger.notify(NOTIFICATION_ID, buildNotification(tickerText, content, null));
-    }
-
-    private static final int BUFFER = 0, LINE = 1;
-
-    /** display notification with a hot message
-     ** clicking on it will open the buffer & scroll up to the hot line, if needed
-     ** mind that SOMETIMES hotCount will be larger than hotList, because
-     ** it's filled from hotlist data and hotList only contains lines that
-     ** arrived in real time. so we add (message not available) if there are NO lines to display
-     ** and add "..." if there are some lines to display, but not all */
-    public void changeHotNotification(boolean newHighlight) {
-        if (DEBUG_NOTIFICATIONS) logger.warn("changeHotNotification({})", newHighlight);
-        final int hotCount = BufferList.getHotCount();
-        final List<String[]> hotList = BufferList.hotList;
-
-        if (hotCount == 0) {
-            notificationManger.cancel(NOTIFICATION_HIGHLIGHT_ID);
-        } else {
-            // find our target buffer. if ALL items point to the same buffer, use it,
-            // otherwise, go to buffer list (→ "")
-            if (!prefs.getBoolean(PREF_NOTIFICATION_ENABLE, PREF_NOTIFICATION_ENABLE_D)) {
-                return;
-            }
-            Set<String> set = new HashSet<>();
-            for (String[] h: hotList) set.add(h[BUFFER]);
-            String target_buffer = (hotCount == hotList.size() && set.size() == 1) ? hotList.get(0)[BUFFER] : "";
-            if (DEBUG_NOTIFICATIONS) logger.warn("...target='{}', hotCount={}, set.size()={}", target_buffer, hotCount, set.size());
-
-            // prepare intent
-            Intent intent = new Intent(this, WeechatActivity.class).putExtra("full_name", target_buffer);
-            PendingIntent contentIntent = PendingIntent.getActivity(this, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-            // prepare notification
-            // make the ticker the LAST message
-            String message = hotList.size() == 0 ? getString(R.string.hot_message_not_available) : hotList.get(hotList.size() - 1)[LINE];
-            NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
-                    .setContentIntent(contentIntent)
-                    .setSmallIcon(R.drawable.ic_hot)
-                    .setContentTitle(getResources().getQuantityString(R.plurals.hot_messages, hotCount, hotCount))
-                    .setContentText(message);
-
-            // display several lines only if we have at least one visible line and
-            // 2 or more lines total. that is, either display full list of lines or
-            // one ore more visible lines and "..."
-            if (hotList.size() > 0 && hotCount > 1) {
-                NotificationCompat.InboxStyle inbox = new NotificationCompat.InboxStyle()
-                        .setSummaryText(host);
-
-                for (String[] bufferToLine : hotList) inbox.addLine(bufferToLine[LINE]);
-                if (hotList.size() < hotCount) inbox.addLine("…");
-
-                builder.setContentInfo(String.valueOf(hotCount));
-                builder.setStyle(inbox);
-            }
-
-            if (newHighlight) {
-                builder.setTicker(message);
-
-                String ringtone = prefs.getString(PREF_NOTIFICATION_SOUND, PREF_NOTIFICATION_SOUND_D);
-                if (!"".equals(ringtone))
-                    builder.setSound(Uri.parse(ringtone));
-
-                int flags = 0;
-                if (prefs.getBoolean(PREF_NOTIFICATION_LIGHT, PREF_NOTIFICATION_LIGHT_D))
-                    flags |= Notification.DEFAULT_LIGHTS;
-                if (prefs.getBoolean(PREF_NOTIFICATION_VIBRATE, PREF_NOTIFICATION_VIBRATE_D))
-                    flags |= Notification.DEFAULT_VIBRATE;
-                builder.setDefaults(flags);
-            }
-
-            notificationManger.notify(NOTIFICATION_HIGHLIGHT_ID, builder.build());
-        }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -342,8 +193,8 @@ public abstract class RelayServiceBackbone extends Service implements
                         return;
                     if (DEBUG_CONNECTION) logger.debug("...not connected; connecting now");
                     connectionStatus = CONNECTING;
-                    showNotification(String.format(getString(ticker), prefs.getString(PREF_HOST, PREF_HOST_D)),
-                            getString(contentNow));
+                    notificator.showMain(String.format(getString(ticker), prefs.getString(PREF_HOST, PREF_HOST_D)),
+                            getString(contentNow), null);
                     if (connect() != CONNECTION_IMPOSSIBLE)
                         thandler.postDelayed(notifyRunner, WAIT_BEFORE_WAIT_MESSAGE_DELAY * 1000);
                 }
@@ -357,8 +208,8 @@ public abstract class RelayServiceBackbone extends Service implements
                         return;
                     long delay = DELAYS[reconnects < DELAYS.length ? reconnects : DELAYS.length - 1];
                     if (DEBUG_CONNECTION) logger.debug("...waiting {} seconds", delay);
-                    showNotification(String.format(getString(ticker), host),
-                            String.format(getString(content), delay));
+                    notificator.showMain(String.format(getString(ticker), host),
+                            String.format(getString(content), delay), null);
                     reconnects++;
                     thandler.postDelayed(connectRunner, delay * 1000);
                 }
@@ -415,7 +266,7 @@ public abstract class RelayServiceBackbone extends Service implements
             Intent intent = new Intent(this, PreferencesActivity.class);
             PendingIntent contentIntent = PendingIntent.getActivity(this, 0, intent,
                     PendingIntent.FLAG_CANCEL_CURRENT);
-            showNotification(getString(R.string.notification_update_settings_details),
+            notificator.showMain(getString(R.string.notification_update_settings_details),
                     getString(R.string.notification_update_settings),
                     contentIntent);
             return false;
@@ -425,7 +276,7 @@ public abstract class RelayServiceBackbone extends Service implements
             Intent intent = new Intent(this, WeechatActivity.class);
             PendingIntent contentIntent = PendingIntent.getActivity(this, 0, intent,
                     PendingIntent.FLAG_CANCEL_CURRENT);
-            showNotification(getString(R.string.notification_network_unavailable_details),
+            notificator.showMain(getString(R.string.notification_network_unavailable_details),
                     getString(R.string.notification_network_unavailable),
                     contentIntent);
             return false;
@@ -502,12 +353,8 @@ public abstract class RelayServiceBackbone extends Service implements
         if (DEBUG) logger.debug("onAuthenticated()");
         connectionStatus = CONNECTED | AUTHENTICATED;
 
-        if (disconnected) {
-            showNotification(getString(R.string.notification_reconnected_to) + host, getString(R.string.notification_connected_to) + host);
-        } else {
-            String tmp = getString(R.string.notification_connected_to) + host;
-            showNotification(tmp, tmp);
-        }
+        String s = getString(disconnected ? R.string.notification_reconnected_to : R.string.notification_connected_to) + host;
+        notificator.showMain(s, s, null);
         disconnected = false;
 
         startHandlingBoneEvents();
@@ -546,7 +393,7 @@ public abstract class RelayServiceBackbone extends Service implements
             startThreadedConnectLoop(true);
         } else {
             String tmp = getString(R.string.notification_disconnected);
-            showNotification(tmp, tmp);
+            notificator.showMain(tmp, tmp, null);
         }
 
         connectionStatus = DISCONNECTED;

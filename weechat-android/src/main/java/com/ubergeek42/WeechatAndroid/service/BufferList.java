@@ -308,7 +308,7 @@ public class BufferList {
 
     /** HELPER. notifies everyone interested of hotlist changes */
     static private void notifyHotCountChanged(boolean newHighlight) {
-        relay.changeHotNotification(newHighlight);
+        relay.notificator.showHot(newHighlight);
         if (buffersEye != null)
             buffersEye.onHotCountChanged();
     }
