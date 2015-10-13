@@ -52,7 +52,7 @@ public class RelayExample implements BuffersChangedObserver, RelayConnectionHand
     }
 
     @Override
-	public void onConnect() {
+	public void onConnected() {
 
 	}
 
@@ -123,7 +123,7 @@ public class RelayExample implements BuffersChangedObserver, RelayConnectionHand
     public void onBuffersListed() {}
 
     @Override
-	public void onDisconnect() {
+	public void onDisconnected() {
 		System.out.println("Disconnected...");
 	}
 

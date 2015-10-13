@@ -82,9 +82,9 @@ public class RelayService extends RelayServiceBackbone {
     }
 
     @Override
-    public void onDisconnect() {
+    public void onDisconnected() {
         saveStuff();
-        super.onDisconnect();
+        super.onDisconnected();
     }
 
     @Override
@@ -120,7 +120,7 @@ public class RelayService extends RelayServiceBackbone {
         // subscribe to any future changes
         // starting with weechat 1.1, "sync * buffers" also gets use buffer localvars,
         // so it's safe to request them; handling of these is no different from full sync
-        connection.sendMsg(BufferList.OPTIMIZE_TRAFFIC ? "sync * buffers,upgrade" : "sync");
+        connection.sendMessage(BufferList.OPTIMIZE_TRAFFIC ? "sync * buffers,upgrade" : "sync");
     }
 
     /** onDestroy will only be called when properly exiting the application

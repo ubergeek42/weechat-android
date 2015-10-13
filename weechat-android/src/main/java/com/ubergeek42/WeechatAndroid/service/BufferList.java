@@ -78,33 +78,33 @@ public class BufferList {
 
         // handle buffer list changes
         // including initial hotlist
-        connection.addHandler("listbuffers", bufferListWatcher);
+        relay.addMessageHandler("listbuffers", bufferListWatcher);
 
-        connection.addHandler("_buffer_opened", bufferListWatcher);
-        connection.addHandler("_buffer_renamed", bufferListWatcher);
-        connection.addHandler("_buffer_title_changed", bufferListWatcher);
-        connection.addHandler("_buffer_localvar_added", bufferListWatcher);
-        connection.addHandler("_buffer_localvar_changed", bufferListWatcher);
-        connection.addHandler("_buffer_localvar_removed", bufferListWatcher);
-        connection.addHandler("_buffer_closing", bufferListWatcher);
-        connection.addHandler("_buffer_moved", bufferListWatcher);
-        connection.addHandler("_buffer_merged", bufferListWatcher);
+        relay.addMessageHandler("_buffer_opened", bufferListWatcher);
+        relay.addMessageHandler("_buffer_renamed", bufferListWatcher);
+        relay.addMessageHandler("_buffer_title_changed", bufferListWatcher);
+        relay.addMessageHandler("_buffer_localvar_added", bufferListWatcher);
+        relay.addMessageHandler("_buffer_localvar_changed", bufferListWatcher);
+        relay.addMessageHandler("_buffer_localvar_removed", bufferListWatcher);
+        relay.addMessageHandler("_buffer_closing", bufferListWatcher);
+        relay.addMessageHandler("_buffer_moved", bufferListWatcher);
+        relay.addMessageHandler("_buffer_merged", bufferListWatcher);
 
-        connection.addHandler("hotlist", hotlistInitWatcher);
-        connection.addHandler("last_read_lines", lastReadLinesWatcher);
+        relay.addMessageHandler("hotlist", hotlistInitWatcher);
+        relay.addMessageHandler("last_read_lines", lastReadLinesWatcher);
 
         // handle newly arriving chat lines
         // and chatlines we are reading in reverse
-        connection.addHandler("_buffer_line_added", bufferLineWatcher);
-        connection.addHandler("listlines_reverse", bufferLineWatcher);
+        relay.addMessageHandler("_buffer_line_added", bufferLineWatcher);
+        relay.addMessageHandler("listlines_reverse", bufferLineWatcher);
 
         // handle nicklist init and changes
-        connection.addHandler("nicklist", nickListWatcher);
-        connection.addHandler("_nicklist", nickListWatcher);
-        connection.addHandler("_nicklist_diff", nickListWatcher);
+        relay.addMessageHandler("nicklist", nickListWatcher);
+        relay.addMessageHandler("_nicklist", nickListWatcher);
+        relay.addMessageHandler("_nicklist_diff", nickListWatcher);
 
         // request a list of buffers current open, along with some information about them
-        connection.sendMsg("listbuffers", "hdata", "buffer:gui_buffers(*) number,full_name,short_name,type,title,nicklist,local_variables,notify");
+        connection.sendMessage("listbuffers", "hdata", "buffer:gui_buffers(*) number,full_name,short_name,type,title,nicklist,local_variables,notify");
         syncHotlist();
     }
 
@@ -112,8 +112,8 @@ public class BufferList {
     public static boolean syncHotlist() {
         if (relay == null || !relay.isConnection(RelayServiceBackbone.CONNECTED))
             return false;
-        connection.sendMsg("last_read_lines", "hdata", "buffer:gui_buffers(*)/own_lines/last_read_line/data buffer");
-        connection.sendMsg("hotlist", "hdata", "hotlist:gui_hotlist(*) buffer,count");
+        connection.sendMessage("last_read_lines", "hdata", "buffer:gui_buffers(*)/own_lines/last_read_line/data buffer");
+        connection.sendMessage("hotlist", "hdata", "hotlist:gui_hotlist(*) buffer,count");
         return true;
     }
 
@@ -224,25 +224,25 @@ public class BufferList {
     synchronized static void syncBuffer(String fullName) {
         if (DEBUG_SYNCING) logger.warn("syncBuffer({})", fullName);
         BufferList.syncedBuffersFullNames.add(fullName);
-        if (OPTIMIZE_TRAFFIC) relay.connection.sendMsg("sync " + fullName);
+        if (OPTIMIZE_TRAFFIC) relay.connection.sendMessage("sync " + fullName);
     }
 
     synchronized static void desyncBuffer(String fullName) {
         if (DEBUG_SYNCING) logger.warn("desyncBuffer({})", fullName);
         BufferList.syncedBuffersFullNames.remove(fullName);
-        if (OPTIMIZE_TRAFFIC) relay.connection.sendMsg("desync " + fullName);
+        if (OPTIMIZE_TRAFFIC) relay.connection.sendMessage("desync " + fullName);
     }
 
     public static void requestLinesForBufferByPointer(long pointer) {
         if (DEBUG_SYNCING) logger.warn("requestLinesForBufferByPointer({})", pointer);
-        connection.sendMsg("listlines_reverse", "hdata", String.format(Locale.ROOT,
+        connection.sendMessage("listlines_reverse", "hdata", String.format(Locale.ROOT,
                 "buffer:0x%x/own_lines/last_line(-%d)/data date,displayed,prefix,message,highlight,notify,tags_array",
                 pointer, Buffer.MAX_LINES));
     }
 
     public static void requestNicklistForBufferByPointer(long  pointer) {
         if (DEBUG_SYNCING) logger.warn("requestNicklistForBufferByPointer({})", pointer);
-        connection.sendMsg(String.format("(nicklist) nicklist 0x%x", pointer));
+        connection.sendMessage(String.format("(nicklist) nicklist 0x%x", pointer));
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -399,8 +399,8 @@ public class BufferList {
                 }
             }
 
-            if (id.equals("listbuffers"))
-                relay.onBuffersListed();
+//            if (id.equals("listbuffers"))
+//                relay.onBuffersListed();
         }
     };
 

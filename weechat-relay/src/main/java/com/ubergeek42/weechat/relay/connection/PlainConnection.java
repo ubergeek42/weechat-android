@@ -1,38 +1,31 @@
+/**
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ */
+
 package com.ubergeek42.weechat.relay.connection;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.nio.channels.ClosedByInterruptException;
 import java.nio.channels.SocketChannel;
 
+
 public class PlainConnection extends AbstractConnection {
+
+    private String server;
+    private int port;
 
     public PlainConnection(String server, int port) {
         this.server = server;
         this.port = port;
-
-        this.connector = plainConnector;
-
     }
 
-    private Thread plainConnector = new Thread(new Runnable() {
-        @Override
-        public void run() {
-            try {
-                SocketChannel channel = SocketChannel.open();
-                channel.connect(new InetSocketAddress(server, port));
-                sock = channel.socket();
-                out_stream = sock.getOutputStream();
-                in_stream = sock.getInputStream();
-                connected = true;
-                notifyHandlers(STATE.CONNECTED);
-            } catch (ClosedByInterruptException e) {
-                // Thread interrupted during connect.
-            } catch (Exception e) {
-                // TODO: better error handling
-                e.printStackTrace();
-                notifyHandlersOfError(e);
-            }
-        }
-    });
+    @Override protected void doConnect() throws IOException {
+            SocketChannel channel = SocketChannel.open();
+            channel.connect(new InetSocketAddress(server, port));
+            Socket sock = channel.socket();
+            out = sock.getOutputStream();
+            in = sock.getInputStream();
+    }
 }

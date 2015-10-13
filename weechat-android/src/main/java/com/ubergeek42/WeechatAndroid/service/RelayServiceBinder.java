@@ -60,11 +60,11 @@ public class RelayServiceBinder extends Binder {
     }
 
     public void addRelayConnectionHandler(RelayConnectionHandler handler) {
-        service.connectionHandlers.add(handler);
+        service.addConnectionHandler(handler);
     }
 
     public void removeRelayConnectionHandler(RelayConnectionHandler handler) {
-        service.connectionHandlers.remove(handler);
+        service.removeConnectionHandler(handler);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -77,7 +77,7 @@ public class RelayServiceBinder extends Binder {
 
     /** Send a message to the server(expected to be formatted appropriately) */
     public void sendMessage(String string) {
-        service.connection.sendMsg(string);
+        service.connection.sendMessage(string);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

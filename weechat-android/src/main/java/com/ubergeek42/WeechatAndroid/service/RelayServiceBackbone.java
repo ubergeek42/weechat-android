@@ -16,22 +16,16 @@
 package com.ubergeek42.WeechatAndroid.service;
 
 import android.annotation.TargetApi;
-import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.SystemClock;
@@ -44,17 +38,17 @@ import com.ubergeek42.WeechatAndroid.BuildConfig;
 import com.ubergeek42.WeechatAndroid.PreferencesActivity;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
+import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.weechat.relay.RelayConnection;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
 import com.ubergeek42.weechat.relay.RelayMessageHandler;
-import com.ubergeek42.weechat.relay.connection.IConnection;
+import com.ubergeek42.weechat.relay.connection.Connection;
 import com.ubergeek42.weechat.relay.connection.PlainConnection;
 import com.ubergeek42.weechat.relay.connection.SSHConnection;
 import com.ubergeek42.weechat.relay.connection.SSLConnection;
-import com.ubergeek42.weechat.relay.connection.StunnelConnection;
+//import com.ubergeek42.weechat.relay.messagehandler.UpgradeHandler;
+//import com.ubergeek42.weechat.relay.messagehandler.UpgradeObserver;
 import com.ubergeek42.weechat.relay.connection.WebSocketConnection;
-import com.ubergeek42.weechat.relay.messagehandler.UpgradeHandler;
-import com.ubergeek42.weechat.relay.messagehandler.UpgradeObserver;
 import com.ubergeek42.weechat.relay.protocol.RelayObject;
 
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
@@ -64,36 +58,36 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.security.cert.X509Certificate;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-public abstract class RelayServiceBackbone extends Service implements RelayConnectionHandler,
-        OnSharedPreferenceChangeListener, UpgradeObserver {
+import javax.net.ssl.SSLContext;
+
+public abstract class RelayServiceBackbone extends Service implements
+        RelayConnectionHandler, RelayMessageHandler,
+        OnSharedPreferenceChangeListener {
 
     private static Logger logger = LoggerFactory.getLogger("RelayServiceBackbone");
-    final private static boolean DEBUG = false;
-    final private static boolean DEBUG_CONNECTION = false;
-    final private static boolean DEBUG_NOTIFICATIONS = false;
+    final private static boolean DEBUG = true;
+    final private static boolean DEBUG_CONNECTION = true;
+    final private static boolean DEBUG_NOTIFICATIONS = true;
 
     private static final int NOTIFICATION_ID = 42;
     private static final int NOTIFICATION_HIGHLIGHT_ID = 43;
     private NotificationManager notificationManger;
-    private Thread upgrading;
-
-
 
     private String host;
     private int port;
     private String pass;
 
     RelayConnection connection;
-    HashSet<RelayConnectionHandler> connectionHandlers = new HashSet<>();
 
     SharedPreferences prefs;
     SSLHandler certmanager;
     X509Certificate untrustedCert;
-    private AlarmManager alarmMgr;
 
     int hotCount = 0;
     volatile long lastMessageReceivedAt = 0;
@@ -101,7 +95,6 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
     /** mainly used to tell the user if we are reconnected */
     private volatile boolean disconnected;
     private boolean alreadyHadIntent;
-    private volatile boolean networkUnavailable;
 
     /** handler that resides on a separate thread. useful for connection/etc */
     Handler thandler;
@@ -114,15 +107,8 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
     public final static int BUFFERS_LISTED = Integer.parseInt("10000", 2);
     int connectionStatus = DISCONNECTED;
 
-    private BroadcastReceiver connectivityActionReceiver = new BroadcastReceiver() {
-        public void onReceive(Context context, Intent intent) {
-            NetworkInfo networkInfo = connectivityManager().getActiveNetworkInfo();
-            if (networkInfo != null && networkInfo.isConnected()) {
-                if (networkUnavailable && mustAutoConnect()) startThreadedConnectLoop(true);
-                networkUnavailable = false;
-            }
-        }
-    };
+    private Connectivity connectivity;
+    private PingActionReceiver ping;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// status & life cycle
@@ -153,17 +139,14 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
 
         disconnected = false;
         alreadyHadIntent = false;
-        networkUnavailable = false;
 
         // Prepare for dealing with SSL certs
         certmanager = new SSLHandler(new File(getDir("sslDir", Context.MODE_PRIVATE), "keystore.jks"));
 
-        registerReceiver(
-                connectivityActionReceiver,
-                new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
-        );
+        connectivity = new Connectivity();
+        connectivity.register(this);
 
-        alarmMgr = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
+        ping = new PingActionReceiver(this);
     }
 
     @Override
@@ -171,7 +154,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
         if (DEBUG) logger.debug("onDestroy()");
         prefs.edit().remove(PREF_MUST_STAY_DISCONNECTED).commit(); // forget current connection status
         notificationManger.cancelAll();
-        unregisterReceiver(connectivityActionReceiver);
+        connectivity.unregister();
         super.onDestroy();
     }
 
@@ -329,7 +312,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
 
     /** only auto-connect if auto-connect is on ON in the prefs and
      ** the user did not disconnect by tapping disconnect in menu */
-    private boolean mustAutoConnect() {
+    public boolean mustAutoConnect() {
          return prefs.getBoolean(PREF_AUTO_CONNECT, PREF_AUTO_CONNECT_D) && !prefs.getBoolean(PREF_MUST_STAY_DISCONNECTED, false);
     }
 
@@ -339,7 +322,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
 
     public void startThreadedConnectLoop(final boolean reconnecting) {
         if (DEBUG_CONNECTION) logger.debug("startThreadedConnectLoop()");
-        if (connection != null && connection.isConnected()) {
+        if (connection != null && connection.isAlive()) {
             logger.error("startThreadedConnectLoop() run while connected!!");
             return;
         }
@@ -355,7 +338,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
                 @Override
                 public void run() {
                     if (DEBUG_CONNECTION) logger.debug("...run()");
-                    if (connection != null && connection.isConnected())
+                    if (connection != null && connection.isAlive())
                         return;
                     if (DEBUG_CONNECTION) logger.debug("...not connected; connecting now");
                     connectionStatus = CONNECTING;
@@ -370,7 +353,7 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
                 @Override
                 public void run() {
                     if (DEBUG_CONNECTION) logger.debug("...run()");
-                    if (connection != null && connection.isConnected())
+                    if (connection != null && connection.isAlive())
                         return;
                     long delay = DELAYS[reconnects < DELAYS.length ? reconnects : DELAYS.length - 1];
                     if (DEBUG_CONNECTION) logger.debug("...waiting {} seconds", delay);
@@ -407,45 +390,16 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
         startThreadedDisconnect(true);
     }
 
-    @TargetApi(19)
-    void schedulePing(long triggerAt, Bundle extras) {
-        Intent intent = new Intent(PingActionReceiver.PING_ACTION);
-        intent.putExtras(extras);
-
-        PendingIntent alarmIntent = PendingIntent.getBroadcast(
-                this, 0,
-                intent,
-                PendingIntent.FLAG_CANCEL_CURRENT
-        );
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            alarmMgr.setExact(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAt, alarmIntent);
-        } else {
-            alarmMgr.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAt, alarmIntent);
-        }
-    }
-
-    void schedulePing(long triggerAt) {
-        schedulePing(triggerAt, new Bundle());
-    }
-
-    long pingIdleTime() {
-        return Integer.parseInt(prefs.getString(PREF_PING_IDLE, PREF_PING_IDLE_D)) * 1000;
-    }
-
-    long pingTimeout() {
-        return Integer.parseInt(prefs.getString(PREF_PING_TIMEOUT, PREF_PING_TIMEOUT_D)) * 1000;
-    }
-
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     /** try connect once
      ** @return true if connection attempt has been made and false if connection is not possible */
+    // TODO make it raise
     private boolean connect() {
         if (DEBUG_CONNECTION) logger.debug("connect()");
 
         // only connect if we aren't already connected
-        if ((connection != null) && (connection.isConnected()))
+        if ((connection != null) && (connection.isAlive()))
             return false;
 
         if (connection != null)
@@ -467,55 +421,58 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
             return false;
         }
 
-        NetworkInfo networkInfo = connectivityManager().getActiveNetworkInfo();
-        if (networkInfo == null || !networkInfo.isConnected()) {
+        if (!connectivity.isNetworkAvailable()) {
             Intent intent = new Intent(this, WeechatActivity.class);
             PendingIntent contentIntent = PendingIntent.getActivity(this, 0, intent,
                     PendingIntent.FLAG_CANCEL_CURRENT);
             showNotification(getString(R.string.notification_network_unavailable_details),
                     getString(R.string.notification_network_unavailable),
                     contentIntent);
-            networkUnavailable = true;
             return false;
         }
 
-        IConnection conn;
-        String connType = prefs.getString(PREF_CONNECTION_TYPE, PREF_CONNECTION_TYPE_D);
-        if (connType.equals(PREF_TYPE_SSH)) {
-            SSHConnection tmp = new SSHConnection(host, port);
-            tmp.setSSHHost(prefs.getString(PREF_SSH_HOST, PREF_SSH_HOST_D));
-            tmp.setSSHPort(prefs.getString(PREF_SSH_PORT, PREF_SSH_PORT_D));
-            tmp.setSSHUsername(prefs.getString(PREF_SSH_USER, PREF_SSH_USER_D));
-            tmp.setSSHKeyFile(prefs.getString(PREF_SSH_KEYFILE, PREF_SSH_KEYFILE_D));
-            tmp.setSSHPassword(prefs.getString(PREF_SSH_PASS, PREF_SSH_PASS_D));
-            conn = tmp;
-        } else if (connType.equals(PREF_TYPE_STUNNEL)) {
-            StunnelConnection tmp = new StunnelConnection(host, port);
-            tmp.setStunnelCert(prefs.getString(PREF_STUNNEL_CERT, PREF_STUNNEL_CERT_D));
-            tmp.setStunnelKey(prefs.getString(PREF_STUNNEL_PASS, PREF_STUNNEL_PASS_D));
-            conn = tmp;
-        } else if (connType.equals(PREF_TYPE_SSL)) {
-            SSLConnection tmp = new SSLConnection(host, port);
-            tmp.setSSLKeystore(certmanager.sslKeystore);
-            conn = tmp;
-        } else if (connType.equals(PREF_TYPE_WEBSOCKET)) {
-            WebSocketConnection tmp = new WebSocketConnection(host, port, false);
-            conn = tmp;
-        } else if (connType.equals(PREF_TYPE_WEBSOCKET_SSL)) {
-            WebSocketConnection tmp = new WebSocketConnection(host, port, true);
-            tmp.setSSLKeystore(certmanager.sslKeystore);
-            conn = tmp;
-        } else {
-            conn = new PlainConnection(host, port);
+        String connectionType = prefs.getString(PREF_CONNECTION_TYPE, PREF_CONNECTION_TYPE_D);
+
+        SSLContext sslContext = null;
+        if (Utils.isAnyOf(connectionType, PREF_TYPE_SSL, PREF_TYPE_WEBSOCKET_SSL))
+            if ((sslContext = certmanager.getSSLContext()) == null) return CONNECTION_IMPOSSIBLE;
+
+
+        Connection conn;
+        try {
+            switch (prefs.getString(PREF_CONNECTION_TYPE, PREF_CONNECTION_TYPE_D)) {
+                case PREF_TYPE_SSH:
+                    conn = new SSHConnection(host, port,
+                            prefs.getString(PREF_SSH_HOST, PREF_SSH_HOST_D),
+                            Integer.valueOf(prefs.getString(PREF_SSH_PORT, PREF_SSH_PORT_D)),
+                            prefs.getString(PREF_SSH_USER, PREF_SSH_USER_D),
+                            prefs.getString(PREF_SSH_PASS, PREF_SSH_PASS_D),
+                            prefs.getString(PREF_SSH_KEYFILE, PREF_SSH_KEYFILE_D)
+                    );
+                    break;
+                case PREF_TYPE_SSL:
+                    conn = new SSLConnection(host, port, sslContext);
+                    break;
+                case PREF_TYPE_WEBSOCKET:
+                    conn = new WebSocketConnection(host, port, null);
+                    break;
+                case PREF_TYPE_WEBSOCKET_SSL:
+                    conn = new WebSocketConnection(host, port, sslContext);
+                    break;
+                default:
+                    conn = new PlainConnection(host, port);
+                    break;
+            }
+        } catch (Exception e) {
+            onError(e.getMessage(), e);
+            return false;
         }
-        conn.addConnectionHandler(this);
+
         connection = new RelayConnection(conn, pass);
+        connection.setConnectionHandler(this);
+        connection.setMessageHandler(this);
         connection.connect();
         return true;
-    }
-
-    private ConnectivityManager connectivityManager() {
-        return (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -530,18 +487,14 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
     }
 
     @Override
-    public void onConnect() {
-        if (DEBUG) logger.debug("onConnect()");
+    public void onConnected() {
+        if (DEBUG) logger.debug("onConnected()");
         connectionStatus = CONNECTED;
 
-        if (prefs.getBoolean(PREF_PING_ENABLED, PREF_PING_ENABLED_D)) {
-            long triggerAt = SystemClock.elapsedRealtime() + pingTimeout();
-            schedulePing(triggerAt);
-        }
+        if (prefs.getBoolean(PREF_PING_ENABLED, PREF_PING_ENABLED_D))
+            ping.scheduleFirstPing();
 
-        connection.addHandler("*", lastMessageHandler);
-
-        for (RelayConnectionHandler rch : connectionHandlers) rch.onConnect();
+        for (RelayConnectionHandler rch : connectionHandlers) rch.onConnected();
     }
 
     @Override
@@ -558,11 +511,6 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
         disconnected = false;
 
         startHandlingBoneEvents();
-
-        // handle weechat upgrading & buffer listed event
-        UpgradeHandler uh = new UpgradeHandler(this);
-        connection.addHandler("_upgrade", uh);
-        connection.addHandler("_upgrade_ended", uh);
 
         for (RelayConnectionHandler rch : connectionHandlers) rch.onAuthenticated();
     }
@@ -583,34 +531,28 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
         for (RelayConnectionHandler rch : connectionHandlers) rch.onBuffersListed();
     }
 
-    @Override
-    public void onDisconnect() {
-        if (DEBUG) logger.debug("onDisconnect()");
-        connectionStatus = DISCONNECTED;
+    // ALWAYS followed by onDisconnected
+    // might be StreamClosed
+    @Override public void onError(String error, Object extraData) {
+        if (DEBUG) logger.error("onError({}, {})", error, extraData);
+        for (RelayConnectionHandler rch : connectionHandlers) rch.onError(error, extraData);
+    }
 
-        // Only do the disconnect handler once
-        if (disconnected) return;
-        disconnected = true;
 
-        Intent intent = new Intent(PingActionReceiver.PING_ACTION);
-        PendingIntent alarmIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_NO_CREATE);
-        alarmMgr.cancel(alarmIntent);
+    @Override public void onDisconnected() {
+        if (DEBUG) logger.debug("onDisconnected()");
 
-        // automatically attempt reconnection if enabled (and if we aren't shutting down)
-        if (mustAutoConnect()) {
+        if (isConnection(CONNECTED) && mustAutoConnect()) {
             startThreadedConnectLoop(true);
         } else {
             String tmp = getString(R.string.notification_disconnected);
             showNotification(tmp, tmp);
         }
 
-        for (RelayConnectionHandler rch : connectionHandlers) rch.onDisconnect();
-    }
+        connectionStatus = DISCONNECTED;
+        ping.unschedulePing();
 
-    @Override
-    public void onError(String error, Object extraData) {
-        if (DEBUG) logger.error("onError(..., ...)", error, extraData);
-        for (RelayConnectionHandler rch : connectionHandlers) rch.onError(error, extraData);
+        for (RelayConnectionHandler rch : connectionHandlers) rch.onDisconnected();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -629,30 +571,32 @@ public abstract class RelayServiceBackbone extends Service implements RelayConne
         }
     }
 
-    @Override
-    public void onUpgrade() {
-        // Don't do this twice
-        if (upgrading != null && upgrading.isAlive())
-            return;
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// message handling
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
-        // Basically just reconnect on upgrade
-        upgrading = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                showNotification(getString(R.string.notification_upgrading),
-                        getString(R.string.notification_upgrading_details));
-                startThreadedDisconnect();
-                SystemClock.sleep(5000);
-                startThreadedConnectLoop(true);
-            }
-        });
-        upgrading.start();
+    private HashMap<String, LinkedHashSet<RelayMessageHandler>> messageHandlersMap = new HashMap<>();
+    private LinkedHashSet<RelayConnectionHandler> connectionHandlers = new LinkedHashSet<>();
+
+    // TODO HANDLE UPGRADE
+    public void addConnectionHandler(RelayConnectionHandler handler) {
+        connectionHandlers.add(handler);
     }
 
-    private RelayMessageHandler lastMessageHandler = new RelayMessageHandler() {
-        @Override
-        public void handleMessage(RelayObject obj, String id) {
-            lastMessageReceivedAt = SystemClock.elapsedRealtime();
-        }
-    };
+    public void removeConnectionHandler(RelayConnectionHandler handler) {
+        connectionHandlers.remove(handler);
+    }
+
+    protected void addMessageHandler(String id, RelayMessageHandler handler) {
+        LinkedHashSet<RelayMessageHandler> handlers = messageHandlersMap.get(id);
+        if (handlers == null) messageHandlersMap.put(id, handlers = new LinkedHashSet<>());
+        handlers.add(handler);
+    }
+
+    @Override public void handleMessage(@Nullable RelayObject obj, String id) {
+        lastMessageReceivedAt = SystemClock.elapsedRealtime();
+        HashSet<RelayMessageHandler> handlers = messageHandlersMap.get(id);
+        if (handlers == null) return;
+        for (RelayMessageHandler handler : handlers) handler.handleMessage(obj, id);
+    }
 }

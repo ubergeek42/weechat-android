@@ -319,8 +319,8 @@ public class WeechatActivity extends AppCompatActivity implements RelayConnectio
 
     /** creates and updates the hotlist
      ** makes sure we update action bar menu after a connection change */
-    @Override public void onConnect() {
-        if (DEBUG_CONNECION) logger.debug("onConnect()");
+    @Override public void onConnected() {
+        if (DEBUG_CONNECION) logger.debug("onConnected()");
         adjustUI();
     }
 
@@ -341,8 +341,8 @@ public class WeechatActivity extends AppCompatActivity implements RelayConnectio
     }
 
     /** makes sure we update action bar menu after a connection change */
-    @Override public void onDisconnect() {
-        if (DEBUG_CONNECION) logger.debug("onDisconnect()");
+    @Override public void onDisconnected() {
+        if (DEBUG_CONNECION) logger.debug("onDisconnected()");
         adjustUI();
     }
 

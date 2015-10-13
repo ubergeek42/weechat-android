@@ -15,60 +15,93 @@
  ******************************************************************************/
 package com.ubergeek42.WeechatAndroid.service;
 
+import android.annotation.TargetApi;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.support.annotation.MainThread;
+import android.support.annotation.NonNull;
 
 import com.ubergeek42.WeechatAndroid.BuildConfig;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
+
 public class PingActionReceiver extends BroadcastReceiver {
     private static Logger logger = LoggerFactory.getLogger("PingActionReceiver");
-    private RelayService relayService;
+
+    private RelayServiceBackbone bone;
+    private AlarmManager alarmManager;
     public static final String PING_ACTION = BuildConfig.APPLICATION_ID + ".PING_ACTION";
 
-    public PingActionReceiver(RelayService relayService) {
+    public PingActionReceiver(RelayServiceBackbone bone) {
         super();
-        this.relayService = relayService;
+        this.bone = bone;
+        this.alarmManager = (AlarmManager) bone.getSystemService(Context.ALARM_SERVICE);
     }
 
-    @Override
-    public void onReceive(Context context, Intent intent) {
-        logger.debug("onReceive intent: {}, sentPing: {}", intent, intent.getBooleanExtra("sentPing", false));
+    @MainThread @Override public void onReceive(Context context, Intent intent) {
+        logger.debug("onReceive(intent: {}, sentPing: {})", intent, intent.getBooleanExtra("sentPing", false));
 
-        if (!relayService.isConnection(RelayService.CONNECTED))
+        if (!bone.isConnection(RelayService.CONNECTED))
             return;
 
         long triggerAt;
         Bundle extras = new Bundle();
 
-        if (SystemClock.elapsedRealtime() - relayService.lastMessageReceivedAt > pingIdleTime()) {
+        if (SystemClock.elapsedRealtime() - bone.lastMessageReceivedAt > pingIdleTime()) {
             if (!intent.getBooleanExtra("sentPing", false)) {
                 logger.debug("last message too old, sending ping");
-                relayService.connection.sendMsg("ping");
+                bone.connection.sendMessage("ping");
                 triggerAt = SystemClock.elapsedRealtime() + pingTimeout();
                 extras.putBoolean("sentPing", true);
             } else {
                 logger.debug("no message received, disconnecting");
-                relayService.startThreadedDisconnect(false);
+                bone.startThreadedDisconnect(false);
                 return;
             }
         } else {
-            triggerAt = relayService.lastMessageReceivedAt + pingIdleTime();
+            triggerAt = bone.lastMessageReceivedAt + pingIdleTime();
         }
 
-        relayService.schedulePing(triggerAt, extras);
+        schedulePing(triggerAt, extras);
+    }
+
+    public void scheduleFirstPing() {
+        long triggerAt = SystemClock.elapsedRealtime() + pingTimeout();
+        schedulePing(triggerAt, new Bundle());
+    }
+
+    public void unschedulePing() {
+        Intent intent = new Intent(PingActionReceiver.PING_ACTION);
+        PendingIntent alarmIntent = PendingIntent.getBroadcast(bone, 0, intent, PendingIntent.FLAG_NO_CREATE);
+        alarmManager.cancel(alarmIntent);
+    }
+
+    @TargetApi(19) private void schedulePing(long triggerAt, @NonNull Bundle extras) {
+        Intent intent = new Intent(PingActionReceiver.PING_ACTION);
+        intent.putExtras(extras);
+        PendingIntent alarmIntent = PendingIntent.getBroadcast(bone, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            alarmManager.setExact(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAt, alarmIntent);
+        } else {
+            alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAt, alarmIntent);
+        }
     }
 
     private long pingIdleTime() {
-        return relayService.pingIdleTime();
+        return Integer.parseInt(bone.prefs.getString(PREF_PING_IDLE, PREF_PING_IDLE_D)) * 1000;
     }
 
     private long pingTimeout() {
-        return relayService.pingTimeout();
+        return Integer.parseInt(bone.prefs.getString(PREF_PING_TIMEOUT, PREF_PING_TIMEOUT_D)) * 1000;
     }
 }

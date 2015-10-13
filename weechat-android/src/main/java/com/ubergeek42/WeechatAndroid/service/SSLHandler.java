@@ -1,4 +1,11 @@
+/**
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ */
+
 package com.ubergeek42.WeechatAndroid.service;
+
+import android.support.annotation.Nullable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,12 +15,15 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
+import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
@@ -21,8 +31,8 @@ public class SSLHandler {
     private static Logger logger = LoggerFactory.getLogger("SSLHandler");
     private static final String KEYSTORE_PASSWORD = "weechat-android";
 
-    File keystoreFile;
-    KeyStore sslKeystore;
+    private File keystoreFile;
+    private KeyStore sslKeystore;
 
 
     public SSLHandler(File keystoreFile) {
@@ -50,6 +60,7 @@ public class SSLHandler {
             createKeystore();
         }
     }
+
     void trustCertificate(X509Certificate cert) {
         if (cert!=null) {
             try {
@@ -89,4 +100,15 @@ public class SSLHandler {
     }
 
 
+    public @Nullable SSLContext getSSLContext() {
+        try {
+            TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            tmf.init(sslKeystore);
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(null, tmf.getTrustManagers(), new SecureRandom());
+            return sslContext;
+        } catch (KeyStoreException | NoSuchAlgorithmException | KeyManagementException e) {
+            return null;
+        }
+    }
 }

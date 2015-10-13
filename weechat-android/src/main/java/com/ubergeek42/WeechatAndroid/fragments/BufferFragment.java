@@ -236,7 +236,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     //////////////////////////////////////////////////////////////////////////////////////////////// RelayConnectionHandler stuff
 
     @Override public void onConnecting() {}
-    @Override public void onConnect() {}
+    @Override public void onConnected() {}
     @Override public void onAuthenticated() {}
     @Override public void onAuthenticationFailed() {}
     @Override public void onError(String err, Object extraInfo) {}
@@ -248,8 +248,8 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     }
 
     @Override
-    public void onDisconnect() {
-        if (DEBUG_CONNECTION) logger.warn("{} onDisconnect()", fullName);
+    public void onDisconnected() {
+        if (DEBUG_CONNECTION) logger.warn("{} onDisconnected()", fullName);
         initUI(false);
     }
 
