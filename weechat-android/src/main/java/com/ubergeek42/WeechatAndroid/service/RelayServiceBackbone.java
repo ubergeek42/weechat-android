@@ -315,7 +315,7 @@ public abstract class RelayServiceBackbone extends Service implements
                     break;
             }
         } catch (Exception e) {
-            onError(e.getMessage(), e);
+            onException(e);
             return false;
         }
 
@@ -380,9 +380,9 @@ public abstract class RelayServiceBackbone extends Service implements
 
     // ALWAYS followed by onDisconnected
     // might be StreamClosed
-    @Override public void onError(String error, Object extraData) {
-        if (DEBUG) logger.error("onError({}, {})", error, extraData);
-        for (RelayConnectionHandler rch : connectionHandlers) rch.onError(error, extraData);
+    @Override public void onException(Exception e) {
+        if (DEBUG) logger.error("onException({})", e.getClass().getSimpleName());
+        for (RelayConnectionHandler rch : connectionHandlers) rch.onException(e);
     }
 
 

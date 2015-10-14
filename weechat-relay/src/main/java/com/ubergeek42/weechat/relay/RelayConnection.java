@@ -93,7 +93,7 @@ public class RelayConnection implements Connection.Observer {
         if (e instanceof StreamClosed && connection.getState() == STATE.CONNECTING)
             connectionHandler.onAuthenticationFailed();
         else
-            connectionHandler.onError(e.getMessage(), e);
+            connectionHandler.onException(e);
     }
 
     @Override public void onMessage(RelayMessage message) {

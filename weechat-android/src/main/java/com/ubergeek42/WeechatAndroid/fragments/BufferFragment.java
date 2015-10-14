@@ -239,7 +239,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     @Override public void onConnected() {}
     @Override public void onAuthenticated() {}
     @Override public void onAuthenticationFailed() {}
-    @Override public void onError(String err, Object extraInfo) {}
+    @Override public void onException(Exception e) {}
 
     public void onBuffersListed() {
         if (DEBUG_CONNECTION) logger.warn("{} onBuffersListed()", fullName);

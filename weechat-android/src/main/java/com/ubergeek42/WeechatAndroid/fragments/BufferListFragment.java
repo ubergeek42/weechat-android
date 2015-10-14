@@ -141,7 +141,7 @@ public class BufferListFragment extends ListFragment implements RelayConnectionH
     @Override public void onAuthenticated() {}
     @Override public void onAuthenticationFailed() {}
     @Override public void onDisconnected() {}
-    @Override public void onError(String err, Object extraInfo) {}
+    @Override public void onException(Exception e) {}
 
     /** this is called when the list of buffers has been finalised */
     @Override

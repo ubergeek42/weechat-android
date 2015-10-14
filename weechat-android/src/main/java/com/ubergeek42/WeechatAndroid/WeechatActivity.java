@@ -346,16 +346,16 @@ public class WeechatActivity extends AppCompatActivity implements RelayConnectio
         adjustUI();
     }
 
-    @Override public void onError(final String errorMsg, Object extraData) {
-        if (DEBUG_CONNECION) logger.debug("onError({}, ...)", errorMsg);
-        if (extraData instanceof SSLException && relay != null) {
-            SSLException e1 = (SSLException) extraData;
+    @Override public void onException(Exception e) {
+        if (DEBUG_CONNECION) logger.debug("onException({})", e.getClass().getSimpleName());
+        if (e instanceof SSLException && relay != null) {
+            SSLException e1 = (SSLException) e;
             if (e1.getCause() instanceof CertificateException) {
                 CertificateException e2 = (CertificateException) e1.getCause();
 
                 if (e2.getCause() instanceof CertPathValidatorException) {
-                    CertPathValidatorException e = (CertPathValidatorException) e2.getCause();
-                    CertPath cp = e.getCertPath();
+                    CertPathValidatorException e3 = (CertPathValidatorException) e2.getCause();
+                    CertPath cp = e3.getCertPath();
 
                     // Set the cert error on the backend
                     relay.setCertificateError((X509Certificate) cp.getCertificates().get(0));
@@ -367,7 +367,7 @@ public class WeechatActivity extends AppCompatActivity implements RelayConnectio
                 }
             }
         }
-        final String msg = "Error: " + (TextUtils.isEmpty(errorMsg) ? extraData.getClass().getSimpleName() : errorMsg);
+        final String msg = "Error: " + (TextUtils.isEmpty(e.getMessage()) ? e.getClass().getSimpleName() : e.getMessage());
         runOnUiThread(new Runnable() {
             @Override public void run() {
                 Toast.makeText(getBaseContext(), msg, Toast.LENGTH_LONG).show();

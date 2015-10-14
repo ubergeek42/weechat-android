@@ -128,8 +128,8 @@ public class RelayExample implements BuffersChangedObserver, RelayConnectionHand
 	}
 
     @Override
-    public void onError(String err, Object o) {
-        System.out.println(String.format("Error: %s", err));
+    public void onException(Exception e) {
+        System.out.println(String.format("Error: %s", e));
     }
 
     @Override
