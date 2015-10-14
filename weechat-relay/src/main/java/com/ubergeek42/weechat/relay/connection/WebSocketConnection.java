@@ -43,7 +43,8 @@ public class WebSocketConnection extends AbstractConnection {
     }
 
     @Override protected void doConnect() throws Exception {
-        if (!client.connectBlocking()) throw new Exception("Could not connect using WebSocket");
+        if (!client.connectBlocking()) throw (exception != null) ?
+                exception : new Exception("Could not connect using WebSocket");
     }
 
     // now this is one shady method
@@ -66,6 +67,8 @@ public class WebSocketConnection extends AbstractConnection {
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private Exception exception = null;
 
     private class MyWebSocket extends WebSocketClient {
         public MyWebSocket(URI serverUri, Draft draft) {
@@ -98,10 +101,9 @@ public class WebSocketConnection extends AbstractConnection {
 
         // when connecting via SSL and when the connection is abruptly closed,
         // onError() with `java.lang.NullPointerException: ssl == null` is thrown
-        // let's print stacktrace anyway, perhaps someone will figure this out
         @Override public void onError(Exception e) {
-            logger.info("WebSocket.onError({})", e.getClass().getSimpleName());
-            e.printStackTrace();
+            logger.info("WebSocket.onError({}: {})", e.getClass().getSimpleName(), e.getMessage());
+            exception = e;
             try {outputToInStream.close();} catch (IOException ignored) {}
         }
     }

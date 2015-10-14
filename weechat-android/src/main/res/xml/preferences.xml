@@ -10,10 +10,7 @@
 
         <ListPreference android:key="connection_type" android:title="@string/pref_connection_type" android:defaultValue="plain" android:entries="@array/pref_connection_type_names" android:entryValues="@array/settings_connection_type_values"  android:summary="%s"/>
 
-        <PreferenceScreen android:key="stunnel_group" android:title="@string/pref_stunnel_group">
-            <EditTextPreferenceFix android:key="stunnel_cert" android:title="@string/pref_stunnel_cert" android:summary="%s" android:singleLine="true" android:defaultValue="/sdcard/weechat/client.p12" />
-            <EditTextPreferenceFix android:key="stunnel_pass" android:title="@string/pref_stunnel_pass" android:summary="%s" android:password="true" android:singleLine="true" />
-        </PreferenceScreen>
+        <ClearCertPreference android:key="ssl_group" android:title="Clear certificates" />
 
         <PreferenceScreen android:key="ssh_group" android:title="@string/pref_ssh_group">
             <EditTextPreferenceFix android:key="ssh_host" android:title="@string/pref_ssh_host" android:summary="%s" android:singleLine="true" />

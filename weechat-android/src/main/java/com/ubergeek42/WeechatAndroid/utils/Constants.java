@@ -8,16 +8,13 @@ public class Constants {
     final static public String PREF_CONNECTION_GROUP = "connection_group";
     final static public String PREF_CONNECTION_TYPE = "connection_type";
     final static public String PREF_TYPE_SSH = "ssh";
-    final static public String PREF_TYPE_STUNNEL = "stunnel";
     final static public String PREF_TYPE_SSL = "ssl";
     final static public String PREF_TYPE_WEBSOCKET = "websocket";
     final static public String PREF_TYPE_WEBSOCKET_SSL = "websocket-ssl";
     final static public String PREF_TYPE_PLAIN = "plain"; final public static String PREF_CONNECTION_TYPE_D = PREF_TYPE_PLAIN;
 
-    // stunnel group & insides
-    final static public String PREF_STUNNEL_GROUP = "stunnel_group";
-    final static public String PREF_STUNNEL_CERT = "stunnel_cert"; final public static String PREF_STUNNEL_CERT_D = "/sdcard/weechat/client.p12";
-    final static public String PREF_STUNNEL_PASS = "stunnel_pass"; final public static String PREF_STUNNEL_PASS_D = "";
+    // ssl group
+    final static public String PREF_SSL_GROUP = "ssl_group";
 
     // ssh group & insides
     final static public String PREF_SSH_GROUP = "ssh_group";

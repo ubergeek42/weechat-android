@@ -103,7 +103,7 @@ public abstract class AbstractConnection implements Connection {
             state = STATE.CONNECTED;
         } catch (Exception e) {
             if (state != STATE.DISCONNECTED) {
-                e.printStackTrace();
+                logger.error("connectOnce(): exception while state == " + state, e);
                 observer.onException(e);
             }
             disconnect();
@@ -126,8 +126,7 @@ public abstract class AbstractConnection implements Connection {
             }
         } catch (InterruptedException | IOException e) {
             if (state == STATE.DISCONNECTED) return;
-            logger.warn("writeLoop(): exception while state == {}", state);
-            e.printStackTrace();
+            logger.error("writeLoop(): exception while state == " + state, e);
         } finally {
             try {out.close();}
             catch (IOException ignored) {}
@@ -151,8 +150,7 @@ public abstract class AbstractConnection implements Connection {
             }
         } catch (IOException | StreamClosed e) {
             if (state == STATE.DISCONNECTED) return;
-            logger.warn("readLoop(): exception while state == {}", state);
-            e.printStackTrace();
+            logger.error("readLoop(): exception while state == " + state, e);
             observer.onException(e);
         } finally {
             try {in.close();}

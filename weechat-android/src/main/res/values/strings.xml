@@ -64,7 +64,6 @@
                 <item>Plain connection</item>
                 <item>WeeChat SSL</item>
                 <item>SSH tunnel</item>
-                <item>Stunnel</item>
                 <item>WebSocket</item>
                 <item>WebSocket (SSL)</item>
             </string-array>

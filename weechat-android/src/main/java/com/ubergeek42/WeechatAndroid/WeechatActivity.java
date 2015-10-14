@@ -349,7 +349,6 @@ public class WeechatActivity extends AppCompatActivity implements RelayConnectio
     @Override public void onError(final String errorMsg, Object extraData) {
         if (DEBUG_CONNECION) logger.debug("onError({}, ...)", errorMsg);
         if (extraData instanceof SSLException && relay != null) {
-            if (DEBUG) logger.error("...cause: {}", ((Throwable) extraData).getCause());
             SSLException e1 = (SSLException) extraData;
             if (e1.getCause() instanceof CertificateException) {
                 CertificateException e2 = (CertificateException) e1.getCause();
