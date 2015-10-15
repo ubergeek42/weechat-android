@@ -44,8 +44,6 @@ import com.ubergeek42.weechat.relay.protocol.RelayObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -71,8 +69,6 @@ public abstract class RelayServiceBackbone extends Service implements
     RelayConnection connection;
 
     SharedPreferences prefs;
-    SSLHandler certmanager;
-    X509Certificate untrustedCert;
 
     volatile long lastMessageReceivedAt = 0;
 
@@ -122,9 +118,6 @@ public abstract class RelayServiceBackbone extends Service implements
 
         disconnected = false;
         alreadyHadIntent = false;
-
-        // Prepare for dealing with SSL certs
-        certmanager = new SSLHandler(new File(getDir("sslDir", Context.MODE_PRIVATE), "keystore.jks"));
 
         connectivity = new Connectivity();
         connectivity.register(this);
@@ -285,9 +278,10 @@ public abstract class RelayServiceBackbone extends Service implements
         String connectionType = prefs.getString(PREF_CONNECTION_TYPE, PREF_CONNECTION_TYPE_D);
 
         SSLContext sslContext = null;
-        if (Utils.isAnyOf(connectionType, PREF_TYPE_SSL, PREF_TYPE_WEBSOCKET_SSL))
-            if ((sslContext = certmanager.getSSLContext()) == null) return CONNECTION_IMPOSSIBLE;
-
+        if (Utils.isAnyOf(connectionType, PREF_TYPE_SSL, PREF_TYPE_WEBSOCKET_SSL)) {
+            sslContext = SSLHandler.getInstance(this).getSSLContext();
+            if (sslContext == null) return CONNECTION_IMPOSSIBLE;
+        }
 
         Connection conn;
         try {

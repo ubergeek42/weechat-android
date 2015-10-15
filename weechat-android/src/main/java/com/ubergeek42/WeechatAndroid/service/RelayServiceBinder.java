@@ -79,24 +79,4 @@ public class RelayServiceBinder extends Binder {
     public void sendMessage(String string) {
         service.connection.sendMessage(string);
     }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    public void setCertificateError(X509Certificate cert) {
-        service.untrustedCert = cert;
-    }
-
-    public X509Certificate getCertificateError() {
-        return service.untrustedCert;
-    }
-
-    public void acceptCertificate() {
-        service.certmanager.trustCertificate(service.untrustedCert);
-    }
-
-    public void rejectCertificate() {
-        service.untrustedCert = null;
-    }
 }

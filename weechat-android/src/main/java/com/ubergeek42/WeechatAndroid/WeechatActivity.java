@@ -23,6 +23,7 @@ import java.util.HashSet;
 
 import javax.net.ssl.SSLException;
 
+import android.support.v4.app.DialogFragment;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -64,6 +65,7 @@ import com.ubergeek42.WeechatAndroid.service.RelayService;
 import com.ubergeek42.WeechatAndroid.service.RelayServiceBinder;
 import com.ubergeek42.WeechatAndroid.utils.MyMenuItemStuffListener;
 import com.ubergeek42.WeechatAndroid.utils.ToolbarController;
+import com.ubergeek42.WeechatAndroid.utils.UntrustedCertificateDialog;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.weechat.relay.RelayConnectionHandler;
 
@@ -352,17 +354,14 @@ public class WeechatActivity extends AppCompatActivity implements RelayConnectio
             SSLException e1 = (SSLException) e;
             if (e1.getCause() instanceof CertificateException) {
                 CertificateException e2 = (CertificateException) e1.getCause();
-
                 if (e2.getCause() instanceof CertPathValidatorException) {
                     CertPathValidatorException e3 = (CertPathValidatorException) e2.getCause();
                     CertPath cp = e3.getCertPath();
 
-                    // Set the cert error on the backend
-                    relay.setCertificateError((X509Certificate) cp.getCertificates().get(0));
-
-                    // Start an activity to attempt establishing trust
-                    Intent intent = new Intent(this, SSLCertActivity.class);
-                    startActivity(intent);
+                    final X509Certificate certificate = (X509Certificate) cp.getCertificates().get(0);
+                    DialogFragment f = UntrustedCertificateDialog.newInstance(certificate);
+                    f.show(getSupportFragmentManager(), "boo");
+                    relay.disconnect();
                     return;
                 }
             }

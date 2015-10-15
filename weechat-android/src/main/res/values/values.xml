@@ -21,4 +21,5 @@
     <dimen name="chat_item_left_margin">0dp</dimen>
     <bool name="slidy">true</bool>
     <dimen name="dialog_padding">20dp</dimen>
+    <dimen name="dialog_padding_full">24dp</dimen>
 </resources>

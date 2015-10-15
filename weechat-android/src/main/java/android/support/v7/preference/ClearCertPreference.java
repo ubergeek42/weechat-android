@@ -12,7 +12,7 @@ import android.support.v7.app.AlertDialog;
 import android.util.AttributeSet;
 import android.widget.Toast;
 
-import java.io.File;
+import com.ubergeek42.WeechatAndroid.service.SSLHandler;
 
 public class ClearCertPreference extends DialogPreference {
 
@@ -40,8 +40,8 @@ public class ClearCertPreference extends DialogPreference {
             builder.setTitle(null).setMessage("Clear certificates?").
                     setPositiveButton("Clear", new DialogInterface.OnClickListener() {
                 @Override public void onClick(DialogInterface dialog, int which) {
-                    File keystoreFile = new File(getContext().getDir("sslDir", Context.MODE_PRIVATE), "keystore.jks");
-                    String msg = (keystoreFile.delete()) ? "Keystore removed" : "Could not remove keystore";
+                    boolean removed = SSLHandler.getInstance(getContext()).removeKeystore();
+                    String msg = removed ? "Keystore removed" : "Could not remove keystore";
                     Toast.makeText(getContext(), msg, Toast.LENGTH_LONG).show();
                 }
             }).setNegativeButton("Cancel", null);
