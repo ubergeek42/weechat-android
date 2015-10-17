@@ -21,6 +21,8 @@ dependencies {
 
     compile "commons-codec:commons-codec:1.8"
 
+    compile 'de.greenrobot:eventbus:2.4.0'
+
     // We need the weechat-relay library for connecting to weechat    
     compile(project(':weechat-relay')) {
         // Exclude this because slf4j-android is a superset of this

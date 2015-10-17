@@ -28,6 +28,7 @@ import android.support.annotation.MainThread;
 import android.support.annotation.NonNull;
 
 import com.ubergeek42.WeechatAndroid.BuildConfig;
+import com.ubergeek42.weechat.relay.connection.Connection;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +51,7 @@ public class PingActionReceiver extends BroadcastReceiver {
     @MainThread @Override public void onReceive(Context context, Intent intent) {
         logger.debug("onReceive(intent: {}, sentPing: {})", intent, intent.getBooleanExtra("sentPing", false));
 
-        if (!bone.isConnection(RelayService.CONNECTED))
+        if (!bone.state.contains(Connection.STATE.AUTHENTICATED))
             return;
 
         long triggerAt;
@@ -75,6 +76,7 @@ public class PingActionReceiver extends BroadcastReceiver {
     }
 
     public void scheduleFirstPing() {
+        if (!pingEnabled()) return;
         long triggerAt = SystemClock.elapsedRealtime() + pingTimeout();
         schedulePing(triggerAt, new Bundle());
     }
@@ -95,6 +97,10 @@ public class PingActionReceiver extends BroadcastReceiver {
         } else {
             alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAt, alarmIntent);
         }
+    }
+
+    private boolean pingEnabled() {
+        return bone.prefs.getBoolean(PREF_PING_ENABLED, PREF_PING_ENABLED_D);
     }
 
     private long pingIdleTime() {

@@ -16,6 +16,7 @@ import android.text.TextUtils;
 import com.ubergeek42.WeechatAndroid.Manifest;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.weechat.Color;
+import com.ubergeek42.weechat.relay.connection.Connection;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,10 +82,9 @@ public class RelayService extends RelayServiceBackbone {
         ThemeManager.loadColorSchemeFromPreferences(this);
     }
 
-    @Override
-    public void onDisconnected() {
-        saveStuff();
-        super.onDisconnected();
+    @Override public void onStateChanged(Connection.STATE state) {
+        if (state == Connection.STATE.DISCONNECTED) saveStuff();
+        super.onStateChanged(state);
     }
 
     @Override

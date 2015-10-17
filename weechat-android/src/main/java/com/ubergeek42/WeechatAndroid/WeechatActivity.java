@@ -19,6 +19,7 @@ import java.security.cert.CertPath;
 import java.security.cert.CertPathValidatorException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.EnumSet;
 import java.util.HashSet;
 
 import javax.net.ssl.SSLException;
@@ -67,9 +68,14 @@ import com.ubergeek42.WeechatAndroid.utils.MyMenuItemStuffListener;
 import com.ubergeek42.WeechatAndroid.utils.ToolbarController;
 import com.ubergeek42.WeechatAndroid.utils.UntrustedCertificateDialog;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
-import com.ubergeek42.weechat.relay.RelayConnectionHandler;
+import com.ubergeek42.weechat.relay.connection.Connection;
 
-public class WeechatActivity extends AppCompatActivity implements RelayConnectionHandler,
+import static com.ubergeek42.WeechatAndroid.service.Events.*;
+import static com.ubergeek42.weechat.relay.connection.Connection.STATE.*;
+
+import de.greenrobot.event.EventBus;
+
+public class WeechatActivity extends AppCompatActivity implements
         CutePagerTitleStrip.CutePageChangeListener, ServiceConnection {
 
     private static Logger logger = LoggerFactory.getLogger("WA");
@@ -138,11 +144,9 @@ public class WeechatActivity extends AppCompatActivity implements RelayConnectio
         // it says stuff like 'connecting', 'disconnected' et al
         uiInfo = (ImageView) findViewById(R.id.kitty);
         uiInfo.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (relay.isConnection(RelayService.DISCONNECTED)) {
-                    relay.connect();
-                }
+            @Override public void onClick(View v) {
+                if (state.contains(CONNECTING) || state.contains(CONNECTED)) relay.disconnect();
+                else relay.connect();
             }
         });
 
@@ -208,6 +212,7 @@ public class WeechatActivity extends AppCompatActivity implements RelayConnectio
         if (DEBUG_LIFECYCLE) logger.debug("onStart()");
         super.onStart();
         bindService(new Intent(this, RelayService.class), this, Context.BIND_AUTO_CREATE);
+        EventBus.getDefault().registerSticky(this);
     }
 
     /** remove relay connection handler and
@@ -218,10 +223,11 @@ public class WeechatActivity extends AppCompatActivity implements RelayConnectio
         super.onStop();
 
         if (relay != null) {
-            relay.removeRelayConnectionHandler(WeechatActivity.this);
+            //relay.removeRelayConnectionHandler(WeechatActivity.this);
             unbindService(this);
             relay = null;
         }
+        EventBus.getDefault().unregister(this);
     }
 
     @Override
@@ -265,7 +271,7 @@ public class WeechatActivity extends AppCompatActivity implements RelayConnectio
     synchronized public void onServiceConnected(ComponentName name, IBinder service) {
         if (DEBUG_LIFECYCLE) logger.debug("onServiceConnected()");
         relay = (RelayServiceBinder) service;
-        relay.addRelayConnectionHandler(WeechatActivity.this);
+        //relay.addRelayConnectionHandler(WeechatActivity.this);
 
         // open buffer that MIGHT be open in the service
         for (String fullName : BufferList.syncedBuffersFullNames)
@@ -297,14 +303,15 @@ public class WeechatActivity extends AppCompatActivity implements RelayConnectio
         if (relay == null)
             return;
 
-        // set image
-        if (relay.isConnection(RelayService.DISCONNECTED))      setInfoImage(R.drawable.ic_big_disconnected);
-        else if (relay.isConnection(RelayService.CONNECTING))   setInfoImage(R.drawable.ic_big_connecting);
-        else if (relay.isConnection(RelayService.CONNECTED))    setInfoImage(R.drawable.ic_big_connected);
+        int image = R.drawable.ic_big_connecting;
+        if (state.contains(UNKNOWN) || state.contains(DISCONNECTED)) image = R.drawable.ic_big_disconnected;
+        else if (state.contains(AUTHENTICATED)) image = R.drawable.ic_big_connected;
+
+        setInfoImage(image);
 
         // enable/disable drawer
         if (slidy) {
-            if (relay.isConnection(RelayService.BUFFERS_LISTED)) enableDrawer();
+            if (state.contains(BUFFERS_LISTED)) enableDrawer();
             else disableDrawer();
         }
 
@@ -314,42 +321,22 @@ public class WeechatActivity extends AppCompatActivity implements RelayConnectio
 
     //////////////////////////////////////////////////////////////////////////////////////////////// RelayConnectionHandler
 
-    @Override public void onConnecting() {
-        if (DEBUG_CONNECION) logger.debug("onConnecting()");
+    private EnumSet<Connection.STATE> state = EnumSet.of(Connection.STATE.UNKNOWN);
+
+    @SuppressWarnings("unused")
+    public void onEvent(StateChangedEvent event) {
+        logger.debug("onEvent({})", event);
+        this.state = event.state;
         adjustUI();
+        if (event.state.contains(Connection.STATE.BUFFERS_LISTED)) {
+            if (slidy) showDrawerIfPagerIsEmpty();
+        }
     }
 
-    /** creates and updates the hotlist
-     ** makes sure we update action bar menu after a connection change */
-    @Override public void onConnected() {
-        if (DEBUG_CONNECION) logger.debug("onConnected()");
-        adjustUI();
-    }
-
-    @Override public void onAuthenticated() {}
-
-    @Override public void onAuthenticationFailed() {
-        runOnUiThread(new Runnable() {
-            @Override public void run() {
-                Toast.makeText(getBaseContext(), getString(R.string.wrong_password), Toast.LENGTH_LONG).show();
-            }
-        });
-    }
-
-    @Override public void onBuffersListed() {
-        if (DEBUG_CONNECION) logger.debug("onBuffersListed()");
-        adjustUI();
-        if (slidy) showDrawerIfPagerIsEmpty();
-    }
-
-    /** makes sure we update action bar menu after a connection change */
-    @Override public void onDisconnected() {
-        if (DEBUG_CONNECION) logger.debug("onDisconnected()");
-        adjustUI();
-    }
-
-    @Override public void onException(Exception e) {
-        if (DEBUG_CONNECION) logger.debug("onException({})", e.getClass().getSimpleName());
+    @SuppressWarnings("unused")
+    public void onEvent(final ExceptionEvent event) {
+        if (DEBUG_CONNECION) logger.debug("onEvent({})", event);
+        final Exception e = event.e;
         if (e instanceof SSLException && relay != null) {
             SSLException e1 = (SSLException) e;
             if (e1.getCause() instanceof CertificateException) {
@@ -465,7 +452,7 @@ public class WeechatActivity extends AppCompatActivity implements RelayConnectio
             }
             case R.id.menu_connection_state: {
                 if (relay != null) {
-                    if (relay.isConnection(RelayService.CONNECTED)) relay.disconnect();
+                    if (state.contains(CONNECTING) || state.contains(CONNECTED)) relay.disconnect();
                     else relay.connect();
                 }
                 break;
@@ -535,10 +522,12 @@ public class WeechatActivity extends AppCompatActivity implements RelayConnectio
             public void run() {
                 if (WeechatActivity.this.uiMenu != null) {
                     MenuItem connectionStatus = WeechatActivity.this.uiMenu.findItem(R.id.menu_connection_state);
-                    if (relay != null && (relay.isConnection(RelayService.CONNECTED)))
-                        connectionStatus.setTitle(R.string.disconnect);
-                    else
-                        connectionStatus.setTitle(R.string.connect);
+                    String msg;
+
+                    if (state.contains(AUTHENTICATED)) msg = "Disconnect";
+                    else if (state.contains(CONNECTING) || state.contains(CONNECTED)) msg = "Stop connecting";
+                    else msg = "Connect";
+                    connectionStatus.setTitle(msg);
 
                     final View menuHotlist = MenuItemCompat.getActionView(uiMenu.findItem(R.id.menu_hotlist));
                     ImageView bellImage = (ImageView) menuHotlist.findViewById(R.id.hotlist_bell);
@@ -560,7 +549,7 @@ public class WeechatActivity extends AppCompatActivity implements RelayConnectio
 
     public void openBuffer(@NonNull String fullName) {
         if (DEBUG_BUFFERS) logger.debug("openBuffer({})", fullName);
-        if (adapter.isBufferOpen(fullName) || relay.isConnection(RelayService.CONNECTED)) {
+        if (adapter.isBufferOpen(fullName) || state.contains(AUTHENTICATED)) {
             adapter.openBuffer(fullName, true);
             if (slidy) hideDrawer();
         } else {
@@ -659,7 +648,7 @@ public class WeechatActivity extends AppCompatActivity implements RelayConnectio
         if (!drawerShowing)
             uiPager.post(new Runnable() {
                 @Override public void run() {
-                    if (relay != null && relay.isConnection(RelayService.BUFFERS_LISTED) && adapter.getCount() == 0)
+                    if (relay != null && state.contains(BUFFERS_LISTED) && adapter.getCount() == 0)
                         showDrawer();
                 }
             });

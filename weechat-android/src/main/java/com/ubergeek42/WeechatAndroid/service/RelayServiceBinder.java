@@ -15,13 +15,10 @@
  ******************************************************************************/
 package com.ubergeek42.WeechatAndroid.service;
 
-import java.security.cert.X509Certificate;
-
 import android.os.Binder;
 import android.support.annotation.Nullable;
 
 import com.ubergeek42.WeechatAndroid.BuildConfig;
-import com.ubergeek42.weechat.relay.RelayConnectionHandler;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,25 +43,12 @@ public class RelayServiceBinder extends Binder {
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    /** returns true if connection status corresponds to given connection */
-    public boolean isConnection(int status) {
-        return service.isConnection(status);
-    }
-
     public void connect() {
-        service.startThreadedConnectLoop(false);
+        service.startThreadedConnectLoop();
     }
 
     public void disconnect() {
         service.startThreadedDisconnect();
-    }
-
-    public void addRelayConnectionHandler(RelayConnectionHandler handler) {
-        service.addConnectionHandler(handler);
-    }
-
-    public void removeRelayConnectionHandler(RelayConnectionHandler handler) {
-        service.removeConnectionHandler(handler);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

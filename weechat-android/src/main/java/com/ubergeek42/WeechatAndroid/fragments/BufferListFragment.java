@@ -29,13 +29,14 @@ import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.service.Buffer;
 import com.ubergeek42.WeechatAndroid.service.BufferList;
 import com.ubergeek42.WeechatAndroid.service.BufferListEye;
-import com.ubergeek42.WeechatAndroid.service.RelayService;
-import com.ubergeek42.WeechatAndroid.service.RelayServiceBinder;
-import com.ubergeek42.weechat.relay.RelayConnectionHandler;
+import com.ubergeek42.WeechatAndroid.service.Events;
 
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
+import static com.ubergeek42.weechat.relay.connection.Connection.STATE.*;
 
-public class BufferListFragment extends ListFragment implements RelayConnectionHandler,
+import de.greenrobot.event.EventBus;
+
+public class BufferListFragment extends ListFragment implements
         BufferListEye, OnSharedPreferenceChangeListener, View.OnClickListener {
 
     private static Logger logger = LoggerFactory.getLogger("BufferListFragment");
@@ -46,7 +47,6 @@ public class BufferListFragment extends ListFragment implements RelayConnectionH
     final private static boolean DEBUG_CLICK = false;
 
     private WeechatActivity activity;
-    private RelayServiceBinder relay;
     private BufferListAdapter adapter;
 
     private RelativeLayout uiFilterBar;
@@ -102,8 +102,7 @@ public class BufferListFragment extends ListFragment implements RelayConnectionH
     public void onStart() {
         if (DEBUG_LIFECYCLE) logger.warn("onStart()");
         super.onStart();
-        activity.bindService(new Intent(getActivity(), RelayService.class), service_connection,
-                Context.BIND_AUTO_CREATE);
+        EventBus.getDefault().registerSticky(this);
     }
 
     @Override
@@ -111,43 +110,17 @@ public class BufferListFragment extends ListFragment implements RelayConnectionH
         if (DEBUG_LIFECYCLE) logger.warn("onStop()");
         super.onStop();
         detachFromBufferList();
-        relay = null;
-        activity.unbindService(service_connection);                                     // TODO safe to call?
+        EventBus.getDefault().unregister(this);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// service connection
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    ServiceConnection service_connection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {           // TODO can this be called after Fragment.onStop()?
-            if (DEBUG_LIFECYCLE) logger.warn("onServiceConnected()");
-            relay = (RelayServiceBinder) service;
-            attachToBufferList();
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            if (DEBUG_LIFECYCLE) logger.error("onServiceDisconnected() <- should not happen!");
-            relay = null;
-        }
-    };
-
-    //////////////////////////////////////////////////////////////////////////////////////////////// RelayConnectionHandler
-
-    @Override public void onConnecting() {}
-    @Override public void onConnected() {}
-    @Override public void onAuthenticated() {}
-    @Override public void onAuthenticationFailed() {}
-    @Override public void onDisconnected() {}
-    @Override public void onException(Exception e) {}
-
-    /** this is called when the list of buffers has been finalised */
-    @Override
-    public void onBuffersListed() {
-        if (DEBUG_CONNECTION) logger.warn("onBuffersListed()");
-        attachToBufferList();
+    @SuppressWarnings("unused")
+    public void onEvent(Events.StateChangedEvent event) {
+        logger.debug("onEvent({})", event);
+        if (event.state.contains(BUFFERS_LISTED)) attachToBufferList();
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////// the juice
@@ -162,12 +135,9 @@ public class BufferListFragment extends ListFragment implements RelayConnectionH
         });
         setFilter(uiFilter.getText());
         onBuffersChanged();
-        relay.addRelayConnectionHandler(BufferListFragment.this);                       // connect/disconnect watcher
     }
 
     private void detachFromBufferList() {
-        if (relay != null)
-            relay.removeRelayConnectionHandler(BufferListFragment.this);                // connect/disconnect watcher (safe to call)
         BufferList.setBufferListEye(null);                                              // buffer change watcher (safe to call)
     }
 

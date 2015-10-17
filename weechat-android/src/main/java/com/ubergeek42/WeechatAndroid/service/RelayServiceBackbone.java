@@ -17,7 +17,6 @@ package com.ubergeek42.WeechatAndroid.service;
 
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
@@ -25,16 +24,16 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
-import android.support.annotation.Nullable;
 
 import com.ubergeek42.WeechatAndroid.PreferencesActivity;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.weechat.relay.RelayConnection;
-import com.ubergeek42.weechat.relay.RelayConnectionHandler;
-import com.ubergeek42.weechat.relay.RelayMessageHandler;
+import com.ubergeek42.weechat.relay.RelayMessage;
+import com.ubergeek42.weechat.relay.connection.AbstractConnection.StreamClosed;
 import com.ubergeek42.weechat.relay.connection.Connection;
+import com.ubergeek42.weechat.relay.connection.Connection.STATE;
 import com.ubergeek42.weechat.relay.connection.PlainConnection;
 import com.ubergeek42.weechat.relay.connection.SSHConnection;
 import com.ubergeek42.weechat.relay.connection.SSLConnection;
@@ -44,16 +43,16 @@ import com.ubergeek42.weechat.relay.protocol.RelayObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
+import java.util.EnumSet;
 
 import javax.net.ssl.SSLContext;
 
+import de.greenrobot.event.EventBus;
+
+import static com.ubergeek42.WeechatAndroid.service.Events.*;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
 
-public abstract class RelayServiceBackbone extends Service implements
-        RelayConnectionHandler, RelayMessageHandler,
+public abstract class RelayServiceBackbone extends Service implements Connection.Observer,
         OnSharedPreferenceChangeListener {
 
     private static Logger logger = LoggerFactory.getLogger("RelayServiceBackbone");
@@ -72,33 +71,19 @@ public abstract class RelayServiceBackbone extends Service implements
 
     volatile long lastMessageReceivedAt = 0;
 
-    /** mainly used to tell the user if we are reconnected */
-    private volatile boolean disconnected;
     private boolean alreadyHadIntent;
 
     /** handler that resides on a separate thread. useful for connection/etc */
     Handler thandler;
 
-    public final static int DISCONNECTED =   0x00001;
-    public final static int CONNECTING =     0x00010;
-    public final static int CONNECTED =      0x00100;
-    public final static int AUTHENTICATED =  0x01000;
-    public final static int BUFFERS_LISTED = 0x10000;
-    int connectionStatus = DISCONNECTED;
-
     private Connectivity connectivity;
     private PingActionReceiver ping;
+
+    private EventBus bus = EventBus.getDefault();
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// status & life cycle
     ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    /** check status of connection
-     ** @param status one of DISCONNECTED, CONNECTING, CONNECTED, AUTHENTICATED, BUFFERS_LISTED
-     ** @return true if connection corresponds to one of these */
-    public boolean isConnection(int status) {
-        return (connectionStatus & status) != 0;
-    }
 
     @Override
     public void onCreate() {
@@ -116,7 +101,7 @@ public abstract class RelayServiceBackbone extends Service implements
 
         notificator.showMain(null, "Tap to connect", null);
 
-        disconnected = false;
+        /* mainly used to tell the user if we are reconnected */
         alreadyHadIntent = false;
 
         connectivity = new Connectivity();
@@ -144,7 +129,7 @@ public abstract class RelayServiceBackbone extends Service implements
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (DEBUG_CONNECTION) logger.debug("onStartCommand({}, {}, {}); had intent? {}", intent, flags, startId, alreadyHadIntent);
         if (!alreadyHadIntent) {
-            if (mustAutoConnect()) startThreadedConnectLoop(intent == null);
+            if (mustAutoConnect()) startThreadedConnectLoop();
             alreadyHadIntent = true;
         }
         return START_STICKY;
@@ -164,7 +149,7 @@ public abstract class RelayServiceBackbone extends Service implements
     private static final long WAIT_BEFORE_WAIT_MESSAGE_DELAY = 5;
     private static final long DELAYS[] = new long[] {5, 15, 30, 60, 120, 300, 600, 900};
 
-    public void startThreadedConnectLoop(final boolean reconnecting) {
+    public void startThreadedConnectLoop() {
         if (DEBUG_CONNECTION) logger.debug("startThreadedConnectLoop()");
         if (connection != null && connection.isAlive()) {
             logger.error("startThreadedConnectLoop() run while connected!!");
@@ -174,9 +159,9 @@ public abstract class RelayServiceBackbone extends Service implements
         thandler.removeCallbacksAndMessages(null);
         thandler.post(new Runnable() {
             int reconnects = 0;
-            int ticker = reconnecting ? R.string.notification_reconnecting : R.string.notification_connecting;
-            int content = reconnecting ? R.string.notification_reconnecting_details : R.string.notification_connecting_details;
-            int contentNow = reconnecting ? R.string.notification_reconnecting_details_now : R.string.notification_connecting_details_now;
+            int ticker = R.string.notification_connecting;
+            int content = R.string.notification_connecting_details;
+            int contentNow = R.string.notification_connecting_details_now;
 
             Runnable connectRunner = new Runnable() {
                 @Override
@@ -185,7 +170,7 @@ public abstract class RelayServiceBackbone extends Service implements
                     if (connection != null && connection.isAlive())
                         return;
                     if (DEBUG_CONNECTION) logger.debug("...not connected; connecting now");
-                    connectionStatus = CONNECTING;
+                    //connectionStatus = CONNECTING; TODO???
                     notificator.showMain(String.format(getString(ticker), prefs.getString(PREF_HOST, PREF_HOST_D)),
                             getString(contentNow), null);
                     if (connect() != CONNECTION_IMPOSSIBLE)
@@ -314,8 +299,7 @@ public abstract class RelayServiceBackbone extends Service implements
         }
 
         connection = new RelayConnection(conn, pass);
-        connection.setConnectionHandler(this);
-        connection.setMessageHandler(this);
+        connection.setObserver(this);
         connection.connect();
         return true;
     }
@@ -324,77 +308,65 @@ public abstract class RelayServiceBackbone extends Service implements
     //////////////////////////////////////////////////////////////////////////////////////////////// callbacks
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @Override
-    public void onConnecting() {
-        if (DEBUG) logger.debug("onConnecting()");
-        connectionStatus = CONNECTING;
-        for (RelayConnectionHandler rch : connectionHandlers) rch.onConnecting();
+    EnumSet<STATE> state = EnumSet.of(STATE.UNKNOWN);
+
+    @Override public void onStateChanged(STATE state) {
+        logger.debug("onStateChanged({})", state);
+        switch (state) {
+            case CONNECTING:
+            case CONNECTED:
+                this.state = EnumSet.of(state);
+                break;
+            case AUTHENTICATED:
+                this.state = EnumSet.of(STATE.CONNECTED, STATE.AUTHENTICATED);
+                notificator.showMain(getString(R.string.notification_connected_to) + host, null);
+                ping.scheduleFirstPing();
+                startHandlingBoneEvents();
+                break;
+            case BUFFERS_LISTED:
+                this.state = EnumSet.of(STATE.CONNECTED, STATE.AUTHENTICATED, STATE.BUFFERS_LISTED);
+                break;
+            case DISCONNECTED:
+                boolean weWereAuthenticated = this.state.contains(STATE.AUTHENTICATED);
+                this.state = EnumSet.of(state);
+                if (weWereAuthenticated && mustAutoConnect()) startThreadedConnectLoop();
+                else notificator.showMain(getString(R.string.notification_disconnected), null);
+                ping.unschedulePing();
+                break;
+        }
+        bus.postSticky(new StateChangedEvent(this.state));
     }
 
-    @Override
-    public void onConnected() {
-        if (DEBUG) logger.debug("onConnected()");
-        connectionStatus = CONNECTED;
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
-        if (prefs.getBoolean(PREF_PING_ENABLED, PREF_PING_ENABLED_D))
-            ping.scheduleFirstPing();
-
-        for (RelayConnectionHandler rch : connectionHandlers) rch.onConnected();
+    public static class AuthenticationException extends Exception {
+        public AuthenticationException(Exception cause, String message) {
+            super(message);
+            initCause(cause);
+        }
     }
 
-    @Override
-    public void onAuthenticated() {
-        if (DEBUG) logger.debug("onAuthenticated()");
-        connectionStatus = CONNECTED | AUTHENTICATED;
-
-        String s = getString(disconnected ? R.string.notification_reconnected_to : R.string.notification_connected_to) + host;
-        notificator.showMain(s, s, null);
-        disconnected = false;
-
-        startHandlingBoneEvents();
-
-        for (RelayConnectionHandler rch : connectionHandlers) rch.onAuthenticated();
+    // ALWAYS followed by onStateChanged(STATE.DISCONNECTED); might be StreamClosed
+    @Override public void onException(Exception e) {
+        logger.error("onException({})", e.getClass().getSimpleName());
+        if (e instanceof StreamClosed && (!state.contains(STATE.AUTHENTICATED)))
+            e = new AuthenticationException(e, "Server unexpectedly closed connection while connecting. Wrong password or connection type?");
+        bus.post(new ExceptionEvent(e));
     }
 
-    @Override
-    public void onAuthenticationFailed() {
-        if (DEBUG) logger.debug("onAuthenticateFailed()");
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
-        for (RelayConnectionHandler rch : connectionHandlers) rch.onAuthenticationFailed();
+    private final static RelayObject[] NULL = {null};
+
+    @Override public void onMessage(RelayMessage message) {
+        lastMessageReceivedAt = SystemClock.elapsedRealtime();
+        RelayObject[] objects = message.getObjects() == null ? NULL : message.getObjects();
+        String id = message.getID();
+        for (RelayObject object : objects)
+            BufferList.handleMessage(object, id);
     }
 
     abstract void startHandlingBoneEvents();
-
-    @Override
-    public void onBuffersListed() {
-        if (DEBUG) logger.debug("onBuffersListed()");
-        connectionStatus = CONNECTED | AUTHENTICATED | BUFFERS_LISTED;
-        for (RelayConnectionHandler rch : connectionHandlers) rch.onBuffersListed();
-    }
-
-    // ALWAYS followed by onDisconnected
-    // might be StreamClosed
-    @Override public void onException(Exception e) {
-        if (DEBUG) logger.error("onException({})", e.getClass().getSimpleName());
-        for (RelayConnectionHandler rch : connectionHandlers) rch.onException(e);
-    }
-
-
-    @Override public void onDisconnected() {
-        if (DEBUG) logger.debug("onDisconnected()");
-
-        if (isConnection(CONNECTED) && mustAutoConnect()) {
-            startThreadedConnectLoop(true);
-        } else {
-            String tmp = getString(R.string.notification_disconnected);
-            notificator.showMain(tmp, tmp, null);
-        }
-
-        connectionStatus = DISCONNECTED;
-        ping.unschedulePing();
-
-        for (RelayConnectionHandler rch : connectionHandlers) rch.onDisconnected();
-    }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -410,34 +382,5 @@ public abstract class RelayServiceBackbone extends Service implements
         } else if (key.equals(PREF_PORT)) {
             port = Integer.parseInt(prefs.getString(key, PREF_PORT_D));
         }
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// message handling
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    private HashMap<String, LinkedHashSet<RelayMessageHandler>> messageHandlersMap = new HashMap<>();
-    private LinkedHashSet<RelayConnectionHandler> connectionHandlers = new LinkedHashSet<>();
-
-    // TODO HANDLE UPGRADE
-    public void addConnectionHandler(RelayConnectionHandler handler) {
-        connectionHandlers.add(handler);
-    }
-
-    public void removeConnectionHandler(RelayConnectionHandler handler) {
-        connectionHandlers.remove(handler);
-    }
-
-    protected void addMessageHandler(String id, RelayMessageHandler handler) {
-        LinkedHashSet<RelayMessageHandler> handlers = messageHandlersMap.get(id);
-        if (handlers == null) messageHandlersMap.put(id, handlers = new LinkedHashSet<>());
-        handlers.add(handler);
-    }
-
-    @Override public void handleMessage(@Nullable RelayObject obj, String id) {
-        lastMessageReceivedAt = SystemClock.elapsedRealtime();
-        HashSet<RelayMessageHandler> handlers = messageHandlersMap.get(id);
-        if (handlers == null) return;
-        for (RelayMessageHandler handler : handlers) handler.handleMessage(obj, id);
     }
 }

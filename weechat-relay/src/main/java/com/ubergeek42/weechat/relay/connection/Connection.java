@@ -15,6 +15,8 @@ public interface Connection {
         UNKNOWN,
         CONNECTING,
         CONNECTED,
+        AUTHENTICATED,
+        BUFFERS_LISTED,
         DISCONNECTED,
     }
 

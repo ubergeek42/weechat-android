@@ -28,3 +28,7 @@
     public void debug(...);
     public void trace(...);
 }
+
+-keepclassmembers class ** {
+    public void onEvent*(**);
+}

@@ -31,16 +31,18 @@ import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.service.Buffer;
 import com.ubergeek42.WeechatAndroid.service.BufferEye;
 import com.ubergeek42.WeechatAndroid.service.BufferList;
-import com.ubergeek42.WeechatAndroid.service.RelayService;
 import com.ubergeek42.WeechatAndroid.service.RelayServiceBinder;
 import com.ubergeek42.WeechatAndroid.utils.CopyPaste;
 import com.ubergeek42.weechat.ColorScheme;
-import com.ubergeek42.weechat.relay.RelayConnectionHandler;
 
+import static com.ubergeek42.WeechatAndroid.service.Events.*;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
+import static com.ubergeek42.weechat.relay.connection.Connection.STATE.*;
+
+import de.greenrobot.event.EventBus;
 
 public class BufferFragment extends Fragment implements BufferEye, OnKeyListener,
-        OnClickListener, TextWatcher, RelayConnectionHandler, TextView.OnEditorActionListener {
+        OnClickListener, TextWatcher, TextView.OnEditorActionListener {
 
     private static Logger logger = LoggerFactory.getLogger("BufferFragment");
     final private static boolean DEBUG_TAB_COMPLETE = false;
@@ -122,6 +124,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         activity.bind(this);
         //noinspection deprecation
         uiLines.setBackgroundColor(0xFF000000 | ColorScheme.get().defaul[ColorScheme.OPT_BG]);
+        EventBus.getDefault().registerSticky(this);
     }
 
     @Override
@@ -132,6 +135,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         detachFromBuffer();
         relay = null;
         activity.unbind(this);
+        EventBus.getDefault().unregister(this);
     }
 
     @Override
@@ -220,8 +224,6 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     public void onServiceConnected(RelayServiceBinder relay) {
         if (DEBUG_LIFECYCLE) logger.warn("{} onServiceConnected()", fullName);
         this.relay = relay;
-        boolean online = relay.isConnection(RelayService.BUFFERS_LISTED);
-        initUI(online);
         attachToBufferOrClose();
     }
 
@@ -235,22 +237,15 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
 
     //////////////////////////////////////////////////////////////////////////////////////////////// RelayConnectionHandler stuff
 
-    @Override public void onConnecting() {}
-    @Override public void onConnected() {}
-    @Override public void onAuthenticated() {}
-    @Override public void onAuthenticationFailed() {}
-    @Override public void onException(Exception e) {}
-
-    public void onBuffersListed() {
-        if (DEBUG_CONNECTION) logger.warn("{} onBuffersListed()", fullName);
-        initUI(true);
-        attachToBufferOrClose();
-    }
-
-    @Override
-    public void onDisconnected() {
-        if (DEBUG_CONNECTION) logger.warn("{} onDisconnected()", fullName);
-        initUI(false);
+    @SuppressWarnings("unused")
+    public void onEvent(StateChangedEvent event) {
+        logger.debug("onEvent({})", event);
+        if (event.state.contains(BUFFERS_LISTED)) {
+            initUI(true);
+            attachToBufferOrClose();
+        } else {
+            initUI(false);
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -260,7 +255,6 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     // there's relay now
     private void attachToBufferOrClose() {
         if (DEBUG_LIFECYCLE) logger.warn("{} attachToBufferOrClose()", fullName);
-        relay.addRelayConnectionHandler(this);          // connect/disconnect watcher
 
         buffer = relay.getBufferByFullName(fullName);
         if (buffer == null) {
@@ -269,7 +263,6 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
             //    (post so that closing doesn't get executed on current loop to avoid issues)
             //  * we are not yet connected, e.g., after service shutdown. if so,
             //    wait for onBuffersListed event
-            if (relay.isConnection(RelayService.BUFFERS_LISTED)) onBufferClosed();
             return;
         }
         shortName = buffer.shortName;
@@ -294,7 +287,6 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     private void detachFromBuffer() {
         if (DEBUG_LIFECYCLE) logger.warn("{} detachFromBuffer()", fullName);
         maybeChangeVisibilityState();
-        if (relay != null) relay.removeRelayConnectionHandler(this);        // remove connect / disconnect watcher
         if (buffer != null) buffer.setBufferEye(null);                      // remove buffer watcher
         buffer = null;
     }

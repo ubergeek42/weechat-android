@@ -19,6 +19,7 @@ import android.support.v4.app.NotificationCompat;
 import com.ubergeek42.WeechatAndroid.BuildConfig;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
+import com.ubergeek42.weechat.relay.connection.Connection;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,6 +50,10 @@ public class Notificator {
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
+    public void showMain(@NonNull String content, @Nullable PendingIntent intent) {
+        showMain(content, content, intent);
+    }
+
     /** show the persistent notification of the service
      *
      * @param tickerText text that flashes a bit; doesn't appear on L+
@@ -61,7 +66,7 @@ public class Notificator {
         PendingIntent contentIntent = (intent != null) ? intent :
                 PendingIntent.getActivity(bone, 0, new Intent(bone, WeechatActivity.class), PendingIntent.FLAG_CANCEL_CURRENT);
 
-        int icon = bone.isConnection(RelayServiceBackbone.AUTHENTICATED) ? R.drawable.ic_connected : R.drawable.ic_disconnected;
+        int icon = bone.state.contains(Connection.STATE.AUTHENTICATED) ? R.drawable.ic_connected : R.drawable.ic_disconnected;
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(bone);
         builder.setContentIntent(contentIntent)

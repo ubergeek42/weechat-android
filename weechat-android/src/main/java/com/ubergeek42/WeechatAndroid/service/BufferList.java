@@ -7,6 +7,7 @@ import com.ubergeek42.WeechatAndroid.BuildConfig;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.weechat.relay.RelayConnection;
 import com.ubergeek42.weechat.relay.RelayMessageHandler;
+import com.ubergeek42.weechat.relay.connection.Connection;
 import com.ubergeek42.weechat.relay.protocol.Array;
 import com.ubergeek42.weechat.relay.protocol.Hashtable;
 import com.ubergeek42.weechat.relay.protocol.Hdata;
@@ -78,39 +79,53 @@ public class BufferList {
 
         // handle buffer list changes
         // including initial hotlist
-        relay.addMessageHandler("listbuffers", bufferListWatcher);
+        addMessageHandler("listbuffers", bufferListWatcher);
 
-        relay.addMessageHandler("_buffer_opened", bufferListWatcher);
-        relay.addMessageHandler("_buffer_renamed", bufferListWatcher);
-        relay.addMessageHandler("_buffer_title_changed", bufferListWatcher);
-        relay.addMessageHandler("_buffer_localvar_added", bufferListWatcher);
-        relay.addMessageHandler("_buffer_localvar_changed", bufferListWatcher);
-        relay.addMessageHandler("_buffer_localvar_removed", bufferListWatcher);
-        relay.addMessageHandler("_buffer_closing", bufferListWatcher);
-        relay.addMessageHandler("_buffer_moved", bufferListWatcher);
-        relay.addMessageHandler("_buffer_merged", bufferListWatcher);
+        addMessageHandler("_buffer_opened", bufferListWatcher);
+        addMessageHandler("_buffer_renamed", bufferListWatcher);
+        addMessageHandler("_buffer_title_changed", bufferListWatcher);
+        addMessageHandler("_buffer_localvar_added", bufferListWatcher);
+        addMessageHandler("_buffer_localvar_changed", bufferListWatcher);
+        addMessageHandler("_buffer_localvar_removed", bufferListWatcher);
+        addMessageHandler("_buffer_closing", bufferListWatcher);
+        addMessageHandler("_buffer_moved", bufferListWatcher);
+        addMessageHandler("_buffer_merged", bufferListWatcher);
 
-        relay.addMessageHandler("hotlist", hotlistInitWatcher);
-        relay.addMessageHandler("last_read_lines", lastReadLinesWatcher);
+        addMessageHandler("hotlist", hotlistInitWatcher);
+        addMessageHandler("last_read_lines", lastReadLinesWatcher);
 
         // handle newly arriving chat lines
         // and chatlines we are reading in reverse
-        relay.addMessageHandler("_buffer_line_added", bufferLineWatcher);
-        relay.addMessageHandler("listlines_reverse", bufferLineWatcher);
+        addMessageHandler("_buffer_line_added", bufferLineWatcher);
+        addMessageHandler("listlines_reverse", bufferLineWatcher);
 
         // handle nicklist init and changes
-        relay.addMessageHandler("nicklist", nickListWatcher);
-        relay.addMessageHandler("_nicklist", nickListWatcher);
-        relay.addMessageHandler("_nicklist_diff", nickListWatcher);
+        addMessageHandler("nicklist", nickListWatcher);
+        addMessageHandler("_nicklist", nickListWatcher);
+        addMessageHandler("_nicklist_diff", nickListWatcher);
 
         // request a list of buffers current open, along with some information about them
         connection.sendMessage("listbuffers", "hdata", "buffer:gui_buffers(*) number,full_name,short_name,type,title,nicklist,local_variables,notify");
         syncHotlist();
     }
 
+    private static HashMap<String, LinkedHashSet<RelayMessageHandler>> messageHandlersMap = new HashMap<>();
+
+    private static void addMessageHandler(String id, RelayMessageHandler handler) {
+        LinkedHashSet<RelayMessageHandler> handlers = messageHandlersMap.get(id);
+        if (handlers == null) messageHandlersMap.put(id, handlers = new LinkedHashSet<>());
+        handlers.add(handler);
+    }
+
+    protected static void handleMessage(@Nullable RelayObject obj, String id) {
+        HashSet<RelayMessageHandler> handlers = messageHandlersMap.get(id);
+        if (handlers == null) return;
+        for (RelayMessageHandler handler : handlers) handler.handleMessage(obj, id);
+    }
+
     /** send synchronization data to weechat and return true. if not connected, return false. */
     public static boolean syncHotlist() {
-        if (relay == null || !relay.isConnection(RelayServiceBackbone.CONNECTED))
+        if (relay == null || !relay.state.contains(Connection.STATE.CONNECTED))
             return false;
         connection.sendMessage("last_read_lines", "hdata", "buffer:gui_buffers(*)/own_lines/last_read_line/data buffer");
         connection.sendMessage("hotlist", "hdata", "hotlist:gui_hotlist(*) buffer,count");

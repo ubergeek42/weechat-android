@@ -39,6 +39,6 @@ public class Connectivity extends BroadcastReceiver {
 
     @Override public void onReceive(Context context, Intent intent) {
         if (!networkAvailable && isNetworkAvailable() && bone.mustAutoConnect())
-            bone.startThreadedConnectLoop(true);
+            bone.startThreadedConnectLoop();
     }
 }
