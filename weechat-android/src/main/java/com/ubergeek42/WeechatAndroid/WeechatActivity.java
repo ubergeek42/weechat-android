@@ -63,7 +63,6 @@ import com.ubergeek42.WeechatAndroid.fragments.BufferFragment;
 import com.ubergeek42.WeechatAndroid.service.Buffer;
 import com.ubergeek42.WeechatAndroid.service.BufferList;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
-import com.ubergeek42.WeechatAndroid.service.RelayServiceBinder;
 import com.ubergeek42.WeechatAndroid.utils.MyMenuItemStuffListener;
 import com.ubergeek42.WeechatAndroid.utils.ToolbarController;
 import com.ubergeek42.WeechatAndroid.utils.UntrustedCertificateDialog;
@@ -76,7 +75,7 @@ import static com.ubergeek42.weechat.relay.connection.Connection.STATE.*;
 import de.greenrobot.event.EventBus;
 
 public class WeechatActivity extends AppCompatActivity implements
-        CutePagerTitleStrip.CutePageChangeListener, ServiceConnection {
+        CutePagerTitleStrip.CutePageChangeListener {
 
     private static Logger logger = LoggerFactory.getLogger("WA");
     final private static boolean DEBUG = BuildConfig.DEBUG;
@@ -87,7 +86,6 @@ public class WeechatActivity extends AppCompatActivity implements
     final private static boolean DEBUG_BUFFERS = false;
     final private static boolean DEBUG_DRAWER = false;
 
-    public RelayServiceBinder relay;
     private Menu uiMenu;
     private ViewPager uiPager;
     private MainPagerAdapter adapter;
@@ -145,8 +143,8 @@ public class WeechatActivity extends AppCompatActivity implements
         uiInfo = (ImageView) findViewById(R.id.kitty);
         uiInfo.setOnClickListener(new OnClickListener() {
             @Override public void onClick(View v) {
-                if (state.contains(CONNECTING) || state.contains(CONNECTED)) relay.disconnect();
-                else relay.connect();
+                if (state.contains(CONNECTING) || state.contains(CONNECTED)) disconnect();
+                else connect();
             }
         });
 
@@ -196,37 +194,32 @@ public class WeechatActivity extends AppCompatActivity implements
         setTitle(title);
         uiStrip.setEmptyText(title);
         updateCutePagerTitleStrip();
+        adjustUI(); // TODO use elsewhere?
+    }
+
+    public void connect() {
+        Intent i = new Intent(this, RelayService.class);
+        i.setAction(RelayService.ACTION_START);
+        startService(i);
+    }
+
+    public void disconnect() {
+        Intent i = new Intent(this, RelayService.class);
+        i.setAction(RelayService.ACTION_STOP);
+        startService(i);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    /** bind to relay service, which results in:
-     **   onServiceConnected, which
-     **     adds relay connection handler */
-    // TODO: android.app.ServiceConnectionLeaked: Activity com.ubergeek42.WeechatAndroid.WeechatActivity
-    // TODO: has leaked ServiceConnection com.ubergeek42.WeechatAndroid.WeechatActivity$1@424fdbe8 that was originally bound here
-    // TODO: apparently onStop() sometimes doesn't get to unbind the service as onServiceConnected is called too late
-    // TODO: then onStart() is trying to bind again and boom! anyways, this doesn't do any visible harm...
-    @Override
-    protected void onStart() {
+    @Override protected void onStart() {
         if (DEBUG_LIFECYCLE) logger.debug("onStart()");
         super.onStart();
-        bindService(new Intent(this, RelayService.class), this, Context.BIND_AUTO_CREATE);
         EventBus.getDefault().registerSticky(this);
     }
 
-    /** remove relay connection handler and
-     ** unbind from service */
-    @Override
-    protected void onStop() {
+    @Override protected void onStop() {
         if (DEBUG_LIFECYCLE) logger.debug("onStop()");
         super.onStop();
-
-        if (relay != null) {
-            //relay.removeRelayConnectionHandler(WeechatActivity.this);
-            unbindService(this);
-            relay = null;
-        }
         EventBus.getDefault().unregister(this);
     }
 
@@ -250,59 +243,25 @@ public class WeechatActivity extends AppCompatActivity implements
         if (slidy) drawerToggle.onConfigurationChanged(newConfig);
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// relay connection
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    private HashSet<BufferFragment> fragments = new HashSet<>();
-
-    synchronized public void bind(BufferFragment fragment) {
-        fragments.add(fragment);
-        if (relay != null) fragment.onServiceConnected(relay);
-    }
-
-    synchronized public void unbind(BufferFragment fragment) {
-        fragments.remove(fragment);
-    }
-
     //////////////////////////////////////////////////////////////////////////////////////////////// S E R V I C E
 
-    @Override
     synchronized public void onServiceConnected(ComponentName name, IBinder service) {
         if (DEBUG_LIFECYCLE) logger.debug("onServiceConnected()");
-        relay = (RelayServiceBinder) service;
-        //relay.addRelayConnectionHandler(WeechatActivity.this);
 
         // open buffer that MIGHT be open in the service
         for (String fullName : BufferList.syncedBuffersFullNames)
             openBufferSilently(fullName);
 
-        // this doesn't tamper with the drawer in any way
-        adjustUI();
+        //  adjustUI();
 
         // if we have intent, handle it
         if (getIntent().hasExtra(EXTRA_NAME))
             openBufferFromIntent();
 
         updateHotCount(BufferList.getHotCount());
-
-        for (BufferFragment fragment: fragments)
-            fragment.onServiceConnected(relay);
     }
-
-    @Override
-    public void onServiceDisconnected(ComponentName name) {
-        if (DEBUG_LIFECYCLE) logger.debug("onServiceDisconnected() <- should not happen!");
-        for (BufferFragment fragment: fragments)
-            fragment.onServiceDisconnected();
-        relay = null;
-    }
-
 
     private void adjustUI() {
-        if (relay == null)
-            return;
-
         int image = R.drawable.ic_big_connecting;
         if (state.contains(UNKNOWN) || state.contains(DISCONNECTED)) image = R.drawable.ic_big_disconnected;
         else if (state.contains(AUTHENTICATED)) image = R.drawable.ic_big_connected;
@@ -337,7 +296,7 @@ public class WeechatActivity extends AppCompatActivity implements
     public void onEvent(final ExceptionEvent event) {
         if (DEBUG_CONNECION) logger.debug("onEvent({})", event);
         final Exception e = event.e;
-        if (e instanceof SSLException && relay != null) {
+        if (e instanceof SSLException) {
             SSLException e1 = (SSLException) e;
             if (e1.getCause() instanceof CertificateException) {
                 CertificateException e2 = (CertificateException) e1.getCause();
@@ -348,7 +307,7 @@ public class WeechatActivity extends AppCompatActivity implements
                     final X509Certificate certificate = (X509Certificate) cp.getCertificates().get(0);
                     DialogFragment f = UntrustedCertificateDialog.newInstance(certificate);
                     f.show(getSupportFragmentManager(), "boo");
-                    relay.disconnect();
+                    disconnect();
                     return;
                 }
             }
@@ -451,10 +410,10 @@ public class WeechatActivity extends AppCompatActivity implements
                 break;
             }
             case R.id.menu_connection_state: {
-                if (relay != null) {
-                    if (state.contains(CONNECTING) || state.contains(CONNECTED)) relay.disconnect();
-                    else relay.connect();
-                }
+                //if (relay != null) {
+                    if (state.contains(CONNECTING) || state.contains(CONNECTED)) disconnect();
+                    else connect();
+                //}
                 break;
             }
             case R.id.menu_preferences: {
@@ -469,11 +428,7 @@ public class WeechatActivity extends AppCompatActivity implements
                 break;
             }
             case R.id.menu_quit: {
-                if (relay != null) {
-                    relay.disconnect();
-                }
-                unbindService(this);
-                relay = null;
+                disconnect();
                 stopService(new Intent(this, RelayService.class));
                 finish();
                 break;
@@ -481,8 +436,7 @@ public class WeechatActivity extends AppCompatActivity implements
             case R.id.menu_hotlist:
                 break;
             case R.id.menu_nicklist:
-                if (relay == null) break;
-                Buffer buffer = relay.getBufferByFullName(adapter.getCurrentBufferFullName());
+                Buffer buffer = BufferList.findByFullName(adapter.getCurrentBufferFullName());
                 if (buffer == null) break;
 
                 NickListAdapter nicklistAdapter = new NickListAdapter(WeechatActivity.this, buffer);
@@ -506,7 +460,6 @@ public class WeechatActivity extends AppCompatActivity implements
 
     private void onHotlistSelected() {
         if (DEBUG_OPTIONS_MENU) logger.debug("onHotlistSelected()");
-        if (relay == null) return;
         Buffer buffer = BufferList.getHotBuffer();
         if (buffer != null)
             openBuffer(buffer.fullName);
@@ -648,7 +601,7 @@ public class WeechatActivity extends AppCompatActivity implements
         if (!drawerShowing)
             uiPager.post(new Runnable() {
                 @Override public void run() {
-                    if (relay != null && state.contains(BUFFERS_LISTED) && adapter.getCount() == 0)
+                    if (state.contains(BUFFERS_LISTED) && adapter.getCount() == 0)
                         showDrawer();
                 }
             });
@@ -680,7 +633,8 @@ public class WeechatActivity extends AppCompatActivity implements
         super.onNewIntent(intent);
         if (intent.hasExtra(EXTRA_NAME)) {
             setIntent(intent);
-            if (relay != null) openBufferFromIntent();
+            //if (relay != null) openBufferFromIntent();
+            openBufferFromIntent();
         }
     }
 

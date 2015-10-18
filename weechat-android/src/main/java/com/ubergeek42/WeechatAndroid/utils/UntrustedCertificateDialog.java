@@ -18,7 +18,6 @@ import android.widget.TextView;
 
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
-import com.ubergeek42.WeechatAndroid.service.RelayServiceBinder;
 import com.ubergeek42.WeechatAndroid.service.SSLHandler;
 
 import org.apache.commons.codec.binary.Hex;
@@ -55,8 +54,7 @@ public class UntrustedCertificateDialog extends DialogFragment {
                 .setPositiveButton("Accept", new DialogInterface.OnClickListener() {
                     @Override public void onClick(DialogInterface dialog, int which) {
                         SSLHandler.getInstance(getContext()).trustCertificate(certificate);
-                        RelayServiceBinder relay = ((WeechatActivity) getActivity()).relay;
-                        if (relay != null) relay.connect();
+                        ((WeechatActivity) getActivity()).connect();
                     }
                 })
                 .setNegativeButton("Reject", null)

@@ -31,7 +31,6 @@ import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.service.Buffer;
 import com.ubergeek42.WeechatAndroid.service.BufferEye;
 import com.ubergeek42.WeechatAndroid.service.BufferList;
-import com.ubergeek42.WeechatAndroid.service.RelayServiceBinder;
 import com.ubergeek42.WeechatAndroid.utils.CopyPaste;
 import com.ubergeek42.weechat.ColorScheme;
 
@@ -66,7 +65,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     private String shortName = fullName;
     private Buffer buffer;
 
-    private RelayServiceBinder relay;
+    //private RelayServiceBinder relay;
     private ChatLinesAdapter linesAdapter;
     private SharedPreferences prefs;
 
@@ -121,8 +120,6 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         if (DEBUG_LIFECYCLE) logger.warn("{} onStart()", fullName);
         super.onStart();
         started = true;
-        activity.bind(this);
-        //noinspection deprecation
         uiLines.setBackgroundColor(0xFF000000 | ColorScheme.get().defaul[ColorScheme.OPT_BG]);
         EventBus.getDefault().registerSticky(this);
     }
@@ -133,8 +130,6 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         super.onStop();
         started = false;
         detachFromBuffer();
-        relay = null;
-        activity.unbind(this);
         EventBus.getDefault().unregister(this);
     }
 
@@ -201,8 +196,8 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
 
         // move the read marker in weechat (if preferences dictate)
         if (!visible && prefs.getBoolean(PREF_HOTLIST_SYNC, PREF_HOTLIST_SYNC_D)) {
-                relay.sendMessage("input " + buffer.fullName + " /buffer set hotlist -1");
-                relay.sendMessage("input " + buffer.fullName + " /input set_unread_current_buffer");
+            EventBus.getDefault().post(new SendMessageEvent("input " + buffer.fullName + " /buffer set hotlist -1"));
+            EventBus.getDefault().post(new SendMessageEvent("input " + buffer.fullName + " /input set_unread_current_buffer"));
         }
     }
 
@@ -216,24 +211,6 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         if (!visible) maybeMoveReadMarker();
         maybeChangeVisibilityState();
     }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// fake service connection
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    public void onServiceConnected(RelayServiceBinder relay) {
-        if (DEBUG_LIFECYCLE) logger.warn("{} onServiceConnected()", fullName);
-        this.relay = relay;
-        attachToBufferOrClose();
-    }
-
-    // should never ever happen
-    public void onServiceDisconnected() {
-        if (buffer != null) buffer.setBufferEye(null);
-        buffer = null;
-        relay = null;
-    }
-
 
     //////////////////////////////////////////////////////////////////////////////////////////////// RelayConnectionHandler stuff
 
@@ -256,7 +233,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     private void attachToBufferOrClose() {
         if (DEBUG_LIFECYCLE) logger.warn("{} attachToBufferOrClose()", fullName);
 
-        buffer = relay.getBufferByFullName(fullName);
+        buffer = BufferList.findByFullName(fullName);
         if (buffer == null) {
             // no buffer? it might happen if:
             //  * the buffer was closed in weechat. if so, close here as well
@@ -468,7 +445,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         String[] lines = input.split("\n");
         for (String line : lines) {
             if (line.length() != 0)
-                relay.sendMessage("input " + buffer.fullName + " " + line);
+                EventBus.getDefault().post(new SendMessageEvent("input " + buffer.fullName + " " + line));
         }
         uiInput.setText("");   // this will reset tab completion
     }

@@ -108,6 +108,7 @@ public abstract class RelayServiceBackbone extends Service implements Connection
         connectivity.register(this);
 
         ping = new PingActionReceiver(this);
+        EventBus.getDefault().register(this);
     }
 
     @Override
@@ -117,7 +118,18 @@ public abstract class RelayServiceBackbone extends Service implements Connection
         //notificationManger.cancelAll();
         connectivity.unregister();
         super.onDestroy();
+        EventBus.getDefault().unregister(this);
     }
+
+    @SuppressWarnings("unused")
+    public void onEvent(SendMessageEvent event) {
+        logger.debug("onEvent({})", event);
+        connection.sendMessage(event.message);
+    }
+
+    private boolean started = false;
+    final public static String ACTION_START = "com.ubergeek42.WeechatAndroid.START";
+    final public static String ACTION_STOP = "com.ubergeek42.WeechatAndroid.STOP";
 
     /** this method is called:
      **     * whenever app calls startService() (that means on each screen rotate)
@@ -127,10 +139,17 @@ public abstract class RelayServiceBackbone extends Service implements Connection
      ** but we want to only run this ONCE after onCreate*/
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (DEBUG_CONNECTION) logger.debug("onStartCommand({}, {}, {}); had intent? {}", intent, flags, startId, alreadyHadIntent);
-        if (!alreadyHadIntent) {
-            if (mustAutoConnect()) startThreadedConnectLoop();
-            alreadyHadIntent = true;
+        if (DEBUG_CONNECTION) logger.debug("onStartCommand({}, {}, {})", intent, flags, startId);
+        if (intent == null || ACTION_START.equals(intent.getAction())) {
+            if (!started) {
+                started = true;
+                startThreadedConnectLoop();
+            }
+        } else if (ACTION_STOP.equals(intent.getAction())) {
+            if (started) {
+                started = false;
+                startThreadedDisconnect();
+            }
         }
         return START_STICKY;
     }

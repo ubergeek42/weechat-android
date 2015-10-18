@@ -89,17 +89,14 @@ public class RelayService extends RelayServiceBackbone {
 
     @Override
     public IBinder onBind(Intent intent) {
-        return new RelayServiceBinder(this);
+        return null;
     }
 
-    /** called when all fragments et al detached, i.e. on app minimize
-     ** it's not guaranteed that this will be called but it's called virtually always
-     ** must return true in order to be called again. a bug within android? */
-    @Override
-    public boolean onUnbind(Intent intent) {
-        saveStuff();
-        return true;
-    }
+//    @Override
+//    public boolean onUnbind(Intent intent) {
+//        saveStuff();
+//        return true;
+//    }
 
     final private static int SYNC_EVERY_MS = 60 * 5 * 1000; // 5 minutes
 

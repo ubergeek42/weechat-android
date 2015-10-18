@@ -6,7 +6,6 @@
 package com.ubergeek42.WeechatAndroid.service;
 
 import com.ubergeek42.weechat.relay.connection.Connection;
-import com.ubergeek42.weechat.relay.protocol.RelayObject;
 
 import java.util.EnumSet;
 
@@ -40,19 +39,34 @@ public class Events {
         }
     }
 
+//
+//    ////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//    public static class MessageEvent {
+//        final public String id;
+//        final public RelayObject object;
+//
+//        public MessageEvent(String id, RelayObject object) {
+//            this.id = id;
+//            this.object = object;
+//        }
+//
+//        @Override public String toString() {
+//            return MessageEvent.class.getSimpleName() + ": id = " + id;
+//        }
+//    }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public static class MessageEvent {
-        final public String id;
-        final public RelayObject object;
+    public static class SendMessageEvent {
+        final public String message;
 
-        public MessageEvent(String id, RelayObject object) {
-            this.id = id;
-            this.object = object;
+        public SendMessageEvent(String message) {
+            this.message = message;
         }
+
         @Override public String toString() {
-            return MessageEvent.class.getSimpleName() + ": id = " + id;
+            return SendMessageEvent.class.getSimpleName() + ": message = " + message;
         }
     }
 }

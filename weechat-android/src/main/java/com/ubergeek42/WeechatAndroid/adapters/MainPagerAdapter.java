@@ -17,6 +17,7 @@ import android.view.ViewGroup;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragment;
 import com.ubergeek42.WeechatAndroid.service.Buffer;
+import com.ubergeek42.WeechatAndroid.service.BufferList;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,7 +61,7 @@ public class MainPagerAdapter extends PagerAdapter {
         if (idx >= 0) {
             if (focus) pager.setCurrentItem(idx);
         } else {
-            Buffer buffer = activity.relay.getBufferByFullName(fullName);
+            Buffer buffer = BufferList.findByFullName(fullName);
             if (buffer != null)
                 buffer.setOpen(true);
             BufferFragment fragment = newBufferFragment(fullName);
@@ -89,10 +90,8 @@ public class MainPagerAdapter extends PagerAdapter {
             fullNames.remove(idx);
             fragments.remove(idx);
             notifyDataSetChanged();
-            if (activity.relay != null) {
-                Buffer buffer = activity.relay.getBufferByFullName(fullName);
-                if (buffer != null) buffer.setOpen(false);
-            }
+            Buffer buffer = BufferList.findByFullName(fullName);
+            if (buffer != null) buffer.setOpen(false);
         }
     }
 
