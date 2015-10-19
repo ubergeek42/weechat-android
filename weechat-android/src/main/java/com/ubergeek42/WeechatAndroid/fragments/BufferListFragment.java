@@ -4,14 +4,10 @@ import android.support.v4.app.ListFragment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import android.content.ComponentName;
 import android.content.Context;
-import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -42,7 +38,6 @@ public class BufferListFragment extends ListFragment implements
     private static Logger logger = LoggerFactory.getLogger("BufferListFragment");
     final private static boolean DEBUG_LIFECYCLE = false;
     final private static boolean DEBUG_MESSAGES = false;
-    final private static boolean DEBUG_CONNECTION = false;
     final private static boolean DEBUG_PREFERENCES = false;
     final private static boolean DEBUG_CLICK = false;
 
@@ -108,9 +103,9 @@ public class BufferListFragment extends ListFragment implements
     @Override
     public void onStop() {
         if (DEBUG_LIFECYCLE) logger.warn("onStop()");
+        EventBus.getDefault().unregister(this);
         super.onStop();
         detachFromBufferList();
-        EventBus.getDefault().unregister(this);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

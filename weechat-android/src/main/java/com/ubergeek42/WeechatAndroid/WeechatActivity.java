@@ -20,10 +20,10 @@ import java.security.cert.CertPathValidatorException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.EnumSet;
-import java.util.HashSet;
 
 import javax.net.ssl.SSLException;
 
+import android.annotation.SuppressLint;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
@@ -37,15 +37,12 @@ import android.view.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.res.Configuration;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentManager;
@@ -78,10 +75,9 @@ public class WeechatActivity extends AppCompatActivity implements
         CutePagerTitleStrip.CutePageChangeListener {
 
     private static Logger logger = LoggerFactory.getLogger("WA");
-    final private static boolean DEBUG = BuildConfig.DEBUG;
     final private static boolean DEBUG_OPTIONS_MENU = false;
     final private static boolean DEBUG_LIFECYCLE = false;
-    final private static boolean DEBUG_CONNECION = false;
+    final private static boolean DEBUG_CONNECTION = false;
     final private static boolean DEBUG_INTENT = false;
     final private static boolean DEBUG_BUFFERS = false;
     final private static boolean DEBUG_DRAWER = false;
@@ -98,7 +94,7 @@ public class WeechatActivity extends AppCompatActivity implements
     private DrawerLayout uiDrawerLayout = null;
     private View uiDrawer = null;
     private ActionBarDrawerToggle drawerToggle = null;
-    private @NonNull ImageView uiInfo;
+    private ImageView uiInfo;
 
     public ToolbarController toolbarController;
 
@@ -108,7 +104,7 @@ public class WeechatActivity extends AppCompatActivity implements
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
-        if (DEBUG_LIFECYCLE) logger.debug("onCreate({})", savedInstanceState);
+        logger.debug("onCreate({})", savedInstanceState);
         super.onCreate(savedInstanceState);
 
         // start background service (if necessary)
@@ -123,12 +119,13 @@ public class WeechatActivity extends AppCompatActivity implements
         // prepare pager
         FragmentManager manager = getSupportFragmentManager();
         uiPager = (ViewPager) findViewById(R.id.main_viewpager);
-        adapter = new MainPagerAdapter(this, manager, uiPager);
+        adapter = new MainPagerAdapter(manager, uiPager);
         uiPager.setAdapter(adapter);
 
         // prepare action bar
         setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
         final ActionBar uiActionBar = getSupportActionBar();
+        //noinspection ConstantConditions
         uiActionBar.setHomeButtonEnabled(true);
         uiActionBar.setDisplayShowCustomEnabled(true);
         uiActionBar.setDisplayShowTitleEnabled(false);
@@ -187,23 +184,22 @@ public class WeechatActivity extends AppCompatActivity implements
             }
         });
 
-        // TODO Read preferences from background, its IO, 31ms strict mode!
-        //PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
         imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         String title = "WA v" + BuildConfig.VERSION_NAME;
         setTitle(title);
         uiStrip.setEmptyText(title);
         updateCutePagerTitleStrip();
-        adjustUI(); // TODO use elsewhere?
     }
 
     public void connect() {
+        logger.debug("connect()");
         Intent i = new Intent(this, RelayService.class);
         i.setAction(RelayService.ACTION_START);
         startService(i);
     }
 
     public void disconnect() {
+        logger.debug("disconnect()");
         Intent i = new Intent(this, RelayService.class);
         i.setAction(RelayService.ACTION_STOP);
         startService(i);
@@ -214,13 +210,27 @@ public class WeechatActivity extends AppCompatActivity implements
     @Override protected void onStart() {
         if (DEBUG_LIFECYCLE) logger.debug("onStart()");
         super.onStart();
-        EventBus.getDefault().registerSticky(this);
+        EventBus.getDefault().register(this);
+
+        // the lines below used to run in onServiceConnected()
+        // so, this can run BEFORE the service has been restarted after OOM kill
+        StateChangedEvent event = EventBus.getDefault().getStickyEvent(StateChangedEvent.class);
+        if (event != null) state = event.state;
+        adjustUI();
+
+        for (String fullName : BufferList.syncedBuffersFullNames)
+            openBufferSilently(fullName);
+
+        if (getIntent().hasExtra(EXTRA_NAME))
+            openBufferFromIntent();
+
+        updateHotCount(BufferList.getHotCount());
     }
 
     @Override protected void onStop() {
         if (DEBUG_LIFECYCLE) logger.debug("onStop()");
-        super.onStop();
         EventBus.getDefault().unregister(this);
+        super.onStop();
     }
 
     @Override
@@ -243,42 +253,23 @@ public class WeechatActivity extends AppCompatActivity implements
         if (slidy) drawerToggle.onConfigurationChanged(newConfig);
     }
 
-    //////////////////////////////////////////////////////////////////////////////////////////////// S E R V I C E
-
-    synchronized public void onServiceConnected(ComponentName name, IBinder service) {
-        if (DEBUG_LIFECYCLE) logger.debug("onServiceConnected()");
-
-        // open buffer that MIGHT be open in the service
-        for (String fullName : BufferList.syncedBuffersFullNames)
-            openBufferSilently(fullName);
-
-        //  adjustUI();
-
-        // if we have intent, handle it
-        if (getIntent().hasExtra(EXTRA_NAME))
-            openBufferFromIntent();
-
-        updateHotCount(BufferList.getHotCount());
-    }
+    //////////////////////////////////////////////////////////////////////////////////////////////// ?
 
     private void adjustUI() {
         int image = R.drawable.ic_big_connecting;
         if (state.contains(UNKNOWN) || state.contains(DISCONNECTED)) image = R.drawable.ic_big_disconnected;
         else if (state.contains(AUTHENTICATED)) image = R.drawable.ic_big_connected;
-
         setInfoImage(image);
 
-        // enable/disable drawer
         if (slidy) {
             if (state.contains(BUFFERS_LISTED)) enableDrawer();
             else disableDrawer();
         }
 
-        // adjust menu
         makeMenuReflectConnectionStatus();
     }
 
-    //////////////////////////////////////////////////////////////////////////////////////////////// RelayConnectionHandler
+    //////////////////////////////////////////////////////////////////////////////////////////////// events?
 
     private EnumSet<Connection.STATE> state = EnumSet.of(Connection.STATE.UNKNOWN);
 
@@ -294,7 +285,7 @@ public class WeechatActivity extends AppCompatActivity implements
 
     @SuppressWarnings("unused")
     public void onEvent(final ExceptionEvent event) {
-        if (DEBUG_CONNECION) logger.debug("onEvent({})", event);
+        if (DEBUG_CONNECTION) logger.debug("onEvent({})", event);
         final Exception e = event.e;
         if (e instanceof SSLException) {
             SSLException e1 = (SSLException) e;
@@ -355,7 +346,7 @@ public class WeechatActivity extends AppCompatActivity implements
         hotNumber = newHotNumber;
         if (uiHot != null)
             uiHot.post(new Runnable() {
-                @Override public void run() {
+                @Override @SuppressLint("SetTextI18n") public void run() {
                     if (newHotNumber == 0)
                         uiHot.setVisibility(View.INVISIBLE);
                     else {
@@ -497,13 +488,14 @@ public class WeechatActivity extends AppCompatActivity implements
     /** open a buffer WITHOUT hiding the drawer and checking if we are connected */
     public void openBufferSilently(@NonNull String fullName) {
         if (DEBUG_BUFFERS) logger.debug("openBufferSilently({})", fullName);
-        adapter.openBuffer(fullName, false);
+        adapter.openBuffer(fullName);
     }
 
     public void openBuffer(@NonNull String fullName) {
         if (DEBUG_BUFFERS) logger.debug("openBuffer({})", fullName);
         if (adapter.isBufferOpen(fullName) || state.contains(AUTHENTICATED)) {
-            adapter.openBuffer(fullName, true);
+            adapter.openBuffer(fullName);
+            adapter.focusBuffer(fullName);
             if (slidy) hideDrawer();
         } else {
             Toast.makeText(this, "Not connected", Toast.LENGTH_SHORT).show();
@@ -608,10 +600,11 @@ public class WeechatActivity extends AppCompatActivity implements
     }
 
     /** set image that appears in the pager when no pages are open */
+    @SuppressWarnings("deprecation")
     private void setInfoImage(final int id) {
         final Drawable drawable = getResources().getDrawable(id);
         uiInfo.post(new Runnable() {
-            @Override
+            @Override  @SuppressWarnings("ConstantConditions")
             public void run() {
                 Utils.setImageDrawableWithFade(uiInfo, drawable, 350);
             }
