@@ -9,6 +9,7 @@ package com.ubergeek42.WeechatAndroid.relay;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.weechat.relay.RelayMessageHandler;
@@ -45,14 +46,8 @@ public class BufferList {
     final private static boolean DEBUG_HANDLERS = false;
     final private static boolean DEBUG_SAVE_RESTORE = false;
 
-    /** preferences related to the list of buffers.
-     ** actually WRITABLE from outside */
-    public static boolean SORT_BUFFERS = false;
-    public static boolean SHOW_TITLE = true;
-    public static boolean FILTER_NONHUMAN_BUFFERS = false;
-    public static boolean OPTIMIZE_TRAFFIC = false;
-    public static @Nullable String FILTER_LC = null;
-    public static @Nullable String FILTER_UC = null;
+    public static @Nullable String filterLc = null;
+    public static @Nullable String filterUc = null;
 
     /** contains names of open buffers. this is written to the shared preferences
      ** and restored upon service restart (by the system). also this is used to
@@ -150,19 +145,19 @@ public class BufferList {
             sentBuffers = new ArrayList<>();
             for (Buffer buffer : buffers) {
                 if (buffer.type == Buffer.HARD_HIDDEN) continue;
-                if (FILTER_NONHUMAN_BUFFERS && buffer.type == Buffer.OTHER && buffer.highlights == 0 && buffer.unreads == 0) continue;
-                if (FILTER_LC != null && FILTER_UC != null && !buffer.fullName.toLowerCase().contains(FILTER_LC) && !buffer.fullName.toUpperCase().contains(FILTER_UC)) continue;
+                if (P.filterBuffers && buffer.type == Buffer.OTHER && buffer.highlights == 0 && buffer.unreads == 0) continue;
+                if (filterLc != null && filterUc != null && !buffer.fullName.toLowerCase().contains(filterLc) && !buffer.fullName.toUpperCase().contains(filterUc)) continue;
                 sentBuffers.add(buffer);
             }
         }
-        if (SORT_BUFFERS) Collections.sort(sentBuffers, sortByHotAndMessageCountComparator);
+        if (P.sortBuffers) Collections.sort(sentBuffers, sortByHotAndMessageCountComparator);
         else Collections.sort(sentBuffers, sortByHotCountAndNumberComparator);
         return sentBuffers;
     }
 
     synchronized static public void setFilter(String filter) {
-        FILTER_LC = (filter.length() == 0) ? null : filter.toLowerCase();
-        FILTER_UC = (filter.length() == 0) ? null : filter.toUpperCase();
+        filterLc = (filter.length() == 0) ? null : filter.toLowerCase();
+        filterUc = (filter.length() == 0) ? null : filter.toUpperCase();
         sentBuffers = null;
     }
 
@@ -202,7 +197,7 @@ public class BufferList {
      ** used to temporarily display the said buffer if OTHER buffers are filtered */
     synchronized static void notifyBuffersSlightlyChanged(boolean otherMessagesChanged) {
         if (buffersEye != null) {
-            if (otherMessagesChanged && FILTER_NONHUMAN_BUFFERS) sentBuffers = null;
+            if (otherMessagesChanged && P.filterBuffers) sentBuffers = null;
             buffersEye.onBuffersChanged();
         }
     }
@@ -244,13 +239,13 @@ public class BufferList {
     synchronized static void syncBuffer(String fullName) {
         if (DEBUG_SYNCING) logger.warn("syncBuffer({})", fullName);
         BufferList.syncedBuffersFullNames.add(fullName);
-        if (OPTIMIZE_TRAFFIC) relay.connection.sendMessage("sync " + fullName);
+        if (P.optimizeTraffic) relay.connection.sendMessage("sync " + fullName);
     }
 
     synchronized static void desyncBuffer(String fullName) {
         if (DEBUG_SYNCING) logger.warn("desyncBuffer({})", fullName);
         BufferList.syncedBuffersFullNames.remove(fullName);
-        if (OPTIMIZE_TRAFFIC) relay.connection.sendMessage("desync " + fullName);
+        if (P.optimizeTraffic) relay.connection.sendMessage("desync " + fullName);
     }
 
     public static void requestLinesForBufferByPointer(long pointer) {

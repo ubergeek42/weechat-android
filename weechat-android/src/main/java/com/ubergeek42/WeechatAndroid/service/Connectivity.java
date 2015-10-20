@@ -13,11 +13,11 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 
 public class Connectivity extends BroadcastReceiver {
-    private RelayServiceBackbone bone;
+    private RelayService bone;
     private ConnectivityManager manager;
     private boolean networkAvailable = true;
 
-    public void register(RelayServiceBackbone bone) {
+    public void register(RelayService bone) {
         this.bone = bone;
         this.manager = (ConnectivityManager) bone.getSystemService(Context.CONNECTIVITY_SERVICE);
         bone.registerReceiver(

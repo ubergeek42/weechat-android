@@ -17,6 +17,7 @@ import android.text.style.LeadingMarginSpan;
 import android.text.style.StyleSpan;
 import android.text.style.UnderlineSpan;
 
+import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.utils.Linkify;
 import com.ubergeek42.weechat.Color;
 import com.ubergeek42.weechat.ColorScheme;
@@ -31,15 +32,6 @@ import java.util.Date;
 public class Line {
     private static Logger logger = LoggerFactory.getLogger("Buffer");
     final private static boolean DEBUG = false;
-
-    // preferences for all lines
-    public static float TEXT_SIZE = 10;
-    public static @Nullable DateFormat DATEFORMAT = new SimpleDateFormat("HH:mm");
-    public static int ALIGN = Color.ALIGN_RIGHT;
-    public static int MAX_WIDTH = 7;
-    public static float LETTER_WIDTH = 12;
-    public static boolean ENCLOSE_NICK = false;
-    public static boolean DIM_DOWN_NON_HUMAN_LINES = true;
 
     // core message data
     final public long pointer;
@@ -125,12 +117,12 @@ public class Line {
      */
     public void processMessage() {
         if (DEBUG) logger.warn("processMessage()");
-        String timestamp = (DATEFORMAT == null) ? null : DATEFORMAT.format(date);
-        boolean encloseNick = ENCLOSE_NICK && privmsg && !action;
-        Color.parse(timestamp, prefix, message, encloseNick, highlighted, MAX_WIDTH, ALIGN);
+        String timestamp = (P.dateFormat == null) ? null : P.dateFormat.format(date);
+        boolean encloseNick = P.encloseNick && privmsg && !action;
+        Color.parse(timestamp, prefix, message, encloseNick, highlighted, P.maxWidth, P.align);
         Spannable spannable = new SpannableString(Color.cleanMessage);
 
-        if (this.type == LINE_OTHER && DIM_DOWN_NON_HUMAN_LINES) {
+        if (this.type == LINE_OTHER && P.dimDownNonHumanLines) {
             spannable.setSpan(new ForegroundColorSpan(ColorScheme.get().chat_inactive_buffer[0] | 0xFF000000), 0, spannable.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         } else {
             CharacterStyle droidSpan;
@@ -147,8 +139,8 @@ public class Line {
             }
         }
 
-        if (ALIGN != Color.ALIGN_NONE) {
-            LeadingMarginSpan margin_span = new LeadingMarginSpan.Standard(0, (int) (LETTER_WIDTH * Color.margin));
+        if (P.align != Color.ALIGN_NONE) {
+            LeadingMarginSpan margin_span = new LeadingMarginSpan.Standard(0, (int) (P.letterWidth * Color.margin));
             spannable.setSpan(margin_span, 0, spannable.length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
         }
 

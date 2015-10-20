@@ -8,6 +8,7 @@ import android.text.Spanned;
 import android.text.style.RelativeSizeSpan;
 import android.text.style.SuperscriptSpan;
 
+import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.weechat.Color;
 import com.ubergeek42.weechat.relay.protocol.Hashtable;
 import com.ubergeek42.weechat.relay.protocol.RelayObject;
@@ -27,9 +28,6 @@ public class Buffer {
     final private static boolean DEBUG_BUFFER = false;
     final private static boolean DEBUG_LINE = false;
     final private static boolean DEBUG_NICK = false;
-
-    //prefs
-    public static boolean FILTER_LINES = false;
 
     final public static int PRIVATE = 2;
     final public static int CHANNEL = 1;
@@ -103,7 +101,7 @@ public class Buffer {
      ** better call off the main thread */
     synchronized public @NonNull Line[] getLinesCopy() {
         Line[] l;
-        if (!FILTER_LINES)
+        if (!P.filterLines)
             l = lines.toArray(new Line[lines.size()]);
         else {
             l = new Line[visibleLinesCount];
@@ -147,7 +145,7 @@ public class Buffer {
         else {
             BufferList.desyncBuffer(fullName);
             for (Line line : lines) line.eraseProcessedMessage();
-            if (BufferList.OPTIMIZE_TRAFFIC) {
+            if (P.optimizeTraffic) {
                 // if traffic is optimized, the next time we open the buffer, it might have been updated
                 // this presents two problems. first, we will not be able to update if we think
                 // that we have all the lines needed. second, if we have lines and request lines again,

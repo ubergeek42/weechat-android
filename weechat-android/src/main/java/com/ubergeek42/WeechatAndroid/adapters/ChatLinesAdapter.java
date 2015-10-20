@@ -37,6 +37,7 @@ import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferEye;
 import com.ubergeek42.WeechatAndroid.relay.Line;
+import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.weechat.ColorScheme;
 
 import org.slf4j.Logger;
@@ -119,7 +120,7 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
             retview = textview;
         }
 
-        textview.setTextSize(Line.TEXT_SIZE);
+        textview.setTextSize(P.textSize);
         Line line = (Line) getItem(position);
         textview.setText(line.spannable);
         textview.setTag(line);

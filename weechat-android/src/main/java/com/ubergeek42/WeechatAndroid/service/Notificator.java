@@ -15,6 +15,7 @@ import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
+import android.text.TextUtils;
 
 import com.ubergeek42.WeechatAndroid.BuildConfig;
 import com.ubergeek42.WeechatAndroid.R;
@@ -29,8 +30,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
-
 public class Notificator {
 
     private static Logger logger = LoggerFactory.getLogger("Notificator");
@@ -39,10 +38,10 @@ public class Notificator {
     final private static int NOTIFICATION_MAIN_ID = 42;
     final private static int NOTIFICATION_HOT_ID = 43;
 
-    private RelayServiceBackbone bone;
+    private RelayService bone;
     private NotificationManager manager;
 
-    public Notificator(RelayServiceBackbone bone) {
+    public Notificator(RelayService bone) {
         this.bone = bone;
         this.manager = (NotificationManager) bone.getSystemService(Context.NOTIFICATION_SERVICE);
     }
@@ -79,7 +78,7 @@ public class Notificator {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN)
             builder.setPriority(Notification.PRIORITY_MIN);
 
-        if (bone.prefs.getBoolean(PREF_NOTIFICATION_TICKER, PREF_NOTIFICATION_TICKER_D))
+        if (P.notificationTicker)
             builder.setTicker(tickerText);
 
         Notification notification = builder.build();
@@ -103,7 +102,7 @@ public class Notificator {
     public void showHot(boolean newHighlight) {
         if (DEBUG_NOTIFICATIONS) logger.warn("showHot({})", newHighlight);
 
-        if (!bone.prefs.getBoolean(PREF_NOTIFICATION_ENABLE, PREF_NOTIFICATION_ENABLE_D))
+        if (!P.notificationEnable)
             return;
 
         final int hotCount = BufferList.getHotCount();
@@ -138,7 +137,7 @@ public class Notificator {
         // one ore more visible lines and "..."
         if (hotList.size() > 0 && hotCount > 1) {
             NotificationCompat.InboxStyle inbox = new NotificationCompat.InboxStyle()
-                    .setSummaryText(bone.host);
+                    .setSummaryText(P.host);
 
             for (String[] bufferToLine : hotList) inbox.addLine(bufferToLine[LINE]);
             if (hotList.size() < hotCount) inbox.addLine("…");
@@ -153,15 +152,12 @@ public class Notificator {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN)
                 builder.setPriority(Notification.PRIORITY_HIGH);
 
-            String ringtone = bone.prefs.getString(PREF_NOTIFICATION_SOUND, PREF_NOTIFICATION_SOUND_D);
-            if (!"".equals(ringtone))
-                builder.setSound(Uri.parse(ringtone));
+            if (!TextUtils.isEmpty(P.notificationSound))
+                builder.setSound(Uri.parse(P.notificationSound));
 
             int flags = 0;
-            if (bone.prefs.getBoolean(PREF_NOTIFICATION_LIGHT, PREF_NOTIFICATION_LIGHT_D))
-                flags |= Notification.DEFAULT_LIGHTS;
-            if (bone.prefs.getBoolean(PREF_NOTIFICATION_VIBRATE, PREF_NOTIFICATION_VIBRATE_D))
-                flags |= Notification.DEFAULT_VIBRATE;
+            if (P.notificationLight) flags |= Notification.DEFAULT_LIGHTS;
+            if (P.notificationVibrate) flags |= Notification.DEFAULT_VIBRATE;
             builder.setDefaults(flags);
         }
 

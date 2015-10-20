@@ -41,7 +41,7 @@ public class PingActionReceiver extends BroadcastReceiver {
     private static Logger logger = LoggerFactory.getLogger("PingActionReceiver");
 
     private volatile long lastMessageReceivedAt = 0;
-    private RelayServiceBackbone bone;
+    private RelayService bone;
     private AlarmManager alarmManager;
     private static final String PING_ACTION = BuildConfig.APPLICATION_ID + ".PING_ACTION";
     private static final IntentFilter FILTER = new IntentFilter(PING_ACTION);
@@ -49,7 +49,7 @@ public class PingActionReceiver extends BroadcastReceiver {
     private boolean enabled;
     private long idleTime, pingTimeout;
 
-    public PingActionReceiver(RelayServiceBackbone bone) {
+    public PingActionReceiver(RelayService bone) {
         super();
         this.bone = bone;
         this.alarmManager = (AlarmManager) bone.getSystemService(Context.ALARM_SERVICE);

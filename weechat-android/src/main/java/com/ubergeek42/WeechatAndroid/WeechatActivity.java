@@ -61,6 +61,7 @@ import com.ubergeek42.WeechatAndroid.adapters.NickListAdapter;
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragment;
 import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
+import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
 import com.ubergeek42.WeechatAndroid.utils.MyMenuItemStuffListener;
 import com.ubergeek42.WeechatAndroid.utils.ToolbarController;
@@ -487,7 +488,7 @@ public class WeechatActivity extends AppCompatActivity implements
 
                     final View menuHotlist = MenuItemCompat.getActionView(uiMenu.findItem(R.id.menu_hotlist));
                     ImageView bellImage = (ImageView) menuHotlist.findViewById(R.id.hotlist_bell);
-                    bellImage.setImageResource(BufferList.OPTIMIZE_TRAFFIC ? R.drawable.ic_bell_cracked : R.drawable.ic_bell);
+                    bellImage.setImageResource(P.optimizeTraffic ? R.drawable.ic_bell_cracked : R.drawable.ic_bell);
                 }
             }
         });
