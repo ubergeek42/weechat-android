@@ -137,7 +137,7 @@ public abstract class RelayServiceBackbone extends Service implements Connection
     /** only auto-connect if auto-connect is on ON in the prefs and
      ** the user did not disconnect by tapping disconnect in menu */
     public boolean mustAutoConnect() {
-         return prefs.getBoolean(PREF_AUTO_CONNECT, PREF_AUTO_CONNECT_D) && !prefs.getBoolean(PREF_MUST_STAY_DISCONNECTED, false);
+         return prefs.getBoolean(PREF_RECONNECT, PREF_RECONNECT_D) && !prefs.getBoolean(PREF_MUST_STAY_DISCONNECTED, false);
     }
 
     private static final long WAIT_BEFORE_WAIT_MESSAGE_DELAY = 5;

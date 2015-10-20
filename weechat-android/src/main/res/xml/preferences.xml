@@ -29,8 +29,8 @@
         </PreferenceCategory>
 
         <PreferenceCategory android:key="connection_misc_group" android:title="@string/pref_misc_group">
-            <CheckBoxPreference android:key="autoconnect" android:title="@string/pref_autoconnect" />
-            <CheckBoxPreference android:key="autostart" android:title="@string/pref_autostart" />
+            <CheckBoxPreference android:key="reconnect" android:title="@string/pref_reconnect" />
+            <CheckBoxPreference android:key="boot_connect" android:title="@string/pref_boot_connect" />
             <CheckBoxPreference android:key="optimize_traffic" android:summary="@string/pref_optimize_traffic_summary" android:title="@string/pref_optimize_traffic" android:defaultValue="false"/>
             <CheckBoxPreference android:key="hotlist_sync" android:summary="@string/pref_hotlist_sync_summary" android:title="@string/pref_hotlist_sync" android:defaultValue="false"/>
 

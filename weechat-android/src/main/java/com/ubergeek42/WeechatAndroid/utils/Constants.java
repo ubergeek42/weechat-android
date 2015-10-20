@@ -30,8 +30,8 @@ public class Constants {
     final static public String PREF_PASSWORD = "password"; final public static String PREF_PASSWORD_D = null;
 
     // misc
-    final static public String PREF_AUTO_CONNECT = "autoconnect"; final public static boolean PREF_AUTO_CONNECT_D = false;
-    final static public String PREF_AUTO_START = "autostart"; final public static boolean PREF_AUTO_START_D = false;
+    final static public String PREF_RECONNECT = "reconnect"; final public static boolean PREF_RECONNECT_D = false;
+    final static public String PREF_BOOT_CONNECT = "boot_connect"; final public static boolean PREF_BOOT_CONNECT_D = false;
     public static final String PREF_OPTIMIZE_TRAFFIC = "optimize_traffic"; final public static boolean PREF_OPTIMIZE_TRAFFIC_D = false;
     public final static String PREF_HOTLIST_SYNC = "hotlist_sync"; final public static boolean PREF_HOTLIST_SYNC_D = false;
 

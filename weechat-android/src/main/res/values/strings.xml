@@ -89,8 +89,8 @@
         <!-- misc -->
 
         <string name="pref_misc_group">Miscellaneous</string>
-            <string name="pref_autoconnect">Connect on app launch</string>
-            <string name="pref_autostart">Launch app on system boot</string>
+            <string name="pref_reconnect">Reconnect if connection has been lost</string>
+            <string name="pref_boot_connect">Launch service and connect on system boot</string>
             <string name="pref_notification_ticker">Notifications ticker</string>
             <string name="pref_notification_ticker_summary">Display connection changes as ticker (does not work on Lollipop)</string>
             <string name="pref_optimize_traffic">Only sync open buffers</string>
