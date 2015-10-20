@@ -21,6 +21,7 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -28,6 +29,7 @@ import android.support.annotation.MainThread;
 import android.support.annotation.NonNull;
 
 import com.ubergeek42.WeechatAndroid.BuildConfig;
+import com.ubergeek42.WeechatAndroid.Manifest;
 import com.ubergeek42.weechat.relay.connection.Connection;
 
 import org.slf4j.Logger;
@@ -38,18 +40,26 @@ import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
 public class PingActionReceiver extends BroadcastReceiver {
     private static Logger logger = LoggerFactory.getLogger("PingActionReceiver");
 
+    private volatile long lastMessageReceivedAt = 0;
     private RelayServiceBackbone bone;
     private AlarmManager alarmManager;
-    public static final String PING_ACTION = BuildConfig.APPLICATION_ID + ".PING_ACTION";
+    private static final String PING_ACTION = BuildConfig.APPLICATION_ID + ".PING_ACTION";
+    private static final IntentFilter FILTER = new IntentFilter(PING_ACTION);
+
+    private boolean enabled;
+    private long idleTime, pingTimeout;
 
     public PingActionReceiver(RelayServiceBackbone bone) {
         super();
         this.bone = bone;
         this.alarmManager = (AlarmManager) bone.getSystemService(Context.ALARM_SERVICE);
+        enabled = bone.prefs.getBoolean(PREF_PING_ENABLED, PREF_PING_ENABLED_D);
+        idleTime = Integer.parseInt(bone.prefs.getString(PREF_PING_IDLE, PREF_PING_IDLE_D)) * 1000;
+        pingTimeout = Integer.parseInt(bone.prefs.getString(PREF_PING_TIMEOUT, PREF_PING_TIMEOUT_D)) * 1000;
     }
 
     @MainThread @Override public void onReceive(Context context, Intent intent) {
-        logger.debug("onReceive(intent: {}, sentPing: {})", intent, intent.getBooleanExtra("sentPing", false));
+        logger.debug("onReceive(...), sent ping? {}", intent.getBooleanExtra("sentPing", false));
 
         if (!bone.state.contains(Connection.STATE.AUTHENTICATED))
             return;
@@ -57,11 +67,11 @@ public class PingActionReceiver extends BroadcastReceiver {
         long triggerAt;
         Bundle extras = new Bundle();
 
-        if (SystemClock.elapsedRealtime() - bone.lastMessageReceivedAt > pingIdleTime()) {
+        if (SystemClock.elapsedRealtime() - lastMessageReceivedAt > idleTime) {
             if (!intent.getBooleanExtra("sentPing", false)) {
                 logger.debug("last message too old, sending ping");
                 bone.connection.sendMessage("ping");
-                triggerAt = SystemClock.elapsedRealtime() + pingTimeout();
+                triggerAt = SystemClock.elapsedRealtime() + pingTimeout;
                 extras.putBoolean("sentPing", true);
             } else {
                 logger.debug("no message received, disconnecting");
@@ -69,15 +79,16 @@ public class PingActionReceiver extends BroadcastReceiver {
                 return;
             }
         } else {
-            triggerAt = bone.lastMessageReceivedAt + pingIdleTime();
+            triggerAt = lastMessageReceivedAt + idleTime;
         }
 
         schedulePing(triggerAt, extras);
     }
 
     public void scheduleFirstPing() {
-        if (!pingEnabled()) return;
-        long triggerAt = SystemClock.elapsedRealtime() + pingTimeout();
+        if (!enabled) return;
+        bone.registerReceiver(this, FILTER, Manifest.permission.PING_ACTION, null);
+        long triggerAt = SystemClock.elapsedRealtime() + pingTimeout;
         schedulePing(triggerAt, new Bundle());
     }
 
@@ -85,6 +96,11 @@ public class PingActionReceiver extends BroadcastReceiver {
         Intent intent = new Intent(PingActionReceiver.PING_ACTION);
         PendingIntent alarmIntent = PendingIntent.getBroadcast(bone, 0, intent, PendingIntent.FLAG_NO_CREATE);
         alarmManager.cancel(alarmIntent);
+        bone.unregisterReceiver(this);
+    }
+
+    public void onMessage() {
+        lastMessageReceivedAt = SystemClock.elapsedRealtime();
     }
 
     @TargetApi(19) private void schedulePing(long triggerAt, @NonNull Bundle extras) {
@@ -97,17 +113,5 @@ public class PingActionReceiver extends BroadcastReceiver {
         } else {
             alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAt, alarmIntent);
         }
-    }
-
-    private boolean pingEnabled() {
-        return bone.prefs.getBoolean(PREF_PING_ENABLED, PREF_PING_ENABLED_D);
-    }
-
-    private long pingIdleTime() {
-        return Integer.parseInt(bone.prefs.getString(PREF_PING_IDLE, PREF_PING_IDLE_D)) * 1000;
-    }
-
-    private long pingTimeout() {
-        return Integer.parseInt(bone.prefs.getString(PREF_PING_TIMEOUT, PREF_PING_TIMEOUT_D)) * 1000;
     }
 }

@@ -43,25 +43,19 @@ import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
  ** and nicklist (TODO)
  **/
 
-public class RelayService extends RelayServiceBackbone {
+public class RelayService extends RelayServiceBackbone implements SharedPreferences.OnSharedPreferenceChangeListener{
     private static Logger logger = LoggerFactory.getLogger("RelayService");
     final private static boolean DEBUG_PREFS = false;
     final private static boolean DEBUG_SAVE_RESTORE = false;
 
-    private PingActionReceiver pingActionReceiver;
+    //private PingActionReceiver pingActionReceiver;
 
     /** super method sets 'prefs' */
     @Override
     public void onCreate() {
         super.onCreate();
 
-        pingActionReceiver = new PingActionReceiver(this);
-        registerReceiver(
-                pingActionReceiver,
-                new IntentFilter(PingActionReceiver.PING_ACTION),
-                Manifest.permission.PING_ACTION,
-                null
-        );
+        //registerReceiver(pingActionReceiver, ...)
 
         // buffer list preferences
         BufferList.SORT_BUFFERS = prefs.getBoolean(PREF_SORT_BUFFERS, PREF_SORT_BUFFERS_D);
@@ -80,6 +74,7 @@ public class RelayService extends RelayServiceBackbone {
         setAlignment();
         setTextSizeAndLetterWidth();
         ThemeManager.loadColorSchemeFromPreferences(this);
+        prefs.registerOnSharedPreferenceChangeListener(this);
     }
 
     @Override public void onStateChanged(Connection.STATE state) {
@@ -125,7 +120,7 @@ public class RelayService extends RelayServiceBackbone {
     @Override
     public void onDestroy() {
         eraseStoredStuff();
-        unregisterReceiver(pingActionReceiver);
+        //unregisterReceiver(pingActionReceiver);
         super.onDestroy();
     }
 
@@ -170,7 +165,6 @@ public class RelayService extends RelayServiceBackbone {
         if (DEBUG_PREFS) logger.warn("onSharedPreferenceChanged()");
 
         // buffer list preferences
-        super.onSharedPreferenceChanged(sharedPreferences, key);
         if (key.equals(PREF_SORT_BUFFERS)) {
             BufferList.SORT_BUFFERS = prefs.getBoolean(key, PREF_SORT_BUFFERS_D);
         } else if (key.equals(PREF_SHOW_BUFFER_TITLES)) {

@@ -538,6 +538,6 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     }
 
     @Override public String toString() {
-        return " BF [" + fullName + "]";
+        return "BF [" + fullName + "]";
     }
 }

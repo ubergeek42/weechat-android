@@ -24,6 +24,8 @@ import java.util.EnumSet;
 import javax.net.ssl.SSLException;
 
 import android.annotation.SuppressLint;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
@@ -67,6 +69,7 @@ import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.weechat.relay.connection.Connection;
 
 import static com.ubergeek42.WeechatAndroid.service.Events.*;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
 import static com.ubergeek42.weechat.relay.connection.Connection.STATE.*;
 
 import de.greenrobot.event.EventBus;
@@ -192,6 +195,15 @@ public class WeechatActivity extends AppCompatActivity implements
     }
 
     public void connect() {
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+        String host = prefs.getString(PREF_HOST, PREF_HOST_D);
+        String pass = prefs.getString(PREF_PASSWORD, PREF_PASSWORD_D);
+        if (TextUtils.isEmpty(host) || TextUtils.isEmpty(pass)) {
+            Toast.makeText(getBaseContext(), "Please edit preferences", Toast.LENGTH_LONG).show();
+            return;
+        }
+
         logger.debug("connect()");
         Intent i = new Intent(this, RelayService.class);
         i.setAction(RelayService.ACTION_START);
