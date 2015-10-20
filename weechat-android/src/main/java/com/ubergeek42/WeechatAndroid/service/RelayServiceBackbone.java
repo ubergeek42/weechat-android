@@ -25,6 +25,7 @@ import android.preference.PreferenceManager;
 
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
+import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.weechat.relay.RelayConnection;
 import com.ubergeek42.weechat.relay.RelayMessage;
@@ -55,8 +56,8 @@ public abstract class RelayServiceBackbone extends Service implements Connection
     final private static boolean DEBUG = true;
     final private static boolean DEBUG_CONNECTION = true;
 
-    protected Notificator notificator;
-    protected RelayConnection connection;
+    public Notificator notificator;
+    public RelayConnection connection;
     protected SharedPreferences prefs;
 
     private Connectivity connectivity;
@@ -279,7 +280,7 @@ public abstract class RelayServiceBackbone extends Service implements Connection
     //////////////////////////////////////////////////////////////////////////////////////////////// callbacks
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    EnumSet<STATE> state = EnumSet.of(STATE.UNKNOWN);
+    public EnumSet<STATE> state = EnumSet.of(STATE.UNKNOWN);
 
     @Override public void onStateChanged(STATE state) {
         logger.debug("onStateChanged({})", state);

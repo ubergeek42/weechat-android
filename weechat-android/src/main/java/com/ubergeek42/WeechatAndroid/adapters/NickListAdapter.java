@@ -12,8 +12,9 @@ import android.widget.TextView;
 import com.ubergeek42.WeechatAndroid.BuildConfig;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
-import com.ubergeek42.WeechatAndroid.service.Buffer;
-import com.ubergeek42.WeechatAndroid.service.BufferNicklistEye;
+import com.ubergeek42.WeechatAndroid.relay.Buffer;
+import com.ubergeek42.WeechatAndroid.relay.BufferNicklistEye;
+import com.ubergeek42.WeechatAndroid.relay.Nick;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +28,7 @@ public class NickListAdapter extends BaseAdapter implements BufferNicklistEye,
     WeechatActivity activity;
     private final @NonNull LayoutInflater inflater;
     private final @NonNull Buffer buffer;
-    private @NonNull Buffer.Nick[] nicks = new Buffer.Nick[0];
+    private @NonNull Nick[] nicks = new Nick[0];
     private @NonNull AlertDialog dialog;
 
     private int hPadding;
@@ -47,7 +48,7 @@ public class NickListAdapter extends BaseAdapter implements BufferNicklistEye,
     }
 
     @Override
-    public Buffer.Nick getItem(int position) {
+    public Nick getItem(int position) {
         return nicks[position];
     }
 
@@ -63,14 +64,14 @@ public class NickListAdapter extends BaseAdapter implements BufferNicklistEye,
             convertView.setPadding(hPadding, vPadding, hPadding, vPadding);
         }
 
-        Buffer.Nick nick = getItem(position);
+        Nick nick = getItem(position);
         ((TextView) convertView).setText(nick.prefix + nick.name);
         return convertView;
     }
 
     public void onNicklistChanged() {
         if (DEBUG) logger.debug("onNicklistChanged()");
-        final Buffer.Nick[] tmp = buffer.getNicksCopy();
+        final Nick[] tmp = buffer.getNicksCopy();
         final String title = String.format("%s (%s users)", buffer.shortName, tmp.length);
         activity.runOnUiThread(new Runnable() {
             @Override

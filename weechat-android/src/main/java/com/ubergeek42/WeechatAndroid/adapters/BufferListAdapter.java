@@ -26,9 +26,9 @@ import android.widget.TextView;
 
 import com.ubergeek42.WeechatAndroid.BuildConfig;
 import com.ubergeek42.WeechatAndroid.R;
-import com.ubergeek42.WeechatAndroid.service.Buffer;
-import com.ubergeek42.WeechatAndroid.service.BufferList;
-import com.ubergeek42.WeechatAndroid.service.BufferListEye;
+import com.ubergeek42.WeechatAndroid.relay.Buffer;
+import com.ubergeek42.WeechatAndroid.relay.BufferList;
+import com.ubergeek42.WeechatAndroid.relay.BufferListEye;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

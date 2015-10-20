@@ -15,8 +15,8 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragment;
-import com.ubergeek42.WeechatAndroid.service.Buffer;
-import com.ubergeek42.WeechatAndroid.service.BufferList;
+import com.ubergeek42.WeechatAndroid.relay.Buffer;
+import com.ubergeek42.WeechatAndroid.relay.BufferList;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

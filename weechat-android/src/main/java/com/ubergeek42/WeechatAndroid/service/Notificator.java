@@ -19,6 +19,7 @@ import android.support.v4.app.NotificationCompat;
 import com.ubergeek42.WeechatAndroid.BuildConfig;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
+import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.weechat.relay.connection.Connection;
 
 import org.slf4j.Logger;

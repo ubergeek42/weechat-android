@@ -1,11 +1,16 @@
-package com.ubergeek42.WeechatAndroid.service;
+/**
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ */
+
+
+package com.ubergeek42.WeechatAndroid.relay;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import com.ubergeek42.WeechatAndroid.BuildConfig;
+import com.ubergeek42.WeechatAndroid.service.RelayService;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
-import com.ubergeek42.weechat.relay.RelayConnection;
 import com.ubergeek42.weechat.relay.RelayMessageHandler;
 import com.ubergeek42.weechat.relay.connection.Connection;
 import com.ubergeek42.weechat.relay.protocol.Array;
@@ -36,10 +41,8 @@ import java.util.Locale;
 
 public class BufferList {
     private static Logger logger = LoggerFactory.getLogger("BufferList");
-    final private static boolean DEBUG = BuildConfig.DEBUG;
     final private static boolean DEBUG_SYNCING = false;
     final private static boolean DEBUG_HANDLERS = false;
-    final private static boolean DEBUG_HOT = false;
     final private static boolean DEBUG_SAVE_RESTORE = false;
 
     /** preferences related to the list of buffers.
@@ -62,7 +65,6 @@ public class BufferList {
     static private @NonNull LinkedHashMap<String, BufferHotData> bufferToLastReadLine = new LinkedHashMap<>();
 
     static RelayService relay;
-    private static RelayConnection connection;
     private static BufferListEye buffersEye;
 
     /** the mother variable. list of current buffers */
@@ -74,7 +76,6 @@ public class BufferList {
 
     public static void launch(final RelayService relay) {
         BufferList.relay = relay;
-        BufferList.connection = relay.connection;
         buffers.clear();
 
         // handle buffer list changes
@@ -105,8 +106,12 @@ public class BufferList {
         addMessageHandler("_nicklist_diff", nickListWatcher);
 
         // request a list of buffers current open, along with some information about them
-        connection.sendMessage("listbuffers", "hdata", "buffer:gui_buffers(*) number,full_name,short_name,type,title,nicklist,local_variables,notify");
+        relay.connection.sendMessage("listbuffers", "hdata", "buffer:gui_buffers(*) number,full_name,short_name,type,title,nicklist,local_variables,notify");
         syncHotlist();
+    }
+
+    public static void stop() {
+        relay = null;
     }
 
     private static HashMap<String, LinkedHashSet<RelayMessageHandler>> messageHandlersMap = new HashMap<>();
@@ -117,7 +122,7 @@ public class BufferList {
         handlers.add(handler);
     }
 
-    protected static void handleMessage(@Nullable RelayObject obj, String id) {
+    public static void handleMessage(@Nullable RelayObject obj, String id) {
         HashSet<RelayMessageHandler> handlers = messageHandlersMap.get(id);
         if (handlers == null) return;
         for (RelayMessageHandler handler : handlers) handler.handleMessage(obj, id);
@@ -127,8 +132,8 @@ public class BufferList {
     public static boolean syncHotlist() {
         if (relay == null || !relay.state.contains(Connection.STATE.CONNECTED))
             return false;
-        connection.sendMessage("last_read_lines", "hdata", "buffer:gui_buffers(*)/own_lines/last_read_line/data buffer");
-        connection.sendMessage("hotlist", "hdata", "hotlist:gui_hotlist(*) buffer,count");
+        relay.connection.sendMessage("last_read_lines", "hdata", "buffer:gui_buffers(*)/own_lines/last_read_line/data buffer");
+        relay.connection.sendMessage("hotlist", "hdata", "hotlist:gui_hotlist(*) buffer,count");
         return true;
     }
 
@@ -218,7 +223,7 @@ public class BufferList {
      ** practically notifying is only needed when pressing volume up/dn keys,
      ** which means we are not in the preferences window and the activity will not
      ** get re-rendered */
-    synchronized static void notifyOpenBuffersMustBeProcessed(boolean notify) {
+    synchronized public static void notifyOpenBuffersMustBeProcessed(boolean notify) {
         for (Buffer buffer : buffers)
             if (buffer.isOpen) {
                 buffer.forceProcessAllMessages();
@@ -250,14 +255,14 @@ public class BufferList {
 
     public static void requestLinesForBufferByPointer(long pointer) {
         if (DEBUG_SYNCING) logger.warn("requestLinesForBufferByPointer({})", pointer);
-        connection.sendMessage("listlines_reverse", "hdata", String.format(Locale.ROOT,
+        relay.connection.sendMessage("listlines_reverse", "hdata", String.format(Locale.ROOT,
                 "buffer:0x%x/own_lines/last_line(-%d)/data date,displayed,prefix,message,highlight,notify,tags_array",
                 pointer, Buffer.MAX_LINES));
     }
 
     public static void requestNicklistForBufferByPointer(long  pointer) {
         if (DEBUG_SYNCING) logger.warn("requestNicklistForBufferByPointer({})", pointer);
-        connection.sendMessage(String.format("(nicklist) nicklist 0x%x", pointer));
+        relay.connection.sendMessage(String.format("(nicklist) nicklist 0x%x", pointer));
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -279,7 +284,7 @@ public class BufferList {
     }
 
     /** called when a new new hot message just arrived */
-    synchronized static void newHotLine(final @NonNull Buffer buffer, final @NonNull Buffer.Line line) {
+    synchronized static void newHotLine(final @NonNull Buffer buffer, final @NonNull Line line) {
         hotList.add(new String[]{buffer.fullName, line.getNotificationString()});
         if (processHotCountAndTellIfChanged())
             notifyHotCountChanged(true);
@@ -512,7 +517,7 @@ public class BufferList {
                 String[] tags = (tagsobj != null && tagsobj.getType() == RelayObject.WType.ARR) ?
                         tagsobj.asArray().asStringArray() : null;
 
-                Buffer.Line line = new Buffer.Line(entry.getPointerLong(), time, prefix, message, displayed, highlight, tags);
+                Line line = new Line(entry.getPointerLong(), time, prefix, message, displayed, highlight, tags);
                 buffer.addLine(line, isBottom);
 
             }
@@ -618,14 +623,14 @@ public class BufferList {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    synchronized static @Nullable String getSerializedSaveData(boolean saveLRL) {
+    synchronized public static @Nullable String getSerializedSaveData(boolean saveLRL) {
         if (DEBUG_SAVE_RESTORE) logger.warn("getSerializedSaveData() -> ...");
         if (buffers != null) for (Buffer buffer : buffers) saveLastReadLine(buffer);
         return Utils.serialize(new Object[] {saveLRL ? syncedBuffersFullNames : null, bufferToLastReadLine, sentMessages});
     }
 
     @SuppressWarnings("unchecked")
-    synchronized static void setSaveDataFromString(@Nullable String data) {
+    synchronized public static void setSaveDataFromString(@Nullable String data) {
         if (DEBUG_SAVE_RESTORE) logger.warn("setSaveDataFromString(...)");
         Object o = Utils.deserialize(data);
         if (!(o instanceof Object[])) return;

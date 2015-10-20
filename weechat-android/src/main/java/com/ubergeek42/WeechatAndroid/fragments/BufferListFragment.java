@@ -22,9 +22,9 @@ import android.widget.RelativeLayout;
 import com.ubergeek42.WeechatAndroid.adapters.BufferListAdapter;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
-import com.ubergeek42.WeechatAndroid.service.Buffer;
-import com.ubergeek42.WeechatAndroid.service.BufferList;
-import com.ubergeek42.WeechatAndroid.service.BufferListEye;
+import com.ubergeek42.WeechatAndroid.relay.Buffer;
+import com.ubergeek42.WeechatAndroid.relay.BufferList;
+import com.ubergeek42.WeechatAndroid.relay.BufferListEye;
 import com.ubergeek42.WeechatAndroid.service.Events;
 
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
@@ -124,7 +124,8 @@ public class BufferListFragment extends ListFragment implements
         adapter = new BufferListAdapter(activity);
         BufferList.setBufferListEye(this);
         activity.runOnUiThread(new Runnable() {
-            @Override public void run() {
+            @Override
+            public void run() {
                 setListAdapter(adapter);
             }
         });

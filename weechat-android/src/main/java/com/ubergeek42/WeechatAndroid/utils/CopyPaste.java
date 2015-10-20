@@ -15,8 +15,8 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.ubergeek42.WeechatAndroid.R;
-import com.ubergeek42.WeechatAndroid.service.Buffer;
-import com.ubergeek42.WeechatAndroid.service.BufferList;
+import com.ubergeek42.WeechatAndroid.relay.BufferList;
+import com.ubergeek42.WeechatAndroid.relay.Line;
 
 import java.util.ArrayList;
 
@@ -97,7 +97,7 @@ public class CopyPaste implements EditText.OnLongClickListener, AdapterView.OnIt
         TextView uiTextView = (TextView) view.findViewById(R.id.chatline_message);
         if (uiTextView == null) return false;
 
-        Buffer.Line line = (Buffer.Line) uiTextView.getTag();
+        Line line = (Line) uiTextView.getTag();
         final ArrayList<String> list = new ArrayList<>();
 
         list.add(line.getNotificationString());

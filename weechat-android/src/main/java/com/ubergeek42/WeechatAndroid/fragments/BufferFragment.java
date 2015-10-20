@@ -29,9 +29,10 @@ import android.widget.Toast;
 import com.ubergeek42.WeechatAndroid.adapters.ChatLinesAdapter;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
-import com.ubergeek42.WeechatAndroid.service.Buffer;
-import com.ubergeek42.WeechatAndroid.service.BufferEye;
-import com.ubergeek42.WeechatAndroid.service.BufferList;
+import com.ubergeek42.WeechatAndroid.relay.Buffer;
+import com.ubergeek42.WeechatAndroid.relay.BufferEye;
+import com.ubergeek42.WeechatAndroid.relay.BufferList;
+import com.ubergeek42.WeechatAndroid.relay.Line;
 import com.ubergeek42.WeechatAndroid.utils.CopyPaste;
 import com.ubergeek42.weechat.ColorScheme;
 
@@ -342,13 +343,13 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
                     if (privates > 0) {
                         int p = 0;
                         for (idx = count - 1; idx >= 0; idx--) {
-                            Buffer.Line line = (Buffer.Line) linesAdapter.getItem(idx);
-                            if (line.type == Buffer.Line.LINE_MESSAGE && ++p == privates) break;
+                            Line line = (Line) linesAdapter.getItem(idx);
+                            if (line.type == Line.LINE_MESSAGE && ++p == privates) break;
                         }
                     } else if (highlights > 0) {
                         int h = 0;
                         for (idx = count - 1; idx >= 0; idx--) {
-                            Buffer.Line line = (Buffer.Line) linesAdapter.getItem(idx);
+                            Line line = (Line) linesAdapter.getItem(idx);
                             if (line.highlighted && ++h == highlights) break;
                         }
                     }

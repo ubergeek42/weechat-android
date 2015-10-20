@@ -4,7 +4,6 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Paint;
 import android.graphics.Typeface;
@@ -13,7 +12,9 @@ import android.os.SystemClock;
 import android.support.v7.preference.ThemeManager;
 import android.text.TextUtils;
 
-import com.ubergeek42.WeechatAndroid.Manifest;
+import com.ubergeek42.WeechatAndroid.relay.Buffer;
+import com.ubergeek42.WeechatAndroid.relay.BufferList;
+import com.ubergeek42.WeechatAndroid.relay.Line;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.weechat.Color;
 import com.ubergeek42.weechat.relay.connection.Connection;
@@ -67,9 +68,9 @@ public class RelayService extends RelayServiceBackbone implements SharedPreferen
         Buffer.FILTER_LINES = prefs.getBoolean(PREF_FILTER_LINES, PREF_FILTER_LINES_D);
 
         // buffer line-wide preferences
-        Buffer.Line.MAX_WIDTH = Integer.parseInt(prefs.getString(PREF_MAX_WIDTH, PREF_MAX_WIDTH_D));
-        Buffer.Line.ENCLOSE_NICK = prefs.getBoolean(PREF_ENCLOSE_NICK, PREF_ENCLOSE_NICK_D);
-        Buffer.Line.DIM_DOWN_NON_HUMAN_LINES = prefs.getBoolean(PREF_DIM_DOWN, PREF_DIM_DOWN_D);
+        Line.MAX_WIDTH = Integer.parseInt(prefs.getString(PREF_MAX_WIDTH, PREF_MAX_WIDTH_D));
+        Line.ENCLOSE_NICK = prefs.getBoolean(PREF_ENCLOSE_NICK, PREF_ENCLOSE_NICK_D);
+        Line.DIM_DOWN_NON_HUMAN_LINES = prefs.getBoolean(PREF_DIM_DOWN, PREF_DIM_DOWN_D);
         setTimestampFormat();
         setAlignment();
         setTextSizeAndLetterWidth();
@@ -183,10 +184,10 @@ public class RelayService extends RelayServiceBackbone implements SharedPreferen
 
             // chat lines-wide preferences
         } else if (key.equals(PREF_MAX_WIDTH)) {
-            Buffer.Line.MAX_WIDTH = Integer.parseInt(prefs.getString(key, PREF_MAX_WIDTH_D));
+            Line.MAX_WIDTH = Integer.parseInt(prefs.getString(key, PREF_MAX_WIDTH_D));
             BufferList.notifyOpenBuffersMustBeProcessed(false);
         } else if (key.equals(PREF_DIM_DOWN)) {
-            Buffer.Line.DIM_DOWN_NON_HUMAN_LINES = prefs.getBoolean(key, PREF_DIM_DOWN_D);
+            Line.DIM_DOWN_NON_HUMAN_LINES = prefs.getBoolean(key, PREF_DIM_DOWN_D);
             BufferList.notifyOpenBuffersMustBeProcessed(true);
         } else if (key.equals(PREF_TIMESTAMP_FORMAT)) {
             setTimestampFormat();
@@ -195,7 +196,7 @@ public class RelayService extends RelayServiceBackbone implements SharedPreferen
             setAlignment();
             BufferList.notifyOpenBuffersMustBeProcessed(false);
         } else if (key.equals(PREF_ENCLOSE_NICK)) {
-            Buffer.Line.ENCLOSE_NICK = prefs.getBoolean(key, PREF_ENCLOSE_NICK_D);
+            Line.ENCLOSE_NICK = prefs.getBoolean(key, PREF_ENCLOSE_NICK_D);
             BufferList.notifyOpenBuffersMustBeProcessed(false);
         } else if (key.equals(PREF_TEXT_SIZE)) {
             setTextSizeAndLetterWidth();
@@ -211,19 +212,19 @@ public class RelayService extends RelayServiceBackbone implements SharedPreferen
 
     private void setTimestampFormat() {
         String timeformat = prefs.getString(PREF_TIMESTAMP_FORMAT, PREF_TIMESTAMP_FORMAT_D);
-        Buffer.Line.DATEFORMAT = (timeformat.equals("")) ? null : new SimpleDateFormat(timeformat);
+        Line.DATEFORMAT = (timeformat.equals("")) ? null : new SimpleDateFormat(timeformat);
     }
 
     private void setAlignment() {
         String alignment = prefs.getString(PREF_PREFIX_ALIGN, PREF_PREFIX_ALIGN_D);
-        if (alignment.equals("right")) Buffer.Line.ALIGN = Color.ALIGN_RIGHT;
-        else if (alignment.equals("left")) Buffer.Line.ALIGN = Color.ALIGN_LEFT;
-        else if (alignment.equals("timestamp")) Buffer.Line.ALIGN = Color.ALIGN_TIMESTAMP;
-        else Buffer.Line.ALIGN = Color.ALIGN_NONE;
+        if (alignment.equals("right")) Line.ALIGN = Color.ALIGN_RIGHT;
+        else if (alignment.equals("left")) Line.ALIGN = Color.ALIGN_LEFT;
+        else if (alignment.equals("timestamp")) Line.ALIGN = Color.ALIGN_TIMESTAMP;
+        else Line.ALIGN = Color.ALIGN_NONE;
     }
 
     private void setTextSizeAndLetterWidth() {
-        Buffer.Line.TEXT_SIZE = Float.parseFloat(prefs.getString(PREF_TEXT_SIZE, PREF_TEXT_SIZE_D));
+        Line.TEXT_SIZE = Float.parseFloat(prefs.getString(PREF_TEXT_SIZE, PREF_TEXT_SIZE_D));
         Paint p = new Paint();
         String fontPath = prefs.getString(PREF_BUFFER_FONT, PREF_BUFFER_FONT_D);
         if (!TextUtils.isEmpty(fontPath)) {
@@ -237,7 +238,7 @@ public class RelayService extends RelayServiceBackbone implements SharedPreferen
         } else {
             p.setTypeface(Typeface.MONOSPACE);
         }
-        p.setTextSize(Buffer.Line.TEXT_SIZE * getResources().getDisplayMetrics().scaledDensity);
-        Buffer.Line.LETTER_WIDTH = (p.measureText("m"));
+        p.setTextSize(Line.TEXT_SIZE * getResources().getDisplayMetrics().scaledDensity);
+        Line.LETTER_WIDTH = (p.measureText("m"));
     }
 }
