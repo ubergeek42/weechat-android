@@ -13,7 +13,7 @@ import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.weechat.relay.RelayMessageHandler;
-import com.ubergeek42.weechat.relay.connection.Connection;
+import com.ubergeek42.WeechatAndroid.service.RelayService.STATE;
 import com.ubergeek42.weechat.relay.protocol.Array;
 import com.ubergeek42.weechat.relay.protocol.Hashtable;
 import com.ubergeek42.weechat.relay.protocol.Hdata;
@@ -59,11 +59,11 @@ public class BufferList {
      ** receives from the server */
     static private @NonNull LinkedHashMap<String, BufferHotData> bufferToLastReadLine = new LinkedHashMap<>();
 
-    static RelayService relay;
-    private static BufferListEye buffersEye;
+    private static @Nullable RelayService relay;
+    private static @Nullable BufferListEye buffersEye;
 
     /** the mother variable. list of current buffers */
-    private static ArrayList<Buffer> buffers = new ArrayList<>();
+    private static @NonNull ArrayList<Buffer> buffers = new ArrayList<>();
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -71,7 +71,6 @@ public class BufferList {
 
     public static void launch(final RelayService relay) {
         BufferList.relay = relay;
-        buffers.clear();
 
         // handle buffer list changes
         // including initial hotlist
@@ -103,6 +102,7 @@ public class BufferList {
         // request a list of buffers current open, along with some information about them
         relay.connection.sendMessage("listbuffers", "hdata", "buffer:gui_buffers(*) number,full_name,short_name,type,title,nicklist,local_variables,notify");
         syncHotlist();
+        relay.connection.sendMessage(P.optimizeTraffic ? "sync * buffers,upgrade" : "sync");
     }
 
     public static void stop() {
@@ -125,7 +125,7 @@ public class BufferList {
 
     /** send synchronization data to weechat and return true. if not connected, return false. */
     public static boolean syncHotlist() {
-        if (relay == null || !relay.state.contains(Connection.STATE.CONNECTED))
+        if (relay == null || !relay.state.contains(STATE.AUTHENTICATED))
             return false;
         relay.connection.sendMessage("last_read_lines", "hdata", "buffer:gui_buffers(*)/own_lines/last_read_line/data buffer");
         relay.connection.sendMessage("hotlist", "hdata", "hotlist:gui_hotlist(*) buffer,count");
@@ -239,25 +239,28 @@ public class BufferList {
     synchronized static void syncBuffer(String fullName) {
         if (DEBUG_SYNCING) logger.warn("syncBuffer({})", fullName);
         BufferList.syncedBuffersFullNames.add(fullName);
-        if (P.optimizeTraffic) relay.connection.sendMessage("sync " + fullName);
+        if (P.optimizeTraffic) sendMessage("sync " + fullName);
     }
 
     synchronized static void desyncBuffer(String fullName) {
         if (DEBUG_SYNCING) logger.warn("desyncBuffer({})", fullName);
         BufferList.syncedBuffersFullNames.remove(fullName);
-        if (P.optimizeTraffic) relay.connection.sendMessage("desync " + fullName);
+        if (P.optimizeTraffic) sendMessage("desync " + fullName);
     }
 
+    private final static String MEOW = "(listlines_reverse) hdata buffer:0x%x/own_lines/last_line(-%d)/data date,displayed,prefix,message,highlight,notify,tags_array";
     public static void requestLinesForBufferByPointer(long pointer) {
         if (DEBUG_SYNCING) logger.warn("requestLinesForBufferByPointer({})", pointer);
-        relay.connection.sendMessage("listlines_reverse", "hdata", String.format(Locale.ROOT,
-                "buffer:0x%x/own_lines/last_line(-%d)/data date,displayed,prefix,message,highlight,notify,tags_array",
-                pointer, Buffer.MAX_LINES));
+        sendMessage(String.format(Locale.ROOT, MEOW, pointer, Buffer.MAX_LINES));
     }
 
     public static void requestNicklistForBufferByPointer(long  pointer) {
         if (DEBUG_SYNCING) logger.warn("requestNicklistForBufferByPointer({})", pointer);
-        relay.connection.sendMessage(String.format("(nicklist) nicklist 0x%x", pointer));
+        sendMessage(String.format("(nicklist) nicklist 0x%x", pointer));
+    }
+
+    private static void sendMessage(String string) {
+        if (relay != null && relay.connection != null) relay.connection.sendMessage(string);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -323,9 +326,8 @@ public class BufferList {
 
     /** HELPER. notifies everyone interested of hotlist changes */
     static private void notifyHotCountChanged(boolean newHighlight) {
-        relay.notificator.showHot(newHighlight);
-        if (buffersEye != null)
-            buffersEye.onHotCountChanged();
+        if (relay != null) relay.notificator.showHot(newHighlight);
+        if (buffersEye != null) buffersEye.onHotCountChanged();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -368,6 +370,8 @@ public class BufferList {
         public void handleMessage(RelayObject obj, String id) {
             if (DEBUG_HANDLERS) logger.warn("handleMessage(..., {}) (hdata size = {})", id, ((Hdata) obj).getCount());
             Hdata data = (Hdata) obj;
+
+            if (id.equals("listbuffers")) buffers.clear();
 
             for (int i = 0, size = data.getCount(); i < size; i++) {
                 HdataEntry entry = data.getItem(i);
@@ -620,7 +624,7 @@ public class BufferList {
 
     synchronized public static @Nullable String getSerializedSaveData(boolean saveLRL) {
         if (DEBUG_SAVE_RESTORE) logger.warn("getSerializedSaveData() -> ...");
-        if (buffers != null) for (Buffer buffer : buffers) saveLastReadLine(buffer);
+        for (Buffer buffer : buffers) saveLastReadLine(buffer);
         return Utils.serialize(new Object[] {saveLRL ? syncedBuffersFullNames : null, bufferToLastReadLine, sentMessages});
     }
 

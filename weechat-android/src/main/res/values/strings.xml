@@ -44,8 +44,8 @@
     <string name="notification_update_settings_details">Click to edit your preferences and connect</string>
     <string name="notification_upgrading">Upgrading…</string>
     <string name="notification_upgrading_details">WeeChat is upgrading, please wait for reconnection</string>
-    <string name="notification_network_unavailable">Network unavailable</string>
-    <string name="notification_network_unavailable_details">Failed to connect, network unavailable</string>
+    <string name="notification_waiting_network">Waiting for network</string>
+    <string name="notification_waiting_network_details">Failed to connect, network unavailable</string>
 
     <!-- toasts -->
     <string name="autoscroll_no_line">Buffer lost some hot messages because of new lines</string>

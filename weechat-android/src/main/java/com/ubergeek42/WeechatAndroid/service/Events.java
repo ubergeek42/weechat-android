@@ -5,7 +5,7 @@
 
 package com.ubergeek42.WeechatAndroid.service;
 
-import com.ubergeek42.weechat.relay.connection.Connection;
+import com.ubergeek42.WeechatAndroid.service.RelayService.STATE;
 
 import java.util.EnumSet;
 
@@ -14,9 +14,9 @@ public class Events {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     public static class StateChangedEvent {
-        final public EnumSet<Connection.STATE> state;
+        final public EnumSet<STATE> state;
 
-        public StateChangedEvent(EnumSet<Connection.STATE> state) {
+        public StateChangedEvent(EnumSet<STATE> state) {
             this.state = state;
         }
 
@@ -38,23 +38,6 @@ public class Events {
             return ExceptionEvent.class.getSimpleName() + ": e = " + e.getClass().getSimpleName();
         }
     }
-
-//
-//    ////////////////////////////////////////////////////////////////////////////////////////////////
-//
-//    public static class MessageEvent {
-//        final public String id;
-//        final public RelayObject object;
-//
-//        public MessageEvent(String id, RelayObject object) {
-//            this.id = id;
-//            this.object = object;
-//        }
-//
-//        @Override public String toString() {
-//            return MessageEvent.class.getSimpleName() + ": id = " + id;
-//        }
-//    }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 

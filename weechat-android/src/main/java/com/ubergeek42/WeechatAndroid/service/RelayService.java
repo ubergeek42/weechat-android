@@ -15,24 +15,19 @@
  ******************************************************************************/
 package com.ubergeek42.WeechatAndroid.service;
 
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
-import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 
 import com.ubergeek42.WeechatAndroid.R;
-import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.weechat.relay.RelayConnection;
 import com.ubergeek42.weechat.relay.RelayMessage;
 import com.ubergeek42.weechat.relay.connection.AbstractConnection.StreamClosed;
 import com.ubergeek42.weechat.relay.connection.Connection;
-import com.ubergeek42.weechat.relay.connection.Connection.STATE;
 import com.ubergeek42.weechat.relay.connection.PlainConnection;
 import com.ubergeek42.weechat.relay.connection.SSHConnection;
 import com.ubergeek42.weechat.relay.connection.SSLConnection;
@@ -57,8 +52,6 @@ public class RelayService extends Service implements Connection.Observer {
 
     public Notificator notificator;
     public RelayConnection connection;
-    protected SharedPreferences prefs;
-
     private Connectivity connectivity;
     private PingActionReceiver ping;
     private Handler thandler;               // thread "doge" used for connecting/disconnecting
@@ -74,7 +67,6 @@ public class RelayService extends Service implements Connection.Observer {
 
         P.init(getApplicationContext());
 
-        prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         notificator = new Notificator(this);
 
         // prepare handler that will run on a separate thread
@@ -82,7 +74,7 @@ public class RelayService extends Service implements Connection.Observer {
         handlerThread.start();
         thandler = new Handler(handlerThread.getLooper());
 
-        notificator.showMain(null, "Tap to connect", null);
+        notificator.showMain(null, "Starting...", null);
 
         connectivity = new Connectivity();
         connectivity.register(this);
@@ -94,8 +86,6 @@ public class RelayService extends Service implements Connection.Observer {
     @Override
     public void onDestroy() {
         if (DEBUG) logger.debug("onDestroy()");
-        prefs.edit().remove(PREF_MUST_STAY_DISCONNECTED).apply(); // forget current connection status
-        //notificationManger.cancelAll();
         connectivity.unregister();
         super.onDestroy();
         EventBus.getDefault().unregister(this);
@@ -111,7 +101,6 @@ public class RelayService extends Service implements Connection.Observer {
         connection.sendMessage(event.message);
     }
 
-    private boolean started = false;
     final public static String ACTION_START = "com.ubergeek42.WeechatAndroid.START";
     final public static String ACTION_STOP = "com.ubergeek42.WeechatAndroid.STOP";
 
@@ -122,15 +111,13 @@ public class RelayService extends Service implements Connection.Observer {
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (DEBUG_CONNECTION) logger.debug("onStartCommand({}, {}, {})", intent, flags, startId);
         if (intent == null || ACTION_START.equals(intent.getAction())) {
-            if (!started) {
-                //started = true;
+            if (state.contains(STATE.STOPPED)) {
                 P.loadConnectionPreferences();
-                startThreadedConnectLoop();
+                start();
             }
         } else if (ACTION_STOP.equals(intent.getAction())) {
-            if (started) {
-                //started = false;
-                startThreadedDisconnect();
+            if (!state.contains(STATE.STOPPED)) {
+                stop();
             }
         }
         return START_STICKY;
@@ -140,23 +127,19 @@ public class RelayService extends Service implements Connection.Observer {
     //////////////////////////////////////////////////////////////////////////////////////////////// connect/disconnect
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    /** only auto-connect if auto-connect is on ON in the prefs and
-     ** the user did not disconnect by tapping disconnect in menu */
-    public boolean mustAutoConnect() {
-         return P.reconnect && !prefs.getBoolean(PREF_MUST_STAY_DISCONNECTED, false);
-    }
-
     private static final long WAIT_BEFORE_WAIT_MESSAGE_DELAY = 5;
     private static final long DELAYS[] = new long[] {5, 15, 30, 60, 120, 300, 600, 900};
 
-    public void startThreadedConnectLoop() {
-        if (DEBUG_CONNECTION) logger.debug("startThreadedConnectLoop()");
-        if (started) {
-            logger.error("startThreadedConnectLoop() run while started = true");
+    public void start() {
+        if (DEBUG_CONNECTION) logger.debug("start()");
+        if (!state.contains(STATE.STOPPED) && !waitingForNetwork) {
+            logger.warn("start() run while state != STATE.STOPPED");
             return;
         }
-        started = true;
-        prefs.edit().putBoolean(PREF_MUST_STAY_DISCONNECTED, false).apply();
+
+        state = EnumSet.of(STATE.STARTED);
+        EventBus.getDefault().postSticky(new StateChangedEvent(state));
+
         thandler.removeCallbacksAndMessages(null);
         thandler.post(new Runnable() {
             int reconnects = 0;
@@ -166,11 +149,9 @@ public class RelayService extends Service implements Connection.Observer {
             final String contentNow = getString(R.string.notification_connecting_details_now);
 
             Runnable connectRunner = new Runnable() {
-                @Override
-                public void run() {
+                @Override public void run() {
                     if (state.contains(STATE.AUTHENTICATED)) return;
-                    if (DEBUG_CONNECTION) logger.debug("startThreadedConnectLoop(): not connected; connecting now");
-                    //connectionStatus = CONNECTING; TODO???
+                    if (DEBUG_CONNECTION) logger.debug("start(): not connected; connecting now");
                     notificator.showMain(String.format(ticker, P.host), contentNow, null);
                     if (connect() == TRY.POSSIBLE)
                         thandler.postDelayed(notifyRunner, WAIT_BEFORE_WAIT_MESSAGE_DELAY * 1000);
@@ -178,51 +159,47 @@ public class RelayService extends Service implements Connection.Observer {
             };
 
             Runnable notifyRunner = new Runnable() {
-                @Override
-                public void run() {
+                @Override public void run() {
                     if (state.contains(STATE.AUTHENTICATED)) return;
                     long delay = DELAYS[reconnects < DELAYS.length ? reconnects : DELAYS.length - 1];
-                    if (DEBUG_CONNECTION) logger.debug("startThreadedConnectLoop(): waiting {} seconds", delay);
+                    if (DEBUG_CONNECTION) logger.debug("start(): waiting {} seconds", delay);
                     notificator.showMain(String.format(ticker, P.host), String.format(content, delay), null);
                     reconnects++;
                     thandler.postDelayed(connectRunner, delay * 1000);
                 }
             };
 
-            @Override
-            public void run() {
+            @Override public void run() {
                 connectRunner.run();
             }
         });
     }
 
-    // do the actual shutdown on a separate thread (to avoid NetworkOnMainThreadException on Android 3.0+)
-    // remember that we are down lest we are reconnected when application
-    // kills the service and restores it back later
-    public void startThreadedDisconnect(boolean mustStayDisconnected) {
-        if (DEBUG_CONNECTION) logger.debug("startThreadedDisconnect()");
-        if (!started) {
-            logger.error("startThreadedDisconnect() run while started = false");
+    public void stop() {
+        if (DEBUG_CONNECTION) logger.debug("stop()");
+        if (state.contains(STATE.STOPPED)) {
+            logger.error("stop() run while state == STATE.STOPPED");
             return;
         }
-        started = false;
-        prefs.edit().putBoolean(PREF_MUST_STAY_DISCONNECTED, mustStayDisconnected).apply();
+
+        if (state.contains(STATE.AUTHENTICATED)) goodbye();
+
+        state = EnumSet.of(STATE.STOPPED);
+        EventBus.getDefault().postSticky(new StateChangedEvent(state));
+
         thandler.removeCallbacksAndMessages(null);
         thandler.post(new Runnable() {
-            @Override
-            public void run() {
-                connection.disconnect();
-                notificator.showMain(getString(R.string.notification_disconnected), null);
+            @Override public void run() {
+                if (connection != null) connection.disconnect();
             }
         });
-    }
 
-    public void startThreadedDisconnect() {
-        startThreadedDisconnect(true);
+        stopSelf();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
+    private boolean waitingForNetwork = false;
 
     private enum TRY {POSSIBLE, IMPOSSIBLE}
 
@@ -232,10 +209,9 @@ public class RelayService extends Service implements Connection.Observer {
         if (connection != null)
             connection.disconnect();
 
-        if (!connectivity.isNetworkAvailable()) {
-            Intent intent = new Intent(this, WeechatActivity.class);
-            PendingIntent contentIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
-            notificator.showMain(getString(R.string.notification_network_unavailable_details), getString(R.string.notification_network_unavailable), contentIntent);
+        waitingForNetwork = !connectivity.isNetworkAvailable();
+        if (waitingForNetwork) {
+            notificator.showMain(getString(R.string.notification_waiting_network_details), null);
             return TRY.IMPOSSIBLE;
         }
 
@@ -263,42 +239,53 @@ public class RelayService extends Service implements Connection.Observer {
     //////////////////////////////////////////////////////////////////////////////////////////////// callbacks
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public EnumSet<STATE> state = EnumSet.of(STATE.UNKNOWN);
-
-    @Override public void onStateChanged(STATE state) {
-        logger.debug("onStateChanged({})", state);
-        switch (state) {
-            case CONNECTING:
-            case CONNECTED:
-                this.state = EnumSet.of(state);
-                break;
-            case AUTHENTICATED:
-                this.state = EnumSet.of(STATE.CONNECTED, STATE.AUTHENTICATED);
-                notificator.showMain(getString(R.string.notification_connected_to) + P.host, null);
-
-                P.restoreStuff();
-                ping.scheduleFirstPing();
-                BufferList.launch(this);
-                SyncAlarmReceiver.start(this); // schedule synchronizations once 5 minutes todo shut it down?
-                connection.sendMessage(P.optimizeTraffic ? "sync * buffers,upgrade" : "sync");
-                break;
-            case BUFFERS_LISTED:
-                this.state = EnumSet.of(STATE.CONNECTED, STATE.AUTHENTICATED, STATE.BUFFERS_LISTED);
-                break;
-            case DISCONNECTED:
-                boolean weWereAuthenticated = this.state.contains(STATE.AUTHENTICATED);
-                this.state = EnumSet.of(state);
-                if (weWereAuthenticated && started) startThreadedConnectLoop();
-                //else notificator.showMain(getString(R.string.notification_disconnected), null);
-
-                BufferList.stop();
-                ping.unschedulePing();
-                P.saveStuff();
-                break;
-        }
-        EventBus.getDefault().postSticky(new StateChangedEvent(this.state));
+    public enum STATE {
+        STOPPED,
+        STARTED,
+        AUTHENTICATED,
+        LISTED,
     }
 
+    public EnumSet<STATE> state = EnumSet.of(STATE.STOPPED);
+
+    @Override public void onStateChanged(Connection.STATE s) {
+        logger.debug("onStateChanged({})", s);
+        switch (s) {
+            case CONNECTING:
+            case CONNECTED:
+                return;
+            case AUTHENTICATED:
+                state = EnumSet.of(STATE.STARTED, STATE.AUTHENTICATED);
+                notificator.showMain(getString(R.string.notification_connected_to) + P.host, null);
+                hello();
+                break;
+            case BUFFERS_LISTED:
+                state = EnumSet.of(STATE.STARTED, STATE.AUTHENTICATED, STATE.LISTED);
+                break;
+            case DISCONNECTED:
+                if (state.contains(STATE.STOPPED)) return;
+                if (!state.contains(STATE.AUTHENTICATED)) return; // continue connecting
+                state = EnumSet.of(STATE.STOPPED);
+                goodbye();
+                if (P.reconnect) start();
+                else stopSelf();
+        }
+        EventBus.getDefault().postSticky(new StateChangedEvent(state));
+    }
+
+    private void hello() {
+        P.restoreStuff();
+        ping.scheduleFirstPing();
+        BufferList.launch(this);
+        SyncAlarmReceiver.start(this);
+    }
+
+    private void goodbye() {
+        SyncAlarmReceiver.stop(this);
+        BufferList.stop();
+        ping.unschedulePing();
+        P.saveStuff();
+    }
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     public static class AuthenticationException extends Exception {

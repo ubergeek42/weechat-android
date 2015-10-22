@@ -20,6 +20,10 @@ public class SyncAlarmReceiver extends BroadcastReceiver {
         am.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + SYNC_EVERY_MS, SYNC_EVERY_MS, pi);
     }
 
+    public static void stop(Context context) {
+        // todo
+    }
+
     @Override public void onReceive(Context context, Intent intent) {
         if (!BufferList.syncHotlist())
             ((AlarmManager) context.getSystemService(Context.ALARM_SERVICE)).

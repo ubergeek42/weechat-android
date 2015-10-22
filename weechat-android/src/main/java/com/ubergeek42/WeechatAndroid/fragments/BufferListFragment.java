@@ -28,7 +28,7 @@ import com.ubergeek42.WeechatAndroid.relay.BufferListEye;
 import com.ubergeek42.WeechatAndroid.service.Events;
 
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
-import static com.ubergeek42.weechat.relay.connection.Connection.STATE.*;
+import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.*;
 
 import de.greenrobot.event.EventBus;
 
@@ -115,7 +115,7 @@ public class BufferListFragment extends ListFragment implements
     @SuppressWarnings("unused")
     public void onEvent(Events.StateChangedEvent event) {
         logger.debug("onEvent({})", event);
-        if (event.state.contains(BUFFERS_LISTED)) attachToBufferList();
+        if (event.state.contains(LISTED)) attachToBufferList();
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////// the juice
@@ -201,5 +201,9 @@ public class BufferListFragment extends ListFragment implements
     @Override
     public void onClick(View v) {
         uiFilter.setText(null);
+    }
+
+    @Override public String toString() {
+        return "BL";
     }
 }

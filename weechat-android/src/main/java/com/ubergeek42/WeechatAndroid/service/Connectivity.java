@@ -15,7 +15,6 @@ import android.net.NetworkInfo;
 public class Connectivity extends BroadcastReceiver {
     private RelayService bone;
     private ConnectivityManager manager;
-    private boolean networkAvailable = true;
 
     public void register(RelayService bone) {
         this.bone = bone;
@@ -34,11 +33,11 @@ public class Connectivity extends BroadcastReceiver {
 
     public boolean isNetworkAvailable() {
         NetworkInfo networkInfo = manager.getActiveNetworkInfo();
-        return networkAvailable = (networkInfo != null && networkInfo.isConnected());
+        return (networkInfo != null && networkInfo.isConnected());
     }
 
     @Override public void onReceive(Context context, Intent intent) {
-        if (!networkAvailable && isNetworkAvailable() && bone.mustAutoConnect())
-            bone.startThreadedConnectLoop();
+        if (isNetworkAvailable() && P.reconnect) //todo
+            bone.start();
     }
 }

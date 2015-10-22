@@ -3,6 +3,7 @@ package com.ubergeek42.WeechatAndroid.fragments;
 import java.util.Vector;
 
 import android.annotation.SuppressLint;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +39,7 @@ import com.ubergeek42.weechat.ColorScheme;
 
 import static com.ubergeek42.WeechatAndroid.service.Events.*;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
-import static com.ubergeek42.weechat.relay.connection.Connection.STATE.*;
+import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.*;
 
 import de.greenrobot.event.EventBus;
 
@@ -96,7 +97,6 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     public void onCreate(Bundle savedInstanceState) {
         if (DEBUG_LIFECYCLE) logger.warn("onCreate()");
         super.onCreate(savedInstanceState);
-        setRetainInstance(true);
         shortName = fullName = getArguments().getString(TAG);
         prefs = PreferenceManager.getDefaultSharedPreferences(activity.getBaseContext());
     }
@@ -124,6 +124,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         uiInput.setOnLongClickListener(cp);
         uiLines.setOnItemLongClickListener(cp);
 
+        online = true;
         return v;
     }
 
@@ -133,7 +134,8 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         super.onStart();
         started = true;
         uiLines.setBackgroundColor(0xFF000000 | ColorScheme.get().defaul[ColorScheme.OPT_BG]);
-        EventBus.getDefault().registerSticky(this);
+        EventBus.getDefault().register(this);
+        onEvent(EventBus.getDefault().getStickyEvent(StateChangedEvent.class)); // make sure to send null if service is stopped
     }
 
     @Override
@@ -224,32 +226,34 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         maybeChangeVisibilityState();
     }
 
-    //////////////////////////////////////////////////////////////////////////////////////////////// RelayConnectionHandler stuff
+    //////////////////////////////////////////////////////////////////////////////////////////////// events
 
+    private boolean online = true;
+
+    // todo move to thread?
     @SuppressWarnings("unused")
-    public void onEvent(StateChangedEvent event) {
+    public void onEvent(@Nullable StateChangedEvent event) {
         logger.debug("onEvent({})", event);
-        if (event.state.contains(BUFFERS_LISTED)) {
-            initUI(true);
-            attachToBufferOrClose();
-        } else {
-            initUI(false);
+        boolean online = event != null && event.state.contains(LISTED);
+        if (buffer == null || online) {
+            buffer = BufferList.findByFullName(fullName);
+            if (online && buffer == null) {
+                onBufferClosed();
+                return;
+            }
+            if (buffer != null) attachToBuffer();
+            else logger.error("...buffer is null");
         }
+        if (this.online != online) initUI(this.online = online);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// the juice
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private void attachToBufferOrClose() {
-        logger.warn("attachToBufferOrClose()");
+    private void attachToBuffer() {
+        logger.warn("attachToBuffer()");
 
-        buffer = BufferList.findByFullName(fullName);
-        if (buffer == null) {
-            // the buffer must've been closed in weechat. if so, close here as well
-            onBufferClosed();
-            return;
-        }
         shortName = buffer.shortName;
         buffer.setBufferEye(this);
 

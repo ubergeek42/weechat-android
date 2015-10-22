@@ -1,8 +1,6 @@
 package com.ubergeek42.WeechatAndroid.utils;
 
 public class Constants {
-    public static final String PREF_NAME = "kittens!";
-    final static public String PREF_MUST_STAY_DISCONNECTED = "wow!";
 
     // connection type
     final static public String PREF_CONNECTION_GROUP = "connection_group";

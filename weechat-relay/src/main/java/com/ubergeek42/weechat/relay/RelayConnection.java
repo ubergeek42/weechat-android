@@ -53,12 +53,7 @@ public class RelayConnection implements Connection, Connection.Observer {
         this.observer = observer;
     }
 
-    public boolean isAlive() {
-        return connection.getState() == STATE.CONNECTING || connection.getState() == STATE.CONNECTED;
-    }
-
-    @Override
-    public STATE getState() {
+    @Override public STATE getState() {
         return null;
     }
 

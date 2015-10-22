@@ -91,6 +91,9 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     public static SSLContext sslContext;
     public static boolean reconnect;
 
+    public static boolean pingEnabled;
+    public static long pingIdleTime, pingTimeout;
+
     public static void loadConnectionPreferences() {
         host = p.getString(PREF_HOST, PREF_HOST_D);
         pass = p.getString(PREF_PASSWORD, PREF_PASSWORD_D);
@@ -104,6 +107,10 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         sshKeyfile = p.getString(PREF_SSH_KEYFILE, PREF_SSH_KEYFILE_D);
 
         reconnect = p.getBoolean(PREF_RECONNECT, PREF_RECONNECT_D);
+
+        pingEnabled = p.getBoolean(PREF_PING_ENABLED, PREF_PING_ENABLED_D);
+        pingIdleTime = Integer.parseInt(p.getString(PREF_PING_IDLE, PREF_PING_IDLE_D)) * 1000;
+        pingTimeout = Integer.parseInt(p.getString(PREF_PING_TIMEOUT, PREF_PING_TIMEOUT_D)) * 1000;
 
         if (Utils.isAnyOf(connectionType, PREF_TYPE_SSL, PREF_TYPE_WEBSOCKET_SSL)) {
             sslContext = SSLHandler.getInstance(context).getSSLContext();

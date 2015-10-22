@@ -67,11 +67,11 @@ import com.ubergeek42.WeechatAndroid.utils.MyMenuItemStuffListener;
 import com.ubergeek42.WeechatAndroid.utils.ToolbarController;
 import com.ubergeek42.WeechatAndroid.utils.UntrustedCertificateDialog;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
-import com.ubergeek42.weechat.relay.connection.Connection;
+import com.ubergeek42.WeechatAndroid.service.RelayService.STATE;
 
 import static com.ubergeek42.WeechatAndroid.service.Events.*;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
-import static com.ubergeek42.weechat.relay.connection.Connection.STATE.*;
+import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.*;
 
 import de.greenrobot.event.EventBus;
 
@@ -80,7 +80,7 @@ public class WeechatActivity extends AppCompatActivity implements
 
     private static Logger logger = LoggerFactory.getLogger("WA");
     final private static boolean DEBUG_OPTIONS_MENU = false;
-    final private static boolean DEBUG_LIFECYCLE = false;
+    final private static boolean DEBUG_LIFECYCLE = true;
     final private static boolean DEBUG_CONNECTION = false;
     final private static boolean DEBUG_INTENT = false;
     final private static boolean DEBUG_BUFFERS = false;
@@ -110,9 +110,7 @@ public class WeechatActivity extends AppCompatActivity implements
     public void onCreate(@Nullable Bundle savedInstanceState) {
         logger.debug("onCreate({})", savedInstanceState);
         super.onCreate(savedInstanceState);
-
-        // start background service (if necessary)
-        startService(new Intent(this, RelayService.class));
+        P.init(getApplicationContext());
 
         // load layout
         setContentView(R.layout.main_screen);
@@ -144,7 +142,7 @@ public class WeechatActivity extends AppCompatActivity implements
         uiInfo = (ImageView) findViewById(R.id.kitty);
         uiInfo.setOnClickListener(new OnClickListener() {
             @Override public void onClick(View v) {
-                if (state.contains(CONNECTING) || state.contains(CONNECTED)) disconnect();
+                if (state.contains(STARTED)) disconnect();
                 else connect();
             }
         });
@@ -196,7 +194,6 @@ public class WeechatActivity extends AppCompatActivity implements
     }
 
     public void connect() {
-
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         String host = prefs.getString(PREF_HOST, PREF_HOST_D);
         String pass = prefs.getString(PREF_PASSWORD, PREF_PASSWORD_D);
@@ -223,6 +220,7 @@ public class WeechatActivity extends AppCompatActivity implements
     @Override protected void onStart() {
         if (DEBUG_LIFECYCLE) logger.debug("onStart()");
         super.onStart();
+        P.restoreStuff();
         EventBus.getDefault().register(this);
 
         // the lines below used to run in onServiceConnected()
@@ -243,6 +241,7 @@ public class WeechatActivity extends AppCompatActivity implements
     @Override protected void onStop() {
         if (DEBUG_LIFECYCLE) logger.debug("onStop()");
         EventBus.getDefault().unregister(this);
+        P.saveStuff();
         super.onStop();
     }
 
@@ -269,13 +268,14 @@ public class WeechatActivity extends AppCompatActivity implements
     //////////////////////////////////////////////////////////////////////////////////////////////// ?
 
     private void adjustUI() {
+        logger.debug("adjustUI()");
         int image = R.drawable.ic_big_connecting;
-        if (state.contains(UNKNOWN) || state.contains(DISCONNECTED)) image = R.drawable.ic_big_disconnected;
+        if (state.contains(STOPPED)) image = R.drawable.ic_big_disconnected;
         else if (state.contains(AUTHENTICATED)) image = R.drawable.ic_big_connected;
         setInfoImage(image);
 
         if (slidy) {
-            if (state.contains(BUFFERS_LISTED)) enableDrawer();
+            if (state.contains(LISTED)) enableDrawer();
             else disableDrawer();
         }
 
@@ -284,14 +284,14 @@ public class WeechatActivity extends AppCompatActivity implements
 
     //////////////////////////////////////////////////////////////////////////////////////////////// events?
 
-    private EnumSet<Connection.STATE> state = EnumSet.of(Connection.STATE.UNKNOWN);
+    private EnumSet<STATE> state = EnumSet.of(STATE.STOPPED);
 
     @SuppressWarnings("unused")
     public void onEvent(StateChangedEvent event) {
         logger.debug("onEvent({})", event);
         this.state = event.state;
         adjustUI();
-        if (event.state.contains(Connection.STATE.BUFFERS_LISTED)) {
+        if (event.state.contains(LISTED)) {
             if (slidy) showDrawerIfPagerIsEmpty();
         }
     }
@@ -414,10 +414,8 @@ public class WeechatActivity extends AppCompatActivity implements
                 break;
             }
             case R.id.menu_connection_state: {
-                //if (relay != null) {
-                    if (state.contains(CONNECTING) || state.contains(CONNECTED)) disconnect();
-                    else connect();
-                //}
+                if (state.contains(STARTED)) disconnect();
+                else connect();
                 break;
             }
             case R.id.menu_preferences: {
@@ -432,10 +430,8 @@ public class WeechatActivity extends AppCompatActivity implements
                 break;
             }
             case R.id.menu_quit: {
-                disconnect();
-                stopService(new Intent(this, RelayService.class));
-                finish();
-                break;
+                // remove this later
+                android.os.Process.killProcess(android.os.Process.myPid());
             }
             case R.id.menu_hotlist:
                 break;
@@ -482,7 +478,7 @@ public class WeechatActivity extends AppCompatActivity implements
                     String msg;
 
                     if (state.contains(AUTHENTICATED)) msg = "Disconnect";
-                    else if (state.contains(CONNECTING) || state.contains(CONNECTED)) msg = "Stop connecting";
+                    else if (state.contains(STARTED)) msg = "Stop connecting";
                     else msg = "Connect";
                     connectionStatus.setTitle(msg);
 
@@ -606,7 +602,7 @@ public class WeechatActivity extends AppCompatActivity implements
         if (!drawerShowing)
             uiPager.post(new Runnable() {
                 @Override public void run() {
-                    if (state.contains(BUFFERS_LISTED) && adapter.getCount() == 0)
+                    if (state.contains(LISTED) && adapter.getCount() == 0)
                         showDrawer();
                 }
             });

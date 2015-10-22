@@ -21,7 +21,7 @@ import com.ubergeek42.WeechatAndroid.BuildConfig;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
-import com.ubergeek42.weechat.relay.connection.Connection;
+import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,7 +66,7 @@ public class Notificator {
         PendingIntent contentIntent = (intent != null) ? intent :
                 PendingIntent.getActivity(bone, 0, new Intent(bone, WeechatActivity.class), PendingIntent.FLAG_CANCEL_CURRENT);
 
-        int icon = bone.state.contains(Connection.STATE.AUTHENTICATED) ? R.drawable.ic_connected : R.drawable.ic_disconnected;
+        int icon = bone.state.contains(AUTHENTICATED) ? R.drawable.ic_connected : R.drawable.ic_disconnected;
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(bone);
         builder.setContentIntent(contentIntent)
