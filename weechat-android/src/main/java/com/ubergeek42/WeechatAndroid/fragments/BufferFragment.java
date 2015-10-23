@@ -72,7 +72,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     public static BufferFragment newInstance(String tag) {
         BufferFragment fragment = new BufferFragment();
         Bundle args = new Bundle();
-        args.putString(BufferFragment.TAG, tag);
+        args.putString(TAG, tag);
         fragment.setArguments(args);
         return fragment;
     }
@@ -447,7 +447,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     private void sendMessage() {
         String input = uiInput.getText().toString();
         if (input.length() != 0)
-            BufferList.addSentMessage(input);
+            P.addSentMessage(input);
         String[] lines = input.split("\n");
         for (String line : lines) {
             if (line.length() != 0)

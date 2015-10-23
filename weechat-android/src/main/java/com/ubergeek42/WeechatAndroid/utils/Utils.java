@@ -1,5 +1,6 @@
 package com.ubergeek42.WeechatAndroid.utils;
 
+import android.annotation.SuppressLint;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
 import android.graphics.drawable.TransitionDrawable;
@@ -35,10 +36,6 @@ public class Utils {
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////// serialization
-
-    /** protocol must be changed each time anything that uses the following function changes
-     ** needed to make sure nothing crashes if we cannot restore the data */
-    public static final int SERIALIZATION_PROTOCOL_ID = 9;
 
     public static @Nullable Object deserialize(@Nullable String string) {
         if (string == null) return null;
@@ -95,6 +92,7 @@ public class Utils {
         return true;
     }
 
+    @SuppressLint("SimpleDateFormat")
     public static boolean isValidTimestampFormat(@Nullable String s) {
         if (s == null)
             return false;

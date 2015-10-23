@@ -11,7 +11,6 @@ import android.support.annotation.Nullable;
 
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
-import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.weechat.relay.RelayMessageHandler;
 import com.ubergeek42.WeechatAndroid.service.RelayService.STATE;
 import com.ubergeek42.weechat.relay.protocol.Array;
@@ -23,7 +22,6 @@ import com.ubergeek42.weechat.relay.protocol.RelayObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -31,9 +29,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.ListIterator;
 import java.util.Locale;
 
@@ -41,29 +37,18 @@ import java.util.Locale;
  ** probably should be made static */
 
 public class BufferList {
-    private static Logger logger = LoggerFactory.getLogger("BufferList");
+    final private static Logger logger = LoggerFactory.getLogger("BufferList");
     final private static boolean DEBUG_SYNCING = false;
     final private static boolean DEBUG_HANDLERS = false;
-    final private static boolean DEBUG_SAVE_RESTORE = false;
 
-    public static @Nullable String filterLc = null;
-    public static @Nullable String filterUc = null;
-
-    /** contains names of open buffers. this is written to the shared preferences
-     ** and restored upon service restart (by the system). also this is used to
-     ** reopen buffers in case user pressed "back" */
-    static public @NonNull LinkedHashSet<String> syncedBuffersFullNames = new LinkedHashSet<>();   // TODO race condition?
-
-    /** this stores information about last read line (in `desktop` weechat) and according
-     ** number of read lines/highlights. this is subtracted from highlight counts client
-     ** receives from the server */
-    static private @NonNull LinkedHashMap<String, BufferHotData> bufferToLastReadLine = new LinkedHashMap<>();
+    private static @Nullable String filterLc = null;
+    private static @Nullable String filterUc = null;
 
     private static @Nullable RelayService relay;
     private static @Nullable BufferListEye buffersEye;
 
     /** the mother variable. list of current buffers */
-    private static @NonNull ArrayList<Buffer> buffers = new ArrayList<>();
+    public static @NonNull ArrayList<Buffer> buffers = new ArrayList<>();
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -230,21 +215,15 @@ public class BufferList {
     //////////////////////////////////////////////////////////////////////////////////////////////// called from Buffer & RelayService (local)
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    synchronized static boolean isSynced(String fullName) {
-        return syncedBuffersFullNames.contains(fullName);
-    }
-
     /** send sync command to relay (if traffic is set to optimized) and
      ** add it to the synced buffers (=open buffers) list */
     synchronized static void syncBuffer(String fullName) {
         if (DEBUG_SYNCING) logger.warn("syncBuffer({})", fullName);
-        BufferList.syncedBuffersFullNames.add(fullName);
         if (P.optimizeTraffic) sendMessage("sync " + fullName);
     }
 
     synchronized static void desyncBuffer(String fullName) {
         if (DEBUG_SYNCING) logger.warn("desyncBuffer({})", fullName);
-        BufferList.syncedBuffersFullNames.remove(fullName);
         if (P.optimizeTraffic) sendMessage("desync " + fullName);
     }
 
@@ -591,74 +570,4 @@ public class BufferList {
                 }
         }
     };
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// saving/restoring stuff
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    /** restore buffer's stuff. this is called for every buffer upon buffer creation */
-    synchronized static void restoreLastReadLine(Buffer buffer) {
-        BufferHotData data = bufferToLastReadLine.get(buffer.fullName);
-        if (data != null) {
-            buffer.readMarkerLine = data.readMarkerLine;
-            buffer.lastReadLineServer = data.lastReadLineServer;
-            buffer.totalReadUnreads = data.totalOldUnreads;
-            buffer.totalReadHighlights = data.totalOldHighlights;
-        }
-    }
-
-    /** save buffer's stuff. this is called when information is about to be written to disk */
-    synchronized static void saveLastReadLine(Buffer buffer) {
-        BufferHotData data = bufferToLastReadLine.get(buffer.fullName);
-        if (data == null) {
-            data = new BufferHotData();
-            bufferToLastReadLine.put(buffer.fullName, data);
-        }
-        data.readMarkerLine = buffer.readMarkerLine;
-        data.lastReadLineServer = buffer.lastReadLineServer;
-        data.totalOldUnreads = buffer.totalReadUnreads;
-        data.totalOldHighlights = buffer.totalReadHighlights;
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    synchronized public static @Nullable String getSerializedSaveData(boolean saveLRL) {
-        if (DEBUG_SAVE_RESTORE) logger.warn("getSerializedSaveData() -> ...");
-        for (Buffer buffer : buffers) saveLastReadLine(buffer);
-        return Utils.serialize(new Object[] {saveLRL ? syncedBuffersFullNames : null, bufferToLastReadLine, sentMessages});
-    }
-
-    @SuppressWarnings("unchecked")
-    synchronized public static void setSaveDataFromString(@Nullable String data) {
-        if (DEBUG_SAVE_RESTORE) logger.warn("setSaveDataFromString(...)");
-        Object o = Utils.deserialize(data);
-        if (!(o instanceof Object[])) return;
-        Object[] array = (Object[]) o;
-        if (array[0] instanceof LinkedHashSet) syncedBuffersFullNames = (LinkedHashSet<String>) array[0];
-        if (array[1] instanceof LinkedHashMap) bufferToLastReadLine = (LinkedHashMap<String, BufferHotData>) array[1];
-        if (array[2] instanceof LinkedList) sentMessages = (LinkedList<String>) array[2];
-    }
-
-    private static class BufferHotData implements Serializable {
-        long readMarkerLine = -1;
-        long lastReadLineServer = -1;
-        int totalOldUnreads = 0;
-        int totalOldHighlights = 0;
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// saving messages
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    public static LinkedList<String> sentMessages = new LinkedList<>();
-    public static void addSentMessage(String line) {
-        for (Iterator<String> it = sentMessages.iterator(); it.hasNext();) {
-            String s = it.next();
-            if (line.equals(s)) it.remove();
-        }
-        sentMessages.add(Utils.cut(line, 2000));
-        if (sentMessages.size() > 40)
-            sentMessages.pop();
-    }
-
 }

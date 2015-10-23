@@ -5,10 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import android.content.Context;
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -28,7 +25,6 @@ import com.ubergeek42.WeechatAndroid.relay.BufferListEye;
 import com.ubergeek42.WeechatAndroid.service.Events;
 import com.ubergeek42.WeechatAndroid.service.P;
 
-import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
 import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.*;
 
 import de.greenrobot.event.EventBus;

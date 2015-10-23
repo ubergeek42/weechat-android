@@ -17,6 +17,7 @@ import android.view.ViewGroup;
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragment;
 import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
+import com.ubergeek42.WeechatAndroid.service.P;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,6 +54,7 @@ public class MainPagerAdapter extends PagerAdapter {
         if (buffer != null) buffer.setOpen(true);
         names.add(name);
         notifyDataSetChanged();
+        P.setBufferOpen(name, true);
     }
 
     @MainThread public void closeBuffer(String name) {
@@ -61,7 +63,7 @@ public class MainPagerAdapter extends PagerAdapter {
         notifyDataSetChanged();
         Buffer buffer = BufferList.findByFullName(name);
         if (buffer != null) buffer.setOpen(false);
-        BufferList.syncedBuffersFullNames.remove(name);
+        P.setBufferOpen(name, false);
     }
 
     public void focusBuffer(String name) {
@@ -129,7 +131,7 @@ public class MainPagerAdapter extends PagerAdapter {
 
     @Override public CharSequence getPageTitle(int i) {
         BufferFragment f = getBufferFragment(i);
-        return (f == null) ? "?!?!?" : f.getShortBufferName();
+        return (f != null) ? f.getShortBufferName() : names.get(i);
     }
 
     @Override public boolean isViewFromObject(View view, Object object) {
@@ -177,5 +179,26 @@ public class MainPagerAdapter extends PagerAdapter {
                 manager.executePendingTransactions();
             }
         });
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    public void restoreBuffers() {
+        for (String fullName : P.openBuffers)
+            openBuffer(fullName);
+    }
+
+    // this clears the saved buffers (in cases when the service is NOT going to start and we have
+    // no useful data in statics). as we may have stale fragments, remove them as well
+    public void clearSavedBuffers() {
+        P.openBuffers.clear();
+        android.support.v4.app.FragmentTransaction transaction = manager.beginTransaction();
+        for (Fragment fragment : manager.getFragments()) {
+            if (fragment instanceof BufferFragment) {
+                logger.warn("...removing fragment {}", fragment);
+                transaction.remove(fragment);
+            }
+        }
+        transaction.commit();
     }
 }

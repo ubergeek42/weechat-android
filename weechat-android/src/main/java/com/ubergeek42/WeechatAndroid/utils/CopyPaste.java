@@ -15,8 +15,8 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.ubergeek42.WeechatAndroid.R;
-import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.WeechatAndroid.relay.Line;
+import com.ubergeek42.WeechatAndroid.service.P;
 
 import java.util.ArrayList;
 
@@ -46,7 +46,7 @@ public class CopyPaste implements EditText.OnLongClickListener, AdapterView.OnIt
 
         // copy last messages if they do not equal clipboard
         // if there are no messages, do nothing
-        for (String m : BufferList.sentMessages)
+        for (String m : P.sentMessages)
             if (!m.equals(clip)) {
                 list.add(m);
                 printList.add(Utils.cutFirst(m, 50));

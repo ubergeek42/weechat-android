@@ -84,8 +84,8 @@ public class Buffer {
         processBufferType();
         processBufferTitle();
 
-        if (BufferList.isSynced(fullName)) setOpen(true);
-        BufferList.restoreLastReadLine(this);
+        if (P.isBufferOpen(fullName)) setOpen(true);
+        P.restoreLastReadLine(this);
         if (DEBUG_BUFFER) logger.warn("new Buffer(..., {}, {}, ...) isOpen? {}", number, fullName, isOpen);
     }
 

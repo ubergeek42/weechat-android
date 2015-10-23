@@ -15,6 +15,7 @@ import android.support.annotation.Nullable;
 import android.support.v7.preference.ThemeManager;
 import android.text.TextUtils;
 
+import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.weechat.Color;
@@ -22,8 +23,13 @@ import com.ubergeek42.weechat.Color;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
 
 import javax.net.ssl.SSLContext;
 
@@ -136,27 +142,6 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// save/restore
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    private final static String PREF_DATA = "sb";
-    private final static String PREF_PROTOCOL_ID = "pid";
-
-    // save everything that is needed for successful restoration of the service
-    public static void saveStuff() {
-        if (DEBUG_SAVE_RESTORE) logger.debug("saveStuff()");
-        p.edit().putString(PREF_DATA, BufferList.getSerializedSaveData(true))
-                          .putInt(PREF_PROTOCOL_ID, Utils.SERIALIZATION_PROTOCOL_ID).apply();
-    }
-
-    // restore everything. if data is an invalid protocol, 'restore' null
-    public static void restoreStuff() {
-        if (DEBUG_SAVE_RESTORE) logger.debug("restoreStuff()");
-        boolean valid = p.getInt(PREF_PROTOCOL_ID, -1) == Utils.SERIALIZATION_PROTOCOL_ID;
-        BufferList.setSaveDataFromString(valid ? p.getString(PREF_DATA, null) : null);
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -252,6 +237,8 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     final private static String ALIVE = "alive";
     public static boolean isServiceAlive() {
@@ -260,5 +247,105 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
 
     public static void setServiceAlive(boolean alive) {
         p.edit().putBoolean(ALIVE, alive).apply();
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// save/restore
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private final static String PREF_DATA = "sb";
+    private final static String PREF_PROTOCOL_ID = "pid";
+
+    // protocol must be changed each time anything that uses the following function changes
+    // needed to make sure nothing crashes if we cannot restore the data
+    public static final int PROTOCOL_ID = 9;
+
+    public static void saveStuff() {
+        if (DEBUG_SAVE_RESTORE) logger.debug("saveStuff()");
+        for (Buffer buffer : BufferList.buffers) saveLastReadLine(buffer);
+        String data = Utils.serialize(new Object[]{openBuffers, bufferToLastReadLine, sentMessages});
+        p.edit().putString(PREF_DATA, data).putInt(PREF_PROTOCOL_ID, PROTOCOL_ID).apply();
+    }
+
+    @SuppressWarnings("unchecked")
+    public static void restoreStuff() {
+        if (DEBUG_SAVE_RESTORE) logger.debug("restoreStuff()");
+        if (p.getInt(PREF_PROTOCOL_ID, -1) != PROTOCOL_ID) return;
+        Object o = Utils.deserialize(p.getString(PREF_DATA, null));
+        if (!(o instanceof Object[])) return;
+        Object[] array = (Object[]) o;
+        if (array[0] instanceof LinkedHashSet) openBuffers = (LinkedHashSet<String>) array[0];
+        if (array[1] instanceof LinkedHashMap) bufferToLastReadLine = (LinkedHashMap<String, BufferHotData>) array[1];
+        if (array[2] instanceof LinkedList) sentMessages = (LinkedList<String>) array[2];
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    // contains names of open buffers. needs more synchronization?
+    static public @NonNull LinkedHashSet<String> openBuffers = new LinkedHashSet<>();
+
+    // this stores information about last read line (in `desktop` weechat) and according number of
+    // read lines/highlights. this is subtracted from highlight counts client receives from the server
+    static private @NonNull LinkedHashMap<String, BufferHotData> bufferToLastReadLine = new LinkedHashMap<>();
+
+    synchronized public static boolean isBufferOpen(String name) {
+        return openBuffers.contains(name);
+    }
+
+    synchronized public static void setBufferOpen(String name, boolean open) {
+        if (open) openBuffers.add(name);
+        else openBuffers.remove(name);
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private static class BufferHotData implements Serializable {
+        long readMarkerLine = -1;
+        long lastReadLineServer = -1;
+        int totalOldUnreads = 0;
+        int totalOldHighlights = 0;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    // restore buffer's stuff. this is called for every buffer upon buffer creation
+    synchronized public static void restoreLastReadLine(Buffer buffer) {
+        BufferHotData data = bufferToLastReadLine.get(buffer.fullName);
+        if (data != null) {
+            buffer.readMarkerLine = data.readMarkerLine;
+            buffer.lastReadLineServer = data.lastReadLineServer;
+            buffer.totalReadUnreads = data.totalOldUnreads;
+            buffer.totalReadHighlights = data.totalOldHighlights;
+        }
+    }
+
+    // save buffer's stuff. this is called when information is about to be written to disk
+    synchronized static void saveLastReadLine(Buffer buffer) {
+        BufferHotData data = bufferToLastReadLine.get(buffer.fullName);
+        if (data == null) {
+            data = new BufferHotData();
+            bufferToLastReadLine.put(buffer.fullName, data);
+        }
+        data.readMarkerLine = buffer.readMarkerLine;
+        data.lastReadLineServer = buffer.lastReadLineServer;
+        data.totalOldUnreads = buffer.totalReadUnreads;
+        data.totalOldHighlights = buffer.totalReadHighlights;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// saving messages
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    public static LinkedList<String> sentMessages = new LinkedList<>();
+
+    public static void addSentMessage(String line) {
+        for (Iterator<String> it = sentMessages.iterator(); it.hasNext();) {
+            String s = it.next();
+            if (line.equals(s)) it.remove();
+        }
+        sentMessages.add(Utils.cut(line, 2000));
+        if (sentMessages.size() > 40)
+            sentMessages.pop();
     }
 }

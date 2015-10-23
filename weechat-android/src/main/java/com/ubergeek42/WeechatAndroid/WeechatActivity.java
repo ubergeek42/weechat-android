@@ -20,13 +20,11 @@ import java.security.cert.CertPathValidatorException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.EnumSet;
-import java.util.LinkedHashSet;
 
 import javax.net.ssl.SSLException;
 
 import android.annotation.SuppressLint;
 import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -192,31 +190,13 @@ public class WeechatActivity extends AppCompatActivity implements
 
         if (P.isServiceAlive()) connect();
 
-        logger.error("...is service alive? {}", P.isServiceAlive());
-        logger.error("...BufferList.getBufferList().size() {}", BufferList.getBufferList().size());
-        logger.error("...BufferList.syncedBuffersFullNames, {}", BufferList.syncedBuffersFullNames);
-        logger.error("...fragments {}", manager.getFragments());
-
+        logger.info("service alive? {}; have static data? {}; P.openBuffers: {}; fragments: {}.",
+                P.isServiceAlive(), BufferList.getBufferList().size() != 0, P.openBuffers, manager.getFragments());
         if (P.isServiceAlive() || BufferList.getBufferList().size() != 0) {
-            for (String fullName : BufferList.syncedBuffersFullNames)
-                openBufferSilently(fullName);
+            adapter.restoreBuffers();
         } else {
-            // service is NOT going to start and we have no useful data in statics
-            // remove all stale fragments, if any, and clear synced buffers.
-            BufferList.syncedBuffersFullNames = new LinkedHashSet<>();
-            android.support.v4.app.FragmentTransaction transaction = manager.beginTransaction();
-            for (Fragment fragment : manager.getFragments()) {
-                if (fragment instanceof BufferFragment) {
-                    logger.warn("...removing fragment {}", fragment);
-                    transaction.remove(fragment);
-                }
-            }
-            transaction.commitAllowingStateLoss();
+            adapter.clearSavedBuffers();
         }
-
-        logger.error("...");
-        logger.error("...BufferList.syncedBuffersFullNames, {}", BufferList.syncedBuffersFullNames);
-        logger.error("...fragments {}", manager.getFragments());
     }
 
     public void connect() {
@@ -507,12 +487,6 @@ public class WeechatActivity extends AppCompatActivity implements
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// MISC
     ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    /** open a buffer WITHOUT hiding the drawer and checking if we are connected */
-    public void openBufferSilently(@NonNull String fullName) {
-        if (DEBUG_BUFFERS) logger.debug("openBufferSilently({})", fullName);
-        adapter.openBuffer(fullName);
-    }
 
     public void openBuffer(@NonNull String fullName) {
         if (DEBUG_BUFFERS) logger.debug("openBuffer({})", fullName);
