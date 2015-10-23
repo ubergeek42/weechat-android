@@ -37,7 +37,7 @@ public class Connectivity extends BroadcastReceiver {
     }
 
     @Override public void onReceive(Context context, Intent intent) {
-        if (isNetworkAvailable() && P.reconnect) //todo
-            bone.start();
+        if (isNetworkAvailable() && P.reconnect && bone.state.contains(RelayService.STATE.STARTED))
+            bone._start();
     }
 }

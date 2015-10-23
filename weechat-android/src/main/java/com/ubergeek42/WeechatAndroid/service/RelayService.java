@@ -65,8 +65,6 @@ public class RelayService extends Service implements Connection.Observer {
         if (DEBUG) logger.debug("onCreate()");
         super.onCreate();
 
-        P.init(getApplicationContext());
-
         notificator = new Notificator(this);
 
         // prepare handler that will run on a separate thread
@@ -130,16 +128,22 @@ public class RelayService extends Service implements Connection.Observer {
     private static final long WAIT_BEFORE_WAIT_MESSAGE_DELAY = 5;
     private static final long DELAYS[] = new long[] {5, 15, 30, 60, 120, 300, 600, 900};
 
-    public void start() {
+    // called by user and when disconnected
+    private void start() {
         if (DEBUG_CONNECTION) logger.debug("start()");
-        if (!state.contains(STATE.STOPPED) && !waitingForNetwork) {
+        if (!state.contains(STATE.STOPPED)) {
             logger.warn("start() run while state != STATE.STOPPED");
             return;
         }
 
         state = EnumSet.of(STATE.STARTED);
         EventBus.getDefault().postSticky(new StateChangedEvent(state));
+        P.setServiceAlive(true);
+        _start();
+    }
 
+    // called by ↑ and Connectivity
+    protected void _start() {
         thandler.removeCallbacksAndMessages(null);
         thandler.post(new Runnable() {
             int reconnects = 0;
@@ -175,7 +179,7 @@ public class RelayService extends Service implements Connection.Observer {
         });
     }
 
-    public void stop() {
+    protected void stop() {
         if (DEBUG_CONNECTION) logger.debug("stop()");
         if (state.contains(STATE.STOPPED)) {
             logger.error("stop() run while state == STATE.STOPPED");
@@ -195,11 +199,10 @@ public class RelayService extends Service implements Connection.Observer {
         });
 
         stopSelf();
+        P.setServiceAlive(false);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    private boolean waitingForNetwork = false;
 
     private enum TRY {POSSIBLE, IMPOSSIBLE}
 
@@ -209,9 +212,8 @@ public class RelayService extends Service implements Connection.Observer {
         if (connection != null)
             connection.disconnect();
 
-        waitingForNetwork = !connectivity.isNetworkAvailable();
-        if (waitingForNetwork) {
-            notificator.showMain(getString(R.string.notification_waiting_network_details), null);
+        if (!connectivity.isNetworkAvailable()) {
+            notificator.showMain(getString(R.string.notification_waiting_network), null);
             return TRY.IMPOSSIBLE;
         }
 
@@ -274,7 +276,6 @@ public class RelayService extends Service implements Connection.Observer {
     }
 
     private void hello() {
-        P.restoreStuff();
         ping.scheduleFirstPing();
         BufferList.launch(this);
         SyncAlarmReceiver.start(this);
@@ -284,7 +285,7 @@ public class RelayService extends Service implements Connection.Observer {
         SyncAlarmReceiver.stop(this);
         BufferList.stop();
         ping.unschedulePing();
-        P.saveStuff();
+        //P.saveStuff();
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////
 

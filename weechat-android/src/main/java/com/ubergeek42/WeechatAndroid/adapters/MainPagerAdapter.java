@@ -61,6 +61,7 @@ public class MainPagerAdapter extends PagerAdapter {
         notifyDataSetChanged();
         Buffer buffer = BufferList.findByFullName(name);
         if (buffer != null) buffer.setOpen(false);
+        BufferList.syncedBuffersFullNames.remove(name);
     }
 
     public void focusBuffer(String name) {

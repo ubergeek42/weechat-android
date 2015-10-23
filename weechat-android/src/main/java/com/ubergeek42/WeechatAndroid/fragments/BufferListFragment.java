@@ -26,14 +26,14 @@ import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.WeechatAndroid.relay.BufferListEye;
 import com.ubergeek42.WeechatAndroid.service.Events;
+import com.ubergeek42.WeechatAndroid.service.P;
 
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
 import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.*;
 
 import de.greenrobot.event.EventBus;
 
-public class BufferListFragment extends ListFragment implements
-        BufferListEye, OnSharedPreferenceChangeListener, View.OnClickListener {
+public class BufferListFragment extends ListFragment implements BufferListEye, View.OnClickListener {
 
     private static Logger logger = LoggerFactory.getLogger("BufferListFragment");
     final private static boolean DEBUG_LIFECYCLE = false;
@@ -47,7 +47,6 @@ public class BufferListFragment extends ListFragment implements
     private RelativeLayout uiFilterBar;
     private EditText uiFilter;
     private ImageButton uiFilterClear;
-    private SharedPreferences prefs;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// lifecycle
@@ -69,8 +68,6 @@ public class BufferListFragment extends ListFragment implements
         if (DEBUG_LIFECYCLE) logger.warn("onCreate()");
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
-        prefs = PreferenceManager.getDefaultSharedPreferences(getActivity().getBaseContext());
-        prefs.registerOnSharedPreferenceChangeListener(this);
     }
 
     @Override
@@ -82,7 +79,6 @@ public class BufferListFragment extends ListFragment implements
         uiFilterClear = (ImageButton) view.findViewById(R.id.bufferlist_filter_clear);
         uiFilterClear.setOnClickListener(this);
         uiFilterBar = (RelativeLayout) view.findViewById(R.id.filter_bar);
-        uiFilterBar.setVisibility(prefs.getBoolean(PREF_SHOW_BUFFER_FILTER, PREF_SHOW_BUFFER_FILTER_D) ? View.VISIBLE : View.GONE);
         return view;
     }
 
@@ -98,6 +94,7 @@ public class BufferListFragment extends ListFragment implements
         if (DEBUG_LIFECYCLE) logger.warn("onStart()");
         super.onStart();
         EventBus.getDefault().registerSticky(this);
+        uiFilterBar.setVisibility(P.showBufferFilter ? View.VISIBLE : View.GONE);
     }
 
     @Override
@@ -109,7 +106,7 @@ public class BufferListFragment extends ListFragment implements
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// service connection
+    //////////////////////////////////////////////////////////////////////////////////////////////// event
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @SuppressWarnings("unused")
@@ -134,7 +131,7 @@ public class BufferListFragment extends ListFragment implements
     }
 
     private void detachFromBufferList() {
-        BufferList.setBufferListEye(null);                                              // buffer change watcher (safe to call)
+        BufferList.setBufferListEye(null);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -167,12 +164,6 @@ public class BufferListFragment extends ListFragment implements
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// other
     ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    @Override public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        if (DEBUG_PREFERENCES) logger.warn("onSharedPreferenceChanged()");
-        if (key.equals(PREF_SHOW_BUFFER_FILTER))
-            uiFilterBar.setVisibility(prefs.getBoolean(PREF_SHOW_BUFFER_FILTER, PREF_SHOW_BUFFER_FILTER_D) ? View.VISIBLE : View.GONE);
-    }
 
     /** TextWatcher object used for filtering the buffer list */
     private TextWatcher filterTextWatcher = new TextWatcher() {

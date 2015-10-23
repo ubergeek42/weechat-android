@@ -48,28 +48,33 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         p.registerOnSharedPreferenceChangeListener(instance = new P());
     }
 
+    ///////////////////////////////////////////////////////////////////////////////////////////// ui
+
     public static boolean sortBuffers, showTitle, filterBuffers, optimizeTraffic;
     public static boolean filterLines;
     public static int maxWidth;
     public static boolean encloseNick, dimDownNonHumanLines;
     public static @Nullable DateFormat dateFormat;
     public static int align;
-    public static float textSize ,letterWidth;
+    public static float textSize, letterWidth;
 
     public static boolean notificationEnable, notificationTicker, notificationLight, notificationVibrate;
     public static String notificationSound;
+
+    public static boolean showSend, showTab, hotlistSync, volumeBtnSize;
+    public static String bufferFont;
+
+    public static boolean showBufferFilter;
 
     public static void loadUIPreferences() {
         // buffer list preferences
         sortBuffers = p.getBoolean(PREF_SORT_BUFFERS, PREF_SORT_BUFFERS_D);
         showTitle = p.getBoolean(PREF_SHOW_BUFFER_TITLES, PREF_SHOW_BUFFER_TITLES_D);
         filterBuffers = p.getBoolean(PREF_FILTER_NONHUMAN_BUFFERS, PREF_FILTER_NONHUMAN_BUFFERS_D);
-        optimizeTraffic = p.getBoolean(PREF_OPTIMIZE_TRAFFIC, PREF_OPTIMIZE_TRAFFIC_D);
+        optimizeTraffic = p.getBoolean(PREF_OPTIMIZE_TRAFFIC, PREF_OPTIMIZE_TRAFFIC_D);  // okay this is out of sync with onChanged stuff—used for the bell icon
 
         // buffer-wide preferences
         filterLines = p.getBoolean(PREF_FILTER_LINES, PREF_FILTER_LINES_D);
-
-        // buffer line-wide preferences
         maxWidth = Integer.parseInt(p.getString(PREF_MAX_WIDTH, PREF_MAX_WIDTH_D));
         encloseNick = p.getBoolean(PREF_ENCLOSE_NICK, PREF_ENCLOSE_NICK_D);
         dimDownNonHumanLines = p.getBoolean(PREF_DIM_DOWN, PREF_DIM_DOWN_D);
@@ -78,15 +83,26 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         setTextSizeAndLetterWidth();
         ThemeManager.loadColorSchemeFromPreferences(context);
 
+        // notifications
         notificationEnable = p.getBoolean(PREF_NOTIFICATION_ENABLE, PREF_NOTIFICATION_ENABLE_D);
         notificationSound = p.getString(PREF_NOTIFICATION_SOUND, PREF_NOTIFICATION_SOUND_D);
         notificationTicker = p.getBoolean(PREF_NOTIFICATION_TICKER, PREF_NOTIFICATION_TICKER_D);
         notificationLight = p.getBoolean(PREF_NOTIFICATION_LIGHT, PREF_NOTIFICATION_LIGHT_D);
         notificationVibrate = p.getBoolean(PREF_NOTIFICATION_VIBRATE, PREF_NOTIFICATION_VIBRATE_D);
+
+        // buffer fragment
+        showSend = p.getBoolean(PREF_SHOW_SEND, PREF_SHOW_SEND_D);
+        showTab = p.getBoolean(PREF_SHOW_TAB, PREF_SHOW_TAB_D);
+        hotlistSync = p.getBoolean(PREF_HOTLIST_SYNC, PREF_HOTLIST_SYNC_D);
+        volumeBtnSize = p.getBoolean(PREF_VOLUME_BTN_SIZE, PREF_VOLUME_BTN_SIZE_D);
+
+        // buffer list filter
+        showBufferFilter = p.getBoolean(PREF_SHOW_BUFFER_FILTER, PREF_SHOW_BUFFER_FILTER_D);
     }
 
-    public static String host;
-    public static String pass, connectionType, sshHost, sshUser, sshPass, sshKeyfile;
+    ///////////////////////////////////////////////////////////////////////////////////// connection
+
+    public static String host, pass, connectionType, sshHost, sshUser, sshPass, sshKeyfile;
     public static int port, sshPort;
     public static SSLContext sslContext;
     public static boolean reconnect;
@@ -107,6 +123,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         sshKeyfile = p.getString(PREF_SSH_KEYFILE, PREF_SSH_KEYFILE_D);
 
         reconnect = p.getBoolean(PREF_RECONNECT, PREF_RECONNECT_D);
+        optimizeTraffic = p.getBoolean(PREF_OPTIMIZE_TRAFFIC, PREF_OPTIMIZE_TRAFFIC_D);
 
         pingEnabled = p.getBoolean(PREF_PING_ENABLED, PREF_PING_ENABLED_D);
         pingIdleTime = Integer.parseInt(p.getString(PREF_PING_IDLE, PREF_PING_IDLE_D)) * 1000;
@@ -139,16 +156,8 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         BufferList.setSaveDataFromString(valid ? p.getString(PREF_DATA, null) : null);
     }
 
-//    /** delete open buffers, so that buffers don't remain open (after Quit).
-//     ** don't delete protocol id & buffer to lrl. */
-//    public static void eraseStoredStuff() {
-//        if (DEBUG_SAVE_RESTORE) logger.debug("eraseStoredStuff()");
-//        p.edit().putString(PREF_DATA, BufferList.getSerializedSaveData(false)).apply();
-//        BufferList.syncedBuffersFullNames.clear();
-//    }
-
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// prefs
+    ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @Override public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
@@ -159,11 +168,15 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
             case PREF_SORT_BUFFERS: sortBuffers = p.getBoolean(key, PREF_SORT_BUFFERS_D); break;
             case PREF_SHOW_BUFFER_TITLES: showTitle = p.getBoolean(key, PREF_SHOW_BUFFER_TITLES_D); break;
             case PREF_FILTER_NONHUMAN_BUFFERS: filterBuffers = p.getBoolean(key, PREF_FILTER_NONHUMAN_BUFFERS_D); break;
-            case PREF_FILTER_LINES: filterLines = p.getBoolean(key, PREF_FILTER_LINES_D); break;
 
-            // chat lines-wide preferences
+            // buffer-wide preferences
+            case PREF_FILTER_LINES: filterLines = p.getBoolean(key, PREF_FILTER_LINES_D); break;
             case PREF_MAX_WIDTH:
                 maxWidth = Integer.parseInt(p.getString(key, PREF_MAX_WIDTH_D));
+                BufferList.notifyOpenBuffersMustBeProcessed(false);
+                break;
+            case PREF_ENCLOSE_NICK:
+                encloseNick = p.getBoolean(key, PREF_ENCLOSE_NICK_D);
                 BufferList.notifyOpenBuffersMustBeProcessed(false);
                 break;
             case PREF_DIM_DOWN:
@@ -178,14 +191,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
                 setAlignment();
                 BufferList.notifyOpenBuffersMustBeProcessed(false);
                 break;
-            case PREF_ENCLOSE_NICK:
-                encloseNick = p.getBoolean(key, PREF_ENCLOSE_NICK_D);
-                BufferList.notifyOpenBuffersMustBeProcessed(false);
-                break;
             case PREF_TEXT_SIZE:
-                setTextSizeAndLetterWidth();
-                BufferList.notifyOpenBuffersMustBeProcessed(true);
-                break;
             case PREF_BUFFER_FONT:
                 setTextSizeAndLetterWidth();
                 BufferList.notifyOpenBuffersMustBeProcessed(true);
@@ -201,8 +207,19 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
             case PREF_NOTIFICATION_TICKER: notificationTicker = p.getBoolean(key, PREF_NOTIFICATION_TICKER_D); break;
             case PREF_NOTIFICATION_LIGHT: notificationLight = p.getBoolean(key, PREF_NOTIFICATION_LIGHT_D); break;
             case PREF_NOTIFICATION_VIBRATE: notificationVibrate = p.getBoolean(key, PREF_NOTIFICATION_VIBRATE_D); break;
+
+            // buffer fragment
+            case PREF_SHOW_SEND: showSend = p.getBoolean(key, PREF_SHOW_SEND_D); break;
+            case PREF_SHOW_TAB: showTab = p.getBoolean(key, PREF_SHOW_TAB_D); break;
+            case PREF_HOTLIST_SYNC: hotlistSync = p.getBoolean(key, PREF_HOTLIST_SYNC_D); break;
+            case PREF_VOLUME_BTN_SIZE: volumeBtnSize = p.getBoolean(key, PREF_VOLUME_BTN_SIZE_D); break;
+
+            // buffer list fragment
+            case PREF_SHOW_BUFFER_FILTER: showBufferFilter = p.getBoolean(key, PREF_SHOW_BUFFER_FILTER_D); break;
         }
     }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private static void setTimestampFormat() {
         String t = p.getString(PREF_TIMESTAMP_FORMAT, PREF_TIMESTAMP_FORMAT_D);
@@ -221,20 +238,27 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
 
     private static void setTextSizeAndLetterWidth() {
         textSize = Float.parseFloat(p.getString(PREF_TEXT_SIZE, PREF_TEXT_SIZE_D));
-        String fontPath = p.getString(PREF_BUFFER_FONT, PREF_BUFFER_FONT_D);
+        bufferFont = p.getString(PREF_BUFFER_FONT, PREF_BUFFER_FONT_D);
         Paint paint = new Paint();
-        if (!TextUtils.isEmpty(fontPath)) {
-            Typeface tf;
-            try {
-                tf = Typeface.createFromFile(fontPath);
-            } catch (RuntimeException r) {
-                tf = Typeface.MONOSPACE;
-            }
-            paint.setTypeface(tf);
-        } else {
-            paint.setTypeface(Typeface.MONOSPACE);
-        }
+        Typeface tf = Typeface.MONOSPACE;
+        try {tf = Typeface.createFromFile(bufferFont);} catch (Exception ignored) {}
+        paint.setTypeface(tf);
         paint.setTextSize(textSize * context.getResources().getDisplayMetrics().scaledDensity);
         letterWidth = (paint.measureText("m"));
+    }
+
+    public static void setTextSizeAndLetterWidth(float size) {
+        p.edit().putString(PREF_TEXT_SIZE, Float.toString(size)).apply();
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    final private static String ALIVE = "alive";
+    public static boolean isServiceAlive() {
+        return p.getBoolean(ALIVE, false);
+    }
+
+    public static void setServiceAlive(boolean alive) {
+        p.edit().putBoolean(ALIVE, alive).apply();
     }
 }

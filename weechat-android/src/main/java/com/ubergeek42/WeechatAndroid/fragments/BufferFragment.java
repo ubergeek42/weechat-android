@@ -3,15 +3,13 @@ package com.ubergeek42.WeechatAndroid.fragments;
 import java.util.Vector;
 
 import android.annotation.SuppressLint;
-import android.support.annotation.Nullable;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.KeyEvent;
@@ -34,11 +32,11 @@ import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferEye;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.WeechatAndroid.relay.Line;
+import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.utils.CopyPaste;
 import com.ubergeek42.weechat.ColorScheme;
 
 import static com.ubergeek42.WeechatAndroid.service.Events.*;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
 import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.*;
 
 import de.greenrobot.event.EventBus;
@@ -68,7 +66,6 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     private Buffer buffer;
 
     private ChatLinesAdapter linesAdapter;
-    private SharedPreferences prefs;
 
     private Logger logger = LoggerFactory.getLogger(toString());
 
@@ -98,7 +95,6 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         if (DEBUG_LIFECYCLE) logger.warn("onCreate()");
         super.onCreate(savedInstanceState);
         shortName = fullName = getArguments().getString(TAG);
-        prefs = PreferenceManager.getDefaultSharedPreferences(activity.getBaseContext());
     }
 
     @Override
@@ -133,9 +129,10 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         if (DEBUG_LIFECYCLE) logger.warn("onStart()");
         super.onStart();
         started = true;
+        uiSend.setVisibility(P.showSend ? View.VISIBLE : View.GONE);
+        uiTab.setVisibility(P.showTab ? View.VISIBLE : View.GONE);
         uiLines.setBackgroundColor(0xFF000000 | ColorScheme.get().defaul[ColorScheme.OPT_BG]);
-        EventBus.getDefault().register(this);
-        onEvent(EventBus.getDefault().getStickyEvent(StateChangedEvent.class)); // make sure to send null if service is stopped
+        EventBus.getDefault().registerSticky(this);
     }
 
     @Override
@@ -209,7 +206,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         scrollToHotLineIfNeeded();
 
         // move the read marker in weechat (if preferences dictate)
-        if (!visible && prefs.getBoolean(PREF_HOTLIST_SYNC, PREF_HOTLIST_SYNC_D)) {
+        if (!visible && P.hotlistSync) {
             EventBus.getDefault().post(new SendMessageEvent("input " + buffer.fullName + " /buffer set hotlist -1"));
             EventBus.getDefault().post(new SendMessageEvent("input " + buffer.fullName + " /input set_unread_current_buffer"));
         }
@@ -226,15 +223,18 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         maybeChangeVisibilityState();
     }
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// events
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private boolean online = true;
 
-    // todo move to thread?
+    // this can be forced to always run in background, but then it would run after onStart()
+    // if the fragment hasn't been initialized yet, that would lead to a bit of flicker
     @SuppressWarnings("unused")
-    public void onEvent(@Nullable StateChangedEvent event) {
+    public void onEvent(@NonNull StateChangedEvent event) {
         logger.debug("onEvent({})", event);
-        boolean online = event != null && event.state.contains(LISTED);
+        boolean online = event.state.contains(LISTED);
         if (buffer == null || online) {
             buffer = BufferList.findByFullName(fullName);
             if (online && buffer == null) {
@@ -247,9 +247,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         if (this.online != online) initUI(this.online = online);
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// the juice
-    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// attach detach
 
     private void attachToBuffer() {
         logger.warn("attachToBuffer()");
@@ -258,7 +256,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         buffer.setBufferEye(this);
 
         linesAdapter = new ChatLinesAdapter(activity, buffer, uiLines);
-        linesAdapter.setFont(prefs.getString(PREF_BUFFER_FONT, PREF_BUFFER_FONT_D));
+        linesAdapter.setFont(P.bufferFont);
         linesAdapter.readLinesFromBuffer();
 
         activity.runOnUiThread(new Runnable() {
@@ -282,13 +280,11 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     //////////////////////////////////////////////////////////////////////////////////////////////// ui
 
     public void initUI(final boolean online) {
+        if (DEBUG_LIFECYCLE) logger.warn("initUI({})", online);
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                uiInput.setFocusable(online);
-                uiInput.setFocusableInTouchMode(online);
-                uiSend.setVisibility(prefs.getBoolean(PREF_SHOW_SEND, PREF_SHOW_SEND_D) ? View.VISIBLE : View.GONE);
-                uiTab.setVisibility(prefs.getBoolean(PREF_SHOW_TAB, PREF_SHOW_TAB_D) ? View.VISIBLE : View.GONE);
+                uiInput.setEnabled(online);
                 uiSend.setEnabled(online);
                 uiTab.setEnabled(online);
                 if (!online)
@@ -405,9 +401,9 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
 
     private boolean checkVolumeButtonResize(int keycode, int action) {
         if (keycode == KeyEvent.KEYCODE_VOLUME_DOWN || keycode == KeyEvent.KEYCODE_VOLUME_UP) {
-            if (prefs.getBoolean(PREF_VOLUME_BTN_SIZE, PREF_VOLUME_BTN_SIZE_D)) {
+            if (P.volumeBtnSize) {
                 if (action == KeyEvent.ACTION_UP) {
-                    float textSize = Float.parseFloat(prefs.getString(PREF_TEXT_SIZE, PREF_TEXT_SIZE_D));
+                    float textSize = P.textSize;
                     switch (keycode) {
                         case KeyEvent.KEYCODE_VOLUME_UP:
                             if (textSize < 30) textSize += 1;
@@ -416,7 +412,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
                             if (textSize > 5) textSize -= 1;
                             break;
                     }
-                    prefs.edit().putString(PREF_TEXT_SIZE, Float.toString(textSize)).apply();
+                    P.setTextSizeAndLetterWidth(textSize);
                 }
                 return true;
             }

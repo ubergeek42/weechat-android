@@ -20,13 +20,13 @@ import java.security.cert.CertPathValidatorException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.EnumSet;
+import java.util.LinkedHashSet;
 
 import javax.net.ssl.SSLException;
 
 import android.annotation.SuppressLint;
-import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.app.Fragment;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -70,7 +70,6 @@ import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.WeechatAndroid.service.RelayService.STATE;
 
 import static com.ubergeek42.WeechatAndroid.service.Events.*;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
 import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.*;
 
 import de.greenrobot.event.EventBus;
@@ -110,7 +109,6 @@ public class WeechatActivity extends AppCompatActivity implements
     public void onCreate(@Nullable Bundle savedInstanceState) {
         logger.debug("onCreate({})", savedInstanceState);
         super.onCreate(savedInstanceState);
-        P.init(getApplicationContext());
 
         // load layout
         setContentView(R.layout.main_screen);
@@ -191,13 +189,39 @@ public class WeechatActivity extends AppCompatActivity implements
         setTitle(title);
         uiStrip.setEmptyText(title);
         updateCutePagerTitleStrip();
+
+        if (P.isServiceAlive()) connect();
+
+        logger.error("...is service alive? {}", P.isServiceAlive());
+        logger.error("...BufferList.getBufferList().size() {}", BufferList.getBufferList().size());
+        logger.error("...BufferList.syncedBuffersFullNames, {}", BufferList.syncedBuffersFullNames);
+        logger.error("...fragments {}", manager.getFragments());
+
+        if (P.isServiceAlive() || BufferList.getBufferList().size() != 0) {
+            for (String fullName : BufferList.syncedBuffersFullNames)
+                openBufferSilently(fullName);
+        } else {
+            // service is NOT going to start and we have no useful data in statics
+            // remove all stale fragments, if any, and clear synced buffers.
+            BufferList.syncedBuffersFullNames = new LinkedHashSet<>();
+            android.support.v4.app.FragmentTransaction transaction = manager.beginTransaction();
+            for (Fragment fragment : manager.getFragments()) {
+                if (fragment instanceof BufferFragment) {
+                    logger.warn("...removing fragment {}", fragment);
+                    transaction.remove(fragment);
+                }
+            }
+            transaction.commitAllowingStateLoss();
+        }
+
+        logger.error("...");
+        logger.error("...BufferList.syncedBuffersFullNames, {}", BufferList.syncedBuffersFullNames);
+        logger.error("...fragments {}", manager.getFragments());
     }
 
     public void connect() {
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-        String host = prefs.getString(PREF_HOST, PREF_HOST_D);
-        String pass = prefs.getString(PREF_PASSWORD, PREF_PASSWORD_D);
-        if (TextUtils.isEmpty(host) || TextUtils.isEmpty(pass)) {
+        P.loadConnectionPreferences();
+        if (TextUtils.isEmpty(P.host) || TextUtils.isEmpty(P.pass)) {
             Toast.makeText(getBaseContext(), "Please edit preferences", Toast.LENGTH_LONG).show();
             return;
         }
@@ -220,21 +244,8 @@ public class WeechatActivity extends AppCompatActivity implements
     @Override protected void onStart() {
         if (DEBUG_LIFECYCLE) logger.debug("onStart()");
         super.onStart();
-        P.restoreStuff();
-        EventBus.getDefault().register(this);
-
-        // the lines below used to run in onServiceConnected()
-        // so, this can run BEFORE the service has been restarted after OOM kill
-        StateChangedEvent event = EventBus.getDefault().getStickyEvent(StateChangedEvent.class);
-        if (event != null) state = event.state;
-        adjustUI();
-
-        for (String fullName : BufferList.syncedBuffersFullNames)
-            openBufferSilently(fullName);
-
-        if (getIntent().hasExtra(EXTRA_NAME))
-            openBufferFromIntent();
-
+        EventBus.getDefault().registerSticky(this);
+        if (getIntent().hasExtra(EXTRA_NAME)) openBufferFromIntent();
         updateHotCount(BufferList.getHotCount());
     }
 
@@ -265,7 +276,9 @@ public class WeechatActivity extends AppCompatActivity implements
         if (slidy) drawerToggle.onConfigurationChanged(newConfig);
     }
 
-    //////////////////////////////////////////////////////////////////////////////////////////////// ?
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// the joy
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private void adjustUI() {
         logger.debug("adjustUI()");
@@ -284,14 +297,15 @@ public class WeechatActivity extends AppCompatActivity implements
 
     //////////////////////////////////////////////////////////////////////////////////////////////// events?
 
-    private EnumSet<STATE> state = EnumSet.of(STATE.STOPPED);
+    private EnumSet<STATE> state = null;
 
     @SuppressWarnings("unused")
     public void onEvent(StateChangedEvent event) {
         logger.debug("onEvent({})", event);
-        this.state = event.state;
+        boolean init = state == null;
+        state = event.state;
         adjustUI();
-        if (event.state.contains(LISTED)) {
+        if (!init && state.contains(LISTED)) {
             if (slidy) showDrawerIfPagerIsEmpty();
         }
     }
@@ -473,8 +487,8 @@ public class WeechatActivity extends AppCompatActivity implements
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if (WeechatActivity.this.uiMenu != null) {
-                    MenuItem connectionStatus = WeechatActivity.this.uiMenu.findItem(R.id.menu_connection_state);
+                if (uiMenu != null) {
+                    MenuItem connectionStatus = uiMenu.findItem(R.id.menu_connection_state);
                     String msg;
 
                     if (state.contains(AUTHENTICATED)) msg = "Disconnect";
@@ -624,7 +638,6 @@ public class WeechatActivity extends AppCompatActivity implements
     //////////////////////////////////////////////////////////////////////////////////////////////// intent
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    //private String intent_buffer_full_name = null;
     private final String EXTRA_NAME = "full_name";
 
     /** we may get intent while we are connected to the service and when we are not.
@@ -635,7 +648,6 @@ public class WeechatActivity extends AppCompatActivity implements
         super.onNewIntent(intent);
         if (intent.hasExtra(EXTRA_NAME)) {
             setIntent(intent);
-            //if (relay != null) openBufferFromIntent();
             openBufferFromIntent();
         }
     }
