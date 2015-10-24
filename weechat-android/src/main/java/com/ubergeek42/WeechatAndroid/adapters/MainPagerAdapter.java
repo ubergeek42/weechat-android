@@ -183,7 +183,11 @@ public class MainPagerAdapter extends PagerAdapter {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public void restoreBuffers() {
+    public boolean haveBuffersToRestore() {
+        return P.openBuffers.size() > 0 && names.size() == 0;
+    }
+
+    @MainThread public void restoreBuffers() {
         for (String fullName : P.openBuffers)
             openBuffer(fullName);
     }

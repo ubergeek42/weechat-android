@@ -88,7 +88,7 @@ public class WeechatActivity extends AppCompatActivity implements
     private MainPagerAdapter adapter;
     private InputMethodManager imm;
     private CutePagerTitleStrip uiStrip;
-    
+
     private boolean slidy;
     private boolean drawerEnabled = true;
     private boolean drawerShowing = false;
@@ -192,11 +192,12 @@ public class WeechatActivity extends AppCompatActivity implements
 
         logger.info("onCreate(): service alive? {}; have static data? {}; P.openBuffers: {}; fragments: {}",
                 P.isServiceAlive(), BufferList.getBufferList().size() != 0, P.openBuffers, manager.getFragments());
-        if (P.isServiceAlive() || BufferList.getBufferList().size() != 0) {
-            adapter.restoreBuffers();
-        } else {
-            adapter.clearSavedBuffers();
-        }
+
+        // restore buffers if we have data in the static
+        // if no data and not going to connect, clear stuff
+        // if no data and going to connect, let the LISTED event restore it all
+        if (BufferList.getBufferList().size() != 0) adapter.restoreBuffers();
+        else if (!P.isServiceAlive()) adapter.clearSavedBuffers();
     }
 
     public void connect() {
@@ -224,6 +225,7 @@ public class WeechatActivity extends AppCompatActivity implements
     @Override protected void onStart() {
         if (DEBUG_LIFECYCLE) logger.debug("onStart()");
         super.onStart();
+        state = null;
         EventBus.getDefault().registerSticky(this);
         if (getIntent().hasExtra(EXTRA_NAME)) openBufferFromIntent();
         updateHotCount(BufferList.getHotCount());
@@ -285,8 +287,11 @@ public class WeechatActivity extends AppCompatActivity implements
         boolean init = state == null;
         state = event.state;
         adjustUI();
-        if (!init && state.contains(LISTED)) {
-            if (slidy) showDrawerIfPagerIsEmpty();
+        if (state.contains(LISTED)) {
+            if (adapter.haveBuffersToRestore())
+                runOnUiThread(new Runnable() {public void run() {adapter.restoreBuffers();}});
+            else if (!init && slidy)
+                showDrawerIfPagerIsEmpty();
         }
     }
 
