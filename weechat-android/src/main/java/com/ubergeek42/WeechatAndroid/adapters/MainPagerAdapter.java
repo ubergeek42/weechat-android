@@ -183,26 +183,12 @@ public class MainPagerAdapter extends PagerAdapter {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public boolean haveBuffersToRestore() {
-        return P.openBuffers.size() > 0 && names.size() == 0;
+    public boolean canRestoreBuffers() {
+        return P.openBuffers.size() > 0 && names.size() == 0 && BufferList.hasData();
     }
 
     @MainThread public void restoreBuffers() {
         for (String fullName : P.openBuffers)
             openBuffer(fullName);
-    }
-
-    // this clears the saved buffers (in cases when the service is NOT going to start and we have
-    // no useful data in statics). as we may have stale fragments, remove them as well
-    public void clearSavedBuffers() {
-        P.openBuffers.clear();
-        android.support.v4.app.FragmentTransaction transaction = manager.beginTransaction();
-        for (Fragment fragment : manager.getFragments()) {
-            if (fragment instanceof BufferFragment) {
-                logger.warn("...removing fragment {}", fragment);
-                transaction.remove(fragment);
-            }
-        }
-        transaction.commit();
     }
 }

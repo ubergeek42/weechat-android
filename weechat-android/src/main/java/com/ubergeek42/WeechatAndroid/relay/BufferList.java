@@ -140,6 +140,10 @@ public class BufferList {
         return sentBuffers;
     }
 
+    static public boolean hasData() {
+        return buffers.size() > 0;
+    }
+
     synchronized static public void setFilter(String filter) {
         filterLc = (filter.length() == 0) ? null : filter.toLowerCase();
         filterUc = (filter.length() == 0) ? null : filter.toUpperCase();

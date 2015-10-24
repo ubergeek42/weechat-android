@@ -106,6 +106,13 @@ public class WeechatActivity extends AppCompatActivity implements
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         logger.debug("onCreate({})", savedInstanceState);
+
+        // after OOM kill and not going to restore anything? remove all fragments & open buffers
+        if (!P.isServiceAlive() && !BufferList.hasData()) {
+            P.openBuffers.clear();
+            savedInstanceState = null;
+        }
+
         super.onCreate(savedInstanceState);
 
         // load layout
@@ -196,8 +203,7 @@ public class WeechatActivity extends AppCompatActivity implements
         // restore buffers if we have data in the static
         // if no data and not going to connect, clear stuff
         // if no data and going to connect, let the LISTED event restore it all
-        if (BufferList.getBufferList().size() != 0) adapter.restoreBuffers();
-        else if (!P.isServiceAlive()) adapter.clearSavedBuffers();
+        if (adapter.canRestoreBuffers()) adapter.restoreBuffers();
     }
 
     public void connect() {
@@ -288,7 +294,7 @@ public class WeechatActivity extends AppCompatActivity implements
         state = event.state;
         adjustUI();
         if (state.contains(LISTED)) {
-            if (adapter.haveBuffersToRestore())
+            if (adapter.canRestoreBuffers())
                 runOnUiThread(new Runnable() {public void run() {adapter.restoreBuffers();}});
             else if (!init && slidy)
                 showDrawerIfPagerIsEmpty();
