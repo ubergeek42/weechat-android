@@ -434,10 +434,6 @@ public class WeechatActivity extends AppCompatActivity implements
                     current.onBufferClosed();
                 break;
             }
-            case R.id.menu_quit: {
-                // remove this later
-                android.os.Process.killProcess(android.os.Process.myPid());
-            }
             case R.id.menu_hotlist:
                 break;
             case R.id.menu_nicklist:
