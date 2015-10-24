@@ -61,7 +61,7 @@ public class Notificator {
      * @param intent intent that's executed on notification click, default used if null
      */
     public void showMain(@Nullable String tickerText, @NonNull String content, @Nullable PendingIntent intent) {
-        if (DEBUG_NOTIFICATIONS) logger.error("showMain({}, {}, {})", tickerText, content, intent);
+        if (DEBUG_NOTIFICATIONS) logger.debug("showMain({}, {}, {})", tickerText, content, intent);
 
         PendingIntent contentIntent = (intent != null) ? intent :
                 PendingIntent.getActivity(bone, 0, new Intent(bone, WeechatActivity.class), PendingIntent.FLAG_CANCEL_CURRENT);
@@ -100,7 +100,7 @@ public class Notificator {
      ** arrived in real time. so we add (message not available) if there are NO lines to display
      ** and add "..." if there are some lines to display, but not all */
     public void showHot(boolean newHighlight) {
-        if (DEBUG_NOTIFICATIONS) logger.warn("showHot({})", newHighlight);
+        if (DEBUG_NOTIFICATIONS) logger.debug("showHot({})", newHighlight);
 
         if (!P.notificationEnable)
             return;

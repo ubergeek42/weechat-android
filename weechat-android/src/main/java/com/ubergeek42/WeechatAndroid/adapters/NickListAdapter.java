@@ -29,7 +29,7 @@ public class NickListAdapter extends BaseAdapter implements BufferNicklistEye,
     private final @NonNull LayoutInflater inflater;
     private final @NonNull Buffer buffer;
     private @NonNull Nick[] nicks = new Nick[0];
-    private @NonNull AlertDialog dialog;
+    private AlertDialog dialog;
 
     private int hPadding;
     private int vPadding;

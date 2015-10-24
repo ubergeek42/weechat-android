@@ -44,7 +44,7 @@ public abstract class AbstractConnection implements Connection {
         assertEquals(state, STATE.UNKNOWN);
         assertNull(connector);
 
-        final int i = AbstractConnection.iteration++;
+        final int i = iteration++;
 
         state = STATE.CONNECTING;
         observer.onStateChanged(STATE.CONNECTING);
@@ -55,7 +55,7 @@ public abstract class AbstractConnection implements Connection {
     }
 
     @Override synchronized public void disconnect() {
-        logger.warn("disconnect()");
+        logger.debug("disconnect()");
         assertNotEquals(state, STATE.UNKNOWN);
         assertNotNull(connector);
 
@@ -176,6 +176,6 @@ public abstract class AbstractConnection implements Connection {
 
     //////////////////////////////////////////////////////////////////////////////////////////////// receive
 
-    private void hi() {logger.warn("hi");}
-    private void bye() {logger.warn("bye");}
+    private void hi() {logger.debug("hi");}
+    private void bye() {logger.debug("bye");}
 }

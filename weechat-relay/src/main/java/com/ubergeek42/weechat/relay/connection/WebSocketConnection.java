@@ -76,16 +76,16 @@ public class WebSocketConnection extends AbstractConnection {
         }
 
         @Override public void onOpen(ServerHandshake ignored) {
-            logger.info("WebSocket.onOpen(), readyState = {}", this.getReadyState());
+            logger.debug("WebSocket.onOpen(), readyState = {}", this.getReadyState());
         }
 
         @Override public void onMessage(String message) {
-            logger.info("WebSocket.onMessage(string = {})", message);
+            logger.debug("WebSocket.onMessage(string = {})", message);
             throw new RuntimeException("Unexpected string message from websocket");
         }
 
         @Override public void onMessage(ByteBuffer bytes) {
-            logger.info("WebSocket.onMessage({} bytes)", bytes.array().length);
+            logger.debug("WebSocket.onMessage({} bytes)", bytes.array().length);
             try {
                 outputToInStream.write(bytes.array());
                 outputToInStream.flush();
@@ -95,14 +95,14 @@ public class WebSocketConnection extends AbstractConnection {
         }
 
         @Override public void onClose(int code, String reason, boolean remote) {
-            logger.info("WebSocket.onClose(code = {}, reason = {})", code, reason);
+            logger.debug("WebSocket.onClose(code = {}, reason = {})", code, reason);
             try {outputToInStream.close();} catch (IOException e) {e.printStackTrace();}
         }
 
         // when connecting via SSL and when the connection is abruptly closed,
         // onError() with `java.lang.NullPointerException: ssl == null` is thrown
         @Override public void onError(Exception e) {
-            logger.info("WebSocket.onError({}: {})", e.getClass().getSimpleName(), e.getMessage());
+            logger.error("WebSocket.onError({}: {})", e.getClass().getSimpleName(), e.getMessage());
             exception = e;
             try {outputToInStream.close();} catch (IOException ignored) {}
         }

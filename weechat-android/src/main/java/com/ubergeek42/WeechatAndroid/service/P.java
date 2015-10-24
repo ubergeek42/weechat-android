@@ -146,7 +146,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @Override public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        if (DEBUG_PREFS) logger.warn("onSharedPreferenceChanged()");
+        if (DEBUG_PREFS) logger.debug("onSharedPreferenceChanged()");
 
         switch (key) {
             // buffer list preferences

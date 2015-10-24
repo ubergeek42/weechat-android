@@ -11,8 +11,6 @@ import java.util.EnumSet;
 
 public class Events {
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
     public static class StateChangedEvent {
         final public EnumSet<STATE> state;
 

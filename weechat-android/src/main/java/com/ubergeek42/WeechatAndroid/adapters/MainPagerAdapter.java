@@ -48,7 +48,7 @@ public class MainPagerAdapter extends PagerAdapter {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @MainThread public void openBuffer(final String name) {
-        logger.info("openBuffer({}); names = {} ", name, names);
+        logger.debug("openBuffer({}); names = {} ", name, names);
         if (names.contains(name)) return;
         Buffer buffer = BufferList.findByFullName(name);
         if (buffer != null) buffer.setOpen(true);
@@ -58,7 +58,7 @@ public class MainPagerAdapter extends PagerAdapter {
     }
 
     @MainThread public void closeBuffer(String name) {
-        logger.info("closeBuffer({})", name);
+        logger.debug("closeBuffer({})", name);
         if (!names.remove(name)) return;
         notifyDataSetChanged();
         Buffer buffer = BufferList.findByFullName(name);
@@ -101,7 +101,7 @@ public class MainPagerAdapter extends PagerAdapter {
         if (transaction == null) transaction = manager.beginTransaction();
         String tag = names.get(i);
         Fragment frag = manager.findFragmentByTag(tag);
-        logger.info("instantiateItem(..., {}/{}): {}", i, tag, frag == null ? "add" : "attach");
+        logger.debug("instantiateItem(..., {}/{}): {}", i, tag, frag == null ? "add" : "attach");
         if (frag == null) {
             transaction.add(container.getId(), frag = BufferFragment.newInstance(tag), tag);
         } else {
@@ -115,7 +115,7 @@ public class MainPagerAdapter extends PagerAdapter {
     public void destroyItem(ViewGroup container, int i, Object object) {
         if (transaction == null) transaction = manager.beginTransaction();
         Fragment frag = (Fragment) object;
-        logger.info("destroyItem(..., {}, {}): {}", i, frag.getTag(), names.contains(frag.getTag()) ? "detach" : "remove");
+        logger.debug("destroyItem(..., {}, {}): {}", i, frag.getTag(), names.contains(frag.getTag()) ? "detach" : "remove");
         if (names.contains(frag.getTag())) {
             transaction.detach(frag);
         } else {
@@ -157,7 +157,7 @@ public class MainPagerAdapter extends PagerAdapter {
     // providing proper indexes instead of POSITION_NONE allows buffers not to be
     // fully recreated on every uiBuffer list change
     @Override public int getItemPosition(Object object) {
-        logger.info("getItemPosition({})", object);
+        logger.debug("getItemPosition({})", object);
         int idx = names.indexOf(((Fragment) object).getTag());
         return (idx >= 0) ? idx : POSITION_NONE;
     }

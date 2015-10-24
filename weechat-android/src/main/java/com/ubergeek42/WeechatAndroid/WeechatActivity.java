@@ -190,7 +190,7 @@ public class WeechatActivity extends AppCompatActivity implements
 
         if (P.isServiceAlive()) connect();
 
-        logger.info("service alive? {}; have static data? {}; P.openBuffers: {}; fragments: {}.",
+        logger.info("onCreate(): service alive? {}; have static data? {}; P.openBuffers: {}; fragments: {}",
                 P.isServiceAlive(), BufferList.getBufferList().size() != 0, P.openBuffers, manager.getFragments());
         if (P.isServiceAlive() || BufferList.getBufferList().size() != 0) {
             adapter.restoreBuffers();

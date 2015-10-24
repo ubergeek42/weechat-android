@@ -20,6 +20,7 @@ public class Weechat extends Application {
         super.onCreate();
         P.init(getApplicationContext());
         P.restoreStuff();
+        EventBus.builder().logNoSubscriberMessages(false).eventInheritance(false).installDefaultEventBus();
         EventBus.getDefault().postSticky(new Events.StateChangedEvent(EnumSet.of(STATE.STOPPED)));
     }
 }

@@ -74,7 +74,7 @@ public class ThemeManager {
             p.load(path.startsWith("/") ? new FileInputStream(path) : manager.open(path));
             return p;
         } catch (IOException e) {
-            logger.warn("Failed to load file " + path);
+            logger.error("Failed to load file " + path, e);
             return null;
         }
     }

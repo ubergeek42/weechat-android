@@ -39,8 +39,8 @@ public class PingActionReceiver extends BroadcastReceiver {
     private static Logger logger = LoggerFactory.getLogger("PingActionReceiver");
 
     private volatile long lastMessageReceivedAt = 0;
-    private RelayService bone;
-    private AlarmManager alarmManager;
+    private final RelayService bone;
+    private final AlarmManager alarmManager;
     private static final String PING_ACTION = BuildConfig.APPLICATION_ID + ".PING_ACTION";
     private static final IntentFilter FILTER = new IntentFilter(PING_ACTION);
 
@@ -66,7 +66,7 @@ public class PingActionReceiver extends BroadcastReceiver {
                 triggerAt = SystemClock.elapsedRealtime() + P.pingTimeout;
                 extras.putBoolean("sentPing", true);
             } else {
-                logger.debug("no message received, disconnecting");
+                logger.info("no message received, disconnecting");
                 bone.stop();
                 return;
             }
@@ -85,7 +85,7 @@ public class PingActionReceiver extends BroadcastReceiver {
     }
 
     public void unschedulePing() {
-        Intent intent = new Intent(PingActionReceiver.PING_ACTION);
+        Intent intent = new Intent(PING_ACTION);
         PendingIntent alarmIntent = PendingIntent.getBroadcast(bone, 0, intent, PendingIntent.FLAG_NO_CREATE);
         alarmManager.cancel(alarmIntent);
         bone.unregisterReceiver(this);
@@ -96,7 +96,7 @@ public class PingActionReceiver extends BroadcastReceiver {
     }
 
     @TargetApi(19) private void schedulePing(long triggerAt, @NonNull Bundle extras) {
-        Intent intent = new Intent(PingActionReceiver.PING_ACTION);
+        Intent intent = new Intent(PING_ACTION);
         intent.putExtras(extras);
         PendingIntent alarmIntent = PendingIntent.getBroadcast(bone, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
 

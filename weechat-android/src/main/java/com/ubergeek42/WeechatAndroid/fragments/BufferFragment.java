@@ -85,21 +85,21 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     public void onAttach(Context context) {
         fullName = getArguments().getString(TAG);
         logger = LoggerFactory.getLogger(toString());
-        if (DEBUG_LIFECYCLE) logger.warn("onAttach(...)");
+        if (DEBUG_LIFECYCLE) logger.debug("onAttach(...)");
         super.onAttach(context);
         this.activity = (WeechatActivity) context;
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        if (DEBUG_LIFECYCLE) logger.warn("onCreate()");
+        if (DEBUG_LIFECYCLE) logger.debug("onCreate()");
         super.onCreate(savedInstanceState);
         shortName = fullName = getArguments().getString(TAG);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        if (DEBUG_LIFECYCLE) logger.warn("onCreateView()");
+        if (DEBUG_LIFECYCLE) logger.debug("onCreateView()");
         View v = inflater.inflate(R.layout.chatview_main, container, false);
 
         uiLines = (ListView) v.findViewById(R.id.chatview_lines);
@@ -126,7 +126,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
 
     @Override
     public void onStart() {
-        if (DEBUG_LIFECYCLE) logger.warn("onStart()");
+        if (DEBUG_LIFECYCLE) logger.debug("onStart()");
         super.onStart();
         started = true;
         uiSend.setVisibility(P.showSend ? View.VISIBLE : View.GONE);
@@ -137,7 +137,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
 
     @Override
     public void onStop() {
-        if (DEBUG_LIFECYCLE) logger.warn("onStop()");
+        if (DEBUG_LIFECYCLE) logger.debug("onStop()");
         super.onStop();
         started = false;
         detachFromBuffer();
@@ -146,7 +146,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
 
     @Override
     public void onDetach() {
-        if (DEBUG_LIFECYCLE) logger.warn("onDetach()");
+        if (DEBUG_LIFECYCLE) logger.debug("onDetach()");
         activity = null;
         super.onDetach();
     }
@@ -170,7 +170,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     //     * set to the last displayed line when user navigates away from a buffer
     //     * shifted from invisible line to last visible line if buffer is filtered
     private void maybeMoveReadMarker() {
-        if (DEBUG_VISIBILITY) logger.warn("maybeMoveReadMarker()");
+        if (DEBUG_VISIBILITY) logger.debug("maybeMoveReadMarker()");
         if (buffer != null && buffer.readMarkerLine != buffer.lastVisibleLine) {
             buffer.readMarkerLine = buffer.lastVisibleLine;
             linesAdapter.needMoveLastReadMarker = true;
@@ -186,7 +186,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
      **   * availability of buffer & activity
      **   * lifecycle (todo) */
     public void maybeChangeVisibilityState() {
-        if (DEBUG_VISIBILITY) logger.warn("maybeChangeVisibilityState()");
+        if (DEBUG_VISIBILITY) logger.debug("maybeChangeVisibilityState()");
         if (activity == null || buffer == null)
             return;
 
@@ -216,7 +216,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
      ** tells us that this page is visible, also used to lifecycle calls (must call super) */
     @Override
     public void setUserVisibleHint(boolean visible) {
-        if (DEBUG_VISIBILITY) logger.warn("setUserVisibleHint({})", visible);
+        if (DEBUG_VISIBILITY) logger.debug("setUserVisibleHint({})", visible);
         super.setUserVisibleHint(visible);
         this.pagerVisible = visible;
         if (!visible) maybeMoveReadMarker();
@@ -242,7 +242,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
                 return;
             }
             if (buffer != null) attachToBuffer();
-            else logger.error("...buffer is null");
+            else logger.warn("...buffer is null");    // this should only happen after OOM kill
         }
         if (this.online != online) initUI(this.online = online);
     }
@@ -250,7 +250,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     //////////////////////////////////////////////////////////////////////////////////////////////// attach detach
 
     private void attachToBuffer() {
-        logger.warn("attachToBuffer()");
+        logger.debug("attachToBuffer()");
 
         shortName = buffer.shortName;
         buffer.setBufferEye(this);
@@ -271,7 +271,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
 
     // buffer might be null if we are closing fragment that is not connected
     private void detachFromBuffer() {
-        if (DEBUG_LIFECYCLE) logger.warn("detachFromBuffer()");
+        if (DEBUG_LIFECYCLE) logger.debug("detachFromBuffer()");
         maybeChangeVisibilityState();
         if (buffer != null) buffer.setBufferEye(null);
         buffer = null;
@@ -280,7 +280,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     //////////////////////////////////////////////////////////////////////////////////////////////// ui
 
     public void initUI(final boolean online) {
-        if (DEBUG_LIFECYCLE) logger.warn("initUI({})", online);
+        if (DEBUG_LIFECYCLE) logger.debug("initUI({})", online);
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -304,7 +304,6 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
 
     @Override
     public void onLinesListed() {
-        if (DEBUG_MESSAGES) logger.warn("onLinesListed()");
         scrollToHotLineIfNeeded();
     }
 
@@ -315,7 +314,6 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
 
     @Override
     public void onBufferClosed() {
-        if (DEBUG_CONNECTION) logger.warn("onBufferClosed()");
         activity.runOnUiThread(new Runnable() {
             @Override public void run() {
                 activity.closeBuffer(fullName);
@@ -333,7 +331,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
      ** posts to the listview to make sure it's fully completed loading the items
      **     after setting the adapter or updating lines */
     public void scrollToHotLineIfNeeded() {
-        if (DEBUG_AUTOSCROLLING) logger.error("scrollToHotLineIfNeeded()");
+        if (DEBUG_AUTOSCROLLING) logger.debug("scrollToHotLineIfNeeded()");
         if (buffer != null && visible && buffer.holdsAllLines && (highlights > 0 || privates > 0)) {
             uiLines.post(new Runnable() {
                 @Override
@@ -374,7 +372,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
      ** NOTE: this only applies to HARDWARE buttons */
     @Override
     public boolean onKey(View v, int keycode, KeyEvent event) {
-        if (DEBUG_TAB_COMPLETE) logger.warn("onKey(..., {}, ...)", keycode);
+        if (DEBUG_TAB_COMPLETE) logger.debug("onKey(..., {}, ...)", keycode);
         int action = event.getAction();
         return checkSendMessage(keycode, action) ||
                 checkVolumeButtonResize(keycode, action) ||
@@ -468,7 +466,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
 
     /** attempts to perform tab completion on the current input */
     @SuppressLint("SetTextI18n") private void tryTabComplete() {
-        if (DEBUG_TAB_COMPLETE) logger.warn("tryTabComplete()");
+        if (DEBUG_TAB_COMPLETE) logger.debug("tryTabComplete()");
         if (buffer == null) return;
 
         String txt = uiInput.getText().toString();
@@ -528,7 +526,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
      ** tryTabComplete() will set it back if it modified the text causing this function to run */
     @Override
     public void afterTextChanged(Editable s) {
-        if (DEBUG_TAB_COMPLETE) logger.warn("afterTextChanged(...)");
+        if (DEBUG_TAB_COMPLETE) logger.debug("afterTextChanged(...)");
         tcInProgress = false;
     }
 

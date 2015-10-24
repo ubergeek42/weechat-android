@@ -132,7 +132,7 @@ public class RelayService extends Service implements Connection.Observer {
     private void start() {
         if (DEBUG_CONNECTION) logger.debug("start()");
         if (!state.contains(STATE.STOPPED)) {
-            logger.warn("start() run while state != STATE.STOPPED");
+            logger.error("start() run while state != STATE.STOPPED");
             return;
         }
 

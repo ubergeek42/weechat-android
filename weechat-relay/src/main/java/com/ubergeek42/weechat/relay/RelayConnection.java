@@ -85,7 +85,7 @@ public class RelayConnection implements Connection, Connection.Observer {
         logger.debug("onMessage(id = {})", id);
 
         if (ID_VERSION.equals(id)) {
-            logger.debug("WeeChat version: {}", ((Info) message.getObjects()[0]).getValue());
+            logger.info("WeeChat version: {}", ((Info) message.getObjects()[0]).getValue());
             onStateChanged(STATE.AUTHENTICATED);
         }
 

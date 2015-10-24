@@ -52,7 +52,7 @@ public class BufferListFragment extends ListFragment implements BufferListEye, V
      ** the callback interface. If not, it throws an exception. */
     @Override
     public void onAttach(Context context) {
-        if (DEBUG_LIFECYCLE) logger.warn("onAttach()");
+        if (DEBUG_LIFECYCLE) logger.debug("onAttach()");
         super.onAttach(context);
         this.activity = (WeechatActivity) context;
     }
@@ -61,14 +61,14 @@ public class BufferListFragment extends ListFragment implements BufferListEye, V
      ** since we are setting setRetainInstance(true) */
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        if (DEBUG_LIFECYCLE) logger.warn("onCreate()");
+        if (DEBUG_LIFECYCLE) logger.debug("onCreate()");
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        if (DEBUG_LIFECYCLE) logger.warn("onCreateView()");
+        if (DEBUG_LIFECYCLE) logger.debug("onCreateView()");
         View view = inflater.inflate(R.layout.bufferlist, container, false);
         uiFilter = (EditText) view.findViewById(R.id.bufferlist_filter);
         uiFilter.addTextChangedListener(filterTextWatcher);
@@ -80,14 +80,14 @@ public class BufferListFragment extends ListFragment implements BufferListEye, V
 
     @Override
     public void onDestroyView() {
-        if (DEBUG_LIFECYCLE) logger.warn("onDestroyView()");
+        if (DEBUG_LIFECYCLE) logger.debug("onDestroyView()");
         super.onDestroyView();
         uiFilter.removeTextChangedListener(filterTextWatcher);
     }
 
     @Override
     public void onStart() {
-        if (DEBUG_LIFECYCLE) logger.warn("onStart()");
+        if (DEBUG_LIFECYCLE) logger.debug("onStart()");
         super.onStart();
         EventBus.getDefault().registerSticky(this);
         uiFilterBar.setVisibility(P.showBufferFilter ? View.VISIBLE : View.GONE);
@@ -95,7 +95,7 @@ public class BufferListFragment extends ListFragment implements BufferListEye, V
 
     @Override
     public void onStop() {
-        if (DEBUG_LIFECYCLE) logger.warn("onStop()");
+        if (DEBUG_LIFECYCLE) logger.debug("onStop()");
         EventBus.getDefault().unregister(this);
         super.onStop();
         detachFromBufferList();
@@ -137,7 +137,7 @@ public class BufferListFragment extends ListFragment implements BufferListEye, V
     /** this is the mother method, it actually opens buffers */
     @Override
     public void onListItemClick(ListView listView, View view, int position, long id) {
-        if (DEBUG_CLICK) logger.warn("onListItemClick(..., ..., {}, ...)", position);
+        if (DEBUG_CLICK) logger.debug("onListItemClick(..., ..., {}, ...)", position);
         Object obj = getListView().getItemAtPosition(position);
         if (obj instanceof Buffer)
             activity.openBuffer(((Buffer) obj).fullName);
@@ -148,12 +148,12 @@ public class BufferListFragment extends ListFragment implements BufferListEye, V
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @Override public void onBuffersChanged() {
-        if (DEBUG_MESSAGES) logger.warn("onBuffersChanged()");
+        if (DEBUG_MESSAGES) logger.debug("onBuffersChanged()");
         adapter.onBuffersChanged();
     }
 
     @Override public void onHotCountChanged() {
-        if (DEBUG_MESSAGES) logger.warn("onHotCountChanged()");
+        if (DEBUG_MESSAGES) logger.debug("onHotCountChanged()");
         activity.updateHotCount(BufferList.getHotCount());
     }
 
@@ -167,7 +167,7 @@ public class BufferListFragment extends ListFragment implements BufferListEye, V
         @Override public void beforeTextChanged(CharSequence arg0, int a, int b, int c) {}
 
         @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
-            if (DEBUG_PREFERENCES) logger.warn("onTextChanged({}, ...)", s);
+            if (DEBUG_PREFERENCES) logger.debug("onTextChanged({}, ...)", s);
             if (adapter != null) {
                 setFilter(s);
                 adapter.onBuffersChanged();

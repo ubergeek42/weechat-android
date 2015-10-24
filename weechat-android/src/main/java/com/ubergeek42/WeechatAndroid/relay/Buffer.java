@@ -86,7 +86,7 @@ public class Buffer {
 
         if (P.isBufferOpen(fullName)) setOpen(true);
         P.restoreLastReadLine(this);
-        if (DEBUG_BUFFER) logger.warn("new Buffer(..., {}, {}, ...) isOpen? {}", number, fullName, isOpen);
+        if (DEBUG_BUFFER) logger.debug("new Buffer(..., {}, {}, ...) isOpen? {}", number, fullName, isOpen);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -135,7 +135,7 @@ public class Buffer {
      ** can be called multiple times without harm
      ** somewhat heavy, better be called off the main thread */
     synchronized public void setOpen(boolean open) {
-        if (DEBUG_BUFFER) logger.warn("{} setOpen({})", shortName, open);
+        if (DEBUG_BUFFER) logger.debug("{} setOpen({})", shortName, open);
         if (this.isOpen == open) return;
         this.isOpen = open;
         if (open) {
@@ -169,7 +169,7 @@ public class Buffer {
      ** we are requesting nicks along with the lines because:
      **     nick completion */
     synchronized public void setBufferEye(@Nullable BufferEye bufferEye) {
-        if (DEBUG_BUFFER) logger.warn("{} setBufferEye({})", shortName, bufferEye);
+        if (DEBUG_BUFFER) logger.debug("{} setBufferEye({})", shortName, bufferEye);
         this.bufferEye = bufferEye;
         if (bufferEye != null) {
             if (!holdsAllLines) BufferList.requestLinesForBufferByPointer(pointer);
@@ -181,7 +181,7 @@ public class Buffer {
      ** affects the way buffer advertises highlights/unreads count and notifications
      ** can be called multiple times without harm */
     synchronized public void setWatched(boolean watched) {
-        if (DEBUG_BUFFER) logger.error("{} setWatched({})", shortName, watched);
+        if (DEBUG_BUFFER) logger.debug("{} setWatched({})", shortName, watched);
         if (isWatched == watched) return;
         isWatched = watched;
         if (watched) resetUnreadsAndHighlights();
@@ -189,7 +189,7 @@ public class Buffer {
 
     /** called when options has changed and the messages should be processed */
     synchronized public void forceProcessAllMessages() {
-        if (DEBUG_BUFFER) logger.error("{} forceProcessAllMessages()", shortName);
+        if (DEBUG_BUFFER) logger.debug("{} forceProcessAllMessages()", shortName);
         for (Line line : lines) line.processMessage();
     }
 
@@ -198,7 +198,7 @@ public class Buffer {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     synchronized public void addLine(final Line line, final boolean isLast) {
-        if (DEBUG_LINE) logger.warn("{} addLine('{}', {})", shortName, line.message, isLast);
+        if (DEBUG_LINE) logger.debug("{} addLine('{}', {})", shortName, line.message, isLast);
 
         // check if the line in question is already in the buffer
         // happens when reverse request throws in lines even though some are already here
@@ -320,7 +320,7 @@ public class Buffer {
     }
 
     synchronized public void onBufferClosed() {
-        if (DEBUG_BUFFER) logger.warn("{} onBufferClosed()", shortName);
+        if (DEBUG_BUFFER) logger.debug("{} onBufferClosed()", shortName);
         BufferList.removeHotMessagesForBuffer(this);
         setOpen(false);
         if (bufferEye != null) bufferEye.onBufferClosed();
@@ -371,7 +371,7 @@ public class Buffer {
     /** sets highlights/unreads to 0 and,
      ** if something has actually changed, notifies whoever cares about it */
     synchronized public void resetUnreadsAndHighlights() {
-        if (DEBUG_BUFFER) logger.error("{} resetUnreadsAndHighlights()", shortName);
+        if (DEBUG_BUFFER) logger.debug("{} resetUnreadsAndHighlights()", shortName);
         if ((unreads | highlights) == 0) return;
         totalReadUnreads += unreads;
         totalReadHighlights += highlights;
@@ -390,7 +390,7 @@ public class Buffer {
     /** sets and removes a single nicklist watcher
      ** used to notify of nicklist changes as new nicks arrive and others quit */
     synchronized public void setBufferNicklistEye(@Nullable BufferNicklistEye bufferNickListEye) {
-        if (DEBUG_NICK) logger.warn("{} setBufferNicklistEye({})", shortName, bufferNickListEye);
+        if (DEBUG_NICK) logger.debug("{} setBufferNicklistEye({})", shortName, bufferNickListEye);
         this.bufferNickListEye = bufferNickListEye;
     }
 

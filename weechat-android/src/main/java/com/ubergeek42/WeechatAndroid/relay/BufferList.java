@@ -218,23 +218,19 @@ public class BufferList {
     /** send sync command to relay (if traffic is set to optimized) and
      ** add it to the synced buffers (=open buffers) list */
     synchronized static void syncBuffer(String fullName) {
-        if (DEBUG_SYNCING) logger.warn("syncBuffer({})", fullName);
         if (P.optimizeTraffic) sendMessage("sync " + fullName);
     }
 
     synchronized static void desyncBuffer(String fullName) {
-        if (DEBUG_SYNCING) logger.warn("desyncBuffer({})", fullName);
         if (P.optimizeTraffic) sendMessage("desync " + fullName);
     }
 
     private final static String MEOW = "(listlines_reverse) hdata buffer:0x%x/own_lines/last_line(-%d)/data date,displayed,prefix,message,highlight,notify,tags_array";
     public static void requestLinesForBufferByPointer(long pointer) {
-        if (DEBUG_SYNCING) logger.warn("requestLinesForBufferByPointer({})", pointer);
         sendMessage(String.format(Locale.ROOT, MEOW, pointer, Buffer.MAX_LINES));
     }
 
     public static void requestNicklistForBufferByPointer(long  pointer) {
-        if (DEBUG_SYNCING) logger.warn("requestNicklistForBufferByPointer({})", pointer);
         sendMessage(String.format("(nicklist) nicklist 0x%x", pointer));
     }
 
@@ -345,9 +341,10 @@ public class BufferList {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     static RelayMessageHandler bufferListWatcher = new RelayMessageHandler() {
-        @Override
-        public void handleMessage(RelayObject obj, String id) {
-            if (DEBUG_HANDLERS) logger.warn("handleMessage(..., {}) (hdata size = {})", id, ((Hdata) obj).getCount());
+        final private Logger logger = LoggerFactory.getLogger("bufferListWatcher");
+
+        @Override public void handleMessage(RelayObject obj, String id) {
+            if (DEBUG_HANDLERS) logger.debug("handleMessage(..., {}) (hdata size = {})", id, ((Hdata) obj).getCount());
             Hdata data = (Hdata) obj;
 
             if (id.equals("listbuffers")) buffers.clear();
@@ -369,7 +366,7 @@ public class BufferList {
                 } else {
                     Buffer buffer = findByPointer(entry.getPointerLong(0));
                     if (buffer == null) {
-                        logger.error("handleMessage(..., {}): buffer is not present!", id);
+                        logger.warn("handleMessage(..., {}): buffer is not present", id);
                     } else {
                         if (id.equals("_buffer_renamed")) {
                             buffer.fullName = entry.getItem("full_name").asString();
@@ -391,7 +388,7 @@ public class BufferList {
                             buffer.onBufferClosed();
                             notifyBuffersChanged();
                         } else {
-                            if (DEBUG_HANDLERS) logger.warn("Unknown message ID: '{}'", id);
+                            logger.warn("handleMessage(..., {}): unknown message id", id);
                         }
                     }
                 }
@@ -405,9 +402,10 @@ public class BufferList {
 
     // last_read_lines
     static RelayMessageHandler lastReadLinesWatcher = new RelayMessageHandler() {
-        @Override
-        public void handleMessage(RelayObject obj, String id) {
-            if (DEBUG_HANDLERS) logger.error("lastReadLinesWatcher:handleMessage(..., {})", id);
+        final private Logger logger = LoggerFactory.getLogger("lastReadLinesWatcher");
+
+        @Override public void handleMessage(RelayObject obj, String id) {
+            if (DEBUG_HANDLERS) logger.debug("handleMessage(..., {})", id);
             if (!(obj instanceof Hdata)) return;
 
             HashMap<Long, Long> bufferToLrl = new HashMap<>();
@@ -431,9 +429,10 @@ public class BufferList {
 
     // hotlist (ONLY)
     static RelayMessageHandler hotlistInitWatcher = new RelayMessageHandler() {
-        @Override
-        public void handleMessage(RelayObject obj, String id) {
-            if (DEBUG_HANDLERS) logger.error("hotlistInitWatcher:handleMessage(..., {})", id);
+        final private Logger logger = LoggerFactory.getLogger("hotlistInitWatcher");
+
+        @Override public void handleMessage(RelayObject obj, String id) {
+            if (DEBUG_HANDLERS) logger.debug("handleMessage(..., {})", id);
             if (!(obj instanceof Hdata)) return;
 
             HashMap<Long, Array> bufferToHotlist = new HashMap<>();
@@ -465,9 +464,10 @@ public class BufferList {
     // _buffer_line_added
     // listlines_reverse
     static RelayMessageHandler bufferLineWatcher = new RelayMessageHandler() {
-        @Override
-        public void handleMessage(RelayObject obj, String id) {
-            if (DEBUG_HANDLERS) logger.debug("bufferLineWatcher:handleMessage(..., {})", id);
+        final private Logger logger = LoggerFactory.getLogger("bufferLineWatcher");
+
+        @Override public void handleMessage(RelayObject obj, String id) {
+            if (DEBUG_HANDLERS) logger.debug("handleMessage(..., {})", id);
             if (!(obj instanceof Hdata)) return;
             Hdata data = (Hdata) obj;
             HashSet<Buffer> freshBuffers = new HashSet<>();
@@ -479,7 +479,7 @@ public class BufferList {
                 long buffer_pointer = (isBottom) ? entry.getItem("buffer").asPointerLong() : entry.getPointerLong(0);
                 Buffer buffer = findByPointer(buffer_pointer);
                 if (buffer == null) {
-                    if (DEBUG_HANDLERS) logger.warn("bufferLineWatcher: no buffer to update!");
+                    logger.warn("handleMessage(..., {}): no buffer to update", id);
                     continue;
                 }
                 if (!isBottom)
@@ -517,9 +517,10 @@ public class BufferList {
     // _nicklist
     // _nicklist_diff
     static RelayMessageHandler nickListWatcher = new RelayMessageHandler() {
-        @Override
-        public void handleMessage(RelayObject obj, String id) {
-            if (DEBUG_HANDLERS) logger.debug("nickListWatcher:handleMessage(..., {})", id);
+        final private Logger logger = LoggerFactory.getLogger("nickListWatcher");
+
+        @Override public void handleMessage(RelayObject obj, String id) {
+            if (DEBUG_HANDLERS) logger.debug("handleMessage(..., {})", id);
             if (!(obj instanceof Hdata)) return;
             Hdata data = (Hdata) obj;
             boolean diff = id.equals("_nicklist_diff");
@@ -531,7 +532,7 @@ public class BufferList {
                 // find buffer
                 Buffer buffer = findByPointer(entry.getPointerLong(0));
                 if (buffer == null) {
-                    if (DEBUG_HANDLERS) logger.warn("nickListWatcher: no buffer to update!");
+                    if (DEBUG_HANDLERS) logger.warn("handleMessage(..., {}): no buffer to update", id);
                     continue;
                 }
 

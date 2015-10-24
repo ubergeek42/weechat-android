@@ -59,7 +59,7 @@ public class SSLHandler {
             KeyStore.TrustedCertificateEntry x = new KeyStore.TrustedCertificateEntry(cert);
             sslKeystore.setEntry(cert.getSubjectDN().getName(), x, null);
         } catch (KeyStoreException e) {
-            logger.error("Error: " + e.getMessage());
+            logger.error("trustCertificate()", e);
         }
         saveKeystore();
     }

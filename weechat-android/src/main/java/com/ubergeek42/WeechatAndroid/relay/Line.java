@@ -25,12 +25,10 @@ import com.ubergeek42.weechat.ColorScheme;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class Line {
-    private static Logger logger = LoggerFactory.getLogger("Buffer");
+    final private static Logger logger = LoggerFactory.getLogger("Buffer");
     final private static boolean DEBUG = false;
 
     // core message data
@@ -100,12 +98,12 @@ public class Line {
     //////////////////////////////////////////////////////////////////////////////////////////// processing stuff
 
     public void eraseProcessedMessage() {
-        if (DEBUG) logger.warn("eraseProcessedMessage()");
+        if (DEBUG) logger.debug("eraseProcessedMessage()");
         spannable = null;
     }
 
     public void processMessageIfNeeded() {
-        if (DEBUG) logger.warn("processMessageIfNeeded()");
+        if (DEBUG) logger.debug("processMessageIfNeeded()");
         if (spannable == null) processMessage();
     }
 
@@ -116,7 +114,7 @@ public class Line {
      * * TODO: allow variable width font (should be simple enough
      */
     public void processMessage() {
-        if (DEBUG) logger.warn("processMessage()");
+        if (DEBUG) logger.debug("processMessage()");
         String timestamp = (P.dateFormat == null) ? null : P.dateFormat.format(date);
         boolean encloseNick = P.encloseNick && privmsg && !action;
         Color.parse(timestamp, prefix, message, encloseNick, highlighted, P.maxWidth, P.align);

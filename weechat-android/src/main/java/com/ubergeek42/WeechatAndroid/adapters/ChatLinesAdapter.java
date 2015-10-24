@@ -168,7 +168,6 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
         lastItemVisible = this.lastItemVisible;
         mustScrollOneLineUp = !lastItemVisible && lineCountUnchanged && !needMoveLastReadMarker;    //TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! last piece here
         if (mustScrollOneLineUp) {
-            logger.info("ONE LINE UP");
             index = uiListView.getFirstVisiblePosition();
             View v = uiListView.getChildAt(0);
             top = (v == null) ? 0 : v.getTop();

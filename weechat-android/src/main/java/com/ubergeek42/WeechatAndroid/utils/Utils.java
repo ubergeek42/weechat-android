@@ -9,6 +9,9 @@ import android.support.annotation.Nullable;
 import android.util.Base64;
 import android.widget.ImageView;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
@@ -17,6 +20,8 @@ import java.io.Serializable;
 import java.text.SimpleDateFormat;
 
 public class Utils {
+
+    final private static Logger logger = LoggerFactory.getLogger("Utils");
 
     public static void setImageDrawableWithFade(final @NonNull ImageView imageView,
                                                 final @NonNull Drawable drawable, int duration) {
@@ -46,7 +51,7 @@ public class Utils {
             ois.close();
             return o;
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("deserialize()", e);
             return null;
         }
     }
@@ -60,7 +65,7 @@ public class Utils {
             oos.close();
             return Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("serialize()", e);
             return null;
         }
     }

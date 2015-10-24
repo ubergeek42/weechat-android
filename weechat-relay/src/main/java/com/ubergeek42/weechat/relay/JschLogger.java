@@ -9,7 +9,7 @@ import com.jcraft.jsch.Logger;
 import org.slf4j.LoggerFactory;
 
 public class JschLogger implements Logger {
-    final private static org.slf4j.Logger logger = LoggerFactory.getLogger("JschLogger");
+    final private static org.slf4j.Logger logger = LoggerFactory.getLogger("Jsch");
 
     @Override
     public boolean isEnabled(int arg0) {
