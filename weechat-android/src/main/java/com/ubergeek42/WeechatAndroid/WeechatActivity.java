@@ -208,7 +208,7 @@ public class WeechatActivity extends AppCompatActivity implements
 
     public void connect() {
         P.loadConnectionPreferences();
-        if (TextUtils.isEmpty(P.host) || TextUtils.isEmpty(P.pass)) {
+        if (!P.areConnectionPreferencesValid()) {
             Toast.makeText(getBaseContext(), "Please edit preferences", Toast.LENGTH_LONG).show();
             return;
         }

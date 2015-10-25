@@ -158,8 +158,11 @@ public class RelayService extends Service implements Connection.Observer {
                     if (state.contains(STATE.AUTHENTICATED)) return;
                     if (DEBUG_CONNECTION) logger.debug("start(): not connected; connecting now");
                     notificator.showMain(String.format(ticker, P.host), contentNow, null);
-                    if (connect() == TRY.POSSIBLE)
-                        thandler.postDelayed(notifyRunner, WAIT_BEFORE_WAIT_MESSAGE_DELAY * 1000);
+                    switch (connect()) {
+                        case LATER: return; // wait for Connectivity
+                        case IMPOSSIBLE: stop(); break; // can't connect due to ?!?!
+                        case POSSIBLE: thandler.postDelayed(notifyRunner, WAIT_BEFORE_WAIT_MESSAGE_DELAY * 1000);
+                    }
                 }
             };
 
@@ -205,7 +208,7 @@ public class RelayService extends Service implements Connection.Observer {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private enum TRY {POSSIBLE, IMPOSSIBLE}
+    private enum TRY {POSSIBLE, LATER, IMPOSSIBLE}
 
     private TRY connect() {
         if (DEBUG_CONNECTION) logger.debug("connect()");
@@ -215,13 +218,13 @@ public class RelayService extends Service implements Connection.Observer {
 
         if (!connectivity.isNetworkAvailable()) {
             notificator.showMain(getString(R.string.notification_waiting_network), null);
-            return TRY.IMPOSSIBLE;
+            return TRY.LATER;
         }
 
         Connection conn;
         try {
             switch (P.connectionType) {
-                case PREF_TYPE_SSH: conn = new SSHConnection(P.host, P.port, P.sshHost, P.sshPort, P.sshUser, P.sshPass, P.sshKeyfile); break;
+                case PREF_TYPE_SSH: conn = new SSHConnection(P.host, P.port, P.sshHost, P.sshPort, P.sshUser, P.sshPass, P.sshKeyfile, P.sshKnownHosts); break;
                 case PREF_TYPE_SSL: conn = new SSLConnection(P.host, P.port, P.sslContext); break;
                 case PREF_TYPE_WEBSOCKET: conn = new WebSocketConnection(P.host, P.port, null); break;
                 case PREF_TYPE_WEBSOCKET_SSL: conn = new WebSocketConnection(P.host, P.port, P.sslContext); break;

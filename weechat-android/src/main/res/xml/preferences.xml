@@ -18,6 +18,7 @@
             <EditTextPreferenceFix android:key="ssh_user" android:title="@string/pref_ssh_user" android:summary="%s" android:singleLine="true" />
             <EditTextPreferenceFix android:key="ssh_pass" android:title="@string/pref_ssh_pass" android:summary="%s" android:password="true" android:singleLine="true"/>
             <EditTextPreferenceFix android:key="ssh_keyfile" android:title="@string/pref_ssh_keyfile" android:singleLine="true" android:summary="%s" android:defaultValue="/sdcard/weechat/sshkey.id_rsa" />
+            <EditTextPreferenceFix android:key="ssh_known_hosts" android:title="@string/pref_ssh_known_hosts" android:summary="@string/pref_ssh_known_hosts_summary" android:defaultValue="" android:inputType="textNoSuggestions|textMultiLine"/>
         </PreferenceScreen>
 
         <!-- relay settings and the rest -->

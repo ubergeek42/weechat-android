@@ -108,7 +108,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
 
     ///////////////////////////////////////////////////////////////////////////////////// connection
 
-    public static String host, pass, connectionType, sshHost, sshUser, sshPass, sshKeyfile;
+    public static String host, pass, connectionType, sshHost, sshUser, sshPass, sshKeyfile, sshKnownHosts;
     public static int port, sshPort;
     public static SSLContext sslContext;
     public static boolean reconnect;
@@ -127,6 +127,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         sshUser = p.getString(PREF_SSH_USER, PREF_SSH_USER_D);
         sshPass = p.getString(PREF_SSH_PASS, PREF_SSH_PASS_D);
         sshKeyfile = p.getString(PREF_SSH_KEYFILE, PREF_SSH_KEYFILE_D);
+        sshKnownHosts = p.getString(PREF_SSH_KNOWN_HOSTS, PREF_SSH_KNOWN_HOSTS_D);
 
         reconnect = p.getBoolean(PREF_RECONNECT, PREF_RECONNECT_D);
         optimizeTraffic = p.getBoolean(PREF_OPTIMIZE_TRAFFIC, PREF_OPTIMIZE_TRAFFIC_D);
@@ -139,6 +140,16 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
             sslContext = SSLHandler.getInstance(context).getSSLContext();
             if (sslContext == null) throw new RuntimeException("could not init sslContext");
         }
+    }
+
+    public static boolean areConnectionPreferencesValid() {
+        if (TextUtils.isEmpty(host) || TextUtils.isEmpty(pass)) return false;
+        if (connectionType.equals(PREF_TYPE_SSH)) {
+            if (TextUtils.isEmpty(sshHost)) return false;
+            if (TextUtils.isEmpty(sshKeyfile) && TextUtils.isEmpty(sshPass)) return false;
+            if (TextUtils.isEmpty(sshKnownHosts)) return false;
+        }
+        return true;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

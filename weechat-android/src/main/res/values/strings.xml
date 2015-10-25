@@ -78,6 +78,8 @@
             <string name="pref_ssh_port">SSH port</string>
             <string name="pref_ssh_pass">SSH password/key passphrase</string>
             <string name="pref_ssh_keyfile">SSH private key file</string>
+            <string name="pref_ssh_known_hosts">Known hosts</string>
+            <string name="pref_ssh_known_hosts_summary">Stuff you get by running $ ssh-keyscan host</string>
 
         <!-- relay type -->
 

@@ -21,6 +21,7 @@ public class Constants {
     final static public String PREF_SSH_USER = "ssh_user"; final public static String PREF_SSH_USER_D = "";
     final static public String PREF_SSH_PASS = "ssh_pass"; final public static String PREF_SSH_PASS_D = "";
     final static public String PREF_SSH_KEYFILE = "ssh_keyfile"; final public static String PREF_SSH_KEYFILE_D = "/sdcard/weechat/sshkey.id_rsa";
+    final static public String PREF_SSH_KNOWN_HOSTS = "ssh_known_hosts"; final public static String PREF_SSH_KNOWN_HOSTS_D = "";
 
     // relay
     final static public String PREF_HOST = "host"; final public static String PREF_HOST_D = null;

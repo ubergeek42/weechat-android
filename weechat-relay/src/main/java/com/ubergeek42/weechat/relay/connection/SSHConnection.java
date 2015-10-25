@@ -16,6 +16,7 @@ import com.ubergeek42.weechat.relay.JschLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -39,19 +40,20 @@ public class SSHConnection extends AbstractConnection {
 
     private Socket sock;
 
-    public SSHConnection(String server, int port, String sshHost, int sshPort, String sshUsername, String sshPassword, String sshKeyFilePath) throws JSchException {
+    public SSHConnection(String server, int port, String sshHost, int sshPort, String sshUsername,
+                         String sshPassword, String sshKeyFilePath, String sshKnownHosts) throws JSchException {
         this.server = server;
         this.port = port;
         this.sshPassword = sshPassword;
 
         JSch.setLogger(new JschLogger());
         JSch jsch = new JSch();
+        jsch.setKnownHosts(new ByteArrayInputStream(sshKnownHosts.getBytes()));
         boolean useKeyFile = sshKeyFilePath != null && sshKeyFilePath.length() > 0;
         if (useKeyFile) jsch.addIdentity(sshKeyFilePath, sshPassword);
         sshSession = jsch.getSession(sshUsername, sshHost, sshPort);
         sshSession.setSocketFactory(new SocketChannelFactory());
         if (!useKeyFile) sshSession.setUserInfo(new WeechatUserInfo());
-        sshSession.setConfig("StrictHostKeyChecking", "no");
     }
 
     @Override protected void doConnect() throws Exception {
