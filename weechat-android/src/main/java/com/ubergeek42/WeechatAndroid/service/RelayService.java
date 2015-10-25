@@ -37,6 +37,7 @@ import com.ubergeek42.weechat.relay.protocol.RelayObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.channels.UnresolvedAddressException;
 import java.util.EnumSet;
 
 import de.greenrobot.event.EventBus;
@@ -289,8 +290,8 @@ public class RelayService extends Service implements Connection.Observer {
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public static class AuthenticationException extends Exception {
-        public AuthenticationException(Exception cause, String message) {
+    public static class ExceptionWrapper extends Exception {
+        public ExceptionWrapper(Exception cause, String message) {
             super(message);
             initCause(cause);
         }
@@ -300,7 +301,9 @@ public class RelayService extends Service implements Connection.Observer {
     @Override public void onException(Exception e) {
         logger.error("onException({})", e.getClass().getSimpleName());
         if (e instanceof StreamClosed && (!state.contains(STATE.AUTHENTICATED)))
-            e = new AuthenticationException(e, "Server unexpectedly closed connection while connecting. Wrong password or connection type?");
+            e = new ExceptionWrapper(e, "Server unexpectedly closed connection while connecting. Wrong password or connection type?");
+        else if (e instanceof UnresolvedAddressException)
+            e = new ExceptionWrapper(e, "Could not resolve address " + (P.connectionType.equals(PREF_TYPE_SSH) ? P.sshHost : P.host));
         EventBus.getDefault().post(new ExceptionEvent(e));
     }
 
