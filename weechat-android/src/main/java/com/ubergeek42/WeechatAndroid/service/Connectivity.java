@@ -34,7 +34,7 @@ public class Connectivity extends BroadcastReceiver {
 
     public boolean isNetworkAvailable() {
         NetworkInfo networkInfo = manager.getActiveNetworkInfo();
-        return (networkInfo != null && (networkAvailable = networkInfo.isConnected()));
+        return networkAvailable = (networkInfo != null && networkInfo.isConnected());
     }
 
     // this message can be called multiple times
