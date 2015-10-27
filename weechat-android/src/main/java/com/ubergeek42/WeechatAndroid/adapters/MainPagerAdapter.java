@@ -130,8 +130,9 @@ public class MainPagerAdapter extends PagerAdapter {
     }
 
     @Override public CharSequence getPageTitle(int i) {
-        BufferFragment f = getBufferFragment(i);
-        return (f != null) ? f.getShortBufferName() : names.get(i);
+        String name = names.get(i);
+        Buffer buffer = BufferList.findByFullName(names.get(i));
+        return buffer == null ? name : buffer.shortName;
     }
 
     @Override public boolean isViewFromObject(View view, Object object) {

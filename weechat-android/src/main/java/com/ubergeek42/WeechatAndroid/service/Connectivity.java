@@ -15,6 +15,7 @@ import android.net.NetworkInfo;
 public class Connectivity extends BroadcastReceiver {
     private RelayService bone;
     private ConnectivityManager manager;
+    private boolean networkAvailable = true;
 
     public void register(RelayService bone) {
         this.bone = bone;
@@ -33,11 +34,13 @@ public class Connectivity extends BroadcastReceiver {
 
     public boolean isNetworkAvailable() {
         NetworkInfo networkInfo = manager.getActiveNetworkInfo();
-        return (networkInfo != null && networkInfo.isConnected());
+        return (networkInfo != null && (networkAvailable = networkInfo.isConnected()));
     }
 
+    // this message can be called multiple times
+    // make sure we only call _start() when network goes from unavailable to available
     @Override public void onReceive(Context context, Intent intent) {
-        if (isNetworkAvailable() && P.reconnect && bone.state.contains(RelayService.STATE.STARTED))
+        if (!networkAvailable && isNetworkAvailable() && P.reconnect && bone.state.contains(RelayService.STATE.STARTED))
             bone._start();
     }
 }

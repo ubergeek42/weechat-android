@@ -68,7 +68,8 @@ public class Notificator {
 
         int icon = bone.state.contains(AUTHENTICATED) ? R.drawable.ic_connected : R.drawable.ic_disconnected;
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(bone);
+        // use application context because of a bug in android: passed context will get leaked
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(bone.getApplicationContext());
         builder.setContentIntent(contentIntent)
                 .setSmallIcon(icon)
                 .setContentTitle("WeechatAndroid " + BuildConfig.VERSION_NAME)

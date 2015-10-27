@@ -62,7 +62,6 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     private ImageButton uiTab;
 
     private String fullName = "…";
-    private String shortName = fullName;
     private Buffer buffer;
 
     private ChatLinesAdapter linesAdapter;
@@ -83,8 +82,6 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
 
     @Override
     public void onAttach(Context context) {
-        fullName = getArguments().getString(TAG);
-        logger = LoggerFactory.getLogger(toString());
         if (DEBUG_LIFECYCLE) logger.debug("onAttach(...)");
         super.onAttach(context);
         this.activity = (WeechatActivity) context;
@@ -94,7 +91,8 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     public void onCreate(Bundle savedInstanceState) {
         if (DEBUG_LIFECYCLE) logger.debug("onCreate()");
         super.onCreate(savedInstanceState);
-        shortName = fullName = getArguments().getString(TAG);
+        fullName = getArguments().getString(TAG);
+        logger = LoggerFactory.getLogger(toString());
     }
 
     @Override
@@ -252,7 +250,6 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     private void attachToBuffer() {
         logger.debug("attachToBuffer()");
 
-        shortName = buffer.shortName;
         buffer.setBufferEye(this);
 
         linesAdapter = new ChatLinesAdapter(activity, buffer, uiLines);
@@ -531,10 +528,6 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    public String getShortBufferName() {
-        return shortName;
-    }
 
     @Override public String toString() {
         return "BF [" + fullName + "]";

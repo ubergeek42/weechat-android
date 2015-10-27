@@ -145,6 +145,7 @@ public class RelayService extends Service implements Connection.Observer {
 
     // called by ↑ and Connectivity
     protected void _start() {
+        if (DEBUG_CONNECTION) logger.debug("_start()");
         thandler.removeCallbacksAndMessages(null);
         thandler.post(new Runnable() {
             int reconnects = 0;

@@ -345,8 +345,9 @@ public class WeechatActivity extends AppCompatActivity implements
         updateMenuItems();
         hideSoftwareKeyboard();
         toolbarController.onPageChangedOrSelected();
-        findViewById(R.id.kitty).setVisibility(
-                (uiPager.getAdapter().getCount() == 0) ? View.VISIBLE : View.GONE);
+        int visible = uiPager.getAdapter().getCount() == 0 ? View.VISIBLE : View.GONE;
+        findViewById(R.id.kitty_background).setVisibility(visible);
+        findViewById(R.id.kitty).setVisibility(visible);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
