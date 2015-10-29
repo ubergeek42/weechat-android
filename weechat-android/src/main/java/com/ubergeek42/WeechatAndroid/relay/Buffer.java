@@ -34,7 +34,7 @@ public class Buffer {
     final public static int OTHER = 0;
     final public static int HARD_HIDDEN = -1;
 
-    public final static int MAX_LINES = 200;
+    public int maxLines = P.lineIncrement;
 
     private BufferEye bufferEye;
     private BufferNicklistEye bufferNickListEye;
@@ -155,6 +155,7 @@ public class Buffer {
                 lines.clear();
                 nicks.clear();
                 visibleLinesCount = 0;
+                maxLines = P.lineIncrement;
             }
         }
         BufferList.notifyBuffersSlightlyChanged();
@@ -172,9 +173,19 @@ public class Buffer {
         if (DEBUG_BUFFER) logger.debug("{} setBufferEye({})", shortName, bufferEye);
         this.bufferEye = bufferEye;
         if (bufferEye != null) {
-            if (!holdsAllLines) BufferList.requestLinesForBufferByPointer(pointer);
+            if (!holdsAllLines) BufferList.requestLinesForBufferByPointer(pointer, maxLines);
             if (!holdsAllNicks) BufferList.requestNicklistForBufferByPointer(pointer);
         }
+    }
+
+    synchronized public void requestMoreLines() {
+        holdsAllLines = false;
+        maxLines += P.lineIncrement;
+        BufferList.requestLinesForBufferByPointer(pointer, maxLines);
+    }
+
+    synchronized public boolean canRequestLines() {
+        return holdsAllLines && maxLines == lines.size();
     }
 
     /** tells Buffer if it is ACTIVELY display on screen
@@ -206,7 +217,7 @@ public class Buffer {
 
         // remove a line if we are over the limit and add the new line
         // correct visibleLinesCount accordingly
-        if (lines.size() >= MAX_LINES) if (lines.removeFirst().visible) visibleLinesCount--;
+        if (lines.size() >= maxLines) if (lines.removeFirst().visible) visibleLinesCount--;
         if (isLast) lines.add(line);
         else lines.addFirst(line);
         if (line.visible) visibleLinesCount++;
@@ -241,7 +252,7 @@ public class Buffer {
         }
 
         // notify our listener
-        onLinesChanged();
+        if (isLast) onLinesChanged();
 
         // if current line's an event line and we've got a speaker, move nick to fist position
         // nick in question is supposed to be in the nicks already, for we only shuffle these
@@ -259,7 +270,7 @@ public class Buffer {
                 }
         }
 
-        if (lines.size() >= MAX_LINES) holdsAllLines = true;
+        if (lines.size() >= maxLines) holdsAllLines = true;
     }
 
     /** a buffer NOT will want a complete update if the last line unread stored in weechat buffer

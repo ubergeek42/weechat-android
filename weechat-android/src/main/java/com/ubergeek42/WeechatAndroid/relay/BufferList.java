@@ -230,8 +230,8 @@ public class BufferList {
     }
 
     private final static String MEOW = "(listlines_reverse) hdata buffer:0x%x/own_lines/last_line(-%d)/data date,displayed,prefix,message,highlight,notify,tags_array";
-    public static void requestLinesForBufferByPointer(long pointer) {
-        sendMessage(String.format(Locale.ROOT, MEOW, pointer, Buffer.MAX_LINES));
+    public static void requestLinesForBufferByPointer(long pointer, int number) {
+        sendMessage(String.format(Locale.ROOT, MEOW, pointer, number));
     }
 
     public static void requestNicklistForBufferByPointer(long  pointer) {

@@ -115,6 +115,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
 
     public static boolean pingEnabled;
     public static long pingIdleTime, pingTimeout;
+    public static int lineIncrement;
 
     public static void loadConnectionPreferences() {
         host = p.getString(PREF_HOST, PREF_HOST_D);
@@ -129,6 +130,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         sshKeyfile = p.getString(PREF_SSH_KEYFILE, PREF_SSH_KEYFILE_D);
         sshKnownHosts = p.getString(PREF_SSH_KNOWN_HOSTS, PREF_SSH_KNOWN_HOSTS_D);
 
+        lineIncrement = Integer.parseInt(p.getString(PREF_LINE_INCREMENT, PREF_LINE_INCREMENT_D));
         reconnect = p.getBoolean(PREF_RECONNECT, PREF_RECONNECT_D);
         optimizeTraffic = p.getBoolean(PREF_OPTIMIZE_TRAFFIC, PREF_OPTIMIZE_TRAFFIC_D);
 
@@ -139,6 +141,8 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         if (Utils.isAnyOf(connectionType, PREF_TYPE_SSL, PREF_TYPE_WEBSOCKET_SSL)) {
             sslContext = SSLHandler.getInstance(context).getSSLContext();
             if (sslContext == null) throw new RuntimeException("could not init sslContext");
+        } else {
+            sslContext = null;
         }
     }
 

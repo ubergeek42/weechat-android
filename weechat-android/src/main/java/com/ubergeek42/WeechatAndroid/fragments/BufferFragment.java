@@ -19,6 +19,7 @@ import android.view.View.OnClickListener;
 import android.view.View.OnKeyListener;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
@@ -45,10 +46,8 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         OnClickListener, TextWatcher, TextView.OnEditorActionListener {
 
     final private static boolean DEBUG_TAB_COMPLETE = false;
-    final private static boolean DEBUG_LIFECYCLE = false;
+    final private static boolean DEBUG_LIFECYCLE = true;
     final private static boolean DEBUG_VISIBILITY = false;
-    final private static boolean DEBUG_MESSAGES = false;
-    final private static boolean DEBUG_CONNECTION = false;
     final private static boolean DEBUG_AUTOSCROLLING = false;
 
     private final static String TAG = "tag";
@@ -60,6 +59,9 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     private EditText uiInput;
     private ImageButton uiSend;
     private ImageButton uiTab;
+
+    private ViewGroup uiMore;
+    private Button uiMoreButton;
 
     private String fullName = "…";
     private Buffer buffer;
@@ -117,6 +119,12 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         CopyPaste cp = new CopyPaste(activity, uiInput);
         uiInput.setOnLongClickListener(cp);
         uiLines.setOnItemLongClickListener(cp);
+
+        uiMore = (ViewGroup) inflater.inflate(R.layout.more_button, null);
+        uiMoreButton = (Button) uiMore.findViewById(R.id.button_more);
+        uiMoreButton.setOnClickListener(this);
+        uiLines.addHeaderView(uiMore);
+        hasHeader = true;
 
         online = true;
         return v;
@@ -182,7 +190,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
      **   * drawer being shown/hidden
      **   * whether buffer is shown in the pager (see MainPagerAdapter)
      **   * availability of buffer & activity
-     **   * lifecycle (todo) */
+     **   * lifecycle */
     public void maybeChangeVisibilityState() {
         if (DEBUG_VISIBILITY) logger.debug("maybeChangeVisibilityState()");
         if (activity == null || buffer == null)
@@ -257,10 +265,10 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         linesAdapter.readLinesFromBuffer();
 
         activity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
+            @Override public void run() {
                 activity.updateCutePagerTitleStrip();
                 uiLines.setAdapter(linesAdapter);
+                maybeAddRemoveHeader();
             }
         });
         maybeChangeVisibilityState();
@@ -290,6 +298,24 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         });
     }
 
+    private boolean hasHeader = true;
+    private void maybeAddRemoveHeader() {
+        final boolean shouldHaveHeader = buffer.canRequestLines();
+        if (hasHeader == shouldHaveHeader) return;
+        hasHeader = shouldHaveHeader;
+        activity.runOnUiThread(new Runnable() {
+            @Override public void run() {
+                logger.debug("maybeAddRemoveHeader(); {}", shouldHaveHeader ? "adding" : "removing");
+                if (shouldHaveHeader) uiMore.addView(uiMoreButton);
+                else uiMore.removeAllViews();
+            }
+        });
+    }
+
+    private void requestMoreLines() {
+        if (buffer.canRequestLines()) buffer.requestMoreLines();
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// BufferEye stuff
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -297,10 +323,13 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     @Override
     public void onLinesChanged() {
         linesAdapter.onLinesChanged();
+        maybeAddRemoveHeader();
     }
 
     @Override
     public void onLinesListed() {
+        maybeAddRemoveHeader();
+        linesAdapter.onLinesChanged();
         scrollToHotLineIfNeeded();
     }
 
@@ -419,10 +448,11 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
      ** our own send button or tab button pressed */
     @Override
     public void onClick(View v) {
-        if (v.getId() == uiSend.getId())
-            sendMessage();
-        else if (v.getId() == uiTab.getId())
-            tryTabComplete();
+        switch (v.getId()) {
+            case R.id.chatview_send: sendMessage(); break;
+            case R.id.chatview_tab: tryTabComplete(); break;
+            case R.id.button_more: requestMoreLines(); break;
+        }
     }
 
     /** the only OnEditorActionListener's method
@@ -446,7 +476,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         String[] lines = input.split("\n");
         for (String line : lines) {
             if (line.length() != 0)
-                EventBus.getDefault().post(new SendMessageEvent("input " + buffer.fullName + " " + line));
+                EventBus.getDefault().post(new SendMessageEvent("input " + fullName + " " + line));
         }
         uiInput.setText("");   // this will reset tab completion
     }

@@ -17,7 +17,7 @@
     <string name="tabkey">Tab</string>
     <string name="open_drawer">Open drawer</string>
     <string name="close_drawer">Close drawer</string>
-
+    <string name="more_button">Load more lines</string>
 
     <!--  the text shown in the buffer list filter edit text as a placeholder -->
     <string name="filter_bufferlist_placeholder"><i>filter</i></string>
@@ -30,15 +30,11 @@
     <string name="hot_message_not_available">(message not available)</string>
 
     <string name="notification_connected_to">"Connected to "</string>
-	<!--<string name="notification_reconnected_to">"Reconnected to "</string>-->
     <string name="notification_disconnected">Disconnected</string>
 
     <string name="notification_connecting">Connecting to %s…</string>
     <string name="notification_connecting_details_now">Connecting now…</string>
     <string name="notification_connecting_details">Will connect in %d seconds…</string>
-    <!--<string name="notification_reconnecting">Reconnecting to %s…</string>-->
-    <!--<string name="notification_reconnecting_details_now">Reconnecting now…</string>-->
-    <!--<string name="notification_reconnecting_details">Will reconnect in %d seconds…</string>-->
 
     <string name="notification_update_settings">Update settings</string>
     <string name="notification_update_settings_details">Click to edit your preferences and connect</string>
@@ -91,6 +87,8 @@
         <!-- misc -->
 
         <string name="pref_misc_group">Miscellaneous</string>
+            <string name="pref_line_increment">Number of lines to load</string>
+            <string name="pref_line_increment_summary">The number of lines to be loaded when opening a buffer or pressing the “Load more lines” button. Note that due to filtering the number of lines actually shown might be less than the number of loaded lines. Also note that due to WeeChat’s limitations the app has to re-fetch all lines every times it requests more lines. (%s)</string>
             <string name="pref_reconnect">Reconnect on connection loss</string>
             <string name="pref_boot_connect">Connect on system boot</string>
             <string name="pref_notification_ticker">Notifications ticker</string>

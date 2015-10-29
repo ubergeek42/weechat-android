@@ -30,6 +30,7 @@
         </PreferenceCategory>
 
         <PreferenceCategory android:key="connection_misc_group" android:title="@string/pref_misc_group">
+            <EditTextPreferenceFix android:key="line_increment" android:title="@string/pref_line_increment" android:summary="@string/pref_line_increment_summary" android:numeric="integer" android:defaultValue="100" />
             <CheckBoxPreference android:key="reconnect" android:title="@string/pref_reconnect" />
             <CheckBoxPreference android:key="boot_connect" android:title="@string/pref_boot_connect" />
             <CheckBoxPreference android:key="optimize_traffic" android:summary="@string/pref_optimize_traffic_summary" android:title="@string/pref_optimize_traffic" android:defaultValue="false"/>
