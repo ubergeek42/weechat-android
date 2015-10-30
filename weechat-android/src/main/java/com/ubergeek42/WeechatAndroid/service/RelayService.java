@@ -51,7 +51,6 @@ public class RelayService extends Service implements Connection.Observer {
     final private static boolean DEBUG = true;
     final private static boolean DEBUG_CONNECTION = true;
 
-    public Notificator notificator;
     public RelayConnection connection;
     private Connectivity connectivity;
     private PingActionReceiver ping;
@@ -66,14 +65,10 @@ public class RelayService extends Service implements Connection.Observer {
         if (DEBUG) logger.debug("onCreate()");
         super.onCreate();
 
-        notificator = new Notificator(this);
-
         // prepare handler that will run on a separate thread
         HandlerThread handlerThread = new HandlerThread("doge");
         handlerThread.start();
         thandler = new Handler(handlerThread.getLooper());
-
-        notificator.showMain(null, "Starting...", null);
 
         connectivity = new Connectivity();
         connectivity.register(this);
@@ -158,7 +153,7 @@ public class RelayService extends Service implements Connection.Observer {
                 @Override public void run() {
                     if (state.contains(STATE.AUTHENTICATED)) return;
                     if (DEBUG_CONNECTION) logger.debug("start(): not connected; connecting now");
-                    notificator.showMain(String.format(ticker, P.host), contentNow, null);
+                    Notificator.showMain(RelayService.this, String.format(ticker, P.host), contentNow, null);
                     switch (connect()) {
                         case LATER: return; // wait for Connectivity
                         case IMPOSSIBLE: stop(); break; // can't connect due to ?!?!
@@ -172,7 +167,7 @@ public class RelayService extends Service implements Connection.Observer {
                     if (state.contains(STATE.AUTHENTICATED)) return;
                     long delay = DELAYS[reconnects < DELAYS.length ? reconnects : DELAYS.length - 1];
                     if (DEBUG_CONNECTION) logger.debug("start(): waiting {} seconds", delay);
-                    notificator.showMain(String.format(ticker, P.host), String.format(content, delay), null);
+                    Notificator.showMain(RelayService.this, String.format(ticker, P.host), String.format(content, delay), null);
                     reconnects++;
                     thandler.postDelayed(connectRunner, delay * 1000);
                 }
@@ -223,7 +218,7 @@ public class RelayService extends Service implements Connection.Observer {
             connection.disconnect();
 
         if (!connectivity.isNetworkAvailable()) {
-            notificator.showMain(getString(R.string.notification_waiting_network), null);
+            Notificator.showMain(this, getString(R.string.notification_waiting_network), null);
             return TRY.LATER;
         }
 
@@ -268,7 +263,7 @@ public class RelayService extends Service implements Connection.Observer {
                 return;
             case AUTHENTICATED:
                 state = EnumSet.of(STATE.STARTED, STATE.AUTHENTICATED);
-                notificator.showMain(getString(R.string.notification_connected_to) + P.host, null);
+                Notificator.showMain(this, getString(R.string.notification_connected_to) + P.host, null);
                 hello();
                 break;
             case BUFFERS_LISTED:

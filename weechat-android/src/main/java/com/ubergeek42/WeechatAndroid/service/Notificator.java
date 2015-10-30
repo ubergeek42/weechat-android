@@ -38,20 +38,20 @@ public class Notificator {
     final private static int NOTIFICATION_MAIN_ID = 42;
     final private static int NOTIFICATION_HOT_ID = 43;
 
-    private RelayService bone;
-    private NotificationManager manager;
+    private static Context context;
+    private static NotificationManager manager;
 
-    public Notificator(RelayService bone) {
-        this.bone = bone;
-        this.manager = (NotificationManager) bone.getSystemService(Context.NOTIFICATION_SERVICE);
+    public static void init(Context c) {
+        context = c.getApplicationContext();
+        manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public void showMain(@NonNull String content, @Nullable PendingIntent intent) {
-        showMain(content, content, intent);
+    public static void showMain(@NonNull RelayService relay, @NonNull String content, @Nullable PendingIntent intent) {
+        showMain(relay, content, content, intent);
     }
 
     /** show the persistent notification of the service
@@ -60,16 +60,16 @@ public class Notificator {
      * @param content the smaller text that appears under title
      * @param intent intent that's executed on notification click, default used if null
      */
-    public void showMain(@Nullable String tickerText, @NonNull String content, @Nullable PendingIntent intent) {
+    public static void showMain(@NonNull RelayService relay, @Nullable String tickerText, @NonNull String content, @Nullable PendingIntent intent) {
         if (DEBUG_NOTIFICATIONS) logger.debug("showMain({}, {}, {})", tickerText, content, intent);
 
         PendingIntent contentIntent = (intent != null) ? intent :
-                PendingIntent.getActivity(bone, 0, new Intent(bone, WeechatActivity.class), PendingIntent.FLAG_CANCEL_CURRENT);
+                PendingIntent.getActivity(context, 0, new Intent(context, WeechatActivity.class), PendingIntent.FLAG_CANCEL_CURRENT);
 
-        int icon = bone.state.contains(AUTHENTICATED) ? R.drawable.ic_connected : R.drawable.ic_disconnected;
+        int icon = relay.state.contains(AUTHENTICATED) ? R.drawable.ic_connected : R.drawable.ic_disconnected;
 
         // use application context because of a bug in android: passed context will get leaked
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(bone.getApplicationContext());
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context);
         builder.setContentIntent(contentIntent)
                 .setSmallIcon(icon)
                 .setContentTitle("WeechatAndroid " + BuildConfig.VERSION_NAME)
@@ -85,7 +85,7 @@ public class Notificator {
         Notification notification = builder.build();
         notification.flags |= Notification.FLAG_ONGOING_EVENT;
 
-        bone.startForeground(NOTIFICATION_MAIN_ID, notification);
+        relay.startForeground(NOTIFICATION_MAIN_ID, notification);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -100,7 +100,7 @@ public class Notificator {
      ** it's filled from hotlist data and hotList only contains lines that
      ** arrived in real time. so we add (message not available) if there are NO lines to display
      ** and add "..." if there are some lines to display, but not all */
-    public void showHot(boolean newHighlight) {
+    public static void showHot(boolean newHighlight) {
         if (DEBUG_NOTIFICATIONS) logger.debug("showHot({})", newHighlight);
 
         if (!P.notificationEnable)
@@ -121,16 +121,16 @@ public class Notificator {
         String target_buffer = (hotCount == hotList.size() && set.size() == 1) ? hotList.get(0)[BUFFER] : "";
 
         // prepare intent
-        Intent intent = new Intent(bone, WeechatActivity.class).putExtra("full_name", target_buffer);
-        PendingIntent contentIntent = PendingIntent.getActivity(bone, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        Intent intent = new Intent(context, WeechatActivity.class).putExtra("full_name", target_buffer);
+        PendingIntent contentIntent = PendingIntent.getActivity(context, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         // prepare notification
         // make the ticker the LAST message
-        String message = hotList.size() == 0 ? bone.getString(R.string.hot_message_not_available) : hotList.get(hotList.size() - 1)[LINE];
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(bone)
+        String message = hotList.size() == 0 ? context.getString(R.string.hot_message_not_available) : hotList.get(hotList.size() - 1)[LINE];
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context)
                 .setContentIntent(contentIntent)
                 .setSmallIcon(R.drawable.ic_hot)
-                .setContentTitle(bone.getResources().getQuantityString(R.plurals.hot_messages, hotCount, hotCount))
+                .setContentTitle(context.getResources().getQuantityString(R.plurals.hot_messages, hotCount, hotCount))
                 .setContentText(message);
 
         // display several lines only if we have at least one visible line and

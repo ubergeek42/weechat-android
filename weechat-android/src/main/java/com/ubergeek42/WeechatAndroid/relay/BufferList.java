@@ -9,6 +9,7 @@ package com.ubergeek42.WeechatAndroid.relay;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.ubergeek42.WeechatAndroid.service.Notificator;
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
 import com.ubergeek42.weechat.relay.RelayMessageHandler;
@@ -305,7 +306,7 @@ public class BufferList {
 
     /** HELPER. notifies everyone interested of hotlist changes */
     static private void notifyHotCountChanged(boolean newHighlight) {
-        if (relay != null) relay.notificator.showHot(newHighlight);
+        Notificator.showHot(newHighlight);
         if (buffersEye != null) buffersEye.onHotCountChanged();
     }
 
