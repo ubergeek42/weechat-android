@@ -67,7 +67,7 @@ public class PingActionReceiver extends BroadcastReceiver {
                 extras.putBoolean("sentPing", true);
             } else {
                 logger.info("no message received, disconnecting");
-                bone.stop();
+                bone.interrupt();
                 return;
             }
         } else {

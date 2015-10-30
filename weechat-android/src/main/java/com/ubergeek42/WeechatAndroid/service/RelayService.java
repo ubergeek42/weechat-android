@@ -184,6 +184,7 @@ public class RelayService extends Service implements Connection.Observer {
         });
     }
 
+    // called by user and when there was a fatal exception while trying to connect
     protected void stop() {
         if (DEBUG_CONNECTION) logger.debug("stop()");
         if (state.contains(STATE.STOPPED)) {
@@ -195,16 +196,20 @@ public class RelayService extends Service implements Connection.Observer {
 
         state = EnumSet.of(STATE.STOPPED);
         EventBus.getDefault().postSticky(new StateChangedEvent(state));
+        interrupt();
+        stopSelf();
+        P.setServiceAlive(false);
+    }
 
+    // called by ↑ and PingActionReceiver
+    // close whatever connection we have in a thread, may result in a call to onStateChanged
+    protected void interrupt() {
         thandler.removeCallbacksAndMessages(null);
         thandler.post(new Runnable() {
             @Override public void run() {
                 if (connection != null) connection.disconnect();
             }
         });
-
-        stopSelf();
-        P.setServiceAlive(false);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
