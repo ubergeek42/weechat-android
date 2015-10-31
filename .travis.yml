@@ -2,7 +2,7 @@ language: android
 
 before_script:
     - export PATH=$HOME/.local/bin:$PATH
-    - pip install --user `whoami` google-api-python-client
+    - pip install --user `whoami` google-api-python-client python-openssl
 
 script: releases/travis_build.sh
 
