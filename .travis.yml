@@ -1,4 +1,9 @@
 language: android
+
+before_script:
+    - export PATH=$HOME/.local/bin:$PATH
+    - pip install --user `whoami` google-api-python-client
+
 script: releases/travis_build.sh
 
 after_script:
@@ -18,6 +23,5 @@ android:
 
 sudo: false
 before_install:
-    - pip install --upgrade google-api-python-client
     - openssl aes-256-cbc -K $encrypted_6a3fa2e8cfe5_key -iv $encrypted_6a3fa2e8cfe5_iv
       -in releases/google-play-key.p12.enc -out releases/google-play-key.p12 -d
