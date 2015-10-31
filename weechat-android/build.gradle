@@ -19,7 +19,7 @@ dependencies {
 
     compile "commons-codec:commons-codec:1.8"
 
-    // We need the weechat-relay library for connecting to weechat    
+    // We need the weechat-relay library for connecting to weechat
     compile(project(':weechat-relay')) {
         // Exclude this because slf4j-android is a superset of this
         exclude group: 'org.slf4j', module:'slf4j-api'
@@ -35,7 +35,7 @@ android {
     buildToolsVersion "22.0.1"
 
     defaultConfig {
-        versionCode 14
+        versionCode gitVersionCode()
         versionName "0.10"
 
         minSdkVersion 10
@@ -115,9 +115,12 @@ if (project.hasProperty('releaseStorefile') &&
 }
 
 
+def gitVersionCode() {
+    def counter = 0
+    def process = "git rev-list master --first-parent --count".execute()
+    return process.text.toInteger()
+}
+
 String versionBanner() {
     return 'git describe'.execute().text.trim()
 }
-
-
-
