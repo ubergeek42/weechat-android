@@ -174,20 +174,7 @@ public class WeechatActivity extends AppCompatActivity implements
             uiActionBar.setDisplayHomeAsUpEnabled(true);
         }
 
-        toolbarController = new ToolbarController((Toolbar) findViewById(R.id.toolbar), uiActionBar);
-
-        final View layout = slidy ? findViewById(R.id.drawer_layout) : findViewById(R.id.not_drawer_layout);
-        final View root = ((ViewGroup) layout).getChildAt(0);
-        root.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-            @Override public void onGlobalLayout() {
-                // if more than 300 pixels, its probably a keyboard...
-                int heightDiff = root.getRootView().getHeight() - root.getHeight();
-                if (heightDiff > 300)
-                    toolbarController.onSoftwareKeyboardStateChanged(true);
-                else if (heightDiff < 300)
-                    toolbarController.onSoftwareKeyboardStateChanged(false);
-            }
-        });
+        toolbarController = new ToolbarController(this);
 
         imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         String title = "WA v" + BuildConfig.VERSION_NAME;
