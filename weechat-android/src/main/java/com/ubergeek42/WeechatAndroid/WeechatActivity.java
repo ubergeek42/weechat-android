@@ -573,6 +573,7 @@ public class WeechatActivity extends AppCompatActivity implements
 
     public void showDrawer() {
         if (DEBUG_DRAWER) logger.debug("showDrawer()");
+        if (!drawerEnabled) return;
         if (!drawerShowing) drawerVisibilityChanged(true); // we need this so that drawerShowing is set immediately
         uiPager.post(new Runnable() {
             @Override
