@@ -41,9 +41,7 @@ We now have automatic builds published to the google play store as commits are m
 
 Click this link to become a "beta tester" for the nightly builds on you device: https://play.google.com/apps/testing/com.ubergeek42.WeechatAndroid.dev
 
-The click here to install it:
-https://play.google.com/store/apps/details?id=com.ubergeek42.WeechatAndroid.dev
-Either scan the QR code, or download it from the [Google Play Store - Nightly](https://play.google.com/store/apps/details?id=com.ubergeek42.WeechatAndroid.dev).
+After you click the like above, either scan the QR code, or download it from the [Google Play Store ](https://play.google.com/store/apps/details?id=com.ubergeek42.WeechatAndroid.dev).
 
 ![Download](https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=https://play.google.com/store/apps/details?id=com.ubergeek42.WeechatAndroid.dev)
 
