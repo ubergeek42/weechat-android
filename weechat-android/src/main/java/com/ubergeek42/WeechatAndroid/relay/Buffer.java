@@ -184,8 +184,10 @@ public class Buffer {
         BufferList.requestLinesForBufferByPointer(pointer, maxLines);
     }
 
-    synchronized public boolean canRequestLines() {
-        return holdsAllLines && maxLines == lines.size();
+    public enum LINES {FETCHING, CAN_FETCH_MORE, EVERYTHING_FETCHED}
+    synchronized public LINES getLineStatus() {
+        if (!holdsAllLines) return LINES.FETCHING;
+        return maxLines == lines.size() ? LINES.CAN_FETCH_MORE : LINES.EVERYTHING_FETCHED;
     }
 
     /** tells Buffer if it is ACTIVELY display on screen

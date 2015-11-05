@@ -77,8 +77,7 @@ public class BufferList {
 
         // handle newly arriving chat lines
         // and chatlines we are reading in reverse
-        addMessageHandler("_buffer_line_added", bufferLineWatcher);
-        addMessageHandler("listlines_reverse", bufferLineWatcher);
+        addMessageHandler("_buffer_line_added", newLineWatcher);
 
         // handle nicklist init and changes
         addMessageHandler("nicklist", nickListWatcher);
@@ -93,6 +92,7 @@ public class BufferList {
 
     public static void stop() {
         relay = null;
+        messageHandlersMap.clear();
     }
 
     private static HashMap<String, LinkedHashSet<RelayMessageHandler>> messageHandlersMap = new HashMap<>();
@@ -101,6 +101,11 @@ public class BufferList {
         LinkedHashSet<RelayMessageHandler> handlers = messageHandlersMap.get(id);
         if (handlers == null) messageHandlersMap.put(id, handlers = new LinkedHashSet<>());
         handlers.add(handler);
+    }
+
+    private static void removeMessageHandler(String id, RelayMessageHandler handler) {
+        LinkedHashSet<RelayMessageHandler> handlers = messageHandlersMap.get(id);
+        if (handlers != null) handlers.remove(handler);
     }
 
     public static void handleMessage(@Nullable RelayObject obj, String id) {
@@ -230,9 +235,12 @@ public class BufferList {
         if (P.optimizeTraffic) sendMessage("desync " + fullName);
     }
 
-    private final static String MEOW = "(listlines_reverse) hdata buffer:0x%x/own_lines/last_line(-%d)/data date,displayed,prefix,message,highlight,notify,tags_array";
+    private static int counter = 0;
+    private final static String MEOW = "(%d) hdata buffer:0x%x/own_lines/last_line(-%d)/data date,displayed,prefix,message,highlight,notify,tags_array";
     public static void requestLinesForBufferByPointer(long pointer, int number) {
-        sendMessage(String.format(Locale.ROOT, MEOW, pointer, number));
+        addMessageHandler(Integer.toString(counter), new BufferLineWatcher(counter, pointer));
+        sendMessage(String.format(Locale.ROOT, MEOW, counter, pointer, number));
+        counter++;
     }
 
     public static void requestNicklistForBufferByPointer(long  pointer) {
@@ -468,46 +476,52 @@ public class BufferList {
 
     // _buffer_line_added
     // listlines_reverse
-    static RelayMessageHandler bufferLineWatcher = new RelayMessageHandler() {
-        final private Logger logger = LoggerFactory.getLogger("bufferLineWatcher");
+    static class BufferLineWatcher implements RelayMessageHandler {
+        final private Logger logger = LoggerFactory.getLogger("BufferLineWatcher");
+        final private long bufferPointer;
+        final private int id;
+
+        public BufferLineWatcher(int id, long bufferPointer) {
+            this.bufferPointer = bufferPointer;
+            this.id = id;
+        }
 
         @Override public void handleMessage(RelayObject obj, String id) {
             if (DEBUG_HANDLERS) logger.debug("handleMessage(..., {})", id);
             if (!(obj instanceof Hdata)) return;
             Hdata data = (Hdata) obj;
-            HashSet<Buffer> freshBuffers = new HashSet<>();
+            boolean isBottom = id.equals("_buffer_line_added");
 
-            for (int i = 0, size = data.getCount(); i < size; i++) {
-                HdataEntry entry = data.getItem(i);
-                boolean isBottom = id.equals("_buffer_line_added");
-
-                long buffer_pointer = (isBottom) ? entry.getItem("buffer").asPointerLong() : entry.getPointerLong(0);
-                Buffer buffer = findByPointer(buffer_pointer);
-                if (buffer == null) {
-                    logger.warn("handleMessage(..., {}): no buffer to update", id);
-                    continue;
-                }
-                if (!isBottom)
-                    freshBuffers.add(buffer);
-                String message = entry.getItem("message").asString();
-                String prefix = entry.getItem("prefix").asString();
-                boolean displayed = (entry.getItem("displayed").asChar() == 0x01);
-                Date time = entry.getItem("date").asTime();
-                RelayObject high = entry.getItem("highlight");
-                boolean highlight = (high != null && high.asChar() == 0x01);
-                RelayObject tagsobj = entry.getItem("tags_array");
-
-                String[] tags = (tagsobj != null && tagsobj.getType() == RelayObject.WType.ARR) ?
-                        tagsobj.asArray().asStringArray() : null;
-
-                Line line = new Line(entry.getPointerLong(), time, prefix, message, displayed, highlight, tags);
-                buffer.addLine(line, isBottom);
-
+            Buffer buffer = findByPointer(isBottom ? data.getItem(0).getItem("buffer").asPointerLong() : bufferPointer);
+            if (buffer == null) {
+                logger.warn("handleMessage(..., {}): no buffer to update", id);
+                return;
             }
 
-            for (Buffer buffer : freshBuffers) buffer.onLinesListed();
+            for (int i = 0, size = data.getCount(); i < size; i++)
+                buffer.addLine(getLine(data.getItem(i)), isBottom);
+
+            if (!isBottom) {
+                buffer.onLinesListed();
+                removeMessageHandler(Integer.toString(this.id), this);
+            }
         }
-    };
+
+        private static Line getLine(HdataEntry entry) {
+            String message = entry.getItem("message").asString();
+            String prefix = entry.getItem("prefix").asString();
+            boolean displayed = (entry.getItem("displayed").asChar() == 0x01);
+            Date time = entry.getItem("date").asTime();
+            RelayObject high = entry.getItem("highlight");
+            boolean highlight = (high != null && high.asChar() == 0x01);
+            RelayObject tagsobj = entry.getItem("tags_array");
+            String[] tags = (tagsobj != null && tagsobj.getType() == RelayObject.WType.ARR) ?
+                    tagsobj.asArray().asStringArray() : null;
+            return new Line(entry.getPointerLong(), time, prefix, message, displayed, highlight, tags);
+        }
+    }
+
+    static BufferLineWatcher newLineWatcher = new BufferLineWatcher(-1, -1);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// nicklist

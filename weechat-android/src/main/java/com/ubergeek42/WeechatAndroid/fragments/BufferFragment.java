@@ -30,6 +30,7 @@ import com.ubergeek42.WeechatAndroid.adapters.ChatLinesAdapter;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.relay.Buffer;
+import com.ubergeek42.WeechatAndroid.relay.Buffer.LINES;
 import com.ubergeek42.WeechatAndroid.relay.BufferEye;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.WeechatAndroid.relay.Line;
@@ -124,7 +125,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         uiMoreButton = (Button) uiMore.findViewById(R.id.button_more);
         uiMoreButton.setOnClickListener(this);
         uiLines.addHeaderView(uiMore);
-        hasHeader = true;
+        status = Buffer.LINES.CAN_FETCH_MORE;
 
         online = true;
         return v;
@@ -268,7 +269,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
             @Override public void run() {
                 activity.updateCutePagerTitleStrip();
                 uiLines.setAdapter(linesAdapter);
-                maybeAddRemoveHeader();
+                maybeChangeHeader();
             }
         });
         maybeChangeVisibilityState();
@@ -298,22 +299,32 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         });
     }
 
-    private boolean hasHeader = true;
-    private void maybeAddRemoveHeader() {
-        final boolean shouldHaveHeader = buffer.canRequestLines();
-        if (hasHeader == shouldHaveHeader) return;
-        hasHeader = shouldHaveHeader;
+    private LINES status = LINES.CAN_FETCH_MORE;
+    private void maybeChangeHeader() {
+        final LINES s = buffer.getLineStatus();
+        if (status == s) return;
+        status = s;
         activity.runOnUiThread(new Runnable() {
             @Override public void run() {
-                logger.debug("maybeAddRemoveHeader(); {}", shouldHaveHeader ? "adding" : "removing");
-                if (shouldHaveHeader) uiMore.addView(uiMoreButton);
-                else uiMore.removeAllViews();
+                logger.debug("maybeChangeHeader(); {}", s);
+                if (s == LINES.EVERYTHING_FETCHED) {
+                    uiMore.removeAllViews();
+                } else {
+                    if (uiMore.getChildCount() == 0) uiMore.addView(uiMoreButton);
+                    boolean more = s == LINES.CAN_FETCH_MORE;
+                    uiMoreButton.setEnabled(more);
+                    uiMoreButton.setTextColor(more ? 0xff80cbc4 : 0xff777777);
+                    uiMoreButton.setText(more ? "Fetch more lines" : "Fetching lines…");
+                }
             }
         });
     }
 
     private void requestMoreLines() {
-        if (buffer.canRequestLines()) buffer.requestMoreLines();
+        if (buffer.getLineStatus() == LINES.CAN_FETCH_MORE) {
+            buffer.requestMoreLines();
+            maybeChangeHeader();
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -323,13 +334,13 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     @Override
     public void onLinesChanged() {
         linesAdapter.onLinesChanged();
-        maybeAddRemoveHeader();
+        maybeChangeHeader();
     }
 
     @Override
     public void onLinesListed() {
-        maybeAddRemoveHeader();
         linesAdapter.onLinesChanged();
+        maybeChangeHeader();
         scrollToHotLineIfNeeded();
     }
 
