@@ -121,7 +121,7 @@ if (project.hasProperty('releaseStorefile') &&
 
 def gitVersionCode() {
     def counter = 0
-    def process = "git rev-list master --first-parent --count".execute()
+    def process = "git rev-list HEAD --first-parent --count".execute()
     return process.text.toInteger()
 }
 

@@ -16,8 +16,9 @@ Either scan the QR code, or download it from the [Google Play Store](https://pla
 ##### Google Play Beta Version
 Sometimes we make beta versions available in the google play store. These versions may be much more unstable, but are typically more up to date than the released version in the play store. To participate, you need to do two things:
 
-1. Join this google+ community: https://plus.google.com/communities/102731380310451490082
-2. Follow this link to "Become A Tester": https://play.google.com/apps/testing/com.ubergeek42.WeechatAndroid
+Follow this link to "Become A Tester": https://play.google.com/apps/testing/com.ubergeek42.WeechatAndroid
+
+Note: Make sure you're logged in to the same account you use for google play on your device.
 
 Once you've done that if you install weechat-android from the play store you'll get the latest beta version. If you already have the app installed your device will update to the latest beta version.
 
@@ -34,6 +35,15 @@ https://f-droid.org/repository/browse/?fdid=com.ubergeek42.WeechatAndroid
 If you're feeling adventurous, you can try the latest development version.  This is built after every commit, and while we try to keep a working build, it may fail or have major bugs. Use at your own risk.
 
 [Get the latest development version here](http://weechat-android.ubergeek42.com/)
+
+### Google Play Nightly Builds
+We now have automatic builds published to the google play store as commits are made. This is the same as the snapshot builds you can get above, just published to the google play store for convenience. It only includes builds of the master branch. These builds are published to the beta branch, so you need to be a beta test for this application.
+
+Click this link to become a "beta tester" for the nightly builds on you device: https://play.google.com/apps/testing/com.ubergeek42.WeechatAndroid.dev
+
+After you click the like above, either scan the QR code, or download it from the [Google Play Store ](https://play.google.com/store/apps/details?id=com.ubergeek42.WeechatAndroid.dev).
+
+![Download](https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=https://play.google.com/store/apps/details?id=com.ubergeek42.WeechatAndroid.dev)
 
 
 ## Installation and usage:
