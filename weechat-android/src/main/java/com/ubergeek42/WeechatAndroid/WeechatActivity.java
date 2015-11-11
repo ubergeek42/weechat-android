@@ -153,9 +153,9 @@ public class WeechatActivity extends AppCompatActivity implements
         // if this is true, we've got notification drawer and have to deal with it
         // setup drawer toggle, which calls drawerVisibilityChanged()
         slidy = getResources().getBoolean(R.bool.slidy);
+        uiDrawer = findViewById(R.id.bufferlist_fragment);
         if (slidy) {
             uiDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-            uiDrawer = findViewById(R.id.bufferlist_fragment);
             drawerToggle = new ActionBarDrawerToggle(this, uiDrawerLayout,
                     R.string.open_drawer, R.string.close_drawer) {
 
@@ -261,12 +261,7 @@ public class WeechatActivity extends AppCompatActivity implements
         if (state.contains(STOPPED)) image = R.drawable.ic_big_disconnected;
         else if (state.contains(AUTHENTICATED)) image = R.drawable.ic_big_connected;
         setInfoImage(image);
-
-        if (slidy) {
-            if (state.contains(LISTED)) enableDrawer();
-            else disableDrawer();
-        }
-
+        setDrawerEnabled(state.contains(LISTED));
         makeMenuReflectConnectionStatus();
     }
 
@@ -536,24 +531,13 @@ public class WeechatActivity extends AppCompatActivity implements
         return drawerShowing;                          //todo?
     }
 
-    public void enableDrawer() {
-        if (DEBUG_DRAWER) logger.debug("enableDrawer()");
-        drawerEnabled = true;
+    private void setDrawerEnabled(final boolean enabled) {
+        if (DEBUG_DRAWER) logger.debug("setDrawerEnabled({})", enabled);
+        drawerEnabled = enabled;
         uiPager.post(new Runnable() {
-            @Override
-            public void run() {
-                uiDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
-            }
-        });
-    }
-
-    public void disableDrawer() {
-        if (DEBUG_DRAWER) logger.debug("disableDrawer()");
-        drawerEnabled = false;
-        uiPager.post(new Runnable() {
-            @Override
-            public void run() {
-                uiDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+            @Override public void run() {
+                if (slidy) uiDrawerLayout.setDrawerLockMode(enabled ? DrawerLayout.LOCK_MODE_UNLOCKED : DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+                else uiDrawer.setVisibility(enabled ? View.VISIBLE : View.GONE);
             }
         });
     }
