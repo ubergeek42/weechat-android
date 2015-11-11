@@ -31,15 +31,10 @@ public class NickListAdapter extends BaseAdapter implements BufferNicklistEye,
     private @NonNull Nick[] nicks = new Nick[0];
     private AlertDialog dialog;
 
-    private int hPadding;
-    private int vPadding;
-
     public NickListAdapter(@NonNull WeechatActivity activity, @NonNull Buffer buffer) {
         this.activity = activity;
         this.inflater = LayoutInflater.from(activity);
         this.buffer = buffer;
-        hPadding = (int) activity.getResources().getDimension(R.dimen.dialog_item_padding_horizontal);
-        vPadding = (int) activity.getResources().getDimension(R.dimen.dialog_item_padding_vertical);
     }
 
     @Override
@@ -59,10 +54,8 @@ public class NickListAdapter extends BaseAdapter implements BufferNicklistEye,
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        if (convertView == null) {
-            convertView = inflater.inflate(android.support.v7.appcompat.R.layout.select_dialog_item_material, parent, false);
-            convertView.setPadding(hPadding, vPadding, hPadding, vPadding);
-        }
+        if (convertView == null)
+            convertView = inflater.inflate(R.layout.select_dialog_item_material_2_lines, parent, false);
 
         Nick nick = getItem(position);
         ((TextView) convertView).setText(nick.prefix + nick.name);

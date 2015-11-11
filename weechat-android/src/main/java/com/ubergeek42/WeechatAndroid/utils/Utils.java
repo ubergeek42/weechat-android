@@ -72,14 +72,8 @@ public class Utils {
 
     //////////////////////////////////////////////////////////////////////////////////////////////// string cuts
 
-    // replace multiline text with one string like "foo bar baz… (3 lines)"
-    public static @NonNull String cutFirst(@NonNull String text, int at) {
-        int chunks = text.split("\\r\\n|\\r|\\n").length;
-        String clean = text.replaceAll("\\r\\n|\\r|\\n", " ");
-        clean = cut(clean, at);
-        if (chunks > 1)
-            clean += " (" + chunks + " lines)";
-        return clean;
+    public static @NonNull String unCrLf(@NonNull String text) {
+        return text.replaceAll("\\r\\n|\\r|\\n", "⏎ ");
     }
 
     // cut string at 100 characters
