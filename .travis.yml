@@ -26,3 +26,9 @@ sudo: false
 before_install:
   - '[ "${TRAVIS_PULL_REQUEST}" = "false" ] && openssl aes-256-cbc -K $encrypted_6a3fa2e8cfe5_key -iv $encrypted_6a3fa2e8cfe5_iv
     -in releases/google-play-key.p12.enc -out releases/google-play-key.p12 -d'
+
+notifications:
+    irc:
+        channels:
+            # travis encrypt "ircs://irc.freenode.net:6697/#weechat-android" -r ubergeek42/weechat-android
+            - secure: "iytIkREUR4PsjBevyWZ0nx3eLbelSjyIT4E6jFyMH9YdTAMEBrS9W7zEG4WzhBsAYaKJvhwRw2N3L9ZB6bLDclmW2r9OvctISjpecogDr2kN5U9FgXG4IO/2js16/voitPH+zN6skHcksqLJ/VkmGGwzO2SKg15Rh9J+T9SBZio="
