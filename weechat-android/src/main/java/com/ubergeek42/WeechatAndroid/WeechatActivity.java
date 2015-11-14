@@ -195,8 +195,9 @@ public class WeechatActivity extends AppCompatActivity implements
 
     public void connect() {
         P.loadConnectionPreferences();
-        if (!P.areConnectionPreferencesValid()) {
-            Toast.makeText(getBaseContext(), "Please edit preferences", Toast.LENGTH_LONG).show();
+        String error = P.validateConnectionPreferences();
+        if (error != null) {
+            Toast.makeText(getBaseContext(), error, Toast.LENGTH_LONG).show();
             return;
         }
 

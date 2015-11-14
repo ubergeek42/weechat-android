@@ -148,14 +148,15 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         }
     }
 
-    public static boolean areConnectionPreferencesValid() {
-        if (TextUtils.isEmpty(host) || TextUtils.isEmpty(pass)) return false;
+    public static @Nullable String validateConnectionPreferences() {
+        if (TextUtils.isEmpty(host)) return "Relay host is not set";
+        if (TextUtils.isEmpty(pass)) return "Relay password is not set";
         if (connectionType.equals(PREF_TYPE_SSH)) {
-            if (TextUtils.isEmpty(sshHost)) return false;
-            if (Utils.isEmpty(sshKey) && TextUtils.isEmpty(sshPass)) return false;
-            if (Utils.isEmpty(sshKnownHosts)) return false;
+            if (TextUtils.isEmpty(sshHost)) return "SSH host is not set";
+            if (Utils.isEmpty(sshKey) && TextUtils.isEmpty(sshPass)) return "Neither SSH key nor password is set";
+            if (Utils.isEmpty(sshKnownHosts)) return "SSH known hosts are not set";
         }
-        return true;
+        return null;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
