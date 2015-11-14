@@ -12,6 +12,7 @@ import android.graphics.Typeface;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v7.preference.FilePreference;
 import android.support.v7.preference.ThemeManager;
 import android.text.TextUtils;
 
@@ -108,7 +109,8 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
 
     ///////////////////////////////////////////////////////////////////////////////////// connection
 
-    public static String host, pass, connectionType, sshHost, sshUser, sshPass, sshKeyfile, sshKnownHosts;
+    public static String host, pass, connectionType, sshHost, sshUser, sshPass;
+    public static byte[] sshKey, sshKnownHosts;
     public static int port, sshPort;
     public static SSLContext sslContext;
     public static boolean reconnect;
@@ -127,8 +129,8 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         sshPort = Integer.valueOf(p.getString(PREF_SSH_PORT, PREF_SSH_PORT_D));
         sshUser = p.getString(PREF_SSH_USER, PREF_SSH_USER_D);
         sshPass = p.getString(PREF_SSH_PASS, PREF_SSH_PASS_D);
-        sshKeyfile = p.getString(PREF_SSH_KEYFILE, PREF_SSH_KEYFILE_D);
-        sshKnownHosts = p.getString(PREF_SSH_KNOWN_HOSTS, PREF_SSH_KNOWN_HOSTS_D);
+        sshKey = FilePreference.getData(p.getString(PREF_SSH_KEY, PREF_SSH_KEY_D));
+        sshKnownHosts = FilePreference.getData(p.getString(PREF_SSH_KNOWN_HOSTS, PREF_SSH_KNOWN_HOSTS_D));
 
         lineIncrement = Integer.parseInt(p.getString(PREF_LINE_INCREMENT, PREF_LINE_INCREMENT_D));
         reconnect = p.getBoolean(PREF_RECONNECT, PREF_RECONNECT_D);
@@ -150,8 +152,8 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         if (TextUtils.isEmpty(host) || TextUtils.isEmpty(pass)) return false;
         if (connectionType.equals(PREF_TYPE_SSH)) {
             if (TextUtils.isEmpty(sshHost)) return false;
-            if (TextUtils.isEmpty(sshKeyfile) && TextUtils.isEmpty(sshPass)) return false;
-            if (TextUtils.isEmpty(sshKnownHosts)) return false;
+            if (Utils.isEmpty(sshKey) && TextUtils.isEmpty(sshPass)) return false;
+            if (Utils.isEmpty(sshKnownHosts)) return false;
         }
         return true;
     }

@@ -225,13 +225,14 @@ public class RelayService extends Service implements Connection.Observer {
         Connection conn;
         try {
             switch (P.connectionType) {
-                case PREF_TYPE_SSH: conn = new SSHConnection(P.host, P.port, P.sshHost, P.sshPort, P.sshUser, P.sshPass, P.sshKeyfile, P.sshKnownHosts); break;
+                case PREF_TYPE_SSH: conn = new SSHConnection(P.host, P.port, P.sshHost, P.sshPort, P.sshUser, P.sshPass, P.sshKey, P.sshKnownHosts); break;
                 case PREF_TYPE_SSL: conn = new SSLConnection(P.host, P.port, P.sslContext); break;
                 case PREF_TYPE_WEBSOCKET: conn = new WebSocketConnection(P.host, P.port, null); break;
                 case PREF_TYPE_WEBSOCKET_SSL: conn = new WebSocketConnection(P.host, P.port, P.sslContext); break;
                 default: conn = new PlainConnection(P.host, P.port); break;
             }
         } catch (Exception e) {
+            logger.error("connect(): exception while creating connection", e);
             onException(e);
             return TRY.IMPOSSIBLE;
         }

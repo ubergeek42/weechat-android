@@ -9,6 +9,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.ClearCertPreference;
 import android.support.v7.preference.DialogPreference;
 import android.support.v7.preference.EditTextPreferenceFix;
+import android.support.v7.preference.FilePreference;
 import android.support.v7.preference.Preference;
 import android.support.v7.preference.PreferenceFragmentCompat;
 import android.support.v7.preference.PreferenceScreen;
@@ -85,6 +86,8 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
                 f = FontPreference.FontPreferenceFragment.newInstance(preference.getKey());
             else if (preference instanceof ThemePreference)
                 f = ThemePreference.ThemePreferenceFragment.newInstance(preference.getKey());
+            else if (preference instanceof FilePreference)
+                f = FilePreference.FilePreferenceFragment.newInstance(preference.getKey(), PREF_SSH_KEY.equals(preference.getKey()) ? 1 : 2);
             else if (preference instanceof EditTextPreferenceFix)
                 f = EditTextPreferenceFix.EditTextPreferenceFixFragment.newInstance(preference.getKey());
             else if (preference instanceof ClearCertPreference)
@@ -133,8 +136,13 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
         // this is required for RingtonePreferenceFix, which requires an activity to operate
         @Override public void onActivityResult(int requestCode, int resultCode, Intent data) {
             super.onActivityResult(requestCode, resultCode, data);
-            if (resultCode == RESULT_OK)
-                ((RingtonePreferenceFix) findPreference(PREF_NOTIFICATION_SOUND)).onActivityResult(data);
+            if (resultCode == RESULT_OK) {
+                switch (requestCode) {
+                    case 0: ((RingtonePreferenceFix) findPreference(PREF_NOTIFICATION_SOUND)).onActivityResult(data); break;
+                    case 1: ((FilePreference) findPreference(PREF_SSH_KEY)).onActivityResult(data); break;
+                    case 2: ((FilePreference) findPreference(PREF_SSH_KNOWN_HOSTS)).onActivityResult(data); break;
+                }
+            }
         }
 
         @Override public boolean onPreferenceChange(Preference preference, Object o) {

@@ -41,16 +41,16 @@ public class SSHConnection extends AbstractConnection {
     private Socket sock;
 
     public SSHConnection(String server, int port, String sshHost, int sshPort, String sshUsername,
-                         String sshPassword, String sshKeyFilePath, String sshKnownHosts) throws JSchException {
+                         String sshPassword, byte[] sshKey, byte[] sshKnownHosts) throws JSchException {
         this.server = server;
         this.port = port;
         this.sshPassword = sshPassword;
 
         JSch.setLogger(new JschLogger());
         JSch jsch = new JSch();
-        jsch.setKnownHosts(new ByteArrayInputStream(sshKnownHosts.getBytes()));
-        boolean useKeyFile = sshKeyFilePath != null && sshKeyFilePath.length() > 0;
-        if (useKeyFile) jsch.addIdentity(sshKeyFilePath, sshPassword);
+        jsch.setKnownHosts(new ByteArrayInputStream(sshKnownHosts));
+        boolean useKeyFile = sshKey != null && sshKey.length > 0;
+        if (useKeyFile) jsch.addIdentity("key", sshKey, null, sshPassword.getBytes());
         sshSession = jsch.getSession(sshUsername, sshHost, sshPort);
         sshSession.setSocketFactory(new SocketChannelFactory());
         if (!useKeyFile) sshSession.setUserInfo(new WeechatUserInfo());

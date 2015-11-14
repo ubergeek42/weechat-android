@@ -1,9 +1,16 @@
+/**
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ */
+
 package com.ubergeek42.WeechatAndroid.utils;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
 import android.graphics.drawable.TransitionDrawable;
+import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Base64;
@@ -14,6 +21,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
@@ -108,5 +117,24 @@ public class Utils {
             if (left.equals(right))
                 return true;
         return false;
+    }
+
+    public static boolean isEmpty(byte[] bytes) {
+        return bytes == null || bytes.length == 0;
+    }
+
+    public static @NonNull byte[] readFromUri(Context context, Uri uri) throws IOException {
+        InputStream in = null; int len;
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        byte[] buffer = new byte[1024];
+        try {
+            in = context.getContentResolver().openInputStream(uri);
+            if (in == null) throw new IOException("Input stream is null");
+            while ((len = in.read(buffer)) != -1) out.write(buffer, 0, len);
+            if (out.size() == 0) throw new IOException("File is empty");
+            return out.toByteArray();
+        } finally {
+            try {if (in != null) in.close();} catch (IOException ignored) {}
+        }
     }
 }
