@@ -1,97 +1,77 @@
-Weechat Android Relay Client
+Weechat-Android relay client
 ==================================
-This is an Android Weechat Relay client.
-It is currently in beta status, with most things working.  I use it daily without issue.
+This is a WeeChat relay client for Android.
 
-This requires weechat to be running somewhere and it connects to it.  It is not a standalone weechat for your phone.  If you are looking for a standalone irc client for android, you will need to look elsewhere.
+This application is *not* a standalone an IRC client. It connects to WeeChat that has to be 
+running on a remote machine. If you are looking for a standalone IRC client for Android, 
+you will need to look elsewhere.
 
-## Download
-Weechat Android is available in the major app stores for Android.
+## Get the app!
 
-#### Google Play
-Either scan the QR code, or download it from the [Google Play Store](https://play.google.com/store/apps/details?id=com.ubergeek42.WeechatAndroid).
+#### [Google Play](https://play.google.com/store/apps/details?id=com.ubergeek42.WeechatAndroid)
 
 ![Download](https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=https://play.google.com/store/apps/details?id=com.ubergeek42.WeechatAndroid)
 
-##### Google Play Beta Version
-Sometimes we make beta versions available in the google play store. These versions may be much more unstable, but are typically more up to date than the released version in the play store. To participate, you need to do two things:
+#### [Amazon](http://www.amazon.com/Keith-Johnson-Weechat-Android/dp/B00OWI1ZRS)
 
-Follow this link to "Become A Tester": https://play.google.com/apps/testing/com.ubergeek42.WeechatAndroid
+#### [F-Droid](https://f-droid.org/repository/browse/?fdid=com.ubergeek42.WeechatAndroid)
 
-Note: Make sure you're logged in to the same account you use for google play on your device.
+#### Latest Development Snapshot [![Build Status](https://travis-ci.org/ubergeek42/weechat-android.svg?branch=master)](https://travis-ci.org/ubergeek42/weechat-android)
 
-Once you've done that if you install weechat-android from the play store you'll get the latest beta version. If you already have the app installed your device will update to the latest beta version.
+If you're feeling adventurous, you can try [the latest development version](http://weechat-android.ubergeek42.com/).
+This is built after every commit, and while we try to keep a working build, it may fail or have 
+major bugs. Use at your own risk.
 
-#### Amazon
-http://www.amazon.com/Keith-Johnson-Weechat-Android/dp/B00OWI1ZRS
-
-#### F-Droid
-https://f-droid.org/repository/browse/?fdid=com.ubergeek42.WeechatAndroid
-
-
-#### Latest Development Snapshot
-[![Build Status](https://travis-ci.org/ubergeek42/weechat-android.svg?branch=master)](https://travis-ci.org/ubergeek42/weechat-android)
-
-If you're feeling adventurous, you can try the latest development version.  This is built after every commit, and while we try to keep a working build, it may fail or have major bugs. Use at your own risk.
-
-[Get the latest development version here](http://weechat-android.ubergeek42.com/)
-
-### Google Play Nightly Builds
-We now have automatic builds published to the google play store as commits are made. This is the same as the snapshot builds you can get above, just published to the google play store for convenience. It only includes builds of the master branch. These builds are published to the beta branch, so you need to be a beta test for this application.
-
-Click this link to become a "beta tester" for the nightly builds on you device: https://play.google.com/apps/testing/com.ubergeek42.WeechatAndroid.dev
-
-After you click the like above, either scan the QR code, or download it from the [Google Play Store ](https://play.google.com/store/apps/details?id=com.ubergeek42.WeechatAndroid.dev).
+#### Google Play Nightly Builds
+We now have automatic builds published to the google play store as commits are made. This is the
+same as the snapshot builds you can get above, just published to the google play store for
+convenience. It only includes builds of the master branch. These builds are published to the beta
+branch, so you need to be a beta test for this application. To participate, you need to 
+[“become a tester”](https://play.google.com/apps/testing/com.ubergeek42.WeechatAndroid.dev). After 
+that either get it from [Google Play](https://play.google.com/store/apps/details?id=com.ubergeek42.WeechatAndroid.dev)
+or scan this QR code:
 
 ![Download](https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=https://play.google.com/store/apps/details?id=com.ubergeek42.WeechatAndroid.dev)
 
-
-## Installation and usage:
-Please refer to the quick start guide for details:
-
-https://github.com/ubergeek42/weechat-android/wiki/Quickstart-Guide
+## Installation and usage
+Please refer to the [quick start](https://github.com/ubergeek42/weechat-android/wiki/Quickstart-Guide) guide for details.
 
 ## Screenshots
 Brand new look and feel!
 
-<a href="https://github.com/ubergeek42/weechat-android/raw/master/releases/chat-channel.png"><img src="https://github.com/ubergeek42/weechat-android/raw/master/releases/chat-channel.png" height="400px"></a>
-<a href="https://github.com/ubergeek42/weechat-android/raw/master/releases/preferences.png"><img src="https://github.com/ubergeek42/weechat-android/raw/master/releases/preferences.png" height="400px"></a>
+<a href="releases/chat-channel.png"><img src="releases/chat-channel.png" height="400px"></a>
+<a href="releases/chat-channel-2.png"><img src="releases/chat-channel-2.png" height="400px"></a>
+<a href="releases/preferences.png"><img src="releases/preferences.png" height="400px"></a>
+<a href="releases/buffers.png"><img src="releases/buffers.png" height="400px"></a>
+<a href="releases/notifications.png"><img src="releases/notifications.png" height="400px"></a>
+<a href="releases/paste.png"><img src="releases/paste.png" height="400px"></a>
 
-<a href="https://github.com/ubergeek42/weechat-android/raw/master/releases/buffers.png"><img src="https://github.com/ubergeek42/weechat-android/raw/master/releases/buffers.png" height="400px"></a>
-<a href="https://github.com/ubergeek42/weechat-android/raw/master/releases/notifications.png"><img src="https://github.com/ubergeek42/weechat-android/raw/master/releases/notifications.png" height="400px"></a>
+## Bug reports and contributing
+Please report any bugs or feature requests here on GitHub (See the Issues tab) or 
+join #weechat-android on Freenode. Please include the Build Identifier found in the about screen 
+if possible. Pull requests are welcome!
 
-Also see the screenshots in the google play store:
-https://play.google.com/store/apps/details?id=com.ubergeek42.WeechatAndroid
+All of the source code is available right here on GitHub. For additional information see 
+[the introduction to setting up your IDE](https://github.com/ubergeek42/weechat-android/wiki/Getting-started-with-the-code),
+[relay protocol documentation](http://www.weechat.org/files/doc/devel/weechat_relay_protocol.en.html) 
+and [WeeChat main page](http://www.weechat.org/).
 
-
-## Bug Reports and Feature Requests Welcome!
-Please report any bugs or feature requests here on github(See the Issues tab), or send me an email: kj@ubergeek42.com.  You can also ping me in #weechat-android on freenode.
-
-Please include the Build Identifier found in the about screen if possible.
-
-### Source Code
-All of the source code is available right here on github.  For a quick introduction to setting up ant/eclipse so you can begin hacking on the code, please see:
-https://github.com/ubergeek42/weechat-android/wiki/Getting-started-with-the-code
-
-For more details about Weechat and the Relay Protocol:
-
-* Weechat - http://www.weechat.org/
-* Relay Protocol - http://www.weechat.org/files/doc/devel/weechat_relay_protocol.en.html
-
-### Contributing
-If you'd like to help with this project, please get in touch with me.  Email/IRC/Pull Requests accepted!
-
-* Translation:
-If you would like to help translating this app, all of the strings are in weechat-android/res/values/strings.xml; and there aren't a terribly large number of them.
-
-## Special Settings/Features
-
-#### Hide buffer in weechat android
-To prevent a buffer from showing up in weechat-android, set the following buffer local variable.
-
-`/buffer set localvar_set_relay hard-hide`
+## [FAQ and Tips & Tricks](https://github.com/ubergeek42/weechat-android/wiki/FAQ)
 
 ## Changelog
+
+#### v0.10 - November 2015
+* Material design
+* Ping mechanism
+* Color schemes
+* Read marker line
+* Ability to resend lines
+* Font preference
+* More notification options
+* Weechat → relay synchronization every 5 minutes
+* Validation of settings
+* Better url detection
+* A bunch of stability fixes
 
 #### v0.9-rc1 - Oct 25th, 2014
 * Too much to list, lots and lots and lots of fixes, UI tweaks, and changes
