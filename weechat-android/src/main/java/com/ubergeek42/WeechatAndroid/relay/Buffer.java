@@ -227,16 +227,14 @@ public class Buffer {
         // calculate spannable, if needed
         if (isOpen) line.processMessage();
 
-        // for messages that ARRIVE AS WE USE THE APPLICATION:
-        // set unreads / highlights and notify BufferList
-        // if the number of messages has increased, something will be wise enough to use
-        //      provided by setMostRecentHotLine()
-        // we are not using OLDER messages arriving from reverse request as well because
-        //      unreads and highlights is filled by hotlist request
-        //
-        // if the buffer IS watched, remember that the lines in question are read
-        if (isLast && notifyLevel >= 0 && type != HARD_HIDDEN) {
-            if (!isWatched) {
+        // notify levels: 0 none 1 highlight 2 message 3 all
+        // treat hidden lines and lines that are not supposed to generate a “notification” as read
+        if (isLast) {
+            if (isWatched || type == HARD_HIDDEN || (P.filterLines && !line.visible) ||
+                    (notifyLevel == 0) || (notifyLevel == 1 && !line.highlighted)) {
+                if (line.highlighted) totalReadHighlights++;
+                else if (line.type == Line.LINE_MESSAGE) totalReadUnreads++;
+            } else {
                 if (line.highlighted) {
                     highlights++;
                     BufferList.newHotLine(this, line);
@@ -246,10 +244,6 @@ public class Buffer {
                     if (type == PRIVATE) BufferList.newHotLine(this, line);
                     BufferList.notifyBuffersSlightlyChanged(type == OTHER);
                 }
-            }
-            else {
-                if (line.highlighted) totalReadHighlights++;
-                else if (line.type == Line.LINE_MESSAGE) totalReadUnreads++;
             }
         }
 

@@ -372,7 +372,7 @@ public class BufferList {
                             entry.getItem("full_name").asString(),
                             entry.getItem("short_name").asString(),
                             entry.getItem("title").asString(),
-                            ((r = entry.getItem("notify")) != null) ? r.asInt() : 1,            // TODO request notify level afterwards???
+                            ((r = entry.getItem("notify")) != null) ? r.asInt() : 3,            // TODO request notify level afterwards???
                             (Hashtable) entry.getItem("local_variables"));                      // TODO because _buffer_opened doesn't provide notify level
                     synchronized (BufferList.class) {buffers.add(buffer);}
                     notifyBuffersChanged();
