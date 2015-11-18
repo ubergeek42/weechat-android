@@ -36,7 +36,7 @@ android {
 
     defaultConfig {
         versionCode gitVersionCode()
-        versionName "0.10"
+        versionName "0.11"
 
         minSdkVersion 10
         targetSdkVersion 23
