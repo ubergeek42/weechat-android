@@ -2,8 +2,8 @@ Weechat-Android relay client
 ==================================
 This is a WeeChat relay client for Android.
 
-This application is *not* a standalone an IRC client. It connects to WeeChat that has to be 
-running on a remote machine. If you are looking for a standalone IRC client for Android, 
+This application is *not* a standalone an IRC client. It connects to WeeChat that has to be
+running on a remote machine. If you are looking for a standalone IRC client for Android,
 you will need to look elsewhere.
 
 ## Get the app!
@@ -19,15 +19,15 @@ you will need to look elsewhere.
 #### Latest Development Snapshot [![Build Status](https://travis-ci.org/ubergeek42/weechat-android.svg?branch=master)](https://travis-ci.org/ubergeek42/weechat-android)
 
 If you're feeling adventurous, you can try [the latest development version](http://weechat-android.ubergeek42.com/).
-This is built after every commit, and while we try to keep a working build, it may fail or have 
+This is built after every commit, and while we try to keep a working build, it may fail or have
 major bugs. Use at your own risk.
 
 #### Google Play Nightly Builds
 We now have automatic builds published to the google play store as commits are made. This is the
 same as the snapshot builds you can get above, just published to the google play store for
 convenience. It only includes builds of the master branch. These builds are published to the beta
-branch, so you need to be a beta test for this application. To participate, you need to 
-[“become a tester”](https://play.google.com/apps/testing/com.ubergeek42.WeechatAndroid.dev). After 
+branch, so you need to be a beta test for this application. To participate, you need to
+[“become a tester”](https://play.google.com/apps/testing/com.ubergeek42.WeechatAndroid.dev). After
 that either get it from [Google Play](https://play.google.com/store/apps/details?id=com.ubergeek42.WeechatAndroid.dev)
 or scan this QR code:
 
@@ -47,20 +47,20 @@ Brand new look and feel!
 <a href="releases/paste.png"><img src="releases/paste.png" height="400px"></a>
 
 ## Bug reports and contributing
-Please report any bugs or feature requests here on GitHub (See the Issues tab) or 
-join #weechat-android on Freenode. Please include the Build Identifier found in the about screen 
+Please report any bugs or feature requests here on GitHub (See the Issues tab) or
+join #weechat-android on Freenode. Please include the Build Identifier found in the about screen
 if possible. Pull requests are welcome!
 
-All of the source code is available right here on GitHub. For additional information see 
+All of the source code is available right here on GitHub. For additional information see
 [the introduction to setting up your IDE](https://github.com/ubergeek42/weechat-android/wiki/Getting-started-with-the-code),
-[relay protocol documentation](http://www.weechat.org/files/doc/devel/weechat_relay_protocol.en.html) 
+[relay protocol documentation](http://www.weechat.org/files/doc/devel/weechat_relay_protocol.en.html)
 and [WeeChat main page](http://www.weechat.org/).
 
 ## [FAQ and Tips & Tricks](https://github.com/ubergeek42/weechat-android/wiki/FAQ)
 
 ## Changelog
 
-#### v0.10 - November 2015
+#### v0.11 - November 2015
 * Material design
 * Ping mechanism
 * Color schemes
@@ -72,6 +72,8 @@ and [WeeChat main page](http://www.weechat.org/).
 * Validation of settings
 * Better url detection
 * A bunch of stability fixes
+
+#### v0.10 - Skipped/unreleased
 
 #### v0.9-rc1 - Oct 25th, 2014
 * Too much to list, lots and lots and lots of fixes, UI tweaks, and changes
