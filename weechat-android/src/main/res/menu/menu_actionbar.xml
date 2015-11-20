@@ -26,9 +26,4 @@
           android:icon="@drawable/ic_2_action_settings"
           app:showAsAction="never"
           android:title="@string/preferences"/>
-    <item android:id="@+id/menu_quit"
-          android:menuCategory="secondary"
-          android:icon="@drawable/ic_1_navigation_cancel"
-          app:showAsAction="never"
-          android:title="@string/quit"/>
 </menu>

@@ -19,10 +19,12 @@ import java.security.cert.CertPath;
 import java.security.cert.CertPathValidatorException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.HashSet;
+import java.util.EnumSet;
 
 import javax.net.ssl.SSLException;
 
+import android.annotation.SuppressLint;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -35,15 +37,12 @@ import android.view.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.res.Configuration;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentManager;
@@ -58,41 +57,45 @@ import android.widget.Toast;
 import com.ubergeek42.WeechatAndroid.adapters.MainPagerAdapter;
 import com.ubergeek42.WeechatAndroid.adapters.NickListAdapter;
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragment;
-import com.ubergeek42.WeechatAndroid.service.Buffer;
-import com.ubergeek42.WeechatAndroid.service.BufferList;
+import com.ubergeek42.WeechatAndroid.relay.Buffer;
+import com.ubergeek42.WeechatAndroid.relay.BufferList;
+import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
-import com.ubergeek42.WeechatAndroid.service.RelayServiceBinder;
 import com.ubergeek42.WeechatAndroid.utils.MyMenuItemStuffListener;
 import com.ubergeek42.WeechatAndroid.utils.ToolbarController;
+import com.ubergeek42.WeechatAndroid.utils.UntrustedCertificateDialog;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
-import com.ubergeek42.weechat.relay.RelayConnectionHandler;
+import com.ubergeek42.WeechatAndroid.service.RelayService.STATE;
 
-public class WeechatActivity extends AppCompatActivity implements RelayConnectionHandler,
-        CutePagerTitleStrip.CutePageChangeListener, ServiceConnection {
+import static com.ubergeek42.WeechatAndroid.service.Events.*;
+import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.*;
+
+import de.greenrobot.event.EventBus;
+
+public class WeechatActivity extends AppCompatActivity implements
+        CutePagerTitleStrip.CutePageChangeListener {
 
     private static Logger logger = LoggerFactory.getLogger("WA");
-    final private static boolean DEBUG = BuildConfig.DEBUG;
     final private static boolean DEBUG_OPTIONS_MENU = false;
-    final private static boolean DEBUG_LIFECYCLE = false;
-    final private static boolean DEBUG_CONNECION = false;
+    final private static boolean DEBUG_LIFECYCLE = true;
+    final private static boolean DEBUG_CONNECTION = false;
     final private static boolean DEBUG_INTENT = false;
     final private static boolean DEBUG_BUFFERS = false;
     final private static boolean DEBUG_DRAWER = false;
 
-    public RelayServiceBinder relay;
     private Menu uiMenu;
     private ViewPager uiPager;
     private MainPagerAdapter adapter;
     private InputMethodManager imm;
     private CutePagerTitleStrip uiStrip;
-    
+
     private boolean slidy;
     private boolean drawerEnabled = true;
     private boolean drawerShowing = false;
     private DrawerLayout uiDrawerLayout = null;
     private View uiDrawer = null;
     private ActionBarDrawerToggle drawerToggle = null;
-    private @NonNull ImageView uiInfo;
+    private ImageView uiInfo;
 
     public ToolbarController toolbarController;
 
@@ -102,11 +105,15 @@ public class WeechatActivity extends AppCompatActivity implements RelayConnectio
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
-        if (DEBUG_LIFECYCLE) logger.debug("onCreate({})", savedInstanceState);
-        super.onCreate(savedInstanceState);
+        logger.debug("onCreate({})", savedInstanceState);
 
-        // start background service (if necessary)
-        startService(new Intent(this, RelayService.class));
+        // after OOM kill and not going to restore anything? remove all fragments & open buffers
+        if (!P.isServiceAlive() && !BufferList.hasData()) {
+            P.openBuffers.clear();
+            savedInstanceState = null;
+        }
+
+        super.onCreate(savedInstanceState);
 
         // load layout
         setContentView(R.layout.main_screen);
@@ -117,12 +124,13 @@ public class WeechatActivity extends AppCompatActivity implements RelayConnectio
         // prepare pager
         FragmentManager manager = getSupportFragmentManager();
         uiPager = (ViewPager) findViewById(R.id.main_viewpager);
-        adapter = new MainPagerAdapter(this, manager, uiPager);
+        adapter = new MainPagerAdapter(manager, uiPager);
         uiPager.setAdapter(adapter);
 
         // prepare action bar
         setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
         final ActionBar uiActionBar = getSupportActionBar();
+        //noinspection ConstantConditions
         uiActionBar.setHomeButtonEnabled(true);
         uiActionBar.setDisplayShowCustomEnabled(true);
         uiActionBar.setDisplayShowTitleEnabled(false);
@@ -136,20 +144,18 @@ public class WeechatActivity extends AppCompatActivity implements RelayConnectio
         // it says stuff like 'connecting', 'disconnected' et al
         uiInfo = (ImageView) findViewById(R.id.kitty);
         uiInfo.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (relay.isConnection(RelayService.DISCONNECTED)) {
-                    relay.connect();
-                }
+            @Override public void onClick(View v) {
+                if (state.contains(STARTED)) disconnect();
+                else connect();
             }
         });
 
         // if this is true, we've got notification drawer and have to deal with it
         // setup drawer toggle, which calls drawerVisibilityChanged()
         slidy = getResources().getBoolean(R.bool.slidy);
+        uiDrawer = findViewById(R.id.bufferlist_fragment);
         if (slidy) {
             uiDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-            uiDrawer = findViewById(R.id.bufferlist_fragment);
             drawerToggle = new ActionBarDrawerToggle(this, uiDrawerLayout,
                     R.string.open_drawer, R.string.close_drawer) {
 
@@ -168,58 +174,62 @@ public class WeechatActivity extends AppCompatActivity implements RelayConnectio
             uiActionBar.setDisplayHomeAsUpEnabled(true);
         }
 
-        toolbarController = new ToolbarController((Toolbar) findViewById(R.id.toolbar), uiActionBar);
+        toolbarController = new ToolbarController(this);
 
-        final View layout = slidy ? findViewById(R.id.drawer_layout) : findViewById(R.id.not_drawer_layout);
-        final View root = ((ViewGroup) layout).getChildAt(0);
-        root.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-            @Override public void onGlobalLayout() {
-                // if more than 300 pixels, its probably a keyboard...
-                int heightDiff = root.getRootView().getHeight() - root.getHeight();
-                if (heightDiff > 300)
-                    toolbarController.onSoftwareKeyboardStateChanged(true);
-                else if (heightDiff < 300)
-                    toolbarController.onSoftwareKeyboardStateChanged(false);
-            }
-        });
-
-        // TODO Read preferences from background, its IO, 31ms strict mode!
-        //PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
         imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         String title = "WA v" + BuildConfig.VERSION_NAME;
         setTitle(title);
         uiStrip.setEmptyText(title);
         updateCutePagerTitleStrip();
+
+        if (P.isServiceAlive()) connect();
+
+        logger.info("onCreate(): service alive? {}; have static data? {}; P.openBuffers: {}; fragments: {}",
+                P.isServiceAlive(), BufferList.getBufferList().size() != 0, P.openBuffers, manager.getFragments());
+
+        // restore buffers if we have data in the static
+        // if no data and not going to connect, clear stuff
+        // if no data and going to connect, let the LISTED event restore it all
+        if (adapter.canRestoreBuffers()) adapter.restoreBuffers();
+    }
+
+    public void connect() {
+        P.loadConnectionPreferences();
+        String error = P.validateConnectionPreferences();
+        if (error != null) {
+            Toast.makeText(getBaseContext(), error, Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        logger.debug("connect()");
+        Intent i = new Intent(this, RelayService.class);
+        i.setAction(RelayService.ACTION_START);
+        startService(i);
+    }
+
+    public void disconnect() {
+        logger.debug("disconnect()");
+        Intent i = new Intent(this, RelayService.class);
+        i.setAction(RelayService.ACTION_STOP);
+        startService(i);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    /** bind to relay service, which results in:
-     **   onServiceConnected, which
-     **     adds relay connection handler */
-    // TODO: android.app.ServiceConnectionLeaked: Activity com.ubergeek42.WeechatAndroid.WeechatActivity
-    // TODO: has leaked ServiceConnection com.ubergeek42.WeechatAndroid.WeechatActivity$1@424fdbe8 that was originally bound here
-    // TODO: apparently onStop() sometimes doesn't get to unbind the service as onServiceConnected is called too late
-    // TODO: then onStart() is trying to bind again and boom! anyways, this doesn't do any visible harm...
-    @Override
-    protected void onStart() {
+    @Override protected void onStart() {
         if (DEBUG_LIFECYCLE) logger.debug("onStart()");
         super.onStart();
-        bindService(new Intent(this, RelayService.class), this, Context.BIND_AUTO_CREATE);
+        state = null;
+        EventBus.getDefault().registerSticky(this);
+        if (getIntent().hasExtra(EXTRA_NAME)) openBufferFromIntent();
+        updateHotCount(BufferList.getHotCount());
     }
 
-    /** remove relay connection handler and
-     ** unbind from service */
-    @Override
-    protected void onStop() {
+    @Override protected void onStop() {
         if (DEBUG_LIFECYCLE) logger.debug("onStop()");
+        EventBus.getDefault().unregister(this);
+        P.saveStuff();
         super.onStop();
-
-        if (relay != null) {
-            relay.removeRelayConnectionHandler(WeechatActivity.this);
-            unbindService(this);
-            relay = null;
-        }
     }
 
     @Override
@@ -243,132 +253,58 @@ public class WeechatActivity extends AppCompatActivity implements RelayConnectio
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// relay connection
+    //////////////////////////////////////////////////////////////////////////////////////////////// the joy
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private HashSet<BufferFragment> fragments = new HashSet<>();
-
-    synchronized public void bind(BufferFragment fragment) {
-        fragments.add(fragment);
-        if (relay != null) fragment.onServiceConnected(relay);
-    }
-
-    synchronized public void unbind(BufferFragment fragment) {
-        fragments.remove(fragment);
-    }
-
-    //////////////////////////////////////////////////////////////////////////////////////////////// S E R V I C E
-
-    @Override
-    synchronized public void onServiceConnected(ComponentName name, IBinder service) {
-        if (DEBUG_LIFECYCLE) logger.debug("onServiceConnected()");
-        relay = (RelayServiceBinder) service;
-        relay.addRelayConnectionHandler(WeechatActivity.this);
-
-        // open buffer that MIGHT be open in the service
-        for (String fullName : BufferList.syncedBuffersFullNames)
-            openBufferSilently(fullName);
-
-        // this doesn't tamper with the drawer in any way
-        adjustUI();
-
-        // if we have intent, handle it
-        if (getIntent().hasExtra(EXTRA_NAME))
-            openBufferFromIntent();
-
-        updateHotCount(BufferList.getHotCount());
-
-        for (BufferFragment fragment: fragments)
-            fragment.onServiceConnected(relay);
-    }
-
-    @Override
-    public void onServiceDisconnected(ComponentName name) {
-        if (DEBUG_LIFECYCLE) logger.debug("onServiceDisconnected() <- should not happen!");
-        for (BufferFragment fragment: fragments)
-            fragment.onServiceDisconnected();
-        relay = null;
-    }
-
-
     private void adjustUI() {
-        if (relay == null)
-            return;
-
-        // set image
-        if (relay.isConnection(RelayService.DISCONNECTED))      setInfoImage(R.drawable.ic_big_disconnected);
-        else if (relay.isConnection(RelayService.CONNECTING))   setInfoImage(R.drawable.ic_big_connecting);
-        else if (relay.isConnection(RelayService.CONNECTED))    setInfoImage(R.drawable.ic_big_connected);
-
-        // enable/disable drawer
-        if (slidy) {
-            if (relay.isConnection(RelayService.BUFFERS_LISTED)) enableDrawer();
-            else disableDrawer();
-        }
-
-        // adjust menu
+        logger.debug("adjustUI()");
+        int image = R.drawable.ic_big_connecting;
+        if (state.contains(STOPPED)) image = R.drawable.ic_big_disconnected;
+        else if (state.contains(AUTHENTICATED)) image = R.drawable.ic_big_connected;
+        setInfoImage(image);
+        setDrawerEnabled(state.contains(LISTED));
         makeMenuReflectConnectionStatus();
     }
 
-    //////////////////////////////////////////////////////////////////////////////////////////////// RelayConnectionHandler
+    //////////////////////////////////////////////////////////////////////////////////////////////// events?
 
-    @Override public void onConnecting() {
-        if (DEBUG_CONNECION) logger.debug("onConnecting()");
+    private EnumSet<STATE> state = null;
+
+    @SuppressWarnings("unused")
+    public void onEvent(StateChangedEvent event) {
+        logger.debug("onEvent({})", event);
+        boolean init = state == null;
+        state = event.state;
         adjustUI();
+        if (state.contains(LISTED)) {
+            if (adapter.canRestoreBuffers())
+                runOnUiThread(new Runnable() {public void run() {adapter.restoreBuffers();}});
+            else if (!init && slidy)
+                showDrawerIfPagerIsEmpty();
+        }
     }
 
-    /** creates and updates the hotlist
-     ** makes sure we update action bar menu after a connection change */
-    @Override public void onConnect() {
-        if (DEBUG_CONNECION) logger.debug("onConnect()");
-        adjustUI();
-    }
-
-    @Override public void onAuthenticated() {}
-
-    @Override public void onAuthenticationFailed() {
-        runOnUiThread(new Runnable() {
-            @Override public void run() {
-                Toast.makeText(getBaseContext(), getString(R.string.wrong_password), Toast.LENGTH_LONG).show();
-            }
-        });
-    }
-
-    @Override public void onBuffersListed() {
-        if (DEBUG_CONNECION) logger.debug("onBuffersListed()");
-        adjustUI();
-        if (slidy) showDrawerIfPagerIsEmpty();
-    }
-
-    /** makes sure we update action bar menu after a connection change */
-    @Override public void onDisconnect() {
-        if (DEBUG_CONNECION) logger.debug("onDisconnect()");
-        adjustUI();
-    }
-
-    @Override public void onError(final String errorMsg, Object extraData) {
-        if (DEBUG_CONNECION) logger.debug("onError({}, ...)", errorMsg);
-        if (extraData instanceof SSLException && relay != null) {
-            if (DEBUG) logger.error("...cause: {}", ((Throwable) extraData).getCause());
-            SSLException e1 = (SSLException) extraData;
+    @SuppressWarnings("unused")
+    public void onEvent(final ExceptionEvent event) {
+        if (DEBUG_CONNECTION) logger.debug("onEvent({})", event);
+        final Exception e = event.e;
+        if (e instanceof SSLException) {
+            SSLException e1 = (SSLException) e;
             if (e1.getCause() instanceof CertificateException) {
                 CertificateException e2 = (CertificateException) e1.getCause();
-
                 if (e2.getCause() instanceof CertPathValidatorException) {
-                    CertPathValidatorException e = (CertPathValidatorException) e2.getCause();
-                    CertPath cp = e.getCertPath();
+                    CertPathValidatorException e3 = (CertPathValidatorException) e2.getCause();
+                    CertPath cp = e3.getCertPath();
 
-                    // Set the cert error on the backend
-                    relay.setCertificateError((X509Certificate) cp.getCertificates().get(0));
-
-                    // Start an activity to attempt establishing trust
-                    Intent intent = new Intent(this, SSLCertActivity.class);
-                    startActivity(intent);
+                    final X509Certificate certificate = (X509Certificate) cp.getCertificates().get(0);
+                    DialogFragment f = UntrustedCertificateDialog.newInstance(certificate);
+                    f.show(getSupportFragmentManager(), "boo");
+                    disconnect();
                     return;
                 }
             }
         }
-        final String msg = "Error: " + (TextUtils.isEmpty(errorMsg) ? extraData.getClass().getSimpleName() : errorMsg);
+        final String msg = "Error: " + (TextUtils.isEmpty(e.getMessage()) ? e.getClass().getSimpleName() : e.getMessage());
         runOnUiThread(new Runnable() {
             @Override public void run() {
                 Toast.makeText(getBaseContext(), msg, Toast.LENGTH_LONG).show();
@@ -392,8 +328,9 @@ public class WeechatActivity extends AppCompatActivity implements RelayConnectio
         updateMenuItems();
         hideSoftwareKeyboard();
         toolbarController.onPageChangedOrSelected();
-        findViewById(R.id.kitty).setVisibility(
-                (uiPager.getAdapter().getCount() == 0) ? View.VISIBLE : View.GONE);
+        int visible = uiPager.getAdapter().getCount() == 0 ? View.VISIBLE : View.GONE;
+        findViewById(R.id.kitty_background).setVisibility(visible);
+        findViewById(R.id.kitty).setVisibility(visible);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -411,7 +348,7 @@ public class WeechatActivity extends AppCompatActivity implements RelayConnectio
         hotNumber = newHotNumber;
         if (uiHot != null)
             uiHot.post(new Runnable() {
-                @Override public void run() {
+                @Override @SuppressLint("SetTextI18n") public void run() {
                     if (newHotNumber == 0)
                         uiHot.setVisibility(View.INVISIBLE);
                     else {
@@ -466,10 +403,8 @@ public class WeechatActivity extends AppCompatActivity implements RelayConnectio
                 break;
             }
             case R.id.menu_connection_state: {
-                if (relay != null) {
-                    if (relay.isConnection(RelayService.CONNECTED)) relay.disconnect();
-                    else relay.connect();
-                }
+                if (state.contains(STARTED)) disconnect();
+                else connect();
                 break;
             }
             case R.id.menu_preferences: {
@@ -483,21 +418,10 @@ public class WeechatActivity extends AppCompatActivity implements RelayConnectio
                     current.onBufferClosed();
                 break;
             }
-            case R.id.menu_quit: {
-                if (relay != null) {
-                    relay.disconnect();
-                }
-                unbindService(this);
-                relay = null;
-                stopService(new Intent(this, RelayService.class));
-                finish();
-                break;
-            }
             case R.id.menu_hotlist:
                 break;
             case R.id.menu_nicklist:
-                if (relay == null) break;
-                Buffer buffer = relay.getBufferByFullName(adapter.getCurrentBufferFullName());
+                Buffer buffer = BufferList.findByFullName(adapter.getCurrentBufferFullName());
                 if (buffer == null) break;
 
                 NickListAdapter nicklistAdapter = new NickListAdapter(WeechatActivity.this, buffer);
@@ -521,7 +445,6 @@ public class WeechatActivity extends AppCompatActivity implements RelayConnectio
 
     private void onHotlistSelected() {
         if (DEBUG_OPTIONS_MENU) logger.debug("onHotlistSelected()");
-        if (relay == null) return;
         Buffer buffer = BufferList.getHotBuffer();
         if (buffer != null)
             openBuffer(buffer.fullName);
@@ -535,16 +458,18 @@ public class WeechatActivity extends AppCompatActivity implements RelayConnectio
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if (WeechatActivity.this.uiMenu != null) {
-                    MenuItem connectionStatus = WeechatActivity.this.uiMenu.findItem(R.id.menu_connection_state);
-                    if (relay != null && (relay.isConnection(RelayService.CONNECTED)))
-                        connectionStatus.setTitle(R.string.disconnect);
-                    else
-                        connectionStatus.setTitle(R.string.connect);
+                if (uiMenu != null) {
+                    MenuItem connectionStatus = uiMenu.findItem(R.id.menu_connection_state);
+                    String msg;
+
+                    if (state.contains(AUTHENTICATED)) msg = "Disconnect";
+                    else if (state.contains(STARTED)) msg = "Stop connecting";
+                    else msg = "Connect";
+                    connectionStatus.setTitle(msg);
 
                     final View menuHotlist = MenuItemCompat.getActionView(uiMenu.findItem(R.id.menu_hotlist));
                     ImageView bellImage = (ImageView) menuHotlist.findViewById(R.id.hotlist_bell);
-                    bellImage.setImageResource(BufferList.OPTIMIZE_TRAFFIC ? R.drawable.ic_bell_cracked : R.drawable.ic_bell);
+                    bellImage.setImageResource(P.optimizeTraffic ? R.drawable.ic_bell_cracked : R.drawable.ic_bell);
                 }
             }
         });
@@ -554,16 +479,11 @@ public class WeechatActivity extends AppCompatActivity implements RelayConnectio
     //////////////////////////////////////////////////////////////////////////////////////////////// MISC
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    /** open a buffer WITHOUT hiding the drawer and checking if we are connected */
-    public void openBufferSilently(@NonNull String fullName) {
-        if (DEBUG_BUFFERS) logger.debug("openBufferSilently({})", fullName);
-        adapter.openBuffer(fullName, false);
-    }
-
     public void openBuffer(@NonNull String fullName) {
         if (DEBUG_BUFFERS) logger.debug("openBuffer({})", fullName);
-        if (adapter.isBufferOpen(fullName) || relay.isConnection(RelayService.CONNECTED)) {
-            adapter.openBuffer(fullName, true);
+        if (adapter.isBufferOpen(fullName) || state.contains(AUTHENTICATED)) {
+            adapter.openBuffer(fullName);
+            adapter.focusBuffer(fullName);
             if (slidy) hideDrawer();
         } else {
             Toast.makeText(this, "Not connected", Toast.LENGTH_SHORT).show();
@@ -612,30 +532,20 @@ public class WeechatActivity extends AppCompatActivity implements RelayConnectio
         return drawerShowing;                          //todo?
     }
 
-    public void enableDrawer() {
-        if (DEBUG_DRAWER) logger.debug("enableDrawer()");
-        drawerEnabled = true;
+    private void setDrawerEnabled(final boolean enabled) {
+        if (DEBUG_DRAWER) logger.debug("setDrawerEnabled({})", enabled);
+        drawerEnabled = enabled;
         uiPager.post(new Runnable() {
-            @Override
-            public void run() {
-                uiDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
-            }
-        });
-    }
-
-    public void disableDrawer() {
-        if (DEBUG_DRAWER) logger.debug("disableDrawer()");
-        drawerEnabled = false;
-        uiPager.post(new Runnable() {
-            @Override
-            public void run() {
-                uiDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+            @Override public void run() {
+                if (slidy) uiDrawerLayout.setDrawerLockMode(enabled ? DrawerLayout.LOCK_MODE_UNLOCKED : DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+                else uiDrawer.setVisibility(enabled ? View.VISIBLE : View.GONE);
             }
         });
     }
 
     public void showDrawer() {
         if (DEBUG_DRAWER) logger.debug("showDrawer()");
+        if (!drawerEnabled) return;
         if (!drawerShowing) drawerVisibilityChanged(true); // we need this so that drawerShowing is set immediately
         uiPager.post(new Runnable() {
             @Override
@@ -661,17 +571,18 @@ public class WeechatActivity extends AppCompatActivity implements RelayConnectio
         if (!drawerShowing)
             uiPager.post(new Runnable() {
                 @Override public void run() {
-                    if (relay != null && relay.isConnection(RelayService.BUFFERS_LISTED) && adapter.getCount() == 0)
+                    if (state.contains(LISTED) && adapter.getCount() == 0)
                         showDrawer();
                 }
             });
     }
 
     /** set image that appears in the pager when no pages are open */
+    @SuppressWarnings("deprecation")
     private void setInfoImage(final int id) {
         final Drawable drawable = getResources().getDrawable(id);
         uiInfo.post(new Runnable() {
-            @Override
+            @Override  @SuppressWarnings("ConstantConditions")
             public void run() {
                 Utils.setImageDrawableWithFade(uiInfo, drawable, 350);
             }
@@ -682,7 +593,6 @@ public class WeechatActivity extends AppCompatActivity implements RelayConnectio
     //////////////////////////////////////////////////////////////////////////////////////////////// intent
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    //private String intent_buffer_full_name = null;
     private final String EXTRA_NAME = "full_name";
 
     /** we may get intent while we are connected to the service and when we are not.
@@ -693,7 +603,7 @@ public class WeechatActivity extends AppCompatActivity implements RelayConnectio
         super.onNewIntent(intent);
         if (intent.hasExtra(EXTRA_NAME)) {
             setIntent(intent);
-            if (relay != null) openBufferFromIntent();
+            openBufferFromIntent();
         }
     }
 

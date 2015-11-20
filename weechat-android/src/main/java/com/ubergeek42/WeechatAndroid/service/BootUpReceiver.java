@@ -13,8 +13,9 @@ public class BootUpReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-        if (prefs.getBoolean(PREF_AUTO_START, PREF_AUTO_START_D)) {
+        if (prefs.getBoolean(PREF_BOOT_CONNECT, PREF_BOOT_CONNECT_D)) {
             Intent i = new Intent(context, RelayService.class);
+            i.setAction(RelayService.ACTION_START);
             context.startService(i);
         }
     }

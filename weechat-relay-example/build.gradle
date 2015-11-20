@@ -3,14 +3,14 @@ apply plugin: 'application'
 
 dependencies {
     compile project(':weechat-relay')
-    compile 'org.slf4j:slf4j-api:1.6.6'
+    compile 'org.slf4j:slf4j-api:1.7.12'
 
-    runtime 'org.slf4j:slf4j-simple:1.6.6'
+    runtime 'org.slf4j:slf4j-simple:1.7.12'
 }
 
 mainClassName="com.ubergeek42.relayexample.RelayExample"
 
 compileJava {
-    sourceCompatibility = 1.7
-    targetCompatibility = 1.7
+    sourceCompatibility = JavaVersion.VERSION_1_7
+    targetCompatibility = JavaVersion.VERSION_1_7
 }

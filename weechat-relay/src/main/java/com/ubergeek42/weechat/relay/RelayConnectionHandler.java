@@ -26,46 +26,41 @@ public interface RelayConnectionHandler {
     /**
      * Called when a connection to the server is in progress.
      */
-    public void onConnecting();
+    void onConnecting();
 
     /**
      * Called when a connection to the server is established, and commands can begin to be
-     * sent/received.  This occurs before authentication is finished.
+     * sent/received. This occurs before authentication is finished.
      */
-    public void onConnect();
+    void onConnected();
 
     /**
      * Called when a connection to the server is established, and login was successfully completed.
      * General purpose commands can be used now.
      */
-    public void onAuthenticated();
+    void onAuthenticated();
 
     /**
-     * Called when a connection to the server is established, but connection was aborted before any
-     * received messages. It most likely means that password was wrong.
+     * Called when a connection to the server is established, but connection was aborted before
+     * authentication succeeded. Bad password? Mismatched connection type?
      */
-    public void onAuthenticationFailed();
+    void onAuthenticationFailed();
 
     /**
      * Called when the initial list of buffers has been passed to the relay client. After this
      * method call client can assume normal workflow follows.
      */
-    public void onBuffersListed();
+    void onBuffersListed();
 
     /**
      * Called when the server is disconnected, either through error, timeout, or because the client
      * requested a disconnect.
      */
-    public void onDisconnect();
+    void onDisconnected();
 
     /**
      * Called when there is an error with the connection, and provides a message as a string.
-     * 
-     * @param err - The error string
-     * @param extraInfo - Additional data related to the error message(SSL Fingerprints, etc)
+     *
      */
-    public void onError(String err, Object extraInfo);
-
-
-
+    void onException(Exception e);
 }

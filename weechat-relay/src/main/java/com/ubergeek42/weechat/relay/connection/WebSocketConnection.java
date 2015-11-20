@@ -1,9 +1,18 @@
+/**
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ */
+
 package com.ubergeek42.weechat.relay.connection;
 
 import org.java_websocket.client.DefaultSSLWebSocketClientFactory;
 import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.drafts.Draft;
 import org.java_websocket.drafts.Draft_17;
+import org.java_websocket.exceptions.WebsocketNotConnectedException;
 import org.java_websocket.handshake.ServerHandshake;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.PipedInputStream;
@@ -11,167 +20,91 @@ import java.io.PipedOutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
-import java.security.KeyManagementException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManagerFactory;
 
 public class WebSocketConnection extends AbstractConnection {
-    private WebSocketClient wsclient;
-    private URI uri;
+    protected static Logger logger = LoggerFactory.getLogger("WebSocketConnection");
 
-    private PipedInputStream in_stream;
-    private PipedOutputStream weechatIn;
-    /** SSL Settings */
-    private KeyStore sslKeyStore;
-    private boolean useSSL;
+    private WebSocketClient client;
+    private PipedOutputStream outputToInStream;
 
-    public WebSocketConnection(String server, int port, boolean useSSL) {
-        this.server = server;
-        this.port = port;
-        this.useSSL = useSSL;
-        try {
-            if (useSSL) {
-                this.uri = new URI("wss://" + this.server + ":" + this.port+"/weechat");
-            } else {
-                this.uri = new URI("ws://" + this.server + ":" + this.port+"/weechat");
-            }
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        }
-        System.out.println(this.uri);
-        this.connector = wsConnector;
+    public WebSocketConnection(String server, int port, SSLContext sslContext) throws URISyntaxException, IOException {
+        // can throw URISyntaxException
+        URI uri = new URI((sslContext == null ? "ws://" : "wss://") + server + ":" + port + "/weechat");
 
-        in_stream = new PipedInputStream();
-        weechatIn = new PipedOutputStream();
-        try {
-            weechatIn.connect(in_stream);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        // can throw IOException
+        in = new PipedInputStream();
+        outputToInStream = new PipedOutputStream();
+        outputToInStream.connect((PipedInputStream) in);
 
-        wsclient = new WebSocketClient(uri, new Draft_17()) {
-            @Override
-            public void onOpen(ServerHandshake handshakedata) {
-                connected = true;
-                System.out.println(this.getReadyState());
-
-                notifyHandlers(STATE.CONNECTED);
-            }
-
-            @Override
-            public void onMessage(String message) {
-                throw new RuntimeException("Unexpected string message from websocket");
-            }
-
-            @Override
-            public void onMessage(ByteBuffer bytes) {
-                byte[] a = bytes.array();
-                try {
-                    weechatIn.write(a);
-                    weechatIn.flush();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            @Override
-            public void onClose(int code, String reason, boolean remote) {
-                connected = false;
-            }
-
-            @Override
-            public void onError(Exception e) {
-                connected = false;
-                e.printStackTrace();
-                notifyHandlersOfError(e);
-            }
-        };
-    }
-    public void setSSLKeystore(KeyStore ks) {
-        sslKeyStore = ks;
+        client = new MyWebSocket(uri, new Draft_17());
+        if (sslContext != null) client.setWebSocketFactory(new DefaultSSLWebSocketClientFactory(sslContext));
     }
 
-    private Thread wsConnector = new Thread(new Runnable() {
-        @Override
-        public void run() {
+    @Override protected void doConnect() throws Exception {
+        if (!client.connectBlocking()) throw (exception != null) ?
+                exception : new Exception("Could not connect using WebSocket");
+    }
+
+    // now this is one shady method
+    // client.close() does not close the socket. see TooTallNate/Java-WebSocket#346
+    // getConnection().closeConnection() seems to work, but i don't know if using it is right
+    @Override protected void doDisconnect() {
+        super.doDisconnect();
+        client.close();
+        client.getConnection().closeConnection(1000, "force closing");
+        try{outputToInStream.close();} catch (Exception e) {e.printStackTrace();}
+    }
+
+    // we don't need writer
+    @Override protected void startWriter(int i) {}
+
+    // because we have our own sendMessage()
+    @Override public void sendMessage(String string) {
+        try {client.send(string.getBytes());}
+        catch (WebsocketNotConnectedException ignored) {}
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private Exception exception = null;
+
+    private class MyWebSocket extends WebSocketClient {
+        public MyWebSocket(URI serverUri, Draft draft) {
+            super(serverUri, draft);
+        }
+
+        @Override public void onOpen(ServerHandshake ignored) {
+            logger.debug("WebSocket.onOpen(), readyState = {}", this.getReadyState());
+        }
+
+        @Override public void onMessage(String message) {
+            logger.debug("WebSocket.onMessage(string = {})", message);
+            throw new RuntimeException("Unexpected string message from websocket");
+        }
+
+        @Override public void onMessage(ByteBuffer bytes) {
+            logger.debug("WebSocket.onMessage({} bytes)", bytes.array().length);
             try {
-                if (useSSL) {
-                    TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-                    tmf.init(sslKeyStore);
-
-                    SSLContext sslContext = SSLContext.getInstance("TLS");
-                    sslContext.init(null, tmf.getTrustManagers(), new SecureRandom());
-                    wsclient.setWebSocketFactory(new DefaultSSLWebSocketClientFactory(sslContext));
-                }
-
-                wsclient.connectBlocking();
-                System.out.println("Connection finished");
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (NoSuchAlgorithmException e) {
-                e.printStackTrace();
-            } catch (KeyStoreException e) {
-                e.printStackTrace();
-            } catch (KeyManagementException e) {
+                outputToInStream.write(bytes.array());
+                outputToInStream.flush();
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-    });
 
-    @Override
-    public boolean isConnected() {
-        return connected;
-    }
-
-    @Override
-    public int read(byte[] bytes, int off, int len) throws IOException {
-        PipedInputStream in = in_stream;
-        if (in == null)
-            return -1;
-        return in.read(bytes, off, len);
-    }
-
-    @Override
-    public void write(byte[] bytes) {
-        wsclient.send(bytes);
-    }
-
-    @Override
-    public void disconnect() {
-        if (!connected) {
-            return;
-        }
-        try {
-            // If we're in the process of connecting, kill the thread and let us die
-            if (connector.isAlive()) {
-                connector.interrupt();
-                //connector.stop(); // FIXME: deprecated, should probably find a better way to do this
-            }
-
-            // If we're connected, tell weechat we're going away
-            write("quit\n".getBytes());
-
-            // Close all of our streams/sockets
-            connected = false;
-            wsclient.close();
-            if (in_stream != null) {
-                in_stream.close();
-                in_stream = null;
-            }
-            if (weechatIn != null) {
-                weechatIn.close();
-                weechatIn = null;
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+        @Override public void onClose(int code, String reason, boolean remote) {
+            logger.debug("WebSocket.onClose(code = {}, reason = {})", code, reason);
+            try {outputToInStream.close();} catch (IOException e) {e.printStackTrace();}
         }
 
-        // Call any registered disconnect handlers
-        notifyHandlers(STATE.DISCONNECTED);
+        // when connecting via SSL and when the connection is abruptly closed,
+        // onError() with `java.lang.NullPointerException: ssl == null` is thrown
+        @Override public void onError(Exception e) {
+            logger.error("WebSocket.onError({}: {})", e.getClass().getSimpleName(), e.getMessage());
+            exception = e;
+            try {outputToInStream.close();} catch (IOException ignored) {}
+        }
     }
 }

@@ -1,23 +1,18 @@
 package com.ubergeek42.WeechatAndroid.utils;
 
 public class Constants {
-    public static final String PREF_NAME = "kittens!";
-    final static public String PREF_MUST_STAY_DISCONNECTED = "wow!";
 
     // connection type
     final static public String PREF_CONNECTION_GROUP = "connection_group";
     final static public String PREF_CONNECTION_TYPE = "connection_type";
     final static public String PREF_TYPE_SSH = "ssh";
-    final static public String PREF_TYPE_STUNNEL = "stunnel";
     final static public String PREF_TYPE_SSL = "ssl";
     final static public String PREF_TYPE_WEBSOCKET = "websocket";
     final static public String PREF_TYPE_WEBSOCKET_SSL = "websocket-ssl";
     final static public String PREF_TYPE_PLAIN = "plain"; final public static String PREF_CONNECTION_TYPE_D = PREF_TYPE_PLAIN;
 
-    // stunnel group & insides
-    final static public String PREF_STUNNEL_GROUP = "stunnel_group";
-    final static public String PREF_STUNNEL_CERT = "stunnel_cert"; final public static String PREF_STUNNEL_CERT_D = "/sdcard/weechat/client.p12";
-    final static public String PREF_STUNNEL_PASS = "stunnel_pass"; final public static String PREF_STUNNEL_PASS_D = "";
+    // ssl group
+    final static public String PREF_SSL_GROUP = "ssl_group";
 
     // ssh group & insides
     final static public String PREF_SSH_GROUP = "ssh_group";
@@ -25,7 +20,8 @@ public class Constants {
     final static public String PREF_SSH_PORT = "ssh_port"; final public static String PREF_SSH_PORT_D = "22";
     final static public String PREF_SSH_USER = "ssh_user"; final public static String PREF_SSH_USER_D = "";
     final static public String PREF_SSH_PASS = "ssh_pass"; final public static String PREF_SSH_PASS_D = "";
-    final static public String PREF_SSH_KEYFILE = "ssh_keyfile"; final public static String PREF_SSH_KEYFILE_D = "/sdcard/weechat/sshkey.id_rsa";
+    final static public String PREF_SSH_KEY = "ssh_key"; final public static String PREF_SSH_KEY_D = null;
+    final static public String PREF_SSH_KNOWN_HOSTS = "ssh_known_hosts"; final public static String PREF_SSH_KNOWN_HOSTS_D = "";
 
     // relay
     final static public String PREF_HOST = "host"; final public static String PREF_HOST_D = null;
@@ -33,8 +29,9 @@ public class Constants {
     final static public String PREF_PASSWORD = "password"; final public static String PREF_PASSWORD_D = null;
 
     // misc
-    final static public String PREF_AUTO_CONNECT = "autoconnect"; final public static boolean PREF_AUTO_CONNECT_D = false;
-    final static public String PREF_AUTO_START = "autostart"; final public static boolean PREF_AUTO_START_D = false;
+    final static public String PREF_LINE_INCREMENT = "line_increment"; final public static String PREF_LINE_INCREMENT_D = "100";
+    final static public String PREF_RECONNECT = "reconnect"; final public static boolean PREF_RECONNECT_D = false;
+    final static public String PREF_BOOT_CONNECT = "boot_connect"; final public static boolean PREF_BOOT_CONNECT_D = false;
     public static final String PREF_OPTIMIZE_TRAFFIC = "optimize_traffic"; final public static boolean PREF_OPTIMIZE_TRAFFIC_D = false;
     public final static String PREF_HOTLIST_SYNC = "hotlist_sync"; final public static boolean PREF_HOTLIST_SYNC_D = false;
 

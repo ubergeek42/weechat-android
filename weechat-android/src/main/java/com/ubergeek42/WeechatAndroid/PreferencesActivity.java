@@ -6,8 +6,10 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.preference.ClearCertPreference;
 import android.support.v7.preference.DialogPreference;
 import android.support.v7.preference.EditTextPreferenceFix;
+import android.support.v7.preference.FilePreference;
 import android.support.v7.preference.Preference;
 import android.support.v7.preference.PreferenceFragmentCompat;
 import android.support.v7.preference.PreferenceScreen;
@@ -74,7 +76,7 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
 
         private static final String FRAGMENT_DIALOG_TAG = "android.support.v7.preference.PreferenceFragment.DIALOG";
         private String key;
-        private Preference stunnelGroup = null;
+        private Preference sslGroup = null;
         private Preference sshGroup = null;
 
         @Override public void onDisplayPreferenceDialog(Preference preference) {
@@ -84,8 +86,12 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
                 f = FontPreference.FontPreferenceFragment.newInstance(preference.getKey());
             else if (preference instanceof ThemePreference)
                 f = ThemePreference.ThemePreferenceFragment.newInstance(preference.getKey());
+            else if (preference instanceof FilePreference)
+                f = FilePreference.FilePreferenceFragment.newInstance(preference.getKey(), PREF_SSH_KEY.equals(preference.getKey()) ? 1 : 2);
             else if (preference instanceof EditTextPreferenceFix)
                 f = EditTextPreferenceFix.EditTextPreferenceFixFragment.newInstance(preference.getKey());
+            else if (preference instanceof ClearCertPreference)
+                f = ClearCertPreference.ClearCertPreferenceFragment.newInstance(preference.getKey());
             else if (preference instanceof RingtonePreferenceFix) {
                 Intent intent = ((RingtonePreferenceFix) preference).makeRingtoneRequestIntent();
                 startActivityForResult(intent, 0);
@@ -105,7 +111,7 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
             setPreferencesFromResource(R.xml.preferences, this.key = key);
             String[] listenTo = {};
             if (PREF_CONNECTION_GROUP.equals(key)) {
-                stunnelGroup = findPreference(PREF_STUNNEL_GROUP);
+                sslGroup = findPreference(PREF_SSL_GROUP);
                 sshGroup = findPreference(PREF_SSH_GROUP);
                 showHideStuff(getPreferenceScreen().getSharedPreferences().getString(PREF_CONNECTION_TYPE, PREF_CONNECTION_TYPE_D));
                 listenTo = new String[] {PREF_CONNECTION_TYPE, PREF_HOST, PREF_PORT};
@@ -130,8 +136,13 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
         // this is required for RingtonePreferenceFix, which requires an activity to operate
         @Override public void onActivityResult(int requestCode, int resultCode, Intent data) {
             super.onActivityResult(requestCode, resultCode, data);
-            if (resultCode == RESULT_OK)
-                ((RingtonePreferenceFix) findPreference(PREF_NOTIFICATION_SOUND)).onActivityResult(data);
+            if (resultCode == RESULT_OK) {
+                switch (requestCode) {
+                    case 0: ((RingtonePreferenceFix) findPreference(PREF_NOTIFICATION_SOUND)).onActivityResult(data); break;
+                    case 1: ((FilePreference) findPreference(PREF_SSH_KEY)).onActivityResult(data); break;
+                    case 2: ((FilePreference) findPreference(PREF_SSH_KNOWN_HOSTS)).onActivityResult(data); break;
+                }
+            }
         }
 
         @Override public boolean onPreferenceChange(Preference preference, Object o) {
@@ -157,8 +168,8 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
         // this hides and shows stunnel / ssh preference screens
         // must not be called when the settings do not exist in the tree
         private void showHideStuff(String type) {
-            if (PREF_TYPE_STUNNEL.equals(type)) getPreferenceScreen().addPreference(stunnelGroup);
-            else getPreferenceScreen().removePreference(stunnelGroup);
+            if (Utils.isAnyOf(type, PREF_TYPE_SSL, PREF_TYPE_WEBSOCKET_SSL)) getPreferenceScreen().addPreference(sslGroup);
+            else getPreferenceScreen().removePreference(sslGroup);
             if (PREF_TYPE_SSH.equals(type)) getPreferenceScreen().addPreference(sshGroup);
             else getPreferenceScreen().removePreference(sshGroup);
         }

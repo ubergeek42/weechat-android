@@ -13,7 +13,7 @@ import android.text.style.URLSpan;
 import android.view.View;
 import android.widget.Toast;
 
-import com.ubergeek42.WeechatAndroid.service.Buffer;
+import com.ubergeek42.WeechatAndroid.relay.Line;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -50,7 +50,7 @@ public class Linkify {
         }
 
         @Override public void onClick(@NonNull View widget) {
-            Buffer.Line line = (Buffer.Line) widget.getTag();
+            Line line = (Line) widget.getTag();
             if (line.clickDisabled)
                 line.clickDisabled = false;
             else {

@@ -17,7 +17,7 @@
     <string name="tabkey">Tab</string>
     <string name="open_drawer">Open drawer</string>
     <string name="close_drawer">Close drawer</string>
-
+    <string name="more_button">Fetch more lines</string>
 
     <!--  the text shown in the buffer list filter edit text as a placeholder -->
     <string name="filter_bufferlist_placeholder"><i>filter</i></string>
@@ -30,22 +30,18 @@
     <string name="hot_message_not_available">(message not available)</string>
 
     <string name="notification_connected_to">"Connected to "</string>
-	<string name="notification_reconnected_to">"Reconnected to "</string>
     <string name="notification_disconnected">Disconnected</string>
 
     <string name="notification_connecting">Connecting to %s…</string>
     <string name="notification_connecting_details_now">Connecting now…</string>
     <string name="notification_connecting_details">Will connect in %d seconds…</string>
-    <string name="notification_reconnecting">Reconnecting to %s…</string>
-    <string name="notification_reconnecting_details_now">Reconnecting now…</string>
-    <string name="notification_reconnecting_details">Will reconnect in %d seconds…</string>
 
     <string name="notification_update_settings">Update settings</string>
     <string name="notification_update_settings_details">Click to edit your preferences and connect</string>
     <string name="notification_upgrading">Upgrading…</string>
     <string name="notification_upgrading_details">WeeChat is upgrading, please wait for reconnection</string>
-    <string name="notification_network_unavailable">Network unavailable</string>
-    <string name="notification_network_unavailable_details">Failed to connect, network unavailable</string>
+    <string name="notification_waiting_network">Waiting for network</string>
+    <string name="notification_waiting_network_details">Failed to connect, network unavailable</string>
 
     <!-- toasts -->
     <string name="autoscroll_no_line">Buffer lost some hot messages because of new lines</string>
@@ -64,7 +60,6 @@
                 <item>Plain connection</item>
                 <item>WeeChat SSL</item>
                 <item>SSH tunnel</item>
-                <item>Stunnel</item>
                 <item>WebSocket</item>
                 <item>WebSocket (SSL)</item>
             </string-array>
@@ -78,7 +73,10 @@
             <string name="pref_ssh_user">SSH username</string>
             <string name="pref_ssh_port">SSH port</string>
             <string name="pref_ssh_pass">SSH password/key passphrase</string>
-            <string name="pref_ssh_keyfile">SSH private key file</string>
+            <string name="pref_ssh_key">Private key</string>
+            <string name="pref_ssh_key_summary">DSA, RSA, ECDSA private key in OpenSSH or PuTTY format</string>
+            <string name="pref_ssh_known_hosts">Known hosts</string>
+            <string name="pref_ssh_known_hosts_summary">Output of $ ssh-keyscan host</string>
 
         <!-- relay type -->
 
@@ -90,8 +88,10 @@
         <!-- misc -->
 
         <string name="pref_misc_group">Miscellaneous</string>
-            <string name="pref_autoconnect">Connect on app launch</string>
-            <string name="pref_autostart">Launch app on system boot</string>
+            <string name="pref_line_increment">Number of lines to load</string>
+            <string name="pref_line_increment_summary">The number of lines to be loaded when opening a buffer or pressing the “Load more lines” button. Note that due to filtering the number of lines actually shown might be less than the number of loaded lines. Also note that due to WeeChat’s limitations the app has to re-fetch all lines every times it requests more lines. (%s)</string>
+            <string name="pref_reconnect">Reconnect on connection loss</string>
+            <string name="pref_boot_connect">Connect on system boot</string>
             <string name="pref_notification_ticker">Notifications ticker</string>
             <string name="pref_notification_ticker_summary">Display connection changes as ticker (does not work on Lollipop)</string>
             <string name="pref_optimize_traffic">Only sync open buffers</string>

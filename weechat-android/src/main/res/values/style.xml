@@ -12,7 +12,6 @@
         <item name="android:navigationBarColor" tools:targetApi="lollipop">@color/primary_dark</item>
         <item name="alertDialogTheme">@style/DialogStyle</item>
         <item name="preferenceTheme">@style/PreferenceStyle</item>
-        <item name="android:activatedBackgroundIndicator" tools:targetApi="11">?android:attr/selectableItemBackground</item>
     </style>
 
     <style name="DialogStyle" parent="Theme.AppCompat.Dialog.Alert">

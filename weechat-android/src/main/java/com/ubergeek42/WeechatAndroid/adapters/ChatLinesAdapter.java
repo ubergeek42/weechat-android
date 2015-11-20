@@ -27,7 +27,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.BaseAdapter;
-import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
@@ -35,8 +34,10 @@ import android.widget.TextView;
 
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
-import com.ubergeek42.WeechatAndroid.service.Buffer;
-import com.ubergeek42.WeechatAndroid.service.BufferEye;
+import com.ubergeek42.WeechatAndroid.relay.Buffer;
+import com.ubergeek42.WeechatAndroid.relay.BufferEye;
+import com.ubergeek42.WeechatAndroid.relay.Line;
+import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.weechat.ColorScheme;
 
 import org.slf4j.Logger;
@@ -50,7 +51,7 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
     private WeechatActivity activity = null;
 
     private Buffer buffer;
-    private Buffer.Line[] lines = new Buffer.Line[0];
+    private Line[] lines = new Line[0];
     private LayoutInflater inflater;
     private ListView uiListView;
     private @Nullable Typeface typeface = null;
@@ -119,8 +120,8 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
             retview = textview;
         }
 
-        textview.setTextSize(Buffer.Line.TEXT_SIZE);
-        Buffer.Line line = (Buffer.Line) getItem(position);
+        textview.setTextSize(P.textSize);
+        Line line = (Line) getItem(position);
         textview.setText(line.spannable);
         textview.setTag(line);
         if (typeface != null)
@@ -144,7 +145,7 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
         if (DEBUG) logger.debug("onLinesChanged()");
 
         final int index, top;
-        final Buffer.Line[] l;
+        final Line[] l;
         final Spannable lastSpannable;
         final boolean lineCountUnchanged, lastItemVisible, mustScrollOneLineUp;
 
@@ -167,7 +168,6 @@ public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, Buffer
         lastItemVisible = this.lastItemVisible;
         mustScrollOneLineUp = !lastItemVisible && lineCountUnchanged && !needMoveLastReadMarker;    //TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! last piece here
         if (mustScrollOneLineUp) {
-            logger.info("ONE LINE UP");
             index = uiListView.getFirstVisiblePosition();
             View v = uiListView.getChildAt(0);
             top = (v == null) ? 0 : v.getTop();

@@ -1,21 +1,36 @@
+/**
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ */
+
 package com.ubergeek42.WeechatAndroid.utils;
 
+import android.annotation.SuppressLint;
+import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
 import android.graphics.drawable.TransitionDrawable;
+import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Base64;
 import android.widget.ImageView;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 
 public class Utils {
+
+    final private static Logger logger = LoggerFactory.getLogger("Utils");
 
     public static void setImageDrawableWithFade(final @NonNull ImageView imageView,
                                                 final @NonNull Drawable drawable, int duration) {
@@ -36,10 +51,6 @@ public class Utils {
 
     //////////////////////////////////////////////////////////////////////////////////////////////// serialization
 
-    /** protocol must be changed each time anything that uses the following function changes
-     ** needed to make sure nothing crashes if we cannot restore the data */
-    public static final int SERIALIZATION_PROTOCOL_ID = 9;
-
     public static @Nullable Object deserialize(@Nullable String string) {
         if (string == null) return null;
         try {
@@ -49,7 +60,7 @@ public class Utils {
             ois.close();
             return o;
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("deserialize()", e);
             return null;
         }
     }
@@ -63,21 +74,15 @@ public class Utils {
             oos.close();
             return Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("serialize()", e);
             return null;
         }
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////// string cuts
 
-    // replace multiline text with one string like "foo bar baz… (3 lines)"
-    public static @NonNull String cutFirst(@NonNull String text, int at) {
-        int chunks = text.split("\\r\\n|\\r|\\n").length;
-        String clean = text.replaceAll("\\r\\n|\\r|\\n", " ");
-        clean = cut(clean, at);
-        if (chunks > 1)
-            clean += " (" + chunks + " lines)";
-        return clean;
+    public static @NonNull String unCrLf(@NonNull String text) {
+        return text.replaceAll("\\r\\n|\\r|\\n", "⏎ ");
     }
 
     // cut string at 100 characters
@@ -95,6 +100,7 @@ public class Utils {
         return true;
     }
 
+    @SuppressLint("SimpleDateFormat")
     public static boolean isValidTimestampFormat(@Nullable String s) {
         if (s == null)
             return false;
@@ -111,5 +117,24 @@ public class Utils {
             if (left.equals(right))
                 return true;
         return false;
+    }
+
+    public static boolean isEmpty(byte[] bytes) {
+        return bytes == null || bytes.length == 0;
+    }
+
+    public static @NonNull byte[] readFromUri(Context context, Uri uri) throws IOException {
+        InputStream in = null; int len;
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        byte[] buffer = new byte[1024];
+        try {
+            in = context.getContentResolver().openInputStream(uri);
+            if (in == null) throw new IOException("Input stream is null");
+            while ((len = in.read(buffer)) != -1) out.write(buffer, 0, len);
+            if (out.size() == 0) throw new IOException("File is empty");
+            return out.toByteArray();
+        } finally {
+            try {if (in != null) in.close();} catch (IOException ignored) {}
+        }
     }
 }

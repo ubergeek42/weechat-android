@@ -1,252 +1,326 @@
+/*******************************************************************************
+ * Copyright 2012 Keith Johnson
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ ******************************************************************************/
 package com.ubergeek42.WeechatAndroid.service;
 
-import android.app.AlarmManager;
-import android.app.PendingIntent;
-import android.content.Context;
+import android.app.Service;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.SharedPreferences;
-import android.graphics.Paint;
-import android.graphics.Typeface;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.IBinder;
-import android.os.SystemClock;
-import android.support.v7.preference.ThemeManager;
-import android.text.TextUtils;
+import android.support.annotation.Nullable;
 
-import com.ubergeek42.WeechatAndroid.Manifest;
-import com.ubergeek42.WeechatAndroid.utils.Utils;
-import com.ubergeek42.weechat.Color;
+import com.ubergeek42.WeechatAndroid.R;
+import com.ubergeek42.WeechatAndroid.relay.BufferList;
+import com.ubergeek42.weechat.relay.RelayConnection;
+import com.ubergeek42.weechat.relay.RelayMessage;
+import com.ubergeek42.weechat.relay.connection.AbstractConnection.StreamClosed;
+import com.ubergeek42.weechat.relay.connection.Connection;
+import com.ubergeek42.weechat.relay.connection.PlainConnection;
+import com.ubergeek42.weechat.relay.connection.SSHConnection;
+import com.ubergeek42.weechat.relay.connection.SSLConnection;
+import com.ubergeek42.weechat.relay.connection.WebSocketConnection;
+import com.ubergeek42.weechat.relay.protocol.RelayObject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.text.SimpleDateFormat;
+import java.nio.channels.UnresolvedAddressException;
+import java.util.EnumSet;
 
+import de.greenrobot.event.EventBus;
+
+import static com.ubergeek42.WeechatAndroid.service.Events.*;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
 
-/**
- ** the service can be started by:
- **     * activity
- **         in which case we don't want to anything special
- **     * system, when it restores the app after it's been shut down
- **         in which case we want to "reattach" ourselves to all buffers we had open
- **         but we don't want to request all lines for every buffer since user might
- **         not be coming back before another disconnection or service destruction
- **
- ** hence we maintain a list of open buffers.
- **
- ** upon Buffer creation, buffer determines if it's open and if so, subscribes to changes
- ** and starts processing all future incoming lines.
- **
- ** upon Buffer's attachment to a fragment, if needed, that Buffer should request missing lines
- ** and nicklist (TODO)
- **/
+public class RelayService extends Service implements Connection.Observer {
 
-public class RelayService extends RelayServiceBackbone {
     private static Logger logger = LoggerFactory.getLogger("RelayService");
-    final private static boolean DEBUG_PREFS = false;
-    final private static boolean DEBUG_SAVE_RESTORE = false;
+    final private static boolean DEBUG = true;
+    final private static boolean DEBUG_CONNECTION = true;
 
-    private PingActionReceiver pingActionReceiver;
+    public RelayConnection connection;
+    private Connectivity connectivity;
+    private PingActionReceiver ping;
+    private Handler thandler;               // thread "doge" used for connecting/disconnecting
 
-    /** super method sets 'prefs' */
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// status & life cycle
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
     @Override
     public void onCreate() {
+        if (DEBUG) logger.debug("onCreate()");
         super.onCreate();
 
-        pingActionReceiver = new PingActionReceiver(this);
-        registerReceiver(
-                pingActionReceiver,
-                new IntentFilter(PingActionReceiver.PING_ACTION),
-                Manifest.permission.PING_ACTION,
-                null
-        );
+        // prepare handler that will run on a separate thread
+        HandlerThread handlerThread = new HandlerThread("doge");
+        handlerThread.start();
+        thandler = new Handler(handlerThread.getLooper());
 
-        // buffer list preferences
-        BufferList.SORT_BUFFERS = prefs.getBoolean(PREF_SORT_BUFFERS, PREF_SORT_BUFFERS_D);
-        BufferList.SHOW_TITLE = prefs.getBoolean(PREF_SHOW_BUFFER_TITLES, PREF_SHOW_BUFFER_TITLES_D);
-        BufferList.FILTER_NONHUMAN_BUFFERS = prefs.getBoolean(PREF_FILTER_NONHUMAN_BUFFERS, PREF_FILTER_NONHUMAN_BUFFERS_D);
-        BufferList.OPTIMIZE_TRAFFIC = prefs.getBoolean(PREF_OPTIMIZE_TRAFFIC, PREF_OPTIMIZE_TRAFFIC_D);
+        connectivity = new Connectivity();
+        connectivity.register(this);
 
-        // buffer-wide preferences
-        Buffer.FILTER_LINES = prefs.getBoolean(PREF_FILTER_LINES, PREF_FILTER_LINES_D);
-
-        // buffer line-wide preferences
-        Buffer.Line.MAX_WIDTH = Integer.parseInt(prefs.getString(PREF_MAX_WIDTH, PREF_MAX_WIDTH_D));
-        Buffer.Line.ENCLOSE_NICK = prefs.getBoolean(PREF_ENCLOSE_NICK, PREF_ENCLOSE_NICK_D);
-        Buffer.Line.DIM_DOWN_NON_HUMAN_LINES = prefs.getBoolean(PREF_DIM_DOWN, PREF_DIM_DOWN_D);
-        setTimestampFormat();
-        setAlignment();
-        setTextSizeAndLetterWidth();
-        ThemeManager.loadColorSchemeFromPreferences(this);
+        ping = new PingActionReceiver(this);
+        EventBus.getDefault().register(this);
     }
 
-    @Override
-    public void onDisconnect() {
-        saveStuff();
-        super.onDisconnect();
-    }
-
-    @Override
-    public IBinder onBind(Intent intent) {
-        return new RelayServiceBinder(this);
-    }
-
-    /** called when all fragments et al detached, i.e. on app minimize
-     ** it's not guaranteed that this will be called but it's called virtually always
-     ** must return true in order to be called again. a bug within android? */
-    @Override
-    public boolean onUnbind(Intent intent) {
-        saveStuff();
-        return true;
-    }
-
-    final private static int SYNC_EVERY_MS = 60 * 5 * 1000; // 5 minutes
-
-    /** called upon authenticating. let's do our job!
-     ** TODO although it might be wise not to create everything from scratch...  */
-    @Override
-    void startHandlingBoneEvents() {
-        restoreStuff();
-        BufferList.OPTIMIZE_TRAFFIC = prefs.getBoolean(PREF_OPTIMIZE_TRAFFIC, PREF_OPTIMIZE_TRAFFIC_D);
-        BufferList.launch(this);
-
-        // schedule updates
-        AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        Intent intent = new Intent(this, SyncAlarmReceiver.class);
-        PendingIntent pi = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
-        am.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + SYNC_EVERY_MS, SYNC_EVERY_MS, pi);
-
-        // subscribe to any future changes
-        // starting with weechat 1.1, "sync * buffers" also gets use buffer localvars,
-        // so it's safe to request them; handling of these is no different from full sync
-        connection.sendMsg(BufferList.OPTIMIZE_TRAFFIC ? "sync * buffers,upgrade" : "sync");
-    }
-
-    /** onDestroy will only be called when properly exiting the application
-     ** maybe. anyways, user pressed Quit — erase open buffers */
     @Override
     public void onDestroy() {
-        eraseStoredStuff();
-        unregisterReceiver(pingActionReceiver);
+        if (DEBUG) logger.debug("onDestroy()");
+        connectivity.unregister();
         super.onDestroy();
+        EventBus.getDefault().unregister(this);
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// save/restore
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    private final static String PREF_DATA = "sb";
-    private final static String PREF_PROTOCOL_ID = "pid";
-
-    /** save everything that is needed for successful restoration of the service */
-    private void saveStuff() {
-        if (DEBUG_SAVE_RESTORE) logger.debug("saveStuff()");
-        SharedPreferences preferences = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
-        preferences.edit().putString(PREF_DATA, BufferList.getSerializedSaveData(true))
-                          .putInt(PREF_PROTOCOL_ID, Utils.SERIALIZATION_PROTOCOL_ID).apply();
+    @Nullable @Override public IBinder onBind(Intent intent) {
+        return null;
     }
 
-    /** restore everything. if data is an invalid protocol, 'restore' null */
-    private void restoreStuff() {
-        if (DEBUG_SAVE_RESTORE) logger.debug("restoreStuff()");
-        SharedPreferences preferences = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
-        boolean valid = preferences.getInt(PREF_PROTOCOL_ID, -1) == Utils.SERIALIZATION_PROTOCOL_ID;
-        BufferList.setSaveDataFromString(valid ? preferences.getString(PREF_DATA, null) : null);
+    @SuppressWarnings("unused")
+    public void onEvent(SendMessageEvent event) {
+        logger.debug("onEvent({})", event);
+        connection.sendMessage(event.message);
     }
 
-    /** delete open buffers, so that buffers don't remain open (after Quit).
-     ** don't delete protocol id & buffer to lrl. */
-    private void eraseStoredStuff() {
-        if (DEBUG_SAVE_RESTORE) logger.debug("eraseStoredStuff()");
-        SharedPreferences preferences = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
-        preferences.edit().putString(PREF_DATA, BufferList.getSerializedSaveData(false)).apply();
-        BufferList.syncedBuffersFullNames.clear();
-    }
+    final public static String ACTION_START = "com.ubergeek42.WeechatAndroid.START";
+    final public static String ACTION_STOP = "com.ubergeek42.WeechatAndroid.STOP";
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// prefs
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
+    // this method is called:
+    //     * whenever app calls startService() (that means on each screen rotate)
+    //     * when service is recreated by system after OOM kill. (intent = null)
     @Override
-    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        if (DEBUG_PREFS) logger.warn("onSharedPreferenceChanged()");
-
-        // buffer list preferences
-        super.onSharedPreferenceChanged(sharedPreferences, key);
-        if (key.equals(PREF_SORT_BUFFERS)) {
-            BufferList.SORT_BUFFERS = prefs.getBoolean(key, PREF_SORT_BUFFERS_D);
-        } else if (key.equals(PREF_SHOW_BUFFER_TITLES)) {
-            BufferList.SHOW_TITLE = prefs.getBoolean(key, PREF_SHOW_BUFFER_TITLES_D);
-        } else if (key.equals(PREF_FILTER_NONHUMAN_BUFFERS)) {
-            BufferList.FILTER_NONHUMAN_BUFFERS = prefs.getBoolean(key, PREF_FILTER_NONHUMAN_BUFFERS_D);
-
-        // only update traffic optimization on connect
-        //    // traffic preference
-        //} else if (key.equals(PREF_OPTIMIZE_TRAFFIC)) {
-        //    BufferList.OPTIMIZE_TRAFFIC = prefs.getBoolean(key, false);
-
-            // buffer-wide preferences
-        } else if (key.equals(PREF_FILTER_LINES)) {
-            Buffer.FILTER_LINES = prefs.getBoolean(key, PREF_FILTER_LINES_D);
-
-            // chat lines-wide preferences
-        } else if (key.equals(PREF_MAX_WIDTH)) {
-            Buffer.Line.MAX_WIDTH = Integer.parseInt(prefs.getString(key, PREF_MAX_WIDTH_D));
-            BufferList.notifyOpenBuffersMustBeProcessed(false);
-        } else if (key.equals(PREF_DIM_DOWN)) {
-            Buffer.Line.DIM_DOWN_NON_HUMAN_LINES = prefs.getBoolean(key, PREF_DIM_DOWN_D);
-            BufferList.notifyOpenBuffersMustBeProcessed(true);
-        } else if (key.equals(PREF_TIMESTAMP_FORMAT)) {
-            setTimestampFormat();
-            BufferList.notifyOpenBuffersMustBeProcessed(false);
-        } else if (key.equals(PREF_PREFIX_ALIGN)) {
-            setAlignment();
-            BufferList.notifyOpenBuffersMustBeProcessed(false);
-        } else if (key.equals(PREF_ENCLOSE_NICK)) {
-            Buffer.Line.ENCLOSE_NICK = prefs.getBoolean(key, PREF_ENCLOSE_NICK_D);
-            BufferList.notifyOpenBuffersMustBeProcessed(false);
-        } else if (key.equals(PREF_TEXT_SIZE)) {
-            setTextSizeAndLetterWidth();
-            BufferList.notifyOpenBuffersMustBeProcessed(true);
-        } else if (key.equals(PREF_BUFFER_FONT)) {
-            setTextSizeAndLetterWidth();
-            BufferList.notifyOpenBuffersMustBeProcessed(true);
-        } else if (key.equals(PREF_COLOR_SCHEME)) {
-            ThemeManager.loadColorSchemeFromPreferences(this);
-            BufferList.notifyOpenBuffersMustBeProcessed(true);
-        }
-    }
-
-    private void setTimestampFormat() {
-        String timeformat = prefs.getString(PREF_TIMESTAMP_FORMAT, PREF_TIMESTAMP_FORMAT_D);
-        Buffer.Line.DATEFORMAT = (timeformat.equals("")) ? null : new SimpleDateFormat(timeformat);
-    }
-
-    private void setAlignment() {
-        String alignment = prefs.getString(PREF_PREFIX_ALIGN, PREF_PREFIX_ALIGN_D);
-        if (alignment.equals("right")) Buffer.Line.ALIGN = Color.ALIGN_RIGHT;
-        else if (alignment.equals("left")) Buffer.Line.ALIGN = Color.ALIGN_LEFT;
-        else if (alignment.equals("timestamp")) Buffer.Line.ALIGN = Color.ALIGN_TIMESTAMP;
-        else Buffer.Line.ALIGN = Color.ALIGN_NONE;
-    }
-
-    private void setTextSizeAndLetterWidth() {
-        Buffer.Line.TEXT_SIZE = Float.parseFloat(prefs.getString(PREF_TEXT_SIZE, PREF_TEXT_SIZE_D));
-        Paint p = new Paint();
-        String fontPath = prefs.getString(PREF_BUFFER_FONT, PREF_BUFFER_FONT_D);
-        if (!TextUtils.isEmpty(fontPath)) {
-            Typeface tf;
-            try {
-                tf = Typeface.createFromFile(fontPath);
-            } catch (RuntimeException r) {
-                tf = Typeface.MONOSPACE;
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        if (DEBUG_CONNECTION) logger.debug("onStartCommand({}, {}, {})", intent, flags, startId);
+        if (intent == null || ACTION_START.equals(intent.getAction())) {
+            if (state.contains(STATE.STOPPED)) {
+                P.loadConnectionPreferences();
+                start();
             }
-            p.setTypeface(tf);
-        } else {
-            p.setTypeface(Typeface.MONOSPACE);
+        } else if (ACTION_STOP.equals(intent.getAction())) {
+            if (!state.contains(STATE.STOPPED)) {
+                stop();
+            }
         }
-        p.setTextSize(Buffer.Line.TEXT_SIZE * getResources().getDisplayMetrics().scaledDensity);
-        Buffer.Line.LETTER_WIDTH = (p.measureText("m"));
+        return START_STICKY;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// connect/disconnect
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private static final long WAIT_BEFORE_WAIT_MESSAGE_DELAY = 5;
+    private static final long DELAYS[] = new long[] {5, 15, 30, 60, 120, 300, 600, 900};
+
+    // called by user and when disconnected
+    private void start() {
+        if (DEBUG_CONNECTION) logger.debug("start()");
+        if (!state.contains(STATE.STOPPED)) {
+            logger.error("start() run while state != STATE.STOPPED");
+            return;
+        }
+
+        state = EnumSet.of(STATE.STARTED);
+        EventBus.getDefault().postSticky(new StateChangedEvent(state));
+        P.setServiceAlive(true);
+        _start();
+    }
+
+    // called by ↑ and Connectivity
+    protected void _start() {
+        if (DEBUG_CONNECTION) logger.debug("_start()");
+        thandler.removeCallbacksAndMessages(null);
+        thandler.post(new Runnable() {
+            int reconnects = 0;
+
+            final String ticker = getString(R.string.notification_connecting);
+            final String content = getString(R.string.notification_connecting_details);
+            final String contentNow = getString(R.string.notification_connecting_details_now);
+
+            Runnable connectRunner = new Runnable() {
+                @Override public void run() {
+                    if (state.contains(STATE.AUTHENTICATED)) return;
+                    if (DEBUG_CONNECTION) logger.debug("start(): not connected; connecting now");
+                    Notificator.showMain(RelayService.this, String.format(ticker, P.host), contentNow, null);
+                    switch (connect()) {
+                        case LATER: return; // wait for Connectivity
+                        case IMPOSSIBLE: stop(); break; // can't connect due to ?!?!
+                        case POSSIBLE: thandler.postDelayed(notifyRunner, WAIT_BEFORE_WAIT_MESSAGE_DELAY * 1000);
+                    }
+                }
+            };
+
+            Runnable notifyRunner = new Runnable() {
+                @Override public void run() {
+                    if (state.contains(STATE.AUTHENTICATED)) return;
+                    long delay = DELAYS[reconnects < DELAYS.length ? reconnects : DELAYS.length - 1];
+                    if (DEBUG_CONNECTION) logger.debug("start(): waiting {} seconds", delay);
+                    Notificator.showMain(RelayService.this, String.format(ticker, P.host), String.format(content, delay), null);
+                    reconnects++;
+                    thandler.postDelayed(connectRunner, delay * 1000);
+                }
+            };
+
+            @Override public void run() {
+                connectRunner.run();
+            }
+        });
+    }
+
+    // called by user and when there was a fatal exception while trying to connect
+    protected void stop() {
+        if (DEBUG_CONNECTION) logger.debug("stop()");
+        if (state.contains(STATE.STOPPED)) {
+            logger.error("stop() run while state == STATE.STOPPED");
+            return;
+        }
+
+        if (state.contains(STATE.AUTHENTICATED)) goodbye();
+
+        state = EnumSet.of(STATE.STOPPED);
+        EventBus.getDefault().postSticky(new StateChangedEvent(state));
+        interrupt();
+        stopSelf();
+        P.setServiceAlive(false);
+    }
+
+    // called by ↑ and PingActionReceiver
+    // close whatever connection we have in a thread, may result in a call to onStateChanged
+    protected void interrupt() {
+        thandler.removeCallbacksAndMessages(null);
+        thandler.post(new Runnable() {
+            @Override public void run() {
+                if (connection != null) connection.disconnect();
+            }
+        });
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private enum TRY {POSSIBLE, LATER, IMPOSSIBLE}
+
+    private TRY connect() {
+        if (DEBUG_CONNECTION) logger.debug("connect()");
+
+        if (connection != null)
+            connection.disconnect();
+
+        if (!connectivity.isNetworkAvailable()) {
+            Notificator.showMain(this, getString(R.string.notification_waiting_network), null);
+            return TRY.LATER;
+        }
+
+        Connection conn;
+        try {
+            switch (P.connectionType) {
+                case PREF_TYPE_SSH: conn = new SSHConnection(P.host, P.port, P.sshHost, P.sshPort, P.sshUser, P.sshPass, P.sshKey, P.sshKnownHosts); break;
+                case PREF_TYPE_SSL: conn = new SSLConnection(P.host, P.port, P.sslContext); break;
+                case PREF_TYPE_WEBSOCKET: conn = new WebSocketConnection(P.host, P.port, null); break;
+                case PREF_TYPE_WEBSOCKET_SSL: conn = new WebSocketConnection(P.host, P.port, P.sslContext); break;
+                default: conn = new PlainConnection(P.host, P.port); break;
+            }
+        } catch (Exception e) {
+            logger.error("connect(): exception while creating connection", e);
+            onException(e);
+            return TRY.IMPOSSIBLE;
+        }
+
+        connection = new RelayConnection(conn, P.pass);
+        connection.setObserver(this);
+        connection.connect();
+        return TRY.POSSIBLE;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// callbacks
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    public enum STATE {
+        STOPPED,
+        STARTED,
+        AUTHENTICATED,
+        LISTED,
+    }
+
+    public EnumSet<STATE> state = EnumSet.of(STATE.STOPPED);
+
+    @Override public void onStateChanged(Connection.STATE s) {
+        logger.debug("onStateChanged({})", s);
+        switch (s) {
+            case CONNECTING:
+            case CONNECTED:
+                return;
+            case AUTHENTICATED:
+                state = EnumSet.of(STATE.STARTED, STATE.AUTHENTICATED);
+                Notificator.showMain(this, getString(R.string.notification_connected_to) + P.host, null);
+                hello();
+                break;
+            case BUFFERS_LISTED:
+                state = EnumSet.of(STATE.STARTED, STATE.AUTHENTICATED, STATE.LISTED);
+                break;
+            case DISCONNECTED:
+                if (state.contains(STATE.STOPPED)) return;
+                if (!state.contains(STATE.AUTHENTICATED)) return; // continue connecting
+                state = EnumSet.of(STATE.STOPPED);
+                goodbye();
+                if (P.reconnect) start();
+                else stopSelf();
+        }
+        EventBus.getDefault().postSticky(new StateChangedEvent(state));
+    }
+
+    private void hello() {
+        ping.scheduleFirstPing();
+        BufferList.launch(this);
+        SyncAlarmReceiver.start(this);
+    }
+
+    private void goodbye() {
+        SyncAlarmReceiver.stop(this);
+        BufferList.stop();
+        ping.unschedulePing();
+        //P.saveStuff();
+    }
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    public static class ExceptionWrapper extends Exception {
+        public ExceptionWrapper(Exception cause, String message) {
+            super(message);
+            initCause(cause);
+        }
+    }
+
+    // ALWAYS followed by onStateChanged(STATE.DISCONNECTED); might be StreamClosed
+    @Override public void onException(Exception e) {
+        logger.error("onException({})", e.getClass().getSimpleName());
+        if (e instanceof StreamClosed && (!state.contains(STATE.AUTHENTICATED)))
+            e = new ExceptionWrapper(e, "Server unexpectedly closed connection while connecting. Wrong password or connection type?");
+        else if (e instanceof UnresolvedAddressException)
+            e = new ExceptionWrapper(e, "Could not resolve address " + (P.connectionType.equals(PREF_TYPE_SSH) ? P.sshHost : P.host));
+        EventBus.getDefault().post(new ExceptionEvent(e));
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private final static RelayObject[] NULL = {null};
+
+    @Override public void onMessage(RelayMessage message) {
+        ping.onMessage();
+        RelayObject[] objects = message.getObjects() == null ? NULL : message.getObjects();
+        String id = message.getID();
+        for (RelayObject object : objects)
+            BufferList.handleMessage(object, id);
     }
 }

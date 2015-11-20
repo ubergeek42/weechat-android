@@ -9,6 +9,8 @@ import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 
+import com.ubergeek42.WeechatAndroid.utils.Constants;
+
 public class RingtonePreferenceFix extends DialogPreference {
 
     public RingtonePreferenceFix(Context context, AttributeSet attrs) {
@@ -16,7 +18,7 @@ public class RingtonePreferenceFix extends DialogPreference {
     }
 
     public @NonNull String getRingtonePath() {
-        return getSharedPreferences().getString(getKey(), "");
+        return getSharedPreferences().getString(getKey(), Constants.PREF_NOTIFICATION_SOUND_D);
     }
 
     public void setRingtonePath(String path) {

@@ -1,10 +1,10 @@
 package com.ubergeek42.WeechatAndroid.adapters;
 
 
-import android.os.Bundle;
+import android.annotation.SuppressLint;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.Parcelable;
+import android.support.annotation.MainThread;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -14,9 +14,10 @@ import android.support.v4.view.ViewPager;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragment;
-import com.ubergeek42.WeechatAndroid.service.Buffer;
+import com.ubergeek42.WeechatAndroid.relay.Buffer;
+import com.ubergeek42.WeechatAndroid.relay.BufferList;
+import com.ubergeek42.WeechatAndroid.service.P;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,23 +26,18 @@ import java.util.ArrayList;
 
 public class MainPagerAdapter extends PagerAdapter {
 
-    static Logger logger = LoggerFactory.getLogger("MainPagerAdapter");
-    final private static boolean DEBUG_SUPER = false;
-    final private static boolean DEBUG_BUFFERS = true;
+    final private static Logger logger = LoggerFactory.getLogger("MainPagerAdapter");
 
-    private ArrayList<String> fullNames = new ArrayList<>();
-    private ArrayList<BufferFragment> fragments = new ArrayList<>();
+    final private ArrayList<String> names = new ArrayList<>();
 
-    final private WeechatActivity activity;
     final private ViewPager pager;
     final private FragmentManager manager;
     final private Handler handler;
 
-    FragmentTransaction transaction = null;
+    private FragmentTransaction transaction = null;
 
-    public MainPagerAdapter(WeechatActivity activity, FragmentManager manager, ViewPager pager) {
+    public MainPagerAdapter(FragmentManager manager, ViewPager pager) {
         super();
-        this.activity = activity;
         this.manager = manager;
         this.pager = pager;
         handler = new Handler(Looper.getMainLooper());
@@ -51,128 +47,100 @@ public class MainPagerAdapter extends PagerAdapter {
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    /** MUST BE RUN ON MAIN THREAD
-     ** switch to already open uiBuffer OR create a new uiBuffer, putting it into BOTH fullNames and fragments,
-     ** run notifyDataSetChanged() which will in turn call instantiateItem(), and set new uiBuffer as the current one */
-    public void openBuffer(final String fullName, final boolean focus) {
-        if (DEBUG_BUFFERS) logger.info("openBuffer({}, focus={})", fullName, focus);
-        int idx = fullNames.indexOf(fullName);
-        if (idx >= 0) {
-            if (focus) pager.setCurrentItem(idx);
-        } else {
-            Buffer buffer = activity.relay.getBufferByFullName(fullName);
-            if (buffer != null)
-                buffer.setOpen(true);
-            BufferFragment fragment = newBufferFragment(fullName);
-            fragments.add(fragment);
-            fullNames.add(fullName);
-            notifyDataSetChanged();
-            if (focus) pager.setCurrentItem(fullNames.size());
-        }
+    @MainThread public void openBuffer(final String name) {
+        logger.debug("openBuffer({}); names = {} ", name, names);
+        if (names.contains(name)) return;
+        Buffer buffer = BufferList.findByFullName(name);
+        if (buffer != null) buffer.setOpen(true);
+        names.add(name);
+        notifyDataSetChanged();
+        P.setBufferOpen(name, true);
     }
 
-    private BufferFragment newBufferFragment(String fullName) {
-        BufferFragment fragment = new BufferFragment();
-        Bundle args = new Bundle();
-        args.putString(BufferFragment.LOCAL_PREF_FULL_NAME, fullName);
-        fragment.setArguments(args);
-        return fragment;
+    @MainThread public void closeBuffer(String name) {
+        logger.debug("closeBuffer({})", name);
+        if (!names.remove(name)) return;
+        notifyDataSetChanged();
+        Buffer buffer = BufferList.findByFullName(name);
+        if (buffer != null) buffer.setOpen(false);
+        P.setBufferOpen(name, false);
     }
 
-    /** MUST BE RUN ON MAIN THREAD
-     ** close buffer if open, removing it from BOTH fullNames and fragments.
-     ** destroyItem() checks the lists to see if it has to remove the item for good */
-    public void closeBuffer(String fullName) {
-        if (DEBUG_BUFFERS) logger.info("closeBuffer({})", fullName);
-        final int idx = fullNames.indexOf(fullName);
-        if (idx >= 0) {
-            fullNames.remove(idx);
-            fragments.remove(idx);
-            notifyDataSetChanged();
-            if (activity.relay != null) {
-                Buffer buffer = activity.relay.getBufferByFullName(fullName);
-                if (buffer != null) buffer.setOpen(false);
-            }
-        }
+    public void focusBuffer(String name) {
+        pager.setCurrentItem(names.indexOf(name));
     }
 
-    /** returns true if a buffer is open, i.e. inside the pager
-     ** it might not be the one focused */
-    public boolean isBufferOpen(final String fullName) {
-        return fullNames.indexOf(fullName) >= 0;
+    // returns whether a buffer is inside the pager
+    public boolean isBufferOpen(String name) {
+        return names.contains(name);
     }
 
-    /** returns full name of the buffer that is currently focused or null */
+    // returns full name of the buffer that is currently focused or null if there's no buffers
     public @Nullable String getCurrentBufferFullName() {
         int i = pager.getCurrentItem();
-        return (fullNames.size() > i) ? fullNames.get(i) : null;
+        return (names.size() > i) ? names.get(i) : null;
     }
 
-    /** returns BufferFragment that is currently focused or null */
+    // returns BufferFragment that is currently focused or null
     public @Nullable BufferFragment getCurrentBufferFragment() {
-        int i = pager.getCurrentItem();
-        return (fragments.size() > i) ? fragments.get(i) : null;
+        return getBufferFragment(pager.getCurrentItem());
+    }
+
+    private @Nullable BufferFragment getBufferFragment(int i) {
+        if (names.size() <= i) return null;
+        return (BufferFragment) manager.findFragmentByTag(names.get(i));
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// super methods
+    ////////////////////////////////////////////////////////////////////////////////////// overrides
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    /** this can be called either when a new fragment is being added or the old one is being
-     ** shown. in both cases the fragment will be in this.fragments, but in the latter case it
-     ** will not have been added to the fragment manager */
-    @Override
+    // attach a fragment if it's in the FragmentManager, create and add a new one if it's not
+    @Override @SuppressLint("CommitTransaction")
     public Object instantiateItem(ViewGroup container, int i) {
-        if (DEBUG_SUPER) logger.info("instantiateItem(..., {})", i);
         if (transaction == null) transaction = manager.beginTransaction();
-        String tag = fullNames.get(i);
+        String tag = names.get(i);
         Fragment frag = manager.findFragmentByTag(tag);
+        logger.debug("instantiateItem(..., {}/{}): {}", i, tag, frag == null ? "add" : "attach");
         if (frag == null) {
-            if (DEBUG_SUPER) logger.info("...add");
-            transaction.add(container.getId(), frag = fragments.get(i), tag);
+            transaction.add(container.getId(), frag = BufferFragment.newInstance(tag), tag);
         } else {
-            if (DEBUG_SUPER) logger.info("...attach");
             transaction.attach(frag);
         }
         return frag;
     }
 
-    /** this can be called either when a fragment has been removed by closeBuffer or when it's
-     ** getting off-screen. in the first case the fragment will still be in this.fragments */
-    @Override
+    // detach fragment if it went off-screen or remove it completely if it's been closed by user
+    @Override @SuppressLint("CommitTransaction")
     public void destroyItem(ViewGroup container, int i, Object object) {
-        if (DEBUG_SUPER) logger.info("destroyItem(..., {}, {})", i, object);
         if (transaction == null) transaction = manager.beginTransaction();
         Fragment frag = (Fragment) object;
-        if (fragments.size() > i && fragments.get(i) == frag) {
-            if (DEBUG_SUPER) logger.info("...detach");
+        logger.debug("destroyItem(..., {}, {}): {}", i, frag.getTag(), names.contains(frag.getTag()) ? "detach" : "remove");
+        if (names.contains(frag.getTag())) {
             transaction.detach(frag);
         } else {
-            if (DEBUG_SUPER) logger.info("...remove");
             transaction.remove(frag);
         }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @Override
-    public int getCount() {
-        return fullNames.size();
+    @Override public int getCount() {
+        return names.size();
     }
 
-    @Override
-    public CharSequence getPageTitle(int i) {
-        return fragments.get(i).getShortBufferName();
+    @Override public CharSequence getPageTitle(int i) {
+        String name = names.get(i);
+        Buffer buffer = BufferList.findByFullName(names.get(i));
+        return buffer == null ? name : buffer.shortName;
     }
 
-    @Override
-    public boolean isViewFromObject(View view, Object object) {
+    @Override public boolean isViewFromObject(View view, Object object) {
         return ((Fragment) object).getView() == view;
     }
 
     private Fragment oldFrag;
-    @Override
-    public void setPrimaryItem(ViewGroup container, int position, Object object) {
+    @Override public void setPrimaryItem(ViewGroup container, int position, Object object) {
         if (object == oldFrag) return;
         Fragment frag = (Fragment) object;
         if (oldFrag != null) {
@@ -186,66 +154,42 @@ public class MainPagerAdapter extends PagerAdapter {
         oldFrag = frag;
     }
 
-    /** this should return index for fragments or POSITION_NONE if a fragment has been removed
-     ** providing proper indexes instead of POSITION_NONE allows buffers not to be
-     ** fully recreated on every uiBuffer list change */
-    @SuppressWarnings("SuspiciousMethodCalls")
-    @Override
-    public int getItemPosition(Object object) {
-        int idx = fragments.indexOf(object);
+    // this should return index for fragments or POSITION_NONE if a fragment has been removed
+    // providing proper indexes instead of POSITION_NONE allows buffers not to be
+    // fully recreated on every uiBuffer list change
+    @Override public int getItemPosition(Object object) {
+        logger.debug("getItemPosition({})", object);
+        int idx = names.indexOf(((Fragment) object).getTag());
         return (idx >= 0) ? idx : POSITION_NONE;
     }
 
-    /** this one's empty because instantiateItem and destroyItem create transactions as needed
-     ** this function is called too frequently to create a transaction inside it */
-    @Override
-    public void startUpdate(ViewGroup container) {}
+    // this one's empty because instantiateItem and destroyItem create transactions as needed
+    // this function is called too frequently to create a transaction inside it
+    @Override public void startUpdate(ViewGroup container) {}
 
-    /** commit the transaction and execute it ASAP, but NOT on the current loop */
-    @Override
-    public void finishUpdate(ViewGroup container) {
+    // commit the transaction and execute it ASAP, but NOT on the current loop
+    // this way the drawer will wait for the fragment to appear
+    @Override public void finishUpdate(ViewGroup container) {
         if (transaction == null)
             return;
         transaction.commitAllowingStateLoss();
         transaction = null;
         handler.postAtFrontOfQueue(new Runnable() {
-            @Override public void run() {
+            @Override
+            public void run() {
                 manager.executePendingTransactions();
             }
         });
     }
 
-    //////////////////////////////////////////////////////////////////////////////////////////////// save / restore
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    static final String FULL_NAMES = "\0";
-
-    @Override public @Nullable Parcelable saveState() {
-        if (DEBUG_SUPER) logger.info("saveState()");
-        if (fragments.size() == 0)
-            return null;
-        Bundle state = new Bundle();
-        state.putStringArrayList(FULL_NAMES, fullNames);
-        for (String fullName : fullNames) {
-            Fragment fragment = manager.findFragmentByTag(fullName);
-            if (fragment != null) manager.putFragment(state, fullName, fragment);
-        }
-        return state;
+    public boolean canRestoreBuffers() {
+        return P.openBuffers.size() > 0 && names.size() == 0 && BufferList.hasData();
     }
 
-    @Override
-    public void restoreState(Parcelable parcel, ClassLoader loader) {
-        if (DEBUG_SUPER) logger.info("restoreState()");
-        if (parcel == null)
-            return;
-        Bundle state = (Bundle) parcel;
-        state.setClassLoader(loader);
-        fullNames = state.getStringArrayList(FULL_NAMES);
-        if (fullNames.size() > 0) {
-            for (String fullName : fullNames) {
-                BufferFragment fragment = (BufferFragment) manager.getFragment(state, fullName);
-                fragments.add((fragment != null) ? fragment : newBufferFragment(fullName));
-            }
-            notifyDataSetChanged();
-        }
+    @MainThread public void restoreBuffers() {
+        for (String fullName : P.openBuffers)
+            openBuffer(fullName);
     }
 }

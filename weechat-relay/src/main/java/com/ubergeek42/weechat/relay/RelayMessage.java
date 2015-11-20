@@ -43,7 +43,7 @@ public class RelayMessage {
     private int length = 0;
     private String id = null;
 
-    protected RelayMessage(byte[] data) {
+    public RelayMessage(byte[] data) {
         Data wd = new Data(data); // Load the data into our consumer
 
         // Get total message length

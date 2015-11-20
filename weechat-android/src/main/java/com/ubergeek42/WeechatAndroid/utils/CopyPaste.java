@@ -6,17 +6,19 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.ClipboardManager;
 import android.text.style.URLSpan;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
 import com.ubergeek42.WeechatAndroid.R;
-import com.ubergeek42.WeechatAndroid.service.Buffer;
-import com.ubergeek42.WeechatAndroid.service.BufferList;
+import com.ubergeek42.WeechatAndroid.relay.Line;
+import com.ubergeek42.WeechatAndroid.service.P;
 
 import java.util.ArrayList;
 
@@ -37,7 +39,6 @@ public class CopyPaste implements EditText.OnLongClickListener, AdapterView.OnIt
         if (!"".equals(((TextView) v).getText().toString())) return false;
 
         final ArrayList<String> list = new ArrayList<>();
-        final ArrayList<String> printList = new ArrayList<>();
 
         // read & trim clipboard
         // noinspection deprecation
@@ -46,32 +47,27 @@ public class CopyPaste implements EditText.OnLongClickListener, AdapterView.OnIt
 
         // copy last messages if they do not equal clipboard
         // if there are no messages, do nothing
-        for (String m : BufferList.sentMessages)
-            if (!m.equals(clip)) {
-                list.add(m);
-                printList.add(Utils.cutFirst(m, 50));
-            }
+        for (String m : P.sentMessages) if (!m.equals(clip)) list.add(m);
         if (list.size() == 0) return false;
 
         // clean and add clipboard
-        if (!"".equals(clip)) {
-            list.add(clip);
-            printList.add(Utils.cutFirst(clip, 50));
-        }
+        if (!"".equals(clip)) list.add(clip);
 
-        final int hPadding = (int) activity.getResources().getDimension(R.dimen.dialog_item_padding_horizontal);
-        final int vPadding = (int) activity.getResources().getDimension(R.dimen.dialog_item_padding_vertical);
+        final LayoutInflater inflater = LayoutInflater.from(activity);
+
         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
         builder.setTitle("Paste").setAdapter(
-                new ArrayAdapter<CharSequence>(activity,
-                        android.support.v7.appcompat.R.layout.select_dialog_item_material,
-                        android.R.id.text1, printList.toArray(new CharSequence[printList.size()])) {
+                new BaseAdapter() {
+                    @Override public int getCount() {return list.size();}
+                    @Override public String getItem(int position) {return list.get(position);}
+                    @Override public long getItemId(int position) {return position;}
                     @Override public View getView(int position, View convertView, ViewGroup parent) {
-                        View v = super.getView(position, convertView, parent);
-                        v.setPadding(hPadding, vPadding, hPadding, vPadding);
+                        if (convertView == null) convertView = inflater.inflate(R.layout.select_dialog_item_material_2_lines, parent, false);
+                        TextView v = (TextView) convertView;
                         boolean isClip = (!"".equals(clip) && position == list.size() - 1);
+                        v.setText(Utils.unCrLf(getItem(position)));
                         v.setBackgroundResource(isClip ? R.color.special : 0);
-                        ((TextView) v).setCompoundDrawablesWithIntrinsicBounds(0, 0, isClip ? R.drawable.ic_paste : 0, 0);
+                        v.setCompoundDrawablesWithIntrinsicBounds(0, 0, isClip ? R.drawable.ic_paste : 0, 0);
                         return v;
                     }
                 }, new DialogInterface.OnClickListener() {
@@ -81,14 +77,12 @@ public class CopyPaste implements EditText.OnLongClickListener, AdapterView.OnIt
                     }
                 });
 
-        // create dialogue and scroll to end without showing scroll bars
+        // create dialogue, remove bottom padding and scroll to the end
         AlertDialog d = builder.create();
         final ListView l = d.getListView();
         l.setPadding(l.getPaddingLeft(), l.getPaddingTop(), l.getPaddingRight(), 0);
-        l.setVerticalScrollBarEnabled(false);
+        l.setStackFromBottom(true);
         d.show();
-        d.getListView().setSelection(list.size() - 1);
-        l.post(new Runnable() {@Override public void run() {l.setVerticalScrollBarEnabled(true);}});
         return true;
     }
 
@@ -97,7 +91,7 @@ public class CopyPaste implements EditText.OnLongClickListener, AdapterView.OnIt
         TextView uiTextView = (TextView) view.findViewById(R.id.chatline_message);
         if (uiTextView == null) return false;
 
-        Buffer.Line line = (Buffer.Line) uiTextView.getTag();
+        Line line = (Line) uiTextView.getTag();
         final ArrayList<String> list = new ArrayList<>();
 
         list.add(line.getNotificationString());
@@ -105,7 +99,8 @@ public class CopyPaste implements EditText.OnLongClickListener, AdapterView.OnIt
             list.add(url.getURL());
 
         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-        builder.setTitle("Copy").setItems(list.toArray(new CharSequence[list.size()]),
+        builder.setTitle("Copy").setAdapter(
+                new ArrayAdapter<>(activity, R.layout.select_dialog_item_material_2_lines, android.R.id.text1, list),
                 new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {

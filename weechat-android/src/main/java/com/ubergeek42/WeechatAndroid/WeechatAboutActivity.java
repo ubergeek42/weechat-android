@@ -15,23 +15,16 @@
  ******************************************************************************/
 package com.ubergeek42.WeechatAndroid;
 
-import java.io.File;
-
+import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.content.Context;
-import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.View.OnClickListener;
 import android.widget.TextView;
-import android.widget.Toast;
 
-public class WeechatAboutActivity extends AppCompatActivity implements OnClickListener {
+public class WeechatAboutActivity extends AppCompatActivity {
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.about);
 
@@ -47,15 +40,6 @@ public class WeechatAboutActivity extends AppCompatActivity implements OnClickLi
 
         ((TextView) this.findViewById(R.id.versionStr))
             .setText("WeechatAndroid " + BuildConfig.VERSION_NAME);
-        
-        findViewById(R.id.btn_clear_certs).setOnClickListener(this);
-    }
-
-    @Override
-    public void onClick(View arg0) {
-        File keystoreFile = new File(getDir("sslDir", Context.MODE_PRIVATE), "keystore.jks");
-        keystoreFile.delete();
-        Toast.makeText(this, "SSL Certs removed, please restart WeechatAndroid", Toast.LENGTH_LONG).show();
     }
 
     @Override public boolean onOptionsItemSelected(MenuItem item) {

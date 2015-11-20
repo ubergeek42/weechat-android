@@ -26,9 +26,10 @@ import android.widget.TextView;
 
 import com.ubergeek42.WeechatAndroid.BuildConfig;
 import com.ubergeek42.WeechatAndroid.R;
-import com.ubergeek42.WeechatAndroid.service.Buffer;
-import com.ubergeek42.WeechatAndroid.service.BufferList;
-import com.ubergeek42.WeechatAndroid.service.BufferListEye;
+import com.ubergeek42.WeechatAndroid.relay.Buffer;
+import com.ubergeek42.WeechatAndroid.relay.BufferList;
+import com.ubergeek42.WeechatAndroid.relay.BufferListEye;
+import com.ubergeek42.WeechatAndroid.service.P;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,7 +88,7 @@ public class BufferListAdapter extends BaseAdapter implements BufferListEye {
 
         Buffer buffer = getItem(position);
 
-        holder.uiBuffer.setText((BufferList.SHOW_TITLE && buffer.printableWithTitle != null) ? buffer.printableWithTitle : buffer.printableWithoutTitle);
+        holder.uiBuffer.setText((P.showTitle && buffer.printableWithTitle != null) ? buffer.printableWithTitle : buffer.printableWithoutTitle);
 
         int unreads = buffer.unreads;
         int highlights = buffer.highlights;

@@ -14,6 +14,8 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.CheckedTextView;
 
+import com.ubergeek42.WeechatAndroid.utils.Constants;
+
 import java.util.Collections;
 import java.util.LinkedList;
 
@@ -26,7 +28,7 @@ public class FontPreference extends DialogPreference {
     }
 
     public @NonNull String getFontPath() {
-        return getSharedPreferences().getString(getKey(), "");
+        return getSharedPreferences().getString(getKey(), Constants.PREF_BUFFER_FONT_D);
     }
 
     public void setFontPath(@NonNull String path) {

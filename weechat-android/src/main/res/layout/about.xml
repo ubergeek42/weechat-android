@@ -54,11 +54,5 @@
             android:layout_height="wrap_content"
             android:text="Find a bug or have a feature request? Create an issue on github or email me: kj@ubergeek42.com"
             android:layout_marginBottom="16dp" />
-
-        <Button
-            android:id="@+id/btn_clear_certs"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Clear SSL Certificates" />
     </LinearLayout>
 </LinearLayout>

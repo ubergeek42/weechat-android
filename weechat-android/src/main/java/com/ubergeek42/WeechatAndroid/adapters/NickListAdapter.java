@@ -12,8 +12,9 @@ import android.widget.TextView;
 import com.ubergeek42.WeechatAndroid.BuildConfig;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
-import com.ubergeek42.WeechatAndroid.service.Buffer;
-import com.ubergeek42.WeechatAndroid.service.BufferNicklistEye;
+import com.ubergeek42.WeechatAndroid.relay.Buffer;
+import com.ubergeek42.WeechatAndroid.relay.BufferNicklistEye;
+import com.ubergeek42.WeechatAndroid.relay.Nick;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,18 +28,13 @@ public class NickListAdapter extends BaseAdapter implements BufferNicklistEye,
     WeechatActivity activity;
     private final @NonNull LayoutInflater inflater;
     private final @NonNull Buffer buffer;
-    private @NonNull Buffer.Nick[] nicks = new Buffer.Nick[0];
-    private @NonNull AlertDialog dialog;
-
-    private int hPadding;
-    private int vPadding;
+    private @NonNull Nick[] nicks = new Nick[0];
+    private AlertDialog dialog;
 
     public NickListAdapter(@NonNull WeechatActivity activity, @NonNull Buffer buffer) {
         this.activity = activity;
         this.inflater = LayoutInflater.from(activity);
         this.buffer = buffer;
-        hPadding = (int) activity.getResources().getDimension(R.dimen.dialog_item_padding_horizontal);
-        vPadding = (int) activity.getResources().getDimension(R.dimen.dialog_item_padding_vertical);
     }
 
     @Override
@@ -47,7 +43,7 @@ public class NickListAdapter extends BaseAdapter implements BufferNicklistEye,
     }
 
     @Override
-    public Buffer.Nick getItem(int position) {
+    public Nick getItem(int position) {
         return nicks[position];
     }
 
@@ -58,19 +54,17 @@ public class NickListAdapter extends BaseAdapter implements BufferNicklistEye,
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        if (convertView == null) {
-            convertView = inflater.inflate(android.support.v7.appcompat.R.layout.select_dialog_item_material, parent, false);
-            convertView.setPadding(hPadding, vPadding, hPadding, vPadding);
-        }
+        if (convertView == null)
+            convertView = inflater.inflate(R.layout.select_dialog_item_material_2_lines, parent, false);
 
-        Buffer.Nick nick = getItem(position);
+        Nick nick = getItem(position);
         ((TextView) convertView).setText(nick.prefix + nick.name);
         return convertView;
     }
 
     public void onNicklistChanged() {
         if (DEBUG) logger.debug("onNicklistChanged()");
-        final Buffer.Nick[] tmp = buffer.getNicksCopy();
+        final Nick[] tmp = buffer.getNicksCopy();
         final String title = String.format("%s (%s users)", buffer.shortName, tmp.length);
         activity.runOnUiThread(new Runnable() {
             @Override

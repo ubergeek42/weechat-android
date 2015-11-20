@@ -31,5 +31,5 @@ public interface RelayMessageHandler {
      * @param id
      *            - The id that triggered this callback
      */
-    public abstract void handleMessage(RelayObject obj, String id);
+    void handleMessage(RelayObject obj, String id);
 }

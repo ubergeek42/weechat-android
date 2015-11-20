@@ -10,17 +10,15 @@
 
         <ListPreference android:key="connection_type" android:title="@string/pref_connection_type" android:defaultValue="plain" android:entries="@array/pref_connection_type_names" android:entryValues="@array/settings_connection_type_values"  android:summary="%s"/>
 
-        <PreferenceScreen android:key="stunnel_group" android:title="@string/pref_stunnel_group">
-            <EditTextPreferenceFix android:key="stunnel_cert" android:title="@string/pref_stunnel_cert" android:summary="%s" android:singleLine="true" android:defaultValue="/sdcard/weechat/client.p12" />
-            <EditTextPreferenceFix android:key="stunnel_pass" android:title="@string/pref_stunnel_pass" android:summary="%s" android:password="true" android:singleLine="true" />
-        </PreferenceScreen>
+        <ClearCertPreference android:key="ssl_group" android:title="Clear certificates" />
 
         <PreferenceScreen android:key="ssh_group" android:title="@string/pref_ssh_group">
             <EditTextPreferenceFix android:key="ssh_host" android:title="@string/pref_ssh_host" android:summary="%s" android:singleLine="true" />
             <EditTextPreferenceFix android:key="ssh_port" android:title="@string/pref_ssh_port" android:summary="%s" android:numeric="integer" android:defaultValue="22" />
             <EditTextPreferenceFix android:key="ssh_user" android:title="@string/pref_ssh_user" android:summary="%s" android:singleLine="true" />
             <EditTextPreferenceFix android:key="ssh_pass" android:title="@string/pref_ssh_pass" android:summary="%s" android:password="true" android:singleLine="true"/>
-            <EditTextPreferenceFix android:key="ssh_keyfile" android:title="@string/pref_ssh_keyfile" android:singleLine="true" android:summary="%s" android:defaultValue="/sdcard/weechat/sshkey.id_rsa" />
+            <FilePreference android:key="ssh_key" android:title="@string/pref_ssh_key" android:summary="@string/pref_ssh_key_summary" />
+            <FilePreference android:key="ssh_known_hosts" android:title="@string/pref_ssh_known_hosts" android:summary="@string/pref_ssh_known_hosts_summary" />
         </PreferenceScreen>
 
         <!-- relay settings and the rest -->
@@ -32,15 +30,16 @@
         </PreferenceCategory>
 
         <PreferenceCategory android:key="connection_misc_group" android:title="@string/pref_misc_group">
-            <CheckBoxPreference android:key="autoconnect" android:title="@string/pref_autoconnect" />
-            <CheckBoxPreference android:key="autostart" android:title="@string/pref_autostart" />
+            <EditTextPreferenceFix android:key="line_increment" android:title="@string/pref_line_increment" android:summary="@string/pref_line_increment_summary" android:numeric="integer" android:defaultValue="100" />
+            <CheckBoxPreference android:key="reconnect" android:title="@string/pref_reconnect" />
+            <CheckBoxPreference android:key="boot_connect" android:title="@string/pref_boot_connect" />
             <CheckBoxPreference android:key="optimize_traffic" android:summary="@string/pref_optimize_traffic_summary" android:title="@string/pref_optimize_traffic" android:defaultValue="false"/>
             <CheckBoxPreference android:key="hotlist_sync" android:summary="@string/pref_hotlist_sync_summary" android:title="@string/pref_hotlist_sync" android:defaultValue="false"/>
 
             <PreferenceScreen android:key="ping_group" android:title="@string/pref_ping_group">
                 <CheckBoxPreference android:key="ping_enabled" android:title="@string/pref_ping_enabled" android:summary="@string/pref_ping_enabled_summary" android:defaultValue="true" />
-                <EditTextPreferenceFix android:key="ping_idle" android:title="@string/pref_ping_idle" android:summary="@string/pref_ping_idle_summary" android:numeric="integer" android:defaultValue="300" />
-                <EditTextPreferenceFix android:key="ping_timeout" android:title="@string/pref_ping_timeout" android:summary="@string/pref_ping_timeout_summary" android:numeric="integer" android:defaultValue="30" />
+                <EditTextPreferenceFix android:key="ping_idle" android:title="@string/pref_ping_idle" android:summary="@string/pref_ping_idle_summary" android:numeric="integer" android:defaultValue="300" android:dependency="ping_enabled" />
+                <EditTextPreferenceFix android:key="ping_timeout" android:title="@string/pref_ping_timeout" android:summary="@string/pref_ping_timeout_summary" android:numeric="integer" android:defaultValue="30" android:dependency="ping_enabled" />
             </PreferenceScreen>
         </PreferenceCategory>
     </PreferenceScreen>

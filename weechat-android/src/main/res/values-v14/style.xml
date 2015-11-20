@@ -1,10 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <resources>
-    <!-- this will fixes too large preference text between api 14 and 21 -->
-    <style name="Weechat" parent="WeechatBase">
-        <item name="android:textAppearanceListItem">@style/TextAppearance.AppCompat.Subhead</item>
-    </style>
-
     <style name="PreferenceStyle" parent="@style/PreferenceThemeOverlay.v14.Material" />
 </resources>

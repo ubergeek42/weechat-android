@@ -15,297 +15,91 @@
  ******************************************************************************/
 package com.ubergeek42.weechat.relay;
 
-import com.ubergeek42.weechat.Helper;
-import com.ubergeek42.weechat.relay.connection.IConnection;
-import com.ubergeek42.weechat.relay.messagehandler.LoginHandler;
-import com.ubergeek42.weechat.relay.protocol.Data;
-import com.ubergeek42.weechat.relay.protocol.RelayObject;
+import com.ubergeek42.weechat.relay.connection.Connection;
+import com.ubergeek42.weechat.relay.protocol.Info;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.concurrent.LinkedBlockingQueue;
-
-/**
- * Class to provide and manage a connection to a weechat relay server
- * 
- * @author ubergeek42<kj@ubergeek42.com>
- */
-public class RelayConnection implements RelayConnectionHandler {
-    final private static boolean DEBUG = false;
+public class RelayConnection implements Connection, Connection.Observer {
     private static Logger logger = LoggerFactory.getLogger("RelayConnection");
+
+    final private static String ID_VERSION = "version";
+    final private static String ID_LIST_BUFFERS = "listbuffers";
+
+    private Connection.Observer observer;
+
     private String password;
+    Connection connection;
 
-    private HashMap<String, LinkedHashSet<RelayMessageHandler>> messageHandlers = new  HashMap<String, LinkedHashSet<RelayMessageHandler>>();
-
-    IConnection conn;
-    LinkedBlockingQueue<String> outbox = new LinkedBlockingQueue<String>();
-
-    // Tri-state boolean
-    private volatile Boolean hasAuthenticatedOnCurrentConnection = null;
-
-
-    /**
-     * Sets up a connection to a weechat relay server
-     * 
-     * @param conn
-     *            - An IConnection object to actually make the connection
-     */
-    public RelayConnection(IConnection conn, String password) {
-        this.conn = conn;
+    public RelayConnection(Connection connection, String password) {
+        this.connection = connection;
         this.password = password;
-
-        // Used to determine if we are actually logged in(weechat gives no indication otherwise)
-        // TODO: hookup some timeout on this to say the connection failed if we receive no reply
-        //       after some set amount of time
-        LoginHandler loginHandler = new LoginHandler(conn);
-        addHandler("checklogin", loginHandler);
-
-        conn.addConnectionHandler(this);
+        connection.setObserver(this);
     }
 
-    public String getServer() {
-        return "Weechat Server(Placeholder)";
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    public void sendMessage(String id, String cmd, String args) {
+        sendMessage((id == null) ? cmd + " " + args : "(" + id + ") " + cmd + " " + args);
     }
 
-    public boolean isConnected() {
-        return conn.isConnected();
+    @Override public void sendMessage(String string) {
+        if (!string.endsWith("\n")) string += "\n";
+        connection.sendMessage(string);
     }
 
-    /**
-     * Connects to the server. On success isConnected() will return true.
-     */
+    @Override public void setObserver(Observer observer) {
+        this.observer = observer;
+    }
+
+    @Override public STATE getState() {
+        return null;
+    }
+
     public void connect() {
-        if (conn.isConnected() || socketReader.isAlive()) {
-            return;
-        }
-        conn.connect();
+        logger.debug("connect()");
+        connection.connect();
     }
 
-    /**
-     * Disconnect from the server.
-     */
     public void disconnect() {
-        conn.disconnect();
-        socketReader.interrupt();
-        socketWriter.interrupt();
+        logger.debug("disconnect()");
+        sendMessage("quit");
+        connection.disconnect();
     }
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    /**
-     * Sends a message to the server
-     *
-     * @param id - id of the message
-     * @param command - command to send
-     * @param arguments - arguments for the command
-     */
-    public void sendMsg(String id, String command, String arguments) {
-        String msg;
-        if (id == null) {
-            msg = String.format("%s %s", command, arguments);
-        } else {
-            msg = String.format("(%s) %s %s", id, command, arguments);
-        }
-        sendMsg(msg);
-    }
-    /**
-     * Sends the specified message to the server(a newline will be added to the end)
-     * 
-     * @param msg - The message to send
-     */
-    public void sendMsg(String msg) {
-        if (!conn.isConnected()) {
-            return;
-        }
-        msg = msg + "\n";
-
-        outbox.add(msg);
+    @Override public void onStateChanged(STATE state) {
+        observer.onStateChanged(state);
+        if (state == STATE.CONNECTED) authenticate();
     }
 
-
-    /**
-     * Does post connection setup(Sends initial commands/etc)
-     */
-    private void postConnectionSetup() {
-        hasAuthenticatedOnCurrentConnection = false;
-
-        sendMsg(null, "init", "password=" + password + ",compression=zlib");
-        sendMsg("checklogin", "info", "version");
-
-        socketReader.start();
-        socketWriter.start();
+    // ALWAYS followed by onStateChanged(STATE.SHUT_DOWN). might be StreamClosed
+    @Override public void onException(Exception e) {
+        observer.onException(e);
     }
 
-    private Thread socketWriter = new Thread(new Runnable() {
-        @Override
-        public void run() {
-            while(conn.isConnected()) {
-                try {
-                    String msg = outbox.take();
-                    conn.write(msg.getBytes());
-                } catch (InterruptedException e) {
-                    // Ensure that conn is disconnected before interrupting the thread
-                }
-            }
-        }
-    });
+    @Override public void onMessage(RelayMessage message) {
+        String id = message.getID();
+        logger.debug("onMessage(id = {})", id);
 
-    /**
-     * Reads data from the socket, breaks it into messages, and dispatches the handlers
-     */
-    private Thread socketReader = new Thread(new Runnable() {
-        @Override
-        public void run() {
-            byte header[] = new byte[4];
-            int header_pos = 0;
-            byte data[] = null;
-            int data_pos = 0;
-            while (conn.isConnected()) {
-                try {
-                    if (data == null) {
-                        int r = conn.read(header, header_pos, header.length - header_pos);
-                        if (r > 0) {
-                            header_pos += r;
-                        } else if (r == -1) { // Stream closed
-                            break;
-                        }
-
-                        if (header_pos == header.length) {
-                            data = Helper.copyOfRange(header, 0, new Data(header).getUnsignedInt());
-                            data_pos = header.length;
-                            if (data_pos > data.length)
-                                 data = null;
-                            header_pos = 0;
-                        } else {
-                            continue;
-                        }
-                    }
-
-                    int r = conn.read(data, data_pos, data.length - data_pos);
-                    if (r > 0) {
-                        data_pos += r;
-                    } else if (r == -1) { // Stream closed
-                        break;
-                    }
-
-                    if (data_pos == data.length) {
-                        // logger.trace("socketReader got message, size: " + data.length);
-                        RelayMessage wm = new RelayMessage(data);
-
-                        handleMessage(wm);
-                        // logger.trace("handleMessage took " + (System.currentTimeMillis()-start) +
-                        // "ms(id: "+wm.getID()+")");
-
-                        data = null;
-                    }
-
-                } catch (IOException e) {
-                    if (conn.isConnected()) {
-                        // We were still connected when it died!
-                        e.printStackTrace();
-                    } else {
-                        // Socket closed..no big deal
-                        e.printStackTrace();
-                    }
-                }
-            }
-            if (DEBUG) logger.debug("socketReader: disconnected, thread stopping");
-            conn.disconnect();
-        }
-    });
-
-    /**
-     * Registers a handler to be called whenever a message is received
-     * 
-     * @param id
-     *            - The string ID to handle(e.g. "_nicklist" or "_buffer_opened")
-     * @param wmh
-     *            - The object to receive the callback
-     */
-    public void addHandler(String id, RelayMessageHandler wmh) {
-        LinkedHashSet<RelayMessageHandler> currentHandlers = messageHandlers.get(id);
-        if (currentHandlers == null) {
-            currentHandlers = new LinkedHashSet<RelayMessageHandler>();
-        }
-        currentHandlers.add(wmh);
-        messageHandlers.put(id, currentHandlers);
-    }
-
-    /**
-     * Signal any observers whenever we receive a message
-     * 
-     * @param msg
-     *            - Message we received
-     */
-    private void handleMessage(RelayMessage msg) {
-        String id = msg.getID();
-        if (DEBUG) logger.debug("handling message {}", id);
-        HashSet<RelayMessageHandler> handlers = new HashSet<RelayMessageHandler>();
-
-        if (messageHandlers.containsKey(id)) {
-            handlers.addAll(messageHandlers.get(id));
-        } else {
-            if (DEBUG) logger.debug("Unhandled message: {}", id);
+        if (ID_VERSION.equals(id)) {
+            logger.info("WeeChat version: {}", ((Info) message.getObjects()[0]).getValue());
+            onStateChanged(STATE.AUTHENTICATED);
         }
 
-        if (messageHandlers.containsKey("*"))
-            handlers.addAll(messageHandlers.get("*"));
+        observer.onMessage(message);
 
-        for (RelayMessageHandler rmh : handlers) {
-            if (msg.getObjects().length == 0) {
-                rmh.handleMessage(null, id);
-            } else {
-                for (RelayObject obj : msg.getObjects()) {
-                    rmh.handleMessage(obj, id);
-                }
-            }
-        }
+        // ID_LIST_BUFFERS must get requested after onAuthenticated() (BufferList does that)
+        if (ID_LIST_BUFFERS.equals(id)) onStateChanged(STATE.BUFFERS_LISTED);
     }
 
+    //////////////////////////////////////////////////////////////////////////////////////////////// auth
 
-    @Override
-    public void onConnecting() {
-        if (DEBUG) logger.debug("RelayConnection.onConnecting");
+    private void authenticate() {
+        sendMessage(null, "init", "password=" + password + ",compression=zlib");
+        sendMessage(ID_VERSION, "info", "version");
     }
 
-    @Override
-    public void onConnect() {
-        if (DEBUG) logger.debug("onConnect()");
-        postConnectionSetup();
-    }
-
-    @Override
-    public void onAuthenticated() {
-        if (DEBUG) logger.debug("onAuthenticated()");
-        hasAuthenticatedOnCurrentConnection = Boolean.TRUE;
-    }
-
-    @Override
-    public void onAuthenticationFailed() {
-        if (DEBUG) logger.debug("onAuthenticationFailed()");
-    }
-
-    public void onBuffersListed() {}
-
-    @Override
-    public void onDisconnect() {
-        if (DEBUG) logger.debug("onDisconnect()");
-
-        if (hasAuthenticatedOnCurrentConnection == Boolean.FALSE) {
-            conn.notifyHandlers(IConnection.STATE.AUTHENTICATION_FAILED);
-            hasAuthenticatedOnCurrentConnection = null;
-        }
-
-        socketReader.interrupt();
-        socketWriter.interrupt();
-    }
-
-    @Override
-    public void onError(String err, Object extraInfo) {
-        if (DEBUG) logger.debug("onError()");
-    }
 }

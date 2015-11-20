@@ -1,6 +1,12 @@
+/**
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ */
+
 package com.ubergeek42.weechat.relay.connection;
 
-import com.ubergeek42.weechat.relay.RelayConnectionHandler;
+import com.ubergeek42.weechat.relay.RelayMessage;
+import com.ubergeek42.weechat.relay.protocol.Data;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,145 +14,167 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.Socket;
-import java.net.SocketException;
-import java.util.ArrayList;
+import java.util.concurrent.LinkedBlockingQueue;
 
-public abstract class AbstractConnection implements IConnection {
-    final private static boolean DEBUG = false;
-    private static Logger logger = LoggerFactory.getLogger("AbstractConnection");
+import static org.junit.Assert.*;
 
-    String server = null;
-    int port = 0;
+public abstract class AbstractConnection implements Connection {
+    protected final static boolean DEBUG = false;
+    protected static Logger logger = LoggerFactory.getLogger("AbstractConnection");
 
-    Socket sock = null;
-    OutputStream out_stream = null;
-    InputStream in_stream = null;
-    volatile boolean connected = false;
+    private static int iteration = 0;
 
-    ArrayList<RelayConnectionHandler> connectionHandlers = new ArrayList<RelayConnectionHandler>();
-    Thread connector = null;
+    private volatile STATE state = STATE.UNKNOWN;
+    private Observer observer = null;
 
-    @Override
-    public boolean isConnected() {
-        Socket s = sock;
-        return (s != null && !s.isClosed() && connected);
+    protected OutputStream out = null;
+    protected InputStream in = null;
+
+    protected Thread connector = null;
+    protected Thread reader = null;
+    protected Thread writer = null;
+
+    //////////////////////////////////////////////////////////////////////////////////////////////// interface
+
+    @Override public STATE getState() {
+        return state;
     }
 
-    @Override
-    public int read(byte[] bytes, int off, int len) throws IOException {
-        InputStream in = in_stream;
-        if (in == null)
-            return -1;
-        return in.read(bytes, off, len);
-    }
+    @Override public void connect() {
+        assertEquals(state, STATE.UNKNOWN);
+        assertNull(connector);
 
-    @Override
-    public void write(byte[] bytes) {
-        OutputStream out = out_stream;
-        if (out == null)
-            return;
-        try {
-            out.write(bytes);
-        } catch (IOException e) {
-            // TODO: better this part
-            e.printStackTrace();
-        }
-    }
+        final int i = iteration++;
 
-    @Override
-    public void connect() {
-        notifyHandlers(STATE.CONNECTING);
+        state = STATE.CONNECTING;
+        observer.onStateChanged(STATE.CONNECTING);
 
-        if (connector.isAlive()) {
-            // do nothing
-            return;
-        }
+        connector = new Thread(new Runnable() {@Override public void run() {hi(); connectOnce(i); bye();}});
+        connector.setName("con" + i);
         connector.start();
     }
 
-    /**
-     * Disconnects from the server, and cleans up
-     */
-    @Override
-    public void disconnect() {
-        // If we're in the process of connecting, kill the thread and let us die
-        if (connector.isAlive()) {
-            connector.interrupt();
-        }
+    @Override synchronized public void disconnect() {
+        logger.debug("disconnect()");
+        assertNotEquals(state, STATE.UNKNOWN);
+        assertNotNull(connector);
 
-        if (!connected) {
+        if (state == STATE.DISCONNECTED) return;
+        state = STATE.DISCONNECTED;
+        observer.onStateChanged(STATE.DISCONNECTED);
+        doDisconnect();
+    }
+
+    @Override public void setObserver(Observer observer) {
+        this.observer = observer;
+    }
+
+    //////////////////////////////////////////////////////////////////////////////////////////////// override me!
+
+    protected abstract void doConnect() throws Exception;
+
+    protected void doDisconnect() {
+        connector.interrupt();
+        if (reader != null) reader.interrupt();
+        if (writer != null) writer.interrupt();
+    }
+
+    protected void startReader(final int i) {
+        reader = new Thread(new Runnable() {@Override public void run() {hi(); readLoop(); bye();}});
+        reader.setName("r" + i);
+        reader.start();
+    }
+
+    protected void startWriter(final int i) {
+        writer = new Thread(new Runnable() {@Override public void run() {hi(); writeLoop(); bye();}});
+        writer.setName("wr" + i);
+        writer.start();
+    }
+
+    @Override public void sendMessage(String string) {
+        outbox.add(string);
+    }
+
+    //////////////////////////////////////////////////////////////////////////////////////////////// connect
+
+    private void connectOnce(final int i) {
+        try {
+            doConnect();
+            state = STATE.CONNECTED;
+        } catch (Exception e) {
+            if (state != STATE.DISCONNECTED) {
+                logger.error("connectOnce(): exception while state == " + state, e);
+                observer.onException(e);
+            }
+            disconnect();
             return;
         }
+        observer.onStateChanged(STATE.CONNECTED);
+        startReader(i);
+        startWriter(i);
+    }
 
-            // If we're connected, tell weechat we're going away
+    //////////////////////////////////////////////////////////////////////////////////////////////// send
+
+    private LinkedBlockingQueue<String> outbox = new LinkedBlockingQueue<>();
+    private void writeLoop() {
         try {
-            out_stream.write("quit\n".getBytes());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        // Close all of our streams/sockets
-        connected = false;
-        if (in_stream != null) {
-            try {
-                in_stream.close();
-            } catch (IOException e) {}
-            in_stream = null;
-        }
-        if (out_stream != null) {
-            try {
-                out_stream.close();
-            } catch (IOException e) {}
-            out_stream = null;
-        }
-        if (sock != null) {
-            try {
-                sock.close();
-            } catch (IOException e) {}
-            sock = null;
-        }
-
-        // Call any registered disconnect handlers
-        notifyHandlers(STATE.DISCONNECTED);
-    }
-    /**
-     * Register a connection handler to receive onConnected/onDisconnected events
-     *
-     * @param rch - The connection handler
-     */
-    @Override
-    public void addConnectionHandler(RelayConnectionHandler rch) {
-        connectionHandlers.add(rch);
-    }
-
-    @Override
-    public void notifyHandlers(IConnection.STATE s) {
-        for (RelayConnectionHandler rch: connectionHandlers) {
-            switch (s) {
-                case CONNECTING:
-                    rch.onConnecting();
-                    break;
-                case CONNECTED:
-                    rch.onConnect();
-                    break;
-                case AUTHENTICATED:
-                    rch.onAuthenticated();
-                    break;
-                case AUTHENTICATION_FAILED:
-                    rch.onAuthenticationFailed();
-                    break;
-                case DISCONNECTED:
-                    rch.onDisconnect();
-                    break;
+            //noinspection InfiniteLoopStatement
+            while (true) {
+                out.write(outbox.take().getBytes());
             }
+        } catch (InterruptedException | IOException e) {
+            if (state == STATE.DISCONNECTED) return;
+            logger.error("writeLoop(): exception while state == " + state, e);
+        } finally {
+            try {out.close();}
+            catch (IOException ignored) {}
         }
     }
 
-    @Override
-    public void notifyHandlersOfError(Exception e) {
-        for (RelayConnectionHandler rch : connectionHandlers) {
-            rch.onError(e.getMessage(), e);
+    //////////////////////////////////////////////////////////////////////////////////////////////// receive
+
+    private final static int HEADER_LENGTH = 4;
+    private void readLoop() {
+        byte[] data;
+        try {
+            //noinspection InfiniteLoopStatement
+            while (true) {
+                data = new byte[HEADER_LENGTH];
+                readAll(data, 0);
+                data = enlarge(data, new Data(data).getUnsignedInt());
+                readAll(data, HEADER_LENGTH);
+                observer.onMessage(new RelayMessage(data));
+
+            }
+        } catch (IOException | StreamClosed e) {
+            if (state == STATE.DISCONNECTED) return;
+            logger.error("readLoop(): exception while state == " + state, e);
+            observer.onException(e);
+        } finally {
+            try {in.close();}
+            catch (IOException ignored) {}
+            disconnect();
         }
     }
+
+    public static class StreamClosed extends Exception {}
+    private void readAll(byte[] data, int startAt) throws IOException, StreamClosed {
+        for (int pos = startAt; pos != data.length;) {
+            int read = in.read(data, pos, data.length - pos);
+            if (read == -1) throw new StreamClosed();
+            pos += read;
+        }
+    }
+
+    private static byte[] enlarge(byte[] in, int size) {
+        byte[] out = new byte[size];
+        System.arraycopy(in, 0, out, 0, in.length);
+        return out;
+    }
+
+    //////////////////////////////////////////////////////////////////////////////////////////////// receive
+
+    private void hi() {logger.debug("hi");}
+    private void bye() {logger.debug("bye");}
 }
