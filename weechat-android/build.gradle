@@ -40,7 +40,7 @@ android {
 
     defaultConfig {
         versionCode gitVersionCode()
-        versionName "0.11"
+        versionName "0.12"
 
         minSdkVersion 10
         targetSdkVersion 23
@@ -126,5 +126,5 @@ def gitVersionCode() {
 }
 
 String versionBanner() {
-    return 'git describe'.execute().text.trim()
+    return 'git describe --long'.execute().text.trim()
 }

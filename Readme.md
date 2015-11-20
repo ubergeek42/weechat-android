@@ -60,6 +60,13 @@ and [WeeChat main page](http://www.weechat.org/).
 
 ## Changelog
 
+#### v0.12
+* Service to run only while connecting/connected; quit button removed
+* “Fetch more” button
+* SSH library update; require known hosts; store known hosts and key inside app
+* Significant refactoring of connectivity; stunnel removed
+* Better logging and error handling
+
 #### v0.11 - November 2015
 * Material design
 * Ping mechanism
