@@ -163,7 +163,6 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private boolean pagerVisible = false;
-    private boolean visible = false;
 
     /** these are the highlight and private counts that we are supposed to scroll
      ** they are reset after the scroll has been completed */
@@ -199,21 +198,20 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
 
         // see if visibility has changed. if it hasn't, do nothing
         boolean obscured = activity.isPagerNoticeablyObscured();
-        boolean visible = started && pagerVisible && !obscured;
+        boolean watched = started && pagerVisible && !obscured;
 
-        if (this.visible == visible) return;
-        this.visible = visible;
+        if (buffer.isWatched == watched) return;
 
         // visibility has changed.
-        if (visible) {
+        if (watched) {
             highlights = buffer.highlights;
             privates = (buffer.type == Buffer.PRIVATE) ? buffer.unreads : 0;
         }
-        buffer.setWatched(visible);
+        buffer.setWatched(watched);
         scrollToHotLineIfNeeded();
 
         // move the read marker in weechat (if preferences dictate)
-        if (!visible && P.hotlistSync) {
+        if (!watched && P.hotlistSync) {
             EventBus.getDefault().post(new SendMessageEvent("input " + buffer.fullName + " /buffer set hotlist -1"));
             EventBus.getDefault().post(new SendMessageEvent("input " + buffer.fullName + " /input set_unread_current_buffer"));
         }
@@ -369,7 +367,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
      **     after setting the adapter or updating lines */
     public void scrollToHotLineIfNeeded() {
         if (DEBUG_AUTOSCROLLING) logger.debug("scrollToHotLineIfNeeded()");
-        if (buffer != null && visible && buffer.holdsAllLines && (highlights > 0 || privates > 0)) {
+        if (buffer != null && buffer.isWatched && buffer.holdsAllLines && (highlights > 0 || privates > 0)) {
             uiLines.post(new Runnable() {
                 @Override
                 public void run() {
