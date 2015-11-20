@@ -121,7 +121,6 @@ public abstract class AbstractConnection implements Connection {
         try {
             //noinspection InfiniteLoopStatement
             while (true) {
-                assert state == STATE.CONNECTED;
                 out.write(outbox.take().getBytes());
             }
         } catch (InterruptedException | IOException e) {
