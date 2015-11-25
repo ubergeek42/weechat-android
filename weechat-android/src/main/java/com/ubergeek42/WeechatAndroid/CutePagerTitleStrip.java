@@ -21,12 +21,15 @@ import android.content.res.TypedArray;
 import android.database.DataSetObserver;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.Nullable;
+import android.support.v4.view.GestureDetectorCompat;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.text.TextUtils.TruncateAt;
 import android.util.AttributeSet;
 import android.util.TypedValue;
+import android.view.GestureDetector;
 import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
@@ -55,6 +58,7 @@ public class CutePagerTitleStrip extends ViewGroup {
     private boolean mUpdatingPositions;
 
     private final PageListener mPageListener = new PageListener();
+    private GestureDetectorCompat mGestureListener;
 
     private WeakReference<PagerAdapter> mWatchingAdapter;
 
@@ -100,6 +104,8 @@ public class CutePagerTitleStrip extends ViewGroup {
 
     public CutePagerTitleStrip(Context context, AttributeSet attrs) {
         super(context, attrs);
+
+        mGestureListener = new GestureDetectorCompat(context, new GestureListener());
 
         addView(mPrevText = new TextView(context));
         addView(mCurrText = new TextView(context));
@@ -457,6 +463,11 @@ public class CutePagerTitleStrip extends ViewGroup {
         return minHeight;
     }
 
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        return mGestureListener.onTouchEvent(event);
+    }
+
     private class PageListener extends DataSetObserver implements ViewPager.OnPageChangeListener {
         private int mScrollState;
 
@@ -501,6 +512,37 @@ public class CutePagerTitleStrip extends ViewGroup {
             updateTextPositions(mPager.getCurrentItem(), offset, true);
             if (listener != null) listener.onChange();
 
+        }
+    }
+
+    private class GestureListener extends GestureDetector.SimpleOnGestureListener
+    {
+        @Override
+        public boolean onDown(MotionEvent e) {
+            return true;
+        }
+
+        @Override
+        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+            int moveChange;
+            if (velocityX < 0)
+            {
+                moveChange = -1;
+            }
+            else if (velocityX > 0)
+            {
+                moveChange = 1;
+            }
+            else
+            {
+                return false;
+            }
+            int position = mPager.getCurrentItem();
+
+            WeechatActivity weechatActivity = (WeechatActivity)getContext();
+            weechatActivity.swapBuffers(position, position + moveChange);
+
+            return true;
         }
     }
 }

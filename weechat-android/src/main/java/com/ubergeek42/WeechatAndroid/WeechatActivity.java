@@ -497,6 +497,13 @@ public class WeechatActivity extends AppCompatActivity implements
         if (slidy) showDrawerIfPagerIsEmpty();
     }
 
+    public void swapBuffers(int indexOne, int indexTwo)
+    {
+        if (DEBUG_BUFFERS) logger.debug("swapBuffers({}, {})", indexOne, indexTwo);
+        adapter.swapBuffers(indexOne, indexTwo);
+        if (slidy) showDrawerIfPagerIsEmpty();
+    }
+
     /** hides the software keyboard, if any */
     public void hideSoftwareKeyboard() {
         imm.hideSoftInputFromWindow(uiPager.getWindowToken(), 0);
