@@ -29,7 +29,9 @@
 -dontwarn org.slf4j.impl.StaticLoggerBinder
 
 # junit stuff
--assumenosideeffects class org.junit.Assert { *; }
+-assumenosideeffects class org.junit.Assert {
+  public static *** assert*(...);
+}
 -dontwarn java.lang.management.*
 
 # prevents warnings such as "library class android.test.AndroidTestCase extends or implements program class junit.framework.TestCase"
