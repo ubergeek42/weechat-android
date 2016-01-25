@@ -16,7 +16,7 @@
 -keep class * extends com.jcraft.jsch.KeyExchange
 -keep class com.jcraft.jsch.**
 -keep interface com.jcraft.jsch.**
--keep class org.ietf.jgss.*
+-dontwarn class org.ietf.jgss.*
 -dontwarn com.jcraft.jzlib.ZStream
 
 # strip debug and trace (verbose) logging

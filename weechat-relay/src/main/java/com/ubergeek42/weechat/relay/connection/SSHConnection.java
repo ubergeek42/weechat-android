@@ -49,6 +49,7 @@ public class SSHConnection extends AbstractConnection {
         JSch.setLogger(new JschLogger());
         JSch jsch = new JSch();
         jsch.setKnownHosts(new ByteArrayInputStream(sshKnownHosts));
+        jsch.setConfig("PreferredAuthentications", "password,publickey");
         boolean useKeyFile = sshKey != null && sshKey.length > 0;
         if (useKeyFile) jsch.addIdentity("key", sshKey, null, sshPassword.getBytes());
         sshSession = jsch.getSession(sshUsername, sshHost, sshPort);
