@@ -24,8 +24,8 @@
     
     <!-- Some of the notifications the application displays during certain events -->
     <plurals name="hot_messages">
-        <item quantity="one">Hot message!</item>
-        <item quantity="other">%d hot messages</item>
+        <item quantity="one">New message!</item>
+        <item quantity="other">%d new messages</item>
     </plurals>
     <string name="hot_message_not_available">(message not available)</string>
 
