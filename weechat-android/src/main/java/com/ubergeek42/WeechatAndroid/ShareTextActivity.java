@@ -2,10 +2,9 @@ package com.ubergeek42.WeechatAndroid;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.widget.Toast;
 
 import com.ubergeek42.WeechatAndroid.adapters.BufferListAdapter;
 import com.ubergeek42.WeechatAndroid.relay.Buffer;
@@ -51,7 +50,7 @@ public class ShareTextActivity extends AppCompatActivity {
     }
 
     protected void openBufferWithText(Buffer buffer) {
-        Intent intent = new Intent(getApplicationContext().getApplicationContext(), WeechatActivity.class);
+        Intent intent = new Intent(getApplicationContext(), WeechatActivity.class);
         intent.putExtra("full_name", buffer.fullName);
         intent.putExtra(Intent.EXTRA_TEXT, text);
         startActivity(intent);
