@@ -17,6 +17,8 @@ package com.ubergeek42.WeechatAndroid.adapters;
 
 import java.util.ArrayList;
 
+import android.content.DialogInterface;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -34,7 +36,7 @@ import com.ubergeek42.WeechatAndroid.service.P;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class BufferListAdapter extends BaseAdapter implements BufferListEye {
+public class BufferListAdapter extends BaseAdapter implements BufferListEye, DialogInterface.OnShowListener  {
 
     private static Logger logger = LoggerFactory.getLogger("BufferListAdapter");
     final private static boolean DEBUG = BuildConfig.DEBUG;
@@ -138,4 +140,11 @@ public class BufferListAdapter extends BaseAdapter implements BufferListEye {
 
     @Override
     public void onHotCountChanged() {}
+
+    @Override
+    public void onShow(DialogInterface dialog) {
+        if (DEBUG) logger.debug("onShow()");
+        onBuffersChanged();
+    }
+
 }

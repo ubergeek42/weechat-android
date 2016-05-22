@@ -61,6 +61,7 @@ import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
+import com.ubergeek42.WeechatAndroid.utils.ActionEditText;
 import com.ubergeek42.WeechatAndroid.utils.MyMenuItemStuffListener;
 import com.ubergeek42.WeechatAndroid.utils.ToolbarController;
 import com.ubergeek42.WeechatAndroid.utils.UntrustedCertificateDialog;
@@ -615,6 +616,12 @@ public class WeechatActivity extends AppCompatActivity implements
             if (slidy) showDrawer();
         } else {
             openBuffer(name);
+            if (getIntent().hasExtra(Intent.EXTRA_TEXT) && state.contains(AUTHENTICATED)) {
+                String text = getIntent().getStringExtra(Intent.EXTRA_TEXT);
+                BufferFragment bufferFragment = adapter.getCurrentBufferFragment();
+                if (bufferFragment == null) return;
+                bufferFragment.setText(text);
+            }
         }
         getIntent().removeExtra(EXTRA_NAME);
     }
