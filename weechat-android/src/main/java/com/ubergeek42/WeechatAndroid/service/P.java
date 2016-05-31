@@ -31,6 +31,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
+import java.util.Locale;
 
 import javax.net.ssl.SSLContext;
 
@@ -226,7 +227,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
 
     private static void setTimestampFormat() {
         String t = p.getString(PREF_TIMESTAMP_FORMAT, PREF_TIMESTAMP_FORMAT_D);
-        dateFormat = (TextUtils.isEmpty(t)) ? null : new SimpleDateFormat(t);
+        dateFormat = (TextUtils.isEmpty(t)) ? null : new SimpleDateFormat(t, Locale.US);
     }
 
     private static void setAlignment() {

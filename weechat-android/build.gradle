@@ -42,7 +42,7 @@ android {
         versionCode 15
         versionName "0.12"
 
-        minSdkVersion 10
+        minSdkVersion 16
         targetSdkVersion 23
     }
 
@@ -89,6 +89,9 @@ android {
         targetCompatibility JavaVersion.VERSION_1_7
     }
 
+    lintOptions {
+      abortOnError false
+    }
 }
 
 // Load properties from the user's local gradle.properties file(for both release and "dev" release builds)

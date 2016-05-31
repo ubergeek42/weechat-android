@@ -112,16 +112,20 @@ public class CutePagerTitleStrip extends ViewGroup {
             mCurrText.setTextAppearance(context, textAppearance);
             mNextText.setTextAppearance(context, textAppearance);
         }
+        //noinspection ResourceType
         final int textSize = a.getDimensionPixelSize(1, 0);
         if (textSize != 0) {
             setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
         }
+        //noinspection ResourceType
         if (a.hasValue(2)) {
+            //noinspection ResourceType
             final int textColor = a.getColor(2, 0);
             mPrevText.setTextColor(textColor);
             mCurrText.setTextColor(textColor);
             mNextText.setTextColor(textColor);
         }
+        //noinspection ResourceType
         mGravity = a.getInteger(3, Gravity.BOTTOM);
         a.recycle();
 
