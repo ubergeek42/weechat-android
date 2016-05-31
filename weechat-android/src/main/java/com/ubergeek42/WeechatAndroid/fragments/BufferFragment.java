@@ -553,6 +553,10 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         tcInProgress = true;
     }
 
+    public void setText(String text) {
+        uiInput.setText(text);
+    }
+
     //////////////////////////////////////////////////////////////////////////////////////////////// text watcher
 
     @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}

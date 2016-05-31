@@ -61,6 +61,7 @@ import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
+import com.ubergeek42.WeechatAndroid.utils.ActionEditText;
 import com.ubergeek42.WeechatAndroid.utils.MyMenuItemStuffListener;
 import com.ubergeek42.WeechatAndroid.utils.ToolbarController;
 import com.ubergeek42.WeechatAndroid.utils.UntrustedCertificateDialog;
@@ -479,11 +480,26 @@ public class WeechatActivity extends AppCompatActivity implements
     //////////////////////////////////////////////////////////////////////////////////////////////// MISC
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
+
     public void openBuffer(@NonNull String fullName) {
+        openBuffer(fullName, null);
+    }
+
+    public void openBuffer(@NonNull final String fullName, final String text) {
         if (DEBUG_BUFFERS) logger.debug("openBuffer({})", fullName);
         if (adapter.isBufferOpen(fullName) || state.contains(AUTHENTICATED)) {
             adapter.openBuffer(fullName);
             adapter.focusBuffer(fullName);
+
+            if (text != null) {
+                uiDrawer.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        adapter.setBufferInputText(fullName, text);
+                    }
+                });
+            }
+
             if (slidy) hideDrawer();
         } else {
             Toast.makeText(this, "Not connected", Toast.LENGTH_SHORT).show();
@@ -614,7 +630,11 @@ public class WeechatActivity extends AppCompatActivity implements
         if ("".equals(name)) {
             if (slidy) showDrawer();
         } else {
-            openBuffer(name);
+            String text = getIntent().getStringExtra(Intent.EXTRA_TEXT);
+            openBuffer(name, text);
+            if (text != null) {
+                getIntent().removeExtra(Intent.EXTRA_TEXT);
+            }
         }
         getIntent().removeExtra(EXTRA_NAME);
     }
