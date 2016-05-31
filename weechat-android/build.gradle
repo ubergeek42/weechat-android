@@ -42,7 +42,7 @@ android {
         versionCode gitVersionCode()
         versionName "0.12"
 
-        minSdkVersion 10
+        minSdkVersion 16
         targetSdkVersion 23
     }
 
