@@ -39,7 +39,7 @@ android {
     buildToolsVersion "22.0.1"
 
     defaultConfig {
-        versionCode gitVersionCode()
+        versionCode 15
         versionName "0.12"
 
         minSdkVersion 10
@@ -118,12 +118,6 @@ if (project.hasProperty('releaseStorefile') &&
     android.buildTypes.release.signingConfig = null
 }
 
-
-def gitVersionCode() {
-    def counter = 0
-    def process = "git rev-list HEAD --first-parent --count".execute()
-    return process.text.toInteger()
-}
 
 String versionBanner() {
     return 'git describe --long'.execute().text.trim()
