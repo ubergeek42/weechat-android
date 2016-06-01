@@ -17,12 +17,8 @@ APK = "weechat-android/build/outputs/apk/weechat-android-devrelease.apk"
 
 
 def main():
-    f = file(KEY)
-    key = f.read()
-    f.close()
-
     credentials = ServiceAccountCredentials.from_p12_keyfile(
-        SERVICE_ACCT_EMAIL, key,
+        SERVICE_ACCT_EMAIL, KEY,
         ['https://www.googleapis.com/auth/androidpublisher'])
     http = httplib2.Http()
     http = credentials.authorize(http)
