@@ -1,7 +1,6 @@
 subprojects {
     repositories {
         // Maven repo with viewpagerindicator: https://github.com/Goddchen/mvn-repo
-        maven { url 'https://github.com/Goddchen/mvn-repo/raw/master/' }
         mavenCentral()
         mavenLocal()
     }
