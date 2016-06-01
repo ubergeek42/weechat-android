@@ -59,6 +59,7 @@ import com.ubergeek42.WeechatAndroid.adapters.NickListAdapter;
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragment;
 import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
+import com.ubergeek42.WeechatAndroid.relay.Nick;
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
 import com.ubergeek42.WeechatAndroid.utils.ActionEditText;
@@ -425,13 +426,14 @@ public class WeechatActivity extends AppCompatActivity implements
                 Buffer buffer = BufferList.findByFullName(adapter.getCurrentBufferFullName());
                 if (buffer == null) break;
 
-                NickListAdapter nicklistAdapter = new NickListAdapter(WeechatActivity.this, buffer);
+                final NickListAdapter nicklistAdapter = new NickListAdapter(WeechatActivity.this, buffer);
 
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setAdapter(nicklistAdapter, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int position) {
-                        // TODO define something to happen here
+                        Nick nick = nicklistAdapter.getItem(position);
+                        EventBus.getDefault().post(new SendMessageEvent("input " + buffer.fullName + " /query " + nick.name));
                     }
                 });
                 AlertDialog dialog = builder.create();
