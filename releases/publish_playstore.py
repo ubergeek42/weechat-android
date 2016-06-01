@@ -5,6 +5,7 @@ import os
 import sys
 from apiclient.discovery import build
 from oauth2client import client
+from oauth2client.service_account import ServiceAccountCredentials
 
 #TRACK = 'production'
 TRACK = 'beta'
@@ -20,10 +21,9 @@ def main():
     key = f.read()
     f.close()
 
-    credentials = client.SignedJwtAssertionCredentials(
-        SERVICE_ACCT_EMAIL,
-        key,
-        scope='https://www.googleapis.com/auth/androidpublisher')
+    credentials = ServiceAccountCredentials.from_p12_keyfile(
+        SERVICE_ACCT_EMAIL, key,
+        ['https://www.googleapis.com/auth/androidpublisher'])
     http = httplib2.Http()
     http = credentials.authorize(http)
 
