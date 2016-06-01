@@ -423,7 +423,7 @@ public class WeechatActivity extends AppCompatActivity implements
             case R.id.menu_hotlist:
                 break;
             case R.id.menu_nicklist:
-                Buffer buffer = BufferList.findByFullName(adapter.getCurrentBufferFullName());
+                final Buffer buffer = BufferList.findByFullName(adapter.getCurrentBufferFullName());
                 if (buffer == null) break;
 
                 final NickListAdapter nicklistAdapter = new NickListAdapter(WeechatActivity.this, buffer);
