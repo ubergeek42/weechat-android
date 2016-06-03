@@ -19,6 +19,7 @@ import android.widget.TextView;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.relay.Line;
 import com.ubergeek42.WeechatAndroid.service.P;
+import com.ubergeek42.weechat.Color;
 
 import java.util.ArrayList;
 
@@ -95,6 +96,8 @@ public class CopyPaste implements EditText.OnLongClickListener, AdapterView.OnIt
         final ArrayList<String> list = new ArrayList<>();
 
         list.add(line.getNotificationString());
+        list.add(Color.stripEverything(line.message));
+
         for (URLSpan url: uiTextView.getUrls())
             list.add(url.getURL());
 
