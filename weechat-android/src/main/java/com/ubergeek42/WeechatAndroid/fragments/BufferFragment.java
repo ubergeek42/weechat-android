@@ -68,6 +68,9 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     private Buffer buffer;
 
     private ChatLinesAdapter linesAdapter;
+    private int historyScrollIndex;
+    private String historyUserLine;
+    private boolean uiInputSetProgrammatically = false;
 
     private Logger logger = LoggerFactory.getLogger(toString());
 
@@ -76,6 +79,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         Bundle args = new Bundle();
         args.putString(TAG, tag);
         fragment.setArguments(args);
+        fragment.resetHistory();
         return fragment;
     }
 
@@ -410,7 +414,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         if (DEBUG_TAB_COMPLETE) logger.debug("onKey(..., {}, ...)", keycode);
         int action = event.getAction();
         return checkSendMessage(keycode, action) ||
-                checkVolumeButtonResize(keycode, action) ||
+                checkVolumeButtons(keycode, action) ||
                 checkForTabCompletion(keycode, action);
 
     }
@@ -432,25 +436,56 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         return false;
     }
 
-    private boolean checkVolumeButtonResize(int keycode, int action) {
-        if (keycode == KeyEvent.KEYCODE_VOLUME_DOWN || keycode == KeyEvent.KEYCODE_VOLUME_UP) {
-            if (P.volumeBtnSize) {
-                if (action == KeyEvent.ACTION_UP) {
-                    float textSize = P.textSize;
-                    switch (keycode) {
-                        case KeyEvent.KEYCODE_VOLUME_UP:
-                            if (textSize < 30) textSize += 1;
-                            break;
-                        case KeyEvent.KEYCODE_VOLUME_DOWN:
-                            if (textSize > 5) textSize -= 1;
-                            break;
-                    }
-                    P.setTextSizeAndLetterWidth(textSize);
+    private boolean checkVolumeButtons(int keycode, int action) {
+        if (!(keycode == KeyEvent.KEYCODE_VOLUME_DOWN || keycode == KeyEvent.KEYCODE_VOLUME_UP))
+            return false;
+        if (P.volumeRole == P.VolumeRole.NONE)
+            return false;
+        if (action != KeyEvent.ACTION_UP)
+            // consume DOWN & MULTIPLE volume button events
+            return true;
+        switch(P.volumeRole) {
+            case TEXT_SIZE:
+                float textSize = P.textSize;
+                switch (keycode) {
+                    case KeyEvent.KEYCODE_VOLUME_UP:
+                        if (textSize < 30) textSize += 1;
+                        break;
+                    case KeyEvent.KEYCODE_VOLUME_DOWN:
+                        if (textSize > 5) textSize -= 1;
+                        break;
                 }
+                P.setTextSizeAndLetterWidth(textSize);
                 return true;
-            }
+            case SEND_HISTORY:
+                switch (keycode) {
+                    case KeyEvent.KEYCODE_VOLUME_UP:
+                        if (historyScrollIndex >= P.sentMessages.size() - 1)
+                            return false;
+                        historyScrollIndex++;
+                        break;
+                    case KeyEvent.KEYCODE_VOLUME_DOWN:
+                        if (historyScrollIndex < 0)
+                            return false;
+                        historyScrollIndex--;
+                        break;
+                }
+                uiInputSetProgrammatically = true;
+                if (historyScrollIndex == -1) {
+                    uiInput.setText(historyUserLine);
+                    uiInput.setSelection(uiInput.length());
+                    return true;
+                }
+                uiInput.setText(P.sentMessages.get(P.sentMessages.size() - historyScrollIndex - 1));
+                uiInput.setSelection(uiInput.length());
+                return true;
         }
         return false;
+    }
+
+    private void resetHistory() {
+        historyScrollIndex = -1;
+        historyUserLine = "";
     }
 
     /** the only OnClickListener's method
@@ -488,6 +523,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
                 EventBus.getDefault().post(new SendMessageEvent("input " + fullName + " " + line));
         }
         uiInput.setText("");   // this will reset tab completion
+        resetHistory();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -571,6 +607,10 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     public void afterTextChanged(Editable s) {
         if (DEBUG_TAB_COMPLETE) logger.debug("afterTextChanged(...)");
         tcInProgress = false;
+        if (!uiInputSetProgrammatically) {
+            historyUserLine = uiInput.getText().toString();
+        }
+        uiInputSetProgrammatically = false;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

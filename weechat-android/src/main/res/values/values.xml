@@ -14,6 +14,11 @@
         <item >websocket</item>
         <item >websocket-ssl</item>
     </string-array>
+    <string-array name="settings_volumebtn_role_values">
+        <item>none</item>
+        <item>text-size</item>
+        <item>send-history</item>
+    </string-array>
 
     <dimen name="dialog_item_padding_vertical">8dp</dimen>
     <dimen name="drawer_width">320dp</dimen>

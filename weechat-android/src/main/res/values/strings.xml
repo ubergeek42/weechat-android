@@ -148,8 +148,12 @@
         <string name="pref_button_group">Buttons</string>
             <string name="pref_tabbtn_show">Show tab button</string>
             <string name="pref_sendbtn_show">Show send button</string>
-            <string name="pref_volumebtn_size">Volume buttons change text size</string>
-            <string name="pref_volumebtn_size_summary">If set, volume buttons will change text size instead of volume</string>
+            <string name="pref_volumebtn_role">Volume button role</string>
+                <string-array name="pref_volumebtn_role_names">
+                    <item>Do nothing</item>
+                    <item>Change text size</item>
+                    <item>Navigate send history</item>
+                </string-array>
 
         <!-- notifications -->
 

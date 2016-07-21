@@ -62,7 +62,7 @@ public class Constants {
     // buttons
     public final static String PREF_SHOW_SEND = "sendbtn_show"; final public static boolean PREF_SHOW_SEND_D = true;
     public final static String PREF_SHOW_TAB = "tabbtn_show"; final public static boolean PREF_SHOW_TAB_D = true;
-    public final static String PREF_VOLUME_BTN_SIZE = "volumebtn_size"; final public static boolean PREF_VOLUME_BTN_SIZE_D = true;
+    public final static String PREF_VOLUME_BTN_ROLE = "volumebtn_role"; final public static String PREF_VOLUME_BTN_ROLE_D = "text-size";
 
     // notifications
     final static public String PREF_NOTIFICATION_ENABLE = "notification_enable"; final public static boolean PREF_NOTIFICATION_ENABLE_D = true;

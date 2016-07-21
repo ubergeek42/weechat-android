@@ -56,6 +56,8 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         p.registerOnSharedPreferenceChangeListener(instance = new P());
     }
 
+    public enum VolumeRole {NONE, TEXT_SIZE, SEND_HISTORY}
+
     ///////////////////////////////////////////////////////////////////////////////////////////// ui
 
     public static boolean sortBuffers, showTitle, filterBuffers, optimizeTraffic;
@@ -69,7 +71,8 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     public static boolean notificationEnable, notificationTicker, notificationLight, notificationVibrate;
     public static String notificationSound;
 
-    public static boolean showSend, showTab, hotlistSync, volumeBtnSize;
+    public static boolean showSend, showTab, hotlistSync;
+    public static VolumeRole volumeRole;
     public static String bufferFont;
 
     public static boolean showBufferFilter;
@@ -102,7 +105,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         showSend = p.getBoolean(PREF_SHOW_SEND, PREF_SHOW_SEND_D);
         showTab = p.getBoolean(PREF_SHOW_TAB, PREF_SHOW_TAB_D);
         hotlistSync = p.getBoolean(PREF_HOTLIST_SYNC, PREF_HOTLIST_SYNC_D);
-        volumeBtnSize = p.getBoolean(PREF_VOLUME_BTN_SIZE, PREF_VOLUME_BTN_SIZE_D);
+        setVolumeBtnRole();
 
         // buffer list filter
         showBufferFilter = p.getBoolean(PREF_SHOW_BUFFER_FILTER, PREF_SHOW_BUFFER_FILTER_D);
@@ -216,7 +219,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
             case PREF_SHOW_SEND: showSend = p.getBoolean(key, PREF_SHOW_SEND_D); break;
             case PREF_SHOW_TAB: showTab = p.getBoolean(key, PREF_SHOW_TAB_D); break;
             case PREF_HOTLIST_SYNC: hotlistSync = p.getBoolean(key, PREF_HOTLIST_SYNC_D); break;
-            case PREF_VOLUME_BTN_SIZE: volumeBtnSize = p.getBoolean(key, PREF_VOLUME_BTN_SIZE_D); break;
+            case PREF_VOLUME_BTN_ROLE: setVolumeBtnRole(); break;
 
             // buffer list fragment
             case PREF_SHOW_BUFFER_FILTER: showBufferFilter = p.getBoolean(key, PREF_SHOW_BUFFER_FILTER_D); break;
@@ -237,6 +240,16 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
             case "left":      align = Color.ALIGN_LEFT; break;
             case "timestamp": align = Color.ALIGN_TIMESTAMP; break;
             default:          align = Color.ALIGN_NONE; break;
+        }
+    }
+
+    private static void setVolumeBtnRole() {
+        String role = p.getString(PREF_VOLUME_BTN_ROLE, PREF_VOLUME_BTN_ROLE_D);
+        switch (role) {
+            case "none":         volumeRole = VolumeRole.NONE; break;
+            case "text-size":    volumeRole = VolumeRole.TEXT_SIZE; break;
+            case "send-history": volumeRole = VolumeRole.SEND_HISTORY; break;
+            default:             volumeRole = VolumeRole.TEXT_SIZE; break;
         }
     }
 
