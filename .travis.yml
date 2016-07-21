@@ -32,3 +32,5 @@ before_install:
 # Workaround for https://github.com/travis-ci/travis-ci/issues/4942
 git:
   depth: 99999
+
+# Edit this line when you want to trigger a travis build. Count: 0
