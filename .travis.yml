@@ -33,4 +33,4 @@ before_install:
 git:
   depth: 99999
 
-# Edit this line when you want to trigger a travis build. Count: 0
+# Edit this line when you want to trigger a travis build. Count: 1
