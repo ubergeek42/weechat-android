@@ -411,9 +411,9 @@ public class Buffer {
     //////////////////////////////////////////////////////////////////////////////////////////////// called by event handlers
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    synchronized public void addNick(long pointer, String prefix, String name) {
-        if (DEBUG_NICK) logger.debug("{} addNick({}, {}, {})", shortName, pointer, prefix, name);
-        nicks.add(new Nick(pointer, prefix, name));
+    synchronized public void addNick(long pointer, String prefix, String name, boolean away) {
+        if (DEBUG_NICK) logger.debug("{} addNick({}, {}, {}, {})", shortName, pointer, prefix, name, away);
+        nicks.add(new Nick(pointer, prefix, name, away));
         notifyNicklistChanged();
     }
 
@@ -428,12 +428,13 @@ public class Buffer {
         notifyNicklistChanged();
     }
 
-    synchronized public void updateNick(long pointer, String prefix, String name) {
-        if (DEBUG_NICK) logger.debug("{} updateNick({}, {}, {})", shortName, pointer, prefix, name);
+    synchronized public void updateNick(long pointer, String prefix, String name, boolean away) {
+        if (DEBUG_NICK) logger.debug("{} updateNick({}, {}, {}, {})", shortName, pointer, prefix, name, away);
         for (Nick nick: nicks) {
             if (nick.pointer == pointer) {
                 nick.prefix = prefix;
                 nick.name = name;
+                nick.away = away;
                 break;
             }
         }

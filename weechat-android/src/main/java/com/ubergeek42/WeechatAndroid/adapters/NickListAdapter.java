@@ -1,5 +1,6 @@
 package com.ubergeek42.WeechatAndroid.adapters;
 
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.content.DialogInterface;
 import android.support.annotation.NonNull;
@@ -59,6 +60,8 @@ public class NickListAdapter extends BaseAdapter implements BufferNicklistEye,
 
         Nick nick = getItem(position);
         ((TextView) convertView).setText(nick.prefix + nick.name);
+        if (nick.away)
+            ((TextView) convertView).setTextColor(ContextCompat.getColor(convertView.getContext(), R.color.away_nick));
         return convertView;
     }
 

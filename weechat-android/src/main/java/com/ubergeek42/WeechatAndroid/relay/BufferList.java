@@ -572,10 +572,11 @@ public class BufferList {
                         long pointer = entry.getPointerLong();
                         String prefix = entry.getItem("prefix").asString();
                         String name = entry.getItem("name").asString();
+                        boolean away = entry.getItem("color").asString().contains("weechat.color.nicklist_away");
                         if (command == ADD)
-                            buffer.addNick(pointer, prefix, name);
+                            buffer.addNick(pointer, prefix, name, away);
                         else
-                            buffer.updateNick(pointer, prefix, name);
+                            buffer.updateNick(pointer, prefix, name, away);
                     }
                 } else if (command == REMOVE) {
                     buffer.removeNick(entry.getPointerLong());
