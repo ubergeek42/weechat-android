@@ -30,6 +30,7 @@ public class NickListAdapter extends BaseAdapter implements BufferNicklistEye,
     private final @NonNull LayoutInflater inflater;
     private final @NonNull Buffer buffer;
     private @NonNull Nick[] nicks = new Nick[0];
+    private int defaultNickTextColor = 0;
     private AlertDialog dialog;
 
     public NickListAdapter(@NonNull WeechatActivity activity, @NonNull Buffer buffer) {
@@ -58,10 +59,15 @@ public class NickListAdapter extends BaseAdapter implements BufferNicklistEye,
         if (convertView == null)
             convertView = inflater.inflate(R.layout.select_dialog_item_material_2_lines, parent, false);
 
+        final TextView textView = (TextView) convertView;
+        if (defaultNickTextColor == 0)
+            defaultNickTextColor = textView.getTextColors().getDefaultColor();
+
         Nick nick = getItem(position);
-        ((TextView) convertView).setText(nick.prefix + nick.name);
-        if (nick.away)
-            ((TextView) convertView).setTextColor(ContextCompat.getColor(convertView.getContext(), R.color.away_nick));
+        textView.setText(nick.prefix + nick.name);
+        int color = nick.away ? ContextCompat.getColor(convertView.getContext(), R.color.away_nick)
+                              : defaultNickTextColor;
+        textView.setTextColor(color);
         return convertView;
     }
 
