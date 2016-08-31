@@ -100,9 +100,10 @@ public class SSHConnection extends AbstractConnection {
     private static class SocketChannelFactory implements SocketFactory {
         @Override public Socket createSocket(String host, int port) throws IOException {
             try {
-                SocketChannel channel = SocketChannel.open();
-                channel.connect(new InetSocketAddress(host, port));
-                return channel.socket();
+                //SocketChannel channel = SocketChannel.open();
+                //channel.connect(new InetSocketAddress(host, port));
+                //return channel.socket();
+                return new Socket(host, port);
             } catch (ClosedByInterruptException e) {
                 throw new RuntimeException(e);
             }

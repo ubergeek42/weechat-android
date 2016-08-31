@@ -22,9 +22,10 @@ public class PlainConnection extends AbstractConnection {
     }
 
     @Override protected void doConnect() throws IOException {
-            SocketChannel channel = SocketChannel.open();
-            channel.connect(new InetSocketAddress(server, port));
-            Socket sock = channel.socket();
+            //SocketChannel channel = SocketChannel.open();
+            //channel.connect(new InetSocketAddress(server, port));
+            //Socket sock = channel.socket();
+            Socket sock = new Socket(server, port);
             out = sock.getOutputStream();
             in = sock.getInputStream();
     }
