@@ -331,13 +331,17 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
 
     @Override
     public void onLinesChanged() {
-        linesAdapter.onLinesChanged();
+        if (linesAdapter != null) {
+            linesAdapter.onLinesChanged();
+        }
         maybeChangeHeader();
     }
 
     @Override
     public void onLinesListed() {
-        linesAdapter.onLinesChanged();
+        if (linesAdapter != null) {
+            linesAdapter.onLinesChanged();
+        }
         maybeChangeHeader();
         scrollToHotLineIfNeeded();
     }
