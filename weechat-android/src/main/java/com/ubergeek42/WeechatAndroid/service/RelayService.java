@@ -80,6 +80,7 @@ public class RelayService extends Service implements Connection.Observer {
     @Override
     public void onDestroy() {
         if (DEBUG) logger.debug("onDestroy()");
+        P.saveStuff();
         connectivity.unregister();
         super.onDestroy();
         EventBus.getDefault().unregister(this);
