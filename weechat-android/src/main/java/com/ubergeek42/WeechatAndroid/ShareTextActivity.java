@@ -2,57 +2,74 @@ package com.ubergeek42.WeechatAndroid;
 
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.widget.Toast;
 
 import com.ubergeek42.WeechatAndroid.adapters.BufferListAdapter;
 import com.ubergeek42.WeechatAndroid.relay.Buffer;
+import com.ubergeek42.WeechatAndroid.service.Events;
+import com.ubergeek42.WeechatAndroid.service.RelayService;
 
-public class ShareTextActivity extends AppCompatActivity {
+import de.greenrobot.event.EventBus;
 
-    String text;
+public class ShareTextActivity extends AppCompatActivity implements DialogInterface.OnClickListener,
+        DialogInterface.OnDismissListener, DialogInterface.OnShowListener {
+
+    BufferListAdapter bufferlistAdapter;
+    AlertDialog dialog;
 
     @Override
-    protected void onCreate(final Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    protected void onStart() {
+        super.onStart();
+
+        if (!EventBus.getDefault().getStickyEvent(Events.StateChangedEvent.class).state.contains(RelayService.STATE.LISTED)) {
+            Toast.makeText(getApplicationContext(), "Not connected", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
 
         Intent intent = getIntent();
-        String action = intent.getAction();
-        String type = intent.getType();
-
-        if (Intent.ACTION_SEND.equals(action) && type != null) {
-            if (!"text/plain".equals(type)) {
-                return;
-            } else {
-
-                text = intent.getStringExtra(intent.EXTRA_TEXT);
-                final BufferListAdapter bufferlistAdapter = new BufferListAdapter(this);
-
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setAdapter(bufferlistAdapter, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int position) {
-                        Buffer buffer = bufferlistAdapter.getItem(position);
-                        if (buffer == null) return;
-
-                        ShareTextActivity.this.openBufferWithText(buffer);
-                    }
-                });
-
-                AlertDialog dialog = builder.create();
-                dialog.setTitle("Share with");
-                dialog.setOnShowListener(bufferlistAdapter);
-                dialog.show();
-
-            }
+        if ((Intent.ACTION_SEND.equals(intent.getAction()) && "text/plain".equals(intent.getType()))) {
+            bufferlistAdapter = new BufferListAdapter(this);
+            AlertDialog.Builder builder = new AlertDialog.Builder(this)
+                    .setAdapter(bufferlistAdapter, this)
+                    .setTitle("Share with…");
+            dialog = builder.create();
+            dialog.setOnShowListener(this);
+            dialog.setOnDismissListener(this);
+            dialog.show();
         }
     }
 
-    protected void openBufferWithText(Buffer buffer) {
-        Intent intent = new Intent(getApplicationContext(), WeechatActivity.class);
-        intent.putExtra("full_name", buffer.fullName);
-        intent.putExtra(Intent.EXTRA_TEXT, text);
-        startActivity(intent);
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (dialog != null) {
+            dialog.setOnDismissListener(null);      // prevents closing the activity on rotate
+            dialog.dismiss();                       // prevents window leaks
+        }
+    }
+
+    @Override
+    public void onClick(DialogInterface dialog, int which) {
+        Buffer buffer = bufferlistAdapter.getItem(which);
+        if (buffer != null) {
+            final String text = getIntent().getStringExtra(Intent.EXTRA_TEXT);
+            Intent intent = new Intent(getApplicationContext(), WeechatActivity.class);
+            intent.putExtra(WeechatActivity.EXTRA_NAME, buffer.fullName);
+            intent.putExtra(Intent.EXTRA_TEXT, text);
+            startActivity(intent);
+        }
+    }
+
+    @Override
+    public void onDismiss(DialogInterface dialog) {
+        finish();
+    }
+
+    @Override
+    public void onShow(DialogInterface dialog) {
+        bufferlistAdapter.onBuffersChanged();
     }
 }

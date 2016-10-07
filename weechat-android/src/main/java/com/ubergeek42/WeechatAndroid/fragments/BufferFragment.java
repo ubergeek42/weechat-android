@@ -554,7 +554,10 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     }
 
     public void setText(String text) {
-        uiInput.setText(text);
+        String oldText = uiInput.getText().toString();
+        if (oldText.length() > 0 && oldText.charAt(oldText.length() - 1) != ' ') oldText += ' ';
+        uiInput.setText(oldText + text);
+        uiInput.setSelection(uiInput.getText().length());
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////// text watcher

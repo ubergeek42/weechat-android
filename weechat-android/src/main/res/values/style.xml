@@ -74,4 +74,15 @@
     <color name="primary_dark">#FF0f1315</color>
     <color name="accent">#ff80cbc4</color>
     <color name="away_nick">#9cd9f0</color>
+
+    <style name="WeechatTranslucent" parent="Weechat">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:colorBackgroundCacheHint">@null</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowIsFloating">true</item>
+    </style>
 </resources>

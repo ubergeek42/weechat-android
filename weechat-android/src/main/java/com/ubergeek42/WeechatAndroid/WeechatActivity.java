@@ -611,7 +611,7 @@ public class WeechatActivity extends AppCompatActivity implements
     //////////////////////////////////////////////////////////////////////////////////////////////// intent
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private final String EXTRA_NAME = "full_name";
+    public final static String EXTRA_NAME = "full_name";
 
     /** we may get intent while we are connected to the service and when we are not.
      ** empty (but present) fullName means open the drawer (in case we have highlights

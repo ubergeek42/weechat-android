@@ -36,13 +36,13 @@ import com.ubergeek42.WeechatAndroid.service.P;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class BufferListAdapter extends BaseAdapter implements BufferListEye, DialogInterface.OnShowListener  {
+public class BufferListAdapter extends BaseAdapter implements BufferListEye {
 
     private static Logger logger = LoggerFactory.getLogger("BufferListAdapter");
     final private static boolean DEBUG = BuildConfig.DEBUG;
 
-    AppCompatActivity activity;
-    LayoutInflater inflater;
+    private AppCompatActivity activity;
+    private LayoutInflater inflater;
     private ArrayList<Buffer> buffers = new ArrayList<>();
 
     final private static int[][] COLORS = new int[][] {
@@ -140,11 +140,4 @@ public class BufferListAdapter extends BaseAdapter implements BufferListEye, Dia
 
     @Override
     public void onHotCountChanged() {}
-
-    @Override
-    public void onShow(DialogInterface dialog) {
-        if (DEBUG) logger.debug("onShow()");
-        onBuffersChanged();
-    }
-
 }
