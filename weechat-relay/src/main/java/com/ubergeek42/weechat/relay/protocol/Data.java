@@ -170,6 +170,8 @@ public class Data {
         String keys = getString();
         int count = getUnsignedInt();
 
+        if (count == 0) return whd;    // if count is 0, hpath and keys are null -- "empty hdata"
+
         whd.path_list = hpath.split("/");
         whd.setKeys(keys.split(","));
 

@@ -72,13 +72,10 @@ public class Hdata extends RelayObject {
     @Override
     public String toString() {
         String s = "[WHdata]\n  path=";
-        for (String p : path_list) {
-            s += p + "/";
-        }
+        if (path_list == null) s += "null";
+        else for (String p : path_list) s += p + "/";
         s += "\n";
-        for (HdataEntry hde : items) {
-            s += hde.toString(2) + "\n";
-        }
+        for (HdataEntry hde : items) s += hde.toString(2) + "\n";
         return s;
     }
 }
