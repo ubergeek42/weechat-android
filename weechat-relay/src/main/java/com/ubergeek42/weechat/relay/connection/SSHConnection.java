@@ -31,14 +31,11 @@ public class SSHConnection extends AbstractConnection {
     protected static Logger logger = LoggerFactory.getLogger("SSHConnection");
 
     private Session sshSession;
+    private Socket sock;
+
     private String sshPassword;
-
-    final static private int SSH_LOCAL_PORT = 22231;
-
     private String server;
     private int port;
-
-    private Socket sock;
 
     public SSHConnection(String server, int port, String sshHost, int sshPort, String sshUsername,
                          String sshPassword, byte[] sshKey, byte[] sshKnownHosts) throws JSchException {
@@ -65,8 +62,8 @@ public class SSHConnection extends AbstractConnection {
                     (ClosedByInterruptException) e.getCause() : e;
         }
 
-        sshSession.setPortForwardingL(SSH_LOCAL_PORT, server, port);
-        sock = new Socket("127.0.0.1", SSH_LOCAL_PORT);
+        int localPort = sshSession.setPortForwardingL(0, server, port);
+        sock = new Socket("127.0.0.1", localPort);
         out = sock.getOutputStream();
         in = sock.getInputStream();
     }
