@@ -138,7 +138,7 @@ public class Notificator {
         // one ore more visible lines and "..."
         if (hotList.size() > 0 && hotCount > 1) {
             NotificationCompat.InboxStyle inbox = new NotificationCompat.InboxStyle()
-                    .setSummaryText(P.host);
+                    .setSummaryText(P.printableHost);
 
             for (String[] bufferToLine : hotList) inbox.addLine(bufferToLine[LINE]);
             if (hotList.size() < hotCount) inbox.addLine("…");

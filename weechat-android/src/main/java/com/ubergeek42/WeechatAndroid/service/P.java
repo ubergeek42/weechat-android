@@ -120,6 +120,8 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     public static long pingIdleTime, pingTimeout;
     public static int lineIncrement;
 
+    public static String printableHost;
+
     public static void loadConnectionPreferences() {
         host = p.getString(PREF_HOST, PREF_HOST_D);
         pass = p.getString(PREF_PASSWORD, PREF_PASSWORD_D);
@@ -147,6 +149,8 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         } else {
             sslContext = null;
         }
+
+        printableHost = connectionType.equals(PREF_TYPE_SSH) ? sshHost + "/" + host : host;
     }
 
     public static @Nullable String validateConnectionPreferences() {
