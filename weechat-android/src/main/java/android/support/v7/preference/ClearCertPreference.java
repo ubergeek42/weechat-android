@@ -12,7 +12,10 @@ import android.support.v7.app.AlertDialog;
 import android.util.AttributeSet;
 import android.widget.Toast;
 
+import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.service.SSLHandler;
+
+import java.text.MessageFormat;
 
 public class ClearCertPreference extends DialogPreference {
 
@@ -20,6 +23,13 @@ public class ClearCertPreference extends DialogPreference {
 
     public ClearCertPreference(Context context, AttributeSet attrs) {
         super(context, attrs);
+        update();
+    }
+
+    private void update() {
+        final int count = SSLHandler.getInstance(getContext()).getUserCertificateCount();
+        setEnabled(count > 0);
+        setSummary(MessageFormat.format(getContext().getString(R.string.pref_clear_certs_summary), count));
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -37,16 +47,22 @@ public class ClearCertPreference extends DialogPreference {
         protected void onPrepareDialogBuilder(AlertDialog.Builder builder) {
             super.onPrepareDialogBuilder(builder);
 
-            builder.setTitle(null).setMessage("Clear certificates?").
-                    setPositiveButton("Clear", new DialogInterface.OnClickListener() {
-                @Override public void onClick(DialogInterface dialog, int which) {
-                    boolean removed = SSLHandler.getInstance(getContext()).removeKeystore();
-                    String msg = removed ? "Keystore removed" : "Could not remove keystore";
-                    Toast.makeText(getContext(), msg, Toast.LENGTH_LONG).show();
-                }
-            }).setNegativeButton("Cancel", null);
+            builder.setTitle(null).setMessage(getString(R.string.pref_clear_certs_confirmation)).
+                    setPositiveButton(getString(R.string.pref_clear_certs_positive), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            boolean removed = SSLHandler.getInstance(getContext()).removeKeystore();
+                            String msg = getString(removed ?
+                                    R.string.pref_clear_certs_success :
+                                    R.string.pref_clear_certs_failure);
+                            Toast.makeText(getContext(), msg, Toast.LENGTH_LONG).show();
+                        }
+                    }).setNegativeButton(getString(R.string.pref_clear_certs_negative), null);
         }
 
-        @Override public void onDialogClosed(boolean b) {}
+        @Override
+        public void onDialogClosed(boolean b) {
+            ((ClearCertPreference) getPreference()).update();
+        }
     }
 }
