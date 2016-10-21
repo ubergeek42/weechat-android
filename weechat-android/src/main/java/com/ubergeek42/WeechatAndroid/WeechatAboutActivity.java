@@ -32,14 +32,14 @@ public class WeechatAboutActivity extends AppCompatActivity {
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
-            actionBar.setTitle("About");
+            actionBar.setTitle(getString(R.string.about));
         }
 
         ((TextView) this.findViewById(R.id.versionID))
-            .setText("build ID " + BuildConfig.VERSION_BANNER);
+            .setText(getString(R.string.build_id, BuildConfig.VERSION_BANNER));
 
         ((TextView) this.findViewById(R.id.versionStr))
-            .setText("WeechatAndroid " + BuildConfig.VERSION_NAME);
+            .setText(getString(R.string.version_string, BuildConfig.VERSION_NAME));
     }
 
     @Override public boolean onOptionsItemSelected(MenuItem item) {

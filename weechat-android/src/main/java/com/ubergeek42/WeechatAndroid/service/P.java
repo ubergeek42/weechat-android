@@ -16,6 +16,7 @@ import android.support.v7.preference.FilePreference;
 import android.support.v7.preference.ThemeManager;
 import android.text.TextUtils;
 
+import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
@@ -155,12 +156,12 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     }
 
     public static @Nullable String validateConnectionPreferences() {
-        if (TextUtils.isEmpty(host)) return "Relay host is not set";
-        if (TextUtils.isEmpty(pass)) return "Relay password is not set";
+        if (TextUtils.isEmpty(host)) return context.getString(R.string.pref_error_relay_host_not_set);
+        if (TextUtils.isEmpty(pass)) return context.getString(R.string.pref_error_relay_password_not_set);
         if (connectionType.equals(PREF_TYPE_SSH)) {
-            if (TextUtils.isEmpty(sshHost)) return "SSH host is not set";
-            if (Utils.isEmpty(sshKey) && TextUtils.isEmpty(sshPass)) return "Neither SSH key nor password is set";
-            if (Utils.isEmpty(sshKnownHosts)) return "SSH known hosts are not set";
+            if (TextUtils.isEmpty(sshHost)) return context.getString(R.string.pref_error_ssh_host_not_set);
+            if (Utils.isEmpty(sshKey) && TextUtils.isEmpty(sshPass)) return context.getString(R.string.pref_error_no_ssh_key);
+            if (Utils.isEmpty(sshKnownHosts)) return context.getString(R.string.pref_error_no_ssh_known_hosts);
         }
         return null;
     }

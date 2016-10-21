@@ -131,7 +131,8 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
         // this only sets the title of the action bar
         @Override public void onActivityCreated(Bundle savedInstanceState) {
             ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
-            if (actionBar != null) actionBar.setTitle((key == null) ? "Settings" : findPreference(key).getTitle());
+            if (actionBar != null)
+                actionBar.setTitle((key == null) ? getString(R.string.preferences) : findPreference(key).getTitle());
             super.onActivityCreated(savedInstanceState);
         }
 

@@ -57,7 +57,7 @@ public class CopyPaste implements EditText.OnLongClickListener, AdapterView.OnIt
         final LayoutInflater inflater = LayoutInflater.from(activity);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-        builder.setTitle("Paste").setAdapter(
+        builder.setTitle(activity.getString(R.string.dialog_paste_title)).setAdapter(
                 new BaseAdapter() {
                     @Override public int getCount() {return list.size();}
                     @Override public String getItem(int position) {return list.get(position);}
@@ -102,7 +102,7 @@ public class CopyPaste implements EditText.OnLongClickListener, AdapterView.OnIt
             list.add(url.getURL());
 
         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-        builder.setTitle("Copy").setAdapter(
+        builder.setTitle(activity.getString(R.string.dialog_copy_title)).setAdapter(
                 new ArrayAdapter<>(activity, R.layout.select_dialog_item_material_2_lines, android.R.id.text1, list),
                 new DialogInterface.OnClickListener() {
                     @Override

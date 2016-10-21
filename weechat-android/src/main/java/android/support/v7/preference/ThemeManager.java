@@ -7,6 +7,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.widget.Toast;
 
+import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.weechat.ColorScheme;
 
 import org.slf4j.Logger;
@@ -30,7 +31,7 @@ public class ThemeManager {
                 .getString(PREF_COLOR_SCHEME, PREF_COLOR_SCHEME_D);
         Properties p = loadColorScheme(path, context.getAssets());
         if (p == null)
-            Toast.makeText(context, "Error loading color scheme " + path, Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, context.getString(R.string.pref_theme_loading_error, path), Toast.LENGTH_SHORT).show();
         else
             ColorScheme.set(new ColorScheme(p));
     }

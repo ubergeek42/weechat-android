@@ -24,7 +24,7 @@ public class ShareTextActivity extends AppCompatActivity implements DialogInterf
         super.onStart();
 
         if (!EventBus.getDefault().getStickyEvent(Events.StateChangedEvent.class).state.contains(RelayService.STATE.LISTED)) {
-            Toast.makeText(getApplicationContext(), "Not connected", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), getString(R.string.not_connected), Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
@@ -34,7 +34,7 @@ public class ShareTextActivity extends AppCompatActivity implements DialogInterf
             bufferlistAdapter = new BufferListAdapter(this);
             AlertDialog.Builder builder = new AlertDialog.Builder(this)
                     .setAdapter(bufferlistAdapter, this)
-                    .setTitle("Share with…");
+                    .setTitle(getString(R.string.share_text_title));
             dialog = builder.create();
             dialog.setOnShowListener(this);
             dialog.setOnDismissListener(this);

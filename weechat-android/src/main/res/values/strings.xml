@@ -12,12 +12,23 @@
     <string name="quit">Quit</string>
     <string name="connect">Connect</string>
     <string name="disconnect">Disconnect</string>
+    <string name="stop_connecting">Stop connecting</string>
     <string name="hotlist">Hotlist</string>
     <string name="nicklist_menu">Nicks</string>
     <string name="tabkey">Tab</string>
     <string name="open_drawer">Open drawer</string>
     <string name="close_drawer">Close drawer</string>
     <string name="more_button">Fetch more lines</string>
+    <string name="more_button_fetching">Fetching lines…</string>
+    <string name="nick_list_title">%1$s (%2$s)</string>
+    <plurals name="nick_list_count">
+        <item quantity="one">%1$d user</item>
+        <item quantity="other">%1$d users</item>
+    </plurals>
+    <string name="share_text_title">Share with…</string>
+    <string name="dialog_copy_title">Copy</string>
+    <string name="dialog_paste_title">Paste</string>
+    <string name="linkify_error_no_activity">Activity not found for intent %s</string>
 
     <!--  the text shown in the buffer list filter edit text as a placeholder -->
     <string name="filter_bufferlist_placeholder"><i>filter</i></string>
@@ -25,11 +36,11 @@
     <!-- Some of the notifications the application displays during certain events -->
     <plurals name="hot_messages">
         <item quantity="one">New message!</item>
-        <item quantity="other">%d new messages</item>
+        <item quantity="other">%d new messages!</item>
     </plurals>
     <string name="hot_message_not_available">(message not available)</string>
 
-    <string name="notification_connected_to">"Connected to "</string>
+    <string name="notification_connected_to">Connected to %s</string>
     <string name="notification_disconnected">Disconnected</string>
 
     <string name="notification_connecting">Connecting to %s…</string>
@@ -47,23 +58,63 @@
     <string name="autoscroll_no_line">Buffer lost some hot messages because of new lines</string>
     <string name="no_hot_buffers">There are no hot buffers for now</string>
     <string name="wrong_password">Wrong password</string>
+    <string name="not_connected">Not connected</string>
+    <string name="error">Error: %s</string>
 
+    <!-- hints -->
+    <string name="hint_show_hot_message">Show hot message</string>
+
+    <!-- network errors -->
+    <string name="relay_error_server_closed">Server unexpectedly closed connection while connecting. Wrong password or connection type?</string>
+    <string name="relay_error_resolve">Could not resolve address %s</string>
+
+    <!-- SSL certificate dialog -->
+    <string name="ssl_cert_dialog_unknown_fingerprint">Unknown</string>
+    <string name="ssl_cert_dialog_description"><![CDATA[
+        <b>Issued to:</b><br>
+        %1$s<br>
+        <br>
+        <b>Issued by:</b><br>
+        %2$s<br>
+        <br>
+        <b>Validity Period:</b><br>
+        Issued On: %3$s<br>
+        Expires On: %4$s<br>
+        <br>
+        <b>SHA-1 Fingerprint:</b><br>
+        %5$s
+    ]]></string>
+    <string name="ssl_cert_dialog_title">Untrusted certificate</string>
+    <string name="ssl_cert_dialog_accept_button">Accept</string>
+    <string name="ssl_cert_dialog_reject_button">Reject</string>
 
     <!-- ##################################### preferences ##################################### -->
 
+    <!-- validation errors -->
+    <string name="pref_error_relay_host_not_set">Relay host is not set</string>
+    <string name="pref_error_relay_password_not_set">Relay password is not set</string>
+    <string name="pref_error_ssh_host_not_set">SSH host is not set</string>
+    <string name="pref_error_no_ssh_key">Neither SSH key nor password is set</string>
+    <string name="pref_error_no_ssh_known_hosts">SSH known hosts are not set</string>
 
     <string name="pref_connection_group">Connection</string>
 
         <!-- connection type -->
+        <string name="pref_connection_type_plain">Plain connection</string>
+        <string name="pref_connection_type_weechat_ssl">WeeChat SSL</string>
+        <string name="pref_connection_type_ssh">SSH tunnel</string>
+        <string name="pref_connection_type_ws">WebSocket</string>
+        <string name="pref_connection_type_ws_ssl">WebSocket (SSL)</string>
         <string name="pref_connection_type">Connection type</string>
             <string-array name="pref_connection_type_names">
-                <item>Plain connection</item>
-                <item>WeeChat SSL</item>
-                <item>SSH tunnel</item>
-                <item>WebSocket</item>
-                <item>WebSocket (SSL)</item>
+                <item>@string/pref_connection_type_plain</item>
+                <item>@string/pref_connection_type_weechat_ssl</item>
+                <item>@string/pref_connection_type_ssh</item>
+                <item>@string/pref_connection_type_ws</item>
+                <item>@string/pref_connection_type_ws_ssl</item>
             </string-array>
 
+        <string name="pref_clear_certs">Clear certificates</string>
         <string name="pref_clear_certs_confirmation">Clear certificates?</string>
         <string name="pref_clear_certs_summary">{0,choice,0#No trusted certificate|1#1 trusted certificate|1&lt;{0} trusted certificates}</string>
         <string name="pref_clear_certs_positive">Clear</string>
@@ -87,6 +138,20 @@
             <string name="pref_ssh_known_hosts">Known hosts</string>
             <string name="pref_ssh_known_hosts_summary">Output of $ ssh-keyscan host</string>
 
+        <!-- file -->
+
+        <string name="pref_file_imported">File imported. You can delete it now.</string>
+        <string name="pref_file_error">Error: %s</string>
+        <string name="pref_file_clear_button">Clear</string>
+        <string name="pref_file_cleared">Cleared</string>
+        <string name="pref_file_empty_clipboard">Clipboard is empty</string>
+        <string name="pref_file_choose_button">Choose file</string>
+        <string name="pref_file_paste_button">Paste</string>
+        <string name="pref_file_pasted">Pasted from clipboard</string>
+        <string name="pref_file_summary">%1$s (%2$s)</string>
+        <string name="pref_file_set">set</string>
+        <string name="pref_file_not_set">not set</string>
+
         <!-- relay type -->
 
         <string name="pref_relay_group">Relay</string>
@@ -106,7 +171,7 @@
             <string name="pref_optimize_traffic">Only sync open buffers</string>
             <string name="pref_optimize_traffic_summary">Can significantly reduce traffic and battery usage, but hotlist updates will only happen once 5 minutes. Requires WeeChat 1.1 or newer. Takes effect after re-connection.</string>
             <string name="pref_hotlist_sync">Sync buffer read status</string>
-            <string name="pref_hotlist_sync_summary">Mark buffers as read in weechat when you read them in this app. Requires Weechat 1.0 or newer.</string>
+            <string name="pref_hotlist_sync_summary">Mark buffers as read in WeeChat when you read them in this app. Requires WeeChat 1.0 or newer.</string>
 
             <string name="pref_ping_group">Ping settings</string>
                 <string name="pref_ping_enabled">Enable Ping</string>
@@ -152,6 +217,15 @@
             <string name="pref_font">Buffer Font</string>
             <string name="pref_color_scheme">Color Scheme</string>
 
+            <!-- theme (color scheme) -->
+            <string name="pref_theme_loading_error">Error loading color scheme %s</string>
+            <string name="pref_theme_summary">Search Path:\n    %1$s\n\nCurrent Value:\n    %2$s</string>
+            <string name="pref_theme_not_set">Not set</string>
+
+            <!-- font -->
+            <string name="pref_font_summary">Non-monospace fonts will not work well with alignment.\n\nSearch Path:%1$s\n\nCurrent Value:\n    %2$s</string>
+            <string name="pref_font_default">Default</string>
+
         <!-- buttons -->
 
         <string name="pref_button_group">Buttons</string>
@@ -169,9 +243,19 @@
             <string name="pref_notification_vibrate">Vibration</string>
             <string name="pref_notification_light">Notification light</string>
 
+        <!-- ringtone -->
+
+        <string name="pref_ringtone_none">None</string>
+        <string name="pref_ringtone_unknown">Unknown</string>
+
         <!-- about -->
 
         <string name="about">About</string>
+        <string name="build_id">build ID %s</string>
+        <string name="version_string">WeechatAndroid %s</string>
+        <string name="created_by">created by ubergeek42</string>
+        <string name="unknown_version_id">Unknown version ID</string>
+        <string name="report_bug_feature">Find a bug or have a feature request? Create an issue on GitHub or email me: kj@ubergeek42.com</string>
 
         <!-- strings used in error messages of the preferences activity -->
 

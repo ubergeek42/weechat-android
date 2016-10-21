@@ -49,15 +49,15 @@ public class UntrustedCertificateDialog extends DialogFragment {
         scrollView.addView(textView);
 
         return new AlertDialog.Builder(getContext())
-                .setTitle("Untrusted certificate")
+                .setTitle(getString(R.string.ssl_cert_dialog_title))
                 .setView(scrollView, padding, padding/2, padding, 0)
-                .setPositiveButton("Accept", new DialogInterface.OnClickListener() {
+                .setPositiveButton(getString(R.string.ssl_cert_dialog_accept_button), new DialogInterface.OnClickListener() {
                     @Override public void onClick(DialogInterface dialog, int which) {
                         SSLHandler.getInstance(getContext()).trustCertificate(certificate);
                         ((WeechatActivity) getActivity()).connect();
                     }
                 })
-                .setNegativeButton("Reject", null)
+                .setNegativeButton(getString(R.string.ssl_cert_dialog_reject_button), null)
                 .create();
     }
 
@@ -73,15 +73,13 @@ public class UntrustedCertificateDialog extends DialogFragment {
     public String getCertificateDescription() {
         String fingerprint;
         try {fingerprint = new String(Hex.encodeHex(DigestUtils.sha1(certificate.getEncoded())));}
-        catch (CertificateEncodingException e) {fingerprint = "Unknown";}
-        return "<b>Issued to:</b><br>" +
-                certificate.getSubjectDN().getName() + "<br><br>" +
-                "<b>Issued by:</b><br>" +
-                certificate.getIssuerDN().getName() + "<br><br>" +
-                "<b>Validity Period:</b><br>" +
-                "Issued On:  " + certificate.getNotBefore() + "<br>" +
-                "Expires On: " + certificate.getNotAfter() + "<br><br>" +
-                "<b>SHA-1 Fingerprint:</b><br>" +
-                fingerprint;
+        catch (CertificateEncodingException e) {fingerprint = getString(R.string.ssl_cert_dialog_unknown_fingerprint); }
+        return getString(R.string.ssl_cert_dialog_description,
+                certificate.getSubjectDN().getName(),
+                certificate.getIssuerDN().getName(),
+                certificate.getNotBefore(),
+                certificate.getNotAfter(),
+                fingerprint
+        );
     }
 }
