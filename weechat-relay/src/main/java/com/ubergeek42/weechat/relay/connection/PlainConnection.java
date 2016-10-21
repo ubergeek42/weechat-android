@@ -6,9 +6,7 @@
 package com.ubergeek42.weechat.relay.connection;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.nio.channels.SocketChannel;
 
 
 public class PlainConnection extends AbstractConnection {
@@ -22,10 +20,9 @@ public class PlainConnection extends AbstractConnection {
     }
 
     @Override protected void doConnect() throws IOException {
-            SocketChannel channel = SocketChannel.open();
-            channel.connect(new InetSocketAddress(server, port));
-            Socket sock = channel.socket();
-            out = sock.getOutputStream();
-            in = sock.getInputStream();
+        SocketChannelFactory f = new SocketChannelFactory();
+        Socket socket = f.createSocket(server, port);
+        in = f.getInputStream(socket);
+        out = f.getOutputStream(socket);
     }
 }
