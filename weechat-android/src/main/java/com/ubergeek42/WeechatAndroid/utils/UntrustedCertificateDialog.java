@@ -25,6 +25,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
+import java.text.DateFormat;
 
 public class UntrustedCertificateDialog extends DialogFragment {
 
@@ -77,8 +78,8 @@ public class UntrustedCertificateDialog extends DialogFragment {
         return getString(R.string.ssl_cert_dialog_description,
                 certificate.getSubjectDN().getName(),
                 certificate.getIssuerDN().getName(),
-                certificate.getNotBefore(),
-                certificate.getNotAfter(),
+                DateFormat.getDateTimeInstance().format(certificate.getNotBefore()),
+                DateFormat.getDateTimeInstance().format(certificate.getNotAfter()),
                 fingerprint
         );
     }
