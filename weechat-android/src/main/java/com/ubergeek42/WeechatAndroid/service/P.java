@@ -110,7 +110,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
 
     ///////////////////////////////////////////////////////////////////////////////////// connection
 
-    public static String host, pass, connectionType, sshHost, sshUser, sshPass;
+    public static String host, wsPath, pass, connectionType, sshHost, sshUser, sshPass;
     public static byte[] sshKey, sshKnownHosts;
     public static int port, sshPort;
     public static SSLContext sslContext;
@@ -126,6 +126,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         host = p.getString(PREF_HOST, PREF_HOST_D);
         pass = p.getString(PREF_PASSWORD, PREF_PASSWORD_D);
         port = Integer.parseInt(p.getString(PREF_PORT, PREF_PORT_D));
+        wsPath = p.getString(PREF_WS_PATH, PREF_WS_PATH_D);
 
         connectionType = p.getString(PREF_CONNECTION_TYPE, PREF_CONNECTION_TYPE_D);
         sshHost = p.getString(PREF_SSH_HOST, PREF_SSH_HOST_D);

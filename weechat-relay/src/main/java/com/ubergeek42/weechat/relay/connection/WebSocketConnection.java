@@ -29,9 +29,9 @@ public class WebSocketConnection extends AbstractConnection {
     private WebSocketClient client;
     private PipedOutputStream outputToInStream;
 
-    public WebSocketConnection(String server, int port, SSLContext sslContext) throws URISyntaxException, IOException {
+    public WebSocketConnection(String server, int port, String path, SSLContext sslContext) throws URISyntaxException, IOException {
         // can throw URISyntaxException
-        URI uri = new URI((sslContext == null ? "ws://" : "wss://") + server + ":" + port + "/weechat");
+        URI uri = new URI(sslContext == null ? "ws" : "wss", null, server, port, "/" + path, null, null);
 
         // can throw IOException
         in = new PipedInputStream();
