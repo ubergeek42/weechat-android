@@ -14,6 +14,9 @@ public class Constants {
     // ssl group
     final static public String PREF_SSL_GROUP = "ssl_group";
 
+    // websocket
+    final static public String PREF_WS_PATH = "ws_path"; final public static String PREF_WS_PATH_D = "weechat";
+
     // ssh group & insides
     final static public String PREF_SSH_GROUP = "ssh_group";
     final static public String PREF_SSH_HOST = "ssh_host"; final public static String PREF_SSH_HOST_D = "";

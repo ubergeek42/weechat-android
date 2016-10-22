@@ -78,6 +78,7 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
         private String key;
         private Preference sslGroup = null;
         private Preference sshGroup = null;
+        private Preference wsPath = null;
 
         @Override public void onDisplayPreferenceDialog(Preference preference) {
             final DialogFragment f;
@@ -113,6 +114,7 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
             if (PREF_CONNECTION_GROUP.equals(key)) {
                 sslGroup = findPreference(PREF_SSL_GROUP);
                 sshGroup = findPreference(PREF_SSH_GROUP);
+                wsPath = findPreference(PREF_WS_PATH);
                 showHideStuff(getPreferenceScreen().getSharedPreferences().getString(PREF_CONNECTION_TYPE, PREF_CONNECTION_TYPE_D));
                 listenTo = new String[] {PREF_CONNECTION_TYPE, PREF_HOST, PREF_PORT};
             } else if (PREF_SSH_GROUP.equals(key))
@@ -172,6 +174,8 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
             else getPreferenceScreen().removePreference(sslGroup);
             if (PREF_TYPE_SSH.equals(type)) getPreferenceScreen().addPreference(sshGroup);
             else getPreferenceScreen().removePreference(sshGroup);
+            if (Utils.isAnyOf(type, PREF_TYPE_WEBSOCKET, PREF_TYPE_WEBSOCKET_SSL)) getPreferenceScreen().addPreference(wsPath);
+            else getPreferenceScreen().removePreference(wsPath);
         }
     }
 }
