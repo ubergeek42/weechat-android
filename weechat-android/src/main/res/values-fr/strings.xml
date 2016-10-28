@@ -175,4 +175,8 @@
     <string name="pref_font_summary">L\'alignement fonctionne mal avec les polices non-monospace.\n\nChemin de recherche :%1$s\n\nValeur actuelle :\n    %2$s</string>
     <string name="pref_ringtone_none">Aucune</string>
     <string name="pref_ringtone_unknown">Inconnue</string>
+    <string name="pref_prefix_align_left">Aligné à gauche</string>
+    <string name="pref_prefix_align_none">Non aligné</string>
+    <string name="pref_prefix_align_right">Aligné à droite</string>
+    <string name="pref_prefix_align_timestamp">Aligné sur l\'heure</string>
 </resources>
