@@ -9,6 +9,7 @@ import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 
+import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.utils.Constants;
 
 public class RingtonePreferenceFix extends DialogPreference {
@@ -48,10 +49,10 @@ public class RingtonePreferenceFix extends DialogPreference {
 
     @Override public CharSequence getSummary() {
         String tmp = getRingtonePath();
-        if ("".equals(tmp)) return "None";
+        if ("".equals(tmp)) return getContext().getString(R.string.pref_ringtone_none);
         else {
             Ringtone ringtone = RingtoneManager.getRingtone(getContext(), Uri.parse(tmp));
-            return (ringtone == null) ? "Unknown" : ringtone.getTitle(getContext());
+            return (ringtone == null) ? getContext().getString(R.string.pref_ringtone_unknown) : ringtone.getTitle(getContext());
         }
     }
 }

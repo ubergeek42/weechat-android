@@ -306,7 +306,7 @@ public class WeechatActivity extends AppCompatActivity implements
                 }
             }
         }
-        final String msg = "Error: " + (TextUtils.isEmpty(e.getMessage()) ? e.getClass().getSimpleName() : e.getMessage());
+        final String msg = getString(R.string.error, TextUtils.isEmpty(e.getMessage()) ? e.getClass().getSimpleName() : e.getMessage());
         runOnUiThread(new Runnable() {
             @Override public void run() {
                 Toast.makeText(getBaseContext(), msg, Toast.LENGTH_LONG).show();
@@ -380,7 +380,7 @@ public class WeechatActivity extends AppCompatActivity implements
         final View menuHotlist = MenuItemCompat.getActionView(menu.findItem(R.id.menu_hotlist));
         uiHot = (TextView) menuHotlist.findViewById(R.id.hotlist_hot);
         updateHotCount(hotNumber);
-        new MyMenuItemStuffListener(menuHotlist, "Show hot message") {
+        new MyMenuItemStuffListener(menuHotlist, getString(R.string.hint_show_hot_message)) {
             @Override
             public void onClick(View v) {
                 onHotlistSelected();
@@ -465,9 +465,9 @@ public class WeechatActivity extends AppCompatActivity implements
                     MenuItem connectionStatus = uiMenu.findItem(R.id.menu_connection_state);
                     String msg;
 
-                    if (state.contains(AUTHENTICATED)) msg = "Disconnect";
-                    else if (state.contains(STARTED)) msg = "Stop connecting";
-                    else msg = "Connect";
+                    if (state.contains(AUTHENTICATED)) msg = getString(R.string.disconnect);
+                    else if (state.contains(STARTED)) msg = getString(R.string.stop_connecting);
+                    else msg = getString(R.string.connect);
                     connectionStatus.setTitle(msg);
 
                     final View menuHotlist = MenuItemCompat.getActionView(uiMenu.findItem(R.id.menu_hotlist));
@@ -504,7 +504,7 @@ public class WeechatActivity extends AppCompatActivity implements
 
             if (slidy) hideDrawer();
         } else {
-            Toast.makeText(this, "Not connected", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.not_connected), Toast.LENGTH_SHORT).show();
         }
     }
 

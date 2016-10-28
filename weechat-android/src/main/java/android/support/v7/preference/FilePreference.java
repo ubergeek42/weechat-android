@@ -18,6 +18,7 @@ import android.util.AttributeSet;
 import android.util.Base64;
 import android.widget.Toast;
 
+import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 
 import org.slf4j.Logger;
@@ -33,7 +34,9 @@ public class FilePreference extends DialogPreference {
     }
 
     @Override public CharSequence getSummary() {
-        return super.getSummary() + (Utils.isEmpty(getData(getPersistedString(null))) ? " (not set)" : " (set)");
+        final String set_not_set = getContext().getString(Utils.isEmpty(getData(getPersistedString(null))) ? R.string.pref_file_not_set : R.string.pref_file_set);
+        return getContext().getString(R.string.pref_file_summary,
+                super.getSummary(), set_not_set);
     }
 
     protected void saveData(@Nullable byte[] bytes) {
@@ -54,9 +57,9 @@ public class FilePreference extends DialogPreference {
     public void onActivityResult(@NonNull Intent intent) {
         try {
             saveData(Utils.readFromUri(getContext(), intent.getData()));
-            Toast.makeText(getContext(), "File imported. You can delete it now.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), getContext().getString(R.string.pref_file_imported), Toast.LENGTH_SHORT).show();
         } catch (IOException e) {
-            Toast.makeText(getContext(), "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), getContext().getString(R.string.pref_file_error, e.getMessage()), Toast.LENGTH_SHORT).show();
             logger.error("onActivityResult()", e);
         }
     }
@@ -75,26 +78,26 @@ public class FilePreference extends DialogPreference {
         }
 
         @Override protected void onPrepareDialogBuilder(AlertDialog.Builder builder) {
-            builder.setNeutralButton("Clear", new DialogInterface.OnClickListener() {
+            builder.setNeutralButton(getString(R.string.pref_file_clear_button), new DialogInterface.OnClickListener() {
                     @Override public void onClick(DialogInterface dialog, int which) {
                         ((FilePreference) getPreference()).saveData(null);
-                        Toast.makeText(getContext(), "Cleared", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), getString(R.string.pref_file_cleared), Toast.LENGTH_SHORT).show();
                     }
                 })
-                .setNegativeButton("Paste", new DialogInterface.OnClickListener() {
+                .setNegativeButton(getString(R.string.pref_file_paste_button), new DialogInterface.OnClickListener() {
                     @Override public void onClick(DialogInterface dialog, int which) {
                         // noinspection deprecation
                         ClipboardManager cm = (ClipboardManager) getContext().getSystemService(Context.CLIPBOARD_SERVICE);
                         CharSequence clip = cm.getText();
                         if (TextUtils.isEmpty(clip))
-                            Toast.makeText(getContext(), "Clipboard is empty", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getContext(), getString(R.string.pref_file_empty_clipboard), Toast.LENGTH_SHORT).show();
                         else {
                             ((FilePreference) getPreference()).saveData(clip.toString().getBytes());
-                            Toast.makeText(getContext(), "Pasted from clipboard", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getContext(), getString(R.string.pref_file_pasted), Toast.LENGTH_SHORT).show();
                         }
                     }
                 })
-                .setPositiveButton("Choose file", new DialogInterface.OnClickListener() {
+                .setPositiveButton(getString(R.string.pref_file_choose_button), new DialogInterface.OnClickListener() {
                     @Override public void onClick(DialogInterface dialog, int which) {
                         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
                         intent.setType("*/*");

@@ -7,6 +7,7 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.util.AttributeSet;
 
+import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.utils.Constants;
 
 import java.util.Collections;
@@ -30,8 +31,9 @@ public class ThemePreference extends DialogPreference {
     }
 
     @Override public CharSequence getSummary() {
-        return "Search Path:\n    " + ThemeManager.SEARCH_DIR +
-                "\n\nCurrent Value:\n    " + ("".equals(getThemePath()) ? "Not set" : getThemePath());
+        return getContext().getString(R.string.pref_theme_summary,
+                ThemeManager.SEARCH_DIR,
+                "".equals(getThemePath()) ? getContext().getString(R.string.pref_theme_not_set) : getThemePath());
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

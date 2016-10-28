@@ -312,7 +312,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
                     boolean more = s == LINES.CAN_FETCH_MORE;
                     uiMoreButton.setEnabled(more);
                     uiMoreButton.setTextColor(more ? 0xff80cbc4 : 0xff777777);
-                    uiMoreButton.setText(more ? "Fetch more lines" : "Fetching lines…");
+                    uiMoreButton.setText(getString(more ? R.string.more_button : R.string.more_button_fetching));
                 }
             }
         });

@@ -14,6 +14,7 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.CheckedTextView;
 
+import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.utils.Constants;
 
 import java.util.Collections;
@@ -38,13 +39,11 @@ public class FontPreference extends DialogPreference {
 
     @Override public CharSequence getSummary() {
         StringBuilder sb = new StringBuilder();
-        sb.append("Non-monospace fonts will not work well with alignment.");
-        sb.append("\n\nSearch Path:");
         for (String p: FontManager.FONT_DIRS)
             sb.append("\n    ").append(p);
-        sb.append("\n\nCurrent Value:\n    ");
-        sb.append("".equals(getFontPath()) ? "Default" : getFontPath());
-        return sb.toString();
+        return getContext().getString(R.string.pref_font_summary,
+                sb.toString(),
+                "".equals(getFontPath()) ? getContext().getString(R.string.pref_font_default) : getFontPath());
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -70,7 +69,7 @@ public class FontPreference extends DialogPreference {
             Collections.sort(fonts);
 
             // add a "fake" default monospace font
-            fonts.addFirst(new FontManager.FontInfo("Default", "", Typeface.MONOSPACE));
+            fonts.addFirst(new FontManager.FontInfo(getString(R.string.pref_font_default), "", Typeface.MONOSPACE));
 
             // get index of currently selected font
             String currentPath = ((FontPreference) getPreference()).getFontPath();

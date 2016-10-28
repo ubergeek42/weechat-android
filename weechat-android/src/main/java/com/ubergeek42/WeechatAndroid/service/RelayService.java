@@ -265,7 +265,7 @@ public class RelayService extends Service implements Connection.Observer {
                 return;
             case AUTHENTICATED:
                 state = EnumSet.of(STATE.STARTED, STATE.AUTHENTICATED);
-                Notificator.showMain(this, getString(R.string.notification_connected_to) + P.printableHost, null);
+                Notificator.showMain(this, getString(R.string.notification_connected_to, P.printableHost), null);
                 hello();
                 break;
             case BUFFERS_LISTED:
@@ -307,9 +307,9 @@ public class RelayService extends Service implements Connection.Observer {
     @Override public void onException(Exception e) {
         logger.error("onException({})", e.getClass().getSimpleName());
         if (e instanceof StreamClosed && (!state.contains(STATE.AUTHENTICATED)))
-            e = new ExceptionWrapper(e, "Server unexpectedly closed connection while connecting. Wrong password or connection type?");
+            e = new ExceptionWrapper(e, getString(R.string.relay_error_server_closed));
         else if (e instanceof UnresolvedAddressException)
-            e = new ExceptionWrapper(e, "Could not resolve address " + (P.connectionType.equals(PREF_TYPE_SSH) ? P.sshHost : P.host));
+            e = new ExceptionWrapper(e, getString(R.string.relay_error_resolve, P.connectionType.equals(PREF_TYPE_SSH) ? P.sshHost : P.host));
         EventBus.getDefault().post(new ExceptionEvent(e));
     }
 

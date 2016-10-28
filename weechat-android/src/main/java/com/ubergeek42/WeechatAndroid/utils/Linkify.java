@@ -13,6 +13,7 @@ import android.text.style.URLSpan;
 import android.view.View;
 import android.widget.Toast;
 
+import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.relay.Line;
 
 import java.util.regex.Matcher;
@@ -60,7 +61,7 @@ public class Linkify {
                 try {
                     context.startActivity(intent);
                 } catch (ActivityNotFoundException e) {
-                    CharSequence text = "Activity not found for intent " + getURL();
+                    CharSequence text = context.getString(R.string.linkify_error_no_activity, getURL());
                     Toast.makeText(widget.getContext(), text, Toast.LENGTH_SHORT).show();
                 }
             }
