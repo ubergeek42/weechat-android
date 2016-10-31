@@ -35,6 +35,7 @@ import java.util.LinkedList;
 import java.util.Locale;
 
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
 
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
 
@@ -115,6 +116,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     public static byte[] sshKey, sshKnownHosts;
     public static int port, sshPort;
     public static SSLContext sslContext;
+    public static SSLSocketFactory sslSocketFactory;
     public static boolean reconnect;
 
     public static boolean pingEnabled;
@@ -146,9 +148,11 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         pingTimeout = Integer.parseInt(p.getString(PREF_PING_TIMEOUT, PREF_PING_TIMEOUT_D)) * 1000;
 
         if (Utils.isAnyOf(connectionType, PREF_TYPE_SSL, PREF_TYPE_WEBSOCKET_SSL)) {
+            sslSocketFactory = SSLHandler.getInstance(context).getSSLSocketFactory();
             sslContext = SSLHandler.getInstance(context).getSSLContext();
             if (sslContext == null) throw new RuntimeException("could not init sslContext");
         } else {
+            sslSocketFactory = null;
             sslContext = null;
         }
 

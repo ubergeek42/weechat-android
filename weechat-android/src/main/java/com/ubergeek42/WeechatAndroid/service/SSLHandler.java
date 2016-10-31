@@ -6,6 +6,7 @@
 package com.ubergeek42.WeechatAndroid.service;
 
 import android.content.Context;
+import android.net.SSLCertificateSocketFactory;
 import android.support.annotation.CheckResult;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -28,6 +29,7 @@ import java.security.cert.X509Certificate;
 import java.util.Arrays;
 
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
@@ -84,6 +86,12 @@ public class SSLHandler {
             logger.error("getSSLContext()", e);
             return null;
         }
+    }
+
+    public SSLSocketFactory getSSLSocketFactory() {
+        SSLCertificateSocketFactory sslSocketFactory = (SSLCertificateSocketFactory) SSLCertificateSocketFactory.getDefault(0, null);
+        sslSocketFactory.setTrustManagers(UserTrustManager.build(sslKeystore));
+        return sslSocketFactory;
     }
 
     @CheckResult public boolean removeKeystore() {
