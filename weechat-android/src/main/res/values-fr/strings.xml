@@ -179,4 +179,11 @@
     <string name="pref_prefix_align_none">Non aligné</string>
     <string name="pref_prefix_align_right">Aligné à droite</string>
     <string name="pref_prefix_align_timestamp">Aligné sur l\'heure</string>
+    <string name="invalid_hostname_dialog_body"><![CDATA[
+    Vous tentez de vous connecter à <strong>%1$s</strong> mais le certificat n\'est valide que pour ces hôtes :<br>
+    %2$s
+    ]]></string>
+    <string name="invalid_hostname_dialog_empty"><![CDATA[<br><strong>(aucune)</strong>]]></string>
+    <string name="invalid_hostname_dialog_button">Retour en sécurité</string>
+    <string name="invalid_hostname_dialog_title">Hôte invalide</string>
 </resources>

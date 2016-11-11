@@ -87,6 +87,13 @@
     <string name="ssl_cert_dialog_title">Untrusted certificate</string>
     <string name="ssl_cert_dialog_accept_button">Accept</string>
     <string name="ssl_cert_dialog_reject_button">Reject</string>
+    <string name="invalid_hostname_dialog_body"><![CDATA[
+    You are trying to connect to <strong>%1$s</strong> but the certificate is only valid for the following hosts:<br>
+    %2$s
+    ]]></string>
+    <string name="invalid_hostname_dialog_title">Invalid hostname</string>
+    <string name="invalid_hostname_dialog_button">Back to safety</string>
+    <string name="invalid_hostname_dialog_empty"><![CDATA[<br><strong>(none)</strong>]]></string>
 
     <!-- ##################################### preferences ##################################### -->
 

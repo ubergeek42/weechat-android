@@ -20,6 +20,7 @@ import java.security.cert.CertPathValidatorException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.EnumSet;
+import java.util.Set;
 
 import javax.net.ssl.SSLException;
 
@@ -62,7 +63,8 @@ import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.WeechatAndroid.relay.Nick;
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
-import com.ubergeek42.WeechatAndroid.utils.ActionEditText;
+import com.ubergeek42.WeechatAndroid.service.SSLHandler;
+import com.ubergeek42.WeechatAndroid.utils.InvalidHostnameDialog;
 import com.ubergeek42.WeechatAndroid.utils.MyMenuItemStuffListener;
 import com.ubergeek42.WeechatAndroid.utils.ToolbarController;
 import com.ubergeek42.WeechatAndroid.utils.UntrustedCertificateDialog;
@@ -299,8 +301,21 @@ public class WeechatActivity extends AppCompatActivity implements
                     CertPath cp = e3.getCertPath();
 
                     final X509Certificate certificate = (X509Certificate) cp.getCertificates().get(0);
-                    DialogFragment f = UntrustedCertificateDialog.newInstance(certificate);
-                    f.show(getSupportFragmentManager(), "boo");
+
+                    DialogFragment f;
+                    if (SSLHandler.checkHostname(P.host, P.port)) {
+                        // valid hostname, untrusted certificate
+                        f = UntrustedCertificateDialog.newInstance(certificate);
+                    } else {
+                        // invalid hostname, abort early
+                        final Set<String> hosts = SSLHandler.getCertificateHosts(certificate);
+                        // remove the host itself, in case the host is an IP defined in the
+                        // certificate 'Common Name' (Android does not accept that)
+                        hosts.remove(P.host);
+                        f = InvalidHostnameDialog.newInstance(P.host, hosts);
+                    }
+
+                    f.show(getSupportFragmentManager(), "ssl-error");
                     disconnect();
                     return;
                 }
