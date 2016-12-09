@@ -3,9 +3,9 @@ addons:
   apt:
     packages:
       - python-openssl
+
 before_script:
-  - export PATH=$HOME/.local/bin:$PATH
-  - pip install --user `whoami` google-api-python-client
+  - '[ "${TRAVIS_PULL_REQUEST}" = "false" ] && PATH="$HOME/.local/bin:$PATH" pip install --user google-api-python-client'
 # broken, see below with git depth 99999
 #  - git fetch --unshallow
 
