@@ -116,7 +116,6 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     public static String host, wsPath, pass, connectionType, sshHost, sshUser, sshPass;
     public static byte[] sshKey, sshKnownHosts;
     public static int port, sshPort;
-    public static SSLContext sslContext;
     public static SSLSocketFactory sslSocketFactory;
     public static boolean reconnect;
 
@@ -150,11 +149,8 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
 
         if (Utils.isAnyOf(connectionType, PREF_TYPE_SSL, PREF_TYPE_WEBSOCKET_SSL)) {
             sslSocketFactory = SSLHandler.getInstance(context).getSSLSocketFactory();
-            sslContext = SSLHandler.getInstance(context).getSSLContext();
-            if (sslContext == null) throw new RuntimeException("could not init sslContext");
         } else {
             sslSocketFactory = null;
-            sslContext = null;
         }
 
         printableHost = connectionType.equals(PREF_TYPE_SSH) ? sshHost + "/" + host : host;
