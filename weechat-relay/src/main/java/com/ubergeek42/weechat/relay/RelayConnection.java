@@ -29,6 +29,7 @@ public class RelayConnection implements Connection, Connection.Observer {
 
     private Connection.Observer observer;
 
+    private long version;
     private String password;
     Connection connection;
 
@@ -68,6 +69,10 @@ public class RelayConnection implements Connection, Connection.Observer {
         connection.disconnect();
     }
 
+    public long getVersion() {
+        return version;
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @Override public void onStateChanged(STATE state) {
@@ -85,7 +90,8 @@ public class RelayConnection implements Connection, Connection.Observer {
         logger.debug("onMessage(id = {})", id);
 
         if (ID_VERSION.equals(id)) {
-            logger.info("WeeChat version: {}", ((Info) message.getObjects()[0]).getValue());
+            version = Long.parseLong(((Info) message.getObjects()[0]).getValue());
+            logger.info("WeeChat version: {}", String.format("0x%x", version));
             onStateChanged(STATE.AUTHENTICATED);
         }
 
@@ -98,8 +104,8 @@ public class RelayConnection implements Connection, Connection.Observer {
     //////////////////////////////////////////////////////////////////////////////////////////////// auth
 
     private void authenticate() {
-        sendMessage(null, "init", "password=" + password + ",compression=zlib");
-        sendMessage(ID_VERSION, "info", "version");
+        sendMessage(null, "init", "password=" + password.replace(",", "\\,") + ",compression=zlib");
+        sendMessage(ID_VERSION, "info", "version_number");
     }
 
 }
