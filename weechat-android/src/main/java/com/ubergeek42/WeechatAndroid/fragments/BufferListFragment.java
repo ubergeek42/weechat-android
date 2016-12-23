@@ -150,6 +150,7 @@ public class BufferListFragment extends ListFragment implements BufferListEye, V
     @Override public void onBuffersChanged() {
         if (DEBUG_MESSAGES) logger.debug("onBuffersChanged()");
         adapter.onBuffersChanged();
+        activity.notifyMainPagerChanged();
     }
 
     @Override public void onHotCountChanged() {

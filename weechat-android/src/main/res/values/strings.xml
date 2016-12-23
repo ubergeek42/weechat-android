@@ -9,6 +9,7 @@
     <string name="sendkey">Send</string>
     <string name="preferences">Settings</string>
     <string name="close">Close</string>
+    <string name="rename">Rename</string>
     <string name="quit">Quit</string>
     <string name="connect">Connect</string>
     <string name="disconnect">Disconnect</string>
@@ -87,6 +88,12 @@
     <string name="ssl_cert_dialog_title">Untrusted certificate</string>
     <string name="ssl_cert_dialog_accept_button">Accept</string>
     <string name="ssl_cert_dialog_reject_button">Reject</string>
+
+    <!-- Rename buffer dialog -->
+    <string name="short_name_dialog_title">Rename buffer</string>
+    <string name="short_name_dialog_reset_button">Reset</string>
+    <string name="short_name_dialog_accept_button">Rename</string>
+    <string name="short_name_dialog_reject_button">Cancel</string>
 
     <!-- ##################################### preferences ##################################### -->
 

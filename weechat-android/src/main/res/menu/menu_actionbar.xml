@@ -16,6 +16,10 @@
           android:icon="@drawable/ic_1_navigation_cancel"
           app:showAsAction="never"
           android:title="@string/close"/>
+    <item android:id="@+id/menu_rename"
+          android:menuCategory="secondary"
+          app:showAsAction="never"
+          android:title="@string/rename"/>
     <item android:id="@+id/menu_connection_state"
           android:menuCategory="secondary"
           app:showAsAction="never"

@@ -32,6 +32,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.AlertDialog;
 
 import android.support.v7.widget.Toolbar;
+import android.text.InputType;
 import android.text.TextUtils;
 import android.view.*;
 import org.slf4j.Logger;
@@ -50,6 +51,7 @@ import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -60,6 +62,7 @@ import com.ubergeek42.WeechatAndroid.fragments.BufferFragment;
 import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.WeechatAndroid.relay.Nick;
+import com.ubergeek42.WeechatAndroid.service.Events;
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
 import com.ubergeek42.WeechatAndroid.utils.ActionEditText;
@@ -368,6 +371,7 @@ public class WeechatActivity extends AppCompatActivity implements
         boolean bufferVisible = adapter.getCount() > 0;
         uiMenu.findItem(R.id.menu_nicklist).setVisible(bufferVisible);
         uiMenu.findItem(R.id.menu_close).setVisible(bufferVisible);
+        uiMenu.findItem(R.id.menu_rename).setVisible(bufferVisible);
     }
 
     /** Can safely hold on to this according to docs
@@ -418,6 +422,48 @@ public class WeechatActivity extends AppCompatActivity implements
                 BufferFragment current = adapter.getCurrentBufferFragment();
                 if (current != null)
                     current.onBufferClosed();
+                break;
+            }
+            case R.id.menu_rename: {
+                BufferFragment current = adapter.getCurrentBufferFragment();
+                if (current == null)
+                    break;
+                final Buffer buffer = BufferList.findByFullName(adapter.getCurrentBufferFullName());
+                if (buffer == null)
+                    break;
+                android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
+                builder.setTitle(getText(R.string.short_name_dialog_title));
+                final EditText input = new EditText(this);
+                input.setInputType(InputType.TYPE_CLASS_TEXT);
+                input.setText(buffer.shortName);
+                input.setHint(buffer.getDefaultShortName());
+                builder.setView(input);
+                builder.setNeutralButton(getString(R.string.short_name_dialog_reset_button), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        setBufferShortName(buffer, buffer.getDefaultShortName());
+                        hideSoftwareKeyboard();
+                    }
+                });
+                builder.setPositiveButton(getString(R.string.short_name_dialog_accept_button), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        setBufferShortName(buffer, input.getText().toString());
+                        hideSoftwareKeyboard();
+                    }
+                });
+                builder.setNegativeButton(getString(R.string.short_name_dialog_reject_button), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                        hideSoftwareKeyboard();
+                    }
+                });
+                builder.show();
+                input.selectAll();
+                input.requestFocus();
+                // spawn keyboard
+                imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY);
                 break;
             }
             case R.id.menu_hotlist:
@@ -518,6 +564,10 @@ public class WeechatActivity extends AppCompatActivity implements
     /** hides the software keyboard, if any */
     public void hideSoftwareKeyboard() {
         imm.hideSoftInputFromWindow(uiPager.getWindowToken(), 0);
+    }
+
+    private void setBufferShortName(Buffer buffer, String shortName) {
+        EventBus.getDefault().post(new Events.SendMessageEvent(String.format("input %s /buffer set short_name %s", buffer.hexPointer(), shortName)));
     }
 
     @Override
@@ -639,5 +689,14 @@ public class WeechatActivity extends AppCompatActivity implements
             }
         }
         getIntent().removeExtra(EXTRA_NAME);
+    }
+
+    public void notifyMainPagerChanged() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                adapter.notifyDataSetChanged();
+            }
+        });
     }
 }
