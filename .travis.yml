@@ -18,7 +18,7 @@ after_script:
 
 android:
   components:
-    - build-tools-22.0.1
+    - build-tools-25.0.2
     - android-23
     - extra-android-support
     - extra-google-m2repository
