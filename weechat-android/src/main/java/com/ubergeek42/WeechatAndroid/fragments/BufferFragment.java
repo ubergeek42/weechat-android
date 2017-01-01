@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import android.content.Context;
 import android.os.Bundle;
 import android.text.Editable;
+import android.text.InputType;
 import android.text.TextWatcher;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -35,6 +36,7 @@ import com.ubergeek42.WeechatAndroid.relay.BufferEye;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.WeechatAndroid.relay.Line;
 import com.ubergeek42.WeechatAndroid.service.P;
+import com.ubergeek42.WeechatAndroid.utils.ActionEditText;
 import com.ubergeek42.WeechatAndroid.utils.CopyPaste;
 import com.ubergeek42.weechat.ColorScheme;
 
@@ -138,6 +140,17 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         started = true;
         uiSend.setVisibility(P.showSend ? View.VISIBLE : View.GONE);
         uiTab.setVisibility(P.showTab ? View.VISIBLE : View.GONE);
+        int inputType = InputType.TYPE_CLASS_TEXT;
+
+        if(P.enableAutoCorrect) {
+            inputType |= InputType.TYPE_TEXT_FLAG_AUTO_CORRECT;
+        } else {
+            inputType |= InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS;
+        }
+        if(P.enableAutoCapitalize) {
+            inputType |= InputType.TYPE_TEXT_FLAG_CAP_SENTENCES;
+        }
+        uiInput.setInputType(inputType);
         uiLines.setBackgroundColor(0xFF000000 | ColorScheme.get().defaul[ColorScheme.OPT_BG]);
         EventBus.getDefault().registerSticky(this);
     }

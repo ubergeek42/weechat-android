@@ -19,7 +19,7 @@
             android:layout_weight="1.0"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:inputType="textCapSentences|textMultiLine|textAutoCorrect"
+            android:inputType="textMultiLine"
             android:imeOptions="flagNoFullscreen|flagNoExtractUi|actionSend"
             android:maxLines="4"
             android:minLines="1"

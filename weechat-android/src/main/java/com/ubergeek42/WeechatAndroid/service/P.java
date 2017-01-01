@@ -71,7 +71,8 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     public static boolean notificationEnable, notificationTicker, notificationLight, notificationVibrate;
     public static String notificationSound;
 
-    public static boolean showSend, showTab, hotlistSync, volumeBtnSize;
+    public static boolean showSend, showTab, enableAutoCapitalize, enableAutoCorrect, hotlistSync;
+    public static boolean volumeBtnSize;
     public static String bufferFont;
 
     public static boolean showBufferFilter;
@@ -104,6 +105,8 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         // buffer fragment
         showSend = p.getBoolean(PREF_SHOW_SEND, PREF_SHOW_SEND_D);
         showTab = p.getBoolean(PREF_SHOW_TAB, PREF_SHOW_TAB_D);
+        enableAutoCapitalize = p.getBoolean(PREF_ENABLE_AUTO_CAPITALIZE, PREF_ENABLE_AUTO_CAPITALIZE_D);
+        enableAutoCorrect = p.getBoolean(PREF_ENABLE_AUTO_CORRECT, PREF_ENABLE_AUTO_CORRECT_D);
         hotlistSync = p.getBoolean(PREF_HOTLIST_SYNC, PREF_HOTLIST_SYNC_D);
         volumeBtnSize = p.getBoolean(PREF_VOLUME_BTN_SIZE, PREF_VOLUME_BTN_SIZE_D);
 
@@ -223,6 +226,8 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
             // buffer fragment
             case PREF_SHOW_SEND: showSend = p.getBoolean(key, PREF_SHOW_SEND_D); break;
             case PREF_SHOW_TAB: showTab = p.getBoolean(key, PREF_SHOW_TAB_D); break;
+            case PREF_ENABLE_AUTO_CAPITALIZE: enableAutoCapitalize = p.getBoolean(key, PREF_ENABLE_AUTO_CAPITALIZE_D); break;
+            case PREF_ENABLE_AUTO_CORRECT: enableAutoCorrect = p.getBoolean(key, PREF_ENABLE_AUTO_CORRECT_D); break;
             case PREF_HOTLIST_SYNC: hotlistSync = p.getBoolean(key, PREF_HOTLIST_SYNC_D); break;
             case PREF_VOLUME_BTN_SIZE: volumeBtnSize = p.getBoolean(key, PREF_VOLUME_BTN_SIZE_D); break;
 
