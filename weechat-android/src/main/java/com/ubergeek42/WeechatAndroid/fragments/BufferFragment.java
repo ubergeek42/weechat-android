@@ -1,15 +1,10 @@
 package com.ubergeek42.WeechatAndroid.fragments;
 
-import java.util.Vector;
-
 import android.annotation.SuppressLint;
-import android.support.annotation.NonNull;
-import android.support.v4.app.Fragment;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import android.content.Context;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.v4.app.Fragment;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
@@ -27,23 +22,28 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.ubergeek42.WeechatAndroid.adapters.ChatLinesAdapter;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
+import com.ubergeek42.WeechatAndroid.adapters.ChatLinesAdapter;
 import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.Buffer.LINES;
 import com.ubergeek42.WeechatAndroid.relay.BufferEye;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.WeechatAndroid.relay.Line;
 import com.ubergeek42.WeechatAndroid.service.P;
-import com.ubergeek42.WeechatAndroid.utils.ActionEditText;
 import com.ubergeek42.WeechatAndroid.utils.CopyPaste;
 import com.ubergeek42.weechat.ColorScheme;
 
-import static com.ubergeek42.WeechatAndroid.service.Events.*;
-import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Vector;
 
 import de.greenrobot.event.EventBus;
+
+import static com.ubergeek42.WeechatAndroid.service.Events.SendMessageEvent;
+import static com.ubergeek42.WeechatAndroid.service.Events.StateChangedEvent;
+import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.LISTED;
 
 public class BufferFragment extends Fragment implements BufferEye, OnKeyListener,
         OnClickListener, TextWatcher, TextView.OnEditorActionListener {
