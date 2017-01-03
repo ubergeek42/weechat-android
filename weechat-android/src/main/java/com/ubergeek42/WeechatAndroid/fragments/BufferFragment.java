@@ -140,7 +140,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         started = true;
         uiSend.setVisibility(P.showSend ? View.VISIBLE : View.GONE);
         uiTab.setVisibility(P.showTab ? View.VISIBLE : View.GONE);
-        int inputType = InputType.TYPE_CLASS_TEXT;
+        int inputType = InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE;
 
         if(P.enableAutoCorrect) {
             inputType |= InputType.TYPE_TEXT_FLAG_AUTO_CORRECT;
