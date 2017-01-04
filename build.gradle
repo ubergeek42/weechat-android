@@ -8,6 +8,7 @@ subprojects {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '1.10';
+    gradleVersion = '3.2.1';
+    distributionUrl = "https://services.gradle.org/distributions/gradle-${gradleVersion}-all.zip"
 }
 defaultTasks 'assembleDebug'
