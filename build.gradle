@@ -3,10 +3,12 @@ subprojects {
         // Maven repo with viewpagerindicator: https://github.com/Goddchen/mvn-repo
         mavenCentral()
         mavenLocal()
+        maven { url "https://jitpack.io" }
     }
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '1.10';
+    gradleVersion = '3.2.1';
+    distributionUrl = "https://services.gradle.org/distributions/gradle-${gradleVersion}-all.zip"
 }
 defaultTasks 'assembleDebug'

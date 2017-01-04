@@ -9,6 +9,7 @@ import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 
 import com.ubergeek42.WeechatAndroid.R;
+import com.ubergeek42.WeechatAndroid.service.P;
 
 public class ToolbarController implements ViewTreeObserver.OnGlobalLayoutListener {
     final Toolbar toolbar;
@@ -26,6 +27,7 @@ public class ToolbarController implements ViewTreeObserver.OnGlobalLayoutListene
     }
 
     public void onUserScroll(int bottomHidden, int prevBottomHidden) {
+        if (!canAutoHide()) return;
         if (bottomHidden > prevBottomHidden) hide();
         else if (bottomHidden < prevBottomHidden) show();
     }
@@ -35,15 +37,22 @@ public class ToolbarController implements ViewTreeObserver.OnGlobalLayoutListene
     }
 
     public void onSoftwareKeyboardStateChanged(boolean visible) {
+        if (!canAutoHide()) return;
         if (keyboardVisible == visible) return;
         keyboardVisible = visible;
         if (visible) hide();
         else show();
     }
 
+    private boolean canAutoHide() {
+        if (P.autoHideActionbar)
+            return true;
+        show();
+        return false;
+    }
 
     private void show() {
-        if (shown || keyboardVisible) return;
+        if (shown) return;
         shown = true;
         if (android.os.Build.VERSION.SDK_INT >= 14)
             toolbar.animate().translationY(0).setInterpolator(new DecelerateInterpolator()).start();
@@ -63,6 +72,7 @@ public class ToolbarController implements ViewTreeObserver.OnGlobalLayoutListene
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @Override public void onGlobalLayout() {
+        if (!canAutoHide()) return;
         // if more than 300 pixels, its probably a keyboard...
         int heightDiff = root.getRootView().getHeight() - root.getHeight();
         if (heightDiff > 300)

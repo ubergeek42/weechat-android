@@ -5,7 +5,6 @@
 
 package com.ubergeek42.weechat.relay.connection;
 
-import org.java_websocket.client.DefaultSSLWebSocketClientFactory;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft;
 import org.java_websocket.drafts.Draft_17;
@@ -21,7 +20,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 
-import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
 
 public class WebSocketConnection extends AbstractConnection {
     protected static Logger logger = LoggerFactory.getLogger("WebSocketConnection");
@@ -29,9 +28,9 @@ public class WebSocketConnection extends AbstractConnection {
     private WebSocketClient client;
     private PipedOutputStream outputToInStream;
 
-    public WebSocketConnection(String server, int port, String path, SSLContext sslContext) throws URISyntaxException, IOException {
+    public WebSocketConnection(String server, int port, String path, SSLSocketFactory sslSocketFactory) throws URISyntaxException, IOException {
         // can throw URISyntaxException
-        URI uri = new URI(sslContext == null ? "ws" : "wss", null, server, port, "/" + path, null, null);
+        URI uri = new URI(sslSocketFactory == null ? "ws" : "wss", null, server, port, "/" + path, null, null);
 
         // can throw IOException
         in = new PipedInputStream();
@@ -39,7 +38,8 @@ public class WebSocketConnection extends AbstractConnection {
         outputToInStream.connect((PipedInputStream) in);
 
         client = new MyWebSocket(uri, new Draft_17());
-        if (sslContext != null) client.setWebSocketFactory(new DefaultSSLWebSocketClientFactory(sslContext));
+        if (sslSocketFactory != null)
+            client.setSocket(sslSocketFactory.createSocket(server, port));
     }
 
     @Override protected void doConnect() throws Exception {

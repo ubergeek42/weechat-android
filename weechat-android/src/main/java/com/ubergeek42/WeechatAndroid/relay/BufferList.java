@@ -227,12 +227,12 @@ public class BufferList {
 
     /** send sync command to relay (if traffic is set to optimized) and
      ** add it to the synced buffers (=open buffers) list */
-    synchronized static void syncBuffer(String fullName) {
-        if (P.optimizeTraffic) sendMessage("sync " + fullName);
+    synchronized static void syncBuffer(Buffer buffer) {
+        if (P.optimizeTraffic) sendMessage(String.format("sync %s", buffer.hexPointer()));
     }
 
-    synchronized static void desyncBuffer(String fullName) {
-        if (P.optimizeTraffic) sendMessage("desync " + fullName);
+    synchronized static void desyncBuffer(Buffer buffer) {
+        if (P.optimizeTraffic) sendMessage(String.format("desync %s", buffer.hexPointer()));
     }
 
     private static int counter = 0;

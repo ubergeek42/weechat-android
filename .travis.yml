@@ -3,9 +3,10 @@ addons:
   apt:
     packages:
       - python-openssl
+
 before_script:
-  - export PATH=$HOME/.local/bin:$PATH
-  - pip install --user `whoami` google-api-python-client
+  - 'export PATH="$HOME/.local/bin:$PATH"'
+  - pip install --user google-api-python-client
 # broken, see below with git depth 99999
 #  - git fetch --unshallow
 
@@ -17,7 +18,10 @@ after_script:
 
 android:
   components:
-    - build-tools-22.0.1
+    - tools
+    - platform-tools
+    - tools
+    - build-tools-25.0.2
     - android-23
     - extra-android-support
     - extra-google-m2repository

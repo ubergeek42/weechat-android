@@ -126,17 +126,6 @@ public class SSLHandler {
         saveKeystore();
     }
 
-    public @Nullable SSLContext getSSLContext() {
-        try {
-            SSLContext sslContext = SSLContext.getInstance("TLS");
-            sslContext.init(null, UserTrustManager.build(sslKeystore), new SecureRandom());
-            return sslContext;
-        } catch (NoSuchAlgorithmException | KeyManagementException e) {
-            logger.error("getSSLContext()", e);
-            return null;
-        }
-    }
-
     public SSLSocketFactory getSSLSocketFactory() {
         SSLCertificateSocketFactory sslSocketFactory = (SSLCertificateSocketFactory) SSLCertificateSocketFactory.getDefault(0, null);
         sslSocketFactory.setTrustManagers(UserTrustManager.build(sslKeystore));

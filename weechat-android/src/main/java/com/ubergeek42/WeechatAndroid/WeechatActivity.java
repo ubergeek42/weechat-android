@@ -448,7 +448,7 @@ public class WeechatActivity extends AppCompatActivity implements
                     @Override
                     public void onClick(DialogInterface dialogInterface, int position) {
                         Nick nick = nicklistAdapter.getItem(position);
-                        EventBus.getDefault().post(new SendMessageEvent("input " + buffer.fullName + " /query " + nick.name));
+                        EventBus.getDefault().post(new SendMessageEvent(String.format("input %s /query %s", buffer.hexPointer(), nick.name)));
                     }
                 });
                 AlertDialog dialog = builder.create();

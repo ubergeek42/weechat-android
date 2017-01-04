@@ -212,8 +212,8 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
 
         // move the read marker in weechat (if preferences dictate)
         if (!watched && P.hotlistSync) {
-            EventBus.getDefault().post(new SendMessageEvent("input " + buffer.fullName + " /buffer set hotlist -1"));
-            EventBus.getDefault().post(new SendMessageEvent("input " + buffer.fullName + " /input set_unread_current_buffer"));
+            EventBus.getDefault().post(new SendMessageEvent(String.format("input %s /buffer set hotlist -1", buffer.hexPointer())));
+            EventBus.getDefault().post(new SendMessageEvent(String.format("input %s /input set_unread_current_buffer", buffer.hexPointer())));
         }
     }
 
@@ -485,7 +485,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         String[] lines = input.split("\n");
         for (String line : lines) {
             if (line.length() != 0)
-                EventBus.getDefault().post(new SendMessageEvent("input " + fullName + " " + line));
+                EventBus.getDefault().post(new SendMessageEvent(String.format("input %s %s", buffer.hexPointer(), line)));
         }
         uiInput.setText("");   // this will reset tab completion
     }

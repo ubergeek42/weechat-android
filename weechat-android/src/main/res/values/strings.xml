@@ -203,6 +203,8 @@
 
         <string name="pref_lookfeel_group">Look &amp; feel</string>
             <string name="pref_text_size">Text Size</string>
+            <string name="pref_auto_hide_actionbar">Hide action bar</string>
+            <string name="pref_auto_hide_actionbar_summary">Hide the top action bar when the keyboard is open or when scrolling up</string>
             <string name="pref_chatview_filters">Filter messages</string>
             <string name="pref_chatview_filters_summary">Hide messages filtered by WeeChat (e.g. irc_smart_filter)</string>
             <string name="pref_prefix_align">Prefix alignment</string>

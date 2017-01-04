@@ -89,6 +89,10 @@ public class Buffer {
         if (DEBUG_BUFFER) logger.debug("new Buffer(..., {}, {}, ...) isOpen? {}", number, fullName, isOpen);
     }
 
+    public String hexPointer() {
+        return String.format("0x%x", pointer);
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// LINES
@@ -139,11 +143,11 @@ public class Buffer {
         if (this.isOpen == open) return;
         this.isOpen = open;
         if (open) {
-            BufferList.syncBuffer(fullName);
+            BufferList.syncBuffer(this);
             for (Line line : lines) line.processMessageIfNeeded();
         }
         else {
-            BufferList.desyncBuffer(fullName);
+            BufferList.desyncBuffer(this);
             for (Line line : lines) line.eraseProcessedMessage();
             if (P.optimizeTraffic) {
                 // if traffic is optimized, the next time we open the buffer, it might have been updated
