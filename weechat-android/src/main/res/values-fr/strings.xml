@@ -155,7 +155,7 @@
         Émis le : %3$s<br>
         Expire le : %4$s<br>
         <br>
-        <b>Empreinte SHA-1 :</b><br>
+        <b>Empreinte SHA-256 :</b><br>
         %5$s
     ]]></string>
     <string name="pref_file_choose_button">Choisir un fichier</string>

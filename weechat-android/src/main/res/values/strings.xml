@@ -77,11 +77,11 @@
         <b>Issued by:</b><br>
         %2$s<br>
         <br>
-        <b>Validity Period:</b><br>
+        <b>Validity period:</b><br>
         Issued On: %3$s<br>
         Expires On: %4$s<br>
         <br>
-        <b>SHA-1 Fingerprint:</b><br>
+        <b>SHA-256 fingerprint:</b><br>
         %5$s
     ]]></string>
     <string name="ssl_cert_dialog_title">Untrusted certificate</string>
