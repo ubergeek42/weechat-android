@@ -73,7 +73,7 @@ public class UntrustedCertificateDialog extends DialogFragment {
 
     public String getCertificateDescription() {
         String fingerprint;
-        try {fingerprint = new String(Hex.encodeHex(DigestUtils.sha1(certificate.getEncoded())));}
+        try {fingerprint = new String(Hex.encodeHex(DigestUtils.sha256(certificate.getEncoded())));}
         catch (CertificateEncodingException e) {fingerprint = getString(R.string.ssl_cert_dialog_unknown_fingerprint); }
         return getString(R.string.ssl_cert_dialog_description,
                 certificate.getSubjectDN().getName(),

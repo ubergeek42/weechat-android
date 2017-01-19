@@ -81,7 +81,7 @@
         Issued On: %3$s<br>
         Expires On: %4$s<br>
         <br>
-        <b>SHA-1 Fingerprint:</b><br>
+        <b>SHA-256 Fingerprint:</b><br>
         %5$s
     ]]></string>
     <string name="ssl_cert_dialog_title">Untrusted certificate</string>
