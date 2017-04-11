@@ -138,6 +138,11 @@ public class BufferListAdapter extends BaseAdapter implements BufferListEye {
         });
     }
 
+    public BufferListAdapter preventFilter() {
+        BufferList.setFilter("");
+        return this;
+    }
+
     @Override
     public void onHotCountChanged() {}
 }

@@ -31,7 +31,7 @@ public class ShareTextActivity extends AppCompatActivity implements DialogInterf
 
         Intent intent = getIntent();
         if ((Intent.ACTION_SEND.equals(intent.getAction()) && "text/plain".equals(intent.getType()))) {
-            bufferlistAdapter = new BufferListAdapter(this);
+            bufferlistAdapter = new BufferListAdapter(this).preventFilter();
             AlertDialog.Builder builder = new AlertDialog.Builder(this)
                     .setAdapter(bufferlistAdapter, this)
                     .setTitle(getString(R.string.share_text_title));
