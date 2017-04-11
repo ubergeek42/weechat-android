@@ -15,6 +15,7 @@ import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.RemoteInput;
 import android.text.TextUtils;
 
 import com.ubergeek42.WeechatAndroid.BuildConfig;
@@ -36,10 +37,13 @@ public class Notificator {
     final private static boolean DEBUG_NOTIFICATIONS = false;
 
     final private static int NOTIFICATION_MAIN_ID = 42;
-    final private static int NOTIFICATION_HOT_ID = 43;
+    final public static int NOTIFICATION_HOT_ID = 43;
+
+    public static final String KEY_TEXT_REPLY = "key_text_reply";
 
     private static Context context;
     private static NotificationManager manager;
+    private static ReplyReceiver replyReceiver;
 
     public static void init(Context c) {
         context = c.getApplicationContext();
@@ -171,8 +175,31 @@ public class Notificator {
             if (P.notificationLight) flags |= Notification.DEFAULT_LIGHTS;
             if (P.notificationVibrate) flags |= Notification.DEFAULT_VIBRATE;
             builder.setDefaults(flags);
+
+            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP) {
+                // Add reply button
+
+                String replyLabel = context.getResources().getString(R.string.notification_reply_text);
+                RemoteInput remoteInput = new RemoteInput.Builder(KEY_TEXT_REPLY).setLabel(replyLabel).build();
+
+                Intent replyIntent = new Intent(ReplyReceiver.ACTION_REPLY, null, context, ReplyReceiver.class).putExtra("full_name",  target_buffer);
+
+                PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                        context,
+                        0,
+                        replyIntent,
+                        PendingIntent.FLAG_UPDATE_CURRENT
+                );
+
+                NotificationCompat.Action action = new NotificationCompat.Action.Builder(R.drawable.ic_send, replyLabel, pendingIntent).addRemoteInput(remoteInput).build();
+                builder.addAction(action);
+            }
         }
 
         manager.notify(NOTIFICATION_HOT_ID, builder.build());
+    }
+
+    public static void notify(int id, Notification notification) {
+        manager.notify(id, notification);
     }
 }
