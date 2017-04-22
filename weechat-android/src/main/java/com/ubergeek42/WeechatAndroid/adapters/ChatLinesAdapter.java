@@ -19,8 +19,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.UiThread;
 import android.support.annotation.WorkerThread;
-import android.support.v4.app.FragmentActivity;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
@@ -55,20 +53,16 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 
     private WeechatActivity activity = null;
     private AnimatedRecyclerView uiLines;
-    private LinearLayoutManager llm;
     private @Nullable Buffer buffer;
     private List<Line> lines = new ArrayList<>();
     private List<Line> _lines = new ArrayList<>();
 
     private int style = 0;
 
-    public ChatLinesAdapter(FragmentActivity activity, AnimatedRecyclerView animatedRecyclerView) {
+    public ChatLinesAdapter(WeechatActivity activity, AnimatedRecyclerView animatedRecyclerView) {
         if (DEBUG) logger.debug("ChatLinesAdapter()");
-        this.activity = (WeechatActivity) activity;
+        this.activity = activity;
         this.uiLines = animatedRecyclerView;
-        this.llm = (LinearLayoutManager) uiLines.getLayoutManager();
-        uiLines.addOnScrollListener(new OnScrollListener());
-        uiLines.setHasFixedSize(true);
         setHasStableIds(true);
     }
 
@@ -254,18 +248,13 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
                     notifyDataSetChanged();
                     if (_goToEnd) uiLines.scrollToPosition(lines.size() - 1 + 1);
                 } else {
-                    if (add != 0) {
+                    if (add > 0) {
                         notifyItemRangeInserted(lines.size() + 1, add);
+                        if (uiLines.getOnBottom()) uiLines.smoothScrollToPosition(lines.size() - 1 + 1);
+                        else uiLines.flashScrollbar();
                     }
-                    if (rem != 0) {
-                        if (rem > 0) notifyItemRangeRemoved(0 + 1, rem);
-                        else notifyItemRangeInserted(0 + 1, -rem);
-                    }
-                    if (add != 0 && onBottom) {
-                        uiLines.smoothScrollToPosition(lines.size() - 1 + 1);
-                    } else if ((add | rem) != 0) {
-                        uiLines.flashScrollbar();
-                    }
+                    if (rem > 0) notifyItemRangeRemoved(0 + 1, rem);
+                    if (rem < 0) notifyItemRangeInserted(0 + 1, -rem);
                 }
                 if (headerChanged) notifyItemChanged(0);
                 uiLines.scheduleAnimationRestoring();
@@ -313,35 +302,5 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     @UiThread public void loadLinesWithoutAnimation() {
         uiLines.disableAnimationForNextUpdate();
         onLinesChanged(false);
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// todo move this somewhere
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    private boolean focused = false;
-    public void setFocused(boolean focused) {
-        logger.trace("setFocused({})", focused);
-        this.focused = focused;
-    }
-
-    private boolean onBottom = true;
-    private class OnScrollListener extends RecyclerView.OnScrollListener {
-        // determine if we are on the bottom of the list. test dy because sometimes while animating
-        // last_visible might not be true even when we didn't scroll up
-        // notify toolbar controlled about the event and also whether we are on top or bottom
-        @Override public void onScrolled(RecyclerView lw, int dx, int dy) {
-            if (dy == 0) return;
-
-            boolean last_visible = llm.findLastVisibleItemPosition() == getItemCount() - 1;
-            if (dy < 0 && !last_visible) onBottom = false;
-            if (dy > 0 && last_visible) onBottom = true;
-
-            boolean onTop = llm.findFirstCompletelyVisibleItemPosition() == 0;
-            if (focused) {
-                boolean mustShowTop = uiLines.getIfScrollingToSomethingThatMustBeVisibleAndResetIt();
-                activity.toolbarController.onScroll(dy, onTop, onBottom, mustShowTop);
-            }
-        }
     }
 }

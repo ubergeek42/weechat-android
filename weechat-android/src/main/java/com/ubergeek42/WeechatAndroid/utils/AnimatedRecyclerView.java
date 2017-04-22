@@ -15,6 +15,7 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 
+import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.service.P;
 
 import org.slf4j.Logger;
@@ -26,7 +27,7 @@ public class AnimatedRecyclerView extends RecyclerView {
 
     private final static int DELAY = 10;
     private final static int DURATION = 300;
-    private final static int SCROLL_DELAY = 200;
+    private final static int SCROLL_DELAY = 100;
     private final static float TRANSLATION_Y = -P._50dp;
 
     // set this to false to prevent scrolling by user
@@ -56,17 +57,19 @@ public class AnimatedRecyclerView extends RecyclerView {
     public AnimatedRecyclerView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         animator = getItemAnimator();
-        final LinearLayoutManager manager = new LinearLayoutManagerFix(getContext(), LinearLayoutManager.VERTICAL, false) {
-            // there probably should be a simpler way of doing this, but so far this method
-            // is the only one i've found that is called reliably on laying out children
-            @Override public void onLayoutCompleted(State state) {
-                super.onLayoutCompleted(state);
-                if (getChildCount() > 1) animateIfNeeded();
-            }
-        };
         manager.setStackFromEnd(true);
         setLayoutManager(manager);
+        setHasFixedSize(true);
     }
+
+    final private LinearLayoutManager manager = new LinearLayoutManagerFix(getContext(), LinearLayoutManager.VERTICAL, false) {
+        // there probably should be a simpler way of doing this, but so far this method
+        // is the only one i've found that is called reliably on laying out children
+        @Override public void onLayoutCompleted(State state) {
+            super.onLayoutCompleted(state);
+            if (getChildCount() > 1) animateIfNeeded();
+        }
+    };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -148,36 +151,30 @@ public class AnimatedRecyclerView extends RecyclerView {
         animations.start();
     }
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// smooth scroll to hot item
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+
     @UiThread public void smoothScrollToPositionAfterAnimation(final int position) {
         //logger.trace("smoothScrollToPosition({}): scrollable={}, animator={}", position, scrollable, animator);
-        if (linesAlreadyDisplayed < 0 && scrollable) {
-            smoothScrollToPositionFix(position);
-        } else {
-            scrollToPosition = position;
-        }
+        if (linesAlreadyDisplayed < 0 && scrollable) smoothScrollToPositionFix(position);
+        else scrollToPosition = position;
     }
 
     @UiThread private void smoothScrollToPositionFix(int position) {
         LinearSmoothScrollerFix scroller = new LinearSmoothScrollerFix(this);
         scroller.setTargetPosition(position);
         getLayoutManager().startSmoothScroll(scroller);
+        // a dirty but dead simple way to hide Toolbar when scrolling not very far
+        if (position < manager.findFirstCompletelyVisibleItemPosition())
+            ((WeechatActivity) getContext()).toolbarController.onScroll(-10000, true, false);
     }
 
-    private boolean scrollingToSomethingThatMustBeVisible = false;
-    @UiThread void onScrollingToSomethingThatMustBeVisible() {
-        //logger.trace("onScrollingToSomethingThatMustBeVisible()");
-        scrollingToSomethingThatMustBeVisible = true;
-    }
 
-    @UiThread public boolean getIfScrollingToSomethingThatMustBeVisibleAndResetIt() {
-        //logger.trace("getIfScrollingToSomethingThatMustBeVisibleAndResetIt() -> {}", scrollingToSomethingThatMustBeVisible);
-        boolean ret = scrollingToSomethingThatMustBeVisible;
-        scrollingToSomethingThatMustBeVisible = false;
-        return ret;
-    }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// disabling animation for some updates
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @UiThread public void disableAnimationForNextUpdate() {
@@ -197,5 +194,29 @@ public class AnimatedRecyclerView extends RecyclerView {
     @Override public void smoothScrollToPosition(int position) {
         if (getItemAnimator() != null) super.smoothScrollToPosition(position);
         else super.scrollToPosition(position);
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// bottom/top detection
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private boolean onBottom = true;
+    public boolean getOnBottom() {
+        return onBottom;
+    }
+
+    private boolean onTop = false;
+    public boolean getOnTop() {
+        return onTop;
+    }
+
+    @Override public void onScrolled(int dx, int dy) {
+        if (dy == 0) return;
+        boolean lastVisible = manager.findLastVisibleItemPosition() == getAdapter().getItemCount() - 1;
+        boolean firstVisible = manager.findFirstVisibleItemPosition() == 0;
+        if (dy < 0 && !lastVisible) onBottom = false;
+        else if (dy > 0 && lastVisible) onBottom = true;
+        if (dy > 0 && !firstVisible) onTop = false;
+        else if (dy < 0 && firstVisible) onTop = true;
     }
 }

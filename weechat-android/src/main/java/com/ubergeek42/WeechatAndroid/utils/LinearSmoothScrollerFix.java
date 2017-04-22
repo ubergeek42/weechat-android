@@ -27,7 +27,6 @@ class LinearSmoothScrollerFix extends LinearSmoothScroller {
         super.onStart();
         if (findViewByPosition(getTargetPosition()) == null) {
             float direction = computeScrollVectorForPosition(getTargetPosition()).y;
-            if (direction < 0) recycler.onScrollingToSomethingThatMustBeVisible();
             recycler.scrollBy(0, direction > 0 ? 1 : -1);
         }
     }

@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.KeyEvent;
@@ -104,8 +105,12 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         uiTab = (ImageButton) v.findViewById(R.id.chatview_tab);
 
         linesAdapter = new ChatLinesAdapter(activity, uiLines);
-        linesAdapter.setFocused(focused);
         uiLines.setAdapter(linesAdapter);
+        uiLines.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                if (focused && dy != 0) activity.toolbarController.onScroll(dy, uiLines.getOnTop(), uiLines.getOnBottom());
+            }
+        });
 
         uiSend.setOnClickListener(this);
         uiTab.setOnClickListener(this);
@@ -216,7 +221,6 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         super.setUserVisibleHint(focused);
         this.focused = focused;
         if (!focused) moveReadMarkerToEnd();
-        if (linesAdapter != null) linesAdapter.setFocused(focused);
         maybeChangeVisibilityState();
     }
 

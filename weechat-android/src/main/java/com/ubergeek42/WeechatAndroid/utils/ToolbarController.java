@@ -25,15 +25,16 @@ public class ToolbarController implements ViewTreeObserver.OnGlobalLayoutListene
     }
 
     private int _dy = 0;
-    public void onScroll(int dy, boolean touchingTop, boolean touchingBottom, boolean mustShowTop) {
+    public void onScroll(int dy, boolean touchingTop, boolean touchingBottom) {
         if (!canAutoHide()) return;
         if (keyboardVisible) return;
         _dy = ((_dy < 0) != (dy < 0)) ? dy : _dy + dy;
-        if (_dy < -P._200dp || (_dy < 0 && touchingTop) || mustShowTop) hide();
+        if (_dy < -P._200dp || (_dy < 0 && touchingTop)) hide();
         else if (_dy > P._200dp || (_dy > 0 && touchingBottom)) show();
     }
 
     public void onPageChangedOrSelected() {
+        _dy = 0;
         show();
     }
 
