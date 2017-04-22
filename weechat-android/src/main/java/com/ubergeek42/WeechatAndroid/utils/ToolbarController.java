@@ -1,6 +1,5 @@
 package com.ubergeek42.WeechatAndroid.utils;
 
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
@@ -12,31 +11,33 @@ import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.service.P;
 
 public class ToolbarController implements ViewTreeObserver.OnGlobalLayoutListener {
-    final Toolbar toolbar;
-    final ActionBar actionBar;
-    final View root;
+    private final Toolbar toolbar;
+    private final View root;
 
-    boolean shown = true;
-    boolean keyboardVisible = false;
+    private boolean shown = true;
+    private boolean keyboardVisible = false;
 
     public ToolbarController(AppCompatActivity activity) {
         this.toolbar = (Toolbar) activity.findViewById(R.id.toolbar);
-        this.actionBar = activity.getSupportActionBar();
         this.root = activity.findViewById(android.R.id.content);
         root.getViewTreeObserver().addOnGlobalLayoutListener(this);
+        //toolbar.setAlpha(0.5f);
     }
 
-    public void onUserScroll(int bottomHidden, int prevBottomHidden) {
+    private int _dy = 0;
+    public void onScroll(int dy, boolean touchingTop, boolean touchingBottom, boolean mustShowTop) {
         if (!canAutoHide()) return;
-        if (bottomHidden > prevBottomHidden) hide();
-        else if (bottomHidden < prevBottomHidden) show();
+        if (keyboardVisible) return;
+        _dy = ((_dy < 0) != (dy < 0)) ? dy : _dy + dy;
+        if (_dy < -P._200dp || (_dy < 0 && touchingTop) || mustShowTop) hide();
+        else if (_dy > P._200dp || (_dy > 0 && touchingBottom)) show();
     }
 
     public void onPageChangedOrSelected() {
         show();
     }
 
-    public void onSoftwareKeyboardStateChanged(boolean visible) {
+    private void onSoftwareKeyboardStateChanged(boolean visible) {
         if (!canAutoHide()) return;
         if (keyboardVisible == visible) return;
         keyboardVisible = visible;
@@ -54,19 +55,13 @@ public class ToolbarController implements ViewTreeObserver.OnGlobalLayoutListene
     private void show() {
         if (shown) return;
         shown = true;
-        if (android.os.Build.VERSION.SDK_INT >= 14)
-            toolbar.animate().translationY(0).setInterpolator(new DecelerateInterpolator()).start();
-        else
-            actionBar.show();
+        toolbar.animate().translationY(0).setInterpolator(new DecelerateInterpolator()).start();
     }
 
     private void hide() {
         if (!shown) return;
         shown = false;
-        if (android.os.Build.VERSION.SDK_INT >= 14)
-            toolbar.animate().translationY(-toolbar.getBottom()).setInterpolator(new AccelerateInterpolator()).start();
-        else
-            actionBar.hide();
+        toolbar.animate().translationY(-toolbar.getBottom()).setInterpolator(new AccelerateInterpolator()).start();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

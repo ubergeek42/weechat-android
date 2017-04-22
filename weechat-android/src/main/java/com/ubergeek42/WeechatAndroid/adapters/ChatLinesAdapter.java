@@ -15,205 +15,333 @@
  ******************************************************************************/
 package com.ubergeek42.WeechatAndroid.adapters;
 
-import android.graphics.Typeface;
-import android.graphics.drawable.ColorDrawable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.UiThread;
+import android.support.annotation.WorkerThread;
 import android.support.v4.app.FragmentActivity;
-import android.text.Spannable;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AbsListView;
-import android.widget.BaseAdapter;
-import android.widget.ListAdapter;
-import android.widget.ListView;
-import android.widget.RelativeLayout;
+import android.widget.Button;
 import android.widget.TextView;
 
+import com.ubergeek42.WeechatAndroid.utils.AnimatedRecyclerView;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferEye;
 import com.ubergeek42.WeechatAndroid.relay.Line;
 import com.ubergeek42.WeechatAndroid.service.P;
+import com.ubergeek42.WeechatAndroid.utils.CopyPaste;
 import com.ubergeek42.weechat.ColorScheme;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ChatLinesAdapter extends BaseAdapter implements ListAdapter, BufferEye, AbsListView.OnScrollListener {
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.ubergeek42.WeechatAndroid.R.layout.more_button;
+
+public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements BufferEye {
 
     private static Logger logger = LoggerFactory.getLogger("ChatLinesAdapter");
-    final private static boolean DEBUG = false;
+    final private static boolean DEBUG = true;
 
     private WeechatActivity activity = null;
+    private AnimatedRecyclerView uiLines;
+    private LinearLayoutManager llm;
+    private @Nullable Buffer buffer;
+    private List<Line> lines = new ArrayList<>();
+    private List<Line> _lines = new ArrayList<>();
 
-    private Buffer buffer;
-    private Line[] lines = new Line[0];
-    private LayoutInflater inflater;
-    private ListView uiListView;
-    private @Nullable Typeface typeface = null;
+    private int style = 0;
 
-    private boolean lastItemVisible = true;
-    public boolean needMoveLastReadMarker = false;
-
-    public ChatLinesAdapter(FragmentActivity activity, Buffer buffer, ListView uiListView) {
-        if (DEBUG) logger.debug("ChatLinesAdapter({}, {})", activity, buffer);
+    public ChatLinesAdapter(FragmentActivity activity, AnimatedRecyclerView animatedRecyclerView) {
+        if (DEBUG) logger.debug("ChatLinesAdapter()");
         this.activity = (WeechatActivity) activity;
+        this.uiLines = animatedRecyclerView;
+        this.llm = (LinearLayoutManager) uiLines.getLayoutManager();
+        uiLines.addOnScrollListener(new OnScrollListener());
+        uiLines.setHasFixedSize(true);
+        setHasStableIds(true);
+    }
+
+    @UiThread public void setBuffer(@Nullable Buffer buffer) {
         this.buffer = buffer;
-        this.inflater = LayoutInflater.from(activity);
-        this.uiListView = uiListView;
-        uiListView.setOnScrollListener(this);
     }
-    public void setFont(@NonNull String fontPath) {
-        typeface = ("".equals(fontPath)) ? null : Typeface.createFromFile(fontPath);
+
+    public @NonNull Line getLine(int position) {
+        return lines.get(position);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// row
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @Override
-    public int getCount() {
-        return lines.length;
-    }
+    private static class Row extends RecyclerView.ViewHolder implements View.OnLongClickListener {
+        private View view;
+        private TextView textView;
+        private int style = -1;
 
-    @Override
-    public Object getItem(int position) {
-        return lines[position];
-    }
-
-    @Override
-    public long getItemId(int position) {
-        return lines[position].pointer;
-    }
-
-    @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-        View retview; // The view to return
-        TextView textview;
-
-        boolean mustDrawReadMarker = getItemId(position) == buffer.readMarkerLine;
-
-        // we only want to reuse TextViews, not the special lastLineRead view,
-        // so force view recreation
-        if (mustDrawReadMarker || convertView instanceof RelativeLayout)
-            convertView = null;
-
-        if (convertView == null) {
-            if (mustDrawReadMarker) {
-                retview = inflater.inflate(R.layout.chatview_line_read_marker, null);
-                textview = (TextView)retview.findViewById(R.id.chatline_message);
-                //noinspection deprecation
-                retview.findViewById(R.id.separator).setBackgroundDrawable(
-                        new ColorDrawable(0xFF000000 | ColorScheme.get().chat_read_marker[0]));
+        Row(View view) {
+            super(view);
+            this.view = view;
+            if (view instanceof TextView) {
+                textView = (TextView) view;
             } else {
-                textview = (TextView) inflater.inflate(R.layout.chatview_line, null);
-                retview = textview;
+                textView = (TextView) view.findViewById(R.id.chatline_message);
+                this.view.findViewById(R.id.separator).setBackgroundColor(0xFF000000 | ColorScheme.get().chat_read_marker[0]);
             }
-            textview.setTextColor(0xFF000000 | ColorScheme.get().defaul[0]);
-            textview.setMovementMethod(LinkMovementMethod.getInstance());
-        } else { // convertview is only ever not null for the simple case
-            textview = (TextView) convertView;
-            retview = textview;
+            textView.setMovementMethod(LinkMovementMethod.getInstance());
+            textView.setOnLongClickListener(this);
         }
 
-        textview.setTextSize(P.textSize);
-        Line line = (Line) getItem(position);
-        textview.setText(line.spannable);
-        textview.setTag(line);
-        if (typeface != null)
-            textview.setTypeface(typeface);
+        void update(Line line, int newStyle) {
+            textView.setTag(line);
+            textView.setText(line.spannable);
+            if (style != (style = newStyle)) updateStyle();
+        }
 
-        return retview;
+        void updateStyle() {
+            textView.setTextSize(P.textSize);
+            textView.setTypeface(P.typeface);
+            textView.setTextColor(0xFF000000 | ColorScheme.get().defaul[0]);
+        }
+
+        @Override public boolean onLongClick(View v) {
+            CopyPaste.onItemLongClick((TextView) v);
+            return true;
+        }
+    }
+
+    //////////////////////////////////////////////////////////////////////////////////////////////// header
+
+    private static class Header extends RecyclerView.ViewHolder implements View.OnClickListener {
+        private ViewGroup header;
+        private Button button;
+        private ChatLinesAdapter adapter;
+        private Buffer.LINES status = Buffer.LINES.CAN_FETCH_MORE;
+
+        Header(View header, ChatLinesAdapter adapter) {
+            super(header);
+            this.header = (ViewGroup) header;
+            this.adapter = adapter;
+            button = (Button) this.header.findViewById(R.id.button_more);
+            button.setOnClickListener(this);
+        }
+
+        void update() {
+            if (adapter.buffer == null) return;
+            final Buffer.LINES s = adapter.buffer.getLineStatus();
+            if (status == s) return;
+            status = s;
+            if (s == Buffer.LINES.EVERYTHING_FETCHED) {
+                header.removeAllViews();
+            } else {
+                if (header.getChildCount() == 0) header.addView(button);
+                boolean more = s == Buffer.LINES.CAN_FETCH_MORE;
+                button.setEnabled(more);
+                button.setTextColor(more ? 0xff80cbc4 : 0xff777777);
+                button.setText(button.getContext().getString(more ? R.string.more_button : R.string.more_button_fetching));
+            }
+        }
+
+        @Override public void onClick(View v) {
+            if (adapter.buffer == null) return;
+            adapter.buffer.requestMoreLines();
+            update();
+        }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// RecyclerView.Adapter methods
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    final private static int HEADER = -1, LINE = 0, LINE_MARKER = 1;
+    final private static int HEADER_ID = -123;
+
+    @Override public int getItemViewType(int position) {
+        //logger.trace("getItemViewType({})", position);
+        if (position == 0) return HEADER;
+        return getItemId(position) == readMarkerLine ? LINE_MARKER : LINE;
+    }
+
+    @Override public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        //logger.trace("onCreateViewHolder({})", viewType);
+        if (viewType == HEADER) return new Header(LayoutInflater.from(parent.getContext()).inflate(more_button, parent, false), this);
+        int res = (viewType == LINE) ? R.layout.chatview_line : R.layout.chatview_line_read_marker;
+        return new Row(LayoutInflater.from(parent.getContext()).inflate(res, parent, false));
+    }
+
+    @Override public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+        //logger.trace("onBindViewHolder(..., {}, {})", position);
+        if (position == 0) ((Header) holder).update();
+        else ((Row) holder).update(lines.get(position - 1), style);
+    }
+
+    @Override public int getItemCount() {
+        //logger.trace("getItemCount()");
+        return lines.size() + 1;
+    }
+
+    @Override public long getItemId(int position) {
+        //logger.trace("getItemId({})", position);
+        if (position == 0) return HEADER_ID;
+        return lines.get(position - 1).pointer;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private Spannable oldLastSpannable = null;
+    // get new lines, perform a simple diff and dispatch change notifications to RecyclerView
+    // this might be called by multiple threads in rapid succession
+    // in case non-main thread calls this before the Runnable that sets `lines` is executed,
+    // store the new list in `_lines` so that we can produce a proper diff
+    @UiThread @WorkerThread private synchronized void onLinesChanged(final boolean headerChanged) {
+        if (buffer == null) return;
+        final List<Line> newLines = Arrays.asList(buffer.getLinesCopy());
+        boolean fullReset = false;
+        boolean goToEnd = false;
+        int indexEnd = -1, indexStart = -1, indexStartNew = -1;
 
-    public void readLinesFromBuffer() {
-        oldLastSpannable = null;
-        onLinesChanged();
-    }
+        if (_lines.isEmpty()) {
+            fullReset = true;
+            if (_lines.isEmpty()) goToEnd = true;
+        } else {
+            long lastPointer = _lines.get(_lines.size()-1).pointer;
+            for (int i = newLines.size() - 1; i >= 0; i--) {
+                if (newLines.get(i).pointer == lastPointer) {
+                    indexEnd = i;                                       // we found the end of old list in the new list
+                    break;
+                }
+            }
+            if (indexEnd == -1) {
+                fullReset = goToEnd = true;                             // the new list is completely different to the old one
+            } else {
+                for (int n = indexEnd, o = _lines.size() - 1; n >= 0 && o >= 0; n--, o--) {
+                    long newPointer = newLines.get(n).pointer;
+                    if (newPointer == _lines.get(o).pointer) {
+                        indexStart = o;                                 // we found the beginning of the match
+                        indexStartNew = n;
+                    } else {
+                        break;
+                    }
+                }
+                if  (indexStartNew != 0 && indexStart != 0) {
+                    fullReset = true;                                   // the match is only partial
+                }
+            }
+        }
 
-    @Override public void onLinesChanged() {
-        if (DEBUG) logger.debug("onLinesChanged()");
+        final boolean _fullReset = fullReset, _goToEnd = goToEnd;
+        final int add = newLines.size() - 1 - indexEnd;                 // number of lines added on the end
+        final int rem = (fullReset) ? 0 : indexStart - indexStartNew;   // number of lines deleted in the beginning; negative means some lines were added
 
-        final int index, top;
-        final Line[] l;
-        final Spannable lastSpannable;
-        final boolean lineCountUnchanged, lastItemVisible, mustScrollOneLineUp;
-
-        l = buffer.getLinesCopy();
-        if (l.length == 0)
-            return;
-
-        lineCountUnchanged = lines.length == l.length;
-        lastSpannable = l[l.length - 1].spannable;
-
-        // return if there's nothing to update
-        if (!needMoveLastReadMarker && lineCountUnchanged && lastSpannable == oldLastSpannable) return;
-        oldLastSpannable = lastSpannable;
-
-        // if last line is visible, scroll to bottom
-        // this is required for earlier versions of android, apparently
-        // if last line is not visible,
-        // scroll one line up accordingly, so we stay in place
-        // TODO: http://chris.banes.me/2013/02/21/listview-keeping-position/
-        lastItemVisible = this.lastItemVisible;
-        mustScrollOneLineUp = !lastItemVisible && lineCountUnchanged && !needMoveLastReadMarker;    //TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! last piece here
-        if (mustScrollOneLineUp) {
-            index = uiListView.getFirstVisiblePosition();
-            View v = uiListView.getChildAt(0);
-            top = (v == null) ? 0 : v.getTop();
-        } else
-            index = top = 0;
+        _lines = newLines;
 
         activity.runOnUiThread(new Runnable() {
+            @SuppressWarnings("PointlessArithmeticExpression")
             @Override public void run() {
-                lines = l;
-                notifyDataSetChanged();
-                if (lastItemVisible)
-                    uiListView.setSelection(uiListView.getCount() - 1);
-                else if (mustScrollOneLineUp)
-                    uiListView.setSelectionFromTop(index - 1, top);
+                lines = newLines;
+                if (_fullReset) {
+                    notifyDataSetChanged();
+                    if (_goToEnd) uiLines.scrollToPosition(lines.size() - 1 + 1);
+                } else {
+                    if (add != 0) {
+                        notifyItemRangeInserted(lines.size() + 1, add);
+                    }
+                    if (rem != 0) {
+                        if (rem > 0) notifyItemRangeRemoved(0 + 1, rem);
+                        else notifyItemRangeInserted(0 + 1, -rem);
+                    }
+                    if (add != 0 && onBottom) {
+                        uiLines.smoothScrollToPosition(lines.size() - 1 + 1);
+                    } else if ((add | rem) != 0) {
+                        uiLines.flashScrollbar();
+                    }
+                }
+                if (headerChanged) notifyItemChanged(0);
+                uiLines.scheduleAnimationRestoring();
             }
         });
-
-        needMoveLastReadMarker = false;
     }
 
-    @Override public void onLinesListed() {}
+    private long readMarkerLine = -1;
+
+    @UiThread synchronized public void moveReadMarker() {
+        if (buffer == null || buffer.readMarkerLine == readMarkerLine) return;
+        uiLines.disableAnimationForNextUpdate();
+        for (int i = 0; i < _lines.size(); i++) {
+            Line line = _lines.get(i);
+            if (line.pointer == readMarkerLine || line.pointer == buffer.readMarkerLine)
+                notifyItemChanged(i + 1);
+        }
+        uiLines.scheduleAnimationRestoring();
+        readMarkerLine = buffer.readMarkerLine;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// BufferEye
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    // increasing `style` will make all ViewHolders update visual characteristics
+    @Override @UiThread public void onGlobalPreferencesChanged() {
+        style++;
+        if (_lines.size() > 0) notifyItemRangeChanged(1, _lines.size() - 1 + 1);
+    }
+
+    @Override public void onLinesListed() {
+        onLinesChanged(true);
+    }
+
+    @Override public void onLineAdded(final Line line, final boolean removed) {
+        onLinesChanged(false);
+    }
 
     @Override public void onPropertiesChanged() {}
-
     @Override public void onBufferClosed() {}
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// AbsListView.OnScrollListener
-    ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    boolean userIsScrolling = false;
-    private int prevBottomHidden = 0;
-
-    @Override public void onScrollStateChanged(AbsListView absListView, int i) {
-        userIsScrolling = (i != SCROLL_STATE_IDLE);
+    @UiThread public void loadLinesWithoutAnimation() {
+        uiLines.disableAnimationForNextUpdate();
+        onLinesChanged(false);
     }
 
-    // this determines how many items are not visible in the ListView
-    // the difference, if any, and if user is actually scrolling, is sent to toolbar controller
-    //   (this is needed to prevent inadvertent toolbar showing/hiding when changing lines)
-    // also, determine if we are on our last line
-    @Override public void onScroll(AbsListView lw, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-        final int bottomHidden = totalItemCount - firstVisibleItem - visibleItemCount;
-        lastItemVisible = bottomHidden == 0;
-        if (userIsScrolling)
-            activity.toolbarController.onUserScroll(bottomHidden, prevBottomHidden);
-        prevBottomHidden = bottomHidden;
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// todo move this somewhere
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private boolean focused = false;
+    public void setFocused(boolean focused) {
+        logger.trace("setFocused({})", focused);
+        this.focused = focused;
+    }
+
+    private boolean onBottom = true;
+    private class OnScrollListener extends RecyclerView.OnScrollListener {
+        // determine if we are on the bottom of the list. test dy because sometimes while animating
+        // last_visible might not be true even when we didn't scroll up
+        // notify toolbar controlled about the event and also whether we are on top or bottom
+        @Override public void onScrolled(RecyclerView lw, int dx, int dy) {
+            if (dy == 0) return;
+
+            boolean last_visible = llm.findLastVisibleItemPosition() == getItemCount() - 1;
+            if (dy < 0 && !last_visible) onBottom = false;
+            if (dy > 0 && last_visible) onBottom = true;
+
+            boolean onTop = llm.findFirstCompletelyVisibleItemPosition() == 0;
+            if (focused) {
+                boolean mustShowTop = uiLines.getIfScrollingToSomethingThatMustBeVisibleAndResetIt();
+                activity.toolbarController.onScroll(dy, onTop, onBottom, mustShowTop);
+            }
+        }
     }
 }

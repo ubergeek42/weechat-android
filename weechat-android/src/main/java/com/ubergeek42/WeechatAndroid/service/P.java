@@ -12,9 +12,11 @@ import android.graphics.Typeface;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.UiThread;
 import android.support.v7.preference.FilePreference;
 import android.support.v7.preference.ThemeManager;
 import android.text.TextUtils;
+import android.util.TypedValue;
 
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.relay.Buffer;
@@ -34,7 +36,6 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Locale;
 
-import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
@@ -56,9 +57,14 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         p = PreferenceManager.getDefaultSharedPreferences(context);
         loadUIPreferences();
         p.registerOnSharedPreferenceChangeListener(instance = new P());
+        _50dp = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 50, context.getResources().getDisplayMetrics());
+        _200dp = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 200, context.getResources().getDisplayMetrics());
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////// ui
+
+    public static float _50dp;
+    public static float _200dp;
 
     public static boolean sortBuffers, showTitle, filterBuffers, optimizeTraffic;
     public static boolean filterLines, autoHideActionbar;
@@ -73,6 +79,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
 
     public static boolean showSend, showTab, hotlistSync, volumeBtnSize;
     public static String bufferFont;
+    public static Typeface typeface;
 
     public static boolean showBufferFilter;
 
@@ -171,7 +178,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @Override public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+    @Override @UiThread public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         if (DEBUG_PREFS) logger.debug("onSharedPreferenceChanged()");
 
         switch (key) {
@@ -185,32 +192,32 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
             case PREF_FILTER_LINES: filterLines = p.getBoolean(key, PREF_FILTER_LINES_D); break;
             case PREF_MAX_WIDTH:
                 maxWidth = Integer.parseInt(p.getString(key, PREF_MAX_WIDTH_D));
-                BufferList.notifyOpenBuffersMustBeProcessed(false);
+                BufferList.onGlobalPreferencesChanged();
                 break;
             case PREF_ENCLOSE_NICK:
                 encloseNick = p.getBoolean(key, PREF_ENCLOSE_NICK_D);
-                BufferList.notifyOpenBuffersMustBeProcessed(false);
+                BufferList.onGlobalPreferencesChanged();
                 break;
             case PREF_DIM_DOWN:
                 dimDownNonHumanLines = p.getBoolean(key, PREF_DIM_DOWN_D);
-                BufferList.notifyOpenBuffersMustBeProcessed(true);
+                BufferList.onGlobalPreferencesChanged();
                 break;
             case PREF_TIMESTAMP_FORMAT:
                 setTimestampFormat();
-                BufferList.notifyOpenBuffersMustBeProcessed(false);
+                BufferList.onGlobalPreferencesChanged();
                 break;
             case PREF_PREFIX_ALIGN:
                 setAlignment();
-                BufferList.notifyOpenBuffersMustBeProcessed(false);
+                BufferList.onGlobalPreferencesChanged();
                 break;
             case PREF_TEXT_SIZE:
             case PREF_BUFFER_FONT:
                 setTextSizeAndLetterWidth();
-                BufferList.notifyOpenBuffersMustBeProcessed(true);
+                BufferList.onGlobalPreferencesChanged();
                 break;
             case PREF_COLOR_SCHEME:
                 ThemeManager.loadColorSchemeFromPreferences(context);
-                BufferList.notifyOpenBuffersMustBeProcessed(true);
+                BufferList.onGlobalPreferencesChanged();
                 break;
 
             // notifications
@@ -252,9 +259,9 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         textSize = Float.parseFloat(p.getString(PREF_TEXT_SIZE, PREF_TEXT_SIZE_D));
         bufferFont = p.getString(PREF_BUFFER_FONT, PREF_BUFFER_FONT_D);
         Paint paint = new Paint();
-        Typeface tf = Typeface.MONOSPACE;
-        try {tf = Typeface.createFromFile(bufferFont);} catch (Exception ignored) {}
-        paint.setTypeface(tf);
+        typeface = Typeface.MONOSPACE;
+        try {typeface = Typeface.createFromFile(bufferFont);} catch (Exception ignored) {}
+        paint.setTypeface(typeface);
         paint.setTextSize(textSize * context.getResources().getDisplayMetrics().scaledDensity);
         letterWidth = (paint.measureText("m"));
     }

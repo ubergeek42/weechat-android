@@ -19,18 +19,16 @@ import android.view.View.OnClickListener;
 import android.view.View.OnKeyListener;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.ubergeek42.WeechatAndroid.utils.AnimatedRecyclerView;
 import com.ubergeek42.WeechatAndroid.adapters.ChatLinesAdapter;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.relay.Buffer;
-import com.ubergeek42.WeechatAndroid.relay.Buffer.LINES;
 import com.ubergeek42.WeechatAndroid.relay.BufferEye;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.WeechatAndroid.relay.Line;
@@ -56,13 +54,10 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     private WeechatActivity activity = null;
     private boolean started = false;
 
-    private ListView uiLines;
+    private AnimatedRecyclerView uiLines;
     private EditText uiInput;
     private ImageButton uiSend;
     private ImageButton uiTab;
-
-    private ViewGroup uiMore;
-    private Button uiMoreButton;
 
     private String fullName = "…";
     private Buffer buffer;
@@ -100,13 +95,17 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        if (DEBUG_LIFECYCLE) logger.debug("onCreateView()");
+        if (DEBUG_LIFECYCLE) logger.debug("onCreateView(savedInstanceState={})", savedInstanceState);
         View v = inflater.inflate(R.layout.chatview_main, container, false);
 
-        uiLines = (ListView) v.findViewById(R.id.chatview_lines);
+        uiLines = (AnimatedRecyclerView) v.findViewById(R.id.chatview_lines);
         uiInput = (EditText) v.findViewById(R.id.chatview_input);
         uiSend = (ImageButton) v.findViewById(R.id.chatview_send);
         uiTab = (ImageButton) v.findViewById(R.id.chatview_tab);
+
+        linesAdapter = new ChatLinesAdapter(activity, uiLines);
+        linesAdapter.setFocused(focused);
+        uiLines.setAdapter(linesAdapter);
 
         uiSend.setOnClickListener(this);
         uiTab.setOnClickListener(this);
@@ -119,13 +118,6 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
 
         CopyPaste cp = new CopyPaste(activity, uiInput);
         uiInput.setOnLongClickListener(cp);
-        uiLines.setOnItemLongClickListener(cp);
-
-        uiMore = (ViewGroup) inflater.inflate(R.layout.more_button, null);
-        uiMoreButton = (Button) uiMore.findViewById(R.id.button_more);
-        uiMoreButton.setOnClickListener(this);
-        uiLines.addHeaderView(uiMore);
-        status = Buffer.LINES.CAN_FETCH_MORE;
 
         online = true;
         return v;
@@ -162,7 +154,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     //////////////////////////////////////////////////////////////////////////////////////////////// visibility (set by pager adapter)
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private boolean pagerVisible = false;
+    private boolean focused = false;
 
     /** these are the highlight and private counts that we are supposed to scroll
      ** they are reset after the scroll has been completed */
@@ -175,12 +167,11 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     //     * altered if a buffer has been read in weechat (see BufferList.saveLastReadLine)
     //     * set to the last displayed line when user navigates away from a buffer
     //     * shifted from invisible line to last visible line if buffer is filtered
-    private void maybeMoveReadMarker() {
-        if (DEBUG_VISIBILITY) logger.debug("maybeMoveReadMarker()");
+    private void moveReadMarkerToEnd() {
+        if (DEBUG_VISIBILITY) logger.debug("moveReadMarkerToEnd()");
         if (buffer != null && buffer.readMarkerLine != buffer.lastVisibleLine) {
             buffer.readMarkerLine = buffer.lastVisibleLine;
-            linesAdapter.needMoveLastReadMarker = true;
-            onLinesChanged();
+            linesAdapter.moveReadMarker();
         }
     }
 
@@ -198,7 +189,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
 
         // see if visibility has changed. if it hasn't, do nothing
         boolean obscured = activity.isPagerNoticeablyObscured();
-        boolean watched = started && pagerVisible && !obscured;
+        boolean watched = started && focused && !obscured;
 
         if (buffer.isWatched == watched) return;
 
@@ -217,14 +208,15 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         }
     }
 
-    /** called by MainPagerAdapter
-     ** tells us that this page is visible, also used to lifecycle calls (must call super) */
+    // called by MainPagerAdapter
+    // if true the page is the main in the adapter; called when sideways scrolling is complete
     @Override
-    public void setUserVisibleHint(boolean visible) {
-        if (DEBUG_VISIBILITY) logger.debug("setUserVisibleHint({})", visible);
-        super.setUserVisibleHint(visible);
-        this.pagerVisible = visible;
-        if (!visible) maybeMoveReadMarker();
+    public void setUserVisibleHint(boolean focused) {
+        if (DEBUG_VISIBILITY) logger.debug("setUserVisibleHint({})", focused);
+        super.setUserVisibleHint(focused);
+        this.focused = focused;
+        if (!focused) moveReadMarkerToEnd();
+        if (linesAdapter != null) linesAdapter.setFocused(focused);
         maybeChangeVisibilityState();
     }
 
@@ -256,20 +248,9 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
 
     private void attachToBuffer() {
         logger.debug("attachToBuffer()");
-
         buffer.setBufferEye(this);
-
-        linesAdapter = new ChatLinesAdapter(activity, buffer, uiLines);
-        linesAdapter.setFont(P.bufferFont);
-        linesAdapter.readLinesFromBuffer();
-
-        activity.runOnUiThread(new Runnable() {
-            @Override public void run() {
-                activity.updateCutePagerTitleStrip();
-                uiLines.setAdapter(linesAdapter);
-                maybeChangeHeader();
-            }
-        });
+        linesAdapter.setBuffer(buffer);
+        linesAdapter.loadLinesWithoutAnimation();
         maybeChangeVisibilityState();
     }
 
@@ -277,6 +258,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     private void detachFromBuffer() {
         if (DEBUG_LIFECYCLE) logger.debug("detachFromBuffer()");
         maybeChangeVisibilityState();
+        linesAdapter.setBuffer(null);
         if (buffer != null) buffer.setBufferEye(null);
         buffer = null;
     }
@@ -297,52 +279,30 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         });
     }
 
-    private LINES status = LINES.CAN_FETCH_MORE;
-    private void maybeChangeHeader() {
-        final LINES s = buffer.getLineStatus();
-        if (status == s) return;
-        status = s;
-        activity.runOnUiThread(new Runnable() {
-            @Override public void run() {
-                logger.debug("maybeChangeHeader(); {}", s);
-                if (s == LINES.EVERYTHING_FETCHED) {
-                    uiMore.removeAllViews();
-                } else {
-                    if (uiMore.getChildCount() == 0) uiMore.addView(uiMoreButton);
-                    boolean more = s == LINES.CAN_FETCH_MORE;
-                    uiMoreButton.setEnabled(more);
-                    uiMoreButton.setTextColor(more ? 0xff80cbc4 : 0xff777777);
-                    uiMoreButton.setText(getString(more ? R.string.more_button : R.string.more_button_fetching));
-                }
-            }
-        });
-    }
-
-    private void requestMoreLines() {
-        if (buffer.getLineStatus() == LINES.CAN_FETCH_MORE) {
-            buffer.requestMoreLines();
-            maybeChangeHeader();
-        }
-    }
-
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// BufferEye stuff
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @Override
-    public void onLinesChanged() {
-        if (linesAdapter != null) {
-            linesAdapter.onLinesChanged();
-        }
-        maybeChangeHeader();
+    public void onLineAdded(Line line, boolean removed) {
+        logger.debug("onLineAdded({}, {})", line, removed);
+        if (linesAdapter == null) return;
+        linesAdapter.onLineAdded(line, removed);
+    }
+
+    @Override
+    public void onGlobalPreferencesChanged() {
+        logger.debug("onGlobalPreferencesChanged()");
+        if (linesAdapter == null) return;
+        linesAdapter.onGlobalPreferencesChanged();
     }
 
     @Override
     public void onLinesListed() {
-        if (linesAdapter != null) {
-            linesAdapter.onLinesChanged();
-        }
-        maybeChangeHeader();
+        logger.warn("onLinesListed()");
+        if (linesAdapter == null) return;
+        uiLines.requestAnimation();
+        linesAdapter.onLinesListed();
         scrollToHotLineIfNeeded();
     }
 
@@ -355,6 +315,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     public void onBufferClosed() {
         activity.runOnUiThread(new Runnable() {
             @Override public void run() {
+                //moveReadMarkerToEnd();  <- todo move marker to end when closing buffer
                 activity.closeBuffer(fullName);
             }
         });
@@ -375,18 +336,18 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
             uiLines.post(new Runnable() {
                 @Override
                 public void run() {
-                    int count = linesAdapter.getCount(), idx = -2;
+                    int count = linesAdapter.getItemCount()-1, idx = -2;
 
                     if (privates > 0) {
                         int p = 0;
                         for (idx = count - 1; idx >= 0; idx--) {
-                            Line line = (Line) linesAdapter.getItem(idx);
+                            Line line = linesAdapter.getLine(idx);
                             if (line.type == Line.LINE_MESSAGE && ++p == privates) break;
                         }
                     } else if (highlights > 0) {
                         int h = 0;
                         for (idx = count - 1; idx >= 0; idx--) {
-                            Line line = (Line) linesAdapter.getItem(idx);
+                            Line line = linesAdapter.getLine(idx);
                             if (line.highlighted && ++h == highlights) break;
                         }
                     }
@@ -394,7 +355,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
                     if (idx == -1)
                         Toast.makeText(getActivity(), activity.getString(R.string.autoscroll_no_line), Toast.LENGTH_SHORT).show();
                     else if (idx > 0)
-                        uiLines.smoothScrollToPosition(idx);
+                        uiLines.smoothScrollToPositionAfterAnimation(idx + 1);
 
                     highlights = privates = 0;
                 }
@@ -464,7 +425,6 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         switch (v.getId()) {
             case R.id.chatview_send: sendMessage(); break;
             case R.id.chatview_tab: tryTabComplete(); break;
-            case R.id.button_more: requestMoreLines(); break;
         }
     }
 

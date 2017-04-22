@@ -24,7 +24,7 @@ import com.ubergeek42.weechat.Color;
 import java.util.ArrayList;
 
 
-public class CopyPaste implements EditText.OnLongClickListener, AdapterView.OnItemLongClickListener {
+public class CopyPaste implements EditText.OnLongClickListener {
 
     private AppCompatActivity activity;
     private EditText input;
@@ -88,27 +88,27 @@ public class CopyPaste implements EditText.OnLongClickListener, AdapterView.OnIt
     }
 
     // called on long click on a chat line
-    @Override public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-        TextView uiTextView = (TextView) view.findViewById(R.id.chatline_message);
-        if (uiTextView == null) return false;
-
+    static public boolean onItemLongClick(TextView uiTextView) {
+        final Context context = uiTextView.getContext();
         Line line = (Line) uiTextView.getTag();
         final ArrayList<String> list = new ArrayList<>();
 
         list.add(line.getNotificationString());
         list.add(Color.stripEverything(line.message));
 
-        for (URLSpan url: uiTextView.getUrls())
-            list.add(url.getURL());
+        for (URLSpan url: uiTextView.getUrls()) {
+            String u = url.getURL();
+            if (!list.get(1).equals(u)) list.add(u);
+        }
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-        builder.setTitle(activity.getString(R.string.dialog_copy_title)).setAdapter(
-                new ArrayAdapter<>(activity, R.layout.select_dialog_item_material_2_lines, android.R.id.text1, list),
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle(context.getString(R.string.dialog_copy_title)).setAdapter(
+                new ArrayAdapter<>(context, R.layout.select_dialog_item_material_2_lines, android.R.id.text1, list),
                 new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         // noinspection deprecation
-                        ClipboardManager cm = (ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE);
+                        ClipboardManager cm = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
                         cm.setText(list.get(which));
                     }
                 });

@@ -2,6 +2,7 @@ package com.ubergeek42.WeechatAndroid.relay;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.UiThread;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -179,6 +180,7 @@ public class Buffer {
         if (bufferEye != null) {
             if (!holdsAllLines) BufferList.requestLinesForBufferByPointer(pointer, maxLines);
             if (!holdsAllNicks) BufferList.requestNicklistForBufferByPointer(pointer);
+            if (needsToBeNotifiedAboutGlobalPreferencesChanged) bufferEye.onGlobalPreferencesChanged();
         }
     }
 
@@ -221,9 +223,13 @@ public class Buffer {
         // happens when reverse request throws in lines even though some are already here
         for (Line l: lines) if (l.pointer == line.pointer) return;
 
+        boolean removing = false;
         // remove a line if we are over the limit and add the new line
         // correct visibleLinesCount accordingly
-        if (lines.size() >= maxLines) if (lines.removeFirst().visible) visibleLinesCount--;
+        if (lines.size() >= maxLines) {
+            removing = true;
+            if (lines.removeFirst().visible) visibleLinesCount--;
+        }
         if (isLast) lines.add(line);
         else lines.addFirst(line);
         if (line.visible) visibleLinesCount++;
@@ -252,7 +258,7 @@ public class Buffer {
         }
 
         // notify our listener
-        if (isLast) onLinesChanged();
+        if (isLast) onLineAdded(line, removing);
 
         // if current line's an event line and we've got a speaker, move nick to fist position
         // nick in question is supposed to be in the nicks already, for we only shuffle these
@@ -315,8 +321,14 @@ public class Buffer {
         }
     }
 
-    synchronized public void onLinesChanged() {
-        if (bufferEye != null) bufferEye.onLinesChanged();
+    synchronized public void onLineAdded(Line line, boolean removed) {
+        if (bufferEye != null) bufferEye.onLineAdded(line, removed);
+    }
+
+    private boolean needsToBeNotifiedAboutGlobalPreferencesChanged = false;
+    @UiThread synchronized void onGlobalPreferencesChanged() {
+        if (bufferEye != null) bufferEye.onGlobalPreferencesChanged();
+        else needsToBeNotifiedAboutGlobalPreferencesChanged = true;
     }
 
     synchronized public void onLinesListed() {

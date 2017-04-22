@@ -5,10 +5,17 @@
 
 package com.ubergeek42.WeechatAndroid.relay;
 
+import android.support.annotation.UiThread;
+
 public interface BufferEye {
 
-    void onLinesChanged();
+    // 1 line added on bottom
+    void onLineAdded(Line line, boolean removed);
 
+    // all lines should be re-rendered due to font size change and such
+    @UiThread void onGlobalPreferencesChanged();
+
+    // server sent us all lines
     void onLinesListed();
 
     void onPropertiesChanged();

@@ -160,17 +160,9 @@ public class WeechatActivity extends AppCompatActivity implements
         uiDrawer = findViewById(R.id.bufferlist_fragment);
         if (slidy) {
             uiDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-            drawerToggle = new ActionBarDrawerToggle(this, uiDrawerLayout,
-                    R.string.open_drawer, R.string.close_drawer) {
-
-                @SuppressWarnings("SimplifiableConditionalExpression")
-                @Override
-                public void onDrawerStateChanged(int newState) {
-                    super.onDrawerStateChanged(newState);
-                    boolean showing = (newState == DrawerLayout.STATE_IDLE) ?
-                            uiDrawerLayout.isDrawerVisible(uiDrawer) : true;
-                    if (drawerShowing != showing)
-                        drawerVisibilityChanged(showing);
+            drawerToggle = new ActionBarDrawerToggle(this, uiDrawerLayout, R.string.open_drawer, R.string.close_drawer) {
+                @Override public void onDrawerSlide(View drawerView, float slideOffset) {
+                    drawerVisibilityChanged(slideOffset > 0);
                 }
             };
             drawerShowing = uiDrawerLayout.isDrawerVisible(uiDrawer);
@@ -220,10 +212,12 @@ public class WeechatActivity extends AppCompatActivity implements
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
+    private boolean started = false;
     @Override protected void onStart() {
         if (DEBUG_LIFECYCLE) logger.debug("onStart()");
         super.onStart();
         state = null;
+        started = true;
         EventBus.getDefault().registerSticky(this);
         if (getIntent().hasExtra(EXTRA_NAME)) openBufferFromIntent();
         updateHotCount(BufferList.getHotCount());
@@ -231,6 +225,7 @@ public class WeechatActivity extends AppCompatActivity implements
 
     @Override protected void onStop() {
         if (DEBUG_LIFECYCLE) logger.debug("onStop()");
+        started = false;
         EventBus.getDefault().unregister(this);
         P.saveStuff();
         super.onStop();
@@ -553,7 +548,7 @@ public class WeechatActivity extends AppCompatActivity implements
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     public void drawerVisibilityChanged(boolean showing) {
-        if (DEBUG_DRAWER) logger.debug("drawerVisibilityChanged({})", showing);
+        if (drawerShowing == showing) return;
         drawerShowing = showing;
         hideSoftwareKeyboard();
         BufferFragment current = adapter.getCurrentBufferFragment();
@@ -577,23 +572,23 @@ public class WeechatActivity extends AppCompatActivity implements
     }
 
     public void showDrawer() {
-        if (DEBUG_DRAWER) logger.debug("showDrawer()");
+        if (DEBUG_DRAWER) logger.debug("showDrawer(): animating={}", started);
+        //final boolean started = this.started;
         if (!drawerEnabled) return;
         if (!drawerShowing) drawerVisibilityChanged(true); // we need this so that drawerShowing is set immediately
-        uiPager.post(new Runnable() {
-            @Override
-            public void run() {
-                uiDrawerLayout.openDrawer(uiDrawer);
+        runOnUiThread(new Runnable() {
+            @Override public void run() {
+                uiDrawerLayout.openDrawer(uiDrawer, started);
             }
         });
     }
 
     public void hideDrawer() {
-        if (DEBUG_DRAWER) logger.debug("hideDrawer()");
-        uiPager.post(new Runnable() {
-            @Override
-            public void run() {
-                uiDrawerLayout.closeDrawer(uiDrawer);
+        if (DEBUG_DRAWER) logger.debug("hideDrawer(): animating={}", started);
+        //final boolean started = this.started;
+        runOnUiThread(new Runnable() {
+            @Override public void run() {
+                uiDrawerLayout.closeDrawer(uiDrawer, started);
             }
         });
     }
