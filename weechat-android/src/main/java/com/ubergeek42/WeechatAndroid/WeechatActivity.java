@@ -73,6 +73,7 @@ import com.ubergeek42.WeechatAndroid.service.RelayService.STATE;
 
 import static com.ubergeek42.WeechatAndroid.service.Events.*;
 import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.*;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
 
 import de.greenrobot.event.EventBus;
 
@@ -83,9 +84,9 @@ public class WeechatActivity extends AppCompatActivity implements
     final private static boolean DEBUG_OPTIONS_MENU = false;
     final private static boolean DEBUG_LIFECYCLE = true;
     final private static boolean DEBUG_CONNECTION = false;
-    final private static boolean DEBUG_INTENT = false;
+    final private static boolean DEBUG_INTENT = true;
     final private static boolean DEBUG_BUFFERS = false;
-    final private static boolean DEBUG_DRAWER = false;
+    final private static boolean DEBUG_DRAWER = true;
 
     private Menu uiMenu;
     private ViewPager uiPager;
@@ -219,7 +220,7 @@ public class WeechatActivity extends AppCompatActivity implements
         state = null;
         started = true;
         EventBus.getDefault().registerSticky(this);
-        if (getIntent().hasExtra(EXTRA_NAME)) openBufferFromIntent();
+        if (getIntent().hasExtra(NOTIFICATION_EXTRA_BUFFER_FULL_NAME)) openBufferFromIntent();
         updateHotCount(BufferList.getHotCount());
     }
 
@@ -621,33 +622,35 @@ public class WeechatActivity extends AppCompatActivity implements
     //////////////////////////////////////////////////////////////////////////////////////////////// intent
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public final static String EXTRA_NAME = "full_name";
 
     /** we may get intent while we are connected to the service and when we are not.
      ** empty (but present) fullName means open the drawer (in case we have highlights
      ** on multiple buffers */
     @Override protected void onNewIntent(Intent intent) {
-        if (DEBUG_INTENT) logger.debug("onNewIntent(...), fullName='{}'", intent.getStringExtra(EXTRA_NAME));
+        if (DEBUG_INTENT) logger.debug("onNewIntent(...), fullName='{}'", intent.getStringExtra(NOTIFICATION_EXTRA_BUFFER_FULL_NAME));
         super.onNewIntent(intent);
-        if (intent.hasExtra(EXTRA_NAME)) {
+        if (intent.hasExtra(NOTIFICATION_EXTRA_BUFFER_FULL_NAME)) {
             setIntent(intent);
-            openBufferFromIntent();
+            if (started) openBufferFromIntent();
         }
     }
 
     /** the extra must be non-null */
     private void openBufferFromIntent() {
         if (DEBUG_INTENT) logger.debug("openBufferFromIntent()");
-        String name = getIntent().getStringExtra(EXTRA_NAME);
-        if ("".equals(name)) {
-            if (slidy) showDrawer();
-        } else {
-            String text = getIntent().getStringExtra(Intent.EXTRA_TEXT);
-            openBuffer(name, text);
-            if (text != null) {
-                getIntent().removeExtra(Intent.EXTRA_TEXT);
+        String name = getIntent().getStringExtra(NOTIFICATION_EXTRA_BUFFER_FULL_NAME);
+        if (NOTIFICATION_EXTRA_BUFFER_FULL_NAME_ANY.equals(name)) {
+            if (BufferList.getHotBufferCount() > 1) {
+                if (slidy) showDrawer();
+            } else {
+                Buffer buffer = BufferList.getHotBuffer();
+                if (buffer != null) openBuffer(buffer.fullName);
             }
+        } else {
+            String text = getIntent().getStringExtra(NOTIFICATION_EXTRA_BUFFER_INPUT_TEXT);
+            openBuffer(name, text);
         }
-        getIntent().removeExtra(EXTRA_NAME);
+        getIntent().removeExtra(NOTIFICATION_EXTRA_BUFFER_INPUT_TEXT);
+        getIntent().removeExtra(NOTIFICATION_EXTRA_BUFFER_FULL_NAME);
     }
 }

@@ -173,9 +173,17 @@ public class BufferList {
     /** returns a "random" hot buffer or null */
     synchronized static public @Nullable Buffer getHotBuffer() {
         for (Buffer buffer : buffers)
-            if ((buffer.type == Buffer.PRIVATE && buffer.unreads > 0) || buffer.highlights > 0)
+            if (buffer.isHot())
                 return buffer;
         return null;
+    }
+
+    synchronized static public int getHotBufferCount() {
+        int count = 0;
+        for (Buffer buffer : buffers)
+            if (buffer.isHot())
+                count++;
+        return count;
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////// called on the Eye

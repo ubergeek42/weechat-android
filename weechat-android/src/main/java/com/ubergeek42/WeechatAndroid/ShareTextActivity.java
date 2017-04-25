@@ -11,6 +11,8 @@ import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.service.Events;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
 
+import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
+
 import de.greenrobot.event.EventBus;
 
 public class ShareTextActivity extends AppCompatActivity implements DialogInterface.OnClickListener,
@@ -57,8 +59,8 @@ public class ShareTextActivity extends AppCompatActivity implements DialogInterf
         if (buffer != null) {
             final String text = getIntent().getStringExtra(Intent.EXTRA_TEXT);
             Intent intent = new Intent(getApplicationContext(), WeechatActivity.class);
-            intent.putExtra(WeechatActivity.EXTRA_NAME, buffer.fullName);
-            intent.putExtra(Intent.EXTRA_TEXT, text);
+            intent.putExtra(NOTIFICATION_EXTRA_BUFFER_FULL_NAME, buffer.fullName);
+            intent.putExtra(NOTIFICATION_EXTRA_BUFFER_INPUT_TEXT, text);
             startActivity(intent);
         }
     }

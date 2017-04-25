@@ -26,9 +26,8 @@ import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
 
 public class Notificator {
 
@@ -125,14 +124,8 @@ public class Notificator {
             return;
         }
 
-        // find our target buffer. if ALL items point to the same buffer, use it,
-        // otherwise, go to buffer list (→ "")
-        Set<String> set = new HashSet<>();
-        for (String[] h: hotList) set.add(h[BUFFER]);
-        String target_buffer = (hotCount == hotList.size() && set.size() == 1) ? hotList.get(0)[BUFFER] : "";
-
         // prepare intent
-        Intent intent = new Intent(context, WeechatActivity.class).putExtra("full_name", target_buffer);
+        Intent intent = new Intent(context, WeechatActivity.class).putExtra(NOTIFICATION_EXTRA_BUFFER_FULL_NAME, NOTIFICATION_EXTRA_BUFFER_FULL_NAME_ANY);
         PendingIntent contentIntent = PendingIntent.getActivity(context, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         // prepare notification
