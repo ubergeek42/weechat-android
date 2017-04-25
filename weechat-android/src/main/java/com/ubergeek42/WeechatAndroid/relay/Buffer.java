@@ -203,7 +203,6 @@ public class Buffer {
         if (DEBUG_BUFFER) logger.debug("{} setWatched({})", shortName, watched);
         if (isWatched == watched) return;
         isWatched = watched;
-        if (watched) resetUnreadsAndHighlights();
     }
 
     /** called when options has changed and the messages should be processed */
@@ -299,7 +298,11 @@ public class Buffer {
      ** that our number is actually HIGHER than amount of unread lines in the buffer. as a workaround,
      ** we check that we are not getting negative numbers. not perfect, but—! */
      synchronized public void updateHighlightsAndUnreads(int highlights, int unreads) {
-        if (isWatched) {
+         logger.info("{} updateHighlightsAndUnreads({}, {}) [watched={}, holds={}]", shortName, highlights, unreads, isWatched, holdsAllNicks);
+        if (isWatched && holdsAllNicks) {
+            // occasionally, when this method is called for the first time on a new connection, a
+            // buffer is already watched. in this case, we don't want to lose highlights and unreads
+            // as then we won't get the scroll, so we check holdsAllNicks to see if we are ready
             totalReadUnreads = unreads;
             totalReadHighlights = highlights;
         } else {

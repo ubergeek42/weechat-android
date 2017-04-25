@@ -4,6 +4,8 @@ import java.util.Vector;
 
 import android.annotation.SuppressLint;
 import android.support.annotation.NonNull;
+import android.support.annotation.UiThread;
+import android.support.annotation.WorkerThread;
 import android.support.v4.app.Fragment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -161,10 +163,6 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
 
     private boolean focused = false;
 
-    /** these are the highlight and private counts that we are supposed to scroll
-     ** they are reset after the scroll has been completed */
-    private int highlights = 0;
-
     // this method is using the following:
     // lastVisibleLine      last line that exists in the buffer. NOTE: "visible" here means line is not filtered in weechat
     // readMarkerLine       used for display. it is:
@@ -180,8 +178,6 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         }
     }
 
-    private int privates = 0;
-
     /** called when visibility of current fragment is (potentially) altered by
      **   * drawer being shown/hidden
      **   * whether buffer is shown in the pager (see MainPagerAdapter)
@@ -189,20 +185,13 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
      **   * lifecycle */
     public void maybeChangeVisibilityState() {
         if (DEBUG_VISIBILITY) logger.debug("maybeChangeVisibilityState()");
-        if (activity == null || buffer == null)
-            return;
+        if (activity == null || buffer == null) return;
 
         // see if visibility has changed. if it hasn't, do nothing
         boolean obscured = activity.isPagerNoticeablyObscured();
         boolean watched = started && focused && !obscured;
-
         if (buffer.isWatched == watched) return;
 
-        // visibility has changed.
-        if (watched) {
-            highlights = buffer.highlights;
-            privates = (buffer.type == Buffer.PRIVATE) ? buffer.unreads : 0;
-        }
         buffer.setWatched(watched);
         scrollToHotLineIfNeeded();
 
@@ -334,37 +323,16 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
      ** can be called multiple times, will only run once
      ** posts to the listview to make sure it's fully completed loading the items
      **     after setting the adapter or updating lines */
-    public void scrollToHotLineIfNeeded() {
-        if (DEBUG_AUTOSCROLLING) logger.debug("scrollToHotLineIfNeeded()");
-        if (buffer != null && buffer.isWatched && buffer.holdsAllLines && (highlights > 0 || privates > 0)) {
-            uiLines.post(new Runnable() {
-                @Override
-                public void run() {
-                    int count = linesAdapter.getItemCount()-1, idx = -2;
-
-                    if (privates > 0) {
-                        int p = 0;
-                        for (idx = count - 1; idx >= 0; idx--) {
-                            Line line = linesAdapter.getLine(idx);
-                            if (line.type == Line.LINE_MESSAGE && ++p == privates) break;
-                        }
-                    } else if (highlights > 0) {
-                        int h = 0;
-                        for (idx = count - 1; idx >= 0; idx--) {
-                            Line line = linesAdapter.getLine(idx);
-                            if (line.highlighted && ++h == highlights) break;
-                        }
-                    }
-
-                    if (idx == -1)
-                        Toast.makeText(getActivity(), activity.getString(R.string.autoscroll_no_line), Toast.LENGTH_SHORT).show();
-                    else if (idx > 0)
-                        uiLines.smoothScrollToPositionAfterAnimation(idx + 1);
-
-                    highlights = privates = 0;
-                }
-            });
-        }
+    @UiThread @WorkerThread public void scrollToHotLineIfNeeded() {
+        uiLines.post(new Runnable() {
+            @Override public void run() {
+                int idx = linesAdapter.findHotLine();
+                if (idx == ChatLinesAdapter.HOT_LINE_NOT_READY || idx == ChatLinesAdapter.HOT_LINE_NOT_PRESENT) return;
+                if (idx == ChatLinesAdapter.HOT_LINE_LOST) Toast.makeText(getActivity(), activity.getString(R.string.autoscroll_no_line), Toast.LENGTH_SHORT).show();
+                else uiLines.smoothScrollToPositionAfterAnimation(idx);
+                buffer.resetUnreadsAndHighlights();
+            }
+        });
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
