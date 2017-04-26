@@ -145,7 +145,7 @@ public class AnimatedRecyclerView extends RecyclerView {
         view.setAlpha(0.0f);
 
         AnimatorSet animations = new AnimatorSet();
-        animations.playTogether(ObjectAnimator.ofFloat(view, "alpha", 1.0f, 1.0f), ObjectAnimator.ofFloat(view, "translationY", 0f));
+        animations.playTogether(ObjectAnimator.ofFloat(view, "alpha", 1.0f), ObjectAnimator.ofFloat(view, "translationY", 0f));
         animations.setDuration(DURATION);
         animations.setStartDelay(position * DELAY);
         animations.start();
