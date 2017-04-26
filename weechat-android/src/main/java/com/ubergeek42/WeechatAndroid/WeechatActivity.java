@@ -218,10 +218,10 @@ public class WeechatActivity extends AppCompatActivity implements
         if (DEBUG_LIFECYCLE) logger.debug("onStart()");
         super.onStart();
         state = null;
-        started = true;
         EventBus.getDefault().registerSticky(this);
         if (getIntent().hasExtra(NOTIFICATION_EXTRA_BUFFER_FULL_NAME)) openBufferFromIntent();
         updateHotCount(BufferList.getHotCount());
+        started = true;
     }
 
     @Override protected void onStop() {
