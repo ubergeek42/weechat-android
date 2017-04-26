@@ -312,22 +312,22 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     public final static int HOT_LINE_NOT_READY = -2;
     public final static int HOT_LINE_NOT_PRESENT = -3;
 
-    @UiThread public int findHotLine() {
+    @UiThread @WorkerThread synchronized public int findHotLine() {
         if (buffer == null || !buffer.isWatched || !buffer.holdsAllLines) return HOT_LINE_NOT_READY;
         int highlights = buffer.highlights;
         int privates = (buffer.type == Buffer.PRIVATE) ? buffer.unreads : 0;
         if ((highlights | privates) == 0) return HOT_LINE_NOT_PRESENT;
 
-        int count = lines.size(), idx = -1;
+        int count = _lines.size(), idx = -1;
 
         if (privates > 0) {
             for (idx = count - 1; idx >= 0; idx--) {
-                Line line = lines.get(idx);
+                Line line = _lines.get(idx);
                 if (line.type == Line.LINE_MESSAGE && --privates == 0) break;
             }
         } else if (highlights > 0) {
             for (idx = count - 1; idx >= 0; idx--) {
-                Line line = lines.get(idx);
+                Line line = _lines.get(idx);
                 if (line.highlighted && --highlights == 0) break;
             }
         }

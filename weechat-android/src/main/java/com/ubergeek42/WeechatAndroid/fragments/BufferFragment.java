@@ -193,7 +193,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         if (buffer.isWatched == watched) return;
 
         buffer.setWatched(watched);
-        scrollToHotLineIfNeeded();
+        scrollToHotLineIfNeeded();      // this looks at _lines but is synchronized with the setter of _lines
 
         // move the read marker in weechat (if preferences dictate)
         if (!watched && P.hotlistSync) {
@@ -295,8 +295,8 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         logger.warn("onLinesListed()");
         if (linesAdapter == null) return;
         uiLines.requestAnimation();
-        linesAdapter.onLinesListed();
-        scrollToHotLineIfNeeded();
+        linesAdapter.onLinesListed();       // this sets _lines in a worker thread
+        scrollToHotLineIfNeeded();          // this looks at _lines in the same thread
     }
 
     @Override
@@ -324,13 +324,13 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
      ** posts to the listview to make sure it's fully completed loading the items
      **     after setting the adapter or updating lines */
     @UiThread @WorkerThread public void scrollToHotLineIfNeeded() {
-        uiLines.post(new Runnable() {
+        final int idx = linesAdapter.findHotLine();
+        if (idx == ChatLinesAdapter.HOT_LINE_NOT_READY || idx == ChatLinesAdapter.HOT_LINE_NOT_PRESENT) return;
+        buffer.resetUnreadsAndHighlights();
+        activity.runOnUiThread(new Runnable() {
             @Override public void run() {
-                int idx = linesAdapter.findHotLine();
-                if (idx == ChatLinesAdapter.HOT_LINE_NOT_READY || idx == ChatLinesAdapter.HOT_LINE_NOT_PRESENT) return;
                 if (idx == ChatLinesAdapter.HOT_LINE_LOST) Toast.makeText(getActivity(), activity.getString(R.string.autoscroll_no_line), Toast.LENGTH_SHORT).show();
                 else uiLines.smoothScrollToPositionAfterAnimation(idx);
-                buffer.resetUnreadsAndHighlights();
             }
         });
     }
