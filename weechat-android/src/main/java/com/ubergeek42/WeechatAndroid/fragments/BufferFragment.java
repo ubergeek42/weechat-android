@@ -49,7 +49,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
 
     final private static boolean DEBUG_TAB_COMPLETE = false;
     final private static boolean DEBUG_LIFECYCLE = true;
-    final private static boolean DEBUG_VISIBILITY = false;
+    final private static boolean DEBUG_VISIBILITY = true;
     final private static boolean DEBUG_AUTOSCROLLING = false;
 
     private final static String TAG = "tag";
@@ -193,7 +193,8 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         if (buffer.isWatched == watched) return;
 
         buffer.setWatched(watched);
-        scrollToHotLineIfNeeded();      // this looks at _lines but is synchronized with the setter of _lines
+        if (watched) scrollToHotLineIfNeeded();      // this looks at _lines but is synchronized with the setter of _lines
+        else buffer.resetUnreadsAndHighlights();
 
         // move the read marker in weechat (if preferences dictate)
         if (!watched && P.hotlistSync) {
