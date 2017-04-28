@@ -76,7 +76,7 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     //////////////////////////////////////////////////////////////////////////////////////////////// row
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private static class Row extends RecyclerView.ViewHolder implements View.OnLongClickListener {
+    private static class Row extends RecyclerView.ViewHolder {
         private View view;
         private TextView textView;
         private int style = -1;
@@ -91,18 +91,13 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
                 this.view.findViewById(R.id.separator).setBackgroundColor(0xFF000000 | ColorScheme.get().chat_read_marker[0]);
             }
             textView.setMovementMethod(LinkMovementMethod.getInstance());
-            textView.setOnLongClickListener(this);
+            textView.setOnLongClickListener(CopyPaste.copyPaste);
         }
 
         void update(Line line, int newStyle) {
             textView.setTag(line);
             textView.setText(line.spannable);
             if (style != (style = newStyle)) updateStyle(textView);
-        }
-
-        @Override public boolean onLongClick(View v) {
-            CopyPaste.onItemLongClick((TextView) v);
-            return true;
         }
     }
 
@@ -116,7 +111,7 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     //////////////////////////////////////////////////////////////////////////////////////////////// header
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private static class Header extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
+    private static class Header extends RecyclerView.ViewHolder implements View.OnClickListener {
         private TextView title;
         private Button button;
         private ChatLinesAdapter adapter;
@@ -129,7 +124,7 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
             this.adapter = adapter;
             title = (TextView) header.findViewById(R.id.title);
             title.setMovementMethod(LinkMovementMethod.getInstance());
-            title.setOnLongClickListener(this);
+            title.setOnLongClickListener(CopyPaste.copyPaste);
             button = (Button) header.findViewById(R.id.button_more);
             button.setOnClickListener(this);
         }
@@ -177,11 +172,6 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
             if (adapter.buffer == null) return;
             adapter.buffer.requestMoreLines();
             updateButton();
-        }
-
-        @Override public boolean onLongClick(View v) {
-            CopyPaste.onItemLongClick((TextView) v);
-            return true;
         }
     }
 

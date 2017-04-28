@@ -10,7 +10,6 @@ import android.text.style.URLSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.EditText;
@@ -27,24 +26,23 @@ import java.util.ArrayList;
 
 public class CopyPaste implements EditText.OnLongClickListener {
 
-    private AppCompatActivity activity;
-    private EditText input;
+    public static CopyPaste copyPaste = new CopyPaste();
 
-    public CopyPaste(AppCompatActivity activity, EditText input) {
-        this.activity = activity;
-        this.input = input;
+    @Override public boolean onLongClick(View v) {
+        if (v instanceof EditText) return onLongClickInputField((EditText) v);
+        else return onLongClickChatLine((TextView) v);
     }
 
-    // called on long click on input field
-    @Override public boolean onLongClick(View v) {
+    private boolean onLongClickInputField(final EditText input) {
         // do not do anything special if TextView has text
-        if (!"".equals(((TextView) v).getText().toString())) return false;
+        if (!"".equals(input.getText().toString())) return false;
+        Context context = input.getContext();
 
         final ArrayList<String> list = new ArrayList<>();
 
         // read & trim clipboard
         // noinspection deprecation
-        ClipboardManager cm = (ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipboardManager cm = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
         final String clip = (cm.getText() == null) ? "" : cm.getText().toString().trim();
 
         // copy last messages if they do not equal clipboard
@@ -55,10 +53,10 @@ public class CopyPaste implements EditText.OnLongClickListener {
         // clean and add clipboard
         if (!"".equals(clip)) list.add(clip);
 
-        final LayoutInflater inflater = LayoutInflater.from(activity);
+        final LayoutInflater inflater = LayoutInflater.from(context);
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-        builder.setTitle(activity.getString(R.string.dialog_paste_title)).setAdapter(
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle(context.getString(R.string.dialog_paste_title)).setAdapter(
                 new BaseAdapter() {
                     @Override public int getCount() {return list.size();}
                     @Override public String getItem(int position) {return list.get(position);}
@@ -89,7 +87,7 @@ public class CopyPaste implements EditText.OnLongClickListener {
     }
 
     // called on long click on a chat line
-    static public boolean onItemLongClick(TextView uiTextView) {
+    private boolean onLongClickChatLine(TextView uiTextView) {
         final Context context = uiTextView.getContext();
         Line line = (Line) uiTextView.getTag();
         final ArrayList<String> list = new ArrayList<>();

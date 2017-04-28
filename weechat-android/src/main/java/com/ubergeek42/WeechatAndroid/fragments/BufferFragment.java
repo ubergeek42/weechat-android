@@ -122,8 +122,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         uiLines.setFocusable(false);
         uiLines.setFocusableInTouchMode(false);
 
-        CopyPaste cp = new CopyPaste(activity, uiInput);
-        uiInput.setOnLongClickListener(cp);
+        uiInput.setOnLongClickListener(CopyPaste.copyPaste);
 
         online = true;
         return v;
