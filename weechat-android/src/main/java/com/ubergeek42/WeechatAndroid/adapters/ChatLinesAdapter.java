@@ -300,7 +300,9 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @UiThread public void loadLinesWithoutAnimation() {
+        if (buffer == null) return;
         uiLines.disableAnimationForNextUpdate();
+        readMarkerLine = buffer.readMarkerLine;
         onLinesChanged(false);
     }
 

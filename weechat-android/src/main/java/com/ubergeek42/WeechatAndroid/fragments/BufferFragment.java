@@ -172,10 +172,9 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     //     * shifted from invisible line to last visible line if buffer is filtered
     private void moveReadMarkerToEnd() {
         if (DEBUG_VISIBILITY) logger.debug("moveReadMarkerToEnd()");
-        if (buffer != null && buffer.readMarkerLine != buffer.lastVisibleLine) {
-            buffer.readMarkerLine = buffer.lastVisibleLine;
-            linesAdapter.moveReadMarker();
-        }
+        if (buffer.readMarkerLine == buffer.lastVisibleLine) return;
+        buffer.readMarkerLine = buffer.lastVisibleLine;
+        linesAdapter.moveReadMarker();
     }
 
     /** called when visibility of current fragment is (potentially) altered by
@@ -187,7 +186,8 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         if (DEBUG_VISIBILITY) logger.debug("maybeChangeVisibilityState()");
         if (activity == null || buffer == null) return;
 
-        // see if visibility has changed. if it hasn't, do nothing
+        if (!started || !focused) moveReadMarkerToEnd();
+
         boolean obscured = activity.isPagerNoticeablyObscured();
         boolean watched = started && focused && !obscured;
         if (buffer.isWatched == watched) return;
@@ -210,7 +210,6 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         if (DEBUG_VISIBILITY) logger.debug("setUserVisibleHint({})", focused);
         super.setUserVisibleHint(focused);
         this.focused = focused;
-        if (!focused) moveReadMarkerToEnd();
         maybeChangeVisibilityState();
     }
 
