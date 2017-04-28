@@ -15,7 +15,6 @@
  ******************************************************************************/
 package com.ubergeek42.WeechatAndroid.adapters;
 
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.UiThread;
 import android.support.annotation.WorkerThread;
@@ -68,10 +67,6 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 
     @UiThread public void setBuffer(@Nullable Buffer buffer) {
         this.buffer = buffer;
-    }
-
-    public @NonNull Line getLine(int position) {
-        return lines.get(position);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -198,63 +193,21 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     // this might be called by multiple threads in rapid succession
     // in case non-main thread calls this before the Runnable that sets `lines` is executed,
     // store the new list in `_lines` so that we can produce a proper diff
-    @UiThread @WorkerThread private synchronized void onLinesChanged(final boolean headerChanged) {
+    @UiThread @WorkerThread private synchronized void onLinesChanged(@Nullable final Diff.Result readyResult, final boolean headerChanged) {
         if (buffer == null) return;
+
         final List<Line> newLines = Arrays.asList(buffer.getLinesCopy());
-        boolean fullReset = false;
-        boolean goToEnd = false;
-        int indexEnd = -1, indexStart = -1, indexStartNew = -1;
-
-        if (_lines.isEmpty()) {
-            fullReset = true;
-            if (_lines.isEmpty()) goToEnd = true;
-        } else {
-            long lastPointer = _lines.get(_lines.size()-1).pointer;
-            for (int i = newLines.size() - 1; i >= 0; i--) {
-                if (newLines.get(i).pointer == lastPointer) {
-                    indexEnd = i;                                       // we found the end of old list in the new list
-                    break;
-                }
-            }
-            if (indexEnd == -1) {
-                fullReset = goToEnd = true;                             // the new list is completely different to the old one
-            } else {
-                for (int n = indexEnd, o = _lines.size() - 1; n >= 0 && o >= 0; n--, o--) {
-                    long newPointer = newLines.get(n).pointer;
-                    if (newPointer == _lines.get(o).pointer) {
-                        indexStart = o;                                 // we found the beginning of the match
-                        indexStartNew = n;
-                    } else {
-                        break;
-                    }
-                }
-                if  (indexStartNew != 0 && indexStart != 0) {
-                    fullReset = true;                                   // the match is only partial
-                }
-            }
-        }
-
-        final boolean _fullReset = fullReset, _goToEnd = goToEnd;
-        final int add = newLines.size() - 1 - indexEnd;                 // number of lines added on the end
-        final int rem = (fullReset) ? 0 : indexStart - indexStartNew;   // number of lines deleted in the beginning; negative means some lines were added
-
+        final Diff.Result result = (readyResult != null) ? readyResult : Diff.calculateSimpleDiff(_lines, newLines);
         _lines = newLines;
 
         activity.runOnUiThread(new Runnable() {
-            @SuppressWarnings("PointlessArithmeticExpression")
             @Override public void run() {
                 lines = newLines;
-                if (_fullReset) {
-                    notifyDataSetChanged();
-                    if (_goToEnd) uiLines.scrollToPosition(lines.size() - 1 + 1);
-                } else {
-                    if (add > 0) {
-                        notifyItemRangeInserted(lines.size() + 1, add);
-                        if (uiLines.getOnBottom()) uiLines.smoothScrollToPosition(lines.size() - 1 + 1);
-                        else uiLines.flashScrollbar();
-                    }
-                    if (rem > 0) notifyItemRangeRemoved(0 + 1, rem);
-                    if (rem < 0) notifyItemRangeInserted(0 + 1, -rem);
+                result.dispatchDiff(ChatLinesAdapter.this, 1);
+                if (result.completelyDifferent) uiLines.scrollToPosition(getItemCount() - 1);
+                if (result.bottomAdded > 0) {
+                    if (uiLines.getOnBottom()) uiLines.smoothScrollToPosition(getItemCount() - 1);
+                    else uiLines.flashScrollbar();
                 }
                 if (headerChanged) notifyItemChanged(0);
                 uiLines.scheduleAnimationRestoring();
@@ -287,11 +240,12 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     }
 
     @Override public void onLinesListed() {
-        onLinesChanged(true);
+        onLinesChanged(null, true);
     }
 
-    @Override public void onLineAdded(final Line line, final boolean removed) {
-        onLinesChanged(false);
+    @Override public void onLineAdded(final boolean removed) {
+        Diff.Result result = removed ? Diff.oneLineAddedAndOneRemovedResult : Diff.oneLineAddedResult;
+        onLinesChanged(result, false);
     }
 
     @Override public void onPropertiesChanged() {}
@@ -303,7 +257,7 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         if (buffer == null) return;
         uiLines.disableAnimationForNextUpdate();
         readMarkerLine = buffer.readMarkerLine;
-        onLinesChanged(false);
+        onLinesChanged(null, false);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

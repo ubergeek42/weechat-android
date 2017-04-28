@@ -34,7 +34,6 @@ import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferEye;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
-import com.ubergeek42.WeechatAndroid.relay.Line;
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.utils.CopyPaste;
 import com.ubergeek42.weechat.ColorScheme;
@@ -277,10 +276,10 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @Override
-    public void onLineAdded(Line line, boolean removed) {
-        logger.debug("onLineAdded({}, {})", line, removed);
+    public void onLineAdded(boolean removed) {
+        logger.debug("onLineAdded({})", removed);
         if (linesAdapter == null) return;
-        linesAdapter.onLineAdded(line, removed);
+        linesAdapter.onLineAdded(removed);
     }
 
     @Override

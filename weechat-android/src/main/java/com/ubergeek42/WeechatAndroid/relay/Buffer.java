@@ -328,7 +328,7 @@ public class Buffer {
     }
 
     synchronized public void onLineAdded(Line line, boolean removed) {
-        if (bufferEye != null) bufferEye.onLineAdded(line, removed);
+        if (bufferEye != null) bufferEye.onLineAdded(removed);
     }
 
     private boolean needsToBeNotifiedAboutGlobalPreferencesChanged = false;
