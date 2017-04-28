@@ -13,7 +13,10 @@ import android.graphics.drawable.TransitionDrawable;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v7.widget.RecyclerView;
 import android.util.Base64;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import org.slf4j.Logger;
@@ -136,5 +139,11 @@ public class Utils {
         } finally {
             try {if (in != null) in.close();} catch (IOException ignored) {}
         }
+    }
+
+    public static void setBottomMargin(View view, int margin) {
+        ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) view.getLayoutParams();
+        params.bottomMargin = margin;
+        view.setLayoutParams(params);
     }
 }

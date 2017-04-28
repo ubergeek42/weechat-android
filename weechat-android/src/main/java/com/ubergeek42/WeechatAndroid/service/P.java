@@ -57,12 +57,14 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         p = PreferenceManager.getDefaultSharedPreferences(context);
         loadUIPreferences();
         p.registerOnSharedPreferenceChangeListener(instance = new P());
+        _4dp = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 4, context.getResources().getDisplayMetrics());
         _50dp = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 50, context.getResources().getDisplayMetrics());
         _200dp = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 200, context.getResources().getDisplayMetrics());
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////// ui
 
+    public static float _4dp;
     public static float _50dp;
     public static float _200dp;
 

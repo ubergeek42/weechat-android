@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.ClipboardManager;
+import android.text.TextUtils;
 import android.text.style.URLSpan;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -93,12 +94,12 @@ public class CopyPaste implements EditText.OnLongClickListener {
         Line line = (Line) uiTextView.getTag();
         final ArrayList<String> list = new ArrayList<>();
 
-        list.add(line.getNotificationString());
+        if (!TextUtils.isEmpty(line.prefix)) list.add(line.getNotificationString());
         list.add(Color.stripEverything(line.message));
 
         for (URLSpan url: uiTextView.getUrls()) {
             String u = url.getURL();
-            if (!list.get(1).equals(u)) list.add(u);
+            if (!list.get(list.size()-1).equals(u)) list.add(u);
         }
 
         AlertDialog.Builder builder = new AlertDialog.Builder(context);

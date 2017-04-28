@@ -10,6 +10,7 @@ import android.text.style.RelativeSizeSpan;
 import android.text.style.SuperscriptSpan;
 
 import com.ubergeek42.WeechatAndroid.service.P;
+import com.ubergeek42.WeechatAndroid.utils.Linkify;
 import com.ubergeek42.weechat.Color;
 import com.ubergeek42.weechat.relay.protocol.Hashtable;
 import com.ubergeek42.weechat.relay.protocol.RelayObject;
@@ -73,6 +74,8 @@ public class Buffer {
 
     public Spannable printableWithoutTitle = null; // printable buffer without title (for TextView)
     public Spannable printableWithTitle = null; // printable buffer with title
+    public Spannable titleSpannable = null;
+    public Line titleLine;
 
     Buffer(long pointer, int number, String fullName, String shortName, String title, int notifyLevel, Hashtable localVars) {
         this.pointer = pointer;
@@ -389,6 +392,10 @@ public class Buffer {
         if (title == null || title.equals("")) {
             printableWithTitle = printableWithoutTitle;
         } else {
+            String t = Color.stripEverything(title);
+            titleSpannable = new SpannableString(t);
+            titleLine = new Line(-123, null, null, t, true, false, null);
+            Linkify.linkify(titleSpannable);
             spannable = new SpannableString(number + shortName + "\n" + Color.stripEverything(title));
             spannable.setSpan(SUPER, 0, number.length(), EX);
             spannable.setSpan(SMALL1, 0, number.length(), EX);

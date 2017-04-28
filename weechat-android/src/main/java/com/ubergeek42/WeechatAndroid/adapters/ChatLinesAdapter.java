@@ -19,6 +19,8 @@ import android.support.annotation.Nullable;
 import android.support.annotation.UiThread;
 import android.support.annotation.WorkerThread;
 import android.support.v7.widget.RecyclerView;
+import android.text.Spannable;
+import android.text.TextUtils;
 import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -34,6 +36,7 @@ import com.ubergeek42.WeechatAndroid.relay.BufferEye;
 import com.ubergeek42.WeechatAndroid.relay.Line;
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.utils.CopyPaste;
+import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.weechat.ColorScheme;
 
 import org.slf4j.Logger;
@@ -94,13 +97,7 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         void update(Line line, int newStyle) {
             textView.setTag(line);
             textView.setText(line.spannable);
-            if (style != (style = newStyle)) updateStyle();
-        }
-
-        void updateStyle() {
-            textView.setTextSize(P.textSize);
-            textView.setTypeface(P.typeface);
-            textView.setTextColor(0xFF000000 | ColorScheme.get().defaul[0]);
+            if (style != (style = newStyle)) updateStyle(textView);
         }
 
         @Override public boolean onLongClick(View v) {
@@ -109,31 +106,49 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         }
     }
 
-    //////////////////////////////////////////////////////////////////////////////////////////////// header
+    private static void updateStyle(TextView textView) {
+        textView.setTextSize(P.textSize);
+        textView.setTypeface(P.typeface);
+        textView.setTextColor(0xFF000000 | ColorScheme.get().defaul[0]);
+    }
 
-    private static class Header extends RecyclerView.ViewHolder implements View.OnClickListener {
-        private ViewGroup header;
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// header
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private static class Header extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
+        private TextView title;
         private Button button;
         private ChatLinesAdapter adapter;
         private Buffer.LINES status = Buffer.LINES.CAN_FETCH_MORE;
+        private Spannable topicText = null;
+        private int style = -1;
 
         Header(View header, ChatLinesAdapter adapter) {
             super(header);
-            this.header = (ViewGroup) header;
             this.adapter = adapter;
-            button = (Button) this.header.findViewById(R.id.button_more);
+            title = (TextView) header.findViewById(R.id.title);
+            title.setMovementMethod(LinkMovementMethod.getInstance());
+            title.setOnLongClickListener(this);
+            button = (Button) header.findViewById(R.id.button_more);
             button.setOnClickListener(this);
         }
 
-        void update() {
+        void update(int newStyle) {
+            if (adapter.buffer == null) return;
+            updateButton();
+            updateTitle(newStyle);
+        }
+
+        private void updateButton() {
             if (adapter.buffer == null) return;
             final Buffer.LINES s = adapter.buffer.getLineStatus();
             if (status == s) return;
             status = s;
             if (s == Buffer.LINES.EVERYTHING_FETCHED) {
-                header.removeAllViews();
+                button.setVisibility(View.GONE);
             } else {
-                if (header.getChildCount() == 0) header.addView(button);
+                button.setVisibility(View.VISIBLE);
                 boolean more = s == Buffer.LINES.CAN_FETCH_MORE;
                 button.setEnabled(more);
                 button.setTextColor(more ? 0xff80cbc4 : 0xff777777);
@@ -141,10 +156,32 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
             }
         }
 
+        private void updateTitle(int newStyle) {
+            if (adapter.buffer == null) return;
+            Spannable titleSpannable = adapter.buffer.titleSpannable;
+            Line titleLine = adapter.buffer.titleLine;
+            if (TextUtils.isEmpty(titleSpannable) || !adapter.buffer.holdsAllLines) {
+                title.setVisibility(View.GONE);
+                return;
+            }
+            title.setVisibility(View.VISIBLE);
+            Utils.setBottomMargin(title, button.getVisibility() == View.GONE ? (int) P._4dp : 0);
+            if (topicText != titleSpannable) {
+                title.setText(topicText = titleSpannable);
+                title.setTag(titleLine);
+            }
+            if (style != (style = newStyle)) updateStyle(title);
+        }
+
         @Override public void onClick(View v) {
             if (adapter.buffer == null) return;
             adapter.buffer.requestMoreLines();
-            update();
+            updateButton();
+        }
+
+        @Override public boolean onLongClick(View v) {
+            CopyPaste.onItemLongClick((TextView) v);
+            return true;
         }
     }
 
@@ -170,7 +207,7 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 
     @Override public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         //logger.trace("onBindViewHolder(..., {}, {})", position);
-        if (position == 0) ((Header) holder).update();
+        if (position == 0) ((Header) holder).update(style);
         else ((Row) holder).update(lines.get(position - 1), style);
     }
 
@@ -193,7 +230,7 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     // this might be called by multiple threads in rapid succession
     // in case non-main thread calls this before the Runnable that sets `lines` is executed,
     // store the new list in `_lines` so that we can produce a proper diff
-    @UiThread @WorkerThread private synchronized void onLinesChanged(@Nullable final Diff.Result readyResult, final boolean headerChanged) {
+    @UiThread @WorkerThread private synchronized void onLinesChanged(@Nullable final Diff.Result readyResult) {
         if (buffer == null) return;
 
         final List<Line> newLines = Arrays.asList(buffer.getLinesCopy());
@@ -209,7 +246,6 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
                     if (uiLines.getOnBottom()) uiLines.smoothScrollToPosition(getItemCount() - 1);
                     else uiLines.flashScrollbar();
                 }
-                if (headerChanged) notifyItemChanged(0);
                 uiLines.scheduleAnimationRestoring();
             }
         });
@@ -229,6 +265,14 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         readMarkerLine = buffer.readMarkerLine;
     }
 
+    private void updateHeader() {
+        activity.runOnUiThread(new Runnable() {
+            @Override public void run() {
+                notifyItemChanged(0);
+            }
+        });
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// BufferEye
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -240,15 +284,18 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     }
 
     @Override public void onLinesListed() {
-        onLinesChanged(null, true);
+        onLinesChanged(null);
+        updateHeader();
     }
 
     @Override public void onLineAdded(final boolean removed) {
-        Diff.Result result = removed ? Diff.oneLineAddedAndOneRemovedResult : Diff.oneLineAddedResult;
-        onLinesChanged(result, false);
+        onLinesChanged(removed ? Diff.oneLineAddedAndOneRemovedResult : Diff.oneLineAddedResult);
     }
 
-    @Override public void onPropertiesChanged() {}
+    @Override public void onPropertiesChanged() {
+        updateHeader();
+    }
+
     @Override public void onBufferClosed() {}
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -257,7 +304,7 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         if (buffer == null) return;
         uiLines.disableAnimationForNextUpdate();
         readMarkerLine = buffer.readMarkerLine;
-        onLinesChanged(null, false);
+        onLinesChanged(null);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
