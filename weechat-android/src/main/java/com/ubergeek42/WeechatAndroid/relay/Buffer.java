@@ -229,13 +229,9 @@ public class Buffer {
         // happens when reverse request throws in lines even though some are already here
         for (Line l: lines) if (l.pointer == line.pointer) return;
 
-        boolean removing = false;
         // remove a line if we are over the limit and add the new line
         // correct visibleLinesCount accordingly
-        if (lines.size() >= maxLines) {
-            removing = true;
-            if (lines.removeFirst().visible) visibleLinesCount--;
-        }
+        if (lines.size() >= maxLines) if (lines.removeFirst().visible) visibleLinesCount--;
         if (isLast) lines.add(line);
         else lines.addFirst(line);
         if (line.visible) visibleLinesCount++;
@@ -264,7 +260,7 @@ public class Buffer {
         }
 
         // notify our listener
-        if (isLast) onLineAdded(line, removing);
+        if (isLast) onLineAdded();
 
         // if current line's an event line and we've got a speaker, move nick to fist position
         // nick in question is supposed to be in the nicks already, for we only shuffle these
@@ -330,8 +326,8 @@ public class Buffer {
         }
     }
 
-    synchronized public void onLineAdded(Line line, boolean removed) {
-        if (bufferEye != null) bufferEye.onLineAdded(removed);
+    synchronized public void onLineAdded() {
+        if (bufferEye != null) bufferEye.onLineAdded();
     }
 
     private boolean needsToBeNotifiedAboutGlobalPreferencesChanged = false;

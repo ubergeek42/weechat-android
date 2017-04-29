@@ -275,10 +275,10 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @Override
-    public void onLineAdded(boolean removed) {
-        logger.debug("onLineAdded({})", removed);
+    public void onLineAdded() {
+        logger.debug("onLineAdded()");
         if (linesAdapter == null) return;
-        linesAdapter.onLineAdded(removed);
+        linesAdapter.onLineAdded();
     }
 
     @Override

@@ -10,7 +10,7 @@ import android.support.annotation.UiThread;
 public interface BufferEye {
 
     // 1 line added on bottom
-    void onLineAdded(boolean removed);
+    void onLineAdded();
 
     // all lines should be re-rendered due to font size change and such
     @UiThread void onGlobalPreferencesChanged();

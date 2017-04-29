@@ -220,11 +220,12 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     // this might be called by multiple threads in rapid succession
     // in case non-main thread calls this before the Runnable that sets `lines` is executed,
     // store the new list in `_lines` so that we can produce a proper diff
-    @UiThread @WorkerThread private synchronized void onLinesChanged(@Nullable final Diff.Result readyResult) {
+    @UiThread @WorkerThread private synchronized void onLinesChanged() {
         if (buffer == null) return;
 
         final List<Line> newLines = Arrays.asList(buffer.getLinesCopy());
-        final Diff.Result result = (readyResult != null) ? readyResult : Diff.calculateSimpleDiff(_lines, newLines);
+        final Diff.Result result = Diff.calculateSimpleDiff(_lines, newLines);
+        if (!result.hasChanges()) return;
         _lines = newLines;
 
         activity.runOnUiThread(new Runnable() {
@@ -274,12 +275,12 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     }
 
     @Override public void onLinesListed() {
-        onLinesChanged(null);
+        onLinesChanged();
         updateHeader();
     }
 
-    @Override public void onLineAdded(final boolean removed) {
-        onLinesChanged(removed ? Diff.oneLineAddedAndOneRemovedResult : Diff.oneLineAddedResult);
+    @Override public void onLineAdded() {
+        onLinesChanged();
     }
 
     @Override public void onPropertiesChanged() {
@@ -294,7 +295,7 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         if (buffer == null) return;
         uiLines.disableAnimationForNextUpdate();
         readMarkerLine = buffer.readMarkerLine;
-        onLinesChanged(null);
+        onLinesChanged();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

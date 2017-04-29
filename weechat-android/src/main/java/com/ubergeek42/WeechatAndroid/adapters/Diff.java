@@ -8,11 +8,11 @@ package com.ubergeek42.WeechatAndroid.adapters;
 import android.support.annotation.UiThread;
 import android.support.v7.widget.RecyclerView;
 import com.ubergeek42.WeechatAndroid.relay.Line;
+
 import java.util.List;
 
 class Diff {
     static Result calculateSimpleDiff(List<Line> oldLines, List<Line> newLines) {
-
         if (oldLines.isEmpty()) return completelyDifferentResult;
 
         // find the last old of old list in the new list
@@ -57,9 +57,11 @@ class Diff {
             if (topAdded < 0) adapter.notifyItemRangeRemoved(headerItemCount, -topAdded);
             if (topAdded > 0) adapter.notifyItemRangeInserted(headerItemCount, topAdded);
         }
+
+        boolean hasChanges() {
+            return completelyDifferent || topAdded != 0 || bottomAdded != 0;
+        }
     }
 
-    static final Result completelyDifferentResult = new Result(true, 0, 0);
-    static final Result oneLineAddedResult = new Result(false, 0, 1);
-    static final Result oneLineAddedAndOneRemovedResult = new Result(false, -1, 1);
+    final private static Result completelyDifferentResult = new Result(true, 0, 0);
 }
