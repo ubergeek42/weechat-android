@@ -5,8 +5,11 @@ import java.util.Vector;
 import android.annotation.SuppressLint;
 import android.support.annotation.NonNull;
 import android.support.annotation.UiThread;
-import android.support.annotation.WorkerThread;
 import android.support.v4.app.Fragment;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +28,6 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.ubergeek42.WeechatAndroid.utils.AnimatedRecyclerView;
 import com.ubergeek42.WeechatAndroid.adapters.ChatLinesAdapter;
@@ -41,15 +43,12 @@ import com.ubergeek42.weechat.ColorScheme;
 import static com.ubergeek42.WeechatAndroid.service.Events.*;
 import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.*;
 
-import de.greenrobot.event.EventBus;
-
 public class BufferFragment extends Fragment implements BufferEye, OnKeyListener,
         OnClickListener, TextWatcher, TextView.OnEditorActionListener {
 
     final private static boolean DEBUG_TAB_COMPLETE = false;
     final private static boolean DEBUG_LIFECYCLE = true;
     final private static boolean DEBUG_VISIBILITY = true;
-    final private static boolean DEBUG_AUTOSCROLLING = false;
 
     private final static String TAG = "tag";
 
@@ -136,7 +135,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         uiSend.setVisibility(P.showSend ? View.VISIBLE : View.GONE);
         uiTab.setVisibility(P.showTab ? View.VISIBLE : View.GONE);
         uiLines.setBackgroundColor(0xFF000000 | ColorScheme.get().defaul[ColorScheme.OPT_BG]);
-        EventBus.getDefault().registerSticky(this);
+        EventBus.getDefault().register(this);
     }
 
     @Override
@@ -161,38 +160,27 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
 
     private boolean focused = false;
 
-    // this method is using the following:
-    // lastVisibleLine      last line that exists in the buffer. NOTE: "visible" here means line is not filtered in weechat
-    // readMarkerLine       used for display. it is:
-    //     * saved on app shutdown and restored on start
-    //     * altered if a buffer has been read in weechat (see BufferList.saveLastReadLine)
-    //     * set to the last displayed line when user navigates away from a buffer
-    //     * shifted from invisible line to last visible line if buffer is filtered
-    private void moveReadMarkerToEnd() {
-        if (DEBUG_VISIBILITY) logger.debug("moveReadMarkerToEnd()");
-        if (buffer.readMarkerLine == buffer.lastVisibleLine) return;
-        buffer.readMarkerLine = buffer.lastVisibleLine;
-        linesAdapter.moveReadMarker();
-    }
-
     /** called when visibility of current fragment is (potentially) altered by
      **   * drawer being shown/hidden
      **   * whether buffer is shown in the pager (see MainPagerAdapter)
      **   * availability of buffer & activity
      **   * lifecycle */
-    public void maybeChangeVisibilityState() {
+    @UiThread public void maybeChangeVisibilityState() {
         if (DEBUG_VISIBILITY) logger.debug("maybeChangeVisibilityState()");
         if (activity == null || buffer == null) return;
 
-        if (!started || !focused) moveReadMarkerToEnd();
+        if (!started || !focused) linesAdapter.moveReadMarkerToEnd();
 
         boolean obscured = activity.isPagerNoticeablyObscured();
         boolean watched = started && focused && !obscured;
         if (buffer.isWatched == watched) return;
 
         buffer.setWatched(watched);
-        if (watched) scrollToHotLineIfNeeded();      // this looks at _lines but is synchronized with the setter of _lines
-        else buffer.resetUnreadsAndHighlights();
+        if (watched) {
+            linesAdapter.storeHotLineInfo();
+            linesAdapter.scrollToHotLineIfNeeded();      // this looks at _lines but is synchronized with the setter of _lines
+        }
+        buffer.resetUnreadsAndHighlights();
 
         // move the read marker in weechat (if preferences dictate)
         if (!watched && P.hotlistSync) {
@@ -219,8 +207,8 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
 
     // this can be forced to always run in background, but then it would run after onStart()
     // if the fragment hasn't been initialized yet, that would lead to a bit of flicker
-    @SuppressWarnings("unused")
-    public void onEvent(@NonNull StateChangedEvent event) {
+    @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
+    @UiThread public void onEvent(@NonNull StateChangedEvent event) {
         logger.debug("onEvent({})", event);
         boolean online = event.state.contains(LISTED);
         if (buffer == null || online) {
@@ -232,12 +220,12 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
             if (buffer != null) attachToBuffer();
             else logger.warn("...buffer is null");    // this should only happen after OOM kill
         }
-        if (this.online != online) initUI(this.online = online);
+        if (this.online != (this.online = online)) initUI();
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////// attach detach
 
-    private void attachToBuffer() {
+    @UiThread private void attachToBuffer() {
         logger.debug("attachToBuffer()");
         buffer.setBufferEye(this);
         linesAdapter.setBuffer(buffer);
@@ -246,7 +234,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     }
 
     // buffer might be null if we are closing fragment that is not connected
-    private void detachFromBuffer() {
+    @UiThread private void detachFromBuffer() {
         if (DEBUG_LIFECYCLE) logger.debug("detachFromBuffer()");
         maybeChangeVisibilityState();
         linesAdapter.setBuffer(null);
@@ -256,18 +244,12 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
 
     //////////////////////////////////////////////////////////////////////////////////////////////// ui
 
-    public void initUI(final boolean online) {
+    @UiThread public void initUI() {
         if (DEBUG_LIFECYCLE) logger.debug("initUI({})", online);
-        activity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                uiInput.setEnabled(online);
-                uiSend.setEnabled(online);
-                uiTab.setEnabled(online);
-                if (!online)
-                    activity.hideSoftwareKeyboard();
-            }
-        });
+        uiInput.setEnabled(online);
+        uiSend.setEnabled(online);
+        uiTab.setEnabled(online);
+        if (!online) activity.hideSoftwareKeyboard();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -293,8 +275,8 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         logger.warn("onLinesListed()");
         if (linesAdapter == null) return;
         uiLines.requestAnimation();
-        linesAdapter.onLinesListed();       // this sets _lines in a worker thread
-        scrollToHotLineIfNeeded();          // this looks at _lines in the same thread
+        linesAdapter.onLinesListed();                   // this sets _lines in a worker thread
+        linesAdapter.scrollToHotLineIfNeeded();         // this looks at _lines in the same thread
     }
 
     @Override
@@ -306,29 +288,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     public void onBufferClosed() {
         activity.runOnUiThread(new Runnable() {
             @Override public void run() {
-                //moveReadMarkerToEnd();  <- todo move marker to end when closing buffer
                 activity.closeBuffer(fullName);
-            }
-        });
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// scrolling
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    /** scroll to the first hot line, if possible (that is, first unread line in a private buffer
-     **     or the first unread highlight)
-     ** can be called multiple times, will only run once
-     ** posts to the listview to make sure it's fully completed loading the items
-     **     after setting the adapter or updating lines */
-    @UiThread @WorkerThread public void scrollToHotLineIfNeeded() {
-        final int idx = linesAdapter.findHotLine();
-        if (idx == ChatLinesAdapter.HOT_LINE_NOT_READY || idx == ChatLinesAdapter.HOT_LINE_NOT_PRESENT) return;
-        buffer.resetUnreadsAndHighlights();
-        activity.runOnUiThread(new Runnable() {
-            @Override public void run() {
-                if (idx == ChatLinesAdapter.HOT_LINE_LOST) Toast.makeText(getActivity(), activity.getString(R.string.autoscroll_no_line), Toast.LENGTH_SHORT).show();
-                else uiLines.smoothScrollToPositionAfterAnimation(idx);
             }
         });
     }
@@ -487,6 +447,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         tcInProgress = true;
     }
 
+    @SuppressLint("SetTextI18n")
     public void setText(String text) {
         String oldText = uiInput.getText().toString();
         if (oldText.length() > 0 && oldText.charAt(oldText.length() - 1) != ' ') oldText += ' ';

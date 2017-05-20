@@ -1,6 +1,9 @@
 package com.ubergeek42.WeechatAndroid.fragments;
 
 import android.support.v4.app.ListFragment;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,8 +29,6 @@ import com.ubergeek42.WeechatAndroid.service.Events;
 import com.ubergeek42.WeechatAndroid.service.P;
 
 import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.*;
-
-import de.greenrobot.event.EventBus;
 
 public class BufferListFragment extends ListFragment implements BufferListEye, View.OnClickListener {
 
@@ -89,7 +90,7 @@ public class BufferListFragment extends ListFragment implements BufferListEye, V
     public void onStart() {
         if (DEBUG_LIFECYCLE) logger.debug("onStart()");
         super.onStart();
-        EventBus.getDefault().registerSticky(this);
+        EventBus.getDefault().register(this);
         uiFilterBar.setVisibility(P.showBufferFilter ? View.VISIBLE : View.GONE);
     }
 
@@ -105,7 +106,7 @@ public class BufferListFragment extends ListFragment implements BufferListEye, V
     //////////////////////////////////////////////////////////////////////////////////////////////// event
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @SuppressWarnings("unused")
+    @Subscribe(sticky = true)
     public void onEvent(Events.StateChangedEvent event) {
         logger.debug("onEvent({})", event);
         if (event.state.contains(LISTED)) attachToBufferList();

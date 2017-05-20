@@ -27,6 +27,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.ubergeek42.WeechatAndroid.utils.AnimatedRecyclerView;
 import com.ubergeek42.WeechatAndroid.R;
@@ -39,6 +40,7 @@ import com.ubergeek42.WeechatAndroid.utils.CopyPaste;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.weechat.ColorScheme;
 
+import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -224,6 +226,7 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         if (buffer == null) return;
 
         final List<Line> newLines = Arrays.asList(buffer.getLinesCopy());
+        readMarkerLine = buffer.visibleReadMarkerLine;
         final Diff.Result result = Diff.calculateSimpleDiff(_lines, newLines);
         if (!result.hasChanges()) return;
         _lines = newLines;
@@ -244,16 +247,18 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 
     private long readMarkerLine = -1;
 
-    @UiThread synchronized public void moveReadMarker() {
-        if (buffer == null || buffer.readMarkerLine == readMarkerLine) return;
+    @UiThread synchronized public void moveReadMarkerToEnd() {
+        if (buffer == null) return;
+        if (!buffer.moveReadMarkerToEndAndTellIfChanged()) return;
+        if (buffer.visibleReadMarkerLine == -1) return;
         uiLines.disableAnimationForNextUpdate();
         for (int i = 0; i < _lines.size(); i++) {
             Line line = _lines.get(i);
-            if (line.pointer == readMarkerLine || line.pointer == buffer.readMarkerLine)
+            if (line.pointer == readMarkerLine || line.pointer == buffer.visibleReadMarkerLine)
                 notifyItemChanged(i + 1);
         }
         uiLines.scheduleAnimationRestoring();
-        readMarkerLine = buffer.readMarkerLine;
+        readMarkerLine = buffer.visibleReadMarkerLine;
     }
 
     private void updateHeader() {
@@ -302,14 +307,34 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     //////////////////////////////////////////////////////////////////////////////////////////////// find hot line
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public final static int HOT_LINE_LOST = -1;
-    public final static int HOT_LINE_NOT_READY = -2;
-    public final static int HOT_LINE_NOT_PRESENT = -3;
+    @UiThread @WorkerThread public void scrollToHotLineIfNeeded() {
+        final int idx = findHotLine();
+        if (idx == HOT_LINE_NOT_READY || idx == HOT_LINE_NOT_PRESENT) return;
+        highlights = privates = 0;
+        activity.runOnUiThread(new Runnable() {
+            @Override public void run() {
+                if (idx == HOT_LINE_LOST) Toast.makeText(activity, activity.getString(R.string.autoscroll_no_line), Toast.LENGTH_SHORT).show();
+                else uiLines.smoothScrollToPositionAfterAnimation(idx);
+            }
+        });
+    }
 
-    @UiThread @WorkerThread synchronized public int findHotLine() {
-        if (buffer == null || !buffer.isWatched || !buffer.holdsAllLines) return HOT_LINE_NOT_READY;
-        int highlights = buffer.highlights;
-        int privates = (buffer.type == Buffer.PRIVATE) ? buffer.unreads : 0;
+    @UiThread public void storeHotLineInfo() {
+        Assert.assertNotNull(buffer);
+        highlights = buffer.highlights;
+        privates = (buffer.type == Buffer.PRIVATE) ? buffer.unreads : 0;
+    }
+
+    private int highlights;
+    private int privates;
+
+    private final static int HOT_LINE_LOST = -1;
+    private final static int HOT_LINE_NOT_READY = -2;
+    private final static int HOT_LINE_NOT_PRESENT = -3;
+
+    synchronized private int findHotLine() {
+        Assert.assertNotNull(buffer);
+        if (!buffer.isWatched || !buffer.holdsAllLines) return HOT_LINE_NOT_READY;
         if ((highlights | privates) == 0) return HOT_LINE_NOT_PRESENT;
 
         int count = _lines.size(), idx = -1;

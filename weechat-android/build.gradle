@@ -3,7 +3,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.3.1'
+        classpath 'com.android.tools.build:gradle:2.3.2'
     }
 }
 apply plugin: 'com.android.application'
@@ -21,7 +21,7 @@ dependencies {
 
     compile "commons-codec:commons-codec:1.8"
 
-    compile 'de.greenrobot:eventbus:2.4.0'
+    compile 'org.greenrobot:eventbus:3.0.0'
 
     // We need the weechat-relay library for connecting to weechat    
     compile(project(':weechat-relay')) {

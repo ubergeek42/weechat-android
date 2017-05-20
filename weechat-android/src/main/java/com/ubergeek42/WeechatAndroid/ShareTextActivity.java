@@ -11,9 +11,9 @@ import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.service.Events;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
 
-import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
+import org.greenrobot.eventbus.EventBus;
 
-import de.greenrobot.event.EventBus;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
 
 public class ShareTextActivity extends AppCompatActivity implements DialogInterface.OnClickListener,
         DialogInterface.OnDismissListener, DialogInterface.OnShowListener {

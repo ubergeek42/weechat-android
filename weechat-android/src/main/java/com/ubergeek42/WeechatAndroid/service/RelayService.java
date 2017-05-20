@@ -34,13 +34,13 @@ import com.ubergeek42.weechat.relay.connection.SSLConnection;
 import com.ubergeek42.weechat.relay.connection.WebSocketConnection;
 import com.ubergeek42.weechat.relay.protocol.RelayObject;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.channels.UnresolvedAddressException;
 import java.util.EnumSet;
-
-import de.greenrobot.event.EventBus;
 
 import static com.ubergeek42.WeechatAndroid.service.Events.*;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
@@ -90,8 +90,7 @@ public class RelayService extends Service implements Connection.Observer {
         return null;
     }
 
-    @SuppressWarnings("unused")
-    public void onEvent(SendMessageEvent event) {
+    @Subscribe public void onEvent(SendMessageEvent event) {
         logger.debug("onEvent({})", event);
         connection.sendMessage(event.message);
     }
@@ -292,7 +291,7 @@ public class RelayService extends Service implements Connection.Observer {
         SyncAlarmReceiver.stop(this);
         BufferList.stop();
         ping.unschedulePing();
-        //P.saveStuff();
+        P.saveStuff();
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////
 

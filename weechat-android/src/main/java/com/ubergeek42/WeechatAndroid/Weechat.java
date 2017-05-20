@@ -12,9 +12,9 @@ import com.ubergeek42.WeechatAndroid.service.Notificator;
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.service.RelayService.STATE;
 
-import java.util.EnumSet;
+import org.greenrobot.eventbus.EventBus;
 
-import de.greenrobot.event.EventBus;
+import java.util.EnumSet;
 
 public class Weechat extends Application {
     @Override public void onCreate() {

@@ -35,6 +35,9 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.*;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,8 +77,6 @@ import com.ubergeek42.WeechatAndroid.service.RelayService.STATE;
 import static com.ubergeek42.WeechatAndroid.service.Events.*;
 import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.*;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
-
-import de.greenrobot.event.EventBus;
 
 public class WeechatActivity extends AppCompatActivity implements
         CutePagerTitleStrip.CutePageChangeListener {
@@ -218,7 +219,7 @@ public class WeechatActivity extends AppCompatActivity implements
         if (DEBUG_LIFECYCLE) logger.debug("onStart()");
         super.onStart();
         state = null;
-        EventBus.getDefault().registerSticky(this);
+        EventBus.getDefault().register(this);
         if (getIntent().hasExtra(NOTIFICATION_EXTRA_BUFFER_FULL_NAME)) openBufferFromIntent();
         updateHotCount(BufferList.getHotCount());
         started = true;
@@ -270,7 +271,7 @@ public class WeechatActivity extends AppCompatActivity implements
 
     private EnumSet<STATE> state = null;
 
-    @SuppressWarnings("unused")
+    @Subscribe(sticky = true)
     public void onEvent(StateChangedEvent event) {
         logger.debug("onEvent({})", event);
         boolean init = state == null;
@@ -284,7 +285,7 @@ public class WeechatActivity extends AppCompatActivity implements
         }
     }
 
-    @SuppressWarnings("unused")
+    @Subscribe
     public void onEvent(final ExceptionEvent event) {
         if (DEBUG_CONNECTION) logger.debug("onEvent({})", event);
         final Exception e = event.e;

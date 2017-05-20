@@ -55,9 +55,11 @@ public class Buffer {
     public int totalReadUnreads = 0;
     public int totalReadHighlights = 0;
 
-    // see BufferFragment.maybeMoveReadMarker()
+    // readMarkerLine is set using information from the server and when moving the marker to end
+    // visibleReadMarkerLine is NOT set on every w → w-a update, also it is not saved
     public long readMarkerLine = -1;
-    public long lastVisibleLine = -1;
+    private long lastVisibleLine = -1;
+    public long visibleReadMarkerLine = -1;
 
     private LinkedList<Line> lines = new LinkedList<>();
     private int visibleLinesCount = 0;
@@ -109,6 +111,7 @@ public class Buffer {
      ** better call off the main thread */
     synchronized public @NonNull Line[] getLinesCopy() {
         Line[] l;
+        visibleReadMarkerLine = readMarkerLine;
         if (!P.filterLines)
             l = lines.toArray(new Line[lines.size()]);
         else {
@@ -118,7 +121,7 @@ public class Buffer {
                 if (line.visible) l[i++] = line;
                 // if read marker is on a line that is invisible
                 // move it to the previous visible line
-                else if (line.pointer == readMarkerLine && i > 0) readMarkerLine = l[i-1].pointer;
+                else if (line.pointer == readMarkerLine && i > 0) visibleReadMarkerLine = l[i-1].pointer;
             }
         }
         if (l.length > 0) lastVisibleLine = l[l.length-1].pointer;
@@ -200,8 +203,7 @@ public class Buffer {
     }
 
     /** tells Buffer if it is ACTIVELY display on screen
-     ** affects the way buffer advertises highlights/unreads count and notifications
-     ** can be called multiple times without harm */
+     ** affects the way buffer advertises highlights/unreads count and notifications */
     synchronized public void setWatched(boolean watched) {
         if (DEBUG_BUFFER) logger.debug("{} setWatched({})", shortName, watched);
         if (isWatched == watched) return;
@@ -216,6 +218,10 @@ public class Buffer {
 
     synchronized public boolean isHot() {
         return (type == Buffer.PRIVATE && unreads > 0) || highlights > 0;
+    }
+
+    synchronized public boolean moveReadMarkerToEndAndTellIfChanged() {
+        return visibleReadMarkerLine != (visibleReadMarkerLine = readMarkerLine = lastVisibleLine);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -277,7 +283,6 @@ public class Buffer {
                     }
                 }
         }
-
         if (lines.size() >= maxLines) holdsAllLines = true;
     }
 
