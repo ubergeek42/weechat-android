@@ -5,6 +5,7 @@
 
 package com.ubergeek42.WeechatAndroid.utils;
 
+import android.graphics.PointF;
 import android.support.v7.widget.LinearSmoothScroller;
 
 // if the position of the element we are scrolling to is *just* outside the RecyclerView, i.e.
@@ -26,8 +27,9 @@ class LinearSmoothScrollerFix extends LinearSmoothScroller {
     @Override protected void onStart() {
         super.onStart();
         if (findViewByPosition(getTargetPosition()) == null) {
-            float direction = computeScrollVectorForPosition(getTargetPosition()).y;
-            recycler.scrollBy(0, direction > 0 ? 1 : -1);
+            PointF point = computeScrollVectorForPosition(getTargetPosition());
+            if (point == null) return;
+            recycler.scrollBy(0, point.y > 0 ? 1 : -1);
         }
     }
 }
