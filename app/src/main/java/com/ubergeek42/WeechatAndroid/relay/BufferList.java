@@ -27,8 +27,12 @@ import com.ubergeek42.weechat.relay.protocol.RelayObject;
 import org.junit.Assert;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.ubergeek42.WeechatAndroid.service.Events.SendMessageEvent;
@@ -129,6 +133,24 @@ public class BufferList {
         if (fullName == null) return null;
         for (Buffer buffer : buffers) if (buffer.fullName.equals(fullName)) return buffer;
         return null;
+    }
+
+    @AnyThread synchronized static public void sortFullNames(@NonNull List<String> fullNamesList) {
+        final HashMap<String,Integer> bufferNumbers = new HashMap<String,Integer>();
+
+        for (Buffer buffer : buffers) bufferNumbers.put(buffer.fullName, buffer.number);
+
+        Comparator<String> sortByNumberComparator = new Comparator<String>() {
+            @Override public int compare(String left, String right) {
+                Integer l = bufferNumbers.get(left);
+                Integer r = bufferNumbers.get(right);
+                if (l == null) l = Integer.MAX_VALUE;
+                if (r == null) r = Integer.MAX_VALUE;
+                return l.compareTo(r);
+            }
+        };
+
+        Collections.sort(fullNamesList, sortByNumberComparator);
     }
 
     @AnyThread static public void setBufferListEye(@Nullable BufferListEye buffersEye) {

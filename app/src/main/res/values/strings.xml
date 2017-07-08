@@ -250,6 +250,8 @@
             <string name="pref_timestamp_format_summary">%s (default: HH:mm:ss)</string>
             <string name="pref_dim_down">Dim down non-human lines</string>
             <string name="pref_dim_down_summary">Display joins/quits in a darker color</string>
+            <string name="pref_sort_open_buffers">Sort open buffers</string>
+            <string name="pref_sort_open_buffers_summary">Sort open buffers by WeeChat order</string>
 
             <string name="pref_font">Buffer Font</string>
             <string name="pref_color_scheme">Color Scheme</string>

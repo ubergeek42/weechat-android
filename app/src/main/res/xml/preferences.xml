@@ -65,6 +65,7 @@
         <CheckBoxPreference android:key="enclose_nick" android:title="@string/pref_enclose_nick" android:summary="@string/pref_enclose_nick_summary" android:defaultValue="false" />
 		<EditTextPreferenceFix android:key="timestamp_format" android:title="@string/pref_timestamp_format" android:summary="@string/pref_timestamp_format_summary" android:defaultValue="HH:mm:ss" android:singleLine="true" />
         <CheckBoxPreference android:key="dim_down" android:title="@string/pref_dim_down" android:summary="@string/pref_dim_down_summary" android:defaultValue="false" />
+        <CheckBoxPreference android:key="sort_open_buffers" android:title="@string/pref_sort_open_buffers" android:summary="@string/pref_sort_open_buffers_summary" android:defaultValue="false" />
 	    <FontPreference android:key="buffer_font" android:title="@string/pref_font" />
 	    <ThemePreference android:key="color_scheme" android:title="@string/pref_color_scheme" android:defaultValue="default-theme.properties" />
     </PreferenceScreen>

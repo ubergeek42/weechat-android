@@ -55,6 +55,7 @@ public class MainPagerAdapter extends PagerAdapter {
         Buffer buffer = BufferList.findByFullName(name);
         if (buffer != null) buffer.setOpen(true);
         names.add(name);
+        if (P.sortOpenBuffers) BufferList.sortFullNames(names);
         notifyDataSetChanged();
         P.setBufferOpen(name, true);
     }

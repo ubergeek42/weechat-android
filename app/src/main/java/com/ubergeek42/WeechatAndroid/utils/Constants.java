@@ -60,6 +60,7 @@ public class Constants {
     public static final String PREF_ENCLOSE_NICK = "enclose_nick"; final public static boolean PREF_ENCLOSE_NICK_D = false;
     final static public String PREF_TIMESTAMP_FORMAT = "timestamp_format"; final public static String PREF_TIMESTAMP_FORMAT_D = "HH:mm:ss";
     public static final String PREF_DIM_DOWN = "dim_down"; final public static boolean PREF_DIM_DOWN_D = false;
+    public static final String PREF_SORT_OPEN_BUFFERS = "sort_open_buffers"; final public static boolean PREF_SORT_OPEN_BUFFERS_D = false;
     public static final String PREF_BUFFER_FONT = "buffer_font"; final public static String PREF_BUFFER_FONT_D = "";
     public static final String PREF_COLOR_SCHEME = "color_scheme"; final public static String PREF_COLOR_SCHEME_D = "default-theme.properties";
 
