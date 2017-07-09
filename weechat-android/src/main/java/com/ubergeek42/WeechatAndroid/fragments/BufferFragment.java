@@ -68,6 +68,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     private Buffer buffer;
 
     private ChatLinesAdapter linesAdapter;
+    private int visiblePosition = -1;
 
     private Logger logger = LoggerFactory.getLogger(toString());
 
@@ -140,6 +141,13 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         uiTab.setVisibility(P.showTab ? View.VISIBLE : View.GONE);
         uiLines.setBackgroundColor(0xFF000000 | ColorScheme.get().defaul[ColorScheme.OPT_BG]);
         EventBus.getDefault().registerSticky(this);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        // Backup top visible item for later restore
+        visiblePosition = uiLines.getFirstVisiblePosition();
+        super.onSaveInstanceState(outState);
     }
 
     @Override
@@ -268,6 +276,13 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
                 activity.updateCutePagerTitleStrip();
                 uiLines.setAdapter(linesAdapter);
                 maybeChangeHeader();
+                // once everything is settled, restore position if it was saved
+                if (visiblePosition != -1)
+                    // without the -1 offset hack, the item above the last one gets selected
+                    // instead of the one we want
+                    uiLines.setSelectionFromTop(visiblePosition, -1);
+                // clear the save
+                visiblePosition = -1;
             }
         });
         maybeChangeVisibilityState();
