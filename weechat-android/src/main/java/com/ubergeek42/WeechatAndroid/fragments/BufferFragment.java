@@ -146,7 +146,8 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     @Override
     public void onSaveInstanceState(Bundle outState) {
         // Backup top visible item for later restore
-        visiblePosition = uiLines.getFirstVisiblePosition();
+        if (uiLines != null)
+            visiblePosition = uiLines.getFirstVisiblePosition();
         super.onSaveInstanceState(outState);
     }
 
