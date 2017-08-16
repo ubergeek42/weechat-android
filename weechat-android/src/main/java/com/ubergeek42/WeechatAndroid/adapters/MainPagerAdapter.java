@@ -67,6 +67,17 @@ public class MainPagerAdapter extends PagerAdapter {
         P.setBufferOpen(name, false);
     }
 
+    @MainThread public void swapBuffers(int indexOne, int indexTwo) {
+        logger.debug("swapBuffers({}, {}); size = {}", indexOne, indexTwo, names.size());
+        if (indexOne < 0 || indexOne >= names.size() || indexTwo < 0 || indexTwo >= names.size()) {
+            return;
+        }
+        String temp = names.get(indexOne);
+        names.set(indexOne, names.get(indexTwo));
+        names.set(indexTwo, temp);
+        notifyDataSetChanged();
+    }
+
     public void focusBuffer(String name) {
         pager.setCurrentItem(names.indexOf(name));
     }
