@@ -3,7 +3,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.2.3'
+        classpath 'com.android.tools.build:gradle:3.0.0-beta2'
     }
 }
 apply plugin: 'com.android.application'
@@ -35,15 +35,15 @@ tasks.withType(JavaCompile) {
 }
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion "25.0.2"
+    compileSdkVersion 26
+    buildToolsVersion "26.0.0"
 
     defaultConfig {
         versionCode 15
         versionName "0.12"
 
         minSdkVersion 16
-        targetSdkVersion 23
+        targetSdkVersion 26
     }
 
     signingConfigs {
