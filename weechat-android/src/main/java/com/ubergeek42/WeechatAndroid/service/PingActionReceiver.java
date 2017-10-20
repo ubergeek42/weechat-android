@@ -88,7 +88,11 @@ public class PingActionReceiver extends BroadcastReceiver {
         Intent intent = new Intent(PING_ACTION);
         PendingIntent alarmIntent = PendingIntent.getBroadcast(bone, 0, intent, PendingIntent.FLAG_NO_CREATE);
         alarmManager.cancel(alarmIntent);
-        bone.unregisterReceiver(this);
+        try {
+            bone.unregisterReceiver(this);
+        } catch (IllegalArgumentException ignored) {
+            // Ping is not enabled or was not enabled during initialization
+        }
     }
 
     public void onMessage() {
