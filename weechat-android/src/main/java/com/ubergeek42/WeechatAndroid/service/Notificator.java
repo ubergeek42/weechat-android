@@ -6,6 +6,7 @@
 package com.ubergeek42.WeechatAndroid.service;
 
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -37,6 +38,7 @@ public class Notificator {
 
     final private static int NOTIFICATION_MAIN_ID = 42;
     final private static int NOTIFICATION_HOT_ID = 43;
+    final private static String NOTIFICATION_CHANNEL_CONNECTION_STATUS = "connection status";
 
     private static Context context;
     private static NotificationManager manager;
@@ -68,8 +70,16 @@ public class Notificator {
 
         int icon = relay.state.contains(AUTHENTICATED) ? R.drawable.ic_connected : R.drawable.ic_disconnected;
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(
+                    NOTIFICATION_CHANNEL_CONNECTION_STATUS,
+                    context.getString(R.string.notification_channel_connection_status),
+                    NotificationManager.IMPORTANCE_MIN);
+            manager.createNotificationChannel(channel);
+        }
+
         // use application context because of a bug in android: passed context will get leaked
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context);
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_CONNECTION_STATUS);
         builder.setContentIntent(contentIntent)
                 .setSmallIcon(icon)
                 .setContentTitle("WeechatAndroid " + BuildConfig.VERSION_NAME)
@@ -138,7 +148,7 @@ public class Notificator {
         // prepare notification
         // make the ticker the LAST message
         String message = hotList.size() == 0 ? context.getString(R.string.hot_message_not_available) : hotList.get(hotList.size() - 1)[LINE];
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context)
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, NotificationChannel.DEFAULT_CHANNEL_ID)
                 .setContentIntent(contentIntent)
                 .setSmallIcon(R.drawable.ic_hot)
                 .setContentTitle(context.getResources().getQuantityString(R.plurals.hot_messages, hotCount, hotCount))

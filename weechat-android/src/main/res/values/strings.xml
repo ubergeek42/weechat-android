@@ -4,6 +4,7 @@
     <!-- internally used names -->
     <string name="app_name">weechat</string>
     <string name="package_name">com.ubergeek42.WeechatAndroid</string>
+    <string name="notification_channel_connection_status">Connection Status</string>
 
     <!-- widget and button contentDescription-s -->
     <string name="sendkey">Send</string>
