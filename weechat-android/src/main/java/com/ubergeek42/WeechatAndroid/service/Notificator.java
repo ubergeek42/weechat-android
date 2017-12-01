@@ -75,6 +75,7 @@ public class Notificator {
                     NOTIFICATION_CHANNEL_CONNECTION_STATUS,
                     context.getString(R.string.notification_channel_connection_status),
                     NotificationManager.IMPORTANCE_MIN);
+            channel.setShowBadge(false);
             manager.createNotificationChannel(channel);
         }
 
