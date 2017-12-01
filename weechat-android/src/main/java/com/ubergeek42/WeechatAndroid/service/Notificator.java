@@ -39,6 +39,7 @@ public class Notificator {
     final private static int NOTIFICATION_MAIN_ID = 42;
     final private static int NOTIFICATION_HOT_ID = 43;
     final private static String NOTIFICATION_CHANNEL_CONNECTION_STATUS = "connection status";
+    final private static String NOTIFICATION_CHANNEL_HOTLIST = "notification";
 
     private static Context context;
     private static NotificationManager manager;
@@ -146,10 +147,18 @@ public class Notificator {
         Intent intent = new Intent(context, WeechatActivity.class).putExtra("full_name", target_buffer);
         PendingIntent contentIntent = PendingIntent.getActivity(context, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(
+                    NOTIFICATION_CHANNEL_HOTLIST,
+                    context.getString(R.string.notification_channel_hotlist),
+                    NotificationManager.IMPORTANCE_DEFAULT);
+            manager.createNotificationChannel(channel);
+        }
+
         // prepare notification
         // make the ticker the LAST message
         String message = hotList.size() == 0 ? context.getString(R.string.hot_message_not_available) : hotList.get(hotList.size() - 1)[LINE];
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, NotificationChannel.DEFAULT_CHANNEL_ID)
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_HOTLIST)
                 .setContentIntent(contentIntent)
                 .setSmallIcon(R.drawable.ic_hot)
                 .setContentTitle(context.getResources().getQuantityString(R.plurals.hot_messages, hotCount, hotCount))
