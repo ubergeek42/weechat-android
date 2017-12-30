@@ -157,7 +157,7 @@ public class Buffer {
                 maxLines = P.lineIncrement;
             }
         }
-        BufferList.notifyBuffersSlightlyChanged();
+        BufferList.notifyBuffersChanged();
     }
 
     /** set buffer eye, i.e. something that watches buffer events
@@ -243,11 +243,11 @@ public class Buffer {
                 if (line.highlighted) {
                     highlights++;
                     BufferList.newHotLine(this, line);
-                    BufferList.notifyBuffersSlightlyChanged(type == OTHER);
+                    BufferList.notifyBuffersChanged();
                 } else if (line.visible && line.type == Line.LINE_MESSAGE) {
                     unreads++;
                     if (type == PRIVATE) BufferList.newHotLine(this, line);
-                    BufferList.notifyBuffersSlightlyChanged(type == OTHER);
+                    BufferList.notifyBuffersChanged();
                 } else if (line.visible && line.type == Line.LINE_OTHER) others++;
             }
         }
@@ -428,7 +428,7 @@ public class Buffer {
         totalReadOthers += others;
         unreads = highlights = others = 0;
         BufferList.removeHotMessagesForBuffer(this);
-        BufferList.notifyBuffersSlightlyChanged(type == OTHER);
+        BufferList.notifyBuffersChanged();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

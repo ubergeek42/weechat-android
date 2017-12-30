@@ -163,22 +163,8 @@ public class BufferList {
     ////////////////////////////////////////////////////////////////////////////////////////////////    from this and Buffer (local)
     ////////////////////////////////////////////////////////////////////////////////////////////////    (also alert Buffer)
 
-    /** called when a buffer has been added or removed */
-    synchronized static private void notifyBuffersChanged() {
+    synchronized static public void notifyBuffersChanged() {
         if (buffersEye != null) buffersEye.onBuffersChanged();
-    }
-
-    /** called when buffer data has been changed, but the no of buffers is the same
-     ** otherMessagesChanged signifies if buffer type is OTHER and message count has changed
-     ** used to temporarily display the said buffer if OTHER buffers are filtered */
-    synchronized static void notifyBuffersSlightlyChanged(boolean otherMessagesChanged) {
-        if (buffersEye != null) {
-            buffersEye.onBuffersChanged();
-        }
-    }
-
-    synchronized static void notifyBuffersSlightlyChanged() {
-        notifyBuffersSlightlyChanged(false);
     }
 
     /** called when no buffers has been added or removed, but
@@ -425,7 +411,7 @@ public class BufferList {
             }
 
             onHotlistFinished();
-            notifyBuffersSlightlyChanged();
+            notifyBuffersChanged();
         }
     };
 
