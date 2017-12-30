@@ -18,6 +18,7 @@ package com.ubergeek42.WeechatAndroid.adapters;
 import android.support.annotation.Nullable;
 import android.support.annotation.UiThread;
 import android.support.annotation.WorkerThread;
+import android.support.v7.util.DiffUtil;
 import android.support.v7.widget.RecyclerView;
 import android.text.Spannable;
 import android.text.TextUtils;
@@ -49,6 +50,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import static com.ubergeek42.WeechatAndroid.R.layout.more_button;
+import static com.ubergeek42.WeechatAndroid.R.layout.read_marker;
+import static com.ubergeek42.WeechatAndroid.R.layout.chatview_line;
 
 public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements BufferEye {
 
@@ -79,19 +82,12 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private static class Row extends RecyclerView.ViewHolder {
-        private View view;
         private TextView textView;
         private int style = -1;
 
         Row(View view) {
             super(view);
-            this.view = view;
-            if (view instanceof TextView) {
-                textView = (TextView) view;
-            } else {
-                textView = (TextView) view.findViewById(R.id.chatline_message);
-                this.view.findViewById(R.id.separator).setBackgroundColor(0xFF000000 | ColorScheme.get().chat_read_marker[0]);
-            }
+            textView = (TextView) view;
             textView.setMovementMethod(LinkMovementMethod.getInstance());
             textView.setOnLongClickListener(CopyPaste.copyPaste);
         }
@@ -107,6 +103,16 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         textView.setTextSize(P.textSize);
         textView.setTypeface(P.typeface);
         textView.setTextColor(0xFF000000 | ColorScheme.get().defaul[0]);
+    }
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// read marker
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private static class ReadMarkerRow extends RecyclerView.ViewHolder {
+        ReadMarkerRow(View view) {
+            super(view);
+            view.setBackgroundColor(0xFF000000 | ColorScheme.get().chat_read_marker[0]);
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -181,37 +187,43 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     //////////////////////////////////////////////////////////////////////////////////////////////// RecyclerView.Adapter methods
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    final private static int HEADER = -1, LINE = 0, LINE_MARKER = 1;
-    final private static int HEADER_ID = -123;
+    final private static int HEADER_TYPE = -1, LINE_TYPE = 0, MARKER_TYPE = 1;
+    final private static int HEADER_POINTER = -123, MARKER_POINTER = -456;
+
+    final private static Line HEADER = new Line(HEADER_POINTER, null, null, null, false, false, null);
+    final private static Line MARKER = new Line(MARKER_POINTER, null, null, null, false, false, null);
 
     @Override public int getItemViewType(int position) {
         //logger.trace("getItemViewType({})", position);
-        if (position == 0) return HEADER;
-        return getItemId(position) == readMarkerLine ? LINE_MARKER : LINE;
+        long pointer = lines.get(position).pointer;
+        if (pointer == HEADER_POINTER) return HEADER_TYPE;
+        if (pointer == MARKER_POINTER) return MARKER_TYPE;
+        return LINE_TYPE;
     }
 
     @Override public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         //logger.trace("onCreateViewHolder({})", viewType);
-        if (viewType == HEADER) return new Header(LayoutInflater.from(parent.getContext()).inflate(more_button, parent, false), this);
-        int res = (viewType == LINE) ? R.layout.chatview_line : R.layout.chatview_line_read_marker;
-        return new Row(LayoutInflater.from(parent.getContext()).inflate(res, parent, false));
+        LayoutInflater i = LayoutInflater.from(parent.getContext());
+        if (viewType == HEADER_TYPE) return new Header(i.inflate(more_button, parent, false), this);
+        else if (viewType == MARKER_TYPE) return new ReadMarkerRow(i.inflate(read_marker, parent, false));
+        else return new Row(i.inflate(chatview_line, parent, false));
     }
 
-    @Override public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+    @Override public synchronized void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         //logger.trace("onBindViewHolder(..., {}, {})", position);
-        if (position == 0) ((Header) holder).update(style);
-        else ((Row) holder).update(lines.get(position - 1), style);
+        long pointer = lines.get(position).pointer;
+        if (pointer == HEADER_POINTER) ((Header) holder).update(style);
+        else if (pointer != MARKER_POINTER) ((Row) holder).update(lines.get(position), style);
     }
 
     @Override public int getItemCount() {
         //logger.trace("getItemCount()");
-        return lines.size() + 1;
+        return lines.size();
     }
 
     @Override public long getItemId(int position) {
-        //logger.trace("getItemId({})", position);
-        if (position == 0) return HEADER_ID;
-        return lines.get(position - 1).pointer;
+        //logger.trace("getItemId({}) -> {}", position, lines.get(position).pointer);
+        return lines.get(position).pointer;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -224,41 +236,39 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     // store the new list in `_lines` so that we can produce a proper diff
     @UiThread @WorkerThread private synchronized void onLinesChanged() {
         if (buffer == null) return;
+        final ArrayList<Line> newLines;
+        final int marker;
 
-        final List<Line> newLines = Arrays.asList(buffer.getLinesCopy());
-        readMarkerLine = buffer.visibleReadMarkerLine;
-        final Diff.Result result = Diff.calculateSimpleDiff(_lines, newLines);
-        if (!result.hasChanges()) return;
+        synchronized (buffer) {
+            newLines = new ArrayList<>(Arrays.asList(buffer.getLinesCopy()));
+            marker = buffer.getReadMarkerPosition();
+        }
+        if (marker > 0) newLines.add(marker, MARKER);
+        newLines.add(0, HEADER);
+
+        final boolean hack = _lines.size() == 1 && newLines.size() > 1;
+
+        final DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new DiffCallback(_lines, newLines), false);
         _lines = newLines;
 
         activity.runOnUiThread(new Runnable() {
             @Override public void run() {
                 lines = newLines;
-                result.dispatchDiff(ChatLinesAdapter.this, 1);
-                if (result.completelyDifferent) uiLines.scrollToPosition(getItemCount() - 1);
-                if (result.bottomAdded > 0) {
-                    if (uiLines.getOnBottom()) uiLines.smoothScrollToPosition(getItemCount() - 1);
-                    else uiLines.flashScrollbar();
+                diffResult.dispatchUpdatesTo(ChatLinesAdapter.this);
+                if (uiLines.getOnBottom()) {
+                    if (hack) uiLines.scrollToPosition(getItemCount() - 1);
+                    else uiLines.smoothScrollToPosition(getItemCount() - 1);
                 }
+                else uiLines.flashScrollbar();
                 uiLines.scheduleAnimationRestoring();
             }
         });
     }
 
-    private long readMarkerLine = -1;
-
     @UiThread synchronized public void moveReadMarkerToEnd() {
         if (buffer == null) return;
-        if (!buffer.moveReadMarkerToEndAndTellIfChanged()) return;
-        if (buffer.visibleReadMarkerLine == -1) return;
-        uiLines.disableAnimationForNextUpdate();
-        for (int i = 0; i < _lines.size(); i++) {
-            Line line = _lines.get(i);
-            if (line.pointer == readMarkerLine || line.pointer == buffer.visibleReadMarkerLine)
-                notifyItemChanged(i + 1);
-        }
-        uiLines.scheduleAnimationRestoring();
-        readMarkerLine = buffer.visibleReadMarkerLine;
+        buffer.moveReadMarkerToEnd();
+        onLinesChanged();
     }
 
     private void updateHeader() {
@@ -274,9 +284,13 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     // increasing `style` will make all ViewHolders update visual characteristics
-    @Override @UiThread public void onGlobalPreferencesChanged() {
-        style++;
-        if (_lines.size() > 0) notifyItemRangeChanged(1, _lines.size() - 1 + 1);
+    @Override @UiThread public synchronized void onGlobalPreferencesChanged(boolean numberChanged) {
+        if (numberChanged && buffer != null) {
+            onLinesChanged();
+        } else {
+            style++;
+            notifyItemRangeChanged(0, _lines.size());
+        }
     }
 
     @Override public void onLinesListed() {
@@ -296,10 +310,9 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @UiThread public void loadLinesWithoutAnimation() {
+    @UiThread public synchronized void loadLinesWithoutAnimation() {
         if (buffer == null) return;
         uiLines.disableAnimationForNextUpdate();
-        readMarkerLine = buffer.readMarkerLine;
         onLinesChanged();
     }
 
@@ -319,7 +332,7 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         });
     }
 
-    @UiThread public void storeHotLineInfo() {
+    @UiThread public synchronized void storeHotLineInfo() {
         Assert.assertNotNull(buffer);
         highlights = buffer.highlights;
         privates = (buffer.type == Buffer.PRIVATE) ? buffer.unreads : 0;
@@ -351,5 +364,30 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
             }
         }
         return (idx < 0) ? HOT_LINE_LOST : idx + 1;
+    }
+
+    private class DiffCallback extends DiffUtil.Callback {
+        private List<Line> oldLines, newLines;
+
+        DiffCallback(List<Line> oldLines, List<Line> newLines) {
+            this.oldLines = oldLines;
+            this.newLines = newLines;
+        }
+
+        @Override public int getOldListSize() {
+            return oldLines.size();
+        }
+
+        @Override public int getNewListSize() {
+            return newLines.size();
+        }
+
+        @Override public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
+            return oldLines.get(oldItemPosition).pointer == newLines.get(newItemPosition).pointer;
+        }
+
+        @Override public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
+            return areItemsTheSame(oldItemPosition, newItemPosition);
+        }
     }
 }

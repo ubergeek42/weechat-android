@@ -264,10 +264,10 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     }
 
     @Override
-    public void onGlobalPreferencesChanged() {
+    public void onGlobalPreferencesChanged(boolean numberChanged) {
         logger.debug("onGlobalPreferencesChanged()");
         if (linesAdapter == null) return;
-        linesAdapter.onGlobalPreferencesChanged();
+        linesAdapter.onGlobalPreferencesChanged(numberChanged);
     }
 
     @Override

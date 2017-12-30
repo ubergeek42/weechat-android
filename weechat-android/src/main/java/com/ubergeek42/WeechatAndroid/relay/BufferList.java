@@ -222,11 +222,11 @@ public class BufferList {
      ** practically notifying is only needed when pressing volume up/dn keys,
      ** which means we are not in the preferences window and the activity will not
      ** get re-rendered */
-    @UiThread synchronized public static void onGlobalPreferencesChanged() {
+    @UiThread synchronized public static void onGlobalPreferencesChanged(boolean numberChanged) {
         for (Buffer buffer : buffers)
             if (buffer.isOpen) {
                 buffer.forceProcessAllMessages();
-                buffer.onGlobalPreferencesChanged();
+                buffer.onGlobalPreferencesChanged(numberChanged);
             }
     }
 
@@ -469,9 +469,10 @@ public class BufferList {
 
             for (Buffer buffer: buffers) {
                 Array count = bufferToHotlist.get(buffer.pointer);
+                int others = count == null ? 0 : count.get(0).asInt();
                 int unreads = count == null ? 0 : count.get(1).asInt() + count.get(2).asInt();   // chat messages & private messages
                 int highlights = count == null ? 0 : count.get(3).asInt();                       // highlights
-                buffer.updateHighlightsAndUnreads(highlights, unreads);
+                buffer.updateHighlightsAndUnreads(highlights, unreads, others);
             }
 
             onHotlistFinished();

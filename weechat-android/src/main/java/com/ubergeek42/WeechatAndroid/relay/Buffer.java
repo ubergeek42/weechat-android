@@ -52,14 +52,9 @@ public class Buffer {
      ** lastReadLineServer stores id of the last read line *in weechat*. -1 means all lines unread. */
     public long lastReadLineServer = -1;
     public boolean wantsFullHotListUpdate = false; // must be false for buffers without lastReadLineServer!
+    public int totalReadOthers = 0;
     public int totalReadUnreads = 0;
     public int totalReadHighlights = 0;
-
-    // readMarkerLine is set using information from the server and when moving the marker to end
-    // visibleReadMarkerLine is NOT set on every w → w-a update, also it is not saved
-    public long readMarkerLine = -1;
-    private long lastVisibleLine = -1;
-    public long visibleReadMarkerLine = -1;
 
     private LinkedList<Line> lines = new LinkedList<>();
     private int visibleLinesCount = 0;
@@ -71,6 +66,7 @@ public class Buffer {
     public boolean holdsAllLines = false;
     public boolean holdsAllNicks = false;
     public int type = OTHER;
+    public int others = 0;
     public int unreads = 0;
     public int highlights = 0;
 
@@ -110,22 +106,14 @@ public class Buffer {
     /** get a copy of all 200 lines or of lines that are not filtered using weechat filters.
      ** better call off the main thread */
     synchronized public @NonNull Line[] getLinesCopy() {
-        Line[] l;
-        visibleReadMarkerLine = readMarkerLine;
         if (!P.filterLines)
-            l = lines.toArray(new Line[lines.size()]);
+            return lines.toArray(new Line[lines.size()]);
         else {
-            l = new Line[visibleLinesCount];
+            Line[] l = new Line[visibleLinesCount];
             int i = 0;
-            for (Line line: lines) {
-                if (line.visible) l[i++] = line;
-                // if read marker is on a line that is invisible
-                // move it to the previous visible line
-                else if (line.pointer == readMarkerLine && i > 0) visibleReadMarkerLine = l[i-1].pointer;
-            }
+            for (Line line: lines) if (line.visible) l[i++] = line;
+            return l;
         }
-        if (l.length > 0) lastVisibleLine = l[l.length-1].pointer;
-        return l;
     }
 
     /** get a copy of last used nicknames
@@ -186,7 +174,7 @@ public class Buffer {
         if (bufferEye != null) {
             if (!holdsAllLines) BufferList.requestLinesForBufferByPointer(pointer, maxLines);
             if (!holdsAllNicks) BufferList.requestNicklistForBufferByPointer(pointer);
-            if (needsToBeNotifiedAboutGlobalPreferencesChanged) bufferEye.onGlobalPreferencesChanged();
+            if (needsToBeNotifiedAboutGlobalPreferencesChanged) bufferEye.onGlobalPreferencesChanged(false);
         }
     }
 
@@ -220,16 +208,14 @@ public class Buffer {
         return (type == Buffer.PRIVATE && unreads > 0) || highlights > 0;
     }
 
-    synchronized public boolean moveReadMarkerToEndAndTellIfChanged() {
-        return visibleReadMarkerLine != (visibleReadMarkerLine = readMarkerLine = lastVisibleLine);
-    }
-
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// stuff called by message handlers
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     synchronized public void addLine(final Line line, final boolean isLast) {
         if (DEBUG_LINE) logger.debug("{} addLine('{}', {})", shortName, line.message, isLast);
+
+        if (readMarkerSkipUnfiltered < 0 && visibleLinesCount == readMarkerSkipFiltered) readMarkerSkipUnfiltered = lines.size();
 
         // check if the line in question is already in the buffer
         // happens when reverse request throws in lines even though some are already here
@@ -251,18 +237,24 @@ public class Buffer {
             if (isWatched || type == HARD_HIDDEN || (P.filterLines && !line.visible) ||
                     (notifyLevel == 0) || (notifyLevel == 1 && !line.highlighted)) {
                 if (line.highlighted) totalReadHighlights++;
-                else if (line.type == Line.LINE_MESSAGE) totalReadUnreads++;
+                else if (line.visible && line.type == Line.LINE_MESSAGE) totalReadUnreads++;
+                else if (line.visible && line.type == Line.LINE_OTHER) totalReadOthers++;
             } else {
                 if (line.highlighted) {
                     highlights++;
                     BufferList.newHotLine(this, line);
                     BufferList.notifyBuffersSlightlyChanged(type == OTHER);
-                } else if (line.type == Line.LINE_MESSAGE) {
+                } else if (line.visible && line.type == Line.LINE_MESSAGE) {
                     unreads++;
                     if (type == PRIVATE) BufferList.newHotLine(this, line);
                     BufferList.notifyBuffersSlightlyChanged(type == OTHER);
-                }
+                } else if (line.visible && line.type == Line.LINE_OTHER) others++;
             }
+        }
+
+        if (isLast) {
+            if (readMarkerSkipUnfiltered >= 0) readMarkerSkipUnfiltered++;
+            if (readMarkerSkipFiltered >= 0 && line.visible) readMarkerSkipFiltered++;
         }
 
         // notify our listener
@@ -294,8 +286,7 @@ public class Buffer {
         wantsFullHotListUpdate = lastReadLineServer != linePointer;
         if (wantsFullHotListUpdate) {
             lastReadLineServer = linePointer;
-            readMarkerLine = linePointer;
-            totalReadHighlights = totalReadUnreads = 0;
+            totalReadHighlights = totalReadUnreads = totalReadOthers = 0;
         }
     }
 
@@ -305,25 +296,32 @@ public class Buffer {
      ** has lost its last read lines again our read count will not have any meaning. AND it might happen
      ** that our number is actually HIGHER than amount of unread lines in the buffer. as a workaround,
      ** we check that we are not getting negative numbers. not perfect, but—! */
-     synchronized public void updateHighlightsAndUnreads(int highlights, int unreads) {
+     synchronized public void updateHighlightsAndUnreads(int highlights, int unreads, int others) {
+        logger.trace("{} updateHighlightsAndUnreads({}, {}, {})", shortName, highlights, unreads, others);
         if (isWatched && holdsAllNicks) {
             // occasionally, when this method is called for the first time on a new connection, a
             // buffer is already watched. in this case, we don't want to lose highlights and unreads
             // as then we won't get the scroll, so we check holdsAllNicks to see if we are ready
             totalReadUnreads = unreads;
             totalReadHighlights = highlights;
+            totalReadOthers = others;
         } else {
             final boolean full_update = wantsFullHotListUpdate ||
                     (totalReadUnreads > unreads) ||
-                    (totalReadHighlights > highlights);
+                    (totalReadHighlights > highlights) ||
+                    (totalReadOthers > others);
             if (full_update) {
+                this.others = others;
                 this.unreads = unreads;
                 this.highlights = highlights;
-                totalReadUnreads = totalReadHighlights = 0;
+                totalReadUnreads = totalReadHighlights = totalReadOthers = 0;
             } else {
+                this.others = others - totalReadOthers;
                 this.unreads = unreads - totalReadUnreads;
                 this.highlights = highlights - totalReadHighlights;
             }
+
+            readMarkerSkipFiltered = this.highlights + this.unreads + this.others;
 
             int hots = this.highlights;
             if (type == PRIVATE) hots += this.unreads;
@@ -331,13 +329,28 @@ public class Buffer {
         }
     }
 
+    private int readMarkerSkipFiltered = -1;
+    private int readMarkerSkipUnfiltered = -1;
+
+    synchronized public int getReadMarkerPosition() {
+        int size = P.filterLines ? visibleLinesCount : lines.size();
+        int skip = P.filterLines ? readMarkerSkipFiltered : readMarkerSkipUnfiltered;
+        if (skip < 0) return -1;
+        int pos = size - skip;
+        return pos > 0 ? pos : -1;
+    }
+
+    synchronized public void moveReadMarkerToEnd() {
+        readMarkerSkipFiltered = readMarkerSkipUnfiltered = 0;
+    }
+
     synchronized public void onLineAdded() {
         if (bufferEye != null) bufferEye.onLineAdded();
     }
 
     private boolean needsToBeNotifiedAboutGlobalPreferencesChanged = false;
-    @UiThread synchronized void onGlobalPreferencesChanged() {
-        if (bufferEye != null) bufferEye.onGlobalPreferencesChanged();
+    @UiThread synchronized void onGlobalPreferencesChanged(boolean numberChanged) {
+        if (bufferEye != null) bufferEye.onGlobalPreferencesChanged(numberChanged);
         else needsToBeNotifiedAboutGlobalPreferencesChanged = true;
     }
 
@@ -409,10 +422,11 @@ public class Buffer {
      ** if something has actually changed, notifies whoever cares about it */
     synchronized public void resetUnreadsAndHighlights() {
         if (DEBUG_BUFFER) logger.debug("{} resetUnreadsAndHighlights()", shortName);
-        if ((unreads | highlights) == 0) return;
+        if ((unreads | highlights | others) == 0) return;
         totalReadUnreads += unreads;
         totalReadHighlights += highlights;
-        unreads = highlights = 0;
+        totalReadOthers += others;
+        unreads = highlights = others = 0;
         BufferList.removeHotMessagesForBuffer(this);
         BufferList.notifyBuffersSlightlyChanged(type == OTHER);
     }

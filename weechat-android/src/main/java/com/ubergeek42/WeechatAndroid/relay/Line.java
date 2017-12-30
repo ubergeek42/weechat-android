@@ -133,6 +133,14 @@ public class Line {
                     case Color.Span.UNDERLINE: droidSpan = new UnderlineSpan(); break;
                     default: continue;
                 }
+                // 06-03 14:54:04.765 E/AndroidRuntime: FATAL EXCEPTION: r13
+                // Process: com.ubergeek42.WeechatAndroid.debug, PID: 3401
+                // Theme: themes:{default=overlay:com.baranovgroup.nstyle, iconPack:com.baranovgroup.nstyle, fontPkg:com.baranovgroup.nstyle, com.android.systemui=overlay:com.baranovgroup.nstyle, com.android.systemui.navbar=overlay:com.baranovgroup.nstyle}
+                // java.lang.IndexOutOfBoundsException: setSpan (9 ... 89) ends beyond length 59
+                // at android.text.SpannableStringInternal.checkRange(SpannableStringInternal.java:352)
+                // at android.text.SpannableStringInternal.setSpan(SpannableStringInternal.java:79)
+                // at android.text.SpannableString.setSpan(SpannableString.java:46)
+                // at com.ubergeek42.WeechatAndroid.relay.Line.processMessage(Line.java:136)
                 spannable.setSpan(droidSpan, span.start, span.end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             }
         }

@@ -25,6 +25,8 @@ import java.util.Set;
 import javax.net.ssl.SSLException;
 
 import android.annotation.SuppressLint;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
@@ -380,6 +382,7 @@ public class WeechatActivity extends AppCompatActivity implements
         boolean bufferVisible = adapter.getCount() > 0;
         uiMenu.findItem(R.id.menu_nicklist).setVisible(bufferVisible);
         uiMenu.findItem(R.id.menu_close).setVisible(bufferVisible);
+        uiMenu.findItem(R.id.menu_filter_lines).setChecked(P.filterLines);
     }
 
     /** Can safely hold on to this according to docs
@@ -453,6 +456,12 @@ public class WeechatActivity extends AppCompatActivity implements
                 dialog.setOnShowListener(nicklistAdapter);
                 dialog.setOnDismissListener(nicklistAdapter);
                 dialog.show();
+                break;
+            case R.id.menu_filter_lines:
+                final SharedPreferences p = PreferenceManager.getDefaultSharedPreferences(this);
+                final boolean filter = !P.filterLines;
+                item.setChecked(filter);
+                p.edit().putBoolean(PREF_FILTER_LINES, filter).apply();
                 break;
         }
         return super.onOptionsItemSelected(item);

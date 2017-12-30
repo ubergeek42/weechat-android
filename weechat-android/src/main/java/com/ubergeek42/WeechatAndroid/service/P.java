@@ -181,7 +181,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @Override @UiThread public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        if (DEBUG_PREFS) logger.debug("onSharedPreferenceChanged()");
+        if (DEBUG_PREFS) logger.debug("onSharedPreferenceChanged(..., {})", key);
 
         switch (key) {
             // buffer list preferences
@@ -191,35 +191,38 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
             case PREF_AUTO_HIDE_ACTIONBAR: autoHideActionbar = p.getBoolean(key, PREF_AUTO_HIDE_ACTIONBAR_D); break;
 
             // buffer-wide preferences
-            case PREF_FILTER_LINES: filterLines = p.getBoolean(key, PREF_FILTER_LINES_D); break;
+            case PREF_FILTER_LINES:
+                filterLines = p.getBoolean(key, PREF_FILTER_LINES_D);
+                BufferList.onGlobalPreferencesChanged(true);
+                break;
             case PREF_MAX_WIDTH:
                 maxWidth = Integer.parseInt(p.getString(key, PREF_MAX_WIDTH_D));
-                BufferList.onGlobalPreferencesChanged();
+                BufferList.onGlobalPreferencesChanged(false);
                 break;
             case PREF_ENCLOSE_NICK:
                 encloseNick = p.getBoolean(key, PREF_ENCLOSE_NICK_D);
-                BufferList.onGlobalPreferencesChanged();
+                BufferList.onGlobalPreferencesChanged(false);
                 break;
             case PREF_DIM_DOWN:
                 dimDownNonHumanLines = p.getBoolean(key, PREF_DIM_DOWN_D);
-                BufferList.onGlobalPreferencesChanged();
+                BufferList.onGlobalPreferencesChanged(false);
                 break;
             case PREF_TIMESTAMP_FORMAT:
                 setTimestampFormat();
-                BufferList.onGlobalPreferencesChanged();
+                BufferList.onGlobalPreferencesChanged(false);
                 break;
             case PREF_PREFIX_ALIGN:
                 setAlignment();
-                BufferList.onGlobalPreferencesChanged();
+                BufferList.onGlobalPreferencesChanged(false);
                 break;
             case PREF_TEXT_SIZE:
             case PREF_BUFFER_FONT:
                 setTextSizeAndLetterWidth();
-                BufferList.onGlobalPreferencesChanged();
+                BufferList.onGlobalPreferencesChanged(false);
                 break;
             case PREF_COLOR_SCHEME:
                 ThemeManager.loadColorSchemeFromPreferences(context);
-                BufferList.onGlobalPreferencesChanged();
+                BufferList.onGlobalPreferencesChanged(false);
                 break;
 
             // notifications
@@ -295,7 +298,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
 
     // protocol must be changed each time anything that uses the following function changes
     // needed to make sure nothing crashes if we cannot restore the data
-    public static final int PROTOCOL_ID = 9;
+    public static final int PROTOCOL_ID = 12;
 
     public static void saveStuff() {
         if (DEBUG_SAVE_RESTORE) logger.debug("saveStuff()");
@@ -337,10 +340,10 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private static class BufferHotData implements Serializable {
-        long readMarkerLine = -1;
         long lastReadLineServer = -1;
         int totalOldUnreads = 0;
         int totalOldHighlights = 0;
+        int totalOldOthers = 0;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -349,10 +352,10 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     synchronized public static void restoreLastReadLine(Buffer buffer) {
         BufferHotData data = bufferToLastReadLine.get(buffer.fullName);
         if (data != null) {
-            buffer.readMarkerLine = data.readMarkerLine;
             buffer.lastReadLineServer = data.lastReadLineServer;
             buffer.totalReadUnreads = data.totalOldUnreads;
             buffer.totalReadHighlights = data.totalOldHighlights;
+            buffer.totalReadOthers = data.totalOldOthers;
         }
     }
 
@@ -363,10 +366,10 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
             data = new BufferHotData();
             bufferToLastReadLine.put(buffer.fullName, data);
         }
-        data.readMarkerLine = buffer.readMarkerLine;
         data.lastReadLineServer = buffer.lastReadLineServer;
         data.totalOldUnreads = buffer.totalReadUnreads;
         data.totalOldHighlights = buffer.totalReadHighlights;
+        data.totalOldOthers = buffer.totalReadOthers;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

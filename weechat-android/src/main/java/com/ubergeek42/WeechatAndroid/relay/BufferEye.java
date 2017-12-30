@@ -13,7 +13,7 @@ public interface BufferEye {
     void onLineAdded();
 
     // all lines should be re-rendered due to font size change and such
-    @UiThread void onGlobalPreferencesChanged();
+    @UiThread void onGlobalPreferencesChanged(boolean numberChanged);
 
     // server sent us all lines
     void onLinesListed();

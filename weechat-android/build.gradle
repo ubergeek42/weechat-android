@@ -3,17 +3,17 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.3.2'
+        classpath 'com.android.tools.build:gradle:3.0.1'
     }
 }
 apply plugin: 'com.android.application'
 
 dependencies {
-    compile 'com.android.support:support-v4:24.2.1'
-    compile 'com.android.support:support-annotations:24.2.1' // For @Nullable/@NonNull
-    compile 'com.android.support:appcompat-v7:24.2.1'
-    compile 'com.android.support:preference-v7:24.2.1'  // preference fragment & al
-    compile 'com.android.support:preference-v14:24.2.1' // styling for the fragment
+    compile 'com.android.support:support-v4:27.0.2'
+    compile 'com.android.support:support-annotations:27.0.2' // For @Nullable/@NonNull
+    compile 'com.android.support:appcompat-v7:27.0.2'
+    compile 'com.android.support:preference-v7:27.0.2'  // preference fragment & al
+    compile 'com.android.support:preference-v14:27.0.2' // styling for the fragment
 
     //compile "org.slf4j:slf4j-log4j12:1.7.12"  // Android Logging API
     compile 'org.slf4j:slf4j-api:1.7.12'
@@ -35,15 +35,15 @@ tasks.withType(JavaCompile) {
 }
 
 android {
-    compileSdkVersion 24
-    buildToolsVersion "25.0.2"
+    compileSdkVersion 27
 
     defaultConfig {
         versionCode 15
         versionName "0.12"
 
         minSdkVersion 16
-        targetSdkVersion 24
+        targetSdkVersion 27
+        buildConfigField "String", "VERSION_BANNER", "\"" + versionBanner() + "\""
     }
 
     signingConfigs {
@@ -57,7 +57,6 @@ android {
         debug {
             applicationIdSuffix ".debug"
             versionNameSuffix "-debug"
-            buildConfigField "String", "VERSION_BANNER", "\""+versionBanner()+"\""
 
             // minifyEnabled true
             // proguardFile getDefaultProguardFile('proguard-android-optimize.txt')
@@ -66,25 +65,18 @@ android {
 
         // These are the real releases in the Google Play Store
         release {
-            buildConfigField "String", "VERSION_BANNER", "\"" + versionBanner() + "\""
             signingConfig signingConfigs.releasePlayConfig
-
             minifyEnabled true
             proguardFile file('proguard.txt')
             proguardFile getDefaultProguardFile('proguard-android-optimize.txt')
         }
 
         // Development releases in the Google Play Store(signed same as the cloudbees site)
-        devrelease.initWith(buildTypes.release)
         devrelease {
+            initWith release
+            signingConfig signingConfigs.devPlayConfig
             applicationIdSuffix ".dev"
             versionNameSuffix "-dev"
-            buildConfigField "String", "VERSION_BANNER", "\""+versionBanner()+"\""
-	        signingConfig signingConfigs.devPlayConfig
-
-            minifyEnabled true
-            proguardFile file('proguard.txt')
-            proguardFile getDefaultProguardFile('proguard-android-optimize.txt')
         }
     }
 
@@ -126,6 +118,6 @@ if (project.hasProperty('releaseStorefile') &&
 }
 
 
-String versionBanner() {
+static String versionBanner() {
     return 'git describe --long'.execute().text.trim()
 }

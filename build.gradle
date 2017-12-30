@@ -4,6 +4,7 @@ subprojects {
         mavenCentral()
         mavenLocal()
         maven { url "https://jitpack.io" }
+        google()
     }
 }
 
@@ -12,3 +13,15 @@ task wrapper(type: Wrapper) {
     distributionUrl = "https://services.gradle.org/distributions/gradle-${gradleVersion}-all.zip"
 }
 defaultTasks 'assembleDebug'
+
+repositories {
+    google()
+}
+buildscript {
+    repositories {
+        maven {
+            url 'https://maven.google.com/'
+            name 'Google'
+        }
+    }
+}

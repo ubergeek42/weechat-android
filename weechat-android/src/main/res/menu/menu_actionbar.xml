@@ -26,4 +26,10 @@
           android:icon="@drawable/ic_2_action_settings"
           app:showAsAction="never"
           android:title="@string/preferences"/>
+    <item android:id="@+id/menu_filter_lines"
+        android:menuCategory="secondary"
+        android:icon="@drawable/ic_2_action_settings"
+        app:showAsAction="never"
+        android:title="Filter lines"
+        android:checkable="true"/>
 </menu>
