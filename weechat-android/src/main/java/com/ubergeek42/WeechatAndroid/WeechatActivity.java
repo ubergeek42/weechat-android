@@ -184,9 +184,6 @@ public class WeechatActivity extends AppCompatActivity implements
 
         if (P.isServiceAlive()) connect();
 
-        logger.info("onCreate(): service alive? {}; have static data? {}; P.openBuffers: {}; fragments: {}",
-                P.isServiceAlive(), BufferList.getBufferList().size() != 0, P.openBuffers, manager.getFragments());
-
         // restore buffers if we have data in the static
         // if no data and not going to connect, clear stuff
         // if no data and going to connect, let the LISTED event restore it all

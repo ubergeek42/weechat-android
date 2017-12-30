@@ -43,9 +43,6 @@ public class BufferList {
     final private static boolean DEBUG_SYNCING = false;
     final private static boolean DEBUG_HANDLERS = false;
 
-    private static @Nullable String filterLc = null;
-    private static @Nullable String filterUc = null;
-
     private static @Nullable RelayService relay;
     private static @Nullable BufferListEye buffersEye;
 
@@ -128,33 +125,9 @@ public class BufferList {
     //////////////////////////////////////////////////////////////////////////////////////////////// called by the Eye
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private static @Nullable ArrayList<Buffer> sentBuffers = null;
-
-    /** returns an independent copy of the buffer list
-     ** MIGHT return the same object (albeit sorted as needed) */
-    synchronized static public @NonNull ArrayList<Buffer> getBufferList() {
-        if (sentBuffers == null) {
-            sentBuffers = new ArrayList<>();
-            for (Buffer buffer : buffers) {
-                if (buffer.type == Buffer.HARD_HIDDEN) continue;
-                if (P.filterBuffers && buffer.type == Buffer.OTHER && buffer.highlights == 0 && buffer.unreads == 0) continue;
-                if (filterLc != null && filterUc != null && !buffer.fullName.toLowerCase().contains(filterLc) && !buffer.fullName.toUpperCase().contains(filterUc)) continue;
-                sentBuffers.add(buffer);
-            }
-        }
-        if (P.sortBuffers) Collections.sort(sentBuffers, sortByHotAndMessageCountComparator);
-        else Collections.sort(sentBuffers, sortByHotCountAndNumberComparator);
-        return sentBuffers;
-    }
 
     static public boolean hasData() {
         return buffers.size() > 0;
-    }
-
-    synchronized static public void setFilter(String filter) {
-        filterLc = (filter.length() == 0) ? null : filter.toLowerCase();
-        filterUc = (filter.length() == 0) ? null : filter.toUpperCase();
-        sentBuffers = null;
     }
 
     synchronized static public @Nullable Buffer findByFullName(@Nullable String fullName) {
@@ -192,7 +165,6 @@ public class BufferList {
 
     /** called when a buffer has been added or removed */
     synchronized static private void notifyBuffersChanged() {
-        sentBuffers = null;
         if (buffersEye != null) buffersEye.onBuffersChanged();
     }
 
@@ -201,7 +173,6 @@ public class BufferList {
      ** used to temporarily display the said buffer if OTHER buffers are filtered */
     synchronized static void notifyBuffersSlightlyChanged(boolean otherMessagesChanged) {
         if (buffersEye != null) {
-            if (otherMessagesChanged && P.filterBuffers) sentBuffers = null;
             buffersEye.onBuffersChanged();
         }
     }
@@ -214,7 +185,6 @@ public class BufferList {
      ** buffer changes are such that we should reorder the buffer list */
     synchronized static private void notifyBufferPropertiesChanged(Buffer buffer) {
         buffer.onPropertiesChanged();
-        sentBuffers = null;
         if (buffersEye != null) buffersEye.onBuffersChanged();
     }
 
@@ -335,27 +305,6 @@ public class BufferList {
         for (Buffer buffer : buffers) if (buffer.pointer == pointer) return buffer;
         return null;
     }
-
-    static private final Comparator<Buffer> sortByHotCountAndNumberComparator = new Comparator<Buffer>() {
-        @Override public int compare(Buffer left, Buffer right) {
-            int l, r;
-            if ((l = left.highlights) != (r = right.highlights)) return r - l;
-            if ((l = left.type == Buffer.PRIVATE ? left.unreads : 0) !=
-                    (r = right.type == Buffer.PRIVATE ? right.unreads : 0)) return r - l;
-            return left.number - right.number;
-        }
-    };
-
-    static private final Comparator<Buffer> sortByHotAndMessageCountComparator = new Comparator<Buffer>() {
-        @Override
-        public int compare(Buffer left, Buffer right) {
-            int l, r;
-            if ((l = left.highlights) != (r = right.highlights)) return r - l;
-            if ((l = left.type == Buffer.PRIVATE ? left.unreads : 0) !=
-                    (r = right.type == Buffer.PRIVATE ? right.unreads : 0)) return r - l;
-            return right.unreads - left.unreads;
-        }
-    };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// yay!! message handlers!! the joy

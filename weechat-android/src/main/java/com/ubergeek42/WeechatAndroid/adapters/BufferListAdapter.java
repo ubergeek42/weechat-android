@@ -16,10 +16,14 @@
 package com.ubergeek42.WeechatAndroid.adapters;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.util.DiffUtil;
 import android.support.v7.widget.RecyclerView;
+import android.text.Spannable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,6 +33,7 @@ import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.WeechatAndroid.relay.BufferListEye;
+import com.ubergeek42.WeechatAndroid.service.P;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,14 +43,14 @@ public class BufferListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     private static Logger logger = LoggerFactory.getLogger("BufferListAdapter");
 
     private AppCompatActivity activity;
-    private ArrayList<Buffer> buffers = new ArrayList<>();
+    private ArrayList<VisualBuffer> buffers = new ArrayList<>();
 
     final private static int[][] COLORS = new int[][] {
             {0xaa525252, 0xaa6c6c6c}, // other
             {0xaa44525f, 0xaa596c7d}, // channel
             {0xaa57474f, 0xaa735e69}, // private
     };
-    
+
     public BufferListAdapter() {
         setHasStableIds(true);
     }
@@ -74,10 +79,9 @@ public class BufferListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             view.setOnClickListener(this);
         }
 
-        void update(Buffer buffer) {
-            logger.trace("update {}", buffer.shortName);
+        void update(VisualBuffer buffer) {
             fullName = buffer.fullName;
-            uiBuffer.setText(buffer.printableWithoutTitle);
+            uiBuffer.setText(buffer.printable);
             int unreads = buffer.unreads;
             int highlights = buffer.highlights;
 
@@ -109,23 +113,23 @@ public class BufferListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @Override public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        logger.trace("onCreateViewHolder({})", viewType);
+        //logger.trace("onCreateViewHolder({})", viewType);
         LayoutInflater i = LayoutInflater.from(parent.getContext());
         return new Row(i.inflate(R.layout.bufferlist_item, parent, false));
     }
 
     @Override public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-        logger.trace("onBindViewHolder(..., {}, {})", position);
+        //logger.trace("onBindViewHolder(..., {}, {})", position);
         ((Row) holder).update(buffers.get(position));
     }
 
     @Override public long getItemId(int position) {
-        logger.trace("getItemId({})", position);
+        //logger.trace("getItemId({})", position);
         return buffers.get(position).pointer;
     }
 
     @Override public int getItemCount() {
-        logger.trace("getItemCount() -> {}", buffers.size());
+        //logger.trace("getItemCount() -> {}", buffers.size());
         return buffers.size();
     }
 
@@ -136,17 +140,38 @@ public class BufferListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     @Override synchronized public void onBuffersChanged() {
         logger.trace("onBuffersChanged()");
         if (activity == null) return;
-        final ArrayList<Buffer> newBuffers = BufferList.getBufferList();
-        logger.trace("onBuffersChanged() {} -> {}", buffers.size(), newBuffers.size());
+
+        final ArrayList<VisualBuffer> newBuffers = new ArrayList<>();
+
+        synchronized (BufferList.class) {
+            for (Buffer buffer : BufferList.buffers) {
+                if (buffer.type == Buffer.HARD_HIDDEN) continue;
+                if (P.filterBuffers && buffer.type == Buffer.OTHER && buffer.highlights == 0 && buffer.unreads == 0) continue;
+                if (filterLc != null && filterUc != null && !buffer.fullName.toLowerCase().contains(filterLc) && !buffer.fullName.toUpperCase().contains(filterUc)) continue;
+                newBuffers.add(new VisualBuffer(buffer));
+            }
+        }
+
+        if (P.sortBuffers) Collections.sort(newBuffers, sortByHotAndMessageCountComparator);
+        else Collections.sort(newBuffers, sortByHotCountAndNumberComparator);
+
         final DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new DiffCallback(buffers, newBuffers), true);
         activity.runOnUiThread(new Runnable() {
             @Override public void run() {
-                logger.trace("...proceeding {}", BufferListAdapter.this.hasObservers());
                 buffers = newBuffers;
                 diffResult.dispatchUpdatesTo(BufferListAdapter.this);
             }
         });
     }
+
+    public void setFilter(final String s) {
+        filterLc = (s.length() == 0) ? null : s.toLowerCase();
+        filterUc = (s.length() == 0) ? null : s.toUpperCase();
+    }
+
+    private static @Nullable String filterLc = null;
+    private static @Nullable String filterUc = null;
+
 
     @Override public void onHotCountChanged() {}
 
@@ -154,26 +179,30 @@ public class BufferListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     //////////////////////////////////////////////////////////////////////////////////////////////// Diff
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private static class Wrapper {
-        Buffer buffer;
-        Object printableWithoutTitle;
+    private static class VisualBuffer {
+        String fullName;
+        Spannable printable;
         boolean isOpen;
-        int highlights, unreads;
+        int highlights, unreads, type, number;
+        long pointer;
 
-        public Wrapper(Buffer buffer) {
-            this.buffer = buffer;
+        VisualBuffer(Buffer buffer) {
+            fullName = buffer.fullName;
             isOpen = buffer.isOpen;
-            printableWithoutTitle = buffer.printableWithoutTitle;
+            printable = buffer.printable;
             highlights = buffer.highlights;
             unreads = buffer.unreads;
+            type = buffer.type;
+            number = buffer.number;
+            pointer = buffer.pointer;
         }
     }
 
     private class DiffCallback extends DiffUtil.Callback {
 
-        private ArrayList<Buffer> oldBuffers, newBuffers;
+        private ArrayList<VisualBuffer> oldBuffers, newBuffers;
 
-        DiffCallback(ArrayList<Buffer> oldBuffers, ArrayList<Buffer> newBuffers) {
+        DiffCallback(ArrayList<VisualBuffer> oldBuffers, ArrayList<VisualBuffer> newBuffers) {
             this.oldBuffers = oldBuffers;
             this.newBuffers = newBuffers;
         }
@@ -190,7 +219,37 @@ public class BufferListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         }
 
         @Override public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
-            return false;
+            VisualBuffer o = oldBuffers.get(oldItemPosition);
+            VisualBuffer n = newBuffers.get(newItemPosition);
+            return o.printable.equals(n.printable) &&
+                    o.isOpen == n.isOpen &&
+                    o.highlights == n.highlights &&
+                    o.unreads == n.unreads;
         }
     }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    static private final Comparator<VisualBuffer> sortByHotCountAndNumberComparator = new Comparator<VisualBuffer>() {
+        @Override public int compare(VisualBuffer left, VisualBuffer right) {
+            int l, r;
+            if ((l = left.highlights) != (r = right.highlights)) return r - l;
+            if ((l = left.type == Buffer.PRIVATE ? left.unreads : 0) !=
+                    (r = right.type == Buffer.PRIVATE ? right.unreads : 0)) return r - l;
+            return left.number - right.number;
+        }
+    };
+
+    static private final Comparator<VisualBuffer> sortByHotAndMessageCountComparator = new Comparator<VisualBuffer>() {
+        @Override
+        public int compare(VisualBuffer left, VisualBuffer right) {
+            int l, r;
+            if ((l = left.highlights) != (r = right.highlights)) return r - l;
+            if ((l = left.type == Buffer.PRIVATE ? left.unreads : 0) !=
+                    (r = right.type == Buffer.PRIVATE ? right.unreads : 0)) return r - l;
+            return right.unreads - left.unreads;
+        }
+    };
 }

@@ -119,7 +119,7 @@ public class BufferListFragment extends Fragment implements BufferListEye, View.
 
     private void attachToBufferList() {
         BufferList.setBufferListEye(this);
-        setFilter(uiFilter.getText());
+        setFilter(uiFilter.getText().toString());
         onBuffersChanged();
     }
 
@@ -161,17 +161,17 @@ public class BufferListFragment extends Fragment implements BufferListEye, View.
         @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
             if (DEBUG_PREFERENCES) logger.debug("onTextChanged({}, ...)", s);
             if (adapter != null) {
-                setFilter(s);
+                setFilter(s.toString());
                 adapter.onBuffersChanged();
             }
         }
     };
 
-    private void setFilter(final CharSequence s) {
-        BufferList.setFilter(s.toString());
+
+    private void setFilter(final String s) {
+        adapter.setFilter(s);
         activity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
+            @Override public void run() {
                 uiFilterClear.setVisibility((s.length() == 0) ? View.INVISIBLE : View.VISIBLE);
             }
         });

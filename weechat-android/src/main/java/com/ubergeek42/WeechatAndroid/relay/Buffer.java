@@ -70,7 +70,7 @@ public class Buffer {
     public int unreads = 0;
     public int highlights = 0;
 
-    public Spannable printableWithoutTitle = null; // printable buffer without title (for TextView)
+    public Spannable printable = null; // printable buffer without title (for TextView)
     public Spannable printableWithTitle = null; // printable buffer with title
     public Spannable titleSpannable = null;
     public Line titleLine;
@@ -402,9 +402,9 @@ public class Buffer {
         spannable = new SpannableString(number + shortName);
         spannable.setSpan(SUPER, 0, number.length(), EX);
         spannable.setSpan(SMALL1, 0, number.length(), EX);
-        printableWithoutTitle = spannable;
+        printable = spannable;
         if (title == null || title.equals("")) {
-            printableWithTitle = printableWithoutTitle;
+            printableWithTitle = printable;
         } else {
             String t = Color.stripEverything(title);
             titleSpannable = new SpannableString(t);
