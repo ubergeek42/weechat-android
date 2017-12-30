@@ -1,5 +1,6 @@
 package com.ubergeek42.WeechatAndroid;
 
+import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.v7.app.AlertDialog;
@@ -33,14 +34,17 @@ public class ShareTextActivity extends AppCompatActivity implements DialogInterf
 
         Intent intent = getIntent();
         if ((Intent.ACTION_SEND.equals(intent.getAction()) && "text/plain".equals(intent.getType()))) {
-            bufferlistAdapter = new BufferListAdapter(this);
-            AlertDialog.Builder builder = new AlertDialog.Builder(this)
-                    .setAdapter(bufferlistAdapter, this)
-                    .setTitle(getString(R.string.share_text_title));
-            dialog = builder.create();
-            dialog.setOnShowListener(this);
-            dialog.setOnDismissListener(this);
+            Dialog dialog = new Dialog(this);
+            dialog.setContentView(R.layout.bufferlist);
             dialog.show();
+            //bufferlistAdapter = new BufferListAdapter(this);
+            //AlertDialog.Builder builder = new AlertDialog.Builder(this)
+            //        .setAdapter(bufferlistAdapter, this)
+            //        .setTitle(getString(R.string.share_text_title));
+            //dialog = builder.create();
+            //dialog.setOnShowListener(this);
+            //dialog.setOnDismissListener(this);
+            //dialog.show();
         }
     }
 
@@ -55,14 +59,14 @@ public class ShareTextActivity extends AppCompatActivity implements DialogInterf
 
     @Override
     public void onClick(DialogInterface dialog, int which) {
-        Buffer buffer = bufferlistAdapter.getItem(which);
-        if (buffer != null) {
-            final String text = getIntent().getStringExtra(Intent.EXTRA_TEXT);
-            Intent intent = new Intent(getApplicationContext(), WeechatActivity.class);
-            intent.putExtra(NOTIFICATION_EXTRA_BUFFER_FULL_NAME, buffer.fullName);
-            intent.putExtra(NOTIFICATION_EXTRA_BUFFER_INPUT_TEXT, text);
-            startActivity(intent);
-        }
+        //Buffer buffer = bufferlistAdapter.(which);
+        //if (buffer != null) {
+        //    final String text = getIntent().getStringExtra(Intent.EXTRA_TEXT);
+        //    Intent intent = new Intent(getApplicationContext(), WeechatActivity.class);
+        //    intent.putExtra(NOTIFICATION_EXTRA_BUFFER_FULL_NAME, buffer.fullName);
+        //    intent.putExtra(NOTIFICATION_EXTRA_BUFFER_INPUT_TEXT, text);
+        //    startActivity(intent);
+        //}
     }
 
     @Override

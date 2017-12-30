@@ -17,32 +17,27 @@ package com.ubergeek42.WeechatAndroid.adapters;
 
 import java.util.ArrayList;
 
-import android.content.DialogInterface;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.util.DiffUtil;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
 import android.widget.TextView;
 
-import com.ubergeek42.WeechatAndroid.BuildConfig;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.WeechatAndroid.relay.BufferListEye;
-import com.ubergeek42.WeechatAndroid.service.P;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class BufferListAdapter extends BaseAdapter implements BufferListEye {
+public class BufferListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements BufferListEye {
 
     private static Logger logger = LoggerFactory.getLogger("BufferListAdapter");
-    final private static boolean DEBUG = BuildConfig.DEBUG;
 
     private AppCompatActivity activity;
-    private LayoutInflater inflater;
     private ArrayList<Buffer> buffers = new ArrayList<>();
 
     final private static int[][] COLORS = new int[][] {
@@ -51,93 +46,151 @@ public class BufferListAdapter extends BaseAdapter implements BufferListEye {
             {0xaa57474f, 0xaa735e69}, // private
     };
     
-    public BufferListAdapter(AppCompatActivity activity) {
+    public BufferListAdapter() {
+        setHasStableIds(true);
+    }
+
+    public void attach(AppCompatActivity activity) {
         this.activity = activity;
-        this.inflater = LayoutInflater.from(activity);
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// VH
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private static class Row extends RecyclerView.ViewHolder implements View.OnClickListener {
+        private String fullName;
+        private TextView uiHot;
+        private TextView uiWarm;
+        private TextView uiBuffer;
+        private View uiOpen;
+
+        Row(View view) {
+            super(view);
+            uiOpen = view.findViewById(R.id.open);
+            uiBuffer = view.findViewById(R.id.buffer);
+            uiWarm = view.findViewById(R.id.buffer_warm);
+            uiHot = view.findViewById(R.id.buffer_hot);
+            view.setOnClickListener(this);
+        }
+
+        void update(Buffer buffer) {
+            logger.trace("update {}", buffer.shortName);
+            fullName = buffer.fullName;
+            uiBuffer.setText(buffer.printableWithoutTitle);
+            int unreads = buffer.unreads;
+            int highlights = buffer.highlights;
+
+            int important = (highlights > 0 || (unreads > 0 && buffer.type == Buffer.PRIVATE)) ? 1 : 0;
+            uiBuffer.setBackgroundColor(COLORS[buffer.type][important]);
+            uiOpen.setVisibility(buffer.isOpen ? View.VISIBLE : View.GONE);
+
+            if (highlights > 0) {
+                uiHot.setText(Integer.toString(highlights));
+                uiHot.setVisibility(View.VISIBLE);
+            } else
+                uiHot.setVisibility(View.INVISIBLE);
+
+            if (unreads > 0) {
+                uiWarm.setText(Integer.toString(unreads));
+                uiWarm.setVisibility(View.VISIBLE);
+            } else
+                uiWarm.setVisibility(View.GONE);
+        }
+
+        @Override public void onClick(View v) {
+            ((BufferListClickListener) ((AppCompatActivity) v.getContext()).getSupportFragmentManager()
+                    .findFragmentById(R.id.bufferlist_fragment)).onBufferClick(fullName);
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// adapter methods
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @Override
-    public int getCount() {
+    @Override public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        logger.trace("onCreateViewHolder({})", viewType);
+        LayoutInflater i = LayoutInflater.from(parent.getContext());
+        return new Row(i.inflate(R.layout.bufferlist_item, parent, false));
+    }
+
+    @Override public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+        logger.trace("onBindViewHolder(..., {}, {})", position);
+        ((Row) holder).update(buffers.get(position));
+    }
+
+    @Override public long getItemId(int position) {
+        logger.trace("getItemId({})", position);
+        return buffers.get(position).pointer;
+    }
+
+    @Override public int getItemCount() {
+        logger.trace("getItemCount() -> {}", buffers.size());
         return buffers.size();
-    }
-
-    @Override
-    public Buffer getItem(int position) {
-        return buffers.get(position);
-    }
-
-    @Override
-    public long getItemId(int position) {return position;}
-
-    @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-        ViewHolder holder;
-
-        if (convertView == null) {
-            convertView = inflater.inflate(R.layout.bufferlist_item, parent, false);
-            holder = new ViewHolder();
-            holder.uiOpen = convertView.findViewById(R.id.open);
-            holder.uiBuffer = (TextView) convertView.findViewById(R.id.buffer);
-            holder.uiWarm = (TextView) convertView.findViewById(R.id.buffer_warm);
-            holder.uiHot = (TextView) convertView.findViewById(R.id.buffer_hot);
-            convertView.setTag(holder);
-        } else
-            holder = (ViewHolder) convertView.getTag();
-
-        Buffer buffer = getItem(position);
-
-        holder.uiBuffer.setText((P.showTitle && buffer.printableWithTitle != null) ? buffer.printableWithTitle : buffer.printableWithoutTitle);
-
-        int unreads = buffer.unreads;
-        int highlights = buffer.highlights;
-
-        int important = (highlights > 0 || (unreads > 0 && buffer.type == Buffer.PRIVATE)) ? 1 : 0;
-
-        holder.uiBuffer.setBackgroundColor(COLORS[buffer.type][important]);
-        holder.uiOpen.setVisibility(buffer.isOpen ? View.VISIBLE : View.GONE);
-
-        if (highlights > 0) {
-            holder.uiHot.setText(Integer.toString(highlights));
-            holder.uiHot.setVisibility(View.VISIBLE);
-        } else
-            holder.uiHot.setVisibility(View.INVISIBLE);
-
-        if (unreads > 0) {
-            holder.uiWarm.setText(Integer.toString(unreads));
-            holder.uiWarm.setVisibility(View.VISIBLE);
-        } else
-            holder.uiWarm.setVisibility(View.GONE);
-
-        return convertView;
-    }
-
-    private static class ViewHolder {
-        TextView uiHot;
-        TextView uiWarm;
-        TextView uiBuffer;
-        View uiOpen;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// BufferListEye
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @Override
-    public void onBuffersChanged() {
-        final ArrayList<Buffer> buffers = BufferList.getBufferList();
+    @Override synchronized public void onBuffersChanged() {
+        logger.trace("onBuffersChanged()");
+        if (activity == null) return;
+        final ArrayList<Buffer> newBuffers = BufferList.getBufferList();
+        logger.trace("onBuffersChanged() {} -> {}", buffers.size(), newBuffers.size());
+        final DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new DiffCallback(buffers, newBuffers), true);
         activity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                BufferListAdapter.this.buffers = buffers;
-                notifyDataSetChanged();
+            @Override public void run() {
+                logger.trace("...proceeding {}", BufferListAdapter.this.hasObservers());
+                buffers = newBuffers;
+                diffResult.dispatchUpdatesTo(BufferListAdapter.this);
             }
         });
     }
 
-    @Override
-    public void onHotCountChanged() {}
+    @Override public void onHotCountChanged() {}
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// Diff
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private static class Wrapper {
+        Buffer buffer;
+        Object printableWithoutTitle;
+        boolean isOpen;
+        int highlights, unreads;
+
+        public Wrapper(Buffer buffer) {
+            this.buffer = buffer;
+            isOpen = buffer.isOpen;
+            printableWithoutTitle = buffer.printableWithoutTitle;
+            highlights = buffer.highlights;
+            unreads = buffer.unreads;
+        }
+    }
+
+    private class DiffCallback extends DiffUtil.Callback {
+
+        private ArrayList<Buffer> oldBuffers, newBuffers;
+
+        DiffCallback(ArrayList<Buffer> oldBuffers, ArrayList<Buffer> newBuffers) {
+            this.oldBuffers = oldBuffers;
+            this.newBuffers = newBuffers;
+        }
+        @Override public int getOldListSize() {
+            return oldBuffers.size();
+        }
+
+        @Override public int getNewListSize() {
+            return newBuffers.size();
+        }
+
+        @Override public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
+            return oldBuffers.get(oldItemPosition).pointer == newBuffers.get(newItemPosition).pointer;
+        }
+
+        @Override public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
+            return false;
+        }
+    }
 }

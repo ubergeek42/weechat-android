@@ -1,6 +1,6 @@
 package com.ubergeek42.WeechatAndroid.fragments;
 
-import android.support.v4.app.ListFragment;
+import android.support.v4.app.Fragment;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -16,13 +17,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.ListView;
 import android.widget.RelativeLayout;
 
 import com.ubergeek42.WeechatAndroid.adapters.BufferListAdapter;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
-import com.ubergeek42.WeechatAndroid.relay.Buffer;
+import com.ubergeek42.WeechatAndroid.adapters.BufferListClickListener;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.WeechatAndroid.relay.BufferListEye;
 import com.ubergeek42.WeechatAndroid.service.Events;
@@ -30,7 +30,7 @@ import com.ubergeek42.WeechatAndroid.service.P;
 
 import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.*;
 
-public class BufferListFragment extends ListFragment implements BufferListEye, View.OnClickListener {
+public class BufferListFragment extends Fragment implements BufferListEye, View.OnClickListener, BufferListClickListener {
 
     private static Logger logger = LoggerFactory.getLogger("BufferListFragment");
     final private static boolean DEBUG_LIFECYCLE = false;
@@ -64,18 +64,21 @@ public class BufferListFragment extends ListFragment implements BufferListEye, V
     public void onCreate(Bundle savedInstanceState) {
         if (DEBUG_LIFECYCLE) logger.debug("onCreate()");
         super.onCreate(savedInstanceState);
-        setRetainInstance(true);
+        adapter = new BufferListAdapter();
+        adapter.attach(activity);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         if (DEBUG_LIFECYCLE) logger.debug("onCreateView()");
         View view = inflater.inflate(R.layout.bufferlist, container, false);
-        uiFilter = (EditText) view.findViewById(R.id.bufferlist_filter);
+        RecyclerView uiRecycler = view.findViewById(R.id.recycler);
+        uiRecycler.setAdapter(adapter);
+        uiFilter = view.findViewById(R.id.bufferlist_filter);
         uiFilter.addTextChangedListener(filterTextWatcher);
-        uiFilterClear = (ImageButton) view.findViewById(R.id.bufferlist_filter_clear);
+        uiFilterClear = view.findViewById(R.id.bufferlist_filter_clear);
         uiFilterClear.setOnClickListener(this);
-        uiFilterBar = (RelativeLayout) view.findViewById(R.id.filter_bar);
+        uiFilterBar = view.findViewById(R.id.filter_bar);
         return view;
     }
 
@@ -115,14 +118,7 @@ public class BufferListFragment extends ListFragment implements BufferListEye, V
     //////////////////////////////////////////////////////////////////////////////////////////////// the juice
 
     private void attachToBufferList() {
-        adapter = new BufferListAdapter(activity);
         BufferList.setBufferListEye(this);
-        activity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                setListAdapter(adapter);
-            }
-        });
         setFilter(uiFilter.getText());
         onBuffersChanged();
     }
@@ -135,13 +131,8 @@ public class BufferListFragment extends ListFragment implements BufferListEye, V
     //////////////////////////////////////////////////////////////////////////////////////////////// on click
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    /** this is the mother method, it actually opens buffers */
-    @Override
-    public void onListItemClick(ListView listView, View view, int position, long id) {
-        if (DEBUG_CLICK) logger.debug("onListItemClick(..., ..., {}, ...)", position);
-        Object obj = getListView().getItemAtPosition(position);
-        if (obj instanceof Buffer)
-            activity.openBuffer(((Buffer) obj).fullName);
+    @Override public void onBufferClick(String fullName) {
+        activity.openBuffer(fullName);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -179,7 +170,8 @@ public class BufferListFragment extends ListFragment implements BufferListEye, V
     private void setFilter(final CharSequence s) {
         BufferList.setFilter(s.toString());
         activity.runOnUiThread(new Runnable() {
-            @Override public void run() {
+            @Override
+            public void run() {
                 uiFilterClear.setVisibility((s.length() == 0) ? View.INVISIBLE : View.VISIBLE);
             }
         });
