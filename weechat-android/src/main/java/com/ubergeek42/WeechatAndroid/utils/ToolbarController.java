@@ -3,6 +3,7 @@ package com.ubergeek42.WeechatAndroid.utils;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
@@ -13,15 +14,18 @@ import com.ubergeek42.WeechatAndroid.service.P;
 public class ToolbarController implements ViewTreeObserver.OnGlobalLayoutListener {
     private final Toolbar toolbar;
     private final View root;
+    private final View mainView;
+    private final int toolbarHeight;
 
     private boolean shown = true;
     private boolean keyboardVisible = false;
 
     public ToolbarController(AppCompatActivity activity) {
-        this.toolbar = (Toolbar) activity.findViewById(R.id.toolbar);
+        this.toolbar = activity.findViewById(R.id.toolbar);
+        this.mainView = activity.findViewById(R.id.main_viewpager);
         this.root = activity.findViewById(android.R.id.content);
         root.getViewTreeObserver().addOnGlobalLayoutListener(this);
-        //toolbar.setAlpha(0.5f);
+        toolbarHeight = toolbar.getLayoutParams().height;
     }
 
     private int _dy = 0;
@@ -46,7 +50,20 @@ public class ToolbarController implements ViewTreeObserver.OnGlobalLayoutListene
         else show();
     }
 
+    private void setContentIsOffset(boolean offset) {
+        final ViewGroup.MarginLayoutParams params =
+                (ViewGroup.MarginLayoutParams) mainView.getLayoutParams();
+        final int value = offset ? toolbarHeight : 0;
+        if (params.topMargin != value) {
+            params.setMargins(0, value, 0, 0);
+            mainView.setLayoutParams(params);
+        }
+    }
+
     private boolean canAutoHide() {
+        // Offset the content if the action bar is always shown, so the top text and button
+        // remain visible
+        setContentIsOffset(!P.autoHideActionbar);
         if (P.autoHideActionbar)
             return true;
         show();
