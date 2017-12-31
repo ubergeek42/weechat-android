@@ -3,7 +3,6 @@ package com.ubergeek42.WeechatAndroid;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.widget.Toast;
@@ -33,13 +32,15 @@ public class ShareTextActivity extends AppCompatActivity implements
         Intent intent = getIntent();
         if ((Intent.ACTION_SEND.equals(intent.getAction()) && "text/plain".equals(intent.getType()))) {
             Dialog dialog = new Dialog(this);
-            dialog.setContentView(R.layout.bufferlist);
+            dialog.setContentView(R.layout.bufferlist_share);
 
-            RecyclerView recycler = dialog.findViewById(R.id.recycler);
             BufferListAdapter adapter = new BufferListAdapter();
             adapter.attach(this);
-            recycler.setAdapter(adapter);
+            ((RecyclerView) dialog.findViewById(R.id.recycler)).setAdapter(adapter);
             adapter.onBuffersChanged();
+            dialog.setCanceledOnTouchOutside(true);
+            dialog.setCancelable(true);
+            dialog.setOnDismissListener(this);
             dialog.show();
         }
     }
@@ -52,8 +53,7 @@ public class ShareTextActivity extends AppCompatActivity implements
         startActivity(intent);
     }
 
-    @Override
-    public void onDismiss(DialogInterface dialog) {
+    @Override public void onDismiss(DialogInterface dialog) {
         finish();
     }
 }

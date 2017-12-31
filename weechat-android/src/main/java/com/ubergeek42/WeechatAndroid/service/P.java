@@ -85,6 +85,9 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
 
     public static boolean showBufferFilter;
 
+    public static @Nullable String filterLc = null;
+    public static @Nullable String filterUc = null;
+
     public static void loadUIPreferences() {
         // buffer list preferences
         sortBuffers = p.getBoolean(PREF_SORT_BUFFERS, PREF_SORT_BUFFERS_D);

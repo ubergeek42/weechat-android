@@ -147,7 +147,7 @@ public class BufferListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             for (Buffer buffer : BufferList.buffers) {
                 if (buffer.type == Buffer.HARD_HIDDEN) continue;
                 if (P.filterBuffers && buffer.type == Buffer.OTHER && buffer.highlights == 0 && buffer.unreads == 0) continue;
-                if (filterLc != null && filterUc != null && !buffer.fullName.toLowerCase().contains(filterLc) && !buffer.fullName.toUpperCase().contains(filterUc)) continue;
+                if (P.filterLc != null && P.filterUc != null && !buffer.fullName.toLowerCase().contains(P.filterLc) && !buffer.fullName.toUpperCase().contains(P.filterUc)) continue;
                 newBuffers.add(new VisualBuffer(buffer));
             }
         }
@@ -165,13 +165,9 @@ public class BufferListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     }
 
     public void setFilter(final String s) {
-        filterLc = (s.length() == 0) ? null : s.toLowerCase();
-        filterUc = (s.length() == 0) ? null : s.toUpperCase();
+        P.filterLc = (s.length() == 0) ? null : s.toLowerCase();
+        P.filterUc = (s.length() == 0) ? null : s.toUpperCase();
     }
-
-    private static @Nullable String filterLc = null;
-    private static @Nullable String filterUc = null;
-
 
     @Override public void onHotCountChanged() {}
 

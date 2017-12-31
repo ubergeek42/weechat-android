@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.widget.RecyclerView
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    app:layoutManager="android.support.v7.widget.LinearLayoutManager"
+    android:id="@+id/recycler"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:dividerHeight="0dp"
+    android:divider="@null"
+    android:background="@color/primary"
+    android:fadingEdge="none" />
