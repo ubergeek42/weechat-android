@@ -60,6 +60,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.ubergeek42.WeechatAndroid.adapters.BufferListClickListener;
 import com.ubergeek42.WeechatAndroid.adapters.MainPagerAdapter;
 import com.ubergeek42.WeechatAndroid.adapters.NickListAdapter;
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragment;
@@ -81,7 +82,7 @@ import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.*;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
 
 public class WeechatActivity extends AppCompatActivity implements
-        CutePagerTitleStrip.CutePageChangeListener {
+        CutePagerTitleStrip.CutePageChangeListener, BufferListClickListener {
 
     private static Logger logger = LoggerFactory.getLogger("WA");
     final private static boolean DEBUG_OPTIONS_MENU = false;
@@ -500,6 +501,10 @@ public class WeechatActivity extends AppCompatActivity implements
     //////////////////////////////////////////////////////////////////////////////////////////////// MISC
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+    @Override public void onBufferClick(String fullName) {
+        openBuffer(fullName);
+    }
 
     public void openBuffer(@NonNull String fullName) {
         openBuffer(fullName, null);

@@ -34,6 +34,7 @@ import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.WeechatAndroid.relay.BufferListEye;
 import com.ubergeek42.WeechatAndroid.service.P;
+import com.ubergeek42.WeechatAndroid.utils.Utils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -103,8 +104,7 @@ public class BufferListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         }
 
         @Override public void onClick(View v) {
-            ((BufferListClickListener) ((AppCompatActivity) v.getContext()).getSupportFragmentManager()
-                    .findFragmentById(R.id.bufferlist_fragment)).onBufferClick(fullName);
+            ((BufferListClickListener) Utils.getActivity(v)).onBufferClick(fullName);
         }
     }
 

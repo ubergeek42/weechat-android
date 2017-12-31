@@ -30,7 +30,7 @@ import com.ubergeek42.WeechatAndroid.service.P;
 
 import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.*;
 
-public class BufferListFragment extends Fragment implements BufferListEye, View.OnClickListener, BufferListClickListener {
+public class BufferListFragment extends Fragment implements BufferListEye, View.OnClickListener {
 
     private static Logger logger = LoggerFactory.getLogger("BufferListFragment");
     final private static boolean DEBUG_LIFECYCLE = false;
@@ -125,14 +125,6 @@ public class BufferListFragment extends Fragment implements BufferListEye, View.
 
     private void detachFromBufferList() {
         BufferList.setBufferListEye(null);
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// on click
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    @Override public void onBufferClick(String fullName) {
-        activity.openBuffer(fullName);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
