@@ -19,7 +19,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
-import android.support.annotation.Nullable;
+import android.support.annotation.UiThread;
+import android.support.annotation.WorkerThread;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.util.DiffUtil;
 import android.support.v7.widget.RecyclerView;
@@ -137,7 +138,8 @@ public class BufferListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     //////////////////////////////////////////////////////////////////////////////////////////////// BufferListEye
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @Override synchronized public void onBuffersChanged() {
+    private ArrayList<VisualBuffer> _buffers = new ArrayList<>();
+    @UiThread @WorkerThread @Override synchronized public void onBuffersChanged() {
         logger.trace("onBuffersChanged()");
         if (activity == null) return;
 
@@ -155,7 +157,11 @@ public class BufferListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         if (P.sortBuffers) Collections.sort(newBuffers, sortByHotAndMessageCountComparator);
         else Collections.sort(newBuffers, sortByHotCountAndNumberComparator);
 
-        final DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new DiffCallback(buffers, newBuffers), true);
+        // store new buffers in _buffers for the sole purpose of doing a diff against, since
+        // this method might be called again before buffers is assigned
+        final DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new DiffCallback(_buffers, newBuffers), true);
+        _buffers = newBuffers;
+
         activity.runOnUiThread(new Runnable() {
             @Override public void run() {
                 buffers = newBuffers;
@@ -195,13 +201,13 @@ public class BufferListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     }
 
     private class DiffCallback extends DiffUtil.Callback {
-
         private ArrayList<VisualBuffer> oldBuffers, newBuffers;
 
         DiffCallback(ArrayList<VisualBuffer> oldBuffers, ArrayList<VisualBuffer> newBuffers) {
             this.oldBuffers = oldBuffers;
             this.newBuffers = newBuffers;
         }
+
         @Override public int getOldListSize() {
             return oldBuffers.size();
         }
