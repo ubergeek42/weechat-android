@@ -234,11 +234,11 @@
 
             <!-- theme (color scheme) -->
             <string name="pref_theme_loading_error">Error loading color scheme %s</string>
-            <string name="pref_theme_summary">Search Path:\n    %1$s\n\nCurrent Value:\n    %2$s</string>
+            <string name="pref_theme_summary">Search Path:\n&#160;&#160;&#160;&#160;%1$s\n\nCurrent Value:\n&#160;&#160;&#160;&#160;%2$s</string>
             <string name="pref_theme_not_set">Not set</string>
 
             <!-- font -->
-            <string name="pref_font_summary">Non-monospace fonts will not work well with alignment.\n\nSearch Path:%1$s\n\nCurrent Value:\n    %2$s</string>
+            <string name="pref_font_summary">Non-monospace fonts will not work well with alignment.\n\nSearch Path:%1$s\n\nCurrent Value:\n&#160;&#160;&#160;&#160;%2$s</string>
             <string name="pref_font_default">Default</string>
 
         <!-- buttons -->
