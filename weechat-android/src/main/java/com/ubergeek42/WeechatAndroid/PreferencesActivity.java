@@ -1,9 +1,13 @@
 package com.ubergeek42.WeechatAndroid;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.ClearCertPreference;
@@ -80,8 +84,22 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
         private Preference sshGroup = null;
         private Preference wsPath = null;
 
+        private Preference resumePreference;
+
+        // don't check permissions if preference is null, instead use resumePreference
         @Override public void onDisplayPreferenceDialog(Preference preference) {
             final DialogFragment f;
+
+            if (preference == null) {
+                preference = resumePreference;
+            } else if (preference instanceof FontPreference || preference instanceof ThemePreference) {
+                boolean granted = ContextCompat.checkSelfPermission(getContext(), Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+                if (!granted) {
+                    requestPermissions(new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE}, 0);
+                    resumePreference = preference;
+                    return;
+                }
+            }
 
             if (preference instanceof FontPreference)
                 f = FontPreference.FontPreferenceFragment.newInstance(preference.getKey());
@@ -104,6 +122,10 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
 
             f.setTargetFragment(this, 0);
             f.show(getFragmentManager(), FRAGMENT_DIALOG_TAG);
+        }
+
+        @Override public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+            onDisplayPreferenceDialog(null);
         }
 
         // this makes fragment display preferences. key is the key of the preference screen
