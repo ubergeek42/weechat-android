@@ -109,9 +109,17 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private static class ReadMarkerRow extends RecyclerView.ViewHolder {
+        private View view;
+        private int style = -1;
+
         ReadMarkerRow(View view) {
             super(view);
-            view.setBackgroundColor(0xFF000000 | ColorScheme.get().chat_read_marker[0]);
+            this.view = view;
+        }
+
+        void update(int newStyle) {
+            if (style != (style = newStyle))
+                view.setBackgroundColor(0xFF000000 | ColorScheme.get().chat_read_marker[0]);
         }
     }
 
@@ -213,7 +221,8 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         //logger.trace("onBindViewHolder(..., {}, {})", position);
         long pointer = lines.get(position).pointer;
         if (pointer == HEADER_POINTER) ((Header) holder).update(style);
-        else if (pointer != MARKER_POINTER) ((Row) holder).update(lines.get(position), style);
+        else if (pointer == MARKER_POINTER) ((ReadMarkerRow) holder).update(style);
+        else ((Row) holder).update(lines.get(position), style);
     }
 
     @Override public int getItemCount() {
