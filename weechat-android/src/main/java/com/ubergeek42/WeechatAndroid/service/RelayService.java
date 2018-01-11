@@ -20,10 +20,13 @@ import android.content.Intent;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
+import android.support.annotation.MainThread;
 import android.support.annotation.Nullable;
+import android.support.annotation.WorkerThread;
 
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
+import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.weechat.relay.RelayConnection;
 import com.ubergeek42.weechat.relay.RelayMessage;
 import com.ubergeek42.weechat.relay.connection.AbstractConnection.StreamClosed;
@@ -54,7 +57,7 @@ public class RelayService extends Service implements Connection.Observer {
     public RelayConnection connection;
     private Connectivity connectivity;
     private PingActionReceiver ping;
-    private Handler thandler;               // thread "doge" used for connecting/disconnecting
+    private Handler doge;               // thread "doge" used for connecting/disconnecting
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// status & life cycle
@@ -68,7 +71,7 @@ public class RelayService extends Service implements Connection.Observer {
         // prepare handler that will run on a separate thread
         HandlerThread handlerThread = new HandlerThread("doge");
         handlerThread.start();
-        thandler = new Handler(handlerThread.getLooper());
+        doge = new Handler(handlerThread.getLooper());
 
         connectivity = new Connectivity();
         connectivity.register(this);
@@ -125,7 +128,7 @@ public class RelayService extends Service implements Connection.Observer {
     private static final long DELAYS[] = new long[] {5, 15, 30, 60, 120, 300, 600, 900};
 
     // called by user and when disconnected
-    private void start() {
+    @MainThread private void start() {
         if (DEBUG_CONNECTION) logger.debug("start()");
         if (!state.contains(STATE.STOPPED)) {
             logger.error("start() run while state != STATE.STOPPED");
@@ -139,42 +142,40 @@ public class RelayService extends Service implements Connection.Observer {
     }
 
     // called by ↑ and Connectivity
-    protected void _start() {
+    @MainThread protected void _start() {
         if (DEBUG_CONNECTION) logger.debug("_start()");
-        thandler.removeCallbacksAndMessages(null);
-        thandler.post(new Runnable() {
+        doge.removeCallbacksAndMessages(null);
+        doge.post(new Runnable() {
             int reconnects = 0;
+            boolean waiting = false;
 
-            final String ticker = getString(R.string.notification_connecting);
-            final String content = getString(R.string.notification_connecting_details);
-            final String contentNow = getString(R.string.notification_connecting_details_now);
-
-            Runnable connectRunner = new Runnable() {
-                @Override public void run() {
-                    if (state.contains(STATE.AUTHENTICATED)) return;
-                    if (DEBUG_CONNECTION) logger.debug("start(): not connected; connecting now");
-                    Notificator.showMain(RelayService.this, String.format(ticker, P.printableHost), contentNow, null);
-                    switch (connect()) {
-                        case LATER: return; // wait for Connectivity
-                        case IMPOSSIBLE: stop(); break; // can't connect due to ?!?!
-                        case POSSIBLE: thandler.postDelayed(notifyRunner, WAIT_BEFORE_WAIT_MESSAGE_DELAY * 1000);
-                    }
-                }
-            };
-
-            Runnable notifyRunner = new Runnable() {
-                @Override public void run() {
-                    if (state.contains(STATE.AUTHENTICATED)) return;
-                    long delay = DELAYS[reconnects < DELAYS.length ? reconnects : DELAYS.length - 1];
-                    if (DEBUG_CONNECTION) logger.debug("start(): waiting {} seconds", delay);
-                    Notificator.showMain(RelayService.this, String.format(ticker, P.printableHost), String.format(content, delay), null);
-                    reconnects++;
-                    thandler.postDelayed(connectRunner, delay * 1000);
-                }
-            };
+            final String willConnectSoon = getString(R.string.notification_connecting_details);
+            final String connectingNow = getString(R.string.notification_connecting_details_now);
 
             @Override public void run() {
-                connectRunner.run();
+                if (state.contains(STATE.AUTHENTICATED)) {
+                    P.connectionSurelyPossibleWithCurrentPreferences = true;
+                    return;
+                }
+                if (waiting) waitABit(); else connectNow();
+                waiting = !waiting;
+            }
+
+            void connectNow() {
+                Notificator.showMain(RelayService.this, connectingNow, connectingNow, null);
+                switch (connect()) {
+                    case LATER: break;
+                    case IMPOSSIBLE: if (!P.connectionSurelyPossibleWithCurrentPreferences) {stop(); break;}
+                    case POSSIBLE: doge.postDelayed(this, WAIT_BEFORE_WAIT_MESSAGE_DELAY * 1000);
+                }
+            }
+
+            void waitABit() {
+                long delay = DELAYS[reconnects < DELAYS.length ? reconnects : DELAYS.length - 1];
+                String message = String.format(willConnectSoon, delay);
+                Notificator.showMain(RelayService.this, message, message, null);
+                reconnects++;
+                doge.postDelayed(this, delay * 1000);
             }
         });
     }
@@ -199,12 +200,8 @@ public class RelayService extends Service implements Connection.Observer {
     // called by ↑ and PingActionReceiver
     // close whatever connection we have in a thread, may result in a call to onStateChanged
     protected void interrupt() {
-        thandler.removeCallbacksAndMessages(null);
-        thandler.post(new Runnable() {
-            @Override public void run() {
-                if (connection != null) connection.disconnect();
-            }
-        });
+        doge.removeCallbacksAndMessages(null);
+        doge.post(() -> {if (connection != null) connection.disconnect();});
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -232,8 +229,10 @@ public class RelayService extends Service implements Connection.Observer {
                 default: conn = new PlainConnection(P.host, P.port); break;
             }
         } catch (Exception e) {
-            logger.error("connect(): exception while creating connection", e);
+            logger.error("connect(): exception while creating connection\n{}", Utils.getExceptionAsString(e)); // some exceptions need this for some reason
             onException(e);
+            //logger.error("going to be ignored? {}", P.connectionSurelyPossibleWithCurrentPreferences);
+            //Utils.saveLogCatToFile(getApplicationContext());
             return TRY.IMPOSSIBLE;
         }
 
@@ -256,7 +255,7 @@ public class RelayService extends Service implements Connection.Observer {
 
     public EnumSet<STATE> state = EnumSet.of(STATE.STOPPED);
 
-    @Override public void onStateChanged(Connection.STATE s) {
+    @WorkerThread @Override synchronized public void onStateChanged(Connection.STATE s) {
         logger.debug("onStateChanged({})", s);
         switch (s) {
             case CONNECTING:
@@ -275,19 +274,21 @@ public class RelayService extends Service implements Connection.Observer {
                 if (!state.contains(STATE.AUTHENTICATED)) return; // continue connecting
                 state = EnumSet.of(STATE.STOPPED);
                 goodbye();
-                if (P.reconnect) start();
+                if (P.reconnect) Utils.runOnUiThread(this::start);
                 else stopSelf();
         }
         EventBus.getDefault().postSticky(new StateChangedEvent(state));
     }
 
     private void hello() {
+        logger.trace("hello()");
         ping.scheduleFirstPing();
         BufferList.launch(this);
         SyncAlarmReceiver.start(this);
     }
 
     private void goodbye() {
+        logger.trace("goodbye()");
         SyncAlarmReceiver.stop(this);
         BufferList.stop();
         ping.unschedulePing();

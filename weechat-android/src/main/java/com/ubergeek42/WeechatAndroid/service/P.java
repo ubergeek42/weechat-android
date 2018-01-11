@@ -136,6 +136,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     public static int lineIncrement;
 
     public static String printableHost;
+    public static boolean connectionSurelyPossibleWithCurrentPreferences;
 
     public static void loadConnectionPreferences() {
         host = p.getString(PREF_HOST, PREF_HOST_D);
@@ -166,6 +167,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         }
 
         printableHost = connectionType.equals(PREF_TYPE_SSH) ? sshHost + "/" + host : host;
+        connectionSurelyPossibleWithCurrentPreferences = false;     // and don't call me Shirley
     }
 
     public static @Nullable String validateConnectionPreferences() {
