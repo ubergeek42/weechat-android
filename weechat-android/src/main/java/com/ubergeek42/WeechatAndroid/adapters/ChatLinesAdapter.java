@@ -28,11 +28,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import com.ubergeek42.WeechatAndroid.Weechat;
+import com.ubergeek42.WeechatAndroid.relay.Lines;
 import com.ubergeek42.WeechatAndroid.utils.AnimatedRecyclerView;
 import com.ubergeek42.WeechatAndroid.R;
-import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferEye;
 import com.ubergeek42.WeechatAndroid.relay.Line;
@@ -46,19 +46,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static com.ubergeek42.WeechatAndroid.R.layout.more_button;
 import static com.ubergeek42.WeechatAndroid.R.layout.read_marker;
 import static com.ubergeek42.WeechatAndroid.R.layout.chatview_line;
+import static com.ubergeek42.WeechatAndroid.relay.Lines.HEADER_POINTER;
+import static com.ubergeek42.WeechatAndroid.relay.Lines.MARKER_POINTER;
 
 public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements BufferEye {
 
     private static Logger logger = LoggerFactory.getLogger("ChatLinesAdapter");
     final private static boolean DEBUG = true;
 
-    private WeechatActivity activity = null;
     private AnimatedRecyclerView uiLines;
     private @Nullable Buffer buffer;
     private List<Line> lines = new ArrayList<>();
@@ -66,14 +66,12 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 
     private int style = 0;
 
-    public ChatLinesAdapter(WeechatActivity activity, AnimatedRecyclerView animatedRecyclerView) {
-        if (DEBUG) logger.debug("ChatLinesAdapter()");
-        this.activity = activity;
+    public ChatLinesAdapter(AnimatedRecyclerView animatedRecyclerView) {
         this.uiLines = animatedRecyclerView;
         setHasStableIds(true);
     }
 
-    @UiThread public void setBuffer(@Nullable Buffer buffer) {
+    @UiThread public synchronized void setBuffer(@Nullable Buffer buffer) {
         this.buffer = buffer;
     }
 
@@ -131,7 +129,7 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         private TextView title;
         private Button button;
         private ChatLinesAdapter adapter;
-        private Buffer.LINES status = Buffer.LINES.CAN_FETCH_MORE;
+        private Lines.LINES status = Lines.LINES.CAN_FETCH_MORE;
         private Spannable topicText = null;
         private int style = -1;
 
@@ -153,14 +151,14 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 
         private void updateButton() {
             if (adapter.buffer == null) return;
-            final Buffer.LINES s = adapter.buffer.getLineStatus();
+            final Lines.LINES s = adapter.buffer.lines.status;
             if (status == s) return;
             status = s;
-            if (s == Buffer.LINES.EVERYTHING_FETCHED) {
+            if (s == Lines.LINES.EVERYTHING_FETCHED) {
                 button.setVisibility(View.GONE);
             } else {
                 button.setVisibility(View.VISIBLE);
-                boolean more = s == Buffer.LINES.CAN_FETCH_MORE;
+                boolean more = s == Lines.LINES.CAN_FETCH_MORE;
                 button.setEnabled(more);
                 button.setTextColor(more ? 0xff80cbc4 : 0xff777777);
                 button.setText(button.getContext().getString(more ? R.string.more_button : R.string.more_button_fetching));
@@ -171,7 +169,7 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
             if (adapter.buffer == null) return;
             Spannable titleSpannable = adapter.buffer.titleSpannable;
             Line titleLine = adapter.buffer.titleLine;
-            if (TextUtils.isEmpty(titleSpannable) || !adapter.buffer.holdsAllLines) {
+            if (TextUtils.isEmpty(titleSpannable) || !adapter.buffer.lines.ready()) {
                 title.setVisibility(View.GONE);
                 return;
             }
@@ -196,10 +194,6 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     final private static int HEADER_TYPE = -1, LINE_TYPE = 0, MARKER_TYPE = 1;
-    final private static int HEADER_POINTER = -123, MARKER_POINTER = -456;
-
-    final private static Line HEADER = new Line(HEADER_POINTER, null, null, null, false, false, null);
-    final private static Line MARKER = new Line(MARKER_POINTER, null, null, null, false, false, null);
 
     @Override public int getItemViewType(int position) {
         //logger.trace("getItemViewType({})", position);
@@ -246,46 +240,28 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     @UiThread @WorkerThread private synchronized void onLinesChanged() {
         if (buffer == null) return;
         final ArrayList<Line> newLines;
-        final int marker;
 
-        synchronized (buffer) {
-            newLines = new ArrayList<>(Arrays.asList(buffer.getLinesCopy()));
-            marker = buffer.getReadMarkerPosition();
-        }
-        if (marker > 0) newLines.add(marker, MARKER);
-        newLines.add(0, HEADER);
+        newLines = buffer.getLinesCopy();
 
         final boolean hack = _lines.size() == 1 && newLines.size() > 1;
 
         final DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new DiffCallback(_lines, newLines), false);
         _lines = newLines;
 
-        activity.runOnUiThread(new Runnable() {
-            @Override public void run() {
-                lines = newLines;
-                diffResult.dispatchUpdatesTo(ChatLinesAdapter.this);
-                if (uiLines.getOnBottom()) {
-                    if (hack) uiLines.scrollToPosition(getItemCount() - 1);
-                    else uiLines.smoothScrollToPosition(getItemCount() - 1);
-                }
-                else uiLines.flashScrollbar();
-                uiLines.scheduleAnimationRestoring();
+        Weechat.runOnMainThreadASAP(() -> {
+            lines = newLines;
+            diffResult.dispatchUpdatesTo(ChatLinesAdapter.this);
+            if (uiLines.getOnBottom()) {
+                if (hack) uiLines.scrollToPosition(getItemCount() - 1);
+                else uiLines.smoothScrollToPosition(getItemCount() - 1);
             }
+            else uiLines.flashScrollbar();
+            uiLines.scheduleAnimationRestoring();
         });
-    }
-
-    @UiThread synchronized public void moveReadMarkerToEnd() {
-        if (buffer == null) return;
-        buffer.moveReadMarkerToEnd();
-        onLinesChanged();
     }
 
     private void updateHeader() {
-        activity.runOnUiThread(new Runnable() {
-            @Override public void run() {
-                notifyItemChanged(0);
-            }
-        });
+        Weechat.runOnMainThread(() -> notifyItemChanged(0));
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -333,11 +309,9 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         final int idx = findHotLine();
         if (idx == HOT_LINE_NOT_READY || idx == HOT_LINE_NOT_PRESENT) return;
         highlights = privates = 0;
-        activity.runOnUiThread(new Runnable() {
-            @Override public void run() {
-                if (idx == HOT_LINE_LOST) Toast.makeText(activity, activity.getString(R.string.autoscroll_no_line), Toast.LENGTH_SHORT).show();
-                else uiLines.smoothScrollToPositionAfterAnimation(idx);
-            }
+        Weechat.runOnMainThread(() -> {
+            if (idx == HOT_LINE_LOST) Weechat.showShortToast(R.string.autoscroll_no_line);
+            else uiLines.smoothScrollToPositionAfterAnimation(idx);
         });
     }
 
@@ -356,7 +330,7 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 
     synchronized private int findHotLine() {
         Assert.assertNotNull(buffer);
-        if (!buffer.isWatched || !buffer.holdsAllLines) return HOT_LINE_NOT_READY;
+        if (!buffer.isWatched || !buffer.lines.ready()) return HOT_LINE_NOT_READY;
         if ((highlights | privates) == 0) return HOT_LINE_NOT_PRESENT;
 
         int count = _lines.size(), idx = -1;

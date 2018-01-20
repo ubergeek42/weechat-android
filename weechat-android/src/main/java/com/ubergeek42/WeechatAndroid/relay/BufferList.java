@@ -181,7 +181,7 @@ public class BufferList {
     @UiThread synchronized public static void onGlobalPreferencesChanged(boolean numberChanged) {
         for (Buffer buffer : buffers)
             if (buffer.isOpen) {
-                buffer.forceProcessAllMessages();
+                buffer.lines.processAllMessages(!numberChanged); // todo thread-unsafe!
                 buffer.onGlobalPreferencesChanged(numberChanged);
             }
     }
@@ -190,10 +190,11 @@ public class BufferList {
     //////////////////////////////////////////////////////////////////////////////////////////////// called from Buffer & RelayService (local)
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    /** send sync command to relay (if traffic is set to optimized) and
-     ** add it to the synced buffers (=open buffers) list */
+    // if optimizing traffic, sync hotlist to make sure the number of unread messages is correct
     synchronized static void syncBuffer(Buffer buffer) {
-        if (P.optimizeTraffic) sendMessage(String.format("sync %s", buffer.hexPointer()));
+        if (!P.optimizeTraffic) return;
+        sendMessage(String.format("sync %s", buffer.hexPointer()));
+        syncHotlist();
     }
 
     synchronized static void desyncBuffer(Buffer buffer) {

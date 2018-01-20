@@ -15,6 +15,7 @@ import android.support.v4.view.ViewPager;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.ubergeek42.WeechatAndroid.Weechat;
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragment;
 import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
@@ -63,7 +64,7 @@ public class MainPagerAdapter extends PagerAdapter {
         if (!names.remove(name)) return;
         notifyDataSetChanged();
         Buffer buffer = BufferList.findByFullName(name);
-        if (buffer != null) buffer.setOpen(false);
+        if (buffer != null) Weechat.runOnMainThread(() -> buffer.setOpen(false)); // make sure isOpen is called after
         P.setBufferOpen(name, false);
     }
 

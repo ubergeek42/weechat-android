@@ -21,7 +21,6 @@ import java.util.Comparator;
 
 import android.support.annotation.UiThread;
 import android.support.annotation.WorkerThread;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.util.DiffUtil;
 import android.support.v7.widget.RecyclerView;
 import android.text.Spannable;
@@ -31,6 +30,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.ubergeek42.WeechatAndroid.R;
+import com.ubergeek42.WeechatAndroid.Weechat;
 import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.WeechatAndroid.relay.BufferListEye;
@@ -44,7 +44,6 @@ public class BufferListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
     private static Logger logger = LoggerFactory.getLogger("BufferListAdapter");
 
-    private AppCompatActivity activity;
     private ArrayList<VisualBuffer> buffers = new ArrayList<>();
 
     final private static int[][] COLORS = new int[][] {
@@ -55,10 +54,6 @@ public class BufferListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
     public BufferListAdapter() {
         setHasStableIds(true);
-    }
-
-    public void attach(AppCompatActivity activity) {
-        this.activity = activity;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -141,7 +136,6 @@ public class BufferListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     private ArrayList<VisualBuffer> _buffers = new ArrayList<>();
     @UiThread @WorkerThread @Override synchronized public void onBuffersChanged() {
         logger.trace("onBuffersChanged()");
-        if (activity == null) return;
 
         final ArrayList<VisualBuffer> newBuffers = new ArrayList<>();
 
@@ -162,11 +156,9 @@ public class BufferListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         final DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new DiffCallback(_buffers, newBuffers), true);
         _buffers = newBuffers;
 
-        activity.runOnUiThread(new Runnable() {
-            @Override public void run() {
-                buffers = newBuffers;
-                diffResult.dispatchUpdatesTo(BufferListAdapter.this);
-            }
+        Weechat.runOnMainThread(() -> {
+            buffers = newBuffers;
+            diffResult.dispatchUpdatesTo(BufferListAdapter.this);
         });
     }
 
@@ -200,7 +192,7 @@ public class BufferListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         }
     }
 
-    private class DiffCallback extends DiffUtil.Callback {
+    private static class DiffCallback extends DiffUtil.Callback {
         private ArrayList<VisualBuffer> oldBuffers, newBuffers;
 
         DiffCallback(ArrayList<VisualBuffer> oldBuffers, ArrayList<VisualBuffer> newBuffers) {
@@ -234,24 +226,19 @@ public class BufferListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    static private final Comparator<VisualBuffer> sortByHotCountAndNumberComparator = new Comparator<VisualBuffer>() {
-        @Override public int compare(VisualBuffer left, VisualBuffer right) {
-            int l, r;
-            if ((l = left.highlights) != (r = right.highlights)) return r - l;
-            if ((l = left.type == Buffer.PRIVATE ? left.unreads : 0) !=
-                    (r = right.type == Buffer.PRIVATE ? right.unreads : 0)) return r - l;
-            return left.number - right.number;
-        }
+    static private final Comparator<VisualBuffer> sortByHotCountAndNumberComparator = (left, right) -> {
+        int l, r;
+        if ((l = left.highlights) != (r = right.highlights)) return r - l;
+        if ((l = left.type == Buffer.PRIVATE ? left.unreads : 0) !=
+                (r = right.type == Buffer.PRIVATE ? right.unreads : 0)) return r - l;
+        return left.number - right.number;
     };
 
-    static private final Comparator<VisualBuffer> sortByHotAndMessageCountComparator = new Comparator<VisualBuffer>() {
-        @Override
-        public int compare(VisualBuffer left, VisualBuffer right) {
-            int l, r;
-            if ((l = left.highlights) != (r = right.highlights)) return r - l;
-            if ((l = left.type == Buffer.PRIVATE ? left.unreads : 0) !=
-                    (r = right.type == Buffer.PRIVATE ? right.unreads : 0)) return r - l;
-            return right.unreads - left.unreads;
-        }
+    static private final Comparator<VisualBuffer> sortByHotAndMessageCountComparator = (left, right) -> {
+        int l, r;
+        if ((l = left.highlights) != (r = right.highlights)) return r - l;
+        if ((l = left.type == Buffer.PRIVATE ? left.unreads : 0) !=
+                (r = right.type == Buffer.PRIVATE ? right.unreads : 0)) return r - l;
+        return right.unreads - left.unreads;
     };
 }

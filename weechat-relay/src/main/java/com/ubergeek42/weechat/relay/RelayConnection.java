@@ -87,7 +87,7 @@ public class RelayConnection implements Connection, Connection.Observer {
 
     @Override public void onMessage(RelayMessage message) {
         String id = message.getID();
-        logger.debug("onMessage(id = {})", id);
+        logger.trace("onMessage(id = {})", id);
 
         if (ID_VERSION.equals(id)) {
             version = Long.parseLong(((Info) message.getObjects()[0]).getValue());

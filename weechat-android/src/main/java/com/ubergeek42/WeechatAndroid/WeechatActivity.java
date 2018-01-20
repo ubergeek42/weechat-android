@@ -471,7 +471,7 @@ public class WeechatActivity extends AppCompatActivity implements
         if (buffer != null)
             openBuffer(buffer.fullName);
         else
-            Toast.makeText(this, getString(R.string.no_hot_buffers), Toast.LENGTH_SHORT).show();
+            Weechat.showShortToast(R.string.no_hot_buffers);
     }
 
     /** change first menu item from connect to disconnect or back depending on connection status */
@@ -516,18 +516,10 @@ public class WeechatActivity extends AppCompatActivity implements
             adapter.openBuffer(fullName);
             adapter.focusBuffer(fullName);
 
-            if (text != null) {
-                uiDrawer.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        adapter.setBufferInputText(fullName, text);
-                    }
-                });
-            }
-
+            if (text != null) uiDrawer.post(() -> adapter.setBufferInputText(fullName, text));
             if (slidy) hideDrawer();
         } else {
-            Toast.makeText(this, getString(R.string.not_connected), Toast.LENGTH_SHORT).show();
+            Weechat.showShortToast(R.string.not_connected);
         }
     }
 
@@ -566,7 +558,7 @@ public class WeechatActivity extends AppCompatActivity implements
         hideSoftwareKeyboard();
         BufferFragment current = adapter.getCurrentBufferFragment();
         if (current != null)
-            current.maybeChangeVisibilityState();
+            current.onVisibilityStateChanged(BufferFragment.State.FULL_VISIBILITY);
     }
 
     public boolean isPagerNoticeablyObscured() {

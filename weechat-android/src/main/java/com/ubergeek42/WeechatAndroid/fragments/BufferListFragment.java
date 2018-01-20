@@ -36,7 +36,6 @@ public class BufferListFragment extends Fragment implements BufferListEye, View.
     final private static boolean DEBUG_LIFECYCLE = false;
     final private static boolean DEBUG_MESSAGES = false;
     final private static boolean DEBUG_PREFERENCES = false;
-    final private static boolean DEBUG_CLICK = false;
 
     private WeechatActivity activity;
     private BufferListAdapter adapter;
@@ -65,7 +64,6 @@ public class BufferListFragment extends Fragment implements BufferListEye, View.
         if (DEBUG_LIFECYCLE) logger.debug("onCreate()");
         super.onCreate(savedInstanceState);
         adapter = new BufferListAdapter();
-        adapter.attach(activity);
     }
 
     @Override
@@ -132,12 +130,12 @@ public class BufferListFragment extends Fragment implements BufferListEye, View.
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @Override public void onBuffersChanged() {
-        if (DEBUG_MESSAGES) logger.debug("onBuffersChanged()");
+        if (DEBUG_MESSAGES) logger.trace("onBuffersChanged()");
         adapter.onBuffersChanged();
     }
 
     @Override public void onHotCountChanged() {
-        if (DEBUG_MESSAGES) logger.debug("onHotCountChanged()");
+        if (DEBUG_MESSAGES) logger.trace("onHotCountChanged()");
         activity.updateHotCount(BufferList.getHotCount());
     }
 

@@ -25,6 +25,7 @@ import android.support.annotation.Nullable;
 import android.support.annotation.WorkerThread;
 
 import com.ubergeek42.WeechatAndroid.R;
+import com.ubergeek42.WeechatAndroid.Weechat;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.weechat.relay.RelayConnection;
@@ -274,7 +275,7 @@ public class RelayService extends Service implements Connection.Observer {
                 if (!state.contains(STATE.AUTHENTICATED)) return; // continue connecting
                 state = EnumSet.of(STATE.STOPPED);
                 goodbye();
-                if (P.reconnect) Utils.runOnUiThread(this::start);
+                if (P.reconnect) Weechat.runOnMainThread(this::start);
                 else stopSelf();
         }
         EventBus.getDefault().postSticky(new StateChangedEvent(state));

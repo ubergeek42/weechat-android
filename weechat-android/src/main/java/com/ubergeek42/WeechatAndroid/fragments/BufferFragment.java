@@ -5,6 +5,7 @@ import java.util.Vector;
 import android.annotation.SuppressLint;
 import android.support.annotation.NonNull;
 import android.support.annotation.UiThread;
+import android.support.annotation.WorkerThread;
 import android.support.v4.app.Fragment;
 
 import org.greenrobot.eventbus.EventBus;
@@ -29,6 +30,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import com.ubergeek42.WeechatAndroid.Weechat;
 import com.ubergeek42.WeechatAndroid.utils.AnimatedRecyclerView;
 import com.ubergeek42.WeechatAndroid.adapters.ChatLinesAdapter;
 import com.ubergeek42.WeechatAndroid.R;
@@ -53,7 +55,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     private final static String TAG = "tag";
 
     private WeechatActivity activity = null;
-    private boolean started = false;
+    private boolean attached = false;
 
     private AnimatedRecyclerView uiLines;
     private EditText uiInput;
@@ -104,7 +106,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         uiSend = (ImageButton) v.findViewById(R.id.chatview_send);
         uiTab = (ImageButton) v.findViewById(R.id.chatview_tab);
 
-        linesAdapter = new ChatLinesAdapter(activity, uiLines);
+        linesAdapter = new ChatLinesAdapter(uiLines);
         uiLines.setAdapter(linesAdapter);
         uiLines.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
@@ -131,7 +133,6 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     public void onStart() {
         if (DEBUG_LIFECYCLE) logger.debug("onStart()");
         super.onStart();
-        started = true;
         uiSend.setVisibility(P.showSend ? View.VISIBLE : View.GONE);
         uiTab.setVisibility(P.showTab ? View.VISIBLE : View.GONE);
         uiLines.setBackgroundColor(0xFF000000 | ColorScheme.get().defaul[ColorScheme.OPT_BG]);
@@ -142,7 +143,6 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     public void onStop() {
         if (DEBUG_LIFECYCLE) logger.debug("onStop()");
         super.onStop();
-        started = false;
         detachFromBuffer();
         EventBus.getDefault().unregister(this);
     }
@@ -155,48 +155,39 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// visibility (set by pager adapter)
+    ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private boolean focused = false;
+    public enum State {ATTACHMENT, PAGER_FOCUS, FULL_VISIBILITY, LINES}
+    @UiThread public void onVisibilityStateChanged(State state) {
+        logger.trace("onVisibilityStateChanged({}), a={}, b={}, r={}", state, activity!=null, buffer!=null, buffer!=null&&buffer.lines.ready());
+        if (activity == null || buffer == null || !buffer.lines.ready()) return;
 
-    /** called when visibility of current fragment is (potentially) altered by
-     **   * drawer being shown/hidden
-     **   * whether buffer is shown in the pager (see MainPagerAdapter)
-     **   * availability of buffer & activity
-     **   * lifecycle */
-    @UiThread public void maybeChangeVisibilityState() {
-        if (DEBUG_VISIBILITY) logger.debug("maybeChangeVisibilityState()");
-        if (activity == null || buffer == null) return;
-
-        if (!started || !focused) linesAdapter.moveReadMarkerToEnd();
-
-        boolean obscured = activity.isPagerNoticeablyObscured();
-        boolean watched = started && focused && !obscured;
-        if (buffer.isWatched == watched) return;
-
-        buffer.setWatched(watched);
-        if (watched) {
-            linesAdapter.storeHotLineInfo();
-            linesAdapter.scrollToHotLineIfNeeded();      // this looks at _lines but is synchronized with the setter of _lines
+        boolean watched = attached && focused && !activity.isPagerNoticeablyObscured();
+        if (buffer.isWatched != watched) {
+            buffer.setWatched(watched);
+            if (watched) {
+                linesAdapter.storeHotLineInfo();
+                linesAdapter.scrollToHotLineIfNeeded();
+            }
         }
-        buffer.resetUnreadsAndHighlights();
 
-        // move the read marker in weechat (if preferences dictate)
-        if (!watched && P.hotlistSync) {
-            EventBus.getDefault().post(new SendMessageEvent(String.format("input %s /buffer set hotlist -1", buffer.hexPointer())));
-            EventBus.getDefault().post(new SendMessageEvent(String.format("input %s /input set_unread_current_buffer", buffer.hexPointer())));
+        if ((state == State.PAGER_FOCUS && !focused) ||                 // swiping left/right or
+            (state == State.ATTACHMENT && !attached && focused)) {      // minimizing app, closing buffer, disconnecting
+            buffer.moveReadMarkerToEnd();
+            if (state == State.PAGER_FOCUS) linesAdapter.onLineAdded(); // only update lines when swiping
         }
     }
 
+    private boolean focused = false;
+
     // called by MainPagerAdapter
     // if true the page is the main in the adapter; called when sideways scrolling is complete
-    @Override
-    public void setUserVisibleHint(boolean focused) {
+    @UiThread @Override public void setUserVisibleHint(boolean focused) {
         if (DEBUG_VISIBILITY) logger.debug("setUserVisibleHint({})", focused);
         super.setUserVisibleHint(focused);
         this.focused = focused;
-        maybeChangeVisibilityState();
+        onVisibilityStateChanged(State.PAGER_FOCUS);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -230,13 +221,15 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         buffer.setBufferEye(this);
         linesAdapter.setBuffer(buffer);
         linesAdapter.loadLinesWithoutAnimation();
-        maybeChangeVisibilityState();
+        attached = true;
+        onVisibilityStateChanged(State.ATTACHMENT);
     }
 
     // buffer might be null if we are closing fragment that is not connected
     @UiThread private void detachFromBuffer() {
         if (DEBUG_LIFECYCLE) logger.debug("detachFromBuffer()");
-        maybeChangeVisibilityState();
+        attached = false;
+        onVisibilityStateChanged(State.ATTACHMENT);
         linesAdapter.setBuffer(null);
         if (buffer != null) buffer.setBufferEye(null);
         buffer = null;
@@ -270,11 +263,12 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         linesAdapter.onGlobalPreferencesChanged(numberChanged);
     }
 
-    @Override
-    public void onLinesListed() {
+    @WorkerThread @Override public void onLinesListed() {
         logger.warn("onLinesListed()");
-        if (linesAdapter == null) return;
-        uiLines.requestAnimation();
+        Weechat.runOnMainThread(() -> {
+            onVisibilityStateChanged(State.LINES);
+            uiLines.requestAnimation();
+        });
         linesAdapter.onLinesListed();                   // this sets _lines in a worker thread
         linesAdapter.scrollToHotLineIfNeeded();         // this looks at _lines in the same thread
     }
@@ -471,6 +465,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @Override public String toString() {
-        return "BF [" + fullName + "]";
+        String full = fullName.length() > 9 ? fullName.substring(9) : fullName;
+        return String.format("BF [%-5.5s]", buffer == null ? full : buffer.shortName);
     }
 }

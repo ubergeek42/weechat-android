@@ -35,7 +35,6 @@ public class ShareTextActivity extends AppCompatActivity implements
             dialog.setContentView(R.layout.bufferlist_share);
 
             BufferListAdapter adapter = new BufferListAdapter();
-            adapter.attach(this);
             ((RecyclerView) dialog.findViewById(R.id.recycler)).setAdapter(adapter);
             adapter.onBuffersChanged();
             dialog.setCanceledOnTouchOutside(true);

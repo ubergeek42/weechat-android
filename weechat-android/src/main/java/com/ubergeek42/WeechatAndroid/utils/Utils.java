@@ -45,6 +45,7 @@ import java.io.Serializable;
 import java.io.StringWriter;
 import java.text.SimpleDateFormat;
 import java.util.Iterator;
+import java.util.LinkedList;
 
 public class Utils {
 
@@ -171,10 +172,18 @@ public class Utils {
         return null;
     }
 
-    public static void runOnUiThread(Runnable action) {
-        final Handler handler = new Handler(Looper.getMainLooper());
-        handler.post(action);
-    }
+//    public interface Checker <E> {
+//        boolean check(E e);
+//    }
+//
+//    public static @Nullable <E> E findStartingFromEnd(LinkedList<E> list, Checker<E> checker) {
+//        Iterator<E> it = list.descendingIterator();
+//        while (it.hasNext()) {
+//            E e = it.next();
+//            if (checker.check(e)) return e;
+//        }
+//        return null;
+//    }
 
     //////////////////////////////////////////////////////////////////////////////////////////////// debug stuff
 

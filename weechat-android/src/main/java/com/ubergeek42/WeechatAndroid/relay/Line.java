@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Date;
 
 public class Line {
-    final private static Logger logger = LoggerFactory.getLogger("Buffer");
+    final private static Logger logger = LoggerFactory.getLogger("Line");
     final private static boolean DEBUG = false;
 
     // core message data
