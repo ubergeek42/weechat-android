@@ -7,7 +7,7 @@ fi
 HASH=$(git log --pretty=format:'%h' -n 1)
 APK="weechat-$BRANCH-$HASH.apk"
 
-ORIG_APK="weechat-android/build/outputs/apk/weechat-android-devrelease.apk"
+ORIG_APK="weechat-android/build/outputs/apk/devrelease/weechat-android-devrelease.apk"
 PROGUARD_DIR="weechat-android/build/outputs/mapping/devrelease/"
 PROGUARD_TGZ="weechat-$BRANCH-$HASH.proguard.tar.gz"
 
