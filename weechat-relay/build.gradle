@@ -3,7 +3,7 @@ apply plugin: 'java'
 dependencies {
     compile 'org.slf4j:slf4j-api:1.7.12'
     compile 'com.jcraft:jsch:0.1.53'                        // for ssh tunnel support
-    compile 'com.github.TooTallNate:Java-WebSocket:58d1778' // for websocket support
+    compile 'com.github.TooTallNate:Java-WebSocket:58d1778' // for websocket support // todo??
     compile 'junit:junit:4.12'
 }
 

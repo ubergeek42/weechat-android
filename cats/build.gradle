@@ -1,0 +1,86 @@
+import org.aspectj.bridge.IMessage
+import org.aspectj.bridge.MessageHandler
+import org.aspectj.tools.ajc.Main
+
+apply plugin: 'com.android.library'
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:3.0.1'
+        classpath 'org.aspectj:aspectjtools:1.8.6'
+    }
+}
+
+
+repositories {
+    mavenCentral()
+    google()
+}
+
+dependencies {
+    compile 'org.aspectj:aspectjrt:1.8.6'
+    compile 'com.android.support:support-annotations:27.0.2' // For @Nullable/@NonNull
+
+    compile 'com.google.dagger:dagger:2.14.1'
+    annotationProcessor 'com.google.dagger:dagger-compiler:2.14.1'
+
+    testCompile 'junit:junit:4.12'
+    testCompile 'org.mockito:mockito-core:1.10.19'
+}
+
+android {
+    compileSdkVersion 27
+    buildToolsVersion '27.0.3'
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    buildTypes {
+        debug {}
+        release {}
+        devrelease {}
+    }
+}
+
+tasks.withType(JavaCompile) {
+    doLast {
+        println "weaving cats..."
+        String[] args = [
+                "-showWeaveInfo",
+                "-1.5",
+                "-inpath", destinationDir.toString(),
+                "-aspectpath", classpath.asPath,
+                "-d", destinationDir.toString(),
+                "-classpath", classpath.asPath,
+                "-bootclasspath", android.bootClasspath.join(File.pathSeparator)
+        ]
+
+        MessageHandler handler = new MessageHandler(true)
+        new Main().run(args, handler)
+
+        def log = project.logger
+        for (IMessage message : handler.getMessages(null, true)) {
+            switch (message.getKind()) {
+                case IMessage.ABORT:
+                case IMessage.ERROR:
+                case IMessage.FAIL:
+                    log.error "ERROR: " + message.message, message.thrown
+                    break
+                case IMessage.WARNING:
+                    log.warn "WARN: " + message.message, message.thrown
+                    break
+                case IMessage.INFO:
+                    log.warn "INFO: " + message.message, message.thrown
+                    break
+                case IMessage.DEBUG:
+                    log.warn "DEBUG " + message.message, message.thrown
+                    break
+            }
+        }
+    }
+}

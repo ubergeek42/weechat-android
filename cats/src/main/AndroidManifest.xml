@@ -1,0 +1,8 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.ubergeek42.cats">
+
+    <uses-sdk android:minSdkVersion="16"
+    android:targetSdkVersion="27"
+    android:maxSdkVersion="27" />
+
+</manifest>

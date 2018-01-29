@@ -1,0 +1,2 @@
+This product includes code from the project Hugo, licensed under the Apache License, Version 2.0
+Copyright 2013 Jake Wharton (https://github.com/JakeWharton/hugo)

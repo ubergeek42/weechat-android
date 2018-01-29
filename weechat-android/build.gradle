@@ -1,3 +1,7 @@
+import org.aspectj.bridge.IMessage
+import org.aspectj.bridge.MessageHandler
+import org.aspectj.tools.ajc.Main
+
 buildscript {
     repositories {
         jcenter()
@@ -5,6 +9,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:3.0.1'
+        classpath 'org.aspectj:aspectjtools:1.8.6'
     }
 }
 apply plugin: 'com.android.application'
@@ -13,12 +18,15 @@ dependencies {
     repositories {
         google()
     }
+    compile project (':cats')
 
     compile 'com.android.support:support-v4:27.0.2'
     compile 'com.android.support:support-annotations:27.0.2' // For @Nullable/@NonNull
     compile 'com.android.support:appcompat-v7:27.0.2'
     compile 'com.android.support:preference-v7:27.0.2'  // preference fragment & al
     compile 'com.android.support:preference-v14:27.0.2' // styling for the fragment
+
+    compile 'org.aspectj:aspectjrt:1.8.6'
 
     //compile "org.slf4j:slf4j-log4j12:1.7.12"  // Android Logging API
     compile 'org.slf4j:slf4j-api:1.7.12'
@@ -126,4 +134,45 @@ if (project.hasProperty('releaseStorefile') &&
 
 static String versionBanner() {
     return 'git describe --long'.execute().text.trim()
+}
+
+
+tasks.withType(JavaCompile) {
+    if (name != "compileDebugJavaWithJavac") return
+    //println "weaving... 1112-1"
+    doLast {
+        println "weaving cats into the app..."
+        String[] args = [
+                "-showWeaveInfo",
+                "-1.5",
+                "-inpath", destinationDir.toString(),
+                "-aspectpath", classpath.asPath,
+                "-d", destinationDir.toString(),
+                "-classpath", classpath.asPath,
+                "-bootclasspath", android.bootClasspath.join(File.pathSeparator)
+        ]
+
+        MessageHandler handler = new MessageHandler(true)
+        new Main().run(args, handler)
+
+        def log = project.logger
+        for (IMessage message : handler.getMessages(null, true)) {
+            switch (message.getKind()) {
+                case IMessage.ABORT:
+                case IMessage.ERROR:
+                case IMessage.FAIL:
+                    log.error "ERROR: " + message.message, message.thrown
+                    break
+                case IMessage.WARNING:
+                    log.warn "WARN: " + message.message, message.thrown
+                    break
+                case IMessage.INFO:
+                    log.info "INFO: " + message.message, message.thrown
+                    break
+                case IMessage.DEBUG:
+                    log.info "DEBUG " + message.message, message.thrown
+                    break
+            }
+        }
+    }
 }

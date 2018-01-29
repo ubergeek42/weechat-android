@@ -15,6 +15,7 @@ import com.ubergeek42.WeechatAndroid.service.Events;
 import com.ubergeek42.WeechatAndroid.service.Notificator;
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.service.RelayService.STATE;
+import com.ubergeek42.cats.Cats;
 
 import org.greenrobot.eventbus.EventBus;
 import org.slf4j.Logger;
@@ -32,6 +33,7 @@ public class Weechat extends Application {
     @Override public void onCreate() {
         super.onCreate();
         applicationContext = getApplicationContext();
+        Cats.setupKittens(applicationContext);
         P.init(getApplicationContext());
         P.restoreStuff();
         Notificator.init(this);
