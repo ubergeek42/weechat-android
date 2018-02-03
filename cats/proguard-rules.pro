@@ -19,3 +19,13 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+-assumenosideeffects class com.ubergeek42.cats.Kitty {
+    public void trace*(...);
+    public void debug*(...);
+}
+
+-assumenosideeffects class com.ubergeek42.cats.Cats {
+    public void setup(...);
+    public static com.ubergeek42.cats.Kitty getKitty(...);
+}

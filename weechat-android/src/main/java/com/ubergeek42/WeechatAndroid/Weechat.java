@@ -33,7 +33,7 @@ public class Weechat extends Application {
     @Override public void onCreate() {
         super.onCreate();
         applicationContext = getApplicationContext();
-        Cats.setupKittens(applicationContext);
+        mainHandler.post(() -> Cats.setup(applicationContext));
         P.init(getApplicationContext());
         P.restoreStuff();
         Notificator.init(this);

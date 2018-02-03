@@ -5,7 +5,7 @@ import android.support.annotation.Nullable;
 
 import java.util.ArrayList;
 
-import static com.ubergeek42.cats.Cats.DISABLED;
+import static com.ubergeek42.cats.Cats.disabled;
 
 public class RootKitty extends Kitty {
     @Nullable String prefix;
@@ -13,11 +13,11 @@ public class RootKitty extends Kitty {
 
     RootKitty(@NonNull String tag) {
         super(tag);
-        enabled = !DISABLED.contains(tag);
+        enabled = !disabled.contains(tag);
     }
 
     @Override public KidKitty kid(@NonNull String tag) {
-        for (KidKitty kid : kids) if (kid.tag.equals(tag)) return kid;
+        for (KidKitty kid : kids) if (kid.tag == tag) return kid;
         KidKitty kid = new KidKitty(this, tag);
         kids.add(kid);
         return kid;

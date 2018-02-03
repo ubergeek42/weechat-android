@@ -1,12 +1,3 @@
-# tag
-🐱
-
-# output format with prefix 1=thread, 2=tag, 3=prefix, 4=message
-%-4s : %3$-4s : %2$s: %4$s
-
-# output format without prefix
-%-4s : %s: %4$s
-
 # disabled tags in format tag, tag/subtag, /subtag
 # subtags /?, /??, /??? provide increasingly more verbose information
 /?

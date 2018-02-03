@@ -61,28 +61,23 @@ android {
     }
 
     signingConfigs {
-	releasePlayConfig
-	devPlayConfig
+        releasePlayConfig
+        devPlayConfig
     }
 
-    // Setup a bit of buildconfiguration
     buildTypes {
-        // Debug version, only ever used locally
         debug {
             applicationIdSuffix ".debug"
             versionNameSuffix "-debug"
-
-            // minifyEnabled true
-            // proguardFile getDefaultProguardFile('proguard-android-optimize.txt')
-            // proguardFile file('proguard.txt')
         }
 
         // These are the real releases in the Google Play Store
         release {
             signingConfig signingConfigs.releasePlayConfig
             minifyEnabled true
-            proguardFile file('proguard.txt')
+            proguardFile file('proguard-rules.pro')
             proguardFile getDefaultProguardFile('proguard-android-optimize.txt')
+            proguardFile file('../cats/proguard-rules.pro')
         }
 
         // Development releases in the Google Play Store(signed same as the cloudbees site)
@@ -139,7 +134,6 @@ static String versionBanner() {
 
 tasks.withType(JavaCompile) {
     if (name != "compileDebugJavaWithJavac") return
-    //println "weaving... 1112-1"
     doLast {
         println "weaving cats into the app..."
         String[] args = [

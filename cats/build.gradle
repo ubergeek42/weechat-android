@@ -22,10 +22,7 @@ repositories {
 
 dependencies {
     compile 'org.aspectj:aspectjrt:1.8.6'
-    compile 'com.android.support:support-annotations:27.0.2' // For @Nullable/@NonNull
-
-    compile 'com.google.dagger:dagger:2.14.1'
-    annotationProcessor 'com.google.dagger:dagger-compiler:2.14.1'
+    compile 'com.android.support:support-annotations:27.0.2'
 
     testCompile 'junit:junit:4.12'
     testCompile 'org.mockito:mockito-core:1.10.19'
@@ -42,8 +39,15 @@ android {
 
     buildTypes {
         debug {}
-        release {}
-        devrelease {}
+
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+
+        devrelease {
+            initWith release
+        }
     }
 }
 

@@ -10,36 +10,43 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import static android.util.Log.DEBUG;
 import static android.util.Log.ERROR;
+import static com.ubergeek42.cats.Cats.disabled;
 import static org.mockito.Mockito.*;
 
 import static android.util.Log.VERBOSE;
-import static com.ubergeek42.cats.Cats.TAG;
 
 @SuppressWarnings({"UnusedReturnValue", "SameParameterValue"})
 @RunWith(MockitoJUnitRunner.class)
 public class CatTest {
-
-    private static Kitty kitty;
-    private Kitty boop;
+    private static @Root Kitty test;
+    private Kitty kid;
     private Printer printer;
     private InOrder inOrder;
 
+    // mockable printer that also prints to stdout
     static class SystemOutPrinter extends Printer {
         @Override void println(int priority, String tag, String msg) {
-            System.out.println(String.format("%s %s %s", priority, tag, msg));
+            System.out.format("%s %s %s%n", priority, tag, msg);
         }
     }
 
     @Before
     public void setup() {
-        kitty = Kitty.make("Test");
-        boop = kitty.kid("Boop");
+        disabled.add("/?");
+        test = Kitty.make("Test");
+        kid = test.kid("Kid");
         Kitty.printer = printer = spy(SystemOutPrinter.class);
         inOrder = inOrder(printer);
     }
 
-    private void check(int level, String tag, String message) {
-        inOrder.verify(printer).println(eq(level), eq(tag), argThat(new IgnoringDelayMatcher(message)));
+    // checks that the printer printed what it was supposed to print
+    // ignores the calculated duration of method in case of exit=true
+    private void check(int level, String message) {
+        inOrder.verify(printer).println(eq(level), eq("🐱"), argThat(new IgnoringDelayMatcher(message)));
+    }
+
+    private void end() {
+        inOrder.verifyNoMoreInteractions();
     }
 
     private static class IgnoringDelayMatcher extends ArgumentMatcher<String> {
@@ -53,8 +60,7 @@ public class CatTest {
             return expected.equals(normalize((String) argument));
         }
 
-        @Override
-        public void describeTo(Description description) {
+        @Override public void describeTo(Description description) {
             description.appendText("\"" + expected + "\"");
         }
 
@@ -64,177 +70,168 @@ public class CatTest {
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    @Test public void kittyTrace() {
-        kitty.setPrefix("hello");
-        kitty.trace("foo %s", "bar");
-        check(VERBOSE, TAG, "main : hello : Test: foo \"bar\"");
-    }
-
+    ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @Test public void kittyTraceLinger() {
-        kitty.tracel("first");
-        kitty.trace("second");
-        check(VERBOSE, TAG, "main : Test: first » second");
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    @Test public void kittyDebugKid() {
-        boop.debug("first");
-        check(DEBUG, TAG, "main : Test/Boop: first");
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    @Test public void catMethod() {
-        add(1, 2);
-        check(VERBOSE, TAG, "main : Test: → add(x=1, y=2)");
-    }
-
-    @Cat private int add(int x, int y) {
-        return x + y;
-    }
-
-    @Test public void catConstructor() {
-        new Constructing();
-        check(VERBOSE, TAG, "main : Test: → Constructing() » constructing!");
-    }
-
-    class Constructing {
-        @Cat(exit=true) public Constructing() {
-            kitty.trace("constructing!");
-        }
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    @Test public void catStaticMethodExit() {
-        addStaticExit(1, 2);
-        check(VERBOSE, TAG, "main : Test: → addStaticExit(x=1, y=2) ← [1ms] ⇒ 3");
-    }
-
-    @Cat(exit = true)
-    private static int addStaticExit(int x, int y) {
-        return x + y;
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    @Test public void catStaticLinger() {
-        StaticClass.staticMethod();
-        check(DEBUG, TAG, "main : Test: → staticMethod() » first ×");
-        check(ERROR, TAG, "main : Test: last");
-        inOrder.verifyNoMoreInteractions();
-    }
-
-    private static class StaticClass {
-        @CatD(linger=true)
-        static void staticMethod() {
-            kitty.debugl("first");
-            kitty.error("last");
-        }
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    @Test public void catNonStaticExit() {
-        new NonStatic("one").replaceFirstArrayValue(new int[] {0, 1}, 2);
-        check(VERBOSE, TAG, "main : one  : NonStatic: → replaceFirstArrayValue(arr=[0, 1], i=2) ← [0ms]");
-        inOrder.verifyNoMoreInteractions();
-    }
-
-    @Test public void catNonStaticInnerKidExit() {
-        new NonStatic("two").new Inner().returnArray();
-        check(DEBUG, TAG, "main : two  : NonStatic/Kid: → returnArray() » first ← [0ms] ⇒ [-1]");
-        inOrder.verifyNoMoreInteractions();
-    }
-
-    public class NonStatic {
-        Kitty kitty = Kitty.make("NonStatic");
-        Kitty kid = kitty.kid("Kid");
-
-        NonStatic(String name) {
-            kitty.setPrefix(name);
+    static class Static {
+        static @Root Kitty static_root = Kitty.make("StaticRoot");
+        @Root Kitty root = Kitty.make("Root");
+        
+        Static() {}
+        
+        @Cat(exit=true) Static(char z) {
+            static_root.tracel("one " + z);
         }
 
-        @Cat(exit=true)
-        void replaceFirstArrayValue(int[] arr, int i) {
-            arr[0] = i;
+        @Cat static void staticMethod() {}
+
+        @Cat(linger=true) static void staticMethodExit() {
+            static_root.trace("one");
+        }
+
+        @Cat(exit=true) static void staticMethodError() {
+            static_root.tracel("one");
+            static_root.errorl("two");
+            static_root.tracel("three");
+        }
+
+        @CatD(exit=true) int virtualMethod(int x, int y) {
+            return x + y;
         }
 
         class Inner {
-            @CatD(value = "Kid", exit=true)
-            int[] returnArray() {
-                kid.debugl("first");
-                return new int[]{-1};
+            @Root Kitty inner = Kitty.make("Inner");
+
+            Inner() {
+                inner.setPrefix("zoo");
+            }
+
+            @Cat(exit=true) void replaceFirstArrayValue(int[] arr, int i) {
+                arr[0] = i;
+            }
+            
+            @SuppressWarnings("unused")
+            @Cat(exit=true) Inner(byte b) {
+                // this uses the per-class kitty!
+                Cats.getKitty(Inner.class).tracel("one");
+            }
+
+            class InnerInnerExtends extends InnerInnerAbstract {
+                @Cat(exit=true) @Override int one() {
+                    kitty.tracel("one");
+                    two();
+                    return 100;
+                }
+            }
+
+            abstract class InnerInnerAbstract {
+                @Root Kitty kitty = Kitty.make("InnerInnerAbstract");
+                @SuppressWarnings("unused") abstract int one();
+                @Cat void two() {}
+            }
+
+            class InnerInner {
+                @Root Kitty hello = Kitty.make("InnerInner").kid("Kid");
+
+                @CatD(value="Kid", exit=true) int[] returnArray() {
+                    hello.debugl("first");
+                    return new int[]{-1};
+                }
+            }
+
+            class InnerInnerSlow {
+                @Root Kitty pupper = Inner.this.inner;
+
+                @Cat(exit=true) void slow() {
+                    for (int x = 0; x < 1000; x++) one("hello ", new int[] {x, 1, 2});
+                }
+
+                @Cat("?") private String one(String foo, int[] z) {
+                    return foo + z[0];
+                }
             }
         }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    @Test public void catStaticWithKittyPrefixInnerExit() {
-        new StaticWithKitty("three").new Lyx().test();
-        check(VERBOSE, TAG, "main : three : StaticWithKitty: → test() ← [0ms]");
-        inOrder.verifyNoMoreInteractions();
-    }
-
-    public static class StaticWithKitty {
-        Kitty kitty = Kitty.make("StaticWithKitty");
-
-        StaticWithKitty(String name) {
-            kitty.setPrefix(name);
-        }
-
-        class Lyx {
-            @Cat(exit=true)
-            void test() {}
-        }
-    }
-
+    ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @Test public void catComplexExtends() {
-        new Static().new NonStaticOuter().new NonStaticInner().new NonStaticInnerInnerWithKitty().one();
-        check(VERBOSE, TAG, "main : NonStaticInnerInnerAbstract: → one() » first ×");
-        check(VERBOSE, TAG, "main : NonStaticInnerInnerAbstract: → two()");
-        check(VERBOSE, TAG, "main : NonStaticInnerInnerAbstract: second ← [0ms] ⇒ 100");
+    @Test public void kittyTrace() {
+        test.setPrefix("hello");
+        test.trace("foo %s", "bar");
+        check(VERBOSE,"main : hell : Test: foo \"bar\"");
+    }
+
+    @Test public void kittyTraceLinger() {
+        test.tracel("first");
+        test.trace("second");
+        check(VERBOSE, "main : Test: first » second");
+    }
+
+    @Test public void kittyDebugKid() {
+        kid.debug("first");
+        check(DEBUG, "main : Test/Kid: first");
+    }
+
+    @Test public void catConstructor() {
+        new Static('f');
+        check(VERBOSE, "main : StaticRoot: → Static(z=f) » one f ← [0ms]");
+    }
+
+    @Test public void catConstructorInner() {
+        new Static().new Inner((byte) 12);
+        check(VERBOSE, "main : Inner: → Inner(b=0x0C) » one ← [0ms]");
+    }
+    
+    @Test public void catMethod() {
+        new Static().virtualMethod(1, 2);
+        check(DEBUG, "main : Root: → virtualMethod(x=1, y=2) ← [0ms] ⇒ 3");
+    }
+
+    @Test public void catStaticMethod() {
+        Static.staticMethod();
+        check(VERBOSE, "main : StaticRoot: → staticMethod()");
+    }
+
+    @SuppressWarnings("AccessStaticViaInstance")
+    @Test public void catStaticMethodExit() {
+        new Static().staticMethodExit();
+        check(VERBOSE, "main : StaticRoot: → staticMethodExit() » one");
+    }
+
+    @Test public void catStaticMethodError() {
+        Static.staticMethodError();
+        check(VERBOSE, "main : StaticRoot: → staticMethodError() » one ×");
+        check(ERROR, "main : StaticRoot: two ×");
+        check(VERBOSE, "main : StaticRoot: three ← [0ms]");
+        end();
+    }
+
+    @Test public void catInnerExit() {
+        new Static().new Inner().replaceFirstArrayValue(new int[] {0, 1}, 2);
+        check(VERBOSE, "main : zoo  : Inner: → replaceFirstArrayValue(arr=[0, 1], i=2) ← [0ms]");
+        end();
+    }
+
+    @Test public void catInnerInnerKidExit() {
+        new Static().new Inner().new InnerInner().returnArray();
+        check(DEBUG, "main : InnerInner/Kid: → returnArray() » first ← [0ms] ⇒ [-1]");
+        end();
+    }
+
+    @Test public void catExtends() {
+        new Static().new Inner().new InnerInnerExtends().one();
+        check(VERBOSE, "main : InnerInnerAbstract: → one() » one ×");
+        check(VERBOSE, "main : InnerInnerAbstract: → two()");
+        check(VERBOSE, "main : InnerInnerAbstract: ← one [0ms] ⇒ 100");
         inOrder.verifyNoMoreInteractions();
     }
 
-    @Test public void catComplex() {
-        new Static().new NonStaticOuter().new NonStaticInner().new NonStaticInnerInner().one();
-        check(VERBOSE, TAG, "main : NonStaticOuter: → one()");
+    @Test public void catSlow() {
+        new Static().new Inner().new InnerInnerSlow().slow();
+        check(VERBOSE, "main : zoo  : Inner: → slow() ← [0ms]");
         inOrder.verifyNoMoreInteractions();
     }
 
-    @SuppressWarnings("unused")
-    static class Static {                        // CatTest.this = null (can't reference from static context)
-        class NonStaticOuter {                   // Static = this$0
-            Kitty kitty = Kitty.make("NonStaticOuter");
-
-            class NonStaticInner {               // NonStaticOuter = this$1
-                class NonStaticInnerInnerWithKitty extends NonStaticInnerInnerAbstract {      // NonStaticInnerInnerWithKitty = this$2
-                    @Cat(exit=true) @Override int one() {
-                        kitty.tracel("first");
-                        two();
-                        kitty.tracel("second");
-                        return 100;
-                    }
-                }
-
-                abstract class NonStaticInnerInnerAbstract {
-                    Kitty kitty = Kitty.make("NonStaticInnerInnerAbstract");
-                    abstract int one();
-                    @Cat void two() {}
-                }
-
-                class NonStaticInnerInner {
-                    @Cat void one() {}
-                }
-            }
-        }
-    }
 }

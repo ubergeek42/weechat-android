@@ -2,6 +2,7 @@ package com.ubergeek42.cats;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import static android.util.Log.ASSERT;
 import static android.util.Log.DEBUG;
@@ -9,9 +10,6 @@ import static android.util.Log.ERROR;
 import static android.util.Log.INFO;
 import static android.util.Log.VERBOSE;
 import static android.util.Log.WARN;
-import static com.ubergeek42.cats.Cats.FORMAT_WITHOUT_PREFIX;
-import static com.ubergeek42.cats.Cats.FORMAT_WITH_PREFIX;
-import static com.ubergeek42.cats.Cats.TAG;
 
 public abstract class Kitty {
     final @NonNull String tag;
@@ -26,7 +24,7 @@ public abstract class Kitty {
     }
 
     Kitty(@NonNull String tag) {
-        this.tag = tag;
+        this.tag = tag.intern();
     }
 
     abstract public KidKitty kid(@NonNull String tag);
@@ -36,7 +34,7 @@ public abstract class Kitty {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    static Printer printer= new Printer();
+    static Printer printer = new Printer();
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -57,36 +55,38 @@ public abstract class Kitty {
                 } else {
                     dumpLingerieIfPresent(false);
                 }
-                print(level, Thread.currentThread(), message.toString());
+                print(level, Thread.currentThread(), message);
                 lingerie = null;
             }
         }
     }
 
-    private void print(int level, Thread thread, String message) {
+    private void print(int level, Thread thread, CharSequence message) {
         String tag = getTag();
         String prefix = getPrefix();
-        String format = prefix == null ? FORMAT_WITHOUT_PREFIX : FORMAT_WITH_PREFIX;
-        message = String.format(format, thread.getName(), tag, prefix, message);
-        printer.println(level, TAG, message);
+        StringBuilder sb = Utils.addAndPad(new StringBuilder(64), thread.getName(), 4).append(" : ");
+        if (prefix != null) Utils.addAndPad(sb, prefix, 4).append(" : ");
+        sb.append(tag).append(": ").append(message);
+        printer.println(level, "🐱", sb.toString());
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
+    // these are non-aspect logger calls
+    // proguard will be responsible for removing debug, trace and wtf calls
+
     private void log(int level, String message) {
-        if (!enabled) return;
-        printer.println(level, getTag(), message);
+        Log.println(level, getTag(), message);
     }
 
     private void log(int level, String message, Object... args) {
-        if (!enabled) return;
-        log(level, Utils.format(message, args));
+        Log.println(level, getTag(), Utils.format(message, args));
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @Override public String toString() {
-        return "Kitty(id=" + getTag() + ", enabled=" + enabled + ")";
+        return "Kitty(tag=" + getTag() + ", enabled=" + enabled + ")";
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

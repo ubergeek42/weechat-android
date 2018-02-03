@@ -1,21 +1,27 @@
 package com.ubergeek42.cats;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
+
+import org.aspectj.lang.JoinPoint;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 public class Cats {
-    static String TAG = "🐱";
-    static String FORMAT_WITH_PREFIX =    "%-4s : %3$-4s : %2$s: %4$s";
-    static String FORMAT_WITHOUT_PREFIX = "%-4s : %s: %4$s";
+    final static HashSet<String> disabled = new HashSet<>();
+    final static private Map<Object, Kitty> kitties = Collections.synchronizedMap(new WeakHashMap<Object, Kitty>());
+    final static private Map<Object, CatInfo> cats = Collections.synchronizedMap(new IdentityHashMap<Object, CatInfo>());
 
-    final static HashSet<String> DISABLED = new HashSet<>();
-
-    public static void setupKittens(Context ctx) {
-        if (BuildConfig.DEBUG) prepareExceptionHandler();
+    public static void setup(Context ctx) {
+        if (!BuildConfig.DEBUG) throw new RuntimeException("cats should only work in debug mode");
+        prepareExceptionHandler();
         loadConfiguration(ctx);
     }
 
@@ -31,19 +37,75 @@ public class Cats {
         try {
             InputStream is = ctx.getApplicationContext().getResources().openRawResource(R.raw.cats);
             BufferedReader in = new BufferedReader(new InputStreamReader(is));
-            String line = in.readLine();
-            for (int n = 0; line != null; line = in.readLine()) {
+            for (String line = in.readLine(); line != null; line = in.readLine()) {
                 line = line.trim();
                 if (line.startsWith("#") || "".equals(line)) continue;
-                switch (n++) {
-                    case 0: TAG = line; break;
-                    case 1: FORMAT_WITH_PREFIX = line; break;
-                    case 2: FORMAT_WITHOUT_PREFIX = line; break;
-                    default: DISABLED.add(line); break;
-                }
+                disabled.add(line);
             }
         } catch (Exception e) {
             throw new RuntimeException("error while loading kitty configuration", e);
+        }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    static @NonNull Kitty getKitty(JoinPoint point) {
+        Kitty kitty = null;
+
+        Object object = point.getThis();
+        if (object != null) kitty = kitties.get(object);
+        if (kitty != null) return kitty;
+
+        Class cls = point.getSignature().getDeclaringType();
+        kitty = kitties.get(cls);
+        if (kitty != null) return kitty;
+
+        // when constructor is called, non-static fields are not initialized until after
+        // the constructor calls its super(). in this case, and also when no kitty has been made,
+        // return a default static kitty
+        kitty = Kitty.make(point.getSignature().getDeclaringType().getSimpleName());
+        setKitty(cls, kitty);
+        return kitty;
+    }
+
+    public static Kitty getKitty(Class cls) {
+        return kitties.get(cls);
+    }
+
+    static void setKitty(@NonNull Object o, @NonNull Kitty kitty) {
+        kitties.put(o, kitty);
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    // cache Cat annotations in a concurrent hash map since
+    // annotation method calls such as cat.value() are rather expensive on android
+
+    static CatInfo getCatInfo(Object o) {
+        CatInfo info = cats.get(o);
+        if (info != null) return info;
+        info = new CatInfo(o);
+        cats.put(o, info);
+        return info;
+    }
+
+    static class CatInfo {
+        String tag = "";
+        boolean linger = false;
+        boolean exit = false;
+
+        CatInfo(Object o) {
+            if (o instanceof Cat) {
+                Cat cat = (Cat) o;
+                tag = cat.value().intern();
+                exit = cat.exit();
+                linger = exit || cat.linger();
+            } else if (o instanceof CatD) {
+                CatD cat = (CatD) o;
+                tag = cat.value().intern();
+                exit = cat.exit();
+                linger = exit || cat.linger();
+            }
         }
     }
 }

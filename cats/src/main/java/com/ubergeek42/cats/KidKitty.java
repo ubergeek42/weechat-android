@@ -3,7 +3,7 @@ package com.ubergeek42.cats;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import static com.ubergeek42.cats.Cats.DISABLED;
+import static com.ubergeek42.cats.Cats.disabled;
 
 
 class KidKitty extends Kitty {
@@ -12,9 +12,9 @@ class KidKitty extends Kitty {
     KidKitty(@NonNull RootKitty mom, @NonNull String tag) {
         super(tag);
         this.mom = mom;
-        enabled = !(DISABLED.contains(mom.tag) ||
-                    DISABLED.contains(mom.tag + "/" + tag) ||
-                    DISABLED.contains("/" + tag));
+        enabled = !(disabled.contains(mom.tag) ||
+                    disabled.contains(mom.tag + "/" + tag) ||
+                    disabled.contains("/" + tag));
     }
 
     @Override String getTag() {

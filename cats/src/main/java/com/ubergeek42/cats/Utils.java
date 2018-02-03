@@ -27,7 +27,7 @@ public class Utils {
         return fullClassName.substring(fullClassName.lastIndexOf('.') + 1);
     }
 
-    public static String getThrowableAsString(Throwable t) {
+    private static String getThrowableAsString(Throwable t) {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
         t.printStackTrace(pw);
@@ -53,9 +53,12 @@ public class Utils {
                 signature.getName();
     }
 
-    static int countCharacters(CharSequence s, char t) {
-        int count = 0;
-        for (int i = 0; i < s.length(); i++) if (s.charAt(i) == t) count++;
-        return count;
+    static StringBuilder addAndPad(StringBuilder sb, CharSequence s, int length) {
+        if (length < s.length()) return sb.append(s,0, length);
+        else if (length == s.length()) return sb.append(s);
+        sb.append(s);
+        length -= s.length();
+        while (length-- > 0) sb.append(" ");
+        return sb;
     }
 }
