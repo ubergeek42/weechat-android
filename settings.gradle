@@ -1,2 +1,3 @@
 include ':cats'
-include "weechat-relay", "weechat-relay-example", "weechat-android"
+include ':relay'
+include ':app'

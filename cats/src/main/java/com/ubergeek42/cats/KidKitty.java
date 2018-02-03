@@ -12,9 +12,9 @@ class KidKitty extends Kitty {
     KidKitty(@NonNull RootKitty mom, @NonNull String tag) {
         super(tag);
         this.mom = mom;
-        enabled = !(disabled.contains(mom.tag) ||
+        enabled = !(disabled.contains(mom.tag + "/*") ||
                     disabled.contains(mom.tag + "/" + tag) ||
-                    disabled.contains("/" + tag));
+                    disabled.contains("*/" + tag));
     }
 
     @Override String getTag() {

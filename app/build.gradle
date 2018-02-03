@@ -37,7 +37,7 @@ dependencies {
     compile 'org.greenrobot:eventbus:3.0.0'
 
     // We need the weechat-relay library for connecting to weechat    
-    compile(project(':weechat-relay')) {
+    compile(project(':relay')) {
         // Exclude this because slf4j-android is a superset of this
         exclude group: 'org.slf4j', module:'slf4j-api'
     }
