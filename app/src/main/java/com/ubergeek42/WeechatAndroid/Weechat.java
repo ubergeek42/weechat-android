@@ -15,17 +15,14 @@ import com.ubergeek42.WeechatAndroid.service.Events;
 import com.ubergeek42.WeechatAndroid.service.Notificator;
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.service.RelayService.STATE;
+import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.Cats;
 
 import org.greenrobot.eventbus.EventBus;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.EnumSet;
 
 public class Weechat extends Application {
-    private static Logger logger = LoggerFactory.getLogger("W");
-
     static Thread mainThread = Thread.currentThread();
     static Handler mainHandler = new Handler();
     static Context applicationContext;
@@ -33,7 +30,7 @@ public class Weechat extends Application {
     @Override public void onCreate() {
         super.onCreate();
         applicationContext = getApplicationContext();
-        mainHandler.post(() -> Cats.setup(applicationContext));
+        Cats.setup(applicationContext);
         P.init(getApplicationContext());
         P.restoreStuff();
         Notificator.init(this);
@@ -59,8 +56,7 @@ public class Weechat extends Application {
     //////////////////////////////////////////////////////////////////////////////////////////////// toasts
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public static void showShortToast(final String message) {
-        logger.trace("showShortToast({})", message);
+    @Cat public static void showShortToast(final String message) {
         mainHandler.post(() -> Toast.makeText(applicationContext, message, Toast.LENGTH_SHORT).show());
     }
 
@@ -76,8 +72,7 @@ public class Weechat extends Application {
         showShortToast(applicationContext.getResources().getString(id, args));
     }
 
-    public static void showLongToast(final String message) {
-        logger.trace("showLongToast({})", message);
+    @Cat public static void showLongToast(final String message) {
         mainHandler.post(() -> Toast.makeText(applicationContext, message, Toast.LENGTH_LONG).show());
     }
 

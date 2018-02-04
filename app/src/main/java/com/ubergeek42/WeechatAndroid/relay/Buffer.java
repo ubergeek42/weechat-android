@@ -14,6 +14,9 @@ import android.text.style.SuperscriptSpan;
 import com.ubergeek42.WeechatAndroid.service.Events;
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.utils.Linkify;
+import com.ubergeek42.cats.Cat;
+import com.ubergeek42.cats.Kitty;
+import com.ubergeek42.cats.Root;
 import com.ubergeek42.weechat.Color;
 import com.ubergeek42.weechat.relay.protocol.Hashtable;
 import com.ubergeek42.weechat.relay.protocol.RelayObject;
@@ -32,11 +35,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 
 public class Buffer {
-    private Logger logger = LoggerFactory.getLogger("Buffer");
-
-    final private static boolean DEBUG_BUFFER = false;
-    final private static boolean DEBUG_LINE = false;
-    final private static boolean DEBUG_NICK = false;
+    final private @Root Kitty kitty = Kitty.make();
+    final private Kitty kitty_q = kitty.kid("?");
 
     final public static int PRIVATE = 2;
     final public static int CHANNEL = 1;
@@ -86,14 +86,16 @@ public class Buffer {
         this.title = title;
         this.notifyLevel = notifyLevel;
         this.localVars = localVars;
+        kitty.setPrefix(this.shortName);
+
         processBufferType();
         processBufferTitle();
 
-        this.lines = new Lines(this);
+        this.lines = new Lines(shortName);
 
         if (P.isBufferOpen(fullName)) setOpen(true);
         P.restoreLastReadLine(this);
-        if (DEBUG_BUFFER) logger.debug("new Buffer(..., {}, {}, ...) isOpen? {}", number, fullName, isOpen);
+        kitty.trace("→ Buffer(number=%s, fullName=%s) isOpen? %s", number, fullName, isOpen);
     }
 
     public String hexPointer() {
@@ -130,8 +132,7 @@ public class Buffer {
      ** that's it, really
      ** can be called multiple times without harm
      ** somewhat heavy, better be called off the main thread */
-    synchronized public void setOpen(boolean open) {
-        if (DEBUG_BUFFER) logger.trace("setOpen({})", open);
+    @Cat synchronized public void setOpen(boolean open) {
         if (this.isOpen == open) return;
         this.isOpen = open;
         if (open) {
@@ -162,8 +163,7 @@ public class Buffer {
      **     so we request lines and nicks upon user actually (getting close to) opening the buffer.
      ** we are requesting nicks along with the lines because:
      **     nick completion */
-    synchronized public void setBufferEye(@Nullable BufferEye bufferEye) {
-        if (DEBUG_BUFFER) logger.trace("setBufferEye({})", bufferEye);
+    @Cat synchronized public void setBufferEye(@Nullable BufferEye bufferEye) {
         this.bufferEye = bufferEye;
         if (bufferEye != null) {
             if (lines.status == null) requestMoreLines();
@@ -181,8 +181,7 @@ public class Buffer {
     // called after setOpen(true) and before setOpen(false)
     // lines must be ready!
     // affects the way buffer advertises highlights/unreads count and notifications */
-    synchronized public void setWatched(boolean watched) {
-        if (DEBUG_BUFFER) logger.trace("setWatched({})", watched);
+    @Cat synchronized public void setWatched(boolean watched) {
         Assert.assertTrue(lines.ready());
         Assert.assertNotEquals(isWatched, watched);
         Assert.assertTrue(isOpen);
@@ -206,9 +205,7 @@ public class Buffer {
     //////////////////////////////////////////////////////////////////////////////////////////////// stuff called by message handlers
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    synchronized public void addLine(final Line line, final boolean isLast) {
-        if (DEBUG_LINE) logger.trace("addLine('{}', {})", line.message, isLast);
-
+    @Cat("??") synchronized public void addLine(final Line line, final boolean isLast) {
         // check if the line in question is already in the buffer
         // happens when reverse request throws in lines even though some are already here
         if (lines.contains(line)) return;
@@ -263,9 +260,9 @@ public class Buffer {
      ** matches the one stored in our buffer. if they are not equal, the user must've read the buffer
      ** in weechat. assuming he read the very last line, total old highlights and unreads bear no meaning,
      ** so they should be erased. */
-    synchronized public void updateLastReadLine(long linePointer) {
-        logger.trace("updateLastReadLine({}) [{}] {}", linePointer, lastReadLineServer, lastReadLineServer == linePointer);
+    @Cat(value="?", linger=true) synchronized public void updateLastReadLine(long linePointer) {
         wantsFullHotListUpdate = lastReadLineServer != linePointer;
+        kitty_q.trace("full update? %s", wantsFullHotListUpdate);
         if (wantsFullHotListUpdate) {
             lines.setLastSeenLine(linePointer);
             lastReadLineServer = linePointer;
@@ -279,8 +276,7 @@ public class Buffer {
      ** has lost its last read lines again our read count will not have any meaning. AND it might happen
      ** that our number is actually HIGHER than amount of unread lines in the buffer. as a workaround,
      ** we check that we are not getting negative numbers. not perfect, but—! */
-     synchronized public void updateHighlightsAndUnreads(int highlights, int unreads, int others) {
-        logger.trace("{} updateHighlightsAndUnreads({}, {}, {})", shortName, highlights, unreads, others);
+     @Cat("?") synchronized public void updateHighlightsAndUnreads(int highlights, int unreads, int others) {
         if (isWatched && holdsAllNicks) {
             // occasionally, when this method is called for the first time on a new connection, a
             // buffer is already watched. in this case, we don't want to lose highlights and unreads
@@ -333,8 +329,7 @@ public class Buffer {
         if (bufferEye != null) bufferEye.onPropertiesChanged();
     }
 
-    synchronized public void onBufferClosed() {
-        if (DEBUG_BUFFER) logger.trace("onBufferClosed()");
+    @Cat synchronized public void onBufferClosed() {
         BufferList.removeHotMessagesForBuffer(this);
         setOpen(false);
         if (bufferEye != null) bufferEye.onBufferClosed();
@@ -388,8 +383,7 @@ public class Buffer {
 
     /** sets highlights/unreads to 0 and,
      ** if something has actually changed, notifies whoever cares about it */
-    synchronized private void resetUnreadsAndHighlights() {
-        if (DEBUG_BUFFER) logger.trace("resetUnreadsAndHighlights()");
+    @Cat("?") synchronized private void resetUnreadsAndHighlights() {
         if ((unreads | highlights | others) == 0) return;
         totalReadUnreads += unreads;
         totalReadHighlights += highlights;
@@ -408,8 +402,7 @@ public class Buffer {
 
     /** sets and removes a single nicklist watcher
      ** used to notify of nicklist changes as new nicks arrive and others quit */
-    synchronized public void setBufferNicklistEye(@Nullable BufferNicklistEye bufferNickListEye) {
-        if (DEBUG_NICK) logger.trace("setBufferNicklistEye({})", bufferNickListEye);
+    @Cat("Nick") synchronized public void setBufferNicklistEye(@Nullable BufferNicklistEye bufferNickListEye) {
         this.bufferNickListEye = bufferNickListEye;
     }
 
@@ -423,14 +416,12 @@ public class Buffer {
     //////////////////////////////////////////////////////////////////////////////////////////////// called by event handlers
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    synchronized public void addNick(long pointer, String prefix, String name, boolean away) {
-        if (DEBUG_NICK) logger.trace("addNick({}, {}, {}, {})", pointer, prefix, name, away);
+    @Cat("??") synchronized public void addNick(long pointer, String prefix, String name, boolean away) {
         nicks.add(new Nick(pointer, prefix, name, away));
         notifyNicklistChanged();
     }
 
-    synchronized public void removeNick(long pointer) {
-        if (DEBUG_NICK) logger.trace("removeNick({})", pointer);
+    @Cat("Nick") synchronized public void removeNick(long pointer) {
         for (Iterator<Nick> it = nicks.iterator(); it.hasNext();) {
             if (it.next().pointer == pointer) {
                 it.remove();
@@ -440,8 +431,7 @@ public class Buffer {
         notifyNicklistChanged();
     }
 
-    synchronized public void updateNick(long pointer, String prefix, String name, boolean away) {
-        if (DEBUG_NICK) logger.trace("updateNick({}, {}, {}, {})", pointer, prefix, name, away);
+    @Cat("Nick") synchronized public void updateNick(long pointer, String prefix, String name, boolean away) {
         for (Nick nick: nicks) {
             if (nick.pointer == pointer) {
                 nick.prefix = prefix;
@@ -457,8 +447,7 @@ public class Buffer {
         nicks.clear();
     }
 
-    synchronized public void sortNicksByLines() {
-        if (DEBUG_NICK) logger.trace("sortNicksByLines({})");
+    @Cat("Nick") synchronized public void sortNicksByLines() {
         final HashMap<String, Integer> nameToPosition = new HashMap<>();
 
         Iterator<Line> it = lines.getDescendingFilteredIterator();

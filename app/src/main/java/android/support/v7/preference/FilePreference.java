@@ -20,14 +20,13 @@ import android.widget.Toast;
 
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.ubergeek42.cats.Kitty;
+import com.ubergeek42.cats.Root;
 
 import java.io.IOException;
 
 public class FilePreference extends DialogPreference {
-    private static Logger logger = LoggerFactory.getLogger("FilePreference");
+    final private static @Root Kitty kitty = Kitty.make();
 
     public FilePreference(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -60,7 +59,7 @@ public class FilePreference extends DialogPreference {
             Toast.makeText(getContext(), getContext().getString(R.string.pref_file_imported), Toast.LENGTH_SHORT).show();
         } catch (IOException e) {
             Toast.makeText(getContext(), getContext().getString(R.string.pref_file_error, e.getMessage()), Toast.LENGTH_SHORT).show();
-            logger.error("onActivityResult()", e);
+            kitty.error("onActivityResult()", e);
         }
     }
 

@@ -56,9 +56,6 @@ import static com.ubergeek42.WeechatAndroid.relay.Lines.MARKER_POINTER;
 
 public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements BufferEye {
 
-    private static Logger logger = LoggerFactory.getLogger("ChatLinesAdapter");
-    final private static boolean DEBUG = true;
-
     private AnimatedRecyclerView uiLines;
     private @Nullable Buffer buffer;
     private List<Line> lines = new ArrayList<>();

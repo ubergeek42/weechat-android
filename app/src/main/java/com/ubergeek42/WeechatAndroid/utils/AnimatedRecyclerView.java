@@ -18,12 +18,7 @@ import android.view.View;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.service.P;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class AnimatedRecyclerView extends RecyclerView {
-
-    private static Logger logger = LoggerFactory.getLogger("AnimatedRecyclerView");
 
     private final static int DELAY = 10;
     private final static int DURATION = 300;

@@ -19,6 +19,7 @@ dependencies {
         google()
     }
     compile project (':cats')
+    compile project (':relay')
 
     compile 'com.android.support:support-v4:27.0.2'
     compile 'com.android.support:support-annotations:27.0.2' // For @Nullable/@NonNull
@@ -28,19 +29,9 @@ dependencies {
 
     compile 'org.aspectj:aspectjrt:1.8.6'
 
-    //compile "org.slf4j:slf4j-log4j12:1.7.12"  // Android Logging API
-    compile 'org.slf4j:slf4j-api:1.7.12'
-    compile 'com.noveogroup.android:android-logger:1.3.5'
-
     compile "commons-codec:commons-codec:1.8"
 
     compile 'org.greenrobot:eventbus:3.0.0'
-
-    // We need the weechat-relay library for connecting to weechat    
-    compile(project(':relay')) {
-        // Exclude this because slf4j-android is a superset of this
-        exclude group: 'org.slf4j', module:'slf4j-api'
-    }
 }
 
 tasks.withType(JavaCompile) {

@@ -1,5 +1,18 @@
-# disabled tags in format tag, tag/subtag, /subtag
-# subtags /?, /??, /??? provide increasingly more verbose information
-/?
-/??
-/???
+# disabled tags in format tag, tag/*, tag/subtag, */subtag
+# subtags ?, ??, ??? provide increasingly more verbose information
+
+# ui
+    WA/*
+    BLF
+    Notificator
+
+# service
+    BufferList/*
+    Buffer/*
+    Lines
+    Line
+
+# general-purpose
+    */?
+    */??
+    */???

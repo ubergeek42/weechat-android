@@ -22,10 +22,11 @@ import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
+import com.ubergeek42.cats.Cat;
+import com.ubergeek42.cats.CatD;
+import com.ubergeek42.cats.Kitty;
+import com.ubergeek42.cats.Root;
 import com.ubergeek42.weechat.Color;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.text.DateFormat;
@@ -41,9 +42,7 @@ import javax.net.ssl.SSLSocketFactory;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
 
 public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
-    final private static Logger logger = LoggerFactory.getLogger("P");
-    final private static boolean DEBUG_PREFS = true;
-    final private static boolean DEBUG_SAVE_RESTORE = true;
+    final private static @Root Kitty kitty = Kitty.make();
 
     private static Context context;
     private static SharedPreferences p;
@@ -185,9 +184,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @Override @UiThread public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        if (DEBUG_PREFS) logger.debug("onSharedPreferenceChanged(..., {})", key);
-
+    @Override @UiThread @CatD public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         switch (key) {
             // buffer list preferences
             case PREF_SORT_BUFFERS: sortBuffers = p.getBoolean(key, PREF_SORT_BUFFERS_D); break;
@@ -305,16 +302,14 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     // needed to make sure nothing crashes if we cannot restore the data
     public static final int PROTOCOL_ID = 13;
 
-    public static void saveStuff() {
-        if (DEBUG_SAVE_RESTORE) logger.debug("saveStuff()");
+    @Cat public static void saveStuff() {
         for (Buffer buffer : BufferList.buffers) saveLastReadLine(buffer);
         String data = Utils.serialize(new Object[]{openBuffers, bufferToLastReadLine, sentMessages});
         p.edit().putString(PREF_DATA, data).putInt(PREF_PROTOCOL_ID, PROTOCOL_ID).apply();
     }
 
     @SuppressWarnings("unchecked")
-    public static void restoreStuff() {
-        if (DEBUG_SAVE_RESTORE) logger.debug("restoreStuff()");
+    @Cat public static void restoreStuff() {
         if (p.getInt(PREF_PROTOCOL_ID, -1) != PROTOCOL_ID) return;
         Object o = Utils.deserialize(p.getString(PREF_DATA, null));
         if (!(o instanceof Object[])) return;

@@ -8,10 +8,9 @@ import android.support.annotation.Nullable;
 import android.widget.Toast;
 
 import com.ubergeek42.WeechatAndroid.R;
+import com.ubergeek42.cats.Kitty;
+import com.ubergeek42.cats.Root;
 import com.ubergeek42.weechat.ColorScheme;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -19,11 +18,12 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Properties;
 
-import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_COLOR_SCHEME;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_COLOR_SCHEME_D;
 
 public class ThemeManager {
 
-    private final static Logger logger = LoggerFactory.getLogger("ThemeManager");
+    final private static @Root Kitty kitty = Kitty.make();
     public final static String SEARCH_DIR = Environment.getExternalStorageDirectory().toString() + "/weechat";
 
     public static void loadColorSchemeFromPreferences(@NonNull Context context) {
@@ -75,7 +75,7 @@ public class ThemeManager {
             p.load(path.startsWith("/") ? new FileInputStream(path) : manager.open(path));
             return p;
         } catch (IOException e) {
-            logger.error("Failed to load file " + path, e);
+            kitty.error("Failed to load file " + path, e);
             return null;
         }
     }

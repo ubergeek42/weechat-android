@@ -20,15 +20,16 @@ import com.ubergeek42.WeechatAndroid.fragments.BufferFragment;
 import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.WeechatAndroid.service.P;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.ubergeek42.cats.Cat;
+import com.ubergeek42.cats.CatD;
+import com.ubergeek42.cats.Kitty;
+import com.ubergeek42.cats.Root;
 
 import java.util.ArrayList;
 
 public class MainPagerAdapter extends PagerAdapter {
 
-    final private static Logger logger = LoggerFactory.getLogger("MainPagerAdapter");
+    final private static @Root Kitty kitty = Kitty.make();
 
     final private ArrayList<String> names = new ArrayList<>();
 
@@ -49,8 +50,7 @@ public class MainPagerAdapter extends PagerAdapter {
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @MainThread public void openBuffer(final String name) {
-        logger.debug("openBuffer({}); names = {} ", name, names);
+    @MainThread @CatD public void openBuffer(final String name) {
         if (names.contains(name)) return;
         Buffer buffer = BufferList.findByFullName(name);
         if (buffer != null) buffer.setOpen(true);
@@ -59,8 +59,7 @@ public class MainPagerAdapter extends PagerAdapter {
         P.setBufferOpen(name, true);
     }
 
-    @MainThread public void closeBuffer(String name) {
-        logger.debug("closeBuffer({})", name);
+    @MainThread @CatD public void closeBuffer(String name) {
         if (!names.remove(name)) return;
         notifyDataSetChanged();
         Buffer buffer = BufferList.findByFullName(name);
@@ -75,7 +74,7 @@ public class MainPagerAdapter extends PagerAdapter {
     public void setBufferInputText(@NonNull final String name, @NonNull final String text) {
         BufferFragment bufferFragment = getBufferFragment(names.indexOf(name));
         if (bufferFragment == null) {
-            logger.info("Tried to set input text of unknown buffer; name = {}", name);
+            kitty.warn("Tried to set input text of unknown buffer %s", name);
             return;
         }
         bufferFragment.setText(text);
@@ -107,29 +106,31 @@ public class MainPagerAdapter extends PagerAdapter {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     // attach a fragment if it's in the FragmentManager, create and add a new one if it's not
-    @Override @SuppressLint("CommitTransaction")
+    @Override @SuppressLint("CommitTransaction") @Cat(linger=true)
     public Object instantiateItem(ViewGroup container, int i) {
         if (transaction == null) transaction = manager.beginTransaction();
         String tag = names.get(i);
         Fragment frag = manager.findFragmentByTag(tag);
-        logger.debug("instantiateItem(..., {}/{}): {}", i, tag, frag == null ? "add" : "attach");
         if (frag == null) {
+            kitty.trace("adding");
             transaction.add(container.getId(), frag = BufferFragment.newInstance(tag), tag);
         } else {
+            kitty.trace("attaching");
             transaction.attach(frag);
         }
         return frag;
     }
 
     // detach fragment if it went off-screen or remove it completely if it's been closed by user
-    @Override @SuppressLint("CommitTransaction")
+    @Override @SuppressLint("CommitTransaction") @Cat(linger=true)
     public void destroyItem(ViewGroup container, int i, Object object) {
         if (transaction == null) transaction = manager.beginTransaction();
         Fragment frag = (Fragment) object;
-        logger.debug("destroyItem(..., {}, {}): {}", i, frag.getTag(), names.contains(frag.getTag()) ? "detach" : "remove");
         if (names.contains(frag.getTag())) {
+            kitty.trace("detaching");
             transaction.detach(frag);
         } else {
+            kitty.trace("removing");
             transaction.remove(frag);
         }
     }
@@ -169,7 +170,6 @@ public class MainPagerAdapter extends PagerAdapter {
     // providing proper indexes instead of POSITION_NONE allows buffers not to be
     // fully recreated on every uiBuffer list change
     @Override public int getItemPosition(Object object) {
-        logger.debug("getItemPosition({})", object);
         int idx = names.indexOf(((Fragment) object).getTag());
         return (idx >= 0) ? idx : POSITION_NONE;
     }

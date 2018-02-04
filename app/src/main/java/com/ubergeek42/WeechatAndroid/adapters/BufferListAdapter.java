@@ -15,10 +15,6 @@
  ******************************************************************************/
 package com.ubergeek42.WeechatAndroid.adapters;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-
 import android.support.annotation.UiThread;
 import android.support.annotation.WorkerThread;
 import android.support.v7.util.DiffUtil;
@@ -36,13 +32,17 @@ import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.WeechatAndroid.relay.BufferListEye;
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
+import com.ubergeek42.cats.Cat;
+import com.ubergeek42.cats.Kitty;
+import com.ubergeek42.cats.Root;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 public class BufferListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements BufferListEye {
 
-    private static Logger logger = LoggerFactory.getLogger("BufferListAdapter");
+    final private static @Root Kitty kitty = Kitty.make();
 
     private ArrayList<VisualBuffer> buffers = new ArrayList<>();
 
@@ -108,24 +108,20 @@ public class BufferListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     //////////////////////////////////////////////////////////////////////////////////////////////// adapter methods
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @Override public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        //logger.trace("onCreateViewHolder({})", viewType);
+    @Override @Cat("???") public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         LayoutInflater i = LayoutInflater.from(parent.getContext());
         return new Row(i.inflate(R.layout.bufferlist_item, parent, false));
     }
 
-    @Override public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-        //logger.trace("onBindViewHolder(..., {}, {})", position);
+    @Override @Cat("???") public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         ((Row) holder).update(buffers.get(position));
     }
 
-    @Override public long getItemId(int position) {
-        //logger.trace("getItemId({})", position);
+    @Override @Cat("???") public long getItemId(int position) {
         return buffers.get(position).pointer;
     }
 
-    @Override public int getItemCount() {
-        //logger.trace("getItemCount() -> {}", buffers.size());
+    @Override @Cat(value="???", exit=true) public int getItemCount() {
         return buffers.size();
     }
 
@@ -134,9 +130,7 @@ public class BufferListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private ArrayList<VisualBuffer> _buffers = new ArrayList<>();
-    @UiThread @WorkerThread @Override synchronized public void onBuffersChanged() {
-        logger.trace("onBuffersChanged()");
-
+    @UiThread @WorkerThread @Override @Cat("??") synchronized public void onBuffersChanged() {
         final ArrayList<VisualBuffer> newBuffers = new ArrayList<>();
 
         synchronized (BufferList.class) {

@@ -19,7 +19,7 @@ public class Events {
         }
 
         @Override public String toString() {
-            return StateChangedEvent.class.getSimpleName() + ": state = " + state;
+            return "StateChangedEvent(state=" + state + ")";
         }
     }
 
@@ -33,7 +33,7 @@ public class Events {
         }
 
         @Override public String toString() {
-            return ExceptionEvent.class.getSimpleName() + ": e = " + e.getClass().getSimpleName();
+            return "StateChangedEvent(e=" + e + ")";
         }
     }
 
@@ -47,7 +47,7 @@ public class Events {
         }
 
         @Override public String toString() {
-            return SendMessageEvent.class.getSimpleName() + ": message = " + message;
+            return "StateChangedEvent(e=" + message + ")";
         }
     }
 }

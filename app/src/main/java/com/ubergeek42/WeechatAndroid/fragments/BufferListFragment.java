@@ -27,15 +27,15 @@ import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.WeechatAndroid.relay.BufferListEye;
 import com.ubergeek42.WeechatAndroid.service.Events;
 import com.ubergeek42.WeechatAndroid.service.P;
+import com.ubergeek42.cats.Cat;
+import com.ubergeek42.cats.Kitty;
+import com.ubergeek42.cats.Root;
 
 import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.*;
 
 public class BufferListFragment extends Fragment implements BufferListEye, View.OnClickListener {
 
-    private static Logger logger = LoggerFactory.getLogger("BufferListFragment");
-    final private static boolean DEBUG_LIFECYCLE = false;
-    final private static boolean DEBUG_MESSAGES = false;
-    final private static boolean DEBUG_PREFERENCES = false;
+    final private static @Root Kitty kitty = Kitty.make("BLF");
 
     private WeechatActivity activity;
     private BufferListAdapter adapter;
@@ -50,25 +50,19 @@ public class BufferListFragment extends Fragment implements BufferListEye, View.
 
     /** This makes sure that the container activity has implemented
      ** the callback interface. If not, it throws an exception. */
-    @Override
-    public void onAttach(Context context) {
-        if (DEBUG_LIFECYCLE) logger.debug("onAttach()");
+    @Override @Cat public void onAttach(Context context) {
         super.onAttach(context);
         this.activity = (WeechatActivity) context;
     }
 
     /** Supposed to be called only once
      ** since we are setting setRetainInstance(true) */
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        if (DEBUG_LIFECYCLE) logger.debug("onCreate()");
+    @Override @Cat public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         adapter = new BufferListAdapter();
     }
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        if (DEBUG_LIFECYCLE) logger.debug("onCreateView()");
+    @Override @Cat public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.bufferlist, container, false);
         RecyclerView uiRecycler = view.findViewById(R.id.recycler);
         uiRecycler.setAdapter(adapter);
@@ -80,24 +74,18 @@ public class BufferListFragment extends Fragment implements BufferListEye, View.
         return view;
     }
 
-    @Override
-    public void onDestroyView() {
-        if (DEBUG_LIFECYCLE) logger.debug("onDestroyView()");
+    @Override @Cat public void onDestroyView() {
         super.onDestroyView();
         uiFilter.removeTextChangedListener(filterTextWatcher);
     }
 
-    @Override
-    public void onStart() {
-        if (DEBUG_LIFECYCLE) logger.debug("onStart()");
+    @Override @Cat public void onStart() {
         super.onStart();
         EventBus.getDefault().register(this);
         uiFilterBar.setVisibility(P.showBufferFilter ? View.VISIBLE : View.GONE);
     }
 
-    @Override
-    public void onStop() {
-        if (DEBUG_LIFECYCLE) logger.debug("onStop()");
+    @Override @Cat public void onStop() {
         EventBus.getDefault().unregister(this);
         super.onStop();
         detachFromBufferList();
@@ -108,8 +96,7 @@ public class BufferListFragment extends Fragment implements BufferListEye, View.
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @Subscribe(sticky = true)
-    public void onEvent(Events.StateChangedEvent event) {
-        logger.debug("onEvent({})", event);
+    @Cat public void onEvent(Events.StateChangedEvent event) {
         if (event.state.contains(LISTED)) attachToBufferList();
     }
 
@@ -129,13 +116,11 @@ public class BufferListFragment extends Fragment implements BufferListEye, View.
     //////////////////////////////////////////////////////////////////////////////////////////////// BufferListEye
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @Override public void onBuffersChanged() {
-        if (DEBUG_MESSAGES) logger.trace("onBuffersChanged()");
+    @Override @Cat public void onBuffersChanged() {
         adapter.onBuffersChanged();
     }
 
-    @Override public void onHotCountChanged() {
-        if (DEBUG_MESSAGES) logger.trace("onHotCountChanged()");
+    @Override @Cat public void onHotCountChanged() {
         activity.updateHotCount(BufferList.getHotCount());
     }
 
@@ -149,7 +134,6 @@ public class BufferListFragment extends Fragment implements BufferListEye, View.
         @Override public void beforeTextChanged(CharSequence arg0, int a, int b, int c) {}
 
         @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
-            if (DEBUG_PREFERENCES) logger.debug("onTextChanged({}, ...)", s);
             if (adapter != null) {
                 setFilter(s.toString());
                 adapter.onBuffersChanged();

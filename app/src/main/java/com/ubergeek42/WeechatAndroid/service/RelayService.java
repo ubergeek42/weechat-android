@@ -27,7 +27,10 @@ import android.support.annotation.WorkerThread;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.Weechat;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
-import com.ubergeek42.WeechatAndroid.utils.Utils;
+import com.ubergeek42.cats.Cat;
+import com.ubergeek42.cats.CatD;
+import com.ubergeek42.cats.Kitty;
+import com.ubergeek42.cats.Root;
 import com.ubergeek42.weechat.relay.RelayConnection;
 import com.ubergeek42.weechat.relay.RelayMessage;
 import com.ubergeek42.weechat.relay.connection.AbstractConnection.StreamClosed;
@@ -40,8 +43,6 @@ import com.ubergeek42.weechat.relay.protocol.RelayObject;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.nio.channels.UnresolvedAddressException;
 import java.util.EnumSet;
@@ -51,9 +52,7 @@ import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
 
 public class RelayService extends Service implements Connection.Observer {
 
-    private static Logger logger = LoggerFactory.getLogger("RelayService");
-    final private static boolean DEBUG = true;
-    final private static boolean DEBUG_CONNECTION = true;
+    final private static @Root Kitty kitty = Kitty.make();
 
     public RelayConnection connection;
     private Connectivity connectivity;
@@ -64,9 +63,7 @@ public class RelayService extends Service implements Connection.Observer {
     //////////////////////////////////////////////////////////////////////////////////////////////// status & life cycle
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @Override
-    public void onCreate() {
-        if (DEBUG) logger.debug("onCreate()");
+    @Override @Cat public void onCreate() {
         super.onCreate();
 
         // prepare handler that will run on a separate thread
@@ -81,9 +78,7 @@ public class RelayService extends Service implements Connection.Observer {
         EventBus.getDefault().register(this);
     }
 
-    @Override
-    public void onDestroy() {
-        if (DEBUG) logger.debug("onDestroy()");
+    @Override @Cat public void onDestroy() {
         P.saveStuff();
         connectivity.unregister();
         super.onDestroy();
@@ -94,8 +89,7 @@ public class RelayService extends Service implements Connection.Observer {
         return null;
     }
 
-    @Subscribe public void onEvent(SendMessageEvent event) {
-        logger.debug("onEvent({})", event);
+    @Subscribe @Cat public void onEvent(SendMessageEvent event) {
         connection.sendMessage(event.message);
     }
 
@@ -105,9 +99,7 @@ public class RelayService extends Service implements Connection.Observer {
     // this method is called:
     //     * whenever app calls startService() (that means on each screen rotate)
     //     * when service is recreated by system after OOM kill. (intent = null)
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        if (DEBUG_CONNECTION) logger.debug("onStartCommand({}, {}, {})", intent, flags, startId);
+    @Override @Cat public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent == null || ACTION_START.equals(intent.getAction())) {
             if (state.contains(STATE.STOPPED)) {
                 P.loadConnectionPreferences();
@@ -129,10 +121,9 @@ public class RelayService extends Service implements Connection.Observer {
     private static final long DELAYS[] = new long[] {5, 15, 30, 60, 120, 300, 600, 900};
 
     // called by user and when disconnected
-    @MainThread private void start() {
-        if (DEBUG_CONNECTION) logger.debug("start()");
+    @MainThread @Cat private void start() {
         if (!state.contains(STATE.STOPPED)) {
-            logger.error("start() run while state != STATE.STOPPED");
+            kitty.error("start() run while state != STATE.STOPPED");
             return;
         }
 
@@ -143,8 +134,7 @@ public class RelayService extends Service implements Connection.Observer {
     }
 
     // called by ↑ and Connectivity
-    @MainThread protected void _start() {
-        if (DEBUG_CONNECTION) logger.debug("_start()");
+    @MainThread @Cat protected void _start() {
         doge.removeCallbacksAndMessages(null);
         doge.post(new Runnable() {
             int reconnects = 0;
@@ -182,10 +172,9 @@ public class RelayService extends Service implements Connection.Observer {
     }
 
     // called by user and when there was a fatal exception while trying to connect
-    protected void stop() {
-        if (DEBUG_CONNECTION) logger.debug("stop()");
+    @Cat protected void stop() {
         if (state.contains(STATE.STOPPED)) {
-            logger.error("stop() run while state == STATE.STOPPED");
+            kitty.error("stop() run while state == STATE.STOPPED");
             return;
         }
 
@@ -209,9 +198,7 @@ public class RelayService extends Service implements Connection.Observer {
 
     private enum TRY {POSSIBLE, LATER, IMPOSSIBLE}
 
-    private TRY connect() {
-        if (DEBUG_CONNECTION) logger.debug("connect()");
-
+    @CatD private TRY connect() {
         if (connection != null)
             connection.disconnect();
 
@@ -230,10 +217,8 @@ public class RelayService extends Service implements Connection.Observer {
                 default: conn = new PlainConnection(P.host, P.port); break;
             }
         } catch (Exception e) {
-            logger.error("connect(): exception while creating connection\n{}", Utils.getExceptionAsString(e)); // some exceptions need this for some reason
+            kitty.error("connect(): exception while creating connection", e);
             onException(e);
-            //logger.error("going to be ignored? {}", P.connectionSurelyPossibleWithCurrentPreferences);
-            //Utils.saveLogCatToFile(getApplicationContext());
             return TRY.IMPOSSIBLE;
         }
 
@@ -256,8 +241,7 @@ public class RelayService extends Service implements Connection.Observer {
 
     public EnumSet<STATE> state = EnumSet.of(STATE.STOPPED);
 
-    @WorkerThread @Override synchronized public void onStateChanged(Connection.STATE s) {
-        logger.debug("onStateChanged({})", s);
+    @WorkerThread @Override @CatD synchronized public void onStateChanged(Connection.STATE s) {
         switch (s) {
             case CONNECTING:
             case CONNECTED:
@@ -282,14 +266,12 @@ public class RelayService extends Service implements Connection.Observer {
     }
 
     private void hello() {
-        logger.trace("hello()");
         ping.scheduleFirstPing();
         BufferList.launch(this);
         SyncAlarmReceiver.start(this);
     }
 
     private void goodbye() {
-        logger.trace("goodbye()");
         SyncAlarmReceiver.stop(this);
         BufferList.stop();
         ping.unschedulePing();
@@ -306,7 +288,7 @@ public class RelayService extends Service implements Connection.Observer {
 
     // ALWAYS followed by onStateChanged(STATE.DISCONNECTED); might be StreamClosed
     @Override public void onException(Exception e) {
-        logger.error("onException({})", e.getClass().getSimpleName());
+        kitty.error("onException(%s)", e.getClass().getSimpleName());
         if (e instanceof StreamClosed && (!state.contains(STATE.AUTHENTICATED)))
             e = new ExceptionWrapper(e, getString(R.string.relay_error_server_closed));
         else if (e instanceof UnresolvedAddressException)

@@ -13,6 +13,9 @@ import android.support.annotation.UiThread;
 import com.ubergeek42.WeechatAndroid.service.Notificator;
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
+import com.ubergeek42.cats.Cat;
+import com.ubergeek42.cats.Kitty;
+import com.ubergeek42.cats.Root;
 import com.ubergeek42.weechat.relay.RelayMessageHandler;
 import com.ubergeek42.WeechatAndroid.service.RelayService.STATE;
 import com.ubergeek42.weechat.relay.protocol.Array;
@@ -39,9 +42,7 @@ import java.util.Locale;
  ** probably should be made static */
 
 public class BufferList {
-    final private static Logger logger = LoggerFactory.getLogger("BufferList");
-    final private static boolean DEBUG_SYNCING = false;
-    final private static boolean DEBUG_HANDLERS = false;
+    final private static @Root Kitty kitty = Kitty.make();
 
     private static @Nullable RelayService relay;
     private static @Nullable BufferListEye buffersEye;
@@ -299,10 +300,9 @@ public class BufferList {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     static RelayMessageHandler bufferListWatcher = new RelayMessageHandler() {
-        final private Logger logger = LoggerFactory.getLogger("bufferListWatcher");
+        final private @Root Kitty kitty = BufferList.kitty.kid("bufferListWatcher");
 
-        @Override public void handleMessage(RelayObject obj, String id) {
-            if (DEBUG_HANDLERS) logger.debug("handleMessage(..., {}) (hdata size = {})", id, ((Hdata) obj).getCount());
+        @Override @Cat public void handleMessage(RelayObject obj, String id) {
             Hdata data = (Hdata) obj;
 
             if (id.equals("listbuffers")) buffers.clear();
@@ -324,7 +324,7 @@ public class BufferList {
                 } else {
                     Buffer buffer = findByPointer(entry.getPointerLong(0));
                     if (buffer == null) {
-                        logger.warn("handleMessage(..., {}): buffer is not present", id);
+                        kitty.warn("handleMessage(..., %s): buffer is not present", id);
                     } else {
                         if (id.equals("_buffer_renamed")) {
                             buffer.fullName = entry.getItem("full_name").asString();
@@ -346,7 +346,7 @@ public class BufferList {
                             buffer.onBufferClosed();
                             notifyBuffersChanged();
                         } else {
-                            logger.warn("handleMessage(..., {}): unknown message id", id);
+                            kitty.warn("handleMessage(..., %s): unknown message id", id);
                         }
                     }
                 }
@@ -360,10 +360,9 @@ public class BufferList {
 
     // last_read_lines
     static RelayMessageHandler lastReadLinesWatcher = new RelayMessageHandler() {
-        final private Logger logger = LoggerFactory.getLogger("lastReadLinesWatcher");
+        final private @Root Kitty kitty = BufferList.kitty.kid("lastReadLinesWatcher");
 
-        @Override public void handleMessage(RelayObject obj, String id) {
-            if (DEBUG_HANDLERS) logger.debug("handleMessage(..., {})", id);
+        @Override @Cat public void handleMessage(RelayObject obj, String id) {
             if (!(obj instanceof Hdata)) return;
 
             HashMap<Long, Long> bufferToLrl = new HashMap<>();
@@ -387,10 +386,9 @@ public class BufferList {
 
     // hotlist (ONLY)
     static RelayMessageHandler hotlistInitWatcher = new RelayMessageHandler() {
-        final private Logger logger = LoggerFactory.getLogger("hotlistInitWatcher");
+        final private @Root Kitty kitty = BufferList.kitty.kid("hotlistInitWatcher");
 
-        @Override public void handleMessage(RelayObject obj, String id) {
-            if (DEBUG_HANDLERS) logger.debug("handleMessage(..., {})", id);
+        @Override @Cat public void handleMessage(RelayObject obj, String id) {
             if (!(obj instanceof Hdata)) return;
 
             HashMap<Long, Array> bufferToHotlist = new HashMap<>();
@@ -423,7 +421,7 @@ public class BufferList {
     // _buffer_line_added
     // listlines_reverse
     static class BufferLineWatcher implements RelayMessageHandler {
-        final private Logger logger = LoggerFactory.getLogger("BufferLineWatcher");
+        final private @Root Kitty kitty = BufferList.kitty.kid("BufferLineWatcher");
         final private long bufferPointer;
         final private int id;
 
@@ -432,15 +430,14 @@ public class BufferList {
             this.id = id;
         }
 
-        @Override public void handleMessage(RelayObject obj, String id) {
-            if (DEBUG_HANDLERS) logger.debug("handleMessage(..., {})", id);
+        @Override @Cat public void handleMessage(RelayObject obj, String id) {
             if (!(obj instanceof Hdata)) return;
             Hdata data = (Hdata) obj;
             boolean isBottom = id.equals("_buffer_line_added");
 
             Buffer buffer = findByPointer(isBottom ? data.getItem(0).getItem("buffer").asPointerLong() : bufferPointer);
             if (buffer == null) {
-                logger.warn("handleMessage(..., {}): no buffer to update", id);
+                kitty.warn("handleMessage(..., %s): no buffer to update", id);
                 return;
             }
 
@@ -482,10 +479,9 @@ public class BufferList {
     // _nicklist
     // _nicklist_diff
     static RelayMessageHandler nickListWatcher = new RelayMessageHandler() {
-        final private Logger logger = LoggerFactory.getLogger("nickListWatcher");
+        final private @Root Kitty kitty = BufferList.kitty.kid("nickListWatcher");
 
-        @Override public void handleMessage(RelayObject obj, String id) {
-            if (DEBUG_HANDLERS) logger.debug("handleMessage(..., {})", id);
+        @Override @Cat public void handleMessage(RelayObject obj, String id) {
             if (!(obj instanceof Hdata)) return;
             Hdata data = (Hdata) obj;
             boolean diff = id.equals("_nicklist_diff");
@@ -497,7 +493,7 @@ public class BufferList {
                 // find buffer
                 Buffer buffer = findByPointer(entry.getPointerLong(0));
                 if (buffer == null) {
-                    if (DEBUG_HANDLERS) logger.warn("handleMessage(..., {}): no buffer to update", id);
+                    kitty.warn("handleMessage(..., %s): no buffer to update", id);
                     continue;
                 }
 

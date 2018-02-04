@@ -1,32 +1,30 @@
 package com.ubergeek42.WeechatAndroid.adapters;
 
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AlertDialog;
 import android.content.DialogInterface;
 import android.support.annotation.NonNull;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
-import com.ubergeek42.WeechatAndroid.BuildConfig;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferNicklistEye;
 import com.ubergeek42.WeechatAndroid.relay.Nick;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.ubergeek42.cats.Cat;
+import com.ubergeek42.cats.Kitty;
+import com.ubergeek42.cats.Root;
 
 public class NickListAdapter extends BaseAdapter implements BufferNicklistEye,
         DialogInterface.OnDismissListener, DialogInterface.OnShowListener {
-    private static Logger logger = LoggerFactory.getLogger("NickListAdapter");
-    final private static boolean DEBUG = BuildConfig.DEBUG;
+    final private static @Root Kitty kitty = Kitty.make();
 
-    private final @NonNull
-    WeechatActivity activity;
+
+    private final @NonNull WeechatActivity activity;
     private final @NonNull LayoutInflater inflater;
     private final @NonNull Buffer buffer;
     private @NonNull Nick[] nicks = new Nick[0];
@@ -71,8 +69,7 @@ public class NickListAdapter extends BaseAdapter implements BufferNicklistEye,
         return convertView;
     }
 
-    public void onNicklistChanged() {
-        if (DEBUG) logger.debug("onNicklistChanged()");
+    @Cat public void onNicklistChanged() {
         final Nick[] tmp = buffer.getNicksCopy();
         final String nicklistCount = activity.getResources().getQuantityString(
                 R.plurals.nick_list_count, tmp.length, tmp.length);
@@ -88,17 +85,13 @@ public class NickListAdapter extends BaseAdapter implements BufferNicklistEye,
         });
     }
 
-    @Override
-    public void onShow(DialogInterface dialog) {
-        if (DEBUG) logger.debug("onShow()");
+    @Override @Cat public void onShow(DialogInterface dialog) {
         this.dialog = (AlertDialog) dialog;
         buffer.setBufferNicklistEye(this);
         onNicklistChanged();
     }
 
-    @Override
-    public void onDismiss(DialogInterface dialog) {
-        if (DEBUG) logger.debug("onDismiss()");
+    @Override @Cat public void onDismiss(DialogInterface dialog) {
         buffer.setBufferNicklistEye(null);
     }
 }

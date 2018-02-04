@@ -76,6 +76,10 @@ import com.ubergeek42.WeechatAndroid.utils.ToolbarController;
 import com.ubergeek42.WeechatAndroid.utils.UntrustedCertificateDialog;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.WeechatAndroid.service.RelayService.STATE;
+import com.ubergeek42.cats.Cat;
+import com.ubergeek42.cats.CatD;
+import com.ubergeek42.cats.Kitty;
+import com.ubergeek42.cats.Root;
 
 import static com.ubergeek42.WeechatAndroid.service.Events.*;
 import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.*;
@@ -84,13 +88,7 @@ import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
 public class WeechatActivity extends AppCompatActivity implements
         CutePagerTitleStrip.CutePageChangeListener, BufferListClickListener {
 
-    private static Logger logger = LoggerFactory.getLogger("WA");
-    final private static boolean DEBUG_OPTIONS_MENU = false;
-    final private static boolean DEBUG_LIFECYCLE = true;
-    final private static boolean DEBUG_CONNECTION = false;
-    final private static boolean DEBUG_INTENT = true;
-    final private static boolean DEBUG_BUFFERS = false;
-    final private static boolean DEBUG_DRAWER = true;
+    final private static @Root Kitty kitty = Kitty.make("WA");
 
     private Menu uiMenu;
     private ViewPager uiPager;
@@ -112,10 +110,7 @@ public class WeechatActivity extends AppCompatActivity implements
     //////////////////////////////////////////////////////////////////////////////////////////////// life cycle
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        logger.debug("onCreate({})", savedInstanceState);
-
+    @Override @Cat public void onCreate(@Nullable Bundle savedInstanceState) {
         // after OOM kill and not going to restore anything? remove all fragments & open buffers
         if (!P.isServiceAlive() && !BufferList.hasData()) {
             P.openBuffers.clear();
@@ -191,7 +186,7 @@ public class WeechatActivity extends AppCompatActivity implements
         if (adapter.canRestoreBuffers()) adapter.restoreBuffers();
     }
 
-    public void connect() {
+    @CatD(linger=true) public void connect() {
         P.loadConnectionPreferences();
         String error = P.validateConnectionPreferences();
         if (error != null) {
@@ -199,14 +194,13 @@ public class WeechatActivity extends AppCompatActivity implements
             return;
         }
 
-        logger.debug("connect()");
+        kitty.debug("proceeding!");
         Intent i = new Intent(this, RelayService.class);
         i.setAction(RelayService.ACTION_START);
         startService(i);
     }
 
-    public void disconnect() {
-        logger.debug("disconnect()");
+    @CatD public void disconnect() {
         Intent i = new Intent(this, RelayService.class);
         i.setAction(RelayService.ACTION_STOP);
         startService(i);
@@ -215,8 +209,7 @@ public class WeechatActivity extends AppCompatActivity implements
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private boolean started = false;
-    @Override protected void onStart() {
-        if (DEBUG_LIFECYCLE) logger.debug("onStart()");
+    @Override @CatD protected void onStart() {
         super.onStart();
         state = null;
         EventBus.getDefault().register(this);
@@ -225,30 +218,25 @@ public class WeechatActivity extends AppCompatActivity implements
         started = true;
     }
 
-    @Override protected void onStop() {
-        if (DEBUG_LIFECYCLE) logger.debug("onStop()");
+    @Override @CatD protected void onStop() {
         started = false;
         EventBus.getDefault().unregister(this);
         P.saveStuff();
         super.onStop();
     }
 
-    @Override
-    protected void onDestroy() {
-        if (DEBUG_LIFECYCLE) logger.debug("onDestroy()");
+    @Override @CatD protected void onDestroy() {
         super.onDestroy();
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////// these two are necessary for the drawer
 
-    @Override
-    protected void onPostCreate(Bundle savedInstanceState) {
+    @Override protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
         if (slidy) drawerToggle.syncState();
     }
 
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
+    @Override public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         if (slidy) drawerToggle.onConfigurationChanged(newConfig);
     }
@@ -257,8 +245,7 @@ public class WeechatActivity extends AppCompatActivity implements
     //////////////////////////////////////////////////////////////////////////////////////////////// the joy
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private void adjustUI() {
-        logger.debug("adjustUI()");
+    @Cat private void adjustUI() {
         int image = R.drawable.ic_big_connecting;
         if (state.contains(STOPPED)) image = R.drawable.ic_big_disconnected;
         else if (state.contains(AUTHENTICATED)) image = R.drawable.ic_big_connected;
@@ -272,8 +259,7 @@ public class WeechatActivity extends AppCompatActivity implements
     private EnumSet<STATE> state = null;
 
     @Subscribe(sticky = true)
-    public void onEvent(StateChangedEvent event) {
-        logger.debug("onEvent({})", event);
+    @Cat public void onEvent(StateChangedEvent event) {
         boolean init = state == null;
         state = event.state;
         adjustUI();
@@ -286,8 +272,7 @@ public class WeechatActivity extends AppCompatActivity implements
     }
 
     @Subscribe
-    public void onEvent(final ExceptionEvent event) {
-        if (DEBUG_CONNECTION) logger.debug("onEvent({})", event);
+    @Cat public void onEvent(final ExceptionEvent event) {
         final Exception e = event.e;
         if (e instanceof SSLException) {
             SSLException e1 = (SSLException) e;
@@ -357,8 +342,7 @@ public class WeechatActivity extends AppCompatActivity implements
     /** update hot count (that red square over the bell icon) at any time
      ** also sets "hotNumber" in case menu has to be recreated
      ** can be called off the main thread */
-    public void updateHotCount(final int newHotNumber) {
-        if (DEBUG_OPTIONS_MENU) logger.debug("updateHotCount(), hot: {} -> {}", hotNumber, newHotNumber);
+    @Cat("Menu") public void updateHotCount(final int newHotNumber) {
         hotNumber = newHotNumber;
         if (uiHot != null)
             uiHot.post(new Runnable() {
@@ -385,9 +369,7 @@ public class WeechatActivity extends AppCompatActivity implements
 
     /** Can safely hold on to this according to docs
      ** http://developer.android.com/reference/android/app/Activity.html#onCreateOptionsMenu(android.view.Menu) **/
-    @Override
-    public boolean onCreateOptionsMenu(final Menu menu) {
-        if (DEBUG_OPTIONS_MENU) logger.debug("onCreateOptionsMenu(...)");
+    @Override @Cat("Menu") public boolean onCreateOptionsMenu(final Menu menu) {
         MenuInflater menuInflater = getMenuInflater();
         menuInflater.inflate(R.menu.menu_actionbar, menu);
         final View menuHotlist = MenuItemCompat.getActionView(menu.findItem(R.id.menu_hotlist));
@@ -406,9 +388,7 @@ public class WeechatActivity extends AppCompatActivity implements
     }
 
     /** handle the options when the user presses the menu button */
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (DEBUG_OPTIONS_MENU) logger.debug("onOptionsItemSelected({})", item);
+    @Override @Cat("Menu") public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home: {
                 if (slidy && drawerEnabled) {
@@ -465,8 +445,7 @@ public class WeechatActivity extends AppCompatActivity implements
         return super.onOptionsItemSelected(item);
     }
 
-    private void onHotlistSelected() {
-        if (DEBUG_OPTIONS_MENU) logger.debug("onHotlistSelected()");
+    @Cat("Menu") private void onHotlistSelected() {
         Buffer buffer = BufferList.getHotBuffer();
         if (buffer != null)
             openBuffer(buffer.fullName);
@@ -475,8 +454,7 @@ public class WeechatActivity extends AppCompatActivity implements
     }
 
     /** change first menu item from connect to disconnect or back depending on connection status */
-    private void makeMenuReflectConnectionStatus() {
-        if (DEBUG_OPTIONS_MENU) logger.debug("makeMenuReflectConnectionStatus()");
+    @Cat("Menu") private void makeMenuReflectConnectionStatus() {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -510,8 +488,7 @@ public class WeechatActivity extends AppCompatActivity implements
         openBuffer(fullName, null);
     }
 
-    public void openBuffer(@NonNull final String fullName, final String text) {
-        if (DEBUG_BUFFERS) logger.debug("openBuffer({})", fullName);
+    @Cat("Buffers") public void openBuffer(@NonNull final String fullName, final String text) {
         if (adapter.isBufferOpen(fullName) || state.contains(AUTHENTICATED)) {
             adapter.openBuffer(fullName);
             adapter.focusBuffer(fullName);
@@ -524,8 +501,7 @@ public class WeechatActivity extends AppCompatActivity implements
     }
 
     // In own thread to prevent things from breaking
-    public void closeBuffer(String fullName) {
-        if (DEBUG_BUFFERS) logger.debug("closeBuffer({})", fullName);
+    @Cat("Buffers") public void closeBuffer(String fullName) {
         adapter.closeBuffer(fullName);
         if (slidy) showDrawerIfPagerIsEmpty();
     }
@@ -535,9 +511,7 @@ public class WeechatActivity extends AppCompatActivity implements
         imm.hideSoftInputFromWindow(uiPager.getWindowToken(), 0);
     }
 
-    @Override
-    public void onBackPressed() {
-        if (DEBUG_LIFECYCLE) logger.debug("onBackPressed()");
+    @Override public void onBackPressed() {
         if (slidy && drawerShowing) hideDrawer();
         else super.onBackPressed();
     }
@@ -565,8 +539,7 @@ public class WeechatActivity extends AppCompatActivity implements
         return drawerShowing;                          //todo?
     }
 
-    private void setDrawerEnabled(final boolean enabled) {
-        if (DEBUG_DRAWER) logger.debug("setDrawerEnabled({})", enabled);
+    @Cat("Drawer") private void setDrawerEnabled(final boolean enabled) {
         drawerEnabled = enabled;
         uiPager.post(new Runnable() {
             @Override public void run() {
@@ -576,8 +549,7 @@ public class WeechatActivity extends AppCompatActivity implements
         });
     }
 
-    public void showDrawer() {
-        if (DEBUG_DRAWER) logger.debug("showDrawer(): animating={}", started);
+    @Cat("Drawer") public void showDrawer() {
         //final boolean started = this.started;
         if (!drawerEnabled) return;
         if (!drawerShowing) drawerVisibilityChanged(true); // we need this so that drawerShowing is set immediately
@@ -588,8 +560,7 @@ public class WeechatActivity extends AppCompatActivity implements
         });
     }
 
-    public void hideDrawer() {
-        if (DEBUG_DRAWER) logger.debug("hideDrawer(): animating={}", started);
+    @Cat("Drawer") public void hideDrawer() {
         //final boolean started = this.started;
         runOnUiThread(new Runnable() {
             @Override public void run() {
@@ -599,8 +570,7 @@ public class WeechatActivity extends AppCompatActivity implements
     }
 
     /** pop up drawer if connected & no pages in the adapter **/
-    public void showDrawerIfPagerIsEmpty() {
-        if (DEBUG_DRAWER) logger.debug("showDrawerIfPagerIsEmpty()");
+    @Cat("Drawer") public void showDrawerIfPagerIsEmpty() {
         if (!drawerShowing)
             uiPager.post(new Runnable() {
                 @Override public void run() {
@@ -630,8 +600,7 @@ public class WeechatActivity extends AppCompatActivity implements
     /** we may get intent while we are connected to the service and when we are not.
      ** empty (but present) fullName means open the drawer (in case we have highlights
      ** on multiple buffers */
-    @Override protected void onNewIntent(Intent intent) {
-        if (DEBUG_INTENT) logger.debug("onNewIntent(...), fullName='{}'", intent.getStringExtra(NOTIFICATION_EXTRA_BUFFER_FULL_NAME));
+    @Override @Cat("Intent") protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         if (intent.hasExtra(NOTIFICATION_EXTRA_BUFFER_FULL_NAME)) {
             setIntent(intent);
@@ -640,8 +609,7 @@ public class WeechatActivity extends AppCompatActivity implements
     }
 
     /** the extra must be non-null */
-    private void openBufferFromIntent() {
-        if (DEBUG_INTENT) logger.debug("openBufferFromIntent()");
+    @Cat("Intent") private void openBufferFromIntent() {
         String name = getIntent().getStringExtra(NOTIFICATION_EXTRA_BUFFER_FULL_NAME);
         if (NOTIFICATION_EXTRA_BUFFER_FULL_NAME_ANY.equals(name)) {
             if (BufferList.getHotBufferCount() > 1) {

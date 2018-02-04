@@ -31,8 +31,8 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.ubergeek42.cats.Kitty;
+import com.ubergeek42.cats.Root;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -45,11 +45,10 @@ import java.io.Serializable;
 import java.io.StringWriter;
 import java.text.SimpleDateFormat;
 import java.util.Iterator;
-import java.util.LinkedList;
 
 public class Utils {
 
-    final private static Logger logger = LoggerFactory.getLogger("Utils");
+    final private static @Root Kitty kitty = Kitty.make();
 
     public static void setImageDrawableWithFade(final @NonNull ImageView imageView,
                                                 final @NonNull Drawable drawable, int duration) {
@@ -79,7 +78,7 @@ public class Utils {
             ois.close();
             return o;
         } catch (Exception e) {
-            logger.error("deserialize()", e);
+            kitty.error("deserialize()", e);
             return null;
         }
     }
@@ -93,7 +92,7 @@ public class Utils {
             oos.close();
             return Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT);
         } catch (Exception e) {
-            logger.error("serialize()", e);
+            kitty.error("serialize()", e);
             return null;
         }
     }
@@ -232,13 +231,13 @@ public class Utils {
 
     public static void saveLogCatToFile(Context ctx) {
         String path = ctx.getDir("log", Context.MODE_PRIVATE) + "/logcat.txt";
-        logger.trace("saving log to: {}", path);
+        kitty.trace("saving log to: {}", path);
         try {
             bash("echo \\n\\n\\n >> " + path);
             bash("date >> " + path);
             bash("logcat -t 100 >> " + path);
         } catch (IOException | InterruptedException e) {
-            logger.error("error writing file", e);
+            kitty.error("error writing file", e);
         }
     }
 

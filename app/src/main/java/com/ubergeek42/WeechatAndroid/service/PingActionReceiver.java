@@ -30,13 +30,14 @@ import android.support.annotation.NonNull;
 
 import com.ubergeek42.WeechatAndroid.BuildConfig;
 import com.ubergeek42.WeechatAndroid.Manifest;
-import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.*;
+import com.ubergeek42.cats.Cat;
+import com.ubergeek42.cats.Kitty;
+import com.ubergeek42.cats.Root;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.AUTHENTICATED;
 
 public class PingActionReceiver extends BroadcastReceiver {
-    private static Logger logger = LoggerFactory.getLogger("PingActionReceiver");
+    final private static @Root Kitty kitty = Kitty.make();
 
     private volatile long lastMessageReceivedAt = 0;
     private final RelayService bone;
@@ -50,8 +51,8 @@ public class PingActionReceiver extends BroadcastReceiver {
         this.alarmManager = (AlarmManager) bone.getSystemService(Context.ALARM_SERVICE);
     }
 
-    @MainThread @Override public void onReceive(Context context, Intent intent) {
-        logger.debug("onReceive(...), sent ping? {}", intent.getBooleanExtra("sentPing", false));
+    @MainThread @Override @Cat(linger=true) public void onReceive(Context context, Intent intent) {
+        kitty.trace("sent ping? %s", intent.getBooleanExtra("sentPing", false));
 
         if (!bone.state.contains(AUTHENTICATED))
             return;
@@ -61,12 +62,12 @@ public class PingActionReceiver extends BroadcastReceiver {
 
         if (SystemClock.elapsedRealtime() - lastMessageReceivedAt > P.pingIdleTime) {
             if (!intent.getBooleanExtra("sentPing", false)) {
-                logger.debug("last message too old, sending ping");
+                kitty.debug("last message too old, sending ping");
                 bone.connection.sendMessage("ping");
                 triggerAt = SystemClock.elapsedRealtime() + P.pingTimeout;
                 extras.putBoolean("sentPing", true);
             } else {
-                logger.info("no message received, disconnecting");
+                kitty.info("no message received, disconnecting");
                 bone.interrupt();
                 return;
             }

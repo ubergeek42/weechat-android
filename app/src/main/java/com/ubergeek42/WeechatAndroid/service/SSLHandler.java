@@ -11,19 +11,17 @@ import android.support.annotation.CheckResult;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.ubergeek42.cats.Kitty;
+import com.ubergeek42.cats.Root;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
@@ -35,7 +33,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
@@ -44,7 +41,8 @@ import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
 public class SSLHandler {
-    private static Logger logger = LoggerFactory.getLogger("SSLHandler");
+    final private static @Root Kitty kitty = Kitty.make();
+
     private static final String KEYSTORE_PASSWORD = "weechat-android";
     // best-effort RDN regex, matches CN="foo,bar",OU=... and CN=foobar,OU=...
     private static final Pattern RDN_PATTERN = Pattern.compile("CN\\s*=\\s*((?:\"[^\"]*\")|(?:[^\",]*))");
@@ -111,7 +109,7 @@ public class SSLHandler {
         try {
             return sslKeystore.size();
         } catch (KeyStoreException e) {
-            logger.error("getUserCertificateCount()", e);
+            kitty.error("getUserCertificateCount()", e);
             return 0;
         }
     }
@@ -121,7 +119,7 @@ public class SSLHandler {
             KeyStore.TrustedCertificateEntry x = new KeyStore.TrustedCertificateEntry(cert);
             sslKeystore.setEntry(cert.getSubjectDN().getName(), x, null);
         } catch (KeyStoreException e) {
-            logger.error("trustCertificate()", e);
+            kitty.error("trustCertificate()", e);
         }
         saveKeystore();
     }
@@ -149,7 +147,7 @@ public class SSLHandler {
             sslKeystore.load(new FileInputStream(keystoreFile), KEYSTORE_PASSWORD.toCharArray());
         } catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException e) {
             if (e instanceof FileNotFoundException) createKeystore();
-            else logger.error("loadKeystore()", e);
+            else kitty.error("loadKeystore()", e);
         }
     }
 
@@ -157,7 +155,7 @@ public class SSLHandler {
         try {
             sslKeystore.load(null, null);
         } catch (Exception e) {
-            logger.error("createKeystore()", e);
+            kitty.error("createKeystore()", e);
         }
         saveKeystore();
     }
@@ -166,7 +164,7 @@ public class SSLHandler {
         try {
             sslKeystore.store(new FileOutputStream(keystoreFile), KEYSTORE_PASSWORD.toCharArray());
         } catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException e) {
-            logger.error("saveKeystore()", e);
+            kitty.error("saveKeystore()", e);
         }
     }
 
@@ -198,11 +196,11 @@ public class SSLHandler {
             throws CertificateException {
             try {
                 systemTrustManager.checkClientTrusted(x509Certificates, s);
-                logger.debug("Client is trusted by system");
+                kitty.debug("Client is trusted by system");
             } catch (CertificateException e) {
-                logger.debug("Client is NOT trusted by system, trying user");
+                kitty.debug("Client is NOT trusted by system, trying user");
                 userTrustManager.checkClientTrusted(x509Certificates, s);
-                logger.debug("Client is trusted by user");
+                kitty.debug("Client is trusted by user");
             }
         }
 
@@ -211,11 +209,11 @@ public class SSLHandler {
             throws CertificateException {
             try {
                 systemTrustManager.checkServerTrusted(x509Certificates, s);
-                logger.debug("Server is trusted by system");
+                kitty.debug("Server is trusted by system");
             } catch (CertificateException e) {
-                logger.debug("Server is NOT trusted by system, trying user");
+                kitty.debug("Server is NOT trusted by system, trying user");
                 userTrustManager.checkServerTrusted(x509Certificates, s);
-                logger.debug("Server is trusted by user");
+                kitty.debug("Server is trusted by user");
             }
         }
 

@@ -22,18 +22,19 @@ import com.ubergeek42.WeechatAndroid.BuildConfig;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
-import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.*;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.ubergeek42.cats.Cat;
+import com.ubergeek42.cats.Kitty;
+import com.ubergeek42.cats.Root;
 
 import java.util.List;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
+
+import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.AUTHENTICATED;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.NOTIFICATION_EXTRA_BUFFER_FULL_NAME;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.NOTIFICATION_EXTRA_BUFFER_FULL_NAME_ANY;
 
 public class Notificator {
 
-    private static Logger logger = LoggerFactory.getLogger("Notificator");
-    final private static boolean DEBUG_NOTIFICATIONS = false;
+    final private static @Root Kitty kitty = Kitty.make();
 
     final private static int NOTIFICATION_MAIN_ID = 42;
     final private static int NOTIFICATION_HOT_ID = 43;
@@ -62,9 +63,8 @@ public class Notificator {
      * @param content the smaller text that appears under title
      * @param intent intent that's executed on notification click, default used if null
      */
-    public static void showMain(@NonNull RelayService relay, @Nullable String tickerText, @NonNull String content, @Nullable PendingIntent intent) {
-        if (DEBUG_NOTIFICATIONS) logger.debug("showMain({}, {}, {})", tickerText, content, intent);
-
+    @Cat public static void showMain(@NonNull RelayService relay, @Nullable String tickerText,
+                                @NonNull String content, @Nullable PendingIntent intent) {
         PendingIntent contentIntent = (intent != null) ? intent :
                 PendingIntent.getActivity(context, 0, new Intent(context, WeechatActivity.class), PendingIntent.FLAG_CANCEL_CURRENT);
 
@@ -122,9 +122,7 @@ public class Notificator {
      ** it's filled from hotlist data and hotList only contains lines that
      ** arrived in real time. so we add (message not available) if there are NO lines to display
      ** and add "..." if there are some lines to display, but not all */
-    public static void showHot(boolean newHighlight) {
-        if (DEBUG_NOTIFICATIONS) logger.debug("showHot({})", newHighlight);
-
+    @Cat public static void showHot(boolean newHighlight) {
         if (!P.notificationEnable)
             return;
 

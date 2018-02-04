@@ -5,22 +5,22 @@ package com.ubergeek42.WeechatAndroid.relay;
 
 import android.support.annotation.UiThread;
 
-import com.ubergeek42.WeechatAndroid.Weechat;
 import com.ubergeek42.WeechatAndroid.service.P;
-
-import static org.junit.Assert.*;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.ubergeek42.cats.Cat;
+import com.ubergeek42.cats.Kitty;
+import com.ubergeek42.cats.Root;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 
 public class Lines {
-    private final Logger logger;
-    private final String name;
+    final private @Root Kitty kitty = Kitty.make();
+
 
     public final static int HEADER_POINTER = -123, MARKER_POINTER = -456;
     public enum LINES {FETCHING, CAN_FETCH_MORE, EVERYTHING_FETCHED}
@@ -40,16 +40,14 @@ public class Lines {
 
     private int maxUnfilteredSize = 0;
 
-    Lines(Buffer buffer) {
+    Lines(String name) {
         maxUnfilteredSize = P.lineIncrement;
-        name = String.format("%-5s", buffer.shortName);
-        logger = LoggerFactory.getLogger(String.format("L [%s]", name));
+        kitty.setPrefix(name);
     }
 
-    ArrayList<Line> getCopy() {
+    @Cat ArrayList<Line> getCopy() {
         int skip = P.filterLines ? skipFiltered : skipUnfiltered;
         ArrayList<Line> lines = new ArrayList<>(P.filterLines ? filtered : unfiltered);
-        logger.trace("getCopy() -> {} [{}]", skip, lines.size());
         int marker = skip >= 0 && lines.size() > 0 ? lines.size() - skip : -1;
         if (marker > 0) lines.add(marker, MARKER);
         lines.add(0, HEADER);
@@ -67,7 +65,7 @@ public class Lines {
 
     void addLast(Line line) {
         if (status == LINES.FETCHING) {
-            logger.warn("addLast() while lines are being fetched");
+            kitty.warn("addLast() while lines are being fetched");
             return;
         }
         ensureSizeBeforeAddition();
@@ -91,13 +89,11 @@ public class Lines {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     void onMoreLinesRequested() {
-        logger.trace("onMoreLinesRequested()");
         if (status != null) maxUnfilteredSize += P.lineIncrement;
         status = LINES.FETCHING;
     }
 
     void onLinesListed() {
-        logger.trace("onLinesListed()");
         status = unfiltered.size() == maxUnfilteredSize ? LINES.CAN_FETCH_MORE : LINES.EVERYTHING_FETCHED;
         setSkipsUsingPointer();
     }
@@ -135,20 +131,16 @@ public class Lines {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     void moveReadMarkerToEnd() {
-        logger.trace("moveReadMarkerToEnd() [size {}]", unfiltered.size());
         if (skipFilteredOffset >= 0 && skipUnfilteredOffset >= 0 && skipFiltered >= skipFilteredOffset && skipUnfiltered >= skipFilteredOffset) {
             skipFiltered -= skipFilteredOffset;
             skipUnfiltered -= skipUnfilteredOffset;
-            logger.trace("... -> {} {}", skipFiltered, skipUnfiltered);
         } else {
             skipFiltered = skipUnfiltered = 0;
-            logger.trace("... => 0 0");
         }
         skipFilteredOffset = skipUnfilteredOffset = -1;
     }
 
     void rememberCurrentSkipsOffset() {
-        logger.trace("rememberCurrentSkipsOffset()");
         skipFilteredOffset = skipFiltered;
         skipUnfilteredOffset = skipUnfiltered;
         if (unfiltered.size() > 0) lastSeenLine = unfiltered.getLast().pointer;
@@ -162,7 +154,6 @@ public class Lines {
 
     private void setSkipsUsingPointer() {
         assertTrue(ready());
-        logger.debug("setSkipsUsingPointer(), pointer={} size={}", lastSeenLine, unfiltered.size());
         Iterator<Line> it = unfiltered.descendingIterator();
         int idx_f = 0, idx_u = 0;
         skipFiltered = skipUnfiltered = -1;
