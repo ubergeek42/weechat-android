@@ -1,11 +1,13 @@
 package com.ubergeek42.WeechatAndroid.fragments;
 
+import android.support.annotation.AnyThread;
+import android.support.annotation.MainThread;
+import android.support.annotation.NonNull;
+import android.support.annotation.WorkerThread;
 import android.support.v4.app.Fragment;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -23,7 +25,6 @@ import com.ubergeek42.WeechatAndroid.Weechat;
 import com.ubergeek42.WeechatAndroid.adapters.BufferListAdapter;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
-import com.ubergeek42.WeechatAndroid.adapters.BufferListClickListener;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.WeechatAndroid.relay.BufferListEye;
 import com.ubergeek42.WeechatAndroid.service.Events;
@@ -33,6 +34,7 @@ import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
 
 import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.*;
+
 
 public class BufferListFragment extends Fragment implements BufferListEye, View.OnClickListener {
 
@@ -49,21 +51,17 @@ public class BufferListFragment extends Fragment implements BufferListEye, View.
     //////////////////////////////////////////////////////////////////////////////////////////////// lifecycle
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    /** This makes sure that the container activity has implemented
-     ** the callback interface. If not, it throws an exception. */
-    @Override @Cat public void onAttach(Context context) {
+    @MainThread @Override @Cat public void onAttach(Context context) {
         super.onAttach(context);
         this.activity = (WeechatActivity) context;
     }
 
-    /** Supposed to be called only once
-     ** since we are setting setRetainInstance(true) */
-    @Override @Cat public void onCreate(Bundle savedInstanceState) {
+    @MainThread @Override @Cat public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         adapter = new BufferListAdapter();
     }
 
-    @Override @Cat public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    @MainThread @Override @Cat public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.bufferlist, container, false);
         RecyclerView uiRecycler = view.findViewById(R.id.recycler);
         uiRecycler.setAdapter(adapter);
@@ -75,41 +73,41 @@ public class BufferListFragment extends Fragment implements BufferListEye, View.
         return view;
     }
 
-    @Override @Cat public void onDestroyView() {
+    @MainThread @Override @Cat public void onDestroyView() {
         super.onDestroyView();
         uiFilter.removeTextChangedListener(filterTextWatcher);
     }
 
-    @Override @Cat public void onStart() {
+    @MainThread @Override @Cat public void onStart() {
         super.onStart();
         EventBus.getDefault().register(this);
         uiFilterBar.setVisibility(P.showBufferFilter ? View.VISIBLE : View.GONE);
     }
 
-    @Override @Cat public void onStop() {
-        EventBus.getDefault().unregister(this);
+    @MainThread @Override @Cat public void onStop() {
         super.onStop();
         detachFromBufferList();
+        EventBus.getDefault().unregister(this);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// event
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @Subscribe(sticky = true)
-    @Cat public void onEvent(Events.StateChangedEvent event) {
+    @Subscribe(sticky=true)
+    @AnyThread @Cat public void onEvent(Events.StateChangedEvent event) {
         if (event.state.contains(LISTED)) attachToBufferList();
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////// the juice
 
-    private void attachToBufferList() {
+    @AnyThread private void attachToBufferList() {
         BufferList.setBufferListEye(this);
-        setFilter(uiFilter.getText().toString());
+        setFilter();
         onBuffersChanged();
     }
 
-    private void detachFromBufferList() {
+    @MainThread private void detachFromBufferList() {
         BufferList.setBufferListEye(null);
     }
 
@@ -117,11 +115,11 @@ public class BufferListFragment extends Fragment implements BufferListEye, View.
     //////////////////////////////////////////////////////////////////////////////////////////////// BufferListEye
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @Override @Cat public void onBuffersChanged() {
+    @AnyThread @Override @Cat public void onBuffersChanged() {
         adapter.onBuffersChanged();
     }
 
-    @Override @Cat public void onHotCountChanged() {
+    @WorkerThread @Override @Cat public void onHotCountChanged() {
         Weechat.runOnMainThread(() -> activity.updateHotCount(BufferList.getHotCount()));
     }
 
@@ -129,32 +127,29 @@ public class BufferListFragment extends Fragment implements BufferListEye, View.
     //////////////////////////////////////////////////////////////////////////////////////////////// other
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    /** TextWatcher object used for filtering the buffer list */
     private TextWatcher filterTextWatcher = new TextWatcher() {
-        @Override public void afterTextChanged(Editable a) {}
-        @Override public void beforeTextChanged(CharSequence arg0, int a, int b, int c) {}
+        @MainThread @Override public void afterTextChanged(Editable a) {}
+        @MainThread @Override public void beforeTextChanged(CharSequence arg0, int a, int b, int c) {}
 
-        @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+        @MainThread @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
             if (adapter != null) {
-                setFilter(s.toString());
+                setFilter();
                 adapter.onBuffersChanged();
             }
         }
     };
 
 
-    private void setFilter(final String s) {
-        adapter.setFilter(s);
-        activity.runOnUiThread(new Runnable() {
-            @Override public void run() {
-                uiFilterClear.setVisibility((s.length() == 0) ? View.INVISIBLE : View.VISIBLE);
-            }
+    @AnyThread private void setFilter() {
+        Weechat.runOnMainThread(() -> {
+            String text = uiFilter.getText().toString();
+            BufferListAdapter.setFilter(text);
+            uiFilterClear.setVisibility((text.length() == 0) ? View.INVISIBLE : View.VISIBLE);
         });
     }
 
-    /** the only button we've got: clear text in the filter */
-    @Override
-    public void onClick(View v) {
+    // the only button we've got: clear text in the filter
+    @MainThread @Override public void onClick(View v) {
         uiFilter.setText(null);
     }
 

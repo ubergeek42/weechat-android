@@ -275,7 +275,7 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         updateHeader();
     }
 
-    @WorkerThread @Override public void onLineAdded() {
+    @AnyThread @Override public void onLineAdded() {    // todo change to @WorkerThread
         onLinesChanged();
     }
 
