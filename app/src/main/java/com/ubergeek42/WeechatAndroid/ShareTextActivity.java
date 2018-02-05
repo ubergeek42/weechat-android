@@ -19,12 +19,11 @@ import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
 public class ShareTextActivity extends AppCompatActivity implements
         DialogInterface.OnDismissListener, BufferListClickListener {
 
-    @Override
-    protected void onStart() {
+    @Override protected void onStart() {
         super.onStart();
 
         if (!EventBus.getDefault().getStickyEvent(Events.StateChangedEvent.class).state.contains(RelayService.STATE.LISTED)) {
-            Toast.makeText(getApplicationContext(), getString(R.string.not_connected), Toast.LENGTH_SHORT).show();
+            Weechat.showShortToast(R.string.not_connected);
             finish();
             return;
         }

@@ -19,7 +19,6 @@ import android.support.v7.preference.PreferenceFragmentCompat;
 import android.support.v7.preference.PreferenceScreen;
 import android.support.v7.preference.RingtonePreferenceFix;
 import android.support.v7.preference.ThemePreference;
-import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 
 import android.support.v7.preference.FontPreference;
@@ -36,7 +35,7 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
 
         setContentView(R.layout.preferences);
 
-        setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
+        setSupportActionBar(findViewById(R.id.toolbar));
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) actionBar.setDisplayHomeAsUpEnabled(true);
 
@@ -190,7 +189,7 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
             return valid;
          }
 
-        // this hides and shows stunnel / ssh preference screens
+        // this hides and shows ssl / websocket / ssh preference screens
         // must not be called when the settings do not exist in the tree
         private void showHideStuff(String type) {
             if (Utils.isAnyOf(type, PREF_TYPE_SSL, PREF_TYPE_WEBSOCKET_SSL)) getPreferenceScreen().addPreference(sslGroup);
