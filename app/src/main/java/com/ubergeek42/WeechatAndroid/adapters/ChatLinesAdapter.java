@@ -1,22 +1,22 @@
-/*******************************************************************************
- * Copyright 2012 Keith Johnson
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- ******************************************************************************/
+// Copyright 2012 Keith Johnson
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//   http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package com.ubergeek42.WeechatAndroid.adapters;
 
+import android.support.annotation.AnyThread;
+import android.support.annotation.MainThread;
 import android.support.annotation.Nullable;
-import android.support.annotation.UiThread;
 import android.support.annotation.WorkerThread;
 import android.support.v7.util.DiffUtil;
 import android.support.v7.widget.RecyclerView;
@@ -29,46 +29,45 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.ubergeek42.WeechatAndroid.Weechat;
-import com.ubergeek42.WeechatAndroid.relay.Lines;
-import com.ubergeek42.WeechatAndroid.utils.AnimatedRecyclerView;
 import com.ubergeek42.WeechatAndroid.R;
+import com.ubergeek42.WeechatAndroid.Weechat;
 import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferEye;
 import com.ubergeek42.WeechatAndroid.relay.Line;
+import com.ubergeek42.WeechatAndroid.relay.Lines;
 import com.ubergeek42.WeechatAndroid.service.P;
+import com.ubergeek42.WeechatAndroid.utils.AnimatedRecyclerView;
 import com.ubergeek42.WeechatAndroid.utils.CopyPaste;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.weechat.ColorScheme;
 
 import org.junit.Assert;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.ubergeek42.WeechatAndroid.R.layout.chatview_line;
 import static com.ubergeek42.WeechatAndroid.R.layout.more_button;
 import static com.ubergeek42.WeechatAndroid.R.layout.read_marker;
-import static com.ubergeek42.WeechatAndroid.R.layout.chatview_line;
 import static com.ubergeek42.WeechatAndroid.relay.Lines.HEADER_POINTER;
 import static com.ubergeek42.WeechatAndroid.relay.Lines.MARKER_POINTER;
 
+
 public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements BufferEye {
 
-    private AnimatedRecyclerView uiLines;
+    private final AnimatedRecyclerView uiLines;
     private @Nullable Buffer buffer;
     private List<Line> lines = new ArrayList<>();
     private List<Line> _lines = new ArrayList<>();
 
     private int style = 0;
 
-    public ChatLinesAdapter(AnimatedRecyclerView animatedRecyclerView) {
+    @MainThread public ChatLinesAdapter(AnimatedRecyclerView animatedRecyclerView) {
         this.uiLines = animatedRecyclerView;
         setHasStableIds(true);
     }
 
-    @UiThread public synchronized void setBuffer(@Nullable Buffer buffer) {
+    @MainThread public synchronized void setBuffer(@Nullable Buffer buffer) {
         this.buffer = buffer;
     }
 
@@ -80,25 +79,26 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         private TextView textView;
         private int style = -1;
 
-        Row(View view) {
+        @MainThread Row(View view) {
             super(view);
             textView = (TextView) view;
             textView.setMovementMethod(LinkMovementMethod.getInstance());
             textView.setOnLongClickListener(CopyPaste.copyPaste);
         }
 
-        void update(Line line, int newStyle) {
+        @MainThread void update(Line line, int newStyle) {
             textView.setTag(line);
             textView.setText(line.spannable);
             if (style != (style = newStyle)) updateStyle(textView);
         }
     }
 
-    private static void updateStyle(TextView textView) {
+    @MainThread private static void updateStyle(TextView textView) {
         textView.setTextSize(P.textSize);
         textView.setTypeface(P.typeface);
         textView.setTextColor(0xFF000000 | ColorScheme.get().defaul[0]);
     }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// read marker
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -107,12 +107,12 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         private View view;
         private int style = -1;
 
-        ReadMarkerRow(View view) {
+        @MainThread ReadMarkerRow(View view) {
             super(view);
             this.view = view;
         }
 
-        void update(int newStyle) {
+        @MainThread void update(int newStyle) {
             if (style != (style = newStyle))
                 view.setBackgroundColor(0xFF000000 | ColorScheme.get().chat_read_marker[0]);
         }
@@ -130,23 +130,23 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         private Spannable topicText = null;
         private int style = -1;
 
-        Header(View header, ChatLinesAdapter adapter) {
+        @MainThread Header(View header, ChatLinesAdapter adapter) {
             super(header);
             this.adapter = adapter;
-            title = (TextView) header.findViewById(R.id.title);
+            title = header.findViewById(R.id.title);
             title.setMovementMethod(LinkMovementMethod.getInstance());
             title.setOnLongClickListener(CopyPaste.copyPaste);
-            button = (Button) header.findViewById(R.id.button_more);
+            button = header.findViewById(R.id.button_more);
             button.setOnClickListener(this);
         }
 
-        void update(int newStyle) {
+        @MainThread void update(int newStyle) {
             if (adapter.buffer == null) return;
             updateButton();
             updateTitle(newStyle);
         }
 
-        private void updateButton() {
+        @MainThread private void updateButton() {
             if (adapter.buffer == null) return;
             final Lines.LINES s = adapter.buffer.lines.status;
             if (status == s) return;
@@ -162,7 +162,7 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
             }
         }
 
-        private void updateTitle(int newStyle) {
+        @MainThread private void updateTitle(int newStyle) {
             if (adapter.buffer == null) return;
             Spannable titleSpannable = adapter.buffer.titleSpannable;
             Line titleLine = adapter.buffer.titleLine;
@@ -179,7 +179,7 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
             if (style != (style = newStyle)) updateStyle(title);
         }
 
-        @Override public void onClick(View v) {
+        @MainThread @Override public void onClick(View v) {
             if (adapter.buffer == null) return;
             adapter.buffer.requestMoreLines();
             updateButton();
@@ -192,37 +192,32 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 
     final private static int HEADER_TYPE = -1, LINE_TYPE = 0, MARKER_TYPE = 1;
 
-    @Override public int getItemViewType(int position) {
-        //logger.trace("getItemViewType({})", position);
+    @MainThread @Override public int getItemViewType(int position) {
         long pointer = lines.get(position).pointer;
         if (pointer == HEADER_POINTER) return HEADER_TYPE;
         if (pointer == MARKER_POINTER) return MARKER_TYPE;
         return LINE_TYPE;
     }
 
-    @Override public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        //logger.trace("onCreateViewHolder({})", viewType);
+    @MainThread @Override public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         LayoutInflater i = LayoutInflater.from(parent.getContext());
         if (viewType == HEADER_TYPE) return new Header(i.inflate(more_button, parent, false), this);
         else if (viewType == MARKER_TYPE) return new ReadMarkerRow(i.inflate(read_marker, parent, false));
         else return new Row(i.inflate(chatview_line, parent, false));
     }
 
-    @Override public synchronized void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-        //logger.trace("onBindViewHolder(..., {}, {})", position);
+    @MainThread @Override public synchronized void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         long pointer = lines.get(position).pointer;
         if (pointer == HEADER_POINTER) ((Header) holder).update(style);
         else if (pointer == MARKER_POINTER) ((ReadMarkerRow) holder).update(style);
         else ((Row) holder).update(lines.get(position), style);
     }
 
-    @Override public int getItemCount() {
-        //logger.trace("getItemCount()");
+    @MainThread @Override public int getItemCount() {
         return lines.size();
     }
 
-    @Override public long getItemId(int position) {
-        //logger.trace("getItemId({}) -> {}", position, lines.get(position).pointer);
+    @MainThread @Override public long getItemId(int position) {
         return lines.get(position).pointer;
     }
 
@@ -234,7 +229,7 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     // this might be called by multiple threads in rapid succession
     // in case non-main thread calls this before the Runnable that sets `lines` is executed,
     // store the new list in `_lines` so that we can produce a proper diff
-    @UiThread @WorkerThread private synchronized void onLinesChanged() {
+    @AnyThread private synchronized void onLinesChanged() {
         if (buffer == null) return;
         final ArrayList<Line> newLines;
 
@@ -257,7 +252,7 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         });
     }
 
-    private void updateHeader() {
+    @AnyThread private void updateHeader() {
         Weechat.runOnMainThread(() -> notifyItemChanged(0));
     }
 
@@ -266,7 +261,7 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     // increasing `style` will make all ViewHolders update visual characteristics
-    @Override @UiThread public synchronized void onGlobalPreferencesChanged(boolean numberChanged) {
+    @MainThread @Override public synchronized void onGlobalPreferencesChanged(boolean numberChanged) {
         if (numberChanged && buffer != null) {
             onLinesChanged();
         } else {
@@ -275,24 +270,24 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         }
     }
 
-    @Override public void onLinesListed() {
+    @WorkerThread @Override public void onLinesListed() {
         onLinesChanged();
         updateHeader();
     }
 
-    @Override public void onLineAdded() {
+    @WorkerThread @Override public void onLineAdded() {
         onLinesChanged();
     }
 
-    @Override public void onPropertiesChanged() {
+    @WorkerThread @Override public void onPropertiesChanged() {
         updateHeader();
     }
 
-    @Override public void onBufferClosed() {}
+    @WorkerThread @Override public void onBufferClosed() {}
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @UiThread public synchronized void loadLinesWithoutAnimation() {
+    @MainThread public synchronized void loadLinesWithoutAnimation() {
         if (buffer == null) return;
         uiLines.disableAnimationForNextUpdate();
         onLinesChanged();
@@ -302,7 +297,20 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     //////////////////////////////////////////////////////////////////////////////////////////////// find hot line
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @UiThread @WorkerThread public void scrollToHotLineIfNeeded() {
+    private int highlights;
+    private int privates;
+
+    private final static int HOT_LINE_LOST = -1;
+    private final static int HOT_LINE_NOT_READY = -2;
+    private final static int HOT_LINE_NOT_PRESENT = -3;
+
+    @MainThread public synchronized void storeHotLineInfo() {
+        Assert.assertNotNull(buffer);
+        highlights = buffer.highlights;
+        privates = (buffer.type == Buffer.PRIVATE) ? buffer.unreads : 0;
+    }
+
+    @AnyThread public synchronized void scrollToHotLineIfNeeded() {
         final int idx = findHotLine();
         if (idx == HOT_LINE_NOT_READY || idx == HOT_LINE_NOT_PRESENT) return;
         highlights = privates = 0;
@@ -312,20 +320,7 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         });
     }
 
-    @UiThread public synchronized void storeHotLineInfo() {
-        Assert.assertNotNull(buffer);
-        highlights = buffer.highlights;
-        privates = (buffer.type == Buffer.PRIVATE) ? buffer.unreads : 0;
-    }
-
-    private int highlights;
-    private int privates;
-
-    private final static int HOT_LINE_LOST = -1;
-    private final static int HOT_LINE_NOT_READY = -2;
-    private final static int HOT_LINE_NOT_PRESENT = -3;
-
-    synchronized private int findHotLine() {
+    @AnyThread synchronized private int findHotLine() {
         Assert.assertNotNull(buffer);
         if (!buffer.isWatched || !buffer.lines.ready()) return HOT_LINE_NOT_READY;
         if ((highlights | privates) == 0) return HOT_LINE_NOT_PRESENT;
@@ -345,6 +340,10 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         }
         return (idx < 0) ? HOT_LINE_LOST : idx + 1;
     }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private class DiffCallback extends DiffUtil.Callback {
         private List<Line> oldLines, newLines;

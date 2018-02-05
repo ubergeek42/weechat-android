@@ -1,24 +1,24 @@
-/*******************************************************************************
- * Copyright 2012 Keith Johnson
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- ******************************************************************************/
+// Copyright 2012 Keith Johnson
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//   http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package com.ubergeek42.WeechatAndroid.adapters;
 
-import android.support.annotation.UiThread;
-import android.support.annotation.WorkerThread;
+import android.support.annotation.AnyThread;
+import android.support.annotation.MainThread;
 import android.support.v7.util.DiffUtil;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.text.Spannable;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -40,7 +40,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
-public class BufferListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements BufferListEye {
+
+public class BufferListAdapter extends RecyclerView.Adapter<ViewHolder> implements BufferListEye {
 
     final private static @Root Kitty kitty = Kitty.make();
 
@@ -60,14 +61,14 @@ public class BufferListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     //////////////////////////////////////////////////////////////////////////////////////////////// VH
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private static class Row extends RecyclerView.ViewHolder implements View.OnClickListener {
+    private static class Row extends ViewHolder implements View.OnClickListener {
         private String fullName;
         private TextView uiHot;
         private TextView uiWarm;
         private TextView uiBuffer;
         private View uiOpen;
 
-        Row(View view) {
+        @MainThread Row(View view) {
             super(view);
             uiOpen = view.findViewById(R.id.open);
             uiBuffer = view.findViewById(R.id.buffer);
@@ -76,7 +77,7 @@ public class BufferListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             view.setOnClickListener(this);
         }
 
-        void update(VisualBuffer buffer) {
+        @MainThread void update(VisualBuffer buffer) {
             fullName = buffer.fullName;
             uiBuffer.setText(buffer.printable);
             int unreads = buffer.unreads;
@@ -87,19 +88,20 @@ public class BufferListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             uiOpen.setVisibility(buffer.isOpen ? View.VISIBLE : View.GONE);
 
             if (highlights > 0) {
-                uiHot.setText(Integer.toString(highlights));
+                uiHot.setText(String.valueOf(highlights));
                 uiHot.setVisibility(View.VISIBLE);
             } else
                 uiHot.setVisibility(View.INVISIBLE);
 
             if (unreads > 0) {
-                uiWarm.setText(Integer.toString(unreads));
+                uiWarm.setText(String.valueOf(unreads));
                 uiWarm.setVisibility(View.VISIBLE);
             } else
                 uiWarm.setVisibility(View.GONE);
         }
 
-        @Override public void onClick(View v) {
+        @MainThread @Override @SuppressWarnings("ConstantConditions")
+        public void onClick(View v) {
             ((BufferListClickListener) Utils.getActivity(v)).onBufferClick(fullName);
         }
     }
@@ -108,20 +110,20 @@ public class BufferListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     //////////////////////////////////////////////////////////////////////////////////////////////// adapter methods
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @Override @Cat("???") public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    @MainThread @Override @Cat("???") public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         LayoutInflater i = LayoutInflater.from(parent.getContext());
         return new Row(i.inflate(R.layout.bufferlist_item, parent, false));
     }
 
-    @Override @Cat("???") public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+    @MainThread @Override @Cat("???") public void onBindViewHolder(ViewHolder holder, int position) {
         ((Row) holder).update(buffers.get(position));
     }
 
-    @Override @Cat("???") public long getItemId(int position) {
+    @MainThread @Override @Cat("???") public long getItemId(int position) {
         return buffers.get(position).pointer;
     }
 
-    @Override @Cat(value="???", exit=true) public int getItemCount() {
+    @MainThread @Override @Cat(value="???", exit=true) public int getItemCount() {
         return buffers.size();
     }
 
@@ -130,14 +132,14 @@ public class BufferListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private ArrayList<VisualBuffer> _buffers = new ArrayList<>();
-    @UiThread @WorkerThread @Override @Cat("??") synchronized public void onBuffersChanged() {
+    @AnyThread @Override @Cat("??") synchronized public void onBuffersChanged() {
         final ArrayList<VisualBuffer> newBuffers = new ArrayList<>();
 
         synchronized (BufferList.class) {
             for (Buffer buffer : BufferList.buffers) {
                 if (buffer.type == Buffer.HARD_HIDDEN) continue;
                 if (P.filterBuffers && buffer.type == Buffer.OTHER && buffer.highlights == 0 && buffer.unreads == 0) continue;
-                if (P.filterLc != null && P.filterUc != null && !buffer.fullName.toLowerCase().contains(P.filterLc) && !buffer.fullName.toUpperCase().contains(P.filterUc)) continue;
+                if (!buffer.fullName.toLowerCase().contains(P.filterLc) && !buffer.fullName.toUpperCase().contains(P.filterUc)) continue;
                 newBuffers.add(new VisualBuffer(buffer));
             }
         }
@@ -156,9 +158,9 @@ public class BufferListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         });
     }
 
-    public void setFilter(final String s) {
-        P.filterLc = (s.length() == 0) ? null : s.toLowerCase();
-        P.filterUc = (s.length() == 0) ? null : s.toUpperCase();
+    @AnyThread synchronized public static void setFilter(final String s) {
+        P.filterLc = s.toLowerCase();
+        P.filterUc = s.toUpperCase();
     }
 
     @Override public void onHotCountChanged() {}

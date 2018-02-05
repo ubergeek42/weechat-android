@@ -84,8 +84,8 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
 
     public static boolean showBufferFilter;
 
-    public static @Nullable String filterLc = null;
-    public static @Nullable String filterUc = null;
+    public static @NonNull String filterLc = "";
+    public static @NonNull String filterUc = "";
 
     public static void loadUIPreferences() {
         // buffer list preferences

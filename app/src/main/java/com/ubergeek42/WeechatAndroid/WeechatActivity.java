@@ -393,7 +393,7 @@ public class WeechatActivity extends AppCompatActivity implements
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setAdapter(nicklistAdapter, (dialogInterface, position) -> {
                     Nick nick = nicklistAdapter.getItem(position);
-                    EventBus.getDefault().post(new SendMessageEvent(String.format("input %s /query %s", buffer.hexPointer(), nick.name)));
+                    EventBus.getDefault().post(new SendMessageEvent(String.format("input %s /query %s", buffer.hexPointer(), nick.getName())));
                 });
                 AlertDialog dialog = builder.create();
                 dialog.setTitle("squirrels are awesome");
@@ -451,8 +451,8 @@ public class WeechatActivity extends AppCompatActivity implements
         if (adapter.isBufferOpen(fullName) || state.contains(AUTHENTICATED)) {
             adapter.openBuffer(fullName);
             adapter.focusBuffer(fullName);
-            //todo need this post?
-            if (text != null) uiDrawer.post(() -> adapter.setBufferInputText(fullName, text));
+            // post so that the fragment is created first, if it's not ready
+            if (text != null) Weechat.runOnMainThread(() -> adapter.setBufferInputText(fullName, text));
             if (slidy) hideDrawer();
         } else {
             Weechat.showShortToast(R.string.not_connected);

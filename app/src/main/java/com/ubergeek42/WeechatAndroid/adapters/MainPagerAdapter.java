@@ -1,6 +1,5 @@
 package com.ubergeek42.WeechatAndroid.adapters;
 
-
 import android.annotation.SuppressLint;
 import android.os.Handler;
 import android.os.Looper;
@@ -27,6 +26,7 @@ import com.ubergeek42.cats.Root;
 
 import java.util.ArrayList;
 
+
 public class MainPagerAdapter extends PagerAdapter {
 
     final private static @Root Kitty kitty = Kitty.make();
@@ -39,7 +39,7 @@ public class MainPagerAdapter extends PagerAdapter {
 
     private FragmentTransaction transaction = null;
 
-    public MainPagerAdapter(FragmentManager manager, ViewPager pager) {
+    @MainThread public MainPagerAdapter(FragmentManager manager, ViewPager pager) {
         super();
         this.manager = manager;
         this.pager = pager;
@@ -67,11 +67,11 @@ public class MainPagerAdapter extends PagerAdapter {
         P.setBufferOpen(name, false);
     }
 
-    public void focusBuffer(String name) {
+    @MainThread public void focusBuffer(String name) {
         pager.setCurrentItem(names.indexOf(name));
     }
 
-    public void setBufferInputText(@NonNull final String name, @NonNull final String text) {
+    @MainThread public void setBufferInputText(@NonNull final String name, @NonNull final String text) {
         BufferFragment bufferFragment = getBufferFragment(names.indexOf(name));
         if (bufferFragment == null) {
             kitty.warn("Tried to set input text of unknown buffer %s", name);
@@ -81,22 +81,22 @@ public class MainPagerAdapter extends PagerAdapter {
     }
 
     // returns whether a buffer is inside the pager
-    public boolean isBufferOpen(String name) {
+    @MainThread public boolean isBufferOpen(String name) {
         return names.contains(name);
     }
 
     // returns full name of the buffer that is currently focused or null if there's no buffers
-    public @Nullable String getCurrentBufferFullName() {
+    @MainThread public @Nullable String getCurrentBufferFullName() {
         int i = pager.getCurrentItem();
         return (names.size() > i) ? names.get(i) : null;
     }
 
     // returns BufferFragment that is currently focused or null
-    public @Nullable BufferFragment getCurrentBufferFragment() {
+    @MainThread public @Nullable BufferFragment getCurrentBufferFragment() {
         return getBufferFragment(pager.getCurrentItem());
     }
 
-    private @Nullable BufferFragment getBufferFragment(int i) {
+    @MainThread private @Nullable BufferFragment getBufferFragment(int i) {
         if (names.size() <= i) return null;
         return (BufferFragment) manager.findFragmentByTag(names.get(i));
     }
@@ -106,8 +106,8 @@ public class MainPagerAdapter extends PagerAdapter {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     // attach a fragment if it's in the FragmentManager, create and add a new one if it's not
-    @Override @SuppressLint("CommitTransaction") @Cat(linger=true)
-    public Object instantiateItem(ViewGroup container, int i) {
+    @MainThread @Override @SuppressLint("CommitTransaction") @Cat(linger=true)
+    public @NonNull Object instantiateItem(@NonNull ViewGroup container, int i) {
         if (transaction == null) transaction = manager.beginTransaction();
         String tag = names.get(i);
         Fragment frag = manager.findFragmentByTag(tag);
@@ -122,8 +122,8 @@ public class MainPagerAdapter extends PagerAdapter {
     }
 
     // detach fragment if it went off-screen or remove it completely if it's been closed by user
-    @Override @SuppressLint("CommitTransaction") @Cat(linger=true)
-    public void destroyItem(ViewGroup container, int i, Object object) {
+    @MainThread @Override @SuppressLint("CommitTransaction") @Cat(linger=true)
+    public void destroyItem(@NonNull ViewGroup container, int i, @NonNull Object object) {
         if (transaction == null) transaction = manager.beginTransaction();
         Fragment frag = (Fragment) object;
         if (names.contains(frag.getTag())) {
@@ -137,22 +137,26 @@ public class MainPagerAdapter extends PagerAdapter {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @Override public int getCount() {
+    @MainThread @Override public int getCount() {
         return names.size();
     }
 
-    @Override public CharSequence getPageTitle(int i) {
+    @MainThread @Override public CharSequence getPageTitle(int i) {
         String name = names.get(i);
         Buffer buffer = BufferList.findByFullName(names.get(i));
         return buffer == null ? name : buffer.shortName;
     }
 
-    @Override public boolean isViewFromObject(View view, Object object) {
+    @MainThread @Override public boolean isViewFromObject(@NonNull View view, @NonNull Object object) {
         return ((Fragment) object).getView() == view;
     }
 
     private Fragment oldFrag;
-    @Override public void setPrimaryItem(ViewGroup container, int position, Object object) {
+
+    // in the interface object is annotates as @NonNull but it can be nullable
+    // see https://issuetracker.google.com/issues/69440293
+    @SuppressWarnings("NullableProblems")
+    @MainThread @Override public void setPrimaryItem(@NonNull ViewGroup container, int position, @Nullable Object object) {
         if (object == oldFrag) return;
         Fragment frag = (Fragment) object;
         if (oldFrag != null) {
@@ -169,33 +173,28 @@ public class MainPagerAdapter extends PagerAdapter {
     // this should return index for fragments or POSITION_NONE if a fragment has been removed
     // providing proper indexes instead of POSITION_NONE allows buffers not to be
     // fully recreated on every uiBuffer list change
-    @Override public int getItemPosition(Object object) {
+    @MainThread @Override public int getItemPosition(@NonNull Object object) {
         int idx = names.indexOf(((Fragment) object).getTag());
         return (idx >= 0) ? idx : POSITION_NONE;
     }
 
     // this one's empty because instantiateItem and destroyItem create transactions as needed
     // this function is called too frequently to create a transaction inside it
-    @Override public void startUpdate(ViewGroup container) {}
+    @MainThread @Override public void startUpdate(@NonNull ViewGroup container) {}
 
     // commit the transaction and execute it ASAP, but NOT on the current loop
     // this way the drawer will wait for the fragment to appear
-    @Override public void finishUpdate(ViewGroup container) {
+    @MainThread @Override public void finishUpdate(@NonNull ViewGroup container) {
         if (transaction == null)
             return;
         transaction.commitAllowingStateLoss();
         transaction = null;
-        handler.postAtFrontOfQueue(new Runnable() {
-            @Override
-            public void run() {
-                manager.executePendingTransactions();
-            }
-        });
+        handler.postAtFrontOfQueue(manager::executePendingTransactions);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public boolean canRestoreBuffers() {
+    @MainThread public boolean canRestoreBuffers() {
         return P.openBuffers.size() > 0 && names.size() == 0 && BufferList.hasData();
     }
 
