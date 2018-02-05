@@ -21,6 +21,10 @@ dependencies {
     compile project (':cats')
     compile project (':relay')
 
+    // todo
+    compile 'org.slf4j:slf4j-api:1.7.12'
+    compile 'com.noveogroup.android:android-logger:1.3.5'
+
     compile 'com.android.support:support-v4:27.0.2'
     compile 'com.android.support:support-annotations:27.0.2' // For @Nullable/@NonNull
     compile 'com.android.support:appcompat-v7:27.0.2'

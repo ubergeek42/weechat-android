@@ -1,18 +1,17 @@
-/*******************************************************************************
- * Copyright 2012 Keith Johnson
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- ******************************************************************************/
+// Copyright 2012 Keith Johnson
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//   http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package com.ubergeek42.WeechatAndroid;
 
 import java.security.cert.CertPath;
@@ -24,27 +23,24 @@ import java.util.Set;
 
 import javax.net.ssl.SSLException;
 
-import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.support.annotation.AnyThread;
+import android.support.annotation.MainThread;
 import android.support.v4.app.DialogFragment;
-import android.support.v4.view.MenuItemCompat;
+import android.support.v4.view.PagerAdapter;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.AlertDialog;
 
-import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.*;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.drawable.Drawable;
@@ -54,7 +50,6 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
-import android.view.View.OnClickListener;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -94,7 +89,6 @@ public class WeechatActivity extends AppCompatActivity implements
     private ViewPager uiPager;
     private MainPagerAdapter adapter;
     private InputMethodManager imm;
-    private CutePagerTitleStrip uiStrip;
 
     private boolean slidy;
     private boolean drawerEnabled = true;
@@ -110,7 +104,7 @@ public class WeechatActivity extends AppCompatActivity implements
     //////////////////////////////////////////////////////////////////////////////////////////////// life cycle
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @Override @Cat public void onCreate(@Nullable Bundle savedInstanceState) {
+    @MainThread @Override @Cat public void onCreate(@Nullable Bundle savedInstanceState) {
         // after OOM kill and not going to restore anything? remove all fragments & open buffers
         if (!P.isServiceAlive() && !BufferList.hasData()) {
             P.openBuffers.clear();
@@ -127,46 +121,40 @@ public class WeechatActivity extends AppCompatActivity implements
 
         // prepare pager
         FragmentManager manager = getSupportFragmentManager();
-        uiPager = (ViewPager) findViewById(R.id.main_viewpager);
+        uiPager = findViewById(R.id.main_viewpager);
         adapter = new MainPagerAdapter(manager, uiPager);
         uiPager.setAdapter(adapter);
 
         // prepare action bar
-        setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
+        setSupportActionBar(findViewById(R.id.toolbar));
         final ActionBar uiActionBar = getSupportActionBar();
         //noinspection ConstantConditions
         uiActionBar.setHomeButtonEnabled(true);
         uiActionBar.setDisplayShowCustomEnabled(true);
         uiActionBar.setDisplayShowTitleEnabled(false);
-        LayoutInflater inflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        uiStrip = (CutePagerTitleStrip) inflater.inflate(R.layout.cute_pager_title_strip_layout, null);
+
+        CutePagerTitleStrip uiStrip = findViewById(R.id.cute_pager_title_strip);
         uiStrip.setViewPager(uiPager);
         uiStrip.setOnPageChangeListener(this);
-        uiActionBar.setCustomView(uiStrip);
 
         // this is the text view behind the uiPager
         // it says stuff like 'connecting', 'disconnected' et al
-        uiInfo = (ImageView) findViewById(R.id.kitty);
-        uiInfo.setOnClickListener(new OnClickListener() {
-            @Override public void onClick(View v) {
-                if (state.contains(STARTED)) disconnect();
-                else connect();
-            }
-        });
+        uiInfo = findViewById(R.id.kitty);
+        uiInfo.setOnClickListener(v -> {if (state.contains(STARTED)) disconnect(); else connect();});
 
         // if this is true, we've got notification drawer and have to deal with it
         // setup drawer toggle, which calls drawerVisibilityChanged()
         slidy = getResources().getBoolean(R.bool.slidy);
         uiDrawer = findViewById(R.id.bufferlist_fragment);
         if (slidy) {
-            uiDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+            uiDrawerLayout = findViewById(R.id.drawer_layout);
             drawerToggle = new ActionBarDrawerToggle(this, uiDrawerLayout, R.string.open_drawer, R.string.close_drawer) {
                 @Override public void onDrawerSlide(View drawerView, float slideOffset) {
                     drawerVisibilityChanged(slideOffset > 0);
                 }
             };
             drawerShowing = uiDrawerLayout.isDrawerVisible(uiDrawer);
-            uiDrawerLayout.setDrawerListener(drawerToggle);
+            uiDrawerLayout.addDrawerListener(drawerToggle);
             uiActionBar.setDisplayHomeAsUpEnabled(true);
         }
 
@@ -176,7 +164,6 @@ public class WeechatActivity extends AppCompatActivity implements
         String title = "WA v" + BuildConfig.VERSION_NAME;
         setTitle(title);
         uiStrip.setEmptyText(title);
-        updateCutePagerTitleStrip();
 
         if (P.isServiceAlive()) connect();
 
@@ -186,7 +173,7 @@ public class WeechatActivity extends AppCompatActivity implements
         if (adapter.canRestoreBuffers()) adapter.restoreBuffers();
     }
 
-    @CatD(linger=true) public void connect() {
+    @MainThread @CatD(linger=true) public void connect() {
         P.loadConnectionPreferences();
         String error = P.validateConnectionPreferences();
         if (error != null) {
@@ -200,7 +187,8 @@ public class WeechatActivity extends AppCompatActivity implements
         startService(i);
     }
 
-    @CatD public void disconnect() {
+    // todo threading??
+    @MainThread @CatD public void disconnect() {
         Intent i = new Intent(this, RelayService.class);
         i.setAction(RelayService.ACTION_STOP);
         startService(i);
@@ -209,7 +197,7 @@ public class WeechatActivity extends AppCompatActivity implements
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private boolean started = false;
-    @Override @CatD protected void onStart() {
+    @MainThread @Override @CatD protected void onStart() {
         super.onStart();
         state = null;
         EventBus.getDefault().register(this);
@@ -218,25 +206,25 @@ public class WeechatActivity extends AppCompatActivity implements
         started = true;
     }
 
-    @Override @CatD protected void onStop() {
+    @MainThread @Override @CatD protected void onStop() {
         started = false;
         EventBus.getDefault().unregister(this);
         P.saveStuff();
         super.onStop();
     }
 
-    @Override @CatD protected void onDestroy() {
+    @MainThread @Override @CatD protected void onDestroy() {
         super.onDestroy();
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////// these two are necessary for the drawer
 
-    @Override protected void onPostCreate(Bundle savedInstanceState) {
+    @MainThread @Override protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
         if (slidy) drawerToggle.syncState();
     }
 
-    @Override public void onConfigurationChanged(Configuration newConfig) {
+    @MainThread @Override public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         if (slidy) drawerToggle.onConfigurationChanged(newConfig);
     }
@@ -245,13 +233,16 @@ public class WeechatActivity extends AppCompatActivity implements
     //////////////////////////////////////////////////////////////////////////////////////////////// the joy
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @Cat private void adjustUI() {
-        int image = R.drawable.ic_big_connecting;
+    @AnyThread @Cat private void adjustUI() {
+        final int image;
         if (state.contains(STOPPED)) image = R.drawable.ic_big_disconnected;
         else if (state.contains(AUTHENTICATED)) image = R.drawable.ic_big_connected;
-        setInfoImage(image);
-        setDrawerEnabled(state.contains(LISTED));
-        makeMenuReflectConnectionStatus();
+        else image = R.drawable.ic_big_connecting;
+        Weechat.runOnMainThreadASAP(() -> {
+            setInfoImage(image);
+            setDrawerEnabled(state.contains(LISTED));
+            makeMenuReflectConnectionStatus();
+        });
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////// events?
@@ -259,20 +250,18 @@ public class WeechatActivity extends AppCompatActivity implements
     private EnumSet<STATE> state = null;
 
     @Subscribe(sticky = true)
-    @Cat public void onEvent(StateChangedEvent event) {
+    @AnyThread @Cat public void onEvent(StateChangedEvent event) {
         boolean init = state == null;
         state = event.state;
         adjustUI();
         if (state.contains(LISTED)) {
-            if (adapter.canRestoreBuffers())
-                runOnUiThread(new Runnable() {public void run() {adapter.restoreBuffers();}});
-            else if (!init && slidy)
-                showDrawerIfPagerIsEmpty();
+            if (adapter.canRestoreBuffers()) runOnUiThread(adapter::restoreBuffers);
+            else if (!init && slidy) runOnUiThread(this::showDrawerIfPagerIsEmpty);
         }
     }
 
     @Subscribe
-    @Cat public void onEvent(final ExceptionEvent event) {
+    @AnyThread @Cat public void onEvent(final ExceptionEvent event) {
         final Exception e = event.e;
         if (e instanceof SSLException) {
             SSLException e1 = (SSLException) e;
@@ -303,12 +292,8 @@ public class WeechatActivity extends AppCompatActivity implements
                 }
             }
         }
-        final String msg = getString(R.string.error, TextUtils.isEmpty(e.getMessage()) ? e.getClass().getSimpleName() : e.getMessage());
-        runOnUiThread(new Runnable() {
-            @Override public void run() {
-                Toast.makeText(getBaseContext(), msg, Toast.LENGTH_LONG).show();
-            }
-        });
+        String message = TextUtils.isEmpty(e.getMessage()) ? e.getClass().getSimpleName() : e.getMessage();
+        Weechat.showLongToast(R.string.error, message);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -327,7 +312,8 @@ public class WeechatActivity extends AppCompatActivity implements
         updateMenuItems();
         hideSoftwareKeyboard();
         toolbarController.onPageChangedOrSelected();
-        int visible = uiPager.getAdapter().getCount() == 0 ? View.VISIBLE : View.GONE;
+        PagerAdapter pa = uiPager.getAdapter();
+        int visible = pa != null && pa.getCount() == 0 ? View.VISIBLE : View.GONE;
         findViewById(R.id.kitty_background).setVisibility(visible);
         findViewById(R.id.kitty).setVisibility(visible);
     }
@@ -339,27 +325,21 @@ public class WeechatActivity extends AppCompatActivity implements
     volatile private int hotNumber = 0;
     private @Nullable TextView uiHot = null;
 
-    /** update hot count (that red square over the bell icon) at any time
-     ** also sets "hotNumber" in case menu has to be recreated
-     ** can be called off the main thread */
-    @Cat("Menu") public void updateHotCount(final int newHotNumber) {
+    // update hot count (that red square over the bell icon) at any time
+    // also sets "hotNumber" in case menu has to be recreated
+    @MainThread @Cat("Menu") public void updateHotCount(final int newHotNumber) {
         hotNumber = newHotNumber;
-        if (uiHot != null)
-            uiHot.post(new Runnable() {
-                @Override @SuppressLint("SetTextI18n") public void run() {
-                    if (newHotNumber == 0)
-                        uiHot.setVisibility(View.INVISIBLE);
-                    else {
-                        uiHot.setVisibility(View.VISIBLE);
-                        uiHot.setText(Integer.toString(newHotNumber));
-                    }
-                }
-            });
+        if (uiHot == null) return;
+        if (newHotNumber == 0) {
+            uiHot.setVisibility(View.INVISIBLE);
+        } else {
+            uiHot.setVisibility(View.VISIBLE);
+            uiHot.setText(String.valueOf(newHotNumber));
+        }
     }
 
-    /** hide or show nicklist/close menu item according to buffer
-     ** MUST be called on main thread */
-    private void updateMenuItems() {
+    // hide or show nicklist/close menu item according to buffer
+    @MainThread private void updateMenuItems() {
         if (uiMenu == null) return;
         boolean bufferVisible = adapter.getCount() > 0;
         uiMenu.findItem(R.id.menu_nicklist).setVisible(bufferVisible);
@@ -367,52 +347,41 @@ public class WeechatActivity extends AppCompatActivity implements
         uiMenu.findItem(R.id.menu_filter_lines).setChecked(P.filterLines);
     }
 
-    /** Can safely hold on to this according to docs
-     ** http://developer.android.com/reference/android/app/Activity.html#onCreateOptionsMenu(android.view.Menu) **/
-    @Override @Cat("Menu") public boolean onCreateOptionsMenu(final Menu menu) {
-        MenuInflater menuInflater = getMenuInflater();
-        menuInflater.inflate(R.menu.menu_actionbar, menu);
-        final View menuHotlist = MenuItemCompat.getActionView(menu.findItem(R.id.menu_hotlist));
-        uiHot = (TextView) menuHotlist.findViewById(R.id.hotlist_hot);
-        updateHotCount(hotNumber);
+    @Override @MainThread @Cat("Menu") public boolean onCreateOptionsMenu(final Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_actionbar, menu);
+        final View menuHotlist = menu.findItem(R.id.menu_hotlist).getActionView();
+        uiHot = menuHotlist.findViewById(R.id.hotlist_hot);
         new MyMenuItemStuffListener(menuHotlist, getString(R.string.hint_show_hot_message)) {
-            @Override
-            public void onClick(View v) {
-                onHotlistSelected();
-            }
+            @Override public void onClick(View v) {onHotlistSelected();}
         };
-        this.uiMenu = menu;
+        uiMenu = menu;
         updateMenuItems();
         makeMenuReflectConnectionStatus();
+        updateHotCount(hotNumber);
         return super.onCreateOptionsMenu(menu);
     }
 
-    /** handle the options when the user presses the menu button */
-    @Override @Cat("Menu") public boolean onOptionsItemSelected(MenuItem item) {
+    @MainThread @Override @Cat("Menu") public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case android.R.id.home: {
+            case android.R.id.home:
                 if (slidy && drawerEnabled) {
                     if (drawerShowing) hideDrawer();
                     else showDrawer();
                 }
                 break;
-            }
-            case R.id.menu_connection_state: {
+            case R.id.menu_connection_state:
                 if (state.contains(STARTED)) disconnect();
                 else connect();
                 break;
-            }
-            case R.id.menu_preferences: {
+            case R.id.menu_preferences:
                 Intent intent = new Intent(this, PreferencesActivity.class);
                 startActivity(intent);
                 break;
-            }
-            case R.id.menu_close: {
+            case R.id.menu_close:
                 BufferFragment current = adapter.getCurrentBufferFragment();
                 if (current != null)
                     current.onBufferClosed();
                 break;
-            }
             case R.id.menu_hotlist:
                 break;
             case R.id.menu_nicklist:
@@ -422,12 +391,9 @@ public class WeechatActivity extends AppCompatActivity implements
                 final NickListAdapter nicklistAdapter = new NickListAdapter(WeechatActivity.this, buffer);
 
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setAdapter(nicklistAdapter, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int position) {
-                        Nick nick = nicklistAdapter.getItem(position);
-                        EventBus.getDefault().post(new SendMessageEvent(String.format("input %s /query %s", buffer.hexPointer(), nick.name)));
-                    }
+                builder.setAdapter(nicklistAdapter, (dialogInterface, position) -> {
+                    Nick nick = nicklistAdapter.getItem(position);
+                    EventBus.getDefault().post(new SendMessageEvent(String.format("input %s /query %s", buffer.hexPointer(), nick.name)));
                 });
                 AlertDialog dialog = builder.create();
                 dialog.setTitle("squirrels are awesome");
@@ -445,7 +411,7 @@ public class WeechatActivity extends AppCompatActivity implements
         return super.onOptionsItemSelected(item);
     }
 
-    @Cat("Menu") private void onHotlistSelected() {
+    @MainThread @Cat("Menu") private void onHotlistSelected() {
         Buffer buffer = BufferList.getHotBuffer();
         if (buffer != null)
             openBuffer(buffer.fullName);
@@ -453,26 +419,19 @@ public class WeechatActivity extends AppCompatActivity implements
             Weechat.showShortToast(R.string.no_hot_buffers);
     }
 
-    /** change first menu item from connect to disconnect or back depending on connection status */
-    @Cat("Menu") private void makeMenuReflectConnectionStatus() {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (uiMenu != null) {
-                    MenuItem connectionStatus = uiMenu.findItem(R.id.menu_connection_state);
-                    String msg;
+    @MainThread @Cat("Menu") private void makeMenuReflectConnectionStatus() {
+        if (uiMenu == null) return;
+        MenuItem connectionStatus = uiMenu.findItem(R.id.menu_connection_state);
+        String msg;
 
-                    if (state.contains(AUTHENTICATED)) msg = getString(R.string.disconnect);
-                    else if (state.contains(STARTED)) msg = getString(R.string.stop_connecting);
-                    else msg = getString(R.string.connect);
-                    connectionStatus.setTitle(msg);
+        if (state.contains(AUTHENTICATED)) msg = getString(R.string.disconnect);
+        else if (state.contains(STARTED)) msg = getString(R.string.stop_connecting);
+        else msg = getString(R.string.connect);
+        connectionStatus.setTitle(msg);
 
-                    final View menuHotlist = MenuItemCompat.getActionView(uiMenu.findItem(R.id.menu_hotlist));
-                    ImageView bellImage = (ImageView) menuHotlist.findViewById(R.id.hotlist_bell);
-                    bellImage.setImageResource(P.optimizeTraffic ? R.drawable.ic_bell_cracked : R.drawable.ic_bell);
-                }
-            }
-        });
+        final View menuHotlist = uiMenu.findItem(R.id.menu_hotlist).getActionView();
+        ImageView bellImage = menuHotlist.findViewById(R.id.hotlist_bell);
+        bellImage.setImageResource(P.optimizeTraffic ? R.drawable.ic_bell_cracked : R.drawable.ic_bell);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -480,19 +439,19 @@ public class WeechatActivity extends AppCompatActivity implements
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-    @Override public void onBufferClick(String fullName) {
+    @MainThread @Override public void onBufferClick(String fullName) {
         openBuffer(fullName);
     }
 
-    public void openBuffer(@NonNull String fullName) {
+    @MainThread public void openBuffer(@NonNull String fullName) {
         openBuffer(fullName, null);
     }
 
-    @Cat("Buffers") public void openBuffer(@NonNull final String fullName, final String text) {
+    @MainThread @Cat("Buffers") public void openBuffer(@NonNull final String fullName, @Nullable final String text) {
         if (adapter.isBufferOpen(fullName) || state.contains(AUTHENTICATED)) {
             adapter.openBuffer(fullName);
             adapter.focusBuffer(fullName);
-
+            //todo need this post?
             if (text != null) uiDrawer.post(() -> adapter.setBufferInputText(fullName, text));
             if (slidy) hideDrawer();
         } else {
@@ -500,33 +459,25 @@ public class WeechatActivity extends AppCompatActivity implements
         }
     }
 
-    // In own thread to prevent things from breaking
-    @Cat("Buffers") public void closeBuffer(String fullName) {
+    @MainThread @Cat("Buffers") public void closeBuffer(String fullName) {
         adapter.closeBuffer(fullName);
         if (slidy) showDrawerIfPagerIsEmpty();
     }
 
-    /** hides the software keyboard, if any */
-    public void hideSoftwareKeyboard() {
+    @MainThread public void hideSoftwareKeyboard() {
         imm.hideSoftInputFromWindow(uiPager.getWindowToken(), 0);
     }
 
-    @Override public void onBackPressed() {
+    @MainThread @Override public void onBackPressed() {
         if (slidy && drawerShowing) hideDrawer();
         else super.onBackPressed();
-    }
-
-    /** called if the text of one of the buffers has been changed
-     ** and the uiStrip doesn't update itself because there's no scrolling */
-    public void updateCutePagerTitleStrip() {
-        uiStrip.updateText();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// drawer stuff
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public void drawerVisibilityChanged(boolean showing) {
+    @MainThread public void drawerVisibilityChanged(boolean showing) {
         if (drawerShowing == showing) return;
         drawerShowing = showing;
         hideSoftwareKeyboard();
@@ -535,61 +486,35 @@ public class WeechatActivity extends AppCompatActivity implements
             current.onVisibilityStateChanged(BufferFragment.State.FULL_VISIBILITY);
     }
 
-    public boolean isPagerNoticeablyObscured() {
-        return drawerShowing;                          //todo?
+    @MainThread public boolean isPagerNoticeablyObscured() {
+        return drawerShowing;
     }
 
-    @Cat("Drawer") private void setDrawerEnabled(final boolean enabled) {
+    @MainThread @Cat("Drawer") private void setDrawerEnabled(final boolean enabled) {
         drawerEnabled = enabled;
-        uiPager.post(new Runnable() {
-            @Override public void run() {
-                if (slidy) uiDrawerLayout.setDrawerLockMode(enabled ? DrawerLayout.LOCK_MODE_UNLOCKED : DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
-                else uiDrawer.setVisibility(enabled ? View.VISIBLE : View.GONE);
-            }
-        });
+        if (slidy) uiDrawerLayout.setDrawerLockMode(enabled ?
+                DrawerLayout.LOCK_MODE_UNLOCKED : DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+        else uiDrawer.setVisibility(enabled ? View.VISIBLE : View.GONE);
     }
 
-    @Cat("Drawer") public void showDrawer() {
-        //final boolean started = this.started;
+    @MainThread @Cat("Drawer") public void showDrawer() {
         if (!drawerEnabled) return;
         if (!drawerShowing) drawerVisibilityChanged(true); // we need this so that drawerShowing is set immediately
-        runOnUiThread(new Runnable() {
-            @Override public void run() {
-                uiDrawerLayout.openDrawer(uiDrawer, started);
-            }
-        });
+        uiDrawerLayout.openDrawer(uiDrawer, started);
     }
 
-    @Cat("Drawer") public void hideDrawer() {
-        //final boolean started = this.started;
-        runOnUiThread(new Runnable() {
-            @Override public void run() {
-                uiDrawerLayout.closeDrawer(uiDrawer, started);
-            }
-        });
+    @MainThread @Cat("Drawer") public void hideDrawer() {
+        uiDrawerLayout.closeDrawer(uiDrawer, started);
     }
 
-    /** pop up drawer if connected & no pages in the adapter **/
-    @Cat("Drawer") public void showDrawerIfPagerIsEmpty() {
-        if (!drawerShowing)
-            uiPager.post(new Runnable() {
-                @Override public void run() {
-                    if (state.contains(LISTED) && adapter.getCount() == 0)
-                        showDrawer();
-                }
-            });
+    @MainThread @Cat("Drawer") public void showDrawerIfPagerIsEmpty() {
+        if (!drawerShowing && state.contains(LISTED) && adapter.getCount() == 0) showDrawer();
     }
 
-    /** set image that appears in the pager when no pages are open */
-    @SuppressWarnings("deprecation")
-    private void setInfoImage(final int id) {
+    // set the kitty image that appears when no pages are open
+    @MainThread private void setInfoImage(final int id) {
         final Drawable drawable = getResources().getDrawable(id);
-        uiInfo.post(new Runnable() {
-            @Override  @SuppressWarnings("ConstantConditions")
-            public void run() {
-                Utils.setImageDrawableWithFade(uiInfo, drawable, 350);
-            }
-        });
+        Utils.setImageDrawableWithFade(uiInfo, drawable, 350);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -597,10 +522,8 @@ public class WeechatActivity extends AppCompatActivity implements
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-    /** we may get intent while we are connected to the service and when we are not.
-     ** empty (but present) fullName means open the drawer (in case we have highlights
-     ** on multiple buffers */
-    @Override @Cat("Intent") protected void onNewIntent(Intent intent) {
+    // we may get intent while we are connected to the service and when we are not
+    @MainThread @Override @Cat("Intent") protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         if (intent.hasExtra(NOTIFICATION_EXTRA_BUFFER_FULL_NAME)) {
             setIntent(intent);
@@ -608,8 +531,10 @@ public class WeechatActivity extends AppCompatActivity implements
         }
     }
 
-    /** the extra must be non-null */
-    @Cat("Intent") private void openBufferFromIntent() {
+    // todo make this sane
+    // if buffer name is "" (any), open that buffer or show drawer
+    // else open buffer and set text
+    @MainThread @Cat("Intent") private void openBufferFromIntent() {
         String name = getIntent().getStringExtra(NOTIFICATION_EXTRA_BUFFER_FULL_NAME);
         if (NOTIFICATION_EXTRA_BUFFER_FULL_NAME_ANY.equals(name)) {
             if (BufferList.getHotBufferCount() > 1) {

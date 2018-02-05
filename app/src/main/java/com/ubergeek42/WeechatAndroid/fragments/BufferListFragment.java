@@ -19,6 +19,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 
+import com.ubergeek42.WeechatAndroid.Weechat;
 import com.ubergeek42.WeechatAndroid.adapters.BufferListAdapter;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
@@ -121,7 +122,7 @@ public class BufferListFragment extends Fragment implements BufferListEye, View.
     }
 
     @Override @Cat public void onHotCountChanged() {
-        activity.updateHotCount(BufferList.getHotCount());
+        Weechat.runOnMainThread(() -> activity.updateHotCount(BufferList.getHotCount()));
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

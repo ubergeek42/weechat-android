@@ -3,6 +3,7 @@ package com.ubergeek42.WeechatAndroid.fragments;
 import java.util.Vector;
 
 import android.annotation.SuppressLint;
+import android.support.annotation.AnyThread;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.UiThread;
@@ -262,12 +263,8 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         linesAdapter.onPropertiesChanged();
     }
 
-    @Override public void onBufferClosed() {
-        activity.runOnUiThread(new Runnable() {
-            @Override public void run() {
-                activity.closeBuffer(fullName);
-            }
-        });
+    @AnyThread @Override public void onBufferClosed() {
+        Weechat.runOnMainThreadASAP(() -> activity.closeBuffer(fullName));
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
