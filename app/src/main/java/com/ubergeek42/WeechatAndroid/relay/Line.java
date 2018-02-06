@@ -1,12 +1,13 @@
-/**
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- */
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
 
 package com.ubergeek42.WeechatAndroid.relay;
 
 import android.graphics.Typeface;
+import android.support.annotation.AnyThread;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.WorkerThread;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -22,19 +23,24 @@ import com.ubergeek42.WeechatAndroid.utils.Linkify;
 import com.ubergeek42.weechat.Color;
 import com.ubergeek42.weechat.ColorScheme;
 
+import java.text.DateFormat;
 import java.util.Date;
 
 public class Line {
     // core message data
     final public long pointer;
-    final public Date date;
-    final public String prefix;
-    final public String message;
+    final @Nullable public String prefix;
+    final @NonNull public String message;
+    final private Date date;
 
     // additional data
     final public int type;
-    public @Nullable String speakingNick;
-    public boolean privmsg, action, visible, highlighted;
+    final public boolean visible;
+    final public boolean highlighted;
+
+    @Nullable String speakingNick;
+    public boolean action;
+    private boolean privmsg;
 
     // sole purpose of this is to prevent onClick event on inner URLSpans to be fired
     // when user long-presses on the screen and a context menu is shown
@@ -43,7 +49,7 @@ public class Line {
     // processed line ready to be displayed
     volatile public @Nullable Spannable spannable = null;
 
-    public Line(long pointer, Date date, String prefix, @Nullable String message,
+    @WorkerThread public Line(long pointer, Date date, @Nullable String prefix, @Nullable String message,
                 boolean visible, boolean highlighted, @Nullable String[] tags) {
         this.pointer = pointer;
         this.date = date;
@@ -85,18 +91,18 @@ public class Line {
         if (type != LINE_MESSAGE) speakingNick = null;
     }
 
-    final public static int LINE_OTHER = 0;
-    final public static int LINE_OWN = 1;
+    final static int LINE_OTHER = 0;
+    final private static int LINE_OWN = 1;
     final public static int LINE_MESSAGE = 2;
 
     //////////////////////////////////////////////////////////////////////////////////////////// processing stuff
 
-    public void eraseProcessedMessage() {
+    @AnyThread void eraseProcessedMessage() {
         spannable = null;
     }
 
-    public void processMessageIfNeeded() {
-        if (spannable == null) processMessage();
+    @AnyThread void processMessage() {
+        if (spannable == null) forceProcessMessage();
     }
 
     /**
@@ -105,8 +111,9 @@ public class Line {
      * * the problem is that one has to use distinct spans on the same string
      * * TODO: allow variable width font (should be simple enough
      */
-    public void processMessage() {
-        String timestamp = (P.dateFormat == null) ? null : P.dateFormat.format(date);
+    @AnyThread void forceProcessMessage() {
+        DateFormat dateFormat = P.dateFormat;
+        String timestamp = (dateFormat == null) ? null : dateFormat.format(date);
         boolean encloseNick = P.encloseNick && privmsg && !action;
         Color.parse(timestamp, prefix, message, encloseNick, highlighted, P.maxWidth, P.align);
         Spannable spannable = new SpannableString(Color.cleanMessage);
@@ -126,7 +133,7 @@ public class Line {
                 }
                 // 06-03 14:54:04.765 E/AndroidRuntime: FATAL EXCEPTION: r13
                 // Process: com.ubergeek42.WeechatAndroid.debug, PID: 3401
-                // Theme: themes:{default=overlay:com.baranovgroup.nstyle, iconPack:com.baranovgroup.nstyle, fontPkg:com.baranovgroup.nstyle, com.android.systemui=overlay:com.baranovgroup.nstyle, com.android.systemui.navbar=overlay:com.baranovgroup.nstyle}
+                // Theme: themes:...
                 // java.lang.IndexOutOfBoundsException: setSpan (9 ... 89) ends beyond length 59
                 // at android.text.SpannableStringInternal.checkRange(SpannableStringInternal.java:352)
                 // at android.text.SpannableStringInternal.setSpan(SpannableStringInternal.java:79)
@@ -148,7 +155,7 @@ public class Line {
     }
 
     // is to be run rarely—only when we need to display a notification
-    public String getNotificationString() {
+    @AnyThread public String getNotificationString() {
         return String.format((!privmsg || action) ? "%s %s" : "<%s> %s",
                 Color.stripEverything(prefix),
                 Color.stripEverything(message));

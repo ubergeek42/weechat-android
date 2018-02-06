@@ -3,10 +3,11 @@
 
 package com.ubergeek42.WeechatAndroid.relay;
 
-import android.support.annotation.UiThread;
+import android.support.annotation.AnyThread;
+import android.support.annotation.MainThread;
+import android.support.annotation.WorkerThread;
 
 import com.ubergeek42.WeechatAndroid.service.P;
-import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
 
@@ -18,9 +19,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 
+// this class is supposed to be synchronized by Buffer
 public class Lines {
     final private @Root Kitty kitty = Kitty.make();
-
 
     public final static int HEADER_POINTER = -123, MARKER_POINTER = -456;
     public enum LINES {FETCHING, CAN_FETCH_MORE, EVERYTHING_FETCHED}
@@ -40,12 +41,12 @@ public class Lines {
 
     private int maxUnfilteredSize = 0;
 
-    Lines(String name) {
+    @WorkerThread Lines(String name) {
         maxUnfilteredSize = P.lineIncrement;
         kitty.setPrefix(name);
     }
 
-    @Cat ArrayList<Line> getCopy() {
+    @AnyThread ArrayList<Line> getCopy() {
         int skip = P.filterLines ? skipFiltered : skipUnfiltered;
         ArrayList<Line> lines = new ArrayList<>(P.filterLines ? filtered : unfiltered);
         int marker = skip >= 0 && lines.size() > 0 ? lines.size() - skip : -1;
@@ -56,14 +57,14 @@ public class Lines {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    void addFirst(Line line) {
+    @WorkerThread void addFirst(Line line) {
         assertEquals(status, LINES.FETCHING);
         ensureSizeBeforeAddition();
         unfiltered.addFirst(line);
         if (line.visible) filtered.addFirst(line);
     }
 
-    void addLast(Line line) {
+    @WorkerThread void addLast(Line line) {
         if (status == LINES.FETCHING) {
             kitty.warn("addLast() while lines are being fetched");
             return;
@@ -79,7 +80,7 @@ public class Lines {
         if (!ready() && unfiltered.size() == maxUnfilteredSize) onLinesListed();
     }
 
-    void clear() {
+    @AnyThread void clear() {
         filtered.clear();
         unfiltered.clear();
         maxUnfilteredSize = P.lineIncrement;
@@ -88,49 +89,48 @@ public class Lines {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    void onMoreLinesRequested() {
+    @MainThread void onMoreLinesRequested() {
         if (status != null) maxUnfilteredSize += P.lineIncrement;
         status = LINES.FETCHING;
     }
 
-    void onLinesListed() {
+    @WorkerThread void onLinesListed() {
         status = unfiltered.size() == maxUnfilteredSize ? LINES.CAN_FETCH_MORE : LINES.EVERYTHING_FETCHED;
         setSkipsUsingPointer();
     }
 
     // true if Lines contain all necessary line information and read marker stuff
     // note that the number of lines can be zero and read markers can be not preset
-    public boolean ready() {
+    @AnyThread public boolean ready() {
         return status == LINES.CAN_FETCH_MORE || status == LINES.EVERYTHING_FETCHED;
     }
 
-    int getMaxLines() {
+    @MainThread int getMaxLines() {
         return maxUnfilteredSize;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    Iterator<Line> getDescendingFilteredIterator() {
+    @WorkerThread Iterator<Line> getDescendingFilteredIterator() {
         return filtered.descendingIterator();
     }
 
-
-    boolean contains(Line line) {
+    @WorkerThread boolean contains(Line line) {
         for (Line l: unfiltered) if (line.pointer == l.pointer) return true;
         return false;
     }
 
-    void processAllMessages(boolean force) {
-        for (Line l: unfiltered) if (force) l.processMessage(); else l.processMessageIfNeeded();
+    @AnyThread void processAllMessages(boolean force) {
+        for (Line l: unfiltered) if (force) l.forceProcessMessage(); else l.processMessage();
     }
 
-    void eraseProcessedMessages() {
+    @AnyThread void eraseProcessedMessages() {
         for (Line l: unfiltered) l.eraseProcessedMessage();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    void moveReadMarkerToEnd() {
+    @MainThread void moveReadMarkerToEnd() {
         if (skipFilteredOffset >= 0 && skipUnfilteredOffset >= 0 && skipFiltered >= skipFilteredOffset && skipUnfiltered >= skipFilteredOffset) {
             skipFiltered -= skipFilteredOffset;
             skipUnfiltered -= skipUnfilteredOffset;
@@ -140,7 +140,7 @@ public class Lines {
         skipFilteredOffset = skipUnfilteredOffset = -1;
     }
 
-    void rememberCurrentSkipsOffset() {
+    @MainThread void rememberCurrentSkipsOffset() {
         skipFilteredOffset = skipFiltered;
         skipUnfilteredOffset = skipUnfiltered;
         if (unfiltered.size() > 0) lastSeenLine = unfiltered.getLast().pointer;
@@ -149,10 +149,10 @@ public class Lines {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private long lastSeenLine = -1;
-    @UiThread public long getLastSeenLine() {return lastSeenLine;}
-    @UiThread public void setLastSeenLine(long pointer) {lastSeenLine = pointer;}
+    public long getLastSeenLine() {return lastSeenLine;}
+    public void setLastSeenLine(long pointer) {lastSeenLine = pointer;}
 
-    private void setSkipsUsingPointer() {
+    @WorkerThread private void setSkipsUsingPointer() {
         assertTrue(ready());
         Iterator<Line> it = unfiltered.descendingIterator();
         int idx_f = 0, idx_u = 0;
@@ -192,7 +192,7 @@ public class Lines {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private void ensureSizeBeforeAddition() {
+    @WorkerThread private void ensureSizeBeforeAddition() {
         if (unfiltered.size() == maxUnfilteredSize)
             if (unfiltered.removeFirst().visible) filtered.removeFirst();
     }

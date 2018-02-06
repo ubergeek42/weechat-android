@@ -1,35 +1,33 @@
-/**
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- */
-
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
 
 package com.ubergeek42.WeechatAndroid.relay;
 
+import android.support.annotation.AnyThread;
+import android.support.annotation.MainThread;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.annotation.UiThread;
+import android.support.annotation.WorkerThread;
+import android.util.LongSparseArray;
 
+import com.ubergeek42.WeechatAndroid.service.Events;
 import com.ubergeek42.WeechatAndroid.service.Notificator;
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
+import com.ubergeek42.WeechatAndroid.service.RelayService.STATE;
 import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
 import com.ubergeek42.weechat.relay.RelayMessageHandler;
-import com.ubergeek42.WeechatAndroid.service.RelayService.STATE;
 import com.ubergeek42.weechat.relay.protocol.Array;
 import com.ubergeek42.weechat.relay.protocol.Hashtable;
 import com.ubergeek42.weechat.relay.protocol.Hdata;
 import com.ubergeek42.weechat.relay.protocol.HdataEntry;
 import com.ubergeek42.weechat.relay.protocol.RelayObject;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.greenrobot.eventbus.EventBus;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -38,8 +36,6 @@ import java.util.LinkedHashSet;
 import java.util.ListIterator;
 import java.util.Locale;
 
-/** a class that holds information about buffers
- ** probably should be made static */
 
 public class BufferList {
     final private static @Root Kitty kitty = Kitty.make();
@@ -47,14 +43,13 @@ public class BufferList {
     private static @Nullable RelayService relay;
     private static @Nullable BufferListEye buffersEye;
 
-    /** the mother variable. list of current buffers */
     public static @NonNull ArrayList<Buffer> buffers = new ArrayList<>();
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public static void launch(final RelayService relay) {
+    @WorkerThread public static synchronized void launch(final RelayService relay) {
         BufferList.relay = relay;
 
         // handle buffer list changes
@@ -89,32 +84,32 @@ public class BufferList {
         relay.connection.sendMessage(P.optimizeTraffic ? "sync * buffers,upgrade" : "sync");
     }
 
-    public static void stop() {
+    @WorkerThread public static synchronized void stop() {
         relay = null;
         messageHandlersMap.clear();
     }
 
-    private static HashMap<String, LinkedHashSet<RelayMessageHandler>> messageHandlersMap = new HashMap<>();
+    final private static HashMap<String, LinkedHashSet<RelayMessageHandler>> messageHandlersMap = new HashMap<>();
 
-    private static void addMessageHandler(String id, RelayMessageHandler handler) {
+    @AnyThread private static synchronized void addMessageHandler(String id, RelayMessageHandler handler) {
         LinkedHashSet<RelayMessageHandler> handlers = messageHandlersMap.get(id);
         if (handlers == null) messageHandlersMap.put(id, handlers = new LinkedHashSet<>());
         handlers.add(handler);
     }
 
-    private static void removeMessageHandler(String id, RelayMessageHandler handler) {
+    @AnyThread private static synchronized void removeMessageHandler(String id, RelayMessageHandler handler) {
         LinkedHashSet<RelayMessageHandler> handlers = messageHandlersMap.get(id);
         if (handlers != null) handlers.remove(handler);
     }
 
-    public static void handleMessage(@Nullable RelayObject obj, String id) {
+    @WorkerThread public static synchronized void handleMessage(@Nullable RelayObject obj, String id) {
         HashSet<RelayMessageHandler> handlers = messageHandlersMap.get(id);
         if (handlers == null) return;
         for (RelayMessageHandler handler : handlers) handler.handleMessage(obj, id);
     }
 
-    /** send synchronization data to weechat and return true. if not connected, return false. */
-    public static boolean syncHotlist() {
+    // send synchronization data to weechat and return true. if not connected, return false
+    @AnyThread public static synchronized boolean syncHotlist() {
         if (relay == null || !relay.state.contains(STATE.AUTHENTICATED))
             return false;
         relay.connection.sendMessage("last_read_lines", "hdata", "buffer:gui_buffers(*)/own_lines/last_read_line/data buffer");
@@ -127,32 +122,31 @@ public class BufferList {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-    static public boolean hasData() {
+    @MainThread static public boolean hasData() {
         return buffers.size() > 0;
     }
 
-    synchronized static public @Nullable Buffer findByFullName(@Nullable String fullName) {
+    @MainThread synchronized static public @Nullable Buffer findByFullName(@Nullable String fullName) {
         if (fullName == null) return null;
         for (Buffer buffer : buffers) if (buffer.fullName.equals(fullName)) return buffer;
         return null;
     }
 
-    /** sets or remove (using null) buffer list change watcher */
-    synchronized static public void setBufferListEye(@Nullable BufferListEye buffersEye) {
+    @AnyThread synchronized static public void setBufferListEye(@Nullable BufferListEye buffersEye) {
         BufferList.buffersEye = buffersEye;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    /** returns a "random" hot buffer or null */
-    synchronized static public @Nullable Buffer getHotBuffer() {
+    // returns a "random" hot buffer or null
+    @MainThread synchronized static public @Nullable Buffer getHotBuffer() {
         for (Buffer buffer : buffers)
             if (buffer.isHot())
                 return buffer;
         return null;
     }
 
-    synchronized static public int getHotBufferCount() {
+    @MainThread synchronized static public int getHotBufferCount() {
         int count = 0;
         for (Buffer buffer : buffers)
             if (buffer.isHot())
@@ -164,22 +158,19 @@ public class BufferList {
     ////////////////////////////////////////////////////////////////////////////////////////////////    from this and Buffer (local)
     ////////////////////////////////////////////////////////////////////////////////////////////////    (also alert Buffer)
 
-    synchronized static public void notifyBuffersChanged() {
+    @AnyThread synchronized static void notifyBuffersChanged() {
         if (buffersEye != null) buffersEye.onBuffersChanged();
     }
 
-    /** called when no buffers has been added or removed, but
-     ** buffer changes are such that we should reorder the buffer list */
-    synchronized static private void notifyBufferPropertiesChanged(Buffer buffer) {
+    // called when no buffers has been added or removed, but
+    // buffer changes are such that we should reorder the buffer list
+    @WorkerThread synchronized static private void notifyBufferPropertiesChanged(Buffer buffer) {
         buffer.onPropertiesChanged();
         if (buffersEye != null) buffersEye.onBuffersChanged();
     }
 
-    /** process all open buffers and, if specified, notify them of the change
-     ** practically notifying is only needed when pressing volume up/dn keys,
-     ** which means we are not in the preferences window and the activity will not
-     ** get re-rendered */
-    @UiThread synchronized public static void onGlobalPreferencesChanged(boolean numberChanged) {
+    // process all open buffers and, if specified, notify them of the change
+    @MainThread synchronized public static void onGlobalPreferencesChanged(boolean numberChanged) {
         for (Buffer buffer : buffers)
             if (buffer.isOpen) {
                 buffer.lines.processAllMessages(!numberChanged); // todo thread-unsafe!
@@ -192,95 +183,88 @@ public class BufferList {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     // if optimizing traffic, sync hotlist to make sure the number of unread messages is correct
-    synchronized static void syncBuffer(Buffer buffer) {
+    @AnyThread synchronized static void syncBuffer(Buffer buffer) {
         if (!P.optimizeTraffic) return;
         sendMessage(String.format("sync %s", buffer.hexPointer()));
         syncHotlist();
     }
 
-    synchronized static void desyncBuffer(Buffer buffer) {
+    @AnyThread synchronized static void desyncBuffer(Buffer buffer) {
         if (P.optimizeTraffic) sendMessage(String.format("desync %s", buffer.hexPointer()));
     }
 
     private static int counter = 0;
     private final static String MEOW = "(%d) hdata buffer:0x%x/own_lines/last_line(-%d)/data date,displayed,prefix,message,highlight,notify,tags_array";
-    public static void requestLinesForBufferByPointer(long pointer, int number) {
+    @MainThread static void requestLinesForBufferByPointer(long pointer, int number) {
         addMessageHandler(Integer.toString(counter), new BufferLineWatcher(counter, pointer));
         sendMessage(String.format(Locale.ROOT, MEOW, counter, pointer, number));
         counter++;
     }
 
-    public static void requestNicklistForBufferByPointer(long  pointer) {
+    @MainThread static void requestNicklistForBufferByPointer(long pointer) {
         sendMessage(String.format("(nicklist) nicklist 0x%x", pointer));
     }
 
-    private static void sendMessage(String string) {
-        if (relay != null && relay.connection != null) relay.connection.sendMessage(string);
+    @AnyThread private static void sendMessage(String string) {
+        EventBus.getDefault().post(new Events.SendMessageEvent(string));
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// hotlist stuff
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    /** a list of most recent ACTUALLY RECEIVED hot messages
-     ** each entry has a form of {"irc.free.#123", "<nick> hi there"} */
+    // a list of most recent ACTUALLY RECEIVED hot messages
+    // each entry has a form of {"irc.free.#123", "<nick> hi there"}
     static public ArrayList<String[]> hotList = new ArrayList<>();
 
-    /** this is the value calculated from hotlist received from weechat
-     ** it MIGHT BE GREATER than size of hotList
-     ** initialized, it's -1, so that on service restart we know to remove notification 43 */
+    // this is the value calculated from hotlist received from weechat
+    // it MIGHT BE GREATER than size of hotList
+    // initialized, it's -1, so that on service restart we know to remove notification 43
     static private int hotCount = -1;
 
-    /** returns hot count or 0 if unknown */
-    static public int getHotCount() {
+    // returns hot count or 0 if unknown
+    @AnyThread synchronized static public int getHotCount() {
         return hotCount == -1 ? 0 : hotCount;
     }
 
-    /** called when a new new hot message just arrived */
-    synchronized static void newHotLine(final @NonNull Buffer buffer, final @NonNull Line line) {
+    // called when a new new hot message just arrived
+    @WorkerThread synchronized static void newHotLine(final @NonNull Buffer buffer, final @NonNull Line line) {
         hotList.add(new String[]{buffer.fullName, line.getNotificationString()});
-        if (processHotCountAndTellIfChanged())
-            notifyHotCountChanged(true);
+        processHotCountAndNotifyIfChanged(true);
     }
 
-    /** called when buffer is read or closed
-     ** must be called AFTER buffer hot count adjustments / buffer removal from the list */
-    synchronized static void removeHotMessagesForBuffer(final @NonNull Buffer buffer) {
+    // called when buffer is read or closed
+    // must be called AFTER buffer hot count adjustments / buffer removal from the list
+    @AnyThread synchronized static void removeHotMessagesForBuffer(final @NonNull Buffer buffer) {
         for (Iterator<String[]> it = hotList.iterator(); it.hasNext(); )
             if (it.next()[0].equals(buffer.fullName)) it.remove();
-        if (processHotCountAndTellIfChanged())
-            notifyHotCountChanged(false);
+        processHotCountAndNotifyIfChanged(false);
     }
 
-    /** remove a number of messages for a given buffer, leaving last 'leave' messages
-     ** DOES NOT notify anyone of the change */
-    synchronized static void adjustHotMessagesForBuffer(final @NonNull Buffer buffer, int leave) {
+    // remove a number of messages for a given buffer, leaving last 'leave' messages
+    // DOES NOT notify anyone of the change
+    @WorkerThread synchronized static void adjustHotMessagesForBuffer(final @NonNull Buffer buffer, int leave) {
         for (ListIterator<String[]> it = hotList.listIterator(hotList.size()); it.hasPrevious();) {
             if (it.previous()[0].equals(buffer.fullName) && (leave-- <= 0))
                 it.remove();
         }
     }
 
-    synchronized static void onHotlistFinished() {
-        if (processHotCountAndTellIfChanged())
-            notifyHotCountChanged(false);
+    @WorkerThread private synchronized static void onHotlistFinished() {
+        processHotCountAndNotifyIfChanged(false);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    /** HELPER. stores hotCount;
-     ** returns true if hot count has changed */
-    static private boolean processHotCountAndTellIfChanged() {
+    // stores hotCount; returns true if hot count has changed
+    @AnyThread static private void processHotCountAndNotifyIfChanged(boolean newHighlight) {
         int hot = 0;
         for (Buffer buffer : buffers) {
             hot += buffer.highlights;
             if (buffer.type == Buffer.PRIVATE) hot += buffer.unreads;
         }
-        return hotCount != (hotCount = hot); // har har
-    }
-
-    /** HELPER. notifies everyone interested of hotlist changes */
-    static private void notifyHotCountChanged(boolean newHighlight) {
+        if (hotCount == hot) return;
+        hotCount = hot;
         Notificator.showHot(newHighlight);
         if (buffersEye != null) buffersEye.onHotCountChanged();
     }
@@ -289,7 +273,7 @@ public class BufferList {
     //////////////////////////////////////////////////////////////////////////////////////////////// private stuffs
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    synchronized static private @Nullable Buffer findByPointer(long pointer) {
+    @WorkerThread synchronized static private @Nullable Buffer findByPointer(long pointer) {
         for (Buffer buffer : buffers) if (buffer.pointer == pointer) return buffer;
         return null;
     }
@@ -299,10 +283,10 @@ public class BufferList {
     //////////////////////////////////////////////////////////////////////////////////////////////// buffer list
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    static RelayMessageHandler bufferListWatcher = new RelayMessageHandler() {
+    private static RelayMessageHandler bufferListWatcher = new RelayMessageHandler() {
         final private @Root Kitty kitty = BufferList.kitty.kid("bufferListWatcher");
 
-        @Override @Cat public void handleMessage(RelayObject obj, String id) {
+        @WorkerThread @Override @Cat public void handleMessage(RelayObject obj, String id) {
             Hdata data = (Hdata) obj;
 
             if (id.equals("listbuffers")) buffers.clear();
@@ -317,8 +301,8 @@ public class BufferList {
                             entry.getItem("full_name").asString(),
                             entry.getItem("short_name").asString(),
                             entry.getItem("title").asString(),
-                            ((r = entry.getItem("notify")) != null) ? r.asInt() : 3,            // TODO request notify level afterwards???
-                            (Hashtable) entry.getItem("local_variables"));                      // TODO because _buffer_opened doesn't provide notify level
+                            ((r = entry.getItem("notify")) != null) ? r.asInt() : 3,
+                            (Hashtable) entry.getItem("local_variables"));
                     synchronized (BufferList.class) {buffers.add(buffer);}
                     notifyBuffersChanged();
                 } else {
@@ -338,8 +322,8 @@ public class BufferList {
                         } else if (id.startsWith("_buffer_localvar_")) {
                             buffer.localVars = (Hashtable) entry.getItem("local_variables");
                             notifyBufferPropertiesChanged(buffer);
-                        } else if (id.equals("_buffer_moved") || id.equals("_buffer_merged")) { // TODO if buffer is moved, reorder others?
-                            buffer.number = entry.getItem("number").asInt();                    // TODO this is not our issue; it's going to be resolved in future versions of weechat
+                        } else if (id.equals("_buffer_moved") || id.equals("_buffer_merged")) {
+                            buffer.number = entry.getItem("number").asInt();
                             notifyBufferPropertiesChanged(buffer);
                         } else if (id.equals("_buffer_closing")) {
                             synchronized (BufferList.class) {buffers.remove(buffer);}
@@ -359,15 +343,15 @@ public class BufferList {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     // last_read_lines
-    static RelayMessageHandler lastReadLinesWatcher = new RelayMessageHandler() {
+    private static RelayMessageHandler lastReadLinesWatcher = new RelayMessageHandler() {
         final private @Root Kitty kitty = BufferList.kitty.kid("lastReadLinesWatcher");
 
-        @Override @Cat public void handleMessage(RelayObject obj, String id) {
+        @WorkerThread @Override @Cat public void handleMessage(RelayObject obj, String id) {
             if (!(obj instanceof Hdata)) return;
-
-            HashMap<Long, Long> bufferToLrl = new HashMap<>();
-
             Hdata data = (Hdata) obj;
+
+            LongSparseArray<Long> bufferToLrl = new LongSparseArray<>();
+
             for (int i = 0, size = data.getCount(); i < size; i++) {
                 HdataEntry entry = data.getItem(i);
                 long bufferPointer = entry.getItem("buffer").asPointerLong();
@@ -384,16 +368,16 @@ public class BufferList {
         }
     };
 
-    // hotlist (ONLY)
-    static RelayMessageHandler hotlistInitWatcher = new RelayMessageHandler() {
+    // hotlist
+    private static RelayMessageHandler hotlistInitWatcher = new RelayMessageHandler() {
         final private @Root Kitty kitty = BufferList.kitty.kid("hotlistInitWatcher");
 
-        @Override @Cat public void handleMessage(RelayObject obj, String id) {
+        @WorkerThread @Override @Cat public void handleMessage(RelayObject obj, String id) {
             if (!(obj instanceof Hdata)) return;
-
-            HashMap<Long, Array> bufferToHotlist = new HashMap<>();
-
             Hdata data = (Hdata) obj;
+
+            LongSparseArray<Array> bufferToHotlist = new LongSparseArray<>();
+
             for (int i = 0, size = data.getCount(); i < size; i++) {
                 HdataEntry entry = data.getItem(i);
                 long pointer = entry.getItem("buffer").asPointerLong();
@@ -419,18 +403,18 @@ public class BufferList {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     // _buffer_line_added
-    // listlines_reverse
+    // (digit)
     static class BufferLineWatcher implements RelayMessageHandler {
         final private @Root Kitty kitty = BufferList.kitty.kid("BufferLineWatcher");
         final private long bufferPointer;
         final private int id;
 
-        public BufferLineWatcher(int id, long bufferPointer) {
+        BufferLineWatcher(int id, long bufferPointer) {
             this.bufferPointer = bufferPointer;
             this.id = id;
         }
 
-        @Override @Cat public void handleMessage(RelayObject obj, String id) {
+        @WorkerThread @Override @Cat public void handleMessage(RelayObject obj, String id) {
             if (!(obj instanceof Hdata)) return;
             Hdata data = (Hdata) obj;
             boolean isBottom = id.equals("_buffer_line_added");
@@ -464,7 +448,7 @@ public class BufferList {
         }
     }
 
-    static BufferLineWatcher newLineWatcher = new BufferLineWatcher(-1, -1);
+    private static BufferLineWatcher newLineWatcher = new BufferLineWatcher(-1, -1);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// nicklist
@@ -478,10 +462,10 @@ public class BufferList {
     // nicklist
     // _nicklist
     // _nicklist_diff
-    static RelayMessageHandler nickListWatcher = new RelayMessageHandler() {
+    private static RelayMessageHandler nickListWatcher = new RelayMessageHandler() {
         final private @Root Kitty kitty = BufferList.kitty.kid("nickListWatcher");
 
-        @Override @Cat public void handleMessage(RelayObject obj, String id) {
+        @WorkerThread @Override @Cat public void handleMessage(RelayObject obj, String id) {
             if (!(obj instanceof Hdata)) return;
             Hdata data = (Hdata) obj;
             boolean diff = id.equals("_nicklist_diff");
