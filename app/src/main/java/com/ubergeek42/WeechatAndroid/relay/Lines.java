@@ -5,6 +5,7 @@ package com.ubergeek42.WeechatAndroid.relay;
 
 import android.support.annotation.AnyThread;
 import android.support.annotation.MainThread;
+import android.support.annotation.NonNull;
 import android.support.annotation.WorkerThread;
 
 import com.ubergeek42.WeechatAndroid.service.P;
@@ -24,8 +25,21 @@ public class Lines {
     final private @Root Kitty kitty = Kitty.make();
 
     public final static int HEADER_POINTER = -123, MARKER_POINTER = -456;
-    public enum LINES {FETCHING, CAN_FETCH_MORE, EVERYTHING_FETCHED}
-    public LINES status = null;
+    public enum LINES {
+        INIT,
+        FETCHING,
+        CAN_FETCH_MORE,
+        EVERYTHING_FETCHED;
+
+        // true if Lines contain all necessary line information and read marker stuff
+        // note that the number of lines can be zero and read markers can be not preset
+        boolean ready() {
+            return this == CAN_FETCH_MORE || this == EVERYTHING_FETCHED;
+        }
+    }
+
+    @NonNull LINES status = LINES.INIT;
+    long lastSeenLine = -1;
 
     private final static Line HEADER = new Line(HEADER_POINTER, null, null, null, false, false, null);
     private final static Line MARKER = new Line(MARKER_POINTER, null, null, null, false, false, null);
@@ -46,7 +60,7 @@ public class Lines {
         kitty.setPrefix(name);
     }
 
-    @AnyThread ArrayList<Line> getCopy() {
+    @AnyThread @NonNull ArrayList<Line> getCopy() {
         int skip = P.filterLines ? skipFiltered : skipUnfiltered;
         ArrayList<Line> lines = new ArrayList<>(P.filterLines ? filtered : unfiltered);
         int marker = skip >= 0 && lines.size() > 0 ? lines.size() - skip : -1;
@@ -77,32 +91,26 @@ public class Lines {
         if (skipUnfiltered >= 0) skipUnfiltered++;
 
         // if we hit max size while the buffer is not open, behave as if lines were requested
-        if (!ready() && unfiltered.size() == maxUnfilteredSize) onLinesListed();
+        if (!status.ready() && unfiltered.size() == maxUnfilteredSize) onLinesListed();
     }
 
     @AnyThread void clear() {
         filtered.clear();
         unfiltered.clear();
         maxUnfilteredSize = P.lineIncrement;
-        status = null;
+        status = LINES.INIT;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @MainThread void onMoreLinesRequested() {
-        if (status != null) maxUnfilteredSize += P.lineIncrement;
+        if (status != LINES.INIT) maxUnfilteredSize += P.lineIncrement;
         status = LINES.FETCHING;
     }
 
     @WorkerThread void onLinesListed() {
         status = unfiltered.size() == maxUnfilteredSize ? LINES.CAN_FETCH_MORE : LINES.EVERYTHING_FETCHED;
         setSkipsUsingPointer();
-    }
-
-    // true if Lines contain all necessary line information and read marker stuff
-    // note that the number of lines can be zero and read markers can be not preset
-    @AnyThread public boolean ready() {
-        return status == LINES.CAN_FETCH_MORE || status == LINES.EVERYTHING_FETCHED;
     }
 
     @MainThread int getMaxLines() {
@@ -148,12 +156,8 @@ public class Lines {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private long lastSeenLine = -1;
-    public long getLastSeenLine() {return lastSeenLine;}
-    public void setLastSeenLine(long pointer) {lastSeenLine = pointer;}
-
     @WorkerThread private void setSkipsUsingPointer() {
-        assertTrue(ready());
+        assertTrue(status.ready());
         Iterator<Line> it = unfiltered.descendingIterator();
         int idx_f = 0, idx_u = 0;
         skipFiltered = skipUnfiltered = -1;

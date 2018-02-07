@@ -148,7 +148,7 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 
         @MainThread private void updateButton() {
             if (adapter.buffer == null) return;
-            final Lines.LINES s = adapter.buffer.lines.status;
+            final Lines.LINES s = adapter.buffer.getLineStatus();
             if (status == s) return;
             status = s;
             if (s == Lines.LINES.EVERYTHING_FETCHED) {
@@ -166,7 +166,7 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
             if (adapter.buffer == null) return;
             Spannable titleSpannable = adapter.buffer.titleSpannable;
             Line titleLine = adapter.buffer.titleLine;
-            if (TextUtils.isEmpty(titleSpannable) || !adapter.buffer.lines.ready()) {
+            if (TextUtils.isEmpty(titleSpannable) || !adapter.buffer.linesAreReady()) {
                 title.setVisibility(View.GONE);
                 return;
             }
@@ -322,7 +322,7 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 
     @AnyThread synchronized private int findHotLine() {
         Assert.assertNotNull(buffer);
-        if (!buffer.isWatched || !buffer.lines.ready()) return HOT_LINE_NOT_READY;
+        if (!buffer.isWatched || !buffer.linesAreReady()) return HOT_LINE_NOT_READY;
         if ((highlights | privates) == 0) return HOT_LINE_NOT_PRESENT;
 
         int count = _lines.size(), idx = -1;

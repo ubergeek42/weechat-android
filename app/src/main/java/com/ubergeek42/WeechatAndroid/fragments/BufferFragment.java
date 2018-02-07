@@ -155,7 +155,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
 
     public enum State {ATTACHMENT, PAGER_FOCUS, FULL_VISIBILITY, LINES}
     @MainThread @Cat(linger=true) public void onVisibilityStateChanged(State state) {
-        if (activity == null || buffer == null || !buffer.lines.ready()) return;
+        if (activity == null || buffer == null || !buffer.linesAreReady()) return;
         kitty.trace("proceeding!");
 
         boolean watched = attached && focused && !activity.isPagerNoticeablyObscured();

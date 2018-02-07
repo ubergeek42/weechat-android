@@ -61,7 +61,7 @@ public class Buffer {
     public int totalReadUnreads = 0;
     public int totalReadHighlights = 0;
 
-    public Lines lines;
+    final private Lines lines;
 
     private LinkedList<Nick> nicks = new LinkedList<>();
 
@@ -90,7 +90,7 @@ public class Buffer {
         processBufferType();
         processBufferTitle();
 
-        this.lines = new Lines(shortName);
+        lines = new Lines(shortName);
 
         if (P.isBufferOpen(fullName)) setOpen(true);
         P.restoreLastReadLine(this);
@@ -108,6 +108,14 @@ public class Buffer {
     // contains read marker and header
     @AnyThread synchronized public @NonNull ArrayList<Line> getLinesCopy() {
         return lines.getCopy();
+    }
+
+    @AnyThread public boolean linesAreReady() {
+        return lines.status.ready();
+    }
+
+    @AnyThread public @NonNull Lines.LINES getLineStatus() {
+        return lines.status;
     }
 
     // get a copy of last used nicknames--to be used by tab completion thing
@@ -157,7 +165,7 @@ public class Buffer {
     @MainThread @Cat synchronized public void setBufferEye(@Nullable BufferEye bufferEye) {
         this.bufferEye = bufferEye;
         if (bufferEye != null) {
-            if (lines.status == null) requestMoreLines();
+            if (lines.status == Lines.LINES.INIT) requestMoreLines();
             if (!holdsAllNicks) BufferList.requestNicklistForBufferByPointer(pointer);
             if (needsToBeNotifiedAboutGlobalPreferencesChanged) bufferEye.onGlobalPreferencesChanged(false);
         }
@@ -173,7 +181,7 @@ public class Buffer {
     // lines must be ready!
     // affects the way buffer advertises highlights/unreads count and notifications */
     @MainThread @Cat synchronized public void setWatched(boolean watched) {
-        Assert.assertTrue(lines.ready());
+        Assert.assertTrue(linesAreReady());
         Assert.assertNotEquals(isWatched, watched);
         Assert.assertTrue(isOpen);
         isWatched = watched;
@@ -255,10 +263,18 @@ public class Buffer {
         wantsFullHotListUpdate = lastReadLineServer != linePointer;
         kitty_q.trace("full update? %s", wantsFullHotListUpdate);
         if (wantsFullHotListUpdate) {
-            lines.setLastSeenLine(linePointer);
+            setLastSeenLine(linePointer);
             lastReadLineServer = linePointer;
             totalReadHighlights = totalReadUnreads = totalReadOthers = 0;
         }
+    }
+
+    @WorkerThread public void setLastSeenLine(long pointer) {
+        lines.lastSeenLine = pointer;
+    }
+
+    public long getLastSeenLine() {
+        return lines.lastSeenLine;
     }
 
     // buffer will want full updates if it doesn't have a last read line
@@ -305,6 +321,7 @@ public class Buffer {
 
     private boolean needsToBeNotifiedAboutGlobalPreferencesChanged = false;
     @MainThread synchronized void onGlobalPreferencesChanged(boolean numberChanged) {
+        lines.processAllMessages(!numberChanged);
         if (bufferEye != null) bufferEye.onGlobalPreferencesChanged(numberChanged);
         else needsToBeNotifiedAboutGlobalPreferencesChanged = true;
     }

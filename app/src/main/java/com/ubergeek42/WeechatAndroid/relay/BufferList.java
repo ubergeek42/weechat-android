@@ -171,10 +171,7 @@ public class BufferList {
     // process all open buffers and, if specified, notify them of the change
     @MainThread synchronized public static void onGlobalPreferencesChanged(boolean numberChanged) {
         for (Buffer buffer : buffers)
-            if (buffer.isOpen) {
-                buffer.lines.processAllMessages(!numberChanged); // todo thread-unsafe!
-                buffer.onGlobalPreferencesChanged(numberChanged);
-            }
+            if (buffer.isOpen) buffer.onGlobalPreferencesChanged(numberChanged);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

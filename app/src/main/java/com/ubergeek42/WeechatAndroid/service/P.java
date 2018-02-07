@@ -9,10 +9,12 @@ import android.content.SharedPreferences;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.preference.PreferenceManager;
+import android.support.annotation.AnyThread;
 import android.support.annotation.MainThread;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
+import android.support.annotation.WorkerThread;
 import android.support.v7.preference.FilePreference;
 import android.support.v7.preference.ThemeManager;
 import android.text.TextUtils;
@@ -316,14 +318,14 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     // needed to make sure nothing crashes if we cannot restore the data
     private static final int PROTOCOL_ID = 13;
 
-    @Cat public static void saveStuff() {
+    @AnyThread @Cat public static void saveStuff() {
         for (Buffer buffer : BufferList.buffers) saveLastReadLine(buffer);
         String data = Utils.serialize(new Object[]{openBuffers, bufferToLastReadLine, sentMessages});
         p.edit().putString(PREF_DATA, data).putInt(PREF_PROTOCOL_ID, PROTOCOL_ID).apply();
     }
 
     @SuppressWarnings("unchecked")
-    @Cat public static void restoreStuff() {
+    @MainThread @Cat public static void restoreStuff() {
         if (p.getInt(PREF_PROTOCOL_ID, -1) != PROTOCOL_ID) return;
         Object o = Utils.deserialize(p.getString(PREF_DATA, null));
         if (!(o instanceof Object[])) return;
@@ -364,10 +366,10 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     // restore buffer's stuff. this is called for every buffer upon buffer creation
-    synchronized public static void restoreLastReadLine(Buffer buffer) {
+    @WorkerThread synchronized public static void restoreLastReadLine(Buffer buffer) {
         BufferHotData data = bufferToLastReadLine.get(buffer.fullName);
         if (data != null) {
-            buffer.lines.setLastSeenLine(data.lastSeenLine);
+            buffer.setLastSeenLine(data.lastSeenLine);
             buffer.lastReadLineServer = data.lastReadLineServer;
             buffer.totalReadUnreads = data.totalOldUnreads;
             buffer.totalReadHighlights = data.totalOldHighlights;
@@ -382,7 +384,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
             data = new BufferHotData();
             bufferToLastReadLine.put(buffer.fullName, data);
         }
-        data.lastSeenLine = buffer.lines.getLastSeenLine();
+        data.lastSeenLine = buffer.getLastSeenLine();
         data.lastReadLineServer = buffer.lastReadLineServer;
         data.totalOldUnreads = buffer.totalReadUnreads;
         data.totalOldHighlights = buffer.totalReadHighlights;
