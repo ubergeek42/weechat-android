@@ -38,6 +38,9 @@ public class WeechatAboutActivity extends AppCompatActivity {
 
         ((TextView) this.findViewById(R.id.versionStr))
             .setText(getString(R.string.version_string, BuildConfig.VERSION_NAME));
+
+        ((TextView) this.findViewById(R.id.libraries))
+            .setMovementMethod(android.text.method.LinkMovementMethod.getInstance());
     }
 
     @Override public boolean onOptionsItemSelected(MenuItem item) {
