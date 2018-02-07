@@ -64,7 +64,7 @@ public class PingActionReceiver extends BroadcastReceiver {
         if (SystemClock.elapsedRealtime() - lastMessageReceivedAt > P.pingIdleTime) {
             if (!intent.getBooleanExtra("sentPing", false)) {
                 kitty.debug("last message too old, sending ping");
-                bone.connection.sendMessage("ping");
+                Events.SendMessageEvent.fire("ping");
                 triggerAt = SystemClock.elapsedRealtime() + P.pingTimeout;
                 extras.putBoolean("sentPing", true);
             } else {

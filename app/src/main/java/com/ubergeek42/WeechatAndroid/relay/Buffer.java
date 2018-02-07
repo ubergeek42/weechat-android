@@ -23,7 +23,6 @@ import com.ubergeek42.weechat.Color;
 import com.ubergeek42.weechat.relay.protocol.Hashtable;
 import com.ubergeek42.weechat.relay.protocol.RelayObject;
 
-import org.greenrobot.eventbus.EventBus;
 import org.junit.Assert;
 
 import java.util.ArrayList;
@@ -96,10 +95,6 @@ public class Buffer {
         if (P.isBufferOpen(fullName)) setOpen(true);
         P.restoreLastReadLine(this);
         kitty.trace("→ Buffer(number=%s, fullName=%s) isOpen? %s", number, fullName, isOpen);
-    }
-
-    @AnyThread public String hexPointer() {
-        return String.format("0x%x", pointer);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -188,9 +183,9 @@ public class Buffer {
 
     @MainThread synchronized public void moveReadMarkerToEnd() {
         lines.moveReadMarkerToEnd();
-        if (P.hotlistSync) EventBus.getDefault().post(new Events.SendMessageEvent(String.format(
-                "input %1$s /buffer set hotlist -1\n" +
-                "input %1$s /input set_unread_current_buffer", hexPointer())));
+        if (P.hotlistSync) Events.SendMessageEvent.fire(
+                "input 0x%1$x /buffer set hotlist -1\n" +
+                "input 0x%1$x /input set_unread_current_buffer", pointer);
     }
 
     @MainThread synchronized boolean isHot() {

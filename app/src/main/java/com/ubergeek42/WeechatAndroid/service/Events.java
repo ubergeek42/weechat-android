@@ -3,9 +3,15 @@
 
 package com.ubergeek42.WeechatAndroid.service;
 
+import android.support.annotation.NonNull;
+
 import com.ubergeek42.WeechatAndroid.service.RelayService.STATE;
 
+import org.greenrobot.eventbus.EventBus;
+import org.junit.Assert;
+
 import java.util.EnumSet;
+import java.util.Locale;
 
 
 public class Events {
@@ -41,8 +47,17 @@ public class Events {
     public static class SendMessageEvent {
         final public String message;
 
-        public SendMessageEvent(String message) {
+        private SendMessageEvent(String message) {
             this.message = message;
+        }
+
+        public static void fire(@NonNull String message) {
+            Assert.assertFalse(message.endsWith("\n"));
+            EventBus.getDefault().post(new SendMessageEvent(message + "\n"));
+        }
+
+        public static void fire(@NonNull String message, @NonNull Object... args) {
+            fire(String.format(Locale.ROOT, message, args));
         }
 
         @Override public String toString() {

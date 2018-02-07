@@ -10,7 +10,6 @@ import android.support.annotation.Nullable;
 import android.support.annotation.WorkerThread;
 import android.util.LongSparseArray;
 
-import com.ubergeek42.WeechatAndroid.service.Events;
 import com.ubergeek42.WeechatAndroid.service.Notificator;
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
@@ -25,8 +24,6 @@ import com.ubergeek42.weechat.relay.protocol.Hdata;
 import com.ubergeek42.weechat.relay.protocol.HdataEntry;
 import com.ubergeek42.weechat.relay.protocol.RelayObject;
 
-import org.greenrobot.eventbus.EventBus;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -34,7 +31,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.ListIterator;
-import java.util.Locale;
+
+import static com.ubergeek42.WeechatAndroid.service.Events.SendMessageEvent;
 
 
 public class BufferList {
@@ -79,9 +77,10 @@ public class BufferList {
         addMessageHandler("_nicklist_diff", nickListWatcher);
 
         // request a list of buffers current open, along with some information about them
-        relay.connection.sendMessage("listbuffers", "hdata", "buffer:gui_buffers(*) number,full_name,short_name,type,title,nicklist,local_variables,notify");
+        SendMessageEvent.fire("(listbuffers) hdata buffer:gui_buffers(*) " +
+                "number,full_name,short_name,type,title,nicklist,local_variables,notify");
         syncHotlist();
-        relay.connection.sendMessage(P.optimizeTraffic ? "sync * buffers,upgrade" : "sync");
+        SendMessageEvent.fire(P.optimizeTraffic ? "sync * buffers,upgrade" : "sync");
     }
 
     @WorkerThread public static synchronized void stop() {
@@ -112,8 +111,8 @@ public class BufferList {
     @AnyThread public static synchronized boolean syncHotlist() {
         if (relay == null || !relay.state.contains(STATE.AUTHENTICATED))
             return false;
-        relay.connection.sendMessage("last_read_lines", "hdata", "buffer:gui_buffers(*)/own_lines/last_read_line/data buffer");
-        relay.connection.sendMessage("hotlist", "hdata", "hotlist:gui_hotlist(*) buffer,count");
+        SendMessageEvent.fire("(last_read_lines) hdata buffer:gui_buffers(*)/own_lines/last_read_line/data buffer");
+        SendMessageEvent.fire("(hotlist) hdata hotlist:gui_hotlist(*) buffer,count");
         return true;
     }
 
@@ -185,28 +184,24 @@ public class BufferList {
     // if optimizing traffic, sync hotlist to make sure the number of unread messages is correct
     @AnyThread synchronized static void syncBuffer(Buffer buffer) {
         if (!P.optimizeTraffic) return;
-        sendMessage(String.format("sync %s", buffer.hexPointer()));
+        SendMessageEvent.fire("sync 0x%x", buffer.pointer);
         syncHotlist();
     }
 
     @AnyThread synchronized static void desyncBuffer(Buffer buffer) {
-        if (P.optimizeTraffic) sendMessage(String.format("desync %s", buffer.hexPointer()));
+        if (P.optimizeTraffic) SendMessageEvent.fire("desync 0x%x", buffer.pointer);
     }
 
     private static int counter = 0;
     private final static String MEOW = "(%d) hdata buffer:0x%x/own_lines/last_line(-%d)/data date,displayed,prefix,message,highlight,notify,tags_array";
     @MainThread static void requestLinesForBufferByPointer(long pointer, int number) {
         addMessageHandler(Integer.toString(counter), new BufferLineWatcher(counter, pointer));
-        sendMessage(String.format(Locale.ROOT, MEOW, counter, pointer, number));
+        SendMessageEvent.fire(MEOW, counter, pointer, number);
         counter++;
     }
 
     @MainThread static void requestNicklistForBufferByPointer(long pointer) {
-        sendMessage(String.format("(nicklist) nicklist 0x%x", pointer));
-    }
-
-    @AnyThread private static void sendMessage(String string) {
-        EventBus.getDefault().post(new Events.SendMessageEvent(string));
+        SendMessageEvent.fire("(nicklist) nicklist 0x%x", pointer);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
