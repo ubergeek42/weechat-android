@@ -1,18 +1,18 @@
-/**
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- */
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
 
 package com.ubergeek42.WeechatAndroid.service;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.preference.PreferenceManager;
+import android.support.annotation.MainThread;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.annotation.UiThread;
+import android.support.annotation.StringRes;
 import android.support.v7.preference.FilePreference;
 import android.support.v7.preference.ThemeManager;
 import android.text.TextUtils;
@@ -41,21 +41,25 @@ import javax.net.ssl.SSLSocketFactory;
 
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
 
+
 public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     final private static @Root Kitty kitty = Kitty.make();
 
+    @SuppressLint("StaticFieldLeak")
     private static Context context;
     private static SharedPreferences p;
 
     // we need to keep a reference, huh
-    @SuppressWarnings({"FieldCanBeLocal", "unused"}) private static P instance;
+    @SuppressLint("StaticFieldLeak")
+    private static P instance;
 
-    public static void init(@NonNull Context context) {
-        if (P.context != null) return;
+    @MainThread public static void init(@NonNull Context context) {
+        if (instance != null) return;
+        instance = new P();
         P.context = context;
         p = PreferenceManager.getDefaultSharedPreferences(context);
         loadUIPreferences();
-        p.registerOnSharedPreferenceChangeListener(instance = new P());
+        p.registerOnSharedPreferenceChangeListener(instance);
         _4dp = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 4, context.getResources().getDisplayMetrics());
         _50dp = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 50, context.getResources().getDisplayMetrics());
         _200dp = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 200, context.getResources().getDisplayMetrics());
@@ -67,7 +71,9 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     public static float _50dp;
     public static float _200dp;
 
-    public static boolean sortBuffers, showTitle, filterBuffers, optimizeTraffic;
+    public static boolean sortBuffers;
+    public static boolean filterBuffers;
+    public static boolean optimizeTraffic;
     public static boolean filterLines, autoHideActionbar;
     public static int maxWidth;
     public static boolean encloseNick, dimDownNonHumanLines;
@@ -75,11 +81,13 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     public static int align;
     public static float textSize, letterWidth;
 
-    public static boolean notificationEnable, notificationTicker, notificationLight, notificationVibrate;
-    public static String notificationSound;
+    static boolean notificationEnable;
+    static boolean notificationTicker;
+    static boolean notificationLight;
+    static boolean notificationVibrate;
+    static String notificationSound;
 
     public static boolean showSend, showTab, hotlistSync, volumeBtnSize;
-    public static String bufferFont;
     public static Typeface typeface;
 
     public static boolean showBufferFilter;
@@ -87,10 +95,9 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     public static @NonNull String filterLc = "";
     public static @NonNull String filterUc = "";
 
-    public static void loadUIPreferences() {
+    @MainThread private static void loadUIPreferences() {
         // buffer list preferences
         sortBuffers = p.getBoolean(PREF_SORT_BUFFERS, PREF_SORT_BUFFERS_D);
-        showTitle = p.getBoolean(PREF_SHOW_BUFFER_TITLES, PREF_SHOW_BUFFER_TITLES_D);
         filterBuffers = p.getBoolean(PREF_FILTER_NONHUMAN_BUFFERS, PREF_FILTER_NONHUMAN_BUFFERS_D);
         optimizeTraffic = p.getBoolean(PREF_OPTIMIZE_TRAFFIC, PREF_OPTIMIZE_TRAFFIC_D);  // okay this is out of sync with onChanged stuff—used for the bell icon
 
@@ -124,20 +131,27 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
 
     ///////////////////////////////////////////////////////////////////////////////////// connection
 
-    public static String host, wsPath, pass, connectionType, sshHost, sshUser, sshPass;
-    public static byte[] sshKey, sshKnownHosts;
-    public static int port, sshPort;
-    public static SSLSocketFactory sslSocketFactory;
-    public static boolean reconnect;
+    public static String host;
+    static String wsPath;
+    static String pass;
+    static String connectionType;
+    static String sshHost;
+    static String sshUser;
+    static String sshPass;
+    static byte[] sshKey, sshKnownHosts;
+    static public int port;
+    static int sshPort;
+    static SSLSocketFactory sslSocketFactory;
+    static boolean reconnect;
 
-    public static boolean pingEnabled;
-    public static long pingIdleTime, pingTimeout;
+    static boolean pingEnabled;
+    static long pingIdleTime, pingTimeout;
     public static int lineIncrement;
 
-    public static String printableHost;
-    public static boolean connectionSurelyPossibleWithCurrentPreferences;
+    static String printableHost;
+    static boolean connectionSurelyPossibleWithCurrentPreferences;
 
-    public static void loadConnectionPreferences() {
+    @MainThread public static void loadConnectionPreferences() {
         host = p.getString(PREF_HOST, PREF_HOST_D);
         pass = p.getString(PREF_PASSWORD, PREF_PASSWORD_D);
         port = Integer.parseInt(p.getString(PREF_PORT, PREF_PORT_D));
@@ -169,26 +183,25 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         connectionSurelyPossibleWithCurrentPreferences = false;     // and don't call me Shirley
     }
 
-    public static @Nullable String validateConnectionPreferences() {
-        if (TextUtils.isEmpty(host)) return context.getString(R.string.pref_error_relay_host_not_set);
-        if (TextUtils.isEmpty(pass)) return context.getString(R.string.pref_error_relay_password_not_set);
+    @MainThread public static @StringRes int validateConnectionPreferences() {
+        if (TextUtils.isEmpty(host)) return R.string.pref_error_relay_host_not_set;
+        if (TextUtils.isEmpty(pass)) return R.string.pref_error_relay_password_not_set;
         if (connectionType.equals(PREF_TYPE_SSH)) {
-            if (TextUtils.isEmpty(sshHost)) return context.getString(R.string.pref_error_ssh_host_not_set);
-            if (Utils.isEmpty(sshKey) && TextUtils.isEmpty(sshPass)) return context.getString(R.string.pref_error_no_ssh_key);
-            if (Utils.isEmpty(sshKnownHosts)) return context.getString(R.string.pref_error_no_ssh_known_hosts);
+            if (TextUtils.isEmpty(sshHost)) return R.string.pref_error_ssh_host_not_set;
+            if (Utils.isEmpty(sshKey) && TextUtils.isEmpty(sshPass)) return R.string.pref_error_no_ssh_key;
+            if (Utils.isEmpty(sshKnownHosts)) return R.string.pref_error_no_ssh_known_hosts;
         }
-        return null;
+        return 0;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @Override @UiThread @CatD public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+    @MainThread @Override @CatD public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         switch (key) {
             // buffer list preferences
             case PREF_SORT_BUFFERS: sortBuffers = p.getBoolean(key, PREF_SORT_BUFFERS_D); break;
-            case PREF_SHOW_BUFFER_TITLES: showTitle = p.getBoolean(key, PREF_SHOW_BUFFER_TITLES_D); break;
             case PREF_FILTER_NONHUMAN_BUFFERS: filterBuffers = p.getBoolean(key, PREF_FILTER_NONHUMAN_BUFFERS_D); break;
             case PREF_AUTO_HIDE_ACTIONBAR: autoHideActionbar = p.getBoolean(key, PREF_AUTO_HIDE_ACTIONBAR_D); break;
 
@@ -247,12 +260,12 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private static void setTimestampFormat() {
+    @MainThread private static void setTimestampFormat() {
         String t = p.getString(PREF_TIMESTAMP_FORMAT, PREF_TIMESTAMP_FORMAT_D);
         dateFormat = (TextUtils.isEmpty(t)) ? null : new SimpleDateFormat(t, Locale.US);
     }
 
-    private static void setAlignment() {
+    @MainThread private static void setAlignment() {
         String alignment = p.getString(PREF_PREFIX_ALIGN, PREF_PREFIX_ALIGN_D);
         switch (alignment) {
             case "right":     align = Color.ALIGN_RIGHT; break;
@@ -262,9 +275,9 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         }
     }
 
-    private static void setTextSizeAndLetterWidth() {
+    @MainThread private static void setTextSizeAndLetterWidth() {
         textSize = Float.parseFloat(p.getString(PREF_TEXT_SIZE, PREF_TEXT_SIZE_D));
-        bufferFont = p.getString(PREF_BUFFER_FONT, PREF_BUFFER_FONT_D);
+        String bufferFont = p.getString(PREF_BUFFER_FONT, PREF_BUFFER_FONT_D);
         Paint paint = new Paint();
         typeface = Typeface.MONOSPACE;
         try {typeface = Typeface.createFromFile(bufferFont);} catch (Exception ignored) {}
@@ -273,7 +286,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         letterWidth = (paint.measureText("m"));
     }
 
-    public static void setTextSizeAndLetterWidth(float size) {
+    @MainThread public static void setTextSizeAndLetterWidth(float size) {
         p.edit().putString(PREF_TEXT_SIZE, Float.toString(size)).apply();
     }
 
@@ -282,11 +295,12 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     final private static String ALIVE = "alive";
+
     public static boolean isServiceAlive() {
         return p.getBoolean(ALIVE, false);
     }
 
-    public static void setServiceAlive(boolean alive) {
+    static void setServiceAlive(boolean alive) {
         p.edit().putBoolean(ALIVE, alive).apply();
     }
 
@@ -300,7 +314,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
 
     // protocol must be changed each time anything that uses the following function changes
     // needed to make sure nothing crashes if we cannot restore the data
-    public static final int PROTOCOL_ID = 13;
+    private static final int PROTOCOL_ID = 13;
 
     @Cat public static void saveStuff() {
         for (Buffer buffer : BufferList.buffers) saveLastReadLine(buffer);
@@ -362,7 +376,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     }
 
     // save buffer's stuff. this is called when information is about to be written to disk
-    synchronized static void saveLastReadLine(Buffer buffer) {
+    private synchronized static void saveLastReadLine(Buffer buffer) {
         BufferHotData data = bufferToLastReadLine.get(buffer.fullName);
         if (data == null) {
             data = new BufferHotData();

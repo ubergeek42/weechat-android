@@ -1,10 +1,9 @@
-/**
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- */
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
 
 package com.ubergeek42.WeechatAndroid.service;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.net.SSLCertificateSocketFactory;
 import android.support.annotation.CheckResult;
@@ -50,12 +49,12 @@ public class SSLHandler {
     private File keystoreFile;
     private KeyStore sslKeystore;
 
-    public SSLHandler(File keystoreFile) {
+    private SSLHandler(File keystoreFile) {
         this.keystoreFile = keystoreFile;
         loadKeystore();
     }
 
-    public static @Nullable SSLHandler sslHandler = null;
+    private static @Nullable SSLHandler sslHandler = null;
 
     public static @NonNull SSLHandler getInstance(@NonNull Context context) {
         if (sslHandler == null) {
@@ -72,6 +71,7 @@ public class SSLHandler {
      */
     public static boolean checkHostname(@NonNull String host, int port) {
         // as the check is done *before* checking the certificate, an insecure factory is needed
+        @SuppressLint("SSLCertificateSocketFactoryGetInsecure")
         final SSLSocketFactory factory = SSLCertificateSocketFactory.getInsecure(0, null);
         final SSLSocket ssl;
         try {
@@ -124,7 +124,7 @@ public class SSLHandler {
         saveKeystore();
     }
 
-    public SSLSocketFactory getSSLSocketFactory() {
+    SSLSocketFactory getSSLSocketFactory() {
         SSLCertificateSocketFactory sslSocketFactory = (SSLCertificateSocketFactory) SSLCertificateSocketFactory.getDefault(0, null);
         sslSocketFactory.setTrustManagers(UserTrustManager.build(sslKeystore));
         return sslSocketFactory;

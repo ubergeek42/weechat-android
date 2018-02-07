@@ -1,10 +1,9 @@
-/**
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- */
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
 
 package com.ubergeek42.WeechatAndroid.service;
 
+import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -13,8 +12,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
+import android.support.annotation.AnyThread;
+import android.support.annotation.MainThread;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.text.TextUtils;
 
@@ -32,6 +32,7 @@ import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.AUTHENTIC
 import static com.ubergeek42.WeechatAndroid.utils.Constants.NOTIFICATION_EXTRA_BUFFER_FULL_NAME;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.NOTIFICATION_EXTRA_BUFFER_FULL_NAME_ANY;
 
+
 public class Notificator {
 
     final private static @Root Kitty kitty = Kitty.make();
@@ -41,10 +42,11 @@ public class Notificator {
     final private static String NOTIFICATION_CHANNEL_CONNECTION_STATUS = "connection status";
     final private static String NOTIFICATION_CHANNEL_HOTLIST = "notification";
 
+    @SuppressLint("StaticFieldLeak")
     private static Context context;
     private static NotificationManager manager;
 
-    public static void init(Context c) {
+    @MainThread public static void init(Context c) {
         context = c.getApplicationContext();
         manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
     }
@@ -53,22 +55,12 @@ public class Notificator {
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public static void showMain(@NonNull RelayService relay, @NonNull String content, @Nullable PendingIntent intent) {
-        showMain(relay, content, content, intent);
-    }
+    @AnyThread @Cat static void showMain(@NonNull RelayService relay, @NonNull String content) {
+        PendingIntent contentIntent = PendingIntent.getActivity(context, 0,
+                new Intent(context, WeechatActivity.class), PendingIntent.FLAG_CANCEL_CURRENT);
 
-    /** show the persistent notification of the service
-     *
-     * @param tickerText text that flashes a bit; doesn't appear on L+
-     * @param content the smaller text that appears under title
-     * @param intent intent that's executed on notification click, default used if null
-     */
-    @Cat public static void showMain(@NonNull RelayService relay, @Nullable String tickerText,
-                                @NonNull String content, @Nullable PendingIntent intent) {
-        PendingIntent contentIntent = (intent != null) ? intent :
-                PendingIntent.getActivity(context, 0, new Intent(context, WeechatActivity.class), PendingIntent.FLAG_CANCEL_CURRENT);
-
-        int icon = relay.state.contains(AUTHENTICATED) ? R.drawable.ic_connected : R.drawable.ic_disconnected;
+        boolean authenticated = relay.state.contains(AUTHENTICATED);
+        int icon = authenticated ? R.drawable.ic_connected : R.drawable.ic_disconnected;
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(
@@ -79,7 +71,6 @@ public class Notificator {
             manager.createNotificationChannel(channel);
         }
 
-        // use application context because of a bug in android: passed context will get leaked
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_CONNECTION_STATUS);
         builder.setContentIntent(contentIntent)
                 .setSmallIcon(icon)
@@ -87,13 +78,12 @@ public class Notificator {
                 .setContentText(content)
                 .setWhen(System.currentTimeMillis());
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN)
-            builder.setPriority(Notification.PRIORITY_MIN);
+        builder.setPriority(Notification.PRIORITY_MIN);
 
         if (P.notificationTicker)
-            builder.setTicker(tickerText);
+            builder.setTicker(content);
 
-        String disconnectText = context.getString(relay.state.contains(AUTHENTICATED) ? R.string.disconnect : R.string.stop_connecting);
+        String disconnectText = context.getString(authenticated ? R.string.disconnect : R.string.stop_connecting);
 
         builder.addAction(
                 android.R.drawable.ic_menu_close_clear_cancel, disconnectText,
@@ -114,15 +104,15 @@ public class Notificator {
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
+    @SuppressWarnings("unused")
     private static final int BUFFER = 0, LINE = 1;
 
-    /** display notification with a hot message
-     ** clicking on it will open the buffer & scroll up to the hot line, if needed
-     ** mind that SOMETIMES hotCount will be larger than hotList, because
-     ** it's filled from hotlist data and hotList only contains lines that
-     ** arrived in real time. so we add (message not available) if there are NO lines to display
-     ** and add "..." if there are some lines to display, but not all */
-    @Cat public static void showHot(boolean newHighlight) {
+    // display a notification with a hot message. clicking on it will open the buffer & scroll up
+    // to the hot line, if needed. mind that SOMETIMES hotCount will be larger than hotList, because
+    // it's filled from hotlist data and hotList only contains lines that arrived in real time. so
+    // we add (message not available) if there are NO lines to display and add "..." if there are
+    // some lines to display, but not all
+    @AnyThread @Cat public static void showHot(boolean newHighlight) {
         if (!P.notificationEnable)
             return;
 
@@ -172,8 +162,7 @@ public class Notificator {
         if (newHighlight) {
             builder.setTicker(message);
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN)
-                builder.setPriority(Notification.PRIORITY_HIGH);
+            builder.setPriority(Notification.PRIORITY_HIGH);
 
             if (!TextUtils.isEmpty(P.notificationSound))
                 builder.setSound(Uri.parse(P.notificationSound));

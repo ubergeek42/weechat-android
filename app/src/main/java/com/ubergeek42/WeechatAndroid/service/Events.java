@@ -1,13 +1,12 @@
-/**
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- */
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
 
 package com.ubergeek42.WeechatAndroid.service;
 
 import com.ubergeek42.WeechatAndroid.service.RelayService.STATE;
 
 import java.util.EnumSet;
+
 
 public class Events {
 
@@ -28,12 +27,12 @@ public class Events {
     public static class ExceptionEvent {
         final public Exception e;
 
-        public ExceptionEvent(Exception e) {
+        ExceptionEvent(Exception e) {
             this.e = e;
         }
 
         @Override public String toString() {
-            return "StateChangedEvent(e=" + e + ")";
+            return "ExceptionEvent(e=" + e + ")";
         }
     }
 
@@ -47,7 +46,7 @@ public class Events {
         }
 
         @Override public String toString() {
-            return "StateChangedEvent(e=" + message + ")";
+            return "SendMessageEvent(message=" + message + ")";
         }
     }
 }

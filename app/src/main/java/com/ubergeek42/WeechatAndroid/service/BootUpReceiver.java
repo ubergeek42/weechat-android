@@ -8,10 +8,12 @@ import android.preference.PreferenceManager;
 
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
 
+
 public class BootUpReceiver extends BroadcastReceiver {
 
-    @Override
-    public void onReceive(Context context, Intent intent) {
+    @Override public void onReceive(Context context, Intent intent) {
+        if (!"android.intent.action.BOOT_COMPLETED".equals(intent.getAction())) return;
+
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         if (prefs.getBoolean(PREF_BOOT_CONNECT, PREF_BOOT_CONNECT_D)) {
             Intent i = new Intent(context, RelayService.class);

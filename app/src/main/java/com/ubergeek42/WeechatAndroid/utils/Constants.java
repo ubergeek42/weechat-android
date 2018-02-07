@@ -9,7 +9,7 @@ public class Constants {
     final static public String PREF_TYPE_SSL = "ssl";
     final static public String PREF_TYPE_WEBSOCKET = "websocket";
     final static public String PREF_TYPE_WEBSOCKET_SSL = "websocket-ssl";
-    final static public String PREF_TYPE_PLAIN = "plain"; final public static String PREF_CONNECTION_TYPE_D = PREF_TYPE_PLAIN;
+    final static private String PREF_TYPE_PLAIN = "plain"; final public static String PREF_CONNECTION_TYPE_D = PREF_TYPE_PLAIN;
 
     // ssl group
     final static public String PREF_SSL_GROUP = "ssl_group";
@@ -47,7 +47,6 @@ public class Constants {
     // buffer list
     public static final String PREF_SORT_BUFFERS = "sort_buffers"; final public static boolean PREF_SORT_BUFFERS_D = false;
     public static final String PREF_FILTER_NONHUMAN_BUFFERS = "filter_nonhuman_buffers"; final public static boolean PREF_FILTER_NONHUMAN_BUFFERS_D = false;
-    public static final String PREF_SHOW_BUFFER_TITLES = "show_buffer_titles"; final public static boolean PREF_SHOW_BUFFER_TITLES_D = false; 
     public static final String PREF_SHOW_BUFFER_FILTER = "show_buffer_filter"; final public static boolean PREF_SHOW_BUFFER_FILTER_D = false;
 
     // look & feel

@@ -1,18 +1,17 @@
-/*******************************************************************************
- * Copyright 2012 Keith Johnson
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- ******************************************************************************/
+//  Copyright 2012 Keith Johnson
+//
+//  Licensed under the Apache License, Version 2.0 (the "License");
+//  you may not use this file except in compliance with the License.
+//  You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+//  Unless required by applicable law or agreed to in writing, software
+//  distributed under the License is distributed on an "AS IS" BASIS,
+//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//  See the License for the specific language governing permissions and
+//  limitations under the License.
+
 package com.ubergeek42.WeechatAndroid.service;
 
 import android.app.Service;
@@ -50,6 +49,7 @@ import java.util.EnumSet;
 import static com.ubergeek42.WeechatAndroid.service.Events.*;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
 
+
 public class RelayService extends Service implements Connection.Observer {
 
     final private static @Root Kitty kitty = Kitty.make();
@@ -63,7 +63,7 @@ public class RelayService extends Service implements Connection.Observer {
     //////////////////////////////////////////////////////////////////////////////////////////////// status & life cycle
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @Override @Cat public void onCreate() {
+    @MainThread @Override @Cat public void onCreate() {
         super.onCreate();
 
         // prepare handler that will run on a separate thread
@@ -78,17 +78,18 @@ public class RelayService extends Service implements Connection.Observer {
         EventBus.getDefault().register(this);
     }
 
-    @Override @Cat public void onDestroy() {
+    @MainThread @Override @Cat public void onDestroy() {
         P.saveStuff();
         connectivity.unregister();
         super.onDestroy();
         EventBus.getDefault().unregister(this);
     }
 
-    @Nullable @Override public IBinder onBind(Intent intent) {
+    @MainThread @Nullable @Override public IBinder onBind(Intent intent) {
         return null;
     }
 
+    // todo synchronization?
     @Subscribe @Cat public void onEvent(SendMessageEvent event) {
         connection.sendMessage(event.message);
     }
@@ -99,7 +100,7 @@ public class RelayService extends Service implements Connection.Observer {
     // this method is called:
     //     * whenever app calls startService() (that means on each screen rotate)
     //     * when service is recreated by system after OOM kill. (intent = null)
-    @Override @Cat public int onStartCommand(Intent intent, int flags, int startId) {
+    @MainThread @Override @Cat public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent == null || ACTION_START.equals(intent.getAction())) {
             if (state.contains(STATE.STOPPED)) {
                 P.loadConnectionPreferences();
@@ -143,7 +144,7 @@ public class RelayService extends Service implements Connection.Observer {
             final String willConnectSoon = getString(R.string.notification_connecting_details);
             final String connectingNow = getString(R.string.notification_connecting_details_now);
 
-            @Override public void run() {
+            @WorkerThread @Override public void run() {
                 if (state.contains(STATE.AUTHENTICATED)) {
                     P.connectionSurelyPossibleWithCurrentPreferences = true;
                     return;
@@ -152,8 +153,8 @@ public class RelayService extends Service implements Connection.Observer {
                 waiting = !waiting;
             }
 
-            void connectNow() {
-                Notificator.showMain(RelayService.this, connectingNow, connectingNow, null);
+            @WorkerThread void connectNow() {
+                Notificator.showMain(RelayService.this, connectingNow);
                 switch (connect()) {
                     case LATER: break;
                     case IMPOSSIBLE: if (!P.connectionSurelyPossibleWithCurrentPreferences) {stop(); break;}
@@ -161,10 +162,10 @@ public class RelayService extends Service implements Connection.Observer {
                 }
             }
 
-            void waitABit() {
+            @WorkerThread void waitABit() {
                 long delay = DELAYS[reconnects < DELAYS.length ? reconnects : DELAYS.length - 1];
                 String message = String.format(willConnectSoon, delay);
-                Notificator.showMain(RelayService.this, message, message, null);
+                Notificator.showMain(RelayService.this, message);
                 reconnects++;
                 doge.postDelayed(this, delay * 1000);
             }
@@ -172,7 +173,7 @@ public class RelayService extends Service implements Connection.Observer {
     }
 
     // called by user and when there was a fatal exception while trying to connect
-    @Cat protected void stop() {
+    @MainThread @Cat protected void stop() {
         if (state.contains(STATE.STOPPED)) {
             kitty.error("stop() run while state == STATE.STOPPED");
             return;
@@ -189,7 +190,7 @@ public class RelayService extends Service implements Connection.Observer {
 
     // called by ↑ and PingActionReceiver
     // close whatever connection we have in a thread, may result in a call to onStateChanged
-    protected void interrupt() {
+    @MainThread protected void interrupt() {
         doge.removeCallbacksAndMessages(null);
         doge.post(() -> {if (connection != null) connection.disconnect();});
     }
@@ -198,12 +199,12 @@ public class RelayService extends Service implements Connection.Observer {
 
     private enum TRY {POSSIBLE, LATER, IMPOSSIBLE}
 
-    @CatD private TRY connect() {
+    @WorkerThread @CatD private TRY connect() {
         if (connection != null)
             connection.disconnect();
 
         if (!connectivity.isNetworkAvailable()) {
-            Notificator.showMain(this, getString(R.string.notification_waiting_network), null);
+            Notificator.showMain(this, getString(R.string.notification_waiting_network));
             return TRY.LATER;
         }
 
@@ -248,7 +249,7 @@ public class RelayService extends Service implements Connection.Observer {
                 return;
             case AUTHENTICATED:
                 state = EnumSet.of(STATE.STARTED, STATE.AUTHENTICATED);
-                Notificator.showMain(this, getString(R.string.notification_connected_to, P.printableHost), null);
+                Notificator.showMain(this, getString(R.string.notification_connected_to, P.printableHost));
                 hello();
                 break;
             case BUFFERS_LISTED:
@@ -265,13 +266,13 @@ public class RelayService extends Service implements Connection.Observer {
         EventBus.getDefault().postSticky(new StateChangedEvent(state));
     }
 
-    private void hello() {
+    @WorkerThread private void hello() {
         ping.scheduleFirstPing();
         BufferList.launch(this);
         SyncAlarmReceiver.start(this);
     }
 
-    private void goodbye() {
+    @WorkerThread private void goodbye() {
         SyncAlarmReceiver.stop(this);
         BufferList.stop();
         ping.unschedulePing();
@@ -280,14 +281,14 @@ public class RelayService extends Service implements Connection.Observer {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     public static class ExceptionWrapper extends Exception {
-        public ExceptionWrapper(Exception cause, String message) {
+        ExceptionWrapper(Exception cause, String message) {
             super(message);
             initCause(cause);
         }
     }
 
     // ALWAYS followed by onStateChanged(STATE.DISCONNECTED); might be StreamClosed
-    @Override public void onException(Exception e) {
+    @WorkerThread @Override public void onException(Exception e) {
         kitty.error("onException(%s)", e.getClass().getSimpleName());
         if (e instanceof StreamClosed && (!state.contains(STATE.AUTHENTICATED)))
             e = new ExceptionWrapper(e, getString(R.string.relay_error_server_closed));
@@ -300,7 +301,7 @@ public class RelayService extends Service implements Connection.Observer {
 
     private final static RelayObject[] NULL = {null};
 
-    @Override public void onMessage(RelayMessage message) {
+    @WorkerThread @Override public void onMessage(RelayMessage message) {
         ping.onMessage();
         RelayObject[] objects = message.getObjects() == null ? NULL : message.getObjects();
         String id = message.getID();

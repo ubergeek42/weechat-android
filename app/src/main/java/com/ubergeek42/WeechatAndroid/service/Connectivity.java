@@ -1,7 +1,5 @@
-/**
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- */
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
 
 package com.ubergeek42.WeechatAndroid.service;
 
@@ -12,13 +10,14 @@ import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.support.annotation.MainThread;
+import android.support.annotation.WorkerThread;
+
 
 public class Connectivity extends BroadcastReceiver {
     private RelayService bone;
     private ConnectivityManager manager;
-    private boolean networkAvailable = true;
+    volatile private boolean networkAvailable = true;
 
-    // TODO manager can be null?
     @MainThread public void register(RelayService bone) {
         this.bone = bone;
         this.manager = (ConnectivityManager) bone.getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -35,7 +34,7 @@ public class Connectivity extends BroadcastReceiver {
         this.manager = null;
     }
 
-    public boolean isNetworkAvailable() {
+    @WorkerThread public boolean isNetworkAvailable() {
         return networkAvailable;
     }
 
@@ -51,7 +50,7 @@ public class Connectivity extends BroadcastReceiver {
             bone._start();
     }
 
-    private boolean getNetworkAvailable() {
+    @MainThread private boolean getNetworkAvailable() {
         NetworkInfo networkInfo = manager.getActiveNetworkInfo();
         return networkInfo != null && networkInfo.isConnected();
     }

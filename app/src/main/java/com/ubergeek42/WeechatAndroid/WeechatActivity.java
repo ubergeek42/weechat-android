@@ -53,7 +53,6 @@ import android.support.v4.widget.DrawerLayout;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.ubergeek42.WeechatAndroid.adapters.BufferListClickListener;
 import com.ubergeek42.WeechatAndroid.adapters.MainPagerAdapter;
@@ -175,9 +174,9 @@ public class WeechatActivity extends AppCompatActivity implements
 
     @MainThread @CatD(linger=true) public void connect() {
         P.loadConnectionPreferences();
-        String error = P.validateConnectionPreferences();
-        if (error != null) {
-            Toast.makeText(getBaseContext(), error, Toast.LENGTH_LONG).show();
+        int error = P.validateConnectionPreferences();
+        if (error != 0) {
+            Weechat.showLongToast(error);
             return;
         }
 
