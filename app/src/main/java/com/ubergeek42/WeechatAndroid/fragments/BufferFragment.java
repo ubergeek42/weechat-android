@@ -1,6 +1,6 @@
 package com.ubergeek42.WeechatAndroid.fragments;
 
-import java.util.Vector;
+import java.util.ArrayList;
 
 import android.annotation.SuppressLint;
 import android.support.annotation.AnyThread;
@@ -355,7 +355,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private boolean tcInProgress;
-    private Vector<String> tcMatches;
+    private ArrayList<String> tcMatches;
     private int tcIndex;
     private int tcWordStart;
     private int tcWordEnd;
@@ -385,11 +385,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
             // compute a list of possible matches
             // nicks is ordered in last used comes first way, so we just pick whatever comes first
             // if computed list is empty, abort
-            tcMatches = new Vector<>();
-
-            for (String nick : buffer.getLastUsedNicksCopy())
-                if (nick.toLowerCase().startsWith(prefix))
-                    tcMatches.add(nick.trim());
+            tcMatches = buffer.getMostRecentNicksMatching(prefix);
             if (tcMatches.size() == 0)
                 return;
 

@@ -126,7 +126,7 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         private TextView title;
         private Button button;
         private ChatLinesAdapter adapter;
-        private Lines.LINES status = Lines.LINES.CAN_FETCH_MORE;
+        private Lines.STATUS status = Lines.STATUS.CAN_FETCH_MORE;
         private Spannable topicText = null;
         private int style = -1;
 
@@ -148,14 +148,14 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 
         @MainThread private void updateButton() {
             if (adapter.buffer == null) return;
-            final Lines.LINES s = adapter.buffer.getLineStatus();
+            final Lines.STATUS s = adapter.buffer.getLinesStatus();
             if (status == s) return;
             status = s;
-            if (s == Lines.LINES.EVERYTHING_FETCHED) {
+            if (s == Lines.STATUS.EVERYTHING_FETCHED) {
                 button.setVisibility(View.GONE);
             } else {
                 button.setVisibility(View.VISIBLE);
-                boolean more = s == Lines.LINES.CAN_FETCH_MORE;
+                boolean more = s == Lines.STATUS.CAN_FETCH_MORE;
                 button.setEnabled(more);
                 button.setTextColor(more ? 0xff80cbc4 : 0xff777777);
                 button.setText(button.getContext().getString(more ? R.string.more_button : R.string.more_button_fetching));

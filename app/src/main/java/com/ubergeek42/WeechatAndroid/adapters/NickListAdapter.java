@@ -22,6 +22,8 @@ import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
 
+import java.util.ArrayList;
+
 
 public class NickListAdapter extends BaseAdapter implements BufferNicklistEye,
         DialogInterface.OnDismissListener, DialogInterface.OnShowListener {
@@ -31,7 +33,7 @@ public class NickListAdapter extends BaseAdapter implements BufferNicklistEye,
     private final @NonNull Context context;
     private final @NonNull LayoutInflater inflater;
     private final @NonNull Buffer buffer;
-    private @NonNull Nick[] nicks = new Nick[0];
+    private @NonNull ArrayList<Nick> nicks = new ArrayList<>();
     private final int awayNickTextColor;
     private AlertDialog dialog;
 
@@ -43,11 +45,11 @@ public class NickListAdapter extends BaseAdapter implements BufferNicklistEye,
     }
 
     @MainThread @Override public int getCount() {
-        return nicks.length;
+        return nicks.size();
     }
 
     @MainThread @Override public Nick getItem(int position) {
-        return nicks[position];
+        return nicks.get(position);
     }
 
     @MainThread @Override public long getItemId(int position) {
@@ -62,14 +64,14 @@ public class NickListAdapter extends BaseAdapter implements BufferNicklistEye,
 
         Nick nick = getItem(position);
         textView.setText(nick.asString());
-        if (nick.isAway()) textView.setTextColor(awayNickTextColor);
+        if (nick.away) textView.setTextColor(awayNickTextColor);
         return convertView;
     }
 
     @AnyThread @Cat synchronized public void onNicklistChanged() {
-        final Nick[] newNicks = buffer.getNicksCopy();
+        final ArrayList<Nick> newNicks = buffer.getNicksCopySortedByPrefixAndName();
         final String nicklistCount = context.getResources().getQuantityString(
-                R.plurals.nick_list_count, newNicks.length, newNicks.length);
+                R.plurals.nick_list_count, newNicks.size(), newNicks.size());
         final String title = context.getString(R.string.nick_list_title,
                 buffer.shortName, nicklistCount);
         Weechat.runOnMainThread(() -> {

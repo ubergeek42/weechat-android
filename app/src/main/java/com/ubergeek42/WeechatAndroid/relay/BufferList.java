@@ -475,7 +475,7 @@ public class BufferList {
 
                 // if buffer doesn't hold all nicknames yet, break execution, since full nicks will be requested anyway later
                 // erase nicklist if we have a full list here
-                if (diff && !buffer.holdsAllNicks) continue;
+                if (diff && !buffer.nicksAreReady()) continue;
                 if (!diff && renickedBuffers.add(buffer)) buffer.removeAllNicks();
 
                 // decide whether it's adding, removing or updating nicks
@@ -491,10 +491,11 @@ public class BufferList {
                         String prefix = entry.getItem("prefix").asString();
                         String name = entry.getItem("name").asString();
                         boolean away = entry.getItem("color").asString().contains("weechat.color.nicklist_away");
+                        Nick nick = new Nick(pointer, prefix, name, away);
                         if (command == ADD)
-                            buffer.addNick(pointer, prefix, name, away);
+                            buffer.addNick(nick);
                         else
-                            buffer.updateNick(pointer, prefix, name, away);
+                            buffer.updateNick(nick);
                     }
                 } else if (command == REMOVE) {
                     buffer.removeNick(entry.getPointerLong());
@@ -503,10 +504,7 @@ public class BufferList {
 
             // sort nicknames when we receive them for the very first time
             if (id.equals("nicklist"))
-                for (Buffer buffer : renickedBuffers) {
-                    buffer.holdsAllNicks = true;
-                    buffer.sortNicksByLines();
-                }
+                for (Buffer buffer : renickedBuffers) buffer.onNicksListed();
         }
     };
 }

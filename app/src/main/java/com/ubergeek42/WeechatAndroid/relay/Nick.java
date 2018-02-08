@@ -6,26 +6,18 @@ package com.ubergeek42.WeechatAndroid.relay;
 
 public class Nick {
     final long pointer;
-    String prefix;
-    String name;
-    boolean away;
+    final String prefix;
+    final public String name;
+    final public boolean away;
 
     Nick(long pointer, String prefix, String name, boolean away) {
+        this.pointer = pointer;
         this.prefix = prefix;
         this.name = name;
-        this.pointer = pointer;
         this.away = away;
     }
 
     public String asString() {
         return prefix + name;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public boolean isAway() {
-        return away;
     }
 }

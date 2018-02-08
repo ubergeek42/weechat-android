@@ -25,7 +25,7 @@ public class Lines {
     final private @Root Kitty kitty = Kitty.make();
 
     public final static int HEADER_POINTER = -123, MARKER_POINTER = -456;
-    public enum LINES {
+    public enum STATUS {
         INIT,
         FETCHING,
         CAN_FETCH_MORE,
@@ -38,7 +38,8 @@ public class Lines {
         }
     }
 
-    @NonNull LINES status = LINES.INIT;
+    @NonNull
+    STATUS status = STATUS.INIT;
     long lastSeenLine = -1;
 
     private final static Line HEADER = new Line(HEADER_POINTER, null, null, null, false, false, null);
@@ -72,14 +73,14 @@ public class Lines {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @WorkerThread void addFirst(Line line) {
-        assertEquals(status, LINES.FETCHING);
+        assertEquals(status, STATUS.FETCHING);
         ensureSizeBeforeAddition();
         unfiltered.addFirst(line);
         if (line.visible) filtered.addFirst(line);
     }
 
     @WorkerThread void addLast(Line line) {
-        if (status == LINES.FETCHING) {
+        if (status == STATUS.FETCHING) {
             kitty.warn("addLast() while lines are being fetched");
             return;
         }
@@ -98,18 +99,18 @@ public class Lines {
         filtered.clear();
         unfiltered.clear();
         maxUnfilteredSize = P.lineIncrement;
-        status = LINES.INIT;
+        status = STATUS.INIT;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @MainThread void onMoreLinesRequested() {
-        if (status != LINES.INIT) maxUnfilteredSize += P.lineIncrement;
-        status = LINES.FETCHING;
+        if (status != STATUS.INIT) maxUnfilteredSize += P.lineIncrement;
+        status = STATUS.FETCHING;
     }
 
     @WorkerThread void onLinesListed() {
-        status = unfiltered.size() == maxUnfilteredSize ? LINES.CAN_FETCH_MORE : LINES.EVERYTHING_FETCHED;
+        status = unfiltered.size() == maxUnfilteredSize ? STATUS.CAN_FETCH_MORE : STATUS.EVERYTHING_FETCHED;
         setSkipsUsingPointer();
     }
 

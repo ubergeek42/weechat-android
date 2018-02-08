@@ -392,7 +392,7 @@ public class WeechatActivity extends AppCompatActivity implements
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setAdapter(nicklistAdapter, (dialogInterface, position) -> {
                     Nick nick = nicklistAdapter.getItem(position);
-                    SendMessageEvent.fire("input 0x%x /query %s", buffer.pointer, nick.getName());
+                    SendMessageEvent.fire("input 0x%x /query %s", buffer.pointer, nick.name);
                 });
                 AlertDialog dialog = builder.create();
                 dialog.setTitle("squirrels are awesome");

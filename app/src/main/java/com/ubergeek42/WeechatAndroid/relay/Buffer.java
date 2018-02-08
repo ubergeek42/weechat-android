@@ -1,6 +1,5 @@
 package com.ubergeek42.WeechatAndroid.relay;
 
-import android.annotation.SuppressLint;
 import android.support.annotation.AnyThread;
 import android.support.annotation.MainThread;
 import android.support.annotation.NonNull;
@@ -27,11 +26,6 @@ import org.junit.Assert;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
 
 public class Buffer {
     final private @Root Kitty kitty = Kitty.make();
@@ -62,12 +56,11 @@ public class Buffer {
     public int totalReadHighlights = 0;
 
     final private Lines lines;
-
-    private LinkedList<Nick> nicks = new LinkedList<>();
+    final private Nicks nicks;
 
     public boolean isOpen = false;
     public boolean isWatched = false;
-    boolean holdsAllNicks = false;
+
     public int type = OTHER;
     private int others = 0;
     public int unreads = 0;
@@ -91,6 +84,7 @@ public class Buffer {
         processBufferTitle();
 
         lines = new Lines(shortName);
+        nicks = new Nicks(shortName);
 
         if (P.isBufferOpen(fullName)) setOpen(true);
         P.restoreLastReadLine(this);
@@ -98,10 +92,7 @@ public class Buffer {
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// LINES
-    ////////////////////////////////////////////////////////////////////////////////////////////////    stuff called by the UI
-    ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     // get a copy of lines, filtered or not according to global settings
@@ -114,16 +105,8 @@ public class Buffer {
         return lines.status.ready();
     }
 
-    @AnyThread public @NonNull Lines.LINES getLineStatus() {
+    @AnyThread public @NonNull Lines.STATUS getLinesStatus() {
         return lines.status;
-    }
-
-    // get a copy of last used nicknames--to be used by tab completion thing
-    @AnyThread synchronized public @NonNull String[] getLastUsedNicksCopy() {
-        String[] out = new String[nicks.size()];
-        int i = 0;
-        for (Nick nick : nicks) out[i++] = nick.name;
-        return out;
     }
 
     // sets buffer as open or closed
@@ -146,7 +129,6 @@ public class Buffer {
                 // that we have all the lines needed. second, if we have lines and request lines again,
                 // it'd be cumbersome to find the place to put lines. like, for iteration #3,
                 // [[old lines] [#3] [#2] [#1]] unless #3 is inside old lines. hence, reset everything!
-                holdsAllNicks = false;
                 lines.clear();
                 nicks.clear();
             }
@@ -165,8 +147,8 @@ public class Buffer {
     @MainThread @Cat synchronized public void setBufferEye(@Nullable BufferEye bufferEye) {
         this.bufferEye = bufferEye;
         if (bufferEye != null) {
-            if (lines.status == Lines.LINES.INIT) requestMoreLines();
-            if (!holdsAllNicks) BufferList.requestNicklistForBufferByPointer(pointer);
+            if (lines.status == Lines.STATUS.INIT) requestMoreLines();
+            if (nicks.status == Nicks.STATUS.INIT) BufferList.requestNicklistForBufferByPointer(pointer);
             if (needsToBeNotifiedAboutGlobalPreferencesChanged) bufferEye.onGlobalPreferencesChanged(false);
         }
     }
@@ -241,18 +223,7 @@ public class Buffer {
         // if current line's an event line and we've got a speaker, move nick to fist position
         // nick in question is supposed to be in the nicks already, for we only shuffle these
         // nicks when someone spoke, i.e. NOT when user joins.
-        if (holdsAllNicks && isLast) {
-            String name = line.speakingNick;
-            if (name != null)
-                for (Iterator<Nick> it = nicks.iterator(); it.hasNext(); ) {
-                    Nick nick = it.next();
-                    if (name.equals(nick.name)) {
-                        it.remove();
-                        nicks.addFirst(nick);
-                        break;
-                    }
-                }
-        }
+        if (isLast && nicksAreReady()) nicks.bumpNickToTop(line.speakingNick);
     }
 
     // a buffer NOT will want a complete update if the last line unread stored in weechat buffer
@@ -284,7 +255,7 @@ public class Buffer {
     // that our number is actually HIGHER than amount of unread lines in the buffer. as a workaround,
     // we check that we are not getting negative numbers. not perfect, but—!
      @WorkerThread @Cat("?") synchronized void updateHighlightsAndUnreads(int highlights, int unreads, int others) {
-        if (isWatched && holdsAllNicks) {
+        if (isWatched && nicksAreReady()) {
             // occasionally, when this method is called for the first time on a new connection, a
             // buffer is already watched. in this case, we don't want to lose highlights and unreads
             // as then we won't get the scroll, so we check holdsAllNicks to see if we are ready
@@ -394,52 +365,40 @@ public class Buffer {
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// NICKS
-    ////////////////////////////////////////////////////////////////////////////////////////////////    stuff called by the UI
-    ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    // sets and removes a single nicklist watcher
-    // used to notify of nicklist changes as new nicks arrive and others quit
-    @MainThread @Cat("Nick") synchronized public void setBufferNicklistEye(@Nullable BufferNicklistEye bufferNickListEye) {
+    @AnyThread boolean nicksAreReady() {
+        return nicks.status == Nicks.STATUS.READY;
+    }
+
+    @MainThread synchronized public @NonNull ArrayList<String> getMostRecentNicksMatching(String prefix) {
+        return nicks.getMostRecentNicksMatching(prefix);
+    }
+
+    @AnyThread synchronized public @NonNull ArrayList<Nick> getNicksCopySortedByPrefixAndName() {
+        return nicks.getCopySortedByPrefixAndName();
+    }
+
+    @MainThread @Cat("??")
+    synchronized public void setBufferNicklistEye(@Nullable BufferNicklistEye bufferNickListEye) {
         this.bufferNickListEye = bufferNickListEye;
     }
 
-    @AnyThread synchronized public @NonNull Nick[] getNicksCopy() {
-        Nick[] n = nicks.toArray(new Nick[nicks.size()]);
-        Arrays.sort(n, sortByNumberPrefixAndNameComparator);
-        return n;
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// called by event handlers
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @WorkerThread @Cat("??") synchronized void addNick(long pointer, String prefix, String name, boolean away) {
-        nicks.add(new Nick(pointer, prefix, name, away));
+    @WorkerThread @Cat("??") synchronized void addNick(Nick nick) {
+        nicks.addNick(nick);
         notifyNicklistChanged();
     }
 
-    @WorkerThread @Cat("Nick") synchronized void removeNick(long pointer) {
-        for (Iterator<Nick> it = nicks.iterator(); it.hasNext();) {
-            if (it.next().pointer == pointer) {
-                it.remove();
-                break;
-            }
-        }
+    @WorkerThread @Cat("??") synchronized void removeNick(long pointer) {
+        nicks.removeNick(pointer);
         notifyNicklistChanged();
     }
 
-    @WorkerThread @Cat("Nick") synchronized void updateNick(long pointer, String prefix, String name, boolean away) {
-        for (Nick nick: nicks) {
-            if (nick.pointer == pointer) {
-                nick.prefix = prefix;
-                nick.name = name;
-                nick.away = away;
-                break;
-            }
-        }
+    @WorkerThread @Cat("??") synchronized void updateNick(Nick nick) {
+        nicks.updateNick(nick);
         notifyNicklistChanged();
     }
 
@@ -447,59 +406,12 @@ public class Buffer {
         nicks.clear();
     }
 
-    @WorkerThread @Cat("Nick") synchronized void sortNicksByLines() {
-        final HashMap<String, Integer> nameToPosition = new HashMap<>();
-
-        Iterator<Line> it = lines.getDescendingFilteredIterator();
-        while (it.hasNext()) {
-            String name = it.next().speakingNick;
-            if (name != null && !nameToPosition.containsKey(name))
-                nameToPosition.put(name, nameToPosition.size());
-        }
-
-        Collections.sort(nicks, (left, right) -> {
-            Integer l = nameToPosition.get(left.name);
-            Integer r = nameToPosition.get(right.name);
-            if (l == null) l = Integer.MAX_VALUE;
-            if (r == null) r = Integer.MAX_VALUE;
-            return l - r;
-        });
+    @WorkerThread @Cat("??") synchronized void onNicksListed() {
+        nicks.sortNicksByLines(lines.getDescendingFilteredIterator());
     }
-
-    //////////////////////////////////////////////////////////////////////////////////////////////// private stuffs
 
     @WorkerThread private void notifyNicklistChanged() {
         if (bufferNickListEye != null) bufferNickListEye.onNicklistChanged();
-    }
-
-    private final static Comparator<Nick> sortByNumberPrefixAndNameComparator = new Comparator<Nick>() {
-        // Lower values = higher priority
-        private int prioritizePrefix(String p) {
-            if (p.length() == 0) return 100;
-            switch(p.charAt(0)) {
-                case '~': return 1;  // Owners
-                case '&': return 2;  // Admins
-                case '@': return 3;  // Ops
-                case '%': return 4;  // Half-Ops
-                case '+': return 5;  // Voiced
-                default: return 100; // Other
-            }
-        }
-
-        @Override public int compare(Nick n1, Nick n2) {
-            int p1 = prioritizePrefix(n1.prefix);
-            int p2 = prioritizePrefix(n2.prefix);
-            int diff = p1 - p2;
-            return (diff != 0) ? diff : n1.name.compareToIgnoreCase(n2.name);
-        }
-    };
-
-    @SuppressLint("DefaultLocale") @Override public String toString() {
-        return String.format("[%s%-5.5s | %02d-%02d-%02d | %02d-%02d-%02d %s]",
-                isOpen ? "o" : "-", shortName,
-                highlights, unreads, others,
-                totalReadHighlights, totalReadUnreads, totalReadOthers,
-                wantsFullHotListUpdate ? "| fu " : "");
     }
 }
 
