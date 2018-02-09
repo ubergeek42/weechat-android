@@ -25,7 +25,6 @@ import javax.net.ssl.SSLException;
 
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-import android.support.annotation.AnyThread;
 import android.support.annotation.MainThread;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.view.PagerAdapter;
@@ -39,6 +38,7 @@ import android.view.*;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import android.content.Context;
 import android.content.Intent;
@@ -186,7 +186,6 @@ public class WeechatActivity extends AppCompatActivity implements
         startService(i);
     }
 
-    // todo threading??
     @MainThread @CatD public void disconnect() {
         Intent i = new Intent(this, RelayService.class);
         i.setAction(RelayService.ACTION_STOP);
@@ -232,35 +231,33 @@ public class WeechatActivity extends AppCompatActivity implements
     //////////////////////////////////////////////////////////////////////////////////////////////// the joy
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @AnyThread @Cat private void adjustUI() {
+    @MainThread @Cat private void adjustUI() {
         final int image;
         if (state.contains(STOPPED)) image = R.drawable.ic_big_disconnected;
         else if (state.contains(AUTHENTICATED)) image = R.drawable.ic_big_connected;
         else image = R.drawable.ic_big_connecting;
-        Weechat.runOnMainThreadASAP(() -> {
-            setInfoImage(image);
-            setDrawerEnabled(state.contains(LISTED));
-            makeMenuReflectConnectionStatus();
-        });
+        setInfoImage(image);
+        setDrawerEnabled(state.contains(LISTED));
+        makeMenuReflectConnectionStatus();
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////// events?
 
     private EnumSet<STATE> state = null;
 
-    @Subscribe(sticky = true)
-    @AnyThread @Cat public void onEvent(StateChangedEvent event) {
+    @Subscribe(sticky=true, threadMode=ThreadMode.MAIN)
+    @MainThread @Cat public void onEvent(StateChangedEvent event) {
         boolean init = state == null;
         state = event.state;
         adjustUI();
         if (state.contains(LISTED)) {
-            if (adapter.canRestoreBuffers()) runOnUiThread(adapter::restoreBuffers);
-            else if (!init && slidy) runOnUiThread(this::showDrawerIfPagerIsEmpty);
+            if (adapter.canRestoreBuffers()) adapter.restoreBuffers();
+            else if (!init && slidy) showDrawerIfPagerIsEmpty();
         }
     }
 
-    @Subscribe
-    @AnyThread @Cat public void onEvent(final ExceptionEvent event) {
+    @Subscribe(threadMode=ThreadMode.MAIN)
+    @MainThread @Cat public void onEvent(final ExceptionEvent event) {
         final Exception e = event.e;
         if (e instanceof SSLException) {
             SSLException e1 = (SSLException) e;
