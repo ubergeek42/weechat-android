@@ -3,7 +3,6 @@ package com.ubergeek42.WeechatAndroid.fragments;
 import android.support.annotation.AnyThread;
 import android.support.annotation.MainThread;
 import android.support.annotation.NonNull;
-import android.support.annotation.WorkerThread;
 import android.support.v4.app.Fragment;
 
 import org.greenrobot.eventbus.EventBus;
@@ -117,10 +116,8 @@ public class BufferListFragment extends Fragment implements BufferListEye, View.
 
     @AnyThread @Override @Cat public void onBuffersChanged() {
         adapter.onBuffersChanged();
-    }
-
-    @WorkerThread @Override @Cat public void onHotCountChanged() {
-        Weechat.runOnMainThread(() -> activity.updateHotCount(BufferList.getHotCount()));
+        int hotCount = BufferList.getHotCount();
+        Weechat.runOnMainThread(() -> activity.updateHotCount(hotCount));
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

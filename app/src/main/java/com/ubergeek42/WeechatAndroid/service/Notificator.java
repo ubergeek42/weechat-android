@@ -112,13 +112,11 @@ public class Notificator {
     // it's filled from hotlist data and hotList only contains lines that arrived in real time. so
     // we add (message not available) if there are NO lines to display and add "..." if there are
     // some lines to display, but not all
-    @AnyThread @Cat public static void showHot(boolean newHighlight) {
+    @AnyThread @Cat public static void showHot(final List<String[]> hotList, boolean newHighlight) {
         if (!P.notificationEnable)
             return;
 
         final int hotCount = BufferList.getHotCount();
-        final List<String[]> hotList = BufferList.hotList;
-
         if (hotCount == 0) {
             manager.cancel(NOTIFICATION_HOT_ID);
             return;

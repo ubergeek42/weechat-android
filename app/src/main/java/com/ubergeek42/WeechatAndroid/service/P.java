@@ -319,7 +319,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     private static final int PROTOCOL_ID = 13;
 
     @AnyThread @Cat public static void saveStuff() {
-        for (Buffer buffer : BufferList.buffers) saveLastReadLine(buffer);
+        synchronized (BufferList.class) {for (Buffer buffer : BufferList.buffers) saveLastReadLine(buffer);}
         String data = Utils.serialize(new Object[]{openBuffers, bufferToLastReadLine, sentMessages});
         p.edit().putString(PREF_DATA, data).putInt(PREF_PROTOCOL_ID, PROTOCOL_ID).apply();
     }

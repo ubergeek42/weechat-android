@@ -178,8 +178,8 @@ public class Buffer {
                 "input 0x%1$x /input set_unread_current_buffer", pointer);
     }
 
-    @MainThread synchronized boolean isHot() {
-        return highlights > 0 || (type == Buffer.PRIVATE && unreads > 0);
+    @AnyThread synchronized int getHotCount() {
+        return type == Buffer.PRIVATE ? unreads + highlights : highlights;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -254,7 +254,7 @@ public class Buffer {
     // has lost its last read lines again our read count will not have any meaning. AND it might happen
     // that our number is actually HIGHER than amount of unread lines in the buffer. as a workaround,
     // we check that we are not getting negative numbers. not perfect, but—!
-     @WorkerThread @Cat("?") synchronized void updateHighlightsAndUnreads(int highlights, int unreads, int others) {
+     @WorkerThread @Cat("?") synchronized void updateHotList(int highlights, int unreads, int others) {
         if (isWatched && nicksAreReady()) {
             // occasionally, when this method is called for the first time on a new connection, a
             // buffer is already watched. in this case, we don't want to lose highlights and unreads
@@ -277,10 +277,6 @@ public class Buffer {
                 this.unreads = unreads - totalReadUnreads;
                 this.highlights = highlights - totalReadHighlights;
             }
-
-            int hots = this.highlights;
-            if (type == PRIVATE) hots += this.unreads;
-            BufferList.adjustHotMessagesForBuffer(this, hots);
         }
     }
 
@@ -309,8 +305,9 @@ public class Buffer {
     }
 
     @WorkerThread @Cat synchronized void onBufferClosed() {
-        BufferList.removeHotMessagesForBuffer(this);
-        setOpen(false);
+        highlights = unreads = others = 0;
+        BufferList.adjustHotListForBuffer(this);
+        BufferList.processHotCountAndAdjustNotification(false);
         if (bufferEye != null) bufferEye.onBufferClosed();
     }
 
@@ -360,7 +357,8 @@ public class Buffer {
         totalReadHighlights += highlights;
         totalReadOthers += others;
         unreads = highlights = others = 0;
-        BufferList.removeHotMessagesForBuffer(this);
+        BufferList.adjustHotListForBuffer(this);
+        BufferList.processHotCountAndAdjustNotification(false);
         BufferList.notifyBuffersChanged();
     }
 
