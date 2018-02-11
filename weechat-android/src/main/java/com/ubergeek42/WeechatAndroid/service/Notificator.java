@@ -6,6 +6,7 @@
 package com.ubergeek42.WeechatAndroid.service;
 
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -37,9 +38,12 @@ public class Notificator {
     final private static boolean DEBUG_NOTIFICATIONS = false;
 
     final private static int NOTIFICATION_MAIN_ID = 42;
-    final public static int NOTIFICATION_HOT_ID = 43;
 
     public static final String KEY_TEXT_REPLY = "key_text_reply";
+
+    final private static int NOTIFICATION_HOT_ID = 43;
+    final private static String NOTIFICATION_CHANNEL_CONNECTION_STATUS = "connection status";
+    final private static String NOTIFICATION_CHANNEL_HOTLIST = "notification";
 
     private static Context context;
     private static NotificationManager manager;
@@ -72,8 +76,17 @@ public class Notificator {
 
         int icon = relay.state.contains(AUTHENTICATED) ? R.drawable.ic_connected : R.drawable.ic_disconnected;
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(
+                    NOTIFICATION_CHANNEL_CONNECTION_STATUS,
+                    context.getString(R.string.notification_channel_connection_status),
+                    NotificationManager.IMPORTANCE_MIN);
+            channel.setShowBadge(false);
+            manager.createNotificationChannel(channel);
+        }
+
         // use application context because of a bug in android: passed context will get leaked
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context);
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_CONNECTION_STATUS);
         builder.setContentIntent(contentIntent)
                 .setSmallIcon(icon)
                 .setContentTitle("WeechatAndroid " + BuildConfig.VERSION_NAME)
@@ -139,10 +152,18 @@ public class Notificator {
         Intent intent = new Intent(context, WeechatActivity.class).putExtra("full_name", target_buffer);
         PendingIntent contentIntent = PendingIntent.getActivity(context, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(
+                    NOTIFICATION_CHANNEL_HOTLIST,
+                    context.getString(R.string.notification_channel_hotlist),
+                    NotificationManager.IMPORTANCE_DEFAULT);
+            manager.createNotificationChannel(channel);
+        }
+
         // prepare notification
         // make the ticker the LAST message
         String message = hotList.size() == 0 ? context.getString(R.string.hot_message_not_available) : hotList.get(hotList.size() - 1)[LINE];
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context)
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_HOTLIST)
                 .setContentIntent(contentIntent)
                 .setSmallIcon(R.drawable.ic_hot)
                 .setContentTitle(context.getResources().getQuantityString(R.plurals.hot_messages, hotCount, hotCount))
