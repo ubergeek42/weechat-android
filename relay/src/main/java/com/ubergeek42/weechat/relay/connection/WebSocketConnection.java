@@ -1,13 +1,11 @@
-/**
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- */
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
 
 package com.ubergeek42.weechat.relay.connection;
 
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft;
-import org.java_websocket.drafts.Draft_17;
+import org.java_websocket.drafts.Draft_6455;
 import org.java_websocket.exceptions.WebsocketNotConnectedException;
 import org.java_websocket.handshake.ServerHandshake;
 import org.slf4j.Logger;
@@ -37,12 +35,13 @@ public class WebSocketConnection extends AbstractConnection {
         outputToInStream = new PipedOutputStream();
         outputToInStream.connect((PipedInputStream) in);
 
-        client = new MyWebSocket(uri, new Draft_17());
-        if (sslSocketFactory != null)
-            client.setSocket(sslSocketFactory.createSocket(server, port));
+        client = new MyWebSocket(uri, new Draft_6455());
+        client.setConnectionLostTimeout(0);
+        if (sslSocketFactory != null) client.setSocket(sslSocketFactory.createSocket());
     }
 
     @Override protected void doConnect() throws Exception {
+        logger.trace("==client.connectBlocking()==");
         if (!client.connectBlocking()) throw (exception != null) ?
                 exception : new Exception("Could not connect using WebSocket");
     }
@@ -51,10 +50,9 @@ public class WebSocketConnection extends AbstractConnection {
     // client.close() does not close the socket. see TooTallNate/Java-WebSocket#346
     // getConnection().closeConnection() seems to work, but i don't know if using it is right
     @Override protected void doDisconnect() {
+        logger.trace("==client.close()==");
         super.doDisconnect();
         client.close();
-        client.getConnection().closeConnection(1000, "force closing");
-        try{outputToInStream.close();} catch (Exception e) {e.printStackTrace();}
     }
 
     // we don't need writer
@@ -71,16 +69,16 @@ public class WebSocketConnection extends AbstractConnection {
     private Exception exception = null;
 
     private class MyWebSocket extends WebSocketClient {
-        public MyWebSocket(URI serverUri, Draft draft) {
+        MyWebSocket(URI serverUri, Draft draft) {
             super(serverUri, draft);
         }
 
         @Override public void onOpen(ServerHandshake ignored) {
-            logger.debug("WebSocket.onOpen(), readyState = {}", this.getReadyState());
+            logger.debug("WebSocket.onOpen(), readyState={}", this.getReadyState());
         }
 
         @Override public void onMessage(String message) {
-            logger.debug("WebSocket.onMessage(string = {})", message);
+            logger.debug("WebSocket.onMessage(string={})", message);
             throw new RuntimeException("Unexpected string message from websocket");
         }
 
@@ -95,7 +93,7 @@ public class WebSocketConnection extends AbstractConnection {
         }
 
         @Override public void onClose(int code, String reason, boolean remote) {
-            logger.debug("WebSocket.onClose(code = {}, reason = {})", code, reason);
+            logger.debug("WebSocket.onClose(code={}, reason={})", code, reason);
             try {outputToInStream.close();} catch (IOException e) {e.printStackTrace();}
         }
 

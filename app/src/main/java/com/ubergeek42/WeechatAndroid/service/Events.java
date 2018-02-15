@@ -53,7 +53,7 @@ public class Events {
 
         public static void fire(@NonNull String message) {
             Assert.assertFalse(message.endsWith("\n"));
-            EventBus.getDefault().post(new SendMessageEvent(message + "\n"));
+            EventBus.getDefault().post(new SendMessageEvent(message));
         }
 
         public static void fire(@NonNull String message, @NonNull Object... args) {

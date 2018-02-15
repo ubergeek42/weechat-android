@@ -19,6 +19,7 @@ import android.content.Intent;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
+import android.support.annotation.AnyThread;
 import android.support.annotation.MainThread;
 import android.support.annotation.Nullable;
 import android.support.annotation.WorkerThread;
@@ -48,13 +49,16 @@ import java.util.EnumSet;
 
 import static com.ubergeek42.WeechatAndroid.service.Events.*;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 
 public class RelayService extends Service implements Connection.Observer {
 
-    final private static @Root Kitty kitty = Kitty.make();
+    final private @Root Kitty kitty = Kitty.make();
+    private static int iteration = -1;
 
-    public RelayConnection connection;
+    volatile public RelayConnection connection;
     private Connectivity connectivity;
     private PingActionReceiver ping;
     private Handler doge;               // thread "doge" used for connecting/disconnecting
@@ -63,11 +67,14 @@ public class RelayService extends Service implements Connection.Observer {
     //////////////////////////////////////////////////////////////////////////////////////////////// status & life cycle
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @MainThread @Override @Cat public void onCreate() {
-        super.onCreate();
+    public RelayService() {
+        super();
+        kitty.setPrefix(String.valueOf(++iteration));
+    }
 
+    @MainThread @Override @Cat public void onCreate() {
         // prepare handler that will run on a separate thread
-        HandlerThread handlerThread = new HandlerThread("doge");
+        HandlerThread handlerThread = new HandlerThread("do" + iteration);
         handlerThread.start();
         doge = new Handler(handlerThread.getLooper());
 
@@ -79,10 +86,10 @@ public class RelayService extends Service implements Connection.Observer {
     }
 
     @MainThread @Override @Cat public void onDestroy() {
+        EventBus.getDefault().unregister(this);
         P.saveStuff();
         connectivity.unregister();
-        super.onDestroy();
-        EventBus.getDefault().unregister(this);
+        doge.post(() -> doge.getLooper().quit());
     }
 
     @MainThread @Nullable @Override public IBinder onBind(Intent intent) {
@@ -122,20 +129,15 @@ public class RelayService extends Service implements Connection.Observer {
     private static final long DELAYS[] = new long[] {5, 15, 30, 60, 120, 300, 600, 900};
 
     // called by user and when disconnected
-    @MainThread @Cat private void start() {
-        if (!state.contains(STATE.STOPPED)) {
-            kitty.error("start() run while state != STATE.STOPPED");
-            return;
-        }
-
-        state = EnumSet.of(STATE.STARTED);
-        EventBus.getDefault().postSticky(new StateChangedEvent(state));
+    @MainThread @Cat private synchronized void start() {
+        assertTrue(state.contains(STATE.STOPPED));
+        changeState(EnumSet.of(STATE.STARTED));
         P.setServiceAlive(true);
         _start();
     }
 
     // called by ↑ and Connectivity
-    @MainThread @Cat protected void _start() {
+    @MainThread @Cat synchronized void _start() {
         doge.removeCallbacksAndMessages(null);
         doge.post(new Runnable() {
             int reconnects = 0;
@@ -173,16 +175,10 @@ public class RelayService extends Service implements Connection.Observer {
     }
 
     // called by user and when there was a fatal exception while trying to connect
-    @MainThread @Cat protected void stop() {
-        if (state.contains(STATE.STOPPED)) {
-            kitty.error("stop() run while state == STATE.STOPPED");
-            return;
-        }
-
+    @AnyThread @Cat synchronized void stop() {
+        assertFalse(state.contains(STATE.STOPPED));
         if (state.contains(STATE.AUTHENTICATED)) goodbye();
-
-        state = EnumSet.of(STATE.STOPPED);
-        EventBus.getDefault().postSticky(new StateChangedEvent(state));
+        changeState(EnumSet.of(STATE.STOPPED));
         interrupt();
         stopSelf();
         P.setServiceAlive(false);
@@ -190,16 +186,19 @@ public class RelayService extends Service implements Connection.Observer {
 
     // called by ↑ and PingActionReceiver
     // close whatever connection we have in a thread, may result in a call to onStateChanged
-    @MainThread protected void interrupt() {
+    @AnyThread @Cat synchronized void interrupt() {
         doge.removeCallbacksAndMessages(null);
-        doge.post(() -> {if (connection != null) connection.disconnect();});
+        doge.post(() -> {
+            doge.removeCallbacksAndMessages(null);
+            if (connection != null) connection.disconnect();
+        });
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private enum TRY {POSSIBLE, LATER, IMPOSSIBLE}
 
-    @WorkerThread @CatD private TRY connect() {
+    @WorkerThread @CatD(exit=true) private TRY connect() {
         if (connection != null)
             connection.disconnect();
 
@@ -242,37 +241,42 @@ public class RelayService extends Service implements Connection.Observer {
 
     public EnumSet<STATE> state = EnumSet.of(STATE.STOPPED);
 
-    @WorkerThread @Override @CatD synchronized public void onStateChanged(Connection.STATE s) {
+    @WorkerThread @Override synchronized public void onStateChanged(Connection.STATE s) {
+        if (state.contains(STATE.STOPPED)) return;
         switch (s) {
             case CONNECTING:
             case CONNECTED:
                 return;
             case AUTHENTICATED:
-                state = EnumSet.of(STATE.STARTED, STATE.AUTHENTICATED);
+                changeState(EnumSet.of(STATE.STARTED, STATE.AUTHENTICATED));
                 Notificator.showMain(this, getString(R.string.notification_connected_to, P.printableHost));
                 hello();
                 break;
             case BUFFERS_LISTED:
-                state = EnumSet.of(STATE.STARTED, STATE.AUTHENTICATED, STATE.LISTED);
+                changeState(EnumSet.of(STATE.STARTED, STATE.AUTHENTICATED, STATE.LISTED));
                 break;
             case DISCONNECTED:
-                if (state.contains(STATE.STOPPED)) return;
                 if (!state.contains(STATE.AUTHENTICATED)) return; // continue connecting
-                state = EnumSet.of(STATE.STOPPED);
+                changeState(EnumSet.of(STATE.STOPPED));
                 goodbye();
                 if (P.reconnect) Weechat.runOnMainThread(this::start);
                 else stopSelf();
         }
+    }
+
+    private void changeState(EnumSet<STATE> state) {
+        this.state = state;
         EventBus.getDefault().postSticky(new StateChangedEvent(state));
     }
 
-    @WorkerThread private void hello() {
+    @WorkerThread @Cat private void hello() {
         ping.scheduleFirstPing();
         BufferList.launch(this);
         SyncAlarmReceiver.start(this);
     }
 
-    @WorkerThread private void goodbye() {
+    //sync so that goodbye() never happens while state=auth but hello didn't run yet
+    @AnyThread @Cat private void goodbye() {
         SyncAlarmReceiver.stop(this);
         BufferList.stop();
         ping.unschedulePing();
@@ -287,9 +291,9 @@ public class RelayService extends Service implements Connection.Observer {
         }
     }
 
-    // ALWAYS followed by onStateChanged(STATE.DISCONNECTED); might be StreamClosed
     @WorkerThread @Override public void onException(Exception e) {
-        kitty.error("onException(%s)", e.getClass().getSimpleName());
+        kitty.error("→ onException(%s)", e.getClass().getSimpleName());
+        if (state.contains(STATE.STOPPED)) return;
         if (e instanceof StreamClosed && (!state.contains(STATE.AUTHENTICATED)))
             e = new ExceptionWrapper(e, getString(R.string.relay_error_server_closed));
         else if (e instanceof UnresolvedAddressException)
@@ -302,6 +306,8 @@ public class RelayService extends Service implements Connection.Observer {
     private final static RelayObject[] NULL = {null};
 
     @WorkerThread @Override public void onMessage(RelayMessage message) {
+        kitty.trace("→ onMessage(%s)", message.getID());
+        if (state.contains(STATE.STOPPED)) return;
         ping.onMessage();
         RelayObject[] objects = message.getObjects() == null ? NULL : message.getObjects();
         String id = message.getID();

@@ -50,6 +50,7 @@ public class BufferList {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @WorkerThread public static void launch(final RelayService relay) {
+        Assert.assertNull(BufferList.relay);
         BufferList.relay = relay;
 
         // handle buffer list changes
@@ -91,7 +92,7 @@ public class BufferList {
         SendMessageEvent.fire(P.optimizeTraffic ? "sync * buffers,upgrade" : "sync");
     }
 
-    @WorkerThread public static void stop() {
+    @AnyThread public static void stop() {
         relay = null;
         handlers.clear();
     }

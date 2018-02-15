@@ -41,6 +41,7 @@ public class RelayConnection implements Connection, Connection.Observer {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @Override public void sendMessage(String string) {
+        if (!string.endsWith("\n")) string += "\n";
         connection.sendMessage(string);
     }
 
@@ -100,7 +101,7 @@ public class RelayConnection implements Connection, Connection.Observer {
     private void authenticate() {
         String password = this.password.replace(",", "\\,");
         sendMessage(String.format("init password=%s,compression=zlib\n" +
-                "(%s) info version_number\n", password, ID_VERSION));
+                "(%s) info version_number", password, ID_VERSION));
     }
 
 }

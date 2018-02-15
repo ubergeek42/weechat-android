@@ -414,6 +414,7 @@ public class WeechatActivity extends AppCompatActivity implements
             openBuffer(buffer.fullName);
         else
             Weechat.showShortToast(R.string.no_hot_buffers);
+        Utils.dumpThreads();
     }
 
     @MainThread @Cat("Menu") private void makeMenuReflectConnectionStatus() {

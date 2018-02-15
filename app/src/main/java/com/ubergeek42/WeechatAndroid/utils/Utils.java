@@ -45,6 +45,7 @@ import java.io.Serializable;
 import java.io.StringWriter;
 import java.text.SimpleDateFormat;
 import java.util.Iterator;
+import java.util.Set;
 
 public class Utils {
 
@@ -244,5 +245,23 @@ public class Utils {
     private static void bash(String command) throws IOException, InterruptedException {
         if (Runtime.getRuntime().exec(new String[] {"sh", "-c", command}).waitFor() != 0)
             throw new IOException("error while executing: " + command);
+    }
+
+    // allows the application to print A LOT of logging
+    private static void turnOffChatty() {
+        int pid = android.os.Process.myPid();
+        String whiteList = "logcat -P '" + pid + "'";
+        try {
+            Runtime.getRuntime().exec(whiteList).waitFor();
+        } catch (InterruptedException | IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void dumpThreads() {
+        Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
+        for (Thread t : threadSet) {
+            kitty.info("%s -> %s [a %s, d %s]", t.getName(), t.getState(), t.isAlive(), t.isDaemon());
+        }
     }
 }

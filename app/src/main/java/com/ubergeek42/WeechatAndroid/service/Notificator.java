@@ -74,7 +74,7 @@ public class Notificator {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_CONNECTION_STATUS);
         builder.setContentIntent(contentIntent)
                 .setSmallIcon(icon)
-                .setContentTitle("WeechatAndroid " + BuildConfig.VERSION_NAME)
+                .setContentTitle("Weechat-Android " + BuildConfig.VERSION_NAME)
                 .setContentText(content)
                 .setWhen(System.currentTimeMillis());
 
