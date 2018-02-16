@@ -42,6 +42,7 @@ public class BufferListFragment extends Fragment implements BufferListEye, View.
     private WeechatActivity activity;
     private BufferListAdapter adapter;
 
+    private RecyclerView uiRecycler;
     private RelativeLayout uiFilterBar;
     private EditText uiFilter;
     private ImageButton uiFilterClear;
@@ -62,7 +63,7 @@ public class BufferListFragment extends Fragment implements BufferListEye, View.
 
     @MainThread @Override @Cat public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.bufferlist, container, false);
-        RecyclerView uiRecycler = view.findViewById(R.id.recycler);
+        uiRecycler = view.findViewById(R.id.recycler);
         uiRecycler.setAdapter(adapter);
         uiFilter = view.findViewById(R.id.bufferlist_filter);
         uiFilter.addTextChangedListener(filterTextWatcher);
@@ -117,7 +118,10 @@ public class BufferListFragment extends Fragment implements BufferListEye, View.
     @AnyThread @Override @Cat public void onBuffersChanged() {
         adapter.onBuffersChanged();
         int hotCount = BufferList.getHotCount();
-        Weechat.runOnMainThread(() -> activity.updateHotCount(hotCount));
+        Weechat.runOnMainThread(() -> {
+            if (hotCount > 0) uiRecycler.smoothScrollToPosition(0);
+            activity.updateHotCount(hotCount);
+        });
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
