@@ -1,7 +1,5 @@
-/**
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- */
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
 
 package com.ubergeek42.WeechatAndroid.utils;
 
@@ -32,4 +30,9 @@ class LinearSmoothScrollerFix extends LinearSmoothScroller {
             recycler.scrollBy(0, point.y > 0 ? 1 : -1);
         }
     }
+
+    //private static final float MILLISECONDS_PER_INCH = 50f;       // default = 25f
+    //@Override protected float calculateSpeedPerPixel(DisplayMetrics displayMetrics) {
+    //    return MILLISECONDS_PER_INCH / displayMetrics.densityDpi;
+    //}
 }

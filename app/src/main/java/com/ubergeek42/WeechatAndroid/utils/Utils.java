@@ -185,6 +185,9 @@ public class Utils {
 //        return null;
 //    }
 
+    public interface Predicate<T> {
+        boolean test(T t);
+    }
     //////////////////////////////////////////////////////////////////////////////////////////////// debug stuff
 
     // get permission for showing system alert, see next method

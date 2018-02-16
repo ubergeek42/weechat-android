@@ -49,8 +49,11 @@ import java.util.List;
 import static com.ubergeek42.WeechatAndroid.R.layout.chatview_line;
 import static com.ubergeek42.WeechatAndroid.R.layout.more_button;
 import static com.ubergeek42.WeechatAndroid.R.layout.read_marker;
+import static com.ubergeek42.WeechatAndroid.relay.Buffer.PRIVATE;
 import static com.ubergeek42.WeechatAndroid.relay.Lines.HEADER_POINTER;
 import static com.ubergeek42.WeechatAndroid.relay.Lines.MARKER_POINTER;
+
+import static com.ubergeek42.WeechatAndroid.utils.Utils.Predicate;
 
 
 public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements BufferEye {
@@ -297,48 +300,30 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     //////////////////////////////////////////////////////////////////////////////////////////////// find hot line
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private int highlights;
-    private int privates;
-
     private final static int HOT_LINE_LOST = -1;
-    private final static int HOT_LINE_NOT_READY = -2;
     private final static int HOT_LINE_NOT_PRESENT = -3;
 
-    @MainThread public synchronized void storeHotLineInfo() {
-        Assert.assertNotNull(buffer);
-        highlights = buffer.highlights;
-        privates = (buffer.type == Buffer.PRIVATE) ? buffer.unreads : 0;
-    }
-
-    @AnyThread public synchronized void scrollToHotLineIfNeeded() {
+    @MainThread public synchronized void scrollToHotLineIfNeeded() {
         final int idx = findHotLine();
-        if (idx == HOT_LINE_NOT_READY || idx == HOT_LINE_NOT_PRESENT) return;
-        highlights = privates = 0;
-        Weechat.runOnMainThread(() -> {
-            if (idx == HOT_LINE_LOST) Weechat.showShortToast(R.string.autoscroll_no_line);
-            else uiLines.smoothScrollToPositionAfterAnimation(idx);
-        });
+        if (idx == HOT_LINE_NOT_PRESENT) return;
+        if (idx == HOT_LINE_LOST) Weechat.showShortToast(R.string.autoscroll_no_line);
+        else uiLines.smoothScrollToPositionAfterAnimation(idx);
     }
 
-    @AnyThread synchronized private int findHotLine() {
+    @MainThread private int findHotLine() {
         Assert.assertNotNull(buffer);
-        if (!buffer.isWatched || !buffer.linesAreReady()) return HOT_LINE_NOT_READY;
-        if ((highlights | privates) == 0) return HOT_LINE_NOT_PRESENT;
+        Assert.assertTrue(buffer.linesAreReady());
 
-        int count = _lines.size(), idx = -1;
+        int skip = buffer.getHotCount();
+        if (skip == 0) return HOT_LINE_NOT_PRESENT;
 
-        if (privates > 0) {
-            for (idx = count - 1; idx >= 0; idx--) {
-                Line line = _lines.get(idx);
-                if (line.type == Line.LINE_MESSAGE && --privates == 0) break;
-            }
-        } else if (highlights > 0) {
-            for (idx = count - 1; idx >= 0; idx--) {
-                Line line = _lines.get(idx);
-                if (line.highlighted && --highlights == 0) break;
-            }
-        }
-        return (idx < 0) ? HOT_LINE_LOST : idx + 1;
+        Predicate<Line> p = (buffer.type == PRIVATE) ? (l) -> l.type == Line.LINE_MESSAGE :
+                (l) -> l.highlighted;
+
+        for (int idx = _lines.size() - 1; idx >= 0; idx--)
+            if (p.test(_lines.get(idx)) && --skip == 0) return idx;
+
+        return HOT_LINE_LOST;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

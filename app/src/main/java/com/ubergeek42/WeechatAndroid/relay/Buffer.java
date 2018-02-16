@@ -178,7 +178,7 @@ public class Buffer {
                 "input 0x%1$x /input set_unread_current_buffer", pointer);
     }
 
-    @AnyThread synchronized int getHotCount() {
+    @AnyThread synchronized public int getHotCount() {
         return type == Buffer.PRIVATE ? unreads + highlights : highlights;
     }
 

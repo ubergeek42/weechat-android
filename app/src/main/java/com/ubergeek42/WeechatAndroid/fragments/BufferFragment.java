@@ -160,11 +160,8 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
 
         boolean watched = attached && focused && !activity.isPagerNoticeablyObscured();
         if (buffer.isWatched != watched) {
+            if (watched) linesAdapter.scrollToHotLineIfNeeded();
             buffer.setWatched(watched);
-            if (watched) {
-                linesAdapter.storeHotLineInfo();
-                linesAdapter.scrollToHotLineIfNeeded();
-            }
         }
 
         if ((state == State.PAGER_FOCUS && !focused) ||                 // swiping left/right or
@@ -250,12 +247,9 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     }
 
     @WorkerThread @Override public void onLinesListed() {
-        Weechat.runOnMainThread(() -> {
-            onVisibilityStateChanged(State.LINES);
-            uiLines.requestAnimation();
-        });
-        linesAdapter.onLinesListed();                   // this sets _lines in a worker thread
-        linesAdapter.scrollToHotLineIfNeeded();         // this looks at _lines in the same thread
+        Weechat.runOnMainThread(() -> uiLines.requestAnimation());
+        linesAdapter.onLinesListed();
+        Weechat.runOnMainThread(() -> onVisibilityStateChanged(State.LINES));
     }
 
     @WorkerThread @Override public void onPropertiesChanged() {
