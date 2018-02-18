@@ -40,7 +40,7 @@ import static com.ubergeek42.WeechatAndroid.service.Events.SendMessageEvent;
 public class BufferList {
     final private static @Root Kitty kitty = Kitty.make();
 
-    private static volatile @Nullable RelayService relay;
+    public static volatile @Nullable RelayService relay;
     private static volatile @Nullable BufferListEye buffersEye;
 
     public static @NonNull ArrayList<Buffer> buffers = new ArrayList<>();
@@ -79,11 +79,11 @@ public class BufferList {
         addMessageHandler("_nicklist", nickListWatcher);
         addMessageHandler("_nicklist_diff", nickListWatcher);
 
-        // remove the new message notification upon connecting; it will be recreated, if needed
-        // hotlist remains intact and will be adjusted when the hotlist handler runs, however it
-        // case buffer has received a new highlight during our downtime, data will be old. todo?
-        hotCount = 0;
-        Notificator.showHot(new ArrayList<>(), false);
+        // // remove the new message notification upon connecting; it will be recreated, if needed
+        // // hotlist remains intact and will be adjusted when the hotlist handler runs, however it
+        // // case buffer has received a new highlight during our downtime, data will be old. todo?
+        // hotCount = 0;
+        // Notificator.showHot(new ArrayList<>(), false);
 
         // request a list of buffers current open, along with some information about them
         SendMessageEvent.fire("(listbuffers) hdata buffer:gui_buffers(*) " +
@@ -210,44 +210,37 @@ public class BufferList {
     //////////////////////////////////////////////////////////////////////////////////////////////// hotlist stuff
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    // a list of most recent ACTUALLY RECEIVED hot messages
-    // each entry has a form of {"irc.free.#123", "<nick> hi there"}
-    final private static List<String[]> hotList = Collections.synchronizedList(new ArrayList<>());
-
-    // this is the value calculated from hotlist received from weechat
-    // it MIGHT BE GREATER than size of hotList
-    volatile private static int hotCount = 0;
+//    // a list of most recent ACTUALLY RECEIVED hot messages
+//    // each entry has a form of {"irc.free.#123", "<nick> hi there"}
+//    final private static List<String[]> hotList = Collections.synchronizedList(new ArrayList<>());
+//
+//    // this is the value calculated from hotlist received from weechat
+//    // it MIGHT BE GREATER than size of hotList
+//    volatile private static int hotCount = 0;
 
     @AnyThread static public int getHotCount() {
-        return hotCount;
+        return Notificator.getHotCount();
     }
 
     // called when a new new hot message just arrived
     @WorkerThread static void newHotLine(final @NonNull Buffer buffer, final @NonNull Line line) {
-        hotList.add(new String[]{buffer.fullName, line.getNotificationString()});
-        processHotCountAndAdjustNotification(true);
+        Notificator.onNewHotLine(buffer, line);
     }
 
     // remove a number of messages for a given buffer, DOES NOT notify anyone of the change
     // this method should be closely followed by the ↓ method that updates hot count,
     // and also a call to the buffer list watcher, if any
     @AnyThread static void adjustHotListForBuffer(final @NonNull Buffer buffer) {
-        int leave = buffer.getHotCount();
-        synchronized (hotList) {
-            for (ListIterator<String[]> it = hotList.listIterator(hotList.size()); it.hasPrevious();) {
-                if (it.previous()[0].equals(buffer.fullName) && (leave-- <= 0))
-                    it.remove();
-            }
-        }
+        Notificator.adjustHotListForBuffer(buffer);
     }
 
-    @AnyThread static synchronized void processHotCountAndAdjustNotification(boolean newHighlight) {
-        int hot = 0;
-        for (Buffer buffer : buffers) hot += buffer.getHotCount();
-        if (hotCount == hot) return;
-        hotCount = hot;
-        Notificator.showHot(new ArrayList<>(hotList), newHighlight);
-    }
+//    @AnyThread static synchronized void processHotCountAndAdjustNotification(boolean newHighlight) {
+//        int hot = 0;
+//        for (Buffer buffer : buffers) hot += buffer.getHotCount();
+//        if (hotCount == hot) return;
+//        hotCount = hot;
+//        Notificator.showHot(new ArrayList<>(hotList), newHighlight);
+//    }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// private stuffs
@@ -376,7 +369,7 @@ public class BufferList {
                 }
             }
 
-            processHotCountAndAdjustNotification(false);
+            //processHotCountAndAdjustNotification(false);
             notifyBuffersChanged();
         }
     };

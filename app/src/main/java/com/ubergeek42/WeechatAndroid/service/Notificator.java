@@ -8,26 +8,38 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
 import android.support.annotation.AnyThread;
 import android.support.annotation.MainThread;
 import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.RemoteInput;
+import android.text.SpannableString;
 import android.text.TextUtils;
+import android.text.style.StyleSpan;
 
 import com.ubergeek42.WeechatAndroid.BuildConfig;
 import com.ubergeek42.WeechatAndroid.R;
+import com.ubergeek42.WeechatAndroid.Weechat;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
+import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
+import com.ubergeek42.WeechatAndroid.relay.Line;
 import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
+import com.ubergeek42.weechat.Color;
 
-import java.util.List;
+import java.util.ArrayList;
+import java.util.HashMap;
 
+import static android.support.v4.app.NotificationCompat.MessagingStyle.Message;
 import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.AUTHENTICATED;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.NOTIFICATION_EXTRA_BUFFER_FULL_NAME;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.NOTIFICATION_EXTRA_BUFFER_FULL_NAME_ANY;
@@ -49,6 +61,93 @@ public class Notificator {
     @MainThread public static void init(Context c) {
         context = c.getApplicationContext();
         manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return;
+
+        NotificationChannel channel = new NotificationChannel(
+                NOTIFICATION_CHANNEL_CONNECTION_STATUS,
+                context.getString(R.string.notification_channel_connection_status),
+                NotificationManager.IMPORTANCE_MIN);
+        channel.setShowBadge(false);
+        manager.createNotificationChannel(channel);
+
+        channel = new NotificationChannel(
+                NOTIFICATION_CHANNEL_HOTLIST,
+                context.getString(R.string.notification_channel_hotlist),
+                NotificationManager.IMPORTANCE_DEFAULT);
+        manager.createNotificationChannel(channel);
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    @SuppressLint("UseSparseArrays")
+    final private static HashMap<Long, HotBuffer> hotList = new HashMap<>();
+    private static int totalHotCount = 0;
+
+    static class HotBuffer {
+        final boolean isPrivate;
+        final String fullName;
+        String shortName;
+        final ArrayList<Message> messages = new ArrayList<>();
+        int hotCount = 0;
+
+        HotBuffer(Buffer buffer) {
+            isPrivate = buffer.type == Buffer.PRIVATE;
+            fullName = buffer.fullName;
+            shortName = buffer.shortName;
+        }
+
+        void updateHotCount(Buffer buffer) {
+            int newHotCount = buffer.getHotCount();
+            if (hotCount == newHotCount) return;
+            shortName = buffer.shortName;
+            setHotCount(newHotCount);
+            int toRemove = messages.size() - hotCount;
+            if (toRemove >= 0) messages.subList(0, toRemove).clear();
+            showHot(this, false);
+        }
+
+        void onNewHotLine(Buffer buffer, Line line) {
+            setHotCount(hotCount + 1);
+            messages.add(getMessage(line, isPrivate));
+            shortName = buffer.shortName;
+            showHot(this, true);
+        }
+
+        private void setHotCount(int newHotCount) {
+            totalHotCount += newHotCount - hotCount;
+            hotCount = newHotCount;
+        }
+    }
+
+    private static boolean connected = false;
+    @Cat synchronized static void redraw(boolean connected) {
+        Notificator.connected = connected;
+        for (HotBuffer buffer : hotList.values()) showHot(buffer, false);
+    }
+
+    @Cat public synchronized static void onNewHotLine(@NonNull Buffer buffer, @NonNull Line line) {
+        getHotBuffer(buffer).onNewHotLine(buffer, line);
+    }
+
+    @Cat(linger=true) public synchronized static void adjustHotListForBuffer(final @NonNull Buffer buffer) {
+        kitty.trace("hot=%s", buffer.getHotCount());
+        getHotBuffer(buffer).updateHotCount(buffer);
+    }
+
+    private static @NonNull HotBuffer getHotBuffer(Buffer buffer) {
+        HotBuffer hotBuffer = hotList.get(buffer.pointer);
+        if (hotBuffer == null) {
+            hotBuffer = new HotBuffer(buffer);
+            hotList.put(buffer.pointer, hotBuffer);
+        }
+        return hotBuffer;
+    }
+
+    public synchronized static int getHotCount() {
+        return totalHotCount;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -61,15 +160,6 @@ public class Notificator {
 
         boolean authenticated = relay.state.contains(AUTHENTICATED);
         int icon = authenticated ? R.drawable.ic_connected : R.drawable.ic_disconnected;
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(
-                    NOTIFICATION_CHANNEL_CONNECTION_STATUS,
-                    context.getString(R.string.notification_channel_connection_status),
-                    NotificationManager.IMPORTANCE_MIN);
-            channel.setShowBadge(false);
-            manager.createNotificationChannel(channel);
-        }
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_CONNECTION_STATUS);
         builder.setContentIntent(contentIntent)
@@ -112,65 +202,139 @@ public class Notificator {
     // it's filled from hotlist data and hotList only contains lines that arrived in real time. so
     // we add (message not available) if there are NO lines to display and add "..." if there are
     // some lines to display, but not all
-    @AnyThread @Cat public static void showHot(final List<String[]> hotList, boolean newHighlight) {
+    @AnyThread @Cat static void showHot(HotBuffer b, boolean newHighlight) {
         if (!P.notificationEnable)
             return;
 
-        final int hotCount = BufferList.getHotCount();
-        if (hotCount == 0) {
-            manager.cancel(NOTIFICATION_HOT_ID);
+        int msgs = 0, chats = 0;
+        for (HotBuffer h : hotList.values()) {
+            if (h.hotCount == 0) continue;
+            chats++;
+            msgs += h.hotCount;
+        }
+
+        if (b.hotCount == 0) {
+            if (msgs == 0) manager.cancel(232);
+            manager.cancel(b.fullName, NOTIFICATION_HOT_ID);
             return;
         }
 
-        // prepare intent
-        Intent intent = new Intent(context, WeechatActivity.class).putExtra(NOTIFICATION_EXTRA_BUFFER_FULL_NAME, NOTIFICATION_EXTRA_BUFFER_FULL_NAME_ANY);
-        PendingIntent contentIntent = PendingIntent.getActivity(context, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        Notification n = new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_HOTLIST)
+                .setContentIntent(getIntentFor(NOTIFICATION_EXTRA_BUFFER_FULL_NAME_ANY))
+                .setContentTitle("Weechat-Android1")
+                .setContentText("You have unread messages1")
+                .setSmallIcon(R.drawable.ic_hot)
+                .setGroup("hello")
+                .setGroupSummary(true)
+                .setSubText(String.format("%s messages in %s chats", msgs, chats))
+                .setContentInfo(String.valueOf(b.hotCount))
+                //.setNumber(b.hotCount)
+                .build();
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(
-                    NOTIFICATION_CHANNEL_HOTLIST,
-                    context.getString(R.string.notification_channel_hotlist),
-                    NotificationManager.IMPORTANCE_DEFAULT);
-            manager.createNotificationChannel(channel);
-        }
+        manager.notify(232, n);
 
         // prepare notification
         // make the ticker the LAST message
-        String message = hotList.size() == 0 ? context.getString(R.string.hot_message_not_available) : hotList.get(hotList.size() - 1)[LINE];
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_HOTLIST)
-                .setContentIntent(contentIntent)
-                .setSmallIcon(R.drawable.ic_hot)
-                .setContentTitle(context.getResources().getQuantityString(R.plurals.hot_messages, hotCount, hotCount))
-                .setContentText(message);
-
-        // display several lines only if we have at least one visible line and
-        // 2 or more lines total. that is, either display full list of lines or
-        // one ore more visible lines and "..."
-        if (hotList.size() > 0 && hotCount > 1) {
-            NotificationCompat.InboxStyle inbox = new NotificationCompat.InboxStyle()
-                    .setSummaryText(P.printableHost);
-
-            for (String[] bufferToLine : hotList) inbox.addLine(bufferToLine[LINE]);
-            if (hotList.size() < hotCount) inbox.addLine("…");
-
-            builder.setContentInfo(String.valueOf(hotCount));
-            builder.setStyle(inbox);
+        String lastMessage;
+        if (b.messages.size() == 0) lastMessage = context.getString(R.string.hot_message_not_available);
+        else {
+            Message last = b.messages.get(b.messages.size() - 1);
+            lastMessage = last.getSender() + "  " + last.getText();
         }
 
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_HOTLIST)
+                .setContentIntent(getIntentFor(b.fullName))
+                .setSmallIcon(R.drawable.ic_hot)
+                .setContentTitle(context.getResources().getQuantityString(R.plurals.hot_messages, b.hotCount, b.hotCount, b.shortName))
+                .setContentText("hellooooo world")
+                .setContentInfo(String.valueOf(b.hotCount));
+
+        if (connected && b.messages.size() > 0) builder.addAction(getAction(context, b.fullName));
+
+        NotificationCompat.MessagingStyle style = new NotificationCompat.MessagingStyle("");
+        if (b.hotCount > b.messages.size()) {
+            int missing = b.hotCount - b.messages.size();
+            String s = context.getResources().getQuantityString(R.plurals.hot_messages_missing, missing, missing);
+            style.addMessage(s, 0, "");
+        }
+        for (Message message : b.messages) style.addMessage(message);
+
+        //if (!b.isPrivate) style.setConversationTitle(b.shortName);
+        style.setConversationTitle(b.hotCount < 2 ? b.shortName : b.shortName + String.format(" (%s)", b.hotCount));
+        builder.setStyle(style);
+        builder.setGroup("hello");
+
         if (newHighlight) {
-            builder.setTicker(message);
-
+            builder.setTicker(lastMessage);
             builder.setPriority(Notification.PRIORITY_HIGH);
-
-            if (!TextUtils.isEmpty(P.notificationSound))
-                builder.setSound(Uri.parse(P.notificationSound));
-
+            if (!TextUtils.isEmpty(P.notificationSound)) builder.setSound(Uri.parse(P.notificationSound));
             int flags = 0;
             if (P.notificationLight) flags |= Notification.DEFAULT_LIGHTS;
             if (P.notificationVibrate) flags |= Notification.DEFAULT_VIBRATE;
             builder.setDefaults(flags);
         }
 
-        manager.notify(NOTIFICATION_HOT_ID, builder.build());
+        manager.notify(b.fullName, NOTIFICATION_HOT_ID, builder.build());
+    }
+
+    private static PendingIntent getIntentFor(String fullName) {
+        Intent intent = new Intent(context, WeechatActivity.class).putExtra(NOTIFICATION_EXTRA_BUFFER_FULL_NAME, fullName);
+        intent.setAction(fullName);
+        return PendingIntent.getActivity(context, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+    }
+
+    private static final String KEY_TEXT_REPLY = "key_text_reply";
+    private static NotificationCompat.Action getAction(Context ctx, String fullName) {
+        String replyLabel = ctx.getResources().getString(R.string.reply_label);
+        RemoteInput remoteInput = new RemoteInput.Builder(KEY_TEXT_REPLY)
+                .setLabel(replyLabel)
+                .build();
+        Intent intent = new Intent(ctx, InlineReplyReceiver.class);
+        intent.setAction(fullName);
+        PendingIntent replyPendingIntent = PendingIntent.getBroadcast(ctx,
+                        1,
+                        intent,
+                        PendingIntent.FLAG_UPDATE_CURRENT);
+        return new NotificationCompat.Action.Builder(R.drawable.ic_send,
+                replyLabel, replyPendingIntent)
+                .addRemoteInput(remoteInput)
+                .build();
+    }
+
+    private static Message getMessage(Line line, boolean isPrivate) {
+        CharSequence message = Color.stripEverything(line.message);
+        String nick = isPrivate || line.action ? "" : line.speakingNick;
+        if (nick == null) nick = Color.stripEverything(line.prefix);
+        if (line.action) {
+            SpannableString sb = new SpannableString(message);
+            sb.setSpan(new StyleSpan(Typeface.ITALIC), 0, message.length(), 0);
+            message = sb;
+        }
+        return new Message(message, line.date.getTime(), nick);
+    }
+
+    public static class InlineReplyReceiver extends BroadcastReceiver {
+        @Override public void onReceive(Context context, Intent intent) {
+            String fullName = intent.getAction();
+            CharSequence line = getMessageText(intent);
+            kitty.warn("channel %s message %s", fullName, line);
+            if (line == null) return;
+            P.addSentMessage(line.toString());
+            if (connected) {
+                Events.SendMessageEvent.fire("input %s %s", fullName, line);
+                Buffer buffer = BufferList.findByFullName(fullName);
+                if (buffer != null) buffer.flagResetHotMessagesOnNewOwnLine = true;
+            } else {
+                Weechat.showShortToast("You should never see this");
+            }
+        }
+    }
+
+    private static CharSequence getMessageText(Intent intent) {
+        Bundle remoteInput = RemoteInput.getResultsFromIntent(intent);
+        if (remoteInput != null) {
+            return remoteInput.getCharSequence(KEY_TEXT_REPLY);
+        }
+        return null;
     }
 }

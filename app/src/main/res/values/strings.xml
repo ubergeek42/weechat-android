@@ -37,9 +37,17 @@
     
     <!-- Some of the notifications the application displays during certain events -->
     <plurals name="hot_messages">
-        <item quantity="one">New message!</item>
-        <item quantity="other">%d new messages!</item>
+        <item quantity="one">New message in %s</item>
+        <item quantity="other">%d new messages in %s</item>
     </plurals>
+
+    <plurals name="hot_messages_missing">
+        <item quantity="one">(message not fetched)</item>
+        <item quantity="other">(%d messages not fetched)</item>
+    </plurals>
+
+    <string name="reply_label">Reply</string>
+
     <string name="hot_message_not_available">(message not available)</string>
 
     <string name="notification_connected_to">Connected to %s</string>

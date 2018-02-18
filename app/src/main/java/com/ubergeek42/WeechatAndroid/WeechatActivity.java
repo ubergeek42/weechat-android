@@ -196,12 +196,12 @@ public class WeechatActivity extends AppCompatActivity implements
 
     private boolean started = false;
     @MainThread @Override @CatD protected void onStart() {
-        super.onStart();
         state = null;
         EventBus.getDefault().register(this);
-        if (getIntent().hasExtra(NOTIFICATION_EXTRA_BUFFER_FULL_NAME)) openBufferFromIntent();
         updateHotCount(BufferList.getHotCount());
+        if (getIntent().hasExtra(NOTIFICATION_EXTRA_BUFFER_FULL_NAME)) openBufferFromIntent();
         started = true;
+        super.onStart();
     }
 
     @MainThread @Override @CatD protected void onStop() {

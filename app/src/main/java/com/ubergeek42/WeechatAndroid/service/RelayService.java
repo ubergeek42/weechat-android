@@ -270,6 +270,7 @@ public class RelayService extends Service implements Connection.Observer {
     }
 
     @WorkerThread @Cat private void hello() {
+        Notificator.redraw(true);
         ping.scheduleFirstPing();
         BufferList.launch(this);
         SyncAlarmReceiver.start(this);
@@ -281,6 +282,7 @@ public class RelayService extends Service implements Connection.Observer {
         BufferList.stop();
         ping.unschedulePing();
         P.saveStuff();
+        Notificator.redraw(false);
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////
 

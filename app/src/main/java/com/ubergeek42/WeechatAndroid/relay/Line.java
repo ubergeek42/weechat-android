@@ -31,14 +31,14 @@ public class Line {
     final public long pointer;
     final @Nullable public String prefix;
     final @NonNull public String message;
-    final private Date date;
+    final public Date date;
 
     // additional data
     final public int type;
     final public boolean visible;
     final public boolean highlighted;
 
-    @Nullable String speakingNick;
+    public @Nullable String speakingNick;
     public boolean action;
     private boolean privmsg;
 
@@ -92,7 +92,7 @@ public class Line {
     }
 
     final static int LINE_OTHER = 0;
-    final private static int LINE_OWN = 1;
+    final static int LINE_OWN = 1;
     final public static int LINE_MESSAGE = 2;
 
     //////////////////////////////////////////////////////////////////////////////////////////// processing stuff

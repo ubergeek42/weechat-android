@@ -64,5 +64,6 @@
             </intent-filter>
         </receiver>
         <receiver android:name=".service.SyncAlarmReceiver" />
+        <receiver android:name=".service.Notificator$InlineReplyReceiver" />
     </application>
 </manifest>

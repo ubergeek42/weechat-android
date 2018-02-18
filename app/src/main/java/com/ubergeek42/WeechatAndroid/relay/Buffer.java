@@ -55,6 +55,8 @@ public class Buffer {
     public int totalReadUnreads = 0;
     public int totalReadHighlights = 0;
 
+    volatile public boolean flagResetHotMessagesOnNewOwnLine = false;
+
     final private Lines lines;
     final private Nicks nicks;
 
@@ -224,6 +226,11 @@ public class Buffer {
         // nick in question is supposed to be in the nicks already, for we only shuffle these
         // nicks when someone spoke, i.e. NOT when user joins.
         if (isLast && nicksAreReady()) nicks.bumpNickToTop(line.speakingNick);
+
+        if (flagResetHotMessagesOnNewOwnLine && line.type == Line.LINE_OWN) {
+            flagResetHotMessagesOnNewOwnLine = false;
+            resetUnreadsAndHighlights();
+        }
     }
 
     // a buffer NOT will want a complete update if the last line unread stored in weechat buffer
@@ -307,7 +314,7 @@ public class Buffer {
     @WorkerThread @Cat synchronized void onBufferClosed() {
         highlights = unreads = others = 0;
         BufferList.adjustHotListForBuffer(this);
-        BufferList.processHotCountAndAdjustNotification(false);
+        //BufferList.processHotCountAndAdjustNotification(false);
         if (bufferEye != null) bufferEye.onBufferClosed();
     }
 
@@ -358,7 +365,7 @@ public class Buffer {
         totalReadOthers += others;
         unreads = highlights = others = 0;
         BufferList.adjustHotListForBuffer(this);
-        BufferList.processHotCountAndAdjustNotification(false);
+        //BufferList.processHotCountAndAdjustNotification(false);
         BufferList.notifyBuffersChanged();
     }
 
@@ -410,6 +417,11 @@ public class Buffer {
 
     @WorkerThread private void notifyNicklistChanged() {
         if (bufferNickListEye != null) bufferNickListEye.onNicklistChanged();
+    }
+
+    @Override
+    public String toString() {
+        return "Buffer(" + shortName + ")";
     }
 }
 
