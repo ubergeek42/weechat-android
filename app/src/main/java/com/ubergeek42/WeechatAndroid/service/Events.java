@@ -4,6 +4,8 @@
 package com.ubergeek42.WeechatAndroid.service;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.text.TextUtils;
 
 import com.ubergeek42.WeechatAndroid.service.RelayService.STATE;
 
@@ -58,6 +60,14 @@ public class Events {
 
         public static void fire(@NonNull String message, @NonNull Object... args) {
             fire(String.format(Locale.ROOT, message, args));
+        }
+
+        public static void fireInput(@NonNull String fullName, @Nullable String input) {
+            if (TextUtils.isEmpty(input)) return;
+            P.addSentMessage(input);
+            for (String line : input.split("\n"))
+                if (!TextUtils.isEmpty(line))
+                    fire("input %s %s", fullName, line);
         }
 
         @Override public String toString() {

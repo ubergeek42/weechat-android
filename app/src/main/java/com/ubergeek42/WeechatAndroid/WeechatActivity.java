@@ -60,6 +60,7 @@ import com.ubergeek42.WeechatAndroid.adapters.NickListAdapter;
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragment;
 import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
+import com.ubergeek42.WeechatAndroid.relay.Hotlist;
 import com.ubergeek42.WeechatAndroid.relay.Nick;
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
@@ -198,7 +199,7 @@ public class WeechatActivity extends AppCompatActivity implements
     @MainThread @Override @CatD protected void onStart() {
         state = null;
         EventBus.getDefault().register(this);
-        updateHotCount(BufferList.getHotCount());
+        updateHotCount(Hotlist.getHotCount());
         if (getIntent().hasExtra(NOTIFICATION_EXTRA_BUFFER_FULL_NAME)) openBufferFromIntent();
         started = true;
         super.onStart();

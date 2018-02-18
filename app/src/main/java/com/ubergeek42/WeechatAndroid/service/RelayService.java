@@ -27,6 +27,7 @@ import android.support.annotation.WorkerThread;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.Weechat;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
+import com.ubergeek42.WeechatAndroid.relay.Hotlist;
 import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.CatD;
 import com.ubergeek42.cats.Kitty;
@@ -270,7 +271,7 @@ public class RelayService extends Service implements Connection.Observer {
     }
 
     @WorkerThread @Cat private void hello() {
-        Notificator.redraw(true);
+        Hotlist.redraw(true);
         ping.scheduleFirstPing();
         BufferList.launch(this);
         SyncAlarmReceiver.start(this);
@@ -282,7 +283,7 @@ public class RelayService extends Service implements Connection.Observer {
         BufferList.stop();
         ping.unschedulePing();
         P.saveStuff();
-        Notificator.redraw(false);
+        Hotlist.redraw(false);
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -333,14 +333,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     //////////////////////////////////////////////////////////////////////////////////////////////// send message
 
     @MainThread private void sendMessage() {
-        String input = uiInput.getText().toString();
-        if (input.length() != 0)
-            P.addSentMessage(input);
-        String[] lines = input.split("\n");
-        for (String line : lines) {
-            if (line.length() != 0)
-                SendMessageEvent.fire("input 0x%x %s", buffer.pointer, line);
-        }
+        SendMessageEvent.fireInput(buffer.fullName, uiInput.getText().toString());
         uiInput.setText("");   // this will reset tab completion
     }
 

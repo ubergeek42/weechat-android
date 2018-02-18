@@ -55,7 +55,7 @@ public class Buffer {
     public int totalReadUnreads = 0;
     public int totalReadHighlights = 0;
 
-    volatile public boolean flagResetHotMessagesOnNewOwnLine = false;
+    volatile boolean flagResetHotMessagesOnNewOwnLine = false;
 
     final private Lines lines;
     final private Nicks nicks;
@@ -209,11 +209,11 @@ public class Buffer {
             } else {
                 if (line.highlighted) {
                     highlights++;
-                    BufferList.newHotLine(this, line);
+                    Hotlist.onNewHotLine(this, line);
                     BufferList.notifyBuffersChanged();
                 } else if (line.visible && line.type == Line.LINE_MESSAGE) {
                     unreads++;
-                    if (type == PRIVATE) BufferList.newHotLine(this, line);
+                    if (type == PRIVATE) Hotlist.onNewHotLine(this, line);
                     BufferList.notifyBuffersChanged();
                 } else if (line.visible && line.type == Line.LINE_OTHER) others++;
             }
@@ -313,8 +313,7 @@ public class Buffer {
 
     @WorkerThread @Cat synchronized void onBufferClosed() {
         highlights = unreads = others = 0;
-        BufferList.adjustHotListForBuffer(this);
-        //BufferList.processHotCountAndAdjustNotification(false);
+        Hotlist.adjustHotListForBuffer(this);
         if (bufferEye != null) bufferEye.onBufferClosed();
     }
 
@@ -358,14 +357,13 @@ public class Buffer {
 
     // sets highlights/unreads to 0 and,
     // if something has actually changed, notifies whoever cares about it
-    @MainThread @Cat("?") synchronized private void resetUnreadsAndHighlights() {
+    @AnyThread @Cat("?") synchronized private void resetUnreadsAndHighlights() {
         if ((unreads | highlights | others) == 0) return;
         totalReadUnreads += unreads;
         totalReadHighlights += highlights;
         totalReadOthers += others;
         unreads = highlights = others = 0;
-        BufferList.adjustHotListForBuffer(this);
-        //BufferList.processHotCountAndAdjustNotification(false);
+        Hotlist.adjustHotListForBuffer(this);
         BufferList.notifyBuffersChanged();
     }
 

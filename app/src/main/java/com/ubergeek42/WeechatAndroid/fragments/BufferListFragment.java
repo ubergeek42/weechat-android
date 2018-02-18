@@ -26,6 +26,7 @@ import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.WeechatAndroid.relay.BufferListEye;
+import com.ubergeek42.WeechatAndroid.relay.Hotlist;
 import com.ubergeek42.WeechatAndroid.service.Events;
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.cats.Cat;
@@ -117,7 +118,7 @@ public class BufferListFragment extends Fragment implements BufferListEye, View.
 
     @AnyThread @Override @Cat public void onBuffersChanged() {
         adapter.onBuffersChanged();
-        int hotCount = BufferList.getHotCount();
+        int hotCount = Hotlist.getHotCount();
         Weechat.runOnMainThread(() -> {
             if (hotCount > 0) uiRecycler.smoothScrollToPosition(0);
             activity.updateHotCount(hotCount);
@@ -142,11 +143,10 @@ public class BufferListFragment extends Fragment implements BufferListEye, View.
 
 
     @AnyThread private void setFilter() {
-        Weechat.runOnMainThread(() -> {
-            String text = uiFilter.getText().toString();
-            BufferListAdapter.setFilter(text);
-            uiFilterClear.setVisibility((text.length() == 0) ? View.INVISIBLE : View.VISIBLE);
-        });
+        String text = uiFilter.getText().toString();
+        BufferListAdapter.setFilter(text);
+        Weechat.runOnMainThread(() -> uiFilterClear.setVisibility((text.length() == 0) ?
+                View.INVISIBLE : View.VISIBLE));
     }
 
     // the only button we've got: clear text in the filter

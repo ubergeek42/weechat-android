@@ -46,9 +46,17 @@
         <item quantity="other">(%d messages not fetched)</item>
     </plurals>
 
-    <string name="reply_label">Reply</string>
+    <plurals name="messages">
+        <item quantity="one">%d message</item>
+        <item quantity="other">%d messages</item>
+    </plurals>
 
-    <string name="hot_message_not_available">(message not available)</string>
+    <plurals name="in_buffers">
+        <item quantity="one">&#160;in %d buffers</item>
+        <item quantity="other">&#160;in %d buffers</item>
+    </plurals>
+
+    <string name="reply_label">Reply</string>
 
     <string name="notification_connected_to">Connected to %s</string>
     <string name="notification_disconnected">Disconnected</string>
