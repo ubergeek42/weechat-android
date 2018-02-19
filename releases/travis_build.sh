@@ -20,13 +20,13 @@ if [ -z "$DEVKEYPASSWORD" ]; then
 fi
 
 if [ "$DEVRELEASE" == "1" ]; then
-    ./gradlew clean assembleDevRelease \
+    ./gradlew clean :app:assembleDevrelease \
         -PdevStorefile="$DEVSTOREFILE" \
         -PdevStorePassword="$DEVSTOREPASSWORD" \
         -PdevKeyAlias="$DEVKEYALIAS" \
         -PdevKeyPassword="$DEVKEYPASSWORD"
 else
-    ./gradlew clean assembleDebug
+    ./gradlew clean :app:assembleDebug
 fi
 
 exit $?

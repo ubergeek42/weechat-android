@@ -4,28 +4,12 @@ import org.aspectj.tools.ajc.Main
 
 apply plugin: 'com.android.library'
 
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath 'com.android.tools.build:gradle:3.0.1'
-        classpath 'org.aspectj:aspectjtools:1.8.6'
-    }
-}
-
-
-repositories {
-    mavenCentral()
-    google()
-}
-
 dependencies {
-    compile 'org.aspectj:aspectjrt:1.8.6'
-    compile 'com.android.support:support-annotations:27.0.2'
+    implementation 'org.aspectj:aspectjrt:1.8.6'
+    implementation 'com.android.support:support-annotations:27.0.2'
 
-    testCompile 'junit:junit:4.12'
-    testCompile 'org.mockito:mockito-core:1.10.19'
+    testImplementation 'junit:junit:4.12'
+    testImplementation 'org.mockito:mockito-core:1.10.19'
 }
 
 android {
