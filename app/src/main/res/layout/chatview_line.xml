@@ -9,4 +9,5 @@
     android:typeface="monospace"
     android:fontFamily="monospace"
     android:paddingLeft="@dimen/chat_item_left_margin"
+    android:layerType="hardware"
      />
