@@ -31,14 +31,14 @@ public class Line {
     final public long pointer;
     final @Nullable public String prefix;
     final @NonNull public String message;
-    final public Date date;
+    final Date date;
 
     // additional data
     final public int type;
     final public boolean visible;
     final public boolean highlighted;
 
-    public @Nullable String speakingNick;
+    @Nullable String speakingNick;
     public boolean action;
     private boolean privmsg;
 
@@ -115,14 +115,14 @@ public class Line {
         DateFormat dateFormat = P.dateFormat;
         String timestamp = (dateFormat == null) ? null : dateFormat.format(date);
         boolean encloseNick = P.encloseNick && privmsg && !action;
-        Color.parse(timestamp, prefix, message, encloseNick, highlighted, P.maxWidth, P.align);
-        Spannable spannable = new SpannableString(Color.cleanMessage);
+        Color color = new Color(timestamp, prefix, message, encloseNick, highlighted, P.maxWidth, P.align);
+        Spannable spannable = new SpannableString(color.cleanMessage);
 
         if (this.type == LINE_OTHER && P.dimDownNonHumanLines) {
             spannable.setSpan(new ForegroundColorSpan(ColorScheme.get().chat_inactive_buffer[0] | 0xFF000000), 0, spannable.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         } else {
             CharacterStyle droidSpan;
-            for (Color.Span span : Color.finalSpanList) {
+            for (Color.Span span : color.finalSpanList) {
                 switch (span.type) {
                     case Color.Span.FGCOLOR:   droidSpan = new ForegroundColorSpan(span.color | 0xFF000000); break;
                     case Color.Span.BGCOLOR:   droidSpan = new BackgroundColorSpan(span.color | 0xFF000000); break;
@@ -131,20 +131,12 @@ public class Line {
                     case Color.Span.UNDERLINE: droidSpan = new UnderlineSpan(); break;
                     default: continue;
                 }
-                // 06-03 14:54:04.765 E/AndroidRuntime: FATAL EXCEPTION: r13
-                // Process: com.ubergeek42.WeechatAndroid.debug, PID: 3401
-                // Theme: themes:...
-                // java.lang.IndexOutOfBoundsException: setSpan (9 ... 89) ends beyond length 59
-                // at android.text.SpannableStringInternal.checkRange(SpannableStringInternal.java:352)
-                // at android.text.SpannableStringInternal.setSpan(SpannableStringInternal.java:79)
-                // at android.text.SpannableString.setSpan(SpannableString.java:46)
-                // at com.ubergeek42.WeechatAndroid.relay.Line.processMessage(Line.java:136)
                 spannable.setSpan(droidSpan, span.start, span.end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             }
         }
 
         if (P.align != Color.ALIGN_NONE) {
-            LeadingMarginSpan margin_span = new LeadingMarginSpan.Standard(0, (int) (P.letterWidth * Color.margin));
+            LeadingMarginSpan margin_span = new LeadingMarginSpan.Standard(0, (int) (P.letterWidth * color.margin));
             spannable.setSpan(margin_span, 0, spannable.length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
         }
 

@@ -1,18 +1,17 @@
-/*******************************************************************************
- * Copyright 2012 Keith Johnson
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- ******************************************************************************/
+// Copyright 2012 Keith Johnson
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//   http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package com.ubergeek42.weechat;
 
 import org.slf4j.Logger;
@@ -20,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+
 
 /**
  * Color class takes care of parsing WeeChat's own color codes in strings to diplay attributes
@@ -41,22 +41,22 @@ public class Color {
     public final static int ALIGN_RIGHT = 2;
     public final static int ALIGN_TIMESTAMP = 3;
 
-    public static String stripColors(String text) { return text; }
-    public static String stripAllColorsAndAttributes(String text) { return text; }
+    static String stripColors(String text) { return text; }
+
+    public Color() {}
 
     public static String stripEverything(String text) {
-        parseColors(text);
-        return out.toString();
+        return new Color().parseColors(text).toString();
     }
 
-    public static String cleanMessage;
-    public static int margin;
-    public static ArrayList<Span> finalSpanList;
+    public String cleanMessage;
+    public int margin;
+    public ArrayList<Span> finalSpanList;
 
     // prepares: cleanMessage, margin, finalSpanList
-    public static void parse(String timestamp, String prefix, String message, final boolean enclose_nick, final boolean highlight, final int max, final int alignment) {
+    public Color(String timestamp, String prefix, String message, final boolean enclose_nick, final boolean highlight, final int max, final int alignment) {
         if (DEBUG) logger.debug("parse(timestamp='{}', prefix='{}', message='{}', enclose_nick={}, highlight={}, max={}, align_right={})",
-                new Object[]{timestamp, prefix, message, enclose_nick, highlight, max, alignment});
+                timestamp, prefix, message, enclose_nick, highlight, max, alignment);
         int puff;
         ColorScheme cs = ColorScheme.get();
         StringBuilder sb = new StringBuilder();
@@ -75,8 +75,7 @@ public class Color {
 
         // prefix should be adjusted according to the settings
         // also, if highlight is enabled, remove all colors from here and add highlight color later
-        parseColors(prefix);
-        prefix = out.toString();
+        prefix = parseColors(prefix).toString();
         if (highlight) spanList.clear();
         boolean nickHasBeenCut = false;
         int maxAdjusted = enclose_nick ? Math.max(0, max - 2) : max;
@@ -128,8 +127,7 @@ public class Color {
         }
 
         // the rest of the message
-        parseColors(message);
-        message = out.toString();
+        message = parseColors(message).toString();
         puff = sb.length();
         for (Span span : spanList) {
             span.start += puff;
@@ -150,19 +148,19 @@ public class Color {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     // output of parseColors()
-    private static StringBuffer out;                                   // printable characters
-    private static ArrayList<Span> spanList = new ArrayList<>();  // list of spans in “out”
+    private StringBuffer out;                                   // printable characters
+    private ArrayList<Span> spanList = new ArrayList<>();       // list of spans in “out”
 
     // working vars of parseColor()
-    private static String msg;                                         // text currently being parsed by parseColors
-    private static int index;                                          // parsing position in this
-    private static Span[] spans = new Span[6];                         // list of currently open spans
+    private String msg;                                         // text currently being parsed by parseColors
+    private int index;                                          // parsing position in this
+    private Span[] spans = new Span[6];                         // list of currently open spans
 
     // this Span can be easily translated into android's spans (except REVERSE)
     public static class Span {
         final static public int BOLD =      0x00;
         final static public int UNDERLINE = 0x01;
-        final static public int REVERSE =   0x02;
+        final static        int REVERSE =   0x02;
         final static public int ITALIC =    0x03;
         final static public int FGCOLOR =   0x04;
         final static public int BGCOLOR =   0x05;
@@ -172,12 +170,12 @@ public class Color {
         public int color;
     }
 
-    private static char getChar() {
+    private char getChar() {
         if (index >= msg.length()) return ' ';
         return msg.charAt(index++);
     }
 
-    private static char peekChar() {
+    private char peekChar() {
         if (index >= msg.length()) return ' ';
         return msg.charAt(index);
     }
@@ -185,8 +183,8 @@ public class Color {
     /** adds a new span to the temporary span list
      ** closing a similar span if it's been open and,
      ** if possible, extending a recently closed span */
-    private static void addSpan(int type) {addSpan(type, -1);}
-    private static void addSpan(int type, int color) {
+    private void addSpan(int type) {addSpan(type, -1);}
+    private void addSpan(int type, int color) {
         finalizeSpan(type);
         int pos = out.length();
         // get the old span if the same span is ending at this same spot
@@ -214,13 +212,13 @@ public class Color {
 
     /** takes a span from the temporary span list and put it in the output list
      ** if span is size 0, simply discards it */
-    private static void finalizeSpan(int type) {
+    private void finalizeSpan(int type) {
         Span span = spans[type];
         if (span != null) {
             spans[type] = null;
             span.end = out.length();
             if (span.start != span.end) {
-                if (DEBUG) logger.debug("finalizeSpan(...): type={}, start={}, end={}, color={}", new Object[]{span.type, span.start, span.end, span.color});
+                if (DEBUG) logger.debug("finalizeSpan(...): type={}, start={}, end={}, color={}", span.type, span.start, span.end, span.color);
                 spanList.add(span);
             }
         }
@@ -233,7 +231,7 @@ public class Color {
     /** sets weechat's special colors.
      ** sets, if available, both foreground and background colors.
      **can take form of: 05 */
-    private static void setWeechatColor() {
+    private void setWeechatColor() {
         int color_index = getNumberOfLengthUpTo(2);
         int colors[] = ColorScheme.get().getOptionColor(color_index);
         if (colors[ColorScheme.OPT_FG] != -1) addSpan(Span.FGCOLOR, colors[ColorScheme.OPT_FG]);
@@ -242,7 +240,7 @@ public class Color {
 
     /** parse colors/color & attribute combinations. can take form of:
      ** 05, @00123, *05, @*_00123 */
-    private static void setColor(int type) {
+    private void setColor(int type) {
         int color;
         boolean extended = (peekChar() == '@');
         if (extended) getChar();
@@ -252,13 +250,13 @@ public class Color {
     }
 
     // returns color in the form 0xfffff or -1
-    private static int getColor() {
+    private int getColor() {
         int color_index = getNumberOfLengthUpTo(2);
         return ColorScheme.get().getWeechatColor(color_index);
     }
 
     // returns color in the form 0xfffff or -1
-    private static int getColorExtended() {
+    private int getColorExtended() {
         int color_index = getNumberOfLengthUpTo(5);
         return ColorScheme.get().getColor(color_index);
     }
@@ -266,7 +264,7 @@ public class Color {
     // returns a number stored in the next “amount” characters
     // if any of the “amount” characters is not a number, returns -1
     private static final int[] multipliers = new int[]{1, 10, 100, 1000, 10000};
-    private static int getNumberOfLengthUpTo(int amount) {
+    private int getNumberOfLengthUpTo(int amount) {
         int c;
         int ret = 0;
         for (amount--; amount >= 0; amount--) {     // 2: 1, 0;  5: 4, 3, 2, 1, 0
@@ -282,7 +280,7 @@ public class Color {
     /////////////////////////////////
 
     // set as many attributes as we can, maybe 0
-    private static void maybeSetAttributes() {
+    private void maybeSetAttributes() {
         while (true) {
             int type = getAttribute(peekChar());
             if (type < -1) return;                   // next char is not an attribute
@@ -292,7 +290,7 @@ public class Color {
     }
 
     // set 1 attribute
-    private static void maybeSetAttribute() {
+    private void maybeSetAttribute() {
         int type = getAttribute(peekChar());
         if (type < -1) return;
         if (type > -1) addSpan(type);
@@ -300,7 +298,7 @@ public class Color {
     }
 
     // remove 1 attribute
-    private static void maybeRemoveAttribute() {
+    private void maybeRemoveAttribute() {
         int type = getAttribute(peekChar());
         if (type < -1) return;
         if (type > -1) finalizeSpan(type);
@@ -326,17 +324,17 @@ public class Color {
     ///////////////////////////////// wow such code
     /////////////////////////////////
 
-    /** takes text as input
-     ** sets out and spanList */
-    synchronized private static void parseColors(String msg) {
+    // takes text as input
+    // sets out and spanList
+    private CharSequence parseColors(String msg) {
         if (DEBUG) logger.debug("parseColors({})", msg);
 
-        Color.msg = msg;
+        this.msg = msg;
         index = 0;
         out = new StringBuffer();
         spanList.clear();
 
-        if (msg == null) return;
+        if (msg == null) return out;
 
         char c;
         while (index < msg.length()) {
@@ -385,5 +383,6 @@ public class Color {
             }
         }
         for (int i = 0; i <= 5; i++) finalizeSpan(i);
+        return out;
     }
 }
