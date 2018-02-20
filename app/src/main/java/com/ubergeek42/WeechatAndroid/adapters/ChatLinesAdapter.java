@@ -39,6 +39,8 @@ import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.utils.AnimatedRecyclerView;
 import com.ubergeek42.WeechatAndroid.utils.CopyPaste;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
+import com.ubergeek42.cats.Kitty;
+import com.ubergeek42.cats.Root;
 import com.ubergeek42.weechat.ColorScheme;
 
 import org.junit.Assert;
@@ -57,6 +59,7 @@ import static com.ubergeek42.WeechatAndroid.utils.Utils.Predicate;
 
 
 public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements BufferEye {
+    final private @Root Kitty kitty = Kitty.make("ChatLinesAdapter");
 
     private final AnimatedRecyclerView uiLines;
     private @Nullable Buffer buffer;
@@ -72,6 +75,7 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 
     @MainThread public synchronized void setBuffer(@Nullable Buffer buffer) {
         this.buffer = buffer;
+        kitty.setPrefix(buffer == null ? null : buffer.shortName);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -307,7 +311,8 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         final int idx = findHotLine();
         if (idx == HOT_LINE_NOT_PRESENT) return;
         if (idx == HOT_LINE_LOST) Weechat.showShortToast(R.string.autoscroll_no_line);
-        else uiLines.smoothScrollToPositionAfterAnimation(idx);
+        // run scrolling slightly delayed so that stuff on current thread doesn't get in the way
+        else Weechat.runOnMainThread(() -> uiLines.smoothScrollToPositionAfterAnimation(idx), 100);
     }
 
     @MainThread private int findHotLine() {

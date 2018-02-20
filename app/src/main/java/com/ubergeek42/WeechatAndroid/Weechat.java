@@ -45,6 +45,10 @@ public class Weechat extends Application {
         mainHandler.post(action);
     }
 
+    public static void runOnMainThread(Runnable action, long delay) {
+        mainHandler.postDelayed(action, delay);
+    }
+
     public static void runOnMainThreadASAP(Runnable action) {
         if (Thread.currentThread() == mainThread) action.run();
         else mainHandler.post(action);

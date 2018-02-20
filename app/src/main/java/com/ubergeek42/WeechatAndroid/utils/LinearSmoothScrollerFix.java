@@ -31,6 +31,11 @@ class LinearSmoothScrollerFix extends LinearSmoothScroller {
         }
     }
 
+    //@Override protected void onSeekTargetStep(int dx, int dy, RecyclerView.State state, Action action) {
+    //    super.onSeekTargetStep(dx, dy, state, action);
+    //    kitty.trace("onSeekTargetStep(%s, %s, ...)", dx, dy);
+    //}
+
     //private static final float MILLISECONDS_PER_INCH = 50f;       // default = 25f
     //@Override protected float calculateSpeedPerPixel(DisplayMetrics displayMetrics) {
     //    return MILLISECONDS_PER_INCH / displayMetrics.densityDpi;
