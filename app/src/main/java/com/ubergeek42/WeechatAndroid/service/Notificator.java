@@ -8,6 +8,7 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
@@ -29,7 +30,9 @@ import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static android.support.v4.app.NotificationCompat.Builder;
 import static android.support.v4.app.NotificationCompat.MessagingStyle;
@@ -138,8 +141,8 @@ public class Notificator {
         String shortName = hotBuffer.shortName;
 
         if (hotCount == 0) {
-            if (totalHotCount == 0) manager.cancel(NOTIFICATION_HOT_ID);
-            else manager.cancel(fullName, NOTIFICATION_HOT_ID);
+            manager.cancel(fullName, NOTIFICATION_HOT_ID);
+            onNotificationDismissed(fullName);
             return;
         }
 
@@ -183,6 +186,7 @@ public class Notificator {
                 .setSmallIcon(R.drawable.ic_hot)
                 .setContentTitle(appName)
                 .setContentText(newMessageInB)
+                .setDeleteIntent(getDismissIntentFor(fullName))
                 .setGroup(GROUP_KEY);
 
         // messages hold the latest messages, don't show the reply button if user can't see any
@@ -196,6 +200,7 @@ public class Notificator {
 
         if (newHighlight) makeNoise(builder, res, messages);
         manager.notify(fullName, NOTIFICATION_HOT_ID, builder.build());
+        onNotificationFired(fullName);
     }
 
     // setting action in this way is not quite a proper way, but this ensures that all intents
@@ -204,6 +209,12 @@ public class Notificator {
         Intent intent = new Intent(context, WeechatActivity.class).putExtra(NOTIFICATION_EXTRA_BUFFER_FULL_NAME, fullName);
         intent.setAction(fullName);
         return PendingIntent.getActivity(context, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+    }
+
+    private static PendingIntent getDismissIntentFor(String fullName) {
+        Intent intent = new Intent(context, NotificationDismissedReceiver.class);
+        intent.setAction(fullName);
+        return PendingIntent.getBroadcast(context, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
     private static void addMissingMessageLine(int missingMessages, Resources res, MessagingStyle style) {
@@ -241,5 +252,25 @@ public class Notificator {
                 replyLabel, replyPendingIntent)
                 .addRemoteInput(remoteInput)
                 .build();
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    final private static Set<String> notifications = new HashSet<>();
+
+    @AnyThread private static synchronized void onNotificationFired(String fullName) {
+        notifications.add(fullName);
+    }
+
+    @AnyThread private static synchronized void onNotificationDismissed(String fullName) {
+        notifications.remove(fullName);
+        if (notifications.isEmpty()) manager.cancel(NOTIFICATION_HOT_ID);
+    }
+
+    public static class NotificationDismissedReceiver extends BroadcastReceiver {
+        @MainThread @Override public void onReceive(Context context, Intent intent) {
+            final String fullName = intent.getAction();
+            onNotificationDismissed(fullName);
+        }
     }
 }
