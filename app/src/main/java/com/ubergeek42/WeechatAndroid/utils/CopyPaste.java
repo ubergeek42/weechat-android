@@ -1,9 +1,7 @@
 package com.ubergeek42.WeechatAndroid.utils;
 
 import android.content.Context;
-import android.content.DialogInterface;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.text.ClipboardManager;
 import android.text.TextUtils;
 import android.text.style.URLSpan;
@@ -30,7 +28,7 @@ public class CopyPaste implements EditText.OnLongClickListener {
 
     @Override public boolean onLongClick(View v) {
         if (v instanceof EditText) return onLongClickInputField((EditText) v);
-        else return onLongClickChatLine((TextView) v);
+        else return onLongClickChatLine((LineView) v);
     }
 
     private boolean onLongClickInputField(final EditText input) {
@@ -43,7 +41,7 @@ public class CopyPaste implements EditText.OnLongClickListener {
         // read & trim clipboard
         // noinspection deprecation
         ClipboardManager cm = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
-        final String clip = (cm.getText() == null) ? "" : cm.getText().toString().trim();
+        final String clip = (cm == null || cm.getText() == null) ? "" : cm.getText().toString().trim();
 
         // copy last messages if they do not equal clipboard
         // if there are no messages, do nothing
@@ -70,11 +68,9 @@ public class CopyPaste implements EditText.OnLongClickListener {
                         v.setCompoundDrawablesWithIntrinsicBounds(0, 0, isClip ? R.drawable.ic_paste : 0, 0);
                         return v;
                     }
-                }, new DialogInterface.OnClickListener() {
-                    @Override public void onClick(DialogInterface dialog, int which) {
-                        input.setText(list.get(which));
-                        input.setSelection(input.getText().length());
-                    }
+                }, (dialog, which) -> {
+                    input.setText(list.get(which));
+                    input.setSelection(input.getText().length());
                 });
 
         // create dialogue, remove bottom padding and scroll to the end
@@ -87,15 +83,15 @@ public class CopyPaste implements EditText.OnLongClickListener {
     }
 
     // called on long click on a chat line
-    private boolean onLongClickChatLine(TextView uiTextView) {
-        final Context context = uiTextView.getContext();
-        Line line = (Line) uiTextView.getTag();
+    private boolean onLongClickChatLine(LineView lineView) {
+        final Context context = lineView.getContext();
+        Line line = (Line) lineView.getTag();
         final ArrayList<String> list = new ArrayList<>();
 
         if (!TextUtils.isEmpty(line.prefix)) list.add(line.getNotificationString());
         list.add(Color.stripEverything(line.message));
 
-        for (URLSpan url: uiTextView.getUrls()) {
+        for (URLSpan url: lineView.getUrls()) {
             String u = url.getURL();
             if (!list.get(list.size()-1).equals(u)) list.add(u);
         }
@@ -103,13 +99,10 @@ public class CopyPaste implements EditText.OnLongClickListener {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle(context.getString(R.string.dialog_copy_title)).setAdapter(
                 new ArrayAdapter<>(context, R.layout.select_dialog_item_material_2_lines, android.R.id.text1, list),
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        // noinspection deprecation
-                        ClipboardManager cm = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
-                        cm.setText(list.get(which));
-                    }
+                (dialog, which) -> {
+                    // noinspection deprecation
+                    ClipboardManager cm = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+                    if (cm != null) cm.setText(list.get(which));
                 });
         builder.create().show();
 

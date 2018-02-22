@@ -6,7 +6,6 @@ package com.ubergeek42.WeechatAndroid.service;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.preference.PreferenceManager;
 import android.support.annotation.AnyThread;
@@ -17,6 +16,7 @@ import android.support.annotation.StringRes;
 import android.support.annotation.WorkerThread;
 import android.support.v7.preference.FilePreference;
 import android.support.v7.preference.ThemeManager;
+import android.text.TextPaint;
 import android.text.TextUtils;
 import android.util.TypedValue;
 
@@ -29,6 +29,7 @@ import com.ubergeek42.cats.CatD;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
 import com.ubergeek42.weechat.Color;
+import com.ubergeek42.weechat.ColorScheme;
 
 import java.io.Serializable;
 import java.text.DateFormat;
@@ -65,6 +66,18 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         _4dp = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 4, context.getResources().getDisplayMetrics());
         _50dp = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 50, context.getResources().getDisplayMetrics());
         _200dp = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 200, context.getResources().getDisplayMetrics());
+        calculateWeaselWidth();
+    }
+
+    // sets the width of weasel (effectively the recycler view) on change (activity's onCreate)
+    // as activity can be created long after the service, run this on application start, too
+    public static @Cat void calculateWeaselWidth() {
+        int windowWidth = context.getResources().getDisplayMetrics().widthPixels;
+        boolean slidy = context.getResources().getBoolean(R.bool.slidy);
+        int weaselWidth = slidy ? windowWidth :
+                windowWidth - context.getResources().getDimensionPixelSize(R.dimen.drawer_width);
+        kitty.warn("$$ window width = %s, slidy = %s, result = %s", windowWidth, slidy, weaselWidth);
+        P.weaselWidth = weaselWidth;
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////// ui
@@ -81,7 +94,11 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     public static boolean encloseNick, dimDownNonHumanLines;
     public static @Nullable DateFormat dateFormat;
     public static int align;
+
+    public static int weaselWidth = 0;
     public static float textSize, letterWidth;
+    public static Typeface typeface;
+    public static TextPaint textPaint;
 
     static boolean notificationEnable;
     static boolean notificationTicker;
@@ -90,7 +107,6 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     static String notificationSound;
 
     public static boolean showSend, showTab, hotlistSync, volumeBtnSize;
-    public static Typeface typeface;
 
     public static boolean showBufferFilter;
 
@@ -280,12 +296,17 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     @MainThread private static void setTextSizeAndLetterWidth() {
         textSize = Float.parseFloat(p.getString(PREF_TEXT_SIZE, PREF_TEXT_SIZE_D));
         String bufferFont = p.getString(PREF_BUFFER_FONT, PREF_BUFFER_FONT_D);
-        Paint paint = new Paint();
+
         typeface = Typeface.MONOSPACE;
         try {typeface = Typeface.createFromFile(bufferFont);} catch (Exception ignored) {}
-        paint.setTypeface(typeface);
-        paint.setTextSize(textSize * context.getResources().getDisplayMetrics().scaledDensity);
-        letterWidth = (paint.measureText("m"));
+
+        textPaint = new TextPaint();
+        textPaint.setAntiAlias(true);
+        textPaint.setTypeface(typeface);
+        textPaint.setColor(0xFF000000 | ColorScheme.get().defaul[0]);
+        textPaint.setTextSize(textSize * context.getResources().getDisplayMetrics().scaledDensity);
+
+        letterWidth = (textPaint.measureText("m"));
     }
 
     @MainThread public static void setTextSizeAndLetterWidth(float size) {
@@ -397,7 +418,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
 
     public static LinkedList<String> sentMessages = new LinkedList<>();
 
-    public static void addSentMessage(String line) {
+    static void addSentMessage(String line) {
         for (Iterator<String> it = sentMessages.iterator(); it.hasNext();) {
             String s = it.next();
             if (line.equals(s)) it.remove();
