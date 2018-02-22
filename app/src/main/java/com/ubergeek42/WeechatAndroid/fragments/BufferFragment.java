@@ -167,7 +167,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         if ((state == State.PAGER_FOCUS && !focused) ||                 // swiping left/right or
             (state == State.ATTACHMENT && !attached && focused)) {      // minimizing app, closing buffer, disconnecting
             buffer.moveReadMarkerToEnd();
-            linesAdapter.onLineAdded();
+            if (state == State.PAGER_FOCUS) linesAdapter.onLineAdded();
         }
     }
 
