@@ -54,7 +54,7 @@ public class BufferListAdapter extends RecyclerView.Adapter<ViewHolder> implemen
     };
 
     public BufferListAdapter() {
-        setHasStableIds(true);
+        // if setHasStableIds(true) is called here, RecyclerView will play move animations
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -149,7 +149,7 @@ public class BufferListAdapter extends RecyclerView.Adapter<ViewHolder> implemen
 
         // store new buffers in _buffers for the sole purpose of doing a diff against, since
         // this method might be called again before buffers is assigned
-        final DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new DiffCallback(_buffers, newBuffers), true);
+        final DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new DiffCallback(_buffers, newBuffers), false);
         _buffers = newBuffers;
 
         Weechat.runOnMainThread(() -> {

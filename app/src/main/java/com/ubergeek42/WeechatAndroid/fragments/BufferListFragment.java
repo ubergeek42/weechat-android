@@ -116,11 +116,16 @@ public class BufferListFragment extends Fragment implements BufferListEye, View.
     //////////////////////////////////////////////////////////////////////////////////////////////// BufferListEye
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
+    private volatile int hotCount = 0;
+
+    // if hot count has changed and > 0, scroll to top. note that if the scroll operation is not
+    // posted, it cat try to scroll to the view that was at position 0 before the diff update
     @AnyThread @Override @Cat public void onBuffersChanged() {
         adapter.onBuffersChanged();
         int hotCount = Hotlist.getHotCount();
         Weechat.runOnMainThread(() -> {
-            if (hotCount > 0) uiRecycler.smoothScrollToPosition(0);
+            if (this.hotCount != (this.hotCount = hotCount) && hotCount > 0)
+                Weechat.runOnMainThread(() -> uiRecycler.smoothScrollToPosition(0));
             activity.updateHotCount(hotCount);
         });
     }
