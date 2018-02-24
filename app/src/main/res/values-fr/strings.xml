@@ -8,7 +8,6 @@
     <string name="connect">Connecter</string>
     <string name="disconnect">Déconnecter</string>
     <string name="filter_bufferlist_placeholder"><i>filtre</i></string>
-    <string name="hot_message_not_available">(message notable non disponible)</string>
     <string name="hotlist">Messages notables</string>
     <string name="more_button">Récupérer d\'autres lignes</string>
     <string name="nicklist_menu">Pseudos</string>
@@ -97,7 +96,6 @@
     <string name="pref_show_buffer_titles_summary">Attention, cela peut prendre une place considérable.</string>
     <string name="stop_connecting">Arrêter de se connecter</string>
     <string name="created_by">créé par ubergeek42</string>
-    <string name="report_bug_feature">Vous avez trouvé un bug ou vous avez une suggestion ? Créez un ticket sur GitHub ou contactez-moi : kj@ubergeek42.com</string>
     <string name="unknown_version_id">Version inconnue</string>
     <string name="build_id">numéro de build %s</string>
     <string name="pref_connection_type_plain">Connexion en clair</string>
@@ -188,4 +186,20 @@
     <string name="invalid_hostname_dialog_empty"><![CDATA[<br><strong>(aucune)</strong>]]></string>
     <string name="invalid_hostname_dialog_button">Retour en sécurité</string>
     <string name="invalid_hostname_dialog_title">Hôte invalide</string>
+    <string name="notification_channel_hotlist">Notables</string>
+    <string name="reply_label">Répondre</string>
+    <string name="libraries">
+            \nCe projet utilise les bibliothèques logicielles suivantes&#160;:
+            \n
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/noveogroup/android-logger">Android Logger, de Noveo Group</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://www.eclipse.org/aspectj/">AspectJ, de Eclipse Foundation</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/greenrobot/EventBus">EventBus, de greenrobot</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/JakeWharton/hugo">Hugo, de Jake Wharton</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/TooTallNate/Java-WebSocket">Java-WebSocket, de Nathan Rajlich</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="http://site.mockito.org/">Mockito</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://www.slf4j.org/">SLF4J, de QOS.ch</a>
+            \n
+            \nVous avez trouvé un bug ou vous avez une suggestion ? Créez un ticket sur&#160;<a href="https://github.com/ubergeek42/weechat-android/">GitHub</a> ou contactez-moi :&#160;<a href="mailto:kj@ubergeek42.com">kj@ubergeek42.com</a>
+            \n\n
+        </string>
 </resources>
