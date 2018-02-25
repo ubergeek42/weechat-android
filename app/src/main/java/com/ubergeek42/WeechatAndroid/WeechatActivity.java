@@ -14,18 +14,17 @@
 
 package com.ubergeek42.WeechatAndroid;
 
-import java.security.cert.CertPath;
 import java.security.cert.CertPathValidatorException;
 import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 import java.util.EnumSet;
-import java.util.Set;
 
 import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLPeerUnverifiedException;
 
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.support.annotation.MainThread;
+import android.support.annotation.WorkerThread;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.view.PagerAdapter;
 import android.support.v7.app.ActionBar;
@@ -259,37 +258,29 @@ public class WeechatActivity extends AppCompatActivity implements
         }
     }
 
-    @Subscribe(threadMode=ThreadMode.MAIN)
-    @MainThread @Cat public void onEvent(final ExceptionEvent event) {
+    // since api v 23, when certificate's hostname doesn't match the host, instead of `java.security
+    // .cert.CertPathValidatorException: Trust anchor for certification path not found` a `javax.net
+    // .ssl.SSLPeerUnverifiedException: Cannot verify hostname: wrong.host.badssl.com` is thrown.
+    // as this method is doing network, it should be run on a worker thread. currently it's run on
+    // the connection thread, which can get interrupted by doge, but this likely not a problem as
+    // EventBus won't crash the application by default
+    @Subscribe
+    @WorkerThread @Cat public void onEvent(final ExceptionEvent event) {
         final Exception e = event.e;
-        if (e instanceof SSLException) {
-            SSLException e1 = (SSLException) e;
-            if (e1.getCause() instanceof CertificateException) {
-                CertificateException e2 = (CertificateException) e1.getCause();
-                if (e2.getCause() instanceof CertPathValidatorException) {
-                    CertPathValidatorException e3 = (CertPathValidatorException) e2.getCause();
-                    CertPath cp = e3.getCertPath();
+        if ((e instanceof SSLPeerUnverifiedException) ||
+                (e instanceof SSLException &&
+                e.getCause() instanceof CertificateException &&
+                e.getCause().getCause() instanceof CertPathValidatorException)) {
 
-                    final X509Certificate certificate = (X509Certificate) cp.getCertificates().get(0);
+            SSLHandler.Result r = SSLHandler.checkHostname(P.host, P.port);
+            if (r.certificate == null) return;
+            DialogFragment fragment = r.verified ?
+                    UntrustedCertificateDialog.newInstance(r.certificate) :
+                    InvalidHostnameDialog.newInstance(r.certificate);
 
-                    DialogFragment f;
-                    if (SSLHandler.checkHostname(P.host, P.port)) {
-                        // valid hostname, untrusted certificate
-                        f = UntrustedCertificateDialog.newInstance(certificate);
-                    } else {
-                        // invalid hostname, abort early
-                        final Set<String> hosts = SSLHandler.getCertificateHosts(certificate);
-                        // remove the host itself, in case the host is an IP defined in the
-                        // certificate 'Common Name' (Android does not accept that)
-                        hosts.remove(P.host);
-                        f = InvalidHostnameDialog.newInstance(P.host, hosts);
-                    }
-
-                    f.show(getSupportFragmentManager(), "ssl-error");
-                    disconnect();
-                    return;
-                }
-            }
+            fragment.show(getSupportFragmentManager(), "ssl-error");
+            Weechat.runOnMainThread(this::disconnect);
+            return;
         }
         String message = TextUtils.isEmpty(e.getMessage()) ? e.getClass().getSimpleName() : e.getMessage();
         Weechat.showLongToast(R.string.error, message);

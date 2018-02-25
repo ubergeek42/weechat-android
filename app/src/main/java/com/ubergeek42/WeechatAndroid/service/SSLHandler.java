@@ -32,6 +32,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
@@ -64,27 +65,44 @@ public class SSLHandler {
         return sslHandler;
     }
 
-    /**
-     * Initiate an SSL handshake on given host, port to check the hostname using
-     * {@link HttpsURLConnection} default hostname verifier.
-     * @return {@code true} if hostname could be verified
-     */
-    public static boolean checkHostname(@NonNull String host, int port) {
-        // as the check is done *before* checking the certificate, an insecure factory is needed
-        @SuppressLint("SSLCertificateSocketFactoryGetInsecure")
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    @SuppressLint("SSLCertificateSocketFactoryGetInsecure")
+    public static Result checkHostname(@NonNull String host, int port) {
         final SSLSocketFactory factory = SSLCertificateSocketFactory.getInsecure(0, null);
-        final SSLSocket ssl;
+        SSLSocket ssl = null;
         try {
             ssl = (SSLSocket) factory.createSocket(host, port);
             ssl.startHandshake();
         } catch (IOException e) {
-            return false;
+            return new Result(false, ssl == null ? null : getCertificate(ssl));
         }
         SSLSession session = ssl.getSession();
-        boolean result = HttpsURLConnection.getDefaultHostnameVerifier().verify(host, session);
-        try { ssl.close(); } catch (IOException ignored) {}
-        return result;
+        boolean verified = HttpsURLConnection.getDefaultHostnameVerifier().verify(host, session);
+        try {ssl.close();} catch (IOException ignored) {}
+        return new Result(verified, getCertificate(ssl));
     }
+
+    private static @Nullable X509Certificate getCertificate(SSLSocket socket) {
+        try {
+            return (X509Certificate) socket.getSession().getPeerCertificates()[0];
+        } catch (SSLPeerUnverifiedException e) {
+            kitty.error("getCertificate()", e);
+            return null;
+        }
+    }
+
+    public static class Result {
+        public final @Nullable X509Certificate certificate;
+        public final boolean verified;
+
+        Result(boolean verified, @Nullable X509Certificate certificate) {
+            this.certificate = certificate;
+            this.verified = verified;
+        }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     public static Set<String> getCertificateHosts(X509Certificate certificate) {
         final Set<String> hosts = new HashSet<>();

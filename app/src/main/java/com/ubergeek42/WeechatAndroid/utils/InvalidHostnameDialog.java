@@ -11,17 +11,27 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.ubergeek42.WeechatAndroid.R;
+import com.ubergeek42.WeechatAndroid.service.P;
+import com.ubergeek42.WeechatAndroid.service.SSLHandler;
+
+import java.security.cert.X509Certificate;
+import java.util.Set;
 
 
 public class InvalidHostnameDialog extends DialogFragment {
 
     String hostname;
-    Iterable<String> certificateHosts;
+    Set<String> certificateHosts;
 
-    public static InvalidHostnameDialog newInstance(String hostname, Iterable<String> certificateHosts) {
+    public static InvalidHostnameDialog newInstance(X509Certificate certificate) {
         InvalidHostnameDialog d = new InvalidHostnameDialog();
-        d.hostname = hostname;
-        d.certificateHosts = certificateHosts;
+
+        // remove the host itself, in case the host is an IP defined in the
+        // certificate 'Common Name' (Android does not accept that)
+        d.certificateHosts = SSLHandler.getCertificateHosts(certificate);
+        d.certificateHosts.remove(P.host);
+        d.hostname = P.host;
+
         d.setRetainInstance(true);
         return d;
     }

@@ -74,10 +74,8 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     public static @Cat void calculateWeaselWidth() {
         int windowWidth = context.getResources().getDisplayMetrics().widthPixels;
         boolean slidy = context.getResources().getBoolean(R.bool.slidy);
-        int weaselWidth = slidy ? windowWidth :
+        P.weaselWidth = slidy ? windowWidth :
                 windowWidth - context.getResources().getDimensionPixelSize(R.dimen.drawer_width);
-        kitty.warn("$$ window width = %s, slidy = %s, result = %s", windowWidth, slidy, weaselWidth);
-        P.weaselWidth = weaselWidth;
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////// ui

@@ -25,6 +25,9 @@ public class WebSocketConnection extends AbstractConnection {
 
     private WebSocketClient client;
     private PipedOutputStream outputToInStream;
+    private SSLSocketFactory sslSocketFactory;
+    private String server;
+    private int port;
 
     public WebSocketConnection(String server, int port, String path, SSLSocketFactory sslSocketFactory) throws URISyntaxException, IOException {
         // can throw URISyntaxException
@@ -35,13 +38,18 @@ public class WebSocketConnection extends AbstractConnection {
         outputToInStream = new PipedOutputStream();
         outputToInStream.connect((PipedInputStream) in);
 
+        this.sslSocketFactory = sslSocketFactory;
+        this.server = server;
+        this.port = port;
         client = new MyWebSocket(uri, new Draft_6455());
         client.setConnectionLostTimeout(0);
-        if (sslSocketFactory != null) client.setSocket(sslSocketFactory.createSocket());
     }
 
+    // IMPORTANT: it's necessary to call createSocket with a host and port, as this method, unlike
+    // createSocket without the parameters, performs hostname verification. also, note that this
+    // version of createSocket will connect IMMEDIATELY and will block
     @Override protected void doConnect() throws Exception {
-        logger.trace("==client.connectBlocking()==");
+        if (sslSocketFactory != null) client.setSocket(sslSocketFactory.createSocket(server, port));
         if (!client.connectBlocking()) throw (exception != null) ?
                 exception : new Exception("Could not connect using WebSocket");
     }
@@ -50,7 +58,6 @@ public class WebSocketConnection extends AbstractConnection {
     // client.close() does not close the socket. see TooTallNate/Java-WebSocket#346
     // getConnection().closeConnection() seems to work, but i don't know if using it is right
     @Override protected void doDisconnect() {
-        logger.trace("==client.close()==");
         super.doDisconnect();
         client.close();
     }
