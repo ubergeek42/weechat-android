@@ -33,8 +33,12 @@ public class LineView extends View {
     }
 
     public void setText(Line line) {
+        if (text == line.spannable) return;
         text = line.spannable;
+        int oldHeight = layout == null ? -1 : layout.getHeight();
         layout = makeLayout(text);
+        if (oldHeight != layout.getHeight()) requestLayout();
+        invalidate();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
