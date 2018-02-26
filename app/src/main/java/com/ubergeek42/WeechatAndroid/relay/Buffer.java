@@ -248,11 +248,11 @@ public class Buffer {
     }
 
     @WorkerThread public void setLastSeenLine(long pointer) {
-        lines.lastSeenLine = pointer;
+        lines.setLastSeenLine(pointer);
     }
 
-    public long getLastSeenLine() {
-        return lines.lastSeenLine;
+    @AnyThread public long getLastSeenLine() {
+        return lines.getLastSeenLine();
     }
 
     // buffer will want full updates if it doesn't have a last read line

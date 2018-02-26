@@ -17,7 +17,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 
 // this class is supposed to be synchronized by Buffer
@@ -38,9 +37,8 @@ public class Lines {
         }
     }
 
-    @NonNull
-    STATUS status = STATUS.INIT;
-    long lastSeenLine = -1;
+    @NonNull STATUS status = STATUS.INIT;
+    private long lastSeenLine = -1;
 
     private final static Line HEADER = new Line(HEADER_POINTER, null, null, null, false, false, new String[]{});
     private final static Line MARKER = new Line(MARKER_POINTER, null, null, null, false, false, new String[]{});
@@ -80,10 +78,7 @@ public class Lines {
     }
 
     @WorkerThread void addLast(Line line) {
-        if (status == STATUS.FETCHING) {
-            kitty.warn("addLast() while lines are being fetched");
-            return;
-        }
+        if (status == STATUS.FETCHING) return;
         ensureSizeBeforeAddition();
         unfiltered.addLast(line);
         if (line.visible) filtered.addLast(line);
@@ -155,10 +150,19 @@ public class Lines {
         if (unfiltered.size() > 0) lastSeenLine = unfiltered.getLast().pointer;
     }
 
+    @WorkerThread void setLastSeenLine(long lastSeenLine) {
+        if (status.ready()) return;
+        this.lastSeenLine = lastSeenLine;
+        setSkipsUsingPointer();
+    }
+
+    @AnyThread long getLastSeenLine() {
+        return lastSeenLine;
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @WorkerThread private void setSkipsUsingPointer() {
-        assertTrue(status.ready());
         Iterator<Line> it = unfiltered.descendingIterator();
         int idx_f = 0, idx_u = 0;
         skipFiltered = skipUnfiltered = -1;
@@ -167,13 +171,11 @@ public class Lines {
             if (line.pointer == lastSeenLine) {
                 skipFiltered = idx_f;
                 skipUnfiltered = idx_u;
-                //Weechat.showLongToast("%s -> %s %s", name, skipFiltered, skipUnfiltered);
                 return;
             }
             idx_u++;
             if (line.visible) idx_f++;
         }
-        //Weechat.showLongToast("%s -> fail", name);
     }
 
 //    private void setSkipsUsingHotlist(int h, int u, int o) {
