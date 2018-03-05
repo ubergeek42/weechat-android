@@ -1,33 +1,24 @@
-/**
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- */
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
 
 package com.ubergeek42.WeechatAndroid.utils;
 
-import android.animation.AnimatorSet;
-import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.support.annotation.UiThread;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
-import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
 
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
-import com.ubergeek42.WeechatAndroid.service.P;
 
 public class AnimatedRecyclerView extends RecyclerView {
 
     private final static int DELAY = 10;
     private final static int DURATION = 300;
     private final static int SCROLL_DELAY = 100;
-    private final static float TRANSLATION_Y = -P._50dp;
-
-    // set this to false to prevent scrolling by user
-    // needed since animating items that are not currently displayed in RecyclerView is hard
-    private boolean scrollable = true;
 
     // used to temporarily disable animator to avoid premature fade-in of views
     // note: setItemAnimator(null) can change the number of children
@@ -70,15 +61,9 @@ public class AnimatedRecyclerView extends RecyclerView {
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    // this is used to prevent user scrolling
-    @Override public boolean dispatchTouchEvent(MotionEvent ev) {
-        return !scrollable || super.dispatchTouchEvent(ev);
-    }
-
     // this is called only when the number of items in adapter is > 1
     // this animates all children of the RecyclerView except the last `linesAlreadyDisplayed`
     @UiThread private void animateIfNeeded() {
-        //logger.trace("animateIfNeeded(): linesAlreadyDisplayed={}", linesAlreadyDisplayed);
         if (linesAlreadyDisplayed < 0)
             return;
 
@@ -95,7 +80,6 @@ public class AnimatedRecyclerView extends RecyclerView {
         linesAlreadyDisplayed = -1;
 
         if (lastAnimatableViewHolder != null) {
-            scrollable = false;
             setItemAnimator(null);
 
             View lastAnimatableView = lastAnimatableViewHolder.itemView;
@@ -111,14 +95,11 @@ public class AnimatedRecyclerView extends RecyclerView {
 
     private Runnable onAnimationsCancelled = new Runnable() {
         @Override @UiThread public void run() {
-            scrollable = true;
             if (getItemAnimator() == null) setItemAnimator(animator);
             if (scrollToPosition != -1) {
-                postDelayed(new Runnable() {
-                    @Override public void run() {
-                        smoothScrollToPositionFix(scrollToPosition);
-                        scrollToPosition = -1;
-                    }
+                postDelayed(() -> {
+                    smoothScrollToPositionFix(scrollToPosition);
+                    scrollToPosition = -1;
                 }, SCROLL_DELAY);
             }
         }
@@ -136,14 +117,10 @@ public class AnimatedRecyclerView extends RecyclerView {
     // use an external ObjectAnimator instead of view.animate() because
     // the latter leaves some residue in the ViewPropertyAnimator attached to the view
     @UiThread static private void animateView(View view, final int position) {
-        view.setTranslationY(TRANSLATION_Y);
-        view.setAlpha(0.0f);
-
-        AnimatorSet animations = new AnimatorSet();
-        animations.playTogether(ObjectAnimator.ofFloat(view, "alpha", 1.0f), ObjectAnimator.ofFloat(view, "translationY", 0f));
-        animations.setDuration(DURATION);
-        animations.setStartDelay(position * DELAY);
-        animations.start();
+        Animation alpha = new AlphaAnimation(0f, 1f);
+        alpha.setDuration(DURATION);
+        alpha.setStartOffset(position * DELAY);
+        view.startAnimation(alpha);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -152,8 +129,7 @@ public class AnimatedRecyclerView extends RecyclerView {
 
 
     @UiThread public void smoothScrollToPositionAfterAnimation(final int position) {
-        //logger.trace("smoothScrollToPosition({}): scrollable={}, animator={}", position, scrollable, animator);
-        if (linesAlreadyDisplayed < 0 && scrollable) smoothScrollToPositionFix(position);
+        if (linesAlreadyDisplayed < 0) smoothScrollToPositionFix(position);
         else scrollToPosition = position;
     }
 
@@ -178,12 +154,7 @@ public class AnimatedRecyclerView extends RecyclerView {
 
     @UiThread public void scheduleAnimationRestoring() {
         if (getItemAnimator() != null) return;
-        post(new Runnable() {
-            @Override public void run() {
-                if (getItemAnimator() != null) return;
-                setItemAnimator(animator);
-            }
-        });
+        post(() -> {if (getItemAnimator() == null) setItemAnimator(animator);});
     }
 
     @Override public void smoothScrollToPosition(int position) {
