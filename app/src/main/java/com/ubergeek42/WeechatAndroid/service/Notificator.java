@@ -132,7 +132,7 @@ public class Notificator {
         if (!P.notificationEnable) return;
 
         // https://developer.android.com/guide/topics/ui/notifiers/notifications.html#back-compat
-        boolean canMakeBundledNotifications = Build.VERSION.SDK_INT >= 21;
+        boolean canMakeBundledNotifications = Build.VERSION.SDK_INT >= 24;
         Resources res = context.getResources();
 
         int hotCount = hotBuffer.hotCount;

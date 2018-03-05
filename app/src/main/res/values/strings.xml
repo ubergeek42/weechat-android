@@ -52,7 +52,7 @@
     </plurals>
 
     <plurals name="in_buffers">
-        <item quantity="one">&#160;in %d buffers</item>
+        <item quantity="one">&#160;in %d buffer</item>
         <item quantity="other">&#160;in %d buffers</item>
     </plurals>
 
