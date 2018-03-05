@@ -1,5 +1,6 @@
 buildscript {
     repositories {
+        google()
         jcenter()
     }
     dependencies {
@@ -11,6 +12,7 @@ apply plugin: 'com.android.application'
 dependencies {
     repositories {
         maven {
+            google()
             url 'https://maven.google.com'
         }
     }
