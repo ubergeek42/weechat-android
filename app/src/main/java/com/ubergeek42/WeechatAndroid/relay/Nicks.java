@@ -75,7 +75,7 @@ class Nicks {
 
     @MainThread ArrayList<String> getMostRecentNicksMatching(String prefix) {
         ArrayList<String> out = new ArrayList<>(20);
-        for (Nick nick : nicks) if (nick.name.startsWith(prefix)) out.add(nick.name);
+        for (Nick nick : nicks) if (nick.name.toLowerCase().startsWith(prefix)) out.add(nick.name);
         return out;
     }
 
