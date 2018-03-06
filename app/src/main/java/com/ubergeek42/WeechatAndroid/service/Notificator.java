@@ -187,7 +187,8 @@ public class Notificator {
                 .setContentTitle(appName)
                 .setContentText(newMessageInB)
                 .setDeleteIntent(getDismissIntentFor(fullName))
-                .setGroup(GROUP_KEY);
+                .setGroup(GROUP_KEY)
+                .setWhen(hotBuffer.lastMessageTimestamp);
 
         // messages hold the latest messages, don't show the reply button if user can't see any
         if (connected && messages.size() > 0) builder.addAction(getAction(context, fullName));

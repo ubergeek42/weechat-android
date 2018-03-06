@@ -26,7 +26,6 @@ import com.ubergeek42.weechat.Color;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 
 import static android.support.v4.app.NotificationCompat.MessagingStyle.Message;
@@ -52,6 +51,7 @@ public class Hotlist {
         public String shortName;
         public final ArrayList<HotMessage> messages = new ArrayList<>();
         public int hotCount = 0;
+        public long lastMessageTimestamp = System.currentTimeMillis();
 
         HotBuffer(Buffer buffer) {
             isPrivate = buffer.type == PRIVATE;
@@ -77,6 +77,7 @@ public class Hotlist {
         }
 
         private void setHotCount(int newHotCount) {
+            lastMessageTimestamp = System.currentTimeMillis();
             totalHotCount += newHotCount - hotCount;
             hotCount = newHotCount;
         }
