@@ -25,6 +25,8 @@
             android:minLines="1"
             android:scrollbars="vertical"
             android:layout_gravity="center"
+            android:background="@android:color/transparent"
+            android:paddingLeft="12dp"
             >
 
             <requestFocus />
