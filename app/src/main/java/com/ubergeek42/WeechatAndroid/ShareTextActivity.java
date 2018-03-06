@@ -5,7 +5,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
-import android.widget.Toast;
 
 import com.ubergeek42.WeechatAndroid.adapters.BufferListAdapter;
 import com.ubergeek42.WeechatAndroid.adapters.BufferListClickListener;
@@ -49,6 +48,7 @@ public class ShareTextActivity extends AppCompatActivity implements
         intent.putExtra(NOTIFICATION_EXTRA_BUFFER_FULL_NAME, fullName);
         intent.putExtra(NOTIFICATION_EXTRA_BUFFER_INPUT_TEXT, text);
         startActivity(intent);
+        finish();
     }
 
     @Override public void onDismiss(DialogInterface dialog) {
