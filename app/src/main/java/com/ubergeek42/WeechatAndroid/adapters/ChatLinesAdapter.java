@@ -66,8 +66,6 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     private List<Line> lines = new ArrayList<>();
     private List<Line> _lines = new ArrayList<>();
 
-    private int style = 0;
-
     @MainThread public ChatLinesAdapter(AnimatedRecyclerView animatedRecyclerView) {
         this.uiLines = animatedRecyclerView;
         setHasStableIds(true);
@@ -97,28 +95,20 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         }
     }
 
-    @MainThread private static void updateStyle(TextView textView) {
-        textView.setTextSize(P.textSize);
-        textView.setTypeface(P.typeface);
-        textView.setTextColor(0xFF000000 | ColorScheme.get().defaul[0]);
-    }
-
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// read marker
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private static class ReadMarkerRow extends RecyclerView.ViewHolder {
         private View view;
-        private int style = -1;
 
         @MainThread ReadMarkerRow(View view) {
             super(view);
             this.view = view;
         }
 
-        @MainThread void update(int newStyle) {
-            if (style != (style = newStyle))
-                view.setBackgroundColor(0xFF000000 | ColorScheme.get().chat_read_marker[0]);
+        @MainThread void update() {
+            view.setBackgroundColor(0xFF000000 | ColorScheme.get().chat_read_marker[0]);
         }
     }
 
@@ -127,27 +117,24 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private static class Header extends RecyclerView.ViewHolder implements View.OnClickListener {
-        private TextView title;
+        private LineView title;
         private Button button;
         private ChatLinesAdapter adapter;
         private Lines.STATUS status = Lines.STATUS.CAN_FETCH_MORE;
-        private Spannable topicText = null;
-        private int style = -1;
 
         @MainThread Header(View header, ChatLinesAdapter adapter) {
             super(header);
             this.adapter = adapter;
             title = header.findViewById(R.id.title);
-            title.setMovementMethod(LinkMovementMethod.getInstance());
             title.setOnLongClickListener(CopyPaste.copyPaste);
             button = header.findViewById(R.id.button_more);
             button.setOnClickListener(this);
         }
 
-        @MainThread void update(int newStyle) {
+        @MainThread void update() {
             if (adapter.buffer == null) return;
             updateButton();
-            updateTitle(newStyle);
+            updateTitle();
         }
 
         @MainThread private void updateButton() {
@@ -166,21 +153,17 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
             }
         }
 
-        @MainThread private void updateTitle(int newStyle) {
+        @MainThread private void updateTitle() {
             if (adapter.buffer == null) return;
-            Spannable titleSpannable = adapter.buffer.titleSpannable;
             Line titleLine = adapter.buffer.titleLine;
-            if (TextUtils.isEmpty(titleSpannable) || !adapter.buffer.linesAreReady()) {
+            if (titleLine == null || TextUtils.isEmpty(titleLine.spannable) || !adapter.buffer.linesAreReady()) {
                 title.setVisibility(View.GONE);
                 return;
             }
             title.setVisibility(View.VISIBLE);
             Utils.setBottomMargin(title, button.getVisibility() == View.GONE ? (int) P._4dp : 0);
-            if (topicText != titleSpannable) {
-                title.setText(topicText = titleSpannable);
-                title.setTag(titleLine);
-            }
-            if (style != (style = newStyle)) updateStyle(title);
+            title.setText(titleLine);
+            title.setTag(titleLine);
         }
 
         @MainThread @Override public void onClick(View v) {
@@ -212,8 +195,8 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 
     @MainThread @Override public synchronized void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         long pointer = lines.get(position).pointer;
-        if (pointer == HEADER_POINTER) ((Header) holder).update(style);
-        else if (pointer == MARKER_POINTER) ((ReadMarkerRow) holder).update(style);
+        if (pointer == HEADER_POINTER) ((Header) holder).update();
+        else if (pointer == MARKER_POINTER) ((ReadMarkerRow) holder).update();
         else ((Row) holder).update(lines.get(position));
     }
 
@@ -269,7 +252,6 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         if (numberChanged && buffer != null) {
             onLinesChanged();
         } else {
-            style++;
             notifyItemRangeChanged(0, _lines.size());
         }
     }

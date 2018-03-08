@@ -12,6 +12,7 @@ import android.text.Spannable;
 import android.text.StaticLayout;
 import android.text.style.ClickableSpan;
 import android.text.style.URLSpan;
+import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -28,12 +29,16 @@ public class LineView extends View {
     private Layout layout = null;
 
     public LineView(Context context) {
-        super(context);
+        super(context, null);
+    }
+
+    public LineView(Context context, AttributeSet attrs) {
+        super(context, attrs);
         setLayerType(LAYER_TYPE_HARDWARE, null);
     }
 
     public void setText(Line line) {
-        if (text == line.spannable) return;
+        if (text == line.spannable && layout.getPaint() == P.textPaint) return;
         text = line.spannable;
         int oldHeight = layout == null ? -1 : layout.getHeight();
         layout = makeLayout(text);

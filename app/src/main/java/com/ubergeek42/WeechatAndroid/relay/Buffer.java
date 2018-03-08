@@ -69,7 +69,6 @@ public class Buffer {
     public int highlights = 0;
 
     public Spannable printable = null; // printable buffer without title (for TextView)
-    public @Nullable Spannable titleSpannable = null;
     public Line titleLine;
 
     @WorkerThread Buffer(long pointer, int number, String fullName, String shortName, String title, int notifyLevel, Hashtable localVars) {
@@ -348,10 +347,10 @@ public class Buffer {
         spannable.setSpan(SMALL, 0, number.length(), EX);
         printable = spannable;
         if (!TextUtils.isEmpty(title)) {
-            String t = Color.stripEverything(title);
-            titleSpannable = new SpannableString(t);
-            titleLine = new Line(-123, null, null, t, true, false, null);
+            titleLine = new Line(-123, null, null, title, true, false, null);
+            SpannableString titleSpannable = new SpannableString(Color.stripEverything(title));
             Linkify.linkify(titleSpannable);
+            titleLine.spannable = titleSpannable;
         }
     }
 
