@@ -66,6 +66,8 @@ public class Constants {
     // buttons
     public final static String PREF_SHOW_SEND = "sendbtn_show"; final public static boolean PREF_SHOW_SEND_D = true;
     public final static String PREF_SHOW_TAB = "tabbtn_show"; final public static boolean PREF_SHOW_TAB_D = true;
+    public final static String PREF_ENABLE_AUTO_CORRECT = "autocorrect_input"; final public static boolean PREF_ENABLE_AUTO_CORRECT_D = true;
+    public final static String PREF_ENABLE_AUTO_CAPITALIZE = "autocapitalize_input"; final public static boolean PREF_ENABLE_AUTO_CAPITALIZE_D = true;
     public final static String PREF_VOLUME_BTN_SIZE = "volumebtn_size"; final public static boolean PREF_VOLUME_BTN_SIZE_D = true;
 
     // notifications

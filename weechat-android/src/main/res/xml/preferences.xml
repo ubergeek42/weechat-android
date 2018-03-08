@@ -74,6 +74,8 @@
     <PreferenceScreen android:key="button_group" android:title="@string/pref_button_group">
 		<CheckBoxPreference android:key="tabbtn_show" android:title="@string/pref_tabbtn_show" android:defaultValue="true" />
 		<CheckBoxPreference android:key="sendbtn_show" android:title="@string/pref_sendbtn_show" android:defaultValue="true" />
+		<CheckBoxPreference android:key="autocorrect_input" android:title="@string/pref_autocorrect_enable" android:defaultValue="true" />
+		<CheckBoxPreference android:key="autocapitalize_input" android:title="@string/pref_autocapitalize_enable" android:defaultValue="true" />
 		<CheckBoxPreference android:key="volumebtn_size" android:title="@string/pref_volumebtn_size" android:summary="@string/pref_volumebtn_size_summary" android:defaultValue="true" />
 	</PreferenceScreen>
 

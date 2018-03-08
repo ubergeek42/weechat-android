@@ -1,16 +1,12 @@
 package com.ubergeek42.WeechatAndroid.fragments;
 
-import java.util.Vector;
-
 import android.annotation.SuppressLint;
-import android.support.annotation.NonNull;
-import android.support.v4.app.Fragment;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import android.content.Context;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.v4.app.Fragment;
 import android.text.Editable;
+import android.text.InputType;
 import android.text.TextWatcher;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -26,9 +22,9 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.ubergeek42.WeechatAndroid.adapters.ChatLinesAdapter;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
+import com.ubergeek42.WeechatAndroid.adapters.ChatLinesAdapter;
 import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.Buffer.LINES;
 import com.ubergeek42.WeechatAndroid.relay.BufferEye;
@@ -38,10 +34,16 @@ import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.utils.CopyPaste;
 import com.ubergeek42.weechat.ColorScheme;
 
-import static com.ubergeek42.WeechatAndroid.service.Events.*;
-import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Vector;
 
 import de.greenrobot.event.EventBus;
+
+import static com.ubergeek42.WeechatAndroid.service.Events.SendMessageEvent;
+import static com.ubergeek42.WeechatAndroid.service.Events.StateChangedEvent;
+import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.LISTED;
 
 public class BufferFragment extends Fragment implements BufferEye, OnKeyListener,
         OnClickListener, TextWatcher, TextView.OnEditorActionListener {
@@ -139,6 +141,17 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         started = true;
         uiSend.setVisibility(P.showSend ? View.VISIBLE : View.GONE);
         uiTab.setVisibility(P.showTab ? View.VISIBLE : View.GONE);
+        int inputType = InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE;
+
+        if(P.enableAutoCorrect) {
+            inputType |= InputType.TYPE_TEXT_FLAG_AUTO_CORRECT;
+        } else {
+            inputType |= InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS;
+        }
+        if(P.enableAutoCapitalize) {
+            inputType |= InputType.TYPE_TEXT_FLAG_CAP_SENTENCES;
+        }
+        uiInput.setInputType(inputType);
         uiLines.setBackgroundColor(0xFF000000 | ColorScheme.get().defaul[ColorScheme.OPT_BG]);
         EventBus.getDefault().registerSticky(this);
     }

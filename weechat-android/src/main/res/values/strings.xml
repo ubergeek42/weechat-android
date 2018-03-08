@@ -243,9 +243,11 @@
 
         <!-- buttons -->
 
-        <string name="pref_button_group">Buttons</string>
+        <string name="pref_button_group">Buttons &amp; input</string>
             <string name="pref_tabbtn_show">Show tab button</string>
             <string name="pref_sendbtn_show">Show send button</string>
+            <string name="pref_autocapitalize_enable">Enable keyboard auto-capitalization</string>
+            <string name="pref_autocorrect_enable">Enable keyboard auto-correct</string>
             <string name="pref_volumebtn_size">Volume buttons change text size</string>
             <string name="pref_volumebtn_size_summary">If set, volume buttons will change text size instead of volume</string>
 
