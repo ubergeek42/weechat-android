@@ -13,7 +13,7 @@ SERVICE_ACCT_EMAIL = os.environ['GOOGLEPLAY_ACCT_EMAIL']
 KEY = 'releases/google-play-key.p12'
 
 PKG_NAME = 'com.ubergeek42.WeechatAndroid.dev'
-APK = "weechat-android/build/outputs/apk/weechat-android-devrelease.apk"
+APK = "app/build/outputs/apk/devrelease/app-devrelease.apk"
 
 
 def main():
