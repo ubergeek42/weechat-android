@@ -1,14 +1,23 @@
 subprojects {
     repositories {
-        // Maven repo with viewpagerindicator: https://github.com/Goddchen/mvn-repo
         mavenCentral()
-        mavenLocal()
-        maven { url "https://jitpack.io" }
+        google()
+        jcenter()
     }
 }
 
-task wrapper(type: Wrapper) {
-    gradleVersion = '3.2.1';
-    distributionUrl = "https://services.gradle.org/distributions/gradle-${gradleVersion}-all.zip"
-}
 defaultTasks 'assembleDebug'
+
+repositories {
+    google()
+}
+buildscript {
+    repositories {
+        google()
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:3.0.1'
+        classpath 'org.aspectj:aspectjtools:1.8.6'
+    }
+}

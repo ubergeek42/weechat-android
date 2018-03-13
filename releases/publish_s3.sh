@@ -7,8 +7,8 @@ fi
 HASH=$(git log --pretty=format:'%h' -n 1)
 APK="weechat-$BRANCH-$HASH.apk"
 
-ORIG_APK="weechat-android/build/outputs/apk/weechat-android-devrelease.apk"
-PROGUARD_DIR="weechat-android/build/outputs/mapping/devrelease/"
+ORIG_APK="app/build/outputs/apk/devrelease/app-devrelease.apk"
+PROGUARD_DIR="app/build/outputs/mapping/devrelease/"
 PROGUARD_TGZ="weechat-$BRANCH-$HASH.proguard.tar.gz"
 
 if [ -z "$S3_BUCKET" ];then

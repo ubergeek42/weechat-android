@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/about"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary" />
+
+    <LinearLayout
+        android:id="@+id/about_inner"
+        android:orientation="vertical"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_margin="40dp"
+        android:gravity="center">
+
+        <TextView
+            android:id="@+id/versionStr"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/app_name"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/created_by" />
+
+        <TextView
+            android:id="@+id/versionID"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/unknown_version_id" />
+
+        <TextView
+            android:id="@+id/libraries"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/libraries"
+            android:linksClickable="true"
+            android:clickable="true"
+            android:focusable="true" />
+
+    </LinearLayout>
+</LinearLayout>

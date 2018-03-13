@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <com.ubergeek42.WeechatAndroid.utils.LineView
+        android:id="@+id/title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="2dp"
+        android:visibility="gone" />
+
+    <Button
+        android:id="@+id/button_more"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/more_button"
+        android:textColor="@color/accent"
+        android:layout_gravity="right"
+        style="@style/Widget.AppCompat.Button.Borderless" />
+</LinearLayout>

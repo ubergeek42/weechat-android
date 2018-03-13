@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- a cute kitty with a background, positioned “under” the toolbar
+    is hidden when ViewPager gets pages and is shown when it becomes empty
+    there is no background behind it, activity's bg gets unset
+    NOTE: android:layout_gravity="top" is necessary for API 10 to work properly-->
+    <FrameLayout
+        android:id="@+id/kitty_background"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="?attr/colorPrimary"
+        android:layout_marginTop="?attr/actionBarSize"
+        android:layout_gravity="top">
+
+        <ImageView
+            android:id="@+id/kitty"
+            android:gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:scaleType="center"
+            android:layout_gravity="center"/>
+    </FrameLayout>
+
+    <!-- has transparent background. frames get to color themselves -->
+    <android.support.v4.view.ViewPager
+        android:id="@+id/main_viewpager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- the toolbar is positioned over the pager.
+    it is hidden when user scrolls up in the chat. -->
+    <android.support.v7.widget.Toolbar
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/toolbar"
+        android:layout_height="?attr/actionBarSize"
+        android:layout_width="match_parent"
+        android:background="?attr/colorPrimary"
+        app:contentInsetStartWithNavigation="0dp" >
+
+        <com.ubergeek42.WeechatAndroid.CutePagerTitleStrip
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/cute_pager_title_strip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center" />
+
+    </android.support.v7.widget.Toolbar>
+
+</FrameLayout>

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:clickable="true">
+
+
+    <RelativeLayout
+        android:id="@+id/filter_bar"
+        android:layout_width="wrap_content"
+        android:layout_height="?actionBarSize"
+        android:background="@color/primary"
+        android:layout_alignParentBottom="true" >
+
+        <EditText
+            android:id="@+id/bufferlist_filter"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/filter_bufferlist_placeholder"
+            android:singleLine="true"
+            android:layout_centerVertical="true"
+            android:background="@android:color/transparent"
+            android:layout_marginLeft="12dp"
+            android:layout_marginRight="12dp" />
+
+        <ImageButton
+            android:id="@+id/bufferlist_filter_clear"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentBottom="true"
+            android:background="@null"
+            android:layout_centerVertical="true"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_cancel"
+            android:visibility="invisible"
+            android:paddingLeft="12dp"
+            android:paddingRight="12dp"/>
+    </RelativeLayout>
+
+    <android.support.v7.widget.RecyclerView
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        app:layoutManager="android.support.v7.widget.LinearLayoutManager"
+        android:id="@+id/recycler"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignWithParentIfMissing="true"
+        android:layout_above="@+id/filter_bar"
+        android:dividerHeight="0dp"
+        android:divider="@null"
+        android:background="@color/primary"
+        android:fadingEdge="none" />
+
+</RelativeLayout>

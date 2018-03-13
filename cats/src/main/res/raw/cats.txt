@@ -1,0 +1,6 @@
+# disabled tags in format tag, tag/*, tag/subtag, */subtag
+# subtags ?, ??, ??? provide increasingly more verbose information
+
+*/?
+*/??
+*/???
