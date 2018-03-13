@@ -60,6 +60,14 @@ and [WeeChat main page](http://www.weechat.org/).
 
 ## Changelog
 
+#### v0.13
+* Bundled notifications with instant reply on Android 7+
+* A menu switch that instantly turns filtering on or off
+* Use RecyclerView that comes with some animations
+* Buffer title is now at the top of buffer lines
+* Ask user for permission to read external storage
+* Library updates and stability fixes
+
 #### v0.12
 * Service to run only while connecting/connected; quit button removed
 * “Fetch more” button
