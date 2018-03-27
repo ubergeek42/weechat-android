@@ -30,6 +30,6 @@
         android:menuCategory="secondary"
         android:icon="@drawable/ic_2_action_settings"
         app:showAsAction="never"
-        android:title="Filter lines"
+        android:title="@string/filter_lines"
         android:checkable="true"/>
 </menu>
