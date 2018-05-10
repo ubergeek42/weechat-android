@@ -20,6 +20,7 @@ import android.support.v7.util.DiffUtil;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.text.Spannable;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -138,8 +139,11 @@ public class BufferListAdapter extends RecyclerView.Adapter<ViewHolder> implemen
         synchronized (BufferList.class) {
             for (Buffer buffer : BufferList.buffers) {
                 if (buffer.type == Buffer.HARD_HIDDEN) continue;
-                if (P.filterBuffers && buffer.type == Buffer.OTHER && buffer.highlights == 0 && buffer.unreads == 0) continue;
                 if (!buffer.fullName.toLowerCase().contains(P.filterLc) && !buffer.fullName.toUpperCase().contains(P.filterUc)) continue;
+                if (TextUtils.isEmpty(P.filterLc)) {
+                    if (P.hideHiddenBuffers && buffer.hidden && buffer.getHotCount() == 0) continue;
+                    if (P.filterBuffers && buffer.type == Buffer.OTHER && buffer.highlights == 0 && buffer.unreads == 0) continue;
+                }
                 newBuffers.add(new VisualBuffer(buffer));
             }
         }

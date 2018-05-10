@@ -13,6 +13,7 @@ import android.util.LongSparseArray;
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
 import com.ubergeek42.WeechatAndroid.service.RelayService.STATE;
+import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
@@ -62,6 +63,8 @@ public class BufferList {
         addMessageHandler("_buffer_closing", bufferListWatcher);
         addMessageHandler("_buffer_moved", bufferListWatcher);
         addMessageHandler("_buffer_merged", bufferListWatcher);
+        addMessageHandler("_buffer_hidden", bufferListWatcher);
+        addMessageHandler("_buffer_unhidden", bufferListWatcher);
 
         addMessageHandler("hotlist", hotlistInitWatcher);
         addMessageHandler("last_read_lines", lastReadLinesWatcher);
@@ -77,7 +80,7 @@ public class BufferList {
 
         // request a list of buffers current open, along with some information about them
         SendMessageEvent.fire("(listbuffers) hdata buffer:gui_buffers(*) " +
-                "number,full_name,short_name,type,title,nicklist,local_variables,notify");
+                "number,full_name,short_name,type,title,nicklist,local_variables,notify,hidden");
         syncHotlist();
         SendMessageEvent.fire(P.optimizeTraffic ? "sync * buffers,upgrade" : "sync");
     }
@@ -229,7 +232,8 @@ public class BufferList {
                             entry.getItem("short_name").asString(),
                             entry.getItem("title").asString(),
                             ((r = entry.getItem("notify")) != null) ? r.asInt() : 3,
-                            (Hashtable) entry.getItem("local_variables"));
+                            (Hashtable) entry.getItem("local_variables"),
+                            ((r = entry.getItem("hidden")) != null) && r.asInt() != 0);
                     synchronized (BufferList.class) {buffers.add(buffer);}
                     notifyBuffersChanged();
                 } else {
@@ -252,6 +256,9 @@ public class BufferList {
                         } else if (id.equals("_buffer_moved") || id.equals("_buffer_merged")) {
                             buffer.number = entry.getItem("number").asInt();
                             notifyBufferPropertiesChanged(buffer);
+                        } else if (Utils.isAnyOf(id, "_buffer_hidden", "_buffer_unhidden")) {
+                            buffer.hidden = !id.endsWith("unhidden");
+                            notifyBuffersChanged();
                         } else if (id.equals("_buffer_closing")) {
                             synchronized (BufferList.class) {buffers.remove(buffer);}
                             buffer.onBufferClosed();

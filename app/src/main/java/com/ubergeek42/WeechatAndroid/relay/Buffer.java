@@ -44,6 +44,7 @@ public class Buffer {
     public int number;
     private int notifyLevel;
     Hashtable localVars;
+    public boolean hidden;
 
     // the following four variables are needed to determine if the buffer was changed and,
     // if not, the last two are subtracted from the newly arrived hotlist data, to make up
@@ -71,7 +72,7 @@ public class Buffer {
     public Spannable printable = null; // printable buffer without title (for TextView)
     public Line titleLine;
 
-    @WorkerThread Buffer(long pointer, int number, String fullName, String shortName, String title, int notifyLevel, Hashtable localVars) {
+    @WorkerThread Buffer(long pointer, int number, String fullName, String shortName, String title, int notifyLevel, Hashtable localVars, boolean hidden) {
         this.pointer = pointer;
         this.number = number;
         this.fullName = fullName;
@@ -79,6 +80,7 @@ public class Buffer {
         this.title = title;
         this.notifyLevel = notifyLevel;
         this.localVars = localVars;
+        this.hidden = hidden;
         kitty.setPrefix(this.shortName);
 
         processBufferType();

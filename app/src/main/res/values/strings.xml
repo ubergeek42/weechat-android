@@ -213,11 +213,15 @@
             <string name="pref_sort_buffers_summary">Sort by number of highlights/private messages/unread messages</string>
             <string name="pref_hide_server_buffers">Hide non-conversation buffers</string>
             <string name="pref_hide_server_buffers_summary">E.g. server buffers and plugin buffers</string>
+            <string name="pref_hide_hidden_buffers">Hide hidden buffers</string>
+            <string name="pref_hide_hidden_buffers_summary">Hide buffers hidden with /buffer hide</string>
             <string name="pref_show_buffer_titles">Show buffer titles</string>
             <string name="pref_show_buffer_titles_summary">These tend to take considerable space though</string>
             <string name="pref_show_buffer_filter">Show buffer filter</string>
+            <string name="pref_show_buffer_filter_summary">Filter matches full buffer names and reveals matching hidden buffers</string>
 
-        <!-- look & feel -->
+
+    <!-- look & feel -->
 
         <string name="pref_lookfeel_group">Look &amp; feel</string>
             <string name="pref_text_size">Text Size</string>
