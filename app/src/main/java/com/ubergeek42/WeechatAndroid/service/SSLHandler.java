@@ -79,8 +79,9 @@ public class SSLHandler {
         }
         SSLSession session = ssl.getSession();
         boolean verified = HttpsURLConnection.getDefaultHostnameVerifier().verify(host, session);
+        X509Certificate certificate = getCertificate(ssl);
         try {ssl.close();} catch (IOException ignored) {}
-        return new Result(verified, getCertificate(ssl));
+        return new Result(verified, certificate);
     }
 
     private static @Nullable X509Certificate getCertificate(SSLSocket socket) {
