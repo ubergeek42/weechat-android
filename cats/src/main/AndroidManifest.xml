@@ -2,7 +2,6 @@
     package="com.ubergeek42.cats">
 
     <uses-sdk android:minSdkVersion="16"
-    android:targetSdkVersion="27"
-    android:maxSdkVersion="27" />
+    android:targetSdkVersion="27" />
 
 </manifest>
