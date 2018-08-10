@@ -6,7 +6,7 @@ addons:
 
 before_script:
   - 'export PATH="$HOME/.local/bin:$PATH"'
-  - pip install --user google-api-python-client
+  - pip install --user google-api-python-client oauth2client
 # broken, see below with git depth 99999
 #  - git fetch --unshallow
 
