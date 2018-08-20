@@ -71,7 +71,7 @@ public class Lines {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @WorkerThread void addFirst(Line line) {
-        assertEquals(status, STATUS.FETCHING);
+        assertEquals(STATUS.FETCHING, status);
         ensureSizeBeforeAddition();
         unfiltered.addFirst(line);
         if (line.visible) filtered.addFirst(line);

@@ -160,7 +160,7 @@ public class DataTest {
 			Data d = new Data(bb.array());
 			
 			String p = d.getPointer();
-			assertEquals(p, "0x" + test);
+			assertEquals("0x" + test, p);
 		}
 	}
 	
