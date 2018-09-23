@@ -6,6 +6,7 @@
     <string name="package_name">com.ubergeek42.WeechatAndroid</string>
     <string name="notification_channel_connection_status">Connection Status</string>
     <string name="notification_channel_hotlist">Hotlist</string>
+    <string name="notification_channel_hotlist_async">Hotlist (async)</string>
 
     <!-- widget and button contentDescription-s -->
     <string name="sendkey">Send</string>

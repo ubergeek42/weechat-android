@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Set;
 
 import static android.support.v4.app.NotificationCompat.Builder;
+import static android.support.v4.app.NotificationCompat.GROUP_ALERT_CHILDREN;
 import static android.support.v4.app.NotificationCompat.MessagingStyle;
 import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.AUTHENTICATED;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.NOTIFICATION_EXTRA_BUFFER_FULL_NAME;
@@ -49,6 +50,7 @@ public class Notificator {
     final private static int NOTIFICATION_HOT_ID = 43;
     final private static String NOTIFICATION_CHANNEL_CONNECTION_STATUS = "connection status";
     final private static String NOTIFICATION_CHANNEL_HOTLIST = "notification";
+    final private static String NOTIFICATION_CHANNEL_HOTLIST_ASYNC = "notification async";
     final private static String GROUP_KEY = "hot messages";
 
     @SuppressLint("StaticFieldLeak")
@@ -61,6 +63,10 @@ public class Notificator {
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return;
 
+        // why not IMPORTANCE_MIN? it should not be used with startForeground. the docs say,
+        // If you do this, as of Android version O, the system will show a higher-priority
+        // notification about your app running in the background.
+        // the user can manually hide the icon by setting the importance to low
         NotificationChannel channel = new NotificationChannel(
                 NOTIFICATION_CHANNEL_CONNECTION_STATUS,
                 context.getString(R.string.notification_channel_connection_status),
@@ -71,7 +77,19 @@ public class Notificator {
         channel = new NotificationChannel(
                 NOTIFICATION_CHANNEL_HOTLIST,
                 context.getString(R.string.notification_channel_hotlist),
+                NotificationManager.IMPORTANCE_HIGH);
+        channel.enableLights(true);
+        manager.createNotificationChannel(channel);
+
+        // channel for updating the notifications *silently*
+        // it seems that you have to use IMPORTANCE_DEFAULT, else the notification light won't work
+        channel = new NotificationChannel(
+                NOTIFICATION_CHANNEL_HOTLIST_ASYNC,
+                context.getString(R.string.notification_channel_hotlist_async),
                 NotificationManager.IMPORTANCE_DEFAULT);
+        channel.setSound(null, null);
+        channel.enableVibration(false);
+        channel.enableLights(true);
         manager.createNotificationChannel(channel);
     }
 
@@ -142,9 +160,11 @@ public class Notificator {
 
         if (hotCount == 0) {
             manager.cancel(fullName, NOTIFICATION_HOT_ID);
-            onNotificationDismissed(fullName);
-            return;
+            DismissResult dismissResult = onNotificationDismissed(fullName);
+            if (dismissResult == DismissResult.ALL_NOTIFICATIONS_REMOVED || dismissResult == DismissResult.NO_CHANGE) return;
         }
+
+        String channel = newHighlight ? NOTIFICATION_CHANNEL_HOTLIST : NOTIFICATION_CHANNEL_HOTLIST_ASYNC;
 
         ////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -154,13 +174,14 @@ public class Notificator {
         String appName = res.getString(R.string.app_name);
         String nMessagesInNBuffers = res.getQuantityString(R.plurals.messages, totalHotCount, totalHotCount) +
                 res.getQuantityString(R.plurals.in_buffers, hotBufferCount, hotBufferCount);
-        Builder summary = new Builder(context, NOTIFICATION_CHANNEL_HOTLIST)
+        Builder summary = new Builder(context, channel)
                 .setContentIntent(getIntentFor(NOTIFICATION_EXTRA_BUFFER_FULL_NAME_ANY))
                 .setSmallIcon(R.drawable.ic_hot)
                 .setContentTitle(appName)
                 .setContentText(nMessagesInNBuffers)
                 .setGroup(GROUP_KEY)
-                .setGroupSummary(true);
+                .setGroupSummary(true)
+                .setGroupAlertBehavior(GROUP_ALERT_CHILDREN);
 
         if (canMakeBundledNotifications) {
             summary.setSubText(nMessagesInNBuffers);
@@ -176,19 +197,21 @@ public class Notificator {
 
         manager.notify(NOTIFICATION_HOT_ID, summary.build());
 
+        if (hotCount == 0) return;
         if (!canMakeBundledNotifications) return;
 
         ////////////////////////////////////////////////////////////////////////////////////////////
 
         String newMessageInB = res.getQuantityString(R.plurals.hot_messages, hotCount, hotCount, shortName);
-        Builder builder = new Builder(context, NOTIFICATION_CHANNEL_HOTLIST)
+        Builder builder = new Builder(context, channel)
                 .setContentIntent(getIntentFor(fullName))
                 .setSmallIcon(R.drawable.ic_hot)
                 .setContentTitle(appName)
                 .setContentText(newMessageInB)
                 .setDeleteIntent(getDismissIntentFor(fullName))
                 .setGroup(GROUP_KEY)
-                .setWhen(hotBuffer.lastMessageTimestamp);
+                .setWhen(hotBuffer.lastMessageTimestamp)
+                .setGroupAlertBehavior(GROUP_ALERT_CHILDREN);
 
         // messages hold the latest messages, don't show the reply button if user can't see any
         if (connected && messages.size() > 0) builder.addAction(getAction(context, fullName));
@@ -263,9 +286,14 @@ public class Notificator {
         notifications.add(fullName);
     }
 
-    @AnyThread private static synchronized void onNotificationDismissed(String fullName) {
-        notifications.remove(fullName);
-        if (notifications.isEmpty()) manager.cancel(NOTIFICATION_HOT_ID);
+    private enum DismissResult {NO_CHANGE, ONE_NOTIFICATION_REMOVED, ALL_NOTIFICATIONS_REMOVED}
+    @AnyThread private static synchronized DismissResult onNotificationDismissed(String fullName) {
+        boolean removed = notifications.remove(fullName);
+        if (notifications.isEmpty()) {
+            manager.cancel(NOTIFICATION_HOT_ID);
+            return DismissResult.ALL_NOTIFICATIONS_REMOVED;
+        }
+        return removed ? DismissResult.ONE_NOTIFICATION_REMOVED : DismissResult.NO_CHANGE;
     }
 
     public static class NotificationDismissedReceiver extends BroadcastReceiver {
