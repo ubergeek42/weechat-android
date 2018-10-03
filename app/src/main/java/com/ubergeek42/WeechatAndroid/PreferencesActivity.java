@@ -3,7 +3,9 @@ package com.ubergeek42.WeechatAndroid;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
@@ -59,6 +61,12 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
     }
 
     @Override public boolean onPreferenceStartScreen(PreferenceFragmentCompat preferenceFragmentCompat, PreferenceScreen preferenceScreen) {
+        if (PREF_NOTIFICATION_GROUP.equals(preferenceScreen.getKey()) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Intent intent = new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS);
+            intent.putExtra(Settings.EXTRA_APP_PACKAGE, getPackageName());
+            startActivity(intent);
+            return true;
+        }
         Intent intent = new Intent(PreferencesActivity.this, PreferencesActivity.class);
         intent.putExtra(KEY, preferenceScreen.getKey());
         startActivity(intent);
