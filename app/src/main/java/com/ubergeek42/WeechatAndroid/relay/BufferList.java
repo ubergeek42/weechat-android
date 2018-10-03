@@ -93,7 +93,8 @@ public class BufferList {
     final private static ConcurrentHashMap<String, RelayMessageHandler> handlers = new ConcurrentHashMap<>();
 
     @AnyThread private static void addMessageHandler(String id, RelayMessageHandler handler) {
-        Assert.assertNull(handlers.put(id, handler));
+        RelayMessageHandler h = handlers.put(id, handler);
+        Assert.assertNull(h);
     }
 
     @AnyThread private static void removeMessageHandler(String id, RelayMessageHandler handler) {

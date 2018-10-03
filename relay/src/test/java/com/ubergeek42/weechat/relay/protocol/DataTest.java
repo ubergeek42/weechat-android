@@ -103,7 +103,7 @@ public class DataTest {
 		bb.putInt(-1);
 		Data d = new Data(bb.array());
 		String s = d.getString();
-		assertEquals(null, s);
+		assertNull(s);
 	}
 	
 	@Test
@@ -139,7 +139,7 @@ public class DataTest {
 		bb.putInt(-1);
 		Data d = new Data(bb.array());
 		byte[] b = d.getBuffer();
-		assertEquals(null, b);
+		assertNull(b);
 	}
 	
 	
@@ -160,7 +160,7 @@ public class DataTest {
 			Data d = new Data(bb.array());
 			
 			String p = d.getPointer();
-			assertEquals(p, "0x" + test);
+			assertEquals("0x" + test, p);
 		}
 	}
 	
