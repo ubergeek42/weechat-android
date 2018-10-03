@@ -2,8 +2,8 @@
 <resources>
 
     <!-- internally used names -->
-    <string name="app_name">Weechat-Android</string>
-    <string name="package_name">com.ubergeek42.WeechatAndroid</string>
+    <string name="app_name" translatable="false">Weechat-Android</string>
+    <string name="package_name" translatable="false">com.ubergeek42.WeechatAndroid</string>
     <string name="notification_channel_connection_status">Connection Status</string>
     <string name="notification_channel_hotlist">Hotlist</string>
     <string name="notification_channel_hotlist_async">Hotlist (async)</string>
@@ -12,6 +12,7 @@
     <string name="sendkey">Send</string>
     <string name="preferences">Settings</string>
     <string name="close">Close</string>
+    <string name="filter_lines">Filter lines</string>
     <string name="quit">Quit</string>
     <string name="connect">Connect</string>
     <string name="disconnect">Disconnect</string>
