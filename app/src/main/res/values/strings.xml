@@ -13,6 +13,7 @@
     <string name="preferences">Settings</string>
     <string name="close">Close</string>
     <string name="filter_lines">Filter lines</string>
+    <string name="switch_theme">Switch theme</string>
     <string name="quit">Quit</string>
     <string name="connect">Connect</string>
     <string name="disconnect">Disconnect</string>

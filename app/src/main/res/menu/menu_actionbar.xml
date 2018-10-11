@@ -32,4 +32,9 @@
         app:showAsAction="never"
         android:title="@string/filter_lines"
         android:checkable="true"/>
+    <item android:id="@+id/menu_switch_theme"
+        android:menuCategory="secondary"
+        android:icon="@drawable/ic_2_action_settings"
+        app:showAsAction="never"
+        android:title="@string/switch_theme"/>
 </menu>

@@ -32,6 +32,7 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.AlertDialog;
 
+import android.support.v7.app.AppCompatDelegate;
 import android.text.TextUtils;
 import android.view.*;
 
@@ -66,6 +67,7 @@ import com.ubergeek42.WeechatAndroid.service.RelayService;
 import com.ubergeek42.WeechatAndroid.service.SSLHandler;
 import com.ubergeek42.WeechatAndroid.utils.InvalidHostnameDialog;
 import com.ubergeek42.WeechatAndroid.utils.MyMenuItemStuffListener;
+import com.ubergeek42.WeechatAndroid.utils.ThemeFix;
 import com.ubergeek42.WeechatAndroid.utils.ToolbarController;
 import com.ubergeek42.WeechatAndroid.utils.UntrustedCertificateDialog;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
@@ -117,6 +119,10 @@ public class WeechatActivity extends AppCompatActivity implements
 
         // remove window color so that we get low overdraw
         getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+
+        // fix status bar and navigation bar icon color on Oreo.
+        // TODO remove this once the bug has been fixed
+        ThemeFix.fixLightStatusAndNavigationBar(this);
 
         // prepare pager
         FragmentManager manager = getSupportFragmentManager();
@@ -397,6 +403,14 @@ public class WeechatActivity extends AppCompatActivity implements
                 final boolean filter = !P.filterLines;
                 item.setChecked(filter);
                 p.edit().putBoolean(PREF_FILTER_LINES, filter).apply();
+                break;
+            case R.id.menu_switch_theme:
+                int mode = AppCompatDelegate.getDefaultNightMode();
+                if (mode != AppCompatDelegate.MODE_NIGHT_YES)
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+                else
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+                getDelegate().applyDayNight();
                 break;
         }
         return super.onOptionsItemSelected(item);

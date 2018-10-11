@@ -2,9 +2,12 @@
 
 <resources xmlns:tools="http://schemas.android.com/tools">
 
-    <style name="Weechat" parent="WeechatBase" />
+    <style name="Weechat" parent="WeechatBase">
+        <item name="android:windowLightStatusBar" tools:targetApi="m">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
 
-    <style name="WeechatBase" parent="Theme.AppCompat.NoActionBar">
+    <style name="WeechatBase" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryDark">@color/primary_dark</item>
         <item name="android:windowBackground">@color/primary</item>
@@ -69,11 +72,12 @@
 
     <!-- colors! -->
 
-    <color name="special">#FF2B2F32</color>
-    <color name="primary">#FF1B1F22</color>
-    <color name="primary_dark">#FF0f1315</color>
-    <color name="accent">#ff80cbc4</color>
-    <color name="away_nick">#9cd9f0</color>
+    <color name="special">#FF00D4D0</color>
+    <color name="primary">#FFE4E0DD</color>
+    <color name="primary_dark">#FFE4E0DD</color>
+    <color name="accent">#ff7F343B</color>
+    <color name="away_nick">#63260F</color>
+
 
     <style name="WeechatTranslucent" parent="Weechat">
         <item name="windowActionBar">false</item>
