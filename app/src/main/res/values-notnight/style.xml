@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <color name="special">#FF00D4D0</color>
+    <color name="primary">#FFE4E0DD</color>
+    <color name="primary_dark">#FFE4E0DD</color>
+    <color name="accent">#ff7F343B</color>
+    <color name="away_nick">#63260F</color>
+
+    <style name="Weechat" parent="WeechatBase">
+        <item name="android:windowLightStatusBar" tools:targetApi="m">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+
+</resources>
