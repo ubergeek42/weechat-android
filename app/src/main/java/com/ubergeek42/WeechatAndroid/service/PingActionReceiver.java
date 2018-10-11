@@ -29,7 +29,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.WorkerThread;
 
 import com.ubergeek42.WeechatAndroid.BuildConfig;
-import com.ubergeek42.WeechatAndroid.Manifest;
 import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
@@ -44,6 +43,7 @@ public class PingActionReceiver extends BroadcastReceiver {
     private final RelayService bone;
     private final AlarmManager alarmManager;
     private static final String PING_ACTION = BuildConfig.APPLICATION_ID + ".PING_ACTION";
+    private static final String PING_ACTION_PERMISSION = BuildConfig.APPLICATION_ID + "permission.PING_ACTION";
     private static final IntentFilter FILTER = new IntentFilter(PING_ACTION);
 
     public PingActionReceiver(RelayService bone) {
@@ -81,7 +81,7 @@ public class PingActionReceiver extends BroadcastReceiver {
 
     @WorkerThread public void scheduleFirstPing() {
         if (!P.pingEnabled) return;
-        bone.registerReceiver(this, FILTER, Manifest.permission.PING_ACTION, null);
+        bone.registerReceiver(this, FILTER, PING_ACTION_PERMISSION, null);
         long triggerAt = SystemClock.elapsedRealtime() + P.pingTimeout;
         schedulePing(triggerAt, new Bundle());
     }
