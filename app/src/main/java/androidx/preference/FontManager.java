@@ -2,11 +2,11 @@
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 
-package android.support.v7.preference;
+package androidx.preference;
 
 import android.graphics.Typeface;
 import android.os.Environment;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import java.io.File;
 import java.util.LinkedList;

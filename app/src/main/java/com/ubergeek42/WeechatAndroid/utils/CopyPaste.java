@@ -1,7 +1,7 @@
 package com.ubergeek42.WeechatAndroid.utils;
 
 import android.content.Context;
-import android.support.v7.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
 import android.text.ClipboardManager;
 import android.text.TextUtils;
 import android.text.style.URLSpan;

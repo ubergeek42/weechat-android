@@ -6,7 +6,7 @@
 package com.ubergeek42.WeechatAndroid.utils;
 
 import android.content.Context;
-import android.support.v7.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import android.util.AttributeSet;
 
 class LinearLayoutManagerFix extends LinearLayoutManager {

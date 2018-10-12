@@ -1,11 +1,12 @@
-package android.support.v7.preference;
+package androidx.preference;
 
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Typeface;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v7.app.AlertDialog;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
@@ -108,7 +109,7 @@ public class FontPreference extends DialogPreference {
 
             @Override public View getView(int position, View view, ViewGroup parent) {
                 if (view == null) {
-                    view = inflater.inflate(android.support.v7.appcompat.R.layout.select_dialog_singlechoice_material, parent, false);
+                    view = inflater.inflate(androidx.appcompat.R.layout.select_dialog_singlechoice_material, parent, false);
                     CheckedTextView tv = (CheckedTextView) view.findViewById(android.R.id.text1);
                     tv.setEllipsize(TextUtils.TruncateAt.END);
                     tv.setSingleLine();

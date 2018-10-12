@@ -1,10 +1,11 @@
-package android.support.v7.preference;
+package androidx.preference;
 
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.widget.AppCompatEditText;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.widget.AppCompatEditText;
+
 import android.text.InputType;
 import android.util.AttributeSet;
 import android.view.ViewGroup;
@@ -25,7 +26,7 @@ public class EditTextPreferenceFix extends EditTextPreference {
     }
 
     public EditTextPreferenceFix(Context context, AttributeSet attrs) {
-        this(context, attrs, android.support.v7.preference.R.attr.editTextPreferenceStyle);
+        this(context, attrs, androidx.preference.R.attr.editTextPreferenceStyle);
     }
 
     public EditTextPreferenceFix(Context context, AttributeSet attrs, int defStyleAttr) {

@@ -2,7 +2,7 @@ package com.ubergeek42.WeechatAndroid.utils;
 
 import android.content.res.TypedArray;
 import android.os.Build;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.view.View;
 
 public class ThemeFix {

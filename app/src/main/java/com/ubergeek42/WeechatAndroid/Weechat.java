@@ -6,7 +6,7 @@ package com.ubergeek42.WeechatAndroid;
 import android.app.Application;
 import android.content.Context;
 import android.os.Handler;
-import android.support.annotation.StringRes;
+import androidx.annotation.StringRes;
 import android.widget.Toast;
 
 import com.ubergeek42.WeechatAndroid.service.Events;

@@ -9,10 +9,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
-import android.support.annotation.MainThread;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.RemoteInput;
+import androidx.annotation.MainThread;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.app.RemoteInput;
 import android.text.SpannableString;
 import android.text.style.StyleSpan;
 
@@ -28,7 +28,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 
-import static android.support.v4.app.NotificationCompat.MessagingStyle.Message;
+import static androidx.core.app.NotificationCompat.MessagingStyle.Message;
 import static android.text.TextUtils.isEmpty;
 import static com.ubergeek42.WeechatAndroid.relay.Buffer.PRIVATE;
 import static com.ubergeek42.WeechatAndroid.service.Notificator.KEY_TEXT_REPLY;

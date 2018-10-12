@@ -1,11 +1,13 @@
-package android.support.v7.preference;
+package androidx.preference;
 
 import android.content.Context;
 import android.content.Intent;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
+import androidx.preference.DialogPreference;
+
 import android.text.TextUtils;
 import android.util.AttributeSet;
 

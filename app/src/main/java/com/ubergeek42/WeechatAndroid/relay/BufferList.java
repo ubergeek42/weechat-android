@@ -3,11 +3,11 @@
 
 package com.ubergeek42.WeechatAndroid.relay;
 
-import android.support.annotation.AnyThread;
-import android.support.annotation.MainThread;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.annotation.WorkerThread;
+import androidx.annotation.AnyThread;
+import androidx.annotation.MainThread;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.WorkerThread;
 import android.util.LongSparseArray;
 
 import com.ubergeek42.WeechatAndroid.service.P;

@@ -1,7 +1,7 @@
 package com.ubergeek42.cats;
 
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.After;

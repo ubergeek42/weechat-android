@@ -1,6 +1,6 @@
 package com.ubergeek42.cats;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import org.aspectj.lang.Signature;
 import org.aspectj.lang.reflect.ConstructorSignature;

@@ -14,11 +14,11 @@
 
 package com.ubergeek42.WeechatAndroid.adapters;
 
-import android.support.annotation.AnyThread;
-import android.support.annotation.MainThread;
-import android.support.v7.util.DiffUtil;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.RecyclerView.ViewHolder;
+import androidx.annotation.AnyThread;
+import androidx.annotation.MainThread;
+import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.RecyclerView.ViewHolder;
 import android.text.Spannable;
 import android.text.TextUtils;
 import android.view.LayoutInflater;

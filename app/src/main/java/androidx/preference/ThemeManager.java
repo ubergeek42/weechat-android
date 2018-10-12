@@ -1,10 +1,10 @@
-package android.support.v7.preference;
+package androidx.preference;
 
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.os.Environment;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import android.widget.Toast;
 
 import com.ubergeek42.WeechatAndroid.R;

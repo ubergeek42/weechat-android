@@ -6,9 +6,9 @@ package com.ubergeek42.WeechatAndroid.service;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.net.SSLCertificateSocketFactory;
-import android.support.annotation.CheckResult;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.CheckResult;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
