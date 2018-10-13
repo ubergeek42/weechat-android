@@ -10,8 +10,9 @@
     <style name="WeechatBase" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryDark">@color/primaryDark</item>
-        <item name="awayNick">@color/awayNick</item>
-        <item name="hotIconTextColor">@color/toolbarIcon</item>
+        <item name="awayNickColor">@color/awayNick</item>
+        <item name="hotIconTextColor">@color/toolbarIconEnabled</item>
+        <item name="toolbarIconColor">@color/toolbar_icon</item>
         <item name="android:windowBackground">@color/primary</item>
         <item name="android:colorBackground">@color/primary</item>
         <item name="android:navigationBarColor" tools:targetApi="lollipop">@color/primaryDark</item>

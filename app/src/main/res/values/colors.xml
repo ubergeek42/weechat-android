@@ -6,8 +6,8 @@
     <color name="accent">#222244</color>
     <color name="awayNick">#222244</color>
 
-    <color name="toolbarIcon">#eeffffff</color>
-    <color name="toolbarIconDisabled">#77ffffff</color>
+    <color name="toolbarIconEnabled">#aa000000</color>
+    <color name="toolbarIconDisabled">#55000000</color>
 
     <color name="warmShade">#33ffffff</color>
     <color name="warmBackground">#11000000</color>

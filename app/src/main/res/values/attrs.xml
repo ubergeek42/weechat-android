@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <attr format="color" name="awayNick" />
+    <attr format="color" name="awayNickColor" />
     <attr format="color" name="hotIconTextColor" />
+
+    <attr format="color" name="toolbarIconColor" />
 
 </resources>
