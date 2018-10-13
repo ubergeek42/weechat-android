@@ -41,7 +41,7 @@ public class NickListAdapter extends BaseAdapter implements BufferNicklistEye,
         this.context = context;
         this.inflater = LayoutInflater.from(context);
         this.buffer = buffer;
-        awayNickTextColor = ContextCompat.getColor(context, R.color.away_nick);
+        awayNickTextColor = ContextCompat.getColor(context, R.color.awayNick);
     }
 
     @MainThread @Override public int getCount() {

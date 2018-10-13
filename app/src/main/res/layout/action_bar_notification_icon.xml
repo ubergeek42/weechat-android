@@ -23,7 +23,7 @@
         android:layout_width="wrap_content"
         android:minWidth="17dp"
         android:textSize="12dp"
-        android:textColor="#ffffffff"
+        android:textColor="?attr/hotIconTextColor"
         android:layout_height="wrap_content"
         android:gravity="center"
         android:visibility="invisible"

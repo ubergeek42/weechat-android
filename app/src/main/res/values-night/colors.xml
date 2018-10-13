@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="special">#2B2F32</color>
+    <color name="primary">#1B1F22</color>
+    <color name="primaryDark">#0f1315</color>
+    <color name="accent">#80cbc4</color>
+    <color name="awayNick">#9cd9f0</color>
+
+    <!--<color name="warmShade">#33ffffff</color>-->
+    <!--<color name="warmBackground">#11000000</color>-->
+    <!--<color name="hotShade">#33ffffff</color>-->
+    <!--<color name="hotBackground">#11000000</color>-->
+</resources>

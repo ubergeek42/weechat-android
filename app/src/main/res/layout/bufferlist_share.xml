@@ -8,5 +8,5 @@
     android:layout_height="match_parent"
     android:dividerHeight="0dp"
     android:divider="@null"
-    android:background="@color/primary"
+    android:background="?attr/colorPrimary"
     android:fadingEdge="none" />

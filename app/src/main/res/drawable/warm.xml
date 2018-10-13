@@ -5,7 +5,7 @@
             xmlns:android="http://schemas.android.com/apk/res/android"
             android:shape="rectangle">
             <corners android:radius="1dp" />
-            <solid android:color="#33ffffff" />
+            <solid android:color="@color/warmShade" />
         </shape>
     </item>
     <item android:top="1dp" android:bottom="1dp">
@@ -13,7 +13,7 @@
             xmlns:android="http://schemas.android.com/apk/res/android"
             android:shape="rectangle">
             <corners android:radius="1dp" />
-            <solid android:color="#11000000" />
+            <solid android:color="@color/warmBackground" />
             <padding android:bottom="1dp" />
         </shape>
     </item>

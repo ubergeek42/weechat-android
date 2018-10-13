@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="special">#2B2FF2</color>
+    <color name="primary">#eeeeee</color>
+    <color name="primaryDark">#eeeeee</color>
+    <color name="accent">#222244</color>
+    <color name="awayNick">#222244</color>
+
+    <color name="toolbarIcon">#eeffffff</color>
+    <color name="toolbarIconDisabled">#77ffffff</color>
+
+    <color name="warmShade">#33ffffff</color>
+    <color name="warmBackground">#11000000</color>
+    <color name="hotShade">#ffbb5555</color>
+    <color name="hotBackground">#ffbb0000</color>
+
+    <color name="toolbarHotIconBackground">#ffff0000</color>
+</resources>

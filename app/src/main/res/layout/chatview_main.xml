@@ -10,7 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:minHeight="?actionBarSize"
-        android:background="@color/primary"
+        android:background="?attr/colorPrimary"
         android:layout_alignParentBottom="true"
         android:padding="0dp">
 
