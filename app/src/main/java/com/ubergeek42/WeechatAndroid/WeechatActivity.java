@@ -43,7 +43,6 @@ import org.greenrobot.eventbus.ThreadMode;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -69,8 +68,8 @@ import com.ubergeek42.WeechatAndroid.utils.InvalidHostnameDialog;
 import com.ubergeek42.WeechatAndroid.utils.MyMenuItemStuffListener;
 import com.ubergeek42.WeechatAndroid.utils.ThemeFix;
 import com.ubergeek42.WeechatAndroid.utils.ToolbarController;
+import com.ubergeek42.WeechatAndroid.utils.SimpleTransitionDrawable;
 import com.ubergeek42.WeechatAndroid.utils.UntrustedCertificateDialog;
-import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.WeechatAndroid.service.RelayService.STATE;
 import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.CatD;
@@ -145,6 +144,7 @@ public class WeechatActivity extends AppCompatActivity implements
         // this is the text view behind the uiPager
         // it says stuff like 'connecting', 'disconnected' et al
         uiInfo = findViewById(R.id.kitty);
+        uiInfo.setImageDrawable(new SimpleTransitionDrawable());
         uiInfo.setOnClickListener(v -> {if (state.contains(STARTED)) disconnect(); else connect();});
 
         // if this is true, we've got notification drawer and have to deal with it
@@ -517,9 +517,13 @@ public class WeechatActivity extends AppCompatActivity implements
     }
 
     // set the kitty image that appears when no pages are open
-    @MainThread private void setInfoImage(final int id) {
-        final Drawable drawable = getResources().getDrawable(id);
-        Utils.setImageDrawableWithFade(uiInfo, drawable, 350);
+    int infoImageId = -1;
+    @CatD @MainThread private void setInfoImage(final int id) {
+        if (infoImageId == id) return;
+        infoImageId = id;
+        SimpleTransitionDrawable trans = (SimpleTransitionDrawable) uiInfo.getDrawable();
+        trans.setTarget(getResources().getDrawable(id));
+        trans.startTransition(350);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
