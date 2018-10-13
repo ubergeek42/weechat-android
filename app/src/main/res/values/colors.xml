@@ -6,13 +6,16 @@
     <color name="accent">#222244</color>
     <color name="awayNick">#222244</color>
 
-    <color name="toolbarIconEnabled">#aa000000</color>
-    <color name="toolbarIconDisabled">#55000000</color>
+    <color name="toolbarIconEnabled">#ff5e5e5e</color>
+    <color name="toolbarIconDisabled">#4c5e5e5e</color>
 
     <color name="warmShade">#33ffffff</color>
     <color name="warmBackground">#11000000</color>
     <color name="hotShade">#ffbb5555</color>
     <color name="hotBackground">#ffbb0000</color>
+
+    <color name="kittyColor">@color/toolbarIconEnabled</color>
+    <color name="kittyBalloonColor">#d00000</color>
 
     <color name="toolbarHotIconBackground">#ffff0000</color>
 </resources>

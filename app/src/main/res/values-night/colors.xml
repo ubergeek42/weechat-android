@@ -7,7 +7,9 @@
     <color name="awayNick">#9cd9f0</color>
 
     <color name="toolbarIconEnabled">#eeffffff</color>
-    <color name="toolbarIconDisabled">#77ffffff</color>
+    <color name="toolbarIconDisabled">#4cffffff</color>
+
+    <color name="kittyBalloonColor">#b00000</color>
 
     <!--<color name="warmShade">#33ffffff</color>-->
     <!--<color name="warmBackground">#11000000</color>-->

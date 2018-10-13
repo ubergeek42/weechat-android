@@ -13,6 +13,8 @@
         <item name="awayNickColor">@color/awayNick</item>
         <item name="hotIconTextColor">@color/toolbarIconEnabled</item>
         <item name="toolbarIconColor">@color/toolbar_icon</item>
+        <item name="kittyColor">@color/kittyColor</item>
+        <item name="kittyBalloonColor">@color/kittyBalloonColor</item>
         <item name="android:windowBackground">@color/primary</item>
         <item name="android:colorBackground">@color/primary</item>
         <item name="android:navigationBarColor" tools:targetApi="lollipop">@color/primaryDark</item>
@@ -20,7 +22,7 @@
         <item name="preferenceTheme">@style/PreferenceStyle</item>
     </style>
 
-    <style name="DialogStyle" parent="Theme.AppCompat.Dialog.Alert">
+    <style name="DialogStyle" parent="Theme.AppCompat.DayNight.Dialog.Alert">
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryDark">@color/primaryDark</item>
         <item name="android:background">@color/primary</item>

@@ -522,7 +522,7 @@ public class WeechatActivity extends AppCompatActivity implements
         if (infoImageId == id) return;
         infoImageId = id;
         SimpleTransitionDrawable trans = (SimpleTransitionDrawable) uiInfo.getDrawable();
-        trans.setTarget(getResources().getDrawable(id));
+        trans.setTarget(getResources().getDrawable(id, getTheme()));
         trans.startTransition(350);
     }
 
