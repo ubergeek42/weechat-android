@@ -49,9 +49,9 @@ public class BufferListAdapter extends RecyclerView.Adapter<ViewHolder> implemen
     private ArrayList<VisualBuffer> buffers = new ArrayList<>();
 
     final private static int[][] COLORS = new int[][] {
-            {0xaa525252, 0xaa6c6c6c}, // other
-            {0xaa44525f, 0xaa596c7d}, // channel
-            {0xaa57474f, 0xaa735e69}, // private
+            {R.color.bufferListOther, R.color.bufferListOtherHot},
+            {R.color.bufferListChannel, R.color.bufferListChannelHot},
+            {R.color.bufferListPrivate, R.color.bufferListPrivateHot},
     };
 
     public BufferListAdapter() {
@@ -85,7 +85,7 @@ public class BufferListAdapter extends RecyclerView.Adapter<ViewHolder> implemen
             int highlights = buffer.highlights;
 
             int important = (highlights > 0 || (unreads > 0 && buffer.type == Buffer.PRIVATE)) ? 1 : 0;
-            uiBuffer.setBackgroundColor(COLORS[buffer.type][important]);
+            uiBuffer.setBackgroundResource(COLORS[buffer.type][important]);
             uiOpen.setVisibility(buffer.isOpen ? View.VISIBLE : View.GONE);
 
             if (highlights > 0) {

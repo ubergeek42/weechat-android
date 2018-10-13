@@ -11,6 +11,18 @@
 
     <color name="kittyBalloonColor">#b00000</color>
 
+    <color name="bufferListOther">#aa525252</color>
+    <color name="bufferListOtherHot">#aa6c6c6c</color>
+    <color name="bufferListChannel">#aa44525f</color>
+    <color name="bufferListChannelHot">#aa596c7d</color>
+    <color name="bufferListPrivate">#aa57474f</color>
+    <color name="bufferListPrivateHot">#aa735e69</color>
+
+    <color name="warmShade">#33ffffff</color>
+    <color name="warmBackground">#11000000</color>
+    <color name="hotShade">#ffbb5555</color>
+    <color name="hotBackground">#ffbb0000</color>
+
     <!--<color name="warmShade">#33ffffff</color>-->
     <!--<color name="warmBackground">#11000000</color>-->
     <!--<color name="hotShade">#33ffffff</color>-->
