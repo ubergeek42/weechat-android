@@ -61,7 +61,8 @@ public class Constants {
     final static public String PREF_TIMESTAMP_FORMAT = "timestamp_format"; final public static String PREF_TIMESTAMP_FORMAT_D = "HH:mm:ss";
     public static final String PREF_DIM_DOWN = "dim_down"; final public static boolean PREF_DIM_DOWN_D = false;
     public static final String PREF_BUFFER_FONT = "buffer_font"; final public static String PREF_BUFFER_FONT_D = "";
-    public static final String PREF_COLOR_SCHEME = "color_scheme"; final public static String PREF_COLOR_SCHEME_D = "default-theme.properties";
+    public static final String PREF_COLOR_SCHEME_DAY = "color_scheme_day"; final public static String PREF_COLOR_SCHEME_DAY_D = "squirrely-theme.properties";
+    public static final String PREF_COLOR_SCHEME_NIGHT = "color_scheme_night"; final public static String PREF_COLOR_SCHEME_NIGHT_D = "squirrely-light-theme.properties";
 
     // buttons
     public final static String PREF_SHOW_SEND = "sendbtn_show"; final public static boolean PREF_SHOW_SEND_D = true;

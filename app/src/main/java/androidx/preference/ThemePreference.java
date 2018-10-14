@@ -2,6 +2,7 @@ package androidx.preference;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.res.TypedArray;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -18,17 +19,24 @@ public class ThemePreference extends DialogPreference {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
+    private String defaultValue;
+
     public ThemePreference(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
 
     public @NonNull String getThemePath() {
-        return getSharedPreferences().getString(getKey(), Constants.PREF_COLOR_SCHEME_D);
+        return getSharedPreferences().getString(getKey(), defaultValue);
     }
 
     public void setThemePath(String path) {
         getSharedPreferences().edit().putString(getKey(), path).commit();
         notifyChanged();
+    }
+
+
+    @Override protected Object onGetDefaultValue(TypedArray a, int index) {
+        return defaultValue = a.getString(index);
     }
 
     @Override public CharSequence getSummary() {

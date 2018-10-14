@@ -7,6 +7,8 @@ import android.app.Application;
 import android.content.Context;
 import android.os.Handler;
 import androidx.annotation.StringRes;
+import androidx.appcompat.app.AppCompatDelegate;
+
 import android.widget.Toast;
 
 import com.ubergeek42.WeechatAndroid.service.Events;
@@ -29,6 +31,7 @@ public class Weechat extends Application {
         super.onCreate();
         applicationContext = getApplicationContext();
         Cats.setup(applicationContext);
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
         P.init(getApplicationContext());
         P.restoreStuff();
         Notificator.init(this);

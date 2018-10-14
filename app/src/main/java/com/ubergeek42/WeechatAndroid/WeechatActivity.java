@@ -26,6 +26,7 @@ import android.preference.PreferenceManager;
 import androidx.annotation.MainThread;
 import androidx.annotation.WorkerThread;
 import androidx.fragment.app.DialogFragment;
+import androidx.preference.ThemeManager;
 import androidx.viewpager.widget.PagerAdapter;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.ActionBarDrawerToggle;
@@ -411,6 +412,8 @@ public class WeechatActivity extends AppCompatActivity implements
                 else
                     AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
                 getDelegate().applyDayNight();
+                ThemeManager.loadColorSchemeFromPreferences(this);
+                BufferList.onGlobalPreferencesChanged(false);
                 break;
         }
         return super.onOptionsItemSelected(item);

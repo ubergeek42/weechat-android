@@ -24,6 +24,7 @@ public class ColorScheme {
     // populated from the properties file
     // extended colors do not get to be loaded
     private int basic[];
+    private int extended[];
     private int[][] options = new int[44][2];
     private int def[] = new int[2];
 
@@ -39,12 +40,15 @@ public class ColorScheme {
 
     private final static int[] INVALID = new int[]{-1, -1};
 
+    //private float factor = 1.0f;
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////// constructors /////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     public ColorScheme() {
         basic = BASIC.clone();
+        extended = EXTENDED.clone();
         def[0] = BASIC[7];
         def[1] = BASIC[0];
         loadDefaultOptions();
@@ -52,9 +56,13 @@ public class ColorScheme {
     }
 
     public ColorScheme(Properties p) {
+        System.out.println("#############################");
+
         // load color0 to color16
         basic = new int[BASIC.length];
         for (int i = 0; i < basic.length; i++) basic[i] = getPropertyInt(p, "color" + i, BASIC[i]);
+
+        extended = EXTENDED.clone();
 
         // load default & default_bg
         def[0] = getPropertyInt(p, "DEFAULT", basic[7]);
@@ -63,6 +71,13 @@ public class ColorScheme {
         loadDefaultOptions();
         loadOptionsFromProperties(p);
         setUsedFields();
+
+        // transform colors
+        float brightness = getPropertyFloat(p, "BRIGHTNESS", 1.0f);
+        float saturation = getPropertyFloat(p, "SATURATION", 1.0f);
+        float soften = getPropertyFloat(p, "SOFTEN", 0.0f);
+        for (int i = 0; i < basic.length; i++) basic[i] = transform(basic[i], saturation, brightness, soften);
+        for (int i = 0; i < extended.length; i++) extended[i] = transform(extended[i], saturation, brightness, soften);
     }
 
     private void setUsedFields() {
@@ -99,7 +114,7 @@ public class ColorScheme {
     public int getColor(int i) {
         if (i < 0) return -1;
         if (i < basic.length) return basic[i];
-        if (i < EXTENDED.length) return EXTENDED[i];
+        if (i < extended.length) return extended[i];
         return -1;
     }
 
@@ -261,10 +276,40 @@ public class ColorScheme {
         catch (Exception e) {return d;}
     }
 
+    private float getPropertyFloat(Properties p, String key, float d) {
+        try {return Float.parseFloat(p.getProperty(key));}
+        catch (Exception e) {return d;}
+    }
+
     private int getBasicColorOrDefaultFgBg(int i) {
         if (i == -3) return def[1];
         if (i == -2) return def[0];
         if (i < 0 || i >= basic.length) return -1;
         return basic[i];
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////// transform ////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private static int transform(int color, float saturation, float brightness, float soften) {
+        if (saturation == 1.0f && brightness == 1.0f && soften == 0.0f) return color;
+
+        float[] hsl = new float[3];
+        ColorUtils.RGBToHSL(color, hsl);
+        hsl[1] *= saturation;
+        hsl[2] = soften(hsl[2], soften);
+        hsl[2] *= brightness;
+
+        hsl[1] = ColorUtils.constrain(hsl[1], 0, 1);
+        hsl[2] = ColorUtils.constrain(hsl[2], 0, 1);
+
+        return ColorUtils.HSLToRGB(hsl);
+    }
+
+    // this is just random bs
+    private static float soften(float lightness, float soften) {
+        if (soften == 0f) return lightness;
+        return (float) Math.log(soften * lightness + 1f) / soften;
     }
 }

@@ -254,7 +254,8 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
                 setTextSizeAndLetterWidth();
                 BufferList.onGlobalPreferencesChanged(false);
                 break;
-            case PREF_COLOR_SCHEME:
+            case PREF_COLOR_SCHEME_DAY:
+            case PREF_COLOR_SCHEME_NIGHT:
                 ThemeManager.loadColorSchemeFromPreferences(context);
                 BufferList.onGlobalPreferencesChanged(false);
                 break;
