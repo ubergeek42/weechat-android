@@ -25,7 +25,7 @@
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
         android:layout_alignBottom="@+id/buffer"
-        android:background="@color/textColor"
+        android:background="@color/bufferListOpenIndicator"
         android:visibility="gone" />
 
 

@@ -64,7 +64,7 @@ public class CopyPaste implements EditText.OnLongClickListener {
                         TextView v = (TextView) convertView;
                         boolean isClip = (!"".equals(clip) && position == list.size() - 1);
                         v.setText(Utils.unCrLf(getItem(position)));
-                        v.setBackgroundResource(isClip ? R.color.special : 0);
+                        v.setBackgroundResource(isClip ? R.color.pasteBackground : 0);
                         v.setCompoundDrawablesWithIntrinsicBounds(0, 0, isClip ? R.drawable.ic_paste : 0, 0);
                         return v;
                     }

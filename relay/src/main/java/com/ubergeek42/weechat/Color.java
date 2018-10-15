@@ -245,20 +245,21 @@ public class Color {
         boolean extended = (peekChar() == '@');
         if (extended) getChar();
         if (type == Span.FGCOLOR) maybeSetAttributes();
-        color = (extended) ? getColorExtended() : getColor();
+        int which = type == Span.FGCOLOR ? 0 : 1;
+        color = (extended) ? getColorExtended(which) : getColor(which);
         if (color != -1) addSpan(type, color);
     }
 
     // returns color in the form 0xfffff or -1
-    private int getColor() {
+    private int getColor(int which) {
         int color_index = getNumberOfLengthUpTo(2);
-        return ColorScheme.get().getWeechatColor(color_index);
+        return ColorScheme.get().getWeechatColor(color_index, which);
     }
 
     // returns color in the form 0xfffff or -1
-    private int getColorExtended() {
+    private int getColorExtended(int which) {
         int color_index = getNumberOfLengthUpTo(5);
-        return ColorScheme.get().getColor(color_index);
+        return ColorScheme.get().getColor(color_index, which);
     }
 
     // returns a number stored in the next “amount” characters

@@ -23,9 +23,9 @@ public class ColorScheme {
     // the following 3 are loaded from constants and then, as needed,
     // populated from the properties file
     // extended colors do not get to be loaded
-    private int basic[];
-    private int extended[];
-    private int[][] options = new int[44][2];
+    private int basic[][] = new int[BASIC.length][2];
+    private int extended[][] = new int[EXTENDED.length][2];
+    private int options[][] = new int[44][2];
     private int def[] = new int[2];
 
     // the following are used by Color.java and UI
@@ -46,9 +46,9 @@ public class ColorScheme {
     ///////////////////////////////////////////////////////////////////////// constructors /////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public ColorScheme() {
-        basic = BASIC.clone();
-        extended = EXTENDED.clone();
+    private ColorScheme() {
+        for (int i = 0; i < BASIC.length; i++) basic[i][0] = basic[i][1] = BASIC[i];
+        for (int i = 0; i < EXTENDED.length; i++) extended[i][0] = extended[i][1] = EXTENDED[i];
         def[0] = BASIC[7];
         def[1] = BASIC[0];
         loadDefaultOptions();
@@ -56,17 +56,12 @@ public class ColorScheme {
     }
 
     public ColorScheme(Properties p) {
-        System.out.println("#############################");
-
-        // load color0 to color16
-        basic = new int[BASIC.length];
-        for (int i = 0; i < basic.length; i++) basic[i] = getPropertyInt(p, "color" + i, BASIC[i]);
-
-        extended = EXTENDED.clone();
+        for (int i = 0; i < BASIC.length; i++) basic[i][0] = basic[i][1] = getPropertyInt(p, "color" + i, BASIC[i]);
+        for (int i = 0; i < EXTENDED.length; i++) extended[i][0] = extended[i][1] = EXTENDED[i];
 
         // load default & default_bg
-        def[0] = getPropertyInt(p, "DEFAULT", basic[7]);
-        def[1] = getPropertyInt(p, "DEFAULT_BG", basic[0]);
+        def[0] = getPropertyInt(p, "DEFAULT", basic[7][0]);
+        def[1] = getPropertyInt(p, "DEFAULT_BG", basic[0][1]);
 
         loadDefaultOptions();
         loadOptionsFromProperties(p);
@@ -76,8 +71,15 @@ public class ColorScheme {
         float brightness = getPropertyFloat(p, "BRIGHTNESS", 1.0f);
         float saturation = getPropertyFloat(p, "SATURATION", 1.0f);
         float soften = getPropertyFloat(p, "SOFTEN", 0.0f);
-        for (int i = 0; i < basic.length; i++) basic[i] = transform(basic[i], saturation, brightness, soften);
-        for (int i = 0; i < extended.length; i++) extended[i] = transform(extended[i], saturation, brightness, soften);
+        for (int i = 0; i < basic.length; i++) basic[i][0] = transform(basic[i][0], saturation, brightness, soften);
+        for (int i = 0; i < extended.length; i++) extended[i][0] = transform(extended[i][0], saturation, brightness, soften);
+
+        brightness = getPropertyFloat(p, "BRIGHTNESS_BG", 1.0f);
+        saturation = getPropertyFloat(p, "SATURATION_BG", 1.0f);
+        soften = getPropertyFloat(p, "SOFTEN_BG", 0.0f);
+        for (int i = 0; i < basic.length; i++) basic[i][1] = transform(basic[i][1], saturation, brightness, soften);
+        for (int i = 0; i < extended.length; i++) extended[i][1] = transform(extended[i][1], saturation, brightness, soften);
+
     }
 
     private void setUsedFields() {
@@ -111,10 +113,10 @@ public class ColorScheme {
 
     /** get a basic or an extended color. made possible by extended only starting at 16
      ** returns -1 if not found */
-    public int getColor(int i) {
+    public int getColor(int i, int which) {
         if (i < 0) return -1;
-        if (i < basic.length) return basic[i];
-        if (i < extended.length) return extended[i];
+        if (i < basic.length) return basic[i][which];
+        if (i < extended.length) return extended[i][which];
         return -1;
     }
 
@@ -123,33 +125,35 @@ public class ColorScheme {
     /** get "weechat color" from a set of standard (STD) colors used in weechat
      ** ctrl-f "weechat color" in https://weechat.org/files/doc/devel/weechat_dev.en.html
      ** returns -1 if not found */
-    public int getWeechatColor(int i) {
-        if (i == 0) return defaul[OPT_FG];
+    public int getWeechatColor(int i, int which) {
+        if (i == 0) return defaul[OPT_FG]; //todo?
         if (i < 0 || i >= WEECHAT_COLORS_TO_BASIC_COLORS.length) return -1;
-        return getColor(WEECHAT_COLORS_TO_BASIC_COLORS[i]);
+        return getColor(WEECHAT_COLORS_TO_BASIC_COLORS[i], which);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////// private static final ///
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
+    // https://unix.stackexchange.com/questions/105568/how-can-i-list-the-available-color-names
     private final static int BASIC[] = new int[]{
-            0x000000, // Black
-            0x800000, // Light Red
-            0x008000, // Light Green
-            0x808000, // Light Yellow(Brown)
-            0x000080, // Light Blue
-            0x800080, // Light Magenta
-            0x008080, // Light Cyan
-            0xC0C0C0, // Light Gray
-            0x808080, // Gray
-            0xFF0000, // Red
-            0x00FF00, // Green
-            0xFFFF00, // Yellow
-            0x0000FF, // Blue
-            0xFF00FF, // Magenta
-            0x00FFFF, // Cyan
-            0xFFFFFF  // White
+            0x000000, //  0 Black
+            0x800000, //  1 Red
+            0x008000, //  2 Green
+            0x808000, //  3 Yellow (Brown)
+            0x000080, //  4 Blue
+            0x800080, //  5 Magenta
+            0x008080, //  6 Cyan
+            0xC0C0C0, //  7 Gray
+
+            0x808080, //  8 Light Black (Dark Gray)
+            0xFF0000, //  9 Light Red
+            0x00FF00, // 10 Light Green
+            0xFFFF00, // 11 Light Yellow
+            0x0000FF, // 12 Light Blue
+            0xFF00FF, // 13 Light Magenta
+            0x00FFFF, // 14 Light Cyan
+            0xFFFFFF  // 15 Light Gray (White)
     };
 
     // Extended terminal colors, from colortest.vim:
@@ -171,20 +175,20 @@ public class ColorScheme {
             0, // Default (handled in a special way)
             0, // Black
             8, // Dark Gray
-            9, // Red
-            1, // Light Red
-            10, // Green
-            2, // Light Green
+            1, // Red
+            9, // Light Red
+            2, // Green
+           10, // Light Green
             3, // Brown
-            11, // Yellow
-            12, // Blue
-            4, // Light Blue
-            13, // Magenta
-            5, // Light Magenta
-            14, // Cyan
-            6, // Light Cyan
+           11, // Yellow
+            4, // Blue
+           12, // Light Blue
+            5, // Magenta
+           13, // Light Magenta
+            6, // Cyan
+           14, // Light Cyan
             7, // Gray
-            15, // White
+           15, // White
     };
 
     // default weechat options: id, fg, bg, name
@@ -254,7 +258,7 @@ public class ColorScheme {
     private void loadDefaultOptions() {
         for (int i = 0; i < options.length; i++) {
             int fg = (int) OPTIONS_RAW[i*3], bg = (int) OPTIONS_RAW[i*3 + 1];
-            options[i] = new int[]{getBasicColorOrDefaultFgBg(fg), getBasicColorOrDefaultFgBg(bg)};
+            options[i] = new int[]{getBasicColorOrDefaultFgBg(fg, 0), getBasicColorOrDefaultFgBg(bg, 1)};
         }
     }
 
@@ -281,11 +285,11 @@ public class ColorScheme {
         catch (Exception e) {return d;}
     }
 
-    private int getBasicColorOrDefaultFgBg(int i) {
+    private int getBasicColorOrDefaultFgBg(int i, int which) {
         if (i == -3) return def[1];
         if (i == -2) return def[0];
         if (i < 0 || i >= basic.length) return -1;
-        return basic[i];
+        return basic[i][which];
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -302,7 +306,8 @@ public class ColorScheme {
         hsl[2] *= brightness;
 
         hsl[1] = ColorUtils.constrain(hsl[1], 0, 1);
-        hsl[2] = ColorUtils.constrain(hsl[2], 0, 1);
+        //hsl[2] = ColorUtils.constrain(hsl[2], 0, 1);
+        hsl[2] = ColorUtils.constrain(hsl[2], 0.125f, 0.875f);
 
         return ColorUtils.HSLToRGB(hsl);
     }

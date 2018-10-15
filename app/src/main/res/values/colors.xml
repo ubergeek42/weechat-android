@@ -2,7 +2,7 @@
 <resources>
     <color name="textColor">#ff3e3e3e</color>
 
-    <color name="special">#2B2FF2</color>
+    <color name="pasteBackground">#202B2F32</color>
     <color name="primary">#eeeeee</color>
     <color name="primaryDark">#eeeeee</color>
     <color name="accent">#222244</color>
@@ -17,6 +17,7 @@
     <color name="bufferListChannelHot">#440052ed</color>
     <color name="bufferListPrivate">#44570022</color>
     <color name="bufferListPrivateHot">#44e30052</color>
+    <color name="bufferListOpenIndicator">@color/textColor</color>
 
     <color name="warmShade">#99ffffff</color>
     <color name="warmBackground">#11000000</color>
