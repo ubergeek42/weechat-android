@@ -11,7 +11,7 @@
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryDark">@color/primaryDark</item>
         <item name="awayNickColor">@color/awayNick</item>
-        <item name="hotIconTextColor">@color/toolbarIconEnabled</item>
+        <item name="hotIconTextColor">@color/toolbarHotIconTextColor</item>
         <item name="toolbarIconColor">@color/toolbar_icon</item>
         <item name="kittyColor">@color/kittyColor</item>
         <item name="kittyBalloonColor">@color/kittyBalloonColor</item>

@@ -325,7 +325,7 @@ public class WeechatActivity extends AppCompatActivity implements
     // update hot count (that red square over the bell icon) at any time
     // also sets "hotNumber" in case menu has to be recreated
     @MainThread @Cat("Menu") public void updateHotCount(final int newHotNumber) {
-        if (hotNumber == newHotNumber) return;
+        //if (hotNumber == newHotNumber) return;
         hotNumber = newHotNumber;
         if (uiHot == null) return;
         if (newHotNumber == 0) {

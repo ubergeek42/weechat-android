@@ -25,8 +25,6 @@
     <color name="hotShade">#ffbb5555</color>
     <color name="hotBackground">#ffbb0000</color>
 
-    <!--<color name="warmShade">#33ffffff</color>-->
-    <!--<color name="warmBackground">#11000000</color>-->
-    <!--<color name="hotShade">#33ffffff</color>-->
-    <!--<color name="hotBackground">#11000000</color>-->
+    <color name="toolbarHotIconBackground">#ffff0000</color>
+    <color name="toolbarHotIconTextColor">@color/toolbarIconEnabled</color>
 </resources>

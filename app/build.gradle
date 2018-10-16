@@ -41,6 +41,8 @@ android {
         minSdkVersion 16
         targetSdkVersion 28
         buildConfigField "String", "VERSION_BANNER", "\"" + versionBanner() + "\""
+
+        vectorDrawables.useSupportLibrary = true
     }
 
     signingConfigs {
