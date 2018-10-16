@@ -46,7 +46,7 @@ public class Hotlist {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     public static class HotBuffer {
-        final boolean isPrivate;
+        public final boolean isPrivate;
         public final String fullName;
         public String shortName;
         public final ArrayList<HotMessage> messages = new ArrayList<>();
@@ -86,11 +86,11 @@ public class Hotlist {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     public static class HotMessage {
-        private CharSequence message;
-        private final CharSequence nick;
-        private final long timestamp;
-        private final HotBuffer hotBuffer;
-        private final boolean isAction;
+        public CharSequence message;
+        public final CharSequence nick;
+        public final long timestamp;
+        public final HotBuffer hotBuffer;
+        public final boolean isAction;
 
         HotMessage(Line line, HotBuffer hotBuffer) {
             this.hotBuffer = hotBuffer;
@@ -103,18 +103,6 @@ public class Hotlist {
                 sb.setSpan(new StyleSpan(Typeface.ITALIC), 0, message.length(), 0);
                 message = sb;
             }
-        }
-
-        // never show buffer name, show nickname only if relevant
-        public Message forBuffer() {
-            return new Message(message, timestamp, hotBuffer.isPrivate || isAction ? "" : nick);
-        }
-
-        // always show buffer name, show nickname only if relevant
-        public Message forFullList() {
-            StringBuilder n = new StringBuilder(hotBuffer.shortName).append(":");
-            if (!isAction && !hotBuffer.isPrivate) n.append(" ").append(nick);
-            return new Message(message, timestamp, n.toString());
         }
 
         // show the weechat-style message
@@ -167,16 +155,18 @@ public class Hotlist {
     private static void notifyHotlistChanged(HotBuffer buffer, boolean newHighlight) {
         ArrayList<HotMessage> allMessages = new ArrayList<>();
         int hotBufferCount = 0;
+        long lastMessageTimestamp = 0;
 
         for (HotBuffer b : hotList.values()) {
             if (b.hotCount == 0) continue;
             hotBufferCount++;
             allMessages.addAll(b.messages);
+            if (b.lastMessageTimestamp > lastMessageTimestamp) lastMessageTimestamp = b.lastMessageTimestamp;
         }
 
         // older messages come first
         Collections.sort(allMessages, (m1, m2) -> (int) (m1.timestamp - m2.timestamp));
-        Notificator.showHot(connected, totalHotCount, hotBufferCount, allMessages, buffer, newHighlight);
+        Notificator.showHot(connected, totalHotCount, hotBufferCount, allMessages, buffer, newHighlight, lastMessageTimestamp);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

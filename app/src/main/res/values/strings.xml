@@ -49,6 +49,14 @@
         <item quantity="other">(%d messages not fetched)</item>
     </plurals>
 
+    <plurals name="hot_messages_missing_user">
+        <item quantity="one">(user unknown)</item>
+        <item quantity="other">(users unknown)</item>
+    </plurals>
+
+    <!-- “Me” in the “Me: my message” part of NotificationCompat.MessagingStyle -->
+    <string name="me">Me</string>
+
     <plurals name="messages">
         <item quantity="one">%d message</item>
         <item quantity="other">%d messages</item>

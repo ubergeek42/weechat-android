@@ -17,7 +17,9 @@ import android.os.Build;
 import androidx.annotation.AnyThread;
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
+import androidx.core.app.Person;
 import androidx.core.app.RemoteInput;
 import android.text.TextUtils;
 
@@ -52,6 +54,13 @@ public class Notificator {
     final private static String NOTIFICATION_CHANNEL_HOTLIST = "notification";
     final private static String NOTIFICATION_CHANNEL_HOTLIST_ASYNC = "notification async";
     final private static String GROUP_KEY = "hot messages";
+
+    // displayed in place of user name in private notifications, when we can get away with it
+    final private static CharSequence ZERO_WIDTH_SPACE = "\u200B";
+
+    // this text is somewhat displayed on android p when replying to notification
+    // represents “Me” in the “Me: my message” part of NotificationCompat.MessagingStyle
+    private static Person MYSELF = new Person.Builder().setName("Me").build();
 
     @SuppressLint("StaticFieldLeak")
     private static Context context;
@@ -91,6 +100,7 @@ public class Notificator {
         channel.enableVibration(false);
         channel.enableLights(true);
         manager.createNotificationChannel(channel);
+        MYSELF = new Person.Builder().setName(c.getString(R.string.me)).build();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -102,22 +112,19 @@ public class Notificator {
                 new Intent(context, WeechatActivity.class), PendingIntent.FLAG_CANCEL_CURRENT);
 
         boolean authenticated = relay.state.contains(AUTHENTICATED);
-        int icon = authenticated ? R.drawable.ic_connected : R.drawable.ic_disconnected;
 
         Builder builder = new Builder(context, NOTIFICATION_CHANNEL_CONNECTION_STATUS);
         builder.setContentIntent(contentIntent)
-                .setSmallIcon(icon)
-                .setContentTitle("Weechat-Android " + BuildConfig.VERSION_NAME)
-                .setContentText(content)
-                .setWhen(System.currentTimeMillis());
-
-        builder.setPriority(Notification.PRIORITY_MIN);
+                .setSmallIcon(R.drawable.ic_connected)
+                .setCategory(NotificationCompat.CATEGORY_SERVICE)
+                .setWhen(System.currentTimeMillis())
+                .setPriority(Notification.PRIORITY_MIN);
+        setNotificationTitleAndText(builder, content);
 
         if (P.notificationTicker)
             builder.setTicker(content);
 
         String disconnectText = context.getString(authenticated ? R.string.disconnect : R.string.stop_connecting);
-
         builder.addAction(
                 android.R.drawable.ic_menu_close_clear_cancel, disconnectText,
                 PendingIntent.getService(
@@ -146,7 +153,8 @@ public class Notificator {
     // we add (message not available) if there are NO lines to display and add "..." if there are
     // some lines to display, but not all
     @AnyThread @Cat public static void showHot(boolean connected, int totalHotCount, int hotBufferCount,
-                    List<Hotlist.HotMessage> allMessages, Hotlist.HotBuffer hotBuffer, boolean newHighlight) {
+                    List<Hotlist.HotMessage> allMessages, Hotlist.HotBuffer hotBuffer, boolean newHighlight,
+                                               long lastMessageTimestamp) {
         if (!P.notificationEnable) return;
 
         // https://developer.android.com/guide/topics/ui/notifiers/notifications.html#back-compat
@@ -159,6 +167,9 @@ public class Notificator {
         String shortName = hotBuffer.shortName;
 
         if (hotCount == 0) {
+            // TODO this doesn't cancel notifications that have remote input and have ben replied to
+            // TODO on android p. not sure what to do about this--find a workaround or leave as is?
+            // TODO https://issuetracker.google.com/issues/112319501
             manager.cancel(fullName, NOTIFICATION_HOT_ID);
             DismissResult dismissResult = onNotificationDismissed(fullName);
             if (dismissResult == DismissResult.ALL_NOTIFICATIONS_REMOVED || dismissResult == DismissResult.NO_CHANGE) return;
@@ -171,25 +182,28 @@ public class Notificator {
         // (re)build the “parent” summary notification. in practice, it should never be visible on
         // Lollipop and later, except for the SubText part, which appears on the right of app name
 
-        String appName = res.getString(R.string.app_name);
         String nMessagesInNBuffers = res.getQuantityString(R.plurals.messages, totalHotCount, totalHotCount) +
                 res.getQuantityString(R.plurals.in_buffers, hotBufferCount, hotBufferCount);
         Builder summary = new Builder(context, channel)
                 .setContentIntent(getIntentFor(NOTIFICATION_EXTRA_BUFFER_FULL_NAME_ANY))
                 .setSmallIcon(R.drawable.ic_hot)
-                .setContentTitle(appName)
-                .setContentText(nMessagesInNBuffers)
+                .setCategory(NotificationCompat.CATEGORY_MESSAGE)
+                .setWhen(lastMessageTimestamp)
                 .setGroup(GROUP_KEY)
                 .setGroupSummary(true)
                 .setGroupAlertBehavior(GROUP_ALERT_CHILDREN);
+        setNotificationTitleAndText(summary, nMessagesInNBuffers);
 
         if (canMakeBundledNotifications) {
             summary.setSubText(nMessagesInNBuffers);
         } else {
-            MessagingStyle style = new MessagingStyle("");
+            MessagingStyle style = new MessagingStyle(MYSELF);
             style.setConversationTitle(nMessagesInNBuffers);
-            addMissingMessageLine(totalHotCount - allMessages.size(), res, style);
-            for (HotMessage message : allMessages) style.addMessage(message.forFullList());
+            style.setGroupConversation(true);   // needed to display the title
+            addMissingMessageLine(totalHotCount - allMessages.size(), res, style, null);
+            for (HotMessage message : allMessages) style.addMessage(new MessagingStyle.Message(
+                    message.message, message.timestamp, getNickForFullList(message)
+            ));
             summary.setStyle(style);
 
             if (newHighlight) makeNoise(summary, res, allMessages);
@@ -206,20 +220,28 @@ public class Notificator {
         Builder builder = new Builder(context, channel)
                 .setContentIntent(getIntentFor(fullName))
                 .setSmallIcon(R.drawable.ic_hot)
-                .setContentTitle(appName)
-                .setContentText(newMessageInB)
                 .setDeleteIntent(getDismissIntentFor(fullName))
-                .setGroup(GROUP_KEY)
+                .setCategory(NotificationCompat.CATEGORY_MESSAGE)
                 .setWhen(hotBuffer.lastMessageTimestamp)
+                .setGroup(GROUP_KEY)
                 .setGroupAlertBehavior(GROUP_ALERT_CHILDREN);
+        setNotificationTitleAndText(summary, newMessageInB);
 
         // messages hold the latest messages, don't show the reply button if user can't see any
         if (connected && messages.size() > 0) builder.addAction(getAction(context, fullName));
 
-        MessagingStyle style = new MessagingStyle("");
+        MessagingStyle style = new MessagingStyle(MYSELF);
+
+        // this is ugly on android p, but i see no other way to show the number of messages
         style.setConversationTitle(hotCount < 2 ? shortName : shortName + " (" + String.valueOf(hotCount) + ")");
-        addMissingMessageLine(hotCount - messages.size(), res, style);
-        for (HotMessage message : messages) style.addMessage(message.forBuffer());
+
+        // before pie, display private buffers as non-private
+        style.setGroupConversation(!hotBuffer.isPrivate || Build.VERSION.SDK_INT < 28);
+
+        addMissingMessageLine(hotCount - messages.size(), res, style, hotBuffer);
+        for (HotMessage message : messages) style.addMessage(new MessagingStyle.Message(
+                message.message, message.timestamp, getNickForBuffer(message)
+        ));
         builder.setStyle(style);
 
         if (newHighlight) makeNoise(builder, res, messages);
@@ -241,11 +263,18 @@ public class Notificator {
         return PendingIntent.getBroadcast(context, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
-    private static void addMissingMessageLine(int missingMessages, Resources res, MessagingStyle style) {
-        if (missingMessages > 0) {
-            String s = res.getQuantityString(R.plurals.hot_messages_missing, missingMessages, missingMessages);
-            style.addMessage(s, 0, "");
-        }
+    // WARNING hotBuffer shouldn't be null on android p!
+    // we have to display *something* (not a space) in place of the user name on android p, since
+    // the big icon is generated from it. this is ugly but ¯\_(ツ)_/¯
+    private static void addMissingMessageLine(int missingMessages, Resources res, MessagingStyle style, @Nullable Hotlist.HotBuffer hotBuffer) {
+        if (missingMessages == 0) return;
+        CharSequence nick = ZERO_WIDTH_SPACE;
+        if (Build.VERSION.SDK_INT >= 28)
+            nick = hotBuffer != null && hotBuffer.isPrivate ?
+                    hotBuffer.shortName :
+                    res.getQuantityString(R.plurals.hot_messages_missing_user, missingMessages);
+        String message = res.getQuantityString(R.plurals.hot_messages_missing, missingMessages, missingMessages);
+        style.addMessage(message, 0, nick);
     }
 
     private static void makeNoise(Builder builder, Resources res, List<HotMessage> messages) {
@@ -276,6 +305,36 @@ public class Notificator {
                 replyLabel, replyPendingIntent)
                 .addRemoteInput(remoteInput)
                 .build();
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    // for android p, use the regular nick, as messages from the same user are displayed without
+    // repeating the name. on previous versions of android, use a fake name; the real name (short
+    // buffer name, actually) will be displayed as conversation title
+    // it is possible to have “nick (3)” as a nickname, but icon shade depends on the nickname, and
+    // you can't get away with making a Person's with different names but the same key
+    private static CharSequence getNickForBuffer(HotMessage message) {
+        if (Build.VERSION.SDK_INT >= 28) return message.nick;           // + " (" + hotCount + ")";
+        if (message.hotBuffer.isPrivate || message.isAction) return ZERO_WIDTH_SPACE;
+        return message.nick;
+    }
+
+    private static CharSequence getNickForFullList(HotMessage message) {
+        if (message.isAction && message.hotBuffer.isPrivate) return ZERO_WIDTH_SPACE;
+        StringBuilder text = new StringBuilder(message.hotBuffer.shortName).append(":");
+        if (!message.isAction && !message.hotBuffer.isPrivate) text.append(" ").append(message.nick);
+        return text.toString();
+    }
+
+    // don't display 2 lines of text on platforms that handle a single line fine
+    private static void setNotificationTitleAndText(Builder builder, CharSequence text) {
+        if (Build.VERSION.SDK_INT > 23) {
+            builder.setContentTitle(text);
+        } else {
+            builder.setContentTitle(context.getString(R.string.app_name) + " " + BuildConfig.VERSION_NAME)
+                    .setContentText(text);
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
