@@ -43,7 +43,7 @@ public class PingActionReceiver extends BroadcastReceiver {
     private final RelayService bone;
     private final AlarmManager alarmManager;
     private static final String PING_ACTION = BuildConfig.APPLICATION_ID + ".PING_ACTION";
-    private static final String PING_ACTION_PERMISSION = BuildConfig.APPLICATION_ID + "permission.PING_ACTION";
+    private static final String PING_ACTION_PERMISSION = BuildConfig.APPLICATION_ID + ".permission.PING_ACTION";
     private static final IntentFilter FILTER = new IntentFilter(PING_ACTION);
 
     public PingActionReceiver(RelayService bone) {
