@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+    api 23 (m) introduced dark status bar icons. status bar is automatically colored using
+    primaryDark color since api 21 (l). status bar can be colored, but status bar icon color
+    can't be changed until api 27.
+    https://stackoverflow.com/questions/22192291/how-to-change-the-status-bar-color-in-android
+-->
+
+<resources>
+    <style name="Weechat" parent="WeechatBase">
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+</resources>

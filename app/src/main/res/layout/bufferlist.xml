@@ -34,7 +34,7 @@
             android:background="@null"
             android:layout_centerVertical="true"
             android:scaleType="fitCenter"
-            android:src="@drawable/ic_cancel"
+            app:srcCompat="@drawable/ic_cancel"
             android:visibility="invisible"
             android:paddingLeft="12dp"
             android:paddingRight="12dp"/>

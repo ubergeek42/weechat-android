@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<resources xmlns:tools="http://schemas.android.com/tools">
-
-    <style name="Weechat" parent="WeechatBase">
-        <item name="android:windowLightStatusBar" tools:targetApi="m">true</item>
-        <item name="android:windowLightNavigationBar">true</item>
-    </style>
+<resources>
+    <style name="Weechat" parent="WeechatBase" />
 
     <style name="WeechatBase" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="colorPrimary">@color/primary</item>
@@ -17,7 +13,6 @@
         <item name="kittyBalloonColor">@color/kittyBalloonColor</item>
         <item name="android:windowBackground">@color/primary</item>
         <item name="android:colorBackground">@color/primary</item>
-        <item name="android:navigationBarColor" tools:targetApi="lollipop">@color/primaryDark</item>
         <item name="alertDialogTheme">@style/DialogStyle</item>
         <item name="preferenceTheme">@style/PreferenceStyle</item>
     </style>

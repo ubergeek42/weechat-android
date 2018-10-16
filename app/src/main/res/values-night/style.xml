@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 
+<!--
+    night theme styling for all apis. since api 21 (m), status bar is going to be colored using
+    primaryDark color. here, we color navigation bar the same.
+-->
+
 <resources xmlns:tools="http://schemas.android.com/tools">
     <style name="Weechat" parent="WeechatBase">
-        <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
-        <item name="android:windowLightNavigationBar">false</item>
+        <item name="android:navigationBarColor" tools:targetApi="lollipop">@color/primaryDark</item>
     </style>
 </resources>

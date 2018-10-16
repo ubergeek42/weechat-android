@@ -25,6 +25,7 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import androidx.annotation.MainThread;
 import androidx.annotation.WorkerThread;
+import androidx.appcompat.content.res.AppCompatResources;
 import androidx.fragment.app.DialogFragment;
 import androidx.preference.ThemeManager;
 import androidx.viewpager.widget.PagerAdapter;
@@ -525,7 +526,7 @@ public class WeechatActivity extends AppCompatActivity implements
         if (infoImageId == id) return;
         infoImageId = id;
         SimpleTransitionDrawable trans = (SimpleTransitionDrawable) uiInfo.getDrawable();
-        trans.setTarget(getResources().getDrawable(id, getTheme()));
+        trans.setTarget(AppCompatResources.getDrawable(this, id));
         trans.startTransition(350);
     }
 
