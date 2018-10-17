@@ -115,7 +115,7 @@ public class Notificator {
 
         Builder builder = new Builder(context, NOTIFICATION_CHANNEL_CONNECTION_STATUS);
         builder.setContentIntent(contentIntent)
-                .setSmallIcon(R.drawable.ic_connected)
+                .setSmallIcon(R.drawable.ic_notification_main)
                 .setCategory(NotificationCompat.CATEGORY_SERVICE)
                 .setWhen(System.currentTimeMillis())
                 .setPriority(Notification.PRIORITY_MIN);
@@ -186,7 +186,7 @@ public class Notificator {
                 res.getQuantityString(R.plurals.in_buffers, hotBufferCount, hotBufferCount);
         Builder summary = new Builder(context, channel)
                 .setContentIntent(getIntentFor(NOTIFICATION_EXTRA_BUFFER_FULL_NAME_ANY))
-                .setSmallIcon(R.drawable.ic_hot)
+                .setSmallIcon(R.drawable.ic_notification_hot)
                 .setCategory(NotificationCompat.CATEGORY_MESSAGE)
                 .setWhen(lastMessageTimestamp)
                 .setGroup(GROUP_KEY)
@@ -219,7 +219,7 @@ public class Notificator {
         String newMessageInB = res.getQuantityString(R.plurals.hot_messages, hotCount, hotCount, shortName);
         Builder builder = new Builder(context, channel)
                 .setContentIntent(getIntentFor(fullName))
-                .setSmallIcon(R.drawable.ic_hot)
+                .setSmallIcon(R.drawable.ic_notification_hot)
                 .setDeleteIntent(getDismissIntentFor(fullName))
                 .setCategory(NotificationCompat.CATEGORY_MESSAGE)
                 .setWhen(hotBuffer.lastMessageTimestamp)
