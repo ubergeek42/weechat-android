@@ -301,7 +301,7 @@ public class Notificator {
                         1,
                         intent,
                         PendingIntent.FLAG_UPDATE_CURRENT);
-        return new NotificationCompat.Action.Builder(R.drawable.ic_send,
+        return new NotificationCompat.Action.Builder(R.drawable.ic_toolbar_send,
                 replyLabel, replyPendingIntent)
                 .addRemoteInput(remoteInput)
                 .build();

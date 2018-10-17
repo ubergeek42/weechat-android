@@ -440,7 +440,7 @@ public class WeechatActivity extends AppCompatActivity implements
 
         final View menuHotlist = uiMenu.findItem(R.id.menu_hotlist).getActionView();
         ImageView bellImage = menuHotlist.findViewById(R.id.hotlist_bell);
-        bellImage.setImageResource(P.optimizeTraffic ? R.drawable.ic_bell_cracked : R.drawable.ic_bell);
+        bellImage.setImageResource(P.optimizeTraffic ? R.drawable.ic_toolbar_bell_cracked : R.drawable.ic_toolbar_bell);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
