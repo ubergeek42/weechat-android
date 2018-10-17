@@ -14,7 +14,6 @@
         <item name="android:windowBackground">@color/primary</item>
         <item name="android:colorBackground">@color/primary</item>
         <item name="alertDialogTheme">@style/DialogStyle</item>
-        <item name="preferenceTheme">@style/PreferenceStyle</item>
     </style>
 
     <style name="DialogStyle" parent="Theme.AppCompat.DayNight.Dialog.Alert">
@@ -24,52 +23,10 @@
         <item name="android:drawSelectorOnTop">true</item>
     </style>
 
-    <!-- styles for preferences for api 10 to 14 -->
+    <!-- buttons such as tab, send and bell -->
+    <style name="ActionButton" parent="@android:style/Widget.ActionButton" />
 
-    <style name="PreferenceStyle">
-        <item name="preferenceCategoryStyle">@style/CategoryFix</item>
-        <item name="preferenceStyle">@style/PreferenceFix</item>
-        <item name="editTextPreferenceStyle">@style/PreferenceFix.EditText</item>
-        <item name="dialogPreferenceStyle">@style/PreferenceFix.DialogPreference</item>
-        <item name="preferenceScreenStyle">@style/PreferenceFix.ScreenStyle</item>
-        <item name="checkBoxPreferenceStyle">@style/PreferenceFix.CheckBoxStyle</item>
-    </style>
-
-    <style name="CategoryFix" parent="@style/Preference.Category">
-        <item name="layout">@layout/v10_category</item>
-    </style>
-
-    <style name="PreferenceFix">
-        <item name="layout">@layout/v10_preference</item>
-    </style>
-
-    <style name="PreferenceFix.ScreenStyle" parent="@style/Preference.PreferenceScreen">
-        <item name="layout">@layout/v10_preference</item>
-    </style>
-
-    <style name="PreferenceFix.CheckBoxStyle" parent="@style/Preference.CheckBoxPreference">
-        <item name="layout">@layout/v10_preference</item>
-    </style>
-
-    <style name="PreferenceFix.DialogPreference" parent="@style/Preference.DialogPreference">
-        <item name="layout">@layout/v10_preference</item>
-    </style>
-
-    <style name="PreferenceFix.EditText" parent="@style/Preference.DialogPreference.EditTextPreference">
-        <item name="layout">@layout/v10_preference</item>
-    </style>
-
-    <!-- action button approximation for api 10 to 12 -->
-
-    <style name="ActionButton">
-        <item name="android:background">?actionBarItemBackground</item>
-        <item name="android:paddingLeft">12dip</item>
-        <item name="android:paddingRight">12dip</item>
-        <item name="android:minHeight">?actionBarSize</item>
-        <item name="android:gravity">center</item>
-        <item name="android:maxLines">2</item>
-    </style>
-
+    <!-- share text activity -->
     <style name="WeechatTranslucent" parent="Weechat">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
