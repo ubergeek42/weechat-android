@@ -9,6 +9,9 @@ local.properties
 # Gradle stuff
 .gradle
 build
+/captures
+/app/devrelease
+/app/release
 gradle.properties
 
 # eclipse project stuff

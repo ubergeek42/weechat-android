@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="48px"
+   height="48px"
+   id="svg4202"
+   version="1.1"
+   inkscape:version="0.92.3 (2405546, 2018-03-11)"
+   sodipodi:docname="ic_connected.svg"
+   inkscape:export-filename="C:\Users\sq\Desktop\ic_disconnected.png"
+   inkscape:export-xdpi="90"
+   inkscape:export-ydpi="90">
+  <defs
+     id="defs4204" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#000000"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="7.9999996"
+     inkscape:cx="28.485858"
+     inkscape:cy="20.34945"
+     inkscape:current-layer="layer1"
+     showgrid="true"
+     inkscape:grid-bbox="true"
+     inkscape:document-units="px"
+     showguides="true"
+     inkscape:guide-bbox="true"
+     inkscape:window-width="1304"
+     inkscape:window-height="745"
+     inkscape:window-x="54"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:snap-page="false"
+     inkscape:snap-grids="false">
+    <inkscape:grid
+       type="xygrid"
+       id="grid4228"
+       empspacing="8"
+       visible="true"
+       enabled="true"
+       snapvisiblegridlinesonly="true"
+       dotted="false" />
+  </sodipodi:namedview>
+  <metadata
+     id="metadata4207">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     id="layer1"
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     style="display:inline">
+    <path
+       style="fill:#ffffff;stroke:#ffffff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;marker-start:none"
+       d="m 46.796759,9.8586758 c 0,0 -27.371143,0.7379542 -27.397587,0.7394202 -2.486563,0.137843 -6.004667,1.203118 -7.934055,2.897621 -1.9154881,1.682301 -2.7921361,3.637392 -3.4209841,5.848138 l 8.8706501,-0.457708 c 0,0 0.302972,-1.307132 1.425722,-2.498143 0.705187,-0.74806 2.045609,-1.329945 3.260831,-1.398526 l 23.84302,-0.970224 z"
+       id="path2996-4-8"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cssccsccc"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"
+       inkscape:export-filename="C:\Users\sq\Desktop\ic_connected.png" />
+    <path
+       style="fill:#ffffff;stroke:#ffffff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 6.6703259,23.231653 8.7836871,-0.522342 -3.048011,8.573196 c -0.29615,0.952586 -0.137658,1.733306 0.182104,2.173136 0.342599,0.471239 1.060558,0.851827 1.785044,0.808344 l 2.897203,-0.173886 5.545727,-15.088812 8.075338,-0.361079 -5.173044,14.73575 5.828038,-0.436959 5.12448,-14.575019 7.474724,-0.39953 L 37.770218,36.635205 9.1391689,39.40432 C 7.6206679,39.551184 4.7129761,39.625055 3.1186234,38.262521 1.9086969,37.228519 2.1769792,35.409343 2.4501988,34.668853 Z"
+       id="path2998-0-8"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccssccccccccsssc"
+       inkscape:export-filename="C:\Users\sq\Desktop\ic_hot.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+  </g>
+</svg>
