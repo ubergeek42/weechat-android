@@ -4,7 +4,6 @@
 package com.ubergeek42.WeechatAndroid.service;
 
 import android.annotation.SuppressLint;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -16,13 +15,13 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.annotation.WorkerThread;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.preference.FilePreference;
 import androidx.preference.ThemeManager;
 import android.text.TextPaint;
 import android.text.TextUtils;
 import android.util.TypedValue;
 
-import com.ubergeek42.WeechatAndroid.BuildConfig;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
@@ -112,10 +111,16 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
 
     public static boolean showBufferFilter;
 
+    public static boolean nightThemeEnabled;
+
     public static @NonNull String filterLc = "";
     public static @NonNull String filterUc = "";
 
     @MainThread private static void loadUIPreferences() {
+        // night mode
+        nightThemeEnabled = p.getBoolean(PREF_NIGHT_THEME_ENABLED, PREF_NIGHT_THEME_ENABLED_D);
+        AppCompatDelegate.setDefaultNightMode(P.nightThemeEnabled ? AppCompatDelegate.MODE_NIGHT_YES : AppCompatDelegate.MODE_NIGHT_NO);
+
         // buffer list preferences
         sortBuffers = p.getBoolean(PREF_SORT_BUFFERS, PREF_SORT_BUFFERS_D);
         filterBuffers = p.getBoolean(PREF_FILTER_NONHUMAN_BUFFERS, PREF_FILTER_NONHUMAN_BUFFERS_D);
@@ -257,6 +262,9 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
                 setTextSizeAndLetterWidth();
                 BufferList.onGlobalPreferencesChanged(false);
                 break;
+            case PREF_NIGHT_THEME_ENABLED:
+                nightThemeEnabled = p.getBoolean(key, PREF_NIGHT_THEME_ENABLED_D);
+                AppCompatDelegate.setDefaultNightMode(nightThemeEnabled ? AppCompatDelegate.MODE_NIGHT_YES : AppCompatDelegate.MODE_NIGHT_NO);
             case PREF_COLOR_SCHEME_DAY:
             case PREF_COLOR_SCHEME_NIGHT:
                 ThemeManager.loadColorSchemeFromPreferences(context);
@@ -323,13 +331,11 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
 
     @MainThread private static void changeLauncherIcon(boolean useKitty) {
         context.getPackageManager().setComponentEnabledSetting(
-                new ComponentName(BuildConfig.APPLICATION_ID,
-                        "com.ubergeek42.WeechatAndroid.WeechatActivityWeechat"),
+                WEECHAT_ACTIVITY_WEECHAT,
                 useKitty ? PackageManager.COMPONENT_ENABLED_STATE_DISABLED : PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
                 PackageManager.DONT_KILL_APP);
         context.getPackageManager().setComponentEnabledSetting(
-                new ComponentName(BuildConfig.APPLICATION_ID,
-                        "com.ubergeek42.WeechatAndroid.WeechatActivityKitty"),
+                WEECHAT_ACTIVITY_KITTY,
                 useKitty ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED : PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
                 PackageManager.DONT_KILL_APP);
     }

@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatDelegate;
 import android.widget.Toast;
 
 import com.ubergeek42.WeechatAndroid.R;
+import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
 import com.ubergeek42.weechat.ColorScheme;
@@ -31,10 +32,9 @@ public class ThemeManager {
     public final static String SEARCH_DIR = Environment.getExternalStorageDirectory().toString() + "/weechat";
 
     public static void loadColorSchemeFromPreferences(@NonNull Context context) {
-        boolean day = AppCompatDelegate.getDefaultNightMode() != AppCompatDelegate.MODE_NIGHT_YES;
         String path = android.preference.PreferenceManager.getDefaultSharedPreferences(context)
-                .getString(day ? PREF_COLOR_SCHEME_DAY : PREF_COLOR_SCHEME_NIGHT,
-                        day ? PREF_COLOR_SCHEME_DAY_D : PREF_COLOR_SCHEME_NIGHT_D);
+                .getString(P.nightThemeEnabled ? PREF_COLOR_SCHEME_NIGHT : PREF_COLOR_SCHEME_DAY,
+                        P.nightThemeEnabled ? PREF_COLOR_SCHEME_NIGHT_D : PREF_COLOR_SCHEME_DAY_D);
         Properties p = loadColorScheme(path, context.getAssets());
         if (p == null)
             Toast.makeText(context, context.getString(R.string.pref_theme_loading_error, path), Toast.LENGTH_SHORT).show();

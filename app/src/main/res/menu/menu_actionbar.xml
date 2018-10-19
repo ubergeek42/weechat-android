@@ -27,8 +27,9 @@
         app:showAsAction="never"
         android:title="@string/filter_lines"
         android:checkable="true"/>
-    <item android:id="@+id/menu_switch_theme"
+    <item android:id="@+id/menu_use_night_theme"
         android:menuCategory="secondary"
         app:showAsAction="never"
-        android:title="@string/switch_theme"/>
+        android:title="@string/night_theme"
+        android:checkable="true"/>
 </menu>

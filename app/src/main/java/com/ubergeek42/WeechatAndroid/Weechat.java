@@ -31,7 +31,6 @@ public class Weechat extends Application {
         super.onCreate();
         applicationContext = getApplicationContext();
         Cats.setup(applicationContext);
-        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
         P.init(getApplicationContext());
         P.restoreStuff();
         Notificator.init(this);

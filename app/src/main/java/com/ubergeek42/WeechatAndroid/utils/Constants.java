@@ -1,5 +1,9 @@
 package com.ubergeek42.WeechatAndroid.utils;
 
+import android.content.ComponentName;
+
+import com.ubergeek42.WeechatAndroid.BuildConfig;
+
 public class Constants {
 
     // connection type
@@ -82,4 +86,10 @@ public class Constants {
     public final static String NOTIFICATION_EXTRA_BUFFER_INPUT_TEXT = "com.ubergeek42.BUFFER_INPUT_TEXT";
 
     public final static String NOTIFICATION_EXTRA_BUFFER_FULL_NAME_ANY = "";
+
+    public static final String PREF_NIGHT_THEME_ENABLED = "night_theme_enabled"; final public static boolean PREF_NIGHT_THEME_ENABLED_D = false;
+
+    // component names for different activity aliases
+    public static final ComponentName WEECHAT_ACTIVITY_WEECHAT = new ComponentName(BuildConfig.APPLICATION_ID, "com.ubergeek42.WeechatAndroid.WeechatActivityWeechat");
+    public static final ComponentName WEECHAT_ACTIVITY_KITTY = new ComponentName(BuildConfig.APPLICATION_ID, "com.ubergeek42.WeechatAndroid.WeechatActivityKitty");
 }

@@ -31,14 +31,12 @@ import androidx.annotation.MainThread;
 import androidx.annotation.WorkerThread;
 import androidx.appcompat.content.res.AppCompatResources;
 import androidx.fragment.app.DialogFragment;
-import androidx.preference.ThemeManager;
 import androidx.viewpager.widget.PagerAdapter;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AlertDialog;
 
-import androidx.appcompat.app.AppCompatDelegate;
 import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.*;
@@ -197,12 +195,10 @@ public class WeechatActivity extends AppCompatActivity implements
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             String appName = getString(R.string.app_name);
 
-            int icon = R.mipmap.ic_launcher_weechat;
-            try {
-                icon = getPackageManager().getActivityInfo(getIntent().getComponent(), 0).icon;
-            } catch (PackageManager.NameNotFoundException e) {
-                kitty.error("failed to get activity information while setting task description");
-            }
+            int icon = getPackageManager().getComponentEnabledSetting(WEECHAT_ACTIVITY_KITTY) ==
+                    PackageManager.COMPONENT_ENABLED_STATE_ENABLED ?
+                    R.mipmap.ic_launcher_kitty :
+                    R.mipmap.ic_launcher_weechat;
 
             TypedValue colorPrimary = new TypedValue();
             getTheme().resolveAttribute(R.attr.colorPrimary, colorPrimary, true);
@@ -382,6 +378,7 @@ public class WeechatActivity extends AppCompatActivity implements
         uiMenu.findItem(R.id.menu_nicklist).setVisible(bufferVisible);
         uiMenu.findItem(R.id.menu_close).setVisible(bufferVisible);
         uiMenu.findItem(R.id.menu_filter_lines).setChecked(P.filterLines);
+        uiMenu.findItem(R.id.menu_use_night_theme).setChecked(P.nightThemeEnabled);
     }
 
     @Override @MainThread @Cat("Menu") public boolean onCreateOptionsMenu(final Menu menu) {
@@ -444,15 +441,11 @@ public class WeechatActivity extends AppCompatActivity implements
                 item.setChecked(filter);
                 p.edit().putBoolean(PREF_FILTER_LINES, filter).apply();
                 break;
-            case R.id.menu_switch_theme:
-                int mode = AppCompatDelegate.getDefaultNightMode();
-                if (mode != AppCompatDelegate.MODE_NIGHT_YES)
-                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-                else
-                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+            case R.id.menu_use_night_theme:
+                item.setChecked(!P.nightThemeEnabled);
+                PreferenceManager.getDefaultSharedPreferences(this).edit().putBoolean(
+                        PREF_NIGHT_THEME_ENABLED, !P.nightThemeEnabled).apply();
                 getDelegate().applyDayNight();
-                ThemeManager.loadColorSchemeFromPreferences(this);
-                BufferList.onGlobalPreferencesChanged(false);
                 break;
         }
         return true;
