@@ -4,8 +4,10 @@
 package com.ubergeek42.WeechatAndroid.service;
 
 import android.annotation.SuppressLint;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Typeface;
 import android.preference.PreferenceManager;
 import androidx.annotation.AnyThread;
@@ -20,6 +22,7 @@ import android.text.TextPaint;
 import android.text.TextUtils;
 import android.util.TypedValue;
 
+import com.ubergeek42.WeechatAndroid.BuildConfig;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
@@ -259,6 +262,9 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
                 ThemeManager.loadColorSchemeFromPreferences(context);
                 BufferList.onGlobalPreferencesChanged(false);
                 break;
+            case PREF_USE_LAUNCHER_ICON_KITTY:
+                changeLauncherIcon(p.getBoolean(key, PREF_USE_LAUNCHER_ICON_KITTY_D));
+                break;
 
             // notifications
             case PREF_NOTIFICATION_ENABLE: notificationEnable = p.getBoolean(key, PREF_NOTIFICATION_ENABLE_D); break;
@@ -313,6 +319,19 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
 
     @MainThread public static void setTextSizeAndLetterWidth(float size) {
         p.edit().putString(PREF_TEXT_SIZE, Float.toString(size)).apply();
+    }
+
+    @MainThread private static void changeLauncherIcon(boolean useKitty) {
+        context.getPackageManager().setComponentEnabledSetting(
+                new ComponentName(BuildConfig.APPLICATION_ID,
+                        "com.ubergeek42.WeechatAndroid.WeechatActivityWeechat"),
+                useKitty ? PackageManager.COMPONENT_ENABLED_STATE_DISABLED_UNTIL_USED : PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+                PackageManager.DONT_KILL_APP);
+        context.getPackageManager().setComponentEnabledSetting(
+                new ComponentName(BuildConfig.APPLICATION_ID,
+                        "com.ubergeek42.WeechatAndroid.WeechatActivityKitty"),
+                useKitty ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED : PackageManager.COMPONENT_ENABLED_STATE_DISABLED_UNTIL_USED,
+                PackageManager.DONT_KILL_APP);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

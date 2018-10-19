@@ -27,18 +27,17 @@
     <application
         android:name=".Weechat"
         android:allowBackup="false"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/ic_launcher_weechat"
         android:label="@string/app_name"
         android:theme="@style/Weechat"
         android:windowSoftInputMode="adjustResize">
         <service android:name=".service.RelayService" />
         <activity
-            android:name=".WeechatActivity" 
+            android:name=".WeechatActivity"
             android:launchMode="singleTask"
             android:windowSoftInputMode="stateHidden">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <activity android:name=".ShareTextActivity"
@@ -67,5 +66,28 @@
         <receiver android:name=".service.SyncAlarmReceiver" />
         <receiver android:name=".relay.Hotlist$InlineReplyReceiver" />
         <receiver android:name=".service.Notificator$NotificationDismissedReceiver" />
+
+        <!-- different launcher icons -->
+
+        <activity-alias
+            android:icon="@mipmap/ic_launcher_weechat"
+            android:name=".WeechatActivityWeechat"
+            android:enabled="true"
+            android:targetActivity=".WeechatActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:icon="@mipmap/ic_launcher_kitty"
+            android:name=".WeechatActivityKitty"
+            android:enabled="false"
+            android:targetActivity=".WeechatActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
     </application>
 </manifest>

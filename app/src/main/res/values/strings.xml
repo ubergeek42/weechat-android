@@ -273,7 +273,10 @@
             <string name="pref_font_summary">Non-monospace fonts will not work well with alignment.\n\nSearch Path:%1$s\n\nCurrent Value:\n&#160;&#160;&#160;&#160;%2$s</string>
             <string name="pref_font_default">Default</string>
 
-        <!-- buttons -->
+            <string name="pref_use_launcher_icon_kitty">Use alternative launcher icon</string>
+            <string name="pref_use_launcher_icon_kitty_summary">Remove the default launcher icon and install the alternative one. Note that the launcher may have take some time to update; also, in some cases you will have to remove the old icon manually. WARNING: application may misbehave until you restart it</string>
+
+    <!-- buttons -->
 
         <string name="pref_button_group">Buttons</string>
             <string name="pref_tabbtn_show">Show tab button</string>

@@ -29,4 +29,6 @@
 
     <color name="toolbarHotIconBackground">#d00000</color>
     <color name="toolbarHotIconTextColor">@color/primary</color>
+
+    <color name="launcherIconKittyBackgroundColor">#800000</color>
 </resources>

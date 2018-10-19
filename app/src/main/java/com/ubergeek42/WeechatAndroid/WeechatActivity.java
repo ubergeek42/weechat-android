@@ -21,7 +21,11 @@ import java.util.EnumSet;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLPeerUnverifiedException;
 
+import android.app.ActivityManager;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.os.Build;
 import android.preference.PreferenceManager;
 import androidx.annotation.MainThread;
 import androidx.annotation.WorkerThread;
@@ -36,6 +40,7 @@ import androidx.appcompat.app.AlertDialog;
 
 import androidx.appcompat.app.AppCompatDelegate;
 import android.text.TextUtils;
+import android.util.TypedValue;
 import android.view.*;
 
 import org.greenrobot.eventbus.EventBus;
@@ -73,6 +78,7 @@ import com.ubergeek42.WeechatAndroid.utils.ToolbarController;
 import com.ubergeek42.WeechatAndroid.utils.SimpleTransitionDrawable;
 import com.ubergeek42.WeechatAndroid.utils.UntrustedCertificateDialog;
 import com.ubergeek42.WeechatAndroid.service.RelayService.STATE;
+import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.CatD;
 import com.ubergeek42.cats.Kitty;
@@ -138,6 +144,7 @@ public class WeechatActivity extends AppCompatActivity implements
         uiActionBar.setHomeButtonEnabled(true);
         uiActionBar.setDisplayShowCustomEnabled(true);
         uiActionBar.setDisplayShowTitleEnabled(false);
+        uiActionBar.setDisplayHomeAsUpEnabled(false);
 
         CutePagerTitleStrip uiStrip = findViewById(R.id.cute_pager_title_strip);
         uiStrip.setViewPager(uiPager);
@@ -180,6 +187,37 @@ public class WeechatActivity extends AppCompatActivity implements
         // if no data and not going to connect, clear stuff
         // if no data and going to connect, let the LISTED event restore it all
         if (adapter.canRestoreBuffers()) adapter.restoreBuffers();
+
+        // set the icon that appears in recent application list;
+        // also set the color of the title bar in recent app list, as changing the theme doesn't
+        // immediately change the color—the old color is used unless you kill the activity
+        // also explicitly set application name, since calling setTaskDescription screws it up
+        // on android m. note that ActivityManager$TaskDescription(String, int, ...) doesn't
+        // exist on android < p, so create the bitmap manually
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            String appName = getString(R.string.app_name);
+
+            int icon = R.mipmap.ic_launcher_weechat;
+            try {
+                icon = getPackageManager().getActivityInfo(getIntent().getComponent(), 0).icon;
+            } catch (PackageManager.NameNotFoundException e) {
+                kitty.error("failed to get activity information while setting task description");
+            }
+
+            TypedValue colorPrimary = new TypedValue();
+            getTheme().resolveAttribute(R.attr.colorPrimary, colorPrimary, true);
+            int color = colorPrimary.data;
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
+                setTaskDescription(new ActivityManager.TaskDescription(null,
+                        icon, color));
+            else {
+                Bitmap bitmap = Utils.getBitmapFromDrawable(this, icon);
+                setTaskDescription(new ActivityManager.TaskDescription(appName,
+                        bitmap, color));
+                bitmap.recycle();
+            }
+        }
     }
 
     @MainThread @CatD(linger=true) public void connect() {
@@ -417,7 +455,7 @@ public class WeechatActivity extends AppCompatActivity implements
                 BufferList.onGlobalPreferencesChanged(false);
                 break;
         }
-        return super.onOptionsItemSelected(item);
+        return true;
     }
 
     @MainThread @Cat("Menu") private void onHotlistSelected() {
