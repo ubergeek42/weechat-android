@@ -325,12 +325,12 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         context.getPackageManager().setComponentEnabledSetting(
                 new ComponentName(BuildConfig.APPLICATION_ID,
                         "com.ubergeek42.WeechatAndroid.WeechatActivityWeechat"),
-                useKitty ? PackageManager.COMPONENT_ENABLED_STATE_DISABLED_UNTIL_USED : PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+                useKitty ? PackageManager.COMPONENT_ENABLED_STATE_DISABLED : PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
                 PackageManager.DONT_KILL_APP);
         context.getPackageManager().setComponentEnabledSetting(
                 new ComponentName(BuildConfig.APPLICATION_ID,
                         "com.ubergeek42.WeechatAndroid.WeechatActivityKitty"),
-                useKitty ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED : PackageManager.COMPONENT_ENABLED_STATE_DISABLED_UNTIL_USED,
+                useKitty ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED : PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
                 PackageManager.DONT_KILL_APP);
     }
 
