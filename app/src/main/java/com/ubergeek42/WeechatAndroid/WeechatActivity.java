@@ -30,6 +30,7 @@ import android.preference.PreferenceManager;
 import androidx.annotation.MainThread;
 import androidx.annotation.WorkerThread;
 import androidx.appcompat.content.res.AppCompatResources;
+import androidx.appcompat.widget.TooltipCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.viewpager.widget.PagerAdapter;
 import androidx.appcompat.app.ActionBar;
@@ -70,7 +71,6 @@ import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
 import com.ubergeek42.WeechatAndroid.service.SSLHandler;
 import com.ubergeek42.WeechatAndroid.utils.InvalidHostnameDialog;
-import com.ubergeek42.WeechatAndroid.utils.MyMenuItemStuffListener;
 import com.ubergeek42.WeechatAndroid.utils.ThemeFix;
 import com.ubergeek42.WeechatAndroid.utils.ToolbarController;
 import com.ubergeek42.WeechatAndroid.utils.SimpleTransitionDrawable;
@@ -385,9 +385,8 @@ public class WeechatActivity extends AppCompatActivity implements
         getMenuInflater().inflate(R.menu.menu_actionbar, menu);
         final View menuHotlist = menu.findItem(R.id.menu_hotlist).getActionView();
         uiHot = menuHotlist.findViewById(R.id.hotlist_hot);
-        new MyMenuItemStuffListener(menuHotlist, getString(R.string.hint_show_hot_message)) {
-            @Override public void onClick(View v) {onHotlistSelected();}
-        };
+        TooltipCompat.setTooltipText(menuHotlist, getString(R.string.hint_show_hot_message));
+        menuHotlist.setOnClickListener((View v) -> onHotlistSelected());
         uiMenu = menu;
         updateMenuItems();
         makeMenuReflectConnectionStatus();
