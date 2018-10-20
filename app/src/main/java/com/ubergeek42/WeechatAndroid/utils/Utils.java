@@ -253,7 +253,6 @@ public class Utils {
             Bitmap bitmap = Utils.getBitmapFromDrawable(activity, icon);
             activity.setTaskDescription(new ActivityManager.TaskDescription(appName,
                     bitmap, color));
-            bitmap.recycle();
         }
     }
 
