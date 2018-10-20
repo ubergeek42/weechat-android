@@ -43,13 +43,7 @@
         </activity>
         <activity android:name=".ShareTextActivity"
             android:theme="@style/WeechatTranslucent"
-            android:excludeFromRecents="true">
-            <intent-filter>
-                <action android:name="android.intent.action.SEND" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="text/plain" />
-            </intent-filter>
-        </activity>
+            android:excludeFromRecents="true" />
         <activity android:name=".PreferencesActivity" />
         <activity android:name=".WeechatAboutActivity">
             <intent-filter>
@@ -90,5 +84,29 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity-alias>
+
+        <activity-alias
+            android:icon="@mipmap/ic_launcher_weechat"
+            android:name=".ShareTextActivityWeechat"
+            android:enabled="true"
+            android:targetActivity=".ShareTextActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:icon="@mipmap/ic_launcher_kitty"
+            android:name=".ShareTextActivityKitty"
+            android:enabled="false"
+            android:targetActivity=".ShareTextActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity-alias>
+
     </application>
 </manifest>

@@ -92,4 +92,6 @@ public class Constants {
     // component names for different activity aliases
     public static final ComponentName WEECHAT_ACTIVITY_WEECHAT = new ComponentName(BuildConfig.APPLICATION_ID, "com.ubergeek42.WeechatAndroid.WeechatActivityWeechat");
     public static final ComponentName WEECHAT_ACTIVITY_KITTY = new ComponentName(BuildConfig.APPLICATION_ID, "com.ubergeek42.WeechatAndroid.WeechatActivityKitty");
+    public static final ComponentName SHARE_TEXT_ACTIVITY_WEECHAT = new ComponentName(BuildConfig.APPLICATION_ID, "com.ubergeek42.WeechatAndroid.ShareTextActivityWeechat");
+    public static final ComponentName SHARE_TEXT_ACTIVITY_KITTY = new ComponentName(BuildConfig.APPLICATION_ID, "com.ubergeek42.WeechatAndroid.ShareTextActivityKitty");
 }

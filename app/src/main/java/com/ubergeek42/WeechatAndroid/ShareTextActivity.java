@@ -3,6 +3,9 @@ package com.ubergeek42.WeechatAndroid;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.Bundle;
+
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -10,6 +13,7 @@ import com.ubergeek42.WeechatAndroid.adapters.BufferListAdapter;
 import com.ubergeek42.WeechatAndroid.adapters.BufferListClickListener;
 import com.ubergeek42.WeechatAndroid.service.Events;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
+import com.ubergeek42.WeechatAndroid.utils.Utils;
 
 import org.greenrobot.eventbus.EventBus;
 
@@ -17,6 +21,11 @@ import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
 
 public class ShareTextActivity extends AppCompatActivity implements
         DialogInterface.OnDismissListener, BufferListClickListener {
+
+    @Override protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        Utils.fixIconAndColor(this);
+    }
 
     @Override protected void onStart() {
         super.onStart();

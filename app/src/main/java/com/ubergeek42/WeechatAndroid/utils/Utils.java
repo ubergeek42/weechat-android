@@ -7,10 +7,12 @@ package com.ubergeek42.WeechatAndroid.utils;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.AdaptiveIconDrawable;
@@ -27,6 +29,7 @@ import android.os.Looper;
 import android.provider.Settings;
 
 import androidx.annotation.DrawableRes;
+import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
@@ -35,12 +38,14 @@ import androidx.appcompat.content.res.AppCompatResources;
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat;
 
 import android.util.Base64;
+import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
 
@@ -56,6 +61,8 @@ import java.io.StringWriter;
 import java.text.SimpleDateFormat;
 import java.util.Iterator;
 import java.util.Set;
+
+import static com.ubergeek42.WeechatAndroid.utils.Constants.WEECHAT_ACTIVITY_KITTY;
 
 public class Utils {
 
@@ -215,6 +222,38 @@ public class Utils {
             return bitmap;
         } else {
             throw new IllegalArgumentException("unsupported drawable type: " + drawable);
+        }
+    }
+
+    // set the icon that appears in recent application list;
+    // also set the color of the title bar in recent app list, as changing the theme doesn't
+    // immediately change the color—the old color is used unless you kill the activity.
+    // also explicitly set application name, since calling setTaskDescription screws it up
+    // on android m. note that ActivityManager$TaskDescription(String, int, ...) doesn't
+    // exist on android < p, so create the bitmap manually
+    @SuppressWarnings("deprecation") @MainThread
+    public static void fixIconAndColor(AppCompatActivity activity) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) return;
+
+        String appName = activity.getString(R.string.app_name);
+
+        int icon = activity.getPackageManager().getComponentEnabledSetting(WEECHAT_ACTIVITY_KITTY) ==
+                PackageManager.COMPONENT_ENABLED_STATE_ENABLED ?
+                R.mipmap.ic_launcher_kitty :
+                R.mipmap.ic_launcher_weechat;
+
+        TypedValue colorPrimary = new TypedValue();
+        activity.getTheme().resolveAttribute(R.attr.colorPrimary, colorPrimary, true);
+        int color = colorPrimary.data;
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
+            activity.setTaskDescription(new ActivityManager.TaskDescription(null,
+                    icon, color));
+        else {
+            Bitmap bitmap = Utils.getBitmapFromDrawable(activity, icon);
+            activity.setTaskDescription(new ActivityManager.TaskDescription(appName,
+                    bitmap, color));
+            bitmap.recycle();
         }
     }
 

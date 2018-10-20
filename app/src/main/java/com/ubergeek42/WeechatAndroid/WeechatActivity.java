@@ -186,34 +186,7 @@ public class WeechatActivity extends AppCompatActivity implements
         // if no data and going to connect, let the LISTED event restore it all
         if (adapter.canRestoreBuffers()) adapter.restoreBuffers();
 
-        // set the icon that appears in recent application list;
-        // also set the color of the title bar in recent app list, as changing the theme doesn't
-        // immediately change the color—the old color is used unless you kill the activity
-        // also explicitly set application name, since calling setTaskDescription screws it up
-        // on android m. note that ActivityManager$TaskDescription(String, int, ...) doesn't
-        // exist on android < p, so create the bitmap manually
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            String appName = getString(R.string.app_name);
-
-            int icon = getPackageManager().getComponentEnabledSetting(WEECHAT_ACTIVITY_KITTY) ==
-                    PackageManager.COMPONENT_ENABLED_STATE_ENABLED ?
-                    R.mipmap.ic_launcher_kitty :
-                    R.mipmap.ic_launcher_weechat;
-
-            TypedValue colorPrimary = new TypedValue();
-            getTheme().resolveAttribute(R.attr.colorPrimary, colorPrimary, true);
-            int color = colorPrimary.data;
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
-                setTaskDescription(new ActivityManager.TaskDescription(null,
-                        icon, color));
-            else {
-                Bitmap bitmap = Utils.getBitmapFromDrawable(this, icon);
-                setTaskDescription(new ActivityManager.TaskDescription(appName,
-                        bitmap, color));
-                bitmap.recycle();
-            }
-        }
+        Utils.fixIconAndColor(this);
     }
 
     @MainThread @CatD(linger=true) public void connect() {

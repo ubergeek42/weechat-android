@@ -4,6 +4,7 @@
 package com.ubergeek42.WeechatAndroid.service;
 
 import android.annotation.SuppressLint;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -330,13 +331,16 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     }
 
     @MainThread private static void changeLauncherIcon(boolean useKitty) {
+        setComponentEnabled(WEECHAT_ACTIVITY_WEECHAT, !useKitty);
+        setComponentEnabled(SHARE_TEXT_ACTIVITY_WEECHAT, !useKitty);
+        setComponentEnabled(WEECHAT_ACTIVITY_KITTY, useKitty);
+        setComponentEnabled(SHARE_TEXT_ACTIVITY_KITTY, useKitty);
+    }
+
+    @MainThread private static void setComponentEnabled(ComponentName component, boolean enabled) {
         context.getPackageManager().setComponentEnabledSetting(
-                WEECHAT_ACTIVITY_WEECHAT,
-                useKitty ? PackageManager.COMPONENT_ENABLED_STATE_DISABLED : PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
-                PackageManager.DONT_KILL_APP);
-        context.getPackageManager().setComponentEnabledSetting(
-                WEECHAT_ACTIVITY_KITTY,
-                useKitty ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED : PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                component,
+                enabled ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED : PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
                 PackageManager.DONT_KILL_APP);
     }
 
