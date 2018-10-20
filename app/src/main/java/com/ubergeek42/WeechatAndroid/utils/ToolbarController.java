@@ -9,9 +9,11 @@ import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 
 import com.ubergeek42.WeechatAndroid.R;
+import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.service.P;
 
 public class ToolbarController implements ViewTreeObserver.OnGlobalLayoutListener {
+    private final WeechatActivity activity;
     private final Toolbar toolbar;
     private final View root;
     private final View mainView;
@@ -20,7 +22,8 @@ public class ToolbarController implements ViewTreeObserver.OnGlobalLayoutListene
     private boolean shown = true;
     private boolean keyboardVisible = false;
 
-    public ToolbarController(AppCompatActivity activity) {
+    public ToolbarController(WeechatActivity activity) {
+        this.activity = activity;
         this.toolbar = activity.findViewById(R.id.toolbar);
         this.mainView = activity.findViewById(R.id.main_viewpager);
         this.root = activity.findViewById(android.R.id.content);
@@ -64,7 +67,7 @@ public class ToolbarController implements ViewTreeObserver.OnGlobalLayoutListene
         // Offset the content if the action bar is always shown, so the top text and button
         // remain visible
         setContentIsOffset(!P.autoHideActionbar);
-        if (P.autoHideActionbar)
+        if (P.autoHideActionbar && activity.isChatInputFocused())
             return true;
         show();
         return false;
