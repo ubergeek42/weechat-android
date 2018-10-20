@@ -258,7 +258,7 @@
             <string name="pref_timestamp_format">Timestamp format</string>
             <string name="pref_timestamp_format_summary">%s (default: HH:mm:ss)</string>
             <string name="pref_dim_down">Dim down non-human lines</string>
-            <string name="pref_dim_down_summary">Display joins/quits in a darker color</string>
+            <string name="pref_dim_down_summary">Display joins/quits in a faint color, as set in the color scheme</string>
 
             <string name="pref_font">Buffer font</string>
             <string name="pref_color_scheme_day">Light color scheme</string>
@@ -266,11 +266,11 @@
 
             <!-- theme (color scheme) -->
             <string name="pref_theme_loading_error">Error loading color scheme %s</string>
-            <string name="pref_theme_summary">Search Path:\n&#160;&#160;&#160;&#160;%1$s\n\nCurrent Value:\n&#160;&#160;&#160;&#160;%2$s</string>
+            <string name="pref_theme_summary">Search Path:\n\u0020\u0020\u0020\u0020%1$s\n\nCurrent Value:\n\u0020\u0020\u0020\u0020%2$s</string>
             <string name="pref_theme_not_set">Not set</string>
 
             <!-- font -->
-            <string name="pref_font_summary">Non-monospace fonts will not work well with alignment.\n\nSearch Path:%1$s\n\nCurrent Value:\n&#160;&#160;&#160;&#160;%2$s</string>
+            <string name="pref_font_summary">Non-monospace fonts will not work well with alignment.\n\nSearch Path:%1$s\n\nCurrent Value:\n\u0020\u0020\u0020\u0020%2$s</string>
             <string name="pref_font_default">Default</string>
 
             <string name="pref_use_launcher_icon_kitty">Use alternative launcher icon</string>
