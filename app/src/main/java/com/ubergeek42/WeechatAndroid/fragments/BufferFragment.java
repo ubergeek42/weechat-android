@@ -304,7 +304,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
                             if (textSize > 5) textSize -= 1;
                             break;
                     }
-                    P.setTextSizeAndLetterWidth(textSize);
+                    P.setTextSizeColorAndLetterWidth(textSize);
                 }
                 return true;
             }

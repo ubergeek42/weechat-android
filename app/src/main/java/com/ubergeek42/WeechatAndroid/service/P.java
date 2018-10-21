@@ -136,7 +136,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         dimDownNonHumanLines = p.getBoolean(PREF_DIM_DOWN, PREF_DIM_DOWN_D);
         setTimestampFormat();
         setAlignment();
-        setTextSizeAndLetterWidth();
+        setTextSizeColorAndLetterWidth();
         ThemeManager.loadColorSchemeFromPreferences(context);
 
         // notifications
@@ -260,7 +260,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
                 break;
             case PREF_TEXT_SIZE:
             case PREF_BUFFER_FONT:
-                setTextSizeAndLetterWidth();
+                setTextSizeColorAndLetterWidth();
                 BufferList.onGlobalPreferencesChanged(false);
                 break;
             case PREF_NIGHT_THEME_ENABLED:
@@ -270,6 +270,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
             case PREF_COLOR_SCHEME_NIGHT:
                 ThemeManager.loadColorSchemeFromPreferences(context);
                 BufferList.onGlobalPreferencesChanged(false);
+                setTextSizeColorAndLetterWidth();
                 break;
             case PREF_USE_LAUNCHER_ICON_KITTY:
                 changeLauncherIcon(p.getBoolean(key, PREF_USE_LAUNCHER_ICON_KITTY_D));
@@ -310,7 +311,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         }
     }
 
-    @MainThread private static void setTextSizeAndLetterWidth() {
+    @MainThread private static void setTextSizeColorAndLetterWidth() {
         textSize = Float.parseFloat(p.getString(PREF_TEXT_SIZE, PREF_TEXT_SIZE_D));
         String bufferFont = p.getString(PREF_BUFFER_FONT, PREF_BUFFER_FONT_D);
 
@@ -326,7 +327,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         letterWidth = (textPaint.measureText("m"));
     }
 
-    @MainThread public static void setTextSizeAndLetterWidth(float size) {
+    @MainThread public static void setTextSizeColorAndLetterWidth(float size) {
         p.edit().putString(PREF_TEXT_SIZE, Float.toString(size)).apply();
     }
 
