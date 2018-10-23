@@ -233,7 +233,7 @@ public class Color {
      **can take form of: 05 */
     private void setWeechatColor() {
         int color_index = getNumberOfLengthUpTo(2);
-        int colors[] = ColorScheme.get().getOptionColor(color_index);
+        int colors[] = ColorScheme.get().getOptionColorPair(color_index);
         if (colors[ColorScheme.OPT_FG] != -1) addSpan(Span.FGCOLOR, colors[ColorScheme.OPT_FG]);
         if (colors[ColorScheme.OPT_BG] != -1) addSpan(Span.BGCOLOR, colors[ColorScheme.OPT_BG]);
     }

@@ -66,7 +66,7 @@ public class Constants {
     public static final String PREF_DIM_DOWN = "dim_down"; final public static boolean PREF_DIM_DOWN_D = false;
     public static final String PREF_BUFFER_FONT = "buffer_font"; final public static String PREF_BUFFER_FONT_D = "";
     public static final String PREF_COLOR_SCHEME_DAY = "color_scheme_day"; final public static String PREF_COLOR_SCHEME_DAY_D = "squirrely-light-theme.properties";
-    public static final String PREF_COLOR_SCHEME_NIGHT = "color_scheme_night"; final public static String PREF_COLOR_SCHEME_NIGHT_D = "squirrely-theme.properties";
+    public static final String PREF_COLOR_SCHEME_NIGHT = "color_scheme_night"; final public static String PREF_COLOR_SCHEME_NIGHT_D = "squirrely-dark-theme.properties";
     public static final String PREF_USE_LAUNCHER_ICON_KITTY = "use_launcher_icon_kitty"; final public static boolean PREF_USE_LAUNCHER_ICON_KITTY_D = false;
 
     // buttons

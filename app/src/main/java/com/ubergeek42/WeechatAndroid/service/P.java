@@ -136,8 +136,8 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         dimDownNonHumanLines = p.getBoolean(PREF_DIM_DOWN, PREF_DIM_DOWN_D);
         setTimestampFormat();
         setAlignment();
-        setTextSizeColorAndLetterWidth();
         ThemeManager.loadColorSchemeFromPreferences(context);
+        setTextSizeColorAndLetterWidth();
 
         // notifications
         notificationEnable = p.getBoolean(PREF_NOTIFICATION_ENABLE, PREF_NOTIFICATION_ENABLE_D);
@@ -321,7 +321,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         textPaint = new TextPaint();
         textPaint.setAntiAlias(true);
         textPaint.setTypeface(typeface);
-        textPaint.setColor(0xFF000000 | ColorScheme.get().defaul[0]);
+        textPaint.setColor(0xFF000000 | ColorScheme.get().default_color[0]);
         textPaint.setTextSize(textSize * context.getResources().getDisplayMetrics().scaledDensity);
 
         letterWidth = (textPaint.measureText("m"));

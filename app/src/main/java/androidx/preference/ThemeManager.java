@@ -54,7 +54,7 @@ public class ThemeManager {
                     continue;
                 Properties p = loadColorScheme(theme, manager);
                 if (p != null)
-                    themes.add(new ThemeInfo(p.getProperty("NAME", theme), theme));
+                    themes.add(new ThemeInfo(p.getProperty("name", theme), theme));
             }
         } catch (IOException e) {e.printStackTrace();}
 
@@ -68,7 +68,7 @@ public class ThemeManager {
                         continue;
                     Properties p = loadColorScheme(file.getAbsolutePath(), null);
                     if (p != null)
-                        themes.add(new ThemeInfo(p.getProperty("NAME", file.getName()), file.getAbsolutePath()));
+                        themes.add(new ThemeInfo(p.getProperty("name", file.getName()), file.getAbsolutePath()));
                 }
             }
         }
