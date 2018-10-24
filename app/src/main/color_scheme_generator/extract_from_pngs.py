@@ -80,6 +80,19 @@ primary = "0xffebdbb2"          # bg1
 primary_dark = "0xffebdbb2"     # bg0_h
 GRUVBOX_LIGHT = (TEMPLATE + TEMPLATE_UI).format(**locals())
 
+################################################################################################################# amoled
+
+name = "Pitch Black"
+default = "0xcccccc"
+default_bg = "0x0"
+unimportant = "0x222222"
+chat_highlight = "0x000000"
+chat_highlight_bg = "0xff5f5f"
+nick_self = "0xffffff"
+primary = "0xdd000000"
+primary_dark = "0xff000000"
+PITCH_BLACK = (TEMPLATE + TEMPLATE_UI).format(**locals())
+
 ########################################################################################################################
 
 
@@ -124,7 +137,10 @@ def run():
         output_file.write(GRUVBOX_LIGHT)
         process("gb light background.png", output_file, False)
         process("gb light foreground.png", output_file, True)
-
+    with open("../assets/pitch-black-theme.properties", "w") as output_file:
+        output_file.write(PITCH_BLACK)
+        process("dark background.png", output_file, False)
+        process("dark foreground.png", output_file, True)
 
 if __name__ == "__main__":
     run()
