@@ -41,7 +41,7 @@ unimportant = "0x3b3f42"
 chat_highlight = "0x000000"
 chat_highlight_bg = "0xff5f5f"
 nick_self = "0xffffff"
-DARK = TEMPLATE.format(**locals())
+SQUIRRELY_DARK = TEMPLATE.format(**locals())
 
 name = "Squirrely Light"
 default = "0x444444"
@@ -50,11 +50,11 @@ unimportant = "0xcccccc"
 chat_highlight = "0x000000"
 chat_highlight_bg = "0xff7f7f"
 nick_self = "0x000000"
-LIGHT = TEMPLATE.format(**locals())
+SQUIRRELY_LIGHT = TEMPLATE.format(**locals())
 
 name = "Squirrely Light Darker"
 default = "0x333333"
-LIGHT_DARKER = TEMPLATE.format(**locals())
+SQUIRRELY_LIGHT_DARKER = TEMPLATE.format(**locals())
 
 ##################################################################################### https://github.com/morhetz/gruvbox
 
@@ -100,7 +100,7 @@ def process(input_file: str, output_file, fg: bool, width_grid=8, height_grid=32
     im = Image.open(input_file, 'r')
     width, height = im.size
     pixel_values = list(im.getdata())
-    print(f"file: {input_file}, width: {width}, height: {height}")
+    print(f"  reading: {input_file}")
     width_step = width // width_grid
     height_step = height // height_grid
     left = width_step // 2
@@ -111,36 +111,27 @@ def process(input_file: str, output_file, fg: bool, width_grid=8, height_grid=32
             xx = left + x * width_step
             pixel = pixel_values[width * yy + xx]
             color = pixel[0] << 16 | pixel[1] << 8 | pixel[2]
-            output_file.write(f"color{width_grid*y+x}{'' if fg else '_bg'} = {color:#08x}\n")
-    print("done")
+            yield f"color{width_grid*y+x}{'' if fg else '_bg'} = {color:#08x}"
 
+def create_theme(name: str, prefix: str, fg: str, bg: str):
+    print(f"creating theme: {name}")
+    with open(f"../assets/{name}-theme.properties", "w") as file:
+        file.write(prefix +
+            '\n'.join(process(bg + ".png", file, False)) +
+            '\n' +
+            '\n'.join(process(fg + ".png", file, True)) +
+            '\n')
 
 def run():
     print(f"working directory: {os.getcwd()}")
-    with open("../assets/squirrely-dark-theme.properties", "w") as output_file:
-        output_file.write(DARK)
-        process("dark background.png", output_file, False)
-        process("dark foreground.png", output_file, True)
-    with open("../assets/squirrely-light-theme.properties", "w") as output_file:
-        output_file.write(LIGHT)
-        process("light background.png", output_file, False)
-        process("light foreground.png", output_file, True)
-    with open("../assets/squirrely-light-darker-theme.properties", "w") as output_file:
-        output_file.write(LIGHT_DARKER)
-        process("light background.png", output_file, False)
-        process("light foreground 2.png", output_file, True)
-    with open("../assets/gruvbox-dark-theme.properties", "w") as output_file:
-        output_file.write(GRUVBOX_DARK)
-        process("gb dark background.png", output_file, False)
-        process("gb dark foreground.png", output_file, True)
-    with open("../assets/gruvbox-light-theme.properties", "w") as output_file:
-        output_file.write(GRUVBOX_LIGHT)
-        process("gb light background.png", output_file, False)
-        process("gb light foreground.png", output_file, True)
-    with open("../assets/pitch-black-theme.properties", "w") as output_file:
-        output_file.write(PITCH_BLACK)
-        process("dark background.png", output_file, False)
-        process("dark foreground.png", output_file, True)
+    create_theme("squirrely-dark", SQUIRRELY_DARK, "s-dark", "s-dark-bg")
+    create_theme("squirrely-light", SQUIRRELY_LIGHT, "s-light", "s-light-bg")
+    create_theme("squirrely-light-darker", SQUIRRELY_LIGHT_DARKER, "s-light-darker", "s-light-bg")
+    create_theme("gruvbox-dark", GRUVBOX_DARK, "g-dark", "g-dark-bg")
+    create_theme("gruvbox-light", GRUVBOX_LIGHT, "g-light", "g-light-bg")
+    create_theme("pitch-black", PITCH_BLACK, "s-dark", "s-dark-bg")
+    print("done")
+
 
 if __name__ == "__main__":
     run()
