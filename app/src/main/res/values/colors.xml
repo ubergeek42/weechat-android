@@ -8,8 +8,8 @@
     <color name="accent">#222244</color>
     <color name="awayNick">#222244</color>
 
-    <color name="toolbarIconEnabled">#ff5e5e5e</color>
-    <color name="toolbarIconDisabled">#4c5e5e5e</color>
+    <color name="toolbarIconEnabled">#9a000000</color>
+    <color name="toolbarIconDisabled">#3c000000</color>
 
     <color name="bufferListOther">#44525252</color>
     <color name="bufferListOtherHot">#44cccccc</color>
