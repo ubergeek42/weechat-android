@@ -89,7 +89,7 @@ unimportant = "0x222222"
 chat_highlight = "0x000000"
 chat_highlight_bg = "0xff5f5f"
 nick_self = "0xffffff"
-primary = "0xdd000000"
+primary = "0xff000000"
 primary_dark = "0xff000000"
 PITCH_BLACK = (TEMPLATE + TEMPLATE_UI).format(**locals())
 

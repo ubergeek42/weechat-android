@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.ubergeek42.WeechatAndroid.adapters.BufferListAdapter;
 import com.ubergeek42.WeechatAndroid.adapters.BufferListClickListener;
 import com.ubergeek42.WeechatAndroid.service.Events;
+import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 
@@ -43,6 +44,7 @@ public class ShareTextActivity extends AppCompatActivity implements
 
             BufferListAdapter adapter = new BufferListAdapter();
             ((RecyclerView) dialog.findViewById(R.id.recycler)).setAdapter(adapter);
+            dialog.findViewById(R.id.recycler).setBackgroundColor(P.colorPrimary);
             adapter.onBuffersChanged();
             dialog.setCanceledOnTouchOutside(true);
             dialog.setCancelable(true);

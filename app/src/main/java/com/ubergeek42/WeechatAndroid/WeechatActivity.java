@@ -181,6 +181,7 @@ public class WeechatActivity extends AppCompatActivity implements
         // if no data and going to connect, let the LISTED event restore it all
         if (adapter.canRestoreBuffers()) adapter.restoreBuffers();
 
+        P.storeThemeOrColorSchemeColors(this);
         Utils.fixIconAndColor(this);
     }
 

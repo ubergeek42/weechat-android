@@ -38,17 +38,15 @@ import androidx.appcompat.content.res.AppCompatResources;
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat;
 
 import android.util.Base64;
-import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.ubergeek42.WeechatAndroid.R;
+import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
-import com.ubergeek42.weechat.ColorScheme;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -68,23 +66,6 @@ import static com.ubergeek42.WeechatAndroid.utils.Constants.WEECHAT_ACTIVITY_KIT
 public class Utils {
 
     final private static @Root Kitty kitty = Kitty.make();
-
-    public static void setImageDrawableWithFade(final @NonNull ImageView imageView,
-                                                final @NonNull Drawable drawable, int duration) {
-        Drawable current = imageView.getDrawable();
-
-        if ((current != null) && (current instanceof TransitionDrawable))
-            current = ((LayerDrawable) current).getDrawable(1);
-
-        if (current != null) {
-            TransitionDrawable transitionDrawable = new TransitionDrawable(new Drawable[]{current, drawable});
-            transitionDrawable.setCrossFadeEnabled(true);
-            imageView.setImageDrawable(transitionDrawable);
-            transitionDrawable.startTransition(duration);
-        } else {
-            imageView.setImageDrawable(drawable);
-        }
-    }
 
     //////////////////////////////////////////////////////////////////////////////////////////////// serialization
 
@@ -243,17 +224,13 @@ public class Utils {
                 R.mipmap.ic_launcher_kitty :
                 R.mipmap.ic_launcher_weechat;
 
-        TypedValue colorPrimary = new TypedValue();
-        activity.getTheme().resolveAttribute(R.attr.colorPrimary, colorPrimary, true);
-        int color = colorPrimary.data;
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
             activity.setTaskDescription(new ActivityManager.TaskDescription(null,
-                    icon, color));
+                    icon, 0xff000000 | P.colorPrimary));
         else {
             Bitmap bitmap = Utils.getBitmapFromDrawable(activity, icon);
             activity.setTaskDescription(new ActivityManager.TaskDescription(appName,
-                    bitmap, color));
+                    bitmap, 0xff000000 | P.colorPrimary));
         }
     }
 
