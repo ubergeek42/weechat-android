@@ -8,6 +8,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.TypedArray;
 import android.graphics.Typeface;
 import android.preference.PreferenceManager;
 import androidx.annotation.AnyThread;
@@ -81,6 +82,19 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
                 windowWidth - context.getResources().getDimensionPixelSize(R.dimen.drawer_width);
     }
 
+    // set colorPrimary and colorPrimaryDark according to color scheme or app theme
+    // must be called after color scheme change and before calls to applyColorSchemeToViews()
+    public static void storeThemeOrColorSchemeColors(Context context) {
+        ColorScheme scheme = ColorScheme.get();
+        TypedArray colors = context.obtainStyledAttributes(
+                new int[] {R.attr.colorPrimary, R.attr.colorPrimaryDark});
+        colorPrimary = scheme.colorPrimary != ColorScheme.NO_COLOR ?
+                scheme.colorPrimary : colors.getColor(0, ColorScheme.NO_COLOR);
+        colorPrimaryDark = scheme.colorPrimaryDark != ColorScheme.NO_COLOR ?
+                scheme.colorPrimaryDark : colors.getColor(1, ColorScheme.NO_COLOR);
+        colors.recycle();
+    }
+
     ///////////////////////////////////////////////////////////////////////////////////////////// ui
 
     public static float _4dp;
@@ -113,6 +127,8 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     public static boolean showBufferFilter;
 
     public static boolean nightThemeEnabled;
+    public static int colorPrimary = ColorScheme.NO_COLOR;
+    public static int colorPrimaryDark = ColorScheme.NO_COLOR;
 
     public static @NonNull String filterLc = "";
     public static @NonNull String filterUc = "";

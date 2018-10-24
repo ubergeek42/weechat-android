@@ -1,3 +1,4 @@
+import os
 from PIL import Image
 
 TEMPLATE = """# suppress inspection "UnusedProperty" for whole file
@@ -27,6 +28,12 @@ chat_nick_self = {nick_self}
 chat_highlight = {chat_highlight}
 chat_highlight_bg = {chat_highlight_bg}\n\n"""
 
+TEMPLATE_UI = """# colors for coloring the ui elements
+primary = {primary}
+primary_dark = {primary_dark}\n\n"""
+
+############################################################################################################## squirrely
+
 name = "Squirrely Dark"
 default = "0xdddddd"
 default_bg = "0x0f1315"         # default background for the app
@@ -49,6 +56,32 @@ name = "Squirrely Light Darker"
 default = "0x333333"
 LIGHT_DARKER = TEMPLATE.format(**locals())
 
+##################################################################################### https://github.com/morhetz/gruvbox
+
+name = "Gruvbox Dark"
+default = "0xebdbb2"            # fg
+default_bg = "0x282828"         # bg
+unimportant = "0x3c3836"        # bg1
+chat_highlight = "0x282828"     # bg
+chat_highlight_bg = "0xfe8019"  # orange
+nick_self = "0xd65d0e"          # orange dark
+primary = "0xff1d2021"          # bg0_h
+primary_dark = "0xff1d2021"     # bg0_h
+GRUVBOX_DARK = (TEMPLATE + TEMPLATE_UI).format(**locals())
+
+name = "Gruvbox Light"
+default = "0x2c2836"            # fg
+default_bg = "0xfbf1c7"         # bg
+unimportant = "0xebdbb2"        # bg1
+chat_highlight = "0x282828"     # bg (gruvbox dark)
+chat_highlight_bg = "0xfe8019"  # orange (gruvbox dark)
+nick_self = "0xaf3a03"          # orange dark
+primary = "0xffebdbb2"          # bg1
+primary_dark = "0xffebdbb2"     # bg0_h
+GRUVBOX_LIGHT = (TEMPLATE + TEMPLATE_UI).format(**locals())
+
+########################################################################################################################
+
 
 def process(input_file: str, output_file, fg: bool, width_grid=8, height_grid=32):
     im = Image.open(input_file, 'r')
@@ -70,6 +103,7 @@ def process(input_file: str, output_file, fg: bool, width_grid=8, height_grid=32
 
 
 def run():
+    print(f"working directory: {os.getcwd()}")
     with open("../assets/squirrely-dark-theme.properties", "w") as output_file:
         output_file.write(DARK)
         process("dark background.png", output_file, False)
@@ -82,6 +116,14 @@ def run():
         output_file.write(LIGHT_DARKER)
         process("light background.png", output_file, False)
         process("light foreground 2.png", output_file, True)
+    with open("../assets/gruvbox-dark-theme.properties", "w") as output_file:
+        output_file.write(GRUVBOX_DARK)
+        process("gb dark background.png", output_file, False)
+        process("gb dark foreground.png", output_file, True)
+    with open("../assets/gruvbox-light-theme.properties", "w") as output_file:
+        output_file.write(GRUVBOX_LIGHT)
+        process("gb light background.png", output_file, False)
+        process("gb light foreground.png", output_file, True)
 
 
 if __name__ == "__main__":

@@ -83,6 +83,7 @@ public class BufferListFragment extends Fragment implements BufferListEye, View.
         super.onStart();
         EventBus.getDefault().register(this);
         uiFilterBar.setVisibility(P.showBufferFilter ? View.VISIBLE : View.GONE);
+        applyColorSchemeToViews();
     }
 
     @MainThread @Override @Cat public void onStop() {
@@ -161,5 +162,10 @@ public class BufferListFragment extends Fragment implements BufferListEye, View.
 
     @Override public String toString() {
         return "BL";
+    }
+
+    private void applyColorSchemeToViews() {
+        uiFilterBar.setBackgroundColor(P.colorPrimary);
+        uiRecycler.setBackgroundColor(P.colorPrimary);
     }
 }

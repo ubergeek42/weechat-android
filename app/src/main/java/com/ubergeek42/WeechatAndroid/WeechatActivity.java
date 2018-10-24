@@ -21,11 +21,7 @@ import java.util.EnumSet;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLPeerUnverifiedException;
 
-import android.app.ActivityManager;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.os.Build;
 import android.preference.PreferenceManager;
 import androidx.annotation.MainThread;
 import androidx.annotation.WorkerThread;
@@ -39,7 +35,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AlertDialog;
 
 import android.text.TextUtils;
-import android.util.TypedValue;
 import android.view.*;
 
 import org.greenrobot.eventbus.EventBus;
@@ -218,6 +213,8 @@ public class WeechatActivity extends AppCompatActivity implements
         updateHotCount(Hotlist.getHotCount());
         if (getIntent().hasExtra(NOTIFICATION_EXTRA_BUFFER_FULL_NAME)) openBufferFromIntent();
         started = true;
+        P.storeThemeOrColorSchemeColors(this);
+        applyColorSchemeToViews();
         super.onStart();
     }
 
@@ -570,5 +567,14 @@ public class WeechatActivity extends AppCompatActivity implements
         }
         getIntent().removeExtra(NOTIFICATION_EXTRA_BUFFER_INPUT_TEXT);
         getIntent().removeExtra(NOTIFICATION_EXTRA_BUFFER_FULL_NAME);
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private void applyColorSchemeToViews() {
+        findViewById(R.id.kitty_background).setBackgroundColor(P.colorPrimary);
+        findViewById(R.id.toolbar).setBackgroundColor(P.colorPrimary);
+        getWindow().setNavigationBarColor(P.colorPrimaryDark);
+        getWindow().setStatusBarColor(P.colorPrimaryDark);
     }
 }

@@ -136,6 +136,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         uiTab.setVisibility(P.showTab ? View.VISIBLE : View.GONE);
         uiLines.setBackgroundColor(0xFF000000 | ColorScheme.get().default_color[ColorScheme.OPT_BG]);
         EventBus.getDefault().register(this);
+        applyColorSchemeToViews();
     }
 
     @MainThread @Override @Cat public void onStop() {
@@ -410,5 +411,9 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     // tryTabComplete() will set it back if it modified the text causing this function to run
     @MainThread @Override public void afterTextChanged(Editable s) {
         tcInProgress = false;
+    }
+
+    private void applyColorSchemeToViews() {
+        getView().findViewById(R.id.chatview_bottombar).setBackgroundColor(P.colorPrimary);
     }
 }

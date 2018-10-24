@@ -48,6 +48,7 @@ import android.widget.Toast;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
+import com.ubergeek42.weechat.ColorScheme;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

@@ -37,8 +37,8 @@ public class ColorScheme {
     public int[] default_color = new int[2];
     public int[] chat_inactive_buffer;
 
-
-    //private float factor = 1.0f;
+    final public int colorPrimary;
+    final public int colorPrimaryDark;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////// constructors /////////
@@ -50,12 +50,13 @@ public class ColorScheme {
         default_color[1] = colors[0][1];
         loadDefaultOptions();
         setUsedFields();
+        colorPrimary = colorPrimaryDark = NO_COLOR;
     }
 
     public ColorScheme(Properties p) {
         for (int i = 0; i < DEFAULT_COLORS.length; i++) {
             colors[i][0] = getPropertyInt(p, "color" + i, DEFAULT_COLORS[i]);
-            colors[i][1] = getPropertyInt(p, "color" + i + "_bg", DEFAULT_COLORS[i]);
+            colors[i][1] = getPropertyInt(p, "color" + i + "_bg", colors[i][0]);
         }
 
         // load default & default_bg
@@ -65,6 +66,10 @@ public class ColorScheme {
         loadDefaultOptions();
         loadOptionsFromProperties(p);
         setUsedFields();
+
+        // alpha better be specified
+        colorPrimary = getPropertyInt(p, "primary", NO_COLOR);
+        colorPrimaryDark = getPropertyInt(p, "primary_dark", NO_COLOR);
     }
 
     private void setUsedFields() {
@@ -175,7 +180,7 @@ public class ColorScheme {
     // default weechat options: id, fg, bg, name
     // fg and bg stand for basic colors; can be -1 for no color and -2/-3 for default/default bg
     // https://weechat.org/files/doc/devel/weechat_dev.en.html#color_codes_in_strings
-    private static final int NO_COLOR = -1;
+    public static final int NO_COLOR = -1;
     private static final int DEFAULT = -2;
     private static final Object[] OPTIONS_RAW = new Object[]{
                12, NO_COLOR, "separator",                          //  0
@@ -269,7 +274,7 @@ public class ColorScheme {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private int getPropertyInt(Properties p, String key, int d) {
-        try {return Integer.decode(p.getProperty(key));}
+        try {return Long.decode(p.getProperty(key)).intValue();}
         catch (Exception e) {return d;}
     }
 }
