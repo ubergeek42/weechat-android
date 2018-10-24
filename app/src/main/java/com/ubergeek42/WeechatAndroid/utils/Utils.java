@@ -234,6 +234,13 @@ public class Utils {
         }
     }
 
+    public static boolean isColorLight(int color) {
+        int avg = (((color >> 16) & 0xff) +
+                  ((color >> 8) & 0xff) +
+                  (color & 0xff)) / 3;
+        return avg > (0xff / 2);
+    }
+
     //////////////////////////////////////////////////////////////////////////////////////////////// debug stuff
 
     // get permission for showing system alert, see next method

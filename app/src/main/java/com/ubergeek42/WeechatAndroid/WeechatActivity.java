@@ -22,6 +22,7 @@ import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLPeerUnverifiedException;
 
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.preference.PreferenceManager;
 import androidx.annotation.MainThread;
 import androidx.annotation.WorkerThread;
@@ -572,10 +573,15 @@ public class WeechatActivity extends AppCompatActivity implements
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
+    // status bad can be colored since api 21 and have dark icons since api 23
+    // navigation bar can be colored since api 21 and can have dark icons since api 27
     private void applyColorSchemeToViews() {
         findViewById(R.id.kitty_background).setBackgroundColor(P.colorPrimary);
         findViewById(R.id.toolbar).setBackgroundColor(P.colorPrimary);
-        getWindow().setNavigationBarColor(P.colorPrimaryDark);
-        getWindow().setStatusBarColor(P.colorPrimaryDark);
+
+        if (Build.VERSION.SDK_INT < 21) return;
+        boolean isLight = Utils.isColorLight(P.colorPrimaryDark);
+        if (!isLight || Build.VERSION.SDK_INT >= 23) getWindow().setStatusBarColor(P.colorPrimaryDark);
+        if (!isLight || Build.VERSION.SDK_INT >= 27) getWindow().setNavigationBarColor(P.colorPrimaryDark);
     }
 }
