@@ -6,7 +6,7 @@
     <color name="primary">#1B1F22</color>
     <color name="primaryDark">#0f1315</color>
     <color name="accent">#80cbc4</color>
-    <color name="awayNick">#9cd9f0</color>
+    <color name="awayNick">#55ffffff</color>
 
     <color name="toolbarIconEnabled">#eeffffff</color>
     <color name="toolbarIconDisabled">#4cffffff</color>

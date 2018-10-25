@@ -434,6 +434,7 @@ public class BufferList {
                     if (entry.getItem("visible").asChar() != 0 && entry.getItem("group").asChar() != 1) {
                         long pointer = entry.getPointerLong();
                         String prefix = entry.getItem("prefix").asString();
+                        if (" ".equals(prefix)) prefix = "";
                         String name = entry.getItem("name").asString();
                         boolean away = entry.getItem("color").asString().contains("weechat.color.nicklist_away");
                         Nick nick = new Nick(pointer, prefix, name, away);
