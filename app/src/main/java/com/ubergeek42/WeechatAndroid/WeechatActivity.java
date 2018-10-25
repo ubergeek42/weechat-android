@@ -23,6 +23,7 @@ import javax.net.ssl.SSLPeerUnverifiedException;
 
 import android.content.SharedPreferences;
 import android.graphics.LightingColorFilter;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.preference.PreferenceManager;
 import androidx.annotation.MainThread;
@@ -358,6 +359,12 @@ public class WeechatActivity extends AppCompatActivity implements
         getMenuInflater().inflate(R.menu.menu_actionbar, menu);
         final View menuHotlist = menu.findItem(R.id.menu_hotlist).getActionView();
         uiHot = menuHotlist.findViewById(R.id.hotlist_hot);
+
+        // set color of the border around the [2] badge on the bell, as well as text color
+        GradientDrawable drawable = (GradientDrawable) uiHot.getBackground();
+        drawable.setStroke((int) (P.nightThemeEnabled ? P._4dp / 2 : P._4dp / 2 - 1), P.colorPrimary);
+        uiHot.setTextColor(P.nightThemeEnabled ? 0xffffffff : P.colorPrimary);
+
         TooltipCompat.setTooltipText(menuHotlist, getString(R.string.hint_show_hot_message));
         menuHotlist.setOnClickListener((View v) -> onHotlistSelected());
         uiMenu = menu;

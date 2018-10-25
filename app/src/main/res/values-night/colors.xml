@@ -20,9 +20,9 @@
     <color name="bufferListPrivate">#aa57474f</color>
     <color name="bufferListPrivateHot">#aa735e69</color>
 
-    <color name="warmShade">#33ffffff</color>
-    <color name="warmBackground">#11000000</color>
-    <color name="hotShade">#ffbb5555</color>
+    <color name="warmShade">#59ffffff</color>
+    <color name="warmBackground">#29000000</color>
+    <color name="hotShade">#ffbb6060</color>
     <color name="hotBackground">#ffbb0000</color>
 
     <color name="toolbarHotIconBackground">#ffff0000</color>
