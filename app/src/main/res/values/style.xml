@@ -17,14 +17,6 @@
         <item name="kittyBalloonColor">@color/kittyBalloonColor</item>
         <item name="android:windowBackground">@color/primary</item>
         <item name="android:colorBackground">@color/primary</item>
-        <item name="alertDialogTheme">@style/DialogStyle</item>
-    </style>
-
-    <style name="DialogStyle" parent="Theme.AppCompat.DayNight.Dialog.Alert">
-        <item name="colorPrimary">@color/primary</item>
-        <item name="colorPrimaryDark">@color/primaryDark</item>
-        <item name="android:background">@color/primary</item>
-        <item name="android:drawSelectorOnTop">true</item>
     </style>
 
     <!-- buttons such as tab, send and bell -->

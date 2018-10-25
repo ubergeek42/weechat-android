@@ -22,6 +22,7 @@ import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLPeerUnverifiedException;
 
 import android.content.SharedPreferences;
+import android.graphics.LightingColorFilter;
 import android.os.Build;
 import android.preference.PreferenceManager;
 import androidx.annotation.MainThread;
@@ -404,6 +405,7 @@ public class WeechatActivity extends AppCompatActivity implements
                 dialog.setTitle("squirrels are awesome");
                 dialog.setOnShowListener(nicklistAdapter);
                 dialog.setOnDismissListener(nicklistAdapter);
+                dialog.getWindow().getDecorView().getBackground().setColorFilter(new LightingColorFilter(0xFF000000, P.colorPrimary));
                 dialog.show();
                 break;
             case R.id.menu_filter_lines:

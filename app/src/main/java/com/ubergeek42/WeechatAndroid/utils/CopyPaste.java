@@ -2,6 +2,8 @@ package com.ubergeek42.WeechatAndroid.utils;
 
 import android.content.Context;
 import androidx.appcompat.app.AlertDialog;
+
+import android.graphics.LightingColorFilter;
 import android.text.ClipboardManager;
 import android.text.TextUtils;
 import android.text.style.URLSpan;
@@ -75,6 +77,7 @@ public class CopyPaste implements EditText.OnLongClickListener {
 
         // create dialogue, remove bottom padding and scroll to the end
         AlertDialog d = builder.create();
+        d.getWindow().getDecorView().getBackground().setColorFilter(new LightingColorFilter(0xFF000000, P.colorPrimary));
         final ListView l = d.getListView();
         l.setPadding(l.getPaddingLeft(), l.getPaddingTop(), l.getPaddingRight(), 0);
         l.setStackFromBottom(true);

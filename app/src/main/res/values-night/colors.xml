@@ -2,7 +2,7 @@
 <resources>
     <color name="textColor">#aaffffff</color>
 
-    <color name="pasteBackground">#2B2F32</color>
+    <color name="pasteBackground">#10ffffff</color>
     <color name="primary">#1B1F22</color>
     <color name="primaryDark">#0f1315</color>
     <color name="accent">#80cbc4</color>
