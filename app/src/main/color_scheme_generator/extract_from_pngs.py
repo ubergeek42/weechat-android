@@ -60,13 +60,13 @@ SQUIRRELY_LIGHT_DARKER = TEMPLATE.format(**locals())
 
 name = "Gruvbox Dark"
 default = "0xebdbb2"            # fg
-default_bg = "0x282828"         # bg
+default_bg = "0x1d2021"         # bg0_h
 unimportant = "0x3c3836"        # bg1
-chat_highlight = "0x282828"     # bg
+chat_highlight = "0x1d2021"     # bg0_h
 chat_highlight_bg = "0xfe8019"  # orange
 nick_self = "0xd65d0e"          # orange dark
-primary = "0xff1d2021"          # bg0_h
-primary_dark = "0xff1d2021"     # bg0_h
+primary = "0xff282828"          # bg
+primary_dark = "0xff282828"     # bg
 GRUVBOX_DARK = (TEMPLATE + TEMPLATE_UI).format(**locals())
 
 name = "Gruvbox Light"
