@@ -19,10 +19,10 @@
     <color name="bufferListPrivateHot">#44e30052</color>
     <color name="bufferListOpenIndicator">@color/textColor</color>
 
-    <color name="warmShade">#99ffffff</color>
+    <color name="warmShade">#66ffffff</color>
     <color name="warmBackground">#11000000</color>
-    <color name="hotShade">#ffff9999</color>
-    <color name="hotBackground">#ffff7777</color>
+    <color name="hotShade">#ffffaaaa</color>
+    <color name="hotBackground">#ffff6666</color>
 
     <color name="kittyColor">@color/toolbarIconEnabled</color>
     <color name="kittyBalloonColor">#d00000</color>
