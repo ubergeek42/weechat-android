@@ -4,7 +4,6 @@ import android.app.Dialog;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.DialogFragment;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.AppCompatTextView;
 import android.text.Html;
 import android.widget.ScrollView;
@@ -56,7 +55,7 @@ public class InvalidHostnameDialog extends DialogFragment {
                 Html.escapeHtml(hostname), allowed)));
         scrollView.addView(textView);
 
-        return new AlertDialog.Builder(getContext())
+        return new FancyAlertDialogBuilder(getContext())
                 .setTitle(getString(R.string.invalid_hostname_dialog_title))
                 .setView(scrollView, padding, padding/2, padding, 0)
                 .setNegativeButton(getString(R.string.invalid_hostname_dialog_button), null)

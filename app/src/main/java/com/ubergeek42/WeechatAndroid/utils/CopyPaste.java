@@ -3,7 +3,6 @@ package com.ubergeek42.WeechatAndroid.utils;
 import android.content.Context;
 import androidx.appcompat.app.AlertDialog;
 
-import android.graphics.LightingColorFilter;
 import android.text.ClipboardManager;
 import android.text.TextUtils;
 import android.text.style.URLSpan;
@@ -55,7 +54,7 @@ public class CopyPaste implements EditText.OnLongClickListener {
 
         final LayoutInflater inflater = LayoutInflater.from(context);
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        AlertDialog.Builder builder = new FancyAlertDialogBuilder(context);
         builder.setTitle(context.getString(R.string.dialog_paste_title)).setAdapter(
                 new BaseAdapter() {
                     @Override public int getCount() {return list.size();}
@@ -78,7 +77,6 @@ public class CopyPaste implements EditText.OnLongClickListener {
 
         // create dialogue, remove bottom padding and scroll to the end
         AlertDialog d = builder.create();
-        d.getWindow().getDecorView().getBackground().setColorFilter(new LightingColorFilter(0xFF000000, P.colorPrimary));
         d.show();
         final ListView l = d.getListView();
         l.setPadding(l.getPaddingLeft(), l.getPaddingTop(), l.getPaddingRight(), 0);
@@ -100,7 +98,7 @@ public class CopyPaste implements EditText.OnLongClickListener {
             if (!list.get(list.size()-1).equals(u)) list.add(u);
         }
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        AlertDialog.Builder builder = new FancyAlertDialogBuilder(context);
         builder.setTitle(context.getString(R.string.dialog_copy_title)).setAdapter(
                 new ArrayAdapter<>(context, R.layout.select_dialog_item_material_2_lines, android.R.id.text1, list),
                 (dialog, which) -> {

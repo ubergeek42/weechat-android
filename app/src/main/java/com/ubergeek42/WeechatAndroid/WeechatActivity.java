@@ -22,7 +22,6 @@ import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLPeerUnverifiedException;
 
 import android.content.SharedPreferences;
-import android.graphics.LightingColorFilter;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.preference.PreferenceManager;
@@ -68,6 +67,7 @@ import com.ubergeek42.WeechatAndroid.relay.Nick;
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
 import com.ubergeek42.WeechatAndroid.service.SSLHandler;
+import com.ubergeek42.WeechatAndroid.utils.FancyAlertDialogBuilder;
 import com.ubergeek42.WeechatAndroid.utils.InvalidHostnameDialog;
 import com.ubergeek42.WeechatAndroid.utils.ThemeFix;
 import com.ubergeek42.WeechatAndroid.utils.ToolbarController;
@@ -403,7 +403,7 @@ public class WeechatActivity extends AppCompatActivity implements
 
                 final NickListAdapter nicklistAdapter = new NickListAdapter(WeechatActivity.this, buffer);
 
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                AlertDialog.Builder builder = new FancyAlertDialogBuilder(this);
                 builder.setAdapter(nicklistAdapter, (dialogInterface, position) -> {
                     Nick nick = nicklistAdapter.getItem(position);
                     SendMessageEvent.fire("input 0x%x /query %s", buffer.pointer, nick.name);
@@ -412,7 +412,6 @@ public class WeechatActivity extends AppCompatActivity implements
                 dialog.setTitle("squirrels are awesome");
                 dialog.setOnShowListener(nicklistAdapter);
                 dialog.setOnDismissListener(nicklistAdapter);
-                dialog.getWindow().getDecorView().getBackground().setColorFilter(new LightingColorFilter(0xFF000000, P.colorPrimary));
                 dialog.show();
                 break;
             case R.id.menu_filter_lines:

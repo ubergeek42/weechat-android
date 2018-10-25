@@ -17,6 +17,22 @@
         <item name="kittyBalloonColor">@color/kittyBalloonColor</item>
         <item name="android:windowBackground">@color/primary</item>
         <item name="android:colorBackground">@color/primary</item>
+        <item name="alertDialogTheme">@style/PreferenceAlertDialogBackgroundFix</item>
+    </style>
+
+    <!-- actually used by app's dialogs. don't set any background color; android:windowBackground
+     will be used instead -->
+    <style name="AlertDialogTheme" parent="Theme.AppCompat.DayNight.Dialog.Alert">
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryDark">@color/primaryDark</item>
+        <item name="android:background">@android:color/transparent</item>
+    </style>
+
+    <!-- this is only supposed to be used by preferences, since those are broken -->
+    <style name="PreferenceAlertDialogBackgroundFix" parent="Theme.AppCompat.DayNight.Dialog.Alert">
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryDark">@color/primaryDark</item>сра
+        <item name="android:background">@color/primary</item>
     </style>
 
     <!-- buttons such as tab, send and bell -->

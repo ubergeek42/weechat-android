@@ -10,7 +10,6 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.DialogFragment;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.AppCompatTextView;
 import android.text.Html;
 import android.widget.ScrollView;
@@ -49,7 +48,7 @@ public class UntrustedCertificateDialog extends DialogFragment {
         textView.setText(Html.fromHtml(getCertificateDescription()));
         scrollView.addView(textView);
 
-        return new AlertDialog.Builder(getContext())
+        Dialog dialog = new FancyAlertDialogBuilder(getContext())
                 .setTitle(getString(R.string.ssl_cert_dialog_title))
                 .setView(scrollView, padding, padding/2, padding, 0)
                 .setPositiveButton(getString(R.string.ssl_cert_dialog_accept_button), new DialogInterface.OnClickListener() {
@@ -60,6 +59,7 @@ public class UntrustedCertificateDialog extends DialogFragment {
                 })
                 .setNegativeButton(getString(R.string.ssl_cert_dialog_reject_button), null)
                 .create();
+        return dialog;
     }
 
     // this prevents the dialog from being dismissed on activity restart
