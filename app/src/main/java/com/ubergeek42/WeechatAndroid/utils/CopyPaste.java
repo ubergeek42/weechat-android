@@ -68,6 +68,7 @@ public class CopyPaste implements EditText.OnLongClickListener {
                         v.setText(Utils.unCrLf(getItem(position)));
                         v.setBackgroundResource(isClip ? R.color.pasteBackground : 0);
                         v.setCompoundDrawablesWithIntrinsicBounds(0, 0, isClip ? R.drawable.ic_paste : 0, 0);
+                        v.setCompoundDrawablePadding((int) (P._4dp + P._4dp));
                         return v;
                     }
                 }, (dialog, which) -> {
@@ -78,10 +79,10 @@ public class CopyPaste implements EditText.OnLongClickListener {
         // create dialogue, remove bottom padding and scroll to the end
         AlertDialog d = builder.create();
         d.getWindow().getDecorView().getBackground().setColorFilter(new LightingColorFilter(0xFF000000, P.colorPrimary));
+        d.show();
         final ListView l = d.getListView();
         l.setPadding(l.getPaddingLeft(), l.getPaddingTop(), l.getPaddingRight(), 0);
         l.setStackFromBottom(true);
-        d.show();
         return true;
     }
 
