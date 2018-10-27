@@ -230,6 +230,7 @@ public class WeechatActivity extends AppCompatActivity implements
     }
 
     @MainThread @Override @CatD protected void onDestroy() {
+        toolbarController.detach();
         super.onDestroy();
     }
 

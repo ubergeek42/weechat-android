@@ -130,6 +130,15 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         return v;
     }
 
+    @Override @Cat public void onDestroyView() {
+        super.onDestroyView();
+        uiLines = null;
+        uiInput = null;
+        uiSend = null;
+        uiTab = null;
+        linesAdapter = null;
+    }
+
     @MainThread @Override @Cat public void onStart() {
         super.onStart();
         uiSend.setVisibility(P.showSend ? View.VISIBLE : View.GONE);
@@ -148,6 +157,12 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     @MainThread @Override @Cat public void onDetach() {
         activity = null;
         super.onDetach();
+    }
+
+    private boolean mDestroyed = false;
+    @Override @Cat public void onDestroy() {
+        mDestroyed = true;
+        super.onDestroy();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

@@ -24,6 +24,10 @@ dependencies {
     implementation "commons-codec:commons-codec:1.9"
 
     implementation 'org.greenrobot:eventbus:3.0.0'
+
+    debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.6.2'
+    releaseImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.6.2'
+    debugImplementation 'com.squareup.leakcanary:leakcanary-support-fragment:1.6.2'
 }
 
 tasks.withType(JavaCompile) {
@@ -71,6 +75,7 @@ android {
             signingConfig signingConfigs.devPlayConfig
             applicationIdSuffix ".dev"
             versionNameSuffix "-dev"
+            debuggable true
         }
     }
 

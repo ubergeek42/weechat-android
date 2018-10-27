@@ -1,6 +1,5 @@
 package com.ubergeek42.WeechatAndroid.utils;
 
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,6 +28,10 @@ public class ToolbarController implements ViewTreeObserver.OnGlobalLayoutListene
         this.root = activity.findViewById(android.R.id.content);
         root.getViewTreeObserver().addOnGlobalLayoutListener(this);
         toolbarHeight = toolbar.getLayoutParams().height;
+    }
+
+    public void detach() {
+        root.getViewTreeObserver().removeOnGlobalLayoutListener(this);
     }
 
     private int _dy = 0;
