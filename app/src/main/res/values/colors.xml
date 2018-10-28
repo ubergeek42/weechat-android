@@ -5,7 +5,6 @@
     <color name="pasteBackground">#202B2F32</color>
     <color name="primary">#eeeeee</color>
     <color name="primaryDark">#eeeeee</color>
-    <color name="accent">#222244</color>
     <color name="awayNick">#55000000</color>
 
     <color name="toolbarIconEnabled">#9a000000</color>

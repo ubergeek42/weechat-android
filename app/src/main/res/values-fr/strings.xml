@@ -1,12 +1,11 @@
 <?xml version='1.0' encoding='utf-8'?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
   <string name="notification_channel_connection_status">État de la connexion</string>
   <string name="notification_channel_hotlist">Notables</string>
   <string name="sendkey">Envoyer</string>
   <string name="preferences">Paramètres</string>
   <string name="close">Fermer</string>
   <string name="filter_lines">Filtrer les lignes</string>
-  <string name="quit">Quitter</string>
   <string name="connect">Connecter</string>
   <string name="disconnect">Déconnecter</string>
   <string name="stop_connecting">Arrêter de se connecter</string>
@@ -21,7 +20,6 @@
     <item quantity="one">%1$d utilisateur</item>
     <item quantity="other">%1$d utilisateurs</item>
   </plurals>
-  <string name="share_text_title">Partager via…</string>
   <string name="dialog_copy_title">Copier</string>
   <string name="dialog_paste_title">Coller</string>
   <string name="linkify_error_no_activity">Activité introuvable pour “l\'intent” %s</string>
@@ -33,7 +31,7 @@
     <item quantity="other">%d nouveaux messages dans %s</item>
   </plurals>
   <plurals name="hot_messages_missing">
-    <item quantity="one">(message non récupéré)</item>
+    <item quantity="one" tools:ignore="ImpliedQuantity">(message non récupéré)</item>
     <item quantity="other">(%d messages non récupérés)</item>
   </plurals>
   <plurals name="messages">
@@ -46,19 +44,11 @@
   </plurals>
   <string name="reply_label">Répondre</string>
   <string name="notification_connected_to">Connecté à %s</string>
-  <string name="notification_disconnected">Déconnecté</string>
-  <string name="notification_connecting">Connexion à %s…</string>
   <string name="notification_connecting_details_now">Connexion…</string>
   <string name="notification_connecting_details">Connexion dans %d secondes…</string>
-  <string name="notification_update_settings">Modifier les préférences</string>
-  <string name="notification_update_settings_details">Touchez pour modifier vos préférences et se connecter</string>
-  <string name="notification_upgrading">Mise à jour…</string>
-  <string name="notification_upgrading_details">WeeChat est en cours de mise à jour, merci d\'attendre la reconnexion</string>
   <string name="notification_waiting_network">Attente de connectivité réseau</string>
-  <string name="notification_waiting_network_details">Impossible de se connecter, pas de réseau</string>
   <string name="autoscroll_no_line">Des messages notables ont été perdus à cause des lignes plus récentes</string>
   <string name="no_hot_buffers">Il n\'y a pas de tampon notable</string>
-  <string name="wrong_password">Mot de passe invalide</string>
   <string name="not_connected">Non connecté</string>
   <string name="error">Erreur : %s</string>
   <string name="hint_show_hot_message">Messages notables</string>
@@ -90,9 +80,6 @@
   <string name="pref_clear_certs_success">Certificats supprimés</string>
   <string name="pref_clear_certs_failure">Impossible de supprimer les certificats</string>
   <string name="pref_ws_path">Chemin WebSocket</string>
-  <string name="pref_stunnel_group">Paramètres stunnel</string>
-  <string name="pref_stunnel_cert">Certificat stunnel</string>
-  <string name="pref_stunnel_pass">Mot de passe stunnel</string>
   <string name="pref_ssh_group">Paramètres du tunnel SSH</string>
   <string name="pref_ssh_host">Nom d\'hôte SSH</string>
   <string name="pref_ssh_user">Nom d\'utilisateur SSH</string>
@@ -139,8 +126,6 @@
   <string name="pref_sort_buffers_summary">Trier par le nombre de messages notables/messages privés/messages non lus</string>
   <string name="pref_hide_server_buffers">Cacher les tampons hors salons</string>
   <string name="pref_hide_server_buffers_summary">p. ex. les tampons serveurs et plugins</string>
-  <string name="pref_show_buffer_titles">Afficher le titre des tampons</string>
-  <string name="pref_show_buffer_titles_summary">Attention, cela peut prendre une place considérable</string>
   <string name="pref_show_buffer_filter">Afficher le filtre des tampons</string>
   <string name="pref_lookfeel_group">Affichage</string>
   <string name="pref_text_size">Taille du texte</string>
