@@ -4,11 +4,15 @@ import org.aspectj.tools.ajc.Main
 
 apply plugin: 'com.android.application'
 
+configurations {
+    devreleaseImplementation
+}
+
 dependencies {
     implementation project (':cats')
     implementation project (':relay')
 
-    // todo
+    // these two are required for logging within the relay module. todo remove?
     implementation 'org.slf4j:slf4j-api:1.7.12'
     implementation 'com.noveogroup.android:android-logger:1.3.5'
 
@@ -26,8 +30,9 @@ dependencies {
     implementation 'org.greenrobot:eventbus:3.0.0'
 
     debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.6.2'
-    releaseImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.6.2'
     debugImplementation 'com.squareup.leakcanary:leakcanary-support-fragment:1.6.2'
+    releaseImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.6.2'
+    devreleaseImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.6.2'
 }
 
 tasks.withType(JavaCompile) {
@@ -75,17 +80,12 @@ android {
             signingConfig signingConfigs.devPlayConfig
             applicationIdSuffix ".dev"
             versionNameSuffix "-dev"
-            debuggable true
         }
     }
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
-    }
-
-    lintOptions {
-      abortOnError false
     }
 }
 

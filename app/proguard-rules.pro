@@ -1,5 +1,6 @@
 # warnings prevent build from continuing
--ignorewarnings
+# looks like we aren't getting warnings anymore
+#-ignorewarnings
 
 # see http://stackoverflow.com/questions/5701126/compile-with-proguard-gives-exception-local-variable-type-mismatch
 -dontobfuscate
