@@ -32,7 +32,7 @@ public class CatTest {
 
     @Before
     public void setup() {
-        disabled.add("/?");
+        disabled.add("*/?");
         test = Kitty.make("Test");
         kid = test.kid("Kid");
         Kitty.printer = printer = spy(SystemOutPrinter.class);
