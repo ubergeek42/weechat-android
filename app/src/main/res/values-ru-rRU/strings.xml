@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="notification_channel_connection_status">Статус соединения</string>
+    <string name="notification_channel_hotlist">Новое сообщение</string>
+    <string name="notification_channel_hotlist_async">Новое сообщение (асинхронно)</string>
+    <string name="sendkey">Отправить</string>
+    <string name="menu_preferences">Настройки</string>
+    <string name="menu_close">Закрыть</string>
+    <string name="menu_filter_lines">Фильтр строк</string>
+    <string name="menu_use_night_theme">Тёмная тема</string>
+    <string name="connect">Подключиться</string>
+    <string name="disconnect">Отключиться</string>
+    <string name="stop_connecting">Не подключаться</string>
+    <string name="menu_hotlist">Важные сообщения</string>
+    <string name="menu_nicklist">Пользователи</string>
+    <string name="tabkey">Tab</string>
+    <string name="open_drawer">Открыть список буферов</string>
+    <string name="close_drawer">Закрыть список буферов</string>
+    <string name="more_button">Загрузить больше строк</string>
+    <string name="more_button_fetching">Загрузка…</string>
+    <string name="dialog_copy_title">Копировать</string>
+    <string name="dialog_paste_title">Вставить</string>
+    <string name="linkify_error_no_activity">Не найдена Activity для Intent-а %s</string>
+    <string name="filter_bufferlist_placeholder"><i>фильтр</i></string>
+    <string name="me">Я</string>
+    <string name="reply_label">Ответить</string>
+    <string name="notification_connected_to">Подключена к %s</string>
+    <string name="notification_connecting_details_now">Подключаюсь…</string>
+    <string name="notification_connecting_details">Попробую снова через %d секунд…</string>
+    <string name="notification_waiting_network">Ожидаю доступ в сеть</string>
+    <string name="autoscroll_no_line">Некоторые важные сообщения были утеряны из-за наплыва новых строк</string>
+    <string name="no_hot_buffers">Важных сообщений нет</string>
+    <string name="not_connected">Нет соединения</string>
+    <string name="error">Ошибка: %s</string>
+    <string name="hint_show_hot_message">Важные сообщения</string>
+    <string name="relay_error_server_closed">Сервер неожиданно прервал связь в момент подключения. Возможно, неверен пароль или тип подключения</string>
+    <string name="relay_error_resolve">Не смогла найти адрес %s</string>
+    <string name="ssl_cert_dialog_unknown_fingerprint">Неизвестен</string>
+    <string name="ssl_cert_dialog_description"><![CDATA[
+        <b>Кому выдан:</b><br>
+        %1$s<br>
+        <br>
+        <b>Кем выдан:</b><br>
+        %2$s<br>
+        <br>
+        <b>Срок действия:</b><br>
+        Выдан: %3$s<br>
+        Истекает: %4$s<br>
+        <br>
+        <b>Отпечаток SHA-256:</b><br>
+        %5$s
+    ]]></string>
+    <string name="ssl_cert_dialog_title">Недоверенный сертификат</string>
+    <string name="ssl_cert_dialog_accept_button">Принять</string>
+    <string name="ssl_cert_dialog_reject_button">Отклонить</string>
+    <string name="invalid_hostname_dialog_body"><![CDATA[
+    Вы пытаетесь подключиться к <strong>%1$s</strong>, но данный сертификат верен только для следующих хостов:<br>
+    %2$s
+    ]]></string>
+    <string name="invalid_hostname_dialog_title">Неверный хост</string>
+    <string name="invalid_hostname_dialog_button">Увы</string>
+    <string name="invalid_hostname_dialog_empty"><![CDATA[<br><strong>(пусто)</strong>]]></string>
+    <string name="pref_error_relay_host_not_set">Не задан хост релея</string>
+    <string name="pref_error_relay_password_not_set">Не задан пароль релея</string>
+    <string name="pref_error_ssh_host_not_set">Не задан хост SSH</string>
+    <string name="pref_error_no_ssh_key">Не задан ни ключ, ни пароль SSH</string>
+    <string name="pref_error_no_ssh_known_hosts">Не заданы известные хосты SSH</string>
+    <string name="pref_connection_group">Подключение</string>
+    <string name="pref_connection_type_plain">Незащищённый релей</string>
+    <string name="pref_connection_type_weechat_ssl" translatable="false">Релей SSL</string>
+    <string name="pref_connection_type_ssh">Туннель SSH</string>
+    <string name="pref_connection_type_ws" translatable="false">Незащищённый веб-сокет</string>
+    <string name="pref_connection_type_ws_ssl" translatable="false">Веб-сокет SSL</string>
+    <string name="pref_connection_type">Тип соединения</string>
+    <string name="pref_clear_certs">Очистить сертификаты</string>
+    <string name="pref_clear_certs_confirmation">Очистить сертификаты?</string>
+    <string name="pref_clear_certs_summary">{0,choice,0#Нет доверенных сертификатов|1#Один доверенный сертификат|2#Два доверенных сертификата|3#Три доверенных сертификата|4#Четыре доверенных сертификата|4&lt;{0} доверенных сертификатов}</string>
+    <string name="pref_clear_certs_positive">Очистить</string>
+    <string name="pref_clear_certs_negative">Отмена</string>
+    <string name="pref_clear_certs_success">Сертификаты очищены</string>
+    <string name="pref_clear_certs_failure">Не смогла очистить сертификаты</string>
+    <string name="pref_ws_path">Путь веб-сокета</string>
+    <string name="pref_ssh_group">Настройки туннеля SSH</string>
+    <string name="pref_ssh_host">Хост SSH</string>
+    <string name="pref_ssh_user">Имя пользователя SSH</string>
+    <string name="pref_ssh_port">Порт SSH</string>
+    <string name="pref_ssh_pass">Пароль SSH или ключа</string>
+    <string name="pref_ssh_key">Закрытый ключ</string>
+    <string name="pref_ssh_key_summary">Ключ DSA, RSA, ECDSA в формате OpenSSH или PuTTY</string>
+    <string name="pref_ssh_known_hosts">Известные хосты</string>
+    <string name="pref_ssh_known_hosts_summary">Вывод $ ssh-keyscan хост</string>
+    <string name="pref_tabbtn_show">Показывать кнопку Tab</string>
+    <string name="pref_text_size">Размер текста</string>
+    <string name="pref_theme_loading_error">Ошибка при загрузке темы %s</string>
+    <string name="pref_theme_not_set">Не установлена</string>
+    <string name="pref_theme_summary">Пути поиска:\n\u0020\u0020\u0020\u0020%1$s\n\nТекущая тема:\n\u0020\u0020\u0020\u0020%2$s</string>
+    <string name="pref_timestamp_format">Формат времени</string>
+    <string name="pref_timestamp_format_summary">%s (по умолчанию: HH:mm:ss)</string>
+    <string name="pref_timestamp_invalid">Неверный формат времени</string>
+    <string name="pref_use_launcher_icon_kitty">Альтернативная иконка</string>
+    <string name="pref_use_launcher_icon_kitty_summary">"Удалить текущую иконку и установить альтернативную. Имейте в виду, что приложение рабочего стола может обновиться не сразу; к тому же, в некоторых случаях вам придётся удалить старую иконку вручную. ВНИМАНИЕ: приложение может сделать какую-нибудь бяку, пока вы его не перезапустите! "</string>
+    <string name="pref_volumebtn_size">Кнопки громкости меняют размер текста</string>
+    <string name="pref_volumebtn_size_summary">Если настройка включена, кнопки громкости будут менять размер текста вместо громкости</string>
+    <string name="pref_notif_group">Уведомления</string>
+    <string name="pref_notification_enable">Включить уведомления</string>
+    <string name="pref_notification_enable_summary">Уведомлять о важных сообщениях\u0020— сообщениях в приватных буферах и упоминаниях на каналах</string>
+    <string name="pref_notification_sound">Звук уведомления</string>
+    <string name="pref_notification_vibrate">Вибрация</string>
+    <string name="pref_notification_light">LED-индикатор</string>
+    <string name="pref_ringtone_none">Без звука</string>
+    <string name="pref_ringtone_unknown">Неизвестно</string>
+    <string name="created_by">создано ubergeek42</string>
+    <string name="build_id">сборка: %s</string>
+    <string name="about">О приложении</string>
+    <string name="libraries">
+            \nВ проекте используются следующие библиотеки:
+            \n
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/noveogroup/android-logger">Android Logger от Noveo Group</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://www.eclipse.org/aspectj/">AspectJ от Eclipse Foundation</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/greenrobot/EventBus">EventBus от greenrobot</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/JakeWharton/hugo">Hugo от Jake Wharton</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/TooTallNate/Java-WebSocket">Java-WebSocket от Nathan Rajlich</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/square/leakcanary">LeakCanary от Square, Inc</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="http://site.mockito.org/">Mockito</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://www.slf4j.org/">SLF4J от QOS.ch</a>
+            \n
+            \nНашли баг или хотите предложить новый функционал? Создайте тикет на&#160;<a href="https://github.com/ubergeek42/weechat-android/">GitHub</a> или напишите на электронную почту:&#160;<a href="mailto:kj@ubergeek42.com">kj@ubergeek42.com</a>
+            \n\n
+        </string>
+    <string name="pref_file_imported">Файл импортирован. Можете его удалить.</string>
+    <string name="pref_file_error">Ошибка: %s</string>
+    <string name="pref_file_clear_button">Очистить</string>
+    <string name="pref_file_cleared">Очищено</string>
+    <string name="pref_file_empty_clipboard">Буфер обмена пуст</string>
+    <string name="pref_file_choose_button">Выбрать файл</string>
+    <string name="pref_file_paste_button">Вставить из буфера обмена</string>
+    <string name="pref_file_pasted">Вставлено</string>
+    <string name="pref_file_set">установлен</string>
+    <string name="pref_file_not_set">отсутствует</string>
+    <string name="pref_relay_group">Релей</string>
+    <string name="pref_relay_host">Хост релея</string>
+    <string name="pref_relay_port">Порт релея</string>
+    <string name="pref_relay_password">Пароль релея</string>
+    <string name="pref_misc_group">Всякая всячина</string>
+    <string name="pref_line_increment">Количество загружаемых строк</string>
+    <string name="pref_line_increment_summary">Количество строк, загружаемых при открытии буфера или нажатии на кнопку «Загрузить больше строк». Количество отображаемых строк может быть меньше загруженного числа, если включена фильтрация. Ввиду ограничений протокола приложение каждый раз запрашивает все строки. (%s)</string>
+    <string name="pref_reconnect">Восстанавливать соединение при обрыве</string>
+    <string name="pref_boot_connect">Подключаться при загрузке системы</string>
+    <string name="pref_notification_ticker">Использовать «тикер»</string>
+    <string name="pref_notification_ticker_summary">Отображать сообщения в панели статуса (только на KitKat)</string>
+    <string name="pref_optimize_traffic">Оптимизировать трафик</string>
+    <string name="pref_optimize_traffic_summary">Не запрашивать строки буферов, которые не открыты. Может значительно уменьшить трафик и расход батареи, но синхронизация важных сообщений будет происходить лишь раз в 5 минут. Требует WeeChat версии 1.1 и выше, вступает в силу после переподключения.</string>
+    <string name="pref_hotlist_sync">Синхронизировать прочитанные буферы</string>
+    <string name="pref_hotlist_sync_summary">Помечать буферы как прочитанные в WeeChat. Требует версии WeeChat 1.0 или выше.</string>
+    <string name="pref_ping_group">Настройки пинга</string>
+    <string name="pref_ping_enabled">Включить пинг</string>
+    <string name="pref_ping_enabled_summary">Периодически проверять, не оборвалась ли связь, если давно не было сообщений от сервера</string>
+    <string name="pref_ping_idle">Время простоя</string>
+    <string name="pref_ping_idle_summary">Количество секунд без сетевой активности, по прошествии которых приложение пошлёт пинг (%s)</string>
+    <string name="pref_ping_timeout">Время ожидания ответа</string>
+    <string name="pref_ping_timeout_summary">Количество секунд после отсылки пинга, по прошествии которых соединение будет прервано (%s)</string>
+    <string name="pref_prefix_align">Выравнивание текста</string>
+    <string name="pref_prefix_align_left">По префиксу</string>
+    <string name="pref_prefix_align_right">По максимальной длине префикса</string>
+    <string name="pref_prefix_align_none">Без выравнивания</string>
+    <string name="pref_prefix_align_timestamp">По метке времени</string>
+    <string name="pref_auto_hide_actionbar">Скрывать панель инструментов</string>
+    <string name="pref_auto_hide_actionbar_summary">Скрывать панель инструментов при открытии клавиатуры или при прокручивании вверх</string>
+    <string name="pref_bufferlist_group">Список буферов</string>
+    <string name="pref_button_group">Кнопки</string>
+    <string name="pref_chatview_filters">Фильтровать сообщения</string>
+    <string name="pref_chatview_filters_summary">Скрывать сообщения, скрытые в WeeChat с помощью фильтра (например, irc_smart_filter)</string>
+    <string name="pref_color_scheme_day">Светлая тема</string>
+    <string name="pref_color_scheme_night">Тёмная тема</string>
+    <string name="pref_dim_down">Цвет технических строк</string>
+    <string name="pref_dim_down_summary">Отображать приходы/уходы пользователей и подобные строки в более тусклом цвете (устанавливается темой)</string>
+    <string name="pref_enclose_nick">Ники в стиле IRC</string>
+    <string name="pref_enclose_nick_summary">Отображать символы &lt; и &gt; вокруг ников</string>
+    <string name="pref_font">Шрифт буфера</string>
+    <string name="pref_font_default">По умолчанию</string>
+    <string name="pref_font_summary">Пропорциональные шрифты лучше не смешивать с выравниванием.\n\nПуть поиска:%1$s\n\nТекущий шрифт:\n\u0020\u0020\u0020\u0020%2$s</string>
+    <string name="pref_hide_hidden_buffers">Скрывать скрыты буферы</string>
+    <string name="pref_hide_hidden_buffers_summary">Скрывать буферы, скрытые командой /buffer hide</string>
+    <string name="pref_hide_server_buffers">Скрывать буферы без людей</string>
+    <string name="pref_hide_server_buffers_summary">Например, буферы серверов и плагинов</string>
+    <string name="pref_hostname_invalid">В имени хоста не могут быть пробелы</string>
+    <string name="pref_lookfeel_group">Отображение</string>
+    <string name="pref_max_width">Максимальная длина префикса</string>
+    <string name="pref_max_width_summary">Максимальное количество отображаемых символов префикса (%s)</string>
+    <string name="pref_number_invalid">Это вовсе не число</string>
+    <string name="pref_sendbtn_show">Показывать кнопку Отправить</string>
+    <string name="pref_show_buffer_filter">Показывать фильтр буферов</string>
+    <string name="pref_show_buffer_filter_summary">Фильтр работает с полными именами буферов и показывает скрытые буферы</string>
+    <string name="pref_sort_buffers">Сортировать список буферов</string>
+    <string name="pref_sort_buffers_summary">Сортировать по количество упоминаний и новых сообщений в приватных буферах</string>
+    <string name="unknown_version_id">Версия неизвестна</string>
+
+    <plurals name="nick_list_count">
+        <item quantity="one">%1$d пользователь</item>
+        <item quantity="few">%1$d пользователя</item>
+        <item quantity="many">%1$d пользователей</item>
+    </plurals>
+
+    <plurals name="hot_messages">
+        <item quantity="one">%d новое сообщение в %s</item>
+        <item quantity="few">%d новых сообщения в %s</item>
+        <item quantity="many">%d новых сообщений в %s</item>
+    </plurals>
+
+    <plurals name="hot_messages_missing">
+        <item quantity="one">(%d сообщение не получено)</item>
+        <item quantity="few">(%d сообщения не получено)</item>
+        <item quantity="many">(%d сообщений не получено)</item>
+    </plurals>
+
+    <!-- возможные значения: 1 и 2 (для кол-ва сообщений > 1) -->
+    <plurals name="hot_messages_missing_user" tools:ignore="MissingQuantity">
+        <item quantity="one" tools:ignore="ImpliedQuantity">(пользователь неизвестен)</item>
+        <item quantity="other">(пользователи неизвестны)</item>
+    </plurals>
+
+    <plurals name="messages">
+        <item quantity="one">%d сообщение</item>
+        <item quantity="few">%d сообщения</item>
+        <item quantity="many">%d сообщений</item>
+    </plurals>
+    <plurals name="in_buffers">
+        <item quantity="one">&#160;в %d буфере</item>
+        <item quantity="few">&#160;в %d буферах</item>
+        <item quantity="many">&#160;в %d буферах</item>
+    </plurals>
+    <string name="hot_messages_missing_1">(сообщение не получено)</string>
+</resources>

@@ -3,14 +3,14 @@
   <string name="notification_channel_connection_status">État de la connexion</string>
   <string name="notification_channel_hotlist">Notables</string>
   <string name="sendkey">Envoyer</string>
-  <string name="preferences">Paramètres</string>
-  <string name="close">Fermer</string>
-  <string name="filter_lines">Filtrer les lignes</string>
+  <string name="menu_preferences">Paramètres</string>
+  <string name="menu_close">Fermer</string>
+  <string name="menu_filter_lines">Filtrer les lignes</string>
   <string name="connect">Connecter</string>
   <string name="disconnect">Déconnecter</string>
   <string name="stop_connecting">Arrêter de se connecter</string>
-  <string name="hotlist">Messages notables</string>
-  <string name="nicklist_menu">Pseudos</string>
+  <string name="menu_hotlist">Messages notables</string>
+  <string name="menu_nicklist">Pseudos</string>
   <string name="tabkey">Tab</string>
   <string name="open_drawer">Ouvrir le tiroir</string>
   <string name="close_drawer">Fermer le tiroir</string>
@@ -30,6 +30,7 @@
     <item quantity="one">Nouveau message dans %s</item>
     <item quantity="other">%d nouveaux messages dans %s</item>
   </plurals>
+  <string name="hot_messages_missing_1">(message non récupéré)</string>
   <plurals name="hot_messages_missing">
     <item quantity="one" tools:ignore="ImpliedQuantity">(message non récupéré)</item>
     <item quantity="other">(%d messages non récupérés)</item>

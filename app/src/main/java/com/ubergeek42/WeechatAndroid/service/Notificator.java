@@ -272,8 +272,9 @@ public class Notificator {
         if (Build.VERSION.SDK_INT >= 28)
             nick = hotBuffer != null && hotBuffer.isPrivate ?
                     hotBuffer.shortName :
-                    res.getQuantityString(R.plurals.hot_messages_missing_user, missingMessages);
-        String message = res.getQuantityString(R.plurals.hot_messages_missing, missingMessages, missingMessages);
+                    res.getQuantityString(R.plurals.hot_messages_missing_user, missingMessages == 1 ? 1 : 2);
+        String message = missingMessages == 1 ? res.getString(R.string.hot_messages_missing_1) :
+                res.getQuantityString(R.plurals.hot_messages_missing, missingMessages, missingMessages);
         style.addMessage(message, 0, nick);
     }
 

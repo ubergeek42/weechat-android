@@ -18,6 +18,7 @@ import androidx.preference.EditTextPreferenceFix;
 import androidx.preference.FilePreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
+import androidx.preference.PreferenceGroup;
 import androidx.preference.PreferenceScreen;
 import androidx.preference.RingtonePreferenceFix;
 import androidx.preference.ThemePreference;
@@ -139,6 +140,9 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
         // that this fragment is supposed to display. the key is set in activity's onCreate
         @Override public void onCreatePreferences(Bundle bundle, String key) {
             setPreferencesFromResource(R.xml.preferences, this.key = key);
+
+            fixMultiLineTitles(getPreferenceScreen());
+
             String[] listenTo = {};
             if (PREF_CONNECTION_GROUP.equals(key)) {
                 sslGroup = findPreference(PREF_SSL_GROUP);
@@ -161,7 +165,7 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
         @Override public void onActivityCreated(Bundle savedInstanceState) {
             ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
             if (actionBar != null)
-                actionBar.setTitle((key == null) ? getString(R.string.preferences) : findPreference(key).getTitle());
+                actionBar.setTitle((key == null) ? getString(R.string.menu_preferences) : findPreference(key).getTitle());
             super.onActivityCreated(savedInstanceState);
         }
 
@@ -206,6 +210,15 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
             else getPreferenceScreen().removePreference(sshGroup);
             if (Utils.isAnyOf(type, PREF_TYPE_WEBSOCKET, PREF_TYPE_WEBSOCKET_SSL)) getPreferenceScreen().addPreference(wsPath);
             else getPreferenceScreen().removePreference(wsPath);
+        }
+
+        // recursively make all currently visible preference titles multiline
+        private static void fixMultiLineTitles(PreferenceGroup screen) {
+            for (int i = 0; i < screen.getPreferenceCount(); i++) {
+                Preference p = screen.getPreference(i);
+                p.setSingleLineTitle(false);
+                if (p instanceof PreferenceGroup && !(p instanceof PreferenceScreen)) fixMultiLineTitles((PreferenceGroup) p);
+            }
         }
     }
 }

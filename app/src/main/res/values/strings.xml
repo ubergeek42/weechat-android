@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
 
     <!-- internally used names -->
     <string name="app_name" translatable="false">Weechat-Android</string>
@@ -10,15 +10,15 @@
 
     <!-- widget and button contentDescription-s -->
     <string name="sendkey">Send</string>
-    <string name="preferences">Settings</string>
-    <string name="close">Close</string>
-    <string name="filter_lines">Filter lines</string>
-    <string name="night_theme">Dark theme</string>
+    <string name="menu_preferences">Settings</string>
+    <string name="menu_close">Close</string>
+    <string name="menu_filter_lines">Filter lines</string>
+    <string name="menu_use_night_theme">Dark theme</string>
     <string name="connect">Connect</string>
     <string name="disconnect">Disconnect</string>
     <string name="stop_connecting">Stop connecting</string>
-    <string name="hotlist">Hotlist</string>
-    <string name="nicklist_menu">Nicks</string>
+    <string name="menu_hotlist">Hotlist</string>
+    <string name="menu_nicklist">Nicks</string>
     <string name="tabkey">Tab</string>
     <string name="open_drawer">Open drawer</string>
     <string name="close_drawer">Close drawer</string>
@@ -42,6 +42,8 @@
         <item quantity="other">%d new messages in %s</item>
     </plurals>
 
+    <!-- plurals -->
+    <string name="hot_messages_missing_1">(message not fetched)</string>
     <plurals name="hot_messages_missing">
         <item quantity="one">(message not fetched)</item>
         <item quantity="other">(%d messages not fetched)</item>
@@ -127,10 +129,10 @@
 
         <!-- connection type -->
         <string name="pref_connection_type_plain">Plain connection</string>
-        <string name="pref_connection_type_weechat_ssl" translatable="false">WeeChat SSL</string>
+        <string name="pref_connection_type_weechat_ssl" tools:ignore="MissingTranslation">WeeChat SSL</string>
         <string name="pref_connection_type_ssh">SSH tunnel</string>
-        <string name="pref_connection_type_ws" translatable="false">WebSocket</string>
-        <string name="pref_connection_type_ws_ssl" translatable="false">WebSocket (SSL)</string>
+        <string name="pref_connection_type_ws" tools:ignore="MissingTranslation">WebSocket</string>
+        <string name="pref_connection_type_ws_ssl" tools:ignore="MissingTranslation">WebSocket (SSL)</string>
         <string name="pref_connection_type">Connection type</string>
             <string-array name="pref_connection_type_names">
                 <item>@string/pref_connection_type_plain</item>
