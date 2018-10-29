@@ -36,7 +36,7 @@ public class ToolbarController implements ViewTreeObserver.OnGlobalLayoutListene
 
     private int _dy = 0;
     public void onScroll(int dy, boolean touchingTop, boolean touchingBottom) {
-        if (!canAutoHide()) return;
+        if (canNotAutoHide()) return;
         if (keyboardVisible) return;
         _dy = ((_dy < 0) != (dy < 0)) ? dy : _dy + dy;
         if (_dy < -P._200dp || (_dy < 0 && touchingTop)) hide();
@@ -49,7 +49,7 @@ public class ToolbarController implements ViewTreeObserver.OnGlobalLayoutListene
     }
 
     private void onSoftwareKeyboardStateChanged(boolean visible) {
-        if (!canAutoHide()) return;
+        if (canNotAutoHide()) return;
         if (keyboardVisible == visible) return;
         keyboardVisible = visible;
         if (visible) hide();
@@ -66,14 +66,13 @@ public class ToolbarController implements ViewTreeObserver.OnGlobalLayoutListene
         }
     }
 
-    private boolean canAutoHide() {
+    private boolean canNotAutoHide() {
         // Offset the content if the action bar is always shown, so the top text and button
         // remain visible
         setContentIsOffset(!P.autoHideActionbar);
-        if (P.autoHideActionbar && activity.isChatInputFocused())
-            return true;
+        if (P.autoHideActionbar && activity.isChatInputFocused()) return false;
         show();
-        return false;
+        return true;
     }
 
     private void show() {
@@ -91,7 +90,7 @@ public class ToolbarController implements ViewTreeObserver.OnGlobalLayoutListene
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @Override public void onGlobalLayout() {
-        if (!canAutoHide()) return;
+        if (canNotAutoHide()) return;
         // if more than 300 pixels, its probably a keyboard...
         int heightDiff = root.getRootView().getHeight() - root.getHeight();
         if (heightDiff > 300)

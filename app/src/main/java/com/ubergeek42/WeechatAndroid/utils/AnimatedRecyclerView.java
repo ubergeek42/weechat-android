@@ -64,6 +64,7 @@ public class AnimatedRecyclerView extends RecyclerView {
     // this is called only when the number of items in adapter is > 1
     // this animates all children of the RecyclerView except the last `linesAlreadyDisplayed`
     @UiThread private void animateIfNeeded() {
+        if (getAdapter() == null) return;
         if (linesAlreadyDisplayed < 0)
             return;
 
@@ -106,6 +107,7 @@ public class AnimatedRecyclerView extends RecyclerView {
     };
 
     @UiThread public void requestAnimation() {
+        if (getAdapter() == null) return;
         linesAlreadyDisplayed = getAdapter().getItemCount() - 1;
     }
 
@@ -134,6 +136,7 @@ public class AnimatedRecyclerView extends RecyclerView {
     }
 
     @UiThread private void smoothScrollToPositionFix(int position) {
+        if (getLayoutManager() == null) return;
         LinearSmoothScrollerFix scroller = new LinearSmoothScrollerFix(this);
         scroller.setTargetPosition(position);
         getLayoutManager().startSmoothScroll(scroller);
@@ -178,6 +181,7 @@ public class AnimatedRecyclerView extends RecyclerView {
 
     @Override public void onScrolled(int dx, int dy) {
         if (dy == 0) return;
+        if (getAdapter() == null) return;
         boolean lastVisible = manager.findLastVisibleItemPosition() == getAdapter().getItemCount() - 1;
         boolean firstVisible = manager.findFirstVisibleItemPosition() == 0;
         if (dy < 0 && !lastVisible) onBottom = false;

@@ -110,7 +110,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         linesAdapter = new ChatLinesAdapter(uiLines);
         uiLines.setAdapter(linesAdapter);
         uiLines.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+            @Override public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 if (focused && dy != 0) activity.toolbarController.onScroll(dy, uiLines.getOnTop(), uiLines.getOnBottom());
             }
         });
@@ -157,12 +157,6 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     @MainThread @Override @Cat public void onDetach() {
         activity = null;
         super.onDetach();
-    }
-
-    private boolean mDestroyed = false;
-    @Override @Cat public void onDestroy() {
-        mDestroyed = true;
-        super.onDestroy();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -241,7 +235,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
 
     //////////////////////////////////////////////////////////////////////////////////////////////// ui
 
-    @MainThread @Cat public void initUI() {
+    @MainThread @Cat private void initUI() {
         uiInput.setEnabled(online);
         uiSend.setEnabled(online);
         uiTab.setEnabled(online);
@@ -428,7 +422,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         tcInProgress = false;
     }
 
-    private void applyColorSchemeToViews() {
+    @SuppressWarnings("ConstantConditions") private void applyColorSchemeToViews() {
         getView().findViewById(R.id.chatview_bottombar).setBackgroundColor(P.colorPrimary);
     }
 }

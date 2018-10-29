@@ -101,7 +101,7 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
             if (preference == null) {
                 preference = resumePreference;
             } else if (preference instanceof FontPreference || preference instanceof ThemePreference) {
-                boolean granted = ContextCompat.checkSelfPermission(getContext(), Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+                boolean granted = ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
                 if (!granted) {
                     requestPermissions(new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE}, 0);
                     resumePreference = preference;
@@ -129,7 +129,7 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
             }
 
             f.setTargetFragment(this, 0);
-            f.show(getFragmentManager(), FRAGMENT_DIALOG_TAG);
+            f.show(requireFragmentManager(), FRAGMENT_DIALOG_TAG);
         }
 
         @Override public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -163,7 +163,7 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
 
         // this only sets the title of the action bar
         @Override public void onActivityCreated(Bundle savedInstanceState) {
-            ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
+            ActionBar actionBar = ((AppCompatActivity) requireActivity()).getSupportActionBar();
             if (actionBar != null)
                 actionBar.setTitle((key == null) ? getString(R.string.menu_preferences) : findPreference(key).getTitle());
             super.onActivityCreated(savedInstanceState);

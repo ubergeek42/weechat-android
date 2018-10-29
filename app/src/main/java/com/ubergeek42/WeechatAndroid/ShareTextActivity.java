@@ -14,7 +14,7 @@ import com.ubergeek42.WeechatAndroid.adapters.BufferListClickListener;
 import com.ubergeek42.WeechatAndroid.service.Events;
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
-import com.ubergeek42.WeechatAndroid.utils.Utils;
+import com.ubergeek42.WeechatAndroid.utils.ThemeFix;
 
 import org.greenrobot.eventbus.EventBus;
 
@@ -25,7 +25,7 @@ public class ShareTextActivity extends AppCompatActivity implements
 
     @Override protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Utils.fixIconAndColor(this);
+        ThemeFix.fixIconAndColor(this);
     }
 
     @Override protected void onStart() {

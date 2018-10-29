@@ -201,9 +201,8 @@ public class Notificator {
             style.setConversationTitle(nMessagesInNBuffers);
             style.setGroupConversation(true);   // needed to display the title
             addMissingMessageLine(totalHotCount - allMessages.size(), res, style, null);
-            for (HotMessage message : allMessages) style.addMessage(new MessagingStyle.Message(
-                    message.message, message.timestamp, getNickForFullList(message)
-            ));
+            for (HotMessage message : allMessages) addMessage(style,
+                    message.message, message.timestamp, getNickForFullList(message));
             summary.setStyle(style);
 
             if (newHighlight) makeNoise(summary, res, allMessages);
@@ -239,9 +238,8 @@ public class Notificator {
         style.setGroupConversation(!hotBuffer.isPrivate || Build.VERSION.SDK_INT < 28);
 
         addMissingMessageLine(hotCount - messages.size(), res, style, hotBuffer);
-        for (HotMessage message : messages) style.addMessage(new MessagingStyle.Message(
-                message.message, message.timestamp, getNickForBuffer(message)
-        ));
+        for (HotMessage message : messages) addMessage(style,
+                message.message, message.timestamp, getNickForBuffer(message));
         builder.setStyle(style);
 
         if (newHighlight) makeNoise(builder, res, messages);
@@ -275,7 +273,7 @@ public class Notificator {
                     res.getQuantityString(R.plurals.hot_messages_missing_user, missingMessages == 1 ? 1 : 2);
         String message = missingMessages == 1 ? res.getString(R.string.hot_messages_missing_1) :
                 res.getQuantityString(R.plurals.hot_messages_missing, missingMessages, missingMessages);
-        style.addMessage(message, 0, nick);
+        addMessage(style, message, 0, nick);
     }
 
     private static void makeNoise(Builder builder, Resources res, List<HotMessage> messages) {
@@ -336,6 +334,12 @@ public class Notificator {
             builder.setContentTitle(context.getString(R.string.app_name) + " " + BuildConfig.VERSION_NAME)
                     .setContentText(text);
         }
+    }
+
+    // as we are constructing nicks on the fly, no reason to build Person
+    @SuppressWarnings("deprecation")
+    private static void addMessage(MessagingStyle style, CharSequence message, long timestamp, CharSequence nick) {
+        style.addMessage(message, timestamp, nick);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

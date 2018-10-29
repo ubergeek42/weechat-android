@@ -21,6 +21,7 @@ import java.util.EnumSet;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLPeerUnverifiedException;
 
+import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
@@ -74,7 +75,6 @@ import com.ubergeek42.WeechatAndroid.utils.ToolbarController;
 import com.ubergeek42.WeechatAndroid.utils.SimpleTransitionDrawable;
 import com.ubergeek42.WeechatAndroid.utils.UntrustedCertificateDialog;
 import com.ubergeek42.WeechatAndroid.service.RelayService.STATE;
-import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.CatD;
 import com.ubergeek42.cats.Kitty;
@@ -108,7 +108,8 @@ public class WeechatActivity extends AppCompatActivity implements
     //////////////////////////////////////////////////////////////////////////////////////////////// life cycle
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @MainThread @Override @Cat public void onCreate(@Nullable Bundle savedInstanceState) {
+    @SuppressLint("WrongThread") @MainThread @Override @Cat
+    public void onCreate(@Nullable Bundle savedInstanceState) {
         // after OOM kill and not going to restore anything? remove all fragments & open buffers
         if (!P.isServiceAlive() && !BufferList.hasData()) {
             P.openBuffers.clear();
@@ -185,7 +186,7 @@ public class WeechatActivity extends AppCompatActivity implements
         if (adapter.canRestoreBuffers()) adapter.restoreBuffers();
 
         P.storeThemeOrColorSchemeColors(this);
-        Utils.fixIconAndColor(this);
+        ThemeFix.fixIconAndColor(this);
     }
 
     @MainThread @CatD(linger=true) public void connect() {
@@ -589,7 +590,7 @@ public class WeechatActivity extends AppCompatActivity implements
         findViewById(R.id.toolbar).setBackgroundColor(P.colorPrimary);
 
         if (Build.VERSION.SDK_INT < 21) return;
-        boolean isLight = Utils.isColorLight(P.colorPrimaryDark);
+        boolean isLight = ThemeFix.isColorLight(P.colorPrimaryDark);
         if (!isLight || Build.VERSION.SDK_INT >= 23) getWindow().setStatusBarColor(P.colorPrimaryDark);
         if (!isLight || Build.VERSION.SDK_INT >= 27) getWindow().setNavigationBarColor(P.colorPrimaryDark);
     }

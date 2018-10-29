@@ -16,6 +16,7 @@ package com.ubergeek42.WeechatAndroid.adapters;
 
 import androidx.annotation.AnyThread;
 import androidx.annotation.MainThread;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
 import androidx.recyclerview.widget.DiffUtil;
@@ -184,14 +185,14 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         return LINE_TYPE;
     }
 
-    @MainThread @Override public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    @MainThread @Override public @NonNull RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater i = LayoutInflater.from(parent.getContext());
         if (viewType == HEADER_TYPE) return new Header(i.inflate(more_button, parent, false), this);
         else if (viewType == MARKER_TYPE) return new ReadMarkerRow(i.inflate(read_marker, parent, false));
         else return new Row(new LineView(parent.getContext()));
     }
 
-    @MainThread @Override public synchronized void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+    @MainThread @Override public synchronized void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         long pointer = lines.get(position).pointer;
         if (pointer == HEADER_POINTER) ((Header) holder).update();
         else if (pointer == MARKER_POINTER) ((ReadMarkerRow) holder).update();

@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 
-import static androidx.core.app.NotificationCompat.MessagingStyle.Message;
 import static android.text.TextUtils.isEmpty;
 import static com.ubergeek42.WeechatAndroid.relay.Buffer.PRIVATE;
 import static com.ubergeek42.WeechatAndroid.service.Notificator.KEY_TEXT_REPLY;
@@ -184,6 +183,7 @@ public class Hotlist {
                 Weechat.showShortToast("Something went terribly wrong");
                 return;
             }
+            //noinspection ConstantConditions   -- linter error
             Events.SendMessageEvent.fireInput(fullName, input.toString());
             buffer.flagResetHotMessagesOnNewOwnLine = true;
         }

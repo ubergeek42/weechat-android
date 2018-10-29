@@ -418,8 +418,7 @@ public class Buffer {
         if (bufferNickListEye != null) bufferNickListEye.onNicklistChanged();
     }
 
-    @Override
-    public String toString() {
+    @Override public @NonNull String toString() {
         return "Buffer(" + shortName + ")";
     }
 }

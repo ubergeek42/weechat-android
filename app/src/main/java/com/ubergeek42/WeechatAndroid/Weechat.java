@@ -22,6 +22,7 @@ import org.greenrobot.eventbus.EventBus;
 
 import java.util.EnumSet;
 
+@SuppressWarnings("unused")
 public class Weechat extends Application {
     static Thread mainThread = Thread.currentThread();
     static Handler mainHandler = new Handler();

@@ -17,8 +17,10 @@ public class FancyAlertDialogBuilder extends AlertDialog.Builder {
     @Override
     public AlertDialog create() {
         AlertDialog dialog = super.create();
-        dialog.getWindow().getDecorView().getBackground().
-                setColorFilter(new LightingColorFilter(0xFF000000, P.colorPrimary));
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().getDecorView().getBackground().
+                    setColorFilter(new LightingColorFilter(0xFF000000, P.colorPrimary));
+        }
         return dialog;
     }
 }

@@ -160,7 +160,7 @@ public class BufferListFragment extends Fragment implements BufferListEye, View.
         uiFilter.setText(null);
     }
 
-    @Override public String toString() {
+    @Override public @NonNull String toString() {
         return "BL";
     }
 

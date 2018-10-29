@@ -25,7 +25,7 @@ public class Events {
             this.state = state;
         }
 
-        @Override public String toString() {
+        @Override public @NonNull String toString() {
             return "StateChangedEvent(state=" + state + ")";
         }
     }
@@ -39,7 +39,7 @@ public class Events {
             this.e = e;
         }
 
-        @Override public String toString() {
+        @Override public @NonNull String toString() {
             return "ExceptionEvent(e=" + e + ")";
         }
     }
@@ -65,12 +65,13 @@ public class Events {
         public static void fireInput(@NonNull String fullName, @Nullable String input) {
             if (TextUtils.isEmpty(input)) return;
             P.addSentMessage(input);
+            //noinspection ConstantConditions -- linter doesn't see the call to isEmpty
             for (String line : input.split("\n"))
                 if (!TextUtils.isEmpty(line))
                     fire("input %s %s", fullName, line);
         }
 
-        @Override public String toString() {
+        @Override public @NonNull String toString() {
             return "SendMessageEvent(message=" + message + ")";
         }
     }

@@ -7,6 +7,7 @@ import android.graphics.PixelFormat;
 import android.graphics.drawable.Drawable;
 import android.os.SystemClock;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 public class SimpleTransitionDrawable extends Drawable {
@@ -21,12 +22,11 @@ public class SimpleTransitionDrawable extends Drawable {
     private int duration;
 
     private @Nullable Drawable source;
-    private Drawable target;
+    private @Nullable Drawable target;
 
-    public void setTarget(Drawable target) {
-        this.source = this.target;
+    public void setTarget(@Nullable Drawable target) {
         this.target = target;
-        target.setBounds(0, 0, target.getIntrinsicWidth(), target.getIntrinsicHeight());
+        if (target != null) target.setBounds(0, 0, target.getIntrinsicWidth(), target.getIntrinsicHeight());
     }
 
     public void startTransition(int durationMillis) {
@@ -36,24 +36,18 @@ public class SimpleTransitionDrawable extends Drawable {
     }
 
     @Override
-    public void draw(Canvas canvas) {
-        int alpha;
+    public void draw(@NonNull Canvas canvas) {
+        int alpha = 0;
 
         switch (state) {
             case TRANSITION_STARTING:
                 startTimeMillis = SystemClock.uptimeMillis();
-                alpha = 0;
                 state = TRANSITION_RUNNING;
                 break;
 
             case TRANSITION_RUNNING:
                 float normalized = (float) (SystemClock.uptimeMillis() - startTimeMillis) / duration;
                 alpha = (int) (0xff * Math.min(normalized, 1.0f));
-                break;
-
-            default:
-                if (target == null) return;
-                alpha = 0xff;
                 break;
         }
 
@@ -62,17 +56,18 @@ public class SimpleTransitionDrawable extends Drawable {
             source.draw(canvas);
         }
 
-        if (alpha > 0) {
+        if (target != null && alpha > 0) {
             target.setAlpha(alpha);
             target.draw(canvas);
         }
 
         if (alpha == 0xff) {
+            source = target;
+            target = null;
             state = TRANSITION_NONE;
-            return;
         }
 
-        invalidateSelf();
+        if (state == TRANSITION_RUNNING) invalidateSelf();
     }
 
     @Override public void setAlpha(int alpha) {}

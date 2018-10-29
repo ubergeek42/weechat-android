@@ -19,8 +19,8 @@ import java.util.Set;
 
 public class InvalidHostnameDialog extends DialogFragment {
 
-    String hostname;
-    Set<String> certificateHosts;
+    private String hostname;
+    private Set<String> certificateHosts;
 
     public static InvalidHostnameDialog newInstance(X509Certificate certificate) {
         InvalidHostnameDialog d = new InvalidHostnameDialog();
@@ -40,8 +40,8 @@ public class InvalidHostnameDialog extends DialogFragment {
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
         final int padding = (int) getResources().getDimension(R.dimen.dialog_padding_full);
 
-        final ScrollView scrollView = new ScrollView(getContext());
-        final TextView textView = new AppCompatTextView(getContext());
+        final ScrollView scrollView = new ScrollView(requireContext());
+        final TextView textView = new AppCompatTextView(requireContext());
         final StringBuilder sb = new StringBuilder();
         for (String host : certificateHosts) {
             sb.append("<br>\u00A0\u00A0\u00A0\u00A0\u2022\u00A0\u00A0<strong>")
@@ -54,10 +54,11 @@ public class InvalidHostnameDialog extends DialogFragment {
         textView.setText(Html.fromHtml(getString(R.string.invalid_hostname_dialog_body,
                 Html.escapeHtml(hostname), allowed)));
         scrollView.addView(textView);
+        scrollView.setPadding(padding, padding/2, padding, 0);
 
-        return new FancyAlertDialogBuilder(getContext())
+        return new FancyAlertDialogBuilder(requireContext())
                 .setTitle(getString(R.string.invalid_hostname_dialog_title))
-                .setView(scrollView, padding, padding/2, padding, 0)
+                .setView(scrollView)
                 .setNegativeButton(getString(R.string.invalid_hostname_dialog_button), null)
                 .create();
     }

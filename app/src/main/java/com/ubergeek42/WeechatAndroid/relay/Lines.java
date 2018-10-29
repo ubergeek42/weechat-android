@@ -21,6 +21,7 @@ import static org.junit.Assert.assertEquals;
 
 // this class is supposed to be synchronized by Buffer
 public class Lines {
+    @SuppressWarnings("FieldCanBeLocal")
     final private @Root Kitty kitty = Kitty.make();
 
     public final static int HEADER_POINTER = -123, MARKER_POINTER = -456;
@@ -52,7 +53,7 @@ public class Lines {
     private int skipUnfilteredOffset = -1;
     private int skipFilteredOffset = -1;
 
-    private int maxUnfilteredSize = 0;
+    private int maxUnfilteredSize;
 
     @WorkerThread Lines(String name) {
         maxUnfilteredSize = P.lineIncrement;

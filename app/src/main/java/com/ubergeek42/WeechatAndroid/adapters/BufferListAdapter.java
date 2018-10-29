@@ -16,6 +16,7 @@ package com.ubergeek42.WeechatAndroid.adapters;
 
 import androidx.annotation.AnyThread;
 import androidx.annotation.MainThread;
+import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.RecyclerView.ViewHolder;
@@ -111,12 +112,12 @@ public class BufferListAdapter extends RecyclerView.Adapter<ViewHolder> implemen
     //////////////////////////////////////////////////////////////////////////////////////////////// adapter methods
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @MainThread @Override @Cat("???") public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    @MainThread @Override @Cat("???") public @NonNull ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater i = LayoutInflater.from(parent.getContext());
         return new Row(i.inflate(R.layout.bufferlist_item, parent, false));
     }
 
-    @MainThread @Override @Cat("???") public void onBindViewHolder(ViewHolder holder, int position) {
+    @MainThread @Override @Cat("???") public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         ((Row) holder).update(buffers.get(position));
     }
 

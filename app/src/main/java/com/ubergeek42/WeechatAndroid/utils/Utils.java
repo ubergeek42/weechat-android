@@ -1,50 +1,17 @@
-/**
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- */
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
 
 package com.ubergeek42.WeechatAndroid.utils;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.ActivityManager;
-import android.app.AlertDialog;
 import android.content.Context;
 import android.content.ContextWrapper;
-import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.drawable.AdaptiveIconDrawable;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
-import android.graphics.drawable.LayerDrawable;
-import android.graphics.drawable.TransitionDrawable;
-import android.graphics.drawable.VectorDrawable;
 import android.net.Uri;
-import android.os.Build;
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-import android.provider.Settings;
-
-import androidx.annotation.DrawableRes;
-import androidx.annotation.MainThread;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.content.res.AppCompatResources;
-import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat;
-
 import android.util.Base64;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
-import android.widget.Toast;
 
-import com.ubergeek42.WeechatAndroid.R;
-import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
 
@@ -54,14 +21,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.PrintWriter;
 import java.io.Serializable;
-import java.io.StringWriter;
 import java.text.SimpleDateFormat;
-import java.util.Iterator;
-import java.util.Set;
 
-import static com.ubergeek42.WeechatAndroid.utils.Constants.WEECHAT_ACTIVITY_KITTY;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 public class Utils {
 
@@ -99,7 +63,7 @@ public class Utils {
 
     //////////////////////////////////////////////////////////////////////////////////////////////// string cuts
 
-    public static @NonNull String unCrLf(@NonNull String text) {
+    static @NonNull String unCrLf(@NonNull String text) {
         return text.replaceAll("\\r\\n|\\r|\\n", "⏎ ");
     }
 
@@ -142,17 +106,14 @@ public class Utils {
     }
 
     public static @NonNull byte[] readFromUri(Context context, Uri uri) throws IOException {
-        InputStream in = null; int len;
+        int len;
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         byte[] buffer = new byte[1024];
-        try {
-            in = context.getContentResolver().openInputStream(uri);
+        try (InputStream in = context.getContentResolver().openInputStream(uri)) {
             if (in == null) throw new IOException("Input stream is null");
             while ((len = in.read(buffer)) != -1) out.write(buffer, 0, len);
             if (out.size() == 0) throw new IOException("File is empty");
             return out.toByteArray();
-        } finally {
-            try {if (in != null) in.close();} catch (IOException ignored) {}
         }
     }
 
@@ -186,138 +147,5 @@ public class Utils {
 
     public interface Predicate<T> {
         boolean test(T t);
-    }
-
-    public static Bitmap getBitmapFromDrawable(Context context, @DrawableRes int drawableId) {
-        Drawable drawable = AppCompatResources.getDrawable(context, drawableId);
-
-        if (drawable instanceof BitmapDrawable) {
-            return ((BitmapDrawable) drawable).getBitmap();
-        } else if (drawable instanceof VectorDrawableCompat ||
-                (Build.VERSION.SDK_INT >= 26 && drawable instanceof AdaptiveIconDrawable) ||
-                (Build.VERSION.SDK_INT >= 21 && drawable instanceof VectorDrawable)) {
-            Bitmap bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
-            Canvas canvas = new Canvas(bitmap);
-            drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
-            drawable.draw(canvas);
-
-            return bitmap;
-        } else {
-            throw new IllegalArgumentException("unsupported drawable type: " + drawable);
-        }
-    }
-
-    // set the icon that appears in recent application list;
-    // also set the color of the title bar in recent app list, as changing the theme doesn't
-    // immediately change the color—the old color is used unless you kill the activity.
-    // also explicitly set application name, since calling setTaskDescription screws it up
-    // on android m. note that ActivityManager$TaskDescription(String, int, ...) doesn't
-    // exist on android < p, so create the bitmap manually
-    @SuppressWarnings("deprecation") @MainThread
-    public static void fixIconAndColor(AppCompatActivity activity) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) return;
-
-        String appName = activity.getString(R.string.app_name);
-
-        int icon = activity.getPackageManager().getComponentEnabledSetting(WEECHAT_ACTIVITY_KITTY) ==
-                PackageManager.COMPONENT_ENABLED_STATE_ENABLED ?
-                R.mipmap.ic_launcher_kitty :
-                R.mipmap.ic_launcher_weechat;
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
-            activity.setTaskDescription(new ActivityManager.TaskDescription(null,
-                    icon, 0xff000000 | P.colorPrimary));
-        else {
-            Bitmap bitmap = Utils.getBitmapFromDrawable(activity, icon);
-            activity.setTaskDescription(new ActivityManager.TaskDescription(appName,
-                    bitmap, 0xff000000 | P.colorPrimary));
-        }
-    }
-
-    public static boolean isColorLight(int color) {
-        int avg = (((color >> 16) & 0xff) +
-                  ((color >> 8) & 0xff) +
-                  (color & 0xff)) / 3;
-        return avg > (0xff / 2);
-    }
-
-    //////////////////////////////////////////////////////////////////////////////////////////////// debug stuff
-
-    // get permission for showing system alert, see next method
-    @RequiresApi(api = Build.VERSION_CODES.M)
-    public static void checkDrawOverlayPermission(AppCompatActivity activity) {
-        if (!Settings.canDrawOverlays(activity.getApplicationContext())) {
-            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + activity.getPackageName()));
-            activity.startActivityForResult(intent, 123);
-        }
-    }
-
-    public static void showSystemAlert(final Context ctx, final String message, final Object... args) {
-        final Handler handler = new Handler(Looper.getMainLooper());
-        handler.post(() -> {
-            AlertDialog dialog = new AlertDialog.Builder(ctx.getApplicationContext()).setMessage(String.format(message, args)).create();
-            if (dialog.getWindow() == null) throw new RuntimeException("dialog.getWindow() is null");
-            dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
-            dialog.show();
-        });
-    }
-
-    public static void showLongToast(final Context ctx, final String message, final Object... args) {
-        final Handler handler = new Handler(Looper.getMainLooper());
-        handler.post(() -> Toast.makeText(ctx, String.format(message, args), Toast.LENGTH_LONG).show());
-    }
-
-    public static String getExceptionAsString(Exception e) {
-        StringWriter sw = new StringWriter();
-        PrintWriter pw = new PrintWriter(sw);
-        e.printStackTrace(pw);
-        return sw.toString();
-    }
-
-    public static String getIntentExtrasAsString(Intent i){
-        Bundle bundle = i.getExtras();
-        if (bundle == null) return "[]";
-        Iterator<String> it = bundle.keySet().iterator();
-        String out = "[";
-        while (it.hasNext()) {
-            String key = it.next();
-            out += key + "=" + bundle.get(key) + ", ";
-        }
-        return out.substring(0, out.length() - 2) + "]";
-    }
-
-    public static void saveLogCatToFile(Context ctx) {
-        String path = ctx.getDir("log", Context.MODE_PRIVATE) + "/logcat.txt";
-        kitty.trace("saving log to: {}", path);
-        try {
-            bash("echo \\n\\n\\n >> " + path);
-            bash("date >> " + path);
-            bash("logcat -t 100 >> " + path);
-        } catch (IOException | InterruptedException e) {
-            kitty.error("error writing file", e);
-        }
-    }
-
-    private static void bash(String command) throws IOException, InterruptedException {
-        if (Runtime.getRuntime().exec(new String[] {"sh", "-c", command}).waitFor() != 0)
-            throw new IOException("error while executing: " + command);
-    }
-
-    // allows the application to print A LOT of logging
-    private static void turnOffChatty() {
-        int pid = android.os.Process.myPid();
-        String whiteList = "logcat -P '" + pid + "'";
-        try {
-            Runtime.getRuntime().exec(whiteList).waitFor();
-        } catch (InterruptedException | IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static void dumpThreads() {
-        Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
-        for (Thread t : threadSet) {
-            kitty.info("%s -> %s [a %s, d %s]", t.getName(), t.getState(), t.isAlive(), t.isDaemon());
-        }
     }
 }
