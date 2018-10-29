@@ -4,13 +4,13 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.TypedArray;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 
+import android.text.TextUtils;
 import android.util.AttributeSet;
 
 import com.ubergeek42.WeechatAndroid.R;
-import com.ubergeek42.WeechatAndroid.utils.Constants;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -25,12 +25,12 @@ public class ThemePreference extends DialogPreference {
         super(context, attrs);
     }
 
-    public @NonNull String getThemePath() {
+    private @Nullable String getThemePath() {
         return getSharedPreferences().getString(getKey(), defaultValue);
     }
 
-    public void setThemePath(String path) {
-        getSharedPreferences().edit().putString(getKey(), path).commit();
+    private void setThemePath(String path) {
+        getSharedPreferences().edit().putString(getKey(), path).apply();
         notifyChanged();
     }
 
@@ -42,7 +42,7 @@ public class ThemePreference extends DialogPreference {
     @Override public CharSequence getSummary() {
         return getContext().getString(R.string.pref_theme_summary,
                 ThemeManager.SEARCH_DIR,
-                "".equals(getThemePath()) ? getContext().getString(R.string.pref_theme_not_set) : getThemePath());
+                TextUtils.isEmpty(getThemePath()) ? getContext().getString(R.string.pref_theme_not_set) : getThemePath());
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -62,7 +62,7 @@ public class ThemePreference extends DialogPreference {
         protected void onPrepareDialogBuilder(AlertDialog.Builder builder) {
             super.onPrepareDialogBuilder(builder);
 
-            themes = ThemeManager.enumerateThemes(getContext());
+            themes = ThemeManager.enumerateThemes(requireContext());
             Collections.sort(themes);
 
             // find index of the current theme, and while we are at it

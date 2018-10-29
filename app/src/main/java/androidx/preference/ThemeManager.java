@@ -5,7 +5,6 @@ import android.content.res.AssetManager;
 import android.os.Environment;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatDelegate;
 
 import android.widget.Toast;
 
@@ -29,12 +28,13 @@ import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_COLOR_SCHEME_NI
 public class ThemeManager {
 
     final private static @Root Kitty kitty = Kitty.make();
-    public final static String SEARCH_DIR = Environment.getExternalStorageDirectory().toString() + "/weechat";
+    final static String SEARCH_DIR = Environment.getExternalStorageDirectory().toString() + "/weechat";
 
     public static void loadColorSchemeFromPreferences(@NonNull Context context) {
         String path = android.preference.PreferenceManager.getDefaultSharedPreferences(context)
                 .getString(P.nightThemeEnabled ? PREF_COLOR_SCHEME_NIGHT : PREF_COLOR_SCHEME_DAY,
                         P.nightThemeEnabled ? PREF_COLOR_SCHEME_NIGHT_D : PREF_COLOR_SCHEME_DAY_D);
+        //noinspection ConstantConditions   -- path can't be null
         Properties p = loadColorScheme(path, context.getAssets());
         if (p == null)
             Toast.makeText(context, context.getString(R.string.pref_theme_loading_error, path), Toast.LENGTH_SHORT).show();
@@ -42,19 +42,21 @@ public class ThemeManager {
             ColorScheme.set(new ColorScheme(p));
     }
 
-    public static @NonNull LinkedList<ThemeInfo> enumerateThemes(@NonNull Context context) {
+    static @NonNull LinkedList<ThemeInfo> enumerateThemes(@NonNull Context context) {
         LinkedList<ThemeInfo> themes = new LinkedList<>();
         AssetManager manager = context.getAssets();
 
         // load themes from assets
         try {
             String[] builtin_themes = manager.list("");
-            for (String theme : builtin_themes) {
-                if (!theme.toLowerCase().endsWith("theme.properties"))
-                    continue;
-                Properties p = loadColorScheme(theme, manager);
-                if (p != null)
-                    themes.add(new ThemeInfo(p.getProperty("name", theme), theme));
+            if (builtin_themes != null) {
+                for (String theme : builtin_themes) {
+                    if (!theme.toLowerCase().endsWith("theme.properties"))
+                        continue;
+                    Properties p = loadColorScheme(theme, manager);
+                    if (p != null)
+                        themes.add(new ThemeInfo(p.getProperty("name", theme), theme));
+                }
             }
         } catch (IOException e) {e.printStackTrace();}
 
@@ -90,7 +92,7 @@ public class ThemeManager {
         public @NonNull String name;
         public @NonNull String path;
 
-        public ThemeInfo(@NonNull String name, @NonNull String path) {
+        ThemeInfo(@NonNull String name, @NonNull String path) {
             this.name = name;
             this.path = path;
         }

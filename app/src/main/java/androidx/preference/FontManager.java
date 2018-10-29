@@ -11,10 +11,10 @@ import androidx.annotation.NonNull;
 import java.io.File;
 import java.util.LinkedList;
 
-public class FontManager {
-    final static public String[] FONT_DIRS = {Environment.getExternalStorageDirectory().toString() + "/weechat", "/system/fonts"};
+class FontManager {
+    final static String[] FONT_DIRS = {Environment.getExternalStorageDirectory().toString() + "/weechat", "/system/fonts"};
 
-    static public @NonNull LinkedList<FontInfo> enumerateFonts() {
+    static @NonNull LinkedList<FontInfo> enumerateFonts() {
         LinkedList<FontInfo> fonts = new LinkedList<>();
 
         for (String fontdir : FONT_DIRS) {
@@ -39,7 +39,7 @@ public class FontManager {
     }
 
     static public class FontInfo implements Comparable<FontInfo> {
-        public FontInfo(@NonNull String name, @NonNull String path, @NonNull Typeface typeface) {
+        FontInfo(@NonNull String name, @NonNull String path, @NonNull Typeface typeface) {
             this.name = name;
             this.path = path;
             this.typeface = typeface;

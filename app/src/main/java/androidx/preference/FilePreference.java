@@ -1,12 +1,9 @@
-/**
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- */
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
 
 package androidx.preference;
 
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
@@ -39,7 +36,7 @@ public class FilePreference extends DialogPreference {
                 super.getSummary(), set_not_set);
     }
 
-    protected void saveData(@Nullable byte[] bytes) {
+    private void saveData(@Nullable byte[] bytes) {
         if (callChangeListener(bytes)) {
             persistString(bytes == null ? null : Base64.encodeToString(bytes, Base64.NO_WRAP));
             notifyChanged();
@@ -78,31 +75,26 @@ public class FilePreference extends DialogPreference {
         }
 
         @Override protected void onPrepareDialogBuilder(AlertDialog.Builder builder) {
-            builder.setNeutralButton(getString(R.string.pref_file_clear_button), new DialogInterface.OnClickListener() {
-                    @Override public void onClick(DialogInterface dialog, int which) {
-                        ((FilePreference) getPreference()).saveData(null);
-                        Toast.makeText(getContext(), getString(R.string.pref_file_cleared), Toast.LENGTH_SHORT).show();
+            builder.setNeutralButton(getString(R.string.pref_file_clear_button), (dialog, which) -> {
+                ((FilePreference) getPreference()).saveData(null);
+                Toast.makeText(getContext(), getString(R.string.pref_file_cleared), Toast.LENGTH_SHORT).show();
+            })
+                .setNegativeButton(getString(R.string.pref_file_paste_button), (dialog, which) -> {
+                    // noinspection deprecation
+                    ClipboardManager cm = (ClipboardManager) requireContext().getSystemService(Context.CLIPBOARD_SERVICE);
+                    CharSequence clip = cm.getText();
+                    if (TextUtils.isEmpty(clip))
+                        Toast.makeText(getContext(), getString(R.string.pref_file_empty_clipboard), Toast.LENGTH_SHORT).show();
+                    else {
+                        ((FilePreference) getPreference()).saveData(clip.toString().getBytes());
+                        Toast.makeText(getContext(), getString(R.string.pref_file_pasted), Toast.LENGTH_SHORT).show();
                     }
                 })
-                .setNegativeButton(getString(R.string.pref_file_paste_button), new DialogInterface.OnClickListener() {
-                    @Override public void onClick(DialogInterface dialog, int which) {
-                        // noinspection deprecation
-                        ClipboardManager cm = (ClipboardManager) getContext().getSystemService(Context.CLIPBOARD_SERVICE);
-                        CharSequence clip = cm.getText();
-                        if (TextUtils.isEmpty(clip))
-                            Toast.makeText(getContext(), getString(R.string.pref_file_empty_clipboard), Toast.LENGTH_SHORT).show();
-                        else {
-                            ((FilePreference) getPreference()).saveData(clip.toString().getBytes());
-                            Toast.makeText(getContext(), getString(R.string.pref_file_pasted), Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                })
-                .setPositiveButton(getString(R.string.pref_file_choose_button), new DialogInterface.OnClickListener() {
-                    @Override public void onClick(DialogInterface dialog, int which) {
-                        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                        intent.setType("*/*");
-                        getTargetFragment().startActivityForResult(intent, getArguments().getInt("code"));
-                    }
+                .setPositiveButton(getString(R.string.pref_file_choose_button), (dialog, which) -> {
+                    Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                    intent.setType("*/*");
+                    //noinspection ConstantConditions   -- both target fragment and arguments are set
+                    getTargetFragment().startActivityForResult(intent, getArguments().getInt("code"));
                 });
         }
 

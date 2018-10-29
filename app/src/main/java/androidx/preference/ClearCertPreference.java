@@ -1,7 +1,5 @@
-/**
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- */
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
 
 package androidx.preference;
 
@@ -49,15 +47,12 @@ public class ClearCertPreference extends DialogPreference {
             super.onPrepareDialogBuilder(builder);
 
             builder.setTitle(null).setMessage(getString(R.string.pref_clear_certs_confirmation)).
-                    setPositiveButton(getString(R.string.pref_clear_certs_positive), new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            boolean removed = SSLHandler.getInstance(getContext()).removeKeystore();
-                            String msg = getString(removed ?
-                                    R.string.pref_clear_certs_success :
-                                    R.string.pref_clear_certs_failure);
-                            Toast.makeText(getContext(), msg, Toast.LENGTH_LONG).show();
-                        }
+                    setPositiveButton(getString(R.string.pref_clear_certs_positive), (dialog, which) -> {
+                        boolean removed = SSLHandler.getInstance(requireContext()).removeKeystore();
+                        String msg = getString(removed ?
+                                R.string.pref_clear_certs_success :
+                                R.string.pref_clear_certs_failure);
+                        Toast.makeText(getContext(), msg, Toast.LENGTH_LONG).show();
                     }).setNegativeButton(getString(R.string.pref_clear_certs_negative), null);
         }
 

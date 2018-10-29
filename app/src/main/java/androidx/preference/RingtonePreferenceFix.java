@@ -6,7 +6,6 @@ import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import androidx.annotation.NonNull;
-import androidx.preference.DialogPreference;
 
 import android.text.TextUtils;
 import android.util.AttributeSet;
@@ -20,12 +19,13 @@ public class RingtonePreferenceFix extends DialogPreference {
         super(context, attrs);
     }
 
-    public @NonNull String getRingtonePath() {
+    private @NonNull String getRingtonePath() {
+        //noinspection ConstantConditions
         return getSharedPreferences().getString(getKey(), Constants.PREF_NOTIFICATION_SOUND_D);
     }
 
-    public void setRingtonePath(String path) {
-        getSharedPreferences().edit().putString(getKey(), path).commit();
+    private void setRingtonePath(String path) {
+        getSharedPreferences().edit().putString(getKey(), path).apply();
         notifyChanged();
     }
 

@@ -1,12 +1,13 @@
 package androidx.preference;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
-import android.os.Build;
 import android.os.Bundle;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.AppCompatEditText;
 
 import android.text.InputType;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.view.ViewGroup;
 import android.view.ViewParent;
@@ -18,21 +19,27 @@ import android.view.ViewParent;
 public class EditTextPreferenceFix extends EditTextPreference {
     private AppCompatEditText editText;
     private boolean isPassword = false;
-    private static int PASSWORD_MASK = InputType.TYPE_TEXT_VARIATION_PASSWORD | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD;
-    static {if (Build.VERSION.SDK_INT >= 11) PASSWORD_MASK |= (InputType.TYPE_NUMBER_VARIATION_PASSWORD | InputType.TYPE_TEXT_VARIATION_WEB_PASSWORD); }
+    private final static int PASSWORD_MASK = InputType.TYPE_TEXT_VARIATION_PASSWORD
+            | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+            | InputType.TYPE_NUMBER_VARIATION_PASSWORD
+            | InputType.TYPE_TEXT_VARIATION_WEB_PASSWORD;
 
+    @SuppressWarnings("unused")
     public EditTextPreferenceFix(Context context) {
         this(context, null);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public EditTextPreferenceFix(Context context, AttributeSet attrs) {
         this(context, attrs, androidx.preference.R.attr.editTextPreferenceStyle);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public EditTextPreferenceFix(Context context, AttributeSet attrs, int defStyleAttr) {
         this(context, attrs, defStyleAttr, 0);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public EditTextPreferenceFix(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         editText = new AppCompatEditText(context, attrs);
@@ -40,7 +47,7 @@ public class EditTextPreferenceFix extends EditTextPreference {
         isPassword = (editText.getInputType() & PASSWORD_MASK) != 0;
     }
 
-    public AppCompatEditText getEditText() {
+    private AppCompatEditText getEditText() {
         return editText;
     }
 
@@ -52,7 +59,7 @@ public class EditTextPreferenceFix extends EditTextPreference {
     @Override public CharSequence getSummary() {
         String summary = super.getSummary().toString();
         String value = getSharedPreferences().getString(getKey(), "");
-        return String.format(summary, (value.length() > 0 && isPassword) ? "••••••" : value);
+        return String.format(summary, (!TextUtils.isEmpty(value) && isPassword) ? "••••••" : value);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -75,6 +82,9 @@ public class EditTextPreferenceFix extends EditTextPreference {
             return fragment;
         }
 
+        // these two warnings are related to builder.setView(); somehow setting padding on the
+        // view itself has no effect
+        @SuppressWarnings("deprecation") @SuppressLint("RestrictedApi")
         @Override protected void onPrepareDialogBuilder(AlertDialog.Builder builder) {
             mEditText = getEditTextPreference().getEditText();
 
@@ -104,8 +114,8 @@ public class EditTextPreferenceFix extends EditTextPreference {
         }
 
         @Override public void onDialogClosed(boolean positiveResult) {
-            if (positiveResult) {
-                String value = this.mEditText.getText().toString();
+            if (positiveResult && mEditText.getText() != null) {
+                String value = mEditText.getText().toString();
                 if (this.getEditTextPreference().callChangeListener(value)) {
                     this.getEditTextPreference().setText(value);
                 }

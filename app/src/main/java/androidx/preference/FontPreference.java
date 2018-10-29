@@ -29,12 +29,13 @@ public class FontPreference extends DialogPreference {
         super(context, attrs);
     }
 
-    public @NonNull String getFontPath() {
+    private  @NonNull String getFontPath() {
+        //noinspection ConstantConditions
         return getSharedPreferences().getString(getKey(), Constants.PREF_BUFFER_FONT_D);
     }
 
-    public void setFontPath(@NonNull String path) {
-        getSharedPreferences().edit().putString(getKey(), path).commit();
+    private void setFontPath(@NonNull String path) {
+        getSharedPreferences().edit().putString(getKey(), path).apply();
         notifyChanged();
     }
 
@@ -65,7 +66,7 @@ public class FontPreference extends DialogPreference {
         protected void onPrepareDialogBuilder(AlertDialog.Builder builder) {
             super.onPrepareDialogBuilder(builder);
 
-            inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            inflater = (LayoutInflater) requireContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             fonts = FontManager.enumerateFonts();
             Collections.sort(fonts);
 
@@ -110,13 +111,13 @@ public class FontPreference extends DialogPreference {
             @Override public View getView(int position, View view, ViewGroup parent) {
                 if (view == null) {
                     view = inflater.inflate(androidx.appcompat.R.layout.select_dialog_singlechoice_material, parent, false);
-                    CheckedTextView tv = (CheckedTextView) view.findViewById(android.R.id.text1);
+                    CheckedTextView tv = view.findViewById(android.R.id.text1);
                     tv.setEllipsize(TextUtils.TruncateAt.END);
                     tv.setSingleLine();
                 }
 
                 FontManager.FontInfo font = (FontManager.FontInfo) getItem(position);
-                CheckedTextView tv = (CheckedTextView) view.findViewById(android.R.id.text1);
+                CheckedTextView tv = view.findViewById(android.R.id.text1);
                 tv.setTypeface(font.typeface);
                 tv.setText(font.name);
                 return view;
