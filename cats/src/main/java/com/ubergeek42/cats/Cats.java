@@ -16,8 +16,8 @@ import java.util.WeakHashMap;
 
 public class Cats {
     final static HashSet<String> disabled = new HashSet<>();
-    final static private Map<Object, Kitty> kitties = Collections.synchronizedMap(new WeakHashMap<Object, Kitty>());
-    final static private Map<Object, CatInfo> cats = Collections.synchronizedMap(new IdentityHashMap<Object, CatInfo>());
+    final static private Map<Object, Kitty> kitties = Collections.synchronizedMap(new WeakHashMap<>());
+    final static private Map<Object, CatInfo> cats = Collections.synchronizedMap(new IdentityHashMap<>());
 
     public static void setup(Context ctx) {
         if (!BuildConfig.DEBUG) throw new RuntimeException("cats should only work in debug mode");
@@ -68,6 +68,7 @@ public class Cats {
         return kitty;
     }
 
+    @SuppressWarnings("WeakerAccess")
     public static Kitty getKitty(Class cls) {
         return kitties.get(cls);
     }

@@ -16,6 +16,7 @@ public class RootKitty extends Kitty {
         enabled = !disabled.contains(tag);
     }
 
+    @SuppressWarnings("StringEquality")
     @Override public KidKitty kid(@NonNull String tag) {
         for (KidKitty kid : kids) if (kid.tag == tag) return kid;
         KidKitty kid = new KidKitty(this, tag);

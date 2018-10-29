@@ -53,7 +53,7 @@ public class Utils {
                 signature.getName();
     }
 
-    static StringBuilder addAndPad(StringBuilder sb, CharSequence s, int length) {
+    static StringBuilder addAndPad(StringBuilder sb, CharSequence s, @SuppressWarnings("SameParameterValue") int length) {
         if (length < s.length()) return sb.append(s,0, length);
         else if (length == s.length()) return sb.append(s);
         sb.append(s);

@@ -27,7 +27,7 @@ public class KittyAspect {
             "call(* error*(..)) || " +
             "call(* wtf*(..))" +
             ")")
-    public Object logCallAdvice(JoinPoint.EnclosingStaticPart enclosingStaticPart, JoinPoint point) throws Throwable {
+    public Object logCallAdvice(JoinPoint.EnclosingStaticPart enclosingStaticPart, JoinPoint point) {
         Kitty kitty = (Kitty) point.getTarget();
         if (!kitty.enabled) return null;
 
