@@ -133,6 +133,7 @@ public class MainPagerAdapter extends PagerAdapter {
             kitty.trace("removing");
             transaction.remove(frag);
         }
+        if (names.isEmpty()) oldFrag = null;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
