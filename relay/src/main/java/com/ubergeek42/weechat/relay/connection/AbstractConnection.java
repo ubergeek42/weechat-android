@@ -1,7 +1,5 @@
-/**
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- */
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
 
 package com.ubergeek42.weechat.relay.connection;
 
@@ -135,17 +133,33 @@ public abstract class AbstractConnection implements Connection {
     //////////////////////////////////////////////////////////////////////////////////////////////// receive
 
     private final static int HEADER_LENGTH = 4;
+    private final static int MAX_MESSAGE_SIZE = 5 * 1024 * 1024;    // 5 MiB
     private void readLoop() {
         byte[] data;
         try {
             //noinspection InfiniteLoopStatement
             while (true) {
                 data = new byte[HEADER_LENGTH];
-                readAll(data, 0);
-                data = enlarge(data, new Data(data).getUnsignedInt());
-                readAll(data, HEADER_LENGTH);
-                observer.onMessage(new RelayMessage(data));
 
+                readAll(data, 0);                                   // throws IOException, StreamClosed
+                int messageSize = new Data(data).getUnsignedInt();  // can throw but won't
+
+                // size of the message too large—probably wrong port or protocol?
+                // todo better handling of errors
+                if (messageSize > MAX_MESSAGE_SIZE)
+                    throw new IOException("Protocol error",  new NumberFormatException(
+                            "Server is attempting to send a message of size " + messageSize + " bytes"));
+
+                data = enlarge(data, messageSize);
+                readAll(data, HEADER_LENGTH);                       // throws IOException, StreamClosed
+
+                // throw IOException if failed to parse message
+                // todo refactor RelayMessage, make it throw some sensible exceptions
+                RelayMessage message;
+                try {message = new RelayMessage(data);}
+                catch (Exception e) {throw new IOException("Error while parsing message", e);}
+
+                observer.onMessage(message);
             }
         } catch (IOException | StreamClosed e) {
             if (state == STATE.DISCONNECTED) return;
