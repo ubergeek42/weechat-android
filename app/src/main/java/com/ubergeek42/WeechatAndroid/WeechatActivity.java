@@ -38,6 +38,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AlertDialog;
 
 import android.text.TextUtils;
+import android.util.AttributeSet;
 import android.view.*;
 
 import org.greenrobot.eventbus.EventBus;
@@ -54,6 +55,7 @@ import androidx.fragment.app.FragmentManager;
 import androidx.viewpager.widget.ViewPager;
 import androidx.drawerlayout.widget.DrawerLayout;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -212,6 +214,16 @@ public class WeechatActivity extends AppCompatActivity implements
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private boolean started = false;
+
+    // a dirty but quick & safe hack that sets background color of the popup menu
+    @Override public View onCreateView(View parent, String name, Context context, AttributeSet attrs) {
+        if (name.equals("androidx.appcompat.view.menu.ListMenuItemView") &&
+                parent.getParent() instanceof FrameLayout) {
+                ((View) parent.getParent()).setBackgroundColor(P.colorPrimary);
+        }
+        return super.onCreateView(parent, name, context, attrs);
+    }
+
     @MainThread @Override @CatD protected void onStart() {
         state = null;
         EventBus.getDefault().register(this);
