@@ -101,6 +101,8 @@ public class WebSocketConnection extends AbstractConnection {
 
         @Override public void onClose(int code, String reason, boolean remote) {
             logger.debug("WebSocket.onClose(code={}, reason={})", code, reason);
+            if (code > 1000 && reason != null && reason.length() > 3)
+                exception = new Exception(reason);
             try {outputToInStream.close();} catch (IOException e) {e.printStackTrace();}
         }
 
