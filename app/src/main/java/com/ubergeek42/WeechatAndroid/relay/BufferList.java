@@ -235,7 +235,6 @@ public class BufferList {
                             (Hashtable) entry.getItem("local_variables"),
                             ((r = entry.getItem("hidden")) != null) && r.asInt() != 0);
                     synchronized (BufferList.class) {buffers.add(buffer);}
-                    notifyBuffersChanged();
                 } else {
                     Buffer buffer = findByPointer(entry.getPointerLong(0));
                     if (buffer == null) {
@@ -268,6 +267,10 @@ public class BufferList {
                         }
                     }
                 }
+            }
+            if (id.equals("listbuffers")) {
+                notifyBuffersChanged();
+                Hotlist.makeSureHotlistDoesNotContainInvalidBuffers();
             }
         }
     };

@@ -153,9 +153,14 @@ public class Notificator {
     // we add (message not available) if there are NO lines to display and add "..." if there are
     // some lines to display, but not all
     @AnyThread @Cat public static void showHot(boolean connected, int totalHotCount, int hotBufferCount,
-                    List<Hotlist.HotMessage> allMessages, Hotlist.HotBuffer hotBuffer, boolean newHighlight,
-                                               long lastMessageTimestamp) {
+                    List<Hotlist.HotMessage> allMessages, Hotlist.HotBuffer hotBuffer,
+                    Hotlist.NotifyReason reason, long lastMessageTimestamp) {
         if (!P.notificationEnable) return;
+
+        // when redrawing notifications in order to remove the reply button, make sure we don't
+        // add back notifications that were dismissed
+        if (reason == Hotlist.NotifyReason.REDRAW && !notifications.contains(hotBuffer.fullName))
+            return;
 
         // https://developer.android.com/guide/topics/ui/notifiers/notifications.html#back-compat
         boolean canMakeBundledNotifications = Build.VERSION.SDK_INT >= 24;
@@ -175,7 +180,8 @@ public class Notificator {
             if (dismissResult == DismissResult.ALL_NOTIFICATIONS_REMOVED || dismissResult == DismissResult.NO_CHANGE) return;
         }
 
-        String channel = newHighlight ? NOTIFICATION_CHANNEL_HOTLIST : NOTIFICATION_CHANNEL_HOTLIST_ASYNC;
+        Boolean syncHotMessage = reason == Hotlist.NotifyReason.HOT_SYNC;
+        String channel = syncHotMessage ? NOTIFICATION_CHANNEL_HOTLIST : NOTIFICATION_CHANNEL_HOTLIST_ASYNC;
 
         ////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -205,7 +211,7 @@ public class Notificator {
                     message.message, message.timestamp, getNickForFullList(message));
             summary.setStyle(style);
 
-            if (newHighlight) makeNoise(summary, res, allMessages);
+            if (syncHotMessage) makeNoise(summary, res, allMessages);
         }
 
         manager.notify(NOTIFICATION_HOT_ID, summary.build());
@@ -242,7 +248,7 @@ public class Notificator {
                 message.message, message.timestamp, getNickForBuffer(message));
         builder.setStyle(style);
 
-        if (newHighlight) makeNoise(builder, res, messages);
+        if (syncHotMessage) makeNoise(builder, res, messages);
         manager.notify(fullName, NOTIFICATION_HOT_ID, builder.build());
         onNotificationFired(fullName);
     }

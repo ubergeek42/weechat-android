@@ -27,6 +27,7 @@ import com.ubergeek42.weechat.Color;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static android.text.TextUtils.isEmpty;
 import static com.ubergeek42.WeechatAndroid.relay.Buffer.PRIVATE;
@@ -38,7 +39,7 @@ public class Hotlist {
 
     @SuppressLint("UseSparseArrays")
     final private static HashMap<Long, HotBuffer> hotList = new HashMap<>();
-    private static volatile int totalHotCount = 0;
+    private static volatile AtomicInteger totalHotCount = new AtomicInteger(0);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////// classes
@@ -58,26 +59,42 @@ public class Hotlist {
             shortName = buffer.shortName;
         }
 
+        // hot count has changed — either:
+        //  * the buffer was closed or read (hot count == 0)
+        //  * (hotlist) brought us new numbers (See Buffer.updateHotList()). that would happen if:
+        //      * the buffer was read in weechat (new number is lower or higher)
+        //      * we aren't syncing that buffer (or reconnecting) (new number is higher or same)
+        //    in the former case, if we kept syncing the buffer all the time, `messages` is still
+        //    valid but may contain more messages than needed
+        //    in the latter case, the list of theoretically known messages could be:
+        //      ? ? ? <message> <message> ?
+        // so let's just void the messages
         void updateHotCount(Buffer buffer) {
             int newHotCount = buffer.getHotCount();
             if (hotCount == newHotCount) return;
             shortName = buffer.shortName;
             setHotCount(newHotCount);
-            int toRemove = messages.size() - hotCount;
-            if (toRemove >= 0) messages.subList(0, toRemove).clear();
-            notifyHotlistChanged(this, false);
+            messages.clear();
+            notifyHotlistChanged(this, NotifyReason.HOT_ASYNC);
         }
 
         void onNewHotLine(Buffer buffer, Line line) {
             setHotCount(hotCount + 1);
             shortName = buffer.shortName;
             messages.add(new HotMessage(line, this));
-            notifyHotlistChanged(this, true);
+            notifyHotlistChanged(this, NotifyReason.HOT_SYNC);
+        }
+
+        void clear() {
+            if (hotCount == 0) return;
+            setHotCount(0);
+            messages.clear();
+            notifyHotlistChanged(this, NotifyReason.HOT_ASYNC);
         }
 
         private void setHotCount(int newHotCount) {
             lastMessageTimestamp = System.currentTimeMillis();
-            totalHotCount += newHotCount - hotCount;
+            totalHotCount.addAndGet(newHotCount - hotCount);
             hotCount = newHotCount;
         }
     }
@@ -122,7 +139,7 @@ public class Hotlist {
     @Cat synchronized public static void redraw(boolean connected) {
         if (Hotlist.connected == connected) return;
         Hotlist.connected = connected;
-        for (HotBuffer buffer : hotList.values()) notifyHotlistChanged(buffer, false);
+        for (HotBuffer buffer : hotList.values()) notifyHotlistChanged(buffer, NotifyReason.REDRAW);
     }
 
     @Cat synchronized static void onNewHotLine(@NonNull Buffer buffer, @NonNull Line line) {
@@ -133,8 +150,14 @@ public class Hotlist {
         getHotBuffer(buffer).updateHotCount(buffer);
     }
 
+    @Cat synchronized static void makeSureHotlistDoesNotContainInvalidBuffers() {
+        for (HotBuffer hotBuffer : hotList.values())
+            if (BufferList.findByFullName(hotBuffer.fullName) == null)
+                hotBuffer.clear();
+    }
+
     public static int getHotCount() {
-        return totalHotCount;
+        return totalHotCount.get();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -151,7 +174,8 @@ public class Hotlist {
         return hotBuffer;
     }
 
-    private static void notifyHotlistChanged(HotBuffer buffer, boolean newHighlight) {
+    public enum NotifyReason {HOT_SYNC, HOT_ASYNC, REDRAW}
+    private static void notifyHotlistChanged(HotBuffer buffer, NotifyReason reason) {
         ArrayList<HotMessage> allMessages = new ArrayList<>();
         int hotBufferCount = 0;
         long lastMessageTimestamp = 0;
@@ -165,7 +189,7 @@ public class Hotlist {
 
         // older messages come first
         Collections.sort(allMessages, (m1, m2) -> (int) (m1.timestamp - m2.timestamp));
-        Notificator.showHot(connected, totalHotCount, hotBufferCount, allMessages, buffer, newHighlight, lastMessageTimestamp);
+        Notificator.showHot(connected, totalHotCount.get(), hotBufferCount, allMessages, buffer, reason, lastMessageTimestamp);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
