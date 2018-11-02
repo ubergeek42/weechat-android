@@ -25,6 +25,7 @@ public class SimpleTransitionDrawable extends Drawable {
     private @Nullable Drawable target;
 
     public void setTarget(@Nullable Drawable target) {
+        if (this.target != null) source = this.target;
         this.target = target;
         if (target != null) target.setBounds(0, 0, target.getIntrinsicWidth(), target.getIntrinsicHeight());
     }

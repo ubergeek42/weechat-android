@@ -50,6 +50,7 @@ public class WebSocketConnection extends AbstractConnection {
     // version of createSocket will connect IMMEDIATELY and will block
     @Override protected void doConnect() throws Exception {
         if (sslSocketFactory != null) client.setSocket(sslSocketFactory.createSocket(server, port));
+        if (connector.isInterrupted()) throw new Exception("interrupted");
         if (!client.connectBlocking()) throw (exception != null) ?
                 exception : new Exception("Could not connect using WebSocket");
     }
