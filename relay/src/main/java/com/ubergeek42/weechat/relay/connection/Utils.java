@@ -3,7 +3,9 @@ package com.ubergeek42.weechat.relay.connection;
 import com.ubergeek42.weechat.relay.RelayMessage;
 import com.ubergeek42.weechat.relay.protocol.Data;
 
-import java.io.Closeable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
@@ -29,8 +31,6 @@ public class Utils {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    // verify that socket's certificate corresponds to the hostname
-    // if verifier is null,
     static void verifyHostname(HostnameVerifier verifier, Socket socket, String hostname) throws SSLPeerUnverifiedException {
         if (verifier == null) {
             if (socket instanceof SSLSocket)
@@ -42,19 +42,6 @@ public class Utils {
         SSLSession session = ((SSLSocket) socket).getSession();
         if (!verifier.verify(hostname, session))
             throw new SSLPeerUnverifiedException("Cannot verify hostname: " + hostname);
-    }
-
-    // close several closeable objects; throw the first exception encountered
-    static void closeAll(Closeable ...closeables) throws IOException {
-        IOException exception = null;
-        for (Closeable closeable : closeables) {
-            try {
-                closeable.close();
-            } catch (IOException e) {
-                if (exception == null) exception = e;
-            }
-        }
-        if (exception != null) throw exception;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -95,5 +82,24 @@ public class Utils {
         byte[] out = new byte[size];
         System.arraycopy(in, 0, out, 0, in.length);
         return out;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    static class FriendlyThread extends Thread {
+        final private Logger logger;
+        final private Runnable runnable;
+
+        FriendlyThread(String loggerName, int iteration, Runnable runnable) {
+            logger = LoggerFactory.getLogger(loggerName);
+            setName(Character.toLowerCase(loggerName.charAt(0)) + "-" + iteration);
+            this.runnable = runnable;
+        }
+
+        @Override public void run() {
+            logger.trace("hi");
+            runnable.run();
+            logger.trace("bye");
+        }
     }
 }

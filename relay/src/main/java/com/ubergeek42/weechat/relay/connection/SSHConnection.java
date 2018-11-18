@@ -3,35 +3,23 @@ package com.ubergeek42.weechat.relay.connection;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
-import com.jcraft.jsch.SocketFactory;
 import com.jcraft.jsch.UIKeyboardInteractive;
 import com.jcraft.jsch.UserInfo;
 import com.ubergeek42.weechat.relay.JschLogger;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.regex.Pattern;
 
+import static com.ubergeek42.weechat.relay.connection.RelayConnection.CONNECTION_TIMEOUT;
+
 public class SSHConnection implements IConnection {
-
-    final private static Logger logger = LoggerFactory.getLogger("SSHConnection");
-
-
-    final private Session sshSession;
     final private String sshPassword;
-
     final private String hostname;
     final private int port;
 
-    final private Socket socket = new Socket();
-    final private Socket forwardingSocket = new Socket();
+    final private Session sshSession;
 
     static {
         JSch.setConfig("PreferredAuthentications", "password,publickey");
@@ -51,22 +39,18 @@ public class SSHConnection implements IConnection {
         if (useKeyFile) jsch.addIdentity("key", sshKey, null, sshPassword.getBytes());
 
         sshSession = jsch.getSession(sshUsername, sshHostname, sshPort);
-        sshSession.setSocketFactory(new SingleUseSocketFactory());
         if (!useKeyFile) sshSession.setUserInfo(new WeechatUserInfo());
     }
 
     @Override public Streams connect() throws IOException, JSchException {
-        sshSession.connect();
+        sshSession.connect(CONNECTION_TIMEOUT);
         int localPort = sshSession.setPortForwardingL(0, hostname, port);
-        forwardingSocket.connect(new InetSocketAddress("127.0.0.1", localPort));
+        Socket forwardingSocket = new Socket("127.0.0.1", localPort);
         return new Streams(forwardingSocket.getInputStream(), forwardingSocket.getOutputStream());
     }
 
-    @Override public void disconnect() throws IOException {
-        logger.trace("disconnect()");
+    @Override public void disconnect() {
         sshSession.disconnect();
-        Utils.closeAll(socket, forwardingSocket);
-        logger.trace("disconnect()ed");
     }
 
     // this class is preferred than sshSession.setPassword()
@@ -83,30 +67,6 @@ public class SSHConnection implements IConnection {
         public String[] promptKeyboardInteractive(String destination, String name, String instruction, String[] prompt, boolean[] echo) {
             return (prompt.length == 1 && !echo[0] && PASSWORD_PROMPT.matcher(prompt[0]).find()) ?
                     new String[]{sshPassword} : null;
-        }
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    private class SingleUseSocketFactory implements SocketFactory {
-        @Override public Socket createSocket(String host, int port) {
-            try {
-                socket.connect(new InetSocketAddress(host, port));
-            } catch (IOException e) {
-                // JSch doesn't expose the cause of exceptions raised by createSocket.
-                // throw a RuntimeException so we know if we were interrupted or if
-                // there was some other connection failure.
-                throw new RuntimeException(e);
-            }
-            return socket;
-        }
-
-        @Override public InputStream getInputStream(Socket socket) throws IOException {
-            return socket.getInputStream();
-        }
-
-        @Override public OutputStream getOutputStream(Socket socket) throws IOException {
-            return socket.getOutputStream();
         }
     }
 }

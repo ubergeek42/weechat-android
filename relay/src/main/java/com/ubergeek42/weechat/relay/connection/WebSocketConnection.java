@@ -5,7 +5,6 @@ import com.neovisionaries.ws.client.WebSocketAdapter;
 import com.neovisionaries.ws.client.WebSocketException;
 import com.neovisionaries.ws.client.WebSocketFactory;
 import com.neovisionaries.ws.client.WebSocketFrame;
-import com.neovisionaries.ws.client.WebSocketState;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,13 +20,15 @@ import java.util.Map;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLSocketFactory;
 
+import static com.ubergeek42.weechat.relay.connection.RelayConnection.CONNECTION_TIMEOUT;
+
 public class WebSocketConnection implements IConnection {
     final private static Logger logger = LoggerFactory.getLogger("WebSocketConnection");
 
     final private HostnameVerifier verifier;
     final private String hostname;
     final private WebSocket webSocket;
-    final private PipedOutputStream outputToInputStream;
+    final private PipedOutputStream pipedOutputStream;
 
     public WebSocketConnection(String hostname, int port, String path, SSLSocketFactory sslSocketFactory,
                                HostnameVerifier verifier) throws URISyntaxException, IOException {
@@ -37,15 +38,16 @@ public class WebSocketConnection implements IConnection {
         webSocket = new WebSocketFactory()
                 .setSSLSocketFactory(sslSocketFactory)
                 .setVerifyHostname(false)
+                .setConnectionTimeout(CONNECTION_TIMEOUT)
                 .createSocket(uri);
         webSocket.addListener(new Listener());
-        outputToInputStream = new PipedOutputStream();
+        pipedOutputStream = new PipedOutputStream();
     }
 
 
     @Override public Streams connect() throws IOException, WebSocketException {
         PipedInputStream inputStream = new PipedInputStream();
-        outputToInputStream.connect(inputStream);
+        pipedOutputStream.connect(inputStream);
 
         webSocket.connect();
         Utils.verifyHostname(verifier, webSocket.getSocket(), hostname);
@@ -54,12 +56,8 @@ public class WebSocketConnection implements IConnection {
     }
 
     @Override public void disconnect() throws IOException {
-        if (webSocket.getState() == WebSocketState.CONNECTING) {
-            Utils.closeAll(webSocket.getSocket(), outputToInputStream);
-        } else {
             webSocket.disconnect();
-            outputToInputStream.close();
-        }
+            pipedOutputStream.close();
     }
 
     void sendMessage(String string) {
@@ -77,14 +75,15 @@ public class WebSocketConnection implements IConnection {
             logger.error("onConnectError({})", exception);
         }
 
-        @Override public void onDisconnected(WebSocket websocket, WebSocketFrame serverCloseFrame, WebSocketFrame clientCloseFrame, boolean closedByServer) {
-            logger.debug("onDisconnected(closedByServer={})", closedByServer);
+        @Override public void onDisconnected(WebSocket websocket, WebSocketFrame serverCloseFrame, WebSocketFrame clientCloseFrame, boolean closedByServer) throws IOException {
+            logger.trace("onDisconnected(closedByServer={})", closedByServer);
+            pipedOutputStream.close();
         }
 
         @Override public void onBinaryMessage(WebSocket websocket, byte[] binary) throws Exception {
             logger.trace("onBinaryMessage(size={})", binary.length);
-            outputToInputStream.write(binary);
-            outputToInputStream.flush();        // much faster with this
+            pipedOutputStream.write(binary);
+            pipedOutputStream.flush();        // much faster with this
         }
 
         @Override public void onError(WebSocket websocket, WebSocketException cause){

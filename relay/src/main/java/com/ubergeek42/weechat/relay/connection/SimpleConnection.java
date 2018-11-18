@@ -7,6 +7,8 @@ import java.net.Socket;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLSocketFactory;
 
+import static com.ubergeek42.weechat.relay.connection.RelayConnection.CONNECTION_TIMEOUT;
+
 public class SimpleConnection implements IConnection {
 
     final private String hostname;
@@ -24,7 +26,7 @@ public class SimpleConnection implements IConnection {
     }
 
     @Override public Streams connect() throws IOException {
-        socket.connect(new InetSocketAddress(hostname, port));
+        socket.connect(new InetSocketAddress(hostname, port), CONNECTION_TIMEOUT);
         Utils.verifyHostname(verifier, socket, hostname);
         return new Streams(socket.getInputStream(), socket.getOutputStream());
     }
