@@ -228,11 +228,11 @@ public class WeechatActivity extends AppCompatActivity implements
         EventBus.getDefault().register(this);
         state = EventBus.getDefault().getStickyEvent(StateChangedEvent.class).state;
         updateHotCount(Hotlist.getHotCount());
-        if (getIntent().hasExtra(NOTIFICATION_EXTRA_BUFFER_FULL_NAME)) openBufferFromIntent();
         started = true;
         P.storeThemeOrColorSchemeColors(this);
         applyColorSchemeToViews();
         super.onStart();
+        if (getIntent().hasExtra(NOTIFICATION_EXTRA_BUFFER_FULL_NAME)) openBufferFromIntent();
     }
 
     @MainThread @Override @CatD protected void onStop() {

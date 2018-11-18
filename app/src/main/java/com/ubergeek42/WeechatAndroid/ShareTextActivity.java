@@ -22,6 +22,7 @@ import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
 
 public class ShareTextActivity extends AppCompatActivity implements
         DialogInterface.OnDismissListener, BufferListClickListener {
+    private Dialog dialog;
 
     @Override protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -39,7 +40,7 @@ public class ShareTextActivity extends AppCompatActivity implements
 
         Intent intent = getIntent();
         if ((Intent.ACTION_SEND.equals(intent.getAction()) && "text/plain".equals(intent.getType()))) {
-            Dialog dialog = new Dialog(this);
+            dialog = new Dialog(this);
             dialog.setContentView(R.layout.bufferlist_share);
 
             BufferListAdapter adapter = new BufferListAdapter();
@@ -51,6 +52,13 @@ public class ShareTextActivity extends AppCompatActivity implements
             dialog.setOnDismissListener(this);
             dialog.show();
         }
+    }
+
+    @Override protected void onStop() {
+        super.onStop();
+        if (dialog == null) return;
+        dialog.setOnDismissListener(null);  // prevent dismiss() from finish()ing the activity
+        dialog.dismiss();                   // must be called in order to not cause leaks
     }
 
     @Override public void onBufferClick(String fullName) {
