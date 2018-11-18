@@ -279,7 +279,7 @@ public class WeechatActivity extends AppCompatActivity implements
 
     @Subscribe(sticky=true, threadMode=ThreadMode.MAIN_ORDERED)
     @MainThread @Cat public void onEvent(StateChangedEvent event) {
-        boolean init = state == null;
+        boolean init = state == event.state;
         state = event.state;
         adjustUI();
         if (state.contains(LISTED)) {
