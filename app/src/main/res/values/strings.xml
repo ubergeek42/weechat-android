@@ -160,7 +160,7 @@
             <string name="pref_ssh_key">Private key</string>
             <string name="pref_ssh_key_summary">DSA, RSA, ECDSA private key in OpenSSH or PuTTY format</string>
             <string name="pref_ssh_known_hosts">Known hosts</string>
-            <string name="pref_ssh_known_hosts_summary">Output of $ ssh-keyscan host</string>
+            <string name="pref_ssh_known_hosts_summary">Output of $ ssh-keyscan host 2>/dev/null</string>
 
         <!-- file -->
 

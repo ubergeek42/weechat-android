@@ -225,8 +225,8 @@ public class WeechatActivity extends AppCompatActivity implements
     }
 
     @MainThread @Override @CatD protected void onStart() {
-        state = null;
         EventBus.getDefault().register(this);
+        state = EventBus.getDefault().getStickyEvent(StateChangedEvent.class).state;
         updateHotCount(Hotlist.getHotCount());
         if (getIntent().hasExtra(NOTIFICATION_EXTRA_BUFFER_FULL_NAME)) openBufferFromIntent();
         started = true;
@@ -277,7 +277,7 @@ public class WeechatActivity extends AppCompatActivity implements
 
     private EnumSet<STATE> state = null;
 
-    @Subscribe(sticky=true, threadMode=ThreadMode.MAIN)
+    @Subscribe(sticky=true, threadMode=ThreadMode.MAIN_ORDERED)
     @MainThread @Cat public void onEvent(StateChangedEvent event) {
         boolean init = state == null;
         state = event.state;

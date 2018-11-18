@@ -1,13 +1,9 @@
-/**
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- */
-
 package com.ubergeek42.weechat.relay.connection;
 
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
+import com.jcraft.jsch.SocketFactory;
 import com.jcraft.jsch.UIKeyboardInteractive;
 import com.jcraft.jsch.UserInfo;
 import com.ubergeek42.weechat.relay.JschLogger;
@@ -17,56 +13,60 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.nio.channels.ClosedByInterruptException;
 import java.util.regex.Pattern;
 
-public class SSHConnection extends AbstractConnection {
+public class SSHConnection implements IConnection {
 
-    protected static Logger logger = LoggerFactory.getLogger("SSHConnection");
+    final private static Logger logger = LoggerFactory.getLogger("SSHConnection");
 
-    private Session sshSession;
-    private Socket sock;
 
-    private String sshPassword;
-    private String server;
-    private int port;
+    final private Session sshSession;
+    final private String sshPassword;
 
-    public SSHConnection(String server, int port, String sshHost, int sshPort, String sshUsername,
+    final private String hostname;
+    final private int port;
+
+    final private Socket socket = new Socket();
+    final private Socket forwardingSocket = new Socket();
+
+    static {
+        JSch.setConfig("PreferredAuthentications", "password,publickey");
+        JSch.setLogger(new JschLogger());
+    }
+
+    public SSHConnection(String hostname, int port, String sshHostname, int sshPort, String sshUsername,
                          String sshPassword, byte[] sshKey, byte[] sshKnownHosts) throws JSchException {
-        this.server = server;
+        this.hostname = hostname;
         this.port = port;
         this.sshPassword = sshPassword;
 
-        JSch.setLogger(new JschLogger());
         JSch jsch = new JSch();
         jsch.setKnownHosts(new ByteArrayInputStream(sshKnownHosts));
-        jsch.setConfig("PreferredAuthentications", "password,publickey");
+
         boolean useKeyFile = sshKey != null && sshKey.length > 0;
         if (useKeyFile) jsch.addIdentity("key", sshKey, null, sshPassword.getBytes());
-        sshSession = jsch.getSession(sshUsername, sshHost, sshPort);
-        sshSession.setSocketFactory(new SocketChannelFactory());
+
+        sshSession = jsch.getSession(sshUsername, sshHostname, sshPort);
+        sshSession.setSocketFactory(new SingleUseSocketFactory());
         if (!useKeyFile) sshSession.setUserInfo(new WeechatUserInfo());
     }
 
-    @Override protected void doConnect() throws Exception {
-        try {
-            sshSession.connect();
-        } catch (RuntimeException e) {
-            throw e.getCause() instanceof ClosedByInterruptException ?
-                    (ClosedByInterruptException) e.getCause() : e;
-        }
-
-        int localPort = sshSession.setPortForwardingL(0, server, port);
-        sock = new Socket("127.0.0.1", localPort);
-        out = sock.getOutputStream();
-        in = sock.getInputStream();
+    @Override public Streams connect() throws IOException, JSchException {
+        sshSession.connect();
+        int localPort = sshSession.setPortForwardingL(0, hostname, port);
+        forwardingSocket.connect(new InetSocketAddress("127.0.0.1", localPort));
+        return new Streams(forwardingSocket.getInputStream(), forwardingSocket.getOutputStream());
     }
 
-    @Override public void doDisconnect() {
-        super.doDisconnect();
+    @Override public void disconnect() throws IOException {
+        logger.trace("disconnect()");
         sshSession.disconnect();
-        try {sock.close();} catch (IOException | NullPointerException ignored) {}
+        Utils.closeAll(socket, forwardingSocket);
+        logger.trace("disconnect()ed");
     }
 
     // this class is preferred than sshSession.setPassword()
@@ -83,6 +83,30 @@ public class SSHConnection extends AbstractConnection {
         public String[] promptKeyboardInteractive(String destination, String name, String instruction, String[] prompt, boolean[] echo) {
             return (prompt.length == 1 && !echo[0] && PASSWORD_PROMPT.matcher(prompt[0]).find()) ?
                     new String[]{sshPassword} : null;
+        }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private class SingleUseSocketFactory implements SocketFactory {
+        @Override public Socket createSocket(String host, int port) {
+            try {
+                socket.connect(new InetSocketAddress(host, port));
+            } catch (IOException e) {
+                // JSch doesn't expose the cause of exceptions raised by createSocket.
+                // throw a RuntimeException so we know if we were interrupted or if
+                // there was some other connection failure.
+                throw new RuntimeException(e);
+            }
+            return socket;
+        }
+
+        @Override public InputStream getInputStream(Socket socket) throws IOException {
+            return socket.getInputStream();
+        }
+
+        @Override public OutputStream getOutputStream(Socket socket) throws IOException {
+            return socket.getOutputStream();
         }
     }
 }

@@ -130,7 +130,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         return v;
     }
 
-    @Override @Cat public void onDestroyView() {
+    @MainThread @Override @Cat public void onDestroyView() {
         super.onDestroyView();
         uiLines = null;
         uiInput = null;
@@ -247,8 +247,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @WorkerThread @Override public void onLineAdded() {
-        if (linesAdapter == null) return;
-        linesAdapter.onLineAdded();
+        ChatLinesAdapter a = linesAdapter; if (a != null) a.onLineAdded();
     }
 
     @MainThread @Override public void onGlobalPreferencesChanged(boolean numberChanged) {
@@ -257,17 +256,19 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     }
 
     @WorkerThread @Override public void onLinesListed() {
-        Weechat.runOnMainThread(() -> uiLines.requestAnimation());
-        linesAdapter.onLinesListed();
-        Weechat.runOnMainThread(() -> onVisibilityStateChanged(State.LINES));
+        Weechat.runOnMainThread(() -> {
+            if (uiLines != null) uiLines.requestAnimation();  // NPE
+            onVisibilityStateChanged(State.LINES);
+        });
+        ChatLinesAdapter a = linesAdapter; if (a != null) a.onLinesListed();
     }
 
     @WorkerThread @Override public void onPropertiesChanged() {
-        linesAdapter.onPropertiesChanged();
+        ChatLinesAdapter a = linesAdapter; if (a != null) a.onPropertiesChanged();
     }
 
     @AnyThread @Override public void onBufferClosed() {
-        Weechat.runOnMainThreadASAP(() -> activity.closeBuffer(fullName));
+        Weechat.runOnMainThreadASAP(() -> {if (activity != null) activity.closeBuffer(fullName);});
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

@@ -31,6 +31,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
@@ -147,6 +148,11 @@ public class SSLHandler {
         SSLCertificateSocketFactory sslSocketFactory = (SSLCertificateSocketFactory) SSLCertificateSocketFactory.getDefault(0, null);
         sslSocketFactory.setTrustManagers(UserTrustManager.build(sslKeystore));
         return sslSocketFactory;
+    }
+
+    // see android.net.SSLCertificateSocketFactory#verifyHostname
+    static HostnameVerifier getHostnameVerifier() {
+        return HttpsURLConnection.getDefaultHostnameVerifier();
     }
 
     @CheckResult public boolean removeKeystore() {

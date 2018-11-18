@@ -88,7 +88,7 @@
     <string name="pref_ssh_key">Закрытый ключ</string>
     <string name="pref_ssh_key_summary">Ключ DSA, RSA, ECDSA в формате OpenSSH или PuTTY</string>
     <string name="pref_ssh_known_hosts">Известные хосты</string>
-    <string name="pref_ssh_known_hosts_summary">Вывод $ ssh-keyscan хост</string>
+    <string name="pref_ssh_known_hosts_summary">Вывод $ ssh-keyscan хост 2>/dev/null</string>
     <string name="pref_tabbtn_show">Показывать кнопку Tab</string>
     <string name="pref_text_size">Размер текста</string>
     <string name="pref_theme_loading_error">Ошибка при загрузке темы %s</string>

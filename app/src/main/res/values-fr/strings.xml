@@ -89,7 +89,7 @@
   <string name="pref_ssh_key">Clé privée</string>
   <string name="pref_ssh_key_summary">Clé privée DSA, RSA or ECDSA au format OpenSSH ou PuTTY</string>
   <string name="pref_ssh_known_hosts">Hôtes connues</string>
-  <string name="pref_ssh_known_hosts_summary">Résultat de $ ssh-keyscan host</string>
+  <string name="pref_ssh_known_hosts_summary">Résultat de $ ssh-keyscan host 2>/dev/null</string>
   <string name="pref_file_imported">Fichier importé. Vous pouvez supprimer l\'original.</string>
   <string name="pref_file_error">Erreur : %s</string>
   <string name="pref_file_clear_button">Effacer</string>

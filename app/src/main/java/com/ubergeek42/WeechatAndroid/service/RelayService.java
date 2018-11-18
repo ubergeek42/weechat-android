@@ -32,13 +32,13 @@ import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.CatD;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
-import com.ubergeek42.weechat.relay.RelayConnection;
+import com.ubergeek42.weechat.relay.connection.IObserver;
+import com.ubergeek42.weechat.relay.connection.RelayConnection;
 import com.ubergeek42.weechat.relay.RelayMessage;
-import com.ubergeek42.weechat.relay.connection.AbstractConnection.StreamClosed;
-import com.ubergeek42.weechat.relay.connection.Connection;
-import com.ubergeek42.weechat.relay.connection.PlainConnection;
+import com.ubergeek42.weechat.relay.connection.IConnection;
+import com.ubergeek42.weechat.relay.connection.SimpleConnection;
 import com.ubergeek42.weechat.relay.connection.SSHConnection;
-import com.ubergeek42.weechat.relay.connection.SSLConnection;
+import com.ubergeek42.weechat.relay.connection.Utils;
 import com.ubergeek42.weechat.relay.connection.WebSocketConnection;
 import com.ubergeek42.weechat.relay.protocol.RelayObject;
 
@@ -54,7 +54,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 
-public class RelayService extends Service implements Connection.Observer {
+public class RelayService extends Service implements IObserver {
 
     final private @Root Kitty kitty = Kitty.make();
     private static int iteration = -1;
@@ -75,7 +75,7 @@ public class RelayService extends Service implements Connection.Observer {
 
     @MainThread @Override @Cat public void onCreate() {
         // prepare handler that will run on a separate thread
-        HandlerThread handlerThread = new HandlerThread("do" + iteration);
+        HandlerThread handlerThread = new HandlerThread("d-" + iteration);
         handlerThread.start();
         doge = new Handler(handlerThread.getLooper());
 
@@ -208,14 +208,14 @@ public class RelayService extends Service implements Connection.Observer {
             return TRY.LATER;
         }
 
-        Connection conn;
+        IConnection conn;
         try {
             switch (P.connectionType) {
                 case PREF_TYPE_SSH: conn = new SSHConnection(P.host, P.port, P.sshHost, P.sshPort, P.sshUser, P.sshPass, P.sshKey, P.sshKnownHosts); break;
-                case PREF_TYPE_SSL: conn = new SSLConnection(P.host, P.port, P.sslSocketFactory); break;
-                case PREF_TYPE_WEBSOCKET: conn = new WebSocketConnection(P.host, P.port, P.wsPath, null); break;
-                case PREF_TYPE_WEBSOCKET_SSL: conn = new WebSocketConnection(P.host, P.port, P.wsPath, P.sslSocketFactory); break;
-                default: conn = new PlainConnection(P.host, P.port); break;
+                case PREF_TYPE_SSL: conn = new SimpleConnection(P.host, P.port, P.sslSocketFactory, SSLHandler.getHostnameVerifier()); break;
+                case PREF_TYPE_WEBSOCKET: conn = new WebSocketConnection(P.host, P.port, P.wsPath, null, null); break;
+                case PREF_TYPE_WEBSOCKET_SSL: conn = new WebSocketConnection(P.host, P.port, P.wsPath, P.sslSocketFactory, SSLHandler.getHostnameVerifier()); break;
+                default: conn = new SimpleConnection(P.host, P.port, null, null); break;
             }
         } catch (Exception e) {
             kitty.error("connect(): exception while creating connection", e);
@@ -223,8 +223,7 @@ public class RelayService extends Service implements Connection.Observer {
             return TRY.IMPOSSIBLE;
         }
 
-        connection = new RelayConnection(conn, P.pass);
-        connection.setObserver(this);
+        connection = new RelayConnection(conn, P.pass, this);
         connection.connect();
         return TRY.POSSIBLE;
     }
@@ -242,7 +241,7 @@ public class RelayService extends Service implements Connection.Observer {
 
     public EnumSet<STATE> state = EnumSet.of(STATE.STOPPED);
 
-    @WorkerThread @Override synchronized public void onStateChanged(Connection.STATE s) {
+    @WorkerThread @Override synchronized public void onStateChanged(RelayConnection.STATE s) {
         if (state.contains(STATE.STOPPED)) return;
         switch (s) {
             case CONNECTING:
@@ -297,7 +296,7 @@ public class RelayService extends Service implements Connection.Observer {
     @WorkerThread @Override public void onException(Exception e) {
         kitty.error("→ onException(%s)", e.getClass().getSimpleName());
         if (state.contains(STATE.STOPPED)) return;
-        if (e instanceof StreamClosed && (!state.contains(STATE.AUTHENTICATED)))
+        if (e instanceof Utils.StreamClosed && (!state.contains(STATE.AUTHENTICATED)))
             e = new ExceptionWrapper(e, getString(R.string.relay_error_server_closed));
         else if (e instanceof UnresolvedAddressException)
             e = new ExceptionWrapper(e, getString(R.string.relay_error_resolve, P.connectionType.equals(PREF_TYPE_SSH) ? P.sshHost : P.host));
