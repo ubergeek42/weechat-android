@@ -83,6 +83,8 @@ public class Buffer {
         this.hidden = hidden;
         kitty.setPrefix(this.shortName);
 
+        bufferEye = detachedEye;
+
         processBufferType();
         processBufferTitle();
 
@@ -148,11 +150,14 @@ public class Buffer {
     // we are requesting nicks along with the lines because:
     //     nick completion
     @MainThread @Cat synchronized public void setBufferEye(@Nullable BufferEye bufferEye) {
-        this.bufferEye = bufferEye;
+        this.bufferEye = bufferEye == null ? detachedEye : bufferEye;
         if (bufferEye != null) {
             if (lines.status == Lines.STATUS.INIT) requestMoreLines();
             if (nicks.status == Nicks.STATUS.INIT) BufferList.requestNicklistForBufferByPointer(pointer);
-            if (needsToBeNotifiedAboutGlobalPreferencesChanged) bufferEye.onGlobalPreferencesChanged(false);
+            if (needsToBeNotifiedAboutGlobalPreferencesChanged) {
+                bufferEye.onGlobalPreferencesChanged(false);
+                needsToBeNotifiedAboutGlobalPreferencesChanged = false;
+            }
         }
     }
 
@@ -290,32 +295,34 @@ public class Buffer {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @WorkerThread private synchronized void onLineAdded() {
-        if (bufferEye != null) bufferEye.onLineAdded();
+    @WorkerThread private void onLineAdded() {
+        bufferEye.onLineAdded();
     }
 
-    private boolean needsToBeNotifiedAboutGlobalPreferencesChanged = false;
-    @MainThread synchronized void onGlobalPreferencesChanged(boolean numberChanged) {
-        lines.processAllMessages(!numberChanged);
-        if (bufferEye != null) bufferEye.onGlobalPreferencesChanged(numberChanged);
-        else needsToBeNotifiedAboutGlobalPreferencesChanged = true;
+    @MainThread void onGlobalPreferencesChanged(boolean numberChanged) {
+        synchronized (this) {lines.processAllMessages(!numberChanged);}
+        bufferEye.onGlobalPreferencesChanged(numberChanged);
     }
 
-    @WorkerThread synchronized void onLinesListed() {
-        lines.onLinesListed();
-        if (bufferEye != null) bufferEye.onLinesListed();
+    @WorkerThread void onLinesListed() {
+        synchronized (this) {lines.onLinesListed();}
+        bufferEye.onLinesListed();
     }
 
-    @WorkerThread synchronized void onPropertiesChanged() {
-        processBufferType();
-        processBufferTitle();
-        if (bufferEye != null) bufferEye.onPropertiesChanged();
+    @WorkerThread void onPropertiesChanged() {
+        synchronized (this) {
+            processBufferType();
+            processBufferTitle();
+        }
+        bufferEye.onPropertiesChanged();
     }
 
-    @WorkerThread @Cat synchronized void onBufferClosed() {
-        highlights = unreads = others = 0;
-        Hotlist.adjustHotListForBuffer(this);
-        if (bufferEye != null) bufferEye.onBufferClosed();
+    @WorkerThread @Cat void onBufferClosed() {
+        synchronized(this) {
+            highlights = unreads = others = 0;
+            Hotlist.adjustHotListForBuffer(this);
+        }
+        bufferEye.onBufferClosed();
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////// private stuffs
@@ -421,5 +428,19 @@ public class Buffer {
     @Override public @NonNull String toString() {
         return "Buffer(" + shortName + ")";
     }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private boolean needsToBeNotifiedAboutGlobalPreferencesChanged = false;
+
+    private final BufferEye detachedEye = new BufferEye() {
+        @Override public void onLinesListed() {}
+        @Override public void onLineAdded() {}
+        @Override public void onPropertiesChanged() {}
+        @Override public void onBufferClosed() {}
+        @Override public void onGlobalPreferencesChanged(boolean numberChanged) {
+            needsToBeNotifiedAboutGlobalPreferencesChanged = true;
+        }
+    };
 }
 
