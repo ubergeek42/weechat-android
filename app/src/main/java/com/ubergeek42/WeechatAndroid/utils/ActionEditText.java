@@ -5,18 +5,27 @@ import androidx.appcompat.widget.AppCompatEditText;
 import android.util.AttributeSet;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
+import android.widget.TextView;
+
+import com.ubergeek42.WeechatAndroid.service.P;
 
 public class ActionEditText extends AppCompatEditText {
+    public void setFont() {
+        ((TextView) this).setTypeface(P.typeface);
+    }
     public ActionEditText(Context context) {
         super(context);
+        setFont();
     }
 
     public ActionEditText(Context context, AttributeSet attrs) {
         super(context, attrs);
+        setFont();
     }
 
     public ActionEditText(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
+        setFont();
     }
 
     @Override

@@ -17,6 +17,7 @@
 
         <com.ubergeek42.WeechatAndroid.utils.ActionEditText
             android:id="@+id/chatview_input"
+            android:fontFamily="monospace"
             android:layout_weight="1.0"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
