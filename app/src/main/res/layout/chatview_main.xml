@@ -116,6 +116,7 @@
 
             <com.ubergeek42.WeechatAndroid.upload.MediaAcceptingEditText
                 android:id="@+id/chat_input"
+                android:fontFamily="monospace"
                 android:layout_weight="1.0"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
