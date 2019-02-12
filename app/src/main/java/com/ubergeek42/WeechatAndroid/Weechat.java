@@ -29,7 +29,7 @@ public class Weechat extends Application {
         super.onCreate();
         applicationContext = getApplicationContext();
         Cats.setup(applicationContext);
-        P.init(getApplicationContext());
+        P.init(applicationContext);
         P.restoreStuff();
         Notificator.init(this);
         EventBus.builder().logNoSubscriberMessages(false).eventInheritance(false).installDefaultEventBus();

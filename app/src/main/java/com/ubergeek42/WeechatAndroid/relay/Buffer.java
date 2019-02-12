@@ -14,6 +14,7 @@ import android.text.style.SuperscriptSpan;
 
 import com.ubergeek42.WeechatAndroid.service.Events;
 import com.ubergeek42.WeechatAndroid.service.P;
+import com.ubergeek42.WeechatAndroid.utils.Emojify;
 import com.ubergeek42.WeechatAndroid.utils.Linkify;
 import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.Kitty;
@@ -352,6 +353,7 @@ public class Buffer {
             titleLine = new Line(-123, null, null, title, true, false, null);
             SpannableString titleSpannable = new SpannableString(Color.stripEverything(title));
             Linkify.linkify(titleSpannable);
+            titleSpannable = (SpannableString) Emojify.emojify(titleSpannable);
             titleLine.spannable = titleSpannable;
         }
     }

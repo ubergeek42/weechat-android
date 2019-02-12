@@ -29,7 +29,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.WorkerThread;
 
 import com.ubergeek42.WeechatAndroid.BuildConfig;
-import com.ubergeek42.WeechatAndroid.Manifest;
 import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
@@ -81,7 +80,8 @@ public class PingActionReceiver extends BroadcastReceiver {
 
     @WorkerThread public void scheduleFirstPing() {
         if (!P.pingEnabled) return;
-        bone.registerReceiver(this, FILTER, Manifest.permission.PING_ACTION, null);
+        //bone.registerReceiver(this, FILTER, Manifest.permission.PING_ACTION, null);
+        bone.registerReceiver(this, FILTER, PING_ACTION , null);
         long triggerAt = SystemClock.elapsedRealtime() + P.pingTimeout;
         schedulePing(triggerAt, new Bundle());
     }

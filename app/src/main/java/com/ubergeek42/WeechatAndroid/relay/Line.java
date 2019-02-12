@@ -19,6 +19,7 @@ import android.text.style.StyleSpan;
 import android.text.style.UnderlineSpan;
 
 import com.ubergeek42.WeechatAndroid.service.P;
+import com.ubergeek42.WeechatAndroid.utils.Emojify;
 import com.ubergeek42.WeechatAndroid.utils.Linkify;
 import com.ubergeek42.weechat.Color;
 import com.ubergeek42.weechat.ColorScheme;
@@ -142,6 +143,7 @@ public class Line {
 
         // what a nice little custom linkifier we've got us here
         Linkify.linkify(spannable);
+        spannable = Emojify.emojify(spannable);
 
         this.spannable = spannable;
     }

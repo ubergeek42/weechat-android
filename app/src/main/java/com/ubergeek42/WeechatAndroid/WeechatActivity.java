@@ -64,6 +64,7 @@ import com.ubergeek42.WeechatAndroid.relay.Nick;
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
 import com.ubergeek42.WeechatAndroid.service.SSLHandler;
+import com.ubergeek42.WeechatAndroid.utils.Emojify;
 import com.ubergeek42.WeechatAndroid.utils.InvalidHostnameDialog;
 import com.ubergeek42.WeechatAndroid.utils.MyMenuItemStuffListener;
 import com.ubergeek42.WeechatAndroid.utils.ToolbarController;
@@ -172,6 +173,7 @@ public class WeechatActivity extends AppCompatActivity implements
         // if no data and not going to connect, clear stuff
         // if no data and going to connect, let the LISTED event restore it all
         if (adapter.canRestoreBuffers()) adapter.restoreBuffers();
+        Emojify.init(getApplicationContext());
     }
 
     @MainThread @CatD(linger=true) public void connect() {
