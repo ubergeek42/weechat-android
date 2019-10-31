@@ -86,7 +86,7 @@ public class BufferListAdapter extends RecyclerView.Adapter<ViewHolder> implemen
 
         @MainThread void update(VisualBuffer buffer) {
             fullName = buffer.fullName;
-            uiBuffer.setText(P.hierarchicalBuffers ? buffer.printableHierarchical : buffer.printable);
+            uiBuffer.setText(P.hierarchicalBuffers && !isFiltered() ? buffer.printableHierarchical : buffer.printable);
             int unreads = buffer.unreads;
             int highlights = buffer.highlights;
 
@@ -176,6 +176,10 @@ public class BufferListAdapter extends RecyclerView.Adapter<ViewHolder> implemen
     @AnyThread synchronized public static void setFilter(final String s) {
         P.filterLc = s.toLowerCase();
         P.filterUc = s.toUpperCase();
+    }
+
+    @AnyThread synchronized public static boolean isFiltered() {
+        return P.filterLc != null && !P.filterLc.equals("");
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -289,6 +293,15 @@ public class BufferListAdapter extends RecyclerView.Adapter<ViewHolder> implemen
             if(buffer.rootBufferFullName != null) {
                 // Requires each root buffer to exists. Otherwise a NPE will be thrown
                 // (which is under no circumstances expected).
+
+
+                if(!bufferMap.containsKey(buffer.rootBufferFullName)) {
+                    // The list is currently being filtered
+                    // Can't do the intended sort and just sort alphabetically.
+                    Collections.sort(buffers, sortByName);
+                    return;
+                }
+
                 bufferMap.get(buffer.rootBufferFullName).add(buffer);
             }
         }
