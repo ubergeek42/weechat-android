@@ -213,6 +213,8 @@
         <string name="pref_bufferlist_group">Buffer list</string>
             <string name="pref_sort_buffers">Sort buffer list</string>
             <string name="pref_sort_buffers_summary">Sort by number of highlights/private messages/unread messages</string>
+            <string name="pref_hierarchical_buffers">Hierarchical buffers</string>
+            <string name="pref_hierarchical_buffers_summary">Display buffers in hierarchy. Overrides sort buffer list!</string>
             <string name="pref_hide_server_buffers">Hide non-conversation buffers</string>
             <string name="pref_hide_server_buffers_summary">E.g. server buffers and plugin buffers</string>
             <string name="pref_hide_hidden_buffers">Hide hidden buffers</string>

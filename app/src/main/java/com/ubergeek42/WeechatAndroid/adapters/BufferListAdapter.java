@@ -21,6 +21,7 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.text.Spannable;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,10 +37,15 @@ import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
+import com.ubergeek42.weechat.relay.protocol.Array;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
+
+import static android.content.ContentValues.TAG;
 
 
 public class BufferListAdapter extends RecyclerView.Adapter<ViewHolder> implements BufferListEye {
@@ -80,7 +86,7 @@ public class BufferListAdapter extends RecyclerView.Adapter<ViewHolder> implemen
 
         @MainThread void update(VisualBuffer buffer) {
             fullName = buffer.fullName;
-            uiBuffer.setText(buffer.printable);
+            uiBuffer.setText(P.hierarchicalBuffers ? buffer.printableHierarchical : buffer.printable);
             int unreads = buffer.unreads;
             int highlights = buffer.highlights;
 
@@ -134,6 +140,9 @@ public class BufferListAdapter extends RecyclerView.Adapter<ViewHolder> implemen
 
     private ArrayList<VisualBuffer> _buffers = new ArrayList<>();
     @AnyThread @Override @Cat("??") synchronized public void onBuffersChanged() {
+        // In case that hierarchical order was changed the text needs to be changed.
+        Weechat.runOnMainThread(() -> notifyItemRangeChanged(0, getItemCount()));
+
         final ArrayList<VisualBuffer> newBuffers = new ArrayList<>();
 
         synchronized (BufferList.class) {
@@ -148,13 +157,15 @@ public class BufferListAdapter extends RecyclerView.Adapter<ViewHolder> implemen
             }
         }
 
-        if (P.sortBuffers) Collections.sort(newBuffers, sortByHotAndMessageCountComparator);
+        if (P.hierarchicalBuffers) getHierarcicallySortedBufferList(newBuffers);
+        else if (P.sortBuffers) Collections.sort(newBuffers, sortByHotAndMessageCountComparator);
         else Collections.sort(newBuffers, sortByHotCountAndNumberComparator);
 
         // store new buffers in _buffers for the sole purpose of doing a diff against, since
         // this method might be called again before buffers is assigned
         final DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new DiffCallback(_buffers, newBuffers), false);
         _buffers = newBuffers;
+
 
         Weechat.runOnMainThread(() -> {
             buffers = newBuffers;
@@ -172,16 +183,18 @@ public class BufferListAdapter extends RecyclerView.Adapter<ViewHolder> implemen
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private static class VisualBuffer {
-        String fullName;
-        Spannable printable;
+        String fullName, rootBufferFullName;
+        Spannable printable, printableHierarchical;
         boolean isOpen;
         int highlights, unreads, type, number;
         long pointer;
 
         VisualBuffer(Buffer buffer) {
             fullName = buffer.fullName;
+            rootBufferFullName = buffer.rootBufferFullName;
             isOpen = buffer.isOpen;
             printable = buffer.printable;
+            printableHierarchical = buffer.printableHierarchical;
             highlights = buffer.highlights;
             unreads = buffer.unreads;
             type = buffer.type;
@@ -239,4 +252,65 @@ public class BufferListAdapter extends RecyclerView.Adapter<ViewHolder> implemen
                 (r = right.type == Buffer.PRIVATE ? right.unreads : 0)) return r - l;
         return right.unreads - left.unreads;
     };
+
+    static private final Comparator<VisualBuffer> sortByName = (left, right)->
+            left.fullName.compareToIgnoreCase(right.fullName);
+
+    static private final class ReplicateOtherListComperator implements Comparator<VisualBuffer> {
+
+        private ArrayList<VisualBuffer> listToReplicate;
+
+        private ReplicateOtherListComperator(ArrayList<VisualBuffer> listToReplicate) {
+            this.listToReplicate = listToReplicate;
+        }
+
+        @Override
+        public int compare(VisualBuffer o1, VisualBuffer o2) {
+            return listToReplicate.indexOf(o1) - listToReplicate.indexOf(o2);
+        }
+    }
+
+    private static void getHierarcicallySortedBufferList(ArrayList<VisualBuffer> buffers) {
+        // Could also be done as comparator, but is probably cleaner this way.
+
+        HashMap<String/*RootBufferFullName*/, ArrayList<VisualBuffer>> bufferMap = new HashMap<>();
+
+        // Collect root buffers as keys and separate list
+        ArrayList<VisualBuffer> rootBuffers = new ArrayList<>();
+        for(VisualBuffer buffer : buffers) {
+            if(buffer.rootBufferFullName == null && !bufferMap.containsKey(buffer.fullName)) {
+                bufferMap.put(buffer.fullName, new ArrayList<>());
+                rootBuffers.add(buffer);
+            }
+        }
+
+        // Add childs to root buffers in hash map
+        for(VisualBuffer buffer : buffers) {
+            if(buffer.rootBufferFullName != null) {
+                // Requires each root buffer to exists. Otherwise a NPE will be thrown
+                // (which is under no circumstances expected).
+                bufferMap.get(buffer.rootBufferFullName).add(buffer);
+            }
+        }
+
+        // Sort everything alphabetically
+        Collections.sort(rootBuffers, sortByName);
+        for(ArrayList<VisualBuffer> childBuffers : bufferMap.values())
+            Collections.sort(childBuffers, sortByName);
+
+
+        ArrayList<VisualBuffer> newBuffers = new ArrayList<>();
+
+        // Start with all root elements that have no children
+        for(VisualBuffer rootBuffer : rootBuffers) {
+            newBuffers.add(rootBuffer);
+            for(VisualBuffer childBuffer : bufferMap.get(rootBuffer.fullName))
+                newBuffers.add(childBuffer);
+        }
+
+        // For some reason replacing the list, causes not item to be rendered at all.
+        // Since this code was already done and probably more readable to do it fully as
+        // comparator, this basically sortes the old list to the new order
+        Collections.sort(buffers, new ReplicateOtherListComperator(newBuffers));
+    }
 }

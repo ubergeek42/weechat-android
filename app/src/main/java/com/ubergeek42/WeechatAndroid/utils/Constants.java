@@ -46,6 +46,7 @@ public class Constants {
 
     // buffer list
     public static final String PREF_SORT_BUFFERS = "sort_buffers"; final public static boolean PREF_SORT_BUFFERS_D = false;
+    public static final String PREF_HIERARCHICAL_BUFFERS = "hierarchical_buffers"; final public static boolean PREF_HIERARCHICAL_BUFFERS_D = false;
     public static final String PREF_HIDE_HIDDEN_BUFFERS = "hide_hidden_buffers"; final public static boolean PREF_HIDE_HIDDEN_BUFFERS_D = false;
     public static final String PREF_FILTER_NONHUMAN_BUFFERS = "filter_nonhuman_buffers"; final public static boolean PREF_FILTER_NONHUMAN_BUFFERS_D = false;
     public static final String PREF_SHOW_BUFFER_FILTER = "show_buffer_filter"; final public static boolean PREF_SHOW_BUFFER_FILTER_D = false;

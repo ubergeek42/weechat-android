@@ -26,6 +26,7 @@ import org.junit.Assert;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.regex.Pattern;
 
 public class Buffer {
     final private @Root Kitty kitty = Kitty.make();
@@ -45,6 +46,7 @@ public class Buffer {
     private int notifyLevel;
     Hashtable localVars;
     public boolean hidden;
+    public String rootBufferFullName;
 
     // the following four variables are needed to determine if the buffer was changed and,
     // if not, the last two are subtracted from the newly arrived hotlist data, to make up
@@ -70,6 +72,7 @@ public class Buffer {
     public int highlights = 0;
 
     public Spannable printable = null; // printable buffer without title (for TextView)
+    public Spannable printableHierarchical = null; // Same as above but for hierarchical order
     public Line titleLine;
 
     @WorkerThread Buffer(long pointer, int number, String fullName, String shortName, String title, int notifyLevel, Hashtable localVars, boolean hidden) {
@@ -81,6 +84,16 @@ public class Buffer {
         this.notifyLevel = notifyLevel;
         this.localVars = localVars;
         this.hidden = hidden;
+        if(fullName.split(Pattern.quote(".")).length >= 3 && fullName.startsWith("irc.") && fullName.endsWith("." + shortName)) {
+            // Found format irc.SERVERNAME.<shortName>
+            String servername = fullName.split(Pattern.quote("."))[1];
+            if(!servername.equals("server"))
+                this.rootBufferFullName = "irc.server." + fullName.split(Pattern.quote("."))[1];
+            else
+                this.rootBufferFullName = null;
+        }else {
+            this.rootBufferFullName = null;
+        }
         kitty.setPrefix(this.shortName);
 
         processBufferType();
@@ -342,12 +355,22 @@ public class Buffer {
     private final static int EX = Spanned.SPAN_EXCLUSIVE_EXCLUSIVE;
 
     @WorkerThread private void processBufferTitle() {
-        Spannable spannable;
         final String number = Integer.toString(this.number) + " ";
-        spannable = new SpannableString(number + shortName);
-        spannable.setSpan(SUPER, 0, number.length(), EX);
-        spannable.setSpan(SMALL, 0, number.length(), EX);
-        printable = spannable;
+
+        printable = new SpannableString(number + shortName);
+        // Superscript number in string
+        printable.setSpan(SUPER, 0, number.length(), EX);
+        printable.setSpan(SMALL, 0, number.length(), EX);
+
+        // Title for hierarchical order (where children are indented)
+        if(rootBufferFullName != null) {
+            printableHierarchical = new SpannableString("     " + number + shortName);
+            // Superscript number in string
+            printableHierarchical.setSpan(SUPER, 5, 5 + number.length(), EX);
+            printableHierarchical.setSpan(SMALL, 5, 5 + number.length(), EX);
+        }else
+            printableHierarchical = printable;
+
         if (!TextUtils.isEmpty(title)) {
             titleLine = new Line(-123, null, null, title, true, false, null);
             SpannableString titleSpannable = new SpannableString(Color.stripEverything(title));
