@@ -19,6 +19,7 @@ import android.text.style.StyleSpan;
 import com.ubergeek42.WeechatAndroid.Weechat;
 import com.ubergeek42.WeechatAndroid.service.Events;
 import com.ubergeek42.WeechatAndroid.service.Notificator;
+import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
@@ -27,6 +28,8 @@ import com.ubergeek42.weechat.Color;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static android.text.TextUtils.isEmpty;
@@ -47,7 +50,7 @@ public class Hotlist {
 
     public static class HotBuffer {
         public final boolean isPrivate;
-        public final String fullName;
+        public final String strPointer;
         public String shortName;
         public final ArrayList<HotMessage> messages = new ArrayList<>();
         public int hotCount = 0;
@@ -55,11 +58,11 @@ public class Hotlist {
 
         HotBuffer(Buffer buffer) {
             isPrivate = buffer.type == PRIVATE;
-            fullName = buffer.fullName;
+            strPointer = Utils.pointerToString(buffer.pointer);
             shortName = buffer.shortName;
         }
 
-        // hot count has changed — either:
+        // if hot count has changed — either:
         //  * the buffer was closed or read (hot count == 0)
         //  * (hotlist) brought us new numbers (See Buffer.updateHotList()). that would happen if:
         //      * the buffer was read in weechat (new number is lower or higher)
@@ -68,13 +71,18 @@ public class Hotlist {
         //    valid but may contain more messages than needed
         //    in the latter case, the list of theoretically known messages could be:
         //      ? ? ? <message> <message> ?
-        // so let's just void the messages
-        void updateHotCount(Buffer buffer) {
+        // so if the count has changed, let's just void the messages
+        @Cat void updateHotCount(Buffer buffer) {
             int newHotCount = buffer.getHotCount();
-            if (hotCount == newHotCount) return;
-            shortName = buffer.shortName;
-            setHotCount(newHotCount);
-            messages.clear();
+            boolean updatingHotCount = hotCount != newHotCount;
+            boolean updatingShortName = !shortName.equals(buffer.shortName);
+            if (!updatingHotCount && !updatingShortName) return;
+            kitty.info("updateHotCount(%s): %s -> %s", buffer, hotCount, newHotCount);
+            if (updatingHotCount) {
+                messages.clear();
+                setHotCount(newHotCount);
+            }
+            if (updatingShortName) shortName = buffer.shortName;
             notifyHotlistChanged(this, NotifyReason.HOT_ASYNC);
         }
 
@@ -151,9 +159,13 @@ public class Hotlist {
     }
 
     @Cat synchronized static void makeSureHotlistDoesNotContainInvalidBuffers() {
-        for (HotBuffer hotBuffer : hotList.values())
-            if (BufferList.findByFullName(hotBuffer.fullName) == null)
-                hotBuffer.clear();
+        for(Iterator<Map.Entry<Long, HotBuffer>> it = hotList.entrySet().iterator(); it.hasNext();) {
+            Map.Entry<Long, HotBuffer> entry = it.next();
+            if (BufferList.findByPointer(entry.getKey()) == null) {
+                entry.getValue().clear();
+                it.remove();
+            }
+        }
     }
 
     public static int getHotCount() {
@@ -198,17 +210,18 @@ public class Hotlist {
 
     public static class InlineReplyReceiver extends BroadcastReceiver {
         @MainThread @Override public void onReceive(Context context, Intent intent) {
-            final String fullName = intent.getAction();
+            final String strPointer = intent.getAction();
+            final long pointer = Utils.pointerFromString(intent.getAction());
             final CharSequence input = getMessageText(intent);
-            final Buffer buffer = BufferList.findByFullName(fullName);
-            if (isEmpty(fullName) || isEmpty(input) || buffer == null || !connected) {
-                kitty.error("error while receiving remote input: fullName=%s, input=%s, " +
-                        "buffer=%s, connected=%s", fullName, input, buffer, connected);
+            final Buffer buffer = BufferList.findByPointer(pointer);
+            if (isEmpty(input) || buffer == null || !connected) {
+                kitty.error("error while receiving remote input: pointer=%s, input=%s, " +
+                        "buffer=%s, connected=%s", strPointer, input, buffer, connected);
                 Weechat.showShortToast("Something went terribly wrong");
                 return;
             }
             //noinspection ConstantConditions   -- linter error
-            Events.SendMessageEvent.fireInput(fullName, input.toString());
+            Events.SendMessageEvent.fireInput(buffer.fullName, input.toString());
             buffer.flagResetHotMessagesOnNewOwnLine = true;
         }
     }

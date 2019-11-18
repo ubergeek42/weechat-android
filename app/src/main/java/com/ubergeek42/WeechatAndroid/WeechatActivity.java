@@ -77,6 +77,7 @@ import com.ubergeek42.WeechatAndroid.utils.ToolbarController;
 import com.ubergeek42.WeechatAndroid.utils.SimpleTransitionDrawable;
 import com.ubergeek42.WeechatAndroid.utils.UntrustedCertificateDialog;
 import com.ubergeek42.WeechatAndroid.service.RelayService.STATE;
+import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.CatD;
 import com.ubergeek42.cats.Kitty;
@@ -232,7 +233,7 @@ public class WeechatActivity extends AppCompatActivity implements
         P.storeThemeOrColorSchemeColors(this);
         applyColorSchemeToViews();
         super.onStart();
-        if (getIntent().hasExtra(NOTIFICATION_EXTRA_BUFFER_FULL_NAME)) openBufferFromIntent();
+        if (getIntent().hasExtra(NOTIFICATION_EXTRA_BUFFER_FULL_NAME) || getIntent().hasExtra(NOTIFICATION_EXTRA_BUFFER_POINTER)) openBufferFromIntent();
     }
 
     @MainThread @Override @CatD protected void onStop() {
@@ -567,7 +568,7 @@ public class WeechatActivity extends AppCompatActivity implements
     // we may get intent while we are connected to the service and when we are not
     @MainThread @Override @Cat("Intent") protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        if (intent.hasExtra(NOTIFICATION_EXTRA_BUFFER_FULL_NAME)) {
+        if (intent.hasExtra(NOTIFICATION_EXTRA_BUFFER_FULL_NAME) || intent.hasExtra(NOTIFICATION_EXTRA_BUFFER_POINTER)) {
             setIntent(intent);
             if (started) openBufferFromIntent();
         }
@@ -578,7 +579,17 @@ public class WeechatActivity extends AppCompatActivity implements
     // else open buffer and set text
     @MainThread @Cat("Intent") private void openBufferFromIntent() {
         String name = getIntent().getStringExtra(NOTIFICATION_EXTRA_BUFFER_FULL_NAME);
-        if (NOTIFICATION_EXTRA_BUFFER_FULL_NAME_ANY.equals(name)) {
+        if (name == null) {
+            String strPointer = getIntent().getStringExtra(NOTIFICATION_EXTRA_BUFFER_POINTER);
+            long pointer = Utils.pointerFromString(strPointer);
+            Buffer buffer = BufferList.findByPointer(pointer);
+            if (buffer == null && pointer != 0) {
+                kitty.warn("Couldn't find buffer to open from intent: " + strPointer);
+                return;
+            }
+            name = pointer == 0 ? "" : buffer.fullName;
+        }
+        if (NOTIFICATION_EXTRA_BUFFER_ANY.equals(name)) {
             if (BufferList.getHotBufferCount() > 1) {
                 if (slidy) showDrawer();
             } else {
@@ -591,6 +602,7 @@ public class WeechatActivity extends AppCompatActivity implements
         }
         getIntent().removeExtra(NOTIFICATION_EXTRA_BUFFER_INPUT_TEXT);
         getIntent().removeExtra(NOTIFICATION_EXTRA_BUFFER_FULL_NAME);
+        getIntent().removeExtra(NOTIFICATION_EXTRA_BUFFER_POINTER);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

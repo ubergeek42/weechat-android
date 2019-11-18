@@ -148,4 +148,13 @@ public class Utils {
     public interface Predicate<T> {
         boolean test(T t);
     }
+
+    public static String pointerToString(long pointer) {
+        return Long.toHexString(pointer);
+    }
+
+    public static long pointerFromString(String strPointer) {
+        if ("".equals(strPointer)) return 0;
+        return Long.parseLong(strPointer, 16);
+    }
 }

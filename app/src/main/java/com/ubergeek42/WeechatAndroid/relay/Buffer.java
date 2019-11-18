@@ -313,6 +313,7 @@ public class Buffer {
         synchronized (this) {
             processBufferType();
             processBufferTitle();
+            Hotlist.adjustHotListForBuffer(this);   // update buffer names in the notifications
         }
         bufferEye.onPropertiesChanged();
     }
@@ -350,7 +351,7 @@ public class Buffer {
 
     @WorkerThread private void processBufferTitle() {
         Spannable spannable;
-        final String number = Integer.toString(this.number) + " ";
+        final String number = this.number + " ";
         spannable = new SpannableString(number + shortName);
         spannable.setSpan(SUPER, 0, number.length(), EX);
         spannable.setSpan(SMALL, 0, number.length(), EX);

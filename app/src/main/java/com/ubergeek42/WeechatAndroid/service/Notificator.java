@@ -40,8 +40,8 @@ import static androidx.core.app.NotificationCompat.Builder;
 import static androidx.core.app.NotificationCompat.GROUP_ALERT_CHILDREN;
 import static androidx.core.app.NotificationCompat.MessagingStyle;
 import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.AUTHENTICATED;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.NOTIFICATION_EXTRA_BUFFER_FULL_NAME;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.NOTIFICATION_EXTRA_BUFFER_FULL_NAME_ANY;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.NOTIFICATION_EXTRA_BUFFER_POINTER;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.NOTIFICATION_EXTRA_BUFFER_ANY;
 
 
 public class Notificator {
@@ -157,9 +157,11 @@ public class Notificator {
                     Hotlist.NotifyReason reason, long lastMessageTimestamp) {
         if (!P.notificationEnable) return;
 
+        String strPointer = hotBuffer.strPointer;
+
         // when redrawing notifications in order to remove the reply button, make sure we don't
         // add back notifications that were dismissed
-        if (reason == Hotlist.NotifyReason.REDRAW && !notifications.contains(hotBuffer.fullName))
+        if (reason == Hotlist.NotifyReason.REDRAW && !notifications.contains(hotBuffer.strPointer))
             return;
 
         // https://developer.android.com/guide/topics/ui/notifiers/notifications.html#back-compat
@@ -168,19 +170,18 @@ public class Notificator {
 
         int hotCount = hotBuffer.hotCount;
         List<HotMessage> messages = hotBuffer.messages;
-        String fullName = hotBuffer.fullName;
         String shortName = hotBuffer.shortName;
 
         if (hotCount == 0) {
             // TODO this doesn't cancel notifications that have remote input and have ben replied to
             // TODO on android p. not sure what to do about this--find a workaround or leave as is?
             // TODO https://issuetracker.google.com/issues/112319501
-            manager.cancel(fullName, NOTIFICATION_HOT_ID);
-            DismissResult dismissResult = onNotificationDismissed(fullName);
+            manager.cancel(strPointer, NOTIFICATION_HOT_ID);
+            DismissResult dismissResult = onNotificationDismissed(strPointer);
             if (dismissResult == DismissResult.ALL_NOTIFICATIONS_REMOVED || dismissResult == DismissResult.NO_CHANGE) return;
         }
 
-        Boolean syncHotMessage = reason == Hotlist.NotifyReason.HOT_SYNC;
+        boolean syncHotMessage = reason == Hotlist.NotifyReason.HOT_SYNC;
         String channel = syncHotMessage ? NOTIFICATION_CHANNEL_HOTLIST : NOTIFICATION_CHANNEL_HOTLIST_ASYNC;
 
         ////////////////////////////////////////////////////////////////////////////////////////////
@@ -191,7 +192,7 @@ public class Notificator {
         String nMessagesInNBuffers = res.getQuantityString(R.plurals.messages, totalHotCount, totalHotCount) +
                 res.getQuantityString(R.plurals.in_buffers, hotBufferCount, hotBufferCount);
         Builder summary = new Builder(context, channel)
-                .setContentIntent(getIntentFor(NOTIFICATION_EXTRA_BUFFER_FULL_NAME_ANY))
+                .setContentIntent(getIntentFor(NOTIFICATION_EXTRA_BUFFER_ANY))
                 .setSmallIcon(R.drawable.ic_notification_hot)
                 .setCategory(NotificationCompat.CATEGORY_MESSAGE)
                 .setWhen(lastMessageTimestamp)
@@ -223,9 +224,9 @@ public class Notificator {
 
         String newMessageInB = res.getQuantityString(R.plurals.hot_messages, hotCount, hotCount, shortName);
         Builder builder = new Builder(context, channel)
-                .setContentIntent(getIntentFor(fullName))
+                .setContentIntent(getIntentFor(strPointer))
                 .setSmallIcon(R.drawable.ic_notification_hot)
-                .setDeleteIntent(getDismissIntentFor(fullName))
+                .setDeleteIntent(getDismissIntentFor(strPointer))
                 .setCategory(NotificationCompat.CATEGORY_MESSAGE)
                 .setWhen(hotBuffer.lastMessageTimestamp)
                 .setGroup(GROUP_KEY)
@@ -233,12 +234,12 @@ public class Notificator {
         setNotificationTitleAndText(summary, newMessageInB);
 
         // messages hold the latest messages, don't show the reply button if user can't see any
-        if (connected && messages.size() > 0) builder.addAction(getAction(context, fullName));
+        if (connected && messages.size() > 0) builder.addAction(getAction(context, strPointer));
 
         MessagingStyle style = new MessagingStyle(MYSELF);
 
         // this is ugly on android p, but i see no other way to show the number of messages
-        style.setConversationTitle(hotCount < 2 ? shortName : shortName + " (" + String.valueOf(hotCount) + ")");
+        style.setConversationTitle(hotCount < 2 ? shortName : shortName + " (" + hotCount + ")");
 
         // before pie, display private buffers as non-private
         style.setGroupConversation(!hotBuffer.isPrivate || Build.VERSION.SDK_INT < 28);
@@ -249,33 +250,35 @@ public class Notificator {
         builder.setStyle(style);
 
         if (syncHotMessage) makeNoise(builder, res, messages);
-        manager.notify(fullName, NOTIFICATION_HOT_ID, builder.build());
-        onNotificationFired(fullName);
+        manager.notify(strPointer, NOTIFICATION_HOT_ID, builder.build());
+        onNotificationFired(strPointer);
     }
 
     // setting action in this way is not quite a proper way, but this ensures that all intents
     // are treated as separate intents
-    private static PendingIntent getIntentFor(String fullName) {
-        Intent intent = new Intent(context, WeechatActivity.class).putExtra(NOTIFICATION_EXTRA_BUFFER_FULL_NAME, fullName);
-        intent.setAction(fullName);
+    private static PendingIntent getIntentFor(String strPointer) {
+        Intent intent = new Intent(context, WeechatActivity.class).putExtra(NOTIFICATION_EXTRA_BUFFER_POINTER, strPointer);
+        intent.setAction(strPointer);
         return PendingIntent.getActivity(context, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
-    private static PendingIntent getDismissIntentFor(String fullName) {
+    private static PendingIntent getDismissIntentFor(String strPointer) {
         Intent intent = new Intent(context, NotificationDismissedReceiver.class);
-        intent.setAction(fullName);
+        intent.setAction(strPointer);
         return PendingIntent.getBroadcast(context, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
     // WARNING hotBuffer shouldn't be null on android p!
     // we have to display *something* (not a space) in place of the user name on android p, since
     // the big icon is generated from it. this is ugly but ¯\_(ツ)_/¯
+    // in case when we have any lines at all in a private buffer, set the nick to the nick
+    // of the first line we have to avoid awkward nick changes (current (missing) -> old -> current)
     private static void addMissingMessageLine(int missingMessages, Resources res, MessagingStyle style, @Nullable Hotlist.HotBuffer hotBuffer) {
         if (missingMessages == 0) return;
         CharSequence nick = ZERO_WIDTH_SPACE;
         if (Build.VERSION.SDK_INT >= 28)
             nick = hotBuffer != null && hotBuffer.isPrivate ?
-                    hotBuffer.shortName :
+                    (hotBuffer.messages.isEmpty() ? hotBuffer.shortName : hotBuffer.messages.get(0).nick) :
                     res.getQuantityString(R.plurals.hot_messages_missing_user, missingMessages == 1 ? 1 : 2);
         String message = missingMessages == 1 ? res.getString(R.string.hot_messages_missing_1) :
                 res.getQuantityString(R.plurals.hot_messages_missing, missingMessages, missingMessages);
@@ -295,13 +298,13 @@ public class Notificator {
     }
 
     public static final String KEY_TEXT_REPLY = "key_text_reply";
-    private static NotificationCompat.Action getAction(Context ctx, String fullName) {
+    private static NotificationCompat.Action getAction(Context ctx, String strPointer) {
         String replyLabel = ctx.getResources().getString(R.string.reply_label);
         RemoteInput remoteInput = new RemoteInput.Builder(KEY_TEXT_REPLY)
                 .setLabel(replyLabel)
                 .build();
         Intent intent = new Intent(ctx, Hotlist.InlineReplyReceiver.class);
-        intent.setAction(fullName);
+        intent.setAction(strPointer);
         PendingIntent replyPendingIntent = PendingIntent.getBroadcast(ctx,
                         1,
                         intent,
@@ -352,13 +355,13 @@ public class Notificator {
 
     final private static Set<String> notifications = new HashSet<>();
 
-    @AnyThread private static synchronized void onNotificationFired(String fullName) {
-        notifications.add(fullName);
+    @AnyThread private static synchronized void onNotificationFired(String strPointer) {
+        notifications.add(strPointer);
     }
 
     private enum DismissResult {NO_CHANGE, ONE_NOTIFICATION_REMOVED, ALL_NOTIFICATIONS_REMOVED}
-    @AnyThread private static synchronized DismissResult onNotificationDismissed(String fullName) {
-        boolean removed = notifications.remove(fullName);
+    @AnyThread private static synchronized DismissResult onNotificationDismissed(String strPointer) {
+        boolean removed = notifications.remove(strPointer);
         if (notifications.isEmpty()) {
             manager.cancel(NOTIFICATION_HOT_ID);
             return DismissResult.ALL_NOTIFICATIONS_REMOVED;
@@ -368,8 +371,8 @@ public class Notificator {
 
     public static class NotificationDismissedReceiver extends BroadcastReceiver {
         @MainThread @Override public void onReceive(Context context, Intent intent) {
-            final String fullName = intent.getAction();
-            onNotificationDismissed(fullName);
+            final String strPointer = intent.getAction();
+            onNotificationDismissed(strPointer);
         }
     }
 }

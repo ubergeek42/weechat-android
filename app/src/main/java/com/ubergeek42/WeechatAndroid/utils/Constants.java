@@ -82,10 +82,11 @@ public class Constants {
     final static public String PREF_NOTIFICATION_LIGHT = "notification_light"; final public static boolean PREF_NOTIFICATION_LIGHT_D = false;
     final static public String PREF_NOTIFICATION_TICKER = "notification_ticker"; final public static boolean PREF_NOTIFICATION_TICKER_D = true;
 
+    public final static String NOTIFICATION_EXTRA_BUFFER_POINTER = "com.ubergeek42.BUFFER_POINTER";
     public final static String NOTIFICATION_EXTRA_BUFFER_FULL_NAME = "com.ubergeek42.BUFFER_FULL_NAME";
     public final static String NOTIFICATION_EXTRA_BUFFER_INPUT_TEXT = "com.ubergeek42.BUFFER_INPUT_TEXT";
 
-    public final static String NOTIFICATION_EXTRA_BUFFER_FULL_NAME_ANY = "";
+    public final static String NOTIFICATION_EXTRA_BUFFER_ANY = "";
 
     public static final String PREF_NIGHT_THEME_ENABLED = "night_theme_enabled"; final public static boolean PREF_NIGHT_THEME_ENABLED_D = false;
 

@@ -203,7 +203,7 @@ public class BufferList {
     //////////////////////////////////////////////////////////////////////////////////////////////// private stuffs
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @WorkerThread synchronized static private @Nullable Buffer findByPointer(long pointer) {
+    @AnyThread synchronized public static @Nullable Buffer findByPointer(long pointer) {
         for (Buffer buffer : buffers) if (buffer.pointer == pointer) return buffer;
         return null;
     }
