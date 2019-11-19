@@ -28,6 +28,7 @@ import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.relay.Hotlist;
 import com.ubergeek42.WeechatAndroid.relay.Hotlist.HotMessage;
+import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
@@ -157,11 +158,11 @@ public class Notificator {
                     Hotlist.NotifyReason reason, long lastMessageTimestamp) {
         if (!P.notificationEnable) return;
 
-        String strPointer = hotBuffer.strPointer;
+        long pointer = hotBuffer.pointer;
 
         // when redrawing notifications in order to remove the reply button, make sure we don't
         // add back notifications that were dismissed
-        if (reason == Hotlist.NotifyReason.REDRAW && !notifications.contains(hotBuffer.strPointer))
+        if (reason == Hotlist.NotifyReason.REDRAW && !notifications.contains(pointer))
             return;
 
         // https://developer.android.com/guide/topics/ui/notifiers/notifications.html#back-compat
@@ -176,8 +177,8 @@ public class Notificator {
             // TODO this doesn't cancel notifications that have remote input and have ben replied to
             // TODO on android p. not sure what to do about this--find a workaround or leave as is?
             // TODO https://issuetracker.google.com/issues/112319501
-            manager.cancel(strPointer, NOTIFICATION_HOT_ID);
-            DismissResult dismissResult = onNotificationDismissed(strPointer);
+            manager.cancel(Utils.pointerToString(pointer), NOTIFICATION_HOT_ID);
+            DismissResult dismissResult = onNotificationDismissed(pointer);
             if (dismissResult == DismissResult.ALL_NOTIFICATIONS_REMOVED || dismissResult == DismissResult.NO_CHANGE) return;
         }
 
@@ -224,9 +225,9 @@ public class Notificator {
 
         String newMessageInB = res.getQuantityString(R.plurals.hot_messages, hotCount, hotCount, shortName);
         Builder builder = new Builder(context, channel)
-                .setContentIntent(getIntentFor(strPointer))
+                .setContentIntent(getIntentFor(pointer))
                 .setSmallIcon(R.drawable.ic_notification_hot)
-                .setDeleteIntent(getDismissIntentFor(strPointer))
+                .setDeleteIntent(getDismissIntentFor(pointer))
                 .setCategory(NotificationCompat.CATEGORY_MESSAGE)
                 .setWhen(hotBuffer.lastMessageTimestamp)
                 .setGroup(GROUP_KEY)
@@ -234,7 +235,7 @@ public class Notificator {
         setNotificationTitleAndText(summary, newMessageInB);
 
         // messages hold the latest messages, don't show the reply button if user can't see any
-        if (connected && messages.size() > 0) builder.addAction(getAction(context, strPointer));
+        if (connected && messages.size() > 0) builder.addAction(getAction(context, Utils.pointerToString(pointer)));
 
         MessagingStyle style = new MessagingStyle(MYSELF);
 
@@ -250,21 +251,21 @@ public class Notificator {
         builder.setStyle(style);
 
         if (syncHotMessage) makeNoise(builder, res, messages);
-        manager.notify(strPointer, NOTIFICATION_HOT_ID, builder.build());
-        onNotificationFired(strPointer);
+        manager.notify(Utils.pointerToString(pointer), NOTIFICATION_HOT_ID, builder.build());
+        onNotificationFired(pointer);
     }
 
     // setting action in this way is not quite a proper way, but this ensures that all intents
     // are treated as separate intents
-    private static PendingIntent getIntentFor(String strPointer) {
-        Intent intent = new Intent(context, WeechatActivity.class).putExtra(NOTIFICATION_EXTRA_BUFFER_POINTER, strPointer);
-        intent.setAction(strPointer);
+    private static PendingIntent getIntentFor(long pointer) {
+        Intent intent = new Intent(context, WeechatActivity.class).putExtra(NOTIFICATION_EXTRA_BUFFER_POINTER, pointer);
+        intent.setAction(Utils.pointerToString(pointer));
         return PendingIntent.getActivity(context, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
-    private static PendingIntent getDismissIntentFor(String strPointer) {
+    private static PendingIntent getDismissIntentFor(long pointer) {
         Intent intent = new Intent(context, NotificationDismissedReceiver.class);
-        intent.setAction(strPointer);
+        intent.setAction(Utils.pointerToString(pointer));
         return PendingIntent.getBroadcast(context, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
@@ -353,15 +354,15 @@ public class Notificator {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    final private static Set<String> notifications = new HashSet<>();
+    final private static Set<Long> notifications = new HashSet<>();
 
-    @AnyThread private static synchronized void onNotificationFired(String strPointer) {
-        notifications.add(strPointer);
+    @AnyThread private static synchronized void onNotificationFired(long pointer) {
+        notifications.add(pointer);
     }
 
     private enum DismissResult {NO_CHANGE, ONE_NOTIFICATION_REMOVED, ALL_NOTIFICATIONS_REMOVED}
-    @AnyThread private static synchronized DismissResult onNotificationDismissed(String strPointer) {
-        boolean removed = notifications.remove(strPointer);
+    @AnyThread private static synchronized DismissResult onNotificationDismissed(long pointer) {
+        boolean removed = notifications.remove(pointer);
         if (notifications.isEmpty()) {
             manager.cancel(NOTIFICATION_HOT_ID);
             return DismissResult.ALL_NOTIFICATIONS_REMOVED;
@@ -372,7 +373,7 @@ public class Notificator {
     public static class NotificationDismissedReceiver extends BroadcastReceiver {
         @MainThread @Override public void onReceive(Context context, Intent intent) {
             final String strPointer = intent.getAction();
-            onNotificationDismissed(strPointer);
+            onNotificationDismissed(Utils.pointerFromString(strPointer));
         }
     }
 }

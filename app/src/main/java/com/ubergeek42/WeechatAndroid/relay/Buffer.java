@@ -91,7 +91,7 @@ public class Buffer {
         lines = new Lines(shortName);
         nicks = new Nicks(shortName);
 
-        if (P.isBufferOpen(fullName)) setOpen(true);
+        if (P.isBufferOpen(pointer)) setOpen(true);
         P.restoreLastReadLine(this);
         kitty.trace("→ Buffer(number=%s, fullName=%s) isOpen? %s", number, fullName, isOpen);
     }

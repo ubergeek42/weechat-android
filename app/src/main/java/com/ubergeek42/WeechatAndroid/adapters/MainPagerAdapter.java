@@ -19,19 +19,21 @@ import com.ubergeek42.WeechatAndroid.fragments.BufferFragment;
 import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.WeechatAndroid.service.P;
+import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.CatD;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 
 public class MainPagerAdapter extends PagerAdapter {
 
     final private static @Root Kitty kitty = Kitty.make();
 
-    final private ArrayList<String> names = new ArrayList<>();
+    final private ArrayList<Long> pointers = new ArrayList<>();
 
     final private ViewPager pager;
     final private FragmentManager manager;
@@ -50,45 +52,46 @@ public class MainPagerAdapter extends PagerAdapter {
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @MainThread @CatD public void openBuffer(final String name) {
-        if (names.contains(name)) return;
-        Buffer buffer = BufferList.findByFullName(name);
+    @MainThread @CatD public void openBuffer(final long pointer) {
+        if (pointers.contains(pointer)) return;
+        Buffer buffer = BufferList.findByPointer(pointer);
         if (buffer != null) buffer.setOpen(true);
-        names.add(name);
+        pointers.add(pointer);
         notifyDataSetChanged();
-        P.setBufferOpen(name, true);
+        sortOpenBuffers();
+        P.setBufferOpen(pointer, true);
     }
 
-    @MainThread @CatD public void closeBuffer(String name) {
-        if (!names.remove(name)) return;
+    @MainThread @CatD public void closeBuffer(final long pointer) {
+        if (!pointers.remove(pointer)) return;
         notifyDataSetChanged();
-        Buffer buffer = BufferList.findByFullName(name);
+        Buffer buffer = BufferList.findByPointer(pointer);
         if (buffer != null) Weechat.runOnMainThread(() -> buffer.setOpen(false)); // make sure isOpen is called after
-        P.setBufferOpen(name, false);
+        P.setBufferOpen(pointer, false);
     }
 
-    @MainThread public void focusBuffer(String name) {
-        pager.setCurrentItem(names.indexOf(name));
+    @MainThread public void focusBuffer(long pointer) {
+        pager.setCurrentItem(pointers.indexOf(pointer));
     }
 
-    @MainThread public void setBufferInputText(@NonNull final String name, @NonNull final String text) {
-        BufferFragment bufferFragment = getBufferFragment(names.indexOf(name));
+    @MainThread public void setBufferInputText(long pointer, @NonNull final String text) {
+        BufferFragment bufferFragment = getBufferFragment(pointers.indexOf(pointer));
         if (bufferFragment == null) {
-            kitty.warn("Tried to set input text of unknown buffer %s", name);
+            kitty.warn("Tried to set input text of unknown buffer %s", pointer);
             return;
         }
         bufferFragment.setText(text);
     }
 
     // returns whether a buffer is inside the pager
-    @MainThread public boolean isBufferOpen(String name) {
-        return names.contains(name);
+    @MainThread public boolean isBufferOpen(long pointer) {
+        return pointers.contains(pointer);
     }
 
-    // returns full name of the buffer that is currently focused or null if there's no buffers
-    @MainThread public @Nullable String getCurrentBufferFullName() {
+    // returns full name of the buffer that is currently focused or 0 if there's no buffers
+    @MainThread public long getCurrentBufferPointer() {
         int i = pager.getCurrentItem();
-        return (names.size() > i) ? names.get(i) : null;
+        return (pointers.size() > i) ? pointers.get(i) : 0;
     }
 
     // returns BufferFragment that is currently focused or null
@@ -97,10 +100,17 @@ public class MainPagerAdapter extends PagerAdapter {
     }
 
     @MainThread private @Nullable BufferFragment getBufferFragment(int i) {
-        if (names.size() <= i) return null;
-        return (BufferFragment) manager.findFragmentByTag(names.get(i));
+        if (pointers.size() <= i) return null;
+        return (BufferFragment) manager.findFragmentByTag(Utils.pointerToString(pointers.get(i)));
     }
 
+    @MainThread public void sortOpenBuffers() {
+        long currentPointer = getCurrentBufferPointer();
+        ArrayList<Long> allPointers = BufferList.getPointersInOrder();
+        Collections.sort(pointers, (left, right) -> allPointers.indexOf(left) - allPointers.indexOf(right));
+        notifyDataSetChanged();
+        pager.setCurrentItem(pointers.indexOf(currentPointer));
+    }
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////// overrides
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -109,11 +119,11 @@ public class MainPagerAdapter extends PagerAdapter {
     @MainThread @Override @SuppressLint("CommitTransaction") @Cat(linger=true)
     public @NonNull Object instantiateItem(@NonNull ViewGroup container, int i) {
         if (transaction == null) transaction = manager.beginTransaction();
-        String tag = names.get(i);
+        String tag = Utils.pointerToString(pointers.get(i));
         Fragment frag = manager.findFragmentByTag(tag);
         if (frag == null) {
             kitty.trace("adding");
-            transaction.add(container.getId(), frag = BufferFragment.newInstance(tag), tag);
+            transaction.add(container.getId(), frag = BufferFragment.newInstance(pointers.get(i)), tag);
         } else {
             kitty.trace("attaching");
             transaction.attach(frag);
@@ -126,26 +136,26 @@ public class MainPagerAdapter extends PagerAdapter {
     public void destroyItem(@NonNull ViewGroup container, int i, @NonNull Object object) {
         if (transaction == null) transaction = manager.beginTransaction();
         Fragment frag = (Fragment) object;
-        if (names.contains(frag.getTag())) {
+        if (pointers.contains(Utils.pointerFromString(frag.getTag()))) {
             kitty.trace("detaching");
             transaction.detach(frag);
         } else {
             kitty.trace("removing");
             transaction.remove(frag);
         }
-        if (names.isEmpty()) oldFrag = null;
+        if (pointers.isEmpty()) oldFrag = null;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @MainThread @Override public int getCount() {
-        return names.size();
+        return pointers.size();
     }
 
     @MainThread @Override public CharSequence getPageTitle(int i) {
-        String name = names.get(i);
-        Buffer buffer = BufferList.findByFullName(names.get(i));
-        return buffer == null ? name : buffer.shortName;
+        long pointer = pointers.get(i);
+        Buffer buffer = BufferList.findByPointer(pointer);
+        return buffer == null ? Utils.pointerToString(pointer) : buffer.shortName;
     }
 
     @MainThread @Override public boolean isViewFromObject(@NonNull View view, @NonNull Object object) {
@@ -156,7 +166,7 @@ public class MainPagerAdapter extends PagerAdapter {
 
     // in the interface object is annotates as @NonNull but it can be nullable
     // see https://issuetracker.google.com/issues/69440293
-    @SuppressWarnings("NullableProblems")
+    // todo: has this issue been resolved?
     @MainThread @Override public void setPrimaryItem(@NonNull ViewGroup container, int position, @Nullable Object object) {
         if (object == oldFrag) return;
         Fragment frag = (Fragment) object;
@@ -175,7 +185,7 @@ public class MainPagerAdapter extends PagerAdapter {
     // providing proper indexes instead of POSITION_NONE allows buffers not to be
     // fully recreated on every uiBuffer list change
     @MainThread @Override public int getItemPosition(@NonNull Object object) {
-        int idx = names.indexOf(((Fragment) object).getTag());
+        int idx = pointers.indexOf(Utils.pointerFromString(((Fragment) object).getTag()));
         return (idx >= 0) ? idx : POSITION_NONE;
     }
 
@@ -196,11 +206,11 @@ public class MainPagerAdapter extends PagerAdapter {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @MainThread public boolean canRestoreBuffers() {
-        return P.openBuffers.size() > 0 && names.size() == 0 && BufferList.hasData();
+        return P.openBuffers.size() > 0 && pointers.size() == 0 && BufferList.hasData();
     }
 
     @MainThread public void restoreBuffers() {
-        for (String fullName : P.openBuffers)
-            openBuffer(fullName);
+        for (long pointer : P.openBuffers)
+            openBuffer(pointer);
     }
 }

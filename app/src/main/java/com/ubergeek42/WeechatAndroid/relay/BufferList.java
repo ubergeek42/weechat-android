@@ -27,6 +27,7 @@ import com.ubergeek42.weechat.relay.protocol.RelayObject;
 import org.junit.Assert;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
@@ -40,7 +41,7 @@ public class BufferList {
     public static volatile @Nullable RelayService relay;
     private static volatile @Nullable BufferListEye buffersEye;
 
-    public static @NonNull ArrayList<Buffer> buffers = new ArrayList<>();
+    final public static @NonNull ArrayList<Buffer> buffers = new ArrayList<>();
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -53,6 +54,7 @@ public class BufferList {
         // handle buffer list changes
         // including initial hotlist
         addMessageHandler("listbuffers", bufferListWatcher);
+        addMessageHandler("renumber", bufferListWatcher);
 
         addMessageHandler("_buffer_opened", bufferListWatcher);
         addMessageHandler("_buffer_renamed", bufferListWatcher);
@@ -115,6 +117,13 @@ public class BufferList {
         return true;
     }
 
+    @AnyThread synchronized public static ArrayList<Long> getPointersInOrder() {
+        Collections.sort(buffers, (l, r) -> l.number - r.number);
+        ArrayList<Long> pointers = new ArrayList<>();
+        for (Buffer buffer : buffers) pointers.add(buffer.pointer);
+        return pointers;
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// called by the Eye
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -122,12 +131,6 @@ public class BufferList {
 
     @MainThread static public boolean hasData() {
         return buffers.size() > 0;
-    }
-
-    @MainThread synchronized static public @Nullable Buffer findByFullName(@Nullable String fullName) {
-        if (fullName == null) return null;
-        for (Buffer buffer : buffers) if (buffer.fullName.equals(fullName)) return buffer;
-        return null;
     }
 
     @AnyThread static public void setBufferListEye(@Nullable BufferListEye buffersEye) {
@@ -199,6 +202,10 @@ public class BufferList {
         SendMessageEvent.fire("(nicklist) nicklist 0x%x", pointer);
     }
 
+    private static void requestRenumber() {
+        SendMessageEvent.fire("(renumber) hdata buffer:gui_buffers(*) number");
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// private stuffs
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -235,6 +242,13 @@ public class BufferList {
                             (Hashtable) entry.getItem("local_variables"),
                             ((r = entry.getItem("hidden")) != null) && r.asInt() != 0);
                     synchronized (BufferList.class) {buffers.add(buffer);}
+                } else if (id.equals("renumber")) {
+                    Buffer buffer = findByPointer(entry.getPointerLong(0));
+                    int number = entry.getItem("number").asInt();
+                    if (buffer != null && buffer.number != number) {
+                        buffer.number = number;
+                        buffer.onPropertiesChanged();
+                    }
                 } else {
                     Buffer buffer = findByPointer(entry.getPointerLong(0));
                     if (buffer == null) {
@@ -253,8 +267,9 @@ public class BufferList {
                             buffer.localVars = (Hashtable) entry.getItem("local_variables");
                             notifyBufferPropertiesChanged(buffer);
                         } else if (id.equals("_buffer_moved") || id.equals("_buffer_merged")) {
-                            buffer.number = entry.getItem("number").asInt();
-                            notifyBufferPropertiesChanged(buffer);
+                            // buffer.number = entry.getItem("number").asInt();
+                            // notifyBufferPropertiesChanged(buffer);
+                            requestRenumber();
                         } else if (Utils.isAnyOf(id, "_buffer_hidden", "_buffer_unhidden")) {
                             buffer.hidden = !id.endsWith("unhidden");
                             notifyBuffersChanged();
@@ -268,7 +283,7 @@ public class BufferList {
                     }
                 }
             }
-            if (id.equals("listbuffers")) {
+            if (id.equals("listbuffers") || id.equals("renumber")) {
                 notifyBuffersChanged();
                 Hotlist.makeSureHotlistDoesNotContainInvalidBuffers();
             }

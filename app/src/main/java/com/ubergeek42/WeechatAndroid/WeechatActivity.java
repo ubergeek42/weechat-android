@@ -49,7 +49,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentManager;
 import androidx.viewpager.widget.ViewPager;
@@ -77,7 +76,6 @@ import com.ubergeek42.WeechatAndroid.utils.ToolbarController;
 import com.ubergeek42.WeechatAndroid.utils.SimpleTransitionDrawable;
 import com.ubergeek42.WeechatAndroid.utils.UntrustedCertificateDialog;
 import com.ubergeek42.WeechatAndroid.service.RelayService.STATE;
-import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.CatD;
 import com.ubergeek42.cats.Kitty;
@@ -233,7 +231,7 @@ public class WeechatActivity extends AppCompatActivity implements
         P.storeThemeOrColorSchemeColors(this);
         applyColorSchemeToViews();
         super.onStart();
-        if (getIntent().hasExtra(NOTIFICATION_EXTRA_BUFFER_FULL_NAME) || getIntent().hasExtra(NOTIFICATION_EXTRA_BUFFER_POINTER)) openBufferFromIntent();
+        if (getIntent().hasExtra(NOTIFICATION_EXTRA_BUFFER_POINTER)) openBufferFromIntent();
     }
 
     @MainThread @Override @CatD protected void onStop() {
@@ -321,22 +319,27 @@ public class WeechatActivity extends AppCompatActivity implements
     //////////////////////////////////////////////////////////////////////////////////////////////// OnPageChangeListener
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @Override public void onPageScrollStateChanged(int state) {}
-    @Override public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {}
+    @Cat("Page") @Override public void onPageScrollStateChanged(int state) {}
+    @Cat("Page") @Override public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {}
+    @Cat("Page") @Override public void onPageSelected(int position) {onChange();}
 
-    @Override public void onPageSelected(int position) {
-        hideSoftwareKeyboard();
-        toolbarController.onPageChangedOrSelected();
-    }
+    // this method gets called repeatedly on various pager changes; make sure to only do stuff
+    // when an actual change takes place
+    private long currentBufferPointer = -1;
+    @Cat("Page") @Override public void onChange() {
+        long pointer = adapter.getCurrentBufferPointer();
+        if (currentBufferPointer == pointer) return;
+        boolean needToChangeKittyVisibility = currentBufferPointer == 0 || pointer == 0;
+        currentBufferPointer = pointer;
 
-    @Override public void onChange() {
         updateMenuItems();
         hideSoftwareKeyboard();
         toolbarController.onPageChangedOrSelected();
-        PagerAdapter pa = uiPager.getAdapter();
-        int visible = pa != null && pa.getCount() == 0 ? View.VISIBLE : View.GONE;
-        findViewById(R.id.kitty_background).setVisibility(visible);
-        findViewById(R.id.kitty).setVisibility(visible);
+        if (needToChangeKittyVisibility) {
+            int visible = adapter.getCount() == 0 ? View.VISIBLE : View.GONE;
+            findViewById(R.id.kitty_background).setVisibility(visible);
+            findViewById(R.id.kitty).setVisibility(visible);
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -413,7 +416,7 @@ public class WeechatActivity extends AppCompatActivity implements
             case R.id.menu_hotlist:
                 break;
             case R.id.menu_nicklist:
-                final Buffer buffer = BufferList.findByFullName(adapter.getCurrentBufferFullName());
+                final Buffer buffer = BufferList.findByPointer(adapter.getCurrentBufferPointer());
                 if (buffer == null) break;
 
                 final NickListAdapter nicklistAdapter = new NickListAdapter(WeechatActivity.this, buffer);
@@ -448,7 +451,7 @@ public class WeechatActivity extends AppCompatActivity implements
     @MainThread @Cat("Menu") private void onHotlistSelected() {
         Buffer buffer = BufferList.getHotBuffer();
         if (buffer != null)
-            openBuffer(buffer.fullName);
+            openBuffer(buffer.pointer);
         else
             Weechat.showShortToast(R.string.no_hot_buffers);
     }
@@ -473,28 +476,28 @@ public class WeechatActivity extends AppCompatActivity implements
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-    @MainThread @Override public void onBufferClick(String fullName) {
-        openBuffer(fullName);
+    @MainThread @Override public void onBufferClick(long pointer) {
+        openBuffer(pointer);
     }
 
-    @MainThread public void openBuffer(@NonNull String fullName) {
-        openBuffer(fullName, null);
+    @MainThread public void openBuffer(long pointer) {
+        openBuffer(pointer, null);
     }
 
-    @MainThread @Cat("Buffers") public void openBuffer(@NonNull final String fullName, @Nullable final String text) {
-        if (adapter.isBufferOpen(fullName) || state.contains(AUTHENTICATED)) {
-            adapter.openBuffer(fullName);
-            adapter.focusBuffer(fullName);
+    @MainThread @Cat("Buffers") public void openBuffer(long pointer, @Nullable final String text) {
+        if (adapter.isBufferOpen(pointer) || state.contains(AUTHENTICATED)) {
+            adapter.openBuffer(pointer);
+            adapter.focusBuffer(pointer);
             // post so that the fragment is created first, if it's not ready
-            if (text != null) Weechat.runOnMainThread(() -> adapter.setBufferInputText(fullName, text));
+            if (text != null) Weechat.runOnMainThread(() -> adapter.setBufferInputText(pointer, text));
             if (slidy) hideDrawer();
         } else {
             Weechat.showShortToast(R.string.not_connected);
         }
     }
 
-    @MainThread @Cat("Buffers") public void closeBuffer(String fullName) {
-        adapter.closeBuffer(fullName);
+    @MainThread @Cat("Buffers") public void closeBuffer(long pointer) {
+        adapter.closeBuffer(pointer);
         if (slidy) showDrawerIfPagerIsEmpty();
     }
 
@@ -510,6 +513,12 @@ public class WeechatActivity extends AppCompatActivity implements
     @MainThread public boolean isChatInputFocused() {
         View view = getCurrentFocus();
         return view != null && view.getId() == R.id.chatview_input;
+    }
+
+    // this gets called on *every* change to the whole buffer list including hotlist changes
+    // todo only sort open buffers on major buffer list changes
+    @MainThread public void onBuffersChanged() {
+        adapter.sortOpenBuffers();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -568,7 +577,7 @@ public class WeechatActivity extends AppCompatActivity implements
     // we may get intent while we are connected to the service and when we are not
     @MainThread @Override @Cat("Intent") protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        if (intent.hasExtra(NOTIFICATION_EXTRA_BUFFER_FULL_NAME) || intent.hasExtra(NOTIFICATION_EXTRA_BUFFER_POINTER)) {
+        if (intent.hasExtra(NOTIFICATION_EXTRA_BUFFER_POINTER)) {
             setIntent(intent);
             if (started) openBufferFromIntent();
         }
@@ -578,30 +587,19 @@ public class WeechatActivity extends AppCompatActivity implements
     // if buffer name is "" (any), open that buffer or show drawer
     // else open buffer and set text
     @MainThread @Cat("Intent") private void openBufferFromIntent() {
-        String name = getIntent().getStringExtra(NOTIFICATION_EXTRA_BUFFER_FULL_NAME);
-        if (name == null) {
-            String strPointer = getIntent().getStringExtra(NOTIFICATION_EXTRA_BUFFER_POINTER);
-            long pointer = Utils.pointerFromString(strPointer);
-            Buffer buffer = BufferList.findByPointer(pointer);
-            if (buffer == null && pointer != 0) {
-                kitty.warn("Couldn't find buffer to open from intent: " + strPointer);
-                return;
-            }
-            name = pointer == 0 ? "" : buffer.fullName;
-        }
-        if (NOTIFICATION_EXTRA_BUFFER_ANY.equals(name)) {
+        long pointer = getIntent().getLongExtra(NOTIFICATION_EXTRA_BUFFER_POINTER, NOTIFICATION_EXTRA_BUFFER_ANY);
+        if (pointer == NOTIFICATION_EXTRA_BUFFER_ANY) {
             if (BufferList.getHotBufferCount() > 1) {
                 if (slidy) showDrawer();
             } else {
                 Buffer buffer = BufferList.getHotBuffer();
-                if (buffer != null) openBuffer(buffer.fullName);
+                if (buffer != null) openBuffer(buffer.pointer);
             }
         } else {
             String text = getIntent().getStringExtra(NOTIFICATION_EXTRA_BUFFER_INPUT_TEXT);
-            openBuffer(name, text);
+            openBuffer(pointer, text);
         }
         getIntent().removeExtra(NOTIFICATION_EXTRA_BUFFER_INPUT_TEXT);
-        getIntent().removeExtra(NOTIFICATION_EXTRA_BUFFER_FULL_NAME);
         getIntent().removeExtra(NOTIFICATION_EXTRA_BUFFER_POINTER);
     }
 

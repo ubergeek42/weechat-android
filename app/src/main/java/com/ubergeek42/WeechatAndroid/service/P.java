@@ -396,27 +396,27 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         Object o = Utils.deserialize(p.getString(PREF_DATA, null));
         if (!(o instanceof Object[])) return;
         Object[] array = (Object[]) o;
-        if (array[0] instanceof LinkedHashSet) openBuffers = (LinkedHashSet<String>) array[0];
-        if (array[1] instanceof LinkedHashMap) bufferToLastReadLine = (LinkedHashMap<String, BufferHotData>) array[1];
+        if (array[0] instanceof LinkedHashSet) openBuffers = (LinkedHashSet<Long>) array[0];
+        if (array[1] instanceof LinkedHashMap) bufferToLastReadLine = (LinkedHashMap<Long, BufferHotData>) array[1];
         if (array[2] instanceof LinkedList) sentMessages = (LinkedList<String>) array[2];
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     // contains names of open buffers. needs more synchronization?
-    static public @NonNull LinkedHashSet<String> openBuffers = new LinkedHashSet<>();
+    static public @NonNull LinkedHashSet<Long> openBuffers = new LinkedHashSet<>();
 
     // this stores information about last read line (in `desktop` weechat) and according number of
     // read lines/highlights. this is subtracted from highlight counts client receives from the server
-    static private @NonNull LinkedHashMap<String, BufferHotData> bufferToLastReadLine = new LinkedHashMap<>();
+    static private @NonNull LinkedHashMap<Long, BufferHotData> bufferToLastReadLine = new LinkedHashMap<>();
 
-    synchronized public static boolean isBufferOpen(String name) {
-        return openBuffers.contains(name);
+    synchronized public static boolean isBufferOpen(long pointer) {
+        return openBuffers.contains(pointer);
     }
 
-    synchronized public static void setBufferOpen(String name, boolean open) {
-        if (open) openBuffers.add(name);
-        else openBuffers.remove(name);
+    synchronized public static void setBufferOpen(long pointer, boolean open) {
+        if (open) openBuffers.add(pointer);
+        else openBuffers.remove(pointer);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -433,7 +433,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
 
     // restore buffer's stuff. this is called for every buffer upon buffer creation
     @WorkerThread synchronized public static void restoreLastReadLine(Buffer buffer) {
-        BufferHotData data = bufferToLastReadLine.get(buffer.fullName);
+        BufferHotData data = bufferToLastReadLine.get(buffer.pointer);
         if (data != null) {
             buffer.setLastSeenLine(data.lastSeenLine);
             buffer.lastReadLineServer = data.lastReadLineServer;
@@ -445,10 +445,10 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
 
     // save buffer's stuff. this is called when information is about to be written to disk
     private synchronized static void saveLastReadLine(Buffer buffer) {
-        BufferHotData data = bufferToLastReadLine.get(buffer.fullName);
+        BufferHotData data = bufferToLastReadLine.get(buffer.pointer);
         if (data == null) {
             data = new BufferHotData();
-            bufferToLastReadLine.put(buffer.fullName, data);
+            bufferToLastReadLine.put(buffer.pointer, data);
         }
         data.lastSeenLine = buffer.getLastSeenLine();
         data.lastReadLineServer = buffer.lastReadLineServer;
@@ -475,8 +475,6 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    // used to make warnings go away
-    @SuppressWarnings("ConstantConditions")
     private static String getString(String key, String defValue) {
         return p.getString(key, defValue);
     }

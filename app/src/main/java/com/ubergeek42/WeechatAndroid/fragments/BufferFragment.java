@@ -40,6 +40,7 @@ import com.ubergeek42.WeechatAndroid.relay.BufferEye;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.utils.CopyPaste;
+import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
@@ -54,7 +55,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
 
     final private @Root Kitty kitty = Kitty.make("BF");
 
-    private final static String TAG = "tag";
+    private final static String POINTER = "pointer";
 
     private WeechatActivity activity = null;
     private boolean attached = false;
@@ -64,15 +65,15 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     private ImageButton uiSend;
     private ImageButton uiTab;
 
-    private String fullName = "…";
+    private long pointer = 0;
     private Buffer buffer;
 
     private ChatLinesAdapter linesAdapter;
 
-    public static BufferFragment newInstance(String tag) {
+    public static BufferFragment newInstance(long pointer) {
         BufferFragment fragment = new BufferFragment();
         Bundle args = new Bundle();
-        args.putString(TAG, tag);
+        args.putLong(POINTER, pointer);
         fragment.setArguments(args);
         return fragment;
     }
@@ -84,9 +85,8 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     @SuppressWarnings("ConstantConditions")
     @MainThread @Override public void setArguments(@Nullable Bundle args) {
         super.setArguments(args);
-        fullName = getArguments().getString(TAG);
-        int lastIndex = fullName.lastIndexOf(".");
-        kitty.setPrefix(lastIndex == -1 ? fullName : fullName.substring(lastIndex + 1));
+        pointer = getArguments().getLong(POINTER);
+        kitty.setPrefix(Utils.pointerToString(pointer));
     }
 
     @MainThread @Override @Cat public void onAttach(Context context) {
@@ -203,7 +203,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     @MainThread @Cat public void onEvent(@NonNull StateChangedEvent event) {
         boolean online = event.state.contains(LISTED);
         if (buffer == null || online) {
-            buffer = BufferList.findByFullName(fullName);
+            buffer = BufferList.findByPointer(pointer);
             if (online && buffer == null) {
                 onBufferClosed();
                 return;
@@ -268,7 +268,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     }
 
     @AnyThread @Override public void onBufferClosed() {
-        Weechat.runOnMainThreadASAP(() -> {if (activity != null) activity.closeBuffer(fullName);});
+        Weechat.runOnMainThreadASAP(() -> {if (activity != null) activity.closeBuffer(pointer);});
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

@@ -154,7 +154,10 @@ public class Utils {
     }
 
     public static long pointerFromString(String strPointer) {
-        if ("".equals(strPointer)) return 0;
-        return Long.parseLong(strPointer, 16);
+        try {
+            return Long.parseLong(strPointer, 16);
+        } catch (NumberFormatException ignored) {
+            return 0;
+        }
     }
 }

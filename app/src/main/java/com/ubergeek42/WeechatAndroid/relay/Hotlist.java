@@ -50,7 +50,7 @@ public class Hotlist {
 
     public static class HotBuffer {
         public final boolean isPrivate;
-        public final String strPointer;
+        public final long pointer;
         public String shortName;
         public final ArrayList<HotMessage> messages = new ArrayList<>();
         public int hotCount = 0;
@@ -58,7 +58,7 @@ public class Hotlist {
 
         HotBuffer(Buffer buffer) {
             isPrivate = buffer.type == PRIVATE;
-            strPointer = Utils.pointerToString(buffer.pointer);
+            pointer = buffer.pointer;
             shortName = buffer.shortName;
         }
 

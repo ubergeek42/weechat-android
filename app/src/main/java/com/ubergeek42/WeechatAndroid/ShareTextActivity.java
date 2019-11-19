@@ -61,10 +61,10 @@ public class ShareTextActivity extends AppCompatActivity implements
         dialog.dismiss();                   // must be called in order to not cause leaks
     }
 
-    @Override public void onBufferClick(String fullName) {
+    @Override public void onBufferClick(long pointer) {
         final String text = getIntent().getStringExtra(Intent.EXTRA_TEXT);
         Intent intent = new Intent(getApplicationContext(), WeechatActivity.class);
-        intent.putExtra(NOTIFICATION_EXTRA_BUFFER_FULL_NAME, fullName);
+        intent.putExtra(NOTIFICATION_EXTRA_BUFFER_POINTER, pointer);
         intent.putExtra(NOTIFICATION_EXTRA_BUFFER_INPUT_TEXT, text);
         startActivity(intent);
         finish();

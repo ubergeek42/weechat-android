@@ -64,7 +64,7 @@ public class BufferListAdapter extends RecyclerView.Adapter<ViewHolder> implemen
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private static class Row extends ViewHolder implements View.OnClickListener {
-        private String fullName;
+        private long pointer;
         private TextView uiHot;
         private TextView uiWarm;
         private TextView uiBuffer;
@@ -80,7 +80,7 @@ public class BufferListAdapter extends RecyclerView.Adapter<ViewHolder> implemen
         }
 
         @MainThread void update(VisualBuffer buffer) {
-            fullName = buffer.fullName;
+            pointer = buffer.pointer;
             uiBuffer.setText(buffer.printable);
             int unreads = buffer.unreads;
             int highlights = buffer.highlights;
@@ -104,7 +104,7 @@ public class BufferListAdapter extends RecyclerView.Adapter<ViewHolder> implemen
 
         @MainThread @Override @SuppressWarnings("ConstantConditions")
         public void onClick(View v) {
-            ((BufferListClickListener) Utils.getActivity(v)).onBufferClick(fullName);
+            ((BufferListClickListener) Utils.getActivity(v)).onBufferClick(pointer);
         }
     }
 

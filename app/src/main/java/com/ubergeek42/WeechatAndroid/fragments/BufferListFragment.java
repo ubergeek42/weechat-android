@@ -128,6 +128,7 @@ public class BufferListFragment extends Fragment implements BufferListEye, View.
             if (this.hotCount != (this.hotCount = hotCount) && hotCount > 0)
                 Weechat.runOnMainThread(() -> uiRecycler.smoothScrollToPosition(0));
             activity.updateHotCount(hotCount);
+            activity.onBuffersChanged();
         });
     }
 
