@@ -104,10 +104,12 @@ public class MainPagerAdapter extends PagerAdapter {
         return (BufferFragment) manager.findFragmentByTag(Utils.pointerToString(pointers.get(i)));
     }
 
+    private ArrayList<Long> oldPointers = new ArrayList<>();
     @MainThread public void sortOpenBuffers() {
         long currentPointer = getCurrentBufferPointer();
-        ArrayList<Long> allPointers = BufferList.getPointersInOrder();
-        Collections.sort(pointers, (left, right) -> allPointers.indexOf(left) - allPointers.indexOf(right));
+        BufferList.sortOpenBuffersByBuffers(pointers);
+        if (oldPointers.equals(pointers)) return;
+        oldPointers = new ArrayList<>(pointers);
         notifyDataSetChanged();
         pager.setCurrentItem(pointers.indexOf(currentPointer));
     }

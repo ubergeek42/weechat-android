@@ -117,11 +117,10 @@ public class BufferList {
         return true;
     }
 
-    @AnyThread synchronized public static ArrayList<Long> getPointersInOrder() {
-        Collections.sort(buffers, (l, r) -> l.number - r.number);
-        ArrayList<Long> pointers = new ArrayList<>();
-        for (Buffer buffer : buffers) pointers.add(buffer.pointer);
-        return pointers;
+    @AnyThread public static void sortOpenBuffersByBuffers(ArrayList<Long> pointers) {
+        final LongSparseArray<Integer> bufferToNumber = new LongSparseArray<>();
+        synchronized (BufferList.class) {for (Buffer b: buffers) bufferToNumber.put(b.pointer, b.number);}
+        Collections.sort(pointers, (l, r) -> bufferToNumber.get(l, -1) - bufferToNumber.get(r, -1));
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
