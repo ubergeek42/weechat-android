@@ -49,7 +49,7 @@ public class ToolbarController implements ViewTreeObserver.OnGlobalLayoutListene
     }
 
     private void onSoftwareKeyboardStateChanged(boolean visible) {
-        if (canNotAutoHide()) return;
+        if (canNotAutoHide() || !activity.isChatInputFocused()) return;
         if (keyboardVisible == visible) return;
         keyboardVisible = visible;
         if (visible) hide();
@@ -70,7 +70,7 @@ public class ToolbarController implements ViewTreeObserver.OnGlobalLayoutListene
         // Offset the content if the action bar is always shown, so the top text and button
         // remain visible
         setContentIsOffset(!P.autoHideActionbar);
-        if (P.autoHideActionbar && activity.isChatInputFocused()) return false;
+        if (P.autoHideActionbar) return false;
         show();
         return true;
     }
