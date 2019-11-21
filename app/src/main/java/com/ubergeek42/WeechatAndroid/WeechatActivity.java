@@ -329,7 +329,7 @@ public class WeechatActivity extends AppCompatActivity implements
     @Cat("Page") @Override public void onChange() {
         long pointer = adapter.getCurrentBufferPointer();
         if (currentBufferPointer == pointer) return;
-        boolean needToChangeKittyVisibility = currentBufferPointer == 0 || pointer == 0;
+        boolean needToChangeKittyVisibility = currentBufferPointer == -1 || currentBufferPointer == 0 || pointer == 0;
         currentBufferPointer = pointer;
 
         updateMenuItems();
