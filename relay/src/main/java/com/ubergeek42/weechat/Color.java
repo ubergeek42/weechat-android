@@ -325,6 +325,7 @@ public class Color {
     ///////////////////////////////// wow such code
     /////////////////////////////////
 
+    // see https://weechat.org/files/doc/stable/weechat_dev.en.html#color_codes_in_strings
     // takes text as input
     // sets out and spanList
     private CharSequence parseColors(String msg) {
@@ -366,10 +367,10 @@ public class Color {
                             getChar();
                             break;
                         case 'F':               // foreground
-                        case '*':               // foreground followed by ',' followed by background
+                        case '*':               // foreground followed by ',' or '~' followed by background
                             getChar();
                             setColor(Span.FGCOLOR);
-                            if (c == 'F' || peekChar() != ',') break;
+                            if (c == 'F' || (peekChar() != ',' && peekChar() != '~')) break;
                         case 'B':               // background (same as fg but w/o optional attributes)
                             getChar();
                             setColor(Span.BGCOLOR);

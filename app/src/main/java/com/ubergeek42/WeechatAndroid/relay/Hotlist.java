@@ -72,7 +72,7 @@ public class Hotlist {
         //    in the latter case, the list of theoretically known messages could be:
         //      ? ? ? <message> <message> ?
         // so if the count has changed, let's just void the messages
-        @Cat void updateHotCount(Buffer buffer) {
+        void updateHotCount(Buffer buffer) {
             int newHotCount = buffer.getHotCount();
             boolean updatingHotCount = hotCount != newHotCount;
             boolean updatingShortName = !shortName.equals(buffer.shortName);
@@ -154,7 +154,7 @@ public class Hotlist {
         getHotBuffer(buffer).onNewHotLine(buffer, line);
     }
 
-    @Cat synchronized static void adjustHotListForBuffer(final @NonNull Buffer buffer) {
+    synchronized static void adjustHotListForBuffer(final @NonNull Buffer buffer) {
         getHotBuffer(buffer).updateHotCount(buffer);
     }
 
