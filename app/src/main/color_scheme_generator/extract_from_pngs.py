@@ -4,7 +4,6 @@ from PIL import Image
 TEMPLATE = """# suppress inspection "UnusedProperty" for whole file
 name = {name}
 
-# 0f1315 is the color of the default background of status line
 default = {default}
 default_bg = {default_bg}
 
@@ -96,7 +95,7 @@ PITCH_BLACK = (TEMPLATE + TEMPLATE_UI).format(**locals())
 ########################################################################################################################
 
 
-def process(input_file: str, output_file, fg: bool, width_grid=8, height_grid=32):
+def process(input_file: str, fg: bool, width_grid=8, height_grid=32):
     im = Image.open(input_file, 'r')
     width, height = im.size
     pixel_values = list(im.getdata())
@@ -117,9 +116,9 @@ def create_theme(name: str, prefix: str, fg: str, bg: str):
     print(f"creating theme: {name}")
     with open(f"../assets/{name}-theme.properties", "w") as file:
         file.write(prefix +
-            '\n'.join(process(bg + ".png", file, False)) +
+            '\n'.join(process(bg + ".png", False)) +
             '\n' +
-            '\n'.join(process(fg + ".png", file, True)) +
+            '\n'.join(process(fg + ".png", True)) +
             '\n')
 
 def run():
