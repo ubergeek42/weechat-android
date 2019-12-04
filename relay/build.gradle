@@ -1,9 +1,9 @@
 apply plugin: 'java'
 
 dependencies {
-    implementation 'org.slf4j:slf4j-api:1.7.25'
-    compile 'com.jcraft:jsch:0.1.53'                            // for ssh tunnel support
-    implementation 'com.neovisionaries:nv-websocket-client:2.6'
+    implementation 'org.slf4j:slf4j-api:1.7.29'
+    compile 'com.jcraft:jsch:0.1.55'                            // for ssh tunnel support
+    implementation 'com.neovisionaries:nv-websocket-client:2.9'
     implementation 'junit:junit:4.12'
 }
 
@@ -11,6 +11,7 @@ compileJava {
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
 }
+
 tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
 }
