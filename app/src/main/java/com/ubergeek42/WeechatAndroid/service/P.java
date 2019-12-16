@@ -10,6 +10,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.TypedArray;
 import android.graphics.Typeface;
+import android.os.Build;
 import android.preference.PreferenceManager;
 import androidx.annotation.AnyThread;
 import androidx.annotation.MainThread;
@@ -17,6 +18,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.annotation.WorkerThread;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.preference.FilePreference;
 import androidx.preference.ThemeManager;
@@ -27,6 +29,7 @@ import android.util.TypedValue;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
+import com.ubergeek42.WeechatAndroid.utils.ThemeFix;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.CatD;
@@ -82,7 +85,9 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     }
 
     // set colorPrimary and colorPrimaryDark according to color scheme or app theme
-    // must be called after color scheme change and before calls to applyColorSchemeToViews()
+    // must be called after theme change (activity.onCreate(), for ThemeFix.fixIconAndColor()) and
+    // after color scheme change (onStart(), as in this case the activity is not recreated, before applyColorSchemeToViews())
+    // this method could be called from elsewhere but it needs *activity* context
     public static void storeThemeOrColorSchemeColors(Context context) {
         ColorScheme scheme = ColorScheme.get();
         TypedArray colors = context.obtainStyledAttributes(
@@ -124,7 +129,9 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
 
     public static boolean showBufferFilter;
 
-    public static boolean nightThemeEnabled;
+    public static boolean themeSwitchEnabled;
+    public static boolean darkThemeActive = false;
+
     public static int colorPrimary = ColorScheme.NO_COLOR;
     public static int colorPrimaryDark = ColorScheme.NO_COLOR;
 
@@ -132,10 +139,6 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     public static @NonNull String filterUc = "";
 
     @MainThread private static void loadUIPreferences() {
-        // night mode
-        nightThemeEnabled = p.getBoolean(PREF_NIGHT_THEME_ENABLED, PREF_NIGHT_THEME_ENABLED_D);
-        AppCompatDelegate.setDefaultNightMode(P.nightThemeEnabled ? AppCompatDelegate.MODE_NIGHT_YES : AppCompatDelegate.MODE_NIGHT_NO);
-
         // buffer list preferences
         sortBuffers = p.getBoolean(PREF_SORT_BUFFERS, PREF_SORT_BUFFERS_D);
         filterBuffers = p.getBoolean(PREF_FILTER_NONHUMAN_BUFFERS, PREF_FILTER_NONHUMAN_BUFFERS_D);
@@ -150,8 +153,10 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         dimDownNonHumanLines = p.getBoolean(PREF_DIM_DOWN, PREF_DIM_DOWN_D);
         setTimestampFormat();
         setAlignment();
-        ThemeManager.loadColorSchemeFromPreferences(context);
-        setTextSizeColorAndLetterWidth();
+
+        // theme
+        applyThemePreference(null);
+        themeSwitchEnabled = p.getBoolean(PREF_THEME_SWITCH, PREF_THEME_SWITCH_D);
 
         // notifications
         notificationEnable = p.getBoolean(PREF_NOTIFICATION_ENABLE, PREF_NOTIFICATION_ENABLE_D);
@@ -168,6 +173,35 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
 
         // buffer list filter
         showBufferFilter = p.getBoolean(PREF_SHOW_BUFFER_FILTER, PREF_SHOW_BUFFER_FILTER_D);
+    }
+
+    // a brief recap on how themes work here
+    // * first, we set night mode here for the whole application. applyThemePreference() does't know
+    //   about activities. at this point we can't tell the effective theme, as activities can have
+    //   their own local settings. this call will recreate activities, if necessary.
+    // * after an activity is created, applyThemeAfterActivityCreation() is called. that's when we
+    //   know the actual theme that is going to be used. this theme will be used during the whole
+    //   lifecycle of the activity; if changed—by the user or the system—the activity is recreated.
+    // * color scheme can be changed without changing the theme. so we call it on activity creation
+    //   an on preference change.
+    private static void applyThemePreference(@Nullable String theme) {
+        if (theme == null) theme = p.getString(PREF_THEME, PREF_THEME_D);
+        int flag = Build.VERSION.SDK_INT < Build.VERSION_CODES.Q ?
+                AppCompatDelegate.MODE_NIGHT_AUTO_BATTERY : AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM;
+        if       (PREF_THEME_DARK.equals(theme)) flag = AppCompatDelegate.MODE_NIGHT_YES;
+        else if (PREF_THEME_LIGHT.equals(theme)) flag = AppCompatDelegate.MODE_NIGHT_NO;
+        AppCompatDelegate.setDefaultNightMode(flag);
+    }
+
+    public static void applyThemeAfterActivityCreation(AppCompatActivity activity) {
+        darkThemeActive = ThemeFix.isNightModeEnabledForActivity(activity);
+        changeColorScheme();
+    }
+
+    private static void changeColorScheme() {
+        ThemeManager.loadColorSchemeFromPreferences(context);
+        BufferList.onGlobalPreferencesChanged(false);
+        setTextSizeColorAndLetterWidth();
     }
 
     ///////////////////////////////////////////////////////////////////////////////////// connection
@@ -264,6 +298,9 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
                 dimDownNonHumanLines = p.getBoolean(key, PREF_DIM_DOWN_D);
                 BufferList.onGlobalPreferencesChanged(false);
                 break;
+            case PREF_THEME_SWITCH:
+                themeSwitchEnabled = p.getBoolean(key, PREF_THEME_SWITCH_D);
+                break;
             case PREF_TIMESTAMP_FORMAT:
                 setTimestampFormat();
                 BufferList.onGlobalPreferencesChanged(false);
@@ -277,14 +314,11 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
                 setTextSizeColorAndLetterWidth();
                 BufferList.onGlobalPreferencesChanged(false);
                 break;
-            case PREF_NIGHT_THEME_ENABLED:
-                nightThemeEnabled = p.getBoolean(key, PREF_NIGHT_THEME_ENABLED_D);
-                AppCompatDelegate.setDefaultNightMode(nightThemeEnabled ? AppCompatDelegate.MODE_NIGHT_YES : AppCompatDelegate.MODE_NIGHT_NO);
+            case PREF_THEME:
+                applyThemePreference(null);
             case PREF_COLOR_SCHEME_DAY:
             case PREF_COLOR_SCHEME_NIGHT:
-                ThemeManager.loadColorSchemeFromPreferences(context);
-                BufferList.onGlobalPreferencesChanged(false);
-                setTextSizeColorAndLetterWidth();
+                changeColorScheme();
                 break;
             case PREF_USE_LAUNCHER_ICON_KITTY:
                 changeLauncherIcon(p.getBoolean(key, PREF_USE_LAUNCHER_ICON_KITTY_D));

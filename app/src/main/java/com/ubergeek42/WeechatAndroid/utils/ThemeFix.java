@@ -3,6 +3,7 @@ package com.ubergeek42.WeechatAndroid.utils;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -111,5 +112,13 @@ public class ThemeFix {
                 ((color >> 8) & 0xff) +
                 (color & 0xff)) / 3;
         return avg > (0xff / 2);
+    }
+
+    // returns whether or not the context is using night mode. this mode is set by either calling
+    // AppCompatDelegate.setDefaultNightMode() with a specific mode or is set by the system. the
+    // system will recreate the activity when the actual mode changes. treat undefined flag as night mode
+    public static boolean isNightModeEnabledForActivity(AppCompatActivity activity) {
+        int flag = activity.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
+        return flag != Configuration.UI_MODE_NIGHT_NO;
     }
 }

@@ -31,7 +31,6 @@ import androidx.annotation.WorkerThread;
 import androidx.appcompat.content.res.AppCompatResources;
 import androidx.appcompat.widget.TooltipCompat;
 import androidx.fragment.app.DialogFragment;
-import androidx.viewpager.widget.PagerAdapter;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
@@ -109,7 +108,7 @@ public class WeechatActivity extends AppCompatActivity implements
     //////////////////////////////////////////////////////////////////////////////////////////////// life cycle
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @SuppressLint("WrongThread") @MainThread @Override @Cat
+    @SuppressLint("WrongThread") @MainThread @Override @CatD
     public void onCreate(@Nullable Bundle savedInstanceState) {
         // after OOM kill and not going to restore anything? remove all fragments & open buffers
         if (!P.isServiceAlive() && !BufferList.hasData()) {
@@ -186,7 +185,8 @@ public class WeechatActivity extends AppCompatActivity implements
         // if no data and going to connect, let the LISTED event restore it all
         if (adapter.canRestoreBuffers()) adapter.restoreBuffers();
 
-        P.storeThemeOrColorSchemeColors(this);
+        P.applyThemeAfterActivityCreation(this);
+        P.storeThemeOrColorSchemeColors(this);  // required for ThemeFix.fixIconAndColor()
         ThemeFix.fixIconAndColor(this);
     }
 
@@ -231,6 +231,7 @@ public class WeechatActivity extends AppCompatActivity implements
         P.storeThemeOrColorSchemeColors(this);
         applyColorSchemeToViews();
         super.onStart();
+        if (uiMenu != null) uiMenu.findItem(R.id.menu_dark_theme).setVisible(P.themeSwitchEnabled);
         if (getIntent().hasExtra(NOTIFICATION_EXTRA_BUFFER_POINTER)) openBufferFromIntent();
     }
 
@@ -370,7 +371,8 @@ public class WeechatActivity extends AppCompatActivity implements
         uiMenu.findItem(R.id.menu_nicklist).setVisible(bufferVisible);
         uiMenu.findItem(R.id.menu_close).setVisible(bufferVisible);
         uiMenu.findItem(R.id.menu_filter_lines).setChecked(P.filterLines);
-        uiMenu.findItem(R.id.menu_use_night_theme).setChecked(P.nightThemeEnabled);
+        uiMenu.findItem(R.id.menu_dark_theme).setVisible(P.themeSwitchEnabled);
+        uiMenu.findItem(R.id.menu_dark_theme).setChecked(P.darkThemeActive);
     }
 
     @Override @MainThread @Cat("Menu") public boolean onCreateOptionsMenu(final Menu menu) {
@@ -380,8 +382,8 @@ public class WeechatActivity extends AppCompatActivity implements
 
         // set color of the border around the [2] badge on the bell, as well as text color
         GradientDrawable drawable = (GradientDrawable) uiHot.getBackground();
-        drawable.setStroke((int) (P.nightThemeEnabled ? P._4dp / 2 : P._4dp / 2 - 1), P.colorPrimary);
-        uiHot.setTextColor(P.nightThemeEnabled ? 0xffffffff : P.colorPrimary);
+        drawable.setStroke((int) (P.darkThemeActive ? P._4dp / 2 : P._4dp / 2 - 1), P.colorPrimary);
+        uiHot.setTextColor(P.darkThemeActive ? 0xffffffff : P.colorPrimary);
 
         TooltipCompat.setTooltipText(menuHotlist, getString(R.string.hint_show_hot_message));
         menuHotlist.setOnClickListener((View v) -> onHotlistSelected());
@@ -438,11 +440,10 @@ public class WeechatActivity extends AppCompatActivity implements
                 item.setChecked(filter);
                 p.edit().putBoolean(PREF_FILTER_LINES, filter).apply();
                 break;
-            case R.id.menu_use_night_theme:
-                item.setChecked(!P.nightThemeEnabled);
-                PreferenceManager.getDefaultSharedPreferences(this).edit().putBoolean(
-                        PREF_NIGHT_THEME_ENABLED, !P.nightThemeEnabled).apply();
-                getDelegate().applyDayNight();
+            case R.id.menu_dark_theme:
+                item.setChecked(!P.darkThemeActive);
+                PreferenceManager.getDefaultSharedPreferences(this).edit().putString(
+                        PREF_THEME, P.darkThemeActive ? PREF_THEME_LIGHT : PREF_THEME_DARK).apply();
                 break;
         }
         return true;
@@ -561,7 +562,7 @@ public class WeechatActivity extends AppCompatActivity implements
 
     // set the kitty image that appears when no pages are open
     int infoImageId = -1;
-    @CatD @MainThread private void setInfoImage(final int id) {
+    @Cat @MainThread private void setInfoImage(final int id) {
         if (infoImageId == id) return;
         infoImageId = id;
         SimpleTransitionDrawable trans = (SimpleTransitionDrawable) uiInfo.getDrawable();

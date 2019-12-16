@@ -86,7 +86,16 @@ public class Constants {
     public final static String NOTIFICATION_EXTRA_BUFFER_INPUT_TEXT = "com.ubergeek42.BUFFER_INPUT_TEXT";
     public final static long NOTIFICATION_EXTRA_BUFFER_ANY = 0;
 
-    public static final String PREF_NIGHT_THEME_ENABLED = "night_theme_enabled"; final public static boolean PREF_NIGHT_THEME_ENABLED_D = false;
+    // night mode
+    final static public String THEME_GROUP = "theme_group";
+    final public static String PREF_THEME = "theme";
+    final public static String PREF_THEME_SYSTEM = "system";
+    final public static String PREF_THEME_DARK = "dark";
+    final public static String PREF_THEME_LIGHT = "light";
+    final public static String PREF_THEME_D = PREF_THEME_SYSTEM;
+
+
+    final public static String PREF_THEME_SWITCH = "theme_switch"; final public static boolean PREF_THEME_SWITCH_D = false;
 
     // component names for different activity aliases
     public static final ComponentName WEECHAT_ACTIVITY_WEECHAT = new ComponentName(BuildConfig.APPLICATION_ID, "com.ubergeek42.WeechatAndroid.WeechatActivityWeechat");

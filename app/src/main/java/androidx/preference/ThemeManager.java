@@ -32,9 +32,8 @@ public class ThemeManager {
 
     public static void loadColorSchemeFromPreferences(@NonNull Context context) {
         String path = android.preference.PreferenceManager.getDefaultSharedPreferences(context)
-                .getString(P.nightThemeEnabled ? PREF_COLOR_SCHEME_NIGHT : PREF_COLOR_SCHEME_DAY,
-                        P.nightThemeEnabled ? PREF_COLOR_SCHEME_NIGHT_D : PREF_COLOR_SCHEME_DAY_D);
-        //noinspection ConstantConditions   -- path can't be null
+                .getString(P.darkThemeActive ? PREF_COLOR_SCHEME_NIGHT : PREF_COLOR_SCHEME_DAY,
+                        P.darkThemeActive ? PREF_COLOR_SCHEME_NIGHT_D : PREF_COLOR_SCHEME_DAY_D);
         Properties p = loadColorScheme(path, context.getAssets());
         if (p == null)
             Toast.makeText(context, context.getString(R.string.pref_theme_loading_error, path), Toast.LENGTH_SHORT).show();

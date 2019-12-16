@@ -14,6 +14,11 @@
         <item >websocket</item>
         <item >websocket-ssl</item>
     </string-array>
+    <string-array name="settings_theme_values">
+        <item >system</item>
+        <item >dark</item>
+        <item >light</item>
+    </string-array>
 
     <dimen name="dialog_item_padding_vertical">8dp</dimen>
     <dimen name="drawer_width">304dp</dimen>
