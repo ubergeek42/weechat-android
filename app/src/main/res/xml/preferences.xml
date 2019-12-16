@@ -69,7 +69,7 @@
 
     <!-- theme -->
 
-    <PreferenceScreen android:key="theme_group" android:title="Theme">
+    <PreferenceScreen android:key="theme_group" android:title="@string/pref_theme">
         <ListPreference android:key="theme" android:title="@string/pref_theme" android:defaultValue="system" android:entries="@array/pref_theme_names" android:entryValues="@array/settings_theme_values"  android:summary="%s"/>
         <CheckBoxPreference android:key="theme_switch" android:title="@string/pref_theme_switch" android:summary="@string/pref_theme_switch_summary" android:defaultValue="false" />
         <ThemePreference android:key="color_scheme_day" android:title="@string/pref_color_scheme_day" android:defaultValue="squirrely-light-theme.properties" />

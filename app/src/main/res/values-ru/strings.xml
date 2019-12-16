@@ -230,4 +230,10 @@
         <item quantity="many">&#160;в %d буферах</item>
     </plurals>
     <string name="hot_messages_missing_1">(сообщение не получено)</string>
+    <string name="pref_theme">Тема</string>
+    <string name="pref_theme_dark">Тёмная</string>
+    <string name="pref_theme_light">Светлая</string>
+    <string name="pref_theme_switch">Переключатель темы</string>
+    <string name="pref_theme_switch_summary">Показывать переключатель темы в меню</string>
+    <string name="pref_theme_system">Устанавливается режимом энергосбережения</string>
 </resources>
