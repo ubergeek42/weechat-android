@@ -17,7 +17,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/more_button"
-        android:textColor="?attr/colorAccent"
         android:layout_gravity="right"
         style="@style/Widget.AppCompat.Button.Borderless" />
 </LinearLayout>

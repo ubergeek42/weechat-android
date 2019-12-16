@@ -5,7 +5,9 @@
     <color name="pasteBackground">#10ffffff</color>
     <color name="primary">#1B1F22</color>
     <color name="primaryDark">#1B1F22</color>
+    <color name="accent">#588ab8</color>
     <color name="awayNick">#55ffffff</color>
+    <color name="dialogTitleColor">#f1ffffff</color>
 
     <color name="toolbarIconEnabled">#eeffffff</color>
     <color name="toolbarIconDisabled">#4cffffff</color>

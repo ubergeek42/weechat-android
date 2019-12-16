@@ -23,13 +23,17 @@ import javax.net.ssl.SSLPeerUnverifiedException;
 
 import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.preference.PreferenceManager;
 import androidx.annotation.MainThread;
+import androidx.annotation.NonNull;
 import androidx.annotation.WorkerThread;
 import androidx.appcompat.content.res.AppCompatResources;
 import androidx.appcompat.widget.TooltipCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.ActionBarDrawerToggle;
@@ -215,10 +219,14 @@ public class WeechatActivity extends AppCompatActivity implements
     private boolean started = false;
 
     // a dirty but quick & safe hack that sets background color of the popup menu
-    @Override public View onCreateView(View parent, String name, Context context, AttributeSet attrs) {
+    @Override public View onCreateView(View parent, String name, @NonNull Context context, @NonNull AttributeSet attrs) {
         if (name.equals("androidx.appcompat.view.menu.ListMenuItemView") &&
                 parent.getParent() instanceof FrameLayout) {
-                ((View) parent.getParent()).setBackgroundColor(P.colorPrimary);
+            Drawable drawable = ContextCompat.getDrawable(context, R.drawable.bg_popup_menu);
+            if (drawable != null) {
+                drawable.setColorFilter(0xff000000 | P.colorPrimary, PorterDuff.Mode.MULTIPLY);
+                ((View) parent.getParent()).setBackground(drawable);
+            }
         }
         return super.onCreateView(parent, name, context, attrs);
     }

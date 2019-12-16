@@ -10,6 +10,7 @@
     <style name="WeechatBase" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryDark">@color/primaryDark</item>
+        <item name="colorAccent">@color/accent</item>
         <item name="awayNickColor">@color/awayNick</item>
         <item name="hotIconTextColor">@color/toolbarHotIconTextColor</item>
         <item name="toolbarIconColor">@color/toolbar_icon</item>
@@ -18,6 +19,7 @@
         <item name="android:windowBackground">@color/primary</item>
         <item name="android:colorBackground">@color/primary</item>
         <item name="alertDialogTheme">@style/PreferenceAlertDialogBackgroundFix</item>
+        <item name="buttonStyle">@style/NormalCaseButton</item>
     </style>
 
     <!-- actually used by app's dialogs. don't set any background color; android:windowBackground
@@ -25,14 +27,35 @@
     <style name="AlertDialogTheme" parent="Theme.AppCompat.DayNight.Dialog.Alert">
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryDark">@color/primaryDark</item>
+        <item name="colorAccent">@color/accent</item>
         <item name="android:background">@android:color/transparent</item>
+        <item name="android:windowTitleStyle">@style/DialogTitleStyle</item>
+        <item name="dialogCornerRadius">@dimen/dialog_corner_radius</item>
+        <item name="buttonStyle">@style/NormalCaseButton</item>
     </style>
 
     <!-- this is only supposed to be used by preferences, since those are broken -->
-    <style name="PreferenceAlertDialogBackgroundFix" parent="Theme.AppCompat.DayNight.Dialog.Alert">
-        <item name="colorPrimary">@color/primary</item>
-        <item name="colorPrimaryDark">@color/primaryDark</item>сра
+    <style name="PreferenceAlertDialogBackgroundFix" parent="AlertDialogTheme">
         <item name="android:background">@color/primary</item>
+    </style>
+
+    <!-- this makes dialog title the same size as the text in the dialog, as well as makes it a bit
+    dimmer and medium weight rather than bold. this makes the text look more consistent, pronounced
+    but not too “black” -->
+    <style name="DialogTitleStyle" parent="RtlOverlay.DialogWindowTitle.AppCompat">
+        <item name="android:textAppearance">@style/DialogTitleTextAppearance</item>
+    </style>
+    <style name="DialogTitleTextAppearance" parent="Base.TextAppearance.AppCompat.Medium">
+        <item name="android:textColor">@color/dialogTitleColor</item>
+        <item name="fontFamily">"sans-serif-medium"</item>
+    </style>
+
+    <!-- this is the theme for all the buttons throughout the app: lowercase, wider margins -->
+    <style name="NormalCaseButton" parent="Base.Widget.AppCompat.Button">
+        <item name="textAllCaps">false</item>
+        <item name="android:textColor">@color/button_text_color</item>
+        <item name="android:paddingRight">20dp</item>
+        <item name="android:paddingLeft">20dp</item>
     </style>
 
     <!-- buttons such as tab, send and bell -->

@@ -147,7 +147,6 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
                 button.setVisibility(View.VISIBLE);
                 boolean more = s == Lines.STATUS.CAN_FETCH_MORE;
                 button.setEnabled(more);
-                button.setTextColor(more ? 0xff80cbc4 : 0xff777777);
                 button.setText(button.getContext().getString(more ? R.string.more_button : R.string.more_button_fetching));
             }
         }
