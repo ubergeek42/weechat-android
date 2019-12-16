@@ -87,7 +87,7 @@ public class Constants {
     public final static long NOTIFICATION_EXTRA_BUFFER_ANY = 0;
 
     // night mode
-    final static public String THEME_GROUP = "theme_group";
+    final static public String PREF_THEME_GROUP = "theme_group";
     final public static String PREF_THEME = "theme";
     final public static String PREF_THEME_SYSTEM = "system";
     final public static String PREF_THEME_DARK = "dark";

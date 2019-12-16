@@ -12,6 +12,7 @@ import androidx.fragment.app.Fragment;
 import androidx.core.content.ContextCompat;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.preference.CheckBoxPreference;
 import androidx.preference.ClearCertPreference;
 import androidx.preference.DialogPreference;
 import androidx.preference.EditTextPreferenceFix;
@@ -156,6 +157,10 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
                 listenTo = new String[] {PREF_PING_IDLE, PREF_PING_TIMEOUT};
             else if (PREF_LOOKFEEL_GROUP.equals(key))
                 listenTo = new String[] {PREF_TEXT_SIZE, PREF_MAX_WIDTH, PREF_TIMESTAMP_FORMAT};
+            else if (PREF_THEME_GROUP.equals(key)) {
+                enableDisableThemeSwitch(getPreferenceScreen().getSharedPreferences().getString(PREF_THEME, PREF_THEME_D));
+                listenTo = new String[]{PREF_THEME};
+            }
 
             for (String p : listenTo)
                 findPreference(p).setOnPreferenceChangeListener(this);
@@ -194,8 +199,11 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
             } else if (PREF_TIMESTAMP_FORMAT.equals(key)) {
                 valid = Utils.isValidTimestampFormat((String) o);
                 toast = R.string.pref_timestamp_invalid;
-            } else if (PREF_CONNECTION_TYPE.equals(key))
+            } else if (PREF_CONNECTION_TYPE.equals(key)) {
                 showHideStuff((String) o);
+            } else if (PREF_THEME.equals(key)) {
+                enableDisableThemeSwitch((String) o);
+            }
             if (!valid)
                 Toast.makeText(getContext(), toast, Toast.LENGTH_SHORT).show();
             return valid;
@@ -210,6 +218,16 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
             else getPreferenceScreen().removePreference(sshGroup);
             if (Utils.isAnyOf(type, PREF_TYPE_WEBSOCKET, PREF_TYPE_WEBSOCKET_SSL)) getPreferenceScreen().addPreference(wsPath);
             else getPreferenceScreen().removePreference(wsPath);
+        }
+
+        // visually disable and uncheck the theme switch preference if the theme is chosen by system
+        private void enableDisableThemeSwitch(String theme) {
+            CheckBoxPreference themeSwitchPreference = getPreferenceScreen().findPreference(PREF_THEME_SWITCH);
+            if (themeSwitchPreference == null) return;
+
+            boolean system = PREF_THEME_SYSTEM.equals(theme);
+            themeSwitchPreference.setEnabled(!system);
+            if (system) themeSwitchPreference.setChecked(false);
         }
 
         // recursively make all currently visible preference titles multiline
