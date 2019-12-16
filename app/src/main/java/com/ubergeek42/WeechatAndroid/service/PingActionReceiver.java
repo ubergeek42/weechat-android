@@ -88,8 +88,8 @@ public class PingActionReceiver extends BroadcastReceiver {
 
     @AnyThread public void unschedulePing() {
         Intent intent = new Intent(PING_ACTION);
-        PendingIntent alarmIntent = PendingIntent.getBroadcast(bone, 0, intent, PendingIntent.FLAG_NO_CREATE);
-        alarmManager.cancel(alarmIntent);
+        PendingIntent pi = PendingIntent.getBroadcast(bone, 0, intent, PendingIntent.FLAG_NO_CREATE);
+        if (pi != null) alarmManager.cancel(pi);
         bone.unregisterReceiver(this);
     }
 

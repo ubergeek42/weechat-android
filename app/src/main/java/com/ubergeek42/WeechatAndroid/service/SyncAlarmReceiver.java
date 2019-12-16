@@ -26,9 +26,8 @@ public class SyncAlarmReceiver extends BroadcastReceiver {
 
     @AnyThread public static void stop(Context context) {
         AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        if (am == null) return;
-        Intent intent = new Intent(context, SyncAlarmReceiver.class);
-        am.cancel(PendingIntent.getBroadcast(context, 0, intent, 0));
+        PendingIntent pe = PendingIntent.getBroadcast(context, 0, new Intent(context, SyncAlarmReceiver.class), 0);
+        if (am != null && pe != null) am.cancel(pe);
     }
 
     @MainThread @Override public void onReceive(Context context, Intent intent) {
