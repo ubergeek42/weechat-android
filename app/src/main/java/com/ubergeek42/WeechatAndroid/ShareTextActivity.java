@@ -26,6 +26,8 @@ public class ShareTextActivity extends AppCompatActivity implements
 
     @Override protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        P.applyThemeAfterActivityCreation(this);
+        P.storeThemeOrColorSchemeColors(this);  // required for ThemeFix.fixIconAndColor()
         ThemeFix.fixIconAndColor(this);
     }
 
@@ -40,7 +42,7 @@ public class ShareTextActivity extends AppCompatActivity implements
 
         Intent intent = getIntent();
         if ((Intent.ACTION_SEND.equals(intent.getAction()) && "text/plain".equals(intent.getType()))) {
-            dialog = new Dialog(this);
+            dialog = new Dialog(this, R.style.AlertDialogTheme);
             dialog.setContentView(R.layout.bufferlist_share);
 
             BufferListAdapter adapter = new BufferListAdapter();
