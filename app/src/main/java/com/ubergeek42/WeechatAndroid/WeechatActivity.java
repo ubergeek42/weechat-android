@@ -182,8 +182,6 @@ public class WeechatActivity extends AppCompatActivity implements
 
         if (P.isServiceAlive()) connect();
 
-        P.calculateWeaselWidth();
-
         // restore buffers if we have data in the static
         // if no data and not going to connect, clear stuff
         // if no data and going to connect, let the LISTED event restore it all
@@ -232,6 +230,7 @@ public class WeechatActivity extends AppCompatActivity implements
     }
 
     @MainThread @Override @CatD protected void onStart() {
+        P.calculateWeaselWidth();
         EventBus.getDefault().register(this);
         state = EventBus.getDefault().getStickyEvent(StateChangedEvent.class).state;
         updateHotCount(Hotlist.getHotCount());
