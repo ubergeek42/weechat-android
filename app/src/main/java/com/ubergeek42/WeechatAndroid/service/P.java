@@ -426,7 +426,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
 
     // protocol must be changed each time anything that uses the following function changes
     // needed to make sure nothing crashes if we cannot restore the data
-    private static final int PROTOCOL_ID = 13;
+    private static final int PROTOCOL_ID = 14;
 
     @AnyThread @Cat public static void saveStuff() {
         synchronized (BufferList.class) {for (Buffer buffer : BufferList.buffers) saveLastReadLine(buffer);}
