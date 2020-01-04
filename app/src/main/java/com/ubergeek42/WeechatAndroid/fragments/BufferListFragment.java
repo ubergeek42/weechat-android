@@ -151,7 +151,7 @@ public class BufferListFragment extends Fragment implements BufferListEye, View.
 
     @AnyThread private void setFilter() {
         String text = uiFilter.getText().toString();
-        BufferListAdapter.setFilter(text);
+        adapter.setFilter(text, true);
         Weechat.runOnMainThread(() -> uiFilterClear.setVisibility((text.length() == 0) ?
                 View.INVISIBLE : View.VISIBLE));
     }

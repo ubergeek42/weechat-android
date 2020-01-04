@@ -145,9 +145,6 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     public static int colorPrimary = ColorScheme.NO_COLOR;
     public static int colorPrimaryDark = ColorScheme.NO_COLOR;
 
-    public static @NonNull String filterLc = "";
-    public static @NonNull String filterUc = "";
-
     @MainThread private static void loadUIPreferences() {
         // buffer list preferences
         sortBuffers = p.getBoolean(PREF_SORT_BUFFERS, PREF_SORT_BUFFERS_D);

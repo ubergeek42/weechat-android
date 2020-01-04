@@ -49,6 +49,10 @@ public class BufferListAdapter extends RecyclerView.Adapter<ViewHolder> implemen
 
     private ArrayList<VisualBuffer> buffers = new ArrayList<>();
 
+    public static @NonNull String filterGlobal = "";
+    private @NonNull String filterLowerCase = "";
+    private @NonNull String filterUpperCase = "";
+
     final private static int[][] COLORS = new int[][] {
             {R.color.bufferListOther, R.color.bufferListOtherHot},
             {R.color.bufferListChannel, R.color.bufferListChannelHot},
@@ -140,8 +144,8 @@ public class BufferListAdapter extends RecyclerView.Adapter<ViewHolder> implemen
         synchronized (BufferList.class) {
             for (Buffer buffer : BufferList.buffers) {
                 if (buffer.type == Buffer.HARD_HIDDEN) continue;
-                if (!buffer.fullName.toLowerCase().contains(P.filterLc) && !buffer.fullName.toUpperCase().contains(P.filterUc)) continue;
-                if (TextUtils.isEmpty(P.filterLc)) {
+                if (!buffer.fullName.toLowerCase().contains(filterLowerCase) && !buffer.fullName.toUpperCase().contains(filterUpperCase)) continue;
+                if (TextUtils.isEmpty(filterLowerCase)) {
                     if (P.hideHiddenBuffers && buffer.hidden && buffer.getHotCount() == 0) continue;
                     if (P.filterBuffers && buffer.type == Buffer.OTHER && buffer.highlights == 0 && buffer.unreads == 0) continue;
                 }
@@ -163,9 +167,10 @@ public class BufferListAdapter extends RecyclerView.Adapter<ViewHolder> implemen
         });
     }
 
-    @AnyThread synchronized public static void setFilter(final String s) {
-        P.filterLc = s.toLowerCase();
-        P.filterUc = s.toUpperCase();
+    @AnyThread synchronized public void setFilter(final String s, boolean global) {
+        if (global) filterGlobal = s;
+        filterLowerCase = s.toLowerCase();
+        filterUpperCase = s.toUpperCase();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

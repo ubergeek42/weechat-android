@@ -4,7 +4,14 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.view.View;
+import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.RelativeLayout;
 
+import androidx.annotation.MainThread;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
@@ -23,6 +30,12 @@ import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
 public class ShareTextActivity extends AppCompatActivity implements
         DialogInterface.OnDismissListener, BufferListClickListener {
     private Dialog dialog;
+
+    private RecyclerView uiRecycler;
+    private BufferListAdapter adapter;
+    private RelativeLayout uiFilterBar;
+    private EditText uiFilter;
+    private ImageButton uiFilterClear;
 
     @Override protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,13 +58,28 @@ public class ShareTextActivity extends AppCompatActivity implements
             dialog = new Dialog(this, R.style.AlertDialogTheme);
             dialog.setContentView(R.layout.bufferlist_share);
 
-            BufferListAdapter adapter = new BufferListAdapter();
-            ((RecyclerView) dialog.findViewById(R.id.recycler)).setAdapter(adapter);
-            dialog.findViewById(R.id.recycler).setBackgroundColor(P.colorPrimary);
+            uiRecycler = dialog.findViewById(R.id.recycler);
+            uiFilterBar = dialog.findViewById(R.id.filter_bar);
+            uiFilter = dialog.findViewById(R.id.bufferlist_filter);
+            uiFilterClear = dialog.findViewById(R.id.bufferlist_filter_clear);
+
+            adapter = new BufferListAdapter();
+            uiRecycler.setAdapter(adapter);
+            uiFilterClear.setOnClickListener((v) -> uiFilter.setText(null));
+            uiFilter.addTextChangedListener(filterTextWatcher);
+            uiFilter.setText(BufferListAdapter.filterGlobal);
+
             adapter.onBuffersChanged();
             dialog.setCanceledOnTouchOutside(true);
             dialog.setCancelable(true);
             dialog.setOnDismissListener(this);
+
+            if (!P.showBufferFilter) {
+                uiFilterBar.setVisibility(View.GONE);
+                uiRecycler.setPadding(0, 0, 0, 0);
+            }
+            applyColorSchemeToViews();
+
             dialog.show();
         }
     }
@@ -74,5 +102,20 @@ public class ShareTextActivity extends AppCompatActivity implements
 
     @Override public void onDismiss(DialogInterface dialog) {
         finish();
+    }
+
+    private TextWatcher filterTextWatcher = new TextWatcher() {
+        @MainThread @Override public void afterTextChanged(Editable a) {}
+        @MainThread @Override public void beforeTextChanged(CharSequence arg0, int a, int b, int c) {}
+        @MainThread @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+            uiFilterClear.setVisibility((s.length() == 0) ? View.INVISIBLE : View.VISIBLE);
+            adapter.setFilter(s.toString(), false);
+            adapter.onBuffersChanged();
+        }
+    };
+
+    private void applyColorSchemeToViews() {
+        uiFilterBar.setBackgroundColor(P.colorPrimary);
+        uiRecycler.setBackgroundColor(P.colorPrimary);
     }
 }

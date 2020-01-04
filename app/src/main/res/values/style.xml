@@ -32,6 +32,7 @@
         <item name="android:windowTitleStyle">@style/DialogTitleStyle</item>
         <item name="dialogCornerRadius">@dimen/dialog_corner_radius</item>
         <item name="buttonStyle">@style/NormalCaseButton</item>
+        <item name="android:windowSoftInputMode">adjustResize|stateHidden</item>
     </style>
 
     <!-- this is only supposed to be used by preferences, since those are broken -->

@@ -1,12 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.recyclerview.widget.RecyclerView
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-    android:id="@+id/recycler"
-    android:layout_width="match_parent"
+
+<!-- FrameLayout is used for the following reasons:
+    * LinearLayout will push the filter offscreen: https://stackoverflow.com/a/24543259/1449683
+    * RelativeLayout will become as big as it can if there ara children with alignParentBottom:
+      https://stackoverflow.com/a/6486458/1449683
+    * ConstraintLayout breaks RecyclerView for some reason. todo figure out why
+the only shortcoming is that the padding of RecyclerView needs to be adjusted manually in the case
+when the filter is not displayed -->
+
+
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
     android:layout_height="match_parent"
-    android:dividerHeight="0dp"
-    android:divider="@null"
-    android:background="?attr/colorPrimary"
-    android:fadingEdge="none" />
+    xmlns:app="http://schemas.android.com/apk/res-auto" >
+
+    <androidx.recyclerview.widget.RecyclerView
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        android:id="@+id/recycler"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:dividerHeight="0dp"
+        android:divider="@null"
+        android:background="@color/primary"
+        android:fadingEdge="none"
+        android:paddingBottom="?actionBarSize" />
+
+    <RelativeLayout
+        android:id="@+id/filter_bar"
+        android:layout_width="wrap_content"
+        android:layout_height="?actionBarSize"
+        android:background="@color/primary"
+        android:layout_gravity="bottom">
+
+        <EditText
+            android:id="@+id/bufferlist_filter"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/filter_bufferlist_placeholder"
+            android:singleLine="true"
+            android:layout_centerVertical="true"
+            android:background="@android:color/transparent"
+            android:layout_marginLeft="12dp"
+            android:layout_marginRight="12dp"
+            android:selectAllOnFocus="true" />
+
+        <ImageButton
+            android:id="@+id/bufferlist_filter_clear"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentBottom="true"
+            android:layout_centerVertical="true"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/ic_cancel"
+            android:visibility="invisible"
+            android:paddingLeft="12dp"
+            android:paddingRight="12dp"
+            android:background="?attr/actionBarItemBackground" />
+    </RelativeLayout>
+</FrameLayout>
