@@ -23,7 +23,6 @@ dependencies {
     implementation 'androidx.legacy:legacy-preference-v14:1.0.0' // styling for the fragment
 
     implementation 'org.aspectj:aspectjrt:1.9.5'
-    implementation 'junit:junit:4.12'
 
     implementation "commons-codec:commons-codec:1.13"
 

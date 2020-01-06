@@ -24,8 +24,6 @@ import com.ubergeek42.weechat.relay.protocol.Hdata;
 import com.ubergeek42.weechat.relay.protocol.HdataEntry;
 import com.ubergeek42.weechat.relay.protocol.RelayObject;
 
-import org.junit.Assert;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -33,6 +31,7 @@ import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.ubergeek42.WeechatAndroid.service.Events.SendMessageEvent;
+import static com.ubergeek42.WeechatAndroid.utils.Assert.assertThat;
 
 
 public class BufferList {
@@ -48,7 +47,7 @@ public class BufferList {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @WorkerThread public static void launch(final RelayService relay) {
-        Assert.assertNull(BufferList.relay);
+        assertThat(BufferList.relay).isNull();
         BufferList.relay = relay;
 
         // handle buffer list changes
@@ -95,7 +94,7 @@ public class BufferList {
     final private static ConcurrentHashMap<String, RelayMessageHandler> handlers = new ConcurrentHashMap<>();
 
     @AnyThread private static void addMessageHandler(String id, RelayMessageHandler handler) {
-        Assert.assertNull(handlers.put(id, handler));
+        assertThat(handlers.put(id, handler)).isNull();
     }
 
     @AnyThread private static void removeMessageHandler(String id, RelayMessageHandler handler) {

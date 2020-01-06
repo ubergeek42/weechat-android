@@ -9,8 +9,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
-import static org.junit.Assert.assertTrue;
-
 public class RelayConnection {
     final private static Logger logger = LoggerFactory.getLogger("RelayConnection");
 
@@ -138,7 +136,7 @@ public class RelayConnection {
     // code that sets state better be synchronized on way or another
     private void setState(STATE state) {
         logger.trace("setState({})", state);
-        assertTrue(this.state.nextStateValid(state));
+        if (!this.state.nextStateValid(state)) logger.error("next connection state is not valid: " + state);
         this.state = state;
 
         if (state == STATE.DISCONNECTED) eventStream.close(() -> observer.onStateChanged(state));

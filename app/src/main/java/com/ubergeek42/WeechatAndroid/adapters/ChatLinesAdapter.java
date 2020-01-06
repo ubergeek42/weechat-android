@@ -43,8 +43,6 @@ import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
 import com.ubergeek42.weechat.ColorScheme;
 
-import org.junit.Assert;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,6 +53,7 @@ import static com.ubergeek42.WeechatAndroid.relay.Lines.HEADER_POINTER;
 import static com.ubergeek42.WeechatAndroid.relay.Lines.MARKER_POINTER;
 
 import static com.ubergeek42.WeechatAndroid.utils.Utils.Predicate;
+import static com.ubergeek42.WeechatAndroid.utils.Assert.assertThat;
 
 
 public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements BufferEye {
@@ -293,8 +292,8 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     }
 
     @MainThread private int findHotLine() {
-        Assert.assertNotNull(buffer);
-        Assert.assertTrue(buffer.linesAreReady());
+        assertThat(buffer).isNotNull();
+        assertThat(buffer.linesAreReady()).isTrue();
 
         int skip = buffer.getHotCount();
         if (skip == 0) return HOT_LINE_NOT_PRESENT;

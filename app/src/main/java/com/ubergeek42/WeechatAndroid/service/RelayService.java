@@ -50,8 +50,7 @@ import java.util.EnumSet;
 
 import static com.ubergeek42.WeechatAndroid.service.Events.*;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static com.ubergeek42.WeechatAndroid.utils.Assert.assertThat;
 
 
 public class RelayService extends Service implements IObserver {
@@ -131,7 +130,7 @@ public class RelayService extends Service implements IObserver {
 
     // called by user and when disconnected
     @MainThread @Cat private synchronized void start() {
-        assertTrue(state.contains(STATE.STOPPED));
+        assertThat(state).contains(STATE.STOPPED);
         changeState(EnumSet.of(STATE.STARTED));
         P.setServiceAlive(true);
         _start();
@@ -177,7 +176,7 @@ public class RelayService extends Service implements IObserver {
 
     // called by user and when there was a fatal exception while trying to connect
     @AnyThread @Cat synchronized void stop() {
-        assertFalse(state.contains(STATE.STOPPED));
+        assertThat(state).doesNotContain(STATE.STOPPED);
         if (state.contains(STATE.AUTHENTICATED)) goodbye();
         changeState(EnumSet.of(STATE.STOPPED));
         interrupt();

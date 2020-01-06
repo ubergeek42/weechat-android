@@ -22,10 +22,10 @@ import com.ubergeek42.weechat.Color;
 import com.ubergeek42.weechat.relay.protocol.Hashtable;
 import com.ubergeek42.weechat.relay.protocol.RelayObject;
 
-import org.junit.Assert;
-
 import java.util.ArrayList;
 import java.util.Arrays;
+
+import static com.ubergeek42.WeechatAndroid.utils.Assert.assertThat;
 
 public class Buffer {
     final private @Root Kitty kitty = Kitty.make();
@@ -171,9 +171,9 @@ public class Buffer {
     // lines must be ready!
     // affects the way buffer advertises highlights/unreads count and notifications */
     @MainThread @Cat synchronized public void setWatched(boolean watched) {
-        Assert.assertTrue(linesAreReady());
-        Assert.assertNotEquals(isWatched, watched);
-        Assert.assertTrue(isOpen);
+        assertThat(linesAreReady()).isTrue();
+        assertThat(isWatched).isNotEqualTo(watched);
+        assertThat(isOpen).isTrue();
         isWatched = watched;
         if (watched) resetUnreadsAndHighlights();
         else lines.rememberCurrentSkipsOffset();

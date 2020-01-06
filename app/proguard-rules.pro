@@ -35,6 +35,8 @@
 }
 -dontwarn java.lang.management.*
 
+-assumenosideeffects class com.ubergeek42.WeechatAndroid.utils.Assert* { public *; }
+
 # prevents warnings such as "library class android.test.AndroidTestCase extends or implements program class junit.framework.TestCase"
 # maybe should be done differently?
 -dontwarn android.test.**

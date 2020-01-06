@@ -16,7 +16,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import static org.junit.Assert.assertEquals;
+import static com.ubergeek42.WeechatAndroid.utils.Assert.assertThat;
 
 
 // this class is supposed to be synchronized by Buffer
@@ -72,7 +72,7 @@ public class Lines {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @WorkerThread void addFirst(Line line) {
-        assertEquals(status, STATUS.FETCHING);
+        assertThat(status).isEqualTo(STATUS.FETCHING);
         ensureSizeBeforeAddition();
         unfiltered.addFirst(line);
         if (line.visible) filtered.addFirst(line);

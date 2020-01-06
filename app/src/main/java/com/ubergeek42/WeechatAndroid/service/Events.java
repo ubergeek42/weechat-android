@@ -10,10 +10,11 @@ import android.text.TextUtils;
 import com.ubergeek42.WeechatAndroid.service.RelayService.STATE;
 
 import org.greenrobot.eventbus.EventBus;
-import org.junit.Assert;
 
 import java.util.EnumSet;
 import java.util.Locale;
+
+import static com.ubergeek42.WeechatAndroid.utils.Assert.assertThat;
 
 
 public class Events {
@@ -54,7 +55,7 @@ public class Events {
         }
 
         public static void fire(@NonNull String message) {
-            Assert.assertFalse(message.endsWith("\n"));
+            assertThat(message.endsWith("\n")).isFalse();
             EventBus.getDefault().post(new SendMessageEvent(message));
         }
 
