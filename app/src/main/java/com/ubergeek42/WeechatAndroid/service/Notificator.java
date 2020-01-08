@@ -161,9 +161,11 @@ public class Notificator {
         long pointer = hotBuffer.pointer;
 
         // when redrawing notifications in order to remove the reply button, make sure we don't
-        // add back notifications that were dismissed
-        if (reason == Hotlist.NotifyReason.REDRAW && !notifications.contains(pointer))
-            return;
+        // add back notifications that were dismissed. synchronize `notifications.contains`
+        synchronized (Notificator.class) {
+            if (reason == Hotlist.NotifyReason.REDRAW && !notifications.contains(pointer))
+                return;
+        }
 
         // https://developer.android.com/guide/topics/ui/notifiers/notifications.html#back-compat
         boolean canMakeBundledNotifications = Build.VERSION.SDK_INT >= 24;
