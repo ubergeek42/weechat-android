@@ -42,7 +42,7 @@ public class Hotlist {
 
     @SuppressLint("UseSparseArrays")
     final private static HashMap<Long, HotBuffer> hotList = new HashMap<>();
-    private static volatile AtomicInteger totalHotCount = new AtomicInteger(0);
+    private static AtomicInteger totalHotCount = new AtomicInteger(0);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////// classes
