@@ -62,7 +62,7 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     private final AnimatedRecyclerView uiLines;
     private @Nullable Buffer buffer;
     private List<Line> lines = new ArrayList<>();
-    private List<Line> _lines = new ArrayList<>();
+    volatile private List<Line> _lines = new ArrayList<>();
 
     @MainThread public ChatLinesAdapter(AnimatedRecyclerView animatedRecyclerView) {
         this.uiLines = animatedRecyclerView;
@@ -190,7 +190,7 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         else return new Row(new LineView(parent.getContext()));
     }
 
-    @MainThread @Override public synchronized void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+    @MainThread @Override public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         long pointer = lines.get(position).pointer;
         if (pointer == HEADER_POINTER) ((Header) holder).update();
         else if (pointer == MARKER_POINTER) ((ReadMarkerRow) holder).update();
@@ -215,9 +215,7 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     // store the new list in `_lines` so that we can produce a proper diff
     @AnyThread private synchronized void onLinesChanged() {
         if (buffer == null) return;
-        final ArrayList<Line> newLines;
-
-        newLines = buffer.getLinesCopy();
+        final ArrayList<Line> newLines = buffer.getLinesCopy();
 
         final boolean hack = _lines.size() == 1 && newLines.size() > 1;
 
@@ -270,7 +268,7 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @MainThread public synchronized void loadLinesWithoutAnimation() {
+    @MainThread public void loadLinesWithoutAnimation() {
         if (buffer == null) return;
         uiLines.disableAnimationForNextUpdate();
         onLinesChanged();
@@ -283,7 +281,7 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     private final static int HOT_LINE_LOST = -1;
     private final static int HOT_LINE_NOT_PRESENT = -3;
 
-    @MainThread public synchronized void scrollToHotLineIfNeeded() {
+    @MainThread public void scrollToHotLineIfNeeded() {
         final int idx = findHotLine();
         if (idx == HOT_LINE_NOT_PRESENT) return;
         if (idx == HOT_LINE_LOST) Weechat.showShortToast(R.string.autoscroll_no_line);
@@ -294,6 +292,7 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     @MainThread private int findHotLine() {
         assertThat(buffer).isNotNull();
         assertThat(buffer.linesAreReady()).isTrue();
+        final List<Line> lines = _lines;
 
         int skip = buffer.getHotCount();
         if (skip == 0) return HOT_LINE_NOT_PRESENT;
@@ -301,8 +300,8 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         Predicate<Line> p = (buffer.type == PRIVATE) ? (l) -> l.type == Line.LINE_MESSAGE :
                 (l) -> l.highlighted;
 
-        for (int idx = _lines.size() - 1; idx >= 0; idx--)
-            if (p.test(_lines.get(idx)) && --skip == 0) return idx;
+        for (int idx = lines.size() - 1; idx >= 0; idx--)
+            if (p.test(lines.get(idx)) && --skip == 0) return idx;
 
         return HOT_LINE_LOST;
     }
