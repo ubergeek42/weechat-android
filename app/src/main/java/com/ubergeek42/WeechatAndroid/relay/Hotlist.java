@@ -192,11 +192,14 @@ public class Hotlist {
         int hotBufferCount = 0;
         long lastMessageTimestamp = 0;
 
-        for (HotBuffer b : hotList.values()) {
-            if (b.hotCount == 0) continue;
-            hotBufferCount++;
-            allMessages.addAll(b.messages);
-            if (b.lastMessageTimestamp > lastMessageTimestamp) lastMessageTimestamp = b.lastMessageTimestamp;
+        synchronized (Hotlist.class) {
+            for (HotBuffer b : hotList.values()) {
+                if (b.hotCount == 0) continue;
+                hotBufferCount++;
+                allMessages.addAll(b.messages);
+                if (b.lastMessageTimestamp > lastMessageTimestamp)
+                    lastMessageTimestamp = b.lastMessageTimestamp;
+            }
         }
 
         // older messages come first
