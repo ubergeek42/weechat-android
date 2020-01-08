@@ -79,6 +79,30 @@ primary = "0xffebdbb2"          # bg1
 primary_dark = "0xffebdbb2"     # bg0_h
 GRUVBOX_LIGHT = (TEMPLATE + TEMPLATE_UI).format(**locals())
 
+##################################################################################### https://github.com/morhetz/gruvbox
+
+name = "Viola Dark"
+default = "0xb8adb3"            # 327/7/70 (hsl)
+default_bg = "0x161415"         # /6/8
+unimportant = "0x292427"        # /15 - slightly brighter
+chat_highlight = "0x161315"     # /8
+chat_highlight_bg = "0xe0b8cf"  # /327/33/90
+nick_self = "0xf3f1f2"          # /95
+primary = "0xff1e1a1c"          # 6/11
+primary_dark = "0xff1e1a1c"     # 6/11
+VIOLA_DARK = (TEMPLATE + TEMPLATE_UI).format(**locals())
+
+name = "Viola Light"
+default = "0x2c2836"            # fg
+default_bg = "0xfbf8fa"         # 327/30/98
+unimportant = "0xeae1e6"        # /17/90
+chat_highlight = "0xf6eef3"     # /95
+chat_highlight_bg = "0x633651"  # /30
+nick_self = "0x422435"          # /20
+primary = "0xfff3e8ee"          # /93
+primary_dark = "0xfff3e8ee"     # /93
+VIOLA_LIGHT = (TEMPLATE + TEMPLATE_UI).format(**locals())
+
 ################################################################################################################# amoled
 
 name = "Pitch Black"
@@ -128,6 +152,8 @@ def run():
     create_theme("squirrely-light-darker", SQUIRRELY_LIGHT_DARKER, "s-light-darker", "s-light-bg")
     create_theme("gruvbox-dark", GRUVBOX_DARK, "g-dark", "g-dark-bg")
     create_theme("gruvbox-light", GRUVBOX_LIGHT, "g-light", "g-light-bg")
+    create_theme("viola-dark", VIOLA_DARK, "s-dark", "s-dark-bg")
+    create_theme("viola-light", VIOLA_LIGHT, "s-light-darker", "s-light-bg")
     create_theme("pitch-black", PITCH_BLACK, "s-dark", "s-dark-bg")
     print("done")
 
