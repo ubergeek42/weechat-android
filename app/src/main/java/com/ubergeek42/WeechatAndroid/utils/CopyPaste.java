@@ -37,17 +37,15 @@ public class CopyPaste implements EditText.OnLongClickListener {
         if (!"".equals(input.getText().toString())) return false;
         Context context = input.getContext();
 
-        final ArrayList<String> list = new ArrayList<>();
-
         // read & trim clipboard
         // noinspection deprecation
         ClipboardManager cm = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
         final String clip = (cm == null || cm.getText() == null) ? "" : cm.getText().toString().trim();
 
-        // copy last messages if they do not equal clipboard
-        // if there are no messages, do nothing
-        for (String m : P.sentMessages) if (!m.equals(clip)) list.add(m);
-        if (list.size() == 0) return false;
+        // if no sent messages, or the only sent message is in the clipboard, do nothing
+        if (P.sentMessages.size() == 0 || (P.sentMessages.size() == 1 && clip.equals(P.sentMessages.get(0)))) return false;
+
+        final ArrayList<String> list = new ArrayList<>(P.sentMessages);
 
         // clean and add clipboard
         if (!"".equals(clip)) list.add(clip);
