@@ -126,7 +126,6 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
 
     public static int weaselWidth = 200;
     public static float textSize, letterWidth;
-    public static Typeface typeface;
     public static TextPaint textPaint;
 
     static boolean notificationEnable;
@@ -162,7 +161,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         setAlignment();
 
         // theme
-        applyThemePreference(null);
+        applyThemePreference();
         themeSwitchEnabled = p.getBoolean(PREF_THEME_SWITCH, PREF_THEME_SWITCH_D);
 
         // notifications
@@ -191,8 +190,8 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     //   lifecycle of the activity; if changed—by the user or the system—the activity is recreated.
     // * color scheme can be changed without changing the theme. so we call it on activity creation
     //   an on preference change.
-    private static void applyThemePreference(@Nullable String theme) {
-        if (theme == null) theme = p.getString(PREF_THEME, PREF_THEME_D);
+    private static void applyThemePreference() {
+        String theme = p.getString(PREF_THEME, PREF_THEME_D);
         int flag = Build.VERSION.SDK_INT < Build.VERSION_CODES.Q ?
                 AppCompatDelegate.MODE_NIGHT_AUTO_BATTERY : AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM;
         if       (PREF_THEME_DARK.equals(theme)) flag = AppCompatDelegate.MODE_NIGHT_YES;
@@ -205,10 +204,11 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         changeColorScheme();
     }
 
-    private static void changeColorScheme() {
+    // todo optimize this method—might be too expensive
+    private static @CatD void changeColorScheme() {
         ThemeManager.loadColorSchemeFromPreferences(context);
-        BufferList.onGlobalPreferencesChanged(false);
         setTextSizeColorAndLetterWidth();
+        BufferList.onGlobalPreferencesChanged(false);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////// connection
@@ -322,7 +322,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
                 BufferList.onGlobalPreferencesChanged(false);
                 break;
             case PREF_THEME:
-                applyThemePreference(null);
+                applyThemePreference();
             case PREF_COLOR_SCHEME_DAY:
             case PREF_COLOR_SCHEME_NIGHT:
                 changeColorScheme();
@@ -370,7 +370,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         textSize = Float.parseFloat(getString(PREF_TEXT_SIZE, PREF_TEXT_SIZE_D));
         String bufferFont = p.getString(PREF_BUFFER_FONT, PREF_BUFFER_FONT_D);
 
-        typeface = Typeface.MONOSPACE;
+        Typeface typeface = Typeface.MONOSPACE;
         try {typeface = Typeface.createFromFile(bufferFont);} catch (Exception ignored) {}
 
         textPaint = new TextPaint();
