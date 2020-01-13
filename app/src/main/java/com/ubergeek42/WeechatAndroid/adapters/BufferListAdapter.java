@@ -141,16 +141,14 @@ public class BufferListAdapter extends RecyclerView.Adapter<ViewHolder> implemen
     @AnyThread @Override @Cat("??") synchronized public void onBuffersChanged() {
         final ArrayList<VisualBuffer> newBuffers = new ArrayList<>();
 
-        synchronized (BufferList.class) {
-            for (Buffer buffer : BufferList.buffers) {
-                if (buffer.type == Buffer.HARD_HIDDEN) continue;
-                if (!buffer.fullName.toLowerCase().contains(filterLowerCase) && !buffer.fullName.toUpperCase().contains(filterUpperCase)) continue;
-                if (TextUtils.isEmpty(filterLowerCase)) {
-                    if (P.hideHiddenBuffers && buffer.hidden && buffer.getHotCount() == 0) continue;
-                    if (P.filterBuffers && buffer.type == Buffer.OTHER && buffer.highlights == 0 && buffer.unreads == 0) continue;
-                }
-                newBuffers.add(new VisualBuffer(buffer));
+        for (Buffer buffer : BufferList.buffers) {
+            if (buffer.type == Buffer.HARD_HIDDEN) continue;
+            if (!buffer.fullName.toLowerCase().contains(filterLowerCase) && !buffer.fullName.toUpperCase().contains(filterUpperCase)) continue;
+            if (TextUtils.isEmpty(filterLowerCase)) {
+                if (P.hideHiddenBuffers && buffer.hidden && buffer.getHotCount() == 0) continue;
+                if (P.filterBuffers && buffer.type == Buffer.OTHER && buffer.highlights == 0 && buffer.unreads == 0) continue;
             }
+            newBuffers.add(new VisualBuffer(buffer));
         }
 
         if (P.sortBuffers) Collections.sort(newBuffers, sortByHotAndMessageCountComparator);

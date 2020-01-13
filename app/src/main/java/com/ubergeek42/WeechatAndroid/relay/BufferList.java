@@ -29,6 +29,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import static com.ubergeek42.WeechatAndroid.service.Events.SendMessageEvent;
 import static com.ubergeek42.WeechatAndroid.utils.Assert.assertThat;
@@ -40,7 +41,7 @@ public class BufferList {
     public static volatile @Nullable RelayService relay;
     private static volatile @Nullable BufferListEye buffersEye;
 
-    final public static @NonNull ArrayList<Buffer> buffers = new ArrayList<>();
+    final public static @NonNull CopyOnWriteArrayList<Buffer> buffers = new CopyOnWriteArrayList<>();
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -118,7 +119,7 @@ public class BufferList {
 
     @AnyThread public static void sortOpenBuffersByBuffers(ArrayList<Long> pointers) {
         final LongSparseArray<Integer> bufferToNumber = new LongSparseArray<>();
-        synchronized (BufferList.class) {for (Buffer b: buffers) bufferToNumber.put(b.pointer, b.number);}
+        for (Buffer b: buffers) bufferToNumber.put(b.pointer, b.number);
         Collections.sort(pointers, (l, r) -> bufferToNumber.get(l, -1) - bufferToNumber.get(r, -1));
     }
 
@@ -138,12 +139,12 @@ public class BufferList {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     // returns a "random" hot buffer or null
-    @MainThread synchronized static public @Nullable Buffer getHotBuffer() {
+    @MainThread static public @Nullable Buffer getHotBuffer() {
         for (Buffer buffer : buffers) if (buffer.getHotCount() > 0) return buffer;
         return null;
     }
 
-    @MainThread synchronized static public int getHotBufferCount() {
+    @MainThread static public int getHotBufferCount() {
         int count = 0;
         for (Buffer buffer : buffers) if (buffer.getHotCount() > 0) count++;
         return count;
@@ -166,7 +167,7 @@ public class BufferList {
     }
 
     // process all open buffers and, if specified, notify them of the change
-    @MainThread synchronized public static void onGlobalPreferencesChanged(boolean numberChanged) {
+    @MainThread public static void onGlobalPreferencesChanged(boolean numberChanged) {
         for (Buffer buffer : buffers)
             if (buffer.isOpen) buffer.onGlobalPreferencesChanged(numberChanged);
     }
@@ -208,7 +209,7 @@ public class BufferList {
     //////////////////////////////////////////////////////////////////////////////////////////////// private stuffs
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @AnyThread synchronized public static @Nullable Buffer findByPointer(long pointer) {
+    @AnyThread public static @Nullable Buffer findByPointer(long pointer) {
         for (Buffer buffer : buffers) if (buffer.pointer == pointer) return buffer;
         return null;
     }
@@ -224,7 +225,7 @@ public class BufferList {
         @WorkerThread @Override @Cat public void handleMessage(RelayObject obj, String id) {
             Hdata data = (Hdata) obj;
 
-            if (id.equals("listbuffers")) synchronized (BufferList.class) {buffers.clear();}
+            if (id.equals("listbuffers")) buffers.clear();
 
             for (int i = 0, size = data.getCount(); i < size; i++) {
                 HdataEntry entry = data.getItem(i);
@@ -239,7 +240,7 @@ public class BufferList {
                             ((r = entry.getItem("notify")) != null) ? r.asInt() : 3,
                             (Hashtable) entry.getItem("local_variables"),
                             ((r = entry.getItem("hidden")) != null) && r.asInt() != 0);
-                    synchronized (BufferList.class) {buffers.add(buffer);}
+                    buffers.add(buffer);
                 } else if (id.equals("renumber")) {
                     Buffer buffer = findByPointer(entry.getPointerLong(0));
                     int number = entry.getItem("number").asInt();
@@ -272,7 +273,7 @@ public class BufferList {
                             buffer.hidden = !id.endsWith("unhidden");
                             notifyBuffersChanged();
                         } else if (id.equals("_buffer_closing")) {
-                            synchronized (BufferList.class) {buffers.remove(buffer);}
+                            buffers.remove(buffer);
                             buffer.onBufferClosed();
                             notifyBuffersChanged();
                         } else {
@@ -309,11 +310,9 @@ public class BufferList {
                 bufferToLrl.put(bufferPointer, linePointer);
             }
 
-            synchronized (BufferList.class) {
-                for (Buffer buffer : buffers) {
-                    Long linePointer = bufferToLrl.get(buffer.pointer);
-                    buffer.updateLastReadLine(linePointer == null ? -1 : linePointer);
-                }
+            for (Buffer buffer : buffers) {
+                Long linePointer = bufferToLrl.get(buffer.pointer);
+                buffer.updateLastReadLine(linePointer == null ? -1 : linePointer);
             }
         }
     };
@@ -335,18 +334,15 @@ public class BufferList {
                 bufferToHotlist.put(pointer, count);
             }
 
-            synchronized (BufferList.class) {
-                for (Buffer buffer : buffers) {
-                    Array count = bufferToHotlist.get(buffer.pointer);
-                    int others = count == null ? 0 : count.get(0).asInt();
-                    int unreads = count == null ? 0 : count.get(1).asInt() + count.get(2).asInt();   // chat messages & private messages
-                    int highlights = count == null ? 0 : count.get(3).asInt();                       // highlights
-                    buffer.updateHotList(highlights, unreads, others);
-                    Hotlist.adjustHotListForBuffer(buffer);
-                }
+            for (Buffer buffer : buffers) {
+                Array count = bufferToHotlist.get(buffer.pointer);
+                int others = count == null ? 0 : count.get(0).asInt();
+                int unreads = count == null ? 0 : count.get(1).asInt() + count.get(2).asInt();   // chat messages & private messages
+                int highlights = count == null ? 0 : count.get(3).asInt();                       // highlights
+                buffer.updateHotList(highlights, unreads, others);
+                Hotlist.adjustHotListForBuffer(buffer);
             }
 
-            //processHotCountAndAdjustNotification(false);
             notifyBuffersChanged();
         }
     };
