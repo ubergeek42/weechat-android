@@ -23,7 +23,8 @@ when the filter is not displayed -->
         android:divider="@null"
         android:background="@color/primary"
         android:fadingEdge="none"
-        android:paddingBottom="?actionBarSize" />
+        android:paddingBottom="?actionBarSize"
+        android:scrollbars="vertical" />
 
     <RelativeLayout
         android:id="@+id/filter_bar"
