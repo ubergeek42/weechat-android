@@ -345,7 +345,7 @@ public class WeechatActivity extends AppCompatActivity implements
         toolbarController.onPageChangedOrSelected();
         if (needToChangeKittyVisibility) {
             int visible = adapter.getCount() == 0 ? View.VISIBLE : View.GONE;
-            findViewById(R.id.kitty_background).setVisibility(visible);
+            uiPager.post(() -> findViewById(R.id.kitty_background).setVisibility(visible));
             findViewById(R.id.kitty).setVisibility(visible);
         }
     }
