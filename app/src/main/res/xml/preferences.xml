@@ -52,6 +52,7 @@
 		<CheckBoxPreference android:key="filter_nonhuman_buffers" android:title="@string/pref_hide_server_buffers" android:summary="@string/pref_hide_server_buffers_summary" android:defaultValue="false" />
         <CheckBoxPreference android:key="hide_hidden_buffers" android:title="@string/pref_hide_hidden_buffers" android:summary="@string/pref_hide_hidden_buffers_summary" android:defaultValue="false" />
 		<CheckBoxPreference android:key="show_buffer_filter" android:title="@string/pref_show_buffer_filter" android:summary="@string/pref_show_buffer_filter_summary"  android:defaultValue="false" />
+        <CheckBoxPreference android:key="use_gesture_exclusion_zone" android:title="@string/pref_use_gesture_exclusion_zone" android:summary="@string/pref_use_gesture_exclusion_zone_summary" android:defaultValue="false" />
     </PreferenceScreen>
 
     <!-- look and feel -->

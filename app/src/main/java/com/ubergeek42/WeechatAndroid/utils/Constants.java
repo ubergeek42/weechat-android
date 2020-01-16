@@ -49,10 +49,12 @@ public class Constants {
     final static public String PREF_PING_TIMEOUT = "ping_timeout"; final public static String PREF_PING_TIMEOUT_D = "30";
 
     // buffer list
+    public static final String PREF_BUFFERLIST_GROUP = "bufferlist_group";
     public static final String PREF_SORT_BUFFERS = "sort_buffers"; final public static boolean PREF_SORT_BUFFERS_D = false;
     public static final String PREF_HIDE_HIDDEN_BUFFERS = "hide_hidden_buffers"; final public static boolean PREF_HIDE_HIDDEN_BUFFERS_D = false;
     public static final String PREF_FILTER_NONHUMAN_BUFFERS = "filter_nonhuman_buffers"; final public static boolean PREF_FILTER_NONHUMAN_BUFFERS_D = false;
     public static final String PREF_SHOW_BUFFER_FILTER = "show_buffer_filter"; final public static boolean PREF_SHOW_BUFFER_FILTER_D = false;
+    public static final String PREF_USE_GESTURE_EXCLUSION_ZONE = "use_gesture_exclusion_zone"; final public static boolean PREF_USE_GESTURE_EXCLUSION_ZONE_D = false;
 
     // look & feel
     final static public String PREF_LOOKFEEL_GROUP = "lookfeel_group";

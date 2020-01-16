@@ -160,6 +160,8 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
             else if (PREF_THEME_GROUP.equals(key)) {
                 enableDisableThemeSwitch(getPreferenceScreen().getSharedPreferences().getString(PREF_THEME, PREF_THEME_D));
                 listenTo = new String[]{PREF_THEME};
+            } else if (PREF_BUFFERLIST_GROUP.equals(key)) {
+                enableDisableGestureExclusionZoneSwitch();
             }
 
             for (String p : listenTo)
@@ -228,6 +230,11 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
             boolean system = PREF_THEME_SYSTEM.equals(theme);
             themeSwitchPreference.setEnabled(!system);
             if (system) themeSwitchPreference.setChecked(false);
+        }
+
+        private void enableDisableGestureExclusionZoneSwitch() {
+            Preference p = getPreferenceScreen().findPreference(PREF_USE_GESTURE_EXCLUSION_ZONE);
+            if (p != null) p.setVisible(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q);
         }
 
         // recursively make all currently visible preference titles multiline

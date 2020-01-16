@@ -214,9 +214,10 @@
             <string name="pref_hide_server_buffers_summary">E.g. server buffers and plugin buffers</string>
             <string name="pref_hide_hidden_buffers">Hide hidden buffers</string>
             <string name="pref_hide_hidden_buffers_summary">Hide buffers hidden with /buffer hide</string>
-    <string name="pref_show_buffer_filter">Show buffer filter</string>
+            <string name="pref_show_buffer_filter">Show buffer filter</string>
             <string name="pref_show_buffer_filter_summary">Filter matches full buffer names and reveals matching hidden buffers</string>
-
+            <string name="pref_use_gesture_exclusion_zone">System gesture exclusion zone</string>
+            <string name="pref_use_gesture_exclusion_zone_summary">On Android Q, the left side of the screen is reserved for the back gesture. Enable this to have a small area in the bottom of the screen where you can open the buffer list normally.</string>
 
     <!-- look & feel -->
 

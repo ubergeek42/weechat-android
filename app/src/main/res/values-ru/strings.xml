@@ -193,6 +193,8 @@
     <string name="pref_show_buffer_filter_summary">Фильтр работает с полными именами буферов и показывает скрытые буферы</string>
     <string name="pref_sort_buffers">Сортировать список буферов</string>
     <string name="pref_sort_buffers_summary">Сортировать по количество упоминаний и новых сообщений в приватных буферах</string>
+    <string name="pref_use_gesture_exclusion_zone">Исключение из системных жестов</string>
+    <string name="pref_use_gesture_exclusion_zone_summary">На Android Q левая грань экрана предназначена для жеста «назад». Эта опция позволяет оставить свободной от этого жеста небольшую зону внизу экрана, чтобы можно было как обычно открывать список буферов.</string>
     <string name="unknown_version_id">Версия неизвестна</string>
 
     <plurals name="nick_list_count">
