@@ -515,7 +515,7 @@ public class WeechatActivity extends AppCompatActivity implements
 
     @MainThread @Override public void onBackPressed() {
         if (slidy && drawerShowing) hideDrawer();
-        else super.onBackPressed();
+        else moveTaskToBack(true);
     }
 
     @MainThread public boolean isChatInputFocused() {
