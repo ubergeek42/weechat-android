@@ -61,5 +61,10 @@ public class Assert {
             if (((Collection) a).contains(b)) fail("Actual must not contain " + b);
             return this;
         }
+
+        public A isGreaterThan(int b) {
+            if (((int) a) <= b) fail("Actual must be greater than " + b);
+            return this;
+        }
     }
 }

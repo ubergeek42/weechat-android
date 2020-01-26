@@ -11,6 +11,8 @@ import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.service.P;
 
+import static com.ubergeek42.WeechatAndroid.utils.Assert.assertThat;
+
 public class ToolbarController implements ViewTreeObserver.OnGlobalLayoutListener {
     private final WeechatActivity activity;
     private final Toolbar toolbar;
@@ -89,13 +91,35 @@ public class ToolbarController implements ViewTreeObserver.OnGlobalLayoutListene
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
+    private int initialSystemAreaHeight = -1;
+
+    // windowHeight is the height of the activity that includes the height of the status bar and the
+    // navigation bar. if the activity is split, this height seems to be only including the system
+    // bar that the activity is “touching”. this height doesn't include the keyboard height per se,
+    // but if the activity changes size due to the keyboard, this number remains the same.
+    // activityHeight is the height of the activity not including any of the system stuff.
     @Override public void onGlobalLayout() {
         if (canNotAutoHide()) return;
-        // if more than 300 pixels, its probably a keyboard...
-        int heightDiff = root.getRootView().getHeight() - root.getHeight();
-        if (heightDiff > 300)
-            onSoftwareKeyboardStateChanged(true);
-        else if (heightDiff < 300)
-            onSoftwareKeyboardStateChanged(false);
+        int windowHeight = root.getRootView().getHeight();
+        int activityHeight = root.getHeight();
+        int systemAreaHeight = windowHeight - activityHeight;
+
+        // note the initial system area (assuming keyboard closed) and return. we should be getting
+        // a few more calls to this method without any changes to the height numbers
+        if (initialSystemAreaHeight == -1) {
+            initialSystemAreaHeight = systemAreaHeight;
+            return;
+        }
+
+        assertThat(windowHeight).isGreaterThan(0);
+        assertThat(initialSystemAreaHeight).isGreaterThan(0);
+
+        // weed out some insanity that's happening when the window is in split screen mode. it seems
+        // that while resizing some elements can temporarily have the height 0.
+        if (systemAreaHeight < initialSystemAreaHeight) return;
+        if (activityHeight == 0) return;
+
+        boolean keyboardVisible = systemAreaHeight - initialSystemAreaHeight > 20;
+        onSoftwareKeyboardStateChanged(keyboardVisible);
     }
 }
