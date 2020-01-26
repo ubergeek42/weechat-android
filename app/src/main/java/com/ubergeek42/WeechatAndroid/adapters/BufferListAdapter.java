@@ -141,11 +141,16 @@ public class BufferListAdapter extends RecyclerView.Adapter<ViewHolder> implemen
     @AnyThread @Override @Cat("??") synchronized public void onBuffersChanged() {
         final ArrayList<VisualBuffer> newBuffers = new ArrayList<>();
 
+        // this method must not call any synchronized methods of Buffer as this could result in a
+        // deadlock (worker thread e: Buffer.addLine() (locks BufferA) -> this.onBuffersChanged()
+        // (waiting for main to release this) vs. main thread: onBuffersChanged() (locks this) ->
+        // iteration on Buffers: (waiting for e to release BufferA). todo: resolve this gracefully
         for (Buffer buffer : BufferList.buffers) {
             if (buffer.type == Buffer.HARD_HIDDEN) continue;
             if (!buffer.fullName.toLowerCase().contains(filterLowerCase) && !buffer.fullName.toUpperCase().contains(filterUpperCase)) continue;
             if (TextUtils.isEmpty(filterLowerCase)) {
-                if (P.hideHiddenBuffers && buffer.hidden && buffer.getHotCount() == 0) continue;
+                if (P.hideHiddenBuffers && buffer.hidden &&
+                        buffer.highlights == 0 && !(buffer.type == Buffer.PRIVATE && buffer.unreads != 0)) continue;
                 if (P.filterBuffers && buffer.type == Buffer.OTHER && buffer.highlights == 0 && buffer.unreads == 0) continue;
             }
             newBuffers.add(new VisualBuffer(buffer));
