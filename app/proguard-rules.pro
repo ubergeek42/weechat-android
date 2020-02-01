@@ -44,3 +44,4 @@
 -keepclassmembers class ** {
     public void onEvent*(**);
 }
+-keep class org.apache.commons.codec.digest.* { *; }
