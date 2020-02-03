@@ -256,11 +256,9 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     }
 
     @WorkerThread @Override public void onLinesListed() {
-        Weechat.runOnMainThread(() -> {
-            if (uiLines != null) uiLines.requestAnimation();  // NPE
-            onVisibilityStateChanged(State.LINES);
-        });
+        if (uiLines != null) uiLines.requestAnimation();
         ChatLinesAdapter a = linesAdapter; if (a != null) a.onLinesListed();
+        Weechat.runOnMainThread(() -> onVisibilityStateChanged(State.LINES));
     }
 
     @WorkerThread @Override public void onPropertiesChanged() {
