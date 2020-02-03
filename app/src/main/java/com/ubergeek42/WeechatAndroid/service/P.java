@@ -423,7 +423,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
 
     // protocol must be changed each time anything that uses the following function changes
     // needed to make sure nothing crashes if we cannot restore the data
-    private static final int PROTOCOL_ID = 14;
+    private static final int PROTOCOL_ID = 15;
 
     @AnyThread @Cat public static void saveStuff() {
         for (Buffer buffer : BufferList.buffers) saveLastReadLine(buffer);
@@ -467,7 +467,6 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         long lastReadLineServer = -1;
         int totalOldUnreads = 0;
         int totalOldHighlights = 0;
-        int totalOldOthers = 0;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -480,7 +479,6 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
             buffer.lastReadLineServer = data.lastReadLineServer;
             buffer.totalReadUnreads = data.totalOldUnreads;
             buffer.totalReadHighlights = data.totalOldHighlights;
-            buffer.totalReadOthers = data.totalOldOthers;
         }
     }
 
@@ -495,7 +493,6 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         data.lastReadLineServer = buffer.lastReadLineServer;
         data.totalOldUnreads = buffer.totalReadUnreads;
         data.totalOldHighlights = buffer.totalReadHighlights;
-        data.totalOldOthers = buffer.totalReadOthers;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

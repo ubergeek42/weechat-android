@@ -52,7 +52,6 @@ public class Buffer {
     // lastReadLineServer stores id of the last read line *in weechat*. -1 means all lines unread.
     public long lastReadLineServer = -1;
     private boolean wantsFullHotListUpdate = false; // must be false for buffers without lastReadLineServer!
-    public int totalReadOthers = 0;
     public int totalReadUnreads = 0;
     public int totalReadHighlights = 0;
 
@@ -65,7 +64,6 @@ public class Buffer {
     public boolean isWatched = false;
 
     public int type = OTHER;
-    private int others = 0;
     public int unreads = 0;
     public int highlights = 0;
 
@@ -211,7 +209,6 @@ public class Buffer {
                     (notifyLevel == 0) || (notifyLevel == 1 && !line.highlighted)) {
                 if (line.highlighted) totalReadHighlights++;
                 else if (line.visible && line.type == Line.LINE_MESSAGE) totalReadUnreads++;
-                else if (line.visible && line.type == Line.LINE_OTHER) totalReadOthers++;
             } else {
                 if (line.highlighted) {
                     highlights++;
@@ -221,7 +218,7 @@ public class Buffer {
                     unreads++;
                     if (type == PRIVATE) Hotlist.onNewHotLine(this, line);
                     BufferList.notifyBuffersChanged();
-                } else if (line.visible && line.type == Line.LINE_OTHER) others++;
+                }
             }
         }
 
@@ -249,7 +246,7 @@ public class Buffer {
         if (wantsFullHotListUpdate) {
             setLastSeenLine(linePointer);
             lastReadLineServer = linePointer;
-            totalReadHighlights = totalReadUnreads = totalReadOthers = 0;
+            totalReadHighlights = totalReadUnreads = 0;
         }
     }
 
@@ -267,26 +264,22 @@ public class Buffer {
     // has lost its last read lines again our read count will not have any meaning. AND it might happen
     // that our number is actually HIGHER than amount of unread lines in the buffer. as a workaround,
     // we check that we are not getting negative numbers. not perfect, but—!
-     @WorkerThread @Cat("?") synchronized void updateHotList(int highlights, int unreads, int others) {
+     @WorkerThread @Cat("?") synchronized void updateHotList(int highlights, int unreads) {
         if (isWatched && nicksAreReady()) {
             // occasionally, when this method is called for the first time on a new connection, a
             // buffer is already watched. in this case, we don't want to lose highlights and unreads
             // as then we won't get the scroll, so we check holdsAllNicks to see if we are ready
             totalReadUnreads = unreads;
             totalReadHighlights = highlights;
-            totalReadOthers = others;
         } else {
             final boolean full_update = wantsFullHotListUpdate ||
                     (totalReadUnreads > unreads) ||
-                    (totalReadHighlights > highlights) ||
-                    (totalReadOthers > others);
+                    (totalReadHighlights > highlights);
             if (full_update) {
-                this.others = others;
                 this.unreads = unreads;
                 this.highlights = highlights;
-                totalReadUnreads = totalReadHighlights = totalReadOthers = 0;
+                totalReadUnreads = totalReadHighlights = 0;
             } else {
-                this.others = others - totalReadOthers;
                 this.unreads = unreads - totalReadUnreads;
                 this.highlights = highlights - totalReadHighlights;
             }
@@ -320,7 +313,7 @@ public class Buffer {
 
     @WorkerThread @Cat void onBufferClosed() {
         synchronized(this) {
-            highlights = unreads = others = 0;
+            highlights = unreads = 0;
             Hotlist.adjustHotListForBuffer(this);
         }
         bufferEye.onBufferClosed();
@@ -367,11 +360,10 @@ public class Buffer {
     // sets highlights/unreads to 0 and,
     // if something has actually changed, notifies whoever cares about it
     @AnyThread @Cat("?") synchronized private void resetUnreadsAndHighlights() {
-        if ((unreads | highlights | others) == 0) return;
+        if ((unreads | highlights) == 0) return;
         totalReadUnreads += unreads;
         totalReadHighlights += highlights;
-        totalReadOthers += others;
-        unreads = highlights = others = 0;
+        unreads = highlights = 0;
         Hotlist.adjustHotListForBuffer(this);
         BufferList.notifyBuffersChanged();
     }

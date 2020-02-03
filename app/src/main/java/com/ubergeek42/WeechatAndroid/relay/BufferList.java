@@ -336,10 +336,9 @@ public class BufferList {
 
             for (Buffer buffer : buffers) {
                 Array count = bufferToHotlist.get(buffer.pointer);
-                int others = count == null ? 0 : count.get(0).asInt();
                 int unreads = count == null ? 0 : count.get(1).asInt() + count.get(2).asInt();   // chat messages & private messages
                 int highlights = count == null ? 0 : count.get(3).asInt();                       // highlights
-                buffer.updateHotList(highlights, unreads, others);
+                buffer.updateHotList(highlights, unreads);
                 Hotlist.adjustHotListForBuffer(buffer);
             }
 
