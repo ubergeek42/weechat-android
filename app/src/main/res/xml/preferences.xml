@@ -75,6 +75,7 @@
         <CheckBoxPreference android:key="theme_switch" android:title="@string/pref_theme_switch" android:summary="@string/pref_theme_switch_summary" android:defaultValue="false" />
         <ThemePreference android:key="color_scheme_day" android:title="@string/pref_color_scheme_day" android:defaultValue="squirrely-light-theme.properties" />
         <ThemePreference android:key="color_scheme_night" android:title="@string/pref_color_scheme_night" android:defaultValue="squirrely-dark-theme.properties" />
+        <ThemePreferenceHelp android:selectable="false" android:persistent="false" />
         <CheckBoxPreference android:key="dim_down" android:title="@string/pref_dim_down" android:summary="@string/pref_dim_down_summary" android:defaultValue="false" />
         <CheckBoxPreference android:key="use_launcher_icon_kitty" android:title="@string/pref_use_launcher_icon_kitty" android:summary="@string/pref_use_launcher_icon_kitty_summary" android:defaultValue="false" android:icon="@mipmap/ic_launcher_kitty"/>
     </PreferenceScreen>

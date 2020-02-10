@@ -40,9 +40,7 @@ public class ThemePreference extends DialogPreference {
     }
 
     @Override public CharSequence getSummary() {
-        return getContext().getString(R.string.pref_theme_summary,
-                ThemeManager.SEARCH_DIR,
-                TextUtils.isEmpty(getThemePath()) ? getContext().getString(R.string.pref_theme_not_set) : getThemePath());
+        return TextUtils.isEmpty(getThemePath()) ? getContext().getString(R.string.pref_theme_not_set) : getThemePath();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
