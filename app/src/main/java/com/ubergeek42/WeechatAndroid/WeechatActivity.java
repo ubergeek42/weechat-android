@@ -617,7 +617,9 @@ public class WeechatActivity extends AppCompatActivity implements
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     // status bad can be colored since api 21 and have dark icons since api 23
-    // navigation bar can be colored since api 21 and can have dark icons since api 27
+    // navigation bar can be colored since api 21 and can have dark icons since api 26 via
+    // SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR, which the theming engine seems to be setting
+    // automatically, and since api 27 via android:navigationBarColor
     private void applyColorSchemeToViews() {
         findViewById(R.id.kitty_background).setBackgroundColor(P.colorPrimary);
         findViewById(R.id.toolbar).setBackgroundColor(P.colorPrimary);
@@ -625,7 +627,7 @@ public class WeechatActivity extends AppCompatActivity implements
         if (Build.VERSION.SDK_INT < 21) return;
         boolean isLight = ThemeFix.isColorLight(P.colorPrimaryDark);
         if (!isLight || Build.VERSION.SDK_INT >= 23) getWindow().setStatusBarColor(P.colorPrimaryDark);
-        if (!isLight || Build.VERSION.SDK_INT >= 27) getWindow().setNavigationBarColor(P.colorPrimaryDark);
+        if (!isLight || Build.VERSION.SDK_INT >= 26) getWindow().setNavigationBarColor(P.colorPrimaryDark);
     }
 
     @MainThread void enableDisableExclusionRects() {
