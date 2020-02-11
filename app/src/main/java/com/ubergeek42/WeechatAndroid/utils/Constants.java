@@ -69,7 +69,6 @@ public class Constants {
     public static final String PREF_BUFFER_FONT = "buffer_font"; final public static String PREF_BUFFER_FONT_D = "";
     public static final String PREF_COLOR_SCHEME_DAY = "color_scheme_day"; final public static String PREF_COLOR_SCHEME_DAY_D = "squirrely-light-theme.properties";
     public static final String PREF_COLOR_SCHEME_NIGHT = "color_scheme_night"; final public static String PREF_COLOR_SCHEME_NIGHT_D = "squirrely-dark-theme.properties";
-    public static final String PREF_USE_LAUNCHER_ICON_KITTY = "use_launcher_icon_kitty"; final public static boolean PREF_USE_LAUNCHER_ICON_KITTY_D = false;
 
     // buttons
     public final static String PREF_SHOW_SEND = "sendbtn_show"; final public static boolean PREF_SHOW_SEND_D = true;
@@ -98,10 +97,4 @@ public class Constants {
 
 
     final public static String PREF_THEME_SWITCH = "theme_switch"; final public static boolean PREF_THEME_SWITCH_D = false;
-
-    // component names for different activity aliases
-    public static final ComponentName WEECHAT_ACTIVITY_WEECHAT = new ComponentName(BuildConfig.APPLICATION_ID, "com.ubergeek42.WeechatAndroid.WeechatActivityWeechat");
-    public static final ComponentName WEECHAT_ACTIVITY_KITTY = new ComponentName(BuildConfig.APPLICATION_ID, "com.ubergeek42.WeechatAndroid.WeechatActivityKitty");
-    public static final ComponentName SHARE_TEXT_ACTIVITY_WEECHAT = new ComponentName(BuildConfig.APPLICATION_ID, "com.ubergeek42.WeechatAndroid.ShareTextActivityWeechat");
-    public static final ComponentName SHARE_TEXT_ACTIVITY_KITTY = new ComponentName(BuildConfig.APPLICATION_ID, "com.ubergeek42.WeechatAndroid.ShareTextActivityKitty");
 }

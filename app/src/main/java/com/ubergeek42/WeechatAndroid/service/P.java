@@ -4,10 +4,8 @@
 package com.ubergeek42.WeechatAndroid.service;
 
 import android.annotation.SuppressLint;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.content.res.TypedArray;
 import android.graphics.Typeface;
 import android.os.Build;
@@ -327,9 +325,6 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
             case PREF_COLOR_SCHEME_NIGHT:
                 changeColorScheme();
                 break;
-            case PREF_USE_LAUNCHER_ICON_KITTY:
-                changeLauncherIcon(p.getBoolean(key, PREF_USE_LAUNCHER_ICON_KITTY_D));
-                break;
 
             // notifications
             case PREF_NOTIFICATION_ENABLE: notificationEnable = p.getBoolean(key, PREF_NOTIFICATION_ENABLE_D); break;
@@ -384,20 +379,6 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
 
     @MainThread public static void setTextSizeColorAndLetterWidth(float size) {
         p.edit().putString(PREF_TEXT_SIZE, Float.toString(size)).apply();
-    }
-
-    @MainThread private static void changeLauncherIcon(boolean useKitty) {
-        setComponentEnabled(WEECHAT_ACTIVITY_WEECHAT, !useKitty);
-        setComponentEnabled(SHARE_TEXT_ACTIVITY_WEECHAT, !useKitty);
-        setComponentEnabled(WEECHAT_ACTIVITY_KITTY, useKitty);
-        setComponentEnabled(SHARE_TEXT_ACTIVITY_KITTY, useKitty);
-    }
-
-    @MainThread private static void setComponentEnabled(ComponentName component, boolean enabled) {
-        context.getPackageManager().setComponentEnabledSetting(
-                component,
-                enabled ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED : PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-                PackageManager.DONT_KILL_APP);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

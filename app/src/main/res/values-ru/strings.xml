@@ -101,8 +101,6 @@
     <string name="pref_timestamp_format">Формат времени</string>
     <string name="pref_timestamp_format_summary">%s (по умолчанию: HH:mm:ss)</string>
     <string name="pref_timestamp_invalid">Неверный формат времени</string>
-    <string name="pref_use_launcher_icon_kitty">Альтернативная иконка</string>
-    <string name="pref_use_launcher_icon_kitty_summary">"Удалить текущую иконку и установить альтернативную. Имейте в виду, что приложение рабочего стола может обновиться не сразу; к тому же, в некоторых случаях вам придётся удалить старую иконку вручную. ВНИМАНИЕ: приложение может сделать какую-нибудь бяку, пока вы его не перезапустите! "</string>
     <string name="pref_volumebtn_size">Кнопки громкости меняют размер текста</string>
     <string name="pref_volumebtn_size_summary">Если настройка включена, кнопки громкости будут менять размер текста вместо громкости</string>
     <string name="pref_notif_group">Уведомления</string>

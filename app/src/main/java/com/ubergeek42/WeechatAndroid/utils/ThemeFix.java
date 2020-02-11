@@ -24,8 +24,6 @@ import android.view.View;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.service.P;
 
-import static com.ubergeek42.WeechatAndroid.utils.Constants.WEECHAT_ACTIVITY_KITTY;
-
 public class ThemeFix {
 
     // fix windowLightStatusBar/windowLightNavigationBar not changed after changing theme on
@@ -34,6 +32,10 @@ public class ThemeFix {
 
     // https://stackoverflow.com/questions/46109569/issue-with-toggling-status-bar-color-on-android-o
     // https://issuetracker.google.com/issues/65883460
+
+    // AS complains that android.R.attr.windowLightNavigationBar needs api 27, and we aren't
+    // setting android:windowLightNavigationBar before api 27, but the resulting boolean
+    // windowLightNavigationBar is correct and changes depending on the theme
 
     public static void fixLightStatusAndNavigationBar(AppCompatActivity activity) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return;
@@ -73,18 +75,12 @@ public class ThemeFix {
 
         String appName = activity.getString(R.string.app_name);
 
-        int icon = activity.getPackageManager().getComponentEnabledSetting(WEECHAT_ACTIVITY_KITTY) ==
-                PackageManager.COMPONENT_ENABLED_STATE_ENABLED ?
-                R.mipmap.ic_launcher_kitty :
-                R.mipmap.ic_launcher_weechat;
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             activity.setTaskDescription(new ActivityManager.TaskDescription(null,
-                    icon, 0xff000000 | P.colorPrimary));
-        else {
-            Bitmap bitmap = getBitmapFromDrawable(activity, icon);
+                    0, 0xff000000 | P.colorPrimary));
+        } else {
             activity.setTaskDescription(new ActivityManager.TaskDescription(appName,
-                    bitmap, 0xff000000 | P.colorPrimary));
+                    null, 0xff000000 | P.colorPrimary));
         }
     }
 
