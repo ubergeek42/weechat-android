@@ -169,7 +169,23 @@
   <string name="build_id">numéro de build %s</string>
   <string name="created_by">créé par ubergeek42</string>
   <string name="unknown_version_id">Version inconnue</string>
-  <string name="libraries">" \nCe projet utilise les bibliothèques logicielles suivantes : \n \n    • "<a href="https://github.com/noveogroup/android-logger">Android Logger, de Noveo Group</a>" \n    • "<a href="https://www.eclipse.org/aspectj/">AspectJ, de Eclipse Foundation</a>" \n    • "<a href="https://github.com/greenrobot/EventBus">EventBus, de greenrobot</a>" \n    • "<a href="https://github.com/JakeWharton/hugo">Hugo, de Jake Wharton</a>" \n    • "<a href="https://github.com/TooTallNate/Java-WebSocket">Java-WebSocket, de Nathan Rajlich</a>" \n    • "<a href="http://site.mockito.org/">Mockito</a>" \n    • "<a href="https://www.slf4j.org/">SLF4J, de QOS.ch</a>" \n \nVous avez trouvé un bug ou vous avez une suggestion ? Créez un ticket sur "<a href="https://github.com/ubergeek42/weechat-android/">GitHub</a>" ou contactez-moi : "<a href="mailto:kj@ubergeek42.com">kj\@ubergeek42.com</a>" \n\n "</string>
+  <string name="libraries">
+      \nCe projet utilise les bibliothèques logicielles suivantes :
+      \n
+      \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/noveogroup/android-logger">Android Logger, de Noveo Group</a>
+      \n&#160;&#160;&#160;&#160;•&#160;<a href="https://www.eclipse.org/aspectj/">AspectJ, de Eclipse Foundation</a>
+      \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/greenrobot/EventBus">EventBus, de greenrobot</a>
+      \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/JakeWharton/hugo">Hugo, de Jake Wharton</a>
+      \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/TooTallNate/Java-WebSocket">Java-WebSocket, de Nathan Rajlich</a>
+      \n&#160;&#160;&#160;&#160;•&#160;<a href="http://www.jcraft.com/jsch/">JSch, de JCraft</a>
+      \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/square/leakcanary">LeakCanary, de Square, Inc</a>
+      \n&#160;&#160;&#160;&#160;•&#160;<a href="http://site.mockito.org/">Mockito, de Szczepan Faber et amis</a>
+      \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/TakahikoKawasaki/nv-websocket-client">nv-websocket-client, de Takahiko Kawasaki</a>
+      \n&#160;&#160;&#160;&#160;•&#160;<a href="https://www.slf4j.org/">SLF4J, de QOS.ch</a>
+      \n
+      \nVous avez trouvé un bug ou vous avez une suggestion&#160;? Créez un ticket sur&#160;<a href="https://github.com/ubergeek42/weechat-android/">GitHub</a> ou contactez-moi&#160;:&#160;"<a href="mailto:kj@ubergeek42.com">kj@ubergeek42.com</a>
+      \n\n
+  </string>
   <string name="pref_timestamp_invalid">Format de date/heure invalide</string>
   <string name="pref_number_invalid">Nombre invalide</string>
   <string name="pref_hostname_invalid">Pas d\'espace dans le nom d\'hôte</string>
