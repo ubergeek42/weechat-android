@@ -39,6 +39,7 @@ import com.ubergeek42.WeechatAndroid.utils.AnimatedRecyclerView;
 import com.ubergeek42.WeechatAndroid.utils.CopyPaste;
 import com.ubergeek42.WeechatAndroid.utils.LineView;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
+import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
 import com.ubergeek42.weechat.ColorScheme;
@@ -281,7 +282,7 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     private final static int HOT_LINE_LOST = -1;
     private final static int HOT_LINE_NOT_PRESENT = -3;
 
-    @MainThread public void scrollToHotLineIfNeeded() {
+    @MainThread @Cat("Scrolling") public void scrollToHotLineIfNeeded() {
         final int idx = findHotLine();
         if (idx == HOT_LINE_NOT_PRESENT) return;
         if (idx == HOT_LINE_LOST) Weechat.showShortToast(R.string.autoscroll_no_line);
@@ -289,7 +290,7 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         else Weechat.runOnMainThread(() -> uiLines.smoothScrollToPositionAfterAnimation(idx), 100);
     }
 
-    @MainThread private int findHotLine() {
+    @MainThread @Cat(value="Scrolling", exit=true) private int findHotLine() {
         assertThat(buffer).isNotNull();
         assertThat(buffer.linesAreReady()).isTrue();
         final List<Line> lines = _lines;

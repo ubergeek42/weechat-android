@@ -25,11 +25,12 @@ import com.ubergeek42.weechat.relay.protocol.RelayObject;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import static com.ubergeek42.WeechatAndroid.relay.BufferList.LAST_READ_LINE_MISSING;
 import static com.ubergeek42.WeechatAndroid.utils.Assert.assertThat;
 
 public class Buffer {
     final private @Root Kitty kitty = Kitty.make();
-    final private Kitty kitty_q = kitty.kid("?");
+    final private Kitty kitty_hot = kitty.kid("Hot");
 
     final public static int PRIVATE = 2;
     final private static int CHANNEL = 1;
@@ -46,14 +47,13 @@ public class Buffer {
     Hashtable localVars;
     public boolean hidden;
 
-    // the following four variables are needed to determine if the buffer was changed and,
-    // if not, the last two are subtracted from the newly arrived hotlist data, to make up
-    // for the lines that was read in relay.
-    // lastReadLineServer stores id of the last read line *in weechat*. -1 means all lines unread.
-    public long lastReadLineServer = -1;
-    private boolean wantsFullHotListUpdate = false; // must be false for buffers without lastReadLineServer!
-    public int totalReadUnreads = 0;
-    public int totalReadHighlights = 0;
+    public long lastReadLineServer = LAST_READ_LINE_MISSING;
+    public int readUnreads = 0;
+    public int readHighlights = 0;
+
+    // number of hotlist updates while syncing this buffer. if >= 2, when the new update arrives, we
+    // keep own unreads/highlights as they have been correct since the last update
+    private int hotlistUpdatesWhileSyncing = 0;
 
     volatile boolean flagResetHotMessagesOnNewOwnLine = false;
 
@@ -89,7 +89,7 @@ public class Buffer {
         lines = new Lines(shortName);
         nicks = new Nicks(shortName);
 
-        if (P.isBufferOpen(pointer)) setOpen(true);
+        if (P.isBufferOpen(pointer)) setOpen(true, false);
         P.restoreLastReadLine(this);
         kitty.trace("→ Buffer(number=%s, fullName=%s) isOpen? %s", number, fullName, isOpen);
     }
@@ -117,11 +117,11 @@ public class Buffer {
     //     has processed lines and processes lines as they come by
     //     is synced
     //     is marked as "open" in the buffer list fragment or wherever
-    @AnyThread @Cat synchronized public void setOpen(boolean open) {
+    @AnyThread @Cat synchronized public void setOpen(boolean open, boolean syncHotlistOnOpen) {
         if (isOpen == open) return;
         isOpen = open;
         if (open) {
-            BufferList.syncBuffer(this);
+            BufferList.syncBuffer(this, syncHotlistOnOpen);
             lines.processAllMessages(false);
         } else {
             BufferList.desyncBuffer(this);
@@ -134,6 +134,7 @@ public class Buffer {
                 // [[old lines] [#3] [#2] [#1]] unless #3 is inside old lines. hence, reset everything!
                 lines.clear();
                 nicks.clear();
+                hotlistUpdatesWhileSyncing = 0;
             }
         }
         BufferList.notifyBuffersChanged();
@@ -207,8 +208,8 @@ public class Buffer {
         if (isLast) {
             if (isWatched || type == HARD_HIDDEN || (P.filterLines && !line.visible) ||
                     (notifyLevel == 0) || (notifyLevel == 1 && !line.highlighted)) {
-                if (line.highlighted) totalReadHighlights++;
-                else if (line.visible && line.type == Line.LINE_MESSAGE) totalReadUnreads++;
+                if (line.highlighted) readHighlights++;
+                else if (line.visible && line.type == Line.LINE_MESSAGE) readUnreads++;
             } else {
                 if (line.highlighted) {
                     highlights++;
@@ -236,20 +237,6 @@ public class Buffer {
         }
     }
 
-    // a buffer NOT will want a complete update if the last line unread stored in weechat buffer
-    // matches the one stored in our buffer. if they are not equal, the user must've read the buffer
-    // in weechat. assuming he read the very last line, total old highlights and unreads bear no meaning,
-    // so they should be erased
-    @WorkerThread @Cat(value="?", linger=true) synchronized void updateLastReadLine(long linePointer) {
-        wantsFullHotListUpdate = lastReadLineServer != linePointer;
-        kitty_q.trace("full update? %s", wantsFullHotListUpdate);
-        if (wantsFullHotListUpdate) {
-            setLastSeenLine(linePointer);
-            lastReadLineServer = linePointer;
-            totalReadHighlights = totalReadUnreads = 0;
-        }
-    }
-
     @WorkerThread public void setLastSeenLine(long pointer) {
         lines.setLastSeenLine(pointer);
     }
@@ -258,32 +245,84 @@ public class Buffer {
         return lines.getLastSeenLine();
     }
 
-    // buffer will want full updates if it doesn't have a last read line
-    // that can happen if the last read line is so far in the queue it got erased (past 4096 lines or so)
-    // in most cases, that is OK with us, but in rare cases when the buffer was READ in weechat BUT
-    // has lost its last read lines again our read count will not have any meaning. AND it might happen
-    // that our number is actually HIGHER than amount of unread lines in the buffer. as a workaround,
-    // we check that we are not getting negative numbers. not perfect, but—!
-     @WorkerThread @Cat("?") synchronized void updateHotList(int highlights, int unreads) {
-        if (isWatched && nicksAreReady()) {
-            // occasionally, when this method is called for the first time on a new connection, a
-            // buffer is already watched. in this case, we don't want to lose highlights and unreads
-            // as then we won't get the scroll, so we check holdsAllNicks to see if we are ready
-            totalReadUnreads = unreads;
-            totalReadHighlights = highlights;
-        } else {
-            final boolean full_update = wantsFullHotListUpdate ||
-                    (totalReadUnreads > unreads) ||
-                    (totalReadHighlights > highlights);
-            if (full_update) {
-                this.unreads = unreads;
-                this.highlights = highlights;
-                totalReadUnreads = totalReadHighlights = 0;
+    // possible changes in the pointer:
+    // legend for hotlist changes (numbers) if the buffer is NOT synchronized:
+    //      [R] reset, [-] do nothing
+    // legend for the validity of stored highlights if the buffer is NOT synchronized:
+    //      [I] invalidate [-] keep
+    //
+    // 1. 123 → 456: [RI] at some point the buffer was read & blurred in weechat. weechat's hotlist
+    //                    has completely changed. our internal hotlist might have some overlap with
+    //                    weechat's hotlist, but we can't be sure that the last messages are correct
+    //                    even if the number of weechat's hotlist messages didn't change.
+    //                    this could have happened multiple times (123 → 456 → 789)
+    // 2.  -1 → 123: two possibilities here:
+    //      2.1. [RI] same as 1, if the buffer had lost its last read line naturally
+    //      2.2. [RI] the buffer had been focused and got blurred. similarly, we don't know when this
+    //                happened, so new hotlist doesn't translate to anything useful
+    // 3. 123 →  -1: three possibilities here:
+    //      3.1. [??] buffer is focused in weechat right now. the hotlist will read zero
+    //      3.2. [RI] buffer was read, blurred, and lost its last read line. that is, it went like
+    //                this: 123 → 456 (1.) → -1 (3.3.) all while we weren't looking! this takes
+    //                quite some time, so we can detect this change.
+    //      3.3. [--] the buffer lost its last read line naturally—due to new lines. both the
+    //                hotlist and the hot messages are still correct!
+
+    // this tries to satisfy the following equation: server unreads = this.unreads + this.readUnreads
+    // when synced, we are trying to not touch unreads/highlights; when unsynced, these are the ones
+    // updated. in some circumstances, especially when the buffer has been read in weechat, the
+    // number of new unreads can be smaller than either value stored in the buffer. in such cases,
+    // we opt for full update.
+
+    // returns whether local hot messages are to be invalidated
+    @WorkerThread @Cat(value="Hot") synchronized boolean updateHotlist(
+            int newHighlights, int newUnreads, long lastReadLine, long timeSinceLastHotlistUpdate) {
+        boolean bufferHasBeenReadInWeechat = false;
+        boolean syncedSinceLastUpdate = false;
+
+        kitty_hot.tracel(shortName);
+        kitty_hot.tracel("[U%s+%s H%s+%s]", readUnreads, unreads, readHighlights, highlights);
+
+        if (isOpen || !P.optimizeTraffic) {
+            hotlistUpdatesWhileSyncing++;
+            syncedSinceLastUpdate = hotlistUpdatesWhileSyncing >= 2;
+        }
+
+        if (lastReadLine != lastReadLineServer) {
+            setLastSeenLine(lastReadLine);
+            lastReadLineServer = lastReadLine;
+            if (lastReadLine != LAST_READ_LINE_MISSING ||
+                    timeSinceLastHotlistUpdate > 10 * 60 * 1000) bufferHasBeenReadInWeechat = true;
+        }
+
+        kitty_hot.tracel("<watched=%s, synced=%s, read=%s>", isWatched, syncedSinceLastUpdate, bufferHasBeenReadInWeechat);
+
+        boolean fullUpdate = !syncedSinceLastUpdate && bufferHasBeenReadInWeechat;
+        if (!fullUpdate) {
+            if (syncedSinceLastUpdate) {
+                kitty_hot.tracel("diff/synced");
+                readUnreads = newUnreads - unreads;
+                readHighlights = newHighlights - highlights;
             } else {
-                this.unreads = unreads - totalReadUnreads;
-                this.highlights = highlights - totalReadHighlights;
+                kitty_hot.tracel("diff/unsynced");
+                unreads = newUnreads - readUnreads;
+                highlights = newHighlights - readHighlights;
             }
         }
+
+        if (fullUpdate || readUnreads < 0 || readHighlights < 0 || unreads < 0 || highlights < 0) {
+            kitty_hot.tracel("full");
+            unreads = newUnreads;
+            highlights = newHighlights;
+            readUnreads = readHighlights = 0;
+        }
+
+        kitty_hot.trace("[U%s+%s H%s+%s]", readUnreads, unreads, readHighlights, highlights);
+
+        assertThat(unreads + readUnreads).isEqualTo(newUnreads);
+        assertThat(highlights + readHighlights).isEqualTo(newHighlights);
+
+        return fullUpdate;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -306,7 +345,7 @@ public class Buffer {
         synchronized (this) {
             processBufferType();
             processBufferTitle();
-            Hotlist.adjustHotListForBuffer(this);   // update buffer names in the notifications
+            Hotlist.adjustHotListForBuffer(this, false);   // update buffer names in the notifications
         }
         bufferEye.onPropertiesChanged();
     }
@@ -314,7 +353,7 @@ public class Buffer {
     @WorkerThread @Cat void onBufferClosed() {
         synchronized(this) {
             highlights = unreads = 0;
-            Hotlist.adjustHotListForBuffer(this);
+            Hotlist.adjustHotListForBuffer(this, true);
         }
         bufferEye.onBufferClosed();
     }
@@ -361,10 +400,10 @@ public class Buffer {
     // if something has actually changed, notifies whoever cares about it
     @AnyThread @Cat("?") synchronized private void resetUnreadsAndHighlights() {
         if ((unreads | highlights) == 0) return;
-        totalReadUnreads += unreads;
-        totalReadHighlights += highlights;
+        readUnreads += unreads;
+        readHighlights += highlights;
         unreads = highlights = 0;
-        Hotlist.adjustHotListForBuffer(this);
+        Hotlist.adjustHotListForBuffer(this, true);
         BufferList.notifyBuffersChanged();
     }
 

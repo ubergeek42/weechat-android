@@ -64,24 +64,32 @@ public class Hotlist {
 
         // if hot count has changed — either:
         //  * the buffer was closed or read (hot count == 0)
-        //  * (hotlist) brought us new numbers (See Buffer.updateHotList()). that would happen if:
-        //      * the buffer was read in weechat (new number is lower or higher)
-        //      * we aren't syncing that buffer (or reconnecting) (new number is higher or same)
-        //    in the former case, if we kept syncing the buffer all the time, `messages` is still
-        //    valid but may contain more messages than needed
-        //    in the latter case, the list of theoretically known messages could be:
-        //      ? ? ? <message> <message> ?
-        // so if the count has changed, let's just void the messages
-        void updateHotCount(Buffer buffer) {
+        //  * (hotlist) brought us new numbers (See Buffer.updateHotlist()). that would happen if:
+        //      * the buffer was read in weechat (new number is lower or higher (only if not
+        //        syncing). if we kept syncing (invalidateMessages == false), new number is going to
+        //        be lower and the messages will still be valid, so we can simply truncate them. if
+        //        we weren't syncing, invalidateMessages will be true.
+        //      * the buffer wasn't read in weechat, and the new number is higher. while the
+        //        messages are valid, the list now looks something like this:
+        //            ? ? ? <message> <message> ?
+        //        instead of displaying it like this, let's clear it for the sake of simplicity
+        void updateHotCount(Buffer buffer, boolean invalidateMessages) {
             int newHotCount = buffer.getHotCount();
             boolean updatingHotCount = hotCount != newHotCount;
             boolean updatingShortName = !shortName.equals(buffer.shortName);
-            if (!updatingHotCount && !updatingShortName) return;
-            kitty.info("updateHotCount(%s): %s -> %s", buffer, hotCount, newHotCount);
-            if (updatingHotCount) {
+            if (!updatingHotCount && !updatingShortName && !(invalidateMessages && messages.size() > 0)) return;
+            kitty.info("updateHotCount(%s): %s -> %s (invalidate=%s)", buffer, hotCount, newHotCount, invalidateMessages);
+            if (invalidateMessages) {
                 messages.clear();
-                setHotCount(newHotCount);
+            } else if (updatingHotCount) {
+                if (newHotCount > hotCount) {
+                    messages.clear();
+                } else {
+                    int toRemove = messages.size() - newHotCount;
+                    if (toRemove >= 0) messages.subList(0, toRemove).clear();
+                }
             }
+            if (updatingHotCount) setHotCount(newHotCount);
             if (updatingShortName) shortName = buffer.shortName;
             notifyHotlistChanged(this, NotifyReason.HOT_ASYNC);
         }
@@ -154,8 +162,8 @@ public class Hotlist {
         getHotBuffer(buffer).onNewHotLine(buffer, line);
     }
 
-    synchronized static void adjustHotListForBuffer(final @NonNull Buffer buffer) {
-        getHotBuffer(buffer).updateHotCount(buffer);
+    synchronized static void adjustHotListForBuffer(final @NonNull Buffer buffer, boolean invalidateMessages) {
+        getHotBuffer(buffer).updateHotCount(buffer, invalidateMessages);
     }
 
     @Cat synchronized static void makeSureHotlistDoesNotContainInvalidBuffers() {

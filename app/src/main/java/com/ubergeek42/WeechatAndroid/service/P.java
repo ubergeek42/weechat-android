@@ -404,7 +404,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
 
     // protocol must be changed each time anything that uses the following function changes
     // needed to make sure nothing crashes if we cannot restore the data
-    private static final int PROTOCOL_ID = 15;
+    private static final int PROTOCOL_ID = 18;
 
     @AnyThread @Cat public static void saveStuff() {
         for (Buffer buffer : BufferList.buffers) saveLastReadLine(buffer);
@@ -446,8 +446,8 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     private static class BufferHotData implements Serializable {
         long lastSeenLine = -1;
         long lastReadLineServer = -1;
-        int totalOldUnreads = 0;
-        int totalOldHighlights = 0;
+        int readUnreads = 0;
+        int readHighlights = 0;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -458,8 +458,8 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         if (data != null) {
             buffer.setLastSeenLine(data.lastSeenLine);
             buffer.lastReadLineServer = data.lastReadLineServer;
-            buffer.totalReadUnreads = data.totalOldUnreads;
-            buffer.totalReadHighlights = data.totalOldHighlights;
+            buffer.readUnreads = data.readUnreads;
+            buffer.readHighlights = data.readHighlights;
         }
     }
 
@@ -472,8 +472,8 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         }
         data.lastSeenLine = buffer.getLastSeenLine();
         data.lastReadLineServer = buffer.lastReadLineServer;
-        data.totalOldUnreads = buffer.totalReadUnreads;
-        data.totalOldHighlights = buffer.totalReadHighlights;
+        data.readUnreads = buffer.readUnreads;
+        data.readHighlights = buffer.readHighlights;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

@@ -177,10 +177,12 @@ public class BufferList {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     // if optimizing traffic, sync hotlist to make sure the number of unread messages is correct
-    @AnyThread static void syncBuffer(Buffer buffer) {
+    // syncHotlist parameter is used to avoid synchronizing hotlist several times in a row when
+    // restoring open buffers. todo simplify?
+    @AnyThread static void syncBuffer(Buffer buffer, boolean syncHotlist) {
         if (!P.optimizeTraffic) return;
         SendMessageEvent.fire("sync 0x%x", buffer.pointer);
-        syncHotlist();
+        if (syncHotlist) syncHotlist();
     }
 
     @AnyThread static void desyncBuffer(Buffer buffer) {
@@ -297,11 +299,12 @@ public class BufferList {
     private static RelayMessageHandler lastReadLinesWatcher = new RelayMessageHandler() {
         final private @Root Kitty kitty = BufferList.kitty.kid("lastReadLinesWatcher");
 
+
         @WorkerThread @Override @Cat public void handleMessage(RelayObject obj, String id) {
             if (!(obj instanceof Hdata)) return;
             Hdata data = (Hdata) obj;
 
-            LongSparseArray<Long> bufferToLrl = new LongSparseArray<>();
+            bufferToLrl.clear();
 
             for (int i = 0, size = data.getCount(); i < size; i++) {
                 HdataEntry entry = data.getItem(i);
@@ -309,13 +312,12 @@ public class BufferList {
                 long linePointer = entry.getPointerLong();
                 bufferToLrl.put(bufferPointer, linePointer);
             }
-
-            for (Buffer buffer : buffers) {
-                Long linePointer = bufferToLrl.get(buffer.pointer);
-                buffer.updateLastReadLine(linePointer == null ? -1 : linePointer);
-            }
         }
     };
+
+    static final long LAST_READ_LINE_MISSING = -1;
+    static private LongSparseArray<Long> bufferToLrl = new LongSparseArray<>();
+    static private long lastHotlistUpdateTime = 0;
 
     // hotlist
     private static RelayMessageHandler hotlistInitWatcher = new RelayMessageHandler() {
@@ -334,12 +336,18 @@ public class BufferList {
                 bufferToHotlist.put(pointer, count);
             }
 
+            long newLastHotlistUpdateTime = System.currentTimeMillis();
+            long timeSinceLastHotlistUpdate = newLastHotlistUpdateTime - lastHotlistUpdateTime;
+            lastHotlistUpdateTime = newLastHotlistUpdateTime;
+
             for (Buffer buffer : buffers) {
                 Array count = bufferToHotlist.get(buffer.pointer);
                 int unreads = count == null ? 0 : count.get(1).asInt() + count.get(2).asInt();   // chat messages & private messages
                 int highlights = count == null ? 0 : count.get(3).asInt();                       // highlights
-                buffer.updateHotList(highlights, unreads);
-                Hotlist.adjustHotListForBuffer(buffer);
+
+                long linePointer = bufferToLrl.get(buffer.pointer, LAST_READ_LINE_MISSING);
+                boolean hotMessagesInvalid = buffer.updateHotlist(highlights, unreads, linePointer, timeSinceLastHotlistUpdate);
+                Hotlist.adjustHotListForBuffer(buffer, hotMessagesInvalid);
             }
 
             notifyBuffersChanged();
