@@ -381,8 +381,10 @@ public class BufferList {
                 return;
             }
 
-            for (int i = 0, size = data.getCount(); i < size; i++)
+            for (int i = 0, size = data.getCount(); i < size; i++) {
                 buffer.addLine(getLine(data.getItem(i)), isBottom);
+                if (isBottom) buffer.onLineAdded();
+            }
 
             if (!isBottom) {
                 buffer.onLinesListed();

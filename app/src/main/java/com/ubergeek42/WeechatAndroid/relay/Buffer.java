@@ -223,9 +223,6 @@ public class Buffer {
             }
         }
 
-        // notify our listener
-        if (isLast) onLineAdded();
-
         // if current line's an event line and we've got a speaker, move nick to fist position
         // nick in question is supposed to be in the nicks already, for we only shuffle these
         // nicks when someone spoke, i.e. NOT when user joins.
@@ -327,7 +324,7 @@ public class Buffer {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @WorkerThread private void onLineAdded() {
+    @WorkerThread void onLineAdded() {
         bufferEye.onLineAdded();
     }
 
