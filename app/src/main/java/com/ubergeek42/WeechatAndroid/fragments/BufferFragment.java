@@ -139,8 +139,8 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         linesAdapter = null;
     }
 
-    @MainThread @Override @Cat public void onStart() {
-        super.onStart();
+    @MainThread @Override @Cat public void onResume() {
+        super.onResume();
         uiSend.setVisibility(P.showSend ? View.VISIBLE : View.GONE);
         uiTab.setVisibility(P.showTab ? View.VISIBLE : View.GONE);
         uiLines.setBackgroundColor(0xFF000000 | ColorScheme.get().default_color[ColorScheme.OPT_BG]);
@@ -148,8 +148,8 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         applyColorSchemeToViews();
     }
 
-    @MainThread @Override @Cat public void onStop() {
-        super.onStop();
+    @MainThread @Override @Cat public void onPause() {
+        super.onPause();
         detachFromBuffer();
         EventBus.getDefault().unregister(this);
     }
