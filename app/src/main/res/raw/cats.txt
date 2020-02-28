@@ -4,10 +4,12 @@
 # ui
     WA/*
     ChatLinesAdapter/Scrolling
-    #BLF
+    BLF
     Notificator
 
 # service
+    RelayService
+    RelayConnection
     BufferList/*
     Buffer/*
     Lines

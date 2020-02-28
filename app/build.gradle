@@ -22,6 +22,10 @@ dependencies {
     implementation 'androidx.preference:preference:1.1.0'  // preference fragment & al
     implementation 'androidx.legacy:legacy-preference-v14:1.0.0' // styling for the fragment
 
+    implementation 'com.github.bumptech.glide:glide:4.11.0'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.11.0'
+    implementation "com.squareup.okhttp3:okhttp:4.4.0"
+
     implementation 'org.aspectj:aspectjrt:1.9.5'
 
     implementation "commons-codec:commons-codec:1.13"

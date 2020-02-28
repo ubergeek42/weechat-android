@@ -66,5 +66,10 @@ public class Assert {
             if (((int) a) <= b) fail("Actual must be greater than " + b);
             return this;
         }
+
+        public A isLessThanOrEqualTo(int b) {
+            if (((int) a) > b) fail("Actual must be less than " + b);
+            return this;
+        }
     }
 }

@@ -19,9 +19,11 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.nio.CharBuffer;
 import java.text.SimpleDateFormat;
 
 import androidx.annotation.NonNull;
@@ -105,6 +107,10 @@ public class Utils {
         return bytes == null || bytes.length == 0;
     }
 
+    public static <T> boolean isEmpty(T[] array) {
+        return array == null || array.length == 0;
+    }
+
     public static @NonNull byte[] readFromUri(Context context, Uri uri) throws IOException {
         int len;
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -159,5 +165,26 @@ public class Utils {
         } catch (NumberFormatException ignored) {
             return 0;
         }
+    }
+
+    final private static int BUFFER_SIZE = 2048;
+    public static CharSequence readInputStream(InputStream stream, int wantedSize) throws IOException {
+        InputStreamReader reader = new InputStreamReader(stream);
+        StringBuilder stringBuilder = new StringBuilder(wantedSize + BUFFER_SIZE);
+        CharBuffer buffer =  CharBuffer.allocate(BUFFER_SIZE);
+        int length;
+        while ((length = reader.read(buffer)) != -1) {
+            buffer.flip();
+            stringBuilder.append(buffer, 0, length);
+            if (stringBuilder.length() >= wantedSize) break;
+        }
+        stream.close();
+        return stringBuilder;
+    }
+
+    public static CharSequence getLongStringSummary(CharSequence seq) {
+        if (seq.length() <= 200) return seq;
+        String out = "\"" + seq.subSequence(0, 80) + "..." + seq.subSequence(seq.length() - 80, seq.length()) + "\"";
+        return out.replace("\n", "\\n");
     }
 }
