@@ -51,7 +51,7 @@ public class Engine {
                                 "|" +
                                 "youtu\\.be/" +
                                 ")" +
-                                "([A-Za-z0-9_-]+).+",
+                                "([A-Za-z0-9_-]+).*",
                         "https://img.youtube.com/vi/$1/mqdefault.jpg"),
                 new StrategyOpenGraph(
                         "v.Reddit",

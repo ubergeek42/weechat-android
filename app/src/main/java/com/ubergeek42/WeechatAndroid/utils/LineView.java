@@ -23,8 +23,9 @@ import androidx.annotation.Nullable;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.CustomTarget;
-import com.bumptech.glide.request.target.Target;
 import com.bumptech.glide.request.transition.Transition;
+import com.ubergeek42.WeechatAndroid.Weechat;
+import com.ubergeek42.WeechatAndroid.media.Cache;
 import com.ubergeek42.WeechatAndroid.media.Engine;
 import com.ubergeek42.WeechatAndroid.media.StrategyUrl;
 import com.ubergeek42.WeechatAndroid.relay.Line;
@@ -33,7 +34,6 @@ import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
 
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -48,6 +48,9 @@ public class LineView extends View {
 
     final private static int THUMBNAIL_AREA_WIDTH = THUMBNAIL_WIDTH + THUMBNAIL_HORIZONTAL_MARGIN * 2;
     final private static int THUMBNAIL_AREA_MIN_HEIGHT = THUMBNAIL_MIN_HEIGHT + THUMBNAIL_VERTICAL_MARGIN * 2;
+
+    private Layout narrowLayout = null;
+    private Layout wideLayout = null;
 
     private Spannable text = null;
     private Layout layout = null;
@@ -64,7 +67,7 @@ public class LineView extends View {
 
     private void reset() {
         text = null;
-        layout = null;
+        layout = wideLayout = narrowLayout = null;
         bitmaps = null;
         Glide.with(getContext()).clear(target);
         target = null;
@@ -78,52 +81,63 @@ public class LineView extends View {
 
         text = line.spannable;
 
-        Layout wideLayout = makeLayout(text, P.weaselWidth);
-        setLayout(wideLayout);
+        List<StrategyUrl> candidates = Engine.getPossibleMediaCandidates(getUrls());
+        StrategyUrl url = candidates.isEmpty() ? null : candidates.get(0);
+        Cache.Info info = url == null ? null : Cache.info(url);
+
+        setLayout(info == Cache.Info.FETCHED_RECENTLY ? Which.NARROW : Which.WIDE);
         invalidate();
 
-        List<StrategyUrl> candidates = Engine.getPossibleMediaCandidates(getUrls());
+        if (url == null || info == Cache.Info.FAILED_RECENTLY) return;
 
-        if (candidates.isEmpty()) return;
-
-        StrategyUrl url = candidates.get(0);
-        Layout narrowLayout = makeLayout(text, P.weaselWidth - THUMBNAIL_AREA_WIDTH);
-
+        ensureLayout(Which.NARROW);
         kitty.info("fetching: %s", url);
         target = Glide.with(getContext())
                 .asBitmap()
                 .apply(Engine.defaultRequestOptions)
                 .load(url)
-                .into(new Target(THUMBNAIL_WIDTH, getThumbnailHeight(narrowLayout), wideLayout, narrowLayout));
+                .into(new Target(THUMBNAIL_WIDTH, getThumbnailHeight(narrowLayout), url));
     }
 
     private class Target extends CustomTarget<Bitmap> {
-        final Layout wideLayout;
-        final Layout narrowLayout;
-
-        Target(int width, int height, Layout wideLayout, Layout narrowLayout) {
+        private final StrategyUrl url;
+        Target(int width, int height, StrategyUrl url) {
             super(width, height);
-            this.wideLayout = wideLayout;
-            this.narrowLayout = narrowLayout;
+            this.url = url;
         }
 
         @Override public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition transition) {
+            Cache.record(url, Cache.Attempt.SUCCESS, "success!");
             bitmaps = new Bitmap[]{resource};
-            setLayout(narrowLayout);
+            setLayout(Which.NARROW);
             invalidate();
         }
 
         @Override public void onLoadCleared(@Nullable Drawable placeholder) {
             if (bitmaps == null) return;
-            setLayout(wideLayout);
+            setLayout(Which.WIDE);
             bitmaps = null;
             invalidate();
         }
 
-        @Override @Cat public void onLoadFailed(@Nullable Drawable errorDrawable) {}
+        // the request seems to be attempted once again on minimizing/restoring the app
+        // todo understand why/file a bug?
+        @Override @Cat public void onLoadFailed(@Nullable Drawable errorDrawable) {
+            Target local = target;
+            Weechat.runOnMainThread(() -> Glide.with(getContext()).clear(local));
+        }
     }
 
-    private void setLayout(Layout newLayout) {
+    enum Which {WIDE, NARROW}
+    private void ensureLayout(Which which) {
+        if (which == Which.WIDE && wideLayout == null) wideLayout = makeLayout(text, P.weaselWidth);
+        if (which == Which.NARROW && narrowLayout == null) narrowLayout = makeLayout(text, P.weaselWidth - THUMBNAIL_AREA_WIDTH);
+    }
+
+    private void setLayout(Which which) {
+        ensureLayout(which);
+        Layout newLayout = which == Which.WIDE ? wideLayout : narrowLayout;
+
         int oldHeight = layout == null ? -1 : layout.getHeight();
         if (oldHeight != newLayout.getHeight()) requestLayout();
         layout = newLayout;

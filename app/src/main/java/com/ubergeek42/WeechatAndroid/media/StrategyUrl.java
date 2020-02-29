@@ -48,7 +48,7 @@ public class StrategyUrl implements Key {
         return getCacheKey().hashCode();
     }
 
-    private String getCacheKey() {
+    String getCacheKey() {
         return originalUrl;
     }
 

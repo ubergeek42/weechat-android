@@ -103,6 +103,13 @@ public class Utils {
         return false;
     }
 
+    public static boolean isAnyOf(int left, int ... rights) {
+        for (int right : rights)
+            if (left == right)
+                return true;
+        return false;
+    }
+
     public static boolean isEmpty(byte[] bytes) {
         return bytes == null || bytes.length == 0;
     }

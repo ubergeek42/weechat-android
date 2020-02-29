@@ -91,12 +91,14 @@ public class OkHttpStreamFetcher implements DataFetcher<InputStream> {
         }
 
         @Override @Cat public void onFailure(@NonNull Call call, @NonNull IOException e) {
+            recordFailure(e);
             callback.onLoadFailed(e);
         }
 
         @Override @Cat public void onResponse(@NonNull Call call, Response response)  {
             responseBody = response.body();
             if (!response.isSuccessful()) {
+                recordFailure(response.message(), response.code());
                 callback.onLoadFailed(new HttpException(response.message(), response.code()));
                 return;
             }
@@ -137,6 +139,7 @@ public class OkHttpStreamFetcher implements DataFetcher<InputStream> {
             try {
                 body = readInputStream(stream, url.getStrategy().wantedBodySize());
             } catch (IOException e) {
+                recordFailure(e);
                 callback.onLoadFailed(e);
                 return;
             }
@@ -147,6 +150,7 @@ public class OkHttpStreamFetcher implements DataFetcher<InputStream> {
             } else {
                 String message = "Couldn't get request url from body";
                 if (BuildConfig.DEBUG) message += ": " + Utils.getLongStringSummary(body);
+                recordFailure(message, Cache.Attempt.HTML_BODY_LACKS_REQUIRED_DATA);
                 callback.onLoadFailed(new IOException(message));
             }
         }
@@ -184,9 +188,12 @@ public class OkHttpStreamFetcher implements DataFetcher<InputStream> {
     @NonNull @Override public DataSource getDataSource() {
         return DataSource.REMOTE;
     }
-}
 
-    // for (Map.Entry<String, String> headerEntry : url.getHeaders().entrySet()) {
-    //     String key = headerEntry.getKey();
-    //     requestBuilder.addHeader(key, headerEntry.getValue());
-    // }
+    private void recordFailure(IOException e) {
+        recordFailure(e.getClass().getSimpleName() + ": " + e.toString(), Cache.Attempt.UNKNOWN_IO_ERROR);
+    }
+
+    private void recordFailure(String description, int code) {
+        Cache.record(url, code, description);
+    }
+}
