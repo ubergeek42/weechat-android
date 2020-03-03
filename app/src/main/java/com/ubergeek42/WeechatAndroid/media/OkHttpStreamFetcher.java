@@ -91,14 +91,12 @@ public class OkHttpStreamFetcher implements DataFetcher<InputStream> {
         }
 
         @Override @Cat public void onFailure(@NonNull Call call, @NonNull IOException e) {
-            recordFailure(e);
             callback.onLoadFailed(e);
         }
 
         @Override @Cat public void onResponse(@NonNull Call call, Response response)  {
             responseBody = response.body();
             if (!response.isSuccessful()) {
-                recordFailure(response.message(), response.code());
                 callback.onLoadFailed(new HttpException(response.message(), response.code()));
                 return;
             }
@@ -106,10 +104,10 @@ public class OkHttpStreamFetcher implements DataFetcher<InputStream> {
             long contentLength = Preconditions.checkNotNull(responseBody).contentLength();
             stream = ContentLengthInputStream.obtain(responseBody.byteStream(), contentLength);
 
-            onStreamReady(stream);
+            onStreamReady(responseBody, stream);
         }
 
-        abstract void onStreamReady(InputStream stream);
+        abstract void onStreamReady(ResponseBody response, InputStream stream);
 
         void cleanup() {
             try {
@@ -129,17 +127,16 @@ public class OkHttpStreamFetcher implements DataFetcher<InputStream> {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private MyCallback intermediate = new MyCallback() {
-        final private @Root Kitty kitty = OkHttpStreamFetcher.kitty.kid("Intermediate");
+        final private @Root Kitty intermediate_kitty = kitty.kid("Intermediate");
 
         // note that when using GlideUrl, calling onLoadFailed results in an additional call, see
         // https://github.com/bumptech/glide/issues/2943 -- something to potentially worry about?
-        @Override @Cat void onStreamReady(InputStream stream) {
+        @Override @Cat void onStreamReady(ResponseBody response, InputStream stream) {
             CharSequence body;
 
             try {
                 body = readInputStream(stream, url.getStrategy().wantedBodySize());
             } catch (IOException e) {
-                recordFailure(e);
                 callback.onLoadFailed(e);
                 return;
             }
@@ -150,8 +147,7 @@ public class OkHttpStreamFetcher implements DataFetcher<InputStream> {
             } else {
                 String message = "Couldn't get request url from body";
                 if (BuildConfig.DEBUG) message += ": " + Utils.getLongStringSummary(body);
-                recordFailure(message, Cache.Attempt.HTML_BODY_LACKS_REQUIRED_DATA);
-                callback.onLoadFailed(new IOException(message));
+                callback.onLoadFailed(new CodeException(Cache.ERROR_HTML_BODY_LACKS_REQUIRED_DATA, message));
             }
         }
     };
@@ -159,10 +155,18 @@ public class OkHttpStreamFetcher implements DataFetcher<InputStream> {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private MyCallback main = new MyCallback() {
-        final private @Root Kitty kitty = OkHttpStreamFetcher.kitty.kid("Main");
+        final private @Root Kitty main_kitty = kitty.kid("Main");
 
-        @Override @Cat void onStreamReady(InputStream stream) {
-            callback.onDataReady(stream);
+        @Override @Cat void onStreamReady(ResponseBody responseBody, InputStream stream) {
+            long contentLength = responseBody.contentLength();
+            if (contentLength > 0 && contentLength < Engine.MAXIMUM_BODY_SIZE) {
+                callback.onDataReady(stream);
+            } else {
+                String message = contentLength < 0 ?
+                        "Content length unknown" :
+                        "Content length of " + contentLength + " exceeds the maximum limit of " + Engine.MAXIMUM_BODY_SIZE;
+                callback.onLoadFailed(new CodeException(Cache.ERROR_UNACCEPTABLE_CONTENT_LENGTH, message));
+            }
         }
     };
 
@@ -187,13 +191,5 @@ public class OkHttpStreamFetcher implements DataFetcher<InputStream> {
 
     @NonNull @Override public DataSource getDataSource() {
         return DataSource.REMOTE;
-    }
-
-    private void recordFailure(IOException e) {
-        recordFailure(e.getClass().getSimpleName() + ": " + e.toString(), Cache.Attempt.UNKNOWN_IO_ERROR);
-    }
-
-    private void recordFailure(String description, int code) {
-        Cache.record(url, code, description);
     }
 }

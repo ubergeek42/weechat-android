@@ -54,7 +54,7 @@ public class LineView extends View {
 
     private Spannable text = null;
     private Layout layout = null;
-    private Bitmap[] bitmaps = null;
+    private Bitmap bitmap = null;
     private Target target;
     public LineView(Context context) {
         super(context, null);
@@ -68,7 +68,7 @@ public class LineView extends View {
     private void reset() {
         text = null;
         layout = wideLayout = narrowLayout = null;
-        bitmaps = null;
+        bitmap = null;
         Glide.with(getContext()).clear(target);
         target = null;
     }
@@ -95,29 +95,22 @@ public class LineView extends View {
         target = Glide.with(getContext())
                 .asBitmap()
                 .apply(Engine.defaultRequestOptions)
+                .listener(Cache.listener)
                 .load(url)
-                .into(new Target(THUMBNAIL_WIDTH, getThumbnailHeight(narrowLayout), url));
+                .into(new Target(THUMBNAIL_WIDTH, getThumbnailHeight(narrowLayout)));
     }
 
     private class Target extends CustomTarget<Bitmap> {
-        private final StrategyUrl url;
-        Target(int width, int height, StrategyUrl url) {
+        Target(int width, int height) {
             super(width, height);
-            this.url = url;
         }
 
         @Override public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition transition) {
-            Cache.record(url, Cache.Attempt.SUCCESS, "success!");
-            bitmaps = new Bitmap[]{resource};
-            setLayout(Which.NARROW);
-            invalidate();
+            setBitmap(resource);
         }
 
         @Override public void onLoadCleared(@Nullable Drawable placeholder) {
-            if (bitmaps == null) return;
-            setLayout(Which.WIDE);
-            bitmaps = null;
-            invalidate();
+            setBitmap(null);
         }
 
         // the request seems to be attempted once again on minimizing/restoring the app
@@ -125,7 +118,15 @@ public class LineView extends View {
         @Override @Cat public void onLoadFailed(@Nullable Drawable errorDrawable) {
             Target local = target;
             Weechat.runOnMainThread(() -> Glide.with(getContext()).clear(local));
+            setBitmap(null);
         }
+    }
+
+    private void setBitmap(@Nullable Bitmap bitmap) {
+        if (this.bitmap == bitmap) return;
+        this.bitmap = bitmap;
+        setLayout(bitmap == null ? Which.WIDE : Which.NARROW);
+        invalidate();
     }
 
     enum Which {WIDE, NARROW}
@@ -147,14 +148,14 @@ public class LineView extends View {
 
     // https://stackoverflow.com/questions/41779934/how-is-staticlayout-used-in-android
     @Override protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        int height = Utils.isEmpty(bitmaps) ? layout.getHeight() : Math.max(layout.getHeight(), THUMBNAIL_AREA_MIN_HEIGHT);
+        int height = bitmap == null ? layout.getHeight() : Math.max(layout.getHeight(), THUMBNAIL_AREA_MIN_HEIGHT);
         setMeasuredDimension(P.weaselWidth, height);
     }
 
     @Override protected void onDraw(Canvas canvas) {
         layout.draw(canvas);
-        if (!Utils.isEmpty(bitmaps)) {
-            canvas.drawBitmap(bitmaps[0], P.weaselWidth - THUMBNAIL_WIDTH - THUMBNAIL_HORIZONTAL_MARGIN, THUMBNAIL_VERTICAL_MARGIN, null);
+        if (bitmap != null) {
+            canvas.drawBitmap(bitmap, P.weaselWidth - THUMBNAIL_WIDTH - THUMBNAIL_HORIZONTAL_MARGIN, THUMBNAIL_VERTICAL_MARGIN, null);
         }
     }
 
