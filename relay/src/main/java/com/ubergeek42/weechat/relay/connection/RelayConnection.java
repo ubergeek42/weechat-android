@@ -144,7 +144,7 @@ public class RelayConnection {
     }
 
     synchronized private void onMessage(RelayMessage message) {
-        logger.trace("onMessage(id={})", message.getID());
+        // logger.trace("onMessage(id={})", message.getID());
         if (state == STATE.DISCONNECTED) return;
 
         if (ID_VERSION.equals(message.getID())) {

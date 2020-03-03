@@ -47,7 +47,7 @@ android {
         versionCode 617
         versionName "0.14.1"
 
-        minSdkVersion 16
+        minSdkVersion 21
         targetSdkVersion 29
         buildConfigField "String", "VERSION_BANNER", "\"" + versionBanner() + "\""
 
