@@ -25,16 +25,16 @@ package com.ubergeek42.WeechatAndroid.media;
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+// note that when using GlideUrl, calling onLoadFailed results in an additional call, see
+// https://github.com/bumptech/glide/issues/2943 -- something to potentially worry about?
+
 import androidx.annotation.NonNull;
 
 import com.bumptech.glide.Priority;
 import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.HttpException;
 import com.bumptech.glide.load.data.DataFetcher;
-import com.bumptech.glide.util.ContentLengthInputStream;
 import com.bumptech.glide.util.Preconditions;
-import com.ubergeek42.WeechatAndroid.BuildConfig;
-import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
@@ -101,9 +101,15 @@ public class OkHttpStreamFetcher implements DataFetcher<InputStream> {
                 return;
             }
 
+            // contentLength will be -1 if not present in the request. it's often missing if the
+            // request is served with gzip, as the resulting file size might not be known in advance
             long contentLength = Preconditions.checkNotNull(responseBody).contentLength();
-            stream = ContentLengthInputStream.obtain(responseBody.byteStream(), contentLength);
+            if (contentLength > Engine.MAXIMUM_BODY_SIZE) {
+                callback.onLoadFailed(new Exceptions.ContentLengthExceedsLimitException(contentLength, Engine.MAXIMUM_BODY_SIZE));
+                return;
+            }
 
+            stream = new LimitedLengthInputStream(responseBody.byteStream(), contentLength, Engine.MAXIMUM_BODY_SIZE);
             onStreamReady(responseBody, stream);
         }
 
@@ -129,8 +135,6 @@ public class OkHttpStreamFetcher implements DataFetcher<InputStream> {
     private MyCallback intermediate = new MyCallback() {
         final private @Root Kitty intermediate_kitty = kitty.kid("Intermediate");
 
-        // note that when using GlideUrl, calling onLoadFailed results in an additional call, see
-        // https://github.com/bumptech/glide/issues/2943 -- something to potentially worry about?
         @Override @Cat void onStreamReady(ResponseBody response, InputStream stream) {
             CharSequence body;
 
@@ -142,13 +146,12 @@ public class OkHttpStreamFetcher implements DataFetcher<InputStream> {
             }
 
             String newRequestUrl = url.getStrategy().getRequestUrlFromBody(body);
-            if (newRequestUrl != null) {
-                main.fire(newRequestUrl);
-            } else {
-                String message = "Couldn't get request url from body";
-                if (BuildConfig.DEBUG) message += ": " + Utils.getLongStringSummary(body);
-                callback.onLoadFailed(new CodeException(Cache.ERROR_HTML_BODY_LACKS_REQUIRED_DATA, message));
+            if (newRequestUrl == null) {
+                callback.onLoadFailed(new Exceptions.HtmlBodyLacksRequiredDataException(body));
+                return;
             }
+
+            main.fire(newRequestUrl);
         }
     };
 
@@ -158,15 +161,7 @@ public class OkHttpStreamFetcher implements DataFetcher<InputStream> {
         final private @Root Kitty main_kitty = kitty.kid("Main");
 
         @Override @Cat void onStreamReady(ResponseBody responseBody, InputStream stream) {
-            long contentLength = responseBody.contentLength();
-            if (contentLength > 0 && contentLength < Engine.MAXIMUM_BODY_SIZE) {
-                callback.onDataReady(stream);
-            } else {
-                String message = contentLength < 0 ?
-                        "Content length unknown" :
-                        "Content length of " + contentLength + " exceeds the maximum limit of " + Engine.MAXIMUM_BODY_SIZE;
-                callback.onLoadFailed(new CodeException(Cache.ERROR_UNACCEPTABLE_CONTENT_LENGTH, message));
-            }
+            callback.onDataReady(stream);
         }
     };
 

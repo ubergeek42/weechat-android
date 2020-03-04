@@ -25,7 +25,7 @@ import static com.ubergeek42.WeechatAndroid.media.HostUtils.getHost;
 public class Engine {
     final private static @Root Kitty kitty = Kitty.make();
 
-    final static int MAXIMUM_BODY_SIZE = 5 * 1024 * 1024;
+    final static long MAXIMUM_BODY_SIZE = 5 * 1024 * 1024;
 
     final public static RequestOptions defaultRequestOptions = new RequestOptions()
             .diskCacheStrategy(DiskCacheStrategy.ALL)

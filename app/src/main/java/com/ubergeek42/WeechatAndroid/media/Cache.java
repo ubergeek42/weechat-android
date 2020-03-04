@@ -123,7 +123,7 @@ public class Cache {
     private final static int SUCCESS = 0;
     private final static int ERROR_UNKNOWN_ERROR = -1;
     final static int ERROR_HTML_BODY_LACKS_REQUIRED_DATA = -2;
-    final static int ERROR_UNACCEPTABLE_CONTENT_LENGTH = -3;
+    final static int ERROR_UNACCEPTABLE_FILE_SIZE = -3;
 
     private final static int ERROR_TIMEOUT = -110;
     private final static int ERROR_INTERNET_UNREACHABLE = -101;
@@ -140,7 +140,7 @@ public class Cache {
         HttpException httpException = findException(e, HttpException.class);
         if (httpException != null)
             return httpException.getStatusCode();
-        CodeException codeException = findException(e, CodeException.class);
+        Exceptions.CodeException codeException = findException(e, Exceptions.CodeException.class);
         if (codeException != null)
             return codeException.getCode();
 
@@ -195,7 +195,7 @@ public class Cache {
         )) return COOLDOWN_SHORT;
         if (Utils.isAnyOf(code,
                 ERROR_HTML_BODY_LACKS_REQUIRED_DATA,
-                ERROR_UNACCEPTABLE_CONTENT_LENGTH,
+                ERROR_UNACCEPTABLE_FILE_SIZE,
                 ERROR_UNKNOWN_HOST,
                 400, // Bad Request
                 401, // Unauthorized

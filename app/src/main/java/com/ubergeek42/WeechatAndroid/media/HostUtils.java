@@ -8,7 +8,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 class HostUtils {
-    private static final Pattern HOST = Pattern.compile("^https?://([^/]+)", Pattern.CASE_INSENSITIVE);
+    private static final Pattern HOST = Pattern.compile("^https?://([^/:]+)", Pattern.CASE_INSENSITIVE);
     static @Nullable String getHost(String url) {
         Matcher matcher = HOST.matcher(url);
         return matcher.find() ? matcher.group(1) : null;
