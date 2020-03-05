@@ -23,11 +23,11 @@ abstract public class StrategyAbs implements Strategy {
         return hosts;
     }
 
-    @Override public boolean needsToProcessBody() {
-        return wantedBodySize > 0;
+    @Override public RequestType requestType() {
+        return wantedBodySize > 0 ? RequestType.HTML : RequestType.IMAGE;
     }
 
-    @Override public int wantedBodySize() {
+    @Override public int wantedHtmlBodySize() {
         return wantedBodySize;
     }
 

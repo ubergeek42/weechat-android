@@ -5,6 +5,8 @@ import com.ubergeek42.WeechatAndroid.utils.Utils;
 
 import java.io.IOException;
 
+import okhttp3.MediaType;
+
 class Exceptions {
     static class CodeException extends IOException {
         final private int code;
@@ -53,6 +55,13 @@ class Exceptions {
         BodySizeSmallerThanContentLengthException(long bodySize, long minBodySize) {
             super(Cache.ERROR_UNACCEPTABLE_FILE_SIZE,
                     "Body size of " + bodySize + " smaller than the minimum limit of " + minBodySize);
+        }
+    }
+
+    static class UnacceptableMediaTypeException extends CodeException {
+        UnacceptableMediaTypeException(RequestType requestType, MediaType mediaType) {
+            super(Cache.ERROR_UNACCEPTABLE_MEDIA_TYPE,
+                    "Requested: " + requestType.getShortDescription() + "; got: " + mediaType);
         }
     }
 }

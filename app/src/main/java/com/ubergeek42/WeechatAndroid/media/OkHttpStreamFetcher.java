@@ -44,49 +44,61 @@ import java.io.InputStream;
 
 import okhttp3.Call;
 import okhttp3.Callback;
+import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 
+import static com.ubergeek42.WeechatAndroid.media.Exceptions.*;
 import static com.ubergeek42.WeechatAndroid.utils.Utils.readInputStream;
 
 public class OkHttpStreamFetcher implements DataFetcher<InputStream> {
     final private static @Root Kitty kitty = Kitty.make();
 
     final private Call.Factory client;
-    final private StrategyUrl url;
+    final private StrategyUrl strategyUrl;
+    final private Strategy strategy;
 
     private DataCallback<? super InputStream> callback;
 
-    OkHttpStreamFetcher(Call.Factory client, StrategyUrl url) {
+    volatile private CallHandler lastCallHandler;
+
+    OkHttpStreamFetcher(Call.Factory client, StrategyUrl strategyUrl) {
         this.client = client;
-        this.url = url;
+        this.strategyUrl = strategyUrl;
+        this.strategy = strategyUrl.getStrategy();
     }
 
     @Override @Cat public void loadData(@NonNull Priority priority, @NonNull DataCallback<? super InputStream> callback) {
         this.callback = callback;
-        String requestUrl = url.getStrategy().getRequestUrl(url.getOriginalUrl());
-        if (url.getStrategy().needsToProcessBody()) intermediate.fire(requestUrl);
-        else main.fire(requestUrl);
+        String requestUrl = strategy.getRequestUrl(strategyUrl.getOriginalUrl());
+        fire(requestUrl, strategy.requestType());
+    }
+
+    private void fire(String url, RequestType requestType) {
+        lastCallHandler = new CallHandler(url, requestType);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private abstract class MyCallback implements Callback {
-        // call may be accessed on the main thread while the object is in use on other threads. all
-        // other accesses to variables may occur on different threads, but only one at a time.
-        private volatile Call call;
+    private class CallHandler implements Callback {
+        final private @Root Kitty handler_kitty = kitty.kid("CallHandler");
 
-        private InputStream stream;
-        private ResponseBody responseBody;
+        final private Call call;
+        final private RequestType requestType;
 
-        // use glide headers? see com.bumptech.glide.load.model.Headers.DEFAULT
-        // use proper request headers for html/images
-        @Cat void fire(String url) {
-            Request request = new Request.Builder().url(url).build();
-            call = client.newCall(request);
+        private ResponseBody body;
+
+        @Cat CallHandler(String stringUrl, RequestType requestType) {
+            this.requestType = requestType;
+            Request.Builder builder = new Request.Builder()
+                    .url(stringUrl)
+                    .header("Accept", requestType.getAcceptHeader());
+            if (requestType == RequestType.HTML && strategy.wantedHtmlBodySize() > 0)
+                builder.header("Range", "bytes=0-" + strategy.wantedHtmlBodySize());
+            call = client.newCall(builder.build());
             call.enqueue(this);
         }
 
@@ -95,89 +107,57 @@ public class OkHttpStreamFetcher implements DataFetcher<InputStream> {
         }
 
         @Override @Cat public void onResponse(@NonNull Call call, Response response)  {
-            responseBody = response.body();
-            if (!response.isSuccessful()) {
-                callback.onLoadFailed(new HttpException(response.message(), response.code()));
-                return;
-            }
+            body = Preconditions.checkNotNull(response.body());         // must be closed!
 
-            // contentLength will be -1 if not present in the request. it's often missing if the
-            // request is served with gzip, as the resulting file size might not be known in advance
-            long contentLength = Preconditions.checkNotNull(responseBody).contentLength();
-            if (contentLength > Engine.MAXIMUM_BODY_SIZE) {
-                callback.onLoadFailed(new Exceptions.ContentLengthExceedsLimitException(contentLength, Engine.MAXIMUM_BODY_SIZE));
-                return;
-            }
-
-            stream = new LimitedLengthInputStream(responseBody.byteStream(), contentLength, Engine.MAXIMUM_BODY_SIZE);
-            onStreamReady(responseBody, stream);
-        }
-
-        abstract void onStreamReady(ResponseBody response, InputStream stream);
-
-        void cleanup() {
             try {
-                if (stream != null) stream.close();
-            } catch (IOException ignored) {}
-            if (responseBody != null) responseBody.close();
+                processBody(response);
+            } catch (IOException e) {
+                callback.onLoadFailed(e);
+                body.close();
+            }
         }
 
-        void cancel() {
-            Call local = call;
-            if (local != null) {
-                local.cancel();
+        // contentLength will be -1 if not present in the request. it's often missing if the
+        // request is served with gzip, as the resulting file size might not be known in advance
+        private void processBody(Response response) throws IOException {
+            if (!response.isSuccessful())
+                throw new HttpException(response.message(), response.code());
+
+            long contentLength = body.contentLength();
+            if (contentLength > Engine.MAXIMUM_BODY_SIZE)
+                throw new ContentLengthExceedsLimitException(contentLength, Engine.MAXIMUM_BODY_SIZE);
+
+            InputStream stream = new LimitedLengthInputStream(body.byteStream(), contentLength, Engine.MAXIMUM_BODY_SIZE);
+
+            MediaType responseType = body.contentType();
+            if (!requestType.matches(responseType))
+                throw new UnacceptableMediaTypeException(requestType, responseType);
+
+            if ("html".equals(responseType.subtype())) {
+                CharSequence html = readInputStream(stream, strategy.wantedHtmlBodySize());
+
+                String newRequestUrl = strategy.getRequestUrlFromBody(html);
+                if (newRequestUrl == null)
+                    throw new HtmlBodyLacksRequiredDataException(html);
+
+                body.close();
+                fire(newRequestUrl, RequestType.IMAGE);
+            } else {
+                callback.onDataReady(stream);               // body will be closed by the callback
             }
         }
     }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    private MyCallback intermediate = new MyCallback() {
-        final private @Root Kitty intermediate_kitty = kitty.kid("Intermediate");
-
-        @Override @Cat void onStreamReady(ResponseBody response, InputStream stream) {
-            CharSequence body;
-
-            try {
-                body = readInputStream(stream, url.getStrategy().wantedBodySize());
-            } catch (IOException e) {
-                callback.onLoadFailed(e);
-                return;
-            }
-
-            String newRequestUrl = url.getStrategy().getRequestUrlFromBody(body);
-            if (newRequestUrl == null) {
-                callback.onLoadFailed(new Exceptions.HtmlBodyLacksRequiredDataException(body));
-                return;
-            }
-
-            main.fire(newRequestUrl);
-        }
-    };
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    private MyCallback main = new MyCallback() {
-        final private @Root Kitty main_kitty = kitty.kid("Main");
-
-        @Override @Cat void onStreamReady(ResponseBody responseBody, InputStream stream) {
-            callback.onDataReady(stream);
-        }
-    };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @Override @Cat public void cleanup() {
-        intermediate.cleanup();
-        main.cleanup();
-        callback = null;
+        if (lastCallHandler != null && lastCallHandler.body != null) lastCallHandler.body.close();
     }
 
     @Override @Cat public void cancel() {
-        intermediate.cancel();
-        main.cancel();
+        if (lastCallHandler != null) lastCallHandler.call.cancel();
     }
 
     @NonNull @Override public Class<InputStream> getDataClass() {

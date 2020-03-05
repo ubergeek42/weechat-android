@@ -6,6 +6,8 @@ import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import static com.ubergeek42.WeechatAndroid.media.Exceptions.*;
+
 public class LimitedLengthInputStream extends FilterInputStream {
     private long readByteCount = 0;
     final private long minByteCount;
@@ -32,11 +34,11 @@ public class LimitedLengthInputStream extends FilterInputStream {
     private void check(int read) throws IOException {
         if (read < 0) {
             if (readByteCount < minByteCount)
-                throw new Exceptions.BodySizeSmallerThanContentLengthException(readByteCount, minByteCount);
+                throw new BodySizeSmallerThanContentLengthException(readByteCount, minByteCount);
         } else {
             readByteCount += read;
             if (readByteCount > maxByteCount)
-                throw new Exceptions.UnknownLengthStreamExceedsLimitException(maxByteCount);
+                throw new UnknownLengthStreamExceedsLimitException(maxByteCount);
         }
     }
 }

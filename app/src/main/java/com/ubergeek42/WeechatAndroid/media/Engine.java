@@ -70,11 +70,14 @@ public class Engine {
                         Arrays.asList("*.wikipedia.org", "gfycat.com", "imgur.com"),
                         "https://.+",
                         4096 * 2),
-                new StrategyRegex(
-                        "Any image link to https",
+                // new StrategyRegex(
+                //         "Any image link to https",
+                //         Collections.singletonList("*"),
+                //         "https?://(.+)\\.(bmp|gif|j(?:pe?g|fif)|png|webp|hei[fc])$",
+                //         "https://$1.$2"),
+                new StrategyAny(
                         Collections.singletonList("*"),
-                        "https?://(.+)\\.(jpe?g|png|gif|webp)$",
-                        "https://$1.$2")
+                        4096 * 2 * 2)
         );
     }
 

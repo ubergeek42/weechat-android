@@ -16,14 +16,16 @@ public class StrategyOpenGraph extends StrategyAbs {
             "\\s[^>]{0,50}?" +                                      // space, etc
             "content=(['\"])(https://\\S+?)\\2",                    // an https url
             Pattern.CASE_INSENSITIVE);
-    final private Pattern regex;
+    final private @Nullable Pattern regex;
 
-    StrategyOpenGraph(String name, List<String> hosts, String regex, int wantedBodySize) {
+    StrategyOpenGraph(String name, List<String> hosts, @Nullable String regex, int wantedBodySize) {
         super(name, hosts, wantedBodySize);
-        this.regex = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
+        this.regex = regex == null ? null : Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
     }
 
     @Override public @Nullable String getRequestUrl(String url) {
+        if (regex == null)
+            return url;
         Matcher matcher = regex.matcher(url);
         return matcher.matches() ? url : null;
     }

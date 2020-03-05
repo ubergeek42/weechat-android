@@ -124,6 +124,7 @@ public class Cache {
     private final static int ERROR_UNKNOWN_ERROR = -1;
     final static int ERROR_HTML_BODY_LACKS_REQUIRED_DATA = -2;
     final static int ERROR_UNACCEPTABLE_FILE_SIZE = -3;
+    final static int ERROR_UNACCEPTABLE_MEDIA_TYPE = -4;
 
     private final static int ERROR_TIMEOUT = -110;
     private final static int ERROR_INTERNET_UNREACHABLE = -101;

@@ -11,13 +11,14 @@ public interface Strategy {
     // more or all leftmost parts of the host. e.g. "one.two.com", "*.two.com", "*"
     List<String> getHosts();
 
-    // return true if the response body needs additional processing
-    boolean needsToProcessBody();
+    // returns whether the request url is that of image, html or either. if the result is html, it
+    // is read using the hint from wantedHtmlBodySize and processed using getRequestUrlFromBody
+    RequestType requestType();
 
-    // if this strategy needs to process the body, this returns the number of bytes we want to
+    // if this strategy cat process html body, this returns the number of bytes we want to
     // request from the server. this is just a guideline, the actual number of transferred bytes
     // might be smaller or greater than this
-    int wantedBodySize();
+    int wantedHtmlBodySize();
 
     // given an url, get the same or a different url to fetch. the new url might be an http+s url,
     // a direct image url constructed from a non-direct url, or a web page for further processing.
