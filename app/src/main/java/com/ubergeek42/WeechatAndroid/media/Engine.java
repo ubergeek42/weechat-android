@@ -55,21 +55,38 @@ public class Engine {
                                 ")" +
                                 "([A-Za-z0-9_-]+).*",
                         "https://img.youtube.com/vi/$1/mqdefault.jpg"),
+                new StrategyRegex(
+                        "i.imgur mp4",
+                        Collections.singletonList("i.imgur.com"),
+                        "https?://i.imgur.com/([^.]+)\\..*",
+                        "https://i.imgur.com/$1m.jpg"),
+                new StrategyRegex(
+                        "9gag",
+                        Collections.singletonList("9gag.com"),
+                        "https?://9gag\\.com/gag/([^_]+)",
+                        "https://images-cdn.9gag.com/photo/$1_700b.jpg"
+                ),
+                new StrategyRegex(
+                        "9gag cache",
+                        Collections.singletonList("img-9gag-fun.9cache.com"),
+                        "https?://img-9gag-fun\\.9cache\\.com/photo/([^_]+).*",
+                        "https://images-cdn.9gag.com/photo/$1_700b.jpg"
+                ),
                 new StrategyOpenGraph(
                         "v.Reddit",
                         Collections.singletonList("v.redd.it"),
                         "https://v\\.redd\\.it/([a-z0-9]+)",
-                        131072),
+                        null, 131072),
                 new StrategyOpenGraph(
                         "Pikabu",
                         Arrays.asList("pikabu.ru", "www.pikabu.ru"),
                         "https://pikabu.ru/story/.+",
-                        4096),
+                        null, 4096),
                 new StrategyOpenGraph(
                         "Common OpenGraph",
                         Arrays.asList("*.wikipedia.org", "gfycat.com", "imgur.com"),
                         "https://.+",
-                        4096 * 2),
+                        null, 4096 * 2),
                 // new StrategyRegex(
                 //         "Any image link to https",
                 //         Collections.singletonList("*"),
@@ -77,26 +94,29 @@ public class Engine {
                 //         "https://$1.$2"),
                 new StrategyAny(
                         Collections.singletonList("*"),
-                        4096 * 2 * 2)
+                        4096 * 2 * 2),
+                new StrategyNull(
+                        Arrays.asList("pastebin.com", "github.com", "bpaste.net", "dpaste.com"))
         );
     }
 
     // given an url, return a StrategyUrl that it the best candidate to handle it
     private static @Nullable @Cat(exit=true) StrategyUrl getStrategyUrl(String url) {
-        StrategyUrl strategyUrl = null;
         String host = getHost(url);
-        kitty.debugl("host=%s", host);
         if (host != null) {
             for (String subHost : new HostUtils.HostIterable(host)) {
-                kitty.debugl("subHost=%s", subHost);
                 Strategy strategy = strategies.get(subHost);
                 if (strategy != null) {
-                    strategyUrl = StrategyUrl.make(strategy, url);
-                    if (strategyUrl != null) break;
+                    try {
+                        StrategyUrl strategyUrl = StrategyUrl.make(strategy, url);
+                        if (strategyUrl != null) return strategyUrl;
+                    } catch (Strategy.CancelFurtherAttempts e) {
+                        return null;
+                    }
                 }
             }
         }
-        return strategyUrl;
+        return null;
     }
 
     public static @NonNull List<StrategyUrl> getPossibleMediaCandidates(@NonNull URLSpan[] urls) {

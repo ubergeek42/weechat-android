@@ -17,17 +17,21 @@ public class StrategyOpenGraph extends StrategyAbs {
             "content=(['\"])(https://\\S+?)\\2",                    // an https url
             Pattern.CASE_INSENSITIVE);
     final private @Nullable Pattern regex;
+    final private @Nullable String replacement;
 
-    StrategyOpenGraph(String name, List<String> hosts, @Nullable String regex, int wantedBodySize) {
+    StrategyOpenGraph(String name, List<String> hosts, @Nullable String regex, @Nullable String replacement, int wantedBodySize) {
         super(name, hosts, wantedBodySize);
         this.regex = regex == null ? null : Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
+        this.replacement = replacement;
     }
 
-    @Override public @Nullable String getRequestUrl(String url) {
+    @Nullable @Override public String getRequestUrl(String url) {
         if (regex == null)
             return url;
         Matcher matcher = regex.matcher(url);
-        return matcher.matches() ? url : null;
+        if (!matcher.matches())
+            return null;
+        return replacement != null ? matcher.replaceFirst(replacement) : url;
     }
 
     @Override public @Nullable String getRequestUrlFromBody(CharSequence body) {

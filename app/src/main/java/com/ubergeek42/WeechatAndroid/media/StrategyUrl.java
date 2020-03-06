@@ -11,19 +11,21 @@ import java.security.MessageDigest;
 public class StrategyUrl implements Key {
     final private Strategy strategy;
     final private String originalUrl;
+    final private String requestUrl;
 
-    private StrategyUrl(Strategy strategy, String originalUrl) {
+    private StrategyUrl(Strategy strategy, String originalUrl, String requestUrl) {
         this.strategy = strategy;
         this.originalUrl = originalUrl;
+        this.requestUrl = requestUrl;
     }
 
-    static StrategyUrl make(Strategy strategy, String originalUrl) {
+    static StrategyUrl make(Strategy strategy, String originalUrl) throws Strategy.CancelFurtherAttempts {
         String requestUrl = strategy.getRequestUrl(originalUrl);
-        return requestUrl == null ? null : new StrategyUrl(strategy, originalUrl);
+        return requestUrl == null ? null : new StrategyUrl(strategy, originalUrl, requestUrl);
     }
 
-    String getOriginalUrl() {
-        return originalUrl;
+    String getRequestUrl() {
+        return requestUrl;
     }
 
     Strategy getStrategy() {
@@ -49,7 +51,7 @@ public class StrategyUrl implements Key {
     }
 
     String getCacheKey() {
-        return originalUrl;
+        return requestUrl;
     }
 
     @NonNull @Override public String toString() {

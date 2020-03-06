@@ -71,7 +71,7 @@ public class OkHttpStreamFetcher implements DataFetcher<InputStream> {
 
     @Override @Cat public void loadData(@NonNull Priority priority, @NonNull DataCallback<? super InputStream> callback) {
         this.callback = callback;
-        String requestUrl = strategy.getRequestUrl(strategyUrl.getOriginalUrl());
+        String requestUrl = strategyUrl.getRequestUrl();
         fire(requestUrl, strategy.requestType());
     }
 
@@ -121,7 +121,7 @@ public class OkHttpStreamFetcher implements DataFetcher<InputStream> {
         // request is served with gzip, as the resulting file size might not be known in advance
         private void processBody(Response response) throws IOException {
             if (!response.isSuccessful())
-                throw new HttpException(response.message(), response.code());
+                throw new HttpException("Http error " + response.code() + ": " + response.message(), response.code());
 
             long contentLength = body.contentLength();
             if (contentLength > Engine.MAXIMUM_BODY_SIZE)

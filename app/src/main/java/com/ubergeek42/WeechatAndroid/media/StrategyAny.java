@@ -4,7 +4,7 @@ import java.util.List;
 
 public class StrategyAny extends StrategyOpenGraph {
     StrategyAny(List<String> hosts, int wantedBodySize) {
-        super("Any", hosts, null, wantedBodySize);
+        super("Any", hosts, null, null, wantedBodySize);
     }
 
     @Override public RequestType requestType() {

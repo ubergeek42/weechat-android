@@ -10,14 +10,16 @@ class StrategyRegex extends StrategyAbs {
     final private Pattern regex;
     final private String replacement;
 
-    StrategyRegex(String name, List<String> hosts, String regex, String replacement) {
+    StrategyRegex(String name, List<String> hosts, String regex, @Nullable String replacement) {
         super(name, hosts);
         this.regex = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
         this.replacement = replacement;
     }
 
-    @Override public @Nullable String getRequestUrl(String url) {
+    @Nullable @Override public String getRequestUrl(String url) {
         Matcher matcher = regex.matcher(url);
-        return matcher.matches() ? matcher.replaceFirst(replacement) : null;
+        if (!matcher.matches())
+            return null;
+        return replacement != null ? matcher.replaceFirst(replacement) : url;
     }
 }
