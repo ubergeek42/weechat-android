@@ -45,7 +45,7 @@ public class Engine {
         //noinspection SpellCheckingInspection
         registerStrategy(
                 new StrategyRegex(
-                        "Youtube",
+                        "youtube",
                         Arrays.asList("www.youtube.com", "m.youtube.com", "youtube.com", "youtu.be"),
                         "https?://" +
                                 "(?:" +
@@ -56,43 +56,37 @@ public class Engine {
                                 "([A-Za-z0-9_-]+).*",
                         "https://img.youtube.com/vi/$1/mqdefault.jpg"),
                 new StrategyRegex(
-                        "i.imgur mp4",
+                        "i.imgur.com",
                         Collections.singletonList("i.imgur.com"),
-                        "https?://i.imgur.com/([^.]+)\\..*",
+                        "https?://i.imgur.com/([^.]+).*",
                         "https://i.imgur.com/$1m.jpg"),
                 new StrategyRegex(
-                        "9gag",
+                        "9gag.com",
                         Collections.singletonList("9gag.com"),
                         "https?://9gag\\.com/gag/([^_]+)",
-                        "https://images-cdn.9gag.com/photo/$1_700b.jpg"
-                ),
+                        "https://images-cdn.9gag.com/photo/$1_700b.jpg"),
                 new StrategyRegex(
-                        "9gag cache",
+                        "9cache.com",
                         Collections.singletonList("img-9gag-fun.9cache.com"),
                         "https?://img-9gag-fun\\.9cache\\.com/photo/([^_]+).*",
-                        "https://images-cdn.9gag.com/photo/$1_700b.jpg"
-                ),
+                        "https://images-cdn.9gag.com/photo/$1_700b.jpg"),
                 new StrategyOpenGraph(
-                        "v.Reddit",
-                        Collections.singletonList("v.redd.it"),
-                        "https://v\\.redd\\.it/([a-z0-9]+)",
-                        null, 131072),
-                new StrategyOpenGraph(
-                        "Pikabu",
+                        "pikabu.ru",
                         Arrays.asList("pikabu.ru", "www.pikabu.ru"),
                         "https://pikabu.ru/story/.+",
                         null, 4096),
                 new StrategyOpenGraph(
-                        "Common OpenGraph",
+                        "common→https",
                         Arrays.asList("*.wikipedia.org", "gfycat.com", "imgur.com"),
-                        "https://.+",
-                        null, 4096 * 2),
-                // new StrategyRegex(
-                //         "Any image link to https",
-                //         Collections.singletonList("*"),
-                //         "https?://(.+)\\.(bmp|gif|j(?:pe?g|fif)|png|webp|hei[fc])$",
-                //         "https://$1.$2"),
+                        "https?://(.+)",
+                        "https://$1",
+                        4096 * 2),
                 new StrategyAny(
+                        "reddit",
+                        Arrays.asList("v.redd.it", "reddit.com", "www.reddit.com", "old.reddit.com"),
+                        131072),
+                new StrategyAny(
+                        "any",
                         Collections.singletonList("*"),
                         4096 * 2 * 2),
                 new StrategyNull(

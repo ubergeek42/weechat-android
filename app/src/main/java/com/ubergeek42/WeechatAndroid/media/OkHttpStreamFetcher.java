@@ -32,7 +32,6 @@ import androidx.annotation.NonNull;
 
 import com.bumptech.glide.Priority;
 import com.bumptech.glide.load.DataSource;
-import com.bumptech.glide.load.HttpException;
 import com.bumptech.glide.load.data.DataFetcher;
 import com.bumptech.glide.util.Preconditions;
 import com.ubergeek42.cats.Cat;
@@ -121,7 +120,7 @@ public class OkHttpStreamFetcher implements DataFetcher<InputStream> {
         // request is served with gzip, as the resulting file size might not be known in advance
         private void processBody(Response response) throws IOException {
             if (!response.isSuccessful())
-                throw new HttpException("Http error " + response.code() + ": " + response.message(), response.code());
+                throw new HttpException(response.code(), response.message());
 
             long contentLength = body.contentLength();
             if (contentLength > Engine.MAXIMUM_BODY_SIZE)

@@ -138,9 +138,6 @@ public class Cache {
         if (e == null)
             return ERROR_UNKNOWN_ERROR;
 
-        HttpException httpException = findException(e, HttpException.class);
-        if (httpException != null)
-            return httpException.getStatusCode();
         Exceptions.CodeException codeException = findException(e, Exceptions.CodeException.class);
         if (codeException != null)
             return codeException.getCode();
@@ -201,6 +198,7 @@ public class Cache {
                 400, // Bad Request
                 401, // Unauthorized
                 409, // Conflict
+                451, // Unavailable For Legal Reasons
                 501  // Not Implemented
         )) return COOLDOWN_LONG;
         return COOLDOWN_MEDIUM;

@@ -55,6 +55,6 @@ public class StrategyUrl implements Key {
     }
 
     @NonNull @Override public String toString() {
-        return "StrategyUrl(" + originalUrl + ")";
+        return "StrategyUrl(" + strategy + ", " + originalUrl + ")";
     }
 }
