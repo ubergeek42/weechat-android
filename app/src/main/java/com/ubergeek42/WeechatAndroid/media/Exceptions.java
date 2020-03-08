@@ -34,7 +34,12 @@ class Exceptions {
 
         @Override @Nullable public String getMessage() {
             String message = "Couldn't get request url from body";
-            if (BuildConfig.DEBUG) message += ": " + Utils.getLongStringSummary(body);
+            if (BuildConfig.DEBUG) {
+                int idx = body.toString().indexOf("og:image");
+                message += idx == -1 ?
+                        " (no 'og:image' found): " + Utils.getLongStringSummary(body) :
+                        " ('og:image' found but regex failed): " + Utils.getLongStringExcerpt(body, idx + 5);
+            }
             return message;
         }
     }

@@ -152,4 +152,8 @@ public class Line {
                 Color.stripEverything(prefix),
                 Color.stripEverything(message));
     }
+
+    @NonNull @Override public String toString() {
+        return "Line(0x" + Long.toHexString(pointer) + ": " + getNotificationString() + ")";
+    }
 }

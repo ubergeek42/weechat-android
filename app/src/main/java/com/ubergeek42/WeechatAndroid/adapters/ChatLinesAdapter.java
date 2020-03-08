@@ -92,6 +92,10 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
             lineView.setTag(line);
             lineView.setText(line);
         }
+
+        @MainThread void cancelAnimation() {
+            lineView.cancelAnimation();
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -204,6 +208,10 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 
     @MainThread @Override public long getItemId(int position) {
         return lines.get(position).pointer;
+    }
+
+    @MainThread @Override public void onViewDetachedFromWindow(@NonNull RecyclerView.ViewHolder holder) {
+        if (holder instanceof Row) ((Row) holder).cancelAnimation();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

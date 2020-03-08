@@ -194,4 +194,12 @@ public class Utils {
         String out = "\"" + seq.subSequence(0, 80) + "..." + seq.subSequence(seq.length() - 80, seq.length()) + "\"";
         return out.replace("\n", "\\n");
     }
+
+    public static CharSequence getLongStringExcerpt(CharSequence seq, int around) {
+        if (seq.length() <= 200) return seq;
+        return seq.subSequence(
+                Math.max(0, around - 80),
+                Math.min(seq.length(), around + 80))
+                .toString().replace("\n", "\\n");
+    }
 }

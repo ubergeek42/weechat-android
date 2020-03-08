@@ -10,11 +10,13 @@ import java.util.regex.Pattern;
 
 public class StrategyOpenGraph extends StrategyAbs {
     final private static Pattern OG = Pattern.compile(
-            "<meta" +                                               // tag
+            "<\\s*meta" +                                           // tag
             "\\s[^>]{0,50}?" +                                      // a space and optionally other parameters
-            "property=(['\"])og:image(?::(?:secure_)?url)?\\1" +    // all possible image url combos
+            "property\\s*=\\s*" +
+            "(['\"])og:image(?::(?:secure_)?url)?\\1" +             // all possible image url combos
             "\\s[^>]{0,50}?" +                                      // space, etc
-            "content=(['\"])(https://\\S+?)\\2",                    // an https url
+            "content\\s*=\\s*" +
+            "(['\"])(https://\\S+?)\\2",                            // an https url
             Pattern.CASE_INSENSITIVE);
     final private @Nullable Pattern regex;
     final private @Nullable String replacement;
