@@ -8,13 +8,9 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
-import android.text.Layout;
 import android.text.Spannable;
-import android.text.StaticLayout;
 import android.text.style.ClickableSpan;
 import android.text.style.URLSpan;
 import android.util.AttributeSet;
@@ -53,11 +49,11 @@ public class LineView extends View {
     final private static int THUMBNAIL_AREA_WIDTH = THUMBNAIL_WIDTH + THUMBNAIL_HORIZONTAL_MARGIN * 2;
     final private static int THUMBNAIL_AREA_MIN_HEIGHT = THUMBNAIL_MIN_HEIGHT + THUMBNAIL_VERTICAL_MARGIN * 2;
 
-    private Layout narrowLayout = null;
-    private Layout wideLayout = null;
+    private AlphaLayout narrowLayout = null;
+    private AlphaLayout wideLayout = null;
 
     private Spannable text = null;
-    private Bitmap bitmap = null;
+    private Bitmap image = null;
     private Target target;
 
     private enum State {TEXT_ONLY, WITH_IMAGE, ANIMATING}
@@ -80,11 +76,12 @@ public class LineView extends View {
     private void reset() {
         text = null;
         wideLayout = narrowLayout = null;
-        bitmap = narrowBitmap = wideBitmap = null;
+        image = null;
         animatedValue = 0f;
         firstDrawAt = HAVE_NOT_DRAWN;
         state = State.TEXT_ONLY;
         if (animator != null) animator.cancel();
+        animator = null;
         Glide.with(getContext()).clear(target);     // will call the listener!
         target = null;
     }
@@ -119,11 +116,11 @@ public class LineView extends View {
         }
 
         @Override public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition transition) {
-            setBitmap(resource);
+            setImage(resource);
         }
 
         @Override public void onLoadCleared(@Nullable Drawable placeholder) {
-            setBitmap(null);
+            setImage(null);
         }
 
         // the request seems to be attempted once again on minimizing/restoring the app. to avoid
@@ -131,29 +128,29 @@ public class LineView extends View {
         @Override public void onLoadFailed(@Nullable Drawable errorDrawable) {
             Target local = target;
             Weechat.runOnMainThread(() -> Glide.with(getContext()).clear(local));
-            setBitmap(null);
+            setImage(null);
         }
     }
 
-    private void setBitmap(@Nullable Bitmap bitmap) {
-        if (this.bitmap == bitmap && !(bitmap == null && state == State.WITH_IMAGE)) return;
-        this.bitmap = bitmap;
+    private void setImage(@Nullable Bitmap image) {
+        if (this.image == image && !(image == null && state == State.WITH_IMAGE)) return;
+        this.image = image;
         if (text == null) return;   // text can be null if called from reset(), in this case don't proceed
         if (shouldAnimateChange()) {
             animateChange();
         } else {
-            setLayout(bitmap == null ? LayoutType.WIDE : LayoutType.NARROW);
+            setLayout(image == null ? LayoutType.WIDE : LayoutType.NARROW);
             invalidate();
         }
     }
 
-    private Layout getCurrentLayout() {
+    private AlphaLayout getCurrentLayout() {
         return (state == State.WITH_IMAGE) ? narrowLayout : wideLayout;
     }
 
     private void ensureLayout(LayoutType layoutType) {
-        if (layoutType == LayoutType.WIDE && wideLayout == null) wideLayout = makeLayout(text, P.weaselWidth);
-        if (layoutType == LayoutType.NARROW && narrowLayout == null) narrowLayout = makeLayout(text, P.weaselWidth - THUMBNAIL_AREA_WIDTH);
+        if (layoutType == LayoutType.WIDE && wideLayout == null) wideLayout = AlphaLayout.make(text, P.weaselWidth);
+        if (layoutType == LayoutType.NARROW && narrowLayout == null) narrowLayout = AlphaLayout.make(text, P.weaselWidth - THUMBNAIL_AREA_WIDTH);
     }
 
     private void setLayout(LayoutType layoutType) {
@@ -180,15 +177,15 @@ public class LineView extends View {
 
     @Override protected void onDraw(Canvas canvas) {
         if (state == State.ANIMATING) {
-            canvas.drawBitmap(wideBitmap, 0, 0, widePaint);
-            canvas.drawBitmap(narrowBitmap, 0, 0, narrowPaint);
+            wideLayout.draw(canvas, 1f - animatedValue);
+            narrowLayout.draw(canvas, animatedValue);
         } else {
             getCurrentLayout().draw(canvas);
         }
-        if (bitmap != null) canvas.drawBitmap(bitmap,
+        if (image != null) canvas.drawBitmap(image,
                 P.weaselWidth - THUMBNAIL_WIDTH - THUMBNAIL_HORIZONTAL_MARGIN,
                 THUMBNAIL_VERTICAL_MARGIN,
-                state == State.ANIMATING ? narrowPaint : null);
+                state == State.ANIMATING ? narrowLayout.getAlphaPaint() : null);
         if (firstDrawAt == HAVE_NOT_DRAWN) firstDrawAt = System.currentTimeMillis();
     }
 
@@ -214,27 +211,6 @@ public class LineView extends View {
         return text.getSpans(0, text.length(), URLSpan.class);
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    private final static Layout.Alignment ALIGNMENT = Layout.Alignment.ALIGN_NORMAL;
-    private final static float SPACING_MULTIPLIER = 1f;
-    private final static float SPACING_ADDITION = 0f;
-    private final static boolean INCLUDE_PADDING = false;
-
-    private static Layout makeLayout(Spannable spannable, int width) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            return StaticLayout.Builder.obtain(spannable, 0, spannable.length(),
-                    P.textPaint, width)
-                    .setBreakStrategy(Layout.BREAK_STRATEGY_HIGH_QUALITY)
-                    .setHyphenationFrequency(Layout.HYPHENATION_FREQUENCY_NORMAL)
-                    .build();
-        } else {
-            //noinspection deprecation
-            return new StaticLayout(spannable, P.textPaint, width,
-                    ALIGNMENT, SPACING_MULTIPLIER, SPACING_ADDITION, INCLUDE_PADDING);
-        }
-    }
-
     private int getThumbnailHeight() {
         int height = narrowLayout.getHeight() - THUMBNAIL_VERTICAL_MARGIN * 2;
         if (height < THUMBNAIL_MIN_HEIGHT) height = THUMBNAIL_MIN_HEIGHT;
@@ -253,32 +229,22 @@ public class LineView extends View {
     // time in ms when the current text have been first drawn on canvas
     private long firstDrawAt = HAVE_NOT_DRAWN;
 
-    // paint that is used during animation
-    Paint widePaint = new Paint();
-    Paint narrowPaint = new Paint();
-
-    // as TextLayout doesn't have a draw(Canvas, alpha) method, we draw the layouts into a buffer
-    // and use that to draw with alpha
-    Bitmap wideBitmap = null;
-    Bitmap narrowBitmap = null;
-
     private @Nullable ValueAnimator animator;
     final private static long HAVE_NOT_DRAWN = -1;
 
     private void animateChange() {
         prepareForAnimation();
-        boolean hasImage = bitmap != null;
+        boolean hasImage = image != null;
         boolean needsRelayout = getViewHeight(State.TEXT_ONLY) != getViewHeight(State.WITH_IMAGE);
         float from = hasImage ? 0f : 1f;
         float to = hasImage ? 1f : 0f;
         animator = ValueAnimator.ofFloat(from, to).setDuration(ANIMATION_DURATION);
         animator.addUpdateListener(animation -> {
             animatedValue = (float) animation.getAnimatedValue();
-            narrowPaint.setAlpha((int) (animatedValue * 255));
-            widePaint.setAlpha(255 - narrowPaint.getAlpha());
             if (animatedValue == to) {
                 state = hasImage ? State.WITH_IMAGE : State.TEXT_ONLY;
-                wideBitmap = narrowBitmap = null;
+                narrowLayout.clearBitmap();
+                wideLayout.clearBitmap();
             }
             if (needsRelayout) requestLayout();
             invalidate();
@@ -307,14 +273,7 @@ public class LineView extends View {
     private void prepareForAnimation() {
         ensureLayout(LayoutType.WIDE);
         ensureLayout(LayoutType.NARROW);
-        if (wideBitmap == null) wideBitmap = makeBitmap(wideLayout);
-        if (narrowBitmap == null) narrowBitmap = makeBitmap(narrowLayout);
-    }
-
-    private Bitmap makeBitmap(Layout layout) {
-        Bitmap bitmap = Bitmap.createBitmap(layout.getWidth(), layout.getHeight(), Bitmap.Config.ARGB_8888);
-        Canvas c = new Canvas(bitmap);
-        layout.draw(c);
-        return bitmap;
+        wideLayout.ensureBitmap();
+        narrowLayout.ensureBitmap();
     }
 }
