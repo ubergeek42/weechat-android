@@ -55,9 +55,9 @@ public class FancyViewSwitcher extends FrameLayout {
         if (firstDrawAt == HAVE_NOT_DRAWN) firstDrawAt = System.currentTimeMillis();
     }
 
-    void reset() {
+    void reset(int to) {
         firstDrawAt = HAVE_NOT_DRAWN;
-        setCrossfade(0);
+        setCrossfade(to);
         cancelAnimation();
     }
 

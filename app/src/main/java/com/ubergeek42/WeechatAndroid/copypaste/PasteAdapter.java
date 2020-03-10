@@ -55,27 +55,31 @@ public class PasteAdapter extends RecyclerView.Adapter<PasteAdapter.PasteLine> {
 
         void setText(Paste.PasteItem item) {
             this.item = item;
-            viewSwitcher.reset();
 
             Context context = viewSwitcher.getContext();
             // viewSwitcher.setBackgroundResource(item.isPaste ? R.color.pasteBackground : 0);
             ImageView imageView = viewSwitcher.findViewById(R.id.image);
-            ((TextView) viewSwitcher.getChildAt(0).findViewById(R.id.text)).setText(item.text);
-            ((TextView) viewSwitcher.getChildAt(1).findViewById(R.id.text)).setText(item.text);
+            ((TextView) viewSwitcher.findViewById(R.id.text1)).setText(item.text);
+            ((TextView) viewSwitcher.findViewById(R.id.text2)).setText(item.text);
 
-            if (item.strategyUrl != null) {
-                imageView.layout(0, 0, 0, 0);       // https://github.com/bumptech/glide/issues/1591
-                Glide.with(context)
-                        .asBitmap()
-                        .apply(Engine.defaultRequestOptions)
-                        .listener(Cache.listener)
-                        .addListener(this)
-                        .load(item.strategyUrl)
-                        .into(imageView);
-                kitty.info("loading: %s", item.strategyUrl);
-            } else {
+            Cache.Info info = item.strategyUrl == null ? null : Cache.info(item.strategyUrl);
+            viewSwitcher.reset(info == Cache.Info.FETCHED_RECENTLY ? 1 : 0);
+
+            if (item.strategyUrl == null || info == Cache.Info.FAILED_RECENTLY) {
                 Glide.with(context).clear(imageView);
+                return;
             }
+
+            kitty.info("loading: %s", item.strategyUrl);
+            imageView.layout(0, 0, 0, 0);       // https://github.com/bumptech/glide/issues/1591
+            imageView.requestLayout();
+            Glide.with(context)
+                    .asBitmap()
+                    .apply(Engine.defaultRequestOptions)
+                    .listener(Cache.listener)
+                    .addListener(this)
+                    .load(item.strategyUrl)
+                    .into(imageView);
         }
 
         @Cat @Override public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Bitmap> target, boolean isFirstResource) {
@@ -94,7 +98,7 @@ public class PasteAdapter extends RecyclerView.Adapter<PasteAdapter.PasteLine> {
     }
 
     @NonNull @Override public PasteLine onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        FancyViewSwitcher view = (FancyViewSwitcher) inflater.inflate(R.layout.paste_line, parent, false);
+        FancyViewSwitcher view = (FancyViewSwitcher) inflater.inflate(R.layout.dialog_paste_line, parent, false);
         return new PasteLine(view);
     }
 
