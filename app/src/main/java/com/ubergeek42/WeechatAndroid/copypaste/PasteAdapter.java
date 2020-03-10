@@ -31,22 +31,31 @@ public class PasteAdapter extends RecyclerView.Adapter<PasteAdapter.PasteLine> {
     final private static  @Root Kitty kitty = Kitty.make();
 
     final private LayoutInflater inflater;
+    final private OnClickListener onClickListener;
     final private List<Paste.PasteItem> items;
 
-    PasteAdapter(Context context, List<Paste.PasteItem> items) {
+    PasteAdapter(Context context, List<Paste.PasteItem> items, OnClickListener onClickListener) {
         this.inflater = LayoutInflater.from(context);
+        this.onClickListener = onClickListener;
         this.items = items;
     }
 
-    static class PasteLine extends RecyclerView.ViewHolder implements RequestListener<Bitmap> {
+    interface OnClickListener {
+        void onClick(Paste.PasteItem item);
+    }
+
+    class PasteLine extends RecyclerView.ViewHolder implements RequestListener<Bitmap>, View.OnClickListener  {
         final ViewSwitcher viewSwitcher;
+        Paste.PasteItem item;
 
         PasteLine(@NonNull ViewSwitcher viewSwitcher) {
             super(viewSwitcher);
             this.viewSwitcher = viewSwitcher;
+            viewSwitcher.setOnClickListener((View v) -> onClickListener.onClick(item));
         }
 
         void setText(Paste.PasteItem item) {
+            this.item = item;
             viewSwitcher.setDisplayedChild(0);
 
             Context context = viewSwitcher.getContext();
@@ -81,6 +90,10 @@ public class PasteAdapter extends RecyclerView.Adapter<PasteAdapter.PasteLine> {
         @Cat @Override public boolean onResourceReady(Bitmap resource, Object model, Target<Bitmap> target, DataSource dataSource, boolean isFirstResource) {
             viewSwitcher.setDisplayedChild(1);
             return false;
+        }
+
+        @Override public void onClick(View v) {
+            onClickListener.onClick(item);
         }
     }
 

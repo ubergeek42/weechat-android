@@ -7,7 +7,6 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.ubergeek42.WeechatAndroid.R;
@@ -16,13 +15,17 @@ import java.util.List;
 
 public class CopyAdapter extends RecyclerView.Adapter<CopyAdapter.CopyLine> {
     final private LayoutInflater inflater;
-    final private AlertDialog dialog;
-    final private List<String> items;
+    final private OnClickListener onClickListener;
+    final private List<CharSequence> items;
 
-    CopyAdapter(Context context, AlertDialog dialog, List<String> items) {
+    CopyAdapter(Context context, List<CharSequence> items, OnClickListener onClickListener) {
         this.inflater = LayoutInflater.from(context);
-        this.dialog = dialog;
+        this.onClickListener = onClickListener;
         this.items = items;
+    }
+
+    interface OnClickListener {
+        void onClick(String item);
     }
 
     class CopyLine extends RecyclerView.ViewHolder implements View.OnClickListener {
@@ -34,13 +37,12 @@ public class CopyAdapter extends RecyclerView.Adapter<CopyAdapter.CopyLine> {
             textView.setOnClickListener(this);
         }
 
-        void setText(String text) {
+        void setText(CharSequence text) {
             textView.setText(text);
         }
 
         @Override public void onClick(View v) {
-            Copy.setClipboard(textView.getContext(), textView.getText());
-            dialog.dismiss();
+            onClickListener.onClick(textView.getText().toString());
         }
     }
 

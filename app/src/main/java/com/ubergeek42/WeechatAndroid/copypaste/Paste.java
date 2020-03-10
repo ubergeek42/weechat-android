@@ -4,10 +4,10 @@ import android.content.Context;
 import android.text.ClipboardManager;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.widget.EditText;
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.ubergeek42.WeechatAndroid.R;
@@ -55,15 +55,21 @@ public class Paste {
         if (hasClipboard)
             list.add(new PasteItem(clipboard, true));
 
+        AlertDialog dialog = new FancyAlertDialogBuilder(context)
+                .setTitle(R.string.dialog_paste_title)
+                .create();
+
         RecyclerView recyclerView = (RecyclerView) LayoutInflater.from(context)
                 .inflate(R.layout.list_dialog, null);
-        recyclerView.setAdapter(new PasteAdapter(context, list));
+        recyclerView.setAdapter(new PasteAdapter(context, list, item -> {
+            editText.setText(item.text);
+            editText.setSelection(editText.getText().length());
+            dialog.dismiss();
+        }));
 
-        new FancyAlertDialogBuilder(context)
-                .setTitle(R.string.dialog_paste_title)
-                .setView(recyclerView)
-                .create()
-                .show();
+        if (hasClipboard) recyclerView.setPadding(0, 0, 0, 0);
+        dialog.setView(recyclerView);
+        dialog.show();
         return true;
     }
 

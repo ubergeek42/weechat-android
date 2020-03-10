@@ -21,9 +21,12 @@ public class Copy {
     public static boolean showCopyDialog(LineView lineView) {
         Context context = lineView.getContext();
         Line line = (Line) lineView.getTag();
-        ArrayList<String> list = new ArrayList<>();
+        ArrayList<CharSequence> list = new ArrayList<>();
 
-        if (!TextUtils.isEmpty(line.prefix)) list.add(line.getNotificationString());
+        line.clickDisabled = true;
+
+        if (!TextUtils.isEmpty(line.prefix))
+            list.add(line.getNotificationString());
         list.add(Color.stripEverything(line.message));
 
         for (URLSpan urlSpan : lineView.getUrls()) {
@@ -37,16 +40,17 @@ public class Copy {
 
         RecyclerView recyclerView = (RecyclerView) LayoutInflater.from(context)
                 .inflate(R.layout.list_dialog, null);
-        recyclerView.setAdapter(new CopyAdapter(context, dialog, list));
+        recyclerView.setAdapter(new CopyAdapter(context, list, item -> {
+            setClipboard(context, item);
+            dialog.dismiss();
+        }));
 
         dialog.setView(recyclerView);
         dialog.show();
-
-        line.clickDisabled = true;
         return true;
     }
 
-    static void setClipboard(Context context, CharSequence text) {
+    private static void setClipboard(Context context, CharSequence text) {
         ClipboardManager cm = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
         if (cm != null) cm.setText(text);
     }
