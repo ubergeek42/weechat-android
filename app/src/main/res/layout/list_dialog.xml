@@ -7,4 +7,5 @@
     android:layout_height="match_parent"
     android:scrollbars="vertical"
     app:stackFromEnd="true"
+    android:paddingBottom="8dp"
     app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />

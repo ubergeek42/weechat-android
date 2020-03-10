@@ -18,4 +18,5 @@
           android:textColor="?attr/textColorAlertDialogListItem"
           android:gravity="center_vertical"
           android:paddingLeft="?attr/listPreferredItemPaddingLeft"
-          android:paddingRight="?attr/listPreferredItemPaddingRight"/>
+          android:paddingRight="?attr/listPreferredItemPaddingRight"
+          android:background="?android:attr/selectableItemBackground" />

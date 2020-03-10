@@ -30,13 +30,13 @@ import android.widget.Button;
 
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.Weechat;
+import com.ubergeek42.WeechatAndroid.copypaste.Copy;
 import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferEye;
 import com.ubergeek42.WeechatAndroid.relay.Line;
 import com.ubergeek42.WeechatAndroid.relay.Lines;
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.utils.AnimatedRecyclerView;
-import com.ubergeek42.WeechatAndroid.utils.CopyPaste;
 import com.ubergeek42.WeechatAndroid.utils.LineView;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.cats.Cat;
@@ -85,7 +85,7 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         @MainThread Row(View view) {
             super(view);
             lineView = (LineView) view;
-            lineView.setOnLongClickListener(CopyPaste.copyPaste);
+            lineView.setOnLongClickListener((View v) -> Copy.showCopyDialog(lineView));
         }
 
         @MainThread void update(Line line) {
@@ -129,7 +129,7 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
             super(header);
             this.adapter = adapter;
             title = header.findViewById(R.id.title);
-            title.setOnLongClickListener(CopyPaste.copyPaste);
+            title.setOnLongClickListener((View v) -> Copy.showCopyDialog(title));
             button = header.findViewById(R.id.button_more);
             button.setOnClickListener(this);
         }
