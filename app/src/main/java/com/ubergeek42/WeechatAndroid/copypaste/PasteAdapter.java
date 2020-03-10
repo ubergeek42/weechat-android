@@ -7,7 +7,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.ViewSwitcher;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -45,10 +44,10 @@ public class PasteAdapter extends RecyclerView.Adapter<PasteAdapter.PasteLine> {
     }
 
     class PasteLine extends RecyclerView.ViewHolder implements RequestListener<Bitmap>, View.OnClickListener  {
-        final ViewSwitcher viewSwitcher;
+        final FancyViewSwitcher viewSwitcher;
         Paste.PasteItem item;
 
-        PasteLine(@NonNull ViewSwitcher viewSwitcher) {
+        PasteLine(@NonNull FancyViewSwitcher viewSwitcher) {
             super(viewSwitcher);
             this.viewSwitcher = viewSwitcher;
             viewSwitcher.setOnClickListener((View v) -> onClickListener.onClick(item));
@@ -56,18 +55,16 @@ public class PasteAdapter extends RecyclerView.Adapter<PasteAdapter.PasteLine> {
 
         void setText(Paste.PasteItem item) {
             this.item = item;
-            viewSwitcher.setDisplayedChild(0);
+            viewSwitcher.reset();
 
             Context context = viewSwitcher.getContext();
-            viewSwitcher.setBackgroundResource(item.isPaste ? R.color.pasteBackground : 0);
+            // viewSwitcher.setBackgroundResource(item.isPaste ? R.color.pasteBackground : 0);
             ImageView imageView = viewSwitcher.findViewById(R.id.image);
-            TextView textView = viewSwitcher.getCurrentView().findViewById(R.id.text);
-            textView.setText(item.text);
-            textView = viewSwitcher.getNextView().findViewById(R.id.text);
-            textView.setText(item.text);
+            ((TextView) viewSwitcher.getChildAt(0).findViewById(R.id.text)).setText(item.text);
+            ((TextView) viewSwitcher.getChildAt(1).findViewById(R.id.text)).setText(item.text);
 
             if (item.strategyUrl != null) {
-                viewSwitcher.getChildAt(1).setVisibility(View.INVISIBLE);   // make it somewhat measurable
+                imageView.layout(0, 0, 0, 0);       // https://github.com/bumptech/glide/issues/1591
                 Glide.with(context)
                         .asBitmap()
                         .apply(Engine.defaultRequestOptions)
@@ -75,20 +72,19 @@ public class PasteAdapter extends RecyclerView.Adapter<PasteAdapter.PasteLine> {
                         .addListener(this)
                         .load(item.strategyUrl)
                         .into(imageView);
-                kitty.info("loading: %s into %s", item.strategyUrl, imageView);
+                kitty.info("loading: %s", item.strategyUrl);
             } else {
-                viewSwitcher.setDisplayedChild(0);
                 Glide.with(context).clear(imageView);
             }
         }
 
         @Cat @Override public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Bitmap> target, boolean isFirstResource) {
-            viewSwitcher.setDisplayedChild(0);
+            viewSwitcher.crossfadeTo(0);
             return false;
         }
 
         @Cat @Override public boolean onResourceReady(Bitmap resource, Object model, Target<Bitmap> target, DataSource dataSource, boolean isFirstResource) {
-            viewSwitcher.setDisplayedChild(1);
+            viewSwitcher.crossfadeTo(1);
             return false;
         }
 
@@ -98,7 +94,7 @@ public class PasteAdapter extends RecyclerView.Adapter<PasteAdapter.PasteLine> {
     }
 
     @NonNull @Override public PasteLine onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        ViewSwitcher view = (ViewSwitcher) inflater.inflate(R.layout.paste_line, parent, false);
+        FancyViewSwitcher view = (FancyViewSwitcher) inflater.inflate(R.layout.paste_line, parent, false);
         return new PasteLine(view);
     }
 

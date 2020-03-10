@@ -58,7 +58,7 @@ public class NickListAdapter extends BaseAdapter implements BufferNicklistEye,
 
     @MainThread @Override public View getView(int position, View convertView, ViewGroup parent) {
         if (convertView == null)
-            convertView = inflater.inflate(R.layout.select_dialog_item_material_2_lines, parent, false);
+            convertView = inflater.inflate(R.layout.dialog_copy_line, parent, false);
 
         final TextView textView = (TextView) convertView;
 

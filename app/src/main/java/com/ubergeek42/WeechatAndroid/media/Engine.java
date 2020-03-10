@@ -25,6 +25,14 @@ import static com.ubergeek42.WeechatAndroid.media.HostUtils.getHost;
 public class Engine {
     final private static @Root Kitty kitty = Kitty.make();
 
+    final public static int ANIMATION_DURATION = 500;          // ms
+
+    final public static int THUMBNAIL_WIDTH = 250;
+    final public static int THUMBNAIL_MIN_HEIGHT = 120;        // todo set to the height of 2 lines of text?
+    final public static int THUMBNAIL_MAX_HEIGHT = THUMBNAIL_WIDTH * 2;
+    final public static int THUMBNAIL_HORIZONTAL_MARGIN = 8;
+    final public static int THUMBNAIL_VERTICAL_MARGIN = 4;
+
     final static long MAXIMUM_BODY_SIZE = 5 * 1024 * 1024;
 
     final public static RequestOptions defaultRequestOptions = new RequestOptions()

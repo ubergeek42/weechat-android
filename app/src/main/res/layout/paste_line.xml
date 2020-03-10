@@ -1,28 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ViewSwitcher xmlns:android="http://schemas.android.com/apk/res/android"
+<com.ubergeek42.WeechatAndroid.copypaste.FancyViewSwitcher xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:measureAllChildren="false"
-    android:animateFirstView="false">
+    android:background="?android:attr/selectableItemBackground" >
 
-    <include layout="@layout/select_dialog_item_material_2_lines" />
+    <include layout="@layout/dialog_paste_line" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <include layout="@layout/select_dialog_item_material_2_lines"
+        <include layout="@layout/dialog_paste_line"
             android:layout_weight="1"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:paddingRight="12dp" />
+            android:layout_height="wrap_content" />
 
         <ImageView
             android:id="@+id/image"
             android:layout_width="80dp"
             android:layout_height="match_parent"
-            android:scaleType="centerCrop"
             android:contentDescription="@null" />
     </LinearLayout>
-</ViewSwitcher>
+</com.ubergeek42.WeechatAndroid.copypaste.FancyViewSwitcher>

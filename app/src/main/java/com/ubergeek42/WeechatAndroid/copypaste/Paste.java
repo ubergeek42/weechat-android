@@ -60,7 +60,7 @@ public class Paste {
                 .create();
 
         RecyclerView recyclerView = (RecyclerView) LayoutInflater.from(context)
-                .inflate(R.layout.list_dialog, null);
+                .inflate(R.layout.dialog_list, null);
         recyclerView.setAdapter(new PasteAdapter(context, list, item -> {
             editText.setText(item.text);
             editText.setSelection(editText.getText().length());

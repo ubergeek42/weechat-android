@@ -34,17 +34,10 @@ import com.ubergeek42.cats.Root;
 
 import java.util.List;
 
+import static com.ubergeek42.WeechatAndroid.media.Engine.*;
 
 public class LineView extends View {
     final private @Root Kitty kitty = Kitty.make();
-
-    final private static int ANIMATION_DURATION = 500;          // ms
-
-    final private static int THUMBNAIL_WIDTH = 250;
-    final private static int THUMBNAIL_MIN_HEIGHT = 120;        // todo set to the height of 2 lines of text?
-    final private static int THUMBNAIL_MAX_HEIGHT = THUMBNAIL_WIDTH * 2;
-    final private static int THUMBNAIL_HORIZONTAL_MARGIN = 8;
-    final private static int THUMBNAIL_VERTICAL_MARGIN = 4;
 
     final private static int THUMBNAIL_AREA_WIDTH = THUMBNAIL_WIDTH + THUMBNAIL_HORIZONTAL_MARGIN * 2;
     final private static int THUMBNAIL_AREA_MIN_HEIGHT = THUMBNAIL_MIN_HEIGHT + THUMBNAIL_VERTICAL_MARGIN * 2;

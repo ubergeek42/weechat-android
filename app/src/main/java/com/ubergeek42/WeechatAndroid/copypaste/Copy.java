@@ -39,7 +39,7 @@ public class Copy {
                 .create();
 
         RecyclerView recyclerView = (RecyclerView) LayoutInflater.from(context)
-                .inflate(R.layout.list_dialog, null);
+                .inflate(R.layout.dialog_list, null);
         recyclerView.setAdapter(new CopyAdapter(context, list, item -> {
             setClipboard(context, item);
             dialog.dismiss();

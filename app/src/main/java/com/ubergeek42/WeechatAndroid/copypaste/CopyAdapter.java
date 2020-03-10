@@ -47,7 +47,7 @@ public class CopyAdapter extends RecyclerView.Adapter<CopyAdapter.CopyLine> {
     }
 
     @NonNull @Override public CopyLine onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        TextView view = (TextView) inflater.inflate(R.layout.select_dialog_item_material_2_lines, parent, false);
+        TextView view = (TextView) inflater.inflate(R.layout.dialog_copy_line, parent, false);
         return new CopyLine(view);
     }
 
