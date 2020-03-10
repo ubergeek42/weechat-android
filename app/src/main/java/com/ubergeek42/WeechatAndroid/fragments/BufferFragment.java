@@ -31,6 +31,7 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.ubergeek42.WeechatAndroid.Weechat;
+import com.ubergeek42.WeechatAndroid.copypaste.Paste;
 import com.ubergeek42.WeechatAndroid.utils.AnimatedRecyclerView;
 import com.ubergeek42.WeechatAndroid.adapters.ChatLinesAdapter;
 import com.ubergeek42.WeechatAndroid.R;
@@ -124,7 +125,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         uiLines.setFocusable(false);
         uiLines.setFocusableInTouchMode(false);
 
-        uiInput.setOnLongClickListener(CopyPaste.copyPaste);
+        uiInput.setOnLongClickListener((View view) -> Paste.showPasteDialog(uiInput));
 
         online = true;
         return v;

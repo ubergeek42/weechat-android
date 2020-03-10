@@ -6,6 +6,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import android.text.Spannable;
 import android.text.Spanned;
 import android.text.TextPaint;
@@ -36,6 +38,11 @@ public class Linkify {
                 url = "http://" + url;
             s.setSpan(new URLSpan2(url), m.start(), m.end(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
+    }
+
+    public static @Nullable String getFirstUrlFromString(String s) {
+        Matcher m = URL.matcher(s);
+        return m.find() ? m.group(0) : null;
     }
 
     // an url span that doesn't change the color of the link

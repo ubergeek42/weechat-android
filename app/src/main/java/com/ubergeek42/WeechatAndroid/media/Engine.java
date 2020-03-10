@@ -95,7 +95,7 @@ public class Engine {
     }
 
     // given an url, return a StrategyUrl that it the best candidate to handle it
-    private static @Nullable @Cat(exit=true) StrategyUrl getStrategyUrl(String url) {
+    public static @Nullable @Cat(exit=true) StrategyUrl getStrategyUrl(String url) {
         String host = getHost(url);
         if (host != null) {
             for (String subHost : new HostUtils.HostIterable(host)) {
