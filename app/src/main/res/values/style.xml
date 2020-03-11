@@ -1,80 +1,68 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="Weechat" parent="WeechatBase">
+        <!-- prevent android l from coloring status using colorPrimaryDark, as it doesn't support
+         dark icons. overridden in -v23 -->
+        <item name="android:statusBarColor" tools:targetApi="lollipop">@android:color/black</item>
+    </style>
 
-    <style name="Weechat" parent="WeechatBase" />
-
-    <style name="WeechatBase" parent="Theme.AppCompat.NoActionBar">
+    <style name="WeechatBase" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="colorPrimary">@color/primary</item>
-        <item name="colorPrimaryDark">@color/primary_dark</item>
+        <item name="colorPrimaryDark">@color/primaryDark</item>
+        <item name="colorAccent">@color/accent</item>
+        <item name="awayNickColor">@color/awayNick</item>
+        <item name="hotIconTextColor">@color/toolbarHotIconTextColor</item>
+        <item name="toolbarIconColor">@color/toolbar_icon</item>
+        <item name="kittyColor">@color/kittyColor</item>
+        <item name="kittyBalloonColor">@color/kittyBalloonColor</item>
         <item name="android:windowBackground">@color/primary</item>
         <item name="android:colorBackground">@color/primary</item>
-        <item name="android:navigationBarColor" tools:targetApi="lollipop">@color/primary_dark</item>
-        <item name="alertDialogTheme">@style/DialogStyle</item>
-        <item name="preferenceTheme">@style/PreferenceStyle</item>
+        <item name="alertDialogTheme">@style/PreferenceAlertDialogBackgroundFix</item>
+        <item name="buttonStyle">@style/NormalCaseButton</item>
     </style>
 
-    <style name="DialogStyle" parent="Theme.AppCompat.Dialog.Alert">
+    <!-- actually used by app's dialogs. don't set any background color; android:windowBackground
+     will be used instead -->
+    <style name="AlertDialogTheme" parent="Theme.AppCompat.DayNight.Dialog.Alert">
         <item name="colorPrimary">@color/primary</item>
-        <item name="colorPrimaryDark">@color/primary_dark</item>
+        <item name="colorPrimaryDark">@color/primaryDark</item>
+        <item name="colorAccent">@color/accent</item>
+        <item name="android:background">@android:color/transparent</item>
+        <item name="android:windowTitleStyle">@style/DialogTitleStyle</item>
+        <item name="dialogCornerRadius">@dimen/dialog_corner_radius</item>
+        <item name="buttonStyle">@style/NormalCaseButton</item>
+        <item name="android:windowSoftInputMode">adjustResize|stateHidden</item>
+    </style>
+
+    <!-- this is only supposed to be used by preferences, since those are broken -->
+    <style name="PreferenceAlertDialogBackgroundFix" parent="AlertDialogTheme">
         <item name="android:background">@color/primary</item>
-        <item name="android:drawSelectorOnTop">true</item>
     </style>
 
-    <!-- styles for preferences for api 10 to 14 -->
-
-    <style name="PreferenceStyle">
-        <item name="preferenceCategoryStyle">@style/CategoryFix</item>
-        <item name="preferenceStyle">@style/PreferenceFix</item>
-        <item name="editTextPreferenceStyle">@style/PreferenceFix.EditText</item>
-        <item name="dialogPreferenceStyle">@style/PreferenceFix.DialogPreference</item>
-        <item name="preferenceScreenStyle">@style/PreferenceFix.ScreenStyle</item>
-        <item name="checkBoxPreferenceStyle">@style/PreferenceFix.CheckBoxStyle</item>
+    <!-- this makes dialog title the same size as the text in the dialog, as well as makes it a bit
+    dimmer and medium weight rather than bold. this makes the text look more consistent, pronounced
+    but not too “black” -->
+    <style name="DialogTitleStyle" parent="RtlOverlay.DialogWindowTitle.AppCompat">
+        <item name="android:textAppearance">@style/DialogTitleTextAppearance</item>
+    </style>
+    <style name="DialogTitleTextAppearance" parent="Base.TextAppearance.AppCompat.Medium">
+        <item name="android:textColor">@color/dialogTitleColor</item>
+        <item name="fontFamily">"sans-serif-medium"</item>
     </style>
 
-    <style name="CategoryFix" parent="@style/Preference.Category">
-        <item name="layout">@layout/v10_category</item>
+    <!-- this is the theme for all the buttons throughout the app: lowercase, wider margins -->
+    <style name="NormalCaseButton" parent="Base.Widget.AppCompat.Button">
+        <item name="textAllCaps">false</item>
+        <item name="android:textColor">@color/button_text_color</item>
+        <item name="android:paddingRight">20dp</item>
+        <item name="android:paddingLeft">20dp</item>
     </style>
 
-    <style name="PreferenceFix">
-        <item name="layout">@layout/v10_preference</item>
-    </style>
+    <!-- buttons such as tab, send and bell -->
+    <style name="ActionButton" parent="@android:style/Widget.ActionButton" />
 
-    <style name="PreferenceFix.ScreenStyle" parent="@style/Preference.PreferenceScreen">
-        <item name="layout">@layout/v10_preference</item>
-    </style>
-
-    <style name="PreferenceFix.CheckBoxStyle" parent="@style/Preference.CheckBoxPreference">
-        <item name="layout">@layout/v10_preference</item>
-    </style>
-
-    <style name="PreferenceFix.DialogPreference" parent="@style/Preference.DialogPreference">
-        <item name="layout">@layout/v10_preference</item>
-    </style>
-
-    <style name="PreferenceFix.EditText" parent="@style/Preference.DialogPreference.EditTextPreference">
-        <item name="layout">@layout/v10_preference</item>
-    </style>
-
-    <!-- action button approximation for api 10 to 12 -->
-
-    <style name="ActionButton">
-        <item name="android:background">?actionBarItemBackground</item>
-        <item name="android:paddingLeft">12dip</item>
-        <item name="android:paddingRight">12dip</item>
-        <item name="android:minHeight">?actionBarSize</item>
-        <item name="android:gravity">center</item>
-        <item name="android:maxLines">2</item>
-    </style>
-
-    <!-- colors! -->
-
-    <color name="special">#FF2B2F32</color>
-    <color name="primary">#FF1B1F22</color>
-    <color name="primary_dark">#FF0f1315</color>
-    <color name="accent">#ff80cbc4</color>
-    <color name="away_nick">#9cd9f0</color>
-
+    <!-- share text activity -->
     <style name="WeechatTranslucent" parent="Weechat">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>

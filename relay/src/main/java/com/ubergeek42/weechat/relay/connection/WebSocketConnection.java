@@ -1,13 +1,11 @@
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-
 package com.ubergeek42.weechat.relay.connection;
 
-import org.java_websocket.client.WebSocketClient;
-import org.java_websocket.drafts.Draft;
-import org.java_websocket.drafts.Draft_6455;
-import org.java_websocket.exceptions.WebsocketNotConnectedException;
-import org.java_websocket.handshake.ServerHandshake;
+import com.neovisionaries.ws.client.WebSocket;
+import com.neovisionaries.ws.client.WebSocketAdapter;
+import com.neovisionaries.ws.client.WebSocketException;
+import com.neovisionaries.ws.client.WebSocketFactory;
+import com.neovisionaries.ws.client.WebSocketFrame;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,100 +14,80 @@ import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.ByteBuffer;
+import java.util.List;
+import java.util.Map;
 
+import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLSocketFactory;
 
-public class WebSocketConnection extends AbstractConnection {
-    protected static Logger logger = LoggerFactory.getLogger("WebSocketConnection");
+import static com.ubergeek42.weechat.relay.connection.RelayConnection.CONNECTION_TIMEOUT;
 
-    private WebSocketClient client;
-    private PipedOutputStream outputToInStream;
-    private SSLSocketFactory sslSocketFactory;
-    private String server;
-    private int port;
+public class WebSocketConnection implements IConnection {
+    final private static Logger logger = LoggerFactory.getLogger("WebSocketConnection");
 
-    public WebSocketConnection(String server, int port, String path, SSLSocketFactory sslSocketFactory) throws URISyntaxException, IOException {
-        // can throw URISyntaxException
-        URI uri = new URI(sslSocketFactory == null ? "ws" : "wss", null, server, port, "/" + path, null, null);
+    final private HostnameVerifier verifier;
+    final private String hostname;
+    final private WebSocket webSocket;
+    final private PipedOutputStream pipedOutputStream;
 
-        // can throw IOException
-        in = new PipedInputStream();
-        outputToInStream = new PipedOutputStream();
-        outputToInStream.connect((PipedInputStream) in);
-
-        this.sslSocketFactory = sslSocketFactory;
-        this.server = server;
-        this.port = port;
-        client = new MyWebSocket(uri, new Draft_6455());
-        client.setConnectionLostTimeout(0);
+    public WebSocketConnection(String hostname, int port, String path, SSLSocketFactory sslSocketFactory,
+                               HostnameVerifier verifier) throws URISyntaxException, IOException {
+        URI uri = new URI(sslSocketFactory == null ? "ws" : "wss", null, hostname, port, "/" + path, null, null);
+        this.verifier = verifier;
+        this.hostname = hostname;
+        webSocket = new WebSocketFactory()
+                .setSSLSocketFactory(sslSocketFactory)
+                .setVerifyHostname(false)
+                .setConnectionTimeout(CONNECTION_TIMEOUT)
+                .createSocket(uri);
+        webSocket.addListener(new Listener());
+        pipedOutputStream = new PipedOutputStream();
     }
 
-    // IMPORTANT: it's necessary to call createSocket with a host and port, as this method, unlike
-    // createSocket without the parameters, performs hostname verification. also, note that this
-    // version of createSocket will connect IMMEDIATELY and will block
-    @Override protected void doConnect() throws Exception {
-        if (sslSocketFactory != null) client.setSocket(sslSocketFactory.createSocket(server, port));
-        if (!client.connectBlocking()) throw (exception != null) ?
-                exception : new Exception("Could not connect using WebSocket");
+
+    @Override public Streams connect() throws IOException, WebSocketException {
+        PipedInputStream inputStream = new PipedInputStream();
+        pipedOutputStream.connect(inputStream);
+
+        webSocket.connect();
+        Utils.verifyHostname(verifier, webSocket.getSocket(), hostname);
+
+        return new Streams(inputStream, null);
     }
 
-    // now this is one shady method
-    // client.close() does not close the socket. see TooTallNate/Java-WebSocket#346
-    // getConnection().closeConnection() seems to work, but i don't know if using it is right
-    @Override protected void doDisconnect() {
-        super.doDisconnect();
-        client.close();
+    @Override public void disconnect() throws IOException {
+            webSocket.disconnect();
+            pipedOutputStream.close();
     }
 
-    // we don't need writer
-    @Override protected void startWriter(int i) {}
-
-    // because we have our own sendMessage()
-    @Override public void sendMessage(String string) {
-        try {client.send(string.getBytes());}
-        catch (WebsocketNotConnectedException ignored) {}
+    void sendMessage(String string) {
+        webSocket.sendText(string);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private Exception exception = null;
-
-    private class MyWebSocket extends WebSocketClient {
-        MyWebSocket(URI serverUri, Draft draft) {
-            super(serverUri, draft);
+    private class Listener extends WebSocketAdapter {
+        @Override public void onConnected(WebSocket websocket, Map<String, List<String>> headers) {
+            logger.trace("onConnected()");
         }
 
-        @Override public void onOpen(ServerHandshake ignored) {
-            logger.debug("WebSocket.onOpen(), readyState={}", this.getReadyState());
+        @Override public void onConnectError(WebSocket websocket, WebSocketException exception) {
+            logger.error("onConnectError({})", exception);
         }
 
-        @Override public void onMessage(String message) {
-            logger.debug("WebSocket.onMessage(string={})", message);
-            throw new RuntimeException("Unexpected string message from websocket");
+        @Override public void onDisconnected(WebSocket websocket, WebSocketFrame serverCloseFrame, WebSocketFrame clientCloseFrame, boolean closedByServer) throws IOException {
+            logger.trace("onDisconnected(closedByServer={})", closedByServer);
+            pipedOutputStream.close();
         }
 
-        @Override public void onMessage(ByteBuffer bytes) {
-            logger.debug("WebSocket.onMessage({} bytes)", bytes.array().length);
-            try {
-                outputToInStream.write(bytes.array());
-                outputToInStream.flush();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        @Override public void onBinaryMessage(WebSocket websocket, byte[] binary) throws Exception {
+            logger.trace("onBinaryMessage(size={})", binary.length);
+            pipedOutputStream.write(binary);
+            pipedOutputStream.flush();        // much faster with this
         }
 
-        @Override public void onClose(int code, String reason, boolean remote) {
-            logger.debug("WebSocket.onClose(code={}, reason={})", code, reason);
-            try {outputToInStream.close();} catch (IOException e) {e.printStackTrace();}
-        }
-
-        // when connecting via SSL and when the connection is abruptly closed,
-        // onError() with `java.lang.NullPointerException: ssl == null` is thrown
-        @Override public void onError(Exception e) {
-            logger.error("WebSocket.onError({}: {})", e.getClass().getSimpleName(), e.getMessage());
-            exception = e;
-            try {outputToInStream.close();} catch (IOException ignored) {}
+        @Override public void onError(WebSocket websocket, WebSocketException cause){
+            logger.error("onError()", cause);
         }
     }
 }

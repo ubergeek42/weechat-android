@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
 
     <!-- internally used names -->
     <string name="app_name" translatable="false">Weechat-Android</string>
@@ -10,26 +10,25 @@
 
     <!-- widget and button contentDescription-s -->
     <string name="sendkey">Send</string>
-    <string name="preferences">Settings</string>
-    <string name="close">Close</string>
-    <string name="filter_lines">Filter lines</string>
-    <string name="quit">Quit</string>
+    <string name="menu_preferences">Settings</string>
+    <string name="menu_close">Close</string>
+    <string name="menu_filter_lines">Filter lines</string>
+    <string name="menu_dark_theme">Dark theme</string>
     <string name="connect">Connect</string>
     <string name="disconnect">Disconnect</string>
     <string name="stop_connecting">Stop connecting</string>
-    <string name="hotlist">Hotlist</string>
-    <string name="nicklist_menu">Nicks</string>
+    <string name="menu_hotlist">Hotlist</string>
+    <string name="menu_nicklist">Nicks</string>
     <string name="tabkey">Tab</string>
     <string name="open_drawer">Open drawer</string>
     <string name="close_drawer">Close drawer</string>
     <string name="more_button">Fetch more lines</string>
     <string name="more_button_fetching">Fetching lines…</string>
-    <string name="nick_list_title">%1$s (%2$s)</string>
+    <string name="nick_list_title" translatable="false">%1$s (%2$s)</string>
     <plurals name="nick_list_count">
         <item quantity="one">%1$d user</item>
         <item quantity="other">%1$d users</item>
     </plurals>
-    <string name="share_text_title">Share with…</string>
     <string name="dialog_copy_title">Copy</string>
     <string name="dialog_paste_title">Paste</string>
     <string name="linkify_error_no_activity">Activity not found for intent %s</string>
@@ -43,10 +42,20 @@
         <item quantity="other">%d new messages in %s</item>
     </plurals>
 
+    <!-- plurals -->
+    <string name="hot_messages_missing_1">(message not fetched)</string>
     <plurals name="hot_messages_missing">
         <item quantity="one">(message not fetched)</item>
         <item quantity="other">(%d messages not fetched)</item>
     </plurals>
+
+    <plurals name="hot_messages_missing_user">
+        <item quantity="one">(user unknown)</item>
+        <item quantity="other">(users unknown)</item>
+    </plurals>
+
+    <!-- “Me” in the “Me: my message” part of NotificationCompat.MessagingStyle -->
+    <string name="me">Me</string>
 
     <plurals name="messages">
         <item quantity="one">%d message</item>
@@ -61,23 +70,15 @@
     <string name="reply_label">Reply</string>
 
     <string name="notification_connected_to">Connected to %s</string>
-    <string name="notification_disconnected">Disconnected</string>
 
-    <string name="notification_connecting">Connecting to %s…</string>
     <string name="notification_connecting_details_now">Connecting now…</string>
     <string name="notification_connecting_details">Will connect in %d seconds…</string>
 
-    <string name="notification_update_settings">Update settings</string>
-    <string name="notification_update_settings_details">Click to edit your preferences and connect</string>
-    <string name="notification_upgrading">Upgrading…</string>
-    <string name="notification_upgrading_details">WeeChat is upgrading, please wait for reconnection</string>
     <string name="notification_waiting_network">Waiting for network</string>
-    <string name="notification_waiting_network_details">Failed to connect, network unavailable</string>
 
     <!-- toasts -->
     <string name="autoscroll_no_line">Buffer lost some hot messages because of new lines</string>
     <string name="no_hot_buffers">There are no hot buffers for now</string>
-    <string name="wrong_password">Wrong password</string>
     <string name="not_connected">Not connected</string>
     <string name="error">Error: %s</string>
 
@@ -128,10 +129,10 @@
 
         <!-- connection type -->
         <string name="pref_connection_type_plain">Plain connection</string>
-        <string name="pref_connection_type_weechat_ssl">WeeChat SSL</string>
+        <string name="pref_connection_type_weechat_ssl" tools:ignore="MissingTranslation">WeeChat SSL</string>
         <string name="pref_connection_type_ssh">SSH tunnel</string>
-        <string name="pref_connection_type_ws">WebSocket</string>
-        <string name="pref_connection_type_ws_ssl">WebSocket (SSL)</string>
+        <string name="pref_connection_type_ws" tools:ignore="MissingTranslation">WebSocket</string>
+        <string name="pref_connection_type_ws_ssl" tools:ignore="MissingTranslation">WebSocket (SSL)</string>
         <string name="pref_connection_type">Connection type</string>
             <string-array name="pref_connection_type_names">
                 <item>@string/pref_connection_type_plain</item>
@@ -151,11 +152,7 @@
 
         <string name="pref_ws_path">WebSocket path</string>
 
-        <string name="pref_stunnel_group">Stunnel settings</string>
-            <string name="pref_stunnel_cert">Stunnel certificate file</string>
-            <string name="pref_stunnel_pass">Stunnel password</string>
-
-        <string name="pref_ssh_group">SSH tunnel settings</string>
+    <string name="pref_ssh_group">SSH tunnel settings</string>
             <string name="pref_ssh_host">SSH host</string>
             <string name="pref_ssh_user">SSH username</string>
             <string name="pref_ssh_port">SSH port</string>
@@ -163,7 +160,7 @@
             <string name="pref_ssh_key">Private key</string>
             <string name="pref_ssh_key_summary">DSA, RSA, ECDSA private key in OpenSSH or PuTTY format</string>
             <string name="pref_ssh_known_hosts">Known hosts</string>
-            <string name="pref_ssh_known_hosts_summary">Output of $ ssh-keyscan host</string>
+            <string name="pref_ssh_known_hosts_summary">Output of $ ssh-keyscan host 2>/dev/null</string>
 
         <!-- file -->
 
@@ -175,7 +172,7 @@
         <string name="pref_file_choose_button">Choose file</string>
         <string name="pref_file_paste_button">Paste</string>
         <string name="pref_file_pasted">Pasted from clipboard</string>
-        <string name="pref_file_summary">%1$s (%2$s)</string>
+        <string name="pref_file_summary" translatable="false">%1$s (%2$s)</string>
         <string name="pref_file_set">set</string>
         <string name="pref_file_not_set">not set</string>
 
@@ -217,11 +214,10 @@
             <string name="pref_hide_server_buffers_summary">E.g. server buffers and plugin buffers</string>
             <string name="pref_hide_hidden_buffers">Hide hidden buffers</string>
             <string name="pref_hide_hidden_buffers_summary">Hide buffers hidden with /buffer hide</string>
-            <string name="pref_show_buffer_titles">Show buffer titles</string>
-            <string name="pref_show_buffer_titles_summary">These tend to take considerable space though</string>
             <string name="pref_show_buffer_filter">Show buffer filter</string>
             <string name="pref_show_buffer_filter_summary">Filter matches full buffer names and reveals matching hidden buffers</string>
-
+            <string name="pref_use_gesture_exclusion_zone">System gesture exclusion zone</string>
+            <string name="pref_use_gesture_exclusion_zone_summary">On Android Q, the left side of the screen is reserved for the back gesture. Enable this to have a small area in the bottom of the screen where you can open the buffer list normally.</string>
 
     <!-- look & feel -->
 
@@ -249,21 +245,40 @@
             <string name="pref_timestamp_format">Timestamp format</string>
             <string name="pref_timestamp_format_summary">%s (default: HH:mm:ss)</string>
             <string name="pref_dim_down">Dim down non-human lines</string>
-            <string name="pref_dim_down_summary">Display joins/quits in a darker color</string>
+            <string name="pref_dim_down_summary">Display joins/quits in a faint color, as set in the color scheme</string>
 
-            <string name="pref_font">Buffer Font</string>
-            <string name="pref_color_scheme">Color Scheme</string>
+            <string name="pref_font">Buffer font</string>
 
             <!-- theme (color scheme) -->
+            <string name="pref_theme">Theme</string>
+            <string-array name="pref_theme_names">
+                <item>@string/pref_theme_system</item>
+                <item>@string/pref_theme_dark</item>
+                <item>@string/pref_theme_light</item>
+            </string-array>
+            <string name="pref_theme_system">Set by battery saver</string>
+            <string name="pref_theme_dark">Dark</string>
+            <string name="pref_theme_light">Light</string>
+
+            <string name="pref_theme_switch">Theme switch</string>
+            <string name="pref_theme_switch_summary">Show theme switch in the menu</string>
+
+            <string name="pref_color_scheme_day">Light color scheme</string>
+            <string name="pref_color_scheme_night">Dark color scheme</string>
+
             <string name="pref_theme_loading_error">Error loading color scheme %s</string>
-            <string name="pref_theme_summary">Search Path:\n&#160;&#160;&#160;&#160;%1$s\n\nCurrent Value:\n&#160;&#160;&#160;&#160;%2$s</string>
+            <string name="pref_theme_help"><![CDATA[You can create custom color schemes for this
+                application. Use arbitrary colors for UI elements, customize highlight and
+                read marker color, change the WeeChat color palette! <a
+                href="https://github.com/ubergeek42/weechat-android/wiki/Custom-Color-Schemes">Learn
+                more</a><br><br>Put your custom color scheme here:<br>&nbsp;&nbsp;&nbsp;&nbsp;%1$s]]></string>
             <string name="pref_theme_not_set">Not set</string>
 
             <!-- font -->
-            <string name="pref_font_summary">Non-monospace fonts will not work well with alignment.\n\nSearch Path:%1$s\n\nCurrent Value:\n&#160;&#160;&#160;&#160;%2$s</string>
+            <string name="pref_font_summary">Non-monospace fonts will not work well with alignment.\n\nSearch Path:%1$s\n\nCurrent Value:\n\u0020\u0020\u0020\u0020%2$s</string>
             <string name="pref_font_default">Default</string>
 
-        <!-- buttons -->
+    <!-- buttons -->
 
         <string name="pref_button_group">Buttons</string>
             <string name="pref_tabbtn_show">Show tab button</string>
@@ -289,7 +304,7 @@
 
         <string name="about">About</string>
         <string name="build_id">build ID %s</string>
-        <string name="version_string">Weechat-Android %s</string>
+        <string name="version_string" translatable="false">Weechat-Android %s</string>
         <string name="created_by">created by ubergeek42</string>
         <string name="unknown_version_id">Unknown version ID</string>
         <string name="libraries">
@@ -300,7 +315,10 @@
             \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/greenrobot/EventBus">EventBus by greenrobot</a>
             \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/JakeWharton/hugo">Hugo by Jake Wharton</a>
             \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/TooTallNate/Java-WebSocket">Java-WebSocket by Nathan Rajlich</a>
-            \n&#160;&#160;&#160;&#160;•&#160;<a href="http://site.mockito.org/">Mockito</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="http://www.jcraft.com/jsch/">JSch by JCraft</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/square/leakcanary">LeakCanary by Square, Inc</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="http://site.mockito.org/">Mockito by Szczepan Faber and friends</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/TakahikoKawasaki/nv-websocket-client">nv-websocket-client by Takahiko Kawasaki</a>
             \n&#160;&#160;&#160;&#160;•&#160;<a href="https://www.slf4j.org/">SLF4J by QOS.ch</a>
             \n
             \nFind a bug or have a feature request? Create an issue on&#160;<a href="https://github.com/ubergeek42/weechat-android/">GitHub</a> or email me:&#160;<a href="mailto:kj@ubergeek42.com">kj@ubergeek42.com</a>

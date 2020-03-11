@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+    all light theme customizations are possible since api 27; use primaryDark for both status bar
+    (implicitly) and navigation bar; use dark icons
+-->
+
+<resources>
+    <style name="Weechat" parent="WeechatBase">
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+        <item name="android:navigationBarColor">@color/primaryDark</item>
+    </style>
+</resources>

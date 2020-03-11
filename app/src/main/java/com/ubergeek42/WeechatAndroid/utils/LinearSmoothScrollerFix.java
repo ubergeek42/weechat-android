@@ -4,7 +4,7 @@
 package com.ubergeek42.WeechatAndroid.utils;
 
 import android.graphics.PointF;
-import android.support.v7.widget.LinearSmoothScroller;
+import androidx.recyclerview.widget.LinearSmoothScroller;
 
 // if the position of the element we are scrolling to is *just* outside the RecyclerView, i.e.
 // if it's not a child of it, an attempt to scroll to it may lead to overscrolling—the View appears

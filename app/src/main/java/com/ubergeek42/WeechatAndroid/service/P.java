@@ -6,16 +6,20 @@ package com.ubergeek42.WeechatAndroid.service;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.res.TypedArray;
 import android.graphics.Typeface;
+import android.os.Build;
 import android.preference.PreferenceManager;
-import android.support.annotation.AnyThread;
-import android.support.annotation.MainThread;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.annotation.StringRes;
-import android.support.annotation.WorkerThread;
-import android.support.v7.preference.FilePreference;
-import android.support.v7.preference.ThemeManager;
+import androidx.annotation.AnyThread;
+import androidx.annotation.MainThread;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.StringRes;
+import androidx.annotation.WorkerThread;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
+import androidx.preference.FilePreference;
+import androidx.preference.ThemeManager;
 import android.text.TextPaint;
 import android.text.TextUtils;
 import android.util.TypedValue;
@@ -23,6 +27,7 @@ import android.util.TypedValue;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
+import com.ubergeek42.WeechatAndroid.utils.ThemeFix;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.CatD;
@@ -64,13 +69,22 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         loadUIPreferences();
         p.registerOnSharedPreferenceChangeListener(instance);
         _4dp = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 4, context.getResources().getDisplayMetrics());
-        _50dp = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 50, context.getResources().getDisplayMetrics());
         _200dp = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 200, context.getResources().getDisplayMetrics());
         calculateWeaselWidth();
     }
 
-    // sets the width of weasel (effectively the recycler view) on change (activity's onCreate)
-    // as activity can be created long after the service, run this on application start, too
+    // sets the width of weasel (effectively the recycler view) for LineView. this is a workaround
+    // necessary in order to circumvent a bug (?) in ViewPager: sometimes, when measuring views, the
+    // RecyclerView will have a width of 0 (esp. when paging through buffers fast) and hence
+    // LineView will receive a suggested maximum width of 0 in its onMeasure().
+    //      note: other views in RecyclerView don't seem to have this problem. they either receive
+    //      correct values or somehow recover from width 0. the difference seems to lie in the fact
+    //      that they are inflated, and not created programmatically.
+    // this method is called from onStart() instead of onCreate() as onCreate() is called when the
+    // activities get recreated due to theme/battery state change. for some reason, the activities
+    // get recreated even though the user is using another app; if it happens in the wrong screen
+    // orientation, the value is wrong.
+    // todo: switch to ViewPager2 and get rid of this nonsense
     public static @Cat void calculateWeaselWidth() {
         int windowWidth = context.getResources().getDisplayMetrics().widthPixels;
         boolean slidy = context.getResources().getBoolean(R.bool.slidy);
@@ -78,10 +92,24 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
                 windowWidth - context.getResources().getDimensionPixelSize(R.dimen.drawer_width);
     }
 
+    // set colorPrimary and colorPrimaryDark according to color scheme or app theme
+    // must be called after theme change (activity.onCreate(), for ThemeFix.fixIconAndColor()) and
+    // after color scheme change (onStart(), as in this case the activity is not recreated, before applyColorSchemeToViews())
+    // this method could be called from elsewhere but it needs *activity* context
+    public static void storeThemeOrColorSchemeColors(Context context) {
+        ColorScheme scheme = ColorScheme.get();
+        TypedArray colors = context.obtainStyledAttributes(
+                new int[] {R.attr.colorPrimary, R.attr.colorPrimaryDark});
+        colorPrimary = scheme.colorPrimary != ColorScheme.NO_COLOR ?
+                scheme.colorPrimary : colors.getColor(0, ColorScheme.NO_COLOR);
+        colorPrimaryDark = scheme.colorPrimaryDark != ColorScheme.NO_COLOR ?
+                scheme.colorPrimaryDark : colors.getColor(1, ColorScheme.NO_COLOR);
+        colors.recycle();
+    }
+
     ///////////////////////////////////////////////////////////////////////////////////////////// ui
 
     public static float _4dp;
-    public static float _50dp;
     public static float _200dp;
 
     public static boolean sortBuffers;
@@ -94,9 +122,8 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     public static @Nullable DateFormat dateFormat;
     public static int align;
 
-    public static int weaselWidth = 0;
+    public static int weaselWidth = 200;
     public static float textSize, letterWidth;
-    public static Typeface typeface;
     public static TextPaint textPaint;
 
     static boolean notificationEnable;
@@ -109,8 +136,11 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
 
     public static boolean showBufferFilter;
 
-    public static @NonNull String filterLc = "";
-    public static @NonNull String filterUc = "";
+    public static boolean themeSwitchEnabled;
+    public static boolean darkThemeActive = false;
+
+    public static int colorPrimary = ColorScheme.NO_COLOR;
+    public static int colorPrimaryDark = ColorScheme.NO_COLOR;
 
     @MainThread private static void loadUIPreferences() {
         // buffer list preferences
@@ -122,13 +152,15 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         // buffer-wide preferences
         filterLines = p.getBoolean(PREF_FILTER_LINES, PREF_FILTER_LINES_D);
         autoHideActionbar = p.getBoolean(PREF_AUTO_HIDE_ACTIONBAR, PREF_AUTO_HIDE_ACTIONBAR_D);
-        maxWidth = Integer.parseInt(p.getString(PREF_MAX_WIDTH, PREF_MAX_WIDTH_D));
+        maxWidth = Integer.parseInt(getString(PREF_MAX_WIDTH, PREF_MAX_WIDTH_D));
         encloseNick = p.getBoolean(PREF_ENCLOSE_NICK, PREF_ENCLOSE_NICK_D);
         dimDownNonHumanLines = p.getBoolean(PREF_DIM_DOWN, PREF_DIM_DOWN_D);
         setTimestampFormat();
         setAlignment();
-        setTextSizeAndLetterWidth();
-        ThemeManager.loadColorSchemeFromPreferences(context);
+
+        // theme
+        applyThemePreference();
+        themeSwitchEnabled = p.getBoolean(PREF_THEME_SWITCH, PREF_THEME_SWITCH_D);
 
         // notifications
         notificationEnable = p.getBoolean(PREF_NOTIFICATION_ENABLE, PREF_NOTIFICATION_ENABLE_D);
@@ -145,6 +177,36 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
 
         // buffer list filter
         showBufferFilter = p.getBoolean(PREF_SHOW_BUFFER_FILTER, PREF_SHOW_BUFFER_FILTER_D);
+    }
+
+    // a brief recap on how themes work here
+    // * first, we set night mode here for the whole application. applyThemePreference() does't know
+    //   about activities. at this point we can't tell the effective theme, as activities can have
+    //   their own local settings. this call will recreate activities, if necessary.
+    // * after an activity is created, applyThemeAfterActivityCreation() is called. that's when we
+    //   know the actual theme that is going to be used. this theme will be used during the whole
+    //   lifecycle of the activity; if changed—by the user or the system—the activity is recreated.
+    // * color scheme can be changed without changing the theme. so we call it on activity creation
+    //   an on preference change.
+    private static void applyThemePreference() {
+        String theme = p.getString(PREF_THEME, PREF_THEME_D);
+        int flag = Build.VERSION.SDK_INT < Build.VERSION_CODES.Q ?
+                AppCompatDelegate.MODE_NIGHT_AUTO_BATTERY : AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM;
+        if       (PREF_THEME_DARK.equals(theme)) flag = AppCompatDelegate.MODE_NIGHT_YES;
+        else if (PREF_THEME_LIGHT.equals(theme)) flag = AppCompatDelegate.MODE_NIGHT_NO;
+        AppCompatDelegate.setDefaultNightMode(flag);
+    }
+
+    public static void applyThemeAfterActivityCreation(AppCompatActivity activity) {
+        darkThemeActive = ThemeFix.isNightModeEnabledForActivity(activity);
+        changeColorScheme();
+    }
+
+    // todo optimize this method—might be too expensive
+    private static @CatD void changeColorScheme() {
+        ThemeManager.loadColorSchemeFromPreferences(context);
+        setTextSizeColorAndLetterWidth();
+        BufferList.onGlobalPreferencesChanged(false);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////// connection
@@ -172,24 +234,24 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     @MainThread public static void loadConnectionPreferences() {
         host = p.getString(PREF_HOST, PREF_HOST_D);
         pass = p.getString(PREF_PASSWORD, PREF_PASSWORD_D);
-        port = Integer.parseInt(p.getString(PREF_PORT, PREF_PORT_D));
+        port = Integer.parseInt(getString(PREF_PORT, PREF_PORT_D));
         wsPath = p.getString(PREF_WS_PATH, PREF_WS_PATH_D);
 
         connectionType = p.getString(PREF_CONNECTION_TYPE, PREF_CONNECTION_TYPE_D);
         sshHost = p.getString(PREF_SSH_HOST, PREF_SSH_HOST_D);
-        sshPort = Integer.valueOf(p.getString(PREF_SSH_PORT, PREF_SSH_PORT_D));
+        sshPort = Integer.valueOf(getString(PREF_SSH_PORT, PREF_SSH_PORT_D));
         sshUser = p.getString(PREF_SSH_USER, PREF_SSH_USER_D);
         sshPass = p.getString(PREF_SSH_PASS, PREF_SSH_PASS_D);
         sshKey = FilePreference.getData(p.getString(PREF_SSH_KEY, PREF_SSH_KEY_D));
         sshKnownHosts = FilePreference.getData(p.getString(PREF_SSH_KNOWN_HOSTS, PREF_SSH_KNOWN_HOSTS_D));
 
-        lineIncrement = Integer.parseInt(p.getString(PREF_LINE_INCREMENT, PREF_LINE_INCREMENT_D));
+        lineIncrement = Integer.parseInt(getString(PREF_LINE_INCREMENT, PREF_LINE_INCREMENT_D));
         reconnect = p.getBoolean(PREF_RECONNECT, PREF_RECONNECT_D);
         optimizeTraffic = p.getBoolean(PREF_OPTIMIZE_TRAFFIC, PREF_OPTIMIZE_TRAFFIC_D);
 
         pingEnabled = p.getBoolean(PREF_PING_ENABLED, PREF_PING_ENABLED_D);
-        pingIdleTime = Integer.parseInt(p.getString(PREF_PING_IDLE, PREF_PING_IDLE_D)) * 1000;
-        pingTimeout = Integer.parseInt(p.getString(PREF_PING_TIMEOUT, PREF_PING_TIMEOUT_D)) * 1000;
+        pingIdleTime = Integer.parseInt(getString(PREF_PING_IDLE, PREF_PING_IDLE_D)) * 1000;
+        pingTimeout = Integer.parseInt(getString(PREF_PING_TIMEOUT, PREF_PING_TIMEOUT_D)) * 1000;
 
         if (Utils.isAnyOf(connectionType, PREF_TYPE_SSL, PREF_TYPE_WEBSOCKET_SSL)) {
             sslSocketFactory = SSLHandler.getInstance(context).getSSLSocketFactory();
@@ -230,7 +292,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
                 BufferList.onGlobalPreferencesChanged(true);
                 break;
             case PREF_MAX_WIDTH:
-                maxWidth = Integer.parseInt(p.getString(key, PREF_MAX_WIDTH_D));
+                maxWidth = Integer.parseInt(getString(key, PREF_MAX_WIDTH_D));
                 BufferList.onGlobalPreferencesChanged(false);
                 break;
             case PREF_ENCLOSE_NICK:
@@ -240,6 +302,9 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
             case PREF_DIM_DOWN:
                 dimDownNonHumanLines = p.getBoolean(key, PREF_DIM_DOWN_D);
                 BufferList.onGlobalPreferencesChanged(false);
+                break;
+            case PREF_THEME_SWITCH:
+                themeSwitchEnabled = p.getBoolean(key, PREF_THEME_SWITCH_D);
                 break;
             case PREF_TIMESTAMP_FORMAT:
                 setTimestampFormat();
@@ -251,12 +316,14 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
                 break;
             case PREF_TEXT_SIZE:
             case PREF_BUFFER_FONT:
-                setTextSizeAndLetterWidth();
+                setTextSizeColorAndLetterWidth();
                 BufferList.onGlobalPreferencesChanged(false);
                 break;
-            case PREF_COLOR_SCHEME:
-                ThemeManager.loadColorSchemeFromPreferences(context);
-                BufferList.onGlobalPreferencesChanged(false);
+            case PREF_THEME:
+                applyThemePreference();
+            case PREF_COLOR_SCHEME_DAY:
+            case PREF_COLOR_SCHEME_NIGHT:
+                changeColorScheme();
                 break;
 
             // notifications
@@ -285,7 +352,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     }
 
     @MainThread private static void setAlignment() {
-        String alignment = p.getString(PREF_PREFIX_ALIGN, PREF_PREFIX_ALIGN_D);
+        String alignment = getString(PREF_PREFIX_ALIGN, PREF_PREFIX_ALIGN_D);
         switch (alignment) {
             case "right":     align = Color.ALIGN_RIGHT; break;
             case "left":      align = Color.ALIGN_LEFT; break;
@@ -294,23 +361,23 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         }
     }
 
-    @MainThread private static void setTextSizeAndLetterWidth() {
-        textSize = Float.parseFloat(p.getString(PREF_TEXT_SIZE, PREF_TEXT_SIZE_D));
+    @MainThread private static void setTextSizeColorAndLetterWidth() {
+        textSize = Float.parseFloat(getString(PREF_TEXT_SIZE, PREF_TEXT_SIZE_D));
         String bufferFont = p.getString(PREF_BUFFER_FONT, PREF_BUFFER_FONT_D);
 
-        typeface = Typeface.MONOSPACE;
+        Typeface typeface = Typeface.MONOSPACE;
         try {typeface = Typeface.createFromFile(bufferFont);} catch (Exception ignored) {}
 
         textPaint = new TextPaint();
         textPaint.setAntiAlias(true);
         textPaint.setTypeface(typeface);
-        textPaint.setColor(0xFF000000 | ColorScheme.get().defaul[0]);
+        textPaint.setColor(0xFF000000 | ColorScheme.get().default_color[0]);
         textPaint.setTextSize(textSize * context.getResources().getDisplayMetrics().scaledDensity);
 
         letterWidth = (textPaint.measureText("m"));
     }
 
-    @MainThread public static void setTextSizeAndLetterWidth(float size) {
+    @MainThread public static void setTextSizeColorAndLetterWidth(float size) {
         p.edit().putString(PREF_TEXT_SIZE, Float.toString(size)).apply();
     }
 
@@ -328,7 +395,6 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         p.edit().putBoolean(ALIVE, alive).apply();
     }
 
-
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// save/restore
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -338,10 +404,10 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
 
     // protocol must be changed each time anything that uses the following function changes
     // needed to make sure nothing crashes if we cannot restore the data
-    private static final int PROTOCOL_ID = 13;
+    private static final int PROTOCOL_ID = 18;
 
     @AnyThread @Cat public static void saveStuff() {
-        synchronized (BufferList.class) {for (Buffer buffer : BufferList.buffers) saveLastReadLine(buffer);}
+        for (Buffer buffer : BufferList.buffers) saveLastReadLine(buffer);
         String data = Utils.serialize(new Object[]{openBuffers, bufferToLastReadLine, sentMessages});
         p.edit().putString(PREF_DATA, data).putInt(PREF_PROTOCOL_ID, PROTOCOL_ID).apply();
     }
@@ -352,27 +418,27 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         Object o = Utils.deserialize(p.getString(PREF_DATA, null));
         if (!(o instanceof Object[])) return;
         Object[] array = (Object[]) o;
-        if (array[0] instanceof LinkedHashSet) openBuffers = (LinkedHashSet<String>) array[0];
-        if (array[1] instanceof LinkedHashMap) bufferToLastReadLine = (LinkedHashMap<String, BufferHotData>) array[1];
+        if (array[0] instanceof LinkedHashSet) openBuffers = (LinkedHashSet<Long>) array[0];
+        if (array[1] instanceof LinkedHashMap) bufferToLastReadLine = (LinkedHashMap<Long, BufferHotData>) array[1];
         if (array[2] instanceof LinkedList) sentMessages = (LinkedList<String>) array[2];
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     // contains names of open buffers. needs more synchronization?
-    static public @NonNull LinkedHashSet<String> openBuffers = new LinkedHashSet<>();
+    static public @NonNull LinkedHashSet<Long> openBuffers = new LinkedHashSet<>();
 
     // this stores information about last read line (in `desktop` weechat) and according number of
     // read lines/highlights. this is subtracted from highlight counts client receives from the server
-    static private @NonNull LinkedHashMap<String, BufferHotData> bufferToLastReadLine = new LinkedHashMap<>();
+    static private @NonNull LinkedHashMap<Long, BufferHotData> bufferToLastReadLine = new LinkedHashMap<>();
 
-    synchronized public static boolean isBufferOpen(String name) {
-        return openBuffers.contains(name);
+    synchronized public static boolean isBufferOpen(long pointer) {
+        return openBuffers.contains(pointer);
     }
 
-    synchronized public static void setBufferOpen(String name, boolean open) {
-        if (open) openBuffers.add(name);
-        else openBuffers.remove(name);
+    synchronized public static void setBufferOpen(long pointer, boolean open) {
+        if (open) openBuffers.add(pointer);
+        else openBuffers.remove(pointer);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -380,37 +446,34 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     private static class BufferHotData implements Serializable {
         long lastSeenLine = -1;
         long lastReadLineServer = -1;
-        int totalOldUnreads = 0;
-        int totalOldHighlights = 0;
-        int totalOldOthers = 0;
+        int readUnreads = 0;
+        int readHighlights = 0;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     // restore buffer's stuff. this is called for every buffer upon buffer creation
     @WorkerThread synchronized public static void restoreLastReadLine(Buffer buffer) {
-        BufferHotData data = bufferToLastReadLine.get(buffer.fullName);
+        BufferHotData data = bufferToLastReadLine.get(buffer.pointer);
         if (data != null) {
             buffer.setLastSeenLine(data.lastSeenLine);
             buffer.lastReadLineServer = data.lastReadLineServer;
-            buffer.totalReadUnreads = data.totalOldUnreads;
-            buffer.totalReadHighlights = data.totalOldHighlights;
-            buffer.totalReadOthers = data.totalOldOthers;
+            buffer.readUnreads = data.readUnreads;
+            buffer.readHighlights = data.readHighlights;
         }
     }
 
     // save buffer's stuff. this is called when information is about to be written to disk
     private synchronized static void saveLastReadLine(Buffer buffer) {
-        BufferHotData data = bufferToLastReadLine.get(buffer.fullName);
+        BufferHotData data = bufferToLastReadLine.get(buffer.pointer);
         if (data == null) {
             data = new BufferHotData();
-            bufferToLastReadLine.put(buffer.fullName, data);
+            bufferToLastReadLine.put(buffer.pointer, data);
         }
         data.lastSeenLine = buffer.getLastSeenLine();
         data.lastReadLineServer = buffer.lastReadLineServer;
-        data.totalOldUnreads = buffer.totalReadUnreads;
-        data.totalOldHighlights = buffer.totalReadHighlights;
-        data.totalOldOthers = buffer.totalReadOthers;
+        data.readUnreads = buffer.readUnreads;
+        data.readHighlights = buffer.readHighlights;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -427,5 +490,11 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         sentMessages.add(Utils.cut(line, 2000));
         if (sentMessages.size() > 40)
             sentMessages.pop();
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private static String getString(String key, String defValue) {
+        return p.getString(key, defValue);
     }
 }

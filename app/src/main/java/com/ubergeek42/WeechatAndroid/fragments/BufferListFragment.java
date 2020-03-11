@@ -1,16 +1,16 @@
 package com.ubergeek42.WeechatAndroid.fragments;
 
-import android.support.annotation.AnyThread;
-import android.support.annotation.MainThread;
-import android.support.annotation.NonNull;
-import android.support.v4.app.Fragment;
+import androidx.annotation.AnyThread;
+import androidx.annotation.MainThread;
+import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.support.v7.widget.RecyclerView;
+import androidx.recyclerview.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -83,6 +83,7 @@ public class BufferListFragment extends Fragment implements BufferListEye, View.
         super.onStart();
         EventBus.getDefault().register(this);
         uiFilterBar.setVisibility(P.showBufferFilter ? View.VISIBLE : View.GONE);
+        applyColorSchemeToViews();
     }
 
     @MainThread @Override @Cat public void onStop() {
@@ -127,6 +128,7 @@ public class BufferListFragment extends Fragment implements BufferListEye, View.
             if (this.hotCount != (this.hotCount = hotCount) && hotCount > 0)
                 Weechat.runOnMainThread(() -> uiRecycler.smoothScrollToPosition(0));
             activity.updateHotCount(hotCount);
+            activity.onBuffersChanged();
         });
     }
 
@@ -149,7 +151,7 @@ public class BufferListFragment extends Fragment implements BufferListEye, View.
 
     @AnyThread private void setFilter() {
         String text = uiFilter.getText().toString();
-        BufferListAdapter.setFilter(text);
+        adapter.setFilter(text, true);
         Weechat.runOnMainThread(() -> uiFilterClear.setVisibility((text.length() == 0) ?
                 View.INVISIBLE : View.VISIBLE));
     }
@@ -159,7 +161,12 @@ public class BufferListFragment extends Fragment implements BufferListEye, View.
         uiFilter.setText(null);
     }
 
-    @Override public String toString() {
+    @Override public @NonNull String toString() {
         return "BL";
+    }
+
+    private void applyColorSchemeToViews() {
+        uiFilterBar.setBackgroundColor(P.colorPrimary);
+        uiRecycler.setBackgroundColor(P.colorPrimary);
     }
 }

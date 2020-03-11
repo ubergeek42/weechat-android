@@ -3,17 +3,18 @@
 
 package com.ubergeek42.WeechatAndroid.service;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import android.text.TextUtils;
 
 import com.ubergeek42.WeechatAndroid.service.RelayService.STATE;
 
 import org.greenrobot.eventbus.EventBus;
-import org.junit.Assert;
 
 import java.util.EnumSet;
 import java.util.Locale;
+
+import static com.ubergeek42.WeechatAndroid.utils.Assert.assertThat;
 
 
 public class Events {
@@ -25,7 +26,7 @@ public class Events {
             this.state = state;
         }
 
-        @Override public String toString() {
+        @Override public @NonNull String toString() {
             return "StateChangedEvent(state=" + state + ")";
         }
     }
@@ -39,7 +40,7 @@ public class Events {
             this.e = e;
         }
 
-        @Override public String toString() {
+        @Override public @NonNull String toString() {
             return "ExceptionEvent(e=" + e + ")";
         }
     }
@@ -54,7 +55,7 @@ public class Events {
         }
 
         public static void fire(@NonNull String message) {
-            Assert.assertFalse(message.endsWith("\n"));
+            assertThat(message.endsWith("\n")).isFalse();
             EventBus.getDefault().post(new SendMessageEvent(message));
         }
 
@@ -65,12 +66,13 @@ public class Events {
         public static void fireInput(@NonNull String fullName, @Nullable String input) {
             if (TextUtils.isEmpty(input)) return;
             P.addSentMessage(input);
+            //noinspection ConstantConditions -- linter doesn't see the call to isEmpty
             for (String line : input.split("\n"))
                 if (!TextUtils.isEmpty(line))
                     fire("input %s %s", fullName, line);
         }
 
-        @Override public String toString() {
+        @Override public @NonNull String toString() {
             return "SendMessageEvent(message=" + message + ")";
         }
     }

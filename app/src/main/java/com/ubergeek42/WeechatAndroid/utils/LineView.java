@@ -94,6 +94,7 @@ public class LineView extends View {
                     .setHyphenationFrequency(Layout.HYPHENATION_FREQUENCY_NORMAL)
                     .build();
         } else {
+            //noinspection deprecation
             return new StaticLayout(spannable, P.textPaint, P.weaselWidth,
                     ALIGNMENT, SPACING_MULTIPLIER, SPACING_ADDITION, INCLUDE_PADDING);
         }

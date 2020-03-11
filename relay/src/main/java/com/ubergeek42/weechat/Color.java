@@ -233,7 +233,7 @@ public class Color {
      **can take form of: 05 */
     private void setWeechatColor() {
         int color_index = getNumberOfLengthUpTo(2);
-        int colors[] = ColorScheme.get().getOptionColor(color_index);
+        int colors[] = ColorScheme.get().getOptionColorPair(color_index);
         if (colors[ColorScheme.OPT_FG] != -1) addSpan(Span.FGCOLOR, colors[ColorScheme.OPT_FG]);
         if (colors[ColorScheme.OPT_BG] != -1) addSpan(Span.BGCOLOR, colors[ColorScheme.OPT_BG]);
     }
@@ -245,20 +245,21 @@ public class Color {
         boolean extended = (peekChar() == '@');
         if (extended) getChar();
         if (type == Span.FGCOLOR) maybeSetAttributes();
-        color = (extended) ? getColorExtended() : getColor();
+        int which = type == Span.FGCOLOR ? 0 : 1;
+        color = (extended) ? getColorExtended(which) : getColor(which);
         if (color != -1) addSpan(type, color);
     }
 
     // returns color in the form 0xfffff or -1
-    private int getColor() {
+    private int getColor(int which) {
         int color_index = getNumberOfLengthUpTo(2);
-        return ColorScheme.get().getWeechatColor(color_index);
+        return ColorScheme.get().getWeechatColor(color_index, which);
     }
 
     // returns color in the form 0xfffff or -1
-    private int getColorExtended() {
+    private int getColorExtended(int which) {
         int color_index = getNumberOfLengthUpTo(5);
-        return ColorScheme.get().getColor(color_index);
+        return ColorScheme.get().getColor(color_index, which);
     }
 
     // returns a number stored in the next “amount” characters
@@ -324,6 +325,7 @@ public class Color {
     ///////////////////////////////// wow such code
     /////////////////////////////////
 
+    // see https://weechat.org/files/doc/stable/weechat_dev.en.html#color_codes_in_strings
     // takes text as input
     // sets out and spanList
     private CharSequence parseColors(String msg) {
@@ -365,10 +367,10 @@ public class Color {
                             getChar();
                             break;
                         case 'F':               // foreground
-                        case '*':               // foreground followed by ',' followed by background
+                        case '*':               // foreground followed by ',' or '~' followed by background
                             getChar();
                             setColor(Span.FGCOLOR);
-                            if (c == 'F' || peekChar() != ',') break;
+                            if (c == 'F' || (peekChar() != ',' && peekChar() != '~')) break;
                         case 'B':               // background (same as fg but w/o optional attributes)
                             getChar();
                             setColor(Span.BGCOLOR);

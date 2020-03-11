@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/chatview_layout"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
@@ -10,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:minHeight="?actionBarSize"
-        android:background="@color/primary"
+        android:background="?attr/colorPrimary"
         android:layout_alignParentBottom="true"
         android:padding="0dp">
 
@@ -36,7 +37,7 @@
             android:id="@+id/chatview_tab"
             android:layout_width="wrap_content"
             android:layout_height="?actionBarSize"
-            android:src="@drawable/tab_selector"
+            app:srcCompat="@drawable/ic_toolbar_tab"
             android:contentDescription="@string/tabkey"
             android:layout_gravity="bottom"
             android:layout_margin="0dp"
@@ -46,7 +47,7 @@
             android:id="@+id/chatview_send"
             android:layout_width="wrap_content"
             android:layout_height="?actionBarSize"
-            android:src="@drawable/send_selector"
+            app:srcCompat="@drawable/ic_toolbar_send"
             android:contentDescription="@string/sendkey"
             android:layout_gravity="bottom"
             android:layout_margin="0dp"

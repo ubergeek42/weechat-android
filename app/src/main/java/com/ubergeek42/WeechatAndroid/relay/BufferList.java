@@ -3,11 +3,11 @@
 
 package com.ubergeek42.WeechatAndroid.relay;
 
-import android.support.annotation.AnyThread;
-import android.support.annotation.MainThread;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.annotation.WorkerThread;
+import androidx.annotation.AnyThread;
+import androidx.annotation.MainThread;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.WorkerThread;
 import android.util.LongSparseArray;
 
 import com.ubergeek42.WeechatAndroid.service.P;
@@ -24,14 +24,15 @@ import com.ubergeek42.weechat.relay.protocol.Hdata;
 import com.ubergeek42.weechat.relay.protocol.HdataEntry;
 import com.ubergeek42.weechat.relay.protocol.RelayObject;
 
-import org.junit.Assert;
-
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import static com.ubergeek42.WeechatAndroid.service.Events.SendMessageEvent;
+import static com.ubergeek42.WeechatAndroid.utils.Assert.assertThat;
 
 
 public class BufferList {
@@ -40,19 +41,20 @@ public class BufferList {
     public static volatile @Nullable RelayService relay;
     private static volatile @Nullable BufferListEye buffersEye;
 
-    public static @NonNull ArrayList<Buffer> buffers = new ArrayList<>();
+    final public static @NonNull CopyOnWriteArrayList<Buffer> buffers = new CopyOnWriteArrayList<>();
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @WorkerThread public static void launch(final RelayService relay) {
-        Assert.assertNull(BufferList.relay);
+        assertThat(BufferList.relay).isNull();
         BufferList.relay = relay;
 
         // handle buffer list changes
         // including initial hotlist
         addMessageHandler("listbuffers", bufferListWatcher);
+        addMessageHandler("renumber", bufferListWatcher);
 
         addMessageHandler("_buffer_opened", bufferListWatcher);
         addMessageHandler("_buffer_renamed", bufferListWatcher);
@@ -93,8 +95,7 @@ public class BufferList {
     final private static ConcurrentHashMap<String, RelayMessageHandler> handlers = new ConcurrentHashMap<>();
 
     @AnyThread private static void addMessageHandler(String id, RelayMessageHandler handler) {
-        RelayMessageHandler h = handlers.put(id, handler);
-        Assert.assertNull(h);
+        assertThat(handlers.put(id, handler)).isNull();
     }
 
     @AnyThread private static void removeMessageHandler(String id, RelayMessageHandler handler) {
@@ -116,6 +117,12 @@ public class BufferList {
         return true;
     }
 
+    @AnyThread public static void sortOpenBuffersByBuffers(ArrayList<Long> pointers) {
+        final LongSparseArray<Integer> bufferToNumber = new LongSparseArray<>();
+        for (Buffer b: buffers) bufferToNumber.put(b.pointer, b.number);
+        Collections.sort(pointers, (l, r) -> bufferToNumber.get(l, -1) - bufferToNumber.get(r, -1));
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// called by the Eye
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -125,12 +132,6 @@ public class BufferList {
         return buffers.size() > 0;
     }
 
-    @MainThread synchronized static public @Nullable Buffer findByFullName(@Nullable String fullName) {
-        if (fullName == null) return null;
-        for (Buffer buffer : buffers) if (buffer.fullName.equals(fullName)) return buffer;
-        return null;
-    }
-
     @AnyThread static public void setBufferListEye(@Nullable BufferListEye buffersEye) {
         BufferList.buffersEye = buffersEye;
     }
@@ -138,12 +139,12 @@ public class BufferList {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     // returns a "random" hot buffer or null
-    @MainThread synchronized static public @Nullable Buffer getHotBuffer() {
+    @MainThread static public @Nullable Buffer getHotBuffer() {
         for (Buffer buffer : buffers) if (buffer.getHotCount() > 0) return buffer;
         return null;
     }
 
-    @MainThread synchronized static public int getHotBufferCount() {
+    @MainThread static public int getHotBufferCount() {
         int count = 0;
         for (Buffer buffer : buffers) if (buffer.getHotCount() > 0) count++;
         return count;
@@ -166,7 +167,7 @@ public class BufferList {
     }
 
     // process all open buffers and, if specified, notify them of the change
-    @MainThread synchronized public static void onGlobalPreferencesChanged(boolean numberChanged) {
+    @MainThread public static void onGlobalPreferencesChanged(boolean numberChanged) {
         for (Buffer buffer : buffers)
             if (buffer.isOpen) buffer.onGlobalPreferencesChanged(numberChanged);
     }
@@ -176,10 +177,12 @@ public class BufferList {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     // if optimizing traffic, sync hotlist to make sure the number of unread messages is correct
-    @AnyThread static void syncBuffer(Buffer buffer) {
+    // syncHotlist parameter is used to avoid synchronizing hotlist several times in a row when
+    // restoring open buffers. todo simplify?
+    @AnyThread static void syncBuffer(Buffer buffer, boolean syncHotlist) {
         if (!P.optimizeTraffic) return;
         SendMessageEvent.fire("sync 0x%x", buffer.pointer);
-        syncHotlist();
+        if (syncHotlist) syncHotlist();
     }
 
     @AnyThread static void desyncBuffer(Buffer buffer) {
@@ -200,11 +203,15 @@ public class BufferList {
         SendMessageEvent.fire("(nicklist) nicklist 0x%x", pointer);
     }
 
+    private static void requestRenumber() {
+        SendMessageEvent.fire("(renumber) hdata buffer:gui_buffers(*) number");
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// private stuffs
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @WorkerThread synchronized static private @Nullable Buffer findByPointer(long pointer) {
+    @AnyThread public static @Nullable Buffer findByPointer(long pointer) {
         for (Buffer buffer : buffers) if (buffer.pointer == pointer) return buffer;
         return null;
     }
@@ -220,7 +227,7 @@ public class BufferList {
         @WorkerThread @Override @Cat public void handleMessage(RelayObject obj, String id) {
             Hdata data = (Hdata) obj;
 
-            if (id.equals("listbuffers")) synchronized (BufferList.class) {buffers.clear();}
+            if (id.equals("listbuffers")) buffers.clear();
 
             for (int i = 0, size = data.getCount(); i < size; i++) {
                 HdataEntry entry = data.getItem(i);
@@ -235,8 +242,14 @@ public class BufferList {
                             ((r = entry.getItem("notify")) != null) ? r.asInt() : 3,
                             (Hashtable) entry.getItem("local_variables"),
                             ((r = entry.getItem("hidden")) != null) && r.asInt() != 0);
-                    synchronized (BufferList.class) {buffers.add(buffer);}
-                    notifyBuffersChanged();
+                    buffers.add(buffer);
+                } else if (id.equals("renumber")) {
+                    Buffer buffer = findByPointer(entry.getPointerLong(0));
+                    int number = entry.getItem("number").asInt();
+                    if (buffer != null && buffer.number != number) {
+                        buffer.number = number;
+                        buffer.onPropertiesChanged();
+                    }
                 } else {
                     Buffer buffer = findByPointer(entry.getPointerLong(0));
                     if (buffer == null) {
@@ -255,13 +268,14 @@ public class BufferList {
                             buffer.localVars = (Hashtable) entry.getItem("local_variables");
                             notifyBufferPropertiesChanged(buffer);
                         } else if (id.equals("_buffer_moved") || id.equals("_buffer_merged")) {
-                            buffer.number = entry.getItem("number").asInt();
-                            notifyBufferPropertiesChanged(buffer);
+                            // buffer.number = entry.getItem("number").asInt();
+                            // notifyBufferPropertiesChanged(buffer);
+                            requestRenumber();
                         } else if (Utils.isAnyOf(id, "_buffer_hidden", "_buffer_unhidden")) {
                             buffer.hidden = !id.endsWith("unhidden");
                             notifyBuffersChanged();
                         } else if (id.equals("_buffer_closing")) {
-                            synchronized (BufferList.class) {buffers.remove(buffer);}
+                            buffers.remove(buffer);
                             buffer.onBufferClosed();
                             notifyBuffersChanged();
                         } else {
@@ -269,6 +283,10 @@ public class BufferList {
                         }
                     }
                 }
+            }
+            if (id.equals("listbuffers") || id.equals("renumber")) {
+                notifyBuffersChanged();
+                Hotlist.makeSureHotlistDoesNotContainInvalidBuffers();
             }
         }
     };
@@ -281,11 +299,12 @@ public class BufferList {
     private static RelayMessageHandler lastReadLinesWatcher = new RelayMessageHandler() {
         final private @Root Kitty kitty = BufferList.kitty.kid("lastReadLinesWatcher");
 
+
         @WorkerThread @Override @Cat public void handleMessage(RelayObject obj, String id) {
             if (!(obj instanceof Hdata)) return;
             Hdata data = (Hdata) obj;
 
-            LongSparseArray<Long> bufferToLrl = new LongSparseArray<>();
+            bufferToLrl.clear();
 
             for (int i = 0, size = data.getCount(); i < size; i++) {
                 HdataEntry entry = data.getItem(i);
@@ -293,15 +312,12 @@ public class BufferList {
                 long linePointer = entry.getPointerLong();
                 bufferToLrl.put(bufferPointer, linePointer);
             }
-
-            synchronized (BufferList.class) {
-                for (Buffer buffer : buffers) {
-                    Long linePointer = bufferToLrl.get(buffer.pointer);
-                    buffer.updateLastReadLine(linePointer == null ? -1 : linePointer);
-                }
-            }
         }
     };
+
+    static final long LAST_READ_LINE_MISSING = -1;
+    static private LongSparseArray<Long> bufferToLrl = new LongSparseArray<>();
+    static private long lastHotlistUpdateTime = 0;
 
     // hotlist
     private static RelayMessageHandler hotlistInitWatcher = new RelayMessageHandler() {
@@ -320,18 +336,20 @@ public class BufferList {
                 bufferToHotlist.put(pointer, count);
             }
 
-            synchronized (BufferList.class) {
-                for (Buffer buffer : buffers) {
-                    Array count = bufferToHotlist.get(buffer.pointer);
-                    int others = count == null ? 0 : count.get(0).asInt();
-                    int unreads = count == null ? 0 : count.get(1).asInt() + count.get(2).asInt();   // chat messages & private messages
-                    int highlights = count == null ? 0 : count.get(3).asInt();                       // highlights
-                    buffer.updateHotList(highlights, unreads, others);
-                    Hotlist.adjustHotListForBuffer(buffer);
-                }
+            long newLastHotlistUpdateTime = System.currentTimeMillis();
+            long timeSinceLastHotlistUpdate = newLastHotlistUpdateTime - lastHotlistUpdateTime;
+            lastHotlistUpdateTime = newLastHotlistUpdateTime;
+
+            for (Buffer buffer : buffers) {
+                Array count = bufferToHotlist.get(buffer.pointer);
+                int unreads = count == null ? 0 : count.get(1).asInt() + count.get(2).asInt();   // chat messages & private messages
+                int highlights = count == null ? 0 : count.get(3).asInt();                       // highlights
+
+                long linePointer = bufferToLrl.get(buffer.pointer, LAST_READ_LINE_MISSING);
+                boolean hotMessagesInvalid = buffer.updateHotlist(highlights, unreads, linePointer, timeSinceLastHotlistUpdate);
+                Hotlist.adjustHotListForBuffer(buffer, hotMessagesInvalid);
             }
 
-            //processHotCountAndAdjustNotification(false);
             notifyBuffersChanged();
         }
     };
@@ -363,8 +381,10 @@ public class BufferList {
                 return;
             }
 
-            for (int i = 0, size = data.getCount(); i < size; i++)
+            for (int i = 0, size = data.getCount(); i < size; i++) {
                 buffer.addLine(getLine(data.getItem(i)), isBottom);
+                if (isBottom) buffer.onLineAdded();
+            }
 
             if (!isBottom) {
                 buffer.onLinesListed();
@@ -435,6 +455,7 @@ public class BufferList {
                     if (entry.getItem("visible").asChar() != 0 && entry.getItem("group").asChar() != 1) {
                         long pointer = entry.getPointerLong();
                         String prefix = entry.getItem("prefix").asString();
+                        if (" ".equals(prefix)) prefix = "";
                         String name = entry.getItem("name").asString();
                         boolean away = entry.getItem("color").asString().contains("weechat.color.nicklist_away");
                         Nick nick = new Nick(pointer, prefix, name, away);

@@ -5,7 +5,7 @@ import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.text.Spannable;
 import android.text.Spanned;
 import android.text.TextPaint;
@@ -44,7 +44,7 @@ public class Linkify {
     // also make sure we don't crash if nothing can handle our intent
     private static class URLSpan2 extends URLSpan {
 
-        public URLSpan2(@NonNull String url) {super(url);}
+        URLSpan2(@NonNull String url) {super(url);}
 
         @Override public void updateDrawState(@NonNull TextPaint ds) {
             ds.setUnderlineText(true);
@@ -116,7 +116,7 @@ public class Linkify {
         "(?=" +
               // some possible punctuation
               // AND space or end of string
-              "[\\])>,.!?:\"”]*" +
+              "[])>,.!?:\"”]*" +
               "(?:\\s|$)" +
         ")"
         , Pattern.CASE_INSENSITIVE | Pattern.COMMENTS);

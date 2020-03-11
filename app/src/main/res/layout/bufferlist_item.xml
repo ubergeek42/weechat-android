@@ -13,6 +13,7 @@
         android:layout_alignParentLeft="true"
         android:text="@null"
         android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textColor="@color/textColor"
     />
 
     <!-- WHY CAN'T I USE android:layout_alignParentBottom=true?!?!
@@ -24,7 +25,7 @@
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
         android:layout_alignBottom="@+id/buffer"
-        android:background="@android:color/white"
+        android:background="@color/bufferListOpenIndicator"
         android:visibility="gone" />
 
 
@@ -33,7 +34,7 @@
         android:layout_marginTop="10dp"
         android:layout_marginRight="10dp"
         android:layout_marginLeft="0dp"
-        android:background="@drawable/warm"
+        android:background="@drawable/bg_bufferlist_item_warm"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
@@ -41,6 +42,7 @@
         android:paddingRight="4dp"
         android:text="@null"
         android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textColor="@color/textColor"
         android:visibility="invisible"
     />
 
@@ -49,7 +51,7 @@
         android:layout_marginTop="10dp"
         android:layout_marginBottom="10dp"
         android:layout_marginRight="10dp"
-        android:background="@drawable/hot"
+        android:background="@drawable/bg_bufferlist_item_hot"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_toLeftOf="@id/buffer_warm"
@@ -58,6 +60,7 @@
         android:text="@null"
         android:layout_alignWithParentIfMissing="true"
         android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textColor="@color/textColor"
     />
 
 </RelativeLayout>

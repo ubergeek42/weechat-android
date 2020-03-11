@@ -1,6 +1,6 @@
 package com.ubergeek42.cats;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import org.aspectj.lang.Signature;
 import org.aspectj.lang.reflect.ConstructorSignature;
@@ -53,7 +53,7 @@ public class Utils {
                 signature.getName();
     }
 
-    static StringBuilder addAndPad(StringBuilder sb, CharSequence s, int length) {
+    static StringBuilder addAndPad(StringBuilder sb, CharSequence s, @SuppressWarnings("SameParameterValue") int length) {
         if (length < s.length()) return sb.append(s,0, length);
         else if (length == s.length()) return sb.append(s);
         sb.append(s);

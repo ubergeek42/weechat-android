@@ -1,7 +1,8 @@
 package com.ubergeek42.WeechatAndroid.utils;
 
 import android.content.Context;
-import android.support.v7.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
+
 import android.text.ClipboardManager;
 import android.text.TextUtils;
 import android.text.style.URLSpan;
@@ -36,24 +37,22 @@ public class CopyPaste implements EditText.OnLongClickListener {
         if (!"".equals(input.getText().toString())) return false;
         Context context = input.getContext();
 
-        final ArrayList<String> list = new ArrayList<>();
-
         // read & trim clipboard
         // noinspection deprecation
         ClipboardManager cm = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
         final String clip = (cm == null || cm.getText() == null) ? "" : cm.getText().toString().trim();
 
-        // copy last messages if they do not equal clipboard
-        // if there are no messages, do nothing
-        for (String m : P.sentMessages) if (!m.equals(clip)) list.add(m);
-        if (list.size() == 0) return false;
+        // if no sent messages, or the only sent message is in the clipboard, do nothing
+        if (P.sentMessages.size() == 0 || (P.sentMessages.size() == 1 && clip.equals(P.sentMessages.get(0)))) return false;
+
+        final ArrayList<String> list = new ArrayList<>(P.sentMessages);
 
         // clean and add clipboard
         if (!"".equals(clip)) list.add(clip);
 
         final LayoutInflater inflater = LayoutInflater.from(context);
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        AlertDialog.Builder builder = new FancyAlertDialogBuilder(context);
         builder.setTitle(context.getString(R.string.dialog_paste_title)).setAdapter(
                 new BaseAdapter() {
                     @Override public int getCount() {return list.size();}
@@ -64,8 +63,9 @@ public class CopyPaste implements EditText.OnLongClickListener {
                         TextView v = (TextView) convertView;
                         boolean isClip = (!"".equals(clip) && position == list.size() - 1);
                         v.setText(Utils.unCrLf(getItem(position)));
-                        v.setBackgroundResource(isClip ? R.color.special : 0);
+                        v.setBackgroundResource(isClip ? R.color.pasteBackground : 0);
                         v.setCompoundDrawablesWithIntrinsicBounds(0, 0, isClip ? R.drawable.ic_paste : 0, 0);
+                        v.setCompoundDrawablePadding((int) (P._4dp + P._4dp));
                         return v;
                     }
                 }, (dialog, which) -> {
@@ -75,10 +75,10 @@ public class CopyPaste implements EditText.OnLongClickListener {
 
         // create dialogue, remove bottom padding and scroll to the end
         AlertDialog d = builder.create();
+        d.show();
         final ListView l = d.getListView();
         l.setPadding(l.getPaddingLeft(), l.getPaddingTop(), l.getPaddingRight(), 0);
         l.setStackFromBottom(true);
-        d.show();
         return true;
     }
 
@@ -96,7 +96,7 @@ public class CopyPaste implements EditText.OnLongClickListener {
             if (!list.get(list.size()-1).equals(u)) list.add(u);
         }
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        AlertDialog.Builder builder = new FancyAlertDialogBuilder(context);
         builder.setTitle(context.getString(R.string.dialog_copy_title)).setAdapter(
                 new ArrayAdapter<>(context, R.layout.select_dialog_item_material_2_lines, android.R.id.text1, list),
                 (dialog, which) -> {

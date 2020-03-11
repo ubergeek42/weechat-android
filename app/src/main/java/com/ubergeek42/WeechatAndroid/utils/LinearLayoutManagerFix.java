@@ -1,14 +1,13 @@
-/**
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- */
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
 
 package com.ubergeek42.WeechatAndroid.utils;
 
 import android.content.Context;
-import android.support.v7.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import android.util.AttributeSet;
 
+@SuppressWarnings("unused")
 class LinearLayoutManagerFix extends LinearLayoutManager {
 
     public LinearLayoutManagerFix(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
@@ -19,7 +18,7 @@ class LinearLayoutManagerFix extends LinearLayoutManager {
         super(context);
     }
 
-    public LinearLayoutManagerFix(Context context, int orientation, boolean reverseLayout) {
+    LinearLayoutManagerFix(Context context, int orientation, boolean reverseLayout) {
         super(context, orientation, reverseLayout);
     }
 

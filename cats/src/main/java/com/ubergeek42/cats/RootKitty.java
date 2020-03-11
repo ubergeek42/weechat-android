@@ -1,7 +1,7 @@
 package com.ubergeek42.cats;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
 
@@ -16,6 +16,7 @@ public class RootKitty extends Kitty {
         enabled = !disabled.contains(tag);
     }
 
+    @SuppressWarnings("StringEquality")
     @Override public KidKitty kid(@NonNull String tag) {
         for (KidKitty kid : kids) if (kid.tag == tag) return kid;
         KidKitty kid = new KidKitty(this, tag);

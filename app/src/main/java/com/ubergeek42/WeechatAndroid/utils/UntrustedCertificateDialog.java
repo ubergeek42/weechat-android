@@ -1,17 +1,13 @@
-/**
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- */
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
 
 package com.ubergeek42.WeechatAndroid.utils;
 
 import android.app.Dialog;
-import android.content.DialogInterface;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v4.app.DialogFragment;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.widget.AppCompatTextView;
+import androidx.annotation.NonNull;
+import androidx.fragment.app.DialogFragment;
+import androidx.appcompat.widget.AppCompatTextView;
 import android.text.Html;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -29,7 +25,7 @@ import java.text.DateFormat;
 
 public class UntrustedCertificateDialog extends DialogFragment {
 
-    X509Certificate certificate;
+    private X509Certificate certificate;
 
     public static UntrustedCertificateDialog newInstance(X509Certificate certificate) {
         UntrustedCertificateDialog d = new UntrustedCertificateDialog();
@@ -44,19 +40,18 @@ public class UntrustedCertificateDialog extends DialogFragment {
     @NonNull @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
         final int padding = (int) getResources().getDimension(R.dimen.dialog_padding_full);
 
-        final ScrollView scrollView = new ScrollView(getContext());
-        final TextView textView = new AppCompatTextView(getContext());
+        final ScrollView scrollView = new ScrollView(requireContext());
+        final TextView textView = new AppCompatTextView(requireContext());
         textView.setText(Html.fromHtml(getCertificateDescription()));
         scrollView.addView(textView);
+        scrollView.setPadding(padding, padding/2, padding, 0);
 
-        return new AlertDialog.Builder(getContext())
+        return new FancyAlertDialogBuilder(requireContext())
                 .setTitle(getString(R.string.ssl_cert_dialog_title))
-                .setView(scrollView, padding, padding/2, padding, 0)
-                .setPositiveButton(getString(R.string.ssl_cert_dialog_accept_button), new DialogInterface.OnClickListener() {
-                    @Override public void onClick(DialogInterface dialog, int which) {
-                        SSLHandler.getInstance(getContext()).trustCertificate(certificate);
-                        ((WeechatActivity) getActivity()).connect();
-                    }
+                .setView(scrollView)
+                .setPositiveButton(getString(R.string.ssl_cert_dialog_accept_button), (dialog1, which) -> {
+                    SSLHandler.getInstance(requireContext()).trustCertificate(certificate);
+                    ((WeechatActivity) requireActivity()).connect();
                 })
                 .setNegativeButton(getString(R.string.ssl_cert_dialog_reject_button), null)
                 .create();
@@ -71,7 +66,7 @@ public class UntrustedCertificateDialog extends DialogFragment {
         super.onDestroyView();
     }
 
-    public String getCertificateDescription() {
+    private String getCertificateDescription() {
         String fingerprint;
         try {fingerprint = new String(Hex.encodeHex(DigestUtils.sha256(certificate.getEncoded())));}
         catch (CertificateEncodingException e) {fingerprint = getString(R.string.ssl_cert_dialog_unknown_fingerprint); }

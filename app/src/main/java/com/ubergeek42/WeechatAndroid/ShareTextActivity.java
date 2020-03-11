@@ -3,13 +3,25 @@ package com.ubergeek42.WeechatAndroid;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.RecyclerView;
+import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.view.View;
+import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.RelativeLayout;
+
+import androidx.annotation.MainThread;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.ubergeek42.WeechatAndroid.adapters.BufferListAdapter;
 import com.ubergeek42.WeechatAndroid.adapters.BufferListClickListener;
 import com.ubergeek42.WeechatAndroid.service.Events;
+import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
+import com.ubergeek42.WeechatAndroid.utils.ThemeFix;
 
 import org.greenrobot.eventbus.EventBus;
 
@@ -17,6 +29,20 @@ import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
 
 public class ShareTextActivity extends AppCompatActivity implements
         DialogInterface.OnDismissListener, BufferListClickListener {
+    private Dialog dialog;
+
+    private RecyclerView uiRecycler;
+    private BufferListAdapter adapter;
+    private RelativeLayout uiFilterBar;
+    private EditText uiFilter;
+    private ImageButton uiFilterClear;
+
+    @Override protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        P.applyThemeAfterActivityCreation(this);
+        P.storeThemeOrColorSchemeColors(this);  // required for ThemeFix.fixIconAndColor()
+        ThemeFix.fixIconAndColor(this);
+    }
 
     @Override protected void onStart() {
         super.onStart();
@@ -29,23 +55,46 @@ public class ShareTextActivity extends AppCompatActivity implements
 
         Intent intent = getIntent();
         if ((Intent.ACTION_SEND.equals(intent.getAction()) && "text/plain".equals(intent.getType()))) {
-            Dialog dialog = new Dialog(this);
+            dialog = new Dialog(this, R.style.AlertDialogTheme);
             dialog.setContentView(R.layout.bufferlist_share);
 
-            BufferListAdapter adapter = new BufferListAdapter();
-            ((RecyclerView) dialog.findViewById(R.id.recycler)).setAdapter(adapter);
+            uiRecycler = dialog.findViewById(R.id.recycler);
+            uiFilterBar = dialog.findViewById(R.id.filter_bar);
+            uiFilter = dialog.findViewById(R.id.bufferlist_filter);
+            uiFilterClear = dialog.findViewById(R.id.bufferlist_filter_clear);
+
+            adapter = new BufferListAdapter();
+            uiRecycler.setAdapter(adapter);
+            uiFilterClear.setOnClickListener((v) -> uiFilter.setText(null));
+            uiFilter.addTextChangedListener(filterTextWatcher);
+            uiFilter.setText(BufferListAdapter.filterGlobal);
+
             adapter.onBuffersChanged();
             dialog.setCanceledOnTouchOutside(true);
             dialog.setCancelable(true);
             dialog.setOnDismissListener(this);
+
+            if (!P.showBufferFilter) {
+                uiFilterBar.setVisibility(View.GONE);
+                uiRecycler.setPadding(0, 0, 0, 0);
+            }
+            applyColorSchemeToViews();
+
             dialog.show();
         }
     }
 
-    @Override public void onBufferClick(String fullName) {
+    @Override protected void onStop() {
+        super.onStop();
+        if (dialog == null) return;
+        dialog.setOnDismissListener(null);  // prevent dismiss() from finish()ing the activity
+        dialog.dismiss();                   // must be called in order to not cause leaks
+    }
+
+    @Override public void onBufferClick(long pointer) {
         final String text = getIntent().getStringExtra(Intent.EXTRA_TEXT);
         Intent intent = new Intent(getApplicationContext(), WeechatActivity.class);
-        intent.putExtra(NOTIFICATION_EXTRA_BUFFER_FULL_NAME, fullName);
+        intent.putExtra(NOTIFICATION_EXTRA_BUFFER_POINTER, pointer);
         intent.putExtra(NOTIFICATION_EXTRA_BUFFER_INPUT_TEXT, text);
         startActivity(intent);
         finish();
@@ -53,5 +102,20 @@ public class ShareTextActivity extends AppCompatActivity implements
 
     @Override public void onDismiss(DialogInterface dialog) {
         finish();
+    }
+
+    private TextWatcher filterTextWatcher = new TextWatcher() {
+        @MainThread @Override public void afterTextChanged(Editable a) {}
+        @MainThread @Override public void beforeTextChanged(CharSequence arg0, int a, int b, int c) {}
+        @MainThread @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+            uiFilterClear.setVisibility((s.length() == 0) ? View.INVISIBLE : View.VISIBLE);
+            adapter.setFilter(s.toString(), false);
+            adapter.onBuffersChanged();
+        }
+    };
+
+    private void applyColorSchemeToViews() {
+        uiFilterBar.setBackgroundColor(P.colorPrimary);
+        uiRecycler.setBackgroundColor(P.colorPrimary);
     }
 }

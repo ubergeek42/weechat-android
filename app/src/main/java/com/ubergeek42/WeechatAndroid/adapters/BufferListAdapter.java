@@ -14,11 +14,12 @@
 
 package com.ubergeek42.WeechatAndroid.adapters;
 
-import android.support.annotation.AnyThread;
-import android.support.annotation.MainThread;
-import android.support.v7.util.DiffUtil;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.RecyclerView.ViewHolder;
+import androidx.annotation.AnyThread;
+import androidx.annotation.MainThread;
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.RecyclerView.ViewHolder;
 import android.text.Spannable;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -48,10 +49,14 @@ public class BufferListAdapter extends RecyclerView.Adapter<ViewHolder> implemen
 
     private ArrayList<VisualBuffer> buffers = new ArrayList<>();
 
+    public static @NonNull String filterGlobal = "";
+    private @NonNull String filterLowerCase = "";
+    private @NonNull String filterUpperCase = "";
+
     final private static int[][] COLORS = new int[][] {
-            {0xaa525252, 0xaa6c6c6c}, // other
-            {0xaa44525f, 0xaa596c7d}, // channel
-            {0xaa57474f, 0xaa735e69}, // private
+            {R.color.bufferListOther, R.color.bufferListOtherHot},
+            {R.color.bufferListChannel, R.color.bufferListChannelHot},
+            {R.color.bufferListPrivate, R.color.bufferListPrivateHot},
     };
 
     public BufferListAdapter() {
@@ -63,7 +68,7 @@ public class BufferListAdapter extends RecyclerView.Adapter<ViewHolder> implemen
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private static class Row extends ViewHolder implements View.OnClickListener {
-        private String fullName;
+        private long pointer;
         private TextView uiHot;
         private TextView uiWarm;
         private TextView uiBuffer;
@@ -79,13 +84,13 @@ public class BufferListAdapter extends RecyclerView.Adapter<ViewHolder> implemen
         }
 
         @MainThread void update(VisualBuffer buffer) {
-            fullName = buffer.fullName;
+            pointer = buffer.pointer;
             uiBuffer.setText(buffer.printable);
             int unreads = buffer.unreads;
             int highlights = buffer.highlights;
 
             int important = (highlights > 0 || (unreads > 0 && buffer.type == Buffer.PRIVATE)) ? 1 : 0;
-            uiBuffer.setBackgroundColor(COLORS[buffer.type][important]);
+            uiBuffer.setBackgroundResource(COLORS[buffer.type][important]);
             uiOpen.setVisibility(buffer.isOpen ? View.VISIBLE : View.GONE);
 
             if (highlights > 0) {
@@ -103,7 +108,7 @@ public class BufferListAdapter extends RecyclerView.Adapter<ViewHolder> implemen
 
         @MainThread @Override @SuppressWarnings("ConstantConditions")
         public void onClick(View v) {
-            ((BufferListClickListener) Utils.getActivity(v)).onBufferClick(fullName);
+            ((BufferListClickListener) Utils.getActivity(v)).onBufferClick(pointer);
         }
     }
 
@@ -111,12 +116,12 @@ public class BufferListAdapter extends RecyclerView.Adapter<ViewHolder> implemen
     //////////////////////////////////////////////////////////////////////////////////////////////// adapter methods
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @MainThread @Override @Cat("???") public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    @MainThread @Override @Cat("???") public @NonNull ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater i = LayoutInflater.from(parent.getContext());
         return new Row(i.inflate(R.layout.bufferlist_item, parent, false));
     }
 
-    @MainThread @Override @Cat("???") public void onBindViewHolder(ViewHolder holder, int position) {
+    @MainThread @Override @Cat("???") public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         ((Row) holder).update(buffers.get(position));
     }
 
@@ -136,16 +141,19 @@ public class BufferListAdapter extends RecyclerView.Adapter<ViewHolder> implemen
     @AnyThread @Override @Cat("??") synchronized public void onBuffersChanged() {
         final ArrayList<VisualBuffer> newBuffers = new ArrayList<>();
 
-        synchronized (BufferList.class) {
-            for (Buffer buffer : BufferList.buffers) {
-                if (buffer.type == Buffer.HARD_HIDDEN) continue;
-                if (!buffer.fullName.toLowerCase().contains(P.filterLc) && !buffer.fullName.toUpperCase().contains(P.filterUc)) continue;
-                if (TextUtils.isEmpty(P.filterLc)) {
-                    if (P.hideHiddenBuffers && buffer.hidden && buffer.getHotCount() == 0) continue;
-                    if (P.filterBuffers && buffer.type == Buffer.OTHER && buffer.highlights == 0 && buffer.unreads == 0) continue;
-                }
-                newBuffers.add(new VisualBuffer(buffer));
+        // this method must not call any synchronized methods of Buffer as this could result in a
+        // deadlock (worker thread e: Buffer.addLine() (locks BufferA) -> this.onBuffersChanged()
+        // (waiting for main to release this) vs. main thread: onBuffersChanged() (locks this) ->
+        // iteration on Buffers: (waiting for e to release BufferA). todo: resolve this gracefully
+        for (Buffer buffer : BufferList.buffers) {
+            if (buffer.type == Buffer.HARD_HIDDEN) continue;
+            if (!buffer.fullName.toLowerCase().contains(filterLowerCase) && !buffer.fullName.toUpperCase().contains(filterUpperCase)) continue;
+            if (TextUtils.isEmpty(filterLowerCase)) {
+                if (P.hideHiddenBuffers && buffer.hidden &&
+                        buffer.highlights == 0 && !(buffer.type == Buffer.PRIVATE && buffer.unreads != 0)) continue;
+                if (P.filterBuffers && buffer.type == Buffer.OTHER && buffer.highlights == 0 && buffer.unreads == 0) continue;
             }
+            newBuffers.add(new VisualBuffer(buffer));
         }
 
         if (P.sortBuffers) Collections.sort(newBuffers, sortByHotAndMessageCountComparator);
@@ -162,9 +170,10 @@ public class BufferListAdapter extends RecyclerView.Adapter<ViewHolder> implemen
         });
     }
 
-    @AnyThread synchronized public static void setFilter(final String s) {
-        P.filterLc = s.toLowerCase();
-        P.filterUc = s.toUpperCase();
+    @AnyThread synchronized public void setFilter(final String s, boolean global) {
+        if (global) filterGlobal = s;
+        filterLowerCase = s.toLowerCase();
+        filterUpperCase = s.toUpperCase();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

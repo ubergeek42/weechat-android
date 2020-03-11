@@ -17,9 +17,11 @@
 # NOTIFICATION   24    36      48       72       96
 # BIG (200dp)   200   300     400      600      800
 
-BIG_ICONS="ic_big_connected ic_big_connecting ic_big_disconnected"
-ICONS="ic_bell ic_bell_cracked ic_users ic_send ic_tab ic_send_disabled ic_tab_disabled"
-NOTIFICATIONS="ic_connected ic_connecting ic_disconnected ic_hot"
+# BIG_ICONS="ic_big_connected ic_big_connecting ic_big_disconnected"
+# ICONS="ic_bell ic_bell_cracked ic_users ic_send ic_tab ic_send_disabled ic_tab_disabled"
+# NOTIFICATIONS="ic_connected ic_connecting ic_disconnected ic_hot"
+
+NOTIFICATIONS="ic_notification_main ic_notification_hot"
 
 function render {
         inkscape --file="$1.svg" --export-png="../res/drawable-$2/$1.png" --export-area-page --export-width=$3  --export-height=$4
@@ -52,9 +54,9 @@ for FILE in $NOTIFICATIONS; do
     render $FILE "xxxhdpi" 96 96
 done
 
-echo Processing ic_paste.svg
-render ic_paste "mdpi" 26 32
-render ic_paste "hdpi" 39 48
-render ic_paste "xhdpi" 52 64
-render ic_paste "xxhdpi" 78 96
-render ic_paste "xxxhdpi" 104 128
+# echo Processing ic_paste.svg
+# render ic_paste "mdpi" 26 32
+# render ic_paste "hdpi" 39 48
+# render ic_paste "xhdpi" 52 64
+# render ic_paste "xxhdpi" 78 96
+# render ic_paste "xxxhdpi" 104 128

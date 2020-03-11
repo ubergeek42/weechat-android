@@ -132,7 +132,7 @@ final class Strings {
 
     private static String arrayToString(Object[] array) {
         StringBuilder buf = new StringBuilder();
-        arrayToString(array, buf, new HashSet<Object[]>());
+        arrayToString(array, buf, new HashSet<>());
         return buf.toString();
     }
 

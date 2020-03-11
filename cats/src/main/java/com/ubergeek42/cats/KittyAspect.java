@@ -1,7 +1,7 @@
 package com.ubergeek42.cats;
 
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.After;
@@ -27,7 +27,7 @@ public class KittyAspect {
             "call(* error*(..)) || " +
             "call(* wtf*(..))" +
             ")")
-    public Object logCallAdvice(JoinPoint.EnclosingStaticPart enclosingStaticPart, JoinPoint point) throws Throwable {
+    public Object logCallAdvice(JoinPoint.EnclosingStaticPart enclosingStaticPart, JoinPoint point) {
         Kitty kitty = (Kitty) point.getTarget();
         if (!kitty.enabled) return null;
 

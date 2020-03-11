@@ -3,6 +3,7 @@
 
 # ui
     WA/*
+    ChatLinesAdapter/Scrolling
     #BLF
     Notificator
 

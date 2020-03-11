@@ -1,0 +1,127 @@
+package androidx.preference;
+
+import android.content.Context;
+import android.content.DialogInterface;
+import android.graphics.Typeface;
+import android.os.Bundle;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+
+import android.text.TextUtils;
+import android.util.AttributeSet;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.BaseAdapter;
+import android.widget.CheckedTextView;
+
+import com.ubergeek42.WeechatAndroid.R;
+import com.ubergeek42.WeechatAndroid.utils.Constants;
+
+import java.util.Collections;
+import java.util.LinkedList;
+
+public class FontPreference extends DialogPreference {
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    public FontPreference(Context context, AttributeSet attrs) {
+        super(context, attrs);
+    }
+
+    private  @NonNull String getFontPath() {
+        //noinspection ConstantConditions
+        return getSharedPreferences().getString(getKey(), Constants.PREF_BUFFER_FONT_D);
+    }
+
+    private void setFontPath(@NonNull String path) {
+        getSharedPreferences().edit().putString(getKey(), path).apply();
+        notifyChanged();
+    }
+
+    @Override public CharSequence getSummary() {
+        StringBuilder sb = new StringBuilder();
+        for (String p: FontManager.FONT_DIRS)
+            sb.append("\n    ").append(p);
+        return getContext().getString(R.string.pref_font_summary,
+                sb.toString(),
+                "".equals(getFontPath()) ? getContext().getString(R.string.pref_font_default) : getFontPath());
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    public static class FontPreferenceFragment extends PreferenceDialogFragmentCompat implements DialogInterface.OnClickListener {
+
+        private LinkedList<FontManager.FontInfo> fonts;
+        private LayoutInflater inflater;
+
+        public static FontPreferenceFragment newInstance(String key) {
+            FontPreferenceFragment fragment = new FontPreferenceFragment();
+            Bundle b = new Bundle(1);
+            b.putString("key", key);
+            fragment.setArguments(b);
+            return fragment;
+        }
+
+        protected void onPrepareDialogBuilder(AlertDialog.Builder builder) {
+            super.onPrepareDialogBuilder(builder);
+
+            inflater = (LayoutInflater) requireContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            fonts = FontManager.enumerateFonts();
+            Collections.sort(fonts);
+
+            // add a "fake" default monospace font
+            fonts.addFirst(new FontManager.FontInfo(getString(R.string.pref_font_default), "", Typeface.MONOSPACE));
+
+            // get index of currently selected font
+            String currentPath = ((FontPreference) getPreference()).getFontPath();
+            int idx = 0, checked_item = 0;
+            for (FontManager.FontInfo font : fonts) {
+                if (font.path.equals(currentPath)) {checked_item = idx; break;}
+                idx++;
+            }
+
+            builder.setSingleChoiceItems(new FontAdapter(), checked_item, this);
+            builder.setPositiveButton(null, null);
+        }
+
+        public void onClick(DialogInterface dialog, int which) {
+            if (which >= 0)
+                ((FontPreference) getPreference()).setFontPath(fonts.get(which).path);
+            dialog.dismiss();
+        }
+
+        @Override public void onDialogClosed(boolean b) {}
+
+        ////////////////////////////////////////////////////////////////////////////////////////////
+
+        public class FontAdapter extends BaseAdapter {
+            @Override public int getCount() {
+                return fonts.size();
+            }
+
+            @Override public Object getItem(int position) {
+                return fonts.get(position);
+            }
+
+            @Override public long getItemId(int position) {
+                return position;
+            }
+
+            @Override public View getView(int position, View view, ViewGroup parent) {
+                if (view == null) {
+                    view = inflater.inflate(androidx.appcompat.R.layout.select_dialog_singlechoice_material, parent, false);
+                    CheckedTextView tv = view.findViewById(android.R.id.text1);
+                    tv.setEllipsize(TextUtils.TruncateAt.END);
+                    tv.setSingleLine();
+                }
+
+                FontManager.FontInfo font = (FontManager.FontInfo) getItem(position);
+                CheckedTextView tv = view.findViewById(android.R.id.text1);
+                tv.setTypeface(font.typeface);
+                tv.setText(font.name);
+                return view;
+            }
+        }
+    }
+}

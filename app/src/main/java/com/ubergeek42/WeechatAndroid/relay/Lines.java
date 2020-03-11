@@ -3,10 +3,10 @@
 
 package com.ubergeek42.WeechatAndroid.relay;
 
-import android.support.annotation.AnyThread;
-import android.support.annotation.MainThread;
-import android.support.annotation.NonNull;
-import android.support.annotation.WorkerThread;
+import androidx.annotation.AnyThread;
+import androidx.annotation.MainThread;
+import androidx.annotation.NonNull;
+import androidx.annotation.WorkerThread;
 
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.cats.Kitty;
@@ -16,11 +16,12 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import static org.junit.Assert.assertEquals;
+import static com.ubergeek42.WeechatAndroid.utils.Assert.assertThat;
 
 
 // this class is supposed to be synchronized by Buffer
 public class Lines {
+    @SuppressWarnings("FieldCanBeLocal")
     final private @Root Kitty kitty = Kitty.make();
 
     public final static int HEADER_POINTER = -123, MARKER_POINTER = -456;
@@ -52,7 +53,7 @@ public class Lines {
     private int skipUnfilteredOffset = -1;
     private int skipFilteredOffset = -1;
 
-    private int maxUnfilteredSize = 0;
+    private int maxUnfilteredSize;
 
     @WorkerThread Lines(String name) {
         maxUnfilteredSize = P.lineIncrement;
@@ -71,17 +72,23 @@ public class Lines {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @WorkerThread void addFirst(Line line) {
-        assertEquals(STATUS.FETCHING, status);
+        assertThat(status).isEqualTo(STATUS.FETCHING);
         ensureSizeBeforeAddition();
         unfiltered.addFirst(line);
         if (line.visible) filtered.addFirst(line);
     }
 
+    // note that rarely, especially when opening a buffer that weechat is loading backlog for at the
+    // moment, we can get this call while status == STATUS.FETCHING. even though in this case we
+    // will eventually receive the full lines again, we can't ignore these as the method addFirst()
+    // doesn't take line position and lines are simply skipped if they are already present, which
+    // would place these lines above lines already in the buffer. todo make addFirst take position?
     @WorkerThread void addLast(Line line) {
-        if (status == STATUS.FETCHING) return;
         ensureSizeBeforeAddition();
         unfiltered.addLast(line);
         if (line.visible) filtered.addLast(line);
+
+        if (status == STATUS.FETCHING) return;
 
         if (skipFiltered >= 0 && line.visible) skipFiltered++;
         if (skipUnfiltered >= 0) skipUnfiltered++;

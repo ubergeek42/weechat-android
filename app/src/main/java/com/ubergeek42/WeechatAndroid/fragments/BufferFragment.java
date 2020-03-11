@@ -3,12 +3,12 @@ package com.ubergeek42.WeechatAndroid.fragments;
 import java.util.ArrayList;
 
 import android.annotation.SuppressLint;
-import android.support.annotation.AnyThread;
-import android.support.annotation.MainThread;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.annotation.WorkerThread;
-import android.support.v4.app.Fragment;
+import androidx.annotation.AnyThread;
+import androidx.annotation.MainThread;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.WorkerThread;
+import androidx.fragment.app.Fragment;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -16,7 +16,7 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.support.v7.widget.RecyclerView;
+import androidx.recyclerview.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.KeyEvent;
@@ -40,6 +40,7 @@ import com.ubergeek42.WeechatAndroid.relay.BufferEye;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.utils.CopyPaste;
+import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
@@ -54,7 +55,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
 
     final private @Root Kitty kitty = Kitty.make("BF");
 
-    private final static String TAG = "tag";
+    private final static String POINTER = "pointer";
 
     private WeechatActivity activity = null;
     private boolean attached = false;
@@ -64,15 +65,15 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     private ImageButton uiSend;
     private ImageButton uiTab;
 
-    private String fullName = "…";
+    private long pointer = 0;
     private Buffer buffer;
 
     private ChatLinesAdapter linesAdapter;
 
-    public static BufferFragment newInstance(String tag) {
+    public static BufferFragment newInstance(long pointer) {
         BufferFragment fragment = new BufferFragment();
         Bundle args = new Bundle();
-        args.putString(TAG, tag);
+        args.putLong(POINTER, pointer);
         fragment.setArguments(args);
         return fragment;
     }
@@ -84,9 +85,8 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     @SuppressWarnings("ConstantConditions")
     @MainThread @Override public void setArguments(@Nullable Bundle args) {
         super.setArguments(args);
-        fullName = getArguments().getString(TAG);
-        int lastIndex = fullName.lastIndexOf(".");
-        kitty.setPrefix(lastIndex == -1 ? fullName : fullName.substring(lastIndex + 1));
+        pointer = getArguments().getLong(POINTER);
+        kitty.setPrefix(Utils.pointerToString(pointer));
     }
 
     @MainThread @Override @Cat public void onAttach(Context context) {
@@ -110,7 +110,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         linesAdapter = new ChatLinesAdapter(uiLines);
         uiLines.setAdapter(linesAdapter);
         uiLines.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+            @Override public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 if (focused && dy != 0) activity.toolbarController.onScroll(dy, uiLines.getOnTop(), uiLines.getOnBottom());
             }
         });
@@ -130,16 +130,26 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         return v;
     }
 
-    @MainThread @Override @Cat public void onStart() {
-        super.onStart();
-        uiSend.setVisibility(P.showSend ? View.VISIBLE : View.GONE);
-        uiTab.setVisibility(P.showTab ? View.VISIBLE : View.GONE);
-        uiLines.setBackgroundColor(0xFF000000 | ColorScheme.get().defaul[ColorScheme.OPT_BG]);
-        EventBus.getDefault().register(this);
+    @MainThread @Override @Cat public void onDestroyView() {
+        super.onDestroyView();
+        uiLines = null;
+        uiInput = null;
+        uiSend = null;
+        uiTab = null;
+        linesAdapter = null;
     }
 
-    @MainThread @Override @Cat public void onStop() {
-        super.onStop();
+    @MainThread @Override @Cat public void onResume() {
+        super.onResume();
+        uiSend.setVisibility(P.showSend ? View.VISIBLE : View.GONE);
+        uiTab.setVisibility(P.showTab ? View.VISIBLE : View.GONE);
+        uiLines.setBackgroundColor(0xFF000000 | ColorScheme.get().default_color[ColorScheme.OPT_BG]);
+        EventBus.getDefault().register(this);
+        applyColorSchemeToViews();
+    }
+
+    @MainThread @Override @Cat public void onPause() {
+        super.onPause();
         detachFromBuffer();
         EventBus.getDefault().unregister(this);
     }
@@ -193,7 +203,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     @MainThread @Cat public void onEvent(@NonNull StateChangedEvent event) {
         boolean online = event.state.contains(LISTED);
         if (buffer == null || online) {
-            buffer = BufferList.findByFullName(fullName);
+            buffer = BufferList.findByPointer(pointer);
             if (online && buffer == null) {
                 onBufferClosed();
                 return;
@@ -225,7 +235,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
 
     //////////////////////////////////////////////////////////////////////////////////////////////// ui
 
-    @MainThread @Cat public void initUI() {
+    @MainThread @Cat private void initUI() {
         uiInput.setEnabled(online);
         uiSend.setEnabled(online);
         uiTab.setEnabled(online);
@@ -237,8 +247,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @WorkerThread @Override public void onLineAdded() {
-        if (linesAdapter == null) return;
-        linesAdapter.onLineAdded();
+        ChatLinesAdapter a = linesAdapter; if (a != null) a.onLineAdded();
     }
 
     @MainThread @Override public void onGlobalPreferencesChanged(boolean numberChanged) {
@@ -247,17 +256,17 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     }
 
     @WorkerThread @Override public void onLinesListed() {
-        Weechat.runOnMainThread(() -> uiLines.requestAnimation());
-        linesAdapter.onLinesListed();
+        if (uiLines != null) uiLines.requestAnimation();
+        ChatLinesAdapter a = linesAdapter; if (a != null) a.onLinesListed();
         Weechat.runOnMainThread(() -> onVisibilityStateChanged(State.LINES));
     }
 
     @WorkerThread @Override public void onPropertiesChanged() {
-        linesAdapter.onPropertiesChanged();
+        ChatLinesAdapter a = linesAdapter; if (a != null) a.onPropertiesChanged();
     }
 
     @AnyThread @Override public void onBufferClosed() {
-        Weechat.runOnMainThreadASAP(() -> activity.closeBuffer(fullName));
+        Weechat.runOnMainThreadASAP(() -> {if (activity != null) activity.closeBuffer(pointer);});
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -304,7 +313,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
                             if (textSize > 5) textSize -= 1;
                             break;
                     }
-                    P.setTextSizeAndLetterWidth(textSize);
+                    P.setTextSizeColorAndLetterWidth(textSize);
                 }
                 return true;
             }
@@ -410,5 +419,9 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     // tryTabComplete() will set it back if it modified the text causing this function to run
     @MainThread @Override public void afterTextChanged(Editable s) {
         tcInProgress = false;
+    }
+
+    @SuppressWarnings("ConstantConditions") private void applyColorSchemeToViews() {
+        getView().findViewById(R.id.chatview_bottombar).setBackgroundColor(P.colorPrimary);
     }
 }

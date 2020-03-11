@@ -5,16 +5,16 @@ import org.aspectj.tools.ajc.Main
 apply plugin: 'com.android.library'
 
 dependencies {
-    implementation 'org.aspectj:aspectjrt:1.8.6'
-    implementation 'com.android.support:support-annotations:27.0.2'
+    implementation 'org.aspectj:aspectjrt:1.9.5'
+    implementation 'androidx.annotation:annotation:1.1.0'
 
     testImplementation 'junit:junit:4.12'
-    testImplementation 'org.mockito:mockito-core:1.10.19'
+    testImplementation 'org.mockito:mockito-core:3.2.0'
 }
 
 android {
-    compileSdkVersion 27
-    buildToolsVersion '27.0.3'
+    compileSdkVersion 29
+    buildToolsVersion '29.0.2'
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -32,6 +32,10 @@ android {
         devrelease {
             initWith release
         }
+    }
+    defaultConfig {
+        targetSdkVersion 29
+        minSdkVersion 16
     }
 }
 

@@ -14,11 +14,13 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Build;
-import android.support.annotation.AnyThread;
-import android.support.annotation.MainThread;
-import android.support.annotation.NonNull;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.RemoteInput;
+import androidx.annotation.AnyThread;
+import androidx.annotation.MainThread;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.Person;
+import androidx.core.app.RemoteInput;
 import android.text.TextUtils;
 
 import com.ubergeek42.WeechatAndroid.BuildConfig;
@@ -26,6 +28,7 @@ import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.relay.Hotlist;
 import com.ubergeek42.WeechatAndroid.relay.Hotlist.HotMessage;
+import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
@@ -34,12 +37,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static android.support.v4.app.NotificationCompat.Builder;
-import static android.support.v4.app.NotificationCompat.GROUP_ALERT_CHILDREN;
-import static android.support.v4.app.NotificationCompat.MessagingStyle;
+import static androidx.core.app.NotificationCompat.Builder;
+import static androidx.core.app.NotificationCompat.GROUP_ALERT_CHILDREN;
+import static androidx.core.app.NotificationCompat.MessagingStyle;
 import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.AUTHENTICATED;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.NOTIFICATION_EXTRA_BUFFER_FULL_NAME;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.NOTIFICATION_EXTRA_BUFFER_FULL_NAME_ANY;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.NOTIFICATION_EXTRA_BUFFER_POINTER;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.NOTIFICATION_EXTRA_BUFFER_ANY;
 
 
 public class Notificator {
@@ -52,6 +55,13 @@ public class Notificator {
     final private static String NOTIFICATION_CHANNEL_HOTLIST = "notification";
     final private static String NOTIFICATION_CHANNEL_HOTLIST_ASYNC = "notification async";
     final private static String GROUP_KEY = "hot messages";
+
+    // displayed in place of user name in private notifications, when we can get away with it
+    final private static CharSequence ZERO_WIDTH_SPACE = "\u200B";
+
+    // this text is somewhat displayed on android p when replying to notification
+    // represents “Me” in the “Me: my message” part of NotificationCompat.MessagingStyle
+    private static Person MYSELF = new Person.Builder().setName("Me").build();
 
     @SuppressLint("StaticFieldLeak")
     private static Context context;
@@ -91,6 +101,7 @@ public class Notificator {
         channel.enableVibration(false);
         channel.enableLights(true);
         manager.createNotificationChannel(channel);
+        MYSELF = new Person.Builder().setName(c.getString(R.string.me)).build();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -102,22 +113,19 @@ public class Notificator {
                 new Intent(context, WeechatActivity.class), PendingIntent.FLAG_CANCEL_CURRENT);
 
         boolean authenticated = relay.state.contains(AUTHENTICATED);
-        int icon = authenticated ? R.drawable.ic_connected : R.drawable.ic_disconnected;
 
         Builder builder = new Builder(context, NOTIFICATION_CHANNEL_CONNECTION_STATUS);
         builder.setContentIntent(contentIntent)
-                .setSmallIcon(icon)
-                .setContentTitle("Weechat-Android " + BuildConfig.VERSION_NAME)
-                .setContentText(content)
-                .setWhen(System.currentTimeMillis());
-
-        builder.setPriority(Notification.PRIORITY_MIN);
+                .setSmallIcon(R.drawable.ic_notification_main)
+                .setCategory(NotificationCompat.CATEGORY_SERVICE)
+                .setWhen(System.currentTimeMillis())
+                .setPriority(Notification.PRIORITY_MIN);
+        setNotificationTitleAndText(builder, content);
 
         if (P.notificationTicker)
             builder.setTicker(content);
 
         String disconnectText = context.getString(authenticated ? R.string.disconnect : R.string.stop_connecting);
-
         builder.addAction(
                 android.R.drawable.ic_menu_close_clear_cancel, disconnectText,
                 PendingIntent.getService(
@@ -146,8 +154,18 @@ public class Notificator {
     // we add (message not available) if there are NO lines to display and add "..." if there are
     // some lines to display, but not all
     @AnyThread @Cat public static void showHot(boolean connected, int totalHotCount, int hotBufferCount,
-                    List<Hotlist.HotMessage> allMessages, Hotlist.HotBuffer hotBuffer, boolean newHighlight) {
+                    List<Hotlist.HotMessage> allMessages, Hotlist.HotBuffer hotBuffer,
+                    Hotlist.NotifyReason reason, long lastMessageTimestamp) {
         if (!P.notificationEnable) return;
+
+        long pointer = hotBuffer.pointer;
+
+        // when redrawing notifications in order to remove the reply button, make sure we don't
+        // add back notifications that were dismissed. synchronize `notifications.contains`
+        synchronized (Notificator.class) {
+            if (reason == Hotlist.NotifyReason.REDRAW && !notifications.contains(pointer))
+                return;
+        }
 
         // https://developer.android.com/guide/topics/ui/notifiers/notifications.html#back-compat
         boolean canMakeBundledNotifications = Build.VERSION.SDK_INT >= 24;
@@ -155,44 +173,49 @@ public class Notificator {
 
         int hotCount = hotBuffer.hotCount;
         List<HotMessage> messages = hotBuffer.messages;
-        String fullName = hotBuffer.fullName;
         String shortName = hotBuffer.shortName;
 
         if (hotCount == 0) {
-            manager.cancel(fullName, NOTIFICATION_HOT_ID);
-            DismissResult dismissResult = onNotificationDismissed(fullName);
+            // TODO this doesn't cancel notifications that have remote input and have ben replied to
+            // TODO on android p. not sure what to do about this--find a workaround or leave as is?
+            // TODO https://issuetracker.google.com/issues/112319501
+            manager.cancel(Utils.pointerToString(pointer), NOTIFICATION_HOT_ID);
+            DismissResult dismissResult = onNotificationDismissed(pointer);
             if (dismissResult == DismissResult.ALL_NOTIFICATIONS_REMOVED || dismissResult == DismissResult.NO_CHANGE) return;
         }
 
-        String channel = newHighlight ? NOTIFICATION_CHANNEL_HOTLIST : NOTIFICATION_CHANNEL_HOTLIST_ASYNC;
+        boolean syncHotMessage = reason == Hotlist.NotifyReason.HOT_SYNC;
+        String channel = syncHotMessage ? NOTIFICATION_CHANNEL_HOTLIST : NOTIFICATION_CHANNEL_HOTLIST_ASYNC;
 
         ////////////////////////////////////////////////////////////////////////////////////////////
 
         // (re)build the “parent” summary notification. in practice, it should never be visible on
         // Lollipop and later, except for the SubText part, which appears on the right of app name
 
-        String appName = res.getString(R.string.app_name);
         String nMessagesInNBuffers = res.getQuantityString(R.plurals.messages, totalHotCount, totalHotCount) +
                 res.getQuantityString(R.plurals.in_buffers, hotBufferCount, hotBufferCount);
         Builder summary = new Builder(context, channel)
-                .setContentIntent(getIntentFor(NOTIFICATION_EXTRA_BUFFER_FULL_NAME_ANY))
-                .setSmallIcon(R.drawable.ic_hot)
-                .setContentTitle(appName)
-                .setContentText(nMessagesInNBuffers)
+                .setContentIntent(getIntentFor(NOTIFICATION_EXTRA_BUFFER_ANY))
+                .setSmallIcon(R.drawable.ic_notification_hot)
+                .setCategory(NotificationCompat.CATEGORY_MESSAGE)
+                .setWhen(lastMessageTimestamp)
                 .setGroup(GROUP_KEY)
                 .setGroupSummary(true)
                 .setGroupAlertBehavior(GROUP_ALERT_CHILDREN);
+        setNotificationTitleAndText(summary, nMessagesInNBuffers);
 
         if (canMakeBundledNotifications) {
             summary.setSubText(nMessagesInNBuffers);
         } else {
-            MessagingStyle style = new MessagingStyle("");
+            MessagingStyle style = new MessagingStyle(MYSELF);
             style.setConversationTitle(nMessagesInNBuffers);
-            addMissingMessageLine(totalHotCount - allMessages.size(), res, style);
-            for (HotMessage message : allMessages) style.addMessage(message.forFullList());
+            style.setGroupConversation(true);   // needed to display the title
+            addMissingMessageLine(totalHotCount - allMessages.size(), res, style, null);
+            for (HotMessage message : allMessages) addMessage(style,
+                    message.message, message.timestamp, getNickForFullList(message));
             summary.setStyle(style);
 
-            if (newHighlight) makeNoise(summary, res, allMessages);
+            if (syncHotMessage) makeNoise(summary, res, allMessages);
         }
 
         manager.notify(NOTIFICATION_HOT_ID, summary.build());
@@ -204,48 +227,65 @@ public class Notificator {
 
         String newMessageInB = res.getQuantityString(R.plurals.hot_messages, hotCount, hotCount, shortName);
         Builder builder = new Builder(context, channel)
-                .setContentIntent(getIntentFor(fullName))
-                .setSmallIcon(R.drawable.ic_hot)
-                .setContentTitle(appName)
-                .setContentText(newMessageInB)
-                .setDeleteIntent(getDismissIntentFor(fullName))
-                .setGroup(GROUP_KEY)
+                .setContentIntent(getIntentFor(pointer))
+                .setSmallIcon(R.drawable.ic_notification_hot)
+                .setDeleteIntent(getDismissIntentFor(pointer))
+                .setCategory(NotificationCompat.CATEGORY_MESSAGE)
                 .setWhen(hotBuffer.lastMessageTimestamp)
+                .setGroup(GROUP_KEY)
                 .setGroupAlertBehavior(GROUP_ALERT_CHILDREN);
+        setNotificationTitleAndText(summary, newMessageInB);
 
         // messages hold the latest messages, don't show the reply button if user can't see any
-        if (connected && messages.size() > 0) builder.addAction(getAction(context, fullName));
+        if (connected && messages.size() > 0) builder.addAction(getAction(context, Utils.pointerToString(pointer)));
 
-        MessagingStyle style = new MessagingStyle("");
-        style.setConversationTitle(hotCount < 2 ? shortName : shortName + " (" + String.valueOf(hotCount) + ")");
-        addMissingMessageLine(hotCount - messages.size(), res, style);
-        for (HotMessage message : messages) style.addMessage(message.forBuffer());
+        MessagingStyle style = new MessagingStyle(MYSELF);
+
+        // this is ugly on android p, but i see no other way to show the number of messages
+        style.setConversationTitle(hotCount < 2 ? shortName : shortName + " (" + hotCount + ")");
+
+        // before pie, display private buffers as non-private
+        style.setGroupConversation(!hotBuffer.isPrivate || Build.VERSION.SDK_INT < 28);
+
+        addMissingMessageLine(hotCount - messages.size(), res, style, hotBuffer);
+        for (HotMessage message : messages) addMessage(style,
+                message.message, message.timestamp, getNickForBuffer(message));
         builder.setStyle(style);
 
-        if (newHighlight) makeNoise(builder, res, messages);
-        manager.notify(fullName, NOTIFICATION_HOT_ID, builder.build());
-        onNotificationFired(fullName);
+        if (syncHotMessage) makeNoise(builder, res, messages);
+        manager.notify(Utils.pointerToString(pointer), NOTIFICATION_HOT_ID, builder.build());
+        onNotificationFired(pointer);
     }
 
     // setting action in this way is not quite a proper way, but this ensures that all intents
     // are treated as separate intents
-    private static PendingIntent getIntentFor(String fullName) {
-        Intent intent = new Intent(context, WeechatActivity.class).putExtra(NOTIFICATION_EXTRA_BUFFER_FULL_NAME, fullName);
-        intent.setAction(fullName);
+    private static PendingIntent getIntentFor(long pointer) {
+        Intent intent = new Intent(context, WeechatActivity.class).putExtra(NOTIFICATION_EXTRA_BUFFER_POINTER, pointer);
+        intent.setAction(Utils.pointerToString(pointer));
         return PendingIntent.getActivity(context, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
-    private static PendingIntent getDismissIntentFor(String fullName) {
+    private static PendingIntent getDismissIntentFor(long pointer) {
         Intent intent = new Intent(context, NotificationDismissedReceiver.class);
-        intent.setAction(fullName);
+        intent.setAction(Utils.pointerToString(pointer));
         return PendingIntent.getBroadcast(context, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
-    private static void addMissingMessageLine(int missingMessages, Resources res, MessagingStyle style) {
-        if (missingMessages > 0) {
-            String s = res.getQuantityString(R.plurals.hot_messages_missing, missingMessages, missingMessages);
-            style.addMessage(s, 0, "");
-        }
+    // WARNING hotBuffer shouldn't be null on android p!
+    // we have to display *something* (not a space) in place of the user name on android p, since
+    // the big icon is generated from it. this is ugly but ¯\_(ツ)_/¯
+    // in case when we have any lines at all in a private buffer, set the nick to the nick
+    // of the first line we have to avoid awkward nick changes (current (missing) -> old -> current)
+    private static void addMissingMessageLine(int missingMessages, Resources res, MessagingStyle style, @Nullable Hotlist.HotBuffer hotBuffer) {
+        if (missingMessages == 0) return;
+        CharSequence nick = ZERO_WIDTH_SPACE;
+        if (Build.VERSION.SDK_INT >= 28)
+            nick = hotBuffer != null && hotBuffer.isPrivate ?
+                    (hotBuffer.messages.isEmpty() ? hotBuffer.shortName : hotBuffer.messages.get(0).nick) :
+                    res.getQuantityString(R.plurals.hot_messages_missing_user, missingMessages == 1 ? 1 : 2);
+        String message = missingMessages == 1 ? res.getString(R.string.hot_messages_missing_1) :
+                res.getQuantityString(R.plurals.hot_messages_missing, missingMessages, missingMessages);
+        addMessage(style, message, 0, nick);
     }
 
     private static void makeNoise(Builder builder, Resources res, List<HotMessage> messages) {
@@ -261,18 +301,18 @@ public class Notificator {
     }
 
     public static final String KEY_TEXT_REPLY = "key_text_reply";
-    private static NotificationCompat.Action getAction(Context ctx, String fullName) {
+    private static NotificationCompat.Action getAction(Context ctx, String strPointer) {
         String replyLabel = ctx.getResources().getString(R.string.reply_label);
         RemoteInput remoteInput = new RemoteInput.Builder(KEY_TEXT_REPLY)
                 .setLabel(replyLabel)
                 .build();
         Intent intent = new Intent(ctx, Hotlist.InlineReplyReceiver.class);
-        intent.setAction(fullName);
+        intent.setAction(strPointer);
         PendingIntent replyPendingIntent = PendingIntent.getBroadcast(ctx,
                         1,
                         intent,
                         PendingIntent.FLAG_UPDATE_CURRENT);
-        return new NotificationCompat.Action.Builder(R.drawable.ic_send,
+        return new NotificationCompat.Action.Builder(R.drawable.ic_toolbar_send,
                 replyLabel, replyPendingIntent)
                 .addRemoteInput(remoteInput)
                 .build();
@@ -280,15 +320,51 @@ public class Notificator {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    final private static Set<String> notifications = new HashSet<>();
+    // for android p, use the regular nick, as messages from the same user are displayed without
+    // repeating the name. on previous versions of android, use a fake name; the real name (short
+    // buffer name, actually) will be displayed as conversation title
+    // it is possible to have “nick (3)” as a nickname, but icon shade depends on the nickname, and
+    // you can't get away with making a Person's with different names but the same key
+    private static CharSequence getNickForBuffer(HotMessage message) {
+        if (Build.VERSION.SDK_INT >= 28) return message.nick;           // + " (" + hotCount + ")";
+        if (message.hotBuffer.isPrivate || message.isAction) return ZERO_WIDTH_SPACE;
+        return message.nick;
+    }
 
-    @AnyThread private static synchronized void onNotificationFired(String fullName) {
-        notifications.add(fullName);
+    private static CharSequence getNickForFullList(HotMessage message) {
+        if (message.isAction && message.hotBuffer.isPrivate) return ZERO_WIDTH_SPACE;
+        StringBuilder text = new StringBuilder(message.hotBuffer.shortName).append(":");
+        if (!message.isAction && !message.hotBuffer.isPrivate) text.append(" ").append(message.nick);
+        return text.toString();
+    }
+
+    // don't display 2 lines of text on platforms that handle a single line fine
+    private static void setNotificationTitleAndText(Builder builder, CharSequence text) {
+        if (Build.VERSION.SDK_INT > 23) {
+            builder.setContentTitle(text);
+        } else {
+            builder.setContentTitle(context.getString(R.string.app_name) + " " + BuildConfig.VERSION_NAME)
+                    .setContentText(text);
+        }
+    }
+
+    // as we are constructing nicks on the fly, no reason to build Person
+    @SuppressWarnings("deprecation")
+    private static void addMessage(MessagingStyle style, CharSequence message, long timestamp, CharSequence nick) {
+        style.addMessage(message, timestamp, nick);
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    final private static Set<Long> notifications = new HashSet<>();
+
+    @AnyThread private static synchronized void onNotificationFired(long pointer) {
+        notifications.add(pointer);
     }
 
     private enum DismissResult {NO_CHANGE, ONE_NOTIFICATION_REMOVED, ALL_NOTIFICATIONS_REMOVED}
-    @AnyThread private static synchronized DismissResult onNotificationDismissed(String fullName) {
-        boolean removed = notifications.remove(fullName);
+    @AnyThread private static synchronized DismissResult onNotificationDismissed(long pointer) {
+        boolean removed = notifications.remove(pointer);
         if (notifications.isEmpty()) {
             manager.cancel(NOTIFICATION_HOT_ID);
             return DismissResult.ALL_NOTIFICATIONS_REMOVED;
@@ -298,8 +374,8 @@ public class Notificator {
 
     public static class NotificationDismissedReceiver extends BroadcastReceiver {
         @MainThread @Override public void onReceive(Context context, Intent intent) {
-            final String fullName = intent.getAction();
-            onNotificationDismissed(fullName);
+            final String strPointer = intent.getAction();
+            onNotificationDismissed(Utils.pointerFromString(strPointer));
         }
     }
 }

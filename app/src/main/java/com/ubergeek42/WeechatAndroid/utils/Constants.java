@@ -1,5 +1,9 @@
 package com.ubergeek42.WeechatAndroid.utils;
 
+import android.content.ComponentName;
+
+import com.ubergeek42.WeechatAndroid.BuildConfig;
+
 public class Constants {
 
     // connection type
@@ -45,10 +49,12 @@ public class Constants {
     final static public String PREF_PING_TIMEOUT = "ping_timeout"; final public static String PREF_PING_TIMEOUT_D = "30";
 
     // buffer list
+    public static final String PREF_BUFFERLIST_GROUP = "bufferlist_group";
     public static final String PREF_SORT_BUFFERS = "sort_buffers"; final public static boolean PREF_SORT_BUFFERS_D = false;
     public static final String PREF_HIDE_HIDDEN_BUFFERS = "hide_hidden_buffers"; final public static boolean PREF_HIDE_HIDDEN_BUFFERS_D = false;
     public static final String PREF_FILTER_NONHUMAN_BUFFERS = "filter_nonhuman_buffers"; final public static boolean PREF_FILTER_NONHUMAN_BUFFERS_D = false;
     public static final String PREF_SHOW_BUFFER_FILTER = "show_buffer_filter"; final public static boolean PREF_SHOW_BUFFER_FILTER_D = false;
+    public static final String PREF_USE_GESTURE_EXCLUSION_ZONE = "use_gesture_exclusion_zone"; final public static boolean PREF_USE_GESTURE_EXCLUSION_ZONE_D = false;
 
     // look & feel
     final static public String PREF_LOOKFEEL_GROUP = "lookfeel_group";
@@ -61,7 +67,8 @@ public class Constants {
     final static public String PREF_TIMESTAMP_FORMAT = "timestamp_format"; final public static String PREF_TIMESTAMP_FORMAT_D = "HH:mm:ss";
     public static final String PREF_DIM_DOWN = "dim_down"; final public static boolean PREF_DIM_DOWN_D = false;
     public static final String PREF_BUFFER_FONT = "buffer_font"; final public static String PREF_BUFFER_FONT_D = "";
-    public static final String PREF_COLOR_SCHEME = "color_scheme"; final public static String PREF_COLOR_SCHEME_D = "default-theme.properties";
+    public static final String PREF_COLOR_SCHEME_DAY = "color_scheme_day"; final public static String PREF_COLOR_SCHEME_DAY_D = "squirrely-light-theme.properties";
+    public static final String PREF_COLOR_SCHEME_NIGHT = "color_scheme_night"; final public static String PREF_COLOR_SCHEME_NIGHT_D = "squirrely-dark-theme.properties";
 
     // buttons
     public final static String PREF_SHOW_SEND = "sendbtn_show"; final public static boolean PREF_SHOW_SEND_D = true;
@@ -76,8 +83,18 @@ public class Constants {
     final static public String PREF_NOTIFICATION_LIGHT = "notification_light"; final public static boolean PREF_NOTIFICATION_LIGHT_D = false;
     final static public String PREF_NOTIFICATION_TICKER = "notification_ticker"; final public static boolean PREF_NOTIFICATION_TICKER_D = true;
 
-    public final static String NOTIFICATION_EXTRA_BUFFER_FULL_NAME = "com.ubergeek42.BUFFER_FULL_NAME";
+    public final static String NOTIFICATION_EXTRA_BUFFER_POINTER = "com.ubergeek42.BUFFER_POINTER";
     public final static String NOTIFICATION_EXTRA_BUFFER_INPUT_TEXT = "com.ubergeek42.BUFFER_INPUT_TEXT";
+    public final static long NOTIFICATION_EXTRA_BUFFER_ANY = 0;
 
-    public final static String NOTIFICATION_EXTRA_BUFFER_FULL_NAME_ANY = "";
+    // night mode
+    final static public String PREF_THEME_GROUP = "theme_group";
+    final public static String PREF_THEME = "theme";
+    final public static String PREF_THEME_SYSTEM = "system";
+    final public static String PREF_THEME_DARK = "dark";
+    final public static String PREF_THEME_LIGHT = "light";
+    final public static String PREF_THEME_D = PREF_THEME_SYSTEM;
+
+
+    final public static String PREF_THEME_SWITCH = "theme_switch"; final public static boolean PREF_THEME_SWITCH_D = false;
 }

@@ -14,11 +14,17 @@
         <item >websocket</item>
         <item >websocket-ssl</item>
     </string-array>
+    <string-array name="settings_theme_values">
+        <item >system</item>
+        <item >dark</item>
+        <item >light</item>
+    </string-array>
 
     <dimen name="dialog_item_padding_vertical">8dp</dimen>
-    <dimen name="drawer_width">320dp</dimen>
+    <dimen name="drawer_width">304dp</dimen>
     <dimen name="chat_item_left_margin">0dp</dimen>
     <bool name="slidy">true</bool>
     <dimen name="dialog_padding">20dp</dimen>
     <dimen name="dialog_padding_full">24dp</dimen>
+    <dimen name="dialog_corner_radius">8dp</dimen>
 </resources>

@@ -52,6 +52,7 @@
 		<CheckBoxPreference android:key="filter_nonhuman_buffers" android:title="@string/pref_hide_server_buffers" android:summary="@string/pref_hide_server_buffers_summary" android:defaultValue="false" />
         <CheckBoxPreference android:key="hide_hidden_buffers" android:title="@string/pref_hide_hidden_buffers" android:summary="@string/pref_hide_hidden_buffers_summary" android:defaultValue="false" />
 		<CheckBoxPreference android:key="show_buffer_filter" android:title="@string/pref_show_buffer_filter" android:summary="@string/pref_show_buffer_filter_summary"  android:defaultValue="false" />
+        <CheckBoxPreference android:key="use_gesture_exclusion_zone" android:title="@string/pref_use_gesture_exclusion_zone" android:summary="@string/pref_use_gesture_exclusion_zone_summary" android:defaultValue="false" />
     </PreferenceScreen>
 
     <!-- look and feel -->
@@ -64,9 +65,18 @@
         <EditTextPreferenceFix android:key="prefix_max_width" android:title="@string/pref_max_width" android:summary="@string/pref_max_width_summary" android:numeric="integer" android:defaultValue="7" />
         <CheckBoxPreference android:key="enclose_nick" android:title="@string/pref_enclose_nick" android:summary="@string/pref_enclose_nick_summary" android:defaultValue="false" />
 		<EditTextPreferenceFix android:key="timestamp_format" android:title="@string/pref_timestamp_format" android:summary="@string/pref_timestamp_format_summary" android:defaultValue="HH:mm:ss" android:singleLine="true" />
-        <CheckBoxPreference android:key="dim_down" android:title="@string/pref_dim_down" android:summary="@string/pref_dim_down_summary" android:defaultValue="false" />
 	    <FontPreference android:key="buffer_font" android:title="@string/pref_font" />
-	    <ThemePreference android:key="color_scheme" android:title="@string/pref_color_scheme" android:defaultValue="default-theme.properties" />
+    </PreferenceScreen>
+
+    <!-- theme -->
+
+    <PreferenceScreen android:key="theme_group" android:title="@string/pref_theme">
+        <ListPreference android:key="theme" android:title="@string/pref_theme" android:defaultValue="system" android:entries="@array/pref_theme_names" android:entryValues="@array/settings_theme_values"  android:summary="%s"/>
+        <CheckBoxPreference android:key="theme_switch" android:title="@string/pref_theme_switch" android:summary="@string/pref_theme_switch_summary" android:defaultValue="false" />
+        <ThemePreference android:key="color_scheme_day" android:title="@string/pref_color_scheme_day" android:defaultValue="squirrely-light-theme.properties" />
+        <ThemePreference android:key="color_scheme_night" android:title="@string/pref_color_scheme_night" android:defaultValue="squirrely-dark-theme.properties" />
+        <ThemePreferenceHelp android:selectable="false" android:persistent="false" />
+        <CheckBoxPreference android:key="dim_down" android:title="@string/pref_dim_down" android:summary="@string/pref_dim_down_summary" android:defaultValue="false" />
     </PreferenceScreen>
 
     <!-- buttons -->

@@ -6,24 +6,26 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.support.annotation.NonNull;
-import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.preference.ClearCertPreference;
-import android.support.v7.preference.DialogPreference;
-import android.support.v7.preference.EditTextPreferenceFix;
-import android.support.v7.preference.FilePreference;
-import android.support.v7.preference.Preference;
-import android.support.v7.preference.PreferenceFragmentCompat;
-import android.support.v7.preference.PreferenceScreen;
-import android.support.v7.preference.RingtonePreferenceFix;
-import android.support.v7.preference.ThemePreference;
+import androidx.annotation.NonNull;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.Fragment;
+import androidx.core.content.ContextCompat;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.preference.CheckBoxPreference;
+import androidx.preference.ClearCertPreference;
+import androidx.preference.DialogPreference;
+import androidx.preference.EditTextPreferenceFix;
+import androidx.preference.FilePreference;
+import androidx.preference.Preference;
+import androidx.preference.PreferenceFragmentCompat;
+import androidx.preference.PreferenceGroup;
+import androidx.preference.PreferenceScreen;
+import androidx.preference.RingtonePreferenceFix;
+import androidx.preference.ThemePreference;
 import android.view.MenuItem;
 
-import android.support.v7.preference.FontPreference;
+import androidx.preference.FontPreference;
 import android.widget.Toast;
 
 import com.ubergeek42.WeechatAndroid.utils.Utils;
@@ -100,7 +102,7 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
             if (preference == null) {
                 preference = resumePreference;
             } else if (preference instanceof FontPreference || preference instanceof ThemePreference) {
-                boolean granted = ContextCompat.checkSelfPermission(getContext(), Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+                boolean granted = ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
                 if (!granted) {
                     requestPermissions(new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE}, 0);
                     resumePreference = preference;
@@ -128,7 +130,7 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
             }
 
             f.setTargetFragment(this, 0);
-            f.show(getFragmentManager(), FRAGMENT_DIALOG_TAG);
+            f.show(requireFragmentManager(), FRAGMENT_DIALOG_TAG);
         }
 
         @Override public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -139,6 +141,9 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
         // that this fragment is supposed to display. the key is set in activity's onCreate
         @Override public void onCreatePreferences(Bundle bundle, String key) {
             setPreferencesFromResource(R.xml.preferences, this.key = key);
+
+            fixMultiLineTitles(getPreferenceScreen());
+
             String[] listenTo = {};
             if (PREF_CONNECTION_GROUP.equals(key)) {
                 sslGroup = findPreference(PREF_SSL_GROUP);
@@ -152,6 +157,12 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
                 listenTo = new String[] {PREF_PING_IDLE, PREF_PING_TIMEOUT};
             else if (PREF_LOOKFEEL_GROUP.equals(key))
                 listenTo = new String[] {PREF_TEXT_SIZE, PREF_MAX_WIDTH, PREF_TIMESTAMP_FORMAT};
+            else if (PREF_THEME_GROUP.equals(key)) {
+                enableDisableThemeSwitch(getPreferenceScreen().getSharedPreferences().getString(PREF_THEME, PREF_THEME_D));
+                listenTo = new String[]{PREF_THEME};
+            } else if (PREF_BUFFERLIST_GROUP.equals(key)) {
+                enableDisableGestureExclusionZoneSwitch();
+            }
 
             for (String p : listenTo)
                 findPreference(p).setOnPreferenceChangeListener(this);
@@ -159,9 +170,9 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
 
         // this only sets the title of the action bar
         @Override public void onActivityCreated(Bundle savedInstanceState) {
-            ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
+            ActionBar actionBar = ((AppCompatActivity) requireActivity()).getSupportActionBar();
             if (actionBar != null)
-                actionBar.setTitle((key == null) ? getString(R.string.preferences) : findPreference(key).getTitle());
+                actionBar.setTitle((key == null) ? getString(R.string.menu_preferences) : findPreference(key).getTitle());
             super.onActivityCreated(savedInstanceState);
         }
 
@@ -190,8 +201,11 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
             } else if (PREF_TIMESTAMP_FORMAT.equals(key)) {
                 valid = Utils.isValidTimestampFormat((String) o);
                 toast = R.string.pref_timestamp_invalid;
-            } else if (PREF_CONNECTION_TYPE.equals(key))
+            } else if (PREF_CONNECTION_TYPE.equals(key)) {
                 showHideStuff((String) o);
+            } else if (PREF_THEME.equals(key)) {
+                enableDisableThemeSwitch((String) o);
+            }
             if (!valid)
                 Toast.makeText(getContext(), toast, Toast.LENGTH_SHORT).show();
             return valid;
@@ -206,6 +220,30 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
             else getPreferenceScreen().removePreference(sshGroup);
             if (Utils.isAnyOf(type, PREF_TYPE_WEBSOCKET, PREF_TYPE_WEBSOCKET_SSL)) getPreferenceScreen().addPreference(wsPath);
             else getPreferenceScreen().removePreference(wsPath);
+        }
+
+        // visually disable and uncheck the theme switch preference if the theme is chosen by system
+        private void enableDisableThemeSwitch(String theme) {
+            CheckBoxPreference themeSwitchPreference = getPreferenceScreen().findPreference(PREF_THEME_SWITCH);
+            if (themeSwitchPreference == null) return;
+
+            boolean system = PREF_THEME_SYSTEM.equals(theme);
+            themeSwitchPreference.setEnabled(!system);
+            if (system) themeSwitchPreference.setChecked(false);
+        }
+
+        private void enableDisableGestureExclusionZoneSwitch() {
+            Preference p = getPreferenceScreen().findPreference(PREF_USE_GESTURE_EXCLUSION_ZONE);
+            if (p != null) p.setVisible(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q);
+        }
+
+        // recursively make all currently visible preference titles multiline
+        private static void fixMultiLineTitles(PreferenceGroup screen) {
+            for (int i = 0; i < screen.getPreferenceCount(); i++) {
+                Preference p = screen.getPreference(i);
+                p.setSingleLineTitle(false);
+                if (p instanceof PreferenceGroup && !(p instanceof PreferenceScreen)) fixMultiLineTitles((PreferenceGroup) p);
+            }
         }
     }
 }

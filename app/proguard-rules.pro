@@ -1,5 +1,6 @@
 # warnings prevent build from continuing
--ignorewarnings
+# looks like we aren't getting warnings anymore
+#-ignorewarnings
 
 # see http://stackoverflow.com/questions/5701126/compile-with-proguard-gives-exception-local-variable-type-mismatch
 -dontobfuscate
@@ -34,6 +35,8 @@
 }
 -dontwarn java.lang.management.*
 
+-assumenosideeffects class com.ubergeek42.WeechatAndroid.utils.Assert* { public *; }
+
 # prevents warnings such as "library class android.test.AndroidTestCase extends or implements program class junit.framework.TestCase"
 # maybe should be done differently?
 -dontwarn android.test.**
@@ -41,3 +44,4 @@
 -keepclassmembers class ** {
     public void onEvent*(**);
 }
+-keep class org.apache.commons.codec.digest.* { *; }

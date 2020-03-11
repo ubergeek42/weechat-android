@@ -1,7 +1,7 @@
 package com.ubergeek42.cats;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import android.util.Log;
 
 import static android.util.Log.ASSERT;
@@ -12,7 +12,7 @@ import static android.util.Log.VERBOSE;
 import static android.util.Log.WARN;
 
 public abstract class Kitty {
-    final @NonNull String tag;
+    final @NonNull String tag;      // interned!
     boolean enabled = false;
 
     public static RootKitty make() {
@@ -85,7 +85,7 @@ public abstract class Kitty {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @Override public String toString() {
+    @Override public @NonNull String toString() {
         return "Kitty(tag=" + getTag() + ", enabled=" + enabled + ")";
     }
 
@@ -134,10 +134,12 @@ public abstract class Kitty {
     // the following methods don't actually run in debug mode
     // instead aspectj takes over and executes its code in their place
 
+    @SuppressWarnings("unused")
     public void wtf(String message) {
         log(ASSERT, message);
     }
 
+    @SuppressWarnings("unused")
     public void wtf(String message, final Object... args) {
         log(ASSERT, message, args);
     }
@@ -184,50 +186,62 @@ public abstract class Kitty {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
+    @SuppressWarnings("unused")
     public void wtfl(String message) {
         log(ASSERT, message);
     }
 
+    @SuppressWarnings("unused")
     public void wtfl(String message, final Object... args) {
         log(ASSERT, message, args);
     }
 
+    @SuppressWarnings({"unused", "WeakerAccess"})
     public void errorl(String message) {
         log(ERROR, message);
     }
 
+    @SuppressWarnings("unused")
     public void errorl(String message, final Object... args) {
         log(ERROR, message, args);
     }
 
+    @SuppressWarnings("unused")
     public void warnl(String message) {
         log(WARN, message);
     }
 
+    @SuppressWarnings("unused")
     public void warnl(String message, final Object... args) {
         log(WARN, message, args);
     }
 
+    @SuppressWarnings("unused")
     public void infol(String message) {
         log(INFO, message);
     }
 
+    @SuppressWarnings("unused")
     public void infol(String message, final Object... args) {
         log(INFO, message, args);
     }
 
+    @SuppressWarnings({"unused", "WeakerAccess"})
     public void debugl(String message) {
         log(DEBUG, message);
     }
 
+    @SuppressWarnings("unused")
     public void debugl(String message, final Object... args) {
         log(DEBUG, message, args);
     }
 
+    @SuppressWarnings({"unused", "WeakerAccess"})
     public void tracel(String message) {
         log(VERBOSE, message);
     }
 
+    @SuppressWarnings("unused")
     public void tracel(String message, final Object... args) {
         log(VERBOSE, message, args);
     }

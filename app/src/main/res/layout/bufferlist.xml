@@ -2,8 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:clickable="true">
+    xmlns:app="http://schemas.android.com/apk/res-auto" >
 
 
     <RelativeLayout
@@ -22,7 +21,8 @@
             android:layout_centerVertical="true"
             android:background="@android:color/transparent"
             android:layout_marginLeft="12dp"
-            android:layout_marginRight="12dp" />
+            android:layout_marginRight="12dp"
+            android:selectAllOnFocus="true" />
 
         <ImageButton
             android:id="@+id/bufferlist_filter_clear"
@@ -31,18 +31,18 @@
             android:layout_alignParentRight="true"
             android:layout_alignParentTop="true"
             android:layout_alignParentBottom="true"
-            android:background="@null"
             android:layout_centerVertical="true"
             android:scaleType="fitCenter"
-            android:src="@drawable/ic_cancel"
+            app:srcCompat="@drawable/ic_cancel"
             android:visibility="invisible"
             android:paddingLeft="12dp"
-            android:paddingRight="12dp"/>
+            android:paddingRight="12dp"
+            android:background="?attr/actionBarItemBackground" />
     </RelativeLayout>
 
-    <android.support.v7.widget.RecyclerView
+    <androidx.recyclerview.widget.RecyclerView
         xmlns:app="http://schemas.android.com/apk/res-auto"
-        app:layoutManager="android.support.v7.widget.LinearLayoutManager"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         android:id="@+id/recycler"
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -54,6 +54,7 @@
         android:dividerHeight="0dp"
         android:divider="@null"
         android:background="@color/primary"
-        android:fadingEdge="none" />
+        android:fadingEdge="none"
+        android:scrollbars="vertical" />
 
 </RelativeLayout>

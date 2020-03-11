@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="textColor">#ff3e3e3e</color>
+
+    <color name="pasteBackground">#202B2F32</color>
+    <color name="primary">#eeeeee</color>
+    <color name="primaryDark">#eeeeee</color>
+    <color name="accent">#597d9e</color>
+    <color name="awayNick">#55000000</color>
+    <color name="dialogTitleColor">#bb000000</color>
+
+    <color name="toolbarIconEnabled">#9a000000</color>
+    <color name="toolbarIconDisabled">#3c000000</color>
+
+    <color name="bufferListOther">#44525252</color>
+    <color name="bufferListOtherHot">#44cccccc</color>
+    <color name="bufferListChannel">#4400225f</color>
+    <color name="bufferListChannelHot">#440052ed</color>
+    <color name="bufferListPrivate">#44570022</color>
+    <color name="bufferListPrivateHot">#44e30052</color>
+    <color name="bufferListOpenIndicator">@color/textColor</color>
+
+    <color name="warmShade">#66ffffff</color>
+    <color name="warmBackground">#11000000</color>
+    <color name="hotShade">#ffffaaaa</color>
+    <color name="hotBackground">#ffff6666</color>
+
+    <color name="kittyColor">@color/toolbarIconEnabled</color>
+    <color name="kittyBalloonColor">#d00000</color>
+
+    <color name="toolbarHotIconBackground">#d00000</color>
+    <color name="toolbarHotIconTextColor">@color/primary</color>
+
+    <color name="launcherIconKittyBackgroundColor">#800000</color>
+</resources>

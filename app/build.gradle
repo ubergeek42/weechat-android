@@ -4,26 +4,31 @@ import org.aspectj.tools.ajc.Main
 
 apply plugin: 'com.android.application'
 
+configurations {
+    devreleaseImplementation
+}
+
 dependencies {
     implementation project (':cats')
     implementation project (':relay')
 
-    // todo
-    implementation 'org.slf4j:slf4j-api:1.7.12'
-    implementation 'com.noveogroup.android:android-logger:1.3.5'
+    // these two are required for logging within the relay module. todo remove?
+    implementation 'org.slf4j:slf4j-api:1.7.29'
+    implementation 'com.noveogroup.android:android-logger:1.3.6'
 
-    implementation 'com.android.support:support-v4:27.1.0'
-    implementation 'com.android.support:support-annotations:27.1.0' // For @Nullable/@NonNull
-    implementation 'com.android.support:appcompat-v7:27.1.0'
-    implementation 'com.android.support:preference-v7:27.1.0'  // preference fragment & al
-    implementation 'com.android.support:preference-v14:27.1.0' // styling for the fragment
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+    implementation 'androidx.annotation:annotation:1.1.0' // For @Nullable/@NonNull
+    implementation 'androidx.appcompat:appcompat:1.1.0'
+    implementation 'androidx.preference:preference:1.1.0'  // preference fragment & al
+    implementation 'androidx.legacy:legacy-preference-v14:1.0.0' // styling for the fragment
 
-    implementation 'org.aspectj:aspectjrt:1.8.6'
-    implementation 'junit:junit:4.12'
+    implementation 'org.aspectj:aspectjrt:1.9.5'
 
-    implementation "commons-codec:commons-codec:1.8"
+    implementation "commons-codec:commons-codec:1.13"
 
-    implementation 'org.greenrobot:eventbus:3.0.0'
+    implementation 'org.greenrobot:eventbus:3.1.1'
+
+    debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.0'
 }
 
 tasks.withType(JavaCompile) {
@@ -31,16 +36,18 @@ tasks.withType(JavaCompile) {
 }
 
 android {
-    compileSdkVersion 27
-    buildToolsVersion "27.0.3"
+    compileSdkVersion 29
+    buildToolsVersion '29.0.2'
 
     defaultConfig {
-        versionCode 437
-        versionName "0.13"
+        versionCode 613
+        versionName "0.14"
 
         minSdkVersion 16
-        targetSdkVersion 27
+        targetSdkVersion 29
         buildConfigField "String", "VERSION_BANNER", "\"" + versionBanner() + "\""
+
+        vectorDrawables.useSupportLibrary = true
     }
 
     signingConfigs {
@@ -75,10 +82,6 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
-    }
-
-    lintOptions {
-      abortOnError false
     }
 }
 
