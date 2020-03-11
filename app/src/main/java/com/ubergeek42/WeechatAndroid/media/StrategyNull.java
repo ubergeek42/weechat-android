@@ -9,7 +9,7 @@ public class StrategyNull extends StrategyAbs {
         super("Null", hosts);
     }
 
-    @NonNull @Override public String getRequestUrl(String url) throws CancelFurtherAttempts {
+    @NonNull @Override public String getRequestUrl(String url, Size size) throws CancelFurtherAttempts {
         throw new CancelFurtherAttempts();
     }
 }

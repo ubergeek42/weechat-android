@@ -8,6 +8,11 @@ import java.util.List;
 public interface Strategy {
     class CancelFurtherAttempts extends Exception {}
 
+    enum Size {
+        BIG,        // big image shown in notifications
+        SMALL       // small image shown in chat or share dialog
+    }
+
     // get all host this strategy is handling in no particular order. "*" can replace parts one or
     // more or all leftmost parts of the host. e.g. "one.two.com", "*.two.com", "*"
     List<String> getHosts();
@@ -24,7 +29,7 @@ public interface Strategy {
     // given an url, get the same or a different url to fetch. the new url might be an http+s url,
     // a direct image url constructed from a non-direct url, or a web page for further processing.
     // returns null if no url could be constructed.
-    @Nullable String getRequestUrl(String url) throws CancelFurtherAttempts;
+    @Nullable String getRequestUrl(String url, Size size) throws CancelFurtherAttempts;
 
     // get the final image url given the body, or null if no image url could be constructed
     @Nullable String getRequestUrlFromBody(CharSequence body);

@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.media.Engine;
+import com.ubergeek42.WeechatAndroid.media.Strategy;
 import com.ubergeek42.WeechatAndroid.media.StrategyUrl;
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.utils.FancyAlertDialogBuilder;
@@ -31,7 +32,7 @@ public class Paste {
             this.isPaste = isPaste;
 
             String url = Linkify.getFirstUrlFromString(text);
-            strategyUrl = url == null ? null : Engine.getStrategyUrl(url);
+            strategyUrl = url == null ? null : Engine.getStrategyUrl(url, Strategy.Size.SMALL);
         }
     }
 

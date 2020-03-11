@@ -27,7 +27,7 @@ public class StrategyOpenGraph extends StrategyAbs {
         this.replacement = replacement;
     }
 
-    @Nullable @Override public String getRequestUrl(String url) {
+    @Nullable @Override public String getRequestUrl(String url, Size size) {
         if (regex == null)
             return url;
         Matcher matcher = regex.matcher(url);

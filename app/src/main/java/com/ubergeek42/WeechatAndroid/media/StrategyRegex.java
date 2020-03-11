@@ -8,18 +8,21 @@ import java.util.regex.Pattern;
 
 class StrategyRegex extends StrategyAbs {
     final private Pattern regex;
-    final private String replacement;
+    final private String replacementSmall;
+    final private String replacementBig;
 
-    StrategyRegex(String name, List<String> hosts, String regex, @Nullable String replacement) {
+    StrategyRegex(String name, List<String> hosts, String regex, @Nullable String replacementSmall, @Nullable String replacementBig) {
         super(name, hosts);
         this.regex = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
-        this.replacement = replacement;
+        this.replacementSmall = replacementSmall;
+        this.replacementBig = replacementBig;
     }
 
-    @Nullable @Override public String getRequestUrl(String url) {
+    @Nullable @Override public String getRequestUrl(String url, Size size) {
         Matcher matcher = regex.matcher(url);
         if (!matcher.matches())
             return null;
+        String replacement = size == Size.SMALL ? replacementSmall : replacementBig;
         return replacement != null ? matcher.replaceFirst(replacement) : url;
     }
 }

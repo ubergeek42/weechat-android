@@ -32,14 +32,11 @@ public class ContentUriFetcher {
     @Cat public static void loadFirstUrlFromText(CharSequence text, ContentUriReadyCallback callback) {
         Context context = Weechat.applicationContext;
         String textUrl = Linkify.getFirstUrlFromString(text);
-        kitty.debug("loading: %s", textUrl);
         if (textUrl == null) return;
-        StrategyUrl strategyUrl = Engine.getStrategyUrl(textUrl);
+        StrategyUrl strategyUrl = Engine.getStrategyUrl(textUrl, Strategy.Size.BIG);
         if (strategyUrl == null) return;
 
         new AsyncTask<String, Void, File>() {
-            final private @Root Kitty kitty = Kitty.make();
-
             @Override protected File doInBackground(String... strings) {
                 try {
                     return Glide
@@ -56,7 +53,7 @@ public class ContentUriFetcher {
                 }
             }
 
-            @Cat @Override protected void onPostExecute(@Nullable File file) {
+            @Override protected void onPostExecute(@Nullable File file) {
                 if (file == null) return;
                 Uri uri = FileProvider.getUriForFile(context, context.getPackageName() + FILE_PROVIDER_SUFFIX, file);
                 callback.onContentUriReady(uri);

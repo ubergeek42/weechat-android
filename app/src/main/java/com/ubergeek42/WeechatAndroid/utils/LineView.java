@@ -26,6 +26,7 @@ import com.bumptech.glide.request.transition.Transition;
 import com.ubergeek42.WeechatAndroid.Weechat;
 import com.ubergeek42.WeechatAndroid.media.Cache;
 import com.ubergeek42.WeechatAndroid.media.Engine;
+import com.ubergeek42.WeechatAndroid.media.Strategy;
 import com.ubergeek42.WeechatAndroid.media.StrategyUrl;
 import com.ubergeek42.WeechatAndroid.relay.Line;
 import com.ubergeek42.WeechatAndroid.service.P;
@@ -85,7 +86,7 @@ public class LineView extends View {
 
         text = line.spannable;
 
-        List<StrategyUrl> candidates = Engine.getPossibleMediaCandidates(getUrls());
+        List<StrategyUrl> candidates = Engine.getPossibleMediaCandidates(getUrls(), Strategy.Size.SMALL);
         StrategyUrl url = candidates.isEmpty() ? null : candidates.get(0);
         Cache.Info info = url == null ? null : Cache.info(url);
 

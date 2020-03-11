@@ -19,8 +19,8 @@ public class StrategyUrl implements Key {
         this.requestUrl = requestUrl;
     }
 
-    static StrategyUrl make(Strategy strategy, String originalUrl) throws Strategy.CancelFurtherAttempts {
-        String requestUrl = strategy.getRequestUrl(originalUrl);
+    static StrategyUrl make(Strategy strategy, Strategy.Size size, String originalUrl) throws Strategy.CancelFurtherAttempts {
+        String requestUrl = strategy.getRequestUrl(originalUrl, size);
         return requestUrl == null ? null : new StrategyUrl(strategy, originalUrl, requestUrl);
     }
 
