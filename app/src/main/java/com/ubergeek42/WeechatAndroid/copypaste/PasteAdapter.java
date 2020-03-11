@@ -57,7 +57,8 @@ public class PasteAdapter extends RecyclerView.Adapter<PasteAdapter.PasteLine> {
             this.item = item;
 
             Context context = viewSwitcher.getContext();
-            // viewSwitcher.setBackgroundResource(item.isPaste ? R.color.pasteBackground : 0);
+            viewSwitcher.getChildAt(0).setBackgroundResource(item.isPaste ? R.color.pasteBackground : 0);
+            viewSwitcher.getChildAt(1).setBackgroundResource(item.isPaste ? R.color.pasteBackground : 0);
             ImageView imageView = viewSwitcher.findViewById(R.id.image);
             ((TextView) viewSwitcher.findViewById(R.id.text1)).setText(item.text);
             ((TextView) viewSwitcher.findViewById(R.id.text2)).setText(item.text);

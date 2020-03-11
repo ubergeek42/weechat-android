@@ -8,6 +8,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Typeface;
+import android.net.Uri;
 import android.os.Bundle;
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
@@ -17,6 +18,7 @@ import android.text.SpannableString;
 import android.text.style.StyleSpan;
 
 import com.ubergeek42.WeechatAndroid.Weechat;
+import com.ubergeek42.WeechatAndroid.media.ContentUriFetcher;
 import com.ubergeek42.WeechatAndroid.service.Events;
 import com.ubergeek42.WeechatAndroid.service.Notificator;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
@@ -55,6 +57,7 @@ public class Hotlist {
         public final ArrayList<HotMessage> messages = new ArrayList<>();
         public int hotCount = 0;
         public long lastMessageTimestamp = System.currentTimeMillis();
+        public Uri lastMessageImage = null;
 
         HotBuffer(Buffer buffer) {
             isPrivate = buffer.type == PRIVATE;
@@ -98,7 +101,15 @@ public class Hotlist {
             setHotCount(hotCount + 1);
             shortName = buffer.shortName;
             messages.add(new HotMessage(line, this));
+            lastMessageImage = null;
             notifyHotlistChanged(this, NotifyReason.HOT_SYNC);
+
+            final long local = lastMessageTimestamp;
+            ContentUriFetcher.loadFirstUrlFromText(messages.get(messages.size() - 1).message, (Uri uri) -> {
+                if (local != lastMessageTimestamp) return;     // last message changed
+                lastMessageImage = uri;
+                notifyHotlistChanged(this, NotifyReason.HOT_ASYNC);
+            });
         }
 
         void clear() {

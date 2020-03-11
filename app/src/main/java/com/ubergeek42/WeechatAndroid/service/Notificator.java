@@ -250,6 +250,10 @@ public class Notificator {
         addMissingMessageLine(hotCount - messages.size(), res, style, hotBuffer);
         for (HotMessage message : messages) addMessage(style,
                 message.message, message.timestamp, getNickForBuffer(message));
+
+        if (hotBuffer.lastMessageImage != null)
+            addImage(style, hotBuffer.lastMessageImage);
+
         builder.setStyle(style);
 
         if (syncHotMessage) makeNoise(builder, res, messages);
@@ -352,6 +356,15 @@ public class Notificator {
     @SuppressWarnings("deprecation")
     private static void addMessage(MessagingStyle style, CharSequence message, long timestamp, CharSequence nick) {
         style.addMessage(message, timestamp, nick);
+    }
+
+    private static void addImage(MessagingStyle style, Uri uri) {
+        MessagingStyle.Message lastMessage = style.getMessages().get(style.getMessages().size() - 1);
+        MessagingStyle.Message message = new MessagingStyle.Message("<image>",
+                lastMessage.getTimestamp(),
+                lastMessage.getPerson())
+                .setData("image/", uri);
+        style.addMessage(message);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

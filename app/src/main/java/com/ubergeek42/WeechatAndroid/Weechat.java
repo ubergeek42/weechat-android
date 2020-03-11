@@ -25,7 +25,7 @@ import java.util.EnumSet;
 public class Weechat extends Application {
     static Thread mainThread = Thread.currentThread();
     static Handler mainHandler = new Handler();
-    static Context applicationContext;
+    static public Context applicationContext;
 
     @Override public void onCreate() {
         super.onCreate();

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths xmlns:tools="http://schemas.android.com/tools">
+    <!-- Based on default Glide operation, see InternalCacheDiskCacheFactory instantiated from
+        GlideBuilder.createGlide() https://github.com/bumptech/glide/issues/ -->
+    <cache-path name="cache" path="image_manager_disk_cache" tools:path="DiskCache.Factory.DEFAULT_DISK_CACHE_DIR" />
+</paths>

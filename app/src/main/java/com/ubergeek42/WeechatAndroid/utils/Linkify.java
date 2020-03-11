@@ -40,7 +40,7 @@ public class Linkify {
         }
     }
 
-    public static @Nullable String getFirstUrlFromString(String s) {
+    public static @Nullable String getFirstUrlFromString(CharSequence s) {
         Matcher m = URL.matcher(s);
         return m.find() ? m.group(0) : null;
     }

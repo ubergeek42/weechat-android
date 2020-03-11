@@ -69,5 +69,15 @@
         <receiver android:name=".service.SyncAlarmReceiver" />
         <receiver android:name=".relay.Hotlist$InlineReplyReceiver" />
         <receiver android:name=".service.Notificator$NotificationDismissedReceiver" />
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.file_provider"
+            android:grantUriPermissions="true"
+            android:exported="false">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/filepaths" />
+        </provider>
     </application>
 </manifest>
