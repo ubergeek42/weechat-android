@@ -98,7 +98,7 @@ public class LineView extends View {
         target = Glide.with(getContext())
                 .asBitmap()
                 .apply(Engine.defaultRequestOptions)
-                .listener(Cache.listener)
+                .listener(Cache.bitmapListener)
                 .load(url)
                 .into(new Target(THUMBNAIL_WIDTH, getThumbnailHeight()));
     }

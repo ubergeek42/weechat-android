@@ -212,7 +212,7 @@ public class Notificator {
             style.setGroupConversation(true);   // needed to display the title
             addMissingMessageLine(totalHotCount - allMessages.size(), res, style, null);
             for (HotMessage message : allMessages) addMessage(style,
-                    message.message, message.timestamp, getNickForFullList(message));
+                    message.message, message.timestamp, getNickForFullList(message), message.image);
             summary.setStyle(style);
 
             if (syncHotMessage) makeNoise(summary, res, allMessages);
@@ -249,10 +249,7 @@ public class Notificator {
 
         addMissingMessageLine(hotCount - messages.size(), res, style, hotBuffer);
         for (HotMessage message : messages) addMessage(style,
-                message.message, message.timestamp, getNickForBuffer(message));
-
-        if (hotBuffer.lastMessageImage != null)
-            addImage(style, hotBuffer.lastMessageImage);
+                message.message, message.timestamp, getNickForBuffer(message), message.image);
 
         builder.setStyle(style);
 
@@ -289,7 +286,7 @@ public class Notificator {
                     res.getQuantityString(R.plurals.hot_messages_missing_user, missingMessages == 1 ? 1 : 2);
         String message = missingMessages == 1 ? res.getString(R.string.hot_messages_missing_1) :
                 res.getQuantityString(R.plurals.hot_messages_missing, missingMessages, missingMessages);
-        addMessage(style, message, 0, nick);
+        addMessage(style, message, 0, nick, null);
     }
 
     private static void makeNoise(Builder builder, Resources res, List<HotMessage> messages) {
@@ -352,19 +349,11 @@ public class Notificator {
         }
     }
 
-    // as we are constructing nicks on the fly, no reason to build Person
-    @SuppressWarnings("deprecation")
-    private static void addMessage(MessagingStyle style, CharSequence message, long timestamp, CharSequence nick) {
-        style.addMessage(message, timestamp, nick);
-    }
-
-    private static void addImage(MessagingStyle style, Uri uri) {
-        MessagingStyle.Message lastMessage = style.getMessages().get(style.getMessages().size() - 1);
-        MessagingStyle.Message message = new MessagingStyle.Message("<image>",
-                lastMessage.getTimestamp(),
-                lastMessage.getPerson())
-                .setData("image/", uri);
-        style.addMessage(message);
+    private static void addMessage(MessagingStyle style, CharSequence message, long timestamp, CharSequence nick, @Nullable Uri image) {
+        Person p = new Person.Builder().setName(nick).build();
+        style.addMessage(new MessagingStyle.Message(message, timestamp, p));
+        if (image != null)      // todo perhaps check if the image exists?
+            style.addMessage(new MessagingStyle.Message("<image>", timestamp, p).setData("image/", image));
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

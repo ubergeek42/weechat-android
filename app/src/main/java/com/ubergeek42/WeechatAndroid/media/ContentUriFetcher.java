@@ -45,6 +45,7 @@ public class ContentUriFetcher {
                     return Glide
                             .with(context)
                             .downloadOnly()
+                            .listener(Cache.fileListener)
                             .load(strategyUrl)
                             .submit(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
                             .get();

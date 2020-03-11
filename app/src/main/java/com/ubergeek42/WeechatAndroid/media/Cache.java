@@ -17,6 +17,7 @@ import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
 
+import java.io.File;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.concurrent.ConcurrentHashMap;
@@ -63,19 +64,23 @@ public class Cache {
         cache.put(key, new Attempt(code, System.currentTimeMillis()));
     }
 
-    public final static RequestListener<Bitmap> listener = new RequestListener<Bitmap>() {
+
+    public final static RequestListener<Bitmap> bitmapListener = new SimpleRequestListener<>();
+    public final static RequestListener<File> fileListener = new SimpleRequestListener<>();
+
+    private static class SimpleRequestListener<T> implements RequestListener<T> {
         final private @Root Kitty kitty = Kitty.make();
 
-        @Override @Cat public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Bitmap> target, boolean isFirstResource) {
+        @Override @Cat public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<T> target, boolean isFirstResource) {
             Cache.record((StrategyUrl) model, getErrorCode(e));
             return false;
         }
 
-        @Override @Cat public boolean onResourceReady(Bitmap resource, Object model, Target<Bitmap> target, DataSource dataSource, boolean isFirstResource) {
+        @Override public boolean onResourceReady(T resource, Object model, Target<T> target, DataSource dataSource, boolean isFirstResource) {
             Cache.record((StrategyUrl) model, SUCCESS);
             return false;
         }
-    };
+    }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////// error handling

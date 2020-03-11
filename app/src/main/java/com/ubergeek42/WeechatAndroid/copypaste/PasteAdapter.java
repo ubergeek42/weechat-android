@@ -77,7 +77,7 @@ public class PasteAdapter extends RecyclerView.Adapter<PasteAdapter.PasteLine> {
             Glide.with(context)
                     .asBitmap()
                     .apply(Engine.defaultRequestOptions)
-                    .listener(Cache.listener)
+                    .listener(Cache.bitmapListener)
                     .addListener(this)
                     .load(item.strategyUrl)
                     .into(imageView);

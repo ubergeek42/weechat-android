@@ -57,7 +57,6 @@ public class Hotlist {
         public final ArrayList<HotMessage> messages = new ArrayList<>();
         public int hotCount = 0;
         public long lastMessageTimestamp = System.currentTimeMillis();
-        public Uri lastMessageImage = null;
 
         HotBuffer(Buffer buffer) {
             isPrivate = buffer.type == PRIVATE;
@@ -100,14 +99,12 @@ public class Hotlist {
         void onNewHotLine(Buffer buffer, Line line) {
             setHotCount(hotCount + 1);
             shortName = buffer.shortName;
-            messages.add(new HotMessage(line, this));
-            lastMessageImage = null;
+            HotMessage message = new HotMessage(line, this);
+            messages.add(message);
             notifyHotlistChanged(this, NotifyReason.HOT_SYNC);
 
-            final long local = lastMessageTimestamp;
-            ContentUriFetcher.loadFirstUrlFromText(messages.get(messages.size() - 1).message, (Uri uri) -> {
-                if (local != lastMessageTimestamp) return;     // last message changed
-                lastMessageImage = uri;
+            ContentUriFetcher.loadFirstUrlFromText(message.message, (Uri imageUri) -> {
+                message.image = imageUri;
                 notifyHotlistChanged(this, NotifyReason.HOT_ASYNC);
             });
         }
@@ -134,6 +131,7 @@ public class Hotlist {
         public final long timestamp;
         public final HotBuffer hotBuffer;
         public final boolean isAction;
+        public Uri image = null;
 
         HotMessage(Line line, HotBuffer hotBuffer) {
             this.hotBuffer = hotBuffer;
