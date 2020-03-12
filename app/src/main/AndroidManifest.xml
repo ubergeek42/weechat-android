@@ -30,6 +30,7 @@
         android:icon="@mipmap/ic_launcher_kitty"
         android:label="@string/app_name"
         android:theme="@style/Weechat"
+        android:requestLegacyExternalStorage="true"
         android:windowSoftInputMode="adjustResize">
         <service android:name=".service.RelayService" />
         <activity
