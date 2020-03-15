@@ -85,14 +85,21 @@ public class LineView extends View {
     }
 
     public void setText(Line line) {
+        Strategy.Url url = null;
+        Cache.Info info = null;
+
         if (text == line.spannable && getCurrentLayout().getPaint() == P.textPaint) return;
         reset();
 
         text = line.spannable;
 
-        List<Strategy.Url> candidates = Engine.getPossibleMediaCandidates(getUrls(), Strategy.Size.SMALL);
-        Strategy.Url url = candidates.isEmpty() ? null : candidates.get(0);
-        Cache.Info info = url == null ? null : Cache.info(url);
+        if (Engine.isEnabledForLocation(Engine.Location.CHAT) && Engine.isEnabledForLine(line)) {
+            List<Strategy.Url> candidates = Engine.getPossibleMediaCandidates(getUrls(), Strategy.Size.SMALL);
+            if (!candidates.isEmpty()) {
+                url = candidates.get(0);
+                info = Cache.info(url);
+            }
+        }
 
         setLayout(info == Cache.Info.FETCHED_RECENTLY ? LayoutType.NARROW : LayoutType.WIDE);
         invalidate();

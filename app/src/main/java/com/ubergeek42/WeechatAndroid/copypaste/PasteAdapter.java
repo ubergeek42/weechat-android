@@ -20,6 +20,7 @@ import com.bumptech.glide.request.target.Target;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.media.Cache;
 import com.ubergeek42.WeechatAndroid.media.Engine;
+import com.ubergeek42.WeechatAndroid.media.Strategy;
 import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
@@ -54,6 +55,9 @@ public class PasteAdapter extends RecyclerView.Adapter<PasteAdapter.PasteLine> {
         }
 
         void setText(Paste.PasteItem item) {
+            Strategy.Url url = null;
+            Cache.Info info = null;
+
             this.item = item;
 
             Context context = viewSwitcher.getContext();
@@ -63,15 +67,19 @@ public class PasteAdapter extends RecyclerView.Adapter<PasteAdapter.PasteLine> {
             ((TextView) viewSwitcher.findViewById(R.id.text1)).setText(item.text);
             ((TextView) viewSwitcher.findViewById(R.id.text2)).setText(item.text);
 
-            Cache.Info info = item.strategyUrl == null ? null : Cache.info(item.strategyUrl);
+            if (Engine.isEnabledForLocation(Engine.Location.PASTE)) {
+                url = item.strategyUrl;
+                if (url != null) info = Cache.info(item.strategyUrl);
+            }
+
             viewSwitcher.reset(info == Cache.Info.FETCHED_RECENTLY ? 1 : 0);
 
-            if (item.strategyUrl == null || info == Cache.Info.FAILED_RECENTLY) {
+            if (url == null || info == Cache.Info.FAILED_RECENTLY) {
                 Glide.with(context).clear(imageView);
                 return;
             }
 
-            kitty.info("loading: %s", item.strategyUrl);
+            kitty.info("loading: %s", url);
             imageView.layout(0, 0, 0, 0);       // https://github.com/bumptech/glide/issues/1591
             imageView.requestLayout();
             Glide.with(context)
@@ -79,7 +87,7 @@ public class PasteAdapter extends RecyclerView.Adapter<PasteAdapter.PasteLine> {
                     .apply(Engine.defaultRequestOptions)
                     .listener(Cache.bitmapListener)
                     .addListener(this)
-                    .load(item.strategyUrl)
+                    .load(url)
                     .into(imageView);
         }
 

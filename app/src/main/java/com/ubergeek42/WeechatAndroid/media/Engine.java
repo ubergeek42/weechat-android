@@ -1,5 +1,6 @@
 package com.ubergeek42.WeechatAndroid.media;
 
+import android.text.TextUtils;
 import android.text.style.URLSpan;
 
 import androidx.annotation.NonNull;
@@ -10,20 +11,22 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.resource.bitmap.CenterCrop;
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.bumptech.glide.request.RequestOptions;
+import com.ubergeek42.WeechatAndroid.relay.Line;
 import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import static com.ubergeek42.WeechatAndroid.media.HostUtils.getHost;
 
 public class Engine {
     final private static @Root Kitty kitty = Kitty.make();
+
+    final private static boolean ENABLED = true;
 
     final public static int ANIMATION_DURATION = 500;          // ms
 
@@ -39,71 +42,33 @@ public class Engine {
             .diskCacheStrategy(DiskCacheStrategy.ALL)
             .transform(new MultiTransformation<>(new CenterCrop(), new RoundedCorners(16)));
 
-    private static final HashMap<String, Strategy> strategies = new HashMap<>();
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private static void registerStrategy(Strategy... strategies) {
-        for (Strategy strategy : strategies) {
-            for (String host : strategy.getHosts()) {
-                Engine.strategies.put(host, strategy);
-            }
-        }
+    public enum Location {CHAT, PASTE, NOTIFICATION}
+
+    public static boolean isEnabledForLocation(Location location) {
+        return ENABLED;     // todo
     }
 
-    static {
-        //noinspection SpellCheckingInspection
-        registerStrategy(
-                new StrategyRegex(
-                        "youtube",
-                        Arrays.asList("www.youtube.com", "m.youtube.com", "youtube.com", "youtu.be"),
-                        "https?://" +
-                                "(?:" +
-                                "(?:www\\.|m\\.)?youtube\\.com/watch\\?v=" +
-                                "|" +
-                                "youtu\\.be/" +
-                                ")" +
-                                "([A-Za-z0-9_-]+).*",
-                        "https://img.youtube.com/vi/$1/mqdefault.jpg",
-                        "https://img.youtube.com/vi/$1/hqdefault.jpg"),
-                new StrategyRegex(
-                        "i.imgur.com",
-                        Collections.singletonList("i.imgur.com"),
-                        "https?://i.imgur.com/([^.]+).*",
-                        "https://i.imgur.com/$1m.jpg",
-                        "https://i.imgur.com/$1h.jpg"),
-                new StrategyRegex(
-                        "9gag.com",
-                        Collections.singletonList("9gag.com"),
-                        "https?://9gag\\.com/gag/([^_]+)",
-                        "https://images-cdn.9gag.com/photo/$1_700b.jpg",
-                        "https://images-cdn.9gag.com/photo/$1_700b.jpg"),
-                new StrategyRegex(
-                        "9cache.com",
-                        Collections.singletonList("img-9gag-fun.9cache.com"),
-                        "https?://img-9gag-fun\\.9cache\\.com/photo/([^_]+).*",
-                        "https://images-cdn.9gag.com/photo/$1_700b.jpg",
-                        "https://images-cdn.9gag.com/photo/$1_700b.jpg"),
-                new StrategyAny(
-                        "pikabu.ru",
-                        Arrays.asList("pikabu.ru", "www.pikabu.ru"),
-                        "https://pikabu.ru/story/.+",
-                        null, 4096),
-                new StrategyAny(
-                        "common→https",
-                        Arrays.asList("*.wikipedia.org", "gfycat.com", "imgur.com"),
-                        "https?://(.+)",
-                        "https://$1",
-                        4096 * 2),
-                new StrategyAny(
-                        "reddit",
-                        Arrays.asList("v.redd.it", "reddit.com", "www.reddit.com", "old.reddit.com"),
-                        null, null, 131072),
-                new StrategyAny(
-                        "any",
-                        Collections.singletonList("*"),
-                        null, null, 4096 * 2 * 2),
-                new StrategyNull(
-                        Arrays.asList("pastebin.com", "github.com", "bpaste.net", "dpaste.com"))
-        );
+    private static @Nullable Pattern lineFilter;
+
+    static void setLineFilter(@Nullable String regex) {
+        lineFilter = TextUtils.isEmpty(regex) ? null : Pattern.compile(regex);
+    }
+
+    public static boolean isEnabledForLine(Line line) {
+        if (lineFilter == null) return true;
+        return !lineFilter.matcher(line.getNotificationString()).find();
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private static final HashMap<String, Strategy> strategies = new HashMap<>();
+
+    @Cat static void registerStrategy(Strategy strategy) {
+        for (String host : strategy.getHosts()) {
+            strategies.put(host, strategy);
+        }
     }
 
     // given an url, return a StrategyUrl that it the best candidate to handle it
@@ -132,5 +97,9 @@ public class Engine {
             if (strategyUrl != null) candidates.add(strategyUrl);
         }
         return candidates;
+    }
+
+    static {
+        Config.setup();
     }
 }

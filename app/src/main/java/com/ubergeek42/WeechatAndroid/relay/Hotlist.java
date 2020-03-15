@@ -19,6 +19,7 @@ import android.text.style.StyleSpan;
 
 import com.ubergeek42.WeechatAndroid.Weechat;
 import com.ubergeek42.WeechatAndroid.media.ContentUriFetcher;
+import com.ubergeek42.WeechatAndroid.media.Engine;
 import com.ubergeek42.WeechatAndroid.service.Events;
 import com.ubergeek42.WeechatAndroid.service.Notificator;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
@@ -103,10 +104,12 @@ public class Hotlist {
             messages.add(message);
             notifyHotlistChanged(this, NotifyReason.HOT_SYNC);
 
-            ContentUriFetcher.loadFirstUrlFromText(message.message, (Uri imageUri) -> {
-                message.image = imageUri;
-                notifyHotlistChanged(this, NotifyReason.HOT_ASYNC);
-            });
+            if (Engine.isEnabledForLocation(Engine.Location.NOTIFICATION) && Engine.isEnabledForLine(line)) {
+                ContentUriFetcher.loadFirstUrlFromText(message.message, (Uri imageUri) -> {
+                    message.image = imageUri;
+                    notifyHotlistChanged(this, NotifyReason.HOT_ASYNC);
+                });
+            }
         }
 
         void clear() {
