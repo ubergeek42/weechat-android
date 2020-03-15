@@ -457,7 +457,8 @@ public class BufferList {
                         String prefix = entry.getItem("prefix").asString();
                         if (" ".equals(prefix)) prefix = "";
                         String name = entry.getItem("name").asString();
-                        boolean away = entry.getItem("color").asString().contains("weechat.color.nicklist_away");
+                        String color = entry.getItem("color").asString();
+                        boolean away = color != null && color.contains("weechat.color.nicklist_away");
                         Nick nick = new Nick(pointer, prefix, name, away);
                         if (command == ADD)
                             buffer.addNick(nick);
