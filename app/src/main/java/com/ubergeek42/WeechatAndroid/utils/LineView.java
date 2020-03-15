@@ -153,9 +153,8 @@ public class LineView extends View {
 
     private void setLayout(LayoutType layoutType) {
         ensureLayout(layoutType);
-        int oldHeight = getCurrentLayout() == null ? -1 : getCurrentLayout().getHeight();
         this.state = layoutType == LayoutType.WIDE ? State.TEXT_ONLY : State.WITH_IMAGE;
-        if (getCurrentLayout() != null && oldHeight != getCurrentLayout().getHeight()) requestLayout();
+        if (getViewHeight(State.TEXT_ONLY) != getViewHeight(State.WITH_IMAGE)) requestLayout();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -165,8 +164,9 @@ public class LineView extends View {
     }
 
     private int getViewHeight(State state) {
-        if (state == State.TEXT_ONLY) return wideLayout.getHeight();
-        if (state == State.WITH_IMAGE) return Math.max(narrowLayout.getHeight(), THUMBNAIL_AREA_MIN_HEIGHT);
+        if (state == State.TEXT_ONLY) return wideLayout == null ? 0 : wideLayout.getHeight();
+        if (state == State.WITH_IMAGE) return narrowLayout == null ? THUMBNAIL_AREA_MIN_HEIGHT :
+                Math.max(narrowLayout.getHeight(), THUMBNAIL_AREA_MIN_HEIGHT);
 
         int wideHeight = getViewHeight(State.TEXT_ONLY);
         int narrowHeight = getViewHeight(State.WITH_IMAGE);
