@@ -252,7 +252,7 @@ public class LineView extends View {
     }
 
     public void cancelAnimation() {
-        if (animator != null) animator.cancel();
+        if (animator != null) animator.end();
     }
 
     // animate layout change—but only if the view is visible and has been visible for some minimum
