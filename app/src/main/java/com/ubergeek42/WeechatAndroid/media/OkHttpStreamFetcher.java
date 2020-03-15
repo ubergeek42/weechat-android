@@ -43,39 +43,35 @@ import java.io.InputStream;
 
 import okhttp3.Call;
 import okhttp3.Callback;
-import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 
-import static com.ubergeek42.WeechatAndroid.media.Exceptions.*;
-import static com.ubergeek42.WeechatAndroid.utils.Utils.readInputStream;
+import static com.ubergeek42.WeechatAndroid.media.Exceptions.ContentLengthExceedsLimitException;
+import static com.ubergeek42.WeechatAndroid.media.Exceptions.HttpException;
 
 public class OkHttpStreamFetcher implements DataFetcher<InputStream> {
     final private static @Root Kitty kitty = Kitty.make();
 
     final private Call.Factory client;
-    final private StrategyUrl strategyUrl;
-    final private Strategy strategy;
+    final private Strategy.Url strategyUrl;
 
     private DataCallback<? super InputStream> callback;
 
     volatile private CallHandler lastCallHandler;
 
-    OkHttpStreamFetcher(Call.Factory client, StrategyUrl strategyUrl) {
+    OkHttpStreamFetcher(Call.Factory client, Strategy.Url strategyUrl) {
         this.client = client;
         this.strategyUrl = strategyUrl;
-        this.strategy = strategyUrl.getStrategy();
     }
 
     @Override @Cat public void loadData(@NonNull Priority priority, @NonNull DataCallback<? super InputStream> callback) {
         this.callback = callback;
-        String requestUrl = strategyUrl.getRequestUrl();
-        fire(requestUrl, strategy.requestType());
+        fire(strategyUrl.getFirstRequest());
     }
 
-    private void fire(String url, RequestType requestType) {
-        lastCallHandler = new CallHandler(url, requestType);
+    private void fire(Request request) {
+        lastCallHandler = new CallHandler(request);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -86,18 +82,11 @@ public class OkHttpStreamFetcher implements DataFetcher<InputStream> {
         final private @Root Kitty handler_kitty = kitty.kid("CallHandler");
 
         final private Call call;
-        final private RequestType requestType;
 
         private ResponseBody body;
 
-        @Cat CallHandler(String stringUrl, RequestType requestType) {
-            this.requestType = requestType;
-            Request.Builder builder = new Request.Builder()
-                    .url(stringUrl)
-                    .header("Accept", requestType.getAcceptHeader());
-            if (requestType == RequestType.HTML && strategy.wantedHtmlBodySize() > 0)
-                builder.header("Range", "bytes=0-" + strategy.wantedHtmlBodySize());
-            call = client.newCall(builder.build());
+        @Cat CallHandler(Request request) {
+            call = client.newCall(request);
             call.enqueue(this);
         }
 
@@ -126,23 +115,14 @@ public class OkHttpStreamFetcher implements DataFetcher<InputStream> {
             if (contentLength > Engine.MAXIMUM_BODY_SIZE)
                 throw new ContentLengthExceedsLimitException(contentLength, Engine.MAXIMUM_BODY_SIZE);
 
-            InputStream stream = new LimitedLengthInputStream(body.byteStream(), contentLength, Engine.MAXIMUM_BODY_SIZE);
+            InputStream stream = new LimitedLengthInputStream(body.byteStream(),
+                    contentLength,  Engine.MAXIMUM_BODY_SIZE);
 
-            MediaType responseType = body.contentType();
-            if (!requestType.matches(responseType))
-                throw new UnacceptableMediaTypeException(requestType, responseType);
-
-            if ("html".equals(responseType.subtype())) {
-                CharSequence html = readInputStream(stream, strategy.wantedHtmlBodySize());
-
-                String newRequestUrl = strategy.getRequestUrlFromBody(html);
-                if (newRequestUrl == null)
-                    throw new HtmlBodyLacksRequiredDataException(html);
-
-                body.close();
-                fire(newRequestUrl, RequestType.IMAGE);
+            Request nextRequest = strategyUrl.getNextRequest(response, stream);
+            if (nextRequest == null) {
+                callback.onDataReady(stream);
             } else {
-                callback.onDataReady(stream);               // body will be closed by the callback
+                fire(nextRequest);
             }
         }
     }

@@ -8,7 +8,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.bumptech.glide.load.DataSource;
-import com.bumptech.glide.load.HttpException;
 import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
@@ -47,7 +46,7 @@ public class Cache {
         FAILED_RECENTLY
     }
 
-    @Cat(exit=true) public static Info info(StrategyUrl url) {
+    @Cat(exit=true) public static Info info(Strategy.Url url) {
         Attempt lastAttempt = cache.get(url.getCacheKey());
         if (lastAttempt == null) return Info.NEVER_ATTEMPTED;
 
@@ -59,25 +58,25 @@ public class Cache {
                 Info.FAILED_RECENTLY : Info.FAILED_BEFORE_BUT_MIGHT_WORK;
     }
 
-    @Cat private static void record(StrategyUrl url, int code) {
+    @Cat private static void record(Strategy.Url url, int code) {
         String key = url.getCacheKey();
         cache.put(key, new Attempt(code, System.currentTimeMillis()));
     }
 
 
     public final static RequestListener<Bitmap> bitmapListener = new SimpleRequestListener<>();
-    public final static RequestListener<File> fileListener = new SimpleRequestListener<>();
+    final static RequestListener<File> fileListener = new SimpleRequestListener<>();
 
     private static class SimpleRequestListener<T> implements RequestListener<T> {
         final private @Root Kitty kitty = Kitty.make();
 
         @Override @Cat public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<T> target, boolean isFirstResource) {
-            Cache.record((StrategyUrl) model, getErrorCode(e));
+            Cache.record((Strategy.Url) model, getErrorCode(e));
             return false;
         }
 
         @Override public boolean onResourceReady(T resource, Object model, Target<T> target, DataSource dataSource, boolean isFirstResource) {
-            Cache.record((StrategyUrl) model, SUCCESS);
+            Cache.record((Strategy.Url) model, SUCCESS);
             return false;
         }
     }

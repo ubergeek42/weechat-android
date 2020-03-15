@@ -1,6 +1,7 @@
 package com.ubergeek42.WeechatAndroid.media;
 
 import okhttp3.MediaType;
+import okhttp3.Request;
 
 enum RequestType {
     HTML("text/html", "text/html"),
@@ -27,5 +28,11 @@ enum RequestType {
         if (responseType == null) return false;
         String typeWithoutParams = responseType.type() + "/" + responseType.subtype();
         return getAcceptHeader().contains(typeWithoutParams);
+    }
+
+    Request.Builder makeRequest(String url) {
+        return new Request.Builder()
+                .url(url)
+                .header("Accept", getAcceptHeader());
     }
 }

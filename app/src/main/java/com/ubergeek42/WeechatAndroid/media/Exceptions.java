@@ -98,7 +98,7 @@ class Exceptions {
         }
 
         @Override @Nullable public String getMessage() {
-            return "Requested: " + requestType.getShortDescription() + "; got: " + mediaType;
+            return "Wanted: " + requestType.getShortDescription() + "; got: " + mediaType;
         }
     }
 

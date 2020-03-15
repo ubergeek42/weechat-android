@@ -27,7 +27,6 @@ import com.ubergeek42.WeechatAndroid.Weechat;
 import com.ubergeek42.WeechatAndroid.media.Cache;
 import com.ubergeek42.WeechatAndroid.media.Engine;
 import com.ubergeek42.WeechatAndroid.media.Strategy;
-import com.ubergeek42.WeechatAndroid.media.StrategyUrl;
 import com.ubergeek42.WeechatAndroid.relay.Line;
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.cats.Kitty;
@@ -35,7 +34,12 @@ import com.ubergeek42.cats.Root;
 
 import java.util.List;
 
-import static com.ubergeek42.WeechatAndroid.media.Engine.*;
+import static com.ubergeek42.WeechatAndroid.media.Engine.ANIMATION_DURATION;
+import static com.ubergeek42.WeechatAndroid.media.Engine.THUMBNAIL_HORIZONTAL_MARGIN;
+import static com.ubergeek42.WeechatAndroid.media.Engine.THUMBNAIL_MAX_HEIGHT;
+import static com.ubergeek42.WeechatAndroid.media.Engine.THUMBNAIL_MIN_HEIGHT;
+import static com.ubergeek42.WeechatAndroid.media.Engine.THUMBNAIL_VERTICAL_MARGIN;
+import static com.ubergeek42.WeechatAndroid.media.Engine.THUMBNAIL_WIDTH;
 
 public class LineView extends View {
     final private @Root Kitty kitty = Kitty.make();
@@ -86,8 +90,8 @@ public class LineView extends View {
 
         text = line.spannable;
 
-        List<StrategyUrl> candidates = Engine.getPossibleMediaCandidates(getUrls(), Strategy.Size.SMALL);
-        StrategyUrl url = candidates.isEmpty() ? null : candidates.get(0);
+        List<Strategy.Url> candidates = Engine.getPossibleMediaCandidates(getUrls(), Strategy.Size.SMALL);
+        Strategy.Url url = candidates.isEmpty() ? null : candidates.get(0);
         Cache.Info info = url == null ? null : Cache.info(url);
 
         setLayout(info == Cache.Info.FETCHED_RECENTLY ? LayoutType.NARROW : LayoutType.WIDE);

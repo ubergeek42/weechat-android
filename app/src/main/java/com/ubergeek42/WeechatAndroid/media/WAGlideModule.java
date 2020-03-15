@@ -13,6 +13,6 @@ import java.io.InputStream;
 
 @GlideModule public class WAGlideModule extends AppGlideModule {
     @Override public void registerComponents(@NonNull Context context, @NonNull Glide glide, @NonNull Registry registry) {
-        registry.replace(StrategyUrl.class, InputStream.class, new OkHttpUrlLoader.Factory());
+        registry.replace(Strategy.Url.class, InputStream.class, new OkHttpUrlLoader.Factory());
     }
 }

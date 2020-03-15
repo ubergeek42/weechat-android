@@ -1,15 +1,13 @@
 package com.ubergeek42.WeechatAndroid.media;
 
-import androidx.annotation.NonNull;
-
 import java.util.List;
 
-public class StrategyNull extends StrategyAbs {
+class StrategyNull extends Strategy {
     StrategyNull(List<String> hosts) {
         super("Null", hosts);
     }
 
-    @NonNull @Override public String getRequestUrl(String url, Size size) throws CancelFurtherAttempts {
-        throw new CancelFurtherAttempts();
+    @Override Url make(String url, Size size) throws CancelFurtherAttempts {
+        throw new Strategy.CancelFurtherAttempts();
     }
 }

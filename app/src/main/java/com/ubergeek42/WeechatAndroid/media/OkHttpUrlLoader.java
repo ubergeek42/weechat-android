@@ -36,22 +36,22 @@ import java.io.InputStream;
 import okhttp3.Call;
 import okhttp3.OkHttpClient;
 
-public class OkHttpUrlLoader implements ModelLoader<StrategyUrl, InputStream> {
+public class OkHttpUrlLoader implements ModelLoader<Strategy.Url, InputStream> {
     private final Call.Factory client;
 
     private OkHttpUrlLoader(@NonNull Call.Factory client) {
         this.client = client;
     }
 
-    @Override @Cat public boolean handles(@NonNull StrategyUrl url) {
+    @Override @Cat public boolean handles(@NonNull Strategy.Url url) {
         return true;
     }
 
-    @Override public @Cat LoadData<InputStream> buildLoadData(@NonNull StrategyUrl model, int width, int height, @NonNull Options options) {
+    @Override public @Cat LoadData<InputStream> buildLoadData(@NonNull Strategy.Url model, int width, int height, @NonNull Options options) {
         return new LoadData<>(model, new OkHttpStreamFetcher(client, model));
     }
 
-    public static class Factory implements ModelLoaderFactory<StrategyUrl, InputStream> {
+    public static class Factory implements ModelLoaderFactory<Strategy.Url, InputStream> {
         private static volatile Call.Factory internalClient;
         private final Call.Factory client;
 
@@ -74,7 +74,7 @@ public class OkHttpUrlLoader implements ModelLoader<StrategyUrl, InputStream> {
             this.client = client;
         }
 
-        @NonNull @Override public ModelLoader<StrategyUrl, InputStream> build(@NonNull MultiModelLoaderFactory multiFactory) {
+        @NonNull @Override public ModelLoader<Strategy.Url, InputStream> build(@NonNull MultiModelLoaderFactory multiFactory) {
             return new OkHttpUrlLoader(client);
         }
 

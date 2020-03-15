@@ -33,7 +33,7 @@ public class ContentUriFetcher {
         Context context = Weechat.applicationContext;
         String textUrl = Linkify.getFirstUrlFromString(text);
         if (textUrl == null) return;
-        StrategyUrl strategyUrl = Engine.getStrategyUrl(textUrl, Strategy.Size.BIG);
+        Strategy.Url strategyUrl = Engine.getStrategyUrl(textUrl, Strategy.Size.BIG);
         if (strategyUrl == null) return;
 
         new AsyncTask<String, Void, File>() {

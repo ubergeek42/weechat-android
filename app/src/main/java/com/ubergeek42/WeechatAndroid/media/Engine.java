@@ -82,12 +82,12 @@ public class Engine {
                         "https?://img-9gag-fun\\.9cache\\.com/photo/([^_]+).*",
                         "https://images-cdn.9gag.com/photo/$1_700b.jpg",
                         "https://images-cdn.9gag.com/photo/$1_700b.jpg"),
-                new StrategyOpenGraph(
+                new StrategyAny(
                         "pikabu.ru",
                         Arrays.asList("pikabu.ru", "www.pikabu.ru"),
                         "https://pikabu.ru/story/.+",
                         null, 4096),
-                new StrategyOpenGraph(
+                new StrategyAny(
                         "common→https",
                         Arrays.asList("*.wikipedia.org", "gfycat.com", "imgur.com"),
                         "https?://(.+)",
@@ -96,25 +96,25 @@ public class Engine {
                 new StrategyAny(
                         "reddit",
                         Arrays.asList("v.redd.it", "reddit.com", "www.reddit.com", "old.reddit.com"),
-                        131072),
+                        null, null, 131072),
                 new StrategyAny(
                         "any",
                         Collections.singletonList("*"),
-                        4096 * 2 * 2),
+                        null, null, 4096 * 2 * 2),
                 new StrategyNull(
                         Arrays.asList("pastebin.com", "github.com", "bpaste.net", "dpaste.com"))
         );
     }
 
     // given an url, return a StrategyUrl that it the best candidate to handle it
-    public static @Nullable @Cat(exit=true) StrategyUrl getStrategyUrl(String url, Strategy.Size size) {
+    public static @Nullable @Cat(exit=true) Strategy.Url getStrategyUrl(String url, Strategy.Size size) {
         String host = getHost(url);
         if (host != null) {
             for (String subHost : new HostUtils.HostIterable(host)) {
                 Strategy strategy = strategies.get(subHost);
                 if (strategy != null) {
                     try {
-                        StrategyUrl strategyUrl = StrategyUrl.make(strategy, size, url);
+                        Strategy.Url strategyUrl = strategy.make(url, size);
                         if (strategyUrl != null) return strategyUrl;
                     } catch (Strategy.CancelFurtherAttempts e) {
                         return null;
@@ -125,10 +125,10 @@ public class Engine {
         return null;
     }
 
-    public static @NonNull List<StrategyUrl> getPossibleMediaCandidates(@NonNull URLSpan[] urls, Strategy.Size size) {
-        List<StrategyUrl> candidates = new ArrayList<>();
+    public static @NonNull List<Strategy.Url> getPossibleMediaCandidates(@NonNull URLSpan[] urls, Strategy.Size size) {
+        List<Strategy.Url> candidates = new ArrayList<>();
         for (URLSpan url : urls) {
-            StrategyUrl strategyUrl = getStrategyUrl(url.getURL(), size);
+            Strategy.Url strategyUrl = getStrategyUrl(url.getURL(), size);
             if (strategyUrl != null) candidates.add(strategyUrl);
         }
         return candidates;
