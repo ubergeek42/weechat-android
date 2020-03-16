@@ -8,6 +8,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.text.Spannable;
@@ -40,6 +41,7 @@ import static com.ubergeek42.WeechatAndroid.media.Engine.THUMBNAIL_MAX_HEIGHT;
 import static com.ubergeek42.WeechatAndroid.media.Engine.THUMBNAIL_MIN_HEIGHT;
 import static com.ubergeek42.WeechatAndroid.media.Engine.THUMBNAIL_VERTICAL_MARGIN;
 import static com.ubergeek42.WeechatAndroid.media.Engine.THUMBNAIL_WIDTH;
+import static com.ubergeek42.WeechatAndroid.utils.Assert.assertThat;
 
 public class LineView extends View {
     final private @Root Kitty kitty = Kitty.make();
@@ -47,15 +49,25 @@ public class LineView extends View {
     final private static int THUMBNAIL_AREA_WIDTH = THUMBNAIL_WIDTH + THUMBNAIL_HORIZONTAL_MARGIN * 2;
     final private static int THUMBNAIL_AREA_MIN_HEIGHT = THUMBNAIL_MIN_HEIGHT + THUMBNAIL_VERTICAL_MARGIN * 2;
 
+    private enum State {
+        TEXT_ONLY,                      // wide layout, no image
+        WITH_IMAGE,                     // narrow layout. image might not be present but expected to be loaded soon
+        ANIMATING_TO_IMAGE,             // text only → image
+        ANIMATING_TO_TEXT_ONLY,         // image (without image) → text. runs when the image fails to load
+        ANIMATING_ONLY_IMAGE            // narrow layout; animating only the image
+    }
+
+    enum LayoutType {
+        WIDE,
+        NARROW
+    }
+
     private AlphaLayout narrowLayout = null;
     private AlphaLayout wideLayout = null;
 
     private Spannable text = null;
     private Bitmap image = null;
     private Target target;
-
-    private enum State {TEXT_ONLY, WITH_IMAGE, ANIMATING}
-    enum LayoutType {WIDE, NARROW}
 
     private State state = State.TEXT_ONLY;
 
@@ -150,7 +162,7 @@ public class LineView extends View {
     }
 
     private AlphaLayout getCurrentLayout() {
-        return (state == State.WITH_IMAGE) ? narrowLayout : wideLayout;
+        return (state == State.TEXT_ONLY) ? wideLayout : narrowLayout;
     }
 
     private void ensureLayout(LayoutType layoutType) {
@@ -171,26 +183,36 @@ public class LineView extends View {
     }
 
     private int getViewHeight(State state) {
-        if (state == State.TEXT_ONLY) return wideLayout == null ? 0 : wideLayout.getHeight();
-        if (state == State.WITH_IMAGE) return narrowLayout == null ? THUMBNAIL_AREA_MIN_HEIGHT :
-                Math.max(narrowLayout.getHeight(), THUMBNAIL_AREA_MIN_HEIGHT);
+        if (state == State.TEXT_ONLY)
+            return wideLayout == null ? 0 : wideLayout.getHeight();
+        if (state == State.WITH_IMAGE || state == State.ANIMATING_ONLY_IMAGE)
+            return Math.max(narrowLayout == null ? 0 : narrowLayout.getHeight(), THUMBNAIL_AREA_MIN_HEIGHT);
 
         int wideHeight = getViewHeight(State.TEXT_ONLY);
         int narrowHeight = getViewHeight(State.WITH_IMAGE);
         return wideHeight + ((int) ((narrowHeight - wideHeight) * animatedValue));
     }
 
+    final private Paint imagePaint = new Paint();
     @Override protected void onDraw(Canvas canvas) {
-        if (state == State.ANIMATING) {
+        if (state == State.ANIMATING_TO_IMAGE || state == State.ANIMATING_TO_TEXT_ONLY) {
             wideLayout.draw(canvas, 1f - animatedValue);
             narrowLayout.draw(canvas, animatedValue);
+        } else if (state == State.ANIMATING_ONLY_IMAGE) {
+            narrowLayout.draw(canvas);
         } else {
             getCurrentLayout().draw(canvas);
         }
-        if (image != null) canvas.drawBitmap(image,
-                P.weaselWidth - THUMBNAIL_WIDTH - THUMBNAIL_HORIZONTAL_MARGIN,
-                THUMBNAIL_VERTICAL_MARGIN,
-                state == State.ANIMATING ? narrowLayout.getAlphaPaint() : null);
+        if (image != null) {
+            Paint paint = null;
+            if (state == State.ANIMATING_TO_IMAGE || state == State.ANIMATING_ONLY_IMAGE) {
+                paint = imagePaint;
+                paint.setAlpha((int) (animatedValue * 255));
+            }
+            canvas.drawBitmap(image,
+                    P.weaselWidth - THUMBNAIL_WIDTH - THUMBNAIL_HORIZONTAL_MARGIN,
+                    THUMBNAIL_VERTICAL_MARGIN, paint);
+        }
         if (firstDrawAt == HAVE_NOT_DRAWN) firstDrawAt = System.currentTimeMillis();
     }
 
@@ -238,24 +260,34 @@ public class LineView extends View {
     final private static long HAVE_NOT_DRAWN = -1;
 
     private void animateChange() {
-        prepareForAnimation();
-        boolean hasImage = image != null;
-        boolean needsRelayout = getViewHeight(State.TEXT_ONLY) != getViewHeight(State.WITH_IMAGE);
-        float from = hasImage ? 0f : 1f;
-        float to = hasImage ? 1f : 0f;
+        assertThat(state).isAnyOf(State.WITH_IMAGE, State.TEXT_ONLY);
+
+        boolean toImage = image != null;
+        if (toImage) {
+            state = state == State.WITH_IMAGE ? State.ANIMATING_ONLY_IMAGE : State.ANIMATING_TO_IMAGE;
+            ensureLayout(LayoutType.NARROW);
+            narrowLayout.ensureBitmap();
+        } else {
+            state = State.ANIMATING_TO_TEXT_ONLY;
+            ensureLayout(LayoutType.WIDE);
+            wideLayout.ensureBitmap();
+        }
+
+        boolean needsRelayout = getViewHeight(state) != getViewHeight(State.WITH_IMAGE);
+        float from = toImage ? 0f : 1f;
+        float to = toImage ? 1f : 0f;
         animator = ValueAnimator.ofFloat(from, to).setDuration(ANIMATION_DURATION);
         animator.addUpdateListener(animation -> {
             animatedValue = (float) animation.getAnimatedValue();
             if (animatedValue == to) {
-                state = hasImage ? State.WITH_IMAGE : State.TEXT_ONLY;
+                state = toImage ? State.WITH_IMAGE : State.TEXT_ONLY;
                 narrowLayout.clearBitmap();
-                wideLayout.clearBitmap();
+                if (wideLayout != null) wideLayout.clearBitmap();
             }
             if (needsRelayout) requestLayout();
             invalidate();
         });
         animator.start();
-        state = State.ANIMATING;
     }
 
     public void cancelAnimation() {
@@ -273,12 +305,5 @@ public class LineView extends View {
             return false;
         long time = System.currentTimeMillis();
         return firstDrawAt != HAVE_NOT_DRAWN && time - firstDrawAt > 50;
-    }
-
-    private void prepareForAnimation() {
-        ensureLayout(LayoutType.WIDE);
-        ensureLayout(LayoutType.NARROW);
-        wideLayout.ensureBitmap();
-        narrowLayout.ensureBitmap();
     }
 }

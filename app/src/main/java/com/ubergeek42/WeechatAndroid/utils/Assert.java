@@ -1,5 +1,6 @@
 package com.ubergeek42.WeechatAndroid.utils;
 
+import java.util.Arrays;
 import java.util.Collection;
 
 public class Assert {
@@ -7,7 +8,7 @@ public class Assert {
         return new A(o);
     }
 
-    @SuppressWarnings("UnusedReturnValue")
+    @SuppressWarnings({"UnusedReturnValue", "WeakerAccess"})
     public static class A {
         final Object a;
 
@@ -60,6 +61,13 @@ public class Assert {
         public A doesNotContain(Object b) {
             if (((Collection) a).contains(b)) fail("Actual must not contain " + b);
             return this;
+        }
+
+        public A isAnyOf(Object... bb) {
+            for (Object b : bb)
+                if (eq(b)) return this;
+            fail("Actual must be any of " + Arrays.toString(bb));
+            return this;    // satisfy compiler
         }
 
         public A isGreaterThan(int b) {

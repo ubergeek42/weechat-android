@@ -28,7 +28,7 @@ public class Engine {
 
     final private static boolean ENABLED = true;
 
-    final public static int ANIMATION_DURATION = 500;          // ms
+    final public static int ANIMATION_DURATION = 250;          // ms
 
     final public static int THUMBNAIL_WIDTH = 250;
     final public static int THUMBNAIL_MIN_HEIGHT = 120;        // todo set to the height of 2 lines of text?
