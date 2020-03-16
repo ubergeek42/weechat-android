@@ -105,7 +105,7 @@ public class LineView extends View {
 
         text = line.spannable;
 
-        if (Engine.isEnabledForLocation(Engine.Location.CHAT) && Engine.isEnabledForLine(line)) {
+        if (Engine.isEnabledAtAll() && Engine.isEnabledForLocation(Engine.Location.CHAT) && Engine.isEnabledForLine(line)) {
             List<Strategy.Url> candidates = Engine.getPossibleMediaCandidates(getUrls(), Strategy.Size.SMALL);
             if (!candidates.isEmpty()) {
                 url = candidates.get(0);
@@ -124,6 +124,7 @@ public class LineView extends View {
                 .apply(Engine.defaultRequestOptions)
                 .listener(Cache.bitmapListener)
                 .load(url)
+                .onlyRetrieveFromCache(Engine.isDisabledForCurrentNetwork())
                 .into(new Target(THUMBNAIL_WIDTH, getThumbnailHeight()));
     }
 

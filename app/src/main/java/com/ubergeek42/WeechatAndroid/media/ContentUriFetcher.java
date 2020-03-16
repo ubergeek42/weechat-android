@@ -44,6 +44,7 @@ public class ContentUriFetcher {
                             .downloadOnly()
                             .listener(Cache.fileListener)
                             .load(strategyUrl)
+                            .onlyRetrieveFromCache(Engine.isDisabledForCurrentNetwork())
                             .submit(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
                             .get();
                 } catch (Exception e) {

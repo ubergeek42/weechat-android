@@ -67,7 +67,7 @@ public class PasteAdapter extends RecyclerView.Adapter<PasteAdapter.PasteLine> {
             ((TextView) viewSwitcher.findViewById(R.id.text1)).setText(item.text);
             ((TextView) viewSwitcher.findViewById(R.id.text2)).setText(item.text);
 
-            if (Engine.isEnabledForLocation(Engine.Location.PASTE)) {
+            if (Engine.isEnabledAtAll() && Engine.isEnabledForLocation(Engine.Location.PASTE)) {
                 url = item.strategyUrl;
                 if (url != null) info = Cache.info(item.strategyUrl);
             }
@@ -88,6 +88,7 @@ public class PasteAdapter extends RecyclerView.Adapter<PasteAdapter.PasteLine> {
                     .listener(Cache.bitmapListener)
                     .addListener(this)
                     .load(url)
+                    .onlyRetrieveFromCache(Engine.isDisabledForCurrentNetwork())
                     .into(imageView);
         }
 

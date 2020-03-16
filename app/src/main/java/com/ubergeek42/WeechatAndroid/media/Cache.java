@@ -113,6 +113,7 @@ public class Cache {
     //      either SocketTimeoutException or ProtocolException is fired depending on whether or not
     //      the stream was closed or remains open; however the exception is ignored
     //      see com.bumptech.glide.load.model.StreamEncoder.StreamEncoder#encode
+    //      also the exception list will be empty if requesting to load the image from cache only
     // decode failed
     //      com.bumptech.glide.load.engine.GlideException: Failed to load resource
     //          There were 4 causes:

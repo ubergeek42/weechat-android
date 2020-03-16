@@ -26,6 +26,7 @@ import androidx.annotation.WorkerThread;
 
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.Weechat;
+import com.ubergeek42.WeechatAndroid.utils.Network;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.WeechatAndroid.relay.Hotlist;
 import com.ubergeek42.cats.Cat;
@@ -59,7 +60,6 @@ public class RelayService extends Service implements IObserver {
     private static int iteration = -1;
 
     volatile public RelayConnection connection;
-    private Connectivity connectivity;
     private PingActionReceiver ping;
     private Handler doge;               // thread "doge" used for connecting/disconnecting
 
@@ -78,8 +78,9 @@ public class RelayService extends Service implements IObserver {
         handlerThread.start();
         doge = new Handler(handlerThread.getLooper());
 
-        connectivity = new Connectivity();
-        connectivity.register(this);
+        Network.get().register(this, () -> {
+            if (P.reconnect && state.contains(STATE.STARTED)) _start();
+        });
 
         ping = new PingActionReceiver(this);
         EventBus.getDefault().register(this);
@@ -88,7 +89,7 @@ public class RelayService extends Service implements IObserver {
     @MainThread @Override @Cat public void onDestroy() {
         EventBus.getDefault().unregister(this);
         P.saveStuff();
-        connectivity.unregister();
+        Network.get().unregister(this);
         doge.post(() -> doge.getLooper().quit());
     }
 
@@ -126,7 +127,7 @@ public class RelayService extends Service implements IObserver {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private static final long WAIT_BEFORE_WAIT_MESSAGE_DELAY = 5;
-    private static final long DELAYS[] = new long[] {5, 15, 30, 60, 120, 300, 600, 900};
+    private static final long[] DELAYS = new long[] {5, 15, 30, 60, 120, 300, 600, 900};
 
     // called by user and when disconnected
     @MainThread @Cat private synchronized void start() {
@@ -202,7 +203,7 @@ public class RelayService extends Service implements IObserver {
         if (connection != null)
             connection.disconnect();
 
-        if (!connectivity.isNetworkAvailable()) {
+        if (!Network.get().hasProperty(Network.Property.CONNECTED)) {
             Notificator.showMain(this, getString(R.string.notification_waiting_network));
             return TRY.LATER;
         }

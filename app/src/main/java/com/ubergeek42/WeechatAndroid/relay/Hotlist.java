@@ -104,7 +104,7 @@ public class Hotlist {
             messages.add(message);
             notifyHotlistChanged(this, NotifyReason.HOT_SYNC);
 
-            if (Engine.isEnabledForLocation(Engine.Location.NOTIFICATION) && Engine.isEnabledForLine(line)) {
+            if (Engine.isEnabledAtAll() && Engine.isEnabledForLocation(Engine.Location.NOTIFICATION) && Engine.isEnabledForLine(line)) {
                 ContentUriFetcher.loadFirstUrlFromText(message.message, (Uri imageUri) -> {
                     message.image = imageUri;
                     notifyHotlistChanged(this, NotifyReason.HOT_ASYNC);

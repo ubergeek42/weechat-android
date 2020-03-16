@@ -67,6 +67,7 @@ import com.ubergeek42.WeechatAndroid.adapters.BufferListClickListener;
 import com.ubergeek42.WeechatAndroid.adapters.MainPagerAdapter;
 import com.ubergeek42.WeechatAndroid.adapters.NickListAdapter;
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragment;
+import com.ubergeek42.WeechatAndroid.utils.Network;
 import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.WeechatAndroid.relay.Hotlist;
@@ -232,6 +233,7 @@ public class WeechatActivity extends AppCompatActivity implements
     }
 
     @MainThread @Override @CatD protected void onStart() {
+        Network.get().register(this, null);     // no callback, simply make sure that network info is correct while we are showing
         P.calculateWeaselWidth();
         EventBus.getDefault().register(this);
         state = EventBus.getDefault().getStickyEvent(StateChangedEvent.class).state;
@@ -250,6 +252,7 @@ public class WeechatActivity extends AppCompatActivity implements
         EventBus.getDefault().unregister(this);
         P.saveStuff();
         super.onStop();
+        Network.get().unregister(this);
     }
 
     @MainThread @Override @CatD protected void onDestroy() {

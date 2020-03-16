@@ -4,6 +4,15 @@ import java.util.Arrays;
 import java.util.Collections;
 
 class Config {
+    enum Enable {
+        NEVER,
+        WIFI_ONLY,
+        UNMETERED_ONLY,
+        ALWAYS
+    }
+
+    static Enable enabled = Enable.UNMETERED_ONLY;
+
     @SuppressWarnings("SpellCheckingInspection")
     static void setup() {
         Engine.setLineFilter("^<(?:tacgnol>|[^>]+> (?:Title: |↑))");

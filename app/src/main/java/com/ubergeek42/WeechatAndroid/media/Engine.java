@@ -12,6 +12,7 @@ import com.bumptech.glide.load.resource.bitmap.CenterCrop;
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.bumptech.glide.request.RequestOptions;
 import com.ubergeek42.WeechatAndroid.relay.Line;
+import com.ubergeek42.WeechatAndroid.utils.Network;
 import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
@@ -44,11 +45,23 @@ public class Engine {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public enum Location {CHAT, PASTE, NOTIFICATION}
+    public static boolean isEnabledAtAll() {
+        return Config.enabled != Config.Enable.NEVER;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    public enum Location {
+        CHAT,
+        PASTE,
+        NOTIFICATION
+    }
 
     public static boolean isEnabledForLocation(Location location) {
         return ENABLED;     // todo
     }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private static @Nullable Pattern lineFilter;
 
@@ -59,6 +72,18 @@ public class Engine {
     public static boolean isEnabledForLine(Line line) {
         if (lineFilter == null) return true;
         return !lineFilter.matcher(line.getNotificationString()).find();
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    public static boolean isDisabledForCurrentNetwork() {
+        switch (Config.enabled) {
+            case NEVER: return true;
+            case WIFI_ONLY: return !Network.get().hasProperty(Network.Property.WIFI);
+            case UNMETERED_ONLY: return !Network.get().hasProperty(Network.Property.UNMETERED);
+            case ALWAYS:
+            default: return false;
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
