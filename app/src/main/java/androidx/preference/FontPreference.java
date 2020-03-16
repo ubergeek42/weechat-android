@@ -4,9 +4,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Typeface;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
-
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
@@ -14,6 +11,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.CheckedTextView;
+import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.utils.Constants;
@@ -41,7 +42,7 @@ public class FontPreference extends DialogPreference {
 
     @Override public CharSequence getSummary() {
         StringBuilder sb = new StringBuilder();
-        for (String p: FontManager.FONT_DIRS)
+        for (String p: FontManager.getFontSearchDirectories(getContext()))
             sb.append("\n    ").append(p);
         return getContext().getString(R.string.pref_font_summary,
                 sb.toString(),
@@ -67,7 +68,7 @@ public class FontPreference extends DialogPreference {
             super.onPrepareDialogBuilder(builder);
 
             inflater = (LayoutInflater) requireContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            fonts = FontManager.enumerateFonts();
+            fonts = FontManager.enumerateFonts(requireContext());
             Collections.sort(fonts);
 
             // add a "fake" default monospace font
@@ -123,5 +124,11 @@ public class FontPreference extends DialogPreference {
                 return view;
             }
         }
+    }
+
+    @Override public void onBindViewHolder(PreferenceViewHolder holder) {
+        super.onBindViewHolder(holder);
+        TextView summary = (TextView) holder.findViewById(android.R.id.summary);
+        summary.setMaxHeight(Integer.MAX_VALUE);
     }
 }

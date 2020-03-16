@@ -3,10 +3,10 @@ package androidx.preference;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.os.Environment;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
-import android.widget.Toast;
 
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.service.P;
@@ -17,7 +17,10 @@ import com.ubergeek42.weechat.ColorScheme;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Properties;
 
 import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_COLOR_SCHEME_DAY;
@@ -28,7 +31,15 @@ import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_COLOR_SCHEME_NI
 public class ThemeManager {
 
     final private static @Root Kitty kitty = Kitty.make();
-    final static String SEARCH_DIR = Environment.getExternalStorageDirectory().toString() + "/weechat";
+
+    static List<String> getThemeSearchDirectories(Context context) {
+        List<String> out = new ArrayList<>(Collections.singletonList(
+                Environment.getExternalStorageDirectory().toString() + "/weechat"));
+        File appSpecificFontFolder = context.getExternalFilesDir("themes");
+        if (appSpecificFontFolder != null)
+            out.add(appSpecificFontFolder.toString());
+        return out;
+    }
 
     public static void loadColorSchemeFromPreferences(@NonNull Context context) {
         String path = android.preference.PreferenceManager.getDefaultSharedPreferences(context)
@@ -60,17 +71,18 @@ public class ThemeManager {
         } catch (IOException e) {e.printStackTrace();}
 
         // load themes from disk
-        File dir = new File(SEARCH_DIR);
-        if (dir.exists()) {
+        for (String directory : getThemeSearchDirectories(context)) {
+            File dir = new File(directory);
+            if (!dir.exists()) continue;
             File[] files = dir.listFiles();
-            if (files != null) {
-                for (File file : files) {
-                    if (!file.getName().toLowerCase().endsWith("theme.properties"))
-                        continue;
-                    Properties p = loadColorScheme(file.getAbsolutePath(), null);
-                    if (p != null)
-                        themes.add(new ThemeInfo(p.getProperty("name", file.getName()), file.getAbsolutePath()));
-                }
+            if (files == null) continue;
+
+            for (File file : files) {
+                 if (!file.getName().toLowerCase().endsWith("theme.properties"))
+                     continue;
+                 Properties p = loadColorScheme(file.getAbsolutePath(), null);
+                 if (p != null)
+                     themes.add(new ThemeInfo(p.getProperty("name", file.getName()), file.getAbsolutePath()));
             }
         }
         return themes;

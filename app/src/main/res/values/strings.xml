@@ -271,11 +271,11 @@
                 application. Use arbitrary colors for UI elements, customize highlight and
                 read marker color, change the WeeChat color palette! <a
                 href="https://github.com/ubergeek42/weechat-android/wiki/Custom-Color-Schemes">Learn
-                more</a><br><br>Put your custom color scheme here:<br>&nbsp;&nbsp;&nbsp;&nbsp;%1$s]]></string>
+                more</a><br><br>Put your custom color scheme in any of these folders:%1$s]]></string>
             <string name="pref_theme_not_set">Not set</string>
 
             <!-- font -->
-            <string name="pref_font_summary">Non-monospace fonts will not work well with alignment.\n\nSearch Path:%1$s\n\nCurrent Value:\n\u0020\u0020\u0020\u0020%2$s</string>
+            <string name="pref_font_summary">Non-monospace fonts will not work well with alignment. Search path:%1$s\n\nCurrent font:\n\u0020\u0020\u0020\u0020%2$s</string>
             <string name="pref_font_default">Default</string>
 
     <!-- buttons -->

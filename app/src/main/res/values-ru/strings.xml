@@ -97,7 +97,7 @@
          приложения. Поменяйте цвета интерфейса приложения, цвета своих и помеченных сообщений,
          измените цветовую палитру WeeChat! <a
                 href="https://github.com/ubergeek42/weechat-android/wiki/Custom-Color-Schemes">Больше
-                информации</a><br><br>Поместите свои цветовые схемы сюда:<br>&nbsp;&nbsp;&nbsp;&nbsp;%1$s]]></string>
+                информации</a><br><br>Поместите свои цветовые схемы в одну из этих папок:%1$s]]></string>
     <string name="pref_timestamp_format">Формат времени</string>
     <string name="pref_timestamp_format_summary">%s (по умолчанию: HH:mm:ss)</string>
     <string name="pref_timestamp_invalid">Неверный формат времени</string>
@@ -182,7 +182,7 @@
     <string name="pref_enclose_nick_summary">Отображать символы &lt; и &gt; вокруг ников</string>
     <string name="pref_font">Шрифт буфера</string>
     <string name="pref_font_default">По умолчанию</string>
-    <string name="pref_font_summary">Пропорциональные шрифты лучше не смешивать с выравниванием.\n\nПуть поиска:%1$s\n\nТекущий шрифт:\n\u0020\u0020\u0020\u0020%2$s</string>
+    <string name="pref_font_summary">Пропорциональные шрифты лучше не смешивать с выравниванием. Пути поиска:%1$s\n\nТекущий шрифт:\n\u0020\u0020\u0020\u0020%2$s</string>
     <string name="pref_hide_hidden_buffers">Скрывать скрытые буферы</string>
     <string name="pref_hide_hidden_buffers_summary">Скрывать буферы, скрытые командой /buffer hide</string>
     <string name="pref_hide_server_buffers">Скрывать буферы без людей</string>

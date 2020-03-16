@@ -4,21 +4,33 @@
 
 package androidx.preference;
 
+import android.content.Context;
 import android.graphics.Typeface;
 import android.os.Environment;
+
 import androidx.annotation.NonNull;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
+import java.util.List;
 
 class FontManager {
-    final static String[] FONT_DIRS = {Environment.getExternalStorageDirectory().toString() + "/weechat", "/system/fonts"};
+    static List<String> getFontSearchDirectories(Context context) {
+        List<String> out = new ArrayList<>(Arrays.asList("/system/fonts",
+                Environment.getExternalStorageDirectory().toString() + "/weechat"));
+        File appSpecificFontFolder = context.getExternalFilesDir("fonts");
+        if (appSpecificFontFolder != null)
+            out.add(appSpecificFontFolder.toString());
+        return out;
+    }
 
-    static @NonNull LinkedList<FontInfo> enumerateFonts() {
+    static @NonNull LinkedList<FontInfo> enumerateFonts(Context context) {
         LinkedList<FontInfo> fonts = new LinkedList<>();
 
-        for (String fontdir : FONT_DIRS) {
-            File dir = new File(fontdir);
+        for (String directory : getFontSearchDirectories(context)) {
+            File dir = new File(directory);
             if (!dir.exists()) continue;
             File[] files = dir.listFiles();
             if (files == null) continue;
