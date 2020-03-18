@@ -22,6 +22,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import okhttp3.HttpUrl;
+
 import static com.ubergeek42.WeechatAndroid.media.HostUtils.getHost;
 
 public class Engine {
@@ -122,6 +124,14 @@ public class Engine {
             if (strategyUrl != null) candidates.add(strategyUrl);
         }
         return candidates;
+    }
+
+    static boolean hasNullStrategyFor(@NonNull HttpUrl url) {
+        for (String subHost : new HostUtils.HostIterable(url.host())) {
+            Strategy strategy = strategies.get(subHost);
+            if (strategy instanceof StrategyNull) return true;
+        }
+        return false;
     }
 
     static {

@@ -133,6 +133,7 @@ public class Cache {
     final static int ERROR_UNACCEPTABLE_FILE_SIZE = -3;
     final static int ERROR_UNACCEPTABLE_MEDIA_TYPE = -4;
     final static int ERROR_SSL_REQUIRED = -5;
+    final static int ERROR_REDIRECT_TO_NULL_STRATEGY = -6;
 
     private final static int ERROR_TIMEOUT = -110;
     private final static int ERROR_INTERNET_UNREACHABLE = -101;

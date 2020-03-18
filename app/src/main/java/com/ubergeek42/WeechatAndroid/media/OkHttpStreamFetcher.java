@@ -54,9 +54,12 @@ import static com.ubergeek42.WeechatAndroid.media.Exceptions.HttpException;
 public class OkHttpStreamFetcher implements DataFetcher<InputStream> {
     final private static @Root Kitty kitty = Kitty.make();
 
-    private final static Call.Factory regularClient = new OkHttpClient();
+    private final static Call.Factory regularClient = new OkHttpClient.Builder()
+            .addNetworkInterceptor(new OkHttpNullifyingInterceptor())
+            .build();
     private final static Call.Factory sslOnlyClient = new OkHttpClient.Builder()
             .followSslRedirects(false)
+            .addNetworkInterceptor(new OkHttpNullifyingInterceptor())
             .addInterceptor(new OkHttpSecuringInterceptor())
             .build();
 

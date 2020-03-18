@@ -128,4 +128,17 @@ class Exceptions {
             return "SSL required";
         }
     }
+
+    static class RedirectToNullStrategyException extends CodeException {
+        final String url;
+
+        RedirectToNullStrategyException(String url) {
+            super(Cache.ERROR_REDIRECT_TO_NULL_STRATEGY);
+            this.url = url;
+        }
+
+        @Override @Nullable public String getMessage() {
+            return "Redirected to an address that has a null strategy: " + url;
+        }
+    }
 }
