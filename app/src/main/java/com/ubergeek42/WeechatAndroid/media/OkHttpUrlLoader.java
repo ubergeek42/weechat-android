@@ -33,49 +33,19 @@ import com.bumptech.glide.load.model.MultiModelLoaderFactory;
 import com.ubergeek42.cats.Cat;
 
 import java.io.InputStream;
-import okhttp3.Call;
-import okhttp3.OkHttpClient;
 
 public class OkHttpUrlLoader implements ModelLoader<Strategy.Url, InputStream> {
-    private final Call.Factory client;
-
-    private OkHttpUrlLoader(@NonNull Call.Factory client) {
-        this.client = client;
-    }
-
     @Override @Cat public boolean handles(@NonNull Strategy.Url url) {
         return true;
     }
 
     @Override public @Cat LoadData<InputStream> buildLoadData(@NonNull Strategy.Url model, int width, int height, @NonNull Options options) {
-        return new LoadData<>(model, new OkHttpStreamFetcher(client, model));
+        return new LoadData<>(model, new OkHttpStreamFetcher(model));
     }
 
     public static class Factory implements ModelLoaderFactory<Strategy.Url, InputStream> {
-        private static volatile Call.Factory internalClient;
-        private final Call.Factory client;
-
-        private static Call.Factory getInternalClient() {
-            if (internalClient == null) {
-                synchronized (Factory.class) {
-                    if (internalClient == null) {
-                        internalClient = new OkHttpClient();
-                    }
-                }
-            }
-            return internalClient;
-        }
-
-        Factory() {
-            this(getInternalClient());
-        }
-
-        Factory(@NonNull Call.Factory client) {
-            this.client = client;
-        }
-
         @NonNull @Override public ModelLoader<Strategy.Url, InputStream> build(@NonNull MultiModelLoaderFactory multiFactory) {
-            return new OkHttpUrlLoader(client);
+            return new OkHttpUrlLoader();
         }
 
         @Override public void teardown() {}

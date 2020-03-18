@@ -43,6 +43,7 @@ import java.io.InputStream;
 
 import okhttp3.Call;
 import okhttp3.Callback;
+import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
@@ -53,15 +54,19 @@ import static com.ubergeek42.WeechatAndroid.media.Exceptions.HttpException;
 public class OkHttpStreamFetcher implements DataFetcher<InputStream> {
     final private static @Root Kitty kitty = Kitty.make();
 
-    final private Call.Factory client;
+    private final static Call.Factory regularClient = new OkHttpClient();
+    private final static Call.Factory sslOnlyClient = new OkHttpClient.Builder()
+            .followSslRedirects(false)
+            .addInterceptor(new OkHttpSecuringInterceptor())
+            .build();
+
     final private Strategy.Url strategyUrl;
 
     private DataCallback<? super InputStream> callback;
 
     volatile private CallHandler lastCallHandler;
 
-    OkHttpStreamFetcher(Call.Factory client, Strategy.Url strategyUrl) {
-        this.client = client;
+    OkHttpStreamFetcher(Strategy.Url strategyUrl) {
         this.strategyUrl = strategyUrl;
     }
 
@@ -86,6 +91,8 @@ public class OkHttpStreamFetcher implements DataFetcher<InputStream> {
         private ResponseBody body;
 
         @Cat CallHandler(Request request) {
+            Call.Factory client = Config.secure == Config.Secure.OPTIONAL ?
+                    regularClient : sslOnlyClient;
             call = client.newCall(request);
             call.enqueue(this);
         }

@@ -4,6 +4,14 @@ import java.util.Arrays;
 import java.util.Collections;
 
 class Config {
+    enum Secure {
+        OPTIONAL,
+        REQUIRED,
+        REWRITE
+    }
+
+    static Secure secure = Secure.REWRITE;
+
     enum Enable {
         NEVER,
         WIFI_ONLY,

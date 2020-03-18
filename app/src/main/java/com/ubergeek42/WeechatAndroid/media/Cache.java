@@ -132,6 +132,7 @@ public class Cache {
     final static int ERROR_HTML_BODY_LACKS_REQUIRED_DATA = -2;
     final static int ERROR_UNACCEPTABLE_FILE_SIZE = -3;
     final static int ERROR_UNACCEPTABLE_MEDIA_TYPE = -4;
+    final static int ERROR_SSL_REQUIRED = -5;
 
     private final static int ERROR_TIMEOUT = -110;
     private final static int ERROR_INTERNET_UNREACHABLE = -101;
@@ -201,6 +202,8 @@ public class Cache {
         if (Utils.isAnyOf(code,
                 ERROR_HTML_BODY_LACKS_REQUIRED_DATA,
                 ERROR_UNACCEPTABLE_FILE_SIZE,
+                ERROR_UNACCEPTABLE_MEDIA_TYPE,
+                ERROR_SSL_REQUIRED,
                 ERROR_UNKNOWN_HOST,
                 400, // Bad Request
                 401, // Unauthorized

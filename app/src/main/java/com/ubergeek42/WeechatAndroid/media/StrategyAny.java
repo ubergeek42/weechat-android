@@ -28,7 +28,7 @@ class StrategyAny extends Strategy {
             "(['\"])og:image(?::(?:secure_)?url)?\\1" +             // all possible image url combos
             "\\s[^>]{0,50}?" +                                      // space, etc
             "content\\s*=\\s*" +
-            "(['\"])(https://\\S+?)\\2",                            // an https url
+            "(['\"])(https?://\\S+?)\\2",                            // an https url
             Pattern.CASE_INSENSITIVE);
 
     final private @Nullable Pattern regex;

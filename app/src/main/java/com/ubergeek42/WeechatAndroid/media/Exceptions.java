@@ -118,4 +118,14 @@ class Exceptions {
     private static String ensureText(String string) {
         return TextUtils.isEmpty(string) ? "<empty>" : string;
     }
+
+    static class SslRequiredException extends CodeException {
+        SslRequiredException() {
+            super(Cache.ERROR_SSL_REQUIRED);
+        }
+
+        @Override @Nullable public String getMessage() {
+            return "SSL required";
+        }
+    }
 }
