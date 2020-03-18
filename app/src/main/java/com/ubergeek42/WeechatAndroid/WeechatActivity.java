@@ -67,6 +67,7 @@ import com.ubergeek42.WeechatAndroid.adapters.BufferListClickListener;
 import com.ubergeek42.WeechatAndroid.adapters.MainPagerAdapter;
 import com.ubergeek42.WeechatAndroid.adapters.NickListAdapter;
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragment;
+import com.ubergeek42.WeechatAndroid.media.CachePersist;
 import com.ubergeek42.WeechatAndroid.utils.Network;
 import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
@@ -253,6 +254,7 @@ public class WeechatActivity extends AppCompatActivity implements
         P.saveStuff();
         super.onStop();
         Network.get().unregister(this);
+        CachePersist.save();
     }
 
     @MainThread @Override @CatD protected void onDestroy() {

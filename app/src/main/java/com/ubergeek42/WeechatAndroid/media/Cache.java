@@ -26,7 +26,7 @@ import static com.ubergeek42.WeechatAndroid.utils.Assert.assertThat;
 public class Cache {
     final private static @Root Kitty kitty = Kitty.make();
 
-    public static class Attempt {
+    static class Attempt {
         final int code;
         final long timestamp;
 
@@ -36,7 +36,7 @@ public class Cache {
         }
     }
 
-    private static ConcurrentHashMap<String, Attempt> cache = new ConcurrentHashMap<>();
+    static ConcurrentHashMap<String, Attempt> cache = new ConcurrentHashMap<>();
 
     public enum Info {
         NEVER_ATTEMPTED,
@@ -60,7 +60,9 @@ public class Cache {
 
     @Cat private static void record(Strategy.Url url, int code) {
         String key = url.getCacheKey();
-        cache.put(key, new Attempt(code, System.currentTimeMillis()));
+        Attempt attempt = new Attempt(code, System.currentTimeMillis());
+        cache.put(key, attempt);
+        CachePersist.record(key, attempt);
     }
 
 

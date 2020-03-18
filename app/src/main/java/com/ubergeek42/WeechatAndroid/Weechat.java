@@ -10,6 +10,7 @@ import androidx.annotation.StringRes;
 
 import android.widget.Toast;
 
+import com.ubergeek42.WeechatAndroid.media.CachePersist;
 import com.ubergeek42.WeechatAndroid.service.Events;
 import com.ubergeek42.WeechatAndroid.service.Notificator;
 import com.ubergeek42.WeechatAndroid.service.P;
@@ -31,6 +32,7 @@ public class Weechat extends Application {
         super.onCreate();
         applicationContext = getApplicationContext();
         Cats.setup(applicationContext);
+        CachePersist.restore();
         P.init(getApplicationContext());
         P.restoreStuff();
         Notificator.init(this);
