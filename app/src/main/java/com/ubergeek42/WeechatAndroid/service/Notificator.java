@@ -349,11 +349,17 @@ public class Notificator {
         }
     }
 
+    // messaging style doesn't have a notion of text messages with images attached, so this method
+    // adds another message from the same person that is an image. the text part of this additional
+    // message is only visible when the image can't be displayed, namely, when this notification is
+    // a part of a notification group with a summary. in this state only the last message is
+    // visible, so it's safe enough to duplicate the text as well
+    // todo perhaps check if the image referenced by the url actually exists?
     private static void addMessage(MessagingStyle style, CharSequence message, long timestamp, CharSequence nick, @Nullable Uri image) {
         Person p = new Person.Builder().setName(nick).build();
         style.addMessage(new MessagingStyle.Message(message, timestamp, p));
-        if (image != null)      // todo perhaps check if the image exists?
-            style.addMessage(new MessagingStyle.Message("<image>", timestamp, p).setData("image/", image));
+        if (image != null)
+            style.addMessage(new MessagingStyle.Message(message, timestamp, p).setData("image/", image));
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
