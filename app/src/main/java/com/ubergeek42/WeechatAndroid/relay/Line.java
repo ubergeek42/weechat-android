@@ -38,7 +38,7 @@ public class Line {
     final public boolean visible;
     final public boolean highlighted;
 
-    @Nullable String speakingNick;
+    private @Nullable String speakingNick;
     public boolean action;
     private boolean privmsg;
 
@@ -91,7 +91,7 @@ public class Line {
         if (type != LINE_MESSAGE) speakingNick = null;
     }
 
-    final static int LINE_OTHER = 0;
+    final public static int LINE_OTHER = 0;
     final static int LINE_OWN = 1;
     final public static int LINE_MESSAGE = 2;
 
@@ -146,14 +146,26 @@ public class Line {
         this.spannable = spannable;
     }
 
+    public @Nullable String getNick() {
+        return this.speakingNick;
+    }
+
+    @NonNull String getPrefixString() {
+        return Color.stripEverything(prefix);
+    }
+
+    public @NonNull String getMessageString() {
+        return Color.stripEverything(message);  // todo optimize
+    }
+
     // is to be run rarely—only when we need to display a notification
-    @AnyThread public String getNotificationString() {
+    @AnyThread public String getIrcLikeString() {
         return String.format((!privmsg || action) ? "%s %s" : "<%s> %s",
-                Color.stripEverything(prefix),
-                Color.stripEverything(message));
+                getPrefixString(),
+                getMessageString());
     }
 
     @NonNull @Override public String toString() {
-        return "Line(0x" + Long.toHexString(pointer) + ": " + getNotificationString() + ")";
+        return "Line(0x" + Long.toHexString(pointer) + ": " + getIrcLikeString() + ")";
     }
 }

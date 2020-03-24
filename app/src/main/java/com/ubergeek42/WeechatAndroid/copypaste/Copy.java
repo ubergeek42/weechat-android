@@ -26,7 +26,7 @@ public class Copy {
         line.clickDisabled = true;
 
         if (!TextUtils.isEmpty(line.prefix))
-            list.add(line.getNotificationString());
+            list.add(line.getIrcLikeString());
         list.add(Color.stripEverything(line.message));
 
         for (URLSpan urlSpan : lineView.getUrls()) {

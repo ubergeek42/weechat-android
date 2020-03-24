@@ -226,7 +226,7 @@ public class Buffer {
         // if current line's an event line and we've got a speaker, move nick to fist position
         // nick in question is supposed to be in the nicks already, for we only shuffle these
         // nicks when someone spoke, i.e. NOT when user joins.
-        if (isLast && nicksAreReady()) nicks.bumpNickToTop(line.speakingNick);
+        if (isLast && nicksAreReady()) nicks.bumpNickToTop(line.getNick());
 
         if (flagResetHotMessagesOnNewOwnLine && line.type == Line.LINE_OWN) {
             flagResetHotMessagesOnNewOwnLine = false;

@@ -140,7 +140,7 @@ public class Hotlist {
             this.hotBuffer = hotBuffer;
             this.isAction = line.action;
             message = Color.stripEverything(line.message);
-            nick = (line.speakingNick != null ? line.speakingNick : Color.stripEverything(line.prefix));
+            nick = (line.getNick() != null ? line.getNick() : line.getPrefixString());
             timestamp = line.date.getTime();
             if (line.action) {
                 SpannableString sb = new SpannableString(message);

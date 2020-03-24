@@ -65,15 +65,18 @@ public class Engine {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private static @Nullable Pattern lineFilter;
+    private static @NonNull List<LineFilter> lineFilters = new ArrayList<>();
 
-    static void setLineFilter(@Nullable String regex) {
-        lineFilter = TextUtils.isEmpty(regex) ? null : Pattern.compile(regex);
+    static void setLineFilters(@NonNull List<LineFilter> filters) {
+        lineFilters = filters;
     }
 
     public static boolean isEnabledForLine(Line line) {
-        if (lineFilter == null) return true;
-        return !lineFilter.matcher(line.getNotificationString()).find();
+        if (line.type == Line.LINE_OTHER)
+            return false;
+        for (LineFilter filter : lineFilters)
+            if (filter.filters(line)) return false;
+        return true;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -92,9 +95,11 @@ public class Engine {
 
     private static final HashMap<String, Strategy> strategies = new HashMap<>();
 
-    @Cat static void registerStrategy(Strategy strategy) {
-        for (String host : strategy.getHosts()) {
-            strategies.put(host, strategy);
+    @Cat static void registerStrategy(List<Strategy> strategies) {
+        for (Strategy strategy : strategies) {
+            for (String host : strategy.getHosts()) {
+                Engine.strategies.put(host, strategy);
+            }
         }
     }
 
