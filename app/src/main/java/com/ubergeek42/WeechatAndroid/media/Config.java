@@ -1,9 +1,12 @@
 package com.ubergeek42.WeechatAndroid.media;
 
+import androidx.annotation.Nullable;
+
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.regex.Pattern;
 
-class Config {
+public class Config {
     enum Secure {
         OPTIONAL,
         REQUIRED,
@@ -20,6 +23,8 @@ class Config {
     }
 
     static Enable enabled = Enable.UNMETERED_ONLY;
+
+    @Nullable final static public Pattern LINKIFY_MESSAGE_FILTER = Pattern.compile("^<[^ ]{1,16} \".{1,33}\"> ", Pattern.CASE_INSENSITIVE);
 
     @SuppressWarnings("SpellCheckingInspection")
     static void setup() {

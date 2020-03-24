@@ -49,8 +49,9 @@ public class Color {
         return new Color().parseColors(text).toString();
     }
 
-    public String cleanMessage;
+    public String lineString;
     public int margin;
+    public String messageString;
     public ArrayList<Span> finalSpanList;
 
     // prepares: cleanMessage, margin, finalSpanList
@@ -135,7 +136,8 @@ public class Color {
             finalSpanList.add(span);
         }
         sb.append(message);
-        cleanMessage = sb.toString();
+        messageString = message;
+        lineString = sb.toString();
     }
 
     private static void maybeMakeAndAddSpans(int start, int end, int[] color, ArrayList<Span> list) {
@@ -233,7 +235,7 @@ public class Color {
      **can take form of: 05 */
     private void setWeechatColor() {
         int color_index = getNumberOfLengthUpTo(2);
-        int colors[] = ColorScheme.get().getOptionColorPair(color_index);
+        int[] colors = ColorScheme.get().getOptionColorPair(color_index);
         if (colors[ColorScheme.OPT_FG] != -1) addSpan(Span.FGCOLOR, colors[ColorScheme.OPT_FG]);
         if (colors[ColorScheme.OPT_BG] != -1) addSpan(Span.BGCOLOR, colors[ColorScheme.OPT_BG]);
     }

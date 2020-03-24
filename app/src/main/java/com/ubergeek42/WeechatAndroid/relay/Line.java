@@ -116,7 +116,7 @@ public class Line {
         String timestamp = (dateFormat == null) ? null : dateFormat.format(date);
         boolean encloseNick = P.encloseNick && privmsg && !action;
         Color color = new Color(timestamp, prefix, message, encloseNick, highlighted, P.maxWidth, P.align);
-        Spannable spannable = new SpannableString(color.cleanMessage);
+        Spannable spannable = new SpannableString(color.lineString);
 
         if (this.type == LINE_OTHER && P.dimDownNonHumanLines) {
             spannable.setSpan(new ForegroundColorSpan(ColorScheme.get().chat_inactive_buffer[0] | 0xFF000000), 0, spannable.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -140,8 +140,7 @@ public class Line {
             spannable.setSpan(margin_span, 0, spannable.length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
         }
 
-        // what a nice little custom linkifier we've got us here
-        Linkify.linkify(spannable);
+        Linkify.linkify(spannable, color.messageString);
 
         this.spannable = spannable;
     }

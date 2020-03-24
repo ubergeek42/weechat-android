@@ -25,10 +25,13 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.nio.CharBuffer;
 import java.text.SimpleDateFormat;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+@SuppressWarnings({"SameParameterValue", "WeakerAccess", "unused"})
 public class Utils {
 
     final private static @Root Kitty kitty = Kitty.make();
@@ -201,5 +204,33 @@ public class Utils {
                 Math.max(0, around - 80),
                 Math.min(seq.length(), around + 80))
                 .toString().replace("\n", "\\n");
+    }
+
+    static CharSequence replaceWithSpaces(CharSequence seq, Pattern pattern) {
+        StringBuilder sb = null;
+        int cursor = 0;
+
+        Matcher m = pattern.matcher(seq);
+        while (m.find()) {
+            if (sb == null) sb = new StringBuilder(seq.length());
+            int start = m.start();
+            int end = m.end();
+            if (cursor != start)
+                sb.append(seq, cursor, start);
+            if (end != start)
+                addSpaces(sb, end - start);
+            cursor = end;
+        }
+        if (cursor == 0)
+            return seq;
+        if (cursor != seq.length())
+            sb.append(seq, cursor, seq.length());
+        return sb;
+    }
+
+    public static void addSpaces(StringBuilder sb, int n) {
+        sb.ensureCapacity(sb.length() + n);
+        while (n-- > 0)
+            sb.append(' ');
     }
 }

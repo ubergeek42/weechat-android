@@ -18,8 +18,11 @@ import android.widget.Toast;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.relay.Line;
 
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static com.ubergeek42.WeechatAndroid.media.Config.LINKIFY_MESSAGE_FILTER;
 
 /**
  * Our own Linkifier
@@ -30,13 +33,26 @@ public class Linkify {
 
     // pattern will always find urls starting with protocol, the only exception being "www."
     // in this case, prepend "http://" to url.
-    public static void linkify (@NonNull Spannable s) {
+    public static void linkify(@NonNull Spannable s) {
         Matcher m = URL.matcher(s);
         while (m.find()) {
             String url = m.group(0);
             if (url.startsWith("www."))
                 url = "http://" + url;
             s.setSpan(new URLSpan2(url), m.start(), m.end(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+    }
+
+    public static void linkify(@NonNull Spannable spannable, @NonNull CharSequence message) {
+        if (LINKIFY_MESSAGE_FILTER != null)
+            message = Utils.replaceWithSpaces(message, LINKIFY_MESSAGE_FILTER);
+        int offset = spannable.length() - message.length();
+        Matcher m = URL.matcher(message);
+        while (m.find()) {
+            String url = m.group(0);
+            if (Objects.requireNonNull(url).startsWith("www."))
+                url = "http://" + url;
+            spannable.setSpan(new URLSpan2(url), offset + m.start(), offset + m.end(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
     }
 
