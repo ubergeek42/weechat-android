@@ -22,104 +22,123 @@ import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.utils.Linkify;
 import com.ubergeek42.weechat.Color;
 import com.ubergeek42.weechat.ColorScheme;
+import com.ubergeek42.weechat.relay.protocol.HdataEntry;
+import com.ubergeek42.weechat.relay.protocol.RelayObject;
 
 import java.text.DateFormat;
 import java.util.Date;
 
 public class Line {
-    // core message data
+    public enum Type {
+        OTHER,
+        INCOMING_MESSAGE,
+        OUTCOMING_MESSAGE
+    }
+
     final public long pointer;
-    final @Nullable public String prefix;
-    final @NonNull public String message;
+    final public Type type;
     final Date date;
+    final private String rawPrefix;
+    final private String rawMessage;
+    final private @Nullable String nick;
+    final boolean isVisible;
+    final public boolean isHighlighted;
+    final boolean isAction;
+    final private boolean isPrivmsg;
 
-    // additional data
-    final public int type;
-    final public boolean visible;
-    final public boolean highlighted;
-
-    private @Nullable String speakingNick;
-    public boolean action;
-    private boolean privmsg;
-
-    // sole purpose of this is to prevent onClick event on inner URLSpans to be fired
-    // when user long-presses on the screen and a context menu is shown
+    // the sole purpose of this is to prevent onClick event on inner URLSpans to be fired when the
+    // user long-presses on the screen and a context menu is shown
     public boolean clickDisabled = false;
 
-    // processed line ready to be displayed
-    volatile public @Nullable Spannable spannable = null;
-
-    @WorkerThread public Line(long pointer, Date date, @Nullable String prefix, @Nullable String message,
-                boolean visible, boolean highlighted, @Nullable String[] tags) {
+    Line(long pointer, Type type, Date date, @NonNull String rawPrefix, @NonNull String rawMessage,
+            @Nullable String nick, boolean visible, boolean isHighlighted, boolean isPrivmsg, boolean isAction) {
         this.pointer = pointer;
+        this.type = type;
         this.date = date;
-        this.prefix = prefix;
-        this.message = (message == null) ? "" : message;
-        this.visible = visible;
-        this.highlighted = highlighted;
+        this.rawPrefix = rawPrefix;
+        this.rawMessage = rawMessage;
+        this.nick = nick;
+        this.isVisible = visible;
+        this.isHighlighted = isHighlighted;
+        this.isPrivmsg = isPrivmsg;
+        this.isAction = isAction;
+    }
+
+    @WorkerThread public static @NonNull Line make(@NonNull HdataEntry entry) {
+        long pointer = entry.getPointerLong();
+        String message = entry.getItem("message").asString();
+        String prefix = entry.getItem("prefix").asString();
+        boolean visible = entry.getItem("displayed").asChar() == 0x01;
+        Date date = entry.getItem("date").asTime();
+        RelayObject high = entry.getItem("highlight");
+        boolean highlighted = high != null && high.asChar() == 0x01;
+        RelayObject tagsItem = entry.getItem("tags_array");
+        String[] tags = tagsItem != null && tagsItem.getType() == RelayObject.WType.ARR ?
+                tagsItem.asArray().asStringArray() : null;
+
+        message = message == null ? "" : message;
+        prefix = prefix == null ? "" : prefix;
+        String nick = null;
+        boolean isPrivmsg = false;
+        boolean isAction = false;
+        Type type;
 
         if (tags != null) {
             boolean log1 = false;
             boolean notifyNone = false;
 
             for (String tag : tags) {
-                if (tag.equals("log1"))
-                    log1 = true;
-                else if (tag.equals("notify_none"))
-                    notifyNone = true;
-                else if (tag.startsWith("nick_"))
-                    this.speakingNick = tag.substring(5);
-                else if (tag.endsWith("_privmsg"))
-                    this.privmsg = true;
-                else if (tag.endsWith("_action"))
-                    this.action = true;
+                if      (tag.equals("log1"))        log1 = true;
+                else if (tag.equals("notify_none")) notifyNone = true;
+                else if (tag.startsWith("nick_"))   nick = tag.substring(5);
+                else if (tag.endsWith("_privmsg"))  isPrivmsg = true;
+                else if (tag.endsWith("_action"))   isAction = true;
             }
 
             if (tags.length == 0 || !log1) {
-                this.type = LINE_OTHER;
+                type = Type.OTHER;
             } else {
                 // Every "message" to user should have one or more of these tags
                 // notifyNone, notify_highlight or notify_message
-                this.type = notifyNone ? LINE_OWN : LINE_MESSAGE;
+                type = notifyNone ? Type.OUTCOMING_MESSAGE : Type.INCOMING_MESSAGE;
             }
         } else {
             // there are no tags, it's probably an old version of weechat, so we err
             // on the safe side and treat it as from human
-            this.type = LINE_MESSAGE;
+            type = Type.INCOMING_MESSAGE;
         }
 
-        if (type != LINE_MESSAGE) speakingNick = null;
+        return new Line(pointer, type, date, prefix, message, nick, visible, highlighted, isPrivmsg,
+                isAction);
     }
 
-    final public static int LINE_OTHER = 0;
-    final static int LINE_OWN = 1;
-    final public static int LINE_MESSAGE = 2;
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    //////////////////////////////////////////////////////////////////////////////////////////// processing stuff
+    private String prefixString = null;
+    private String messageString = null;
+    volatile private Spannable spannable = null;
 
     @AnyThread void eraseProcessedMessage() {
         spannable = null;
+        prefixString = messageString = null;
     }
 
-    @AnyThread void processMessage() {
+    @AnyThread void ensureProcessed() {
         if (spannable == null) forceProcessMessage();
     }
 
-    /**
-     * process the message and create a spannable object according to settings
-     * * TODO: reuse span objects (how? would that do any good?)
-     * * the problem is that one has to use distinct spans on the same string
-     * * TODO: allow variable width font (should be simple enough
-     */
     @AnyThread void forceProcessMessage() {
         DateFormat dateFormat = P.dateFormat;
-        String timestamp = (dateFormat == null) ? null : dateFormat.format(date);
-        boolean encloseNick = P.encloseNick && privmsg && !action;
-        Color color = new Color(timestamp, prefix, message, encloseNick, highlighted, P.maxWidth, P.align);
+        String timestamp = dateFormat == null ? null : dateFormat.format(date);
+        boolean encloseNick = P.encloseNick && isPrivmsg && !isAction;
+        Color color = new Color(timestamp, rawPrefix, rawMessage, encloseNick, isHighlighted, P.maxWidth, P.align);
         Spannable spannable = new SpannableString(color.lineString);
 
-        if (this.type == LINE_OTHER && P.dimDownNonHumanLines) {
-            spannable.setSpan(new ForegroundColorSpan(ColorScheme.get().chat_inactive_buffer[0] | 0xFF000000), 0, spannable.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        if (type == Type.OTHER && P.dimDownNonHumanLines) {
+            spannable.setSpan(new ForegroundColorSpan(ColorScheme.get().chat_inactive_buffer[0] |
+                    0xFF000000), 0, spannable.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         } else {
             CharacterStyle droidSpan;
             for (Color.Span span : color.finalSpanList) {
@@ -142,26 +161,38 @@ public class Line {
 
         Linkify.linkify(spannable, color.messageString);
 
+        this.prefixString = color.prefixString;
+        this.messageString = color.messageString;
         this.spannable = spannable;
     }
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
     public @Nullable String getNick() {
-        return this.speakingNick;
+        return nick;
     }
 
-    @NonNull String getPrefixString() {
-        return Color.stripEverything(prefix);
+    public @NonNull String getPrefixString() {
+        ensureProcessed();
+        return prefixString;
     }
 
     public @NonNull String getMessageString() {
-        return Color.stripEverything(message);  // todo optimize
+        ensureProcessed();
+        return messageString;
     }
 
-    // is to be run rarely—only when we need to display a notification
-    @AnyThread public String getIrcLikeString() {
-        return String.format((!privmsg || action) ? "%s %s" : "<%s> %s",
+    public @NonNull String getIrcLikeString() {
+        return String.format((!isPrivmsg || isAction) ? "%s %s" : "<%s> %s",
                 getPrefixString(),
                 getMessageString());
+    }
+
+    public @NonNull Spannable getSpannable() {
+        ensureProcessed();
+        return spannable;
     }
 
     @NonNull @Override public String toString() {

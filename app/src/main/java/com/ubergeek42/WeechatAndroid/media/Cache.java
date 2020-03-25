@@ -36,7 +36,7 @@ public class Cache {
         }
     }
 
-    static ConcurrentHashMap<String, Attempt> cache = new ConcurrentHashMap<>();
+    final static ConcurrentHashMap<String, Attempt> cache = new ConcurrentHashMap<>();
 
     public enum Info {
         NEVER_ATTEMPTED,

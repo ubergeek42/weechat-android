@@ -100,10 +100,10 @@ public class LineView extends View {
         Strategy.Url url = null;
         Cache.Info info = null;
 
-        if (text == line.spannable && getCurrentLayout().getPaint() == P.textPaint) return;
+        if (text == line.getSpannable() && getCurrentLayout().getPaint() == P.textPaint) return;
         reset();
 
-        text = line.spannable;
+        text = line.getSpannable();
 
         if (Engine.isEnabledAtAll() && Engine.isEnabledForLocation(Engine.Location.CHAT) && Engine.isEnabledForLine(line)) {
             List<Strategy.Url> candidates = Engine.getPossibleMediaCandidates(getUrls(), Strategy.Size.SMALL);

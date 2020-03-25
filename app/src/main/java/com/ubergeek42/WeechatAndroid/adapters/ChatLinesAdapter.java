@@ -158,7 +158,7 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         @MainThread private void updateTitle() {
             if (adapter.buffer == null) return;
             Line titleLine = adapter.buffer.titleLine;
-            if (titleLine == null || TextUtils.isEmpty(titleLine.spannable) || !adapter.buffer.linesAreReady()) {
+            if (titleLine == null || TextUtils.isEmpty(titleLine.getSpannable()) || !adapter.buffer.linesAreReady()) {
                 title.setVisibility(View.GONE);
                 return;
             }
@@ -306,8 +306,8 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         int skip = buffer.getHotCount();
         if (skip == 0) return HOT_LINE_NOT_PRESENT;
 
-        Predicate<Line> p = (buffer.type == PRIVATE) ? (l) -> l.type == Line.LINE_MESSAGE :
-                (l) -> l.highlighted;
+        Predicate<Line> p = (buffer.type == PRIVATE) ? (l) -> l.type == Line.Type.INCOMING_MESSAGE :
+                (l) -> l.isHighlighted;
 
         for (int idx = lines.size() - 1; idx >= 0; idx--)
             if (p.test(lines.get(idx)) && --skip == 0) return idx;

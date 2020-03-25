@@ -50,8 +50,9 @@ public class Color {
     }
 
     public String lineString;
-    public int margin;
+    public String prefixString;
     public String messageString;
+    public int margin;
     public ArrayList<Span> finalSpanList;
 
     // prepares: cleanMessage, margin, finalSpanList
@@ -77,6 +78,7 @@ public class Color {
         // prefix should be adjusted according to the settings
         // also, if highlight is enabled, remove all colors from here and add highlight color later
         prefix = parseColors(prefix).toString();
+        prefixString = prefix;
         if (highlight) spanList.clear();
         boolean nickHasBeenCut = false;
         int maxAdjusted = enclose_nick ? Math.max(0, max - 2) : max;

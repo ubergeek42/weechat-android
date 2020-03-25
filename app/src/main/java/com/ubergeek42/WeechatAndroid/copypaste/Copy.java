@@ -13,7 +13,6 @@ import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.relay.Line;
 import com.ubergeek42.WeechatAndroid.utils.FancyAlertDialogBuilder;
 import com.ubergeek42.WeechatAndroid.utils.LineView;
-import com.ubergeek42.weechat.Color;
 
 import java.util.ArrayList;
 
@@ -25,9 +24,9 @@ public class Copy {
 
         line.clickDisabled = true;
 
-        if (!TextUtils.isEmpty(line.prefix))
+        if (!TextUtils.isEmpty(line.getPrefixString()))
             list.add(line.getIrcLikeString());
-        list.add(Color.stripEverything(line.message));
+        list.add(line.getMessageString());
 
         for (URLSpan urlSpan : lineView.getUrls()) {
             String url = urlSpan.getURL();

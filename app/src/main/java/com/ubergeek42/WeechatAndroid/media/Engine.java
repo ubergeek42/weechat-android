@@ -72,7 +72,7 @@ public class Engine {
     }
 
     public static boolean isEnabledForLine(Line line) {
-        if (line.type == Line.LINE_OTHER)
+        if (line.type == Line.Type.OTHER)
             return false;
         for (LineFilter filter : lineFilters)
             if (filter.filters(line)) return false;

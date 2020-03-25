@@ -95,7 +95,10 @@ class Nicks {
         final HashMap<String, Integer> nameToPosition = new HashMap<>();
 
         while (it.hasNext()) {
-            String name = it.next().getNick();
+            Line line = it.next();
+            if (line.type != Line.Type.INCOMING_MESSAGE)
+                continue;
+            String name = line.getNick();
             if (name != null && !nameToPosition.containsKey(name))
                 nameToPosition.put(name, nameToPosition.size());
         }

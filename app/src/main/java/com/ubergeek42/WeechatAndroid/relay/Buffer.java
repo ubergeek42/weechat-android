@@ -14,11 +14,9 @@ import android.text.style.SuperscriptSpan;
 
 import com.ubergeek42.WeechatAndroid.service.Events;
 import com.ubergeek42.WeechatAndroid.service.P;
-import com.ubergeek42.WeechatAndroid.utils.Linkify;
 import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
-import com.ubergeek42.weechat.Color;
 import com.ubergeek42.weechat.relay.protocol.Hashtable;
 import com.ubergeek42.weechat.relay.protocol.RelayObject;
 
@@ -201,21 +199,21 @@ public class Buffer {
         if (isLast) lines.addLast(line); else lines.addFirst(line);
 
         // calculate spannable, if needed
-        if (isOpen) line.processMessage();
+        if (isOpen) line.ensureProcessed();
 
         // notify levels: 0 none 1 highlight 2 message 3 all
         // treat hidden lines and lines that are not supposed to generate a “notification” as read
         if (isLast) {
-            if (isWatched || type == HARD_HIDDEN || (P.filterLines && !line.visible) ||
-                    (notifyLevel == 0) || (notifyLevel == 1 && !line.highlighted)) {
-                if (line.highlighted) readHighlights++;
-                else if (line.visible && line.type == Line.LINE_MESSAGE) readUnreads++;
+            if (isWatched || type == HARD_HIDDEN || (P.filterLines && !line.isVisible) ||
+                    (notifyLevel == 0) || (notifyLevel == 1 && !line.isHighlighted)) {
+                if (line.isHighlighted) readHighlights++;
+                else if (line.isVisible && line.type == Line.Type.INCOMING_MESSAGE) readUnreads++;
             } else {
-                if (line.highlighted) {
+                if (line.isHighlighted) {
                     highlights++;
                     Hotlist.onNewHotLine(this, line);
                     BufferList.notifyBuffersChanged();
-                } else if (line.visible && line.type == Line.LINE_MESSAGE) {
+                } else if (line.isVisible && line.type == Line.Type.INCOMING_MESSAGE) {
                     unreads++;
                     if (type == PRIVATE) Hotlist.onNewHotLine(this, line);
                     BufferList.notifyBuffersChanged();
@@ -226,9 +224,9 @@ public class Buffer {
         // if current line's an event line and we've got a speaker, move nick to fist position
         // nick in question is supposed to be in the nicks already, for we only shuffle these
         // nicks when someone spoke, i.e. NOT when user joins.
-        if (isLast && nicksAreReady()) nicks.bumpNickToTop(line.getNick());
+        if (isLast && nicksAreReady() && line.type == Line.Type.INCOMING_MESSAGE) nicks.bumpNickToTop(line.getNick());
 
-        if (flagResetHotMessagesOnNewOwnLine && line.type == Line.LINE_OWN) {
+        if (flagResetHotMessagesOnNewOwnLine && line.type == Line.Type.OUTCOMING_MESSAGE) {
             flagResetHotMessagesOnNewOwnLine = false;
             resetUnreadsAndHighlights();
         }
@@ -386,10 +384,7 @@ public class Buffer {
         spannable.setSpan(SMALL, 0, number.length(), EX);
         printable = spannable;
         if (!TextUtils.isEmpty(title)) {
-            titleLine = new Line(-123, null, null, title, true, false, null);
-            SpannableString titleSpannable = new SpannableString(Color.stripEverything(title));
-            Linkify.linkify(titleSpannable);
-            titleLine.spannable = titleSpannable;
+            titleLine = new TitleLine(title);
         }
     }
 

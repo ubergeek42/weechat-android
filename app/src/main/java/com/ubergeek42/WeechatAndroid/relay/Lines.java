@@ -41,8 +41,8 @@ public class Lines {
     @NonNull STATUS status = STATUS.INIT;
     private long lastSeenLine = -1;
 
-    private final static Line HEADER = new Line(HEADER_POINTER, null, null, null, false, false, new String[]{});
-    private final static Line MARKER = new Line(MARKER_POINTER, null, null, null, false, false, new String[]{});
+    private final static Line HEADER = new Line(HEADER_POINTER, null, null, "", "", null, false, false, false, false);
+    private final static Line MARKER = new Line(MARKER_POINTER, null, null, "", "", null, false, false, false, false);
 
     private final ArrayDeque<Line> filtered = new ArrayDeque<>();
     private final ArrayDeque<Line> unfiltered = new ArrayDeque<>();
@@ -75,7 +75,7 @@ public class Lines {
         assertThat(status).isEqualTo(STATUS.FETCHING);
         ensureSizeBeforeAddition();
         unfiltered.addFirst(line);
-        if (line.visible) filtered.addFirst(line);
+        if (line.isVisible) filtered.addFirst(line);
     }
 
     // note that rarely, especially when opening a buffer that weechat is loading backlog for at the
@@ -86,11 +86,11 @@ public class Lines {
     @WorkerThread void addLast(Line line) {
         ensureSizeBeforeAddition();
         unfiltered.addLast(line);
-        if (line.visible) filtered.addLast(line);
+        if (line.isVisible) filtered.addLast(line);
 
         if (status == STATUS.FETCHING) return;
 
-        if (skipFiltered >= 0 && line.visible) skipFiltered++;
+        if (skipFiltered >= 0 && line.isVisible) skipFiltered++;
         if (skipUnfiltered >= 0) skipUnfiltered++;
 
         // if we hit max size while the buffer is not open, behave as if lines were requested
@@ -132,7 +132,7 @@ public class Lines {
     }
 
     @AnyThread void processAllMessages(boolean force) {
-        for (Line l: unfiltered) if (force) l.forceProcessMessage(); else l.processMessage();
+        for (Line l: unfiltered) if (force) l.forceProcessMessage(); else l.ensureProcessed();
     }
 
     @AnyThread void eraseProcessedMessages() {
@@ -181,7 +181,7 @@ public class Lines {
                 return;
             }
             idx_u++;
-            if (line.visible) idx_f++;
+            if (line.isVisible) idx_f++;
         }
     }
 
@@ -208,6 +208,6 @@ public class Lines {
 
     @WorkerThread private void ensureSizeBeforeAddition() {
         if (unfiltered.size() == maxUnfilteredSize)
-            if (unfiltered.removeFirst().visible) filtered.removeFirst();
+            if (unfiltered.removeFirst().isVisible) filtered.removeFirst();
     }
 }

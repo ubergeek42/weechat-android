@@ -26,7 +26,6 @@ import com.ubergeek42.weechat.relay.protocol.RelayObject;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -382,7 +381,7 @@ public class BufferList {
             }
 
             for (int i = 0, size = data.getCount(); i < size; i++) {
-                buffer.addLine(getLine(data.getItem(i)), isBottom);
+                buffer.addLine(Line.make(data.getItem(i)), isBottom);
                 if (isBottom) buffer.onLineAdded();
             }
 
@@ -390,19 +389,6 @@ public class BufferList {
                 buffer.onLinesListed();
                 removeMessageHandler(this.id, this);
             }
-        }
-
-        private static Line getLine(HdataEntry entry) {
-            String message = entry.getItem("message").asString();
-            String prefix = entry.getItem("prefix").asString();
-            boolean displayed = (entry.getItem("displayed").asChar() == 0x01);
-            Date time = entry.getItem("date").asTime();
-            RelayObject high = entry.getItem("highlight");
-            boolean highlight = (high != null && high.asChar() == 0x01);
-            RelayObject tagsobj = entry.getItem("tags_array");
-            String[] tags = (tagsobj != null && tagsobj.getType() == RelayObject.WType.ARR) ?
-                    tagsobj.asArray().asStringArray() : null;
-            return new Line(entry.getPointerLong(), time, prefix, message, displayed, highlight, tags);
         }
     }
 

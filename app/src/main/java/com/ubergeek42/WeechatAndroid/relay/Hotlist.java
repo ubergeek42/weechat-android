@@ -26,7 +26,6 @@ import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
-import com.ubergeek42.weechat.Color;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -138,11 +137,11 @@ public class Hotlist {
 
         HotMessage(Line line, HotBuffer hotBuffer) {
             this.hotBuffer = hotBuffer;
-            this.isAction = line.action;
-            message = Color.stripEverything(line.message);
+            this.isAction = line.isAction;
+            message = line.getMessageString();
             nick = (line.getNick() != null ? line.getNick() : line.getPrefixString());
             timestamp = line.date.getTime();
-            if (line.action) {
+            if (line.isAction) {
                 SpannableString sb = new SpannableString(message);
                 sb.setSpan(new StyleSpan(Typeface.ITALIC), 0, message.length(), 0);
                 message = sb;
