@@ -44,13 +44,16 @@
             android:textColor="?attr/textColorAlertDialogListItem"
             android:gravity="center_vertical"
             android:paddingLeft="?attr/listPreferredItemPaddingLeft"
-            android:paddingRight="16dp"
+            android:paddingRight="@dimen/paste_dialog_text_with_image_text_margin_right"
             android:background="@null" />
 
         <ImageView
             android:id="@+id/image"
-            android:layout_width="80dp"
+            android:layout_width="@dimen/paste_dialog_image_width"
             android:layout_height="match_parent"
+            android:layout_marginLeft="@dimen/paste_dialog_image_margin_left"
+            android:layout_marginRight="@dimen/paste_dialog_image_margin_right"
+            android:layout_marginVertical="@dimen/paste_dialog_image_half_vertical_margin"
             android:contentDescription="@null" />
     </LinearLayout>
 </com.ubergeek42.WeechatAndroid.copypaste.FancyViewSwitcher>

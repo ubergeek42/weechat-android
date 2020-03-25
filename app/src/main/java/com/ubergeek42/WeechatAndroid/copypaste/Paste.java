@@ -67,7 +67,6 @@ public class Paste {
             dialog.dismiss();
         }));
 
-        if (hasClipboard) recyclerView.setPadding(0, 0, 0, 0);
         dialog.setView(recyclerView);
         dialog.show();
         return true;
