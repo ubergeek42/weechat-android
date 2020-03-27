@@ -22,14 +22,13 @@ import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.ubergeek42.WeechatAndroid.media.Config.LINKIFY_MESSAGE_FILTER;
-
 /**
  * Our own Linkifier
  * Rationale: allow custom custom URLs as well URLs starting with www. with less fiddling;
  * also use non-colored URLSpans so that we don't have to recreate them every time
  */
 public class Linkify {
+    private static @Nullable Pattern messageFilter = null;
 
     // pattern will always find urls starting with protocol, the only exception being "www."
     // in this case, prepend "http://" to url.
@@ -37,15 +36,15 @@ public class Linkify {
         Matcher m = URL.matcher(s);
         while (m.find()) {
             String url = m.group(0);
-            if (url.startsWith("www."))
+            if (Objects.requireNonNull(url).startsWith("www."))
                 url = "http://" + url;
             s.setSpan(new URLSpan2(url), m.start(), m.end(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
     }
 
     public static void linkify(@NonNull Spannable spannable, @NonNull CharSequence message) {
-        if (LINKIFY_MESSAGE_FILTER != null)
-            message = Utils.replaceWithSpaces(message, LINKIFY_MESSAGE_FILTER);
+        if (messageFilter != null)
+            message = Utils.replaceWithSpaces(message, messageFilter);
         int offset = spannable.length() - message.length();
         Matcher m = URL.matcher(message);
         while (m.find()) {
@@ -54,6 +53,10 @@ public class Linkify {
                 url = "http://" + url;
             spannable.setSpan(new URLSpan2(url), offset + m.start(), offset + m.end(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
+    }
+
+    public static void setMessageFilter(String filter) {
+        messageFilter = Pattern.compile(filter, Pattern.CASE_INSENSITIVE);
     }
 
     public static @Nullable String getFirstUrlFromString(CharSequence s) {

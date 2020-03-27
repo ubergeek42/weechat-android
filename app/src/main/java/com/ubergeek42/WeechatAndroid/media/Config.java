@@ -1,19 +1,28 @@
 package com.ubergeek42.WeechatAndroid.media;
 
-import androidx.annotation.Nullable;
+import com.ubergeek42.WeechatAndroid.service.P;
+import com.ubergeek42.WeechatAndroid.utils.Linkify;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.regex.Pattern;
 
 public class Config {
-    enum Secure {
+    final public static int ANIMATION_DURATION = 250;                           // ms
+
+    final public static int THUMBNAIL_WIDTH = (int) (80 * P._1dp);
+    final public static int THUMBNAIL_MIN_HEIGHT = (int) (40 * P._1dp);         // todo set to the height of 2 lines of text?
+    final public static int THUMBNAIL_MAX_HEIGHT = THUMBNAIL_WIDTH * 2;
+    final public static int THUMBNAIL_VERTICAL_MARGIN = (int) P._1_33dp;
+    final public static int THUMBNAIL_HORIZONTAL_MARGIN = 2 * THUMBNAIL_VERTICAL_MARGIN;
+    final        static int THUMBNAIL_CORNER_RADIUS = 4 * THUMBNAIL_VERTICAL_MARGIN;
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    enum SecureRequest {
         OPTIONAL,
         REQUIRED,
         REWRITE
     }
-
-    static Secure secure = Secure.REWRITE;
 
     enum Enable {
         NEVER,
@@ -22,12 +31,22 @@ public class Config {
         ALWAYS
     }
 
-    static Enable enabled = Enable.UNMETERED_ONLY;
+    static SecureRequest secureRequestsPolicy = SecureRequest.REWRITE;
 
-    @Nullable final static public Pattern LINKIFY_MESSAGE_FILTER = Pattern.compile("^<[^ ]{1,16} \".{1,33}\"> ", Pattern.CASE_INSENSITIVE);
+    static Enable enabledForNetwork = Enable.UNMETERED_ONLY;
+
+    static boolean enabledForChat = true;
+    static boolean enabledForPaste = true;
+    static boolean enabledForNotifications = true;
+
+    static long maximumBodySize = 5 * 1024 * 1024;
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @SuppressWarnings("SpellCheckingInspection")
-    static void setup() {
+    private static void setup() {
+        Linkify.setMessageFilter("^<[^ ]{1,16} \".{1,33}\"> ");
+
         Engine.setLineFilters(Arrays.asList(
                 new LineFilter(Collections.singletonList("tacgnol"), null),
                 new LineFilter(null, "^(?:Title: |↑ )")
@@ -97,5 +116,9 @@ public class Config {
                 new StrategyNull(
                         Arrays.asList("pastebin.com", "github.com", "bpaste.net", "dpaste.com"))
         ));
+    }
+
+    static {
+        setup();
     }
 }

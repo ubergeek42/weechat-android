@@ -17,11 +17,11 @@ class OkHttpSecuringInterceptor implements Interceptor {
     final private static @Root Kitty kitty = Kitty.make();
 
     @NotNull @Override public Response intercept(@NotNull Chain chain) throws IOException {
-        assertThat(Config.secure).isAnyOf(Config.Secure.REQUIRED, Config.Secure.REWRITE);
+        assertThat(Config.secureRequestsPolicy).isAnyOf(Config.SecureRequest.REQUIRED, Config.SecureRequest.REWRITE);
         Request request = chain.request();
 
         if ("http".equals(request.url().scheme())) {
-            if (Config.secure == Config.Secure.REQUIRED) {
+            if (Config.secureRequestsPolicy == Config.SecureRequest.REQUIRED) {
                 throw new Exceptions.SslRequiredException();
             } else {
                 request = request.newBuilder().url(

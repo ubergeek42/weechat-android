@@ -25,6 +25,7 @@ import android.text.TextUtils;
 import android.util.TypedValue;
 
 import com.ubergeek42.WeechatAndroid.R;
+import com.ubergeek42.WeechatAndroid.Weechat;
 import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.WeechatAndroid.utils.ThemeFix;
@@ -68,8 +69,6 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         p = PreferenceManager.getDefaultSharedPreferences(context);
         loadUIPreferences();
         p.registerOnSharedPreferenceChangeListener(instance);
-        _4dp = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 4, context.getResources().getDisplayMetrics());
-        _200dp = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 200, context.getResources().getDisplayMetrics());
         calculateWeaselWidth();
     }
 
@@ -109,8 +108,11 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
 
     ///////////////////////////////////////////////////////////////////////////////////////////// ui
 
-    public static float _4dp;
-    public static float _200dp;
+    final public static float _1dp = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1,
+            Weechat.applicationContext.getResources().getDisplayMetrics());
+    final public static float _1_33dp = Math.round(1.33f * _1dp);
+    final public static float _4dp = 4 * _1dp;
+    final public static float _200dp = 200 * _1dp;
 
     public static boolean sortBuffers;
     public static boolean filterBuffers;

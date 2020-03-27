@@ -94,7 +94,7 @@ public class OkHttpStreamFetcher implements DataFetcher<InputStream> {
         private ResponseBody body;
 
         @Cat CallHandler(Request request) {
-            Call.Factory client = Config.secure == Config.Secure.OPTIONAL ?
+            Call.Factory client = Config.secureRequestsPolicy == Config.SecureRequest.OPTIONAL ?
                     regularClient : sslOnlyClient;
             call = client.newCall(request);
             call.enqueue(this);
@@ -122,11 +122,11 @@ public class OkHttpStreamFetcher implements DataFetcher<InputStream> {
                 throw new HttpException(response.code(), response.message());
 
             long contentLength = body.contentLength();
-            if (contentLength > Engine.MAXIMUM_BODY_SIZE)
-                throw new ContentLengthExceedsLimitException(contentLength, Engine.MAXIMUM_BODY_SIZE);
+            if (contentLength > Config.maximumBodySize)
+                throw new ContentLengthExceedsLimitException(contentLength, Config.maximumBodySize);
 
             InputStream stream = new LimitedLengthInputStream(body.byteStream(),
-                    contentLength,  Engine.MAXIMUM_BODY_SIZE);
+                    contentLength,  Config.maximumBodySize);
 
             Request nextRequest = strategyUrl.getNextRequest(response, stream);
             if (nextRequest == null) {

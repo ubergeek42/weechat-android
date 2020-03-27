@@ -14,7 +14,7 @@ import androidx.annotation.Nullable;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
 
-import static com.ubergeek42.WeechatAndroid.media.Engine.ANIMATION_DURATION;
+import static com.ubergeek42.WeechatAndroid.media.Config.ANIMATION_DURATION;
 
 public class FancyViewSwitcher extends FrameLayout {
     final private static @Root Kitty kitty = Kitty.make();

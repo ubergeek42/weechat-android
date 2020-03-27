@@ -35,12 +35,12 @@ import com.ubergeek42.cats.Root;
 
 import java.util.List;
 
-import static com.ubergeek42.WeechatAndroid.media.Engine.ANIMATION_DURATION;
-import static com.ubergeek42.WeechatAndroid.media.Engine.THUMBNAIL_HORIZONTAL_MARGIN;
-import static com.ubergeek42.WeechatAndroid.media.Engine.THUMBNAIL_MAX_HEIGHT;
-import static com.ubergeek42.WeechatAndroid.media.Engine.THUMBNAIL_MIN_HEIGHT;
-import static com.ubergeek42.WeechatAndroid.media.Engine.THUMBNAIL_VERTICAL_MARGIN;
-import static com.ubergeek42.WeechatAndroid.media.Engine.THUMBNAIL_WIDTH;
+import static com.ubergeek42.WeechatAndroid.media.Config.ANIMATION_DURATION;
+import static com.ubergeek42.WeechatAndroid.media.Config.THUMBNAIL_HORIZONTAL_MARGIN;
+import static com.ubergeek42.WeechatAndroid.media.Config.THUMBNAIL_MAX_HEIGHT;
+import static com.ubergeek42.WeechatAndroid.media.Config.THUMBNAIL_MIN_HEIGHT;
+import static com.ubergeek42.WeechatAndroid.media.Config.THUMBNAIL_VERTICAL_MARGIN;
+import static com.ubergeek42.WeechatAndroid.media.Config.THUMBNAIL_WIDTH;
 import static com.ubergeek42.WeechatAndroid.utils.Assert.assertThat;
 
 public class LineView extends View {

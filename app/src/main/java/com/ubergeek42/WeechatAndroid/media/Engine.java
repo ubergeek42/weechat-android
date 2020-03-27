@@ -1,6 +1,5 @@
 package com.ubergeek42.WeechatAndroid.media;
 
-import android.text.TextUtils;
 import android.text.style.URLSpan;
 
 import androidx.annotation.NonNull;
@@ -20,35 +19,23 @@ import com.ubergeek42.cats.Root;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.regex.Pattern;
 
 import okhttp3.HttpUrl;
 
+import static com.ubergeek42.WeechatAndroid.media.Config.THUMBNAIL_CORNER_RADIUS;
 import static com.ubergeek42.WeechatAndroid.media.HostUtils.getHost;
 
 public class Engine {
     final private static @Root Kitty kitty = Kitty.make();
 
-    final private static boolean ENABLED = true;
-
-    final public static int ANIMATION_DURATION = 250;          // ms
-
-    final public static int THUMBNAIL_WIDTH = 250;
-    final public static int THUMBNAIL_MIN_HEIGHT = 120;        // todo set to the height of 2 lines of text?
-    final public static int THUMBNAIL_MAX_HEIGHT = THUMBNAIL_WIDTH * 2;
-    final public static int THUMBNAIL_HORIZONTAL_MARGIN = 8;
-    final public static int THUMBNAIL_VERTICAL_MARGIN = 4;
-
-    final static long MAXIMUM_BODY_SIZE = 5 * 1024 * 1024;
-
     final public static RequestOptions defaultRequestOptions = new RequestOptions()
             .diskCacheStrategy(DiskCacheStrategy.ALL)
-            .transform(new MultiTransformation<>(new CenterCrop(), new RoundedCorners(16)));
+            .transform(new MultiTransformation<>(new CenterCrop(), new RoundedCorners(THUMBNAIL_CORNER_RADIUS)));
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     public static boolean isEnabledAtAll() {
-        return Config.enabled != Config.Enable.NEVER;
+        return Config.enabledForNetwork != Config.Enable.NEVER;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -60,7 +47,12 @@ public class Engine {
     }
 
     public static boolean isEnabledForLocation(Location location) {
-        return ENABLED;     // todo
+        switch (location) {
+            case CHAT: return Config.enabledForChat;
+            case PASTE: return Config.enabledForPaste;
+            case NOTIFICATION: return Config.enabledForNotifications;
+            default: return false;
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -82,7 +74,7 @@ public class Engine {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     public static boolean isDisabledForCurrentNetwork() {
-        switch (Config.enabled) {
+        switch (Config.enabledForNetwork) {
             case NEVER: return true;
             case WIFI_ONLY: return !Network.get().hasProperty(Network.Property.WIFI);
             case UNMETERED_ONLY: return !Network.get().hasProperty(Network.Property.UNMETERED);
@@ -137,9 +129,5 @@ public class Engine {
             if (strategy instanceof StrategyNull) return true;
         }
         return false;
-    }
-
-    static {
-        Config.setup();
     }
 }
