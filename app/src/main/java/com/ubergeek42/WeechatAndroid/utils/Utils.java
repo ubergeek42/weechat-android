@@ -188,7 +188,11 @@ public class Utils {
             stringBuilder.append(buffer, 0, length);
             if (stringBuilder.length() >= wantedSize) break;
         }
-        stream.close();
+        try {
+            stream.close();
+        } catch (IOException e) {
+            kitty.warn("readInputStream(): exception while closing stream", e);
+        }
         return stringBuilder;
     }
 
