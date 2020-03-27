@@ -52,6 +52,11 @@ public class Config {
                         "https?://i.imgur.com/([^.]+).*",
                         "https://i.imgur.com/$1m.jpg",
                         "https://i.imgur.com/$1h.jpg"),
+                new StrategyAny("imgur.com/gallery",
+                        Arrays.asList("imgur.com", "www.imgur.com"),
+                        "https?://(?:www.)imgur.com/gallery/(.*)",
+                        "https://imgur.com/a/$1",
+                        4096 * 2),
                 new StrategyRegex(
                         "9gag.com",
                         Collections.singletonList("9gag.com"),
@@ -64,6 +69,12 @@ public class Config {
                         "https?://img-9gag-fun\\.9cache\\.com/photo/([^_]+).*",
                         "https://images-cdn.9gag.com/photo/$1_700b.jpg",
                         "https://images-cdn.9gag.com/photo/$1_700b.jpg"),
+                new StrategyAny(
+                        "mobile.twitter.com",
+                        Collections.singletonList("mobile.twitter.com"),
+                        "https?://mobile.twitter.com/(.*)",
+                        "https://twitter.com/$1",
+                        4096 * 4),
                 new StrategyAny(
                         "pikabu.ru",
                         Arrays.asList("pikabu.ru", "www.pikabu.ru"),
