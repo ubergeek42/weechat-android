@@ -95,6 +95,7 @@ public class Constants {
     final public static String PREF_THEME_LIGHT = "light";
     final public static String PREF_THEME_D = PREF_THEME_SYSTEM;
 
+    final public static String PREF_IMAGE_DISK_CACHE_SIZE = "image_disk_cache_size";
 
     final public static String PREF_THEME_SWITCH = "theme_switch"; final public static boolean PREF_THEME_SWITCH_D = false;
 }
