@@ -44,13 +44,15 @@ public class Paste {
         String clipboard = getCurrentClipboardAsText(context);
         boolean hasClipboard = !TextUtils.isEmpty(clipboard);
 
-        // if no sent messages, or the only sent message is in the clipboard, do nothing
-        if (P.sentMessages.isEmpty() || P.sentMessages.size() == 1 && P.sentMessages.get(0).equals(clipboard))
-            return false;
-
         List<PasteItem> list = new ArrayList<>(P.sentMessages.size());
-        for (String message : P.sentMessages)
-            list.add(new PasteItem(message, false));
+        for (String message : P.sentMessages) {
+            if (!message.trim().equals(clipboard))
+                list.add(new PasteItem(message, false));
+        }
+
+        // if no sent messages, or the only sent message is in the clipboard, do nothing
+        if (list.isEmpty())
+            return false;
 
         if (hasClipboard)
             list.add(new PasteItem(clipboard, true));
