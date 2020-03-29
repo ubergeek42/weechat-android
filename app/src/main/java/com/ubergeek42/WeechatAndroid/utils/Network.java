@@ -62,11 +62,17 @@ public class Network {
     @Cat public void register(@NonNull Context context, @Nullable Callback callback) {
         if (contexts.isEmpty()) {
             Context applicationContext = context.getApplicationContext();
+            ConnectivityManager manager = getManager(applicationContext);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                getManager(applicationContext).registerDefaultNetworkCallback(networkCallback);
+                manager.registerDefaultNetworkCallback(networkCallback);
+                android.net.Network network = manager.getActiveNetwork();
+                NetworkCapabilities capabilities = manager.getNetworkCapabilities(network);
+                if (network != null && capabilities != null)
+                    networkCallback.onCapabilitiesChanged(network, capabilities);
             } else {
                 applicationContext.registerReceiver(broadcastReceiver,
                         new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+                broadcastReceiver.onReceive(applicationContext, null);
             }
         }
         assertThat(contexts.containsKey(context)).isFalse();
@@ -91,7 +97,7 @@ public class Network {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     // broadcast receiver effectively behaves just like the network callback, however it's not
-    // called if the network's metering status changes
+    // called if the network's metering status changes. it seems to be always called on registration
     final private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
         final private @Root Kitty kitty_b = kitty.kid("Broadcast");
 
@@ -113,6 +119,9 @@ public class Network {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
+    // on some earlier versions of android, onCapabilitiesChanged() is not called upon callback
+    // registration, while onAvailable() is. it's not clear whether onAvailable() is guaranteed to
+    // be called at all. todo make sure that onCapabilitiesChanged is called upon every connection
     final private ConnectivityManager.NetworkCallback networkCallback = new ConnectivityManager.NetworkCallback() {
         final private @Root Kitty kitty_n = kitty.kid("Callback");
 
