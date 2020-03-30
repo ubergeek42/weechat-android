@@ -140,7 +140,7 @@ public class Hotlist {
             this.isAction = line.isAction;
             message = line.getMessageString();
             nick = (line.getNick() != null ? line.getNick() : line.getPrefixString());
-            timestamp = line.date.getTime();
+            timestamp = line.timestamp;
             if (line.isAction) {
                 SpannableString sb = new SpannableString(message);
                 sb.setSpan(new StyleSpan(Typeface.ITALIC), 0, message.length(), 0);

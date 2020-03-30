@@ -25,8 +25,7 @@ import com.ubergeek42.weechat.ColorScheme;
 import com.ubergeek42.weechat.relay.protocol.HdataEntry;
 import com.ubergeek42.weechat.relay.protocol.RelayObject;
 
-import java.text.DateFormat;
-import java.util.Date;
+import org.joda.time.format.DateTimeFormatter;
 
 public class Line {
     public enum Type {
@@ -37,7 +36,7 @@ public class Line {
 
     final public long pointer;
     final public Type type;
-    final Date date;
+    final long timestamp;
     final private String rawPrefix;
     final private String rawMessage;
     final private @Nullable String nick;
@@ -50,11 +49,11 @@ public class Line {
     // user long-presses on the screen and a context menu is shown
     public boolean clickDisabled = false;
 
-    Line(long pointer, Type type, Date date, @NonNull String rawPrefix, @NonNull String rawMessage,
+    Line(long pointer, Type type, long timestamp, @NonNull String rawPrefix, @NonNull String rawMessage,
          @Nullable String nick, boolean visible, boolean isHighlighted, boolean isPrivmsg, boolean isAction) {
         this.pointer = pointer;
         this.type = type;
-        this.date = date;
+        this.timestamp = timestamp;
         this.rawPrefix = rawPrefix;
         this.rawMessage = rawMessage;
         this.nick = nick;
@@ -69,7 +68,7 @@ public class Line {
         String message = entry.getItem("message").asString();
         String prefix = entry.getItem("prefix").asString();
         boolean visible = entry.getItem("displayed").asChar() == 0x01;
-        Date date = entry.getItem("date").asTime();
+        long timestamp = entry.getItem("date").asTime().getTime();
         RelayObject high = entry.getItem("highlight");
         boolean highlighted = high != null && high.asChar() == 0x01;
         RelayObject tagsItem = entry.getItem("tags_array");
@@ -108,7 +107,7 @@ public class Line {
             type = Type.INCOMING_MESSAGE;
         }
 
-        return new Line(pointer, type, date, prefix, message, nick, visible, highlighted, isPrivmsg,
+        return new Line(pointer, type, timestamp, prefix, message, nick, visible, highlighted, isPrivmsg,
                 isAction);
     }
 
@@ -128,8 +127,13 @@ public class Line {
     @AnyThread void ensureSpannable() {
         if (spannable != null) return;
 
-        DateFormat dateFormat = P.dateFormat;
-        String timestamp = dateFormat == null ? null : dateFormat.format(date);
+        StringBuilder timestamp = null;
+        DateTimeFormatter dateFormat = P.dateFormat;
+        if (dateFormat != null) {
+            timestamp = new StringBuilder();
+            dateFormat.printTo(timestamp, this.timestamp);
+        }
+
         boolean encloseNick = P.encloseNick && isPrivmsg && !isAction;
         Color color = new Color(timestamp, rawPrefix, rawMessage, encloseNick, isHighlighted, P.maxWidth, P.align);
         Spannable spannable = new SpannableString(color.lineString);

@@ -10,6 +10,10 @@ import android.content.res.TypedArray;
 import android.graphics.Typeface;
 import android.os.Build;
 import android.preference.PreferenceManager;
+import android.text.TextPaint;
+import android.text.TextUtils;
+import android.util.TypedValue;
+
 import androidx.annotation.AnyThread;
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
@@ -20,9 +24,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.preference.FilePreference;
 import androidx.preference.ThemeManager;
-import android.text.TextPaint;
-import android.text.TextUtils;
-import android.util.TypedValue;
 
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.Weechat;
@@ -37,14 +38,14 @@ import com.ubergeek42.cats.Root;
 import com.ubergeek42.weechat.Color;
 import com.ubergeek42.weechat.ColorScheme;
 
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+
 import java.io.Serializable;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
-import java.util.Locale;
 
 import javax.net.ssl.SSLSocketFactory;
 
@@ -121,7 +122,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     public static boolean filterLines, autoHideActionbar;
     public static int maxWidth;
     public static boolean encloseNick, dimDownNonHumanLines;
-    public static @Nullable DateFormat dateFormat;
+    public static @Nullable DateTimeFormatter dateFormat;
     public static int align;
 
     public static int weaselWidth = 200;
@@ -351,7 +352,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
 
     @MainThread private static void setTimestampFormat() {
         String t = p.getString(PREF_TIMESTAMP_FORMAT, PREF_TIMESTAMP_FORMAT_D);
-        dateFormat = (TextUtils.isEmpty(t)) ? null : new SimpleDateFormat(t, Locale.US);
+        dateFormat = (TextUtils.isEmpty(t)) ? null : DateTimeFormat.forPattern(t);
     }
 
     @MainThread private static void setAlignment() {

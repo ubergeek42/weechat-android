@@ -56,7 +56,7 @@ public class Color {
     public ArrayList<Span> finalSpanList;
 
     // prepares: cleanMessage, margin, finalSpanList
-    public Color(String timestamp, String prefix, String message, final boolean enclose_nick, final boolean highlight, final int max, final int alignment) {
+    public Color(CharSequence timestamp, String prefix, String message, final boolean enclose_nick, final boolean highlight, final int max, final int alignment) {
         if (DEBUG) logger.debug("parse(timestamp='{}', prefix='{}', message='{}', enclose_nick={}, highlight={}, max={}, align_right={})",
                 timestamp, prefix, message, enclose_nick, highlight, max, alignment);
         int puff;

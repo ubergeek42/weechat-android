@@ -18,6 +18,8 @@ import com.ubergeek42.WeechatAndroid.service.RelayService.STATE;
 import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.Cats;
 
+import net.danlew.android.joda.JodaTimeAndroid;
+
 import org.greenrobot.eventbus.EventBus;
 
 import java.util.EnumSet;
@@ -31,6 +33,7 @@ public class Weechat extends Application {
     @Override public void onCreate() {
         super.onCreate();
         applicationContext = getApplicationContext();
+        JodaTimeAndroid.init(applicationContext);
         Cats.setup(applicationContext);
         CachePersist.restore();
         P.init(getApplicationContext());

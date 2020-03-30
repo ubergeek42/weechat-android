@@ -32,6 +32,11 @@ dependencies {
 
     implementation "commons-codec:commons-codec:1.13"
 
+    // needed for thread-safe date formatting as SimpleDateFormat isn't thread-safe
+    // the alternatives, including apache commons and threetenabp, seem to be much slower
+    // todo perhaps replace with core library desugaring, if it's fast
+    implementation 'net.danlew:android.joda:2.10.3'
+
     implementation 'org.greenrobot:eventbus:3.1.1'
 
     debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.0'

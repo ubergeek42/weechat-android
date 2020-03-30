@@ -42,8 +42,8 @@ public class Lines {
     @NonNull STATUS status = STATUS.INIT;
     private long lastSeenLine = -1;
 
-    private final static Line HEADER = new Line(HEADER_POINTER, null, null, "", "", null, false, false, false, false);
-    private final static Line MARKER = new Line(MARKER_POINTER, null, null, "", "", null, false, false, false, false);
+    private final static Line HEADER = new Line(HEADER_POINTER, null, 0, "", "", null, false, false, false, false);
+    private final static Line MARKER = new Line(MARKER_POINTER, null, 0, "", "", null, false, false, false, false);
 
     private final ArrayDeque<Line> filtered = new ArrayDeque<>();
     private final ArrayDeque<Line> unfiltered = new ArrayDeque<>();
