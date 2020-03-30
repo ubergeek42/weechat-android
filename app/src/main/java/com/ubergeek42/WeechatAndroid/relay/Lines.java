@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.WorkerThread;
 
 import com.ubergeek42.WeechatAndroid.service.P;
+import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
 
@@ -131,12 +132,18 @@ public class Lines {
         return false;
     }
 
-    @AnyThread void processAllMessages(boolean force) {
-        for (Line l: unfiltered) if (force) l.forceProcessMessage(); else l.ensureProcessed();
+    @AnyThread void invalidateSpannables() {
+        for (Line l: unfiltered) l.invalidateSpannable();
     }
 
-    @AnyThread void eraseProcessedMessages() {
-        for (Line l: unfiltered) l.eraseProcessedMessage();
+    // process lines that are gre going to be displayed, backwards, on a background thread pool.
+    // this method gets called after line filter change, so it does get to process all needed lines
+    @AnyThread void ensureSpannables() {
+        ArrayDeque<Line> target = P.filterLines ? filtered : unfiltered;
+        Line[] snapshot = target.toArray(new Line[0]);
+        Utils.runInBackground(() -> {
+            for (int i = snapshot.length - 1; i >= 0; i--) snapshot[i].ensureSpannable();
+        });
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

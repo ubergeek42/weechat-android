@@ -120,10 +120,10 @@ public class Buffer {
         isOpen = open;
         if (open) {
             BufferList.syncBuffer(this, syncHotlistOnOpen);
-            lines.processAllMessages(false);
+            lines.ensureSpannables();
         } else {
             BufferList.desyncBuffer(this);
-            lines.eraseProcessedMessages();
+            lines.invalidateSpannables();
             if (P.optimizeTraffic) {
                 // if traffic is optimized, the next time we open the buffer, it might have been updated
                 // this presents two problems. first, we will not be able to update if we think
@@ -199,7 +199,7 @@ public class Buffer {
         if (isLast) lines.addLast(line); else lines.addFirst(line);
 
         // calculate spannable, if needed
-        if (isOpen) line.ensureProcessed();
+        if (isOpen) line.ensureSpannable();
 
         // notify levels: 0 none 1 highlight 2 message 3 all
         // treat hidden lines and lines that are not supposed to generate a “notification” as read
@@ -327,7 +327,10 @@ public class Buffer {
     }
 
     @MainThread void onGlobalPreferencesChanged(boolean numberChanged) {
-        synchronized (this) {lines.processAllMessages(!numberChanged);}
+        synchronized (this) {
+            if (!numberChanged) lines.invalidateSpannables();
+            lines.ensureSpannables();
+        }
         bufferEye.onGlobalPreferencesChanged(numberChanged);
     }
 

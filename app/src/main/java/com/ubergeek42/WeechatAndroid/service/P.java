@@ -323,6 +323,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
                 break;
             case PREF_THEME:
                 applyThemePreference();
+                break;
             case PREF_COLOR_SCHEME_DAY:
             case PREF_COLOR_SCHEME_NIGHT:
                 changeColorScheme();

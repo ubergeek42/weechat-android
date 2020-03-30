@@ -51,7 +51,7 @@ public class Line {
     public boolean clickDisabled = false;
 
     Line(long pointer, Type type, Date date, @NonNull String rawPrefix, @NonNull String rawMessage,
-            @Nullable String nick, boolean visible, boolean isHighlighted, boolean isPrivmsg, boolean isAction) {
+         @Nullable String nick, boolean visible, boolean isHighlighted, boolean isPrivmsg, boolean isAction) {
         this.pointer = pointer;
         this.type = type;
         this.date = date;
@@ -120,16 +120,14 @@ public class Line {
     private String messageString = null;
     volatile private Spannable spannable = null;
 
-    @AnyThread void eraseProcessedMessage() {
+    @AnyThread void invalidateSpannable() {
         spannable = null;
         prefixString = messageString = null;
     }
 
-    @AnyThread void ensureProcessed() {
-        if (spannable == null) forceProcessMessage();
-    }
+    @AnyThread void ensureSpannable() {
+        if (spannable != null) return;
 
-    @AnyThread void forceProcessMessage() {
         DateFormat dateFormat = P.dateFormat;
         String timestamp = dateFormat == null ? null : dateFormat.format(date);
         boolean encloseNick = P.encloseNick && isPrivmsg && !isAction;
@@ -175,12 +173,12 @@ public class Line {
     }
 
     public @NonNull String getPrefixString() {
-        ensureProcessed();
+        ensureSpannable();
         return prefixString;
     }
 
     public @NonNull String getMessageString() {
-        ensureProcessed();
+        ensureSpannable();
         return messageString;
     }
 
@@ -191,7 +189,7 @@ public class Line {
     }
 
     public @NonNull Spannable getSpannable() {
-        ensureProcessed();
+        ensureSpannable();
         return spannable;
     }
 

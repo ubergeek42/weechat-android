@@ -8,6 +8,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.util.Base64;
 import android.view.View;
 import android.view.ViewGroup;
@@ -236,5 +237,14 @@ public class Utils {
         sb.ensureCapacity(sb.length() + n);
         while (n-- > 0)
             sb.append(' ');
+    }
+
+    public static void runInBackground(Runnable runnable) {
+        new AsyncTask<Void, Void, Void>() {
+            @Override protected Void doInBackground(Void... voids) {
+                runnable.run();
+                return null;
+            }
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 }

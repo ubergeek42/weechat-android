@@ -1,7 +1,6 @@
 package com.ubergeek42.WeechatAndroid.media;
 
 import android.content.Context;
-import android.os.AsyncTask;
 
 import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
@@ -22,6 +21,8 @@ import com.ubergeek42.cats.Root;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static com.ubergeek42.WeechatAndroid.utils.Utils.runInBackground;
 
 public class CachePersist {
     final private static @Root Kitty kitty = Kitty.make();
@@ -108,14 +109,5 @@ public class CachePersist {
             for (Attempt attempt : attempts)
                 Cache.cache.putIfAbsent(attempt.key, new Cache.Attempt(attempt.code, attempt.timestamp));
         });
-    }
-
-    private static void runInBackground(Runnable runnable) {
-        new AsyncTask<Void, Void, Void>() {
-            @Override protected Void doInBackground(Void... voids) {
-                runnable.run();
-                return null;
-            }
-        }.execute();
     }
 }
