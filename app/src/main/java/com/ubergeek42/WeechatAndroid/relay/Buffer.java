@@ -68,7 +68,8 @@ public class Buffer {
     public Spannable printable = null; // printable buffer without title (for TextView)
     public Line titleLine;
 
-    @WorkerThread Buffer(long pointer, int number, String fullName, String shortName, String title, int notifyLevel, Hashtable localVars, boolean hidden) {
+    @WorkerThread Buffer(long pointer, int number, String fullName, String shortName, String title,
+                         int notifyLevel, Hashtable localVars, boolean hidden, boolean openWhileRunning) {
         this.pointer = pointer;
         this.number = number;
         this.fullName = fullName;
@@ -88,7 +89,17 @@ public class Buffer {
         nicks = new Nicks(shortName);
 
         if (P.isBufferOpen(pointer)) setOpen(true, false);
-        P.restoreLastReadLine(this);
+
+        // saved data would be meaningless for a newly opened buffer
+        if (!openWhileRunning) P.restoreLastReadLine(this);
+
+        // when a buffer is open while the application is already connected, such as when someone
+        // pms us, we don't have lastReadLine yet and so the subsequent hotlist update will trigger
+        // a full update. in order to avoid that, if we are syncing, let's pretend that a hotlist
+        // update has happened at this point so that the next update is “synced”
+        if (openWhileRunning && !P.optimizeTraffic)
+            hotlistUpdatesWhileSyncing++;
+
         kitty.trace("→ Buffer(number=%s, fullName=%s) isOpen? %s", number, fullName, isOpen);
     }
 

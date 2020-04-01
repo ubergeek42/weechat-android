@@ -240,7 +240,8 @@ public class BufferList {
                             entry.getItem("title").asString(),
                             ((r = entry.getItem("notify")) != null) ? r.asInt() : 3,
                             (Hashtable) entry.getItem("local_variables"),
-                            ((r = entry.getItem("hidden")) != null) && r.asInt() != 0);
+                            ((r = entry.getItem("hidden")) != null) && r.asInt() != 0,
+                            id.equals("_buffer_opened"));
                     buffers.add(buffer);
                 } else if (id.equals("renumber")) {
                     Buffer buffer = findByPointer(entry.getPointerLong(0));
