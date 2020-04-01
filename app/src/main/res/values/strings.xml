@@ -330,4 +330,7 @@
         <string name="pref_timestamp_invalid">Invalid timestamp format</string>
         <string name="pref_number_invalid">Invalid number</string>
         <string name="pref_hostname_invalid">No spaces allowed in hostnames</string>
+    <string name="debug">Debug</string>
+    <string name="sync_hotlist">Sync hotlist</string>
+    <string name="die">Die</string>
 </resources>

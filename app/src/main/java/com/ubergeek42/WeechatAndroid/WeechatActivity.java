@@ -460,6 +460,11 @@ public class WeechatActivity extends AppCompatActivity implements
                 PreferenceManager.getDefaultSharedPreferences(this).edit().putString(
                         PREF_THEME, P.darkThemeActive ? PREF_THEME_LIGHT : PREF_THEME_DARK).apply();
                 break;
+            case R.id.sync_hotlist:
+                BufferList.syncHotlist();
+                break;
+            case R.id.die:
+                System.exit(0);
         }
         return true;
     }

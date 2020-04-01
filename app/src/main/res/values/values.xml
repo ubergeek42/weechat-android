@@ -20,6 +20,8 @@
         <item >light</item>
     </string-array>
 
+    <bool name="debug">false</bool>
+
     <dimen name="dialog_item_padding_vertical">8dp</dimen>
     <dimen name="drawer_width">304dp</dimen>
     <dimen name="chat_item_left_margin">0dp</dimen>

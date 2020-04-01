@@ -34,4 +34,16 @@
         app:showAsAction="never"
         android:title="@string/menu_dark_theme"
         android:checkable="true"/>
+    <item android:id="@+id/debug"
+        android:visible="@bool/debug"
+        android:menuCategory="secondary"
+        app:showAsAction="never"
+        android:title="@string/debug">
+        <menu>
+            <item android:id="@+id/sync_hotlist"
+                android:title="@string/sync_hotlist" />
+            <item android:id="@+id/die"
+                android:title="@string/die" />
+        </menu>
+    </item>
 </menu>
