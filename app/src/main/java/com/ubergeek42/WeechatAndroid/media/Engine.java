@@ -28,6 +28,15 @@ import static com.ubergeek42.WeechatAndroid.media.HostUtils.getHost;
 public class Engine {
     final private static @Root Kitty kitty = Kitty.make();
 
+    private static final HashMap<String, Strategy> strategies = new HashMap<>();
+    private static @NonNull List<LineFilter> lineFilters = new ArrayList<>();
+
+    public enum Location {
+        CHAT,
+        PASTE,
+        NOTIFICATION
+    }
+
     final public static RequestOptions defaultRequestOptions = new RequestOptions()
             .diskCacheStrategy(DiskCacheStrategy.ALL)
             .transform(new MultiTransformation<>(new CenterCrop(), new RoundedCorners(THUMBNAIL_CORNER_RADIUS)));
@@ -40,12 +49,6 @@ public class Engine {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public enum Location {
-        CHAT,
-        PASTE,
-        NOTIFICATION
-    }
-
     public static boolean isEnabledForLocation(Location location) {
         switch (location) {
             case CHAT: return Config.enabledForChat;
@@ -56,8 +59,6 @@ public class Engine {
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    private static @NonNull List<LineFilter> lineFilters = new ArrayList<>();
 
     static void setLineFilters(@NonNull List<LineFilter> filters) {
         lineFilters = filters;
@@ -84,8 +85,6 @@ public class Engine {
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    private static final HashMap<String, Strategy> strategies = new HashMap<>();
 
     @Cat static void registerStrategy(List<Strategy> strategies) {
         for (Strategy strategy : strategies) {
