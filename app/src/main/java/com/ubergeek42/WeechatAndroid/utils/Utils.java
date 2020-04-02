@@ -247,4 +247,10 @@ public class Utils {
             }
         }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
+
+    public static String replaceAfterFind(Matcher matcher, String replacement) {
+        StringBuffer sb = new StringBuffer();
+        matcher.appendReplacement(sb, replacement);
+        return sb.toString();
+    }
 }

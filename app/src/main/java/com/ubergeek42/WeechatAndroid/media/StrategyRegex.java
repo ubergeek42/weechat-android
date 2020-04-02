@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.bumptech.glide.util.Preconditions;
+import com.ubergeek42.WeechatAndroid.utils.Utils;
 
 import java.io.InputStream;
 import java.util.List;
@@ -31,10 +32,10 @@ class StrategyRegex extends Strategy {
         String modifiedUrl = originalUrl;
         if (regex != null) {
             Matcher matcher = regex.matcher(originalUrl);
-            if (!matcher.matches())
-                return null;
+            if (!matcher.find())
+                    return null;
             String replacement = size == Size.SMALL ? replacementSmall : replacementBig;
-            modifiedUrl = replacement != null ? matcher.replaceFirst(replacement) : originalUrl;
+            modifiedUrl = replacement != null ? Utils.replaceAfterFind(matcher, replacement) : originalUrl;
         }
         return new Url(originalUrl, modifiedUrl);
     }
