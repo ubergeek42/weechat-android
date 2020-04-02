@@ -5,6 +5,7 @@ import com.ubergeek42.WeechatAndroid.utils.Linkify;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.regex.Pattern;
 
 public class Config {
     final public static int ANIMATION_DURATION = 250;                           // ms
@@ -45,14 +46,14 @@ public class Config {
 
     @SuppressWarnings("SpellCheckingInspection")
     private static void setup() {
-        Linkify.setMessageFilter("^<[^ ]{1,16} \".{1,33}\"> ");
+        Linkify.setMessageFilter(Pattern.compile("^<[^ ]{1,16} \".{1,33}\"> "));
 
         Engine.setLineFilters(Arrays.asList(
                 new LineFilter(Collections.singletonList("tacgnol"), null),
                 new LineFilter(null, "^(?:Title: |↑ )")
         ));
 
-        Engine.registerStrategy(Arrays.asList(
+        Engine.setStrategies(Arrays.asList(
                 new StrategyRegex(
                         "youtube",
                         Arrays.asList("www.youtube.com", "m.youtube.com", "youtube.com", "youtu.be"),

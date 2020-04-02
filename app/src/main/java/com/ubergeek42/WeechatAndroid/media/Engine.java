@@ -11,6 +11,7 @@ import com.bumptech.glide.load.resource.bitmap.CenterCrop;
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.bumptech.glide.request.RequestOptions;
 import com.ubergeek42.WeechatAndroid.relay.Line;
+import com.ubergeek42.WeechatAndroid.utils.DefaultHashMap;
 import com.ubergeek42.WeechatAndroid.utils.Network;
 import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.Kitty;
@@ -28,7 +29,7 @@ import static com.ubergeek42.WeechatAndroid.media.HostUtils.getHost;
 public class Engine {
     final private static @Root Kitty kitty = Kitty.make();
 
-    private static final HashMap<String, Strategy> strategies = new HashMap<>();
+    private static @NonNull HashMap<String, List<Strategy>> strategies = new HashMap<>();
     private static @NonNull List<LineFilter> lineFilters = new ArrayList<>();
 
     public enum Location {
@@ -86,12 +87,14 @@ public class Engine {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @Cat static void registerStrategy(List<Strategy> strategies) {
-        for (Strategy strategy : strategies) {
+    @Cat static void setStrategies(List<Strategy> strategyList) {
+        DefaultHashMap<String, List<Strategy>> strategies = new DefaultHashMap<>(key -> new ArrayList<>());
+        for (Strategy strategy : strategyList) {
             for (String host : strategy.getHosts()) {
-                Engine.strategies.put(host, strategy);
+                strategies.computeIfAbsent(host).add(strategy);
             }
         }
+        Engine.strategies = strategies;
     }
 
     // given an url, return a StrategyUrl that it the best candidate to handle it
@@ -99,13 +102,15 @@ public class Engine {
         String host = getHost(url);
         if (host != null) {
             for (String subHost : new HostUtils.HostIterable(host)) {
-                Strategy strategy = strategies.get(subHost);
-                if (strategy != null) {
-                    try {
-                        Strategy.Url strategyUrl = strategy.make(url, size);
-                        if (strategyUrl != null) return strategyUrl;
-                    } catch (Strategy.CancelFurtherAttempts e) {
-                        return null;
+                List<Strategy> strategies = Engine.strategies.get(subHost);
+                if (strategies != null) {
+                    for (Strategy strategy : strategies) {
+                        try {
+                            Strategy.Url strategyUrl = strategy.make(url, size);
+                            if (strategyUrl != null) return strategyUrl;
+                        } catch (Strategy.CancelFurtherAttempts e) {
+                            return null;
+                        }
                     }
                 }
             }
@@ -124,8 +129,12 @@ public class Engine {
 
     static boolean hasNullStrategyFor(@NonNull HttpUrl url) {
         for (String subHost : new HostUtils.HostIterable(url.host())) {
-            Strategy strategy = strategies.get(subHost);
-            if (strategy instanceof StrategyNull) return true;
+            List<Strategy> strategies = Engine.strategies.get(subHost);
+            if (strategies != null) {
+                for (Strategy strategy : strategies) {
+                    if (strategy instanceof StrategyNull) return true;
+                }
+            }
         }
         return false;
     }

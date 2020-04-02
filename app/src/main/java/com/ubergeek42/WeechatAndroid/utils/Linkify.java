@@ -55,8 +55,8 @@ public class Linkify {
         }
     }
 
-    public static void setMessageFilter(String filter) {
-        messageFilter = Pattern.compile(filter, Pattern.CASE_INSENSITIVE);
+    public static void setMessageFilter(@NonNull Pattern filter) {
+        messageFilter = filter;
     }
 
     public static @Nullable String getFirstUrlFromString(CharSequence s) {
