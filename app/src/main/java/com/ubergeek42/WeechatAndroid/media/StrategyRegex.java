@@ -23,7 +23,7 @@ class StrategyRegex extends Strategy {
     StrategyRegex(String name, List<String> hosts, @Nullable String regex,
                   @Nullable String replacementSmall, @Nullable String replacementBig) {
         super(name, hosts);
-        this.regex = regex == null ? null : Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
+        this.regex = regex == null ? null : Pattern.compile(regex);
         this.replacementSmall = replacementSmall;
         this.replacementBig = replacementBig;
     }

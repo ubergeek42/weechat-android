@@ -38,7 +38,7 @@ class StrategyAny extends Strategy {
 
     StrategyAny(String name, List<String> hosts, @Nullable String regex, @Nullable String replacement, int wantedBodySize) {
         super(name, hosts);
-        this.regex = regex == null ? null : Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
+        this.regex = regex == null ? null : Pattern.compile(regex);
         this.replacement = replacement;
         this.wantedBodySize = wantedBodySize;
     }
