@@ -20,6 +20,7 @@
         <item name="android:colorBackground">@color/primary</item>
         <item name="alertDialogTheme">@style/PreferenceAlertDialogBackgroundFix</item>
         <item name="buttonStyle">@style/NormalCaseButton</item>
+        <item name="textAllCaps">false</item>
     </style>
 
     <!-- actually used by app's dialogs. don't set any background color; android:windowBackground
@@ -33,6 +34,12 @@
         <item name="dialogCornerRadius">@dimen/dialog_corner_radius</item>
         <item name="buttonStyle">@style/NormalCaseButton</item>
         <item name="android:windowSoftInputMode">adjustResize|stateHidden</item>
+    </style>
+
+    <style name="FullScreenAlertDialogTheme" parent="AlertDialogTheme">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:windowBackground">@color/primary</item>
     </style>
 
     <!-- this is only supposed to be used by preferences, since those are broken -->

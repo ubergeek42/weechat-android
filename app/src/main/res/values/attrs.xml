@@ -10,4 +10,7 @@
     <declare-styleable name="MultiSelectListPreferenceWithSummary">
         <attr name="emptySummary" format="string|reference" />
     </declare-styleable>
+    <declare-styleable name="FullScreenEditTextPreference">
+        <attr name="resetToDefaultValue" format="string|reference" />
+    </declare-styleable>
 </resources>

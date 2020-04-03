@@ -17,6 +17,7 @@ import androidx.preference.ClearCertPreference;
 import androidx.preference.DialogPreference;
 import androidx.preference.EditTextPreferenceFix;
 import androidx.preference.FilePreference;
+import androidx.preference.FullScreenEditTextPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceGroup;
@@ -118,6 +119,8 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
                 f = FilePreference.FilePreferenceFragment.newInstance(preference.getKey(), PREF_SSH_KEY.equals(preference.getKey()) ? 1 : 2);
             else if (preference instanceof EditTextPreferenceFix)
                 f = EditTextPreferenceFix.EditTextPreferenceFixFragment.newInstance(preference.getKey());
+            else if (preference instanceof FullScreenEditTextPreference)
+                f = FullScreenEditTextPreference.FullScreenEditTextPreferenceFragment.newInstance(preference.getKey());
             else if (preference instanceof ClearCertPreference)
                 f = ClearCertPreference.ClearCertPreferenceFragment.newInstance(preference.getKey());
             else if (preference instanceof RingtonePreferenceFix) {

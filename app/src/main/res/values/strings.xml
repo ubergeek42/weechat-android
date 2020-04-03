@@ -356,4 +356,10 @@
     <string name="debug">Debug</string>
     <string name="sync_hotlist">Sync hotlist</string>
     <string name="die">Die</string>
+    <string name="menu_save">Save</string>
+    <string name="menu_reset_to_default">Default</string>
+
+    <string name="dialog_discard_changes_prompt">Discard changes?</string>
+    <string name="dialog_discard_changes_cancel">Cancel</string>
+    <string name="dialog_discard_changes_discard">Discard</string>
 </resources>
