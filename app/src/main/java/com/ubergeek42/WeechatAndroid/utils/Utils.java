@@ -26,6 +26,7 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.nio.CharBuffer;
 import java.text.SimpleDateFormat;
+import java.util.Collection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -253,4 +254,15 @@ public class Utils {
         matcher.appendReplacement(sb, replacement);
         return sb.toString();
     }
+
+    public static CharSequence join(CharSequence separator, Collection<CharSequence> list) {
+        int i = 0, size = list.size();
+        StringBuilder sb = new StringBuilder();
+        for (CharSequence element : list) {
+            sb.append(element);
+            if (++i < size) sb.append(separator);
+        }
+        return sb;
+    }
+
 }

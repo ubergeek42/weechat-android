@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string-array name="settings_media_preview_enabled_for_location_values_default"
+        tools:ignore="InconsistentArrays">
+        <item>chat</item>
+        <item>paste</item>
+        <item>notifications</item>
+    </string-array>
+</resources>

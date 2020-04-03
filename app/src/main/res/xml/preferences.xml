@@ -97,6 +97,28 @@
         <CheckBoxPreference android:key="notification_ticker" android:summary="@string/pref_notification_ticker_summary" android:title="@string/pref_notification_ticker" android:defaultValue="true" android:dependency="notification_enable" />
     </PreferenceScreen>
 
+    <!-- notifications -->
+
+    <PreferenceScreen android:key="media_preview_group" android:title="@string/pref_media_preview_group">
+        <ListPreference android:key="media_preview_enabled_for_network"
+            android:title="@string/pref_media_preview_enabled_for_network"
+            android:defaultValue="never"
+            android:entryValues="@array/settings_media_preview_enabled_for_network_values"
+            android:entries="@array/pref_media_preview_enabled_for_network_names"
+            android:summary="%s"/>
+        <MultiSelectListPreferenceWithSummary android:key="media_preview_enabled_for_location"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:title="@string/pref_media_preview_enabled_for_location"
+            android:defaultValue="@array/settings_media_preview_enabled_for_location_values_default"
+            android:entryValues="@array/settings_media_preview_enabled_for_location_values"
+            android:entries="@array/pref_media_preview_enabled_for_location_names"
+            android:summary="@string/pref_media_preview_enabled_for_location_summary"
+            app:emptySummary="@string/pref_media_preview_enabled_for_location_summary_empty"/>
+        <Preference
+            android:selectable="false"
+            android:summary="@string/pref_media_preview_help" />
+    </PreferenceScreen>
+
     <!-- about -->
 
     <PreferenceScreen android:key="about" android:title="@string/about">

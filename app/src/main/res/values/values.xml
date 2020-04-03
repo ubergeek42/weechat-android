@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <!--  Don't touch these, they are internal names -->
     <string-array name="settings_prefix_alignment_values">
         <item>left</item>
@@ -18,6 +18,23 @@
         <item >system</item>
         <item >dark</item>
         <item >light</item>
+    </string-array>
+
+    <string-array name="settings_media_preview_enabled_for_network_values">
+        <item>never</item>
+        <item>wifi_only</item>
+        <item>unmetered_only</item>
+        <item>always</item>
+    </string-array>
+    <string-array name="settings_media_preview_enabled_for_location_values">
+        <item>chat</item>
+        <item>paste</item>
+        <item>notifications</item>
+    </string-array>
+    <string-array name="settings_media_preview_enabled_for_location_values_default"
+        tools:ignore="InconsistentArrays">
+        <item>chat</item>
+        <item>paste</item>
     </string-array>
 
     <bool name="debug">false</bool>

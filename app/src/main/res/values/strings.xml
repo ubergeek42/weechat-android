@@ -300,7 +300,30 @@
         <string name="pref_ringtone_none">None</string>
         <string name="pref_ringtone_unknown">Unknown</string>
 
-        <!-- about -->
+    <!-- media preview -->
+
+        <string name="pref_media_preview_group">Media preview</string>
+        <string name="pref_media_preview_enabled_for_network">Enabled</string>
+        <string name="pref_media_preview_enabled_for_location">Locations</string>
+        <string name="pref_media_preview_enabled_for_location_summary">Enabled for %s</string>
+        <string name="pref_media_preview_enabled_for_location_summary_empty">Disabled everywhere</string>
+
+        <string-array name="pref_media_preview_enabled_for_network_names">
+            <item>Never</item>
+            <item>On Wi-Fi only</item>
+            <item>On unmetered networks only</item>
+            <item>Always</item>
+        </string-array>
+
+        <string-array name="pref_media_preview_enabled_for_location_names">
+            <item>Chat</item>
+            <item>Paste dialog</item>
+            <item>Notifications</item>
+        </string-array>
+
+        <string name="pref_media_preview_help">Note that enabling media preview for notifications can result in duplicate lines being shown on some earlier platforms.</string>
+
+    <!-- about -->
 
         <string name="about">About</string>
         <string name="build_id">build ID %s</string>
