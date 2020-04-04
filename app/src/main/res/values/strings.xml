@@ -321,6 +321,13 @@
             <item>Notifications</item>
         </string-array>
 
+        <string name="pref_media_preview_secure_request">Insecure requests</string>
+        <string-array name="pref_media_preview_secure_request_names">
+            <item>Allow</item>
+            <item>Rewrite as HTTPS</item>
+            <item>Disallow</item>
+        </string-array>
+
         <string name="pref_media_preview_help">Note that enabling media preview for notifications can result in duplicate lines being shown on some earlier platforms.</string>
 
     <!-- about -->

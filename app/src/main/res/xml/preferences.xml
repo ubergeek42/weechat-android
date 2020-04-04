@@ -97,7 +97,7 @@
         <CheckBoxPreference android:key="notification_ticker" android:summary="@string/pref_notification_ticker_summary" android:title="@string/pref_notification_ticker" android:defaultValue="true" android:dependency="notification_enable" />
     </PreferenceScreen>
 
-    <!-- notifications -->
+    <!-- media preview -->
 
     <PreferenceScreen android:key="media_preview_group" android:title="@string/pref_media_preview_group">
         <ListPreference android:key="media_preview_enabled_for_network"
@@ -114,15 +114,22 @@
             android:entries="@array/pref_media_preview_enabled_for_location_names"
             android:summary="@string/pref_media_preview_enabled_for_location_summary"
             app:emptySummary="@string/pref_media_preview_enabled_for_location_summary_empty"/>
-        <Preference
-            android:selectable="false"
-            android:summary="@string/pref_media_preview_help" />
+        <ListPreference android:key="media_preview_secure_request"
+            android:title="@string/pref_media_preview_secure_request"
+            android:defaultValue="rewrite"
+            android:entryValues="@array/settings_media_preview_secure_request_values"
+            android:entries="@array/pref_media_preview_secure_request_names"
+            android:summary="%s"/>
         <FullScreenEditTextPreference android:key="media_preview_config"
             xmlns:app="http://schemas.android.com/apk/res-auto"
             android:title="Config"
             android:defaultValue="hello"
             app:resetToDefaultValue="hello"
             android:summary="%s"/>
+        <Preference
+            android:selectable="false"
+            android:summary="@string/pref_media_preview_help" />
+
     </PreferenceScreen>
 
     <!-- about -->

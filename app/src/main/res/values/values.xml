@@ -36,6 +36,11 @@
         <item>chat</item>
         <item>paste</item>
     </string-array>
+    <string-array name="settings_media_preview_secure_request_values">
+        <item>optional</item>
+        <item>rewrite</item>
+        <item>required</item>
+    </string-array>
 
     <bool name="debug">false</bool>
 
