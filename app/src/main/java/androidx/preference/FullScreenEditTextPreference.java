@@ -123,7 +123,9 @@ public class FullScreenEditTextPreference extends EditTextPreference {
                 return false;
             });
 
-            return builder.create();
+            Dialog dialog = builder.create();
+            if (dialog.getWindow() != null) dialog.getWindow().setDimAmount(0);
+            return dialog;
         }
 
         private void resetToDefaultValue() {

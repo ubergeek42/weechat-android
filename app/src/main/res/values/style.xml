@@ -36,10 +36,14 @@
         <item name="android:windowSoftInputMode">adjustResize|stateHidden</item>
     </style>
 
-    <style name="FullScreenAlertDialogTheme" parent="AlertDialogTheme">
-        <item name="android:windowNoTitle">true</item>
-        <item name="android:windowIsFloating">false</item>
-        <item name="android:windowBackground">@color/primary</item>
+    <style name="FullScreenAlertDialogTheme" parent="Weechat">
+        <item name="android:windowAnimationStyle">@style/ActivityMimickingAnimation</item>
+        <item name="android:windowSoftInputMode">adjustResize|stateHidden</item>
+    </style>
+
+    <style name="ActivityMimickingAnimation" parent="Weechat">
+        <item name="android:windowEnterAnimation">@anim/activity_like_open_enter</item>
+        <item name="android:windowExitAnimation">@anim/activity_like_close_exit</item>
     </style>
 
     <!-- this is only supposed to be used by preferences, since those are broken -->
