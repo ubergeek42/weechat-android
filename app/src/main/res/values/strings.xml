@@ -328,7 +328,18 @@
             <item>Disallow</item>
         </string-array>
 
-        <string name="pref_media_preview_help">Note that enabling media preview for notifications can result in duplicate lines being shown on some earlier platforms.</string>
+        <string name="pref_media_preview_help">Note that enabling media preview for notifications
+            can result in duplicate lines being shown on some earlier platforms.</string>
+
+        <string name="pref_media_preview_advanced_group">Advanced</string>
+            <string name="pref_media_preview_maximum_body_size">Download size limit</string>
+            <string name="pref_media_preview_maximum_body_size_summary">%s MB</string>
+            <string name="pref_image_disk_cache_size">Disk cache</string>
+            <string name="pref_image_disk_cache_size_summary">%s MB; takes effect on restart</string>
+            <string name="pref_media_preview_success_cooldown">Success cooldown</string>
+            <string name="pref_media_preview_success_cooldown_summary">%s hours. The app will
+                consider successfully fetched image available, either from cache or the web, for
+                the specified amount of time.</string>
 
     <!-- about -->
 

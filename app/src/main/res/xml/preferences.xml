@@ -129,7 +129,27 @@
         <Preference
             android:selectable="false"
             android:summary="@string/pref_media_preview_help" />
-
+        <PreferenceCategory android:key="media_preview_advanced_group"
+            android:title="@string/pref_media_preview_advanced_group">
+            <EditTextPreferenceFix android:key="media_preview_maximum_body_size"
+                android:title="@string/pref_media_preview_maximum_body_size"
+                android:summary="@string/pref_media_preview_maximum_body_size_summary"
+                android:singleLine="true"
+                android:inputType="numberDecimal"
+                android:defaultValue="10" />
+            <EditTextPreferenceFix android:key="image_disk_cache_size"
+                android:title="@string/pref_image_disk_cache_size"
+                android:summary="@string/pref_image_disk_cache_size_summary"
+                android:singleLine="true"
+                android:inputType="numberDecimal"
+                android:defaultValue="250" />
+            <EditTextPreferenceFix android:key="media_preview_success_cooldown"
+                android:title="@string/pref_media_preview_success_cooldown"
+                android:summary="@string/pref_media_preview_success_cooldown_summary"
+                android:singleLine="true"
+                android:inputType="numberDecimal"
+                android:defaultValue="24" />
+        </PreferenceCategory>
     </PreferenceScreen>
 
     <!-- about -->
