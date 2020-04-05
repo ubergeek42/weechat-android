@@ -27,6 +27,7 @@ dependencies {
     implementation "com.squareup.okhttp3:okhttp:4.4.0"
     implementation "androidx.room:room-runtime:2.2.4"
     annotationProcessor "androidx.room:room-compiler:2.2.4"
+    implementation "org.yaml:snakeyaml:1.18:android"
 
     implementation 'org.aspectj:aspectjrt:1.9.5'
 

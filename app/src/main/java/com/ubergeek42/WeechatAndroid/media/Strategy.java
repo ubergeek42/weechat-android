@@ -79,6 +79,10 @@ abstract public class Strategy {
         }
     }
 
+    @NonNull public String getName() {
+        return name;
+    }
+
     @NonNull @Override public String toString() {
         return getClass().getSimpleName() + "(" + name + ")";
     }

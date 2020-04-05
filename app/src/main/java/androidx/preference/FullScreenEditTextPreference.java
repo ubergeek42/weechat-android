@@ -111,6 +111,7 @@ public class FullScreenEditTextPreference extends EditTextPreference {
             });
 
             editText = contents.findViewById(ID_EDITTEXT);
+            editText.setHorizontallyScrolling(true);
             editText.setText(getFullScreenEditTextPreference().getText());
 
             final AlertDialog.Builder builder = new AlertDialog.Builder(context, FULL_SCREEN_DIALOG_STYLE);
@@ -136,8 +137,8 @@ public class FullScreenEditTextPreference extends EditTextPreference {
             String value = editText.getText().toString();
             if (this.getFullScreenEditTextPreference().callChangeListener(value)) {
                 this.getFullScreenEditTextPreference().setText(value);
+                dismiss();
             }
-            dismiss();
         }
 
         void tryClosing() {

@@ -328,6 +328,8 @@
             <item>Disallow</item>
         </string-array>
 
+        <string name="pref_media_preview_strategies">Strategies</string>
+
         <string name="pref_media_preview_help">Note that enabling media preview for notifications
             can result in duplicate lines being shown on some earlier platforms.</string>
 
@@ -380,4 +382,75 @@
     <string name="dialog_discard_changes_prompt">Discard changes?</string>
     <string name="dialog_discard_changes_cancel">Cancel</string>
     <string name="dialog_discard_changes_discard">Discard</string>
+
+    <string name="pref_media_preview_strategies_default">
+"message filter:
+  ^&lt;[^ ]{1,16} \".{1,33}\">\\s
+
+line filters:
+- nicks: [tacgnol]
+
+- regex: '^(?:Title: |↑ )'
+
+- nicks: [lobot]
+  regex: ^&lt;\\S+>\\s
+
+strategies:
+- name: skip pastebins
+  type: none
+  hosts: [pastebin.com, github.com, bpaste.net, dpaste.com, termbin.com]
+
+- name: try the rest
+  type: any
+  hosts: ['*']
+
+- name: youtube
+  type: image
+  hosts: [www.youtube.com, m.youtube.com, youtube.com, youtu.be]
+  regex: (?i)^https?://(?:(?:www\\.|m\\.)?youtube\\.com/watch\\?v=|youtu\\.be/)([A-Za-z0-9_-]+)
+  small: https://img.youtube.com/vi/$1/mqdefault.jpg
+  big: https://img.youtube.com/vi/$1/hqdefault.jpg
+
+- name: i.imgur.com
+  type: image
+  hosts: [i.imgur.com]
+  regex: (?i)^https?://i\\.imgur\\.com/([^.]+)
+  small: https://i.imgur.com/$1m.jpg
+  big: https://i.imgur.com/$1h.jpg
+
+- name: imgur.com/gallery
+  type: any
+  hosts: [imgur.com, www.imgur.com]
+  regex: (?i)^https?://(?:www\\.)?imgur\\.com/gallery/(.*)
+  sub: https://imgur.com/a/$1
+
+- name: 9gag
+  type: image
+  hosts: [9gag.com, img-9gag-fun.9cache.com]
+  regex: (?i)^https?://(?:9gag\\.com/gag|img-9gag-fun\\.9cache\\.com/photo)/([^_]+)
+  small: https://images-cdn.9gag.com/photo/$1_700b.jpg
+  big: https://images-cdn.9gag.com/photo/$1_700b.jpg
+
+- name: mobile.twitter.com
+  type: any
+  hosts: [mobile.twitter.com]
+  regex: (?i)^https?://mobile\\.twitter\\.com/(.*)
+  sub: https://twitter.com/$1
+
+- name: pikabu.ru
+  type: any
+  hosts: [pikabu.ru, www.pikabu.ru]
+  regex: (?i)^https://pikabu\\.ru/story/.
+
+- name: common/https
+  type: any
+  hosts: ['*.wikipedia.org', gfycat.com]
+  regex: (?i)^https?://(.+)
+  sub: https://$1
+
+- name: reddit
+  type: any
+  hosts: [v.redd.it, reddit.com, www.reddit.com, old.reddit.com]
+  body size: 131072
+"</string>
 </resources>

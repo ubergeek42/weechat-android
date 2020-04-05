@@ -123,6 +123,10 @@ public class Utils {
         return array == null || array.length == 0;
     }
 
+    public static <T> boolean isEmpty(Collection<T> collection) {
+        return collection == null || collection.isEmpty();
+    }
+
     public static @NonNull byte[] readFromUri(Context context, Uri uri) throws IOException {
         int len;
         ByteArrayOutputStream out = new ByteArrayOutputStream();

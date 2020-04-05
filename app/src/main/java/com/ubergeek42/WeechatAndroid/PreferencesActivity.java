@@ -29,6 +29,7 @@ import android.view.MenuItem;
 import androidx.preference.FontPreference;
 import android.widget.Toast;
 
+import com.ubergeek42.WeechatAndroid.media.Config;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
 
@@ -165,6 +166,8 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
                 listenTo = new String[]{PREF_THEME};
             } else if (PREF_BUFFERLIST_GROUP.equals(key)) {
                 enableDisableGestureExclusionZoneSwitch();
+            } else if ("media_preview_group".equals(key)) {
+                listenTo = new String[]{"media_preview_strategies"};
             }
 
             for (String p : listenTo)
@@ -208,8 +211,15 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
                 showHideStuff((String) o);
             } else if (PREF_THEME.equals(key)) {
                 enableDisableThemeSwitch((String) o);
+            } else if ("media_preview_strategies".equals(key)) {
+                try {
+                    Config.parseConfig((String) o);
+                } catch (Exception e) {
+                    Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_LONG).show();
+                    valid = false;
+                }
             }
-            if (!valid)
+            if (!valid && toast != -1)
                 Toast.makeText(getContext(), toast, Toast.LENGTH_SHORT).show();
             return valid;
          }

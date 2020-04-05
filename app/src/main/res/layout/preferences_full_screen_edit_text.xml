@@ -25,6 +25,7 @@
         android:typeface="monospace"
         android:background="@android:color/transparent"
         android:autofillHints=""
+        android:scrollHorizontally="true"
         tools:ignore="LabelFor" />
 
     <!-- without this the layout breaks somehow -->
