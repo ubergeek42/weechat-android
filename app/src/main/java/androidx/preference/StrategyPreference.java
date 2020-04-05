@@ -19,13 +19,9 @@ public class StrategyPreference extends FullScreenEditTextPreference {
 
     @Cat(exit = true) @Override public CharSequence getSummary() {
         String text = getText();
-        Config.Info info;
-
-        try {
-            info = Config.parseConfig(text);
-        } catch (Exception e) {
+        Config.Info info = Config.parseConfigSafe(text);
+        if (info == null)
             return "Error";
-        }
 
         StringBuilder sb = new StringBuilder();
         sb.append("Define the ways images are fetched from individual websites. You can use a " +

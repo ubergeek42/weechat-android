@@ -212,12 +212,7 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
             } else if (PREF_THEME.equals(key)) {
                 enableDisableThemeSwitch((String) o);
             } else if ("media_preview_strategies".equals(key)) {
-                try {
-                    Config.parseConfig((String) o);
-                } catch (Exception e) {
-                    Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_LONG).show();
-                    valid = false;
-                }
+                valid = Config.parseConfigSafe((String) o) != null;
             }
             if (!valid && toast != -1)
                 Toast.makeText(getContext(), toast, Toast.LENGTH_SHORT).show();

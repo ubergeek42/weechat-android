@@ -1,8 +1,11 @@
 package com.ubergeek42.WeechatAndroid.utils;
 
-import android.content.ComponentName;
+import android.os.Build;
 
-import com.ubergeek42.WeechatAndroid.BuildConfig;
+import com.ubergeek42.WeechatAndroid.R;
+import com.ubergeek42.WeechatAndroid.Weechat;
+
+import java.util.Set;
 
 public class Constants {
 
@@ -95,7 +98,44 @@ public class Constants {
     final public static String PREF_THEME_LIGHT = "light";
     final public static String PREF_THEME_D = PREF_THEME_SYSTEM;
 
-    final public static String PREF_IMAGE_DISK_CACHE_SIZE = "image_disk_cache_size";
+    // media preview
+    final public static String PREF_MEDIA_PREVIEW_ENABLED_FOR_NETWORK = "media_preview_enabled_for_network";
+    final public static String PREF_MEDIA_PREVIEW_ENABLED_FOR_NETWORK_NEVER = "never";
+    final public static String PREF_MEDIA_PREVIEW_ENABLED_FOR_NETWORK_WIFI_ONLY = "wifi_only";
+    final public static String PREF_MEDIA_PREVIEW_ENABLED_FOR_NETWORK_UNMETERED_ONLY = "unmetered_only";
+    final public static String PREF_MEDIA_PREVIEW_ENABLED_FOR_NETWORK_ALWAYS = "always";
+    final public static String PREF_MEDIA_PREVIEW_ENABLED_FOR_NETWORK_D = PREF_MEDIA_PREVIEW_ENABLED_FOR_NETWORK_NEVER;
 
+    final public static String PREF_MEDIA_PREVIEW_ENABLED_FOR_LOCATION = "media_preview_enabled_for_location";
+    final public static String PREF_MEDIA_PREVIEW_ENABLED_FOR_LOCATION_CHAT = "chat";
+    final public static String PREF_MEDIA_PREVIEW_ENABLED_FOR_LOCATION_PASTE = "paste";
+    final public static String PREF_MEDIA_PREVIEW_ENABLED_FOR_LOCATION_NOTIFICATIONS = "notifications";
+    final public static Set<String> PREF_MEDIA_PREVIEW_ENABLED_FOR_LOCATION_D =
+            Build.VERSION.SDK_INT >= 24 ?
+                    Utils.makeSet("chat", "paste", "notifications") :
+                    Utils.makeSet("chat", "paste");
+
+    final public static String PREF_MEDIA_PREVIEW_SECURE_REQUEST = "media_preview_secure_request";
+    final public static String PREF_MEDIA_PREVIEW_SECURE_REQUEST_OPTIONAL = "optional";
+    final public static String PREF_MEDIA_PREVIEW_SECURE_REQUEST_REWRITE = "rewrite";
+    final public static String PREF_MEDIA_PREVIEW_SECURE_REQUEST_REQUIRED = "required";
+    final public static String PREF_MEDIA_PREVIEW_SECURE_REQUEST_D = PREF_MEDIA_PREVIEW_SECURE_REQUEST_REWRITE;
+
+    final public static String PREF_MEDIA_PREVIEW_MAXIMUM_BODY_SIZE = "media_preview_maximum_body_size";
+    final public static String PREF_MEDIA_PREVIEW_MAXIMUM_BODY_SIZE_D = "10";
+    final public static String PREF_IMAGE_DISK_CACHE_SIZE = "image_disk_cache_size";
+    final public static String PREF_IMAGE_DISK_CACHE_SIZE_D = "250";
+    final public static String PREF_MEDIA_PREVIEW_SUCCESS_COOLDOWN = "media_preview_success_cooldown";
+    final public static String PREF_MEDIA_PREVIEW_SUCCESS_COOLDOWN_D = "24";
+
+    final public static String PREF_MEDIA_PREVIEW_STRATEGIES = "media_preview_strategies";
+    final public static String PREF_MEDIA_PREVIEW_STRATEGIES_D = getResourceString(R.string.pref_media_preview_strategies_default);
+
+    // etc
     final public static String PREF_THEME_SWITCH = "theme_switch"; final public static boolean PREF_THEME_SWITCH_D = false;
+
+    @SuppressWarnings("SameParameterValue")
+    private static String getResourceString(int id) {
+        return Weechat.applicationContext.getResources().getString(id);
+    }
 }

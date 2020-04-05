@@ -55,7 +55,7 @@ public class Linkify {
         }
     }
 
-    public static void setMessageFilter(@NonNull Pattern filter) {
+    public static void setMessageFilter(@Nullable Pattern filter) {
         messageFilter = filter;
     }
 

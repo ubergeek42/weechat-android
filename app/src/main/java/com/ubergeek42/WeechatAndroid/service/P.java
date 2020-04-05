@@ -27,6 +27,7 @@ import androidx.preference.ThemeManager;
 
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.Weechat;
+import com.ubergeek42.WeechatAndroid.media.Config;
 import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.WeechatAndroid.utils.ThemeFix;
@@ -71,6 +72,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         loadUIPreferences();
         p.registerOnSharedPreferenceChangeListener(instance);
         calculateWeaselWidth();
+        Config.initPreferences();
     }
 
     // sets the width of weasel (effectively the recycler view) for LineView. this is a workaround
@@ -345,6 +347,9 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
 
             // buffer list fragment
             case PREF_SHOW_BUFFER_FILTER: showBufferFilter = p.getBoolean(key, PREF_SHOW_BUFFER_FILTER_D); break;
+
+            default:
+                Config.onSharedPreferenceChanged(p, key);
         }
     }
 

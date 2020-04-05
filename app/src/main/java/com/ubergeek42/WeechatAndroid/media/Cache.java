@@ -51,7 +51,7 @@ public class Cache {
         if (lastAttempt == null) return Info.NEVER_ATTEMPTED;
 
         if (lastAttempt.code == SUCCESS)
-            return COOLDOWN_SUCCESS > System.currentTimeMillis() - lastAttempt.timestamp ?
+            return Config.successCooldown > System.currentTimeMillis() - lastAttempt.timestamp ?
                     Info.FETCHED_RECENTLY : Info.FETCHED_BEFORE_BUT_MIGHT_NOT_WORK;
         int cooldown = getErrorCooldown(lastAttempt.code);
         return cooldown > System.currentTimeMillis() - lastAttempt.timestamp ?
@@ -179,8 +179,6 @@ public class Cache {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     final private static int MINUTES = 60 * 1000;
-
-    final private static int COOLDOWN_SUCCESS = 60 * 24 * MINUTES;     // treat recent successes as ready cache
 
     final private static int COOLDOWN_NONE = 0;
     final private static int COOLDOWN_LONG = 60 * 24 * MINUTES;

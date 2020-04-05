@@ -30,7 +30,7 @@ public class Engine {
     final private static @Root Kitty kitty = Kitty.make();
 
     private static @NonNull HashMap<String, List<Strategy>> strategies = new HashMap<>();
-    private static @NonNull List<LineFilter> lineFilters = new ArrayList<>();
+    private static @Nullable List<LineFilter> lineFilters = new ArrayList<>();
 
     public enum Location {
         CHAT,
@@ -61,15 +61,17 @@ public class Engine {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    static void setLineFilters(@NonNull List<LineFilter> filters) {
+    static void setLineFilters(@Nullable List<LineFilter> filters) {
         lineFilters = filters;
     }
 
     public static boolean isEnabledForLine(Line line) {
         if (line.type == Line.Type.OTHER)
             return false;
-        for (LineFilter filter : lineFilters)
-            if (filter.filters(line)) return false;
+        if (lineFilters != null) {
+            for (LineFilter filter : lineFilters)
+                if (filter.filters(line)) return false;
+        }
         return true;
     }
 
@@ -87,11 +89,13 @@ public class Engine {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @Cat static void setStrategies(List<Strategy> strategyList) {
+    @Cat static void setStrategies(@Nullable List<Strategy> strategyList) {
         DefaultHashMap<String, List<Strategy>> strategies = new DefaultHashMap<>(key -> new ArrayList<>());
-        for (Strategy strategy : strategyList) {
-            for (String host : strategy.getHosts()) {
-                strategies.computeIfAbsent(host).add(strategy);
+        if (strategyList != null) {
+            for (Strategy strategy : strategyList) {
+                for (String host : strategy.getHosts()) {
+                    strategies.computeIfAbsent(host).add(strategy);
+                }
             }
         }
         Engine.strategies = strategies;

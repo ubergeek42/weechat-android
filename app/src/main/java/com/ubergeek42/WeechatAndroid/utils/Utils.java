@@ -13,6 +13,9 @@ import android.util.Base64;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
 
@@ -26,12 +29,12 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.nio.CharBuffer;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 @SuppressWarnings({"SameParameterValue", "WeakerAccess", "unused"})
 public class Utils {
@@ -269,4 +272,7 @@ public class Utils {
         return sb;
     }
 
+    @SafeVarargs public static <T> Set<T> makeSet(T... t) {
+        return new HashSet<>(Arrays.asList(t));
+    }
 }

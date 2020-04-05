@@ -1,9 +1,15 @@
 package com.ubergeek42.WeechatAndroid.media;
 
+import android.content.SharedPreferences;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.preference.PreferenceManager;
 
+import com.ubergeek42.WeechatAndroid.Weechat;
+import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.WeechatAndroid.service.P;
+import com.ubergeek42.WeechatAndroid.utils.Linkify;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
@@ -14,7 +20,31 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.regex.Pattern;
+
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_MEDIA_PREVIEW_ENABLED_FOR_LOCATION;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_MEDIA_PREVIEW_ENABLED_FOR_LOCATION_CHAT;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_MEDIA_PREVIEW_ENABLED_FOR_LOCATION_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_MEDIA_PREVIEW_ENABLED_FOR_LOCATION_NOTIFICATIONS;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_MEDIA_PREVIEW_ENABLED_FOR_LOCATION_PASTE;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_MEDIA_PREVIEW_ENABLED_FOR_NETWORK;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_MEDIA_PREVIEW_ENABLED_FOR_NETWORK_ALWAYS;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_MEDIA_PREVIEW_ENABLED_FOR_NETWORK_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_MEDIA_PREVIEW_ENABLED_FOR_NETWORK_NEVER;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_MEDIA_PREVIEW_ENABLED_FOR_NETWORK_UNMETERED_ONLY;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_MEDIA_PREVIEW_ENABLED_FOR_NETWORK_WIFI_ONLY;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_MEDIA_PREVIEW_MAXIMUM_BODY_SIZE;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_MEDIA_PREVIEW_MAXIMUM_BODY_SIZE_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_MEDIA_PREVIEW_SECURE_REQUEST;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_MEDIA_PREVIEW_SECURE_REQUEST_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_MEDIA_PREVIEW_SECURE_REQUEST_OPTIONAL;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_MEDIA_PREVIEW_SECURE_REQUEST_REQUIRED;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_MEDIA_PREVIEW_SECURE_REQUEST_REWRITE;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_MEDIA_PREVIEW_STRATEGIES;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_MEDIA_PREVIEW_STRATEGIES_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_MEDIA_PREVIEW_SUCCESS_COOLDOWN;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_MEDIA_PREVIEW_SUCCESS_COOLDOWN_D;
 
 public class Config {
     final private static @Root Kitty kitty = Kitty.make();
@@ -32,15 +62,34 @@ public class Config {
 
     enum SecureRequest {
         OPTIONAL,
-        REQUIRED,
-        REWRITE
+        REWRITE,
+        REQUIRED;
+
+        static SecureRequest fromString(String string) {
+            switch (string) {
+                case PREF_MEDIA_PREVIEW_SECURE_REQUEST_OPTIONAL: return OPTIONAL;
+                default:
+                case PREF_MEDIA_PREVIEW_SECURE_REQUEST_REWRITE: return REWRITE;
+                case PREF_MEDIA_PREVIEW_SECURE_REQUEST_REQUIRED: return REQUIRED;
+            }
+        }
     }
 
     enum Enable {
         NEVER,
         WIFI_ONLY,
         UNMETERED_ONLY,
-        ALWAYS
+        ALWAYS;
+
+        static Enable fromString(String string) {
+            switch (string) {
+                default:
+                case PREF_MEDIA_PREVIEW_ENABLED_FOR_NETWORK_NEVER: return NEVER;
+                case PREF_MEDIA_PREVIEW_ENABLED_FOR_NETWORK_WIFI_ONLY: return WIFI_ONLY;
+                case PREF_MEDIA_PREVIEW_ENABLED_FOR_NETWORK_UNMETERED_ONLY: return UNMETERED_ONLY;
+                case PREF_MEDIA_PREVIEW_ENABLED_FOR_NETWORK_ALWAYS: return ALWAYS;
+            }
+        }
     }
 
     static SecureRequest secureRequestsPolicy = SecureRequest.REWRITE;
@@ -51,7 +100,8 @@ public class Config {
     static boolean enabledForPaste = true;
     static boolean enabledForNotifications = true;
 
-    static long maximumBodySize = 5 * 1024 * 1024;
+    static long maximumBodySize = 10 * 1024 * 1024;     // 10 MB in bytes
+    static long successCooldown = 24 * 60 * 60 * 1000;  // 24 hours in ms
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -67,8 +117,66 @@ public class Config {
         }
     }
 
+    public static void initPreferences() {
+        SharedPreferences p = PreferenceManager.getDefaultSharedPreferences(Weechat.applicationContext);
+        for (String key : new String[] {
+                PREF_MEDIA_PREVIEW_ENABLED_FOR_NETWORK,
+                PREF_MEDIA_PREVIEW_ENABLED_FOR_LOCATION,
+                PREF_MEDIA_PREVIEW_SECURE_REQUEST,
+                PREF_MEDIA_PREVIEW_STRATEGIES,
+                PREF_MEDIA_PREVIEW_MAXIMUM_BODY_SIZE,
+                PREF_MEDIA_PREVIEW_SUCCESS_COOLDOWN,
+                PREF_MEDIA_PREVIEW_SUCCESS_COOLDOWN
+        }) {
+            onSharedPreferenceChanged(p, key);
+        }
+    }
+
+    public static void onSharedPreferenceChanged(SharedPreferences p, String key) {
+        switch (key) {
+            case PREF_MEDIA_PREVIEW_ENABLED_FOR_NETWORK:
+                enabledForNetwork = Enable.fromString(p.getString(key, PREF_MEDIA_PREVIEW_ENABLED_FOR_NETWORK_D));
+                break;
+            case PREF_MEDIA_PREVIEW_ENABLED_FOR_LOCATION:
+                Set<String> set = p.getStringSet(key, PREF_MEDIA_PREVIEW_ENABLED_FOR_LOCATION_D);
+                enabledForChat = set.contains(PREF_MEDIA_PREVIEW_ENABLED_FOR_LOCATION_CHAT);
+                enabledForPaste = set.contains(PREF_MEDIA_PREVIEW_ENABLED_FOR_LOCATION_PASTE);
+                enabledForNotifications = set.contains(PREF_MEDIA_PREVIEW_ENABLED_FOR_LOCATION_NOTIFICATIONS);
+                break;
+            case PREF_MEDIA_PREVIEW_SECURE_REQUEST:
+                secureRequestsPolicy = SecureRequest.fromString(p.getString(key, PREF_MEDIA_PREVIEW_SECURE_REQUEST_D));
+                break;
+            case PREF_MEDIA_PREVIEW_STRATEGIES:
+                Info info = parseConfigSafe(p.getString(key, PREF_MEDIA_PREVIEW_STRATEGIES_D));
+                if (info != null) {
+                    Linkify.setMessageFilter(info.messageFilter);
+                    Engine.setLineFilters(info.lineFilters);
+                    Engine.setStrategies(info.strategies);
+                }
+                break;
+            case PREF_MEDIA_PREVIEW_MAXIMUM_BODY_SIZE:
+                maximumBodySize = (long) (Float.parseFloat(p.getString(key, PREF_MEDIA_PREVIEW_MAXIMUM_BODY_SIZE_D)) * 1024 * 1024);
+            case PREF_MEDIA_PREVIEW_SUCCESS_COOLDOWN:
+                successCooldown = (long) (Float.parseFloat(p.getString(key, PREF_MEDIA_PREVIEW_SUCCESS_COOLDOWN_D)) * 60 * 60 * 1000);
+        }
+        BufferList.onGlobalPreferencesChanged(false);
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    public static @Nullable Info parseConfigSafe(String text) {
+        try {
+            return parseConfig(text);
+        } catch (ConfigException e) {
+            kitty.warn("Error while parsing media preview config", e);
+            Weechat.showLongToast(e.getMessage());
+            return null;
+        }
+    }
+
     @SuppressWarnings("unchecked")
-    public static Info parseConfig(String text) throws Exception {
+    private static Info parseConfig(String text) throws ConfigException {
         String stage = "parsing document";
         try {
             Object obj = new Yaml().load(text);
