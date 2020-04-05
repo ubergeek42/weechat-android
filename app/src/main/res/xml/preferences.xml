@@ -114,15 +114,16 @@
             android:entries="@array/pref_media_preview_enabled_for_location_names"
             android:summary="@string/pref_media_preview_enabled_for_location_summary"
             app:emptySummary="@string/pref_media_preview_enabled_for_location_summary_empty"/>
-        <Preference
-            android:selectable="false"
-            android:summary="@string/pref_media_preview_help" />
         <ListPreference android:key="media_preview_secure_request"
             android:title="@string/pref_media_preview_secure_request"
             android:defaultValue="rewrite"
             android:entryValues="@array/settings_media_preview_secure_request_values"
             android:entries="@array/pref_media_preview_secure_request_names"
             android:summary="%s"/>
+        <HelpPreference android:key="media_preview_help"
+            android:persistent="false"
+            android:selectable="false"
+            android:summary="@string/pref_media_preview_help" />
         <StrategyPreference android:key="media_preview_strategies"
             xmlns:app="http://schemas.android.com/apk/res-auto"
             android:title="@string/pref_media_preview_strategies"

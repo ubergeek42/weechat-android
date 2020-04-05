@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.AttributeSet;
 import android.widget.TextView;
 
+import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.media.Config;
 import com.ubergeek42.WeechatAndroid.media.Strategy;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
@@ -18,36 +19,31 @@ public class StrategyPreference extends FullScreenEditTextPreference {
     }
 
     @Cat(exit = true) @Override public CharSequence getSummary() {
-        String text = getText();
-        Config.Info info = Config.parseConfigSafe(text);
+        Context context = getContext();
+
+        Config.Info info = Config.parseConfigSafe(getText());
         if (info == null)
-            return "Error";
+            return context.getString(R.string.strategypreference_error);
 
-        StringBuilder sb = new StringBuilder();
-        sb.append("Define the ways images are fetched from individual websites. You can use a " +
-                "blacklist to skip certain websites or a whitelist to only access the websites you" +
-                " trust.\n\n");
+        String messageFilter = info.messageFilter != null ?
+                context.getString(R.string.strategypreference_message_filter_set) :
+                context.getString(R.string.strategypreference_message_filter_not_set);
 
-        sb.append(info.messageFilter != null ?
-                "Message filter set" :
-                "Message filter not set");
+        String lineFilters = info.lineFilters == null ?
+                context.getString(R.string.strategypreference_line_filters_not_set) :
+                context.getResources().getQuantityString(R.plurals.strategypreference_line_filters_set,
+                        info.lineFilters.size(), info.lineFilters.size());
 
-        sb.append("; ");
-        sb.append(info.lineFilters == null ?
-                "line filters not set" :
-                info.lineFilters.size() + " line filter(s) set");
-
-        sb.append(";\n\n");
+        String summaries;
         if (info.strategies == null) {
-            sb.append("No strategies loaded");
+            summaries = context.getString(R.string.strategypreference_strategies_not_loaded);
         } else {
-            sb.append("Strategies: ");
             List<CharSequence> names = new ArrayList<>();
             for (Strategy s : info.strategies) names.add(s.getName());
-            sb.append(Utils.join(", ", names));
+            summaries = context.getString(R.string.strategypreference_strategies_list, Utils.join(", ", names));
         }
 
-        return sb.toString();
+        return context.getString(R.string.strategypreference_summary, messageFilter, lineFilters, summaries);
     }
 
     @Override public void onBindViewHolder(PreferenceViewHolder holder) {

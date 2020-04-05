@@ -31,6 +31,9 @@ import android.widget.Toast;
 
 import com.ubergeek42.WeechatAndroid.media.Config;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
+
+import java.util.Set;
+
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
 
 public class PreferencesActivity extends AppCompatActivity implements PreferenceFragmentCompat.OnPreferenceStartScreenCallback {
@@ -166,8 +169,11 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
                 listenTo = new String[]{PREF_THEME};
             } else if (PREF_BUFFERLIST_GROUP.equals(key)) {
                 enableDisableGestureExclusionZoneSwitch();
-            } else if ("media_preview_group".equals(key)) {
-                listenTo = new String[]{"media_preview_strategies"};
+            } else if (PREF_MEDIA_PREVIEW_GROUP.equals(key)) {
+                enableDisableMediaPreviewPreferences(null, null);
+                listenTo = new String[]{PREF_MEDIA_PREVIEW_ENABLED_FOR_NETWORK,
+                        PREF_MEDIA_PREVIEW_ENABLED_FOR_LOCATION,
+                        PREF_MEDIA_PREVIEW_STRATEGIES};
             }
 
             for (String p : listenTo)
@@ -211,7 +217,12 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
                 showHideStuff((String) o);
             } else if (PREF_THEME.equals(key)) {
                 enableDisableThemeSwitch((String) o);
-            } else if ("media_preview_strategies".equals(key)) {
+            } else if (PREF_MEDIA_PREVIEW_ENABLED_FOR_NETWORK.equals(key)) {
+                enableDisableMediaPreviewPreferences((String) o, null);
+            } else if (PREF_MEDIA_PREVIEW_ENABLED_FOR_LOCATION.equals(key)) {
+                enableDisableMediaPreviewPreferences(null, (Set) o);
+            } else if (PREF_MEDIA_PREVIEW_STRATEGIES.equals(key)) {
+                // this method will show a toast on error
                 valid = Config.parseConfigSafe((String) o) != null;
             }
             if (!valid && toast != -1)
@@ -243,6 +254,28 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
         private void enableDisableGestureExclusionZoneSwitch() {
             Preference p = getPreferenceScreen().findPreference(PREF_USE_GESTURE_EXCLUSION_ZONE);
             if (p != null) p.setVisible(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q);
+        }
+
+        private void enableDisableMediaPreviewPreferences(String network, Set location) {
+            if (network == null) network = getPreferenceScreen().getSharedPreferences().getString(
+                    PREF_MEDIA_PREVIEW_ENABLED_FOR_NETWORK, PREF_MEDIA_PREVIEW_ENABLED_FOR_NETWORK_D);
+            if (location == null) location = getPreferenceScreen().getSharedPreferences().getStringSet(
+                    PREF_MEDIA_PREVIEW_ENABLED_FOR_LOCATION, PREF_MEDIA_PREVIEW_ENABLED_FOR_LOCATION_D);
+            boolean networkEnabled = !PREF_MEDIA_PREVIEW_ENABLED_FOR_NETWORK_NEVER.equals(network);
+            boolean locationEnabled = !location.isEmpty();
+
+            for (String key : new String[] {
+                    PREF_MEDIA_PREVIEW_SECURE_REQUEST,
+                    PREF_MEDIA_PREVIEW_HELP,
+                    PREF_MEDIA_PREVIEW_STRATEGIES,
+                    PREF_MEDIA_PREVIEW_ADVANCED_GROUP
+            }) {
+                Preference p = findPreference(key);
+                if (p != null) p.setEnabled(networkEnabled && locationEnabled);
+            }
+
+            Preference p = findPreference(PREF_MEDIA_PREVIEW_ENABLED_FOR_LOCATION);
+            if (p != null) p.setEnabled(networkEnabled);
         }
 
         // recursively make all currently visible preference titles multiline

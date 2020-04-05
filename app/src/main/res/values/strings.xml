@@ -330,8 +330,25 @@
 
         <string name="pref_media_preview_strategies">Strategies</string>
 
-        <string name="pref_media_preview_help">Note that enabling media preview for notifications
-            can result in duplicate lines being shown on some earlier platforms.</string>
+        <string name="pref_media_preview_help">Enabling media preview for notifications can result
+            in duplicate lines being shown on some earlier platforms. Also note that you may need to
+            clear the caches for the settings to apply to already existing data.\n\n<b>⚠
+            Warning:</b> the app is accessing the web directly. An evildoer could craft a website to
+            learn your IP address and other data. You can set up a strategy of type “none” for the
+            wildcard host “*” to avoid that.</string>
+
+        <string name="strategypreference_error">Error</string>
+        <string name="strategypreference_summary">Defines the ways images are fetched from individual
+            websites, and some filters.\n\n%s; %s;\n\n%s</string>
+        <string name="strategypreference_message_filter_set">Message filter set</string>
+        <string name="strategypreference_message_filter_not_set">Message filter not set</string>
+        <string name="strategypreference_line_filters_not_set">line filters not set</string>
+        <string name="strategypreference_strategies_not_loaded">No strategies loaded</string>
+        <string name="strategypreference_strategies_list">Strategies: %s</string>
+        <plurals name="strategypreference_line_filters_set">
+            <item quantity="one">%d line filter set</item>
+            <item quantity="other">%d line filters set</item>
+        </plurals>
 
         <string name="pref_media_preview_advanced_group">Advanced</string>
             <string name="pref_media_preview_maximum_body_size">Download size limit</string>
@@ -411,14 +428,14 @@ strategies:
   small: https://img.youtube.com/vi/$1/mqdefault.jpg
   big: https://img.youtube.com/vi/$1/hqdefault.jpg
 
-- name: i.imgur.com
+- name: i.imgur
   type: image
   hosts: [i.imgur.com]
   regex: (?i)^https?://i\\.imgur\\.com/([^.]+)
   small: https://i.imgur.com/$1m.jpg
   big: https://i.imgur.com/$1h.jpg
 
-- name: imgur.com/gallery
+- name: imgur/gallery
   type: any
   hosts: [imgur.com, www.imgur.com]
   regex: (?i)^https?://(?:www\\.)?imgur\\.com/gallery/(.*)
@@ -431,13 +448,13 @@ strategies:
   small: https://images-cdn.9gag.com/photo/$1_700b.jpg
   big: https://images-cdn.9gag.com/photo/$1_700b.jpg
 
-- name: mobile.twitter.com
+- name: mobile.twitter
   type: any
   hosts: [mobile.twitter.com]
   regex: (?i)^https?://mobile\\.twitter\\.com/(.*)
   sub: https://twitter.com/$1
 
-- name: pikabu.ru
+- name: pikabu
   type: any
   hosts: [pikabu.ru, www.pikabu.ru]
   regex: (?i)^https://pikabu\\.ru/story/.

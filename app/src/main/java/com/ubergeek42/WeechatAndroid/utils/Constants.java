@@ -99,6 +99,7 @@ public class Constants {
     final public static String PREF_THEME_D = PREF_THEME_SYSTEM;
 
     // media preview
+    final public static String PREF_MEDIA_PREVIEW_GROUP = "media_preview_group";
     final public static String PREF_MEDIA_PREVIEW_ENABLED_FOR_NETWORK = "media_preview_enabled_for_network";
     final public static String PREF_MEDIA_PREVIEW_ENABLED_FOR_NETWORK_NEVER = "never";
     final public static String PREF_MEDIA_PREVIEW_ENABLED_FOR_NETWORK_WIFI_ONLY = "wifi_only";
@@ -120,6 +121,10 @@ public class Constants {
     final public static String PREF_MEDIA_PREVIEW_SECURE_REQUEST_REWRITE = "rewrite";
     final public static String PREF_MEDIA_PREVIEW_SECURE_REQUEST_REQUIRED = "required";
     final public static String PREF_MEDIA_PREVIEW_SECURE_REQUEST_D = PREF_MEDIA_PREVIEW_SECURE_REQUEST_REWRITE;
+
+    final public static String PREF_MEDIA_PREVIEW_HELP = "media_preview_help";
+    final public static String PREF_MEDIA_PREVIEW_ADVANCED_GROUP = "media_preview_advanced_group";
+
 
     final public static String PREF_MEDIA_PREVIEW_MAXIMUM_BODY_SIZE = "media_preview_maximum_body_size";
     final public static String PREF_MEDIA_PREVIEW_MAXIMUM_BODY_SIZE_D = "10";
