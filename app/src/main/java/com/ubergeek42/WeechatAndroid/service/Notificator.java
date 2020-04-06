@@ -200,11 +200,11 @@ public class Notificator {
                 .setCategory(NotificationCompat.CATEGORY_MESSAGE)
                 .setWhen(lastMessageTimestamp)
                 .setGroup(GROUP_KEY)
-                .setGroupSummary(true)
-                .setGroupAlertBehavior(GROUP_ALERT_CHILDREN);
+                .setGroupSummary(true);
         setNotificationTitleAndText(summary, nMessagesInNBuffers);
 
         if (canMakeBundledNotifications) {
+            summary.setGroupAlertBehavior(GROUP_ALERT_CHILDREN);
             summary.setSubText(nMessagesInNBuffers);
         } else {
             MessagingStyle style = new MessagingStyle(MYSELF);
