@@ -242,4 +242,66 @@
     <string name="pref_theme_switch">Переключатель темы</string>
     <string name="pref_theme_switch_summary">Показывать переключатель темы в меню</string>
     <string name="pref_theme_system">Устанавливается режимом энергосбережения</string>
+    <string name="pref_media_preview_group">Миниатюры</string>
+    <string name="pref_media_preview_enabled_for_network">Показывать</string>
+    <string-array name="pref_media_preview_enabled_for_network_names">
+        <item>Не показывать</item>
+        <item>Только на Wi-Fi</item>
+        <item>Только на сетях без тарификации</item>
+        <item>Показывать на любых сетях</item>
+    </string-array>
+    <string name="pref_media_preview_enabled_for_location">Места</string>
+    <string name="pref_media_preview_enabled_for_location_summary">Показывать в: %s</string>
+    <string-array name="pref_media_preview_enabled_for_location_names">
+        <item>Чат</item>
+        <item>Диалог вставки</item>
+        <item>Оповещения</item>
+    </string-array>
+    <string name="pref_media_preview_enabled_for_location_summary_empty">Нигде не показывать</string>
+    <string name="pref_media_preview_secure_request">Незащищённые запросы</string>
+    <string-array name="pref_media_preview_secure_request_names">
+        <item>Разрешены</item>
+        <item>Переписывать на HTTPS</item>
+        <item>Запрещены</item>
+    </string-array>
+    <string name="pref_media_preview_strategies">Стратегии</string>
+    <string name="strategypreference_error">Ошибка</string>
+    <string name="strategypreference_summary">Определяет способы загрузки изображений для отдельных
+            сайтов, а также некоторые фильтры.\n\n%s; %s;\n\n%s</string>
+    <string name="strategypreference_message_filter_set">Фильтр текста установлен</string>
+    <string name="strategypreference_message_filter_not_set">Фильтр текста не установлен</string>
+    <string name="strategypreference_line_filters_not_set">фильтры строк не установлены</string>
+    <plurals name="strategypreference_line_filters_set">
+        <item quantity="one">установлен %d фильтр строк</item>
+        <item quantity="few">установлены %d фильтра строк</item>
+        <item quantity="many">установлены %d фильтров строк</item>
+    </plurals>
+    <string name="strategypreference_strategies_not_loaded">Стратегии не заданы</string>
+    <string name="strategypreference_strategies_list">Стратегии: %s</string>
+    <string name="pref_media_preview_advanced_group">Расширенные настройки</string>
+    <string name="pref_media_preview_maximum_body_size">Ограничение размера загрузки</string>
+    <string name="pref_media_preview_maximum_body_size_summary">%s МБ</string>
+    <string name="pref_image_disk_cache_size">Дисковый кэш</string>
+    <string name="pref_image_disk_cache_size_summary">%s МБ, вступает в силу при перезапуске</string>
+    <string name="pref_media_preview_success_cooldown">Успешная загрузка</string>
+    <string name="pref_media_preview_success_cooldown_summary">%s часа. В течение этого времени
+        приложение будет ожидать, что последующие загрузки\u00A0— из кэша или из сети\u00A0— также
+        будут успешны.</string>
+    <string name="pref_media_preview_thumbnail_width">Ширина миниатюр</string>
+    <string name="pref_media_preview_thumbnail_min_height">Минимальная высота миниатюр</string>
+    <string name="pref_media_preview_thumbnail_max_height">Максимальная высота миниатюр</string>
+    <string name="menu_debug">Отладка</string>
+    <string name="menu_sync_hotlist">Синхронизация</string>
+    <string name="menu_die">Умереть</string>
+    <string name="menu_save">Сохранить</string>
+    <string name="menu_reset_to_default">По умолчанию</string>
+    <string name="dialog_discard_changes_prompt">Забыть изменения?</string>
+    <string name="dialog_discard_changes_cancel">Отмена</string>
+    <string name="dialog_discard_changes_discard">Забыть</string>
+    <string name="pref_media_preview_help">На ранних версиях системы активация миниатюр в
+        оповещениях может привести к повторению сообщений. Чтобы настройки вступили в силу для уже
+        загруженных данных, может быть необходимо очистить кэш.\n\n<b>⚠ Внимание:</b>
+        приложение запрашивает данные напрямую, что может выдать серверу злоумышленника ваш
+        IP-адрес и другие данные. Чтобы избежать этого, добавьте стратегию типа “none”
+        для хоста “*”.</string>
 </resources>

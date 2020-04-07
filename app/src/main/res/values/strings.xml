@@ -393,9 +393,9 @@
         <string name="pref_timestamp_invalid">Invalid timestamp format</string>
         <string name="pref_number_invalid">Invalid number</string>
         <string name="pref_hostname_invalid">No spaces allowed in hostnames</string>
-    <string name="debug">Debug</string>
-    <string name="sync_hotlist">Sync hotlist</string>
-    <string name="die">Die</string>
+    <string name="menu_debug">Debug</string>
+    <string name="menu_sync_hotlist">Sync hotlist</string>
+    <string name="menu_die">Die</string>
     <string name="menu_save">Save</string>
     <string name="menu_reset_to_default">Default</string>
 
@@ -403,7 +403,7 @@
     <string name="dialog_discard_changes_cancel">Cancel</string>
     <string name="dialog_discard_changes_discard">Discard</string>
 
-    <string name="pref_media_preview_strategies_default">
+    <string name="pref_media_preview_strategies_default" translatable="false">
 "message filter:
   ^&lt;[^ ]{1,16} \".{1,33}\">\\s
 

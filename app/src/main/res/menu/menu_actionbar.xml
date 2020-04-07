@@ -38,12 +38,12 @@
         android:visible="@bool/debug"
         android:menuCategory="secondary"
         app:showAsAction="never"
-        android:title="@string/debug">
+        android:title="@string/menu_debug">
         <menu>
             <item android:id="@+id/sync_hotlist"
-                android:title="@string/sync_hotlist" />
+                android:title="@string/menu_sync_hotlist" />
             <item android:id="@+id/die"
-                android:title="@string/die" />
+                android:title="@string/menu_die" />
         </menu>
     </item>
 </menu>
