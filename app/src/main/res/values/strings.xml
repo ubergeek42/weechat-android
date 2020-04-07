@@ -415,7 +415,11 @@ line filters:
 strategies:
 - name: skip pastebins
   type: none
-  hosts: [pastebin.com, github.com, bpaste.net, dpaste.com, termbin.com]
+  hosts: [pastebin.com, bpaste.net, dpaste.com, termbin.com]
+
+- name: skip site banners
+  type: none
+  hosts: [github.com, gist.github.com, stackoverflow.com, '*.stackexchange.com']
 
 - name: try the rest
   type: any
