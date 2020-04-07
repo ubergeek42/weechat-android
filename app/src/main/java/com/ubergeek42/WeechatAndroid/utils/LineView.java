@@ -26,6 +26,7 @@ import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.ubergeek42.WeechatAndroid.Weechat;
 import com.ubergeek42.WeechatAndroid.media.Cache;
+import com.ubergeek42.WeechatAndroid.media.Config;
 import com.ubergeek42.WeechatAndroid.media.Engine;
 import com.ubergeek42.WeechatAndroid.media.Strategy;
 import com.ubergeek42.WeechatAndroid.relay.Line;
@@ -37,17 +38,14 @@ import java.util.List;
 
 import static com.ubergeek42.WeechatAndroid.media.Config.ANIMATION_DURATION;
 import static com.ubergeek42.WeechatAndroid.media.Config.THUMBNAIL_HORIZONTAL_MARGIN;
-import static com.ubergeek42.WeechatAndroid.media.Config.THUMBNAIL_MAX_HEIGHT;
-import static com.ubergeek42.WeechatAndroid.media.Config.THUMBNAIL_MIN_HEIGHT;
+import static com.ubergeek42.WeechatAndroid.media.Config.thumbnailMaxHeight;
+import static com.ubergeek42.WeechatAndroid.media.Config.thumbnailMinHeight;
 import static com.ubergeek42.WeechatAndroid.media.Config.THUMBNAIL_VERTICAL_MARGIN;
-import static com.ubergeek42.WeechatAndroid.media.Config.THUMBNAIL_WIDTH;
+import static com.ubergeek42.WeechatAndroid.media.Config.thumbnailWidth;
 import static com.ubergeek42.WeechatAndroid.utils.Assert.assertThat;
 
 public class LineView extends View {
     final private @Root Kitty kitty = Kitty.make();
-
-    final private static int THUMBNAIL_AREA_WIDTH = THUMBNAIL_WIDTH + THUMBNAIL_HORIZONTAL_MARGIN * 2;
-    final private static int THUMBNAIL_AREA_MIN_HEIGHT = THUMBNAIL_MIN_HEIGHT + THUMBNAIL_VERTICAL_MARGIN * 2;
 
     private enum State {
         TEXT_ONLY,                      // wide layout, no image
@@ -125,7 +123,7 @@ public class LineView extends View {
                 .listener(Cache.bitmapListener)
                 .load(url)
                 .onlyRetrieveFromCache(Engine.isDisabledForCurrentNetwork())
-                .into(new Target(THUMBNAIL_WIDTH, getThumbnailHeight()));
+                .into(new Target(thumbnailWidth, getThumbnailHeight()));
     }
 
     private class Target extends CustomTarget<Bitmap> {
@@ -168,7 +166,7 @@ public class LineView extends View {
 
     private void ensureLayout(LayoutType layoutType) {
         if (layoutType == LayoutType.WIDE && wideLayout == null) wideLayout = AlphaLayout.make(text, P.weaselWidth);
-        if (layoutType == LayoutType.NARROW && narrowLayout == null) narrowLayout = AlphaLayout.make(text, P.weaselWidth - THUMBNAIL_AREA_WIDTH);
+        if (layoutType == LayoutType.NARROW && narrowLayout == null) narrowLayout = AlphaLayout.make(text, P.weaselWidth - Config.thumbnailAreaWidth);
     }
 
     private void setLayout(LayoutType layoutType) {
@@ -187,7 +185,7 @@ public class LineView extends View {
         if (state == State.TEXT_ONLY)
             return wideLayout == null ? 0 : wideLayout.getHeight();
         if (state == State.WITH_IMAGE || state == State.ANIMATING_ONLY_IMAGE)
-            return Math.max(narrowLayout == null ? 0 : narrowLayout.getHeight(), THUMBNAIL_AREA_MIN_HEIGHT);
+            return Math.max(narrowLayout == null ? 0 : narrowLayout.getHeight(), Config.thumbnailAreaMinHeight);
 
         int wideHeight = getViewHeight(State.TEXT_ONLY);
         int narrowHeight = getViewHeight(State.WITH_IMAGE);
@@ -211,7 +209,7 @@ public class LineView extends View {
                 paint.setAlpha((int) (animatedValue * 255));
             }
             canvas.drawBitmap(image,
-                    P.weaselWidth - THUMBNAIL_WIDTH - THUMBNAIL_HORIZONTAL_MARGIN,
+                    P.weaselWidth - thumbnailWidth - THUMBNAIL_HORIZONTAL_MARGIN,
                     THUMBNAIL_VERTICAL_MARGIN, paint);
         }
         if (firstDrawAt == HAVE_NOT_DRAWN) firstDrawAt = System.currentTimeMillis();
@@ -241,8 +239,8 @@ public class LineView extends View {
 
     private int getThumbnailHeight() {
         int height = narrowLayout.getHeight() - THUMBNAIL_VERTICAL_MARGIN * 2;
-        if (height < THUMBNAIL_MIN_HEIGHT) height = THUMBNAIL_MIN_HEIGHT;
-        if (height > THUMBNAIL_MAX_HEIGHT) height = THUMBNAIL_MAX_HEIGHT;
+        if (height < thumbnailMinHeight) height = thumbnailMinHeight;
+        if (height > thumbnailMaxHeight) height = thumbnailMaxHeight;
         return height;
     }
 

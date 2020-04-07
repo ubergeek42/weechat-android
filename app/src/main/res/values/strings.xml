@@ -359,6 +359,9 @@
             <string name="pref_media_preview_success_cooldown_summary">%s hours. The app will
                 consider successfully fetched image available, either from cache or the web, for
                 the specified amount of time.</string>
+        <string name="pref_media_preview_thumbnail_width">Thumbnail width</string>
+        <string name="pref_media_preview_thumbnail_min_height">Minimum thumbnail height</string>
+        <string name="pref_media_preview_thumbnail_max_height">Maximum thumbnail height</string>
 
     <!-- about -->
 

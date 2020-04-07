@@ -133,6 +133,13 @@ public class Constants {
     final public static String PREF_MEDIA_PREVIEW_SUCCESS_COOLDOWN = "media_preview_success_cooldown";
     final public static String PREF_MEDIA_PREVIEW_SUCCESS_COOLDOWN_D = "24";
 
+    final public static String PREF_MEDIA_PREVIEW_THUMBNAIL_WIDTH = "media_preview_thumbnail_width";
+    final public static String PREF_MEDIA_PREVIEW_THUMBNAIL_WIDTH_D = "80";
+    final public static String PREF_MEDIA_PREVIEW_THUMBNAIL_MIN_HEIGHT = "media_preview_thumbnail_min_height";
+    final public static String PREF_MEDIA_PREVIEW_THUMBNAIL_MIN_HEIGHT_D = "40";
+    final public static String PREF_MEDIA_PREVIEW_THUMBNAIL_MAX_HEIGHT = "media_preview_thumbnail_max_height";
+    final public static String PREF_MEDIA_PREVIEW_THUMBNAIL_MAX_HEIGHT_D = "160";
+
     final public static String PREF_MEDIA_PREVIEW_STRATEGIES = "media_preview_strategies";
     final public static String PREF_MEDIA_PREVIEW_STRATEGIES_D = getResourceString(R.string.pref_media_preview_strategies_default);
 

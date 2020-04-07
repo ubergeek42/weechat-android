@@ -45,18 +45,28 @@ import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_MEDIA_PREVIEW_S
 import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_MEDIA_PREVIEW_STRATEGIES_D;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_MEDIA_PREVIEW_SUCCESS_COOLDOWN;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_MEDIA_PREVIEW_SUCCESS_COOLDOWN_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_MEDIA_PREVIEW_THUMBNAIL_MAX_HEIGHT;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_MEDIA_PREVIEW_THUMBNAIL_MAX_HEIGHT_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_MEDIA_PREVIEW_THUMBNAIL_MIN_HEIGHT;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_MEDIA_PREVIEW_THUMBNAIL_MIN_HEIGHT_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_MEDIA_PREVIEW_THUMBNAIL_WIDTH;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_MEDIA_PREVIEW_THUMBNAIL_WIDTH_D;
 
 public class Config {
     final private static @Root Kitty kitty = Kitty.make();
 
     final public static int ANIMATION_DURATION = 250;                           // ms
 
-    final public static int THUMBNAIL_WIDTH = (int) (80 * P._1dp);
-    final public static int THUMBNAIL_MIN_HEIGHT = (int) (40 * P._1dp);         // todo set to the height of 2 lines of text?
-    final public static int THUMBNAIL_MAX_HEIGHT = THUMBNAIL_WIDTH * 2;
     final public static int THUMBNAIL_VERTICAL_MARGIN = (int) P._1_33dp;
     final public static int THUMBNAIL_HORIZONTAL_MARGIN = 2 * THUMBNAIL_VERTICAL_MARGIN;
     final        static int THUMBNAIL_CORNER_RADIUS = 4 * THUMBNAIL_VERTICAL_MARGIN;
+
+    public static int thumbnailWidth = (int) (80 * P._1dp);
+    public static int thumbnailMinHeight = (int) (40 * P._1dp);
+    public static int thumbnailMaxHeight = thumbnailWidth * 2;
+
+    public static int thumbnailAreaWidth = thumbnailWidth + THUMBNAIL_HORIZONTAL_MARGIN * 2;
+    public static int thumbnailAreaMinHeight = thumbnailMinHeight + THUMBNAIL_VERTICAL_MARGIN * 2;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -126,7 +136,9 @@ public class Config {
                 PREF_MEDIA_PREVIEW_STRATEGIES,
                 PREF_MEDIA_PREVIEW_MAXIMUM_BODY_SIZE,
                 PREF_MEDIA_PREVIEW_SUCCESS_COOLDOWN,
-                PREF_MEDIA_PREVIEW_SUCCESS_COOLDOWN
+                PREF_MEDIA_PREVIEW_THUMBNAIL_WIDTH,
+                PREF_MEDIA_PREVIEW_THUMBNAIL_MIN_HEIGHT,
+                PREF_MEDIA_PREVIEW_THUMBNAIL_MAX_HEIGHT
         }) {
             onSharedPreferenceChanged(p, key);
         }
@@ -156,8 +168,23 @@ public class Config {
                 break;
             case PREF_MEDIA_PREVIEW_MAXIMUM_BODY_SIZE:
                 maximumBodySize = (long) (Float.parseFloat(p.getString(key, PREF_MEDIA_PREVIEW_MAXIMUM_BODY_SIZE_D)) * 1024 * 1024);
+                break;
             case PREF_MEDIA_PREVIEW_SUCCESS_COOLDOWN:
                 successCooldown = (long) (Float.parseFloat(p.getString(key, PREF_MEDIA_PREVIEW_SUCCESS_COOLDOWN_D)) * 60 * 60 * 1000);
+                break;
+            case PREF_MEDIA_PREVIEW_THUMBNAIL_WIDTH:
+                thumbnailWidth = (int) (P._1dp * Float.parseFloat(p.getString(key, PREF_MEDIA_PREVIEW_THUMBNAIL_WIDTH_D)));
+                thumbnailAreaWidth = thumbnailWidth + THUMBNAIL_HORIZONTAL_MARGIN * 2;
+                break;
+            case PREF_MEDIA_PREVIEW_THUMBNAIL_MIN_HEIGHT:
+                thumbnailMinHeight = (int) (P._1dp * Float.parseFloat(p.getString(key, PREF_MEDIA_PREVIEW_THUMBNAIL_MIN_HEIGHT_D)));
+                thumbnailAreaMinHeight = thumbnailMinHeight + THUMBNAIL_VERTICAL_MARGIN * 2;
+                break;
+            case PREF_MEDIA_PREVIEW_THUMBNAIL_MAX_HEIGHT:
+                thumbnailMaxHeight = (int) (P._1dp * Float.parseFloat(p.getString(key, PREF_MEDIA_PREVIEW_THUMBNAIL_MAX_HEIGHT_D)));
+                break;
+            default:
+                return;
         }
         BufferList.onGlobalPreferencesChanged(false);
     }

@@ -150,6 +150,24 @@
                 android:singleLine="true"
                 android:inputType="numberDecimal"
                 android:defaultValue="24" />
+            <EditTextPreferenceFix android:key="media_preview_thumbnail_width"
+                android:title="@string/pref_media_preview_thumbnail_width"
+                android:summary="%s dp"
+                android:singleLine="true"
+                android:inputType="numberDecimal"
+                android:defaultValue="80" />
+            <EditTextPreferenceFix android:key="media_preview_thumbnail_min_height"
+                android:title="@string/pref_media_preview_thumbnail_min_height"
+                android:summary="%s dp"
+                android:singleLine="true"
+                android:inputType="numberDecimal"
+                android:defaultValue="40" />
+            <EditTextPreferenceFix android:key="media_preview_thumbnail_max_height"
+                android:title="@string/pref_media_preview_thumbnail_max_height"
+                android:summary="%s dp"
+                android:singleLine="true"
+                android:inputType="numberDecimal"
+                android:defaultValue="160" />
         </PreferenceCategory>
     </PreferenceScreen>
 
