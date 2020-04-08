@@ -120,13 +120,17 @@
             \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/noveogroup/android-logger">Android Logger от Noveo Group</a>
             \n&#160;&#160;&#160;&#160;•&#160;<a href="https://www.eclipse.org/aspectj/">AspectJ от Eclipse Foundation</a>
             \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/greenrobot/EventBus">EventBus от greenrobot</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://bumptech.github.io/glide/">Glide от Bump Technologies</a>
             \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/JakeWharton/hugo">Hugo от Jake Wharton</a>
             \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/TooTallNate/Java-WebSocket">Java-WebSocket от Nathan Rajlich</a>
-            \n&#160;&#160;&#160;&#160;•&#160;<a href="http://www.jcraft.com/jsch/">JSch by JCraft</a>
-            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/square/leakcanary">LeakCanary от Square, Inc</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/dlew/joda-time-android">joda-time-android от Daniel Lew</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="http://www.jcraft.com/jsch/">JSch от JCraft</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://square.github.io/leakcanary/">LeakCanary от Square, Inc</a>
             \n&#160;&#160;&#160;&#160;•&#160;<a href="http://site.mockito.org/">Mockito от Szczepan Faber и друзей</a>
             \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/TakahikoKawasaki/nv-websocket-client">nv-websocket-client от Takahiko Kawasaki</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://square.github.io/okhttp/">OkHttp от Square, Inc</a>
             \n&#160;&#160;&#160;&#160;•&#160;<a href="https://www.slf4j.org/">SLF4J от QOS.ch</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://bitbucket.org/asomov/snakeyaml">SnakeYAML от Андрея Сомова</a>
             \n
             \nНашли баг или хотите предложить новый функционал? Создайте тикет на&#160;<a href="https://github.com/ubergeek42/weechat-android/">GitHub</a> или напишите на электронную почту:&#160;<a href="mailto:kj@ubergeek42.com">kj@ubergeek42.com</a>
             \n\n
