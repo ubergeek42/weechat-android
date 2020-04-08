@@ -43,7 +43,6 @@ public class Network {
         void onConnected();
     }
 
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean hasProperty(Property property) {
         return properties.contains(property);
     }

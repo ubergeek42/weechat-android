@@ -11,6 +11,7 @@ import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
+import com.ubergeek42.WeechatAndroid.utils.Network;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.Kitty;
@@ -129,6 +130,7 @@ public class Cache {
 
     private final static int SUCCESS = 0;
     private final static int ERROR_UNKNOWN_ERROR = -1;
+
     final static int ERROR_HTML_BODY_LACKS_REQUIRED_DATA = -2;
     final static int ERROR_UNACCEPTABLE_FILE_SIZE = -3;
     final static int ERROR_UNACCEPTABLE_MEDIA_TYPE = -4;
@@ -188,35 +190,37 @@ public class Cache {
     // given a previous error code, returns time in milliseconds during which no attempts to query
     // the server should be made
     private static int getErrorCooldown(int code) {
-        assertThat(code).isNotEqualTo(0);
-        if (Utils.isAnyOf(code,
-                ERROR_TIMEOUT,
-                ERROR_INTERNET_UNREACHABLE,
-                ERROR_LIKELY_TEMPORARY_NETWORK_PROBLEM
-        )) return COOLDOWN_NONE;
-        if (Utils.isAnyOf(code,
-                502, // Bad Gateway
-                504  // Gateway Timeout
-        )) return COOLDOWN_SHORT;
-        if (Utils.isAnyOf(code,
-                ERROR_HTML_BODY_LACKS_REQUIRED_DATA,
-                ERROR_UNACCEPTABLE_FILE_SIZE,
-                ERROR_UNACCEPTABLE_MEDIA_TYPE,
-                ERROR_SSL_REQUIRED,
-                ERROR_UNKNOWN_HOST,
-                400, // Bad Request
-                401, // Unauthorized
-                409, // Conflict
-                451, // Unavailable For Legal Reasons
-                501  // Not Implemented
-        )) return COOLDOWN_LONG;
-        return COOLDOWN_MEDIUM;
+        assertThat(code).isNotEqualTo(SUCCESS);
+        switch (code) {
+            case ERROR_TIMEOUT:
+            case ERROR_INTERNET_UNREACHABLE:
+            case ERROR_LIKELY_TEMPORARY_NETWORK_PROBLEM:
+                return COOLDOWN_NONE;
+            case 502: // Bad Gateway
+            case 504: // Gateway Timeout
+                return COOLDOWN_SHORT;
+            case ERROR_HTML_BODY_LACKS_REQUIRED_DATA:
+            case ERROR_UNACCEPTABLE_FILE_SIZE:
+            case ERROR_UNACCEPTABLE_MEDIA_TYPE:
+            case ERROR_SSL_REQUIRED:
+            case ERROR_REDIRECT_TO_NULL_STRATEGY:
+            case ERROR_UNKNOWN_HOST:
+            case 400: // Bad Request
+            case 401: // Unauthorized
+            case 409: // Conflict
+            case 451: // Unavailable For Legal Reasons
+            case 501: // Not Implemented
+                return COOLDOWN_LONG;
+            default:
+                return COOLDOWN_MEDIUM;
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
+    @SuppressWarnings("unchecked")
     private static <T extends Throwable> T findException(@Nullable Throwable e, @NonNull Class<T> cls) {
         if (e == null) return null;
         if (cls.isInstance(e)) return (T) e;
@@ -232,6 +236,6 @@ public class Cache {
     }
 
     private static boolean internetAvailable() {
-        return true;    // todo
+        return Network.get().hasProperty(Network.Property.CONNECTED);
     }
 }

@@ -422,7 +422,7 @@ strategies:
 
 - name: skip site banners
   type: none
-  hosts: [github.com, gist.github.com, stackoverflow.com, '*.stackexchange.com']
+  hosts: [github.com, gist.github.com, stackoverflow.com, '*.stackexchange.com', twitch.tv, '*.twitch.tv']
 
 - name: try the rest
   type: any
