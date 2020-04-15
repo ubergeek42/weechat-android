@@ -442,7 +442,7 @@ strategies:
 - name: i.imgur
   type: image
   hosts: [i.imgur.com]
-  regex: (?i)^https?://i\\.imgur\\.com/([^.]+)
+  regex: (?i)^https?://i\\.imgur\\.com/([A-Za-z0-9]+)
   small: https://i.imgur.com/$1m.jpg
   big: https://i.imgur.com/$1h.jpg
 
