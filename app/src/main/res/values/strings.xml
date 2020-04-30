@@ -330,12 +330,13 @@
 
         <string name="pref_media_preview_strategies">Strategies</string>
 
-        <string name="pref_media_preview_help">Enabling media preview for notifications can result
-            in duplicate lines being shown on some earlier platforms. Also note that you may need to
-            clear the caches for the settings to apply to already existing data.\n\n<b>⚠
-            Warning:</b> the app is accessing the web directly. An evildoer could craft a website to
-            learn your IP address and other data. You can set up a strategy of type “none” for the
-            wildcard host “*” to avoid that.</string>
+        <string name="pref_media_preview_help"><![CDATA[Enabling media preview for notifications can
+            result in duplicate lines being shown on some earlier platforms. Also note that you may
+            need to clear the caches for the settings to apply to already existing data.<br /><br /><b>⚠
+            Warning:</b> the app is accessing the web directly. A malicious person could craft a
+            website to learn your IP address and other data. To prevent the app from accessing
+            websites you don’t know, remove the strategy for the wildcard host “*” or set it to “none”.
+            <a href="https://github.com/ubergeek42/weechat-android/wiki/Media-preview">Learn more</a>]]></string>
 
         <string name="strategypreference_error">Error</string>
         <string name="strategypreference_summary">Defines the ways images are fetched from individual

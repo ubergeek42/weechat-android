@@ -8,7 +8,7 @@ import android.widget.TextView;
 
 import com.ubergeek42.WeechatAndroid.R;
 
-public class ThemePreferenceHelp extends Preference {
+public class ThemePreferenceHelp extends HelpPreference {
 
     public ThemePreferenceHelp(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -20,12 +20,5 @@ public class ThemePreferenceHelp extends Preference {
             sb.append("<br>&nbsp;&nbsp;&nbsp;&nbsp;").append(p);
 
         return Html.fromHtml(getContext().getString(R.string.pref_theme_help, sb));
-    }
-
-    @Override public void onBindViewHolder(PreferenceViewHolder holder) {
-        super.onBindViewHolder(holder);
-        TextView summary = (TextView) holder.findViewById(android.R.id.summary);
-        summary.setMovementMethod(LinkMovementMethod.getInstance());
-        summary.setMaxHeight(Integer.MAX_VALUE);
     }
 }
