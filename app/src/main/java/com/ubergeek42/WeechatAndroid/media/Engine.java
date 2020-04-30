@@ -136,7 +136,12 @@ public class Engine {
             List<Strategy> strategies = Engine.strategies.get(subHost);
             if (strategies != null) {
                 for (Strategy strategy : strategies) {
-                    if (strategy instanceof StrategyNull) return true;
+                    try {
+                        Strategy.Url strategyUrl = strategy.make(url.toString(), Strategy.Size.SMALL);
+                        if (strategyUrl != null) return false;
+                    } catch (Strategy.CancelFurtherAttempts e) {
+                        return true;
+                    }
                 }
             }
         }
