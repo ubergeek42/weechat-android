@@ -106,7 +106,7 @@
   <string name="pref_relay_password">Mot de passe du relai</string>
   <string name="pref_misc_group">Divers</string>
   <string name="pref_line_increment">Nombre de lignes à charger</string>
-  <string name="pref_line_increment_summary">Le nombre de lignes à charger lors de l\'ouverture d\'un tampon ou via le bouton « Charger davantage de lignes ». Notez qu\'à cause du filtrage, le nombre de lignes affichées peut être inférieur au nombre de lignes chargées. Notez que l\'application doit recharger l\'intégralité des lignes à chaque fois. (%s)</string>
+  <string name="pref_line_increment_summary">Le nombre de lignes à charger lors de l\'ouverture d\'un tampon ou via le bouton « Récupérer plus de lignes ». Notez qu\'à cause du filtrage, le nombre de lignes affichées peut être inférieur au nombre de lignes chargées. Notez que l\'application doit recharger l\'intégralité des lignes à chaque fois. (%s)</string>
   <string name="pref_reconnect">Reconnexion sur connexion rompue</string>
   <string name="pref_boot_connect">Connexion au démarrage du système</string>
   <string name="pref_notification_ticker">Notifier dans le “ticker”</string>
@@ -117,11 +117,11 @@
   <string name="pref_hotlist_sync_summary">Marque les tampons comme lus dans WeeChat quand vous lisez dans cette app. Nécessite WeeChat 1.0 ou ultérieur.</string>
   <string name="pref_ping_group">Paramètres de ping</string>
   <string name="pref_ping_enabled">Activer les pings</string>
-  <string name="pref_ping_idle">Durée de repos</string>
-  <string name="pref_ping_timeout">Timeout du ping</string>
   <string name="pref_ping_enabled_summary">Au repos, vérifie périodiquement que la connexion au relai est fonctionnelle</string>
-  <string name="pref_ping_idle_summary">Nombre de secondes d\'attente avant d\'envoyer un ping (%s)</string>
-  <string name="pref_ping_timeout_summary">Nombre de secondes d\'attente avant de fermer une connexion rompue (%s)</string>
+  <string name="pref_ping_idle">Interval de ping</string>
+  <string name="pref_ping_idle_summary">Temps en secondes entre chaque ping (%s)</string>
+  <string name="pref_ping_timeout">Timeout du ping</string>
+  <string name="pref_ping_timeout_summary">Temps en secondes après lequel la connexion est considérée rompue (%s)</string>
   <string name="pref_bufferlist_group">Liste des tampons</string>
   <string name="pref_sort_buffers">Trier la liste des tampons</string>
   <string name="pref_sort_buffers_summary">Trier par le nombre de messages notables/messages privés/messages non lus</string>
@@ -153,10 +153,10 @@
   <string name="pref_font_summary">L\'alignement fonctionne mal avec les polices non-monospace. Chemins de recherche :%1$s\n\nValeur actuelle :\n    %2$s</string>
   <string name="pref_font_default">Par défaut</string>
   <string name="pref_button_group">Boutons</string>
-  <string name="pref_tabbtn_show">Afficher le bouton tab</string>
+  <string name="pref_tabbtn_show">Afficher le bouton d\'autocomplétion</string>
   <string name="pref_sendbtn_show">Afficher le bouton d\'envoi</string>
-  <string name="pref_volumebtn_size">Taille du texte par boutons volume</string>
-  <string name="pref_volumebtn_size_summary">Si coché, les boutons de volume changent la taille du texte</string>
+  <string name="pref_volumebtn_size">Taille du texte via le volume</string>
+  <string name="pref_volumebtn_size_summary">Si coché, les boutons du volume audio changent la taille du texte lorsque Weechat est au premier plan</string>
   <string name="pref_notif_group">Notifications</string>
   <string name="pref_notification_enable">Activer les notifications</string>
   <string name="pref_notification_enable_summary">Notifier des messages notables comme les messages privés ou les “highlights”</string>
@@ -172,20 +172,20 @@
   <string name="libraries">
       \nCe projet utilise les bibliothèques logicielles suivantes :
       \n
-      \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/noveogroup/android-logger">Android Logger, de Noveo Group</a>
-      \n&#160;&#160;&#160;&#160;•&#160;<a href="https://www.eclipse.org/aspectj/">AspectJ, de Eclipse Foundation</a>
-      \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/greenrobot/EventBus">EventBus, de greenrobot</a>
-      \n&#160;&#160;&#160;&#160;•&#160;<a href="https://bumptech.github.io/glide/">Glide, de Bump Technologies</a>
-      \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/JakeWharton/hugo">Hugo, de Jake Wharton</a>
-      \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/TooTallNate/Java-WebSocket">Java-WebSocket, de Nathan Rajlich</a>
-      \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/dlew/joda-time-android">joda-time-android, de Daniel Lew</a>
-      \n&#160;&#160;&#160;&#160;•&#160;<a href="http://www.jcraft.com/jsch/">JSch, de JCraft</a>
-      \n&#160;&#160;&#160;&#160;•&#160;<a href="https://square.github.io/leakcanary/">LeakCanary, de Square, Inc</a>
-      \n&#160;&#160;&#160;&#160;•&#160;<a href="http://site.mockito.org/">Mockito, de Szczepan Faber et amis</a>
-      \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/TakahikoKawasaki/nv-websocket-client">nv-websocket-client, de Takahiko Kawasaki</a>
-      \n&#160;&#160;&#160;&#160;•&#160;<a href="https://square.github.io/okhttp/">OkHttp, de Square, Inc</a>
-      \n&#160;&#160;&#160;&#160;•&#160;<a href="https://www.slf4j.org/">SLF4J, de QOS.ch</a>
-      \n&#160;&#160;&#160;&#160;•&#160;<a href="https://bitbucket.org/asomov/snakeyaml">SnakeYAML, de Andrey Somov</a>
+      \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/noveogroup/android-logger">Android Logger de Noveo Group</a>
+      \n&#160;&#160;&#160;&#160;•&#160;<a href="https://www.eclipse.org/aspectj/">AspectJ de Eclipse Foundation</a>
+      \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/greenrobot/EventBus">EventBus de greenrobot</a>
+      \n&#160;&#160;&#160;&#160;•&#160;<a href="https://bumptech.github.io/glide/">Glide de Bump Technologies</a>
+      \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/JakeWharton/hugo">Hugo de Jake Wharton</a>
+      \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/TooTallNate/Java-WebSocket">Java-WebSocket de Nathan Rajlich</a>
+      \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/dlew/joda-time-android">joda-time-android de Daniel Lew</a>
+      \n&#160;&#160;&#160;&#160;•&#160;<a href="http://www.jcraft.com/jsch/">JSch de JCraft</a>
+      \n&#160;&#160;&#160;&#160;•&#160;<a href="https://square.github.io/leakcanary/">LeakCanary de Square, Inc</a>
+      \n&#160;&#160;&#160;&#160;•&#160;<a href="http://site.mockito.org/">Mockito de Szczepan Faber et amis</a>
+      \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/TakahikoKawasaki/nv-websocket-client">nv-websocket-client de Takahiko Kawasaki</a>
+      \n&#160;&#160;&#160;&#160;•&#160;<a href="https://square.github.io/okhttp/">OkHttp by Square, Inc</a>
+      \n&#160;&#160;&#160;&#160;•&#160;<a href="https://www.slf4j.org/">SLF4J de QOS.ch</a>
+      \n&#160;&#160;&#160;&#160;•&#160;<a href="https://bitbucket.org/asomov/snakeyaml">SnakeYAML de Andrey Somov</a>
       \n
       \nVous avez trouvé un bug ou vous avez une suggestion&#160;? Créez un ticket sur&#160;<a href="https://github.com/ubergeek42/weechat-android/">GitHub</a> ou contactez-moi&#160;:&#160;"<a href="mailto:kj@ubergeek42.com">kj@ubergeek42.com</a>
       \n\n
@@ -193,4 +193,83 @@
   <string name="pref_timestamp_invalid">Format de date/heure invalide</string>
   <string name="pref_number_invalid">Nombre invalide</string>
   <string name="pref_hostname_invalid">Pas d\'espace dans le nom d\'hôte</string>
+  <string name="notification_channel_hotlist_async">Notables (asynchrone)</string>
+  <string name="menu_dark_theme">Thème sombre</string>
+  <string name="me">Moi</string>
+  <string name="pref_hide_hidden_buffers">Masquer les tampons cachés</string>
+  <string name="pref_hide_hidden_buffers_summary">Masquer les tampons cachés via /buffer hide</string>
+  <string name="pref_show_buffer_filter_summary">Le filtre s\'applique au nom complet de chaque tampon et révèle les tampons ma</string>
+  <string name="pref_use_gesture_exclusion_zone_summary">Sur Android Q, la bordure gauche de l\'écran est réservée au mouvement de retour en arrière. Activer cette option ajoute une petite zone en bas de l\'écran pour ouvrir la liste des tampons.</string>
+  <string name="pref_theme">Thème</string>
+  <string name="pref_use_gesture_exclusion_zone">Zone d\'exclusion des mouvements système</string>
+  <string name="pref_theme_system">Défini selon le niveau de batterie</string>
+  <string name="pref_theme_dark">Sombre</string>
+  <string name="pref_theme_light">Clair</string>
+  <string name="pref_theme_switch">Sélecteur de thème</string>
+  <string name="pref_theme_switch_summary">Affiche le sélecteur de thème dans le menu</string>
+  <string name="pref_color_scheme_day">Thème avec des couleurs claires</string>
+  <string name="pref_color_scheme_night">Thèmes avec des couleurs sombres</string>
+  <string name="pref_theme_help"><![CDATA[Vous pouvez créer des thèmes personnalisés pour cette application.
+   Choisissez vos propres couleurs pour les éléments de l\'interface, la mise en valeur des messages notables
+   et le marqueur de lecture !
+   <a href="https://github.com/ubergeek42/weechat-android/wiki/Custom-Color-Schemes">En savoir plus (en anglais)</a>
+   <br><br>Déposez votre palette de couleurs dans l\'un de ces dossiers :%1$s]]></string>
+  <string name="pref_media_preview_group">Aperçu des médias</string>
+  <string name="pref_media_preview_enabled_for_network">Activé</string>
+  <string name="pref_media_preview_enabled_for_location">Contextes</string>
+  <string name="pref_media_preview_enabled_for_location_summary">Activé pour %s</string>
+  <string name="pref_media_preview_enabled_for_location_summary_empty">Désactivé partout</string>
+  <string name="pref_media_preview_secure_request">Requêtes non sécurisées</string>
+  <string name="pref_media_preview_strategies">Stratégies</string>
+  <string name="pref_media_preview_help"><![CDATA[
+    Sur d\'anciennes versions d\'Android, activer l\'aperçu des médias peut provoquer l\'affichage
+    en double de certaines lignes. Pour que ces paramètres prennent effet sur les médias déjà
+    téléchargés, il est possible qu\'il faille vider le cache de l\'app.<br /><br />
+    <b>Attention :</b> l\'app accède directement au web. Une personne malicieuse pourrait mettre en
+    place un site web afin de récupérer votre adresse IP ou d\'autres données. Pour empêcher l\'app
+    d\'accéder aux sites que vous ne connaissez pas, supprimez la stratégie “hosts: ['*']” ou
+    passez-la en “type: none”.<br /><br />
+    <a href="https://github.com/ubergeek42/weechat-android/wiki/Media-preview">En savoir plus
+    (en anglais)</a>]]></string>
+  <string name="strategypreference_error">Erreur</string>
+  <string name="strategypreference_summary">Définit comment sont récupérées les miniatures pour chaque contenu et selon quels filtres.  %s ; %s ; %s</string>
+  <string name="strategypreference_message_filter_set">Filtre de messages activé</string>
+  <string name="strategypreference_message_filter_not_set">Filtre de messages désactivé</string>
+  <string name="strategypreference_strategies_not_loaded">Aucune stratégie</string>
+  <string name="strategypreference_strategies_list">Stratégies : %s</string>
+  <string name="pref_media_preview_advanced_group">Avancé</string>
+  <string name="pref_media_preview_maximum_body_size_summary">%s MiO</string>
+  <string name="pref_image_disk_cache_size">Espace de stockage en cache</string>
+  <string name="pref_image_disk_cache_size_summary">%s MiO ; prend effet au redémarrage</string>
+  <string name="pref_media_preview_success_cooldown">Mise en cache des réussites</string>
+  <string name="pref_media_preview_success_cooldown_summary">%s heures</string>
+  <string name="pref_media_preview_thumbnail_width">Largeur des miniatures</string>
+  <string name="pref_media_preview_thumbnail_min_height">Hauteur minimum des miniatures</string>
+  <string name="pref_media_preview_thumbnail_max_height">Hauteur maximum des miniatures</string>
+  <string name="menu_reset_to_default">Par défaut</string>
+  <string name="dialog_discard_changes_prompt">Abandonner les changements ?</string>
+  <string name="dialog_discard_changes_cancel">Annuler</string>
+  <string name="dialog_discard_changes_discard">Abandonner</string>
+  <string name="pref_media_preview_maximum_body_size">Plafond de taille</string>
+  <string name="strategypreference_line_filters_not_set">aucun filtre de ligne défini</string>
+  <string-array name="pref_media_preview_enabled_for_network_names">
+    <item>Jamais</item>
+    <item>Sur Wi-Fi uniquement</item>
+    <item>Sur réseaux illimités uniquement</item>
+    <item>Toujours</item>
+  </string-array>
+  <string-array name="pref_media_preview_enabled_for_location_names">
+    <item>Chat</item>
+    <item>Dialogue presse-papier</item>
+    <item>Notifications</item>
+  </string-array>
+  <string-array name="pref_media_preview_secure_request_names">
+    <item>Autoriser</item>
+    <item>Essayer la version HTTPS</item>
+    <item>Bloquer</item>
+  </string-array>
+  <plurals name="strategypreference_line_filters_set">
+    <item quantity="one">%d filtre de ligne défini</item>
+    <item quantity="other">%d filtres de ligne définis</item>
+  </plurals>
 </resources>
