@@ -106,7 +106,7 @@
   <string name="pref_relay_password">Mot de passe du relai</string>
   <string name="pref_misc_group">Divers</string>
   <string name="pref_line_increment">Nombre de lignes à charger</string>
-  <string name="pref_line_increment_summary">Le nombre de lignes à charger lors de l\'ouverture d\'un tampon ou via le bouton « Charger davantage de lignes ». Notez qu\'à cause du filtrage, le nombre de lignes affichées peut être inférieur au nombre de lignes chargées. Notez que l\'application doit recharger l\'intégralité des lignes à chaque fois. (%s)</string>
+  <string name="pref_line_increment_summary">Le nombre de lignes à charger lors de l\'ouverture d\'un tampon ou via le bouton « Récupérer plus de lignes ». Notez qu\'à cause du filtrage, le nombre de lignes affichées peut être inférieur au nombre de lignes chargées. Notez que l\'application doit recharger l\'intégralité des lignes à chaque fois. (%s)</string>
   <string name="pref_reconnect">Reconnexion sur connexion rompue</string>
   <string name="pref_boot_connect">Connexion au démarrage du système</string>
   <string name="pref_notification_ticker">Notifier dans le “ticker”</string>
@@ -117,11 +117,11 @@
   <string name="pref_hotlist_sync_summary">Marque les tampons comme lus dans WeeChat quand vous lisez dans cette app. Nécessite WeeChat 1.0 ou ultérieur.</string>
   <string name="pref_ping_group">Paramètres de ping</string>
   <string name="pref_ping_enabled">Activer les pings</string>
-  <string name="pref_ping_idle">Durée de repos</string>
-  <string name="pref_ping_timeout">Timeout du ping</string>
   <string name="pref_ping_enabled_summary">Au repos, vérifie périodiquement que la connexion au relai est fonctionnelle</string>
-  <string name="pref_ping_idle_summary">Nombre de secondes d\'attente avant d\'envoyer un ping (%s)</string>
-  <string name="pref_ping_timeout_summary">Nombre de secondes d\'attente avant de fermer une connexion rompue (%s)</string>
+  <string name="pref_ping_idle">Interval de ping</string>
+  <string name="pref_ping_idle_summary">Temps en secondes entre chaque ping (%s)</string>
+  <string name="pref_ping_timeout">Timeout du ping</string>
+  <string name="pref_ping_timeout_summary">Temps en secondes après lequel la connexion est considérée rompue (%s)</string>
   <string name="pref_bufferlist_group">Liste des tampons</string>
   <string name="pref_sort_buffers">Trier la liste des tampons</string>
   <string name="pref_sort_buffers_summary">Trier par le nombre de messages notables/messages privés/messages non lus</string>
@@ -153,10 +153,10 @@
   <string name="pref_font_summary">L\'alignement fonctionne mal avec les polices non-monospace. Chemins de recherche :%1$s\n\nValeur actuelle :\n    %2$s</string>
   <string name="pref_font_default">Par défaut</string>
   <string name="pref_button_group">Boutons</string>
-  <string name="pref_tabbtn_show">Afficher le bouton tab</string>
+  <string name="pref_tabbtn_show">Afficher le bouton d\'autocomplétion</string>
   <string name="pref_sendbtn_show">Afficher le bouton d\'envoi</string>
-  <string name="pref_volumebtn_size">Taille du texte par boutons volume</string>
-  <string name="pref_volumebtn_size_summary">Si coché, les boutons de volume changent la taille du texte</string>
+  <string name="pref_volumebtn_size">Taille du texte via le volume</string>
+  <string name="pref_volumebtn_size_summary">Si coché, les boutons du volume audio changent la taille du texte lorsque Weechat est au premier plan</string>
   <string name="pref_notif_group">Notifications</string>
   <string name="pref_notification_enable">Activer les notifications</string>
   <string name="pref_notification_enable_summary">Notifier des messages notables comme les messages privés ou les “highlights”</string>
@@ -189,4 +189,25 @@
   <string name="pref_timestamp_invalid">Format de date/heure invalide</string>
   <string name="pref_number_invalid">Nombre invalide</string>
   <string name="pref_hostname_invalid">Pas d\'espace dans le nom d\'hôte</string>
+  <string name="notification_channel_hotlist_async">Notables (asynchrone)</string>
+  <string name="menu_dark_theme">Thème sombre</string>
+  <string name="me">Moi</string>
+  <string name="pref_hide_hidden_buffers">Masquer les tampons cachés</string>
+  <string name="pref_hide_hidden_buffers_summary">Masquer les tampons cachés via /buffer hide</string>
+  <string name="pref_show_buffer_filter_summary">Le filtre s\'applique au nom complet de chaque tampon et révèle les tampons ma</string>
+  <string name="pref_use_gesture_exclusion_zone_summary">Sur Android Q, la bordure gauche de l\'écran est réservée au mouvement de retour en arrière. Activer cette option ajoute une petite zone en bas de l\'écran pour ouvrir la liste des tampons.</string>
+  <string name="pref_theme">Thème</string>
+  <string name="pref_use_gesture_exclusion_zone">Zone d\'exclusion des mouvements système</string>
+  <string name="pref_theme_system">Défini selon le niveau de batterie</string>
+  <string name="pref_theme_dark">Sombre</string>
+  <string name="pref_theme_light">Clair</string>
+  <string name="pref_theme_switch">Sélecteur de thème</string>
+  <string name="pref_theme_switch_summary">Affiche le sélecteur de thème dans le menu</string>
+  <string name="pref_color_scheme_day">Thème avec des couleurs claires</string>
+  <string name="pref_color_scheme_night">Thèmes avec des couleurs sombres</string>
+  <string name="pref_theme_help"><![CDATA[Vous pouvez créer des thèmes personnalisés pour cette application.
+   Choisissez vos propres couleurs pour les éléments de l\'interface, la mise en valeur des messages notables
+   et le marqueur de lecture !
+   <a href="https://github.com/ubergeek42/weechat-android/wiki/Custom-Color-Schemes">En savoir plus (en anglais)</a>
+   <br><br>Déposez votre palette de couleurs dans l\'un de ces dossiers :%1$s]]></string>
 </resources>
