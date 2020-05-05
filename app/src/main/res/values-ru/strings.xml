@@ -254,7 +254,7 @@
         <item>Только на сетях без тарификации</item>
         <item>Показывать на любых сетях</item>
     </string-array>
-    <string name="pref_media_preview_enabled_for_location">Места</string>
+    <string name="pref_media_preview_enabled_for_location">Контекст</string>
     <string name="pref_media_preview_enabled_for_location_summary">Показывать в: %s</string>
     <string-array name="pref_media_preview_enabled_for_location_names">
         <item>Чат</item>
