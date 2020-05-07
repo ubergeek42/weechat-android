@@ -1,14 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
-
-    <!-- internally used names -->
-    <string name="app_name" translatable="false">Weechat-Android</string>
-    <string name="package_name" translatable="false">com.ubergeek42.WeechatAndroid</string>
     <string name="notification_channel_connection_status">Verbindungsstatus</string>
     <string name="notification_channel_hotlist">Hotlist</string>
     <string name="notification_channel_hotlist_async">Hotlist (async)</string>
 
-    <!-- widget and button contentDescription-s -->
     <string name="sendkey">Senden</string>
     <string name="menu_preferences">Einstellungen</string>
     <string name="menu_close">Schließen</string>
@@ -24,7 +19,6 @@
     <string name="close_drawer">Schublade schließen</string>
     <string name="more_button">weitere Zeilen anfordern</string>
     <string name="more_button_fetching">Zeilen werden geholt…</string>
-    <string name="nick_list_title" translatable="false">%1$s (%2$s)</string>
     <plurals name="nick_list_count">
         <item quantity="one">%1$d Benutzer</item>
         <item quantity="other">%1$d Benutzer</item>
@@ -33,16 +27,13 @@
     <string name="dialog_paste_title">Einfügen</string>
     <string name="linkify_error_no_activity">keine Aktivität gefunden für %s</string>
 
-    <!--  the text shown in the buffer list filter edit text as a placeholder -->
     <string name="filter_bufferlist_placeholder"><i>Filter</i></string>
 
-    <!-- Some of the notifications the application displays during certain events -->
     <plurals name="hot_messages">
         <item quantity="one">Neue Nachrichten in %s</item>
         <item quantity="other">%d neue Nachrichten in %s</item>
     </plurals>
 
-    <!-- plurals -->
     <string name="hot_messages_missing_1">(Nachricht nicht abgerufen)</string>
     <plurals name="hot_messages_missing">
         <item quantity="one">(Nachricht nicht abgerufen)</item>
@@ -54,7 +45,6 @@
         <item quantity="other">(unbekannte Anwender)</item>
     </plurals>
 
-    <!-- “Me” in the “Me: my message” part of NotificationCompat.MessagingStyle -->
     <string name="me">Ich</string>
 
     <plurals name="messages">
@@ -76,20 +66,16 @@
 
     <string name="notification_waiting_network">Warte auf Netzwerk</string>
 
-    <!-- toasts -->
     <string name="autoscroll_no_line">Aufgrund neuer Nachrichten wurden alte Nachrichten verloren</string>
     <string name="no_hot_buffers">Derzeit keine Buffer mit neuen heißen Nachrichten</string>
     <string name="not_connected">nicht verbunden</string>
     <string name="error">Fehler: %s</string>
 
-    <!-- hints -->
     <string name="hint_show_hot_message">Zeige heiße Nachricht</string>
 
-    <!-- network errors -->
     <string name="relay_error_server_closed">Der Server hat die Verbindung während des Verbindungsaufbaus unerwartet geschlossen. Falsches Passwort oder Verbindungstyp?</string>
     <string name="relay_error_resolve">Adresse %s konnte nicht aufgelöst werden</string>
 
-    <!-- SSL certificate dialog -->
     <string name="ssl_cert_dialog_unknown_fingerprint">Unbekannt</string>
     <string name="ssl_cert_dialog_description"><![CDATA[
         <b>Ausgestellt auf:</b><br>
@@ -116,9 +102,6 @@
     <string name="invalid_hostname_dialog_button">Sicherheit geht vor</string>
     <string name="invalid_hostname_dialog_empty"><![CDATA[<br><strong>(keine)</strong>]]></string>
 
-    <!-- ##################################### preferences ##################################### -->
-
-    <!-- validation errors -->
     <string name="pref_error_relay_host_not_set">Relay-Host ist nicht angelegt</string>
     <string name="pref_error_relay_password_not_set">Kein Relay-Passwort angelegt</string>
     <string name="pref_error_ssh_host_not_set">SSH Host ist nicht angelegt</string>
@@ -127,12 +110,11 @@
 
     <string name="pref_connection_group">Verbindung</string>
 
-    <!-- connection type -->
     <string name="pref_connection_type_plain">Offene Verbindung</string>
-    <string name="pref_connection_type_weechat_ssl" tools:ignore="MissingTranslation">WeeChat SSL</string>
+    <string name="pref_connection_type_weechat_ssl">WeeChat SSL</string>
     <string name="pref_connection_type_ssh">SSH-Tunnel</string>
-    <string name="pref_connection_type_ws" tools:ignore="MissingTranslation">WebSocket</string>
-    <string name="pref_connection_type_ws_ssl" tools:ignore="MissingTranslation">WebSocket (SSL)</string>
+    <string name="pref_connection_type_ws">WebSocket</string>
+    <string name="pref_connection_type_ws_ssl">WebSocket (SSL)</string>
     <string name="pref_connection_type">Typ der Verbindung</string>
     <string-array name="pref_connection_type_names">
         <item>@string/pref_connection_type_plain</item>
@@ -162,8 +144,6 @@
     <string name="pref_ssh_known_hosts">bekannte Hosts</string>
     <string name="pref_ssh_known_hosts_summary">Ausgabe von $ ssh-keyscan host 2>/dev/null</string>
 
-    <!-- file -->
-
     <string name="pref_file_imported">Datei importiert. Sie können es jetzt löschen.</string>
     <string name="pref_file_error">Fehler: %s</string>
     <string name="pref_file_clear_button">Löschen</string>
@@ -172,18 +152,13 @@
     <string name="pref_file_choose_button">Wähle Datei</string>
     <string name="pref_file_paste_button">Einfügen</string>
     <string name="pref_file_pasted">Von Zwischenablage eingefügt</string>
-    <string name="pref_file_summary" translatable="false">%1$s (%2$s)</string>
     <string name="pref_file_set">Einstellen</string>
     <string name="pref_file_not_set">Nicht einstellen</string>
-
-    <!-- relay type -->
 
     <string name="pref_relay_group">Relay</string>
     <string name="pref_relay_host">Relay Host</string>
     <string name="pref_relay_port">Relay Port</string>
     <string name="pref_relay_password">Relay Passwort</string>
-
-    <!-- misc -->
 
     <string name="pref_misc_group">Sonstiges</string>
     <string name="pref_line_increment">Anzahl der anzufordernden Zeilen</string>
@@ -205,8 +180,6 @@
     <string name="pref_ping_idle_summary">Anzahl der Sekunden, die gewartet werden muss, bevor ein Ping gesendet wird, wenn die Verbindung im Wartezustand ist (%s)</string>
     <string name="pref_ping_timeout_summary">Anzahl der Sekunden, die gewartet werden muss, bevor eine nicht reagierende Verbindung geschlossen wird (%s)</string>
 
-    <!-- buffer list -->
-
     <string name="pref_bufferlist_group">Buffer-Liste</string>
     <string name="pref_sort_buffers">Liste der Buffer sortieren</string>
     <string name="pref_sort_buffers_summary">Sortierung nach Anzahl der Highlights/privaten Nachrichten/ungelesenen Nachrichten</string>
@@ -218,8 +191,6 @@
     <string name="pref_show_buffer_filter_summary">Der Filter stimmt mit den vollständigen Buffernamen überein und zeigt übereinstimmende versteckte Puffer an</string>
     <string name="pref_use_gesture_exclusion_zone">Ausschlusszone für Systemgesten</string>
     <string name="pref_use_gesture_exclusion_zone_summary">Unter Android Q ist die linke Seite des Bildschirms für die Rückbewegung reserviert. Aktivieren Sie diese Funktion, um einen kleinen Bereich am unteren Bildschirmrand zu haben, in dem Sie die Bufferliste normal öffnen können.</string>
-
-    <!-- look & feel -->
 
     <string name="pref_lookfeel_group">Optik &amp; Haptik</string>
     <string name="pref_text_size">Textgröße</string>
@@ -249,7 +220,6 @@
 
     <string name="pref_font">Zeichensatz für Buffer</string>
 
-    <!-- theme (color scheme) -->
     <string name="pref_theme">Farbschema</string>
     <string-array name="pref_theme_names">
         <item>@string/pref_theme_system</item>
@@ -272,19 +242,14 @@
                 mehr</a><br><br>Kopieren Sie Ihr benutzerdefiniertes Farbschema in einen dieser Ordner:%1$s]]></string>
     <string name="pref_theme_not_set">nicht gesetzt</string>
 
-    <!-- font -->
     <string name="pref_font_summary">Nicht-Monospace-Schriftarten funktionieren nicht gut mit der Präfix-Ausrichtung. Suchpfad:%1$s\n\naktueller Zeichensatz:\n\u0020\u0020\u0020\u0020%2$s</string>
     <string name="pref_font_default">Standard</string>
-
-    <!-- buttons -->
 
     <string name="pref_button_group">Tasten</string>
     <string name="pref_tabbtn_show">Zeige TAB Taste</string>
     <string name="pref_sendbtn_show">Zeige SENDE Taste</string>
     <string name="pref_volumebtn_size">Lautstärketasten ändern die Textgröße</string>
     <string name="pref_volumebtn_size_summary">Wenn diese Option aktiviert ist, ändern die Lautstärketasten die Textgröße, anstelle der Lautstärke</string>
-
-    <!-- notifications -->
 
     <string name="pref_notif_group">Benachrichtigungen</string>
     <string name="pref_notification_enable">Benachrichtigungen einschalten</string>
@@ -293,12 +258,8 @@
     <string name="pref_notification_vibrate">Vibration</string>
     <string name="pref_notification_light">Benachrichtigungslicht</string>
 
-    <!-- ringtone -->
-
     <string name="pref_ringtone_none">Keine</string>
     <string name="pref_ringtone_unknown">Unbekannt</string>
-
-    <!-- media preview -->
 
     <string name="pref_media_preview_group">Medienvorschau</string>
     <string name="pref_media_preview_enabled_for_network">aktiviert</string>
@@ -360,11 +321,8 @@
     <string name="pref_media_preview_thumbnail_min_height">Minimale Höhe der Vorschau</string>
     <string name="pref_media_preview_thumbnail_max_height">Maximale Höhe der Vorschau</string>
 
-    <!-- about -->
-
     <string name="about">Über</string>
     <string name="build_id">Erstellungs-ID %s</string>
-    <string name="version_string" translatable="false">Weechat-Android %s</string>
     <string name="created_by">Erstellt von ubergeek42</string>
     <string name="unknown_version_id">Unbekannte Versions-ID</string>
     <string name="libraries">
@@ -389,8 +347,6 @@
             \n\n
         </string>
 
-    <!-- strings used in error messages of the preferences activity -->
-
     <string name="pref_timestamp_invalid">Ungültiges Format für Zeitstempel</string>
     <string name="pref_number_invalid">Ungültige Nummer</string>
     <string name="pref_hostname_invalid">Keine Leerzeichen im Hostnamen erlaubt</string>
@@ -403,79 +359,4 @@
     <string name="dialog_discard_changes_prompt">Änderungen verwerfen?</string>
     <string name="dialog_discard_changes_cancel">Abbrechen</string>
     <string name="dialog_discard_changes_discard">Verwerfen</string>
-
-    <string name="pref_media_preview_strategies_default" translatable="false">
-"message filter:
-  ^&lt;[^ ]{1,16} \".{1,33}\">\\s
-
-line filters:
-- nicks: [tacgnol]
-
-- regex: '^(?:Title: |↑ )'
-
-- nicks: [lobot]
-  regex: ^&lt;\\S+>\\s
-
-strategies:
-- name: skip pastebins
-  type: none
-  hosts: [pastebin.com, bpaste.net, dpaste.com, termbin.com]
-
-- name: skip site banners
-  type: none
-  hosts: [github.com, gist.github.com, stackoverflow.com, '*.stackexchange.com', twitch.tv, '*.twitch.tv']
-
-- name: try the rest
-  type: any
-  hosts: ['*']
-
-- name: youtube
-  type: image
-  hosts: [www.youtube.com, m.youtube.com, youtube.com, youtu.be]
-  regex: (?i)^https?://(?:(?:www\\.|m\\.)?youtube\\.com/watch\\?v=|youtu\\.be/)([A-Za-z0-9_-]+)
-  small: https://img.youtube.com/vi/$1/mqdefault.jpg
-  big: https://img.youtube.com/vi/$1/hqdefault.jpg
-
-- name: i.imgur
-  type: image
-  hosts: [i.imgur.com]
-  regex: (?i)^https?://i\\.imgur\\.com/([A-Za-z0-9]+)
-  small: https://i.imgur.com/$1m.jpg
-  big: https://i.imgur.com/$1h.jpg
-
-- name: imgur/gallery
-  type: any
-  hosts: [imgur.com, www.imgur.com]
-  regex: (?i)^https?://(?:www\\.)?imgur\\.com/gallery/(.*)
-  sub: https://imgur.com/a/$1
-
-- name: 9gag
-  type: image
-  hosts: [9gag.com, img-9gag-fun.9cache.com]
-  regex: (?i)^https?://(?:9gag\\.com/gag|img-9gag-fun\\.9cache\\.com/photo)/([^_]+)
-  small: https://images-cdn.9gag.com/photo/$1_700b.jpg
-  big: https://images-cdn.9gag.com/photo/$1_700b.jpg
-
-- name: mobile.twitter
-  type: any
-  hosts: [mobile.twitter.com]
-  regex: (?i)^https?://mobile\\.twitter\\.com/(.*)
-  sub: https://twitter.com/$1
-
-- name: pikabu
-  type: any
-  hosts: [pikabu.ru, www.pikabu.ru]
-  regex: (?i)^https://pikabu\\.ru/story/.
-
-- name: common/https
-  type: any
-  hosts: ['*.wikipedia.org', gfycat.com]
-  regex: (?i)^https?://(.+)
-  sub: https://$1
-
-- name: reddit
-  type: any
-  hosts: [v.redd.it, reddit.com, www.reddit.com, old.reddit.com]
-  body size: 131072
-"</string>
 </resources>

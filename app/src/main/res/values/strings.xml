@@ -129,10 +129,10 @@
 
         <!-- connection type -->
         <string name="pref_connection_type_plain">Plain connection</string>
-        <string name="pref_connection_type_weechat_ssl" tools:ignore="MissingTranslation">WeeChat SSL</string>
+        <string name="pref_connection_type_weechat_ssl">WeeChat SSL</string>
         <string name="pref_connection_type_ssh">SSH tunnel</string>
-        <string name="pref_connection_type_ws" tools:ignore="MissingTranslation">WebSocket</string>
-        <string name="pref_connection_type_ws_ssl" tools:ignore="MissingTranslation">WebSocket (SSL)</string>
+        <string name="pref_connection_type_ws">WebSocket</string>
+        <string name="pref_connection_type_ws_ssl">WebSocket (SSL)</string>
         <string name="pref_connection_type">Connection type</string>
             <string-array name="pref_connection_type_names">
                 <item>@string/pref_connection_type_plain</item>
