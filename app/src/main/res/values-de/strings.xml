@@ -8,7 +8,7 @@
     <string name="menu_preferences">Einstellungen</string>
     <string name="menu_close">Schließen</string>
     <string name="menu_filter_lines">Zeilen filtern</string>
-    <string name="menu_dark_theme">dunkler Modus</string>
+    <string name="menu_dark_theme">Dunkler Modus</string>
     <string name="connect">Verbinden</string>
     <string name="disconnect">Verbindung trennen</string>
     <string name="stop_connecting">Verbindung beenden</string>
@@ -17,7 +17,7 @@
     <string name="tabkey">Tab</string>
     <string name="open_drawer">Schublade öffnen</string>
     <string name="close_drawer">Schublade schließen</string>
-    <string name="more_button">weitere Zeilen anfordern</string>
+    <string name="more_button">Weitere Zeilen anfordern</string>
     <string name="more_button_fetching">Zeilen werden geholt…</string>
     <plurals name="nick_list_count">
         <item quantity="one">%1$d Benutzer</item>
@@ -25,7 +25,7 @@
     </plurals>
     <string name="dialog_copy_title">Kopieren</string>
     <string name="dialog_paste_title">Einfügen</string>
-    <string name="linkify_error_no_activity">keine Aktivität gefunden für %s</string>
+    <string name="linkify_error_no_activity">Keine Aktivität gefunden für %s</string>
 
     <string name="filter_bufferlist_placeholder"><i>Filter</i></string>
 
@@ -41,8 +41,8 @@
     </plurals>
 
     <plurals name="hot_messages_missing_user">
-        <item quantity="one">(unbekannter Anwender)</item>
-        <item quantity="other">(unbekannte Anwender)</item>
+        <item quantity="one">(Unbekannter Anwender)</item>
+        <item quantity="other">(Unbekannte Anwender)</item>
     </plurals>
 
     <string name="me">Ich</string>
@@ -69,7 +69,7 @@
     <string name="autoscroll_no_line">Aufgrund neuer Nachrichten wurden alte Nachrichten
         verloren</string>
     <string name="no_hot_buffers">Derzeit keine Buffer mit neuen heißen Nachrichten</string>
-    <string name="not_connected">nicht verbunden</string>
+    <string name="not_connected">Nicht verbunden</string>
     <string name="error">Fehler: %s</string>
 
     <string name="hint_show_hot_message">Zeige heiße Nachricht</string>
@@ -105,10 +105,10 @@
 
     <string name="pref_error_relay_host_not_set">Relay-Host ist nicht angelegt</string>
     <string name="pref_error_relay_password_not_set">Kein Relay-Passwort angelegt</string>
-    <string name="pref_error_ssh_host_not_set">SSH Host ist nicht angelegt</string>
-    <string name="pref_error_no_ssh_key">Weder ein SSH Schlüssel noch ein Passwort wird
+    <string name="pref_error_ssh_host_not_set">SSH-Host ist nicht angelegt</string>
+    <string name="pref_error_no_ssh_key">Weder ein SSH-Schlüssel noch ein Passwort wird
         genutzt</string>
-    <string name="pref_error_no_ssh_known_hosts">bekannte SSH Hosts sind nicht angelegt</string>
+    <string name="pref_error_no_ssh_known_hosts">Bekannte SSH-Hosts sind nicht angelegt</string>
 
     <string name="pref_connection_group">Verbindung</string>
 
@@ -128,7 +128,7 @@
 
     <string name="pref_clear_certs">Zertifikate löschen</string>
     <string name="pref_clear_certs_confirmation">Zertifikate löschen?</string>
-    <string name="pref_clear_certs_summary">{0,Wahl,0#Kein vertrauenswürdiges Zertifikat|1#1
+    <string name="pref_clear_certs_summary">{0,choice,0#Kein vertrauenswürdiges Zertifikat|1#1
         vertrauenswürdiges Zertifikat|1&lt;{0} vertrauenswürdiges Zertifikate}</string>
     <string name="pref_clear_certs_positive">Löschen</string>
     <string name="pref_clear_certs_negative">Abbrechen</string>
@@ -145,7 +145,7 @@
     <string name="pref_ssh_key">Privater Schlüssel</string>
     <string name="pref_ssh_key_summary">DSA, RSA, ECDSA privater Schlüssel in OpenSSH oder PuTTY
         Format</string>
-    <string name="pref_ssh_known_hosts">bekannte Hosts</string>
+    <string name="pref_ssh_known_hosts">Bekannte Hosts</string>
     <string name="pref_ssh_known_hosts_summary">Ausgabe von $ ssh-keyscan host 2>/dev/null</string>
 
     <string name="pref_file_imported">Datei importiert. Sie können es jetzt löschen.</string>
@@ -156,18 +156,18 @@
     <string name="pref_file_choose_button">Wähle Datei</string>
     <string name="pref_file_paste_button">Einfügen</string>
     <string name="pref_file_pasted">Von Zwischenablage eingefügt</string>
-    <string name="pref_file_set">Einstellen</string>
-    <string name="pref_file_not_set">Nicht einstellen</string>
+    <string name="pref_file_set">einstellen</string>
+    <string name="pref_file_not_set">nicht einstellen</string>
 
     <string name="pref_relay_group">Relay</string>
-    <string name="pref_relay_host">Relay Host</string>
-    <string name="pref_relay_port">Relay Port</string>
-    <string name="pref_relay_password">Relay Passwort</string>
+    <string name="pref_relay_host">Relay-Host</string>
+    <string name="pref_relay_port">Relay-Port</string>
+    <string name="pref_relay_password">Relay-Passwort</string>
 
     <string name="pref_misc_group">Sonstiges</string>
     <string name="pref_line_increment">Anzahl der anzufordernden Zeilen</string>
     <string name="pref_line_increment_summary">Die Anzahl der Zeilen, die beim Öffnen eines Buffers
-        oder beim Drücken der Schaltfläche „Weitere Zeilen anfordern geladen werden sollen. Beachten
+        oder beim Drücken der Schaltfläche „Weitere Zeilen anfordern“ geladen werden sollen. Beachten
         Sie, dass aufgrund der Filterung die Anzahl der tatsächlich angezeigten Zeilen möglicherweise
         geringer ist als die Anzahl der geladenen Zeilen. Beachten Sie auch, dass die App aufgrund
         der Einschränkungen von WeeChat jedes Mal, wenn mehr Zeilen angefordert werden, alle Zeilen
@@ -273,16 +273,16 @@
         href="https://github.com/ubergeek42/weechat-android/wiki/Custom-Color-Schemes">Lerne
         mehr</a><br><br>Kopieren Sie Ihr benutzerdefiniertes Farbschema in einen dieser
         Ordner:%1$s]]></string>
-    <string name="pref_theme_not_set">nicht gesetzt</string>
+    <string name="pref_theme_not_set">Nicht gesetzt</string>
 
     <string name="pref_font_summary">Nicht-Monospace-Schriftarten funktionieren nicht gut mit der
-        Präfix-Ausrichtung. Suchpfad:%1$s\n\naktueller
+        Präfix-Ausrichtung. Suchpfad:%1$s\n\nAktueller
         Zeichensatz:\n\u0020\u0020\u0020\u0020%2$s</string>
     <string name="pref_font_default">Standard</string>
 
     <string name="pref_button_group">Tasten</string>
-    <string name="pref_tabbtn_show">Zeige TAB Taste</string>
-    <string name="pref_sendbtn_show">Zeige SENDE Taste</string>
+    <string name="pref_tabbtn_show">Zeige Tab-Taste</string>
+    <string name="pref_sendbtn_show">Zeige Sende-Taste</string>
     <string name="pref_volumebtn_size">Lautstärketasten ändern die Textgröße</string>
     <string name="pref_volumebtn_size_summary">Wenn diese Option aktiviert ist, ändern die
         Lautstärketasten die Textgröße, anstelle der Lautstärke</string>
@@ -299,7 +299,7 @@
     <string name="pref_ringtone_unknown">Unbekannt</string>
 
     <string name="pref_media_preview_group">Medienvorschau</string>
-    <string name="pref_media_preview_enabled_for_network">aktiviert</string>
+    <string name="pref_media_preview_enabled_for_network">Aktiviert</string>
     <string name="pref_media_preview_enabled_for_location">Standort</string>
     <string name="pref_media_preview_enabled_for_location_summary">Aktiviert für %s</string>
     <string name="pref_media_preview_enabled_for_location_summary_empty">Überall deaktiviert</string>
@@ -307,7 +307,7 @@
     <string-array name="pref_media_preview_enabled_for_network_names">
         <item>Niemals</item>
         <item>Nur über WLAN</item>
-        <item>bei gebührenfreien Netzwerken</item>
+        <item>Bei gebührenfreien Netzwerken</item>
         <item>Immer</item>
     </string-array>
 
@@ -333,7 +333,7 @@
         Warnung:</b> Die App greift direkt auf das Web zu. Eine Person mit böswilliger Absicht
         kann eine Webseite erstellen um so an Ihre IP-Adresse und andere Daten zu kommen. Um zu
         Verhindern das die App auf unbekannte Webseiten zugreift, entfernen Sie den Platzhalter
-        “*” für den Host oder oder stellen Sie auf “none”. <a
+        „*“ für den Host oder stellen Sie auf “none”. <a
         href="https://github.com/ubergeek42/weechat-android/wiki/Media-preview">Lerne mehr
         darüber</a>]]></string>
 
