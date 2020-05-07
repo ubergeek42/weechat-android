@@ -1,0 +1,481 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- internally used names -->
+    <string name="app_name" translatable="false">Weechat-Android</string>
+    <string name="package_name" translatable="false">com.ubergeek42.WeechatAndroid</string>
+    <string name="notification_channel_connection_status">Verbindungsstatus</string>
+    <string name="notification_channel_hotlist">Hotlist</string>
+    <string name="notification_channel_hotlist_async">Hotlist (async)</string>
+
+    <!-- widget and button contentDescription-s -->
+    <string name="sendkey">Senden</string>
+    <string name="menu_preferences">Einstellungen</string>
+    <string name="menu_close">Schließen</string>
+    <string name="menu_filter_lines">Zeilen filtern</string>
+    <string name="menu_dark_theme">dunkler Modus</string>
+    <string name="connect">Verbinden</string>
+    <string name="disconnect">Verbindung trennen</string>
+    <string name="stop_connecting">Verbindung beenden</string>
+    <string name="menu_hotlist">Hotlist</string>
+    <string name="menu_nicklist">Nicks</string>
+    <string name="tabkey">Tab</string>
+    <string name="open_drawer">Schublade öffnen</string>
+    <string name="close_drawer">Schublade schließen</string>
+    <string name="more_button">weitere Zeilen anfordern</string>
+    <string name="more_button_fetching">Zeilen werden geholt…</string>
+    <string name="nick_list_title" translatable="false">%1$s (%2$s)</string>
+    <plurals name="nick_list_count">
+        <item quantity="one">%1$d Benutzer</item>
+        <item quantity="other">%1$d Benutzer</item>
+    </plurals>
+    <string name="dialog_copy_title">Kopieren</string>
+    <string name="dialog_paste_title">Einfügen</string>
+    <string name="linkify_error_no_activity">keine Aktivität gefunden für %s</string>
+
+    <!--  the text shown in the buffer list filter edit text as a placeholder -->
+    <string name="filter_bufferlist_placeholder"><i>Filter</i></string>
+
+    <!-- Some of the notifications the application displays during certain events -->
+    <plurals name="hot_messages">
+        <item quantity="one">Neue Nachrichten in %s</item>
+        <item quantity="other">%d neue Nachrichten in %s</item>
+    </plurals>
+
+    <!-- plurals -->
+    <string name="hot_messages_missing_1">(Nachricht nicht abgerufen)</string>
+    <plurals name="hot_messages_missing">
+        <item quantity="one">(Nachricht nicht abgerufen)</item>
+        <item quantity="other">(%d Nachrichten nicht abgerufen)</item>
+    </plurals>
+
+    <plurals name="hot_messages_missing_user">
+        <item quantity="one">(unbekannter Anwender)</item>
+        <item quantity="other">(unbekannte Anwender)</item>
+    </plurals>
+
+    <!-- “Me” in the “Me: my message” part of NotificationCompat.MessagingStyle -->
+    <string name="me">Ich</string>
+
+    <plurals name="messages">
+        <item quantity="one">%d Nachricht</item>
+        <item quantity="other">%d Nachrichten</item>
+    </plurals>
+
+    <plurals name="in_buffers">
+        <item quantity="one">&#160;in %d Buffer</item>
+        <item quantity="other">&#160;in %d Buffern</item>
+    </plurals>
+
+    <string name="reply_label">Antworten</string>
+
+    <string name="notification_connected_to">Verbunden mit %s</string>
+
+    <string name="notification_connecting_details_now">Verbindung wird hergestellt…</string>
+    <string name="notification_connecting_details">In %d Sekunden verbinden…</string>
+
+    <string name="notification_waiting_network">Warte auf Netzwerk</string>
+
+    <!-- toasts -->
+    <string name="autoscroll_no_line">Aufgrund neuer Nachrichten wurden alte Nachrichten verloren</string>
+    <string name="no_hot_buffers">Derzeit keine Buffer mit neuen heißen Nachrichten</string>
+    <string name="not_connected">nicht verbunden</string>
+    <string name="error">Fehler: %s</string>
+
+    <!-- hints -->
+    <string name="hint_show_hot_message">Zeige heiße Nachricht</string>
+
+    <!-- network errors -->
+    <string name="relay_error_server_closed">Der Server hat die Verbindung während des Verbindungsaufbaus unerwartet geschlossen. Falsches Passwort oder Verbindungstyp?</string>
+    <string name="relay_error_resolve">Adresse %s konnte nicht aufgelöst werden</string>
+
+    <!-- SSL certificate dialog -->
+    <string name="ssl_cert_dialog_unknown_fingerprint">Unbekannt</string>
+    <string name="ssl_cert_dialog_description"><![CDATA[
+        <b>Ausgestellt auf:</b><br>
+        %1$s<br>
+        <br>
+        <b>Ausgestellt von:</b><br>
+        %2$s<br>
+        <br>
+        <b>Gültigkeitszeitraum:</b><br>
+        Ausgegeben am: %3$s<br>
+        Läuft ab am: %4$s<br>
+        <br>
+        <b>SHA-256 Fingerprint:</b><br>
+        %5$s
+    ]]></string>
+    <string name="ssl_cert_dialog_title">Zertifikat nicht vertrauenswürdig</string>
+    <string name="ssl_cert_dialog_accept_button">Akzeptieren</string>
+    <string name="ssl_cert_dialog_reject_button">Ablehnen</string>
+    <string name="invalid_hostname_dialog_body"><![CDATA[
+    Sie versuchen eine Verbindung zu <strong>%1$s</strong> herzustellen, aber das Zertifikat ist nur gültig für nachfolgende Hosts:<br>
+    %2$s
+    ]]></string>
+    <string name="invalid_hostname_dialog_title">Ungültiger Hostname</string>
+    <string name="invalid_hostname_dialog_button">Sicherheit geht vor</string>
+    <string name="invalid_hostname_dialog_empty"><![CDATA[<br><strong>(keine)</strong>]]></string>
+
+    <!-- ##################################### preferences ##################################### -->
+
+    <!-- validation errors -->
+    <string name="pref_error_relay_host_not_set">Relay-Host ist nicht angelegt</string>
+    <string name="pref_error_relay_password_not_set">Kein Relay-Passwort angelegt</string>
+    <string name="pref_error_ssh_host_not_set">SSH Host ist nicht angelegt</string>
+    <string name="pref_error_no_ssh_key">Weder ein SSH Schlüssel noch ein Passwort wird genutzt</string>
+    <string name="pref_error_no_ssh_known_hosts">bekannte SSH Hosts sind nicht angelegt</string>
+
+    <string name="pref_connection_group">Verbindung</string>
+
+    <!-- connection type -->
+    <string name="pref_connection_type_plain">Offene Verbindung</string>
+    <string name="pref_connection_type_weechat_ssl" tools:ignore="MissingTranslation">WeeChat SSL</string>
+    <string name="pref_connection_type_ssh">SSH-Tunnel</string>
+    <string name="pref_connection_type_ws" tools:ignore="MissingTranslation">WebSocket</string>
+    <string name="pref_connection_type_ws_ssl" tools:ignore="MissingTranslation">WebSocket (SSL)</string>
+    <string name="pref_connection_type">Typ der Verbindung</string>
+    <string-array name="pref_connection_type_names">
+        <item>@string/pref_connection_type_plain</item>
+        <item>@string/pref_connection_type_weechat_ssl</item>
+        <item>@string/pref_connection_type_ssh</item>
+        <item>@string/pref_connection_type_ws</item>
+        <item>@string/pref_connection_type_ws_ssl</item>
+    </string-array>
+
+    <string name="pref_clear_certs">Zertifikate löschen</string>
+    <string name="pref_clear_certs_confirmation">Zertifikate löschen?</string>
+    <string name="pref_clear_certs_summary">{0,Wahl,0#Kein vertrauenswürdiges Zertifikat|1#1 vertrauenswürdiges Zertifikat|1&lt;{0} vertrauenswürdiges Zertifikate}</string>
+    <string name="pref_clear_certs_positive">Löschen</string>
+    <string name="pref_clear_certs_negative">Abbrechen</string>
+    <string name="pref_clear_certs_success">Zertifikate gelöscht</string>
+    <string name="pref_clear_certs_failure">Zertifikate konnten nicht gelöscht werden</string>
+
+    <string name="pref_ws_path">WebSocket Pfad</string>
+
+    <string name="pref_ssh_group">Einstellungen SSH-Tunnel</string>
+    <string name="pref_ssh_host">SSH-Host</string>
+    <string name="pref_ssh_user">SSH-Username</string>
+    <string name="pref_ssh_port">SSH-Port</string>
+    <string name="pref_ssh_pass">SSH-Passwort/Schlüsselpassphrase</string>
+    <string name="pref_ssh_key">Privater Schlüssel</string>
+    <string name="pref_ssh_key_summary">DSA, RSA, ECDSA privater Schlüssel in OpenSSH oder PuTTY Format</string>
+    <string name="pref_ssh_known_hosts">bekannte Hosts</string>
+    <string name="pref_ssh_known_hosts_summary">Ausgabe von $ ssh-keyscan host 2>/dev/null</string>
+
+    <!-- file -->
+
+    <string name="pref_file_imported">Datei importiert. Sie können es jetzt löschen.</string>
+    <string name="pref_file_error">Fehler: %s</string>
+    <string name="pref_file_clear_button">Löschen</string>
+    <string name="pref_file_cleared">Gelöscht</string>
+    <string name="pref_file_empty_clipboard">Zwischenablage ist leer</string>
+    <string name="pref_file_choose_button">Wähle Datei</string>
+    <string name="pref_file_paste_button">Einfügen</string>
+    <string name="pref_file_pasted">Von Zwischenablage eingefügt</string>
+    <string name="pref_file_summary" translatable="false">%1$s (%2$s)</string>
+    <string name="pref_file_set">Einstellen</string>
+    <string name="pref_file_not_set">Nicht einstellen</string>
+
+    <!-- relay type -->
+
+    <string name="pref_relay_group">Relay</string>
+    <string name="pref_relay_host">Relay Host</string>
+    <string name="pref_relay_port">Relay Port</string>
+    <string name="pref_relay_password">Relay Passwort</string>
+
+    <!-- misc -->
+
+    <string name="pref_misc_group">Sonstiges</string>
+    <string name="pref_line_increment">Anzahl der anzufordernden Zeilen</string>
+    <string name="pref_line_increment_summary">Die Anzahl der Zeilen, die beim Öffnen eines Buffers oder beim Drücken der Schaltfläche „Weitere Zeilen anfordern geladen werden sollen. Beachten Sie, dass aufgrund der Filterung die Anzahl der tatsächlich angezeigten Zeilen möglicherweise geringer ist als die Anzahl der geladenen Zeilen. Beachten Sie auch, dass die App aufgrund der Einschränkungen von WeeChat jedes Mal, wenn mehr Zeilen angefordert werden, alle Zeilen erneut abrufen muss. (%s)</string>
+    <string name="pref_reconnect">Bei Verbindungsverlust erneut verbinden</string>
+    <string name="pref_boot_connect">Beim Systemstart eine Verbindung herstellen</string>
+    <string name="pref_notification_ticker">Benachrichtigungsticker</string>
+    <string name="pref_notification_ticker_summary">Verbindungsänderungen im Ticker anzeigen (funktioniert nicht unter Lollipop)</string>
+    <string name="pref_optimize_traffic">Synchronisierung von geöffneten Buffern</string>
+    <string name="pref_optimize_traffic_summary">Kann den Datenverkehr und den Batterieverbrauch erheblich reduzieren, Hotlist-Updates werden jedoch nur alle 5 Minuten durchgeführt. Benötigt WeeChat 1.1 oder neuer. Einstellung wird erst nach einer erneuten Verbindung wirksam.</string>
+    <string name="pref_hotlist_sync">Lesestatus des Buffer synchronisieren</string>
+    <string name="pref_hotlist_sync_summary">Markiert Buffer in WeeChat als gelesen, wenn Sie sie in dieser App gelesen wurden. Benötigt WeeChat 1.0 oder neuer.</string>
+
+    <string name="pref_ping_group">Ping Einstellungen</string>
+    <string name="pref_ping_enabled">Aktiviere Ping</string>
+    <string name="pref_ping_idle">Wartezeit</string>
+    <string name="pref_ping_timeout">Ping Zeitüberschreitung</string>
+    <string name="pref_ping_enabled_summary">Überprüft regelmäßig, ob die Relay-Verbindung im Wartezustand noch aktiv ist</string>
+    <string name="pref_ping_idle_summary">Anzahl der Sekunden, die gewartet werden muss, bevor ein Ping gesendet wird, wenn die Verbindung im Wartezustand ist (%s)</string>
+    <string name="pref_ping_timeout_summary">Anzahl der Sekunden, die gewartet werden muss, bevor eine nicht reagierende Verbindung geschlossen wird (%s)</string>
+
+    <!-- buffer list -->
+
+    <string name="pref_bufferlist_group">Buffer-Liste</string>
+    <string name="pref_sort_buffers">Liste der Buffer sortieren</string>
+    <string name="pref_sort_buffers_summary">Sortierung nach Anzahl der Highlights/privaten Nachrichten/ungelesenen Nachrichten</string>
+    <string name="pref_hide_server_buffers">Ausblenden von Buffern in denen man nicht schreibt</string>
+    <string name="pref_hide_server_buffers_summary">Beispiel: Server-Buffer und Buffer von Erweiterungen (/fset)</string>
+    <string name="pref_hide_hidden_buffers">Ausblenden von versteckten Buffern</string>
+    <string name="pref_hide_hidden_buffers_summary">Blendet Buffer aus, wenn sie mittels /buffer hide versteckt werden</string>
+    <string name="pref_show_buffer_filter">Zeigt Filter für Buffer</string>
+    <string name="pref_show_buffer_filter_summary">Der Filter stimmt mit den vollständigen Buffernamen überein und zeigt übereinstimmende versteckte Puffer an</string>
+    <string name="pref_use_gesture_exclusion_zone">Ausschlusszone für Systemgesten</string>
+    <string name="pref_use_gesture_exclusion_zone_summary">Unter Android Q ist die linke Seite des Bildschirms für die Rückbewegung reserviert. Aktivieren Sie diese Funktion, um einen kleinen Bereich am unteren Bildschirmrand zu haben, in dem Sie die Bufferliste normal öffnen können.</string>
+
+    <!-- look & feel -->
+
+    <string name="pref_lookfeel_group">Optik &amp; Haptik</string>
+    <string name="pref_text_size">Textgröße</string>
+    <string name="pref_auto_hide_actionbar">Verstecke Aktionsleiste</string>
+    <string name="pref_auto_hide_actionbar_summary">Blenden Sie die obere Aktionsleiste aus, wenn die Tastatur geöffnet ist oder wenn Sie nach oben scrollen</string>
+    <string name="pref_chatview_filters">Nachrichtenfilter</string>
+    <string name="pref_chatview_filters_summary">Verbirgt Nachrichten die von WeeChat gefiltert werden (Beispiel: irc_smart_filter)</string>
+    <string name="pref_prefix_align">Präfixausrichtung</string>
+    <string name="pref_prefix_align_left">Linksbündig</string>
+    <string name="pref_prefix_align_right">Rechtsbündig</string>
+    <string name="pref_prefix_align_timestamp">Ausrichtung nach Zeitstempel</string>
+    <string name="pref_prefix_align_none">Keine Ausrichtung</string>
+    <string-array name="pref_prefix_align_names">
+        <item>@string/pref_prefix_align_left</item>
+        <item>@string/pref_prefix_align_right</item>
+        <item>@string/pref_prefix_align_timestamp</item>
+        <item>@string/pref_prefix_align_none</item>
+    </string-array>
+    <string name="pref_max_width">Maximale Breite des Präfix</string>
+    <string name="pref_max_width_summary">In Bezug auf die Breite, werden längere Nicknamen abgeschnitten (%s)</string>
+    <string name="pref_enclose_nick">Nicknamen einschließen</string>
+    <string name="pref_enclose_nick_summary">Nicknamen werden zwischen &lt;&#xA0;und&#xA0;&gt; dargestellt</string>
+    <string name="pref_timestamp_format">Anzeige der Uhrzeit</string>
+    <string name="pref_timestamp_format_summary">%s (Standardwert: HH:mm:ss)</string>
+    <string name="pref_dim_down">Abdunkeln von Zeilen die automatisch erstellt wurden</string>
+    <string name="pref_dim_down_summary">Anzeigen von join/quit Nachrichten einer schwachen Farbe, wie im Farbschema festgelegt</string>
+
+    <string name="pref_font">Zeichensatz für Buffer</string>
+
+    <!-- theme (color scheme) -->
+    <string name="pref_theme">Farbschema</string>
+    <string-array name="pref_theme_names">
+        <item>@string/pref_theme_system</item>
+        <item>@string/pref_theme_dark</item>
+        <item>@string/pref_theme_light</item>
+    </string-array>
+    <string name="pref_theme_system">Durch Batteriesparmodus einstellen</string>
+    <string name="pref_theme_dark">Dunkel</string>
+    <string name="pref_theme_light">Hell</string>
+
+    <string name="pref_theme_switch">Farbschema umschalten</string>
+    <string name="pref_theme_switch_summary">Wechsel des Farbschemas im Menü anzeigen</string>
+
+    <string name="pref_color_scheme_day">Helles Farbschema</string>
+    <string name="pref_color_scheme_night">Dunkles Farbschema</string>
+
+    <string name="pref_theme_loading_error">Fehler beim Laden des Farbschema %s</string>
+    <string name="pref_theme_help"><![CDATA[Sie können benutzerdefinierte Farbschemata für diese Applikation erstellen. Verwenden Sie beliebige Farben für die UI-Elemente, passen Sie die Farben für Highlights und Lesezeichen an und ändern Sie die WeeChat Farbpalette! <a
+                href="https://github.com/ubergeek42/weechat-android/wiki/Custom-Color-Schemes">Lerne
+                mehr</a><br><br>Kopieren Sie Ihr benutzerdefiniertes Farbschema in einen dieser Ordner:%1$s]]></string>
+    <string name="pref_theme_not_set">nicht gesetzt</string>
+
+    <!-- font -->
+    <string name="pref_font_summary">Nicht-Monospace-Schriftarten funktionieren nicht gut mit der Präfix-Ausrichtung. Suchpfad:%1$s\n\naktueller Zeichensatz:\n\u0020\u0020\u0020\u0020%2$s</string>
+    <string name="pref_font_default">Standard</string>
+
+    <!-- buttons -->
+
+    <string name="pref_button_group">Tasten</string>
+    <string name="pref_tabbtn_show">Zeige TAB Taste</string>
+    <string name="pref_sendbtn_show">Zeige SENDE Taste</string>
+    <string name="pref_volumebtn_size">Lautstärketasten ändern die Textgröße</string>
+    <string name="pref_volumebtn_size_summary">Wenn diese Option aktiviert ist, ändern die Lautstärketasten die Textgröße, anstelle der Lautstärke</string>
+
+    <!-- notifications -->
+
+    <string name="pref_notif_group">Benachrichtigungen</string>
+    <string name="pref_notification_enable">Benachrichtigungen einschalten</string>
+    <string name="pref_notification_enable_summary">Benachrichtigt über aktuelle Nachrichten, wie private Nachrichten oder Highlights</string>
+    <string name="pref_notification_sound">Benachrichtigungston</string>
+    <string name="pref_notification_vibrate">Vibration</string>
+    <string name="pref_notification_light">Benachrichtigungslicht</string>
+
+    <!-- ringtone -->
+
+    <string name="pref_ringtone_none">Keine</string>
+    <string name="pref_ringtone_unknown">Unbekannt</string>
+
+    <!-- media preview -->
+
+    <string name="pref_media_preview_group">Medienvorschau</string>
+    <string name="pref_media_preview_enabled_for_network">aktiviert</string>
+    <string name="pref_media_preview_enabled_for_location">Standort</string>
+    <string name="pref_media_preview_enabled_for_location_summary">Aktiviert für %s</string>
+    <string name="pref_media_preview_enabled_for_location_summary_empty">Überall deaktiviert</string>
+
+    <string-array name="pref_media_preview_enabled_for_network_names">
+        <item>Niemals</item>
+        <item>Nur über WLAN</item>
+        <item>bei gebührenfreien Netzwerken</item>
+        <item>Immer</item>
+    </string-array>
+
+    <string-array name="pref_media_preview_enabled_for_location_names">
+        <item>Chat</item>
+        <item>Dialog einfügen</item>
+        <item>Benachrichtigungen</item>
+    </string-array>
+
+    <string name="pref_media_preview_secure_request">Unsichere Anfragen</string>
+    <string-array name="pref_media_preview_secure_request_names">
+        <item>Erlauben</item>
+        <item>Auf HTTPS umstellen</item>
+        <item>Verbieten</item>
+    </string-array>
+
+    <string name="pref_media_preview_strategies">Strategien</string>
+
+    <string name="pref_media_preview_help"><![CDATA[Das Aktivieren der Medienvorschau für Benachrichtigungen kann dazu führen,
+            das auf älteren Plattformen die Zeilen doppelt angezeigt werden. Bitte beachten Sie,
+            das Sie möglicherweise den Cache löschen müssen, damit die Einstellungen auf bereits vorhandene Zeilen angewand werden.<br /><br /><b>⚠
+            Warnung:</b> Die App greift direkt auf das Web zu. Eine Person mit böswilliger Absicht
+            kann eine Webseite erstellen um so an Ihre IP-Adresse und andere Daten zu kommen. Um zu Verhindern das die App auf
+            unbekannte Webseiten zugreift, entfernen Sie den Platzhalter “*” für den Host oder oder stellen Sie auf “none”.
+            <a href="https://github.com/ubergeek42/weechat-android/wiki/Media-preview">Lerne mehr darüber</a>]]></string>
+
+    <string name="strategypreference_error">Fehler</string>
+    <string name="strategypreference_summary">Definiere die Art und Weise wie Bilder von einzelnen
+            Webseiten abgerufen werden, und erstelle Filter.\n\n%s; %s;\n\n%s</string>
+    <string name="strategypreference_message_filter_set">Nachrichtenfilter gesetzt</string>
+    <string name="strategypreference_message_filter_not_set">Nachrichtenfilter nicht gesetzt</string>
+    <string name="strategypreference_line_filters_not_set">Filter für Zeilen nicht gesetzt</string>
+    <string name="strategypreference_strategies_not_loaded">Keine Strategien geladen</string>
+    <string name="strategypreference_strategies_list">Strategien: %s</string>
+    <plurals name="strategypreference_line_filters_set">
+        <item quantity="one">%d Zeilenfilter gesetzt</item>
+        <item quantity="other">%d Zeilenfilter gesetzt</item>
+    </plurals>
+
+    <string name="pref_media_preview_advanced_group">Erweitere Einstellungen</string>
+    <string name="pref_media_preview_maximum_body_size">Größenbeschränkung für Download</string>
+    <string name="pref_media_preview_maximum_body_size_summary">%s MB</string>
+    <string name="pref_image_disk_cache_size">Disk Cache</string>
+    <string name="pref_image_disk_cache_size_summary">%s MB; wird bei einem Neustart wirksam</string>
+    <string name="pref_media_preview_success_cooldown">Erfolgreicher Rückgriff auf Bilder</string>
+    <string name="pref_media_preview_success_cooldown_summary">%s Stunden. Die App berücksichtigt, dass erfolgreich abgerufene Bilder für den angegebenen Zeitraum entweder aus dem Cache oder aus dem Internet verfügbar sind.</string>
+    <string name="pref_media_preview_thumbnail_width">Vorschaubild Höhe</string>
+    <string name="pref_media_preview_thumbnail_min_height">Minimale Höhe der Vorschau</string>
+    <string name="pref_media_preview_thumbnail_max_height">Maximale Höhe der Vorschau</string>
+
+    <!-- about -->
+
+    <string name="about">Über</string>
+    <string name="build_id">Erstellungs-ID %s</string>
+    <string name="version_string" translatable="false">Weechat-Android %s</string>
+    <string name="created_by">Erstellt von ubergeek42</string>
+    <string name="unknown_version_id">Unbekannte Versions-ID</string>
+    <string name="libraries">
+            \nDieses Projekt verwendet die folgenden Bibliotheken:
+            \n
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/noveogroup/android-logger">Android Logger von Noveo Group</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://www.eclipse.org/aspectj/">AspectJ von Eclipse Foundation</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/greenrobot/EventBus">EventBus von greenrobot</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://bumptech.github.io/glide/">Glide von Bump Technologies</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/JakeWharton/hugo">Hugo von Jake Wharton</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/TooTallNate/Java-WebSocket">Java-WebSocket von Nathan Rajlich</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/dlew/joda-time-android">joda-time-android von Daniel Lew</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="http://www.jcraft.com/jsch/">JSch von JCraft</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://square.github.io/leakcanary/">LeakCanary von Square, Inc</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="http://site.mockito.org/">Mockito von Szczepan Faber und Freunden</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/TakahikoKawasaki/nv-websocket-client">nv-websocket-client von Takahiko Kawasaki</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://square.github.io/okhttp/">OkHttp von Square, Inc</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://www.slf4j.org/">SLF4J von QOS.ch</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://bitbucket.org/asomov/snakeyaml">SnakeYAML von Andrey Somov</a>
+            \n
+            \nSie haben einen Fehler gefunden oder haben einen Verbesserungsvorschlag? Erstelle eine Anfrage auf&#160;<a href="https://github.com/ubergeek42/weechat-android/">GitHub</a> oder schreibe eine email an:&#160;<a href="mailto:kj@ubergeek42.com">kj@ubergeek42.com</a>
+            \n\n
+        </string>
+
+    <!-- strings used in error messages of the preferences activity -->
+
+    <string name="pref_timestamp_invalid">Ungültiges Format für Zeitstempel</string>
+    <string name="pref_number_invalid">Ungültige Nummer</string>
+    <string name="pref_hostname_invalid">Keine Leerzeichen im Hostnamen erlaubt</string>
+    <string name="menu_debug">Debug</string>
+    <string name="menu_sync_hotlist">Sync Hotlist</string>
+    <string name="menu_die">Sterbe</string>
+    <string name="menu_save">Sichern</string>
+    <string name="menu_reset_to_default">Standard</string>
+
+    <string name="dialog_discard_changes_prompt">Änderungen verwerfen?</string>
+    <string name="dialog_discard_changes_cancel">Abbrechen</string>
+    <string name="dialog_discard_changes_discard">Verwerfen</string>
+
+    <string name="pref_media_preview_strategies_default" translatable="false">
+"message filter:
+  ^&lt;[^ ]{1,16} \".{1,33}\">\\s
+
+line filters:
+- nicks: [tacgnol]
+
+- regex: '^(?:Title: |↑ )'
+
+- nicks: [lobot]
+  regex: ^&lt;\\S+>\\s
+
+strategies:
+- name: skip pastebins
+  type: none
+  hosts: [pastebin.com, bpaste.net, dpaste.com, termbin.com]
+
+- name: skip site banners
+  type: none
+  hosts: [github.com, gist.github.com, stackoverflow.com, '*.stackexchange.com', twitch.tv, '*.twitch.tv']
+
+- name: try the rest
+  type: any
+  hosts: ['*']
+
+- name: youtube
+  type: image
+  hosts: [www.youtube.com, m.youtube.com, youtube.com, youtu.be]
+  regex: (?i)^https?://(?:(?:www\\.|m\\.)?youtube\\.com/watch\\?v=|youtu\\.be/)([A-Za-z0-9_-]+)
+  small: https://img.youtube.com/vi/$1/mqdefault.jpg
+  big: https://img.youtube.com/vi/$1/hqdefault.jpg
+
+- name: i.imgur
+  type: image
+  hosts: [i.imgur.com]
+  regex: (?i)^https?://i\\.imgur\\.com/([A-Za-z0-9]+)
+  small: https://i.imgur.com/$1m.jpg
+  big: https://i.imgur.com/$1h.jpg
+
+- name: imgur/gallery
+  type: any
+  hosts: [imgur.com, www.imgur.com]
+  regex: (?i)^https?://(?:www\\.)?imgur\\.com/gallery/(.*)
+  sub: https://imgur.com/a/$1
+
+- name: 9gag
+  type: image
+  hosts: [9gag.com, img-9gag-fun.9cache.com]
+  regex: (?i)^https?://(?:9gag\\.com/gag|img-9gag-fun\\.9cache\\.com/photo)/([^_]+)
+  small: https://images-cdn.9gag.com/photo/$1_700b.jpg
+  big: https://images-cdn.9gag.com/photo/$1_700b.jpg
+
+- name: mobile.twitter
+  type: any
+  hosts: [mobile.twitter.com]
+  regex: (?i)^https?://mobile\\.twitter\\.com/(.*)
+  sub: https://twitter.com/$1
+
+- name: pikabu
+  type: any
+  hosts: [pikabu.ru, www.pikabu.ru]
+  regex: (?i)^https://pikabu\\.ru/story/.
+
+- name: common/https
+  type: any
+  hosts: ['*.wikipedia.org', gfycat.com]
+  regex: (?i)^https?://(.+)
+  sub: https://$1
+
+- name: reddit
+  type: any
+  hosts: [v.redd.it, reddit.com, www.reddit.com, old.reddit.com]
+  body size: 131072
+"</string>
+</resources>
