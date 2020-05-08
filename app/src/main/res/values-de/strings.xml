@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="notification_channel_connection_status">Verbindungsstatus</string>
-    <string name="notification_channel_hotlist">Hotlist</string>
-    <string name="notification_channel_hotlist_async">Hotlist (async)</string>
+    <string name="notification_channel_hotlist">Neue Nachrichten</string>
+    <string name="notification_channel_hotlist_async">Neue Nachrichten (async)</string>
 
     <string name="sendkey">Senden</string>
     <string name="menu_preferences">Einstellungen</string>
     <string name="menu_close">Schließen</string>
     <string name="menu_filter_lines">Zeilen filtern</string>
-    <string name="menu_dark_theme">Dunkler Modus</string>
+    <string name="menu_dark_theme">Dunkles Design</string>
     <string name="connect">Verbinden</string>
     <string name="disconnect">Verbindung trennen</string>
-    <string name="stop_connecting">Verbindung beenden</string>
+    <string name="stop_connecting">Verbindungsaufbau beenden</string>
     <string name="menu_hotlist">Hotlist</string>
-    <string name="menu_nicklist">Nicks</string>
+    <string name="menu_nicklist">Benutzernamen</string>
     <string name="tabkey">Tab</string>
     <string name="open_drawer">Schublade öffnen</string>
     <string name="close_drawer">Schublade schließen</string>
@@ -217,7 +217,7 @@
         kleinen Bereich am unteren Bildschirmrand zu haben, in dem Sie die Bufferliste normal
         öffnen können.</string>
 
-    <string name="pref_lookfeel_group">Optik &amp; Haptik</string>
+    <string name="pref_lookfeel_group">Erscheinungsbild</string>
     <string name="pref_text_size">Textgröße</string>
     <string name="pref_auto_hide_actionbar">Verstecke Aktionsleiste</string>
     <string name="pref_auto_hide_actionbar_summary">Blenden Sie die obere Aktionsleiste aus, wenn
@@ -250,7 +250,7 @@
 
     <string name="pref_font">Zeichensatz für Buffer</string>
 
-    <string name="pref_theme">Farbschema</string>
+    <string name="pref_theme">Design</string>
     <string-array name="pref_theme_names">
         <item>@string/pref_theme_system</item>
         <item>@string/pref_theme_dark</item>
@@ -261,7 +261,7 @@
     <string name="pref_theme_light">Hell</string>
 
     <string name="pref_theme_switch">Farbschema umschalten</string>
-    <string name="pref_theme_switch_summary">Wechsel des Farbschemas im Menü anzeigen</string>
+    <string name="pref_theme_switch_summary">Wechsel des Designs im Menü anzeigen</string>
 
     <string name="pref_color_scheme_day">Helles Farbschema</string>
     <string name="pref_color_scheme_night">Dunkles Farbschema</string>
@@ -300,7 +300,7 @@
 
     <string name="pref_media_preview_group">Medienvorschau</string>
     <string name="pref_media_preview_enabled_for_network">Aktiviert</string>
-    <string name="pref_media_preview_enabled_for_location">Standort</string>
+    <string name="pref_media_preview_enabled_for_location">Kontext</string>
     <string name="pref_media_preview_enabled_for_location_summary">Aktiviert für %s</string>
     <string name="pref_media_preview_enabled_for_location_summary_empty">Überall deaktiviert</string>
 
