@@ -18,7 +18,7 @@
     <string name="disconnect">Disconnect</string>
     <string name="stop_connecting">Stop connecting</string>
     <string name="menu_hotlist">Hotlist</string>
-    <string name="menu_nicklist">Nicks</string>
+    <string name="menu_nicklist">Users</string>
     <string name="tabkey">Tab</string>
     <string name="open_drawer">Open drawer</string>
     <string name="close_drawer">Close drawer</string>
@@ -99,8 +99,8 @@
         %2$s<br>
         <br>
         <b>Validity period:</b><br>
-        Issued On: %3$s<br>
-        Expires On: %4$s<br>
+        Issued on: %3$s<br>
+        Expires on: %4$s<br>
         <br>
         <b>SHA-256 fingerprint:</b><br>
         %5$s
@@ -198,9 +198,9 @@
             <string name="pref_hotlist_sync_summary">Mark buffers as read in WeeChat when you read them in this app. Requires WeeChat 1.0 or newer.</string>
 
             <string name="pref_ping_group">Ping settings</string>
-                <string name="pref_ping_enabled">Enable Ping</string>
-                <string name="pref_ping_idle">Idle Time</string>
-                <string name="pref_ping_timeout">Ping Timeout</string>
+                <string name="pref_ping_enabled">Enable ping</string>
+                <string name="pref_ping_idle">Idle time</string>
+                <string name="pref_ping_timeout">Ping timeout</string>
                 <string name="pref_ping_enabled_summary">Periodically check that the relay connection is still alive when idle</string>
                 <string name="pref_ping_idle_summary">Number of seconds to wait before sending a ping when the connection is idle (%s)</string>
                 <string name="pref_ping_timeout_summary">Number of seconds to wait before closing an unresponsive connection (%s)</string>
@@ -222,7 +222,7 @@
     <!-- look & feel -->
 
         <string name="pref_lookfeel_group">Look &amp; feel</string>
-            <string name="pref_text_size">Text Size</string>
+            <string name="pref_text_size">Text size</string>
             <string name="pref_auto_hide_actionbar">Hide action bar</string>
             <string name="pref_auto_hide_actionbar_summary">Hide the top action bar when the keyboard is open or when scrolling up</string>
             <string name="pref_chatview_filters">Filter messages</string>

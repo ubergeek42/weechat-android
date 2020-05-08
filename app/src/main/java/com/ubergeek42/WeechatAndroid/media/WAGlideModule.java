@@ -27,7 +27,7 @@ import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_IMAGE_DISK_CACH
     @Override public void applyOptions(@NonNull Context context, @NonNull GlideBuilder builder) {
         SharedPreferences p = PreferenceManager.getDefaultSharedPreferences(context.getApplicationContext());
         String cacheSizeMb = p.getString(PREF_IMAGE_DISK_CACHE_SIZE, PREF_IMAGE_DISK_CACHE_SIZE_D);
-        long cacheSize = (long) (Float.parseFloat(cacheSizeMb) * 1024 * 1024);
+        long cacheSize = (long) (Float.parseFloat(cacheSizeMb) * 1000 * 1000);
         builder.setDiskCache(new InternalCacheDiskCacheFactory(context, cacheSize));
     }
 }

@@ -110,7 +110,7 @@ public class Config {
     static boolean enabledForPaste = true;
     static boolean enabledForNotifications = true;
 
-    static long maximumBodySize = 10 * 1024 * 1024;     // 10 MB in bytes
+    static long maximumBodySize = 10 * 1000 * 1000;     // 10 MB in bytes
     static long successCooldown = 24 * 60 * 60 * 1000;  // 24 hours in ms
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -167,7 +167,7 @@ public class Config {
                 }
                 break;
             case PREF_MEDIA_PREVIEW_MAXIMUM_BODY_SIZE:
-                maximumBodySize = (long) (Float.parseFloat(p.getString(key, PREF_MEDIA_PREVIEW_MAXIMUM_BODY_SIZE_D)) * 1024 * 1024);
+                maximumBodySize = (long) (Float.parseFloat(p.getString(key, PREF_MEDIA_PREVIEW_MAXIMUM_BODY_SIZE_D)) * 1000 * 1000);
                 break;
             case PREF_MEDIA_PREVIEW_SUCCESS_COOLDOWN:
                 successCooldown = (long) (Float.parseFloat(p.getString(key, PREF_MEDIA_PREVIEW_SUCCESS_COOLDOWN_D)) * 60 * 60 * 1000);
