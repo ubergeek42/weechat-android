@@ -210,7 +210,7 @@
         hide versteckt werden</string>
     <string name="pref_show_buffer_filter">Zeigt Filter für Buffer</string>
     <string name="pref_show_buffer_filter_summary">Der Filter stimmt mit den vollständigen
-        Buffernamen überein und zeigt übereinstimmende versteckte Puffer an</string>
+        Buffernamen überein und zeigt übereinstimmende versteckte Buffer an</string>
     <string name="pref_use_gesture_exclusion_zone">Ausschlusszone für Systemgesten</string>
     <string name="pref_use_gesture_exclusion_zone_summary">Unter Android Q ist die linke Seite des
         Bildschirms für die Rückbewegung reserviert. Aktivieren Sie diese Funktion, um einen
@@ -245,8 +245,8 @@
     <string name="pref_timestamp_format">Anzeige der Uhrzeit</string>
     <string name="pref_timestamp_format_summary">%s (Standardwert: HH:mm:ss)</string>
     <string name="pref_dim_down">Abdunkeln von Zeilen die automatisch erstellt wurden</string>
-    <string name="pref_dim_down_summary">Anzeigen von join/quit Nachrichten einer schwachen Farbe,
-        wie im Farbschema festgelegt</string>
+    <string name="pref_dim_down_summary">Anzeigen von join/quit Nachrichten in einer schwächeren
+        Farbe, wie im Farbschema festgelegt</string>
 
     <string name="pref_font">Zeichensatz für Buffer</string>
 
