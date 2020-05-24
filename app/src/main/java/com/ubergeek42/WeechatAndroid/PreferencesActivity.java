@@ -33,6 +33,10 @@ import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
 
 public class PreferencesActivity extends AppCompatActivity implements PreferenceFragmentCompat.OnPreferenceStartScreenCallback {
     final static private String KEY = "key";
+    final static private int PREF_RINGTONE_ID = 0;
+    final static private int PREF_SSH_KEY_ID = 1;
+    final static private int PREF_SSH_KNOWN_HOSTS_ID = 2;
+    final static private int PREF_TLS_CLIENT_FILE_ID = 3;
 
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -89,7 +93,7 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
 
         private static final String FRAGMENT_DIALOG_TAG = "android.support.v7.preference.PreferenceFragment.DIALOG";
         private String key;
-        private Preference sslGroup = null;
+        private Preference tlsGroup = null;
         private Preference sshGroup = null;
         private Preference wsPath = null;
 
@@ -114,15 +118,23 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
                 f = FontPreference.FontPreferenceFragment.newInstance(preference.getKey());
             else if (preference instanceof ThemePreference)
                 f = ThemePreference.ThemePreferenceFragment.newInstance(preference.getKey());
-            else if (preference instanceof FilePreference)
-                f = FilePreference.FilePreferenceFragment.newInstance(preference.getKey(), PREF_SSH_KEY.equals(preference.getKey()) ? 1 : 2);
-            else if (preference instanceof EditTextPreferenceFix)
+            else if (preference instanceof FilePreference) {
+                int id = -1;
+                if (PREF_SSH_KEY.equals(preference.getKey())) {
+                    id = PREF_SSH_KEY_ID;
+                } else if (PREF_SSH_KNOWN_HOSTS.equals(preference.getKey())) {
+                    id = PREF_SSH_KNOWN_HOSTS_ID;
+                } else if (PREF_TLS_CLIENT_FILE.equals(preference.getKey())) {
+                    id = PREF_TLS_CLIENT_FILE_ID;
+                }
+                f = FilePreference.FilePreferenceFragment.newInstance(preference.getKey(), id);
+            } else if (preference instanceof EditTextPreferenceFix)
                 f = EditTextPreferenceFix.EditTextPreferenceFixFragment.newInstance(preference.getKey());
             else if (preference instanceof ClearCertPreference)
                 f = ClearCertPreference.ClearCertPreferenceFragment.newInstance(preference.getKey());
             else if (preference instanceof RingtonePreferenceFix) {
                 Intent intent = ((RingtonePreferenceFix) preference).makeRingtoneRequestIntent();
-                startActivityForResult(intent, 0);
+                startActivityForResult(intent, PREF_RINGTONE_ID);
                 return;
             } else {
                 super.onDisplayPreferenceDialog(preference);
@@ -146,7 +158,7 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
 
             String[] listenTo = {};
             if (PREF_CONNECTION_GROUP.equals(key)) {
-                sslGroup = findPreference(PREF_SSL_GROUP);
+                tlsGroup = findPreference(PREF_TLS_GROUP);
                 sshGroup = findPreference(PREF_SSH_GROUP);
                 wsPath = findPreference(PREF_WS_PATH);
                 showHideStuff(getPreferenceScreen().getSharedPreferences().getString(PREF_CONNECTION_TYPE, PREF_CONNECTION_TYPE_D));
@@ -181,9 +193,10 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
             super.onActivityResult(requestCode, resultCode, data);
             if (resultCode == RESULT_OK) {
                 switch (requestCode) {
-                    case 0: ((RingtonePreferenceFix) findPreference(PREF_NOTIFICATION_SOUND)).onActivityResult(data); break;
-                    case 1: ((FilePreference) findPreference(PREF_SSH_KEY)).onActivityResult(data); break;
-                    case 2: ((FilePreference) findPreference(PREF_SSH_KNOWN_HOSTS)).onActivityResult(data); break;
+                    case PREF_RINGTONE_ID: ((RingtonePreferenceFix) findPreference(PREF_NOTIFICATION_SOUND)).onActivityResult(data); break;
+                    case PREF_SSH_KEY_ID: ((FilePreference) findPreference(PREF_SSH_KEY)).onActivityResult(data); break;
+                    case PREF_SSH_KNOWN_HOSTS_ID: ((FilePreference) findPreference(PREF_SSH_KNOWN_HOSTS)).onActivityResult(data); break;
+                    case PREF_TLS_CLIENT_FILE_ID: ((FilePreference) findPreference(PREF_TLS_CLIENT_FILE)).onActivityResult(data); break;
                 }
             }
         }
@@ -211,11 +224,11 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
             return valid;
          }
 
-        // this hides and shows ssl / websocket / ssh preference screens
+        // this hides and shows tls / websocket / ssh preference screens
         // must not be called when the settings do not exist in the tree
         private void showHideStuff(String type) {
-            if (Utils.isAnyOf(type, PREF_TYPE_SSL, PREF_TYPE_WEBSOCKET_SSL)) getPreferenceScreen().addPreference(sslGroup);
-            else getPreferenceScreen().removePreference(sslGroup);
+            if (Utils.isAnyOf(type, PREF_TYPE_SSL, PREF_TYPE_WEBSOCKET_SSL)) getPreferenceScreen().addPreference(tlsGroup);
+            else getPreferenceScreen().removePreference(tlsGroup);
             if (PREF_TYPE_SSH.equals(type)) getPreferenceScreen().addPreference(sshGroup);
             else getPreferenceScreen().removePreference(sshGroup);
             if (Utils.isAnyOf(type, PREF_TYPE_WEBSOCKET, PREF_TYPE_WEBSOCKET_SSL)) getPreferenceScreen().addPreference(wsPath);

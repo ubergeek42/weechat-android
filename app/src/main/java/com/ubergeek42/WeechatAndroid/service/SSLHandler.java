@@ -13,6 +13,7 @@ import androidx.annotation.Nullable;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -21,6 +22,7 @@ import java.io.IOException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
@@ -33,6 +35,8 @@ import java.util.regex.Pattern;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
@@ -50,20 +54,34 @@ public class SSLHandler {
 
     private File keystoreFile;
     private KeyStore sslKeystore;
+    private byte[] clientKeyFile;
+    private String clientKeyFilePass;
+    private KeyManager[] clientKeyManagers;
 
-    private SSLHandler(File keystoreFile) {
+    private SSLHandler(File keystoreFile, byte[] clientKeyFile, String clientKeyFilePass) {
         this.keystoreFile = keystoreFile;
         loadKeystore();
+        this.clientKeyFile = clientKeyFile;
+        this.clientKeyFilePass = clientKeyFilePass;
+        loadClientKeyFile();
     }
 
     private static @Nullable SSLHandler sslHandler = null;
 
     public static @NonNull SSLHandler getInstance(@NonNull Context context) {
-        if (sslHandler == null) {
+        return getInstance(context, null, "");
+    }
+
+    public static @NonNull SSLHandler getInstance(@NonNull Context context, @Nullable byte[] clientKeyFile, @NonNull String clientKeyFilePass) {
+        if (sslHandler == null || !sslHandler.sameParameters(clientKeyFile, clientKeyFilePass)) {
             File f = new File(context.getDir("sslDir", Context.MODE_PRIVATE), "keystore.jks");
-            sslHandler = new SSLHandler(f);
+            sslHandler = new SSLHandler(f, clientKeyFile, clientKeyFilePass);
         }
         return sslHandler;
+    }
+
+    private boolean sameParameters(@Nullable byte[] clientKeyFile, @NonNull String clientKeyFilePass) {
+        return Arrays.equals(clientKeyFile, this.clientKeyFile) && clientKeyFilePass.equals(this.clientKeyFilePass);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -146,6 +164,7 @@ public class SSLHandler {
 
     SSLSocketFactory getSSLSocketFactory() {
         SSLCertificateSocketFactory sslSocketFactory = (SSLCertificateSocketFactory) SSLCertificateSocketFactory.getDefault(0, null);
+        sslSocketFactory.setKeyManagers(clientKeyManagers);
         sslSocketFactory.setTrustManagers(UserTrustManager.build(sslKeystore));
         return sslSocketFactory;
     }
@@ -249,6 +268,26 @@ public class SSLHandler {
             X509Certificate[] result = Arrays.copyOf(system, system.length + user.length);
             System.arraycopy(user, 0, result, system.length, user.length);
             return result;
+        }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    // Load client certificate and private key
+    private void loadClientKeyFile() {
+        clientKeyManagers = new KeyManager[0];
+
+        if (clientKeyFile != null && clientKeyFile.length > 0) {
+            try {
+                KeyStore clientKeystore = KeyStore.getInstance("PKCS12");
+                clientKeystore.load(new ByteArrayInputStream(clientKeyFile), clientKeyFilePass.toCharArray());
+
+                KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("X509");
+                keyManagerFactory.init(clientKeystore, clientKeyFilePass.toCharArray());
+                clientKeyManagers = keyManagerFactory.getKeyManagers();
+            } catch (KeyStoreException | UnrecoverableKeyException | IOException | NoSuchAlgorithmException | CertificateException | IllegalStateException e) {
+                kitty.error("loadClientFile()", e);
+            }
         }
     }
 }

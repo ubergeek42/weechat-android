@@ -15,9 +15,6 @@ public class Constants {
     final static public String PREF_TYPE_WEBSOCKET_SSL = "websocket-ssl";
     final static private String PREF_TYPE_PLAIN = "plain"; final public static String PREF_CONNECTION_TYPE_D = PREF_TYPE_PLAIN;
 
-    // ssl group
-    final static public String PREF_SSL_GROUP = "ssl_group";
-
     // websocket
     final static public String PREF_WS_PATH = "ws_path"; final public static String PREF_WS_PATH_D = "weechat";
 
@@ -29,6 +26,11 @@ public class Constants {
     final static public String PREF_SSH_PASS = "ssh_pass"; final public static String PREF_SSH_PASS_D = "";
     final static public String PREF_SSH_KEY = "ssh_key"; final public static String PREF_SSH_KEY_D = null;
     final static public String PREF_SSH_KNOWN_HOSTS = "ssh_known_hosts"; final public static String PREF_SSH_KNOWN_HOSTS_D = "";
+
+    // tls group & insides
+    final static public String PREF_TLS_GROUP = "tls_group";
+    final static public String PREF_TLS_CLIENT_FILE = "tls_client_file"; final public static String PREF_TLS_CLIENT_FILE_D = "";
+    final static public String PREF_TLS_CLIENT_FILE_PASS = "tls_client_file_pass"; final public static String PREF_TLS_CLIENT_FILE_PASS_D = "";
 
     // relay
     final static public String PREF_HOST = "host"; final public static String PREF_HOST_D = null;

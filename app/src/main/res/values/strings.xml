@@ -142,14 +142,6 @@
                 <item>@string/pref_connection_type_ws_ssl</item>
             </string-array>
 
-        <string name="pref_clear_certs">Clear certificates</string>
-        <string name="pref_clear_certs_confirmation">Clear certificates?</string>
-        <string name="pref_clear_certs_summary">{0,choice,0#No trusted certificate|1#1 trusted certificate|1&lt;{0} trusted certificates}</string>
-        <string name="pref_clear_certs_positive">Clear</string>
-        <string name="pref_clear_certs_negative">Cancel</string>
-        <string name="pref_clear_certs_success">Certificates cleared</string>
-        <string name="pref_clear_certs_failure">Could not clear certificates</string>
-
         <string name="pref_ws_path">WebSocket path</string>
 
     <string name="pref_ssh_group">SSH tunnel settings</string>
@@ -161,6 +153,18 @@
             <string name="pref_ssh_key_summary">DSA, RSA, ECDSA private key in OpenSSH or PuTTY format</string>
             <string name="pref_ssh_known_hosts">Known hosts</string>
             <string name="pref_ssh_known_hosts_summary">Output of $ ssh-keyscan host 2>/dev/null</string>
+
+    <string name="pref_tls_group">TLS settings</string>
+            <string name="pref_clear_certs">Clear certificates</string>
+            <string name="pref_clear_certs_confirmation">Clear certificates?</string>
+            <string name="pref_clear_certs_summary">{0,choice,0#No trusted certificate|1#1 trusted certificate|1&lt;{0} trusted certificates}</string>
+            <string name="pref_clear_certs_positive">Clear</string>
+            <string name="pref_clear_certs_negative">Cancel</string>
+            <string name="pref_clear_certs_success">Certificates cleared</string>
+            <string name="pref_clear_certs_failure">Could not clear certificates</string>
+            <string name="pref_tls_client_file">Client file</string>
+            <string name="pref_tls_client_file_summary">PKCS #12 file containing private key and client certificate</string>
+            <string name="pref_tls_client_file_pass">Client file password</string>
 
         <!-- file -->
 
