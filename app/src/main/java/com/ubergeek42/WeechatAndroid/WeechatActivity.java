@@ -313,13 +313,17 @@ public class WeechatActivity extends AppCompatActivity implements
                 e.getCause().getCause() instanceof CertPathValidatorException)) {
 
             SSLHandler.Result r = SSLHandler.checkHostname(P.host, P.port);
-            if (r.certificate == null) return;
-            DialogFragment fragment = r.verified ?
-                    UntrustedCertificateDialog.newInstance(r.certificate) :
-                    InvalidHostnameDialog.newInstance(r.certificate);
+            if (r.certificate != null) {
+                DialogFragment fragment = r.verified ?
+                        UntrustedCertificateDialog.newInstance(r.certificate) :
+                        InvalidHostnameDialog.newInstance(r.certificate);
 
-            fragment.show(getSupportFragmentManager(), "ssl-error");
+                fragment.show(getSupportFragmentManager(), "ssl-error");
+            }
             Weechat.runOnMainThread(this::disconnect);
+            if (r.certificate == null) {
+                Weechat.showLongToast(R.string.relay_error_server_closed);
+            }
             return;
         }
         String message = TextUtils.isEmpty(e.getMessage()) ? e.getClass().getSimpleName() : e.getMessage();
