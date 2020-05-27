@@ -248,6 +248,7 @@ public class CutePagerTitleStrip extends ViewGroup {
 
     public void setEmptyText(@Nullable String text) {
         mEmptyText = text;
+        updateText();
     }
 
     public void updateText() {
