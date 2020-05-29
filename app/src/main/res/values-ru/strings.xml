@@ -67,10 +67,10 @@
     <string name="pref_error_no_ssh_known_hosts">Не заданы известные хосты SSH</string>
     <string name="pref_connection_group">Подключение</string>
     <string name="pref_connection_type_plain">Незащищённый релей</string>
-    <string name="pref_connection_type_weechat_ssl" translatable="false">Релей SSL</string>
+    <string name="pref_connection_type_weechat_ssl">Релей SSL</string>
     <string name="pref_connection_type_ssh">Туннель SSH</string>
-    <string name="pref_connection_type_ws" translatable="false">Незащищённый веб-сокет</string>
-    <string name="pref_connection_type_ws_ssl" translatable="false">Веб-сокет SSL</string>
+    <string name="pref_connection_type_ws">Незащищённый веб-сокет</string>
+    <string name="pref_connection_type_ws_ssl">Веб-сокет SSL</string>
     <string name="pref_connection_type">Тип соединения</string>
     <string name="pref_clear_certs">Очистить сертификаты</string>
     <string name="pref_clear_certs_confirmation">Очистить сертификаты?</string>
@@ -259,7 +259,7 @@
     <string-array name="pref_media_preview_enabled_for_location_names">
         <item>Чат</item>
         <item>Диалог вставки</item>
-        <item>Оповещения</item>
+        <item>Уведомления</item>
     </string-array>
     <string name="pref_media_preview_enabled_for_location_summary_empty">Нигде не показывать</string>
     <string name="pref_media_preview_secure_request">Незащищённые запросы</string>
@@ -303,7 +303,7 @@
     <string name="dialog_discard_changes_cancel">Отмена</string>
     <string name="dialog_discard_changes_discard">Забыть</string>
     <string name="pref_media_preview_help"><![CDATA[На ранних версиях системы активация миниатюр в
-        оповещениях может привести к повторению сообщений. Чтобы настройки вступили в силу для уже
+        уведомлениях может привести к повторению сообщений. Чтобы настройки вступили в силу для уже
         загруженных данных, может быть необходимо очистить кэш.<br /><br /><b>⚠ Внимание:</b>
         приложение запрашивает данные напрямую, что может выдать серверу злоумышленника ваш
         IP-адрес и другие данные. Чтобы запретить приложению доступ к неизвестным сайтам, удалите

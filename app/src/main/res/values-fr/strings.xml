@@ -272,4 +272,7 @@
     <item quantity="other">%d filtres de ligne définis</item>
   </plurals>
   <string name="menu_save">Enregistrer</string>
+  <string name="pref_connection_type_weechat_ssl">WeeChat SSL</string>
+  <string name="pref_connection_type_ws">WebSocket</string>
+  <string name="pref_connection_type_ws_ssl">WebSocket (SSL)</string>
 </resources>
