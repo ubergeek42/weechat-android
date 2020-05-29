@@ -409,25 +409,52 @@
     <string name="dialog_discard_changes_discard">Discard</string>
 
     <string name="pref_media_preview_strategies_default" translatable="false">
-"message filter:
-  ^&lt;[^ ]{1,16} \".{1,33}\">\\s
+"# don’t look for links in the part
+# of the message that matches the
+# following regex. this prevents
+# the app from showing broken links
+# in matrix clients’ quotes, e.g.
+# &lt;nick "http://broken.co"> message
+#message filter:
+#  ^&lt;[^ ]{1,16} \".{1,33}\">\\s
 
 line filters:
-- nicks: [tacgnol]
+# don’t display thumbnails for any
+# lines that match the following regex
+- regex: '^(?:Title: |[↑^] )'
 
-- regex: '^(?:Title: |↑ )'
+# don’t display thumbnails
+# for any lines from bot
+#- nicks: [bot]
 
-- nicks: [lobot]
-  regex: ^&lt;\\S+>\\s
+# don’t display thumbnails
+# for any lines from bot
+# that also math the given regex
+#- nicks: [bot]
+#  regex: ^&lt;\\S+>\\s
 
 strategies:
 - name: skip pastebins
   type: none
-  hosts: [pastebin.com, bpaste.net, dpaste.com, termbin.com]
+  hosts:
+  - pastebin.com
+  - bpa.st
+  - dpaste.com
+  - termbin.com
 
 - name: skip site banners
   type: none
-  hosts: [github.com, gist.github.com, stackoverflow.com, '*.stackexchange.com', twitch.tv, '*.twitch.tv']
+  hosts:
+  - github.com
+  - gist.github.com
+  - stackoverflow.com
+  - '*.stackexchange.com'
+  - twitch.tv
+  - '*.twitch.tv'
+
+#- name: skip the rest, including redirects
+#  type: none
+#  hosts: ['*']
 
 - name: try the rest
   type: any
@@ -466,16 +493,14 @@ strategies:
   regex: (?i)^https?://mobile\\.twitter\\.com/(.*)
   sub: https://twitter.com/$1
 
-- name: pikabu
+- name: common
   type: any
-  hosts: [pikabu.ru, www.pikabu.ru]
-  regex: (?i)^https://pikabu\\.ru/story/.
-
-- name: common/https
-  type: any
-  hosts: ['*.wikipedia.org', gfycat.com]
   regex: (?i)^https?://(.+)
   sub: https://$1
+  hosts:
+  - '*.wikipedia.org'
+  - gfycat.com
+  - imgur.com
 
 - name: reddit
   type: any
