@@ -54,6 +54,11 @@ check with us on IRC before starting a substantial rewrite! For additional infor
  
 ### Changelog
 
+##### v1.0
+* Added media preview
+* Raised minimum Android version to Lollipop (5.0, API level 21)
+* Added German translation
+
 ##### v0.14
 * Added an optional light theme
 * Removed some and added some color schemes, including an AMOLED theme
