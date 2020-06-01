@@ -15,6 +15,7 @@ import android.text.Spannable;
 import android.text.style.ClickableSpan;
 import android.text.style.URLSpan;
 import android.util.AttributeSet;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -38,9 +39,9 @@ import java.util.List;
 
 import static com.ubergeek42.WeechatAndroid.media.Config.ANIMATION_DURATION;
 import static com.ubergeek42.WeechatAndroid.media.Config.THUMBNAIL_HORIZONTAL_MARGIN;
+import static com.ubergeek42.WeechatAndroid.media.Config.THUMBNAIL_VERTICAL_MARGIN;
 import static com.ubergeek42.WeechatAndroid.media.Config.thumbnailMaxHeight;
 import static com.ubergeek42.WeechatAndroid.media.Config.thumbnailMinHeight;
-import static com.ubergeek42.WeechatAndroid.media.Config.THUMBNAIL_VERTICAL_MARGIN;
 import static com.ubergeek42.WeechatAndroid.media.Config.thumbnailWidth;
 import static com.ubergeek42.WeechatAndroid.utils.Assert.assertThat;
 
@@ -217,21 +218,34 @@ public class LineView extends View {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    // see android.text.method.LinkMovementMethod.onTouchEvent
-    // todo call performClick()?
+    // AS suggests calling performClick(), which does stuff like playing tap sound and accessibility,
+    // but LinkMovementMethod doesn't seem to be calling any methods like that, so we are not doing
+    // it either. on long click, we call performLongClick(), which also does haptic feedback.
+    // we are consuming all touch events mostly because it works well. perhaps only handle up/down?
     @SuppressLint("ClickableViewAccessibility")
     @Override public boolean onTouchEvent(MotionEvent event) {
-        if (event.getAction() == MotionEvent.ACTION_UP) {
+        gestureDetector.onTouchEvent(event);
+        return true;
+    }
+
+    final GestureDetector gestureDetector = new GestureDetector(Weechat.applicationContext,
+            new GestureDetector.SimpleOnGestureListener() {
+        @Override public void onLongPress(MotionEvent event) {
+            performLongClick();
+        }
+
+        // see android.text.method.LinkMovementMethod.onTouchEvent
+        @Override public boolean onSingleTapUp(MotionEvent event) {
             int line = getCurrentLayout().getLineForVertical((int) event.getY());
             int off = getCurrentLayout().getOffsetForHorizontal(line, event.getX());
             ClickableSpan[] links = text.getSpans(off, off, ClickableSpan.class);
             if (links.length > 0) {
-                links[0].onClick(this);
+                links[0].onClick(LineView.this);
                 return true;
             }
+            return false;
         }
-        return super.onTouchEvent(event);
-    }
+    });
 
     public URLSpan[] getUrls() {
         return text.getSpans(0, text.length(), URLSpan.class);

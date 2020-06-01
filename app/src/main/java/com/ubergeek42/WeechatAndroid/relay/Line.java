@@ -45,10 +45,6 @@ public class Line {
     final boolean isAction;
     final private boolean isPrivmsg;
 
-    // the sole purpose of this is to prevent onClick event on inner URLSpans to be fired when the
-    // user long-presses on the screen and a context menu is shown
-    public boolean clickDisabled = false;
-
     Line(long pointer, Type type, long timestamp, @NonNull String rawPrefix, @NonNull String rawMessage,
          @Nullable String nick, boolean visible, boolean isHighlighted, boolean isPrivmsg, boolean isAction) {
         this.pointer = pointer;

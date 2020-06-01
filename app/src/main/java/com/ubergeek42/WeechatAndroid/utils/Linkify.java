@@ -77,19 +77,14 @@ public class Linkify {
         }
 
         @Override public void onClick(@NonNull View widget) {
-            Line line = (Line) widget.getTag();
-            if (line.clickDisabled)
-                line.clickDisabled = false;
-            else {
-                // don't call super because super will open urls in the same tab
-                Context context = widget.getContext();
-                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(getURL()));
-                try {
-                    context.startActivity(intent);
-                } catch (ActivityNotFoundException e) {
-                    CharSequence text = context.getString(R.string.linkify_error_no_activity, getURL());
-                    Toast.makeText(widget.getContext(), text, Toast.LENGTH_SHORT).show();
-                }
+            // don't call super because super will open urls in the same tab
+            Context context = widget.getContext();
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(getURL()));
+            try {
+                context.startActivity(intent);
+            } catch (ActivityNotFoundException e) {
+                CharSequence text = context.getString(R.string.linkify_error_no_activity, getURL());
+                Toast.makeText(widget.getContext(), text, Toast.LENGTH_SHORT).show();
             }
         }
     }

@@ -22,8 +22,6 @@ public class Copy {
         Line line = (Line) lineView.getTag();
         ArrayList<CharSequence> list = new ArrayList<>();
 
-        line.clickDisabled = true;
-
         if (!TextUtils.isEmpty(line.getPrefixString()))
             list.add(line.getIrcLikeString());
         list.add(line.getMessageString());
