@@ -132,7 +132,7 @@
             \n&#160;&#160;&#160;&#160;•&#160;<a href="https://www.slf4j.org/">SLF4J от QOS.ch</a>
             \n&#160;&#160;&#160;&#160;•&#160;<a href="https://bitbucket.org/asomov/snakeyaml">SnakeYAML от Андрея Сомова</a>
             \n
-            \nНашли баг или хотите предложить новый функционал? Создайте тикет на&#160;<a href="https://github.com/ubergeek42/weechat-android/">GitHub</a> или напишите на электронную почту:&#160;<a href="mailto:kj@ubergeek42.com">kj@ubergeek42.com</a>
+            \nНашли баг или хотите предложить новый функционал? Создайте тикет на&#160;<a href="https://github.com/ubergeek42/weechat-android/">GitHub</a>!
             \n\n
         </string>
     <string name="pref_file_imported">Файл импортирован. Можете его удалить.</string>
