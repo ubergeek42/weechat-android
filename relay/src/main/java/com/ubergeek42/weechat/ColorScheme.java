@@ -112,7 +112,7 @@ public class ColorScheme {
     // ctrl-f "weechat color" in https://weechat.org/files/doc/devel/weechat_dev.en.html
     // returns NO_COLOR if not found
     int getWeechatColor(int i, int which) {
-        if (i == 0) return default_color[OPT_FG]; //todo?
+        if (i == 0) return default_color[which];
         if (i < 0 || i >= WEECHAT_COLORS_TO_COLORS.length) return NO_COLOR;
         return getColor(WEECHAT_COLORS_TO_COLORS[i], which);
     }
