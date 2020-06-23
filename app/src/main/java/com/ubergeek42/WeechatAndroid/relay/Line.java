@@ -4,10 +4,6 @@
 package com.ubergeek42.WeechatAndroid.relay;
 
 import android.graphics.Typeface;
-import androidx.annotation.AnyThread;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.WorkerThread;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -18,10 +14,16 @@ import android.text.style.LeadingMarginSpan;
 import android.text.style.StyleSpan;
 import android.text.style.UnderlineSpan;
 
+import androidx.annotation.AnyThread;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.WorkerThread;
+
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.utils.Linkify;
 import com.ubergeek42.weechat.Color;
 import com.ubergeek42.weechat.ColorScheme;
+import com.ubergeek42.weechat.relay.connection.RelayConnection;
 import com.ubergeek42.weechat.relay.protocol.HdataEntry;
 import com.ubergeek42.weechat.relay.protocol.RelayObject;
 
@@ -34,19 +36,49 @@ public class Line {
         OUTCOMING_MESSAGE
     }
 
+    public enum DisplayAs {
+        UNSPECIFIED,    // not any of:
+        SAY,            // can be written as <nick> message
+        ACTION,         // can be written as * nick message
+    }
+
+    // notify levels as set by `notify_xxx` are apparently not meant to be used for notifications.
+    // however, some private messages, such as notices, will appear in the core buffer and the only
+    // way to see if these should make notifications is to see if they've got `notify_private` tag.
+
+    // for the time being we are treating this to mean that the buffer was added to hotlist with
+    // the corresponding level.
+
+    // note: messages with `notify_highlight` levels appear to always have the highlighted bit set
+    // also note: in the future versions of weechat, a `notify_level` bit might be added to the
+    // line variables. it is better to use this as “its value is also affected by the max hotlist
+    // level you can set for some nicks (so not only tags in line)”. // todo make use of this
+
+    // see discussion at https://github.com/weechat/weechat/issues/1529
+    public enum Notify {
+        UNSPECIFIED,
+        NONE,
+        MESSAGE,
+        PRIVATE,
+        HIGHLIGHT,
+    }
+
     final public long pointer;
     final public Type type;
+    final public boolean isHighlighted;
+
+    final public DisplayAs displayAs;
+    final public Notify notify;
+
     final long timestamp;
+    final boolean isVisible;
+
     final private String rawPrefix;
     final private String rawMessage;
     final private @Nullable String nick;
-    final boolean isVisible;
-    final public boolean isHighlighted;
-    final boolean isAction;
-    final private boolean isPrivmsg;
 
     Line(long pointer, Type type, long timestamp, @NonNull String rawPrefix, @NonNull String rawMessage,
-         @Nullable String nick, boolean visible, boolean isHighlighted, boolean isPrivmsg, boolean isAction) {
+         @Nullable String nick, boolean visible, boolean isHighlighted, DisplayAs displayAs, Notify notify) {
         this.pointer = pointer;
         this.type = type;
         this.timestamp = timestamp;
@@ -55,8 +87,8 @@ public class Line {
         this.nick = nick;
         this.isVisible = visible;
         this.isHighlighted = isHighlighted;
-        this.isPrivmsg = isPrivmsg;
-        this.isAction = isAction;
+        this.displayAs = displayAs;
+        this.notify = notify;
     }
 
     @WorkerThread public static @NonNull Line make(@NonNull HdataEntry entry) {
@@ -74,37 +106,59 @@ public class Line {
         message = message == null ? "" : message;
         prefix = prefix == null ? "" : prefix;
         String nick = null;
-        boolean isPrivmsg = false;
-        boolean isAction = false;
-        Type type;
 
-        if (tags != null) {
-            boolean log1 = false;
-            boolean notifyNone = false;
+        Type type = Type.OTHER;
+        DisplayAs displayAs = DisplayAs.UNSPECIFIED;
+        Notify notify = Notify.UNSPECIFIED;
 
-            for (String tag : tags) {
-                if      (tag.equals("log1"))        log1 = true;
-                else if (tag.equals("notify_none")) notifyNone = true;
-                else if (tag.startsWith("nick_"))   nick = tag.substring(5);
-                else if (tag.endsWith("_privmsg"))  isPrivmsg = true;
-                else if (tag.endsWith("_action"))   isAction = true;
-            }
-
-            if (tags.length == 0 || !log1) {
-                type = Type.OTHER;
-            } else {
-                // Every "message" to user should have one or more of these tags
-                // notifyNone, notify_highlight or notify_message
-                type = notifyNone ? Type.OUTCOMING_MESSAGE : Type.INCOMING_MESSAGE;
-            }
-        } else {
+        if (tags == null) {
             // there are no tags, it's probably an old version of weechat, so we err
             // on the safe side and treat it as from human
             type = Type.INCOMING_MESSAGE;
+        } else {
+            boolean log1 = false, self_msg = false, irc_action = false, irc_privmsg = false;
+
+            for (String tag : tags) {
+                switch (tag) {
+                    case "log1":        log1 = true; break;
+                    case "self_msg":    self_msg = true; break;
+                    case "irc_privmsg": irc_privmsg = true; break;
+                    case "irc_action":  irc_action = true; break;
+                    case "notify_none":      notify = Notify.NONE; break;
+                    case "notify_message":   notify = Notify.MESSAGE; break;
+                    case "notify_private":   notify = Notify.PRIVATE; break;
+                    case "notify_highlight": notify = Notify.HIGHLIGHT; break;
+                    default:
+                        if (tag.startsWith("nick_")) nick = tag.substring(5);
+                }
+            }
+
+            // log1 should be reliable enough method of telling if a line is a message from user,
+            // our own or someone else's. see `/help logger`: log levels 2+ are nick changes, etc.
+            // ignoring `prefix_nick_...`, `nick_...` and `host_...` tags:
+            //   * join: `irc_join`, `log4`
+            //   * user message:  `irc_privmsg`, `notify_message`, `log1`
+            //   * own message:   `irc_privmsg`, `notify_none`, `self_msg`, `no_highlight`, `log1`
+            // note: some messages such as those produced by `/help` itself won't have tags at all.
+            boolean isMessageFromSelfOrUser = log1 || irc_privmsg || irc_action;
+
+            // highlights from irc, etc will have the level `MESSAGE` upon inspection. since we are
+            // thinking of `notify` as the level with which the message was added to hotlist, we
+            // have to “fix” this by looking at the highlight bit. // todo make sure this is the way
+            if (highlighted) notify = Notify.HIGHLIGHT;
+
+            if (tags.length > 0 && isMessageFromSelfOrUser) {
+                boolean isMessageFromSelf = self_msg ||
+                        RelayConnection.weechatVersion < 0x1070000 && notify == Notify.NONE;
+                type = isMessageFromSelf ? Type.OUTCOMING_MESSAGE : Type.INCOMING_MESSAGE;
+            }
+
+            if (irc_action) displayAs = DisplayAs.ACTION;
+            else if (irc_privmsg) displayAs = DisplayAs.SAY;
         }
 
-        return new Line(pointer, type, timestamp, prefix, message, nick, visible, highlighted, isPrivmsg,
-                isAction);
+        return new Line(pointer, type, timestamp, prefix, message, nick, visible, highlighted,
+                displayAs, notify);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -130,7 +184,7 @@ public class Line {
             dateFormat.printTo(timestamp, this.timestamp);
         }
 
-        boolean encloseNick = P.encloseNick && isPrivmsg && !isAction;
+        boolean encloseNick = P.encloseNick && displayAs == DisplayAs.SAY;
         Color color = new Color(timestamp, rawPrefix, rawMessage, encloseNick, isHighlighted, P.maxWidth, P.align);
         Spannable spannable = new SpannableString(color.lineString);
 
@@ -183,7 +237,7 @@ public class Line {
     }
 
     public @NonNull String getIrcLikeString() {
-        return String.format((!isPrivmsg || isAction) ? "%s %s" : "<%s> %s",
+        return String.format(displayAs == DisplayAs.SAY ? "<%s> %s" : "%s %s",
                 getPrefixString(),
                 getMessageString());
     }

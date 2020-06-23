@@ -17,6 +17,8 @@ public class RelayConnection {
     final private static String ID_VERSION = "version";
     final private static String ID_LIST_BUFFERS = "listbuffers";
 
+    public static long weechatVersion = 0;
+
     public enum STATE {
         UNKNOWN,
         CONNECTING,
@@ -149,6 +151,7 @@ public class RelayConnection {
 
         if (ID_VERSION.equals(message.getID())) {
             Long version = Long.parseLong(((Info) message.getObjects()[0]).getValue());
+            RelayConnection.weechatVersion = version;
             logger.info("WeeChat version: {}", String.format("0x%x", version));
             setState(STATE.AUTHENTICATED);
         }

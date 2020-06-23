@@ -137,11 +137,11 @@ public class Hotlist {
 
         HotMessage(Line line, HotBuffer hotBuffer) {
             this.hotBuffer = hotBuffer;
-            this.isAction = line.isAction;
+            this.isAction = line.displayAs == Line.DisplayAs.ACTION;
             message = line.getMessageString();
             nick = (line.getNick() != null ? line.getNick() : line.getPrefixString());
             timestamp = line.timestamp;
-            if (line.isAction) {
+            if (this.isAction) {
                 SpannableString sb = new SpannableString(message);
                 sb.setSpan(new StyleSpan(Typeface.ITALIC), 0, message.length(), 0);
                 message = sb;

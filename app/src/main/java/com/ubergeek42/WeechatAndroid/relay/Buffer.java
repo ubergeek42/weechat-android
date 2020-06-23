@@ -1,16 +1,17 @@
 package com.ubergeek42.WeechatAndroid.relay;
 
-import androidx.annotation.AnyThread;
-import androidx.annotation.MainThread;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.WorkerThread;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.RelativeSizeSpan;
 import android.text.style.SuperscriptSpan;
+
+import androidx.annotation.AnyThread;
+import androidx.annotation.MainThread;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.WorkerThread;
 
 import com.ubergeek42.WeechatAndroid.service.Events;
 import com.ubergeek42.WeechatAndroid.service.P;
@@ -215,18 +216,22 @@ public class Buffer {
         // notify levels: 0 none 1 highlight 2 message 3 all
         // treat hidden lines and lines that are not supposed to generate a “notification” as read
         if (isLast) {
+            boolean notifyHighlight = line.notify == Line.Notify.HIGHLIGHT;
+            boolean notifyPm = line.notify == Line.Notify.PRIVATE;
+            boolean notifyPmOrMessage = line.notify == Line.Notify.MESSAGE || notifyPm;
+
             if (isWatched || type == HARD_HIDDEN || (P.filterLines && !line.isVisible) ||
-                    (notifyLevel == 0) || (notifyLevel == 1 && !line.isHighlighted)) {
-                if (line.isHighlighted) readHighlights++;
-                else if (line.isVisible && line.type == Line.Type.INCOMING_MESSAGE) readUnreads++;
+                    notifyLevel == 0 || notifyLevel == 1 && !notifyHighlight) {
+                if (notifyHighlight) readHighlights++;
+                else if (notifyPmOrMessage) readUnreads++;
             } else {
-                if (line.isHighlighted) {
+                if (notifyHighlight) {
                     highlights++;
                     Hotlist.onNewHotLine(this, line);
                     BufferList.notifyBuffersChanged();
-                } else if (line.isVisible && line.type == Line.Type.INCOMING_MESSAGE) {
+                } else if (notifyPmOrMessage) {
                     unreads++;
-                    if (type == PRIVATE) Hotlist.onNewHotLine(this, line);
+                    if (notifyPm) Hotlist.onNewHotLine(this, line);
                     BufferList.notifyBuffersChanged();
                 }
             }
