@@ -45,11 +45,11 @@ import com.ubergeek42.cats.Root;
 import com.ubergeek42.weechat.ColorScheme;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 
 import static com.ubergeek42.WeechatAndroid.R.layout.more_button;
 import static com.ubergeek42.WeechatAndroid.R.layout.read_marker;
-import static com.ubergeek42.WeechatAndroid.relay.Buffer.PRIVATE;
 import static com.ubergeek42.WeechatAndroid.relay.Lines.HEADER_POINTER;
 import static com.ubergeek42.WeechatAndroid.relay.Lines.MARKER_POINTER;
 
@@ -289,6 +289,8 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 
     private final static int HOT_LINE_LOST = -1;
     private final static int HOT_LINE_NOT_PRESENT = -3;
+    private final static Predicate<Line> hotLinePredicate = l ->
+            EnumSet.of(Line.Notify.HIGHLIGHT, Line.Notify.PRIVATE).contains(l.notify);
 
     @MainThread @Cat("Scrolling") public void scrollToHotLineIfNeeded() {
         final int idx = findHotLine();
@@ -306,11 +308,8 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         int skip = buffer.getHotCount();
         if (skip == 0) return HOT_LINE_NOT_PRESENT;
 
-        Predicate<Line> p = (buffer.type == PRIVATE) ? (l) -> l.type == Line.Type.INCOMING_MESSAGE :
-                (l) -> l.isHighlighted;
-
         for (int idx = lines.size() - 1; idx >= 0; idx--)
-            if (p.test(lines.get(idx)) && --skip == 0) return idx;
+            if (hotLinePredicate.test(lines.get(idx)) && --skip == 0) return idx;
 
         return HOT_LINE_LOST;
     }
@@ -319,7 +318,7 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private class DiffCallback extends DiffUtil.Callback {
+    private static class DiffCallback extends DiffUtil.Callback {
         private List<Line> oldLines, newLines;
 
         DiffCallback(List<Line> oldLines, List<Line> newLines) {
