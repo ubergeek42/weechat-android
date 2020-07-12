@@ -156,7 +156,7 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
             else if (PREF_PING_GROUP.equals(key))
                 listenTo = new String[] {PREF_PING_IDLE, PREF_PING_TIMEOUT};
             else if (PREF_LOOKFEEL_GROUP.equals(key))
-                listenTo = new String[] {PREF_TEXT_SIZE, PREF_MAX_WIDTH, PREF_TIMESTAMP_FORMAT};
+                listenTo = new String[] {PREF_TEXT_SIZE, PREF_FIXED_WIDTH, PREF_TIMESTAMP_FORMAT};
             else if (PREF_THEME_GROUP.equals(key)) {
                 enableDisableThemeSwitch(getPreferenceScreen().getSharedPreferences().getString(PREF_THEME, PREF_THEME_D));
                 listenTo = new String[]{PREF_THEME};
@@ -195,7 +195,7 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
             if (Utils.isAnyOf(key, PREF_HOST, PREF_SSH_HOST)) {
                 valid = !((String) o).contains(" ");
                 toast = R.string.pref_hostname_invalid;
-            } else if (Utils.isAnyOf(key, PREF_TEXT_SIZE, PREF_MAX_WIDTH, PREF_PORT, PREF_SSH_PORT, PREF_PING_IDLE, PREF_PING_TIMEOUT)) {
+            } else if (Utils.isAnyOf(key, PREF_TEXT_SIZE, PREF_FIXED_WIDTH, PREF_PORT, PREF_SSH_PORT, PREF_PING_IDLE, PREF_PING_TIMEOUT)) {
                 valid = Utils.isAllDigits((String) o);
                 toast = R.string.pref_number_invalid;
             } else if (PREF_TIMESTAMP_FORMAT.equals(key)) {
