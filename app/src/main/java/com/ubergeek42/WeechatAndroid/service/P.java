@@ -152,7 +152,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         // buffer-wide preferences
         filterLines = p.getBoolean(PREF_FILTER_LINES, PREF_FILTER_LINES_D);
         autoHideActionbar = p.getBoolean(PREF_AUTO_HIDE_ACTIONBAR, PREF_AUTO_HIDE_ACTIONBAR_D);
-        maxWidth = Integer.parseInt(getString(PREF_MAX_WIDTH, PREF_MAX_WIDTH_D));
+        maxWidth = Integer.parseInt(getString(PREF_FIXED_WIDTH, PREF_FIXED_WIDTH_D));
         encloseNick = p.getBoolean(PREF_ENCLOSE_NICK, PREF_ENCLOSE_NICK_D);
         dimDownNonHumanLines = p.getBoolean(PREF_DIM_DOWN, PREF_DIM_DOWN_D);
         setTimestampFormat();
@@ -291,8 +291,8 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
                 filterLines = p.getBoolean(key, PREF_FILTER_LINES_D);
                 BufferList.onGlobalPreferencesChanged(true);
                 break;
-            case PREF_MAX_WIDTH:
-                maxWidth = Integer.parseInt(getString(key, PREF_MAX_WIDTH_D));
+            case PREF_FIXED_WIDTH:
+                maxWidth = Integer.parseInt(getString(key, PREF_FIXED_WIDTH_D));
                 BufferList.onGlobalPreferencesChanged(false);
                 break;
             case PREF_ENCLOSE_NICK:
