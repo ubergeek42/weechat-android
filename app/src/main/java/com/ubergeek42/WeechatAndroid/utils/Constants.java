@@ -62,7 +62,7 @@ public class Constants {
     public static final String PREF_AUTO_HIDE_ACTIONBAR = "auto_hide_actionbar"; public static final boolean PREF_AUTO_HIDE_ACTIONBAR_D = true;
     public static final String PREF_FILTER_LINES = "chatview_filters"; final public static boolean PREF_FILTER_LINES_D = true;
     public static final String PREF_PREFIX_ALIGN = "prefix_align"; final public static String PREF_PREFIX_ALIGN_D = "right";
-    final static public String PREF_MAX_WIDTH = "prefix_max_width"; final public static String PREF_MAX_WIDTH_D = "7";
+    final static public String PREF_FIXED_WIDTH = "prefix_max_width"; final public static String PREF_FIXED_WIDTH_D = "7";
     public static final String PREF_ENCLOSE_NICK = "enclose_nick"; final public static boolean PREF_ENCLOSE_NICK_D = false;
     final static public String PREF_TIMESTAMP_FORMAT = "timestamp_format"; final public static String PREF_TIMESTAMP_FORMAT_D = "HH:mm:ss";
     public static final String PREF_DIM_DOWN = "dim_down"; final public static boolean PREF_DIM_DOWN_D = false;
