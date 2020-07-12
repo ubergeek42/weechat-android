@@ -226,14 +226,15 @@ public class Line {
         return nick;
     }
 
+    // can't simply do ensureSpannable() here as this can be called for a highlights when there's no
+    // activity (after OOM kill). this would parse the spannable using incorrect colors, and this
+    // spannable wouldn't get reset by P if the buffer's not open.
     public @NonNull String getPrefixString() {
-        ensureSpannable();
-        return prefixString;
+        return prefixString != null ? prefixString : new Color().parseColors(rawPrefix).toString();
     }
 
     public @NonNull String getMessageString() {
-        ensureSpannable();
-        return messageString;
+        return messageString != null ? messageString : new Color().parseColors(rawMessage).toString();
     }
 
     public @NonNull String getIrcLikeString() {

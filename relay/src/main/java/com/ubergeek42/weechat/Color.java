@@ -332,7 +332,7 @@ public class Color {
     // see https://weechat.org/files/doc/stable/weechat_dev.en.html#color_codes_in_strings
     // takes text as input
     // sets out and spanList
-    private CharSequence parseColors(String msg) {
+    public CharSequence parseColors(String msg) {
         if (DEBUG) logger.debug("parseColors({})", msg);
 
         this.msg = msg;
