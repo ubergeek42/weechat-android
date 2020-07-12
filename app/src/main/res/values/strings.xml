@@ -238,8 +238,8 @@
                     <item>@string/pref_prefix_align_timestamp</item>
                     <item>@string/pref_prefix_align_none</item>
                 </string-array>
-            <string name="pref_max_width">Maximum width of prefix</string>
-            <string name="pref_max_width_summary">In terms of letters; longer nicknames will be cut (%s)</string>
+            <string name="pref_fixed_width">Fixed width of prefix</string>
+            <string name="pref_fixed_width_summary">In terms of letters; longer nicknames will be cut (%s)</string>
             <string name="pref_enclose_nick">Enclose nicknames</string>
             <string name="pref_enclose_nick_summary">Enclose the nicknames in &lt;&#xA0;and&#xA0;&gt;</string>
             <string name="pref_timestamp_format">Timestamp format</string>
