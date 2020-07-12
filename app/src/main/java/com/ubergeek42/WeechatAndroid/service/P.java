@@ -117,7 +117,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     public static boolean hideHiddenBuffers;
     public static boolean optimizeTraffic;
     public static boolean filterLines, autoHideActionbar;
-    public static int maxWidth;
+    public static int fixedWidth;
     public static boolean encloseNick, dimDownNonHumanLines;
     public static @Nullable DateFormat dateFormat;
     public static int align;
@@ -152,7 +152,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         // buffer-wide preferences
         filterLines = p.getBoolean(PREF_FILTER_LINES, PREF_FILTER_LINES_D);
         autoHideActionbar = p.getBoolean(PREF_AUTO_HIDE_ACTIONBAR, PREF_AUTO_HIDE_ACTIONBAR_D);
-        maxWidth = Integer.parseInt(getString(PREF_FIXED_WIDTH, PREF_FIXED_WIDTH_D));
+        fixedWidth = Integer.parseInt(getString(PREF_FIXED_WIDTH, PREF_FIXED_WIDTH_D));
         encloseNick = p.getBoolean(PREF_ENCLOSE_NICK, PREF_ENCLOSE_NICK_D);
         dimDownNonHumanLines = p.getBoolean(PREF_DIM_DOWN, PREF_DIM_DOWN_D);
         setTimestampFormat();
@@ -292,7 +292,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
                 BufferList.onGlobalPreferencesChanged(true);
                 break;
             case PREF_FIXED_WIDTH:
-                maxWidth = Integer.parseInt(getString(key, PREF_FIXED_WIDTH_D));
+                fixedWidth = Integer.parseInt(getString(key, PREF_FIXED_WIDTH_D));
                 BufferList.onGlobalPreferencesChanged(false);
                 break;
             case PREF_ENCLOSE_NICK:
