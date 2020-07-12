@@ -115,7 +115,7 @@ public class Line {
         DateFormat dateFormat = P.dateFormat;
         String timestamp = (dateFormat == null) ? null : dateFormat.format(date);
         boolean encloseNick = P.encloseNick && privmsg && !action;
-        Color color = new Color(timestamp, prefix, message, encloseNick, highlighted, P.maxWidth, P.align);
+        Color color = new Color(timestamp, prefix, message, encloseNick, highlighted, P.fixedWidth, P.align);
         Spannable spannable = new SpannableString(color.cleanMessage);
 
         if (this.type == LINE_OTHER && P.dimDownNonHumanLines) {
