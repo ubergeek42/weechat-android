@@ -1,7 +1,7 @@
 apply plugin: 'java'
 
 dependencies {
-    implementation 'org.slf4j:slf4j-api:1.7.29'
+    implementation 'org.slf4j:slf4j-api:1.7.30'
     compile 'com.jcraft:jsch:0.1.55'                            // for ssh tunnel support
     implementation 'com.neovisionaries:nv-websocket-client:2.9'
 }
