@@ -62,7 +62,7 @@
         <CheckBoxPreference android:key="auto_hide_actionbar" android:title="@string/pref_auto_hide_actionbar" android:summary="@string/pref_auto_hide_actionbar_summary" android:defaultValue="true"/>
         <CheckBoxPreference android:key="chatview_filters" android:title="@string/pref_chatview_filters" android:summary="@string/pref_chatview_filters_summary" android:defaultValue="true" />
         <ListPreference android:key="prefix_align" android:title="@string/pref_prefix_align" android:summary="%s" android:defaultValue="right" android:entries="@array/pref_prefix_align_names" android:entryValues="@array/settings_prefix_alignment_values" />
-        <EditTextPreferenceFix android:key="prefix_max_width" android:title="@string/pref_max_width" android:summary="@string/pref_max_width_summary" android:numeric="integer" android:defaultValue="7" />
+        <EditTextPreferenceFix android:key="prefix_max_width" android:title="@string/pref_fixed_width" android:summary="@string/pref_fixed_width_summary" android:numeric="integer" android:defaultValue="7" />
         <CheckBoxPreference android:key="enclose_nick" android:title="@string/pref_enclose_nick" android:summary="@string/pref_enclose_nick_summary" android:defaultValue="false" />
 		<EditTextPreferenceFix android:key="timestamp_format" android:title="@string/pref_timestamp_format" android:summary="@string/pref_timestamp_format_summary" android:defaultValue="HH:mm:ss" android:singleLine="true" />
 	    <FontPreference android:key="buffer_font" android:title="@string/pref_font" />
