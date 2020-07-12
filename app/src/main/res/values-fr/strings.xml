@@ -139,8 +139,8 @@
   <string name="pref_prefix_align_right">Aligné à droite</string>
   <string name="pref_prefix_align_timestamp">Aligné sur l\'heure</string>
   <string name="pref_prefix_align_none">Non aligné</string>
-  <string name="pref_max_width">Largeur max du préfixe</string>
-  <string name="pref_max_width_summary">En nombre de lettres ; les pseudos plus longs seront tronqués (%s)</string>
+  <string name="pref_fixed_width">Largeur max du préfixe</string>
+  <string name="pref_fixed_width_summary">En nombre de lettres ; les pseudos plus longs seront tronqués (%s)</string>
   <string name="pref_enclose_nick">Encadrer les pseudos</string>
   <string name="pref_enclose_nick_summary">Encadrer les pseudos avec &lt; et &gt;</string>
   <string name="pref_timestamp_format">Format de la date/heure</string>
