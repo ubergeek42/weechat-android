@@ -144,8 +144,15 @@ public class Line {
 
             // highlights from irc, etc will have the level `MESSAGE` upon inspection. since we are
             // thinking of `notify` as the level with which the message was added to hotlist, we
-            // have to “fix” this by looking at the highlight bit. // todo make sure this is the way
-            if (highlighted) notify = Notify.HIGHLIGHT;
+            // have to “fix” this by looking at the highlight bit.
+
+            // starting with roughly 3.0 (2b16036), if a line has the tag notify_none, it is not
+            // added to the hotlist nor it beeps, even if it has highlight.
+            // see https://github.com/weechat/weechat/issues/1529
+            if (highlighted) {
+                if (!(RelayConnection.weechatVersion >= 0x3000000 && notify == Notify.NONE))
+                    notify = Notify.HIGHLIGHT;
+            }
 
             if (tags.length > 0 && isMessageFromSelfOrUser) {
                 boolean isMessageFromSelf = self_msg ||
