@@ -12,7 +12,7 @@ class TitleLine extends Line {
     private final Spannable spannable;
 
     TitleLine(String text) {
-        super(-123, Type.OTHER, 0, "", "", null, false, false, DisplayAs.UNSPECIFIED, Notify.UNSPECIFIED);
+        super(-123, Type.OTHER, 0, "", "", null, false, false, DisplayAs.UNSPECIFIED, Notify.LOW);
         spannable = new SpannableString(Color.stripEverything(text));
         Linkify.linkify(spannable);
     }

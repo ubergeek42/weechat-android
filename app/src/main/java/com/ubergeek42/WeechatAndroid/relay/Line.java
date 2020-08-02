@@ -21,6 +21,8 @@ import androidx.annotation.WorkerThread;
 
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.utils.Linkify;
+import com.ubergeek42.cats.Kitty;
+import com.ubergeek42.cats.Root;
 import com.ubergeek42.weechat.Color;
 import com.ubergeek42.weechat.ColorScheme;
 import com.ubergeek42.weechat.relay.connection.RelayConnection;
@@ -30,6 +32,8 @@ import com.ubergeek42.weechat.relay.protocol.RelayObject;
 import org.joda.time.format.DateTimeFormatter;
 
 public class Line {
+    final private static @Root Kitty kitty = Kitty.make();
+
     public enum Type {
         OTHER,
         INCOMING_MESSAGE,
@@ -42,26 +46,52 @@ public class Line {
         ACTION,         // can be written as * nick message
     }
 
-    // notify levels as set by `notify_xxx` are apparently not meant to be used for notifications.
-    // however, some private messages, such as notices, will appear in the core buffer and the only
-    // way to see if these should make notifications is to see if they've got `notify_private` tag.
+    // notify levels, as specified by the `notify_xxx` tags and the `notify_level` bit, is the best
+    // thing that we can use to determine if we should issue notifications. the algorithm is a tad
+    // complicated, however.
 
-    // for the time being we are treating this to mean that the buffer was added to hotlist with
-    // the corresponding level.
+    // * get notify level from the `notify_level` bit. it's better to use this as “its value is also
+    //   affected by the max hotlist level you can set for some nicks (so not only tags in line)”
+    //   * if not present, get notify level from tags (we are using the last tag)
+    //     * if no `notify_*` tags are present, use low. see footnote at
+    //       https://weechat.org/files/doc/devel/weechat_user.en.html#lines_format
+    // * if weechat >= 3.0:
+    //   * if either tag `notify_none` is present, or `notify_level` is none, make sure that our
+    //     notify level is none. this can be not so in some weird situations
+    // * if notify level wasn't coerced to none in the previous step, and if highlight bit is set,
+    //   set notify level to highlight. highlights coming from irc can have notify levels message or
+    //   private. see discussion at https://github.com/weechat/weechat/issues/1529
 
-    // note: messages with `notify_highlight` levels appear to always have the highlighted bit set
-    // also note: in the future versions of weechat, a `notify_level` bit might be added to the
-    // line variables. it is better to use this as “its value is also affected by the max hotlist
-    // level you can set for some nicks (so not only tags in line)”. // todo make use of this
+    // fun commands:
+    //   /wait 1 /print -tags notify_none,notify_highlight foo\t bar
+    //   /wait 1 /print -tags notify_none,irc_privmsg foo\t your_nick
+    //     (irc_privmsg is needed for weechat to highlight your_nick)
+    //   /buffer set hotlist_max_level_nicks_add someones_nick:0
+    //     (see https://blog.weechat.org/post/2010/12/02/Max-hotlist-level-for-some-nicks)
 
-    // see discussion at https://github.com/weechat/weechat/issues/1529
+    // our final `notify` field represents the “final product”. it is the level with which the line
+    // was added to hotlist and if it's private or highlight we know we should issue a notification.
     public enum Notify {
-        UNSPECIFIED,
         NONE,
+        LOW,
         MESSAGE,
         PRIVATE,
-        HIGHLIGHT,
+        HIGHLIGHT;
+
+        // see table at https://weechat.org/files/doc/stable/weechat_plugin_api.en.html#_hook_line
+        static Notify fromNotifyLevelBit(byte notify_level) {
+            switch (notify_level) {
+                case -1: return NONE;
+                default:
+                case 0: return LOW;
+                case 1: return MESSAGE;
+                case 2: return PRIVATE;
+                case 3: return HIGHLIGHT;
+            }
+        }
     }
+
+    final private static byte NOTIFY_LEVEL_BIT_NOT_PRESENT = -123;
 
     final public long pointer;
     final public Type type;
@@ -97,8 +127,13 @@ public class Line {
         String prefix = entry.getItem("prefix").asString();
         boolean visible = entry.getItem("displayed").asChar() == 0x01;
         long timestamp = entry.getItem("date").asTime().getTime();
+
         RelayObject high = entry.getItem("highlight");
         boolean highlighted = high != null && high.asChar() == 0x01;
+
+        RelayObject notifyLevelObj = entry.getItem("notify_level");
+        byte notifyLevelBit = notifyLevelObj == null ? NOTIFY_LEVEL_BIT_NOT_PRESENT : notifyLevelObj.asByte();
+
         RelayObject tagsItem = entry.getItem("tags_array");
         String[] tags = tagsItem != null && tagsItem.getType() == RelayObject.WType.ARR ?
                 tagsItem.asArray().asStringArray() : null;
@@ -109,14 +144,15 @@ public class Line {
 
         Type type = Type.OTHER;
         DisplayAs displayAs = DisplayAs.UNSPECIFIED;
-        Notify notify = Notify.UNSPECIFIED;
+        Notify notify = Notify.LOW;
 
         if (tags == null) {
             // there are no tags, it's probably an old version of weechat, so we err
             // on the safe side and treat it as from human
             type = Type.INCOMING_MESSAGE;
         } else {
-            boolean log1 = false, self_msg = false, irc_action = false, irc_privmsg = false;
+            boolean log1 = false, self_msg = false, irc_action = false, irc_privmsg = false,
+                    notify_none = false;
 
             for (String tag : tags) {
                 switch (tag) {
@@ -124,13 +160,31 @@ public class Line {
                     case "self_msg":    self_msg = true; break;
                     case "irc_privmsg": irc_privmsg = true; break;
                     case "irc_action":  irc_action = true; break;
-                    case "notify_none":      notify = Notify.NONE; break;
+                    case "notify_none":      notify = Notify.NONE; notify_none = true; break;
                     case "notify_message":   notify = Notify.MESSAGE; break;
                     case "notify_private":   notify = Notify.PRIVATE; break;
                     case "notify_highlight": notify = Notify.HIGHLIGHT; break;
                     default:
                         if (tag.startsWith("nick_")) nick = tag.substring(5);
                 }
+            }
+
+            // notify_level bit supersedes tags
+            if (notifyLevelBit != NOTIFY_LEVEL_BIT_NOT_PRESENT)
+                notify = Notify.fromNotifyLevelBit(notifyLevelBit);
+
+            // starting with roughly 3.0 (2b16036), if a line has the tag notify_none, or if
+            // notify_level is -1, it is not added to the hotlist nor it beeps—even if highlighted.
+            boolean notifyNoneForced = RelayConnection.weechatVersion >= 0x3000000 &&
+                    (notify == Notify.NONE || notify_none);
+
+            if (notifyNoneForced) {
+                notify = Notify.NONE;
+            } else if (highlighted) {
+                // highlights from irc will have the level message or private upon inspection. since
+                // we are thinking of notify as the level with which the message was added to
+                // hotlist, we have to “fix” this by looking at the highlight bit.
+                notify = Notify.HIGHLIGHT;
             }
 
             // log1 should be reliable enough method of telling if a line is a message from user,
@@ -141,18 +195,6 @@ public class Line {
             //   * own message:   `irc_privmsg`, `notify_none`, `self_msg`, `no_highlight`, `log1`
             // note: some messages such as those produced by `/help` itself won't have tags at all.
             boolean isMessageFromSelfOrUser = log1 || irc_privmsg || irc_action;
-
-            // highlights from irc, etc will have the level `MESSAGE` upon inspection. since we are
-            // thinking of `notify` as the level with which the message was added to hotlist, we
-            // have to “fix” this by looking at the highlight bit.
-
-            // starting with roughly 3.0 (2b16036), if a line has the tag notify_none, it is not
-            // added to the hotlist nor it beeps, even if it has highlight.
-            // see https://github.com/weechat/weechat/issues/1529
-            if (highlighted) {
-                if (!(RelayConnection.weechatVersion >= 0x3000000 && notify == Notify.NONE))
-                    notify = Notify.HIGHLIGHT;
-            }
 
             if (tags.length > 0 && isMessageFromSelfOrUser) {
                 boolean isMessageFromSelf = self_msg ||

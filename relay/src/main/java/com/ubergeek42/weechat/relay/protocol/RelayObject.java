@@ -100,6 +100,11 @@ public class RelayObject {
         return charValue;
     }
 
+    // same but signed
+    public byte asByte() {
+        return (byte) asChar();
+    }
+
     /**
      * @return The unsigned integer representation of the object
      */
