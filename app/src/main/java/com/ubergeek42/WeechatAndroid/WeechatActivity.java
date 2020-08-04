@@ -180,9 +180,6 @@ public class WeechatActivity extends AppCompatActivity implements
         toolbarController = new ToolbarController(this);
 
         imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        String title = "WA v" + BuildConfig.VERSION_NAME;
-        setTitle(title);
-        uiStrip.setEmptyText(title);
 
         if (P.isServiceAlive()) connect();
 
