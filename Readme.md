@@ -8,19 +8,15 @@ you will need to look elsewhere.
 
 ### Get the app!
 
-<a href="https://play.google.com/store/apps/details?id=com.ubergeek42.WeechatAndroid"><img src="releases/qr-main.png" alt="Get it on Google Play" width="200" align="right"></a>
-<a href="https://play.google.com/store/apps/details?id=com.ubergeek42.WeechatAndroid.dev"><img src="releases/qr-beta.png" alt="Get beta on Google Play" width="200" align="right"></a>
+[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" alt="Get it on F-Droid" height="60">](https://f-droid.org/packages/com.ubergeek42.WeechatAndroid)
 
-[<img src="https://play.google.com/intl/en_gb/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" height="60">](https://play.google.com/store/apps/details?id=com.ubergeek42.WeechatAndroid)&nbsp;[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" alt="Get it on F-Droid" height="60">](https://f-droid.org/packages/com.ubergeek42.WeechatAndroid)
-
-Note that app store versions might be significantly outdated.
+Note that while the app is present on Google Play, due to technical difficulties it hasn't been
+updated for a long time. 
 
 ##### Nightly builds [![Build Status](https://travis-ci.org/ubergeek42/weechat-android.svg?branch=master)](https://travis-ci.org/ubergeek42/weechat-android)
 
-Nightly builds are automatically made after every commit and are available as [an apk download](http://weechat-android.ubergeek42.com/)
-and on [Google Play](https://play.google.com/store/apps/details?id=com.ubergeek42.WeechatAndroid.dev); 
-to access the latter, you need to [become a tester](https://play.google.com/apps/testing/com.ubergeek42.WeechatAndroid.dev)
-first. While we try to keep working nightly builds, they may fail or have major bugs. Use at your own risk.
+[Nightly builds](http://weechat-android.ubergeek42.com/) are automatically made after every commit.
+These may fail or have major bugs; use at your own risk.
 
 ##### Setup and usage
 
