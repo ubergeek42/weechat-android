@@ -54,6 +54,7 @@ check with us on IRC before starting a substantial rewrite! For additional infor
 * Added media preview
 * Raised minimum Android version to Lollipop (5.0, API level 21)
 * Added German translation
+* Improved support for notify levels
 
 ##### v0.14
 * Added an optional light theme
