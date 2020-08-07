@@ -243,7 +243,7 @@ public class Hotlist {
                 return;
             }
             //noinspection ConstantConditions   -- linter error
-            Events.SendMessageEvent.fireInput(buffer.fullName, input.toString());
+            Events.SendMessageEvent.fireInput(buffer, input.toString());
             buffer.flagResetHotMessagesOnNewOwnLine = true;
         }
     }

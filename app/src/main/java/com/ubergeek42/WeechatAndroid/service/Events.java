@@ -7,6 +7,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import android.text.TextUtils;
 
+import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.service.RelayService.STATE;
 
 import org.greenrobot.eventbus.EventBus;
@@ -63,13 +64,13 @@ public class Events {
             fire(String.format(Locale.ROOT, message, args));
         }
 
-        public static void fireInput(@NonNull String fullName, @Nullable String input) {
+        public static void fireInput(@NonNull Buffer buffer, @Nullable String input) {
             if (TextUtils.isEmpty(input)) return;
             P.addSentMessage(input);
             //noinspection ConstantConditions -- linter doesn't see the call to isEmpty
             for (String line : input.split("\n"))
                 if (!TextUtils.isEmpty(line))
-                    fire("input %s %s", fullName, line);
+                    fire("input 0x%x %s", buffer.pointer, line);
         }
 
         @Override public @NonNull String toString() {
