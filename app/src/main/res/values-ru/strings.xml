@@ -58,7 +58,7 @@
     %2$s
     ]]></string>
     <string name="invalid_hostname_dialog_title">Неверный хост</string>
-    <string name="invalid_hostname_dialog_button">Увы</string>
+    <string name="back_to_safety_dialog_button">Увы</string>
     <string name="invalid_hostname_dialog_empty"><![CDATA[<br><strong>(пусто)</strong>]]></string>
     <string name="pref_error_relay_host_not_set">Не задан хост релея</string>
     <string name="pref_error_relay_password_not_set">Не задан пароль релея</string>

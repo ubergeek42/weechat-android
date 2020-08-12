@@ -100,7 +100,7 @@
         Sie versuchen eine Verbindung zu <strong>%1$s</strong> herzustellen, aber das Zertifikat ist
         nur gültig für nachfolgende Hosts:<br> %2$s]]></string>
     <string name="invalid_hostname_dialog_title">Ungültiger Hostname</string>
-    <string name="invalid_hostname_dialog_button">Sicherheit geht vor</string>
+    <string name="back_to_safety_dialog_button">Sicherheit geht vor</string>
     <string name="invalid_hostname_dialog_empty"><![CDATA[<br><strong>(keine)</strong>]]></string>
 
     <string name="pref_error_relay_host_not_set">Relay-Host ist nicht angelegt</string>

@@ -62,7 +62,7 @@
   <string name="ssl_cert_dialog_reject_button">Refuser</string>
   <string name="invalid_hostname_dialog_body">Vous tentez de vous connecter à &lt;strong&gt;%1$s&lt;/strong&gt; mais le certificat n’est valide que pour ces hôtes&#8239;:&lt;br&gt; %2$s</string>
   <string name="invalid_hostname_dialog_title">Hôte invalide</string>
-  <string name="invalid_hostname_dialog_button">Retour en sécurité</string>
+  <string name="back_to_safety_dialog_button">Retour en sécurité</string>
   <string name="invalid_hostname_dialog_empty">&lt;br&gt;&lt;strong&gt;(aucune)&lt;/strong&gt;</string>
   <string name="pref_error_relay_host_not_set">L’hôte du relai n’est pas définie</string>
   <string name="pref_error_relay_password_not_set">Le mot de passe du relai n’est pas défini</string>

@@ -16,6 +16,8 @@ package com.ubergeek42.WeechatAndroid;
 
 import java.security.cert.CertPathValidatorException;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateExpiredException;
+import java.security.cert.CertificateNotYetValidException;
 import java.util.Collections;
 import java.util.EnumSet;
 
@@ -68,6 +70,7 @@ import com.ubergeek42.WeechatAndroid.adapters.MainPagerAdapter;
 import com.ubergeek42.WeechatAndroid.adapters.NickListAdapter;
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragment;
 import com.ubergeek42.WeechatAndroid.media.CachePersist;
+import com.ubergeek42.WeechatAndroid.utils.BackToSafetyDialogBuilder;
 import com.ubergeek42.WeechatAndroid.utils.Network;
 import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
@@ -314,16 +317,29 @@ public class WeechatActivity extends AppCompatActivity implements
                 e.getCause() instanceof CertificateException &&
                 e.getCause().getCause() instanceof CertPathValidatorException)) {
 
-            SSLHandler.Result r = SSLHandler.checkHostname(P.host, P.port);
-            if (r.certificate == null) return;
-            DialogFragment fragment = r.verified ?
-                    UntrustedCertificateDialog.newInstance(r.certificate) :
-                    InvalidHostnameDialog.newInstance(r.certificate);
+            SSLHandler.Result r = SSLHandler.checkHostnameAndValidity(P.host, P.port);
+            if (r.certificate != null) {
+                DialogFragment fragment = null;
+                if (r.exception instanceof CertificateExpiredException) {
+                    fragment = BackToSafetyDialogBuilder.buildExpiredCertificateDialog(
+                            this, r.certificate);
+                } else if (r.exception instanceof CertificateNotYetValidException) {
+                    fragment = BackToSafetyDialogBuilder.buildNotYetValidCertificateDialog(
+                            this, r.certificate);
+                } else if (r.exception instanceof SSLPeerUnverifiedException) {
+                    fragment = InvalidHostnameDialog.newInstance(r.certificate);
+                } else if (r.exception == null) {
+                    fragment = UntrustedCertificateDialog.newInstance(r.certificate);
+                }
 
-            fragment.show(getSupportFragmentManager(), "ssl-error");
-            Weechat.runOnMainThread(this::disconnect);
-            return;
+                if (fragment != null) {
+                    fragment.show(getSupportFragmentManager(), "ssl-error");
+                    Weechat.runOnMainThread(this::disconnect);
+                    return;
+                }
+            }
         }
+
         String message = TextUtils.isEmpty(e.getMessage()) ? e.getClass().getSimpleName() : e.getMessage();
         Weechat.showLongToast(R.string.error, message);
     }

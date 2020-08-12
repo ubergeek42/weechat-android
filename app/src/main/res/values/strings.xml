@@ -113,7 +113,7 @@
     %2$s
     ]]></string>
     <string name="invalid_hostname_dialog_title">Invalid hostname</string>
-    <string name="invalid_hostname_dialog_button">Back to safety</string>
+    <string name="back_to_safety_dialog_button">Back to safety</string>
     <string name="invalid_hostname_dialog_empty"><![CDATA[<br><strong>(none)</strong>]]></string>
 
     <!-- ##################################### preferences ##################################### -->
@@ -507,4 +507,6 @@ strategies:
   hosts: [v.redd.it, reddit.com, www.reddit.com, old.reddit.com]
   body size: 131072
 "</string>
+    <string name="dialog_title_cetificate_expired">Certificate expired</string>
+    <string name="dialog_title_cetificate_not_yet_valid">Certificate not yet valid</string>
 </resources>

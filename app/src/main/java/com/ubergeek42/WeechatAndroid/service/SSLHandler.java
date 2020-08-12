@@ -69,38 +69,32 @@ public class SSLHandler {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @SuppressLint("SSLCertificateSocketFactoryGetInsecure")
-    public static Result checkHostname(@NonNull String host, int port) {
-        final SSLSocketFactory factory = SSLCertificateSocketFactory.getInsecure(0, null);
-        SSLSocket ssl = null;
+    public static Result checkHostnameAndValidity(@NonNull String host, int port) {
+        X509Certificate certificate = null;
         try {
-            ssl = (SSLSocket) factory.createSocket(host, port);
-            ssl.startHandshake();
-        } catch (IOException e) {
-            return new Result(false, ssl == null ? null : getCertificate(ssl));
-        }
-        SSLSession session = ssl.getSession();
-        boolean verified = HttpsURLConnection.getDefaultHostnameVerifier().verify(host, session);
-        X509Certificate certificate = getCertificate(ssl);
-        try {ssl.close();} catch (IOException ignored) {}
-        return new Result(verified, certificate);
-    }
+            SSLSocketFactory factory = SSLCertificateSocketFactory.getInsecure(0, null);
+            try (SSLSocket ssl = (SSLSocket) factory.createSocket(host, port)) {
+                ssl.startHandshake();
+                SSLSession session = ssl.getSession();
+                certificate = (X509Certificate) session.getPeerCertificates()[0];
 
-    private static @Nullable X509Certificate getCertificate(SSLSocket socket) {
-        try {
-            return (X509Certificate) socket.getSession().getPeerCertificates()[0];
-        } catch (SSLPeerUnverifiedException e) {
-            kitty.error("getCertificate()", e);
-            return null;
+                certificate.checkValidity();
+                if (!getHostnameVerifier().verify(host, session))
+                    throw new SSLPeerUnverifiedException("Cannot verify hostname: " + host);
+            }
+        } catch (CertificateException | IOException e) {
+            return new Result(e, certificate);
         }
+        return new Result(null, certificate);
     }
 
     public static class Result {
+        public final @Nullable Exception exception;
         public final @Nullable X509Certificate certificate;
-        public final boolean verified;
 
-        Result(boolean verified, @Nullable X509Certificate certificate) {
+        Result(@Nullable Exception exception, @Nullable X509Certificate certificate) {
+            this.exception = exception;
             this.certificate = certificate;
-            this.verified = verified;
         }
     }
 

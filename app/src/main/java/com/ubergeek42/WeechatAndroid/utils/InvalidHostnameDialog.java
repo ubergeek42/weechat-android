@@ -59,7 +59,7 @@ public class InvalidHostnameDialog extends DialogFragment {
         return new FancyAlertDialogBuilder(requireContext())
                 .setTitle(getString(R.string.invalid_hostname_dialog_title))
                 .setView(scrollView)
-                .setNegativeButton(getString(R.string.invalid_hostname_dialog_button), null)
+                .setNegativeButton(getString(R.string.back_to_safety_dialog_button), null)
                 .create();
     }
 
