@@ -4,6 +4,7 @@ import android.content.Context;
 import android.text.Html;
 
 import com.ubergeek42.WeechatAndroid.R;
+import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.service.SSLHandler;
 
@@ -48,6 +49,19 @@ public class SSLErrorDialogBuilder {
         return new ScrollableDialog.BackToSafetyDialog(
                 context.getString(R.string.invalid_hostname_dialog_title),
                 Html.fromHtml(html));
+    }
+
+    public static ScrollableDialog buildUntrustedCertificateDialog(WeechatActivity activity, X509Certificate certificate) {
+        return new ScrollableDialog(
+                activity.getString(R.string.ssl_cert_dialog_title),
+                buildCertificateDescription(activity, certificate),
+                R.string.ssl_cert_dialog_accept_button,
+                (dialog, which) -> {
+                    SSLHandler.getInstance(activity).trustCertificate(certificate);
+                    activity.connect();
+                },
+                R.string.ssl_cert_dialog_reject_button,
+                null);
     }
 
     private static CharSequence buildCertificateDescription(Context context, X509Certificate certificate) {

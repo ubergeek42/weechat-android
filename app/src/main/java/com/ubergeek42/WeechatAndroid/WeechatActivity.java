@@ -83,7 +83,6 @@ import com.ubergeek42.WeechatAndroid.utils.FancyAlertDialogBuilder;
 import com.ubergeek42.WeechatAndroid.utils.ThemeFix;
 import com.ubergeek42.WeechatAndroid.utils.ToolbarController;
 import com.ubergeek42.WeechatAndroid.utils.SimpleTransitionDrawable;
-import com.ubergeek42.WeechatAndroid.utils.UntrustedCertificateDialog;
 import com.ubergeek42.WeechatAndroid.service.RelayService.STATE;
 import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.CatD;
@@ -320,18 +319,14 @@ public class WeechatActivity extends AppCompatActivity implements
             if (r.certificate != null) {
                 DialogFragment fragment = null;
                 if (r.exception instanceof CertificateExpiredException) {
-                    fragment = SSLErrorDialogBuilder.buildExpiredCertificateDialog(
-                            this, r.certificate);
+                    fragment = SSLErrorDialogBuilder.buildExpiredCertificateDialog(this, r.certificate);
                 } else if (r.exception instanceof CertificateNotYetValidException) {
-                    fragment = SSLErrorDialogBuilder.buildNotYetValidCertificateDialog(
-                            this, r.certificate);
+                    fragment = SSLErrorDialogBuilder.buildNotYetValidCertificateDialog(this, r.certificate);
                 } else if (r.exception instanceof SSLPeerUnverifiedException) {
-                    fragment = SSLErrorDialogBuilder.buildInvalidHostnameDialog(
-                            this, r.certificate);
+                    fragment = SSLErrorDialogBuilder.buildInvalidHostnameDialog(this, r.certificate);
                 } else if (r.exception == null) {
-                    fragment = UntrustedCertificateDialog.newInstance(r.certificate);
+                    fragment = SSLErrorDialogBuilder.buildUntrustedCertificateDialog(this, r.certificate);
                 }
-
                 if (fragment != null) {
                     fragment.show(getSupportFragmentManager(), "ssl-error");
                     Weechat.runOnMainThread(this::disconnect);

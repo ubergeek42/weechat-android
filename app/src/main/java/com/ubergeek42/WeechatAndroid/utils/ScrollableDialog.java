@@ -54,11 +54,13 @@ public class ScrollableDialog extends DialogFragment {
             builder.setPositiveButton(getString(positiveButtonText), positiveButtonListener);
 
         if (negativeButtonText != null)
-            builder.setPositiveButton(getString(negativeButtonText), negativeButtonListener);
+            builder.setNegativeButton(getString(negativeButtonText), negativeButtonListener);
 
         return builder.create();
     }
 
+    // this should prevent the dialog from being dismissed on activity restart
+    // see https://code.google.com/p/android/issues/detail?id=17423
     @Override public void onDestroyView() {
         if (getDialog() != null && getRetainInstance()) {
             getDialog().setDismissMessage(null);
