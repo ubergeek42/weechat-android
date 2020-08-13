@@ -120,7 +120,7 @@ public class WeechatActivity extends AppCompatActivity implements
     @SuppressLint("WrongThread") @MainThread @Override @CatD
     public void onCreate(@Nullable Bundle savedInstanceState) {
         // after OOM kill and not going to restore anything? remove all fragments & open buffers
-        if (!P.isServiceAlive() && !BufferList.hasData()) {
+        if (!P.isServiceAlive() && !BufferList.hasData() && !P.openBuffers.isEmpty()) {
             P.openBuffers.clear();
             savedInstanceState = null;
         }
