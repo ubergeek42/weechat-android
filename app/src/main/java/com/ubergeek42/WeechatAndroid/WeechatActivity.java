@@ -89,6 +89,7 @@ import com.ubergeek42.cats.CatD;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
 
+import static com.ubergeek42.WeechatAndroid.media.Cache.findException;
 import static com.ubergeek42.WeechatAndroid.service.Events.*;
 import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.*;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
@@ -307,14 +308,16 @@ public class WeechatActivity extends AppCompatActivity implements
     // as this method is doing network, it should be run on a worker thread. currently it's run on
     // the connection thread, which can get interrupted by doge, but this likely not a problem as
     // EventBus won't crash the application by default
+
+    // SSL WebSockets will generate the same errors, except in the case of a certificate with an
+    // invalid host and a missing endpoint (e.g. wrong.host.badssl.com). as we are verifying the
+    // socket after connecting, in this case the user will see a toast with “The status ... is not
+    // '101 Switching Protocols'”. this error is also valid so we consider this a non-issue
     @Subscribe
     @WorkerThread @Cat public void onEvent(final ExceptionEvent event) {
         final Exception e = event.e;
-        if ((e instanceof SSLPeerUnverifiedException) ||
-                (e instanceof SSLException &&
-                e.getCause() instanceof CertificateException &&
-                e.getCause().getCause() instanceof CertPathValidatorException)) {
-
+        if (findException(e, SSLPeerUnverifiedException.class) != null ||
+                findException(e, CertificateException.class) != null ) {
             SSLHandler.Result r = SSLHandler.checkHostnameAndValidity(P.host, P.port);
             if (r.certificate != null) {
                 DialogFragment fragment = null;
