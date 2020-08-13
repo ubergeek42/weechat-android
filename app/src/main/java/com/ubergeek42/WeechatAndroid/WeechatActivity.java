@@ -70,7 +70,7 @@ import com.ubergeek42.WeechatAndroid.adapters.MainPagerAdapter;
 import com.ubergeek42.WeechatAndroid.adapters.NickListAdapter;
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragment;
 import com.ubergeek42.WeechatAndroid.media.CachePersist;
-import com.ubergeek42.WeechatAndroid.utils.BackToSafetyDialogBuilder;
+import com.ubergeek42.WeechatAndroid.utils.SSLErrorDialogBuilder;
 import com.ubergeek42.WeechatAndroid.utils.Network;
 import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
@@ -80,7 +80,6 @@ import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
 import com.ubergeek42.WeechatAndroid.service.SSLHandler;
 import com.ubergeek42.WeechatAndroid.utils.FancyAlertDialogBuilder;
-import com.ubergeek42.WeechatAndroid.utils.InvalidHostnameDialog;
 import com.ubergeek42.WeechatAndroid.utils.ThemeFix;
 import com.ubergeek42.WeechatAndroid.utils.ToolbarController;
 import com.ubergeek42.WeechatAndroid.utils.SimpleTransitionDrawable;
@@ -321,13 +320,14 @@ public class WeechatActivity extends AppCompatActivity implements
             if (r.certificate != null) {
                 DialogFragment fragment = null;
                 if (r.exception instanceof CertificateExpiredException) {
-                    fragment = BackToSafetyDialogBuilder.buildExpiredCertificateDialog(
+                    fragment = SSLErrorDialogBuilder.buildExpiredCertificateDialog(
                             this, r.certificate);
                 } else if (r.exception instanceof CertificateNotYetValidException) {
-                    fragment = BackToSafetyDialogBuilder.buildNotYetValidCertificateDialog(
+                    fragment = SSLErrorDialogBuilder.buildNotYetValidCertificateDialog(
                             this, r.certificate);
                 } else if (r.exception instanceof SSLPeerUnverifiedException) {
-                    fragment = InvalidHostnameDialog.newInstance(r.certificate);
+                    fragment = SSLErrorDialogBuilder.buildInvalidHostnameDialog(
+                            this, r.certificate);
                 } else if (r.exception == null) {
                     fragment = UntrustedCertificateDialog.newInstance(r.certificate);
                 }
