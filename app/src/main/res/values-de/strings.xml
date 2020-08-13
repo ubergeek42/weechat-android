@@ -402,4 +402,6 @@
     <string name="dialog_discard_changes_prompt">Änderungen verwerfen?</string>
     <string name="dialog_discard_changes_cancel">Abbrechen</string>
     <string name="dialog_discard_changes_discard">Verwerfen</string>
+    <string name="dialog_title_cetificate_not_yet_valid">Zertifikat noch nicht gültig</string>
+    <string name="dialog_title_cetificate_expired">Zertifikat abgelaufen</string>
 </resources>

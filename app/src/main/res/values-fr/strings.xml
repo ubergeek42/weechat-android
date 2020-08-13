@@ -275,4 +275,6 @@
   <string name="pref_connection_type_weechat_ssl">WeeChat SSL</string>
   <string name="pref_connection_type_ws">WebSocket</string>
   <string name="pref_connection_type_ws_ssl">WebSocket (SSL)</string>
+  <string name="dialog_title_cetificate_expired">Certificat expiré</string>
+  <string name="dialog_title_cetificate_not_yet_valid">Le certificat n’est pas encore valide</string>
 </resources>
