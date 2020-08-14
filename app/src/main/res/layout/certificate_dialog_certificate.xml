@@ -1,13 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView  xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:scrollbars="none">
-    <TextView
-        android:id="@+id/certificate"
+    android:layout_height="wrap_content">
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingHorizontal="@dimen/dialog_padding_full"
-        android:paddingVertical="@dimen/dialog_padding_half"
-        android:background="@drawable/bg_certificate"/>
-</ScrollView>
+        android:scrollbars="none">
+
+            <TextView
+                android:id="@+id/certificate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="@dimen/dialog_padding_full"
+                android:paddingVertical="@dimen/dialog_padding_half"
+                android:background="@drawable/bg_certificate"/>
+    </ScrollView>
+    <RadioButton
+        android:id="@+id/radio"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right"/>
+</FrameLayout>

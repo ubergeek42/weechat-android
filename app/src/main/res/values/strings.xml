@@ -106,7 +106,7 @@
         %5$s
     ]]></string>
     <string name="ssl_cert_dialog_title">Untrusted certificate</string>
-    <string name="ssl_cert_dialog_accept_button">Accept</string>
+    <string name="ssl_cert_dialog_accept_button">Accept selected</string>
     <string name="ssl_cert_dialog_reject_button">Reject</string>
     <string name="invalid_hostname_dialog_body"><![CDATA[
     You are trying to connect to <strong>%1$s</strong> but the certificate is only valid for the following hosts:<br>
@@ -509,4 +509,7 @@ strategies:
 "</string>
     <string name="dialog_title_cetificate_expired">Certificate expired</string>
     <string name="dialog_title_cetificate_not_yet_valid">Certificate not yet valid</string>
+    <string name="ssl_cert_dialog_text">This certificate isn’t trusted by Android, but you can still
+        connect. We will trust the selected certificate, as well as any certificates signed by it.
+    </string>
 </resources>
