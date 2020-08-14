@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TextView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/certificate"
+<ScrollView  xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingHorizontal="@dimen/dialog_padding_full"
-    android:paddingVertical="@dimen/dialog_padding_half"
-    android:background="@drawable/bg_certificate"/>
+    android:scrollbars="none">
+    <TextView
+        android:id="@+id/certificate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="@dimen/dialog_padding_full"
+        android:paddingVertical="@dimen/dialog_padding_half"
+        android:background="@drawable/bg_certificate"/>
+</ScrollView>

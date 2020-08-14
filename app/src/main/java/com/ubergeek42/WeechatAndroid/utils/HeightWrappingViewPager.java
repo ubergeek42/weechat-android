@@ -32,6 +32,11 @@ public class HeightWrappingViewPager extends ViewPager {
                 int h = child.getMeasuredHeight();
                 if (h > height) height = h;
             }
+
+            // make sure we don't “shrink” ourselves beyond the allotted space
+            int allottedHeight = getMeasuredHeight();
+            if (allottedHeight < height) height = allottedHeight;
+
             heightMeasureSpec = MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY);
         }
         // super has to be called again so the new specs are treated as exact measurements

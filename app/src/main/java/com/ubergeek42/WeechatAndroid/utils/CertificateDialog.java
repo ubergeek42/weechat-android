@@ -96,13 +96,14 @@ public class CertificateDialog extends DialogFragment {
 
     class CertificatePagerAdapter extends PagerAdapter {
         @NonNull @Override public Object instantiateItem(@NonNull ViewGroup container, int position) {
-            TextView textView = (TextView) LayoutInflater.from(requireContext()).inflate(
+            View view = LayoutInflater.from(requireContext()).inflate(
                     R.layout.certificate_dialog_certificate, container, false);
+            TextView textView = view.findViewById(R.id.certificate);
             int padding = (int) (getResources().getDimension(R.dimen.dialog_item_padding_vertical) * 1.5);
             textView.setPadding(padding, padding, padding, padding);
             textView.setText(SSLErrorDialogBuilder.buildCertificateDescription(requireContext(), reversedCertificateChain.get(position)));
-            container.addView(textView);
-            return textView;
+            container.addView(view);
+            return view;
         }
 
         @Override public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
