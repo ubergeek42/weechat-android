@@ -512,4 +512,8 @@ strategies:
     <string name="ssl_cert_dialog_text">This certificate isn’t trusted by Android, but you can still
         connect. We will trust the selected certificate, as well as any certificates signed by it.
     </string>
+    <string name="dialog_text_cetificate_expired">This certificate is no longer valid. Please make
+        sure that your clock is set to correct time.</string>
+    <string name="dialog_text_cetificate_not_yet_valid">This certificate will be valid in the
+        future. Please make sure that your clock is set to correct time.</string>
 </resources>

@@ -323,9 +323,9 @@ public class WeechatActivity extends AppCompatActivity implements
             if (r.certificate != null) {
                 DialogFragment fragment = null;
                 if (r.exception instanceof CertificateExpiredException) {
-                    fragment = SSLErrorDialogBuilder.buildExpiredCertificateDialog(this, r.certificate);
+                    fragment = CertificateDialog.buildExpiredCertificateDialog(this, r.certificateChain);
                 } else if (r.exception instanceof CertificateNotYetValidException) {
-                    fragment = SSLErrorDialogBuilder.buildNotYetValidCertificateDialog(this, r.certificate);
+                    fragment = CertificateDialog.buildNotYetValidCertificateDialog(this, r.certificateChain);
                 } else if (r.exception instanceof SSLPeerUnverifiedException) {
                     fragment = SSLErrorDialogBuilder.buildInvalidHostnameDialog(this, r.certificate);
                 } else if (r.exception == null) {

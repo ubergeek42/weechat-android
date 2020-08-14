@@ -1,6 +1,7 @@
 package com.ubergeek42.WeechatAndroid.utils;
 
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -37,16 +38,17 @@ public class CertificateDialog extends DialogFragment {
           @Nullable DialogInterface.OnClickListener positiveButtonListener;
     final @Nullable Integer negativeButtonText;
     final @Nullable DialogInterface.OnClickListener negativeButtonListener;
+    final boolean allowCertificateSelection;
 
     final RadioButton[] radioButtons;
     int selectedCertificate = -1;
 
     public CertificateDialog(@NonNull CharSequence title, @NonNull CharSequence text,
-                            @NonNull List<X509Certificate> certificateChain,
-                            @Nullable Integer positiveButtonText,
-                            @Nullable DialogInterface.OnClickListener positiveButtonListener,
-                            @Nullable Integer negativeButtonText,
-                            @Nullable DialogInterface.OnClickListener negativeButtonListener) {
+                             @NonNull List<X509Certificate> certificateChain,
+                             @Nullable Integer positiveButtonText,
+                             @Nullable DialogInterface.OnClickListener positiveButtonListener,
+                             @Nullable Integer negativeButtonText,
+                             @Nullable DialogInterface.OnClickListener negativeButtonListener) {
         this.title = title;
         this.text = text;
 
@@ -57,24 +59,12 @@ public class CertificateDialog extends DialogFragment {
         this.positiveButtonListener = positiveButtonListener;
         this.negativeButtonText = negativeButtonText;
         this.negativeButtonListener = negativeButtonListener;
+        this.allowCertificateSelection = positiveButtonText != null;
 
         this.setRetainInstance(true);
         this.radioButtons = new RadioButton[reversedCertificateChain.size()];
     }
 
-    public static CertificateDialog buildUntrustedCertificateDialog(WeechatActivity activity, List<X509Certificate> certificateChain) {
-        CertificateDialog dialog = new CertificateDialog(
-                activity.getString(R.string.ssl_cert_dialog_title),
-                activity.getString(R.string.ssl_cert_dialog_text),
-                certificateChain,
-                R.string.ssl_cert_dialog_accept_button, null,
-                R.string.ssl_cert_dialog_reject_button, null);
-        dialog.positiveButtonListener = (d, which) -> {
-            SSLHandler.getInstance(activity).trustCertificate(certificateChain.get(dialog.selectedCertificate));
-            activity.connect();
-        };
-        return dialog;
-    }
 
     @NonNull @Override public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         LayoutInflater inflater = LayoutInflater.from(requireContext());
@@ -103,10 +93,9 @@ public class CertificateDialog extends DialogFragment {
         return builder.create();
     }
 
-
     @Override public void onStart() {
         super.onStart();
-        if (selectedCertificate == -1) setPositiveButtonEnabled(false);
+        if (allowCertificateSelection && selectedCertificate == -1) setPositiveButtonEnabled(false);
     }
 
     void setPositiveButtonEnabled(boolean enabled) {
@@ -120,11 +109,13 @@ public class CertificateDialog extends DialogFragment {
                     R.layout.certificate_dialog_certificate, container, false);
 
             TextView textView = view.findViewById(R.id.certificate);
-            int padding = (int) (getResources().getDimension(R.dimen.dialog_item_padding_vertical) * 1.5);
+            int padding = (int) getResources().getDimension(R.dimen.dialog_item_certificate_text_padding);
             textView.setPadding(padding, padding, padding, padding);
-            textView.setText(SSLErrorDialogBuilder.buildCertificateDescription(requireContext(), reversedCertificateChain.get(position)));
+            textView.setText(SSLErrorDialogBuilder.buildCertificateDescription(
+                    requireContext(), reversedCertificateChain.get(position)));
 
             RadioButton radioButton = view.findViewById(R.id.radio);
+            if (!allowCertificateSelection) radioButton.setVisibility(View.INVISIBLE);
             radioButton.setOnClickListener(v -> {
                 selectedCertificate = position;
                 for (int i = 0; i < radioButtons.length; i++) {
@@ -133,7 +124,7 @@ public class CertificateDialog extends DialogFragment {
                 }
                 setPositiveButtonEnabled(true);
             });
-            if (selectedCertificate == position) radioButton.performClick();
+            if (selectedCertificate == position) radioButton.performClick();    // restore after rotation
             radioButtons[position] = radioButton;
 
             container.addView(view);
@@ -151,5 +142,49 @@ public class CertificateDialog extends DialogFragment {
         @Override public boolean isViewFromObject(@NonNull View view, @NonNull Object object) {
             return view == object;
         }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    public static CertificateDialog buildUntrustedCertificateDialog(WeechatActivity activity,
+            List<X509Certificate> certificateChain) {
+        CertificateDialog dialog = new CertificateDialog(
+                activity.getString(R.string.ssl_cert_dialog_title),
+                activity.getString(R.string.ssl_cert_dialog_text),
+                certificateChain,
+                R.string.ssl_cert_dialog_accept_button, null,
+                R.string.ssl_cert_dialog_reject_button, null);
+        dialog.positiveButtonListener = (d, which) -> {
+            SSLHandler.getInstance(activity).trustCertificate(
+                    certificateChain.get(dialog.selectedCertificate));
+            activity.connect();
+        };
+        return dialog;
+    }
+
+    public static CertificateDialog buildBackToSafetyCertificateDialog(Context context,
+            int title, int text, List<X509Certificate> certificateChain) {
+        return new CertificateDialog(
+                context.getString(title),
+                context.getString(text),
+                certificateChain,
+                null, null,
+                R.string.back_to_safety_dialog_button, null);
+    }
+
+    public static CertificateDialog buildExpiredCertificateDialog(Context context,
+            List<X509Certificate> certificateChain) {
+        return buildBackToSafetyCertificateDialog(context,
+                R.string.dialog_title_cetificate_expired,
+                R.string.dialog_text_cetificate_expired,
+                certificateChain);
+    }
+
+    public static CertificateDialog buildNotYetValidCertificateDialog(Context context,
+            List<X509Certificate> certificateChain) {
+        return buildBackToSafetyCertificateDialog(context,
+                R.string.dialog_title_cetificate_not_yet_valid,
+                R.string.dialog_text_cetificate_not_yet_valid,
+                certificateChain);
     }
 }
