@@ -19,7 +19,6 @@ import androidx.viewpager.widget.ViewPager;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.service.SSLHandler;
-import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
 
@@ -35,12 +34,12 @@ public class CertificateDialog extends DialogFragment {
     final @NonNull CharSequence text;
     final @NonNull List<X509Certificate> reversedCertificateChain;
     final @Nullable Integer positiveButtonText;
-    final @Nullable DialogInterface.OnClickListener positiveButtonListener;
+          @Nullable DialogInterface.OnClickListener positiveButtonListener;
     final @Nullable Integer negativeButtonText;
     final @Nullable DialogInterface.OnClickListener negativeButtonListener;
 
     final RadioButton[] radioButtons;
-
+    int selectedCertificate = -1;
 
     public CertificateDialog(@NonNull CharSequence title, @NonNull CharSequence text,
                             @NonNull List<X509Certificate> certificateChain,
@@ -64,18 +63,17 @@ public class CertificateDialog extends DialogFragment {
     }
 
     public static CertificateDialog buildUntrustedCertificateDialog(WeechatActivity activity, List<X509Certificate> certificateChain) {
-        return new CertificateDialog(
+        CertificateDialog dialog = new CertificateDialog(
                 activity.getString(R.string.ssl_cert_dialog_title),
-                activity.getString(R.string.ssl_cert_dialog_text) +
-                "We will trust the selected certificate, as well as any certificates signed by it.",
+                activity.getString(R.string.ssl_cert_dialog_text),
                 certificateChain,
-                R.string.ssl_cert_dialog_accept_button,
-                (dialog, which) -> {
-                    SSLHandler.getInstance(activity).trustCertificate(certificateChain.get(0));
-                    activity.connect();
-                },
-                R.string.ssl_cert_dialog_reject_button,
-                null);
+                R.string.ssl_cert_dialog_accept_button, null,
+                R.string.ssl_cert_dialog_reject_button, null);
+        dialog.positiveButtonListener = (d, which) -> {
+            SSLHandler.getInstance(activity).trustCertificate(certificateChain.get(dialog.selectedCertificate));
+            activity.connect();
+        };
+        return dialog;
     }
 
     @NonNull @Override public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
@@ -108,19 +106,12 @@ public class CertificateDialog extends DialogFragment {
 
     @Override public void onStart() {
         super.onStart();
-        if (getSelectedCertificate() == -1) setPositiveButtonEnabled(false);
+        if (selectedCertificate == -1) setPositiveButtonEnabled(false);
     }
 
     void setPositiveButtonEnabled(boolean enabled) {
         AlertDialog dialog = ((AlertDialog) getDialog());
         if (dialog != null) dialog.getButton(DialogInterface.BUTTON_POSITIVE).setEnabled(enabled);
-    }
-
-    @Cat int getSelectedCertificate() {
-        for (int i = 0; i < radioButtons.length; i++) {
-            if (radioButtons[i] != null && radioButtons[i].isChecked()) return i;
-        }
-        return -1;
     }
 
     class CertificatePagerAdapter extends PagerAdapter {
@@ -135,12 +126,14 @@ public class CertificateDialog extends DialogFragment {
 
             RadioButton radioButton = view.findViewById(R.id.radio);
             radioButton.setOnClickListener(v -> {
-                for (RadioButton r : radioButtons)
-                    if (r != radioButton) r.setChecked(false);
+                selectedCertificate = position;
+                for (int i = 0; i < radioButtons.length; i++) {
+                    if (i != selectedCertificate && radioButtons[i] != null)
+                        radioButtons[i].setChecked(false);
+                }
                 setPositiveButtonEnabled(true);
             });
-            if (radioButtons[position] != null && radioButtons[position].isChecked())
-                radioButton.performClick();
+            if (selectedCertificate == position) radioButton.performClick();
             radioButtons[position] = radioButton;
 
             container.addView(view);
