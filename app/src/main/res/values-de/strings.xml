@@ -98,7 +98,8 @@
     <string name="ssl_cert_dialog_reject_button">Ablehnen</string>
     <string name="invalid_hostname_dialog_body"><![CDATA[
         Sie versuchen eine Verbindung zu <strong>%1$s</strong> herzustellen, aber das Zertifikat ist
-        nur gültig für nachfolgende Hosts:<br> %2$s]]></string>
+        nur gültig für nachfolgende Hosts:%2$s
+    ]]></string>
     <string name="invalid_hostname_dialog_title">Ungültiger Hostname</string>
     <string name="back_to_safety_dialog_button">Sicherheit geht vor</string>
     <string name="invalid_hostname_dialog_empty"><![CDATA[<br><strong>(keine)</strong>]]></string>

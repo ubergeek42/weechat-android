@@ -109,8 +109,13 @@
     <string name="ssl_cert_dialog_accept_button">Accept selected</string>
     <string name="ssl_cert_dialog_reject_button">Reject</string>
     <string name="invalid_hostname_dialog_body"><![CDATA[
-    You are trying to connect to <strong>%1$s</strong> but the certificate is only valid for the following hosts:<br>
-    %2$s
+        You are trying to connect to <strong>%1$s</strong> but the certificate is only valid for
+        the following hosts: %2$s
+    ]]></string>
+    <string name="invalid_hostname_dialog_body_android_p_warning"><![CDATA[
+        <br>Note that Android P and beyond does not fall back to Common Name (CN) validation. Subject
+        Alternative Name (SAN) must be used instead.
+        <a href="https://github.com/ubergeek42/weechat-android/wiki/Using-SSL-with-WeeChat">Learn more</a>
     ]]></string>
     <string name="invalid_hostname_dialog_title">Invalid hostname</string>
     <string name="back_to_safety_dialog_button">Back to safety</string>

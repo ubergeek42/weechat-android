@@ -6,10 +6,13 @@ package com.ubergeek42.WeechatAndroid.service;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.net.SSLCertificateSocketFactory;
+import android.os.Build;
+
 import androidx.annotation.CheckResult;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
 
@@ -22,9 +25,9 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
-import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -71,53 +74,58 @@ public class SSLHandler {
     @SuppressLint("SSLCertificateSocketFactoryGetInsecure")
     public static Result checkHostnameAndValidity(@NonNull String host, int port) {
         List<X509Certificate> certificatesChain = null;
-        X509Certificate certificate = null;
         try {
             SSLSocketFactory factory = SSLCertificateSocketFactory.getInsecure(0, null);
             try (SSLSocket ssl = (SSLSocket) factory.createSocket(host, port)) {
                 ssl.startHandshake();
                 SSLSession session = ssl.getSession();
                 certificatesChain = Arrays.asList((X509Certificate[]) session.getPeerCertificates());
-                certificate = certificatesChain.get(0);
 
-                certificate.checkValidity();
+                for (X509Certificate certificate : certificatesChain)
+                    certificate.checkValidity();
                 if (!getHostnameVerifier().verify(host, session))
                     throw new SSLPeerUnverifiedException("Cannot verify hostname: " + host);
             }
         } catch (CertificateException | IOException e) {
-            return new Result(e, certificate, certificatesChain);
+            return new Result(e, certificatesChain);
         }
-        return new Result(null, certificate, certificatesChain);
+        return new Result(null, certificatesChain);
     }
 
     public static class Result {
         public final @Nullable Exception exception;
-        public final @Nullable X509Certificate certificate;
         public final @Nullable List<X509Certificate> certificateChain;
 
-        Result(@Nullable Exception exception, @Nullable X509Certificate certificate, @Nullable List<X509Certificate> certificateChain) {
+        Result(@Nullable Exception exception, @Nullable List<X509Certificate> certificateChain) {
             this.exception = exception;
-            this.certificate = certificate;
             this.certificateChain = certificateChain;
         }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public static Set<String> getCertificateHosts(X509Certificate certificate) {
+    final private static int SAN_DNSNAME = 2;
+    final private static int SAN_IPADDRESS = 7;
+
+    // fall back to parsing CN only if SAN extension is not present. Android P no longer does this.
+    // https://developer.android.com/about/versions/pie/android-9.0-changes-all#certificate-common-name
+    public static Set<String> getCertificateHosts(X509Certificate certificate) throws Exception {
         final Set<String> hosts = new HashSet<>();
-        try {
-            final Matcher matcher = RDN_PATTERN.matcher(certificate.getSubjectDN().getName());
-            if (matcher.find())
-                hosts.add(matcher.group(1));
-        } catch (NullPointerException ignored) {}
-        try {
-            for (List<?> pair : certificate.getSubjectAlternativeNames()) {
-                try {
-                    hosts.add(pair.get(1).toString());
-                } catch (IndexOutOfBoundsException ignored) {}
+
+        Collection<List<?>> san = certificate.getSubjectAlternativeNames();
+
+        if (san == null) {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+                Matcher matcher = RDN_PATTERN.matcher(certificate.getSubjectDN().getName());
+                if (matcher.find())
+                    hosts.add(matcher.group(1));
             }
-        } catch(NullPointerException | CertificateParsingException ignored) {}
+        } else {
+            for (List<?> pair : san) {
+                if (Utils.isAnyOf((Integer) pair.get(0), SAN_DNSNAME, SAN_IPADDRESS))
+                    hosts.add(pair.get(1).toString());
+            }
+        }
         return hosts;
     }
 

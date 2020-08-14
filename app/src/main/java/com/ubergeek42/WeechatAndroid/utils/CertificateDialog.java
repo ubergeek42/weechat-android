@@ -3,7 +3,9 @@ package com.ubergeek42.WeechatAndroid.utils;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.os.Build;
 import android.os.Bundle;
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,14 +21,21 @@ import androidx.viewpager.widget.ViewPager;
 
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
+import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.service.SSLHandler;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
 
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.codec.digest.DigestUtils;
+
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 public class CertificateDialog extends DialogFragment {
     final private static @Root Kitty kitty = Kitty.make();
@@ -111,7 +120,7 @@ public class CertificateDialog extends DialogFragment {
             TextView textView = view.findViewById(R.id.certificate);
             int padding = (int) getResources().getDimension(R.dimen.dialog_item_certificate_text_padding);
             textView.setPadding(padding, padding, padding, padding);
-            textView.setText(SSLErrorDialogBuilder.buildCertificateDescription(
+            textView.setText(buildCertificateDescription(
                     requireContext(), reversedCertificateChain.get(position)));
 
             RadioButton radioButton = view.findViewById(R.id.radio);
@@ -146,6 +155,27 @@ public class CertificateDialog extends DialogFragment {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
+    public static CharSequence buildCertificateDescription(Context context, X509Certificate certificate) {
+        String fingerprint;
+        try {
+            fingerprint = new String(Hex.encodeHex(DigestUtils.sha256(certificate.getEncoded())));
+        } catch (CertificateEncodingException e) {
+            fingerprint = context.getString(R.string.ssl_cert_dialog_unknown_fingerprint);
+        }
+
+        String html = context.getString(R.string.ssl_cert_dialog_description,
+                certificate.getSubjectDN().getName(),
+                certificate.getIssuerDN().getName(),
+                DateFormat.getDateTimeInstance().format(certificate.getNotBefore()),
+                DateFormat.getDateTimeInstance().format(certificate.getNotAfter()),
+                fingerprint
+        );
+
+        return Html.fromHtml(html);
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
     public static CertificateDialog buildUntrustedCertificateDialog(WeechatActivity activity,
             List<X509Certificate> certificateChain) {
         CertificateDialog dialog = new CertificateDialog(
@@ -163,28 +193,52 @@ public class CertificateDialog extends DialogFragment {
     }
 
     public static CertificateDialog buildBackToSafetyCertificateDialog(Context context,
-            int title, int text, List<X509Certificate> certificateChain) {
-        return new CertificateDialog(
-                context.getString(title),
-                context.getString(text),
-                certificateChain,
-                null, null,
-                R.string.back_to_safety_dialog_button, null);
+            CharSequence title, CharSequence text, List<X509Certificate> certificateChain) {
+        return new CertificateDialog(title, text, certificateChain,
+                                     null, null,
+                                     R.string.back_to_safety_dialog_button, null);
     }
 
     public static CertificateDialog buildExpiredCertificateDialog(Context context,
             List<X509Certificate> certificateChain) {
         return buildBackToSafetyCertificateDialog(context,
-                R.string.dialog_title_cetificate_expired,
-                R.string.dialog_text_cetificate_expired,
+                context.getString(R.string.dialog_title_cetificate_expired),
+                context.getString(R.string.dialog_text_cetificate_expired),
                 certificateChain);
     }
 
     public static CertificateDialog buildNotYetValidCertificateDialog(Context context,
             List<X509Certificate> certificateChain) {
         return buildBackToSafetyCertificateDialog(context,
-                R.string.dialog_title_cetificate_not_yet_valid,
-                R.string.dialog_text_cetificate_not_yet_valid,
+                context.getString(R.string.dialog_title_cetificate_not_yet_valid),
+                context.getString(R.string.dialog_text_cetificate_not_yet_valid),
+                certificateChain);
+    }
+
+    public static CertificateDialog buildInvalidHostnameCertificateDialog(Context context,
+            List<X509Certificate> certificateChain) {
+        CharSequence text;
+        try {
+            Set<String> certificateHosts = SSLHandler.getCertificateHosts(certificateChain.get(0));
+            StringBuilder sb = new StringBuilder();
+            for (String certificateHost : certificateHosts)
+                sb.append("<br>\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0<strong>")
+                        .append(Html.escapeHtml(certificateHost))
+                        .append("</strong>");
+            String allowedHosts = sb.toString();
+            if (allowedHosts.isEmpty()) allowedHosts = context.getString(R.string.invalid_hostname_dialog_empty);
+            String html = context.getString(R.string.invalid_hostname_dialog_body,
+                    Html.escapeHtml(P.host), allowedHosts);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
+                html += context.getString(R.string.invalid_hostname_dialog_body_android_p_warning);
+            text = Html.fromHtml(html);
+        } catch (Exception e) {
+            text = context.getString(R.string.error, e.getMessage());
+        }
+
+        return buildBackToSafetyCertificateDialog(context,
+                context.getString(R.string.invalid_hostname_dialog_title),
+                text,
                 certificateChain);
     }
 }

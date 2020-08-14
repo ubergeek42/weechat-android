@@ -54,8 +54,8 @@
     <string name="ssl_cert_dialog_accept_button">Принять</string>
     <string name="ssl_cert_dialog_reject_button">Отклонить</string>
     <string name="invalid_hostname_dialog_body"><![CDATA[
-    Вы пытаетесь подключиться к <strong>%1$s</strong>, но данный сертификат верен только для следующих хостов:<br>
-    %2$s
+        Вы пытаетесь подключиться к <strong>%1$s</strong>, но данный сертификат верен только для
+        следующих хостов:%2$s
     ]]></string>
     <string name="invalid_hostname_dialog_title">Неверный хост</string>
     <string name="back_to_safety_dialog_button">Увы</string>
