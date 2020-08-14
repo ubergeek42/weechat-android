@@ -64,7 +64,7 @@ public class SSLErrorDialogBuilder {
                 null);
     }
 
-    private static CharSequence buildCertificateDescription(Context context, X509Certificate certificate) {
+    public static CharSequence buildCertificateDescription(Context context, X509Certificate certificate) {
         String fingerprint;
         try {
             fingerprint = new String(Hex.encodeHex(DigestUtils.sha256(certificate.getEncoded())));

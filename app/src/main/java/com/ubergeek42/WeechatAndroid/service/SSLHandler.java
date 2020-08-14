@@ -70,31 +70,35 @@ public class SSLHandler {
 
     @SuppressLint("SSLCertificateSocketFactoryGetInsecure")
     public static Result checkHostnameAndValidity(@NonNull String host, int port) {
+        List<X509Certificate> certificatesChain = null;
         X509Certificate certificate = null;
         try {
             SSLSocketFactory factory = SSLCertificateSocketFactory.getInsecure(0, null);
             try (SSLSocket ssl = (SSLSocket) factory.createSocket(host, port)) {
                 ssl.startHandshake();
                 SSLSession session = ssl.getSession();
-                certificate = (X509Certificate) session.getPeerCertificates()[0];
+                certificatesChain = Arrays.asList((X509Certificate[]) session.getPeerCertificates());
+                certificate = certificatesChain.get(0);
 
                 certificate.checkValidity();
                 if (!getHostnameVerifier().verify(host, session))
                     throw new SSLPeerUnverifiedException("Cannot verify hostname: " + host);
             }
         } catch (CertificateException | IOException e) {
-            return new Result(e, certificate);
+            return new Result(e, certificate, certificatesChain);
         }
-        return new Result(null, certificate);
+        return new Result(null, certificate, certificatesChain);
     }
 
     public static class Result {
         public final @Nullable Exception exception;
         public final @Nullable X509Certificate certificate;
+        public final @Nullable List<X509Certificate> certificateChain;
 
-        Result(@Nullable Exception exception, @Nullable X509Certificate certificate) {
+        Result(@Nullable Exception exception, @Nullable X509Certificate certificate, @Nullable List<X509Certificate> certificateChain) {
             this.exception = exception;
             this.certificate = certificate;
+            this.certificateChain = certificateChain;
         }
     }
 

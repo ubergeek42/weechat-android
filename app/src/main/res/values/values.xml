@@ -50,6 +50,7 @@
     <bool name="slidy">true</bool>
     <dimen name="dialog_padding">20dp</dimen>
     <dimen name="dialog_padding_full">24dp</dimen>
+    <dimen name="dialog_padding_half">12dp</dimen>
     <dimen name="dialog_corner_radius">8dp</dimen>
 
     <dimen name="dialog_padding_vertical">8dp</dimen>

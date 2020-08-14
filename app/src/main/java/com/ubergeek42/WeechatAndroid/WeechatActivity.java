@@ -70,6 +70,7 @@ import com.ubergeek42.WeechatAndroid.adapters.MainPagerAdapter;
 import com.ubergeek42.WeechatAndroid.adapters.NickListAdapter;
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragment;
 import com.ubergeek42.WeechatAndroid.media.CachePersist;
+import com.ubergeek42.WeechatAndroid.utils.CertificateDialog;
 import com.ubergeek42.WeechatAndroid.utils.SSLErrorDialogBuilder;
 import com.ubergeek42.WeechatAndroid.utils.Network;
 import com.ubergeek42.WeechatAndroid.relay.Buffer;
@@ -328,7 +329,7 @@ public class WeechatActivity extends AppCompatActivity implements
                 } else if (r.exception instanceof SSLPeerUnverifiedException) {
                     fragment = SSLErrorDialogBuilder.buildInvalidHostnameDialog(this, r.certificate);
                 } else if (r.exception == null) {
-                    fragment = SSLErrorDialogBuilder.buildUntrustedCertificateDialog(this, r.certificate);
+                    fragment = CertificateDialog.buildUntrustedCertificateDialog(this, r.certificateChain);
                 }
                 if (fragment != null) {
                     fragment.show(getSupportFragmentManager(), "ssl-error");
