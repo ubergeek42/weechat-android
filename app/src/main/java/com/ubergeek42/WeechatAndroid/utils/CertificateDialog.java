@@ -173,7 +173,7 @@ public class CertificateDialog extends DialogFragment {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     public static CertificateDialog buildUntrustedOrNotPinnedCertificateDialog(
-            WeechatActivity activity, X509Certificate[] certificateChain) {
+            Context context, X509Certificate[] certificateChain) {
         int title, text, positive;
         if (SSLHandler.isChainTrustedBySystem(certificateChain)) {
             title = R.string.dialog_certificate_not_pinned_title;
@@ -186,15 +186,15 @@ public class CertificateDialog extends DialogFragment {
         }
 
         CertificateDialog dialog = new CertificateDialog(
-                activity.getString(title),
-                activity.getString(text),
+                context.getString(title),
+                context.getString(text),
                 certificateChain,
                 positive, null,
                 R.string.dialog_button_reject, null);
         dialog.positiveButtonListener = (d, which) -> {
-            SSLHandler.getInstance(activity).trustCertificate(
+            SSLHandler.getInstance(context).trustCertificate(
                     dialog.reversedCertificateChain[dialog.selectedCertificate]);
-            activity.connect();
+            ((WeechatActivity) dialog.requireActivity()).connect();
         };
         return dialog;
     }
