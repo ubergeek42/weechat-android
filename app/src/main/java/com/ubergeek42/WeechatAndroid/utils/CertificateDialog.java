@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.Html;
+import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -81,6 +82,7 @@ public class CertificateDialog extends DialogFragment {
         ViewGroup viewGroup = (ViewGroup) inflater.inflate(R.layout.certificate_dialog, null);
 
         TextView textView = viewGroup.findViewById(R.id.text);
+        textView.setMovementMethod(LinkMovementMethod.getInstance());
         textView.setText(text);
 
         ViewPager viewPager = viewGroup.findViewById(R.id.pager);
@@ -222,9 +224,7 @@ public class CertificateDialog extends DialogFragment {
             Set<String> certificateHosts = SSLHandler.getCertificateHosts(certificateChain.get(0));
             StringBuilder sb = new StringBuilder();
             for (String certificateHost : certificateHosts)
-                sb.append("<br>\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0<strong>")
-                        .append(Html.escapeHtml(certificateHost))
-                        .append("</strong>");
+                sb.append(context.getString(R.string.invalid_hostname_dialog_host, Html.escapeHtml(certificateHost)));
             String allowedHosts = sb.toString();
             if (allowedHosts.isEmpty()) allowedHosts = context.getString(R.string.invalid_hostname_dialog_empty);
             String html = context.getString(R.string.invalid_hostname_dialog_body,

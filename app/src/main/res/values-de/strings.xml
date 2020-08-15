@@ -102,7 +102,7 @@
     ]]></string>
     <string name="invalid_hostname_dialog_title">Ungültiger Hostname</string>
     <string name="back_to_safety_dialog_button">Sicherheit geht vor</string>
-    <string name="invalid_hostname_dialog_empty"><![CDATA[<br><strong>(keine)</strong>]]></string>
+    <string name="invalid_hostname_dialog_empty"><![CDATA[<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>(keine)</strong>]]></string>
 
     <string name="pref_error_relay_host_not_set">Relay-Host ist nicht angelegt</string>
     <string name="pref_error_relay_password_not_set">Kein Relay-Passwort angelegt</string>

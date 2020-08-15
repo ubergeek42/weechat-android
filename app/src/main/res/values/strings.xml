@@ -119,7 +119,8 @@
     ]]></string>
     <string name="invalid_hostname_dialog_title">Invalid hostname</string>
     <string name="back_to_safety_dialog_button">Back to safety</string>
-    <string name="invalid_hostname_dialog_empty"><![CDATA[<br><strong>(none)</strong>]]></string>
+    <string name="invalid_hostname_dialog_host" translatable="false"><![CDATA[<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>%s</strong>]]></string>
+    <string name="invalid_hostname_dialog_empty"><![CDATA[<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>(none)</strong>]]></string>
 
     <!-- ##################################### preferences ##################################### -->
 
