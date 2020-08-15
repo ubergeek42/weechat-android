@@ -82,7 +82,7 @@ public class SSLHandler {
                 ssl.startHandshake();
                 SSLSession session = ssl.getSession();
                 certificatesChain = (X509Certificate[]) session.getPeerCertificates();
-
+                certificatesChain = appendIssuer(certificatesChain);
                 for (X509Certificate certificate : certificatesChain)
                     certificate.checkValidity();
                 if (!getHostnameVerifier().verify(host, session))
@@ -102,6 +102,23 @@ public class SSLHandler {
             this.exception = exception;
             this.certificateChain = certificateChain;
         }
+    }
+
+    // servers can omit sending root CAs. this retrieves the root CA from the system store
+    // and adds it to the chain. see https://stackoverflow.com/a/42168597/1449683
+    public static X509Certificate[] appendIssuer(X509Certificate[] certificates) {
+        X509TrustManager systemManager = UserTrustManager.buildTrustManger(null);
+        if (systemManager == null) return certificates;
+        X509Certificate rightmost = certificates[certificates.length - 1];
+        for (X509Certificate issuer : systemManager.getAcceptedIssuers()) {
+            try {
+                rightmost.verify(issuer.getPublicKey());
+                certificates = Arrays.copyOf(certificates, certificates.length + 1);
+                certificates[certificates.length - 1] = issuer;
+                return certificates;
+            } catch (Exception ignored) {}
+        }
+        return certificates;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
