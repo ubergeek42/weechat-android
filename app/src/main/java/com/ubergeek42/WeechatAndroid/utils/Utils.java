@@ -31,6 +31,7 @@ import java.nio.CharBuffer;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -274,5 +275,11 @@ public class Utils {
 
     @SafeVarargs public static <T> Set<T> makeSet(T... t) {
         return new HashSet<>(Arrays.asList(t));
+    }
+
+    public static <T> T[] reversed(T[] array) {
+        T[] copy = array.clone();
+        Collections.reverse(Arrays.asList(copy));
+        return copy;
     }
 }

@@ -67,10 +67,4 @@ public class ScrollableDialog extends DialogFragment {
         }
         super.onDestroyView();
     }
-
-    public static class BackToSafetyDialog extends ScrollableDialog {
-        public BackToSafetyDialog(@NonNull CharSequence title, @NonNull CharSequence text) {
-            super(title, text, R.string.back_to_safety_dialog_button, null, null, null);
-        }
-    }
 }

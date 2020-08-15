@@ -11,7 +11,7 @@
         <ListPreference android:key="connection_type" android:title="@string/pref_connection_type" android:defaultValue="plain" android:entries="@array/pref_connection_type_names" android:entryValues="@array/settings_connection_type_values"  android:summary="%s"/>
 
         <EditTextPreferenceFix android:key="ws_path" android:title="@string/pref_ws_path" android:summary="%s" android:singleLine="true" android:defaultValue="weechat" />
-        <CheckBoxPreference android:key="ssl_pin_required" android:title="@string/pref_ssl_pin_required" android:summary="@string/pref_ssl_pin_required_summary"/>
+        <CheckBoxPreference android:key="ssl_pin_required" android:title="@string/pref_ssl_require_certificate_pin" android:summary="@string/pref_ssl_require_certificate_pin_summay"/>
         <ClearCertPreference android:key="ssl_clear_certs" android:title="@string/pref_clear_certs" />
 
         <PreferenceScreen android:key="ssh_group" android:title="@string/pref_ssh_group">

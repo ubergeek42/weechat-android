@@ -55,15 +55,15 @@
   <string name="hint_show_hot_message">Messages notables</string>
   <string name="relay_error_server_closed">Le serveur a abruptement fermé la connexion pendant la tentative. Mot de passe invalide ou type de connexion incorrect&#8239;?</string>
   <string name="relay_error_resolve">Impossible de résoudre l’adresse %s</string>
-  <string name="ssl_cert_dialog_unknown_fingerprint">Inconnue</string>
-  <string name="ssl_cert_dialog_description">&lt;b&gt;Délivré à&#8239;:&lt;/b&gt;&lt;br&gt; %1$s&lt;br&gt; &lt;br&gt; &lt;b&gt;Délivré par&#8239;:&lt;/b&gt;&lt;br&gt; %2$s&lt;br&gt; &lt;br&gt; &lt;b&gt;Période de validité&#8239;:&lt;/b&gt;&lt;br&gt; Émis le&#8239;: %3$s&lt;br&gt; Expire le&#8239;: %4$s&lt;br&gt; &lt;br&gt; &lt;b&gt;Empreinte SHA-256&#8239;:&lt;/b&gt;&lt;br&gt; %5$s</string>
-  <string name="ssl_cert_dialog_title">Certificat non approuvé</string>
-  <string name="ssl_cert_dialog_accept_button">Approuver</string>
-  <string name="ssl_cert_dialog_reject_button">Refuser</string>
-  <string name="invalid_hostname_dialog_body">Vous tentez de vous connecter à &lt;strong&gt;%1$s&lt;/strong&gt; mais le certificat n’est valide que pour ces hôtes&#8239;:%2$s</string>
-  <string name="invalid_hostname_dialog_title">Hôte invalide</string>
-  <string name="back_to_safety_dialog_button">Retour en sécurité</string>
-  <string name="invalid_hostname_dialog_empty"><![CDATA[<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>(aucune)</strong>]]></string>
+  <string name="certificate_description_unknown_fingerprint">Inconnue</string>
+  <string name="certificate_description_text">&lt;b&gt;Délivré à&#8239;:&lt;/b&gt;&lt;br&gt; %1$s&lt;br&gt; &lt;br&gt; &lt;b&gt;Délivré par&#8239;:&lt;/b&gt;&lt;br&gt; %2$s&lt;br&gt; &lt;br&gt; &lt;b&gt;Période de validité&#8239;:&lt;/b&gt;&lt;br&gt; Émis le&#8239;: %3$s&lt;br&gt; Expire le&#8239;: %4$s&lt;br&gt; &lt;br&gt; &lt;b&gt;Empreinte SHA-256&#8239;:&lt;/b&gt;&lt;br&gt; %5$s</string>
+  <string name="dialog_untrusted_certificate_title">Certificat non approuvé</string>
+  <string name="dialog_button_accept_selected">Approuver</string>
+  <string name="dialog_button_reject">Refuser</string>
+  <string name="dialog_invalid_hostname_text">Vous tentez de vous connecter à &lt;strong&gt;%1$s&lt;/strong&gt; mais le certificat n’est valide que pour ces hôtes&#8239;:%2$s</string>
+  <string name="dialog_invalid_hostname_title">Hôte invalide</string>
+  <string name="dialog_button_back_to_safety">Retour en sécurité</string>
+  <string name="dialog_invalid_hostname_text_empty_line"><![CDATA[<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>(aucune)</strong>]]></string>
   <string name="pref_error_relay_host_not_set">L’hôte du relai n’est pas définie</string>
   <string name="pref_error_relay_password_not_set">Le mot de passe du relai n’est pas défini</string>
   <string name="pref_error_ssh_host_not_set">L’hôte SSH n’est pas définie</string>
@@ -275,6 +275,6 @@
   <string name="pref_connection_type_weechat_ssl">WeeChat SSL</string>
   <string name="pref_connection_type_ws">WebSocket</string>
   <string name="pref_connection_type_ws_ssl">WebSocket (SSL)</string>
-  <string name="dialog_title_cetificate_expired">Certificat expiré</string>
-  <string name="dialog_title_cetificate_not_yet_valid">Le certificat n’est pas encore valide</string>
+  <string name="dialog_certificate_expired_title">Certificat expiré</string>
+  <string name="dialog_certificate_not_yet_valid_title">Le certificat n’est pas encore valide</string>
 </resources>

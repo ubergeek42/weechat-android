@@ -35,8 +35,8 @@
     <string name="hint_show_hot_message">Важные сообщения</string>
     <string name="relay_error_server_closed">Сервер неожиданно прервал связь в момент подключения. Возможно, неверен пароль или тип подключения</string>
     <string name="relay_error_resolve">Не смогла найти адрес %s</string>
-    <string name="ssl_cert_dialog_unknown_fingerprint">Неизвестен</string>
-    <string name="ssl_cert_dialog_description"><![CDATA[
+    <string name="certificate_description_unknown_fingerprint">Неизвестен</string>
+    <string name="certificate_description_text"><![CDATA[
         <b>Кому выдан:</b><br>
         %1$s<br>
         <br>
@@ -50,16 +50,16 @@
         <b>Отпечаток SHA-256:</b><br>
         %5$s
     ]]></string>
-    <string name="ssl_cert_dialog_title">Недоверенный сертификат</string>
-    <string name="ssl_cert_dialog_accept_button">Принять</string>
-    <string name="ssl_cert_dialog_reject_button">Отклонить</string>
-    <string name="invalid_hostname_dialog_body"><![CDATA[
+    <string name="dialog_untrusted_certificate_title">Недоверенный сертификат</string>
+    <string name="dialog_button_accept_selected">Принять</string>
+    <string name="dialog_button_reject">Отклонить</string>
+    <string name="dialog_invalid_hostname_text"><![CDATA[
         Вы пытаетесь подключиться к <strong>%1$s</strong>, но данный сертификат верен только для
         следующих хостов:%2$s
     ]]></string>
-    <string name="invalid_hostname_dialog_title">Неверный хост</string>
-    <string name="back_to_safety_dialog_button">Увы</string>
-    <string name="invalid_hostname_dialog_empty"><![CDATA[<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>(пусто)</strong>]]></string>
+    <string name="dialog_invalid_hostname_title">Неверный хост</string>
+    <string name="dialog_button_back_to_safety">Увы</string>
+    <string name="dialog_invalid_hostname_text_empty_line"><![CDATA[<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>(пусто)</strong>]]></string>
     <string name="pref_error_relay_host_not_set">Не задан хост релея</string>
     <string name="pref_error_relay_password_not_set">Не задан пароль релея</string>
     <string name="pref_error_ssh_host_not_set">Не задан хост SSH</string>
@@ -309,6 +309,6 @@
         IP-адрес и другие данные. Чтобы запретить приложению доступ к неизвестным сайтам, удалите
         стратегию для шаблонного хоста «*» или замените её на “none”.
         <a href="https://github.com/ubergeek42/weechat-android/wiki/Media-preview">Больше информации</a>]]></string>
-    <string name="dialog_title_cetificate_not_yet_valid">Сертификат ещё не действителен</string>
-    <string name="dialog_title_cetificate_expired">Срок действия сертификата истёк</string>
+    <string name="dialog_certificate_not_yet_valid_title">Сертификат ещё не действителен</string>
+    <string name="dialog_certificate_expired_title">Срок действия сертификата истёк</string>
 </resources>

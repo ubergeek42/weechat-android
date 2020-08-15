@@ -89,39 +89,6 @@
     <string name="relay_error_server_closed">Server unexpectedly closed connection while connecting. Wrong password or connection type?</string>
     <string name="relay_error_resolve">Could not resolve address %s</string>
 
-    <!-- SSL certificate dialog -->
-    <string name="ssl_cert_dialog_unknown_fingerprint">Unknown</string>
-    <string name="ssl_cert_dialog_description"><![CDATA[
-        <b>Issued to:</b><br>
-        %1$s<br>
-        <br>
-        <b>Issued by:</b><br>
-        %2$s<br>
-        <br>
-        <b>Validity period:</b><br>
-        Issued on: %3$s<br>
-        Expires on: %4$s<br>
-        <br>
-        <b>SHA-256 fingerprint:</b><br>
-        %5$s
-    ]]></string>
-    <string name="ssl_cert_dialog_title">Untrusted certificate</string>
-    <string name="ssl_cert_dialog_accept_button">Accept selected</string>
-    <string name="ssl_cert_dialog_reject_button">Reject</string>
-    <string name="invalid_hostname_dialog_body"><![CDATA[
-        You are trying to connect to <strong>%1$s</strong> but the certificate is only valid for
-        the following hosts: %2$s
-    ]]></string>
-    <string name="invalid_hostname_dialog_body_android_p_warning"><![CDATA[
-        <br>Note that Android P and beyond does not fall back to Common Name (CN) validation. Subject
-        Alternative Name (SAN) must be used instead.
-        <a href="https://github.com/ubergeek42/weechat-android/wiki/Using-SSL-with-WeeChat">Learn more</a>
-    ]]></string>
-    <string name="invalid_hostname_dialog_title">Invalid hostname</string>
-    <string name="back_to_safety_dialog_button">Back to safety</string>
-    <string name="invalid_hostname_dialog_host" translatable="false"><![CDATA[<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>%s</strong>]]></string>
-    <string name="invalid_hostname_dialog_empty"><![CDATA[<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>(none)</strong>]]></string>
-
     <!-- ##################################### preferences ##################################### -->
 
     <!-- validation errors -->
@@ -513,21 +480,67 @@ strategies:
   hosts: [v.redd.it, reddit.com, www.reddit.com, old.reddit.com]
   body size: 131072
 "</string>
-    <string name="dialog_title_cetificate_expired">Certificate expired</string>
-    <string name="dialog_title_cetificate_not_yet_valid">Certificate not yet valid</string>
-    <string name="ssl_cert_dialog_text">This certificate isn’t trusted by Android, but you can still
-        connect. We will trust the selected certificate, as well as any certificates signed by it.
+
+    <!-- Certificate dialog -->
+
+    <string name="certificate_description_unknown_fingerprint">Unknown</string>
+    <string name="certificate_description_text"><![CDATA[
+        <b>Issued to:</b><br>
+        %1$s<br>
+        <br>
+        <b>Issued by:</b><br>
+        %2$s<br>
+        <br>
+        <b>Validity period:</b><br>
+        Issued on: %3$s<br>
+        Expires on: %4$s<br>
+        <br>
+        <b>SHA-256 fingerprint:</b><br>
+        %5$s
+    ]]></string>
+
+    <string name="dialog_button_accept_selected">Accept selected</string>
+    <string name="dialog_button_reject">Reject</string>
+    <string name="dialog_button_pin_selected">Pin selected</string>
+    <string name="dialog_button_back_to_safety">Back to safety</string>
+
+    <string name="dialog_invalid_hostname_title">Invalid hostname</string>
+    <string name="dialog_invalid_hostname_text"><![CDATA[
+        You are trying to connect to <strong>%1$s</strong> but the certificate is only valid for
+        the following hosts: %2$s
+    ]]></string>
+    <string name="dialog_invalid_hostname_text_android_p_warning"><![CDATA[
+        <br>Note that Android P and beyond does not fall back to Common Name (CN) validation. Subject
+        Alternative Name (SAN) must be used instead.
+        <a href="https://github.com/ubergeek42/weechat-android/wiki/Using-SSL-with-WeeChat">Learn more</a>
+    ]]></string>
+    <string name="dialog_invalid_hostname_text_host_line" translatable="false"><![CDATA[
+        <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>%s</strong>
+    ]]></string>
+    <string name="dialog_invalid_hostname_text_empty_line"><![CDATA[
+        <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>(none)</strong>
+    ]]></string>
+
+    <string name="dialog_certificate_expired_title">Certificate expired</string>
+    <string name="dialog_certificate_expired_text">This certificate is no longer valid. Please make
+        sure that the device date is correct.</string>
+
+    <string name="dialog_certificate_not_yet_valid_title">Certificate not yet valid</string>
+    <string name="dialog_certificate_not_yet_valid_text">This certificate will be valid in the
+        future. Please make sure that the device date is correct.</string>
+
+    <string name="dialog_untrusted_certificate_title">Untrusted certificate</string>
+    <string name="dialog_untrusted_certificate_text">This certificate isn’t trusted by Android, but
+        you can still connect. The app will remember and trust the selected certificate, as well as
+        any certificates signed by it.
     </string>
-    <string name="dialog_text_cetificate_expired">This certificate is no longer valid. Please make
-        sure that your clock is set to correct time.</string>
-    <string name="dialog_text_cetificate_not_yet_valid">This certificate will be valid in the
-        future. Please make sure that your clock is set to correct time.</string>
-    <string name="dialog_not_pinned_title">Certificate not pinned</string>
-    <string name="dialog_not_pinned_text">This certificate is trusted by Android, but it hasn’t been
-        pinned in the app. We will trust the selected certificate, as well as any certificates
-        signed by it.</string>
-    <string name="dialog_not_pinned_pin_button">Pin selected</string>
-    <string name="pref_ssl_pin_required">Certificate pin required</string>
-    <string name="pref_ssl_pin_required_summary">Ask the user to confirm that they trust the server,
+
+    <string name="dialog_certificate_not_pinned_title">Certificate not pinned</string>
+    <string name="dialog_certificate_not_pinned_text">This server is trusted by Android, but a
+        setting requires you to confirm that you trust it as well. The app will remember and trust
+        the selected certificate, as well as any certificates signed by it.</string>
+
+    <string name="pref_ssl_require_certificate_pin">Require certificate pins</string>
+    <string name="pref_ssl_require_certificate_pin_summay">Prompt to confirm that you trust the server,
         even if the system trusts it</string>
 </resources>
