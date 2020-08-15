@@ -25,10 +25,12 @@ public class HeightWrappingViewPager extends ViewPager {
         if (mode == MeasureSpec.UNSPECIFIED || mode == MeasureSpec.AT_MOST) {
             // super has to be called in the beginning so the child views can be initialized.
             super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+            int parentWithWithoutPadding = getMeasuredWidth() - getPaddingLeft() - getPaddingRight();
             int height = 0;
             for (int i = 0; i < getChildCount(); i++) {
                 View child = getChildAt(i);
-                child.measure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
+                child.measure(MeasureSpec.makeMeasureSpec(parentWithWithoutPadding, MeasureSpec.EXACTLY),
+                              MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
                 int h = child.getMeasuredHeight();
                 if (h > height) height = h;
             }

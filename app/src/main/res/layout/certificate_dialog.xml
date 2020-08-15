@@ -8,13 +8,14 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingHorizontal="@dimen/dialog_padding_full"
-        android:paddingVertical="@dimen/dialog_padding_half"/>
+        android:paddingTop="@dimen/dialog_padding_half"
+        android:paddingBottom="@dimen/dialog_padding_full"/>
 
     <com.ubergeek42.WeechatAndroid.utils.HeightWrappingViewPager
         android:id="@+id/pager"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingHorizontal="36dp"
+        android:paddingHorizontal="@dimen/dialog_padding_full"
         android:paddingVertical="0dp"
         android:clipToPadding="false" />
 </LinearLayout>
