@@ -228,7 +228,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     static int sshPort;
     static SSLSocketFactory sslSocketFactory;
     static boolean reconnect;
-    static public boolean pinRequired = true;
+    static public boolean pinRequired;
 
     static boolean pingEnabled;
     static long pingIdleTime, pingTimeout;
@@ -242,6 +242,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         pass = p.getString(PREF_PASSWORD, PREF_PASSWORD_D);
         port = Integer.parseInt(getString(PREF_PORT, PREF_PORT_D));
         wsPath = p.getString(PREF_WS_PATH, PREF_WS_PATH_D);
+        pinRequired = p.getBoolean(PREF_SSL_PIN_REQUIRED, PREF_SSL_PIN_REQUIRED_D);
 
         connectionType = p.getString(PREF_CONNECTION_TYPE, PREF_CONNECTION_TYPE_D);
         sshHost = p.getString(PREF_SSH_HOST, PREF_SSH_HOST_D);

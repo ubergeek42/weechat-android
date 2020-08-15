@@ -19,7 +19,8 @@ public class Constants {
     final static private String PREF_TYPE_PLAIN = "plain"; final public static String PREF_CONNECTION_TYPE_D = PREF_TYPE_PLAIN;
 
     // ssl group
-    final static public String PREF_SSL_GROUP = "ssl_group";
+    final static public String PREF_SSL_PIN_REQUIRED = "ssl_pin_required"; final static public boolean PREF_SSL_PIN_REQUIRED_D = false;
+    final static public String PREF_SSL_CLEAR_CERTS = "ssl_clear_certs";
 
     // websocket
     final static public String PREF_WS_PATH = "ws_path"; final public static String PREF_WS_PATH_D = "weechat";

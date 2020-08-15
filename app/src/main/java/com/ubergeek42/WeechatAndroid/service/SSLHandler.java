@@ -12,6 +12,8 @@ import androidx.annotation.CheckResult;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.ubergeek42.WeechatAndroid.Weechat;
+import com.ubergeek42.WeechatAndroid.utils.CertificateDialog;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
@@ -144,6 +146,7 @@ public class SSLHandler {
         try {
             KeyStore.TrustedCertificateEntry x = new KeyStore.TrustedCertificateEntry(cert);
             sslKeystore.setEntry(cert.getSubjectDN().getName(), x, null);
+            kitty.debug("Trusting:\n" + CertificateDialog.buildCertificateDescription(Weechat.applicationContext, cert));
         } catch (KeyStoreException e) {
             kitty.error("trustCertificate()", e);
         }
@@ -253,8 +256,8 @@ public class SSLHandler {
                 userTrustManager.checkServerTrusted(x509Certificates, s);
                 kitty.debug("Server is trusted by user");
             } catch (CertificateException e) {
-                kitty.debug("Server is NOT trusted by user; pin %s", P.pinRequired ?
-                        "REQUIRED -- failing" : "not required -- trying system");
+                kitty.debug("Server is NOT trusted by user; pin " + (P.pinRequired ?
+                        "REQUIRED -- failing" : "not required -- trying system"));
                 if (P.pinRequired) throw e;
 
                 systemTrustManager.checkServerTrusted(x509Certificates, s);

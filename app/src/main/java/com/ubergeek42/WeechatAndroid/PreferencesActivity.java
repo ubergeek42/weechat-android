@@ -32,6 +32,8 @@ import android.widget.Toast;
 import com.ubergeek42.WeechatAndroid.media.Config;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
@@ -94,7 +96,7 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
 
         private static final String FRAGMENT_DIALOG_TAG = "android.support.v7.preference.PreferenceFragment.DIALOG";
         private String key;
-        private Preference sslGroup = null;
+        private List<Preference> sslGroup = new ArrayList<>();
         private Preference sshGroup = null;
         private Preference wsPath = null;
 
@@ -153,7 +155,8 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
 
             String[] listenTo = {};
             if (PREF_CONNECTION_GROUP.equals(key)) {
-                sslGroup = findPreference(PREF_SSL_GROUP);
+                sslGroup.add(findPreference(PREF_SSL_PIN_REQUIRED));
+                sslGroup.add(findPreference(PREF_SSL_CLEAR_CERTS));
                 sshGroup = findPreference(PREF_SSH_GROUP);
                 wsPath = findPreference(PREF_WS_PATH);
                 showHideStuff(getPreferenceScreen().getSharedPreferences().getString(PREF_CONNECTION_TYPE, PREF_CONNECTION_TYPE_D));
@@ -233,12 +236,9 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
         // this hides and shows ssl / websocket / ssh preference screens
         // must not be called when the settings do not exist in the tree
         private void showHideStuff(String type) {
-            if (Utils.isAnyOf(type, PREF_TYPE_SSL, PREF_TYPE_WEBSOCKET_SSL)) getPreferenceScreen().addPreference(sslGroup);
-            else getPreferenceScreen().removePreference(sslGroup);
-            if (PREF_TYPE_SSH.equals(type)) getPreferenceScreen().addPreference(sshGroup);
-            else getPreferenceScreen().removePreference(sshGroup);
-            if (Utils.isAnyOf(type, PREF_TYPE_WEBSOCKET, PREF_TYPE_WEBSOCKET_SSL)) getPreferenceScreen().addPreference(wsPath);
-            else getPreferenceScreen().removePreference(wsPath);
+            for (Preference p : sslGroup) p.setVisible(Utils.isAnyOf(type, PREF_TYPE_SSL, PREF_TYPE_WEBSOCKET_SSL));
+            sshGroup.setVisible(PREF_TYPE_SSH.equals(type));
+            wsPath.setVisible(Utils.isAnyOf(type, PREF_TYPE_WEBSOCKET, PREF_TYPE_WEBSOCKET_SSL));
         }
 
         // visually disable and uncheck the theme switch preference if the theme is chosen by system
