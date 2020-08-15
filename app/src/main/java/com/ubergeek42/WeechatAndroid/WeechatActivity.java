@@ -315,9 +315,9 @@ public class WeechatActivity extends AppCompatActivity implements
     @WorkerThread @Cat public void onEvent(final ExceptionEvent event) {
         final Exception e = event.e;
         if (findException(e, SSLPeerUnverifiedException.class) != null ||
-                findException(e, CertificateException.class) != null ) {
+                findException(e, CertificateException.class) != null) {
             SSLHandler.Result r = SSLHandler.checkHostnameAndValidity(P.host, P.port);
-            if (r.certificateChain != null && r.certificateChain.size() > 0) {
+            if (r.certificateChain != null && r.certificateChain.length > 0) {
                 DialogFragment fragment = null;
                 if (r.exception instanceof CertificateExpiredException) {
                     fragment = CertificateDialog.buildExpiredCertificateDialog(this, r.certificateChain);
@@ -326,7 +326,7 @@ public class WeechatActivity extends AppCompatActivity implements
                 } else if (r.exception instanceof SSLPeerUnverifiedException) {
                     fragment = CertificateDialog.buildInvalidHostnameCertificateDialog(this, r.certificateChain);
                 } else if (r.exception == null) {
-                    fragment = CertificateDialog.buildUntrustedCertificateDialog(this, r.certificateChain);
+                    fragment = CertificateDialog.buildUntrustedOrNotPinnedCertificateDialog(this, r.certificateChain);
                 }
                 if (fragment != null) {
                     fragment.show(getSupportFragmentManager(), "ssl-error");
@@ -643,7 +643,6 @@ public class WeechatActivity extends AppCompatActivity implements
         findViewById(R.id.kitty_background).setBackgroundColor(P.colorPrimary);
         findViewById(R.id.toolbar).setBackgroundColor(P.colorPrimary);
 
-        if (Build.VERSION.SDK_INT < 21) return;
         boolean isLight = ThemeFix.isColorLight(P.colorPrimaryDark);
         if (!isLight || Build.VERSION.SDK_INT >= 23) getWindow().setStatusBarColor(P.colorPrimaryDark);
         if (!isLight || Build.VERSION.SDK_INT >= 26) getWindow().setNavigationBarColor(P.colorPrimaryDark);

@@ -522,4 +522,7 @@ strategies:
         sure that your clock is set to correct time.</string>
     <string name="dialog_text_cetificate_not_yet_valid">This certificate will be valid in the
         future. Please make sure that your clock is set to correct time.</string>
+    <string name="dialog_not_pinned_title">Certificate not pinned</string>
+    <string name="dialog_not_pinned_text">This certificate is trusted by Android, but it hasn\'t been pinned in the app. We will trust the selected certificate, as well as any certificates signed by it.</string>
+    <string name="dialog_not_pinned_pin_button">Pin selected</string>
 </resources>

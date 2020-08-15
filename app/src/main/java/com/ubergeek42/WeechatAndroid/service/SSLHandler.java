@@ -73,13 +73,13 @@ public class SSLHandler {
 
     @SuppressLint("SSLCertificateSocketFactoryGetInsecure")
     public static Result checkHostnameAndValidity(@NonNull String host, int port) {
-        List<X509Certificate> certificatesChain = null;
+        X509Certificate[] certificatesChain = null;
         try {
             SSLSocketFactory factory = SSLCertificateSocketFactory.getInsecure(0, null);
             try (SSLSocket ssl = (SSLSocket) factory.createSocket(host, port)) {
                 ssl.startHandshake();
                 SSLSession session = ssl.getSession();
-                certificatesChain = Arrays.asList((X509Certificate[]) session.getPeerCertificates());
+                certificatesChain = (X509Certificate[]) session.getPeerCertificates();
 
                 for (X509Certificate certificate : certificatesChain)
                     certificate.checkValidity();
@@ -94,9 +94,9 @@ public class SSLHandler {
 
     public static class Result {
         public final @Nullable Exception exception;
-        public final @Nullable List<X509Certificate> certificateChain;
+        public final @Nullable X509Certificate[] certificateChain;
 
-        Result(@Nullable Exception exception, @Nullable List<X509Certificate> certificateChain) {
+        Result(@Nullable Exception exception, @Nullable X509Certificate[] certificateChain) {
             this.exception = exception;
             this.certificateChain = certificateChain;
         }
@@ -154,6 +154,17 @@ public class SSLHandler {
         SSLCertificateSocketFactory sslSocketFactory = (SSLCertificateSocketFactory) SSLCertificateSocketFactory.getDefault(0, null);
         sslSocketFactory.setTrustManagers(UserTrustManager.build(sslKeystore));
         return sslSocketFactory;
+    }
+
+    static public boolean isChainTrustedBySystem(X509Certificate[] certificates) {
+        X509TrustManager systemManger = UserTrustManager.buildTrustManger(null);
+        if (systemManger == null) return false;
+        try {
+            systemManger.checkServerTrusted(certificates, "GENERIC");
+            return true;
+        } catch (CertificateException e) {
+            return false;
+        }
     }
 
     // see android.net.SSLCertificateSocketFactory#verifyHostname
@@ -237,14 +248,17 @@ public class SSLHandler {
 
         @Override
         public void checkServerTrusted(X509Certificate[] x509Certificates, String s)
-            throws CertificateException {
+                throws CertificateException {
             try {
-                systemTrustManager.checkServerTrusted(x509Certificates, s);
-                kitty.debug("Server is trusted by system");
-            } catch (CertificateException e) {
-                kitty.debug("Server is NOT trusted by system, trying user");
                 userTrustManager.checkServerTrusted(x509Certificates, s);
                 kitty.debug("Server is trusted by user");
+            } catch (CertificateException e) {
+                kitty.debug("Server is NOT trusted by user; pin %s", P.pinRequired ?
+                        "REQUIRED -- failing" : "not required -- trying system");
+                if (P.pinRequired) throw e;
+
+                systemTrustManager.checkServerTrusted(x509Certificates, s);
+                kitty.debug("Server is trusted by system");
             }
         }
 

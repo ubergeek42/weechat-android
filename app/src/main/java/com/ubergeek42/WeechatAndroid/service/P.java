@@ -228,6 +228,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     static int sshPort;
     static SSLSocketFactory sslSocketFactory;
     static boolean reconnect;
+    static public boolean pinRequired = true;
 
     static boolean pingEnabled;
     static long pingIdleTime, pingTimeout;
