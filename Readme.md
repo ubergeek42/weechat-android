@@ -25,12 +25,12 @@ for details. Make sure to check out our [FAQ](https://github.com/ubergeek42/weec
 If you have problems connecting to WeeChat via SSL, note that while we support unsigned certificates,
 we are still verifying the hostname. This requires [additional care on Android](https://github.com/ubergeek42/weechat-android/wiki/Using-SSL-with-WeeChat). 
 
-<a href="releases/screenshot-1.png"><img src="releases/screenshot-1.png" height="500px"></a>
-<a href="releases/screenshot-2.png"><img src="releases/screenshot-2.png" height="500px"></a>
-<a href="releases/screenshot-3.png"><img src="releases/screenshot-3.png" height="500px"></a>
-<a href="releases/screenshot-4.png"><img src="releases/screenshot-4.png" height="500px"></a>
-<a href="releases/screenshot-5.png"><img src="releases/screenshot-5.png" height="500px"></a>
-<a href="releases/screenshot-6.png"><img src="releases/screenshot-6.png" height="500px"></a>
+<a href="metadata/en-US/images/phoneScreenshots/screenshot-1.png"><img src="metadata/en-US/images/phoneScreenshots/screenshot-1.png" height="500px"></a>
+<a href="metadata/en-US/images/phoneScreenshots/screenshot-2.png"><img src="metadata/en-US/images/phoneScreenshots/screenshot-2.png" height="500px"></a>
+<a href="metadata/en-US/images/phoneScreenshots/screenshot-3.png"><img src="metadata/en-US/images/phoneScreenshots/screenshot-3.png" height="500px"></a>
+<a href="metadata/en-US/images/phoneScreenshots/screenshot-4.png"><img src="metadata/en-US/images/phoneScreenshots/screenshot-4.png" height="500px"></a>
+<a href="metadata/en-US/images/phoneScreenshots/screenshot-5.png"><img src="metadata/en-US/images/phoneScreenshots/screenshot-5.png" height="500px"></a>
+<a href="metadata/en-US/images/phoneScreenshots/screenshot-6.png"><img src="metadata/en-US/images/phoneScreenshots/screenshot-6.png" height="500px"></a>
 
 ### Bug reports and contributing
 

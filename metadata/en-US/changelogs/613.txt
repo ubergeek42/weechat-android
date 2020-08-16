@@ -1,0 +1,18 @@
+* Added an optional light theme
+* Removed some and added some color schemes, including an AMOLED theme
+* Support for coloring UI elements through color schemes
+* Ability to tweak the 256 color palette through color schemes
+* A new adaptive icon
+* Modernized some UI elements: rounded corners, lowercase buttons, etc
+* Using vector assets almost everywhere
+* Reworked a major part of the networking code—should be more stable now
+* Use a different WebSocket library: [nv-websocket-client](https://github.com/TakahikoKawasaki/nv-websocket-client)
+* Made the order of open buffers consistent with the buffer list
+* Added a filter to the share dialog
+* Activity is now no longer destroyed when pressing the back button
+* Added an option to use a system gesture exclusion zone on Android Q
+* Added Russian translation
+* Fixed the way the application detects software keyboard
+* Fixed some of the notification glitches and inconsistencies
+* Now using LeakCanary to detect memory leaks
+* Library updates and stability fixes

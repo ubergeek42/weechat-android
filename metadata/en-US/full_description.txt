@@ -1,0 +1,3 @@
+This is a WeeChat relay client for Android.
+
+This application is not a standalone an IRC client. It connects to WeeChat that has to be running on a remote machine. If you are looking for a standalone IRC client for Android, you will need to look elsewhere.
