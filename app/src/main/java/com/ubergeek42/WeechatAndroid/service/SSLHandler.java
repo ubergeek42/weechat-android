@@ -14,6 +14,7 @@ import androidx.annotation.Nullable;
 
 import com.ubergeek42.WeechatAndroid.Weechat;
 import com.ubergeek42.WeechatAndroid.utils.CertificateDialog;
+import com.ubergeek42.WeechatAndroid.utils.ThrowingKeyManagerWrapper;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.Kitty;
@@ -52,6 +53,7 @@ import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509TrustManager;
 
 public class SSLHandler {
@@ -347,6 +349,9 @@ public class SSLHandler {
                 KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("X509");
                 keyManagerFactory.init(androidKeystore, null);
                 cachedKeyManagers = keyManagerFactory.getKeyManagers();
+
+                if (cachedKeyManagers.length > 0 && cachedKeyManagers[0] instanceof X509ExtendedKeyManager)
+                    cachedKeyManagers[0] = new ThrowingKeyManagerWrapper((X509ExtendedKeyManager) cachedKeyManagers[0]);
             } catch (Exception e) {
                 kitty.error("loadClientFile()", e);
             }

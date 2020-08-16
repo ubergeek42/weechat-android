@@ -549,4 +549,9 @@ strategies:
     <string name="pref_ssl_require_certificate_pin_summary">Prompt to confirm that you trust the server,
         even if the system trusts it</string>
     <string name="edittext_password_hint">password</string>
+
+    <string name="error_client_certificate_not_set">Server is asking for a client certificate but
+        none is set. Wanted: %s certificate issued by: %s</string>
+    <string name="error_client_certificate_mismatch">Server is asking for a client certificate but
+        the one we have doesn’t fit. Wanted: %s certificate issued by: %s</string>
 </resources>
