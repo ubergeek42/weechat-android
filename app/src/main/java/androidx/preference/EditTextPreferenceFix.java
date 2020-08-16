@@ -2,21 +2,22 @@ package androidx.preference;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.os.Bundle;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.widget.AppCompatEditText;
-
 import android.text.InputType;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.widget.AppCompatEditText;
+import androidx.fragment.app.DialogFragment;
+
 // this is different to EditTextPreference in the following way:
 //   - creates EditText using the attributes and keeps it
 //   - automatically sets summary to *** if is a password edit
 
-public class EditTextPreferenceFix extends EditTextPreference {
+public class EditTextPreferenceFix extends EditTextPreference implements DialogFragmentGetter {
     private AppCompatEditText editText;
     private boolean isPassword = false;
     private final static int PASSWORD_MASK = InputType.TYPE_TEXT_VARIATION_PASSWORD
@@ -62,6 +63,10 @@ public class EditTextPreferenceFix extends EditTextPreference {
         return String.format(summary, (!TextUtils.isEmpty(value) && isPassword) ? "••••••" : value);
     }
 
+    @NonNull @Override public DialogFragment getDialogFragment() {
+        return new EditTextPreferenceFixFragment();
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     // this is different to EditTextPreferenceDialogFragmentCompat in the following way:
@@ -71,16 +76,6 @@ public class EditTextPreferenceFix extends EditTextPreference {
 
     public static class EditTextPreferenceFixFragment extends PreferenceDialogFragmentCompat {
         private AppCompatEditText mEditText;
-
-        public EditTextPreferenceFixFragment() {}
-
-        public static EditTextPreferenceFixFragment newInstance(String key) {
-            EditTextPreferenceFixFragment fragment = new EditTextPreferenceFixFragment();
-            Bundle b = new Bundle(1);
-            b.putString("key", key);
-            fragment.setArguments(b);
-            return fragment;
-        }
 
         // these two warnings are related to builder.setView(); somehow setting padding on the
         // view itself has no effect

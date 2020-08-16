@@ -23,7 +23,7 @@ import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
 
 
-public class FullScreenEditTextPreference extends EditTextPreference {
+public class FullScreenEditTextPreference extends EditTextPreference implements DialogFragmentGetter {
     final private static @Root Kitty kitty = Kitty.make();
 
     final private static int FULL_SCREEN_DIALOG_STYLE = R.style.FullScreenAlertDialogTheme;
@@ -68,20 +68,14 @@ public class FullScreenEditTextPreference extends EditTextPreference {
         return String.format(summary, value);
     }
 
+    @NonNull @Override public DialogFragment getDialogFragment() {
+        return new FullScreenEditTextPreferenceFragment();
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     public static class FullScreenEditTextPreferenceFragment extends PreferenceDialogFragmentCompat {
         private EditText editText;
-
-        public FullScreenEditTextPreferenceFragment() {}
-
-        public static FullScreenEditTextPreferenceFragment newInstance(String key) {
-            FullScreenEditTextPreferenceFragment fragment = new FullScreenEditTextPreferenceFragment();
-            Bundle b = new Bundle(1);
-            b.putString("key", key);
-            fragment.setArguments(b);
-            return fragment;
-        }
 
         @Override public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);

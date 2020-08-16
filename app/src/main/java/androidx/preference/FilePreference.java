@@ -5,16 +5,16 @@ package androidx.preference;
 
 import android.content.Context;
 import android.content.Intent;
-import android.os.Bundle;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
-
 import android.text.ClipboardManager;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Base64;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.fragment.app.DialogFragment;
 
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
@@ -23,7 +23,7 @@ import com.ubergeek42.cats.Root;
 
 import java.io.IOException;
 
-public class FilePreference extends DialogPreference {
+public class FilePreference extends DialogPreference implements DialogFragmentGetter {
     final private static @Root Kitty kitty = Kitty.make();
 
     public FilePreference(Context context, AttributeSet attrs) {
@@ -61,19 +61,13 @@ public class FilePreference extends DialogPreference {
         }
     }
 
+    @NonNull @Override public DialogFragment getDialogFragment() {
+        return new FilePreferenceFragment();
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     public static class FilePreferenceFragment extends PreferenceDialogFragmentCompat {
-
-        public static FilePreferenceFragment newInstance(String key, int code) {
-            FilePreferenceFragment fragment = new FilePreferenceFragment();
-            Bundle b = new Bundle(1);
-            b.putString("key", key);
-            b.putInt("code", code);
-            fragment.setArguments(b);
-            return fragment;
-        }
-
         @Override protected void onPrepareDialogBuilder(AlertDialog.Builder builder) {
             builder.setNeutralButton(getString(R.string.pref_file_clear_button), (dialog, which) -> {
                 ((FilePreference) getPreference()).saveData(null);

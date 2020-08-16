@@ -15,14 +15,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
-import androidx.preference.CertPickerPreference;
 import androidx.preference.CheckBoxPreference;
-import androidx.preference.ClearCertPreference;
+import androidx.preference.DialogFragmentGetter;
 import androidx.preference.DialogPreference;
-import androidx.preference.EditTextPreferenceFix;
 import androidx.preference.FilePreference;
 import androidx.preference.FontPreference;
-import androidx.preference.FullScreenEditTextPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceGroup;
@@ -121,21 +118,18 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
                 }
             }
 
-            if (preference instanceof FontPreference)
-                f = FontPreference.FontPreferenceFragment.newInstance(preference.getKey());
-            else if (preference instanceof ThemePreference)
-                f = ThemePreference.ThemePreferenceFragment.newInstance(preference.getKey());
-            else if (preference instanceof CertPickerPreference)
-                f = ((CertPickerPreference) preference).makeFragment(preference.getKey(), PREF_TLS_CLIENT_FILE_ID);
-            else if (preference instanceof FilePreference)
-                f = FilePreference.FilePreferenceFragment.newInstance(preference.getKey(), PREF_SSH_KEY.equals(preference.getKey()) ? PREF_SSH_KEY_ID : PREF_SSH_KNOWN_HOSTS_ID);
-            else if (preference instanceof EditTextPreferenceFix)
-                f = EditTextPreferenceFix.EditTextPreferenceFixFragment.newInstance(preference.getKey());
-            else if (preference instanceof FullScreenEditTextPreference)
-                f = FullScreenEditTextPreference.FullScreenEditTextPreferenceFragment.newInstance(preference.getKey());
-            else if (preference instanceof ClearCertPreference)
-                f = ClearCertPreference.ClearCertPreferenceFragment.newInstance(preference.getKey());
-            else if (preference instanceof RingtonePreferenceFix) {
+            int code = -1;
+            if (preference instanceof FilePreference) {
+                switch (preference.getKey()) {
+                    case PREF_SSH_KEY: code = PREF_SSH_KEY_ID; break;
+                    case PREF_SSH_KNOWN_HOSTS: code = PREF_SSH_KNOWN_HOSTS_ID; break;
+                    case PREF_SSL_CLIENT_CERTIFICATE: code = PREF_TLS_CLIENT_FILE_ID; break;
+                }
+            }
+
+            if (preference instanceof DialogFragmentGetter) {
+                f = makeFragment((DialogFragmentGetter) preference, code);
+            } else if (preference instanceof RingtonePreferenceFix) {
                 Intent intent = ((RingtonePreferenceFix) preference).makeRingtoneRequestIntent();
                 startActivityForResult(intent, PREF_RINGTONE_ID);
                 return;
@@ -291,6 +285,15 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
                 p.setSingleLineTitle(false);
                 if (p instanceof PreferenceGroup && !(p instanceof PreferenceScreen)) fixMultiLineTitles((PreferenceGroup) p);
             }
+        }
+
+        DialogFragment makeFragment(DialogFragmentGetter preference, int code) {
+            DialogFragment fragment = preference.getDialogFragment();
+            Bundle bundle = new Bundle(1);
+            bundle.putString("key", ((Preference) preference).getKey());
+            if (code != -1) bundle.putInt("code", code);
+            fragment.setArguments(bundle);
+            return fragment;
         }
     }
 }
