@@ -1,0 +1,11 @@
+* Material design
+* Ping mechanism
+* Color schemes
+* Read marker line
+* Ability to resend lines
+* Font preference
+* More notification options
+* Weechat → relay synchronization every 5 minutes
+* Validation of settings
+* Better url detection
+* A bunch of stability fixes
