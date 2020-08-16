@@ -15,21 +15,27 @@ import androidx.annotation.Nullable;
 import com.ubergeek42.WeechatAndroid.Weechat;
 import com.ubergeek42.WeechatAndroid.utils.CertificateDialog;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
+import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.security.Key;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -38,6 +44,8 @@ import java.util.regex.Pattern;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
@@ -172,6 +180,7 @@ public class SSLHandler {
 
     SSLSocketFactory getSSLSocketFactory() {
         SSLCertificateSocketFactory sslSocketFactory = (SSLCertificateSocketFactory) SSLCertificateSocketFactory.getDefault(0, null);
+        sslSocketFactory.setKeyManagers(getKeyManagers());
         sslSocketFactory.setTrustManagers(UserTrustManager.build(sslKeystore));
         return sslSocketFactory;
     }
@@ -292,7 +301,62 @@ public class SSLHandler {
         }
     }
 
-    public static boolean setClientCertificate(@Nullable byte[] bytes, String password) {
-        return bytes != null;
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private KeyManager[] cachedKeyManagers = null;
+
+    public void setClientCertificate(@Nullable byte[] bytes, String password) throws
+            KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException,
+            UnrecoverableKeyException {
+        cachedKeyManagers = null;
+
+        KeyStore pkcs12Keystore = KeyStore.getInstance("PKCS12");
+        pkcs12Keystore.load(bytes == null ? null : new ByteArrayInputStream(bytes), password.toCharArray());
+
+        KeyStore androidKeystore = KeyStore.getInstance("AndroidKeyStore");
+        androidKeystore.load(null);
+
+        Enumeration<String> aliases = androidKeystore.aliases();
+        while (aliases.hasMoreElements()) {
+            String alias = aliases.nextElement();
+            if (alias.startsWith("client.")) androidKeystore.deleteEntry(alias);
+        }
+
+        aliases = pkcs12Keystore.aliases();
+        while (aliases.hasMoreElements()) {
+            String alias = aliases.nextElement();
+            if (pkcs12Keystore.isCertificateEntry(alias)) {
+                // these are server certs, which aren't currently passed to the trust store
+                Certificate cert = pkcs12Keystore.getCertificate(alias);
+                androidKeystore.setCertificateEntry("client." + alias, cert);
+            } else if (pkcs12Keystore.isKeyEntry(alias)) {
+                Key key = pkcs12Keystore.getKey(alias, password.toCharArray());
+                Certificate[] certs = pkcs12Keystore.getCertificateChain(alias);
+                androidKeystore.setKeyEntry("client." + alias, key, new char[0], certs);
+            }
+        }
+    }
+
+    private @Cat(exit=true) @Nullable KeyManager[] getKeyManagers() {
+        if (cachedKeyManagers == null) {
+            try {
+                KeyStore androidKeystore = KeyStore.getInstance("AndroidKeyStore");
+                androidKeystore.load(null);
+                KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("X509");
+                keyManagerFactory.init(androidKeystore, null);
+                cachedKeyManagers = keyManagerFactory.getKeyManagers();
+            } catch (Exception e) {
+                kitty.error("loadClientFile()", e);
+            }
+        }
+        return cachedKeyManagers;
+    }
+
+    private static void listAliases(KeyStore store, String message) throws KeyStoreException {
+        kitty.trace("==== " + message + " ==== %s", store);
+        Enumeration<String> aliases = store.aliases();
+        while (aliases.hasMoreElements()) kitty.trace("   " + aliases.nextElement());
     }
 }

@@ -3,6 +3,7 @@ package androidx.preference;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.util.AttributeSet;
+import android.view.LayoutInflater;
 import android.widget.EditText;
 
 import androidx.annotation.NonNull;
@@ -21,9 +22,10 @@ public class CertPickerPreference extends FilePreference implements DialogFragme
         super(context, attrs);
     }
 
-    @Override @Cat protected void  saveData(@Nullable byte[] bytes) {
-        persistString(SSLHandler.setClientCertificate(bytes, editText.getText().toString()) ?
-                "ok" : null);
+    @Override @Cat protected void saveData(@Nullable byte[] bytes) throws Exception {
+        String password = editText.getText().toString();
+        SSLHandler.getInstance(getContext()).setClientCertificate(bytes, password);
+        persistString(bytes != null ? "ok" : null);
         notifyChanged();
     }
 
@@ -36,8 +38,8 @@ public class CertPickerPreference extends FilePreference implements DialogFragme
         @Override protected void onPrepareDialogBuilder(AlertDialog.Builder builder) {
             super.onPrepareDialogBuilder(builder);
 
-            EditText editText = new EditText(getContext());
-            editText.setHint(R.string.edittext_password_hint);
+            EditText editText = (EditText) LayoutInflater.from(getContext())
+                    .inflate(R.layout.pref_password_edit_text, null);
             int padding = (int) getResources().getDimension(com.ubergeek42.WeechatAndroid.R.dimen.dialog_padding);
             builder.setView(editText, padding, padding, padding, padding);
 
