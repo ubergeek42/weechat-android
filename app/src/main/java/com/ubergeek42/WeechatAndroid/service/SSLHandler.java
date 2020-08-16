@@ -291,4 +291,8 @@ public class SSLHandler {
             return result;
         }
     }
+
+    public static boolean setClientCertificate(@Nullable byte[] bytes, String password) {
+        return bytes != null;
+    }
 }

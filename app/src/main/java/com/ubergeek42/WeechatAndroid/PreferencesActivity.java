@@ -6,17 +6,22 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.view.MenuItem;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
-import androidx.fragment.app.DialogFragment;
-import androidx.fragment.app.Fragment;
-import androidx.core.content.ContextCompat;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.Fragment;
+import androidx.preference.CertPickerPreference;
 import androidx.preference.CheckBoxPreference;
 import androidx.preference.ClearCertPreference;
 import androidx.preference.DialogPreference;
 import androidx.preference.EditTextPreferenceFix;
 import androidx.preference.FilePreference;
+import androidx.preference.FontPreference;
 import androidx.preference.FullScreenEditTextPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
@@ -24,22 +29,21 @@ import androidx.preference.PreferenceGroup;
 import androidx.preference.PreferenceScreen;
 import androidx.preference.RingtonePreferenceFix;
 import androidx.preference.ThemePreference;
-import android.view.MenuItem;
-
-import androidx.preference.FontPreference;
-import android.widget.Toast;
 
 import com.ubergeek42.WeechatAndroid.media.Config;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
 
 public class PreferencesActivity extends AppCompatActivity implements PreferenceFragmentCompat.OnPreferenceStartScreenCallback {
     final static private String KEY = "key";
+
+    final static private int PREF_RINGTONE_ID = 0;
+    final static private int PREF_SSH_KEY_ID = 1;
+    final static private int PREF_SSH_KNOWN_HOSTS_ID = 2;
+    final static private int PREF_TLS_CLIENT_FILE_ID = 3;
 
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -96,7 +100,7 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
 
         private static final String FRAGMENT_DIALOG_TAG = "android.support.v7.preference.PreferenceFragment.DIALOG";
         private String key;
-        private List<Preference> sslGroup = new ArrayList<>();
+        private Preference sslGroup = null;
         private Preference sshGroup = null;
         private Preference wsPath = null;
 
@@ -121,8 +125,10 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
                 f = FontPreference.FontPreferenceFragment.newInstance(preference.getKey());
             else if (preference instanceof ThemePreference)
                 f = ThemePreference.ThemePreferenceFragment.newInstance(preference.getKey());
+            else if (preference instanceof CertPickerPreference)
+                f = ((CertPickerPreference) preference).makeFragment(preference.getKey(), PREF_TLS_CLIENT_FILE_ID);
             else if (preference instanceof FilePreference)
-                f = FilePreference.FilePreferenceFragment.newInstance(preference.getKey(), PREF_SSH_KEY.equals(preference.getKey()) ? 1 : 2);
+                f = FilePreference.FilePreferenceFragment.newInstance(preference.getKey(), PREF_SSH_KEY.equals(preference.getKey()) ? PREF_SSH_KEY_ID : PREF_SSH_KNOWN_HOSTS_ID);
             else if (preference instanceof EditTextPreferenceFix)
                 f = EditTextPreferenceFix.EditTextPreferenceFixFragment.newInstance(preference.getKey());
             else if (preference instanceof FullScreenEditTextPreference)
@@ -131,7 +137,7 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
                 f = ClearCertPreference.ClearCertPreferenceFragment.newInstance(preference.getKey());
             else if (preference instanceof RingtonePreferenceFix) {
                 Intent intent = ((RingtonePreferenceFix) preference).makeRingtoneRequestIntent();
-                startActivityForResult(intent, 0);
+                startActivityForResult(intent, PREF_RINGTONE_ID);
                 return;
             } else {
                 super.onDisplayPreferenceDialog(preference);
@@ -155,8 +161,7 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
 
             String[] listenTo = {};
             if (PREF_CONNECTION_GROUP.equals(key)) {
-                sslGroup.add(findPreference(PREF_SSL_PIN_REQUIRED));
-                sslGroup.add(findPreference(PREF_SSL_CLEAR_CERTS));
+                sslGroup = findPreference(PREF_SSL_GROUP);
                 sshGroup = findPreference(PREF_SSH_GROUP);
                 wsPath = findPreference(PREF_WS_PATH);
                 showHideStuff(getPreferenceScreen().getSharedPreferences().getString(PREF_CONNECTION_TYPE, PREF_CONNECTION_TYPE_D));
@@ -196,9 +201,10 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
             super.onActivityResult(requestCode, resultCode, data);
             if (resultCode == RESULT_OK) {
                 switch (requestCode) {
-                    case 0: ((RingtonePreferenceFix) findPreference(PREF_NOTIFICATION_SOUND)).onActivityResult(data); break;
-                    case 1: ((FilePreference) findPreference(PREF_SSH_KEY)).onActivityResult(data); break;
-                    case 2: ((FilePreference) findPreference(PREF_SSH_KNOWN_HOSTS)).onActivityResult(data); break;
+                    case PREF_RINGTONE_ID: ((RingtonePreferenceFix) findPreference(PREF_NOTIFICATION_SOUND)).onActivityResult(data); break;
+                    case PREF_SSH_KEY_ID: ((FilePreference) findPreference(PREF_SSH_KEY)).onActivityResult(data); break;
+                    case PREF_SSH_KNOWN_HOSTS_ID: ((FilePreference) findPreference(PREF_SSH_KNOWN_HOSTS)).onActivityResult(data); break;
+                    case PREF_TLS_CLIENT_FILE_ID: ((FilePreference) findPreference(PREF_SSL_CLIENT_CERTIFICATE)).onActivityResult(data); break;
                 }
             }
         }
@@ -236,7 +242,7 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
         // this hides and shows ssl / websocket / ssh preference screens
         // must not be called when the settings do not exist in the tree
         private void showHideStuff(String type) {
-            for (Preference p : sslGroup) p.setVisible(Utils.isAnyOf(type, PREF_TYPE_SSL, PREF_TYPE_WEBSOCKET_SSL));
+            sslGroup.setVisible(Utils.isAnyOf(type, PREF_TYPE_SSL, PREF_TYPE_WEBSOCKET_SSL));
             sshGroup.setVisible(PREF_TYPE_SSH.equals(type));
             wsPath.setVisible(Utils.isAnyOf(type, PREF_TYPE_WEBSOCKET, PREF_TYPE_WEBSOCKET_SSL));
         }

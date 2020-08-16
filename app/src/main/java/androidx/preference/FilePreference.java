@@ -36,7 +36,7 @@ public class FilePreference extends DialogPreference {
                 super.getSummary(), set_not_set);
     }
 
-    private void saveData(@Nullable byte[] bytes) {
+    protected void saveData(@Nullable byte[] bytes) {
         if (callChangeListener(bytes)) {
             persistString(bytes == null ? null : Base64.encodeToString(bytes, Base64.NO_WRAP));
             notifyChanged();
