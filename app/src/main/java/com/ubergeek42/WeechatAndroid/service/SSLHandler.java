@@ -16,7 +16,6 @@ import com.ubergeek42.WeechatAndroid.Weechat;
 import com.ubergeek42.WeechatAndroid.utils.CertificateDialog;
 import com.ubergeek42.WeechatAndroid.utils.ThrowingKeyManagerWrapper;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
-import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
 
@@ -36,7 +35,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Enumeration;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -53,7 +52,6 @@ import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
-import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509TrustManager;
 
 public class SSLHandler {
@@ -307,7 +305,7 @@ public class SSLHandler {
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private KeyManager[] cachedKeyManagers = null;
+    private @Nullable KeyManager[] cachedKeyManagers = null;
 
     public void setClientCertificate(@Nullable byte[] bytes, String password) throws
             KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException,
@@ -320,20 +318,13 @@ public class SSLHandler {
         KeyStore androidKeystore = KeyStore.getInstance("AndroidKeyStore");
         androidKeystore.load(null);
 
-        Enumeration<String> aliases = androidKeystore.aliases();
-        while (aliases.hasMoreElements()) {
-            String alias = aliases.nextElement();
+        for (String alias : Collections.list(androidKeystore.aliases())) {
             if (alias.startsWith("client.")) androidKeystore.deleteEntry(alias);
         }
 
-        aliases = pkcs12Keystore.aliases();
-        while (aliases.hasMoreElements()) {
-            String alias = aliases.nextElement();
-            if (pkcs12Keystore.isCertificateEntry(alias)) {
-                // these are server certs, which aren't currently passed to the trust store
-                Certificate cert = pkcs12Keystore.getCertificate(alias);
-                androidKeystore.setCertificateEntry("client." + alias, cert);
-            } else if (pkcs12Keystore.isKeyEntry(alias)) {
+        // the store can also have certificate entries but we are not interested in those
+        for (String alias : Collections.list(pkcs12Keystore.aliases())) {
+            if (pkcs12Keystore.isKeyEntry(alias)) {
                 Key key = pkcs12Keystore.getKey(alias, password.toCharArray());
                 Certificate[] certs = pkcs12Keystore.getCertificateChain(alias);
                 androidKeystore.setKeyEntry("client." + alias, key, new char[0], certs);
@@ -341,7 +332,7 @@ public class SSLHandler {
         }
     }
 
-    private @Cat(exit=true) @Nullable KeyManager[] getKeyManagers() {
+    private @Nullable KeyManager[] getKeyManagers() {
         if (cachedKeyManagers == null) {
             try {
                 KeyStore androidKeystore = KeyStore.getInstance("AndroidKeyStore");
@@ -350,18 +341,12 @@ public class SSLHandler {
                 keyManagerFactory.init(androidKeystore, null);
                 cachedKeyManagers = keyManagerFactory.getKeyManagers();
 
-                if (cachedKeyManagers.length > 0 && cachedKeyManagers[0] instanceof X509ExtendedKeyManager)
-                    cachedKeyManagers[0] = new ThrowingKeyManagerWrapper((X509ExtendedKeyManager) cachedKeyManagers[0]);
+                // this makes managers throw an exception if appropriate certificates can't be found
+                ThrowingKeyManagerWrapper.wrapKeyManagers(cachedKeyManagers);
             } catch (Exception e) {
-                kitty.error("loadClientFile()", e);
+                kitty.error("getKeyManagers()", e);
             }
         }
         return cachedKeyManagers;
-    }
-
-    private static void listAliases(KeyStore store, String message) throws KeyStoreException {
-        kitty.trace("==== " + message + " ==== %s", store);
-        Enumeration<String> aliases = store.aliases();
-        while (aliases.hasMoreElements()) kitty.trace("   " + aliases.nextElement());
     }
 }

@@ -13,7 +13,6 @@ import androidx.fragment.app.DialogFragment;
 
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.service.SSLHandler;
-import com.ubergeek42.cats.Cat;
 
 public class CertPickerPreference extends FilePreference implements DialogFragmentGetter {
     private EditText editText = null;
@@ -22,7 +21,7 @@ public class CertPickerPreference extends FilePreference implements DialogFragme
         super(context, attrs);
     }
 
-    @Override @Cat protected void saveData(@Nullable byte[] bytes) throws Exception {
+    @Override protected void saveData(@Nullable byte[] bytes) throws Exception {
         String password = editText.getText().toString();
         SSLHandler.getInstance(getContext()).setClientCertificate(bytes, password);
         persistString(bytes != null ? "ok" : null);
