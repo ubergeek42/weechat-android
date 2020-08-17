@@ -1,0 +1,4 @@
+* Added media preview
+* Raised minimum Android version to Lollipop (5.0, API level 21)
+* Added German translation
+* Improved support for notify levels

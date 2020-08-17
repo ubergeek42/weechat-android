@@ -1,0 +1,5 @@
+* Service to run only while connecting/connected; quit button removed
+* “Fetch more” button
+* SSH library update; require known hosts; store known hosts and key inside app
+* Significant refactoring of connectivity; stunnel removed
+* Better logging and error handling
