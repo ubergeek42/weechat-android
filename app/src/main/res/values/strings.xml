@@ -536,18 +536,19 @@ strategies:
 
     <string name="dialog_untrusted_certificate_title">Untrusted certificate</string>
     <string name="dialog_untrusted_certificate_text">This certificate isn’t trusted by Android, but
-        you can still connect. The app will remember and trust the selected certificate, as well as
-        any certificates signed by it.
+        you can still connect. The app will remember the selected certificate and trust it and any
+        certificates signed by it.
     </string>
 
     <string name="dialog_certificate_not_pinned_title">Certificate not pinned</string>
     <string name="dialog_certificate_not_pinned_text">This server is trusted by Android, but a
-        setting requires you to confirm that you trust it as well. The app will remember and trust
-        the selected certificate, as well as any certificates signed by it.</string>
+        setting requires you to confirm that you trust it as well. The app will remember the
+        selected certificate and trust it and any certificates signed by it.</string>
 
     <string name="pref_ssl_require_certificate_pin">Require certificate pins</string>
     <string name="pref_ssl_require_certificate_pin_summary">Prompt to confirm that you trust the server,
         even if the system trusts it</string>
+
     <string name="edittext_password_hint">password</string>
 
     <string name="error_client_certificate_not_set">Server is asking for a client certificate but
