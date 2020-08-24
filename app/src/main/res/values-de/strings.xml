@@ -93,7 +93,6 @@
         <b>SHA-256 Fingerprint:</b><br>
         %5$s
     ]]></string>
-    <string name="dialog_untrusted_certificate_title">Zertifikat nicht vertrauenswürdig</string>
     <string name="dialog_button_accept_selected">Akzeptieren</string>
     <string name="dialog_button_reject">Ablehnen</string>
     <string name="dialog_invalid_hostname_text"><![CDATA[
@@ -127,6 +126,7 @@
         <item>@string/pref_connection_type_ws_ssl</item>
     </string-array>
 
+    <string name="pref_ssl_group">SSL Einstellungen</string>
     <string name="pref_clear_certs">Zertifikate löschen</string>
     <string name="pref_clear_certs_confirmation">Zertifikate löschen?</string>
     <string name="pref_clear_certs_summary">{0,choice,0#Kein vertrauenswürdiges Zertifikat|1#1
@@ -135,6 +135,9 @@
     <string name="pref_clear_certs_negative">Abbrechen</string>
     <string name="pref_clear_certs_success">Zertifikate gelöscht</string>
     <string name="pref_clear_certs_failure">Zertifikate konnten nicht gelöscht werden</string>
+
+    <string name="pref_ssl_client_certificate">Client-Zertifikate</string>
+    <string name="pref_ssl_client_certificate_summary">PKCS # 12-Datei enthält privaten Schlüssel und Client-Zertifikat</string>
 
     <string name="pref_ws_path">WebSocket Pfad</string>
 
@@ -403,6 +406,44 @@
     <string name="dialog_discard_changes_prompt">Änderungen verwerfen?</string>
     <string name="dialog_discard_changes_cancel">Abbrechen</string>
     <string name="dialog_discard_changes_discard">Verwerfen</string>
+
+    <string name="dialog_button_pin_selected">Pin ausgewählt</string>
+
     <string name="dialog_certificate_not_yet_valid_title">Zertifikat noch nicht gültig</string>
+    <string name="dialog_certificate_not_yet_valid_text">Dieses Zertifikat wird in Zukunft gültig
+        sein. Bitte stellen Sie sicher, dass das Gerätedatum korrekt ist.</string>
+
     <string name="dialog_certificate_expired_title">Zertifikat abgelaufen</string>
+    <string name="dialog_certificate_expired_text">Dieses Zertifikat ist nicht mehr gültig.
+        Bitte stellen Sie sicher, dass das Gerätedatum korrekt ist.</string>
+
+    <string name="dialog_invalid_hostname_text_android_p_warning"><![CDATA[
+        <br>Beachten Sie, dass Android P und höher nicht auf die Validierung von Common Name (CN)
+        zurückgreift. Stattdessen muss der alternative Name des Betreffs (SAN) verwendet werden.
+        <a href="https://github.com/ubergeek42/weechat-android/wiki/Using-SSL-with-WeeChat">Learn more</a>
+    ]]></string>
+
+    <string name="dialog_certificate_not_pinned_title">Zertifikat nicht fixiert</string>
+    <string name="dialog_certificate_not_pinned_text">Dieser Server wird von Android als
+        vertrauenswürdig eingestuft. Für eine Einstellung müssen Sie jedoch bestätigen, dass Sie
+        ihm ebenfalls vertrauen. Die App speichert das ausgewählte Zertifikat sowie alle von ihm
+        signierten Zertifikate und vertraut diesen.</string>
+
+    <string name="dialog_untrusted_certificate_title">Zertifikat nicht vertrauenswürdig</string>
+    <string name="dialog_untrusted_certificate_text">Dieses Zertifikat wird von Android nicht als
+        vertrauenswürdig eingestuft. Sie können jedoch trotzdem eine Verbindung herstellen. Die App
+        speichert das ausgewählte Zertifikat sowie alle von ihm signierten Zertifikate und vertraut
+        diesen.
+    </string>
+
+    <string name="pref_ssl_require_certificate_pin">Benötigt Zertifikate-Pins</string>
+    <string name="pref_ssl_require_certificate_pin_summary">Manuelle Bestätigung das Sie dem Server
+        vertrauen, obwohl das System diesem Vertraut</string>
+
+    <string name="edittext_password_hint">Passwort</string>
+
+    <string name="error_client_certificate_not_set">Der Server fordert ein Client-Zertifikat an,
+        aber keines ist festgelegt. Gesucht: %s Zertifikat ausgestellt von: %s</string>
+    <string name="error_client_certificate_mismatch">Der Server fragt nach einem Client-Zertifikat,
+        aber das was wir haben, passt nicht. Gesucht: %s Zertifikat ausgestellt von: %s</string>
 </resources>
