@@ -14,22 +14,28 @@ import androidx.annotation.Nullable;
 
 import com.ubergeek42.WeechatAndroid.Weechat;
 import com.ubergeek42.WeechatAndroid.utils.CertificateDialog;
+import com.ubergeek42.WeechatAndroid.utils.ThrowingKeyManagerWrapper;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.security.Key;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -38,6 +44,8 @@ import java.util.regex.Pattern;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
@@ -172,6 +180,7 @@ public class SSLHandler {
 
     SSLSocketFactory getSSLSocketFactory() {
         SSLCertificateSocketFactory sslSocketFactory = (SSLCertificateSocketFactory) SSLCertificateSocketFactory.getDefault(0, null);
+        sslSocketFactory.setKeyManagers(getKeyManagers());
         sslSocketFactory.setTrustManagers(UserTrustManager.build(sslKeystore));
         return sslSocketFactory;
     }
@@ -290,5 +299,54 @@ public class SSLHandler {
             System.arraycopy(user, 0, result, system.length, user.length);
             return result;
         }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private @Nullable KeyManager[] cachedKeyManagers = null;
+
+    public void setClientCertificate(@Nullable byte[] bytes, String password) throws
+            KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException,
+            UnrecoverableKeyException {
+        cachedKeyManagers = null;
+
+        KeyStore pkcs12Keystore = KeyStore.getInstance("PKCS12");
+        pkcs12Keystore.load(bytes == null ? null : new ByteArrayInputStream(bytes), password.toCharArray());
+
+        KeyStore androidKeystore = KeyStore.getInstance("AndroidKeyStore");
+        androidKeystore.load(null);
+
+        for (String alias : Collections.list(androidKeystore.aliases())) {
+            if (alias.startsWith("client.")) androidKeystore.deleteEntry(alias);
+        }
+
+        // the store can also have certificate entries but we are not interested in those
+        for (String alias : Collections.list(pkcs12Keystore.aliases())) {
+            if (pkcs12Keystore.isKeyEntry(alias)) {
+                Key key = pkcs12Keystore.getKey(alias, password.toCharArray());
+                Certificate[] certs = pkcs12Keystore.getCertificateChain(alias);
+                androidKeystore.setKeyEntry("client." + alias, key, new char[0], certs);
+            }
+        }
+    }
+
+    private @Nullable KeyManager[] getKeyManagers() {
+        if (cachedKeyManagers == null) {
+            try {
+                KeyStore androidKeystore = KeyStore.getInstance("AndroidKeyStore");
+                androidKeystore.load(null);
+                KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("X509");
+                keyManagerFactory.init(androidKeystore, null);
+                cachedKeyManagers = keyManagerFactory.getKeyManagers();
+
+                // this makes managers throw an exception if appropriate certificates can't be found
+                ThrowingKeyManagerWrapper.wrapKeyManagers(cachedKeyManagers);
+            } catch (Exception e) {
+                kitty.error("getKeyManagers()", e);
+            }
+        }
+        return cachedKeyManagers;
     }
 }

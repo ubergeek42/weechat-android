@@ -115,6 +115,7 @@
                 <item>@string/pref_connection_type_ws_ssl</item>
             </string-array>
 
+    <string name="pref_ssl_group">SSL settings</string>
         <string name="pref_clear_certs">Clear certificates</string>
         <string name="pref_clear_certs_confirmation">Clear certificates?</string>
         <string name="pref_clear_certs_summary">{0,choice,0#No trusted certificate|1#1 trusted certificate|1&lt;{0} trusted certificates}</string>
@@ -122,6 +123,10 @@
         <string name="pref_clear_certs_negative">Cancel</string>
         <string name="pref_clear_certs_success">Certificates cleared</string>
         <string name="pref_clear_certs_failure">Could not clear certificates</string>
+
+        <string name="pref_ssl_client_certificate">Client certificate</string>
+        <string name="pref_ssl_client_certificate_summary">PKCS #12 file containing private key and client certificate</string>
+
 
         <string name="pref_ws_path">WebSocket path</string>
 
@@ -541,6 +546,12 @@ strategies:
         the selected certificate, as well as any certificates signed by it.</string>
 
     <string name="pref_ssl_require_certificate_pin">Require certificate pins</string>
-    <string name="pref_ssl_require_certificate_pin_summay">Prompt to confirm that you trust the server,
+    <string name="pref_ssl_require_certificate_pin_summary">Prompt to confirm that you trust the server,
         even if the system trusts it</string>
+    <string name="edittext_password_hint">password</string>
+
+    <string name="error_client_certificate_not_set">Server is asking for a client certificate but
+        none is set. Wanted: %s certificate issued by: %s</string>
+    <string name="error_client_certificate_mismatch">Server is asking for a client certificate but
+        the one we have doesn’t fit. Wanted: %s certificate issued by: %s</string>
 </resources>

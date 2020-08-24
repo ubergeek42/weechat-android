@@ -14,83 +14,88 @@
 
 package com.ubergeek42.WeechatAndroid;
 
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateExpiredException;
-import java.security.cert.CertificateNotYetValidException;
-import java.util.Collections;
-import java.util.EnumSet;
-
-import javax.net.ssl.SSLPeerUnverifiedException;
-
 import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
-import androidx.preference.PreferenceManager;
-import androidx.annotation.MainThread;
-import androidx.annotation.NonNull;
-import androidx.annotation.WorkerThread;
-import androidx.appcompat.content.res.AppCompatResources;
-import androidx.appcompat.widget.TooltipCompat;
-import androidx.core.content.ContextCompat;
-import androidx.fragment.app.DialogFragment;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.ActionBarDrawerToggle;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.app.AlertDialog;
-
+import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.AttributeSet;
-import android.view.*;
-
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
-
-import android.content.Context;
-import android.content.Intent;
-import android.content.res.Configuration;
-import android.os.Bundle;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.FragmentManager;
-import androidx.viewpager.widget.ViewPager;
-import androidx.drawerlayout.widget.DrawerLayout;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import androidx.annotation.MainThread;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.WorkerThread;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.content.res.AppCompatResources;
+import androidx.appcompat.widget.TooltipCompat;
+import androidx.core.content.ContextCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.preference.PreferenceManager;
+import androidx.viewpager.widget.ViewPager;
 
 import com.ubergeek42.WeechatAndroid.adapters.BufferListClickListener;
 import com.ubergeek42.WeechatAndroid.adapters.MainPagerAdapter;
 import com.ubergeek42.WeechatAndroid.adapters.NickListAdapter;
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragment;
 import com.ubergeek42.WeechatAndroid.media.CachePersist;
-import com.ubergeek42.WeechatAndroid.utils.CertificateDialog;
-import com.ubergeek42.WeechatAndroid.utils.Network;
 import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.WeechatAndroid.relay.Hotlist;
 import com.ubergeek42.WeechatAndroid.relay.Nick;
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
+import com.ubergeek42.WeechatAndroid.service.RelayService.STATE;
 import com.ubergeek42.WeechatAndroid.service.SSLHandler;
+import com.ubergeek42.WeechatAndroid.utils.CertificateDialog;
 import com.ubergeek42.WeechatAndroid.utils.FancyAlertDialogBuilder;
+import com.ubergeek42.WeechatAndroid.utils.Network;
+import com.ubergeek42.WeechatAndroid.utils.SimpleTransitionDrawable;
 import com.ubergeek42.WeechatAndroid.utils.ThemeFix;
 import com.ubergeek42.WeechatAndroid.utils.ToolbarController;
-import com.ubergeek42.WeechatAndroid.utils.SimpleTransitionDrawable;
-import com.ubergeek42.WeechatAndroid.service.RelayService.STATE;
+import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.CatD;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateExpiredException;
+import java.security.cert.CertificateNotYetValidException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumSet;
+
+import javax.net.ssl.SSLPeerUnverifiedException;
+
 import static com.ubergeek42.WeechatAndroid.media.Cache.findException;
 import static com.ubergeek42.WeechatAndroid.service.Events.*;
 import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.*;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
+
+import static com.ubergeek42.WeechatAndroid.utils.ThrowingKeyManagerWrapper.ClientCertificateMismatchException;
 
 public class WeechatActivity extends AppCompatActivity implements
         CutePagerTitleStrip.CutePageChangeListener, BufferListClickListener {
@@ -266,7 +271,7 @@ public class WeechatActivity extends AppCompatActivity implements
         if (slidy) drawerToggle.syncState();
     }
 
-    @MainThread @Override public void onConfigurationChanged(Configuration newConfig) {
+    @MainThread @Override public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         if (slidy) drawerToggle.onConfigurationChanged(newConfig);
     }
@@ -334,6 +339,17 @@ public class WeechatActivity extends AppCompatActivity implements
                     return;
                 }
             }
+        } else if (e instanceof ClientCertificateMismatchException) {
+            ClientCertificateMismatchException ee = (ClientCertificateMismatchException) e;
+            boolean certificateIsSet = PreferenceManager.getDefaultSharedPreferences(this)
+                    .getString(PREF_SSL_CLIENT_CERTIFICATE, null) != null;
+            Weechat.showLongToast(certificateIsSet ?
+                    R.string.error_client_certificate_mismatch :
+                    R.string.error_client_certificate_not_set,
+                    Utils.join(", ", Arrays.asList(ee.keyType)),
+                    Utils.join(", ", Arrays.asList(ee.issuers)));
+            Weechat.runOnMainThread(this::disconnect);
+            return;
         }
 
         String message = TextUtils.isEmpty(e.getMessage()) ? e.getClass().getSimpleName() : e.getMessage();

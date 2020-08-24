@@ -5,18 +5,19 @@ package androidx.preference;
 
 import android.content.Context;
 import android.content.DialogInterface;
-import android.os.Bundle;
-import androidx.appcompat.app.AlertDialog;
-
 import android.util.AttributeSet;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.fragment.app.DialogFragment;
 
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.service.SSLHandler;
 
 import java.text.MessageFormat;
 
-public class ClearCertPreference extends DialogPreference {
+public class ClearCertPreference extends DialogPreference implements DialogFragmentGetter {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -31,18 +32,13 @@ public class ClearCertPreference extends DialogPreference {
         setSummary(MessageFormat.format(getContext().getString(R.string.pref_clear_certs_summary), count));
     }
 
+    @Override @NonNull public DialogFragment getDialogFragment() {
+        return new ClearCertPreferenceFragment();
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     public static class ClearCertPreferenceFragment extends PreferenceDialogFragmentCompat implements DialogInterface.OnClickListener {
-
-        public static ClearCertPreferenceFragment newInstance(String key) {
-            ClearCertPreferenceFragment fragment = new ClearCertPreferenceFragment();
-            Bundle b = new Bundle(1);
-            b.putString("key", key);
-            fragment.setArguments(b);
-            return fragment;
-        }
-
         protected void onPrepareDialogBuilder(AlertDialog.Builder builder) {
             super.onPrepareDialogBuilder(builder);
 
