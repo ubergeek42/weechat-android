@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.ServerSocket;
 import java.net.Socket;
 
 import javax.net.ssl.HostnameVerifier;
@@ -82,6 +83,12 @@ public class Utils {
         byte[] out = new byte[size];
         System.arraycopy(in, 0, out, 0, in.length);
         return out;
+    }
+
+    static int findAvailablePort() throws IOException {
+        try (ServerSocket socket = new ServerSocket(0)) {
+            return socket.getLocalPort();
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

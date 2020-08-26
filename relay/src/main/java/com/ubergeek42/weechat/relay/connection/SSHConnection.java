@@ -50,8 +50,9 @@ public class SSHConnection implements IConnection {
             connection.authenticateWithPassword(sshUsername, sshPassword);
         }
 
-        forwarder = connection.createLocalPortForwarder(3232, hostname, port);
-        Socket forwardingSocket = new Socket("127.0.0.1", 3232);
+        int localPort = Utils.findAvailablePort();
+        forwarder = connection.createLocalPortForwarder(localPort, hostname, port);
+        Socket forwardingSocket = new Socket("127.0.0.1", localPort);
         return new Streams(forwardingSocket.getInputStream(), forwardingSocket.getOutputStream());
     }
 
