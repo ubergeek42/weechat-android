@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.text.TextUtils;
 import android.util.Base64;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,6 +30,7 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.nio.CharBuffer;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -281,5 +283,18 @@ public class Utils {
         T[] copy = array.clone();
         Collections.reverse(Arrays.asList(copy));
         return copy;
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    public static CharSequence getUsefulExceptionString(Throwable t) {
+        ArrayList<CharSequence> messages = new ArrayList<>();
+        while (t != null) {
+            String message = t.getMessage();
+            if (TextUtils.isEmpty(message)) message = t.getClass().getSimpleName();
+            if (!message.endsWith(".")) message += ".";
+            messages.add(message);
+            t = t.getCause();
+        }
+        return join(" ", messages);
     }
 }

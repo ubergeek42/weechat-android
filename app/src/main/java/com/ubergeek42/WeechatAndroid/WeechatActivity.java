@@ -25,7 +25,6 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -352,8 +351,7 @@ public class WeechatActivity extends AppCompatActivity implements
             return;
         }
 
-        String message = TextUtils.isEmpty(e.getMessage()) ? e.getClass().getSimpleName() : e.getMessage();
-        Weechat.showLongToast(R.string.error, message);
+        Weechat.showLongToast(R.string.error, Utils.getUsefulExceptionString(e));
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
