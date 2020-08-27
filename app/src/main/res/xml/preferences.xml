@@ -27,8 +27,14 @@
             <EditTextPreferenceFix android:key="ssh_host" android:title="@string/pref_ssh_host" android:summary="%s" android:singleLine="true" />
             <EditTextPreferenceFix android:key="ssh_port" android:title="@string/pref_ssh_port" android:summary="%s" android:numeric="integer" android:defaultValue="22" />
             <EditTextPreferenceFix android:key="ssh_user" android:title="@string/pref_ssh_user" android:summary="%s" android:singleLine="true" />
-            <EditTextPreferenceFix android:key="ssh_pass" android:title="@string/pref_ssh_pass" android:summary="%s" android:password="true" android:singleLine="true"/>
-            <FilePreference android:key="ssh_key" android:title="@string/pref_ssh_key" android:summary="@string/pref_ssh_key_summary" />
+            <ListPreference android:key="ssh_authentication_method"
+                android:title="@string/pref_ssh_authentication_method"
+                android:defaultValue="password"
+                android:entries="@array/pref_ssh_authentication_method_names"
+                android:entryValues="@array/pref_ssh_authentication_method_values"
+                android:summary="%s"/>
+            <EditTextPreferenceFix android:key="ssh_password" android:title="@string/pref_ssh_pass" android:summary="%s" android:password="true" android:singleLine="true"/>
+            <FilePreference android:key="ssh_key_file" android:title="@string/pref_ssh_key" android:summary="@string/pref_ssh_key_summary" />
             <FilePreference android:key="ssh_known_hosts" android:title="@string/pref_ssh_known_hosts" android:summary="@string/pref_ssh_known_hosts_summary" />
         </PreferenceScreen>
 

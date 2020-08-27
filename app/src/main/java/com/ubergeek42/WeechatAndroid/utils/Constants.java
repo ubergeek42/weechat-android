@@ -32,8 +32,9 @@ public class Constants {
     final static public String PREF_SSH_HOST = "ssh_host"; final public static String PREF_SSH_HOST_D = "";
     final static public String PREF_SSH_PORT = "ssh_port"; final public static String PREF_SSH_PORT_D = "22";
     final static public String PREF_SSH_USER = "ssh_user"; final public static String PREF_SSH_USER_D = "";
-    final static public String PREF_SSH_PASS = "ssh_pass"; final public static String PREF_SSH_PASS_D = "";
-    final static public String PREF_SSH_KEY = "ssh_key"; final public static String PREF_SSH_KEY_D = null;
+    final static public String PREF_SSH_PASSWORD = "ssh_password"; final public static String PREF_SSH_PASSWORD_D = "";
+    final static public String PREF_SSH_KEY_FILE = "ssh_key_file"; final public static String PREF_SSH_KEY_FILE_D = null;
+    final static public String PREF_SSH_KEY_PASSPHRASE = "ssh_key_passphrase"; final public static String PREF_SSH_KEY_PASSPHRASE_D = null;
     final static public String PREF_SSH_KNOWN_HOSTS = "ssh_known_hosts"; final public static String PREF_SSH_KNOWN_HOSTS_D = "";
 
     // relay
@@ -152,5 +153,10 @@ public class Constants {
     @SuppressWarnings("SameParameterValue")
     private static String getResourceString(int id) {
         return Weechat.applicationContext.getResources().getString(id);
+    }
+
+    static public class Deprecated {
+        final static public String PREF_SSH_PASS = "ssh_pass"; final public static String PREF_SSH_PASS_D = "";
+        final static public String PREF_SSH_KEY = "ssh_key"; final public static String PREF_SSH_KEY_D = null;
     }
 }

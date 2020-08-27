@@ -14,6 +14,10 @@
         <item >websocket</item>
         <item >websocket-ssl</item>
     </string-array>
+    <string-array name="pref_ssh_authentication_method_values">
+        <item>password</item>
+        <item>key</item>
+    </string-array>
     <string-array name="settings_theme_values">
         <item >system</item>
         <item >dark</item>
