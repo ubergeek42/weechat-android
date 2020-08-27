@@ -38,6 +38,7 @@ import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
 import com.ubergeek42.weechat.Color;
 import com.ubergeek42.weechat.ColorScheme;
+import com.ubergeek42.weechat.relay.connection.SSHConnection;
 
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -222,8 +223,9 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     static String connectionType;
     static String sshHost;
     static String sshUser;
-    static String sshPass;
-    static byte[] sshKey, sshKnownHosts;
+    static SSHConnection.AuthenticationMethod sshAuthenticationMethod;
+    static String sshPassword, sshKeyPassphrase;
+    static byte[] sshKeyFile, sshKnownHosts;
     static public int port;
     static int sshPort;
     static SSLSocketFactory sslSocketFactory;
@@ -248,8 +250,12 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         sshHost = p.getString(PREF_SSH_HOST, PREF_SSH_HOST_D);
         sshPort = Integer.valueOf(getString(PREF_SSH_PORT, PREF_SSH_PORT_D));
         sshUser = p.getString(PREF_SSH_USER, PREF_SSH_USER_D);
-        //sshPass = p.getString(PREF_SSH_PASS, PREF_SSH_PASS_D);
-        //sshKey = FilePreference.getData(p.getString(PREF_SSH_KEY, PREF_SSH_KEY_D));
+        sshAuthenticationMethod = PREF_SSH_AUTHENTICATION_METHOD_KEY.equals(
+                p.getString(PREF_SSH_AUTHENTICATION_METHOD, PREF_SSH_AUTHENTICATION_METHOD_D)) ?
+                        SSHConnection.AuthenticationMethod.KEY : SSHConnection.AuthenticationMethod.PASSWORD;
+        sshPassword = p.getString(PREF_SSH_PASSWORD, PREF_SSH_PASSWORD_D);
+        sshKeyFile = FilePreference.getData(p.getString(PREF_SSH_KEY_FILE, PREF_SSH_KEY_FILE_D));
+        sshKeyPassphrase = p.getString(PREF_SSH_KEY_PASSPHRASE, PREF_SSH_KEY_PASSPHRASE_D);
         sshKnownHosts = FilePreference.getData(p.getString(PREF_SSH_KNOWN_HOSTS, PREF_SSH_KNOWN_HOSTS_D));
 
         lineIncrement = Integer.parseInt(getString(PREF_LINE_INCREMENT, PREF_LINE_INCREMENT_D));
@@ -275,7 +281,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         if (TextUtils.isEmpty(pass)) return R.string.pref_error_relay_password_not_set;
         if (connectionType.equals(PREF_TYPE_SSH)) {
             if (TextUtils.isEmpty(sshHost)) return R.string.pref_error_ssh_host_not_set;
-            if (Utils.isEmpty(sshKey) && TextUtils.isEmpty(sshPass)) return R.string.pref_error_no_ssh_key;
+            if (Utils.isEmpty(sshKeyFile) && TextUtils.isEmpty(sshPassword)) return R.string.pref_error_no_ssh_key;
             if (Utils.isEmpty(sshKnownHosts)) return R.string.pref_error_no_ssh_known_hosts;
         }
         return 0;

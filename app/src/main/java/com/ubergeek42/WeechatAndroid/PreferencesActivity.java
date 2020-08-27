@@ -122,7 +122,7 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
             int code = -1;
             if (preference instanceof FilePreference) {
                 switch (preference.getKey()) {
-                    //case PREF_SSH_KEY: code = PREF_SSH_KEY_ID; break;
+                    case PREF_SSH_KEY_FILE: code = PREF_SSH_KEY_ID; break;
                     case PREF_SSH_KNOWN_HOSTS: code = PREF_SSH_KNOWN_HOSTS_ID; break;
                     case PREF_SSL_CLIENT_CERTIFICATE: code = PREF_TLS_CLIENT_FILE_ID; break;
                 }
@@ -198,7 +198,7 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
             if (resultCode == RESULT_OK) {
                 switch (requestCode) {
                     case PREF_RINGTONE_ID: ((RingtonePreferenceFix) findPreference(PREF_NOTIFICATION_SOUND)).onActivityResult(data); break;
-                    //case PREF_SSH_KEY_ID: ((FilePreference) findPreference(PREF_SSH_KEY)).onActivityResult(data); break;
+                    case PREF_SSH_KEY_ID: ((FilePreference) findPreference(PREF_SSH_KEY_FILE)).onActivityResult(data); break;
                     case PREF_SSH_KNOWN_HOSTS_ID: ((FilePreference) findPreference(PREF_SSH_KNOWN_HOSTS)).onActivityResult(data); break;
                     case PREF_TLS_CLIENT_FILE_ID: ((FilePreference) findPreference(PREF_SSL_CLIENT_CERTIFICATE)).onActivityResult(data); break;
                 }

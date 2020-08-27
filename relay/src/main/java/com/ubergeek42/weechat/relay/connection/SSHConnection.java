@@ -5,35 +5,55 @@ import com.trilead.ssh2.ConnectionInfo;
 import com.trilead.ssh2.KnownHosts;
 import com.trilead.ssh2.LocalPortForwarder;
 import com.trilead.ssh2.ServerHostKeyVerifier;
+import com.trilead.ssh2.crypto.PEMDecoder;
 
 import java.io.IOException;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyPair;
 
 import static com.ubergeek42.weechat.relay.connection.RelayConnection.CONNECTION_TIMEOUT;
 
 public class SSHConnection implements IConnection {
+    public enum AuthenticationMethod {
+        PASSWORD, KEY
+    }
+
     final private String hostname;
     final private int port;
 
     final private String sshUsername;
     final private String sshPassword;
-    final private char[] sshKey;
+    private final AuthenticationMethod authenticationMethod;
+
+    final private KeyPair keyPair;
 
     final private Connection connection;
     final private ServerHostKeyVerifier hostKeyVerifier;
     private LocalPortForwarder forwarder;
 
-    public SSHConnection(String hostname, int port, String sshHostname, int sshPort, String sshUsername,
-                         String sshPassword, byte[] sshKey, byte[] sshKnownHosts) throws IOException {
+    public SSHConnection(String hostname, int port,
+                         String sshHostname, int sshPort, String sshUsername,
+                         AuthenticationMethod authenticationMethod,
+                         String sshPassword,
+                         byte[] sshKey, String sshPassphrase,
+                         byte[] sshKnownHosts) throws IOException {
         this.hostname = hostname;
         this.port = port;
         this.sshUsername = sshUsername;
-        this.sshPassword = sshPassword;
-        this.sshKey = sshKey == null ? null : new String(sshKey, StandardCharsets.UTF_8).toCharArray();
+
+        this.authenticationMethod = authenticationMethod;
+        if (authenticationMethod == AuthenticationMethod.KEY) {
+            keyPair = getKeyPair(sshKey, sshPassphrase);
+            this.sshPassword = null;
+        } else {
+            keyPair = null;
+            this.sshPassword = sshPassword;
+        }
 
         connection = new Connection(sshHostname, sshPort);
         connection.setCompression(true);
+        connection.enableDebugging(true, null);
 
         char[] charSshKnownHosts = new String(sshKnownHosts, StandardCharsets.UTF_8).toCharArray();
         KnownHosts knownHosts = new KnownHosts(charSshKnownHosts);
@@ -41,13 +61,15 @@ public class SSHConnection implements IConnection {
     }
 
     @Override public Streams connect() throws IOException {
-        ConnectionInfo connectionInfo = connection.connect(hostKeyVerifier, CONNECTION_TIMEOUT, CONNECTION_TIMEOUT);
-        boolean useKeyFile = sshKey != null && sshKey.length > 0;
+        ConnectionInfo connectionInfo = connection.connect(hostKeyVerifier,
+                CONNECTION_TIMEOUT, CONNECTION_TIMEOUT);
 
-        if (useKeyFile) {
-            connection.authenticateWithPublicKey(sshUsername, sshKey, sshPassword);
+        if (authenticationMethod == AuthenticationMethod.KEY) {
+            if (!connection.authenticateWithPublicKey(sshUsername, keyPair))
+                throw new IOException("Failed to authenticate with public key");
         } else {
-            connection.authenticateWithPassword(sshUsername, sshPassword);
+            if (!connection.authenticateWithPassword(sshUsername, sshPassword))
+                throw new IOException("Failed to authenticate with password");
         }
 
         int localPort = Utils.findAvailablePort();
@@ -59,5 +81,10 @@ public class SSHConnection implements IConnection {
     @Override public void disconnect() {
         connection.close();
         if (forwarder != null) forwarder.close();
+    }
+
+    public static KeyPair getKeyPair(byte[] sshKey, String sshPassword) throws IOException {
+        char[] charKey = new String(sshKey, StandardCharsets.UTF_8).toCharArray();
+        return PEMDecoder.decode(charKey, sshPassword);
     }
 }
