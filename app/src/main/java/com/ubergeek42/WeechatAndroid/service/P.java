@@ -283,7 +283,11 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         if (TextUtils.isEmpty(pass)) return R.string.pref_error_relay_password_not_set;
         if (connectionType.equals(PREF_TYPE_SSH)) {
             if (TextUtils.isEmpty(sshHost)) return R.string.pref_error_ssh_host_not_set;
-            if (Utils.isEmpty(sshKeyFile) && TextUtils.isEmpty(sshPassword)) return R.string.pref_error_no_ssh_key;
+            if (sshAuthenticationMethod == SSHConnection.AuthenticationMethod.KEY) {
+                if (Utils.isEmpty(sshKeyFile)) return R.string.pref_error_no_ssh_key_file;;
+            } else {
+                if (TextUtils.isEmpty(sshPassword)) return R.string.pref_error_no_ssh_password;
+            }
             if (Utils.isEmpty(sshKnownHosts)) return R.string.pref_error_no_ssh_known_hosts;
         }
         return 0;

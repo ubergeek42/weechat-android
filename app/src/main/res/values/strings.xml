@@ -95,7 +95,8 @@
     <string name="pref_error_relay_host_not_set">Relay host is not set</string>
     <string name="pref_error_relay_password_not_set">Relay password is not set</string>
     <string name="pref_error_ssh_host_not_set">SSH host is not set</string>
-    <string name="pref_error_no_ssh_key">Neither SSH key nor password is set</string>
+    <string name="pref_error_no_ssh_key_file">SSH private key is not set</string>
+    <string name="pref_error_no_ssh_password">SSH password is not set</string>
     <string name="pref_error_no_ssh_known_hosts">SSH known hosts are not set</string>
 
     <string name="pref_connection_group">Connection</string>

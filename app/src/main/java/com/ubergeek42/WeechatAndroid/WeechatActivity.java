@@ -317,6 +317,7 @@ public class WeechatActivity extends AppCompatActivity implements
     // '101 Switching Protocols'”. this error is also valid so we consider this a non-issue
     @Subscribe
     @WorkerThread @Cat public void onEvent(final ExceptionEvent event) {
+        kitty.error("onEvent(ExceptionEvent)", event.e);
         final Exception e = event.e;
         if (findException(e, SSLPeerUnverifiedException.class) != null ||
                 findException(e, CertificateException.class) != null) {
