@@ -53,11 +53,9 @@ public class SSHConnection implements IConnection {
 
         connection = new Connection(sshHostname, sshPort);
         connection.setCompression(true);
-        connection.enableDebugging(true, null);
+        //connection.enableDebugging(true, null);
 
-        char[] charSshKnownHosts = new String(sshKnownHosts, StandardCharsets.UTF_8).toCharArray();
-        KnownHosts knownHosts = new KnownHosts(charSshKnownHosts);
-        hostKeyVerifier = new SSHServerKeyVerifier(knownHosts);
+        hostKeyVerifier = new SSHServerKeyVerifier(getKnownHosts(sshKnownHosts));
     }
 
     @Override public Streams connect() throws IOException {
@@ -84,7 +82,17 @@ public class SSHConnection implements IConnection {
     }
 
     public static KeyPair getKeyPair(byte[] sshKey, String sshPassword) throws IOException {
-        char[] charKey = new String(sshKey, StandardCharsets.UTF_8).toCharArray();
+        char[] charKey = new String(sshKey, StandardCharsets.ISO_8859_1).toCharArray();
         return PEMDecoder.decode(charKey, sshPassword);
+    }
+
+    public static KnownHosts getKnownHosts(byte[] knownHosts) throws IOException {
+        char[] charKnownHosts = new String(knownHosts, StandardCharsets.ISO_8859_1).toCharArray();
+        return new KnownHosts(charKnownHosts);
+    }
+
+    // the above method is not importable from the app
+    public static void validateKnownHosts(byte[] knownHosts) throws IOException {
+        getKnownHosts(knownHosts);
     }
 }
