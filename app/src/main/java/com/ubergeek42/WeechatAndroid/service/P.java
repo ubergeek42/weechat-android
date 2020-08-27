@@ -30,6 +30,7 @@ import com.ubergeek42.WeechatAndroid.Weechat;
 import com.ubergeek42.WeechatAndroid.media.Config;
 import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
+import com.ubergeek42.WeechatAndroid.utils.MigratePreferences;
 import com.ubergeek42.WeechatAndroid.utils.ThemeFix;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.cats.Cat;
@@ -70,6 +71,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         instance = new P();
         P.context = context;
         p = PreferenceManager.getDefaultSharedPreferences(context);
+        new MigratePreferences(context).migrate();
         loadUIPreferences();
         p.registerOnSharedPreferenceChangeListener(instance);
         calculateWeaselWidth();
