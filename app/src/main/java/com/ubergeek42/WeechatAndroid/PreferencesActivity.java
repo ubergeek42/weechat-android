@@ -10,6 +10,7 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
@@ -121,7 +122,7 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
             int code = -1;
             if (preference instanceof FilePreference) {
                 switch (preference.getKey()) {
-                    case PREF_SSH_KEY: code = PREF_SSH_KEY_ID; break;
+                    //case PREF_SSH_KEY: code = PREF_SSH_KEY_ID; break;
                     case PREF_SSH_KNOWN_HOSTS: code = PREF_SSH_KNOWN_HOSTS_ID; break;
                     case PREF_SSL_CLIENT_CERTIFICATE: code = PREF_TLS_CLIENT_FILE_ID; break;
                 }
@@ -160,9 +161,10 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
                 wsPath = findPreference(PREF_WS_PATH);
                 showHideStuff(getPreferenceScreen().getSharedPreferences().getString(PREF_CONNECTION_TYPE, PREF_CONNECTION_TYPE_D));
                 listenTo = new String[] {PREF_CONNECTION_TYPE, PREF_HOST, PREF_PORT};
-            } else if (PREF_SSH_GROUP.equals(key))
-                listenTo = new String[] {PREF_SSH_HOST, PREF_SSH_PORT};
-            else if (PREF_PING_GROUP.equals(key))
+            } else if (PREF_SSH_GROUP.equals(key)) {
+                listenTo = new String[]{PREF_SSH_AUTHENTICATION_METHOD, PREF_SSH_HOST, PREF_SSH_PORT};
+                switchSshAuthenticationMethodPreferences(null);
+            } else if (PREF_PING_GROUP.equals(key))
                 listenTo = new String[] {PREF_PING_IDLE, PREF_PING_TIMEOUT};
             else if (PREF_LOOKFEEL_GROUP.equals(key))
                 listenTo = new String[] {PREF_TEXT_SIZE, PREF_MAX_WIDTH, PREF_TIMESTAMP_FORMAT};
@@ -196,7 +198,7 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
             if (resultCode == RESULT_OK) {
                 switch (requestCode) {
                     case PREF_RINGTONE_ID: ((RingtonePreferenceFix) findPreference(PREF_NOTIFICATION_SOUND)).onActivityResult(data); break;
-                    case PREF_SSH_KEY_ID: ((FilePreference) findPreference(PREF_SSH_KEY)).onActivityResult(data); break;
+                    //case PREF_SSH_KEY_ID: ((FilePreference) findPreference(PREF_SSH_KEY)).onActivityResult(data); break;
                     case PREF_SSH_KNOWN_HOSTS_ID: ((FilePreference) findPreference(PREF_SSH_KNOWN_HOSTS)).onActivityResult(data); break;
                     case PREF_TLS_CLIENT_FILE_ID: ((FilePreference) findPreference(PREF_SSL_CLIENT_CERTIFICATE)).onActivityResult(data); break;
                 }
@@ -210,6 +212,8 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
             if (Utils.isAnyOf(key, PREF_HOST, PREF_SSH_HOST)) {
                 valid = !((String) o).contains(" ");
                 toast = R.string.pref_hostname_invalid;
+            } else if (PREF_SSH_AUTHENTICATION_METHOD.equals(key)) {
+                switchSshAuthenticationMethodPreferences((String) o);
             } else if (Utils.isAnyOf(key, PREF_TEXT_SIZE, PREF_MAX_WIDTH, PREF_PORT, PREF_SSH_PORT, PREF_PING_IDLE, PREF_PING_TIMEOUT)) {
                 valid = Utils.isAllDigits((String) o);
                 toast = R.string.pref_number_invalid;
@@ -239,6 +243,14 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
             sslGroup.setVisible(Utils.isAnyOf(type, PREF_TYPE_SSL, PREF_TYPE_WEBSOCKET_SSL));
             sshGroup.setVisible(PREF_TYPE_SSH.equals(type));
             wsPath.setVisible(Utils.isAnyOf(type, PREF_TYPE_WEBSOCKET, PREF_TYPE_WEBSOCKET_SSL));
+        }
+
+        private void switchSshAuthenticationMethodPreferences(@Nullable String method) {
+            if (method == null) method = getPreferenceScreen().getSharedPreferences().getString(
+                    PREF_SSH_AUTHENTICATION_METHOD, PREF_SSH_AUTHENTICATION_METHOD_D);
+            boolean key = PREF_SSH_AUTHENTICATION_METHOD_KEY.equals(method);
+            findPreference(PREF_SSH_KEY_FILE).setVisible(key);
+            findPreference(PREF_SSH_PASSWORD).setVisible(!key);
         }
 
         // visually disable and uncheck the theme switch preference if the theme is chosen by system

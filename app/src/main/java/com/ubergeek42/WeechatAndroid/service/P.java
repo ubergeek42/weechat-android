@@ -248,8 +248,8 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         sshHost = p.getString(PREF_SSH_HOST, PREF_SSH_HOST_D);
         sshPort = Integer.valueOf(getString(PREF_SSH_PORT, PREF_SSH_PORT_D));
         sshUser = p.getString(PREF_SSH_USER, PREF_SSH_USER_D);
-        sshPass = p.getString(PREF_SSH_PASS, PREF_SSH_PASS_D);
-        sshKey = FilePreference.getData(p.getString(PREF_SSH_KEY, PREF_SSH_KEY_D));
+        //sshPass = p.getString(PREF_SSH_PASS, PREF_SSH_PASS_D);
+        //sshKey = FilePreference.getData(p.getString(PREF_SSH_KEY, PREF_SSH_KEY_D));
         sshKnownHosts = FilePreference.getData(p.getString(PREF_SSH_KNOWN_HOSTS, PREF_SSH_KNOWN_HOSTS_D));
 
         lineIncrement = Integer.parseInt(getString(PREF_LINE_INCREMENT, PREF_LINE_INCREMENT_D));

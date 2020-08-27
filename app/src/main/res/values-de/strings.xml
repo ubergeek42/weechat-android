@@ -145,9 +145,9 @@
     <string name="pref_ssh_host">SSH-Host</string>
     <string name="pref_ssh_user">SSH-Username</string>
     <string name="pref_ssh_port">SSH-Port</string>
-    <string name="pref_ssh_pass">SSH-Passwort/Schlüsselpassphrase</string>
-    <string name="pref_ssh_key">Privater Schlüssel</string>
-    <string name="pref_ssh_key_summary">DSA, RSA, ECDSA privater Schlüssel in OpenSSH oder PuTTY
+    <string name="pref_ssh_password">SSH-Passwort/Schlüsselpassphrase</string>
+    <string name="pref_ssh_keyfile">Privater Schlüssel</string>
+    <string name="pref_ssh_keyfile_summary">DSA, RSA, ECDSA privater Schlüssel in OpenSSH oder PuTTY
         Format</string>
     <string name="pref_ssh_known_hosts">Bekannte Hosts</string>
     <string name="pref_ssh_known_hosts_summary">Ausgabe von $ ssh-keyscan host 2>/dev/null</string>

@@ -32,6 +32,10 @@ public class Constants {
     final static public String PREF_SSH_HOST = "ssh_host"; final public static String PREF_SSH_HOST_D = "";
     final static public String PREF_SSH_PORT = "ssh_port"; final public static String PREF_SSH_PORT_D = "22";
     final static public String PREF_SSH_USER = "ssh_user"; final public static String PREF_SSH_USER_D = "";
+    final static public String PREF_SSH_AUTHENTICATION_METHOD = "ssh_authentication_method";
+    final static public String PREF_SSH_AUTHENTICATION_METHOD_PASSWORD = "password";
+    final static public String PREF_SSH_AUTHENTICATION_METHOD_KEY = "key";
+    final public static String PREF_SSH_AUTHENTICATION_METHOD_D = PREF_SSH_AUTHENTICATION_METHOD_PASSWORD;
     final static public String PREF_SSH_PASSWORD = "ssh_password"; final public static String PREF_SSH_PASSWORD_D = "";
     final static public String PREF_SSH_KEY_FILE = "ssh_key_file"; final public static String PREF_SSH_KEY_FILE_D = null;
     final static public String PREF_SSH_KEY_PASSPHRASE = "ssh_key_passphrase"; final public static String PREF_SSH_KEY_PASSPHRASE_D = null;

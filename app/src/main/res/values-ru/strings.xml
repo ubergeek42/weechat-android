@@ -89,9 +89,9 @@
     <string name="pref_ssh_host">Хост SSH</string>
     <string name="pref_ssh_user">Имя пользователя SSH</string>
     <string name="pref_ssh_port">Порт SSH</string>
-    <string name="pref_ssh_pass">Пароль SSH или ключа</string>
-    <string name="pref_ssh_key">Закрытый ключ</string>
-    <string name="pref_ssh_key_summary">Ключ DSA, RSA, ECDSA в формате OpenSSH или PuTTY</string>
+    <string name="pref_ssh_password">Пароль SSH или ключа</string>
+    <string name="pref_ssh_keyfile">Закрытый ключ</string>
+    <string name="pref_ssh_keyfile_summary">Ключ DSA, RSA, ECDSA в формате OpenSSH или PuTTY</string>
     <string name="pref_ssh_known_hosts">Известные хосты</string>
     <string name="pref_ssh_known_hosts_summary">Вывод $ ssh-keyscan хост 2>/dev/null</string>
     <string name="pref_tabbtn_show">Показывать кнопку Tab</string>

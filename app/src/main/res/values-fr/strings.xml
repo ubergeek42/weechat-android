@@ -85,9 +85,9 @@
   <string name="pref_ssh_host">Nom d’hôte SSH</string>
   <string name="pref_ssh_user">Nom d’utilisateur SSH</string>
   <string name="pref_ssh_port">Port SSH</string>
-  <string name="pref_ssh_pass">Phrase de passe SSH</string>
-  <string name="pref_ssh_key">Clé privée</string>
-  <string name="pref_ssh_key_summary">Clé privée DSA, RSA or ECDSA au format OpenSSH ou PuTTY</string>
+  <string name="pref_ssh_password">Phrase de passe SSH</string>
+  <string name="pref_ssh_keyfile">Clé privée</string>
+  <string name="pref_ssh_keyfile_summary">Clé privée DSA, RSA or ECDSA au format OpenSSH ou PuTTY</string>
   <string name="pref_ssh_known_hosts">Hôtes connues</string>
   <string name="pref_ssh_known_hosts_summary">Résultat de $ ssh-keyscan host 2>/dev/null</string>
   <string name="pref_file_imported">Fichier importé. Vous pouvez supprimer l’original.</string>
