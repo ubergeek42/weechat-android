@@ -5,6 +5,8 @@ import android.security.keystore.KeyInfo;
 
 import androidx.annotation.RequiresApi;
 
+import com.ubergeek42.weechat.relay.connection.SSHConnection;
+
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
@@ -32,6 +34,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.UnrecoverableKeyException;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
@@ -124,4 +127,14 @@ public class SecurityUtils {
         }
         return true;
     }
+
+    public static void putKeyPairIntoAndroidKeyStore(KeyPair keyPair, String alias)
+            throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException,
+            OperatorCreationException {
+        KeyStore androidKeyStore = getAndroidKeyStore();
+        androidKeyStore.setKeyEntry(alias, keyPair.getPrivate(), null, new Certificate[]{
+                generateSelfSignedCertificate(keyPair)
+        });
+    }
+
 }

@@ -4,18 +4,27 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
+import androidx.preference.PrivateKeyPickerPreference;
+
+import com.ubergeek42.WeechatAndroid.Weechat;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
+import com.ubergeek42.weechat.relay.connection.SSHConnection;
 
+import java.security.KeyPair;
 import java.util.ArrayList;
 import java.util.List;
 
+import static androidx.preference.PrivateKeyPickerPreference.STORED_IN_KEYSTORE;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_AUTHENTICATION_METHOD;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_AUTHENTICATION_METHOD_KEY;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_AUTHENTICATION_METHOD_PASSWORD;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_KEY_FILE;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_KEY_FILE_D;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_KEY_PASSPHRASE;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_KEY_PASSPHRASE_D;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_PASSWORD;
+import static com.ubergeek42.WeechatAndroid.utils.SecurityUtils.putKeyPairIntoAndroidKeyStore;
 
 public class MigratePreferences {
     final private static @Root Kitty kitty = Kitty.make();
@@ -53,15 +62,15 @@ public class MigratePreferences {
 
 
     public void migrate() {
-        while (true) {
+        main: while (true) {
             int version = preferences.getInt(VERSION_KEY, 0);
             for (Migrator migrator : migrators) {
                 if (migrator.oldVersion == version) {
                     migrator.migrate();
-                    break;
+                    continue main;
                 }
-                return;
             }
+            return;
         }
     }
 
@@ -96,6 +105,39 @@ public class MigratePreferences {
                     .remove(Constants.Deprecated.PREF_SSH_PASS)
                     .remove(Constants.Deprecated.PREF_SSH_KEY)
                     .apply();
+        }));
+
+        migrators.add(new Migrator(1, 2, () -> {
+            String sshKeyFile = preferences.getString(PREF_SSH_KEY_FILE, PREF_SSH_KEY_FILE_D);
+            String sshPassphrase = preferences.getString(PREF_SSH_KEY_PASSPHRASE, PREF_SSH_KEY_PASSPHRASE_D);
+            if (sshKeyFile == null)
+                return;
+
+            if (!STORED_IN_KEYSTORE.equals(sshKeyFile)) {
+                byte[] sshKeyFileBytes = PrivateKeyPickerPreference.getData(sshKeyFile);
+                try {
+                    KeyPair keyPair = SSHConnection.getKeyPair(sshKeyFileBytes, sshPassphrase);
+                    putKeyPairIntoAndroidKeyStore(keyPair, SSHConnection.KEYSTORE_ALIAS);
+                    preferences.edit()
+                            .putString(PREF_SSH_KEY_FILE, STORED_IN_KEYSTORE)
+                            .putString(PREF_SSH_KEY_PASSPHRASE, null)
+                            .apply();
+                    String message;
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                        message = SecurityUtils.isInsideSecurityHardware(SSHConnection.KEYSTORE_ALIAS) ?
+                                "security hardware" :
+                                "key store, but not inside security hardware";
+                    } else {
+                        message = "key store";
+                    }
+                    Weechat.showLongToast("While migrating preferences, private SSH key was moved " +
+                            "into " + message);
+                } catch (Exception e) {
+                    Weechat.showLongToast("While migrating preferences, attempted to move SSH " +
+                            "private key into AndroidKeyStore. This was unsuccessful. Reason: " +
+                            e.getMessage());
+                }
+            }
         }));
     }
 }

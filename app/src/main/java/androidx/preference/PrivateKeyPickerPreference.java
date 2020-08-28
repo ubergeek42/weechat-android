@@ -19,6 +19,7 @@ import java.security.cert.Certificate;
 
 import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_KEY_FILE;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_KEY_PASSPHRASE;
+import static com.ubergeek42.WeechatAndroid.utils.SecurityUtils.putKeyPairIntoAndroidKeyStore;
 
 public class PrivateKeyPickerPreference extends PasswordedFilePickerPreference {
     final private static @Root Kitty kitty = Kitty.make();
@@ -28,29 +29,24 @@ public class PrivateKeyPickerPreference extends PasswordedFilePickerPreference {
         super(context, attrs);
     }
 
-    @Override protected String saveData(@Nullable byte[] bytes, @NonNull String password) throws Exception {
+    @Override protected String saveData(@Nullable byte[] bytes, @NonNull String passphrase) throws Exception {
         String key, message;
         if (bytes != null) {
-            KeyPair keyPair = SSHConnection.getKeyPair(bytes, password);
+            KeyPair keyPair = SSHConnection.getKeyPair(bytes, passphrase);
 
             try {
-                KeyStore androidKeystore = KeyStore.getInstance("AndroidKeyStore");
-                androidKeystore.load(null);
-                androidKeystore.setKeyEntry(SSHConnection.KEYSTORE_ALIAS, keyPair.getPrivate(), null, new Certificate[]{
-                        SecurityUtils.generateSelfSignedCertificate(keyPair)
-                });
+                putKeyPairIntoAndroidKeyStore(keyPair, SSHConnection.KEYSTORE_ALIAS);
                 key = STORED_IN_KEYSTORE;
-                password = null;
+                passphrase = null;
 
-                PrivateKey privateKey = SSHConnection.getKeyPairFromKeyStore().getPrivate();
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-                    message = SecurityUtils.isInsideSecurityHardware(privateKey) ?
+                    message = SecurityUtils.isInsideSecurityHardware(SSHConnection.KEYSTORE_ALIAS) ?
                             "%s key was stored inside security hardware" :
                             "%s key was stored in key store but not inside security hardware";
                 } else {
                     message = "%s key was stored in key store";
                 }
-                message = String.format(message, privateKey.getAlgorithm());
+                message = String.format(message, keyPair.getPrivate().getAlgorithm());
             } catch (Exception e) {
                 key = Base64.encodeToString(bytes, Base64.NO_WRAP);
                 message = "%s key was stored inside the app.\n\nThe key couldn't be stored in the key store: " + e.getMessage();
@@ -58,7 +54,7 @@ public class PrivateKeyPickerPreference extends PasswordedFilePickerPreference {
                 kitty.warn(message, e);
             }
         } else {
-            key = password = null;
+            key = passphrase = null;
             message = "Key forgotten";
             try {
                 KeyStore androidKeystore = KeyStore.getInstance("AndroidKeyStore");
@@ -71,10 +67,11 @@ public class PrivateKeyPickerPreference extends PasswordedFilePickerPreference {
 
         getSharedPreferences().edit()
                 .putString(PREF_SSH_KEY_FILE, key)
-                .putString(PREF_SSH_KEY_PASSPHRASE, password).apply();
+                .putString(PREF_SSH_KEY_PASSPHRASE, passphrase).apply();
         notifyChanged();
         return message;
     }
+
 
     public static @Nullable byte[] getData(String data) {
         return STORED_IN_KEYSTORE.equals(data) ?
