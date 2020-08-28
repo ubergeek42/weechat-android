@@ -13,12 +13,12 @@
 # support library stuff
 -keep public class android.support.v7.preference.** { *; }
 
--keep class com.jcraft.jsch.jce.*
--keep class * extends com.jcraft.jsch.KeyExchange
--keep class com.jcraft.jsch.**
--keep interface com.jcraft.jsch.**
 -dontwarn org.ietf.jgss.*
 -dontwarn com.jcraft.jzlib.ZStream
+
+# neede for ssh
+-keep public class com.trilead.ssh2.compression.**
+-keep public class com.trilead.ssh2.crypto.**
 
 # strip debug and trace (verbose) logging
 -assumenosideeffects class org.slf4j.Logger {

@@ -67,7 +67,6 @@
   <string name="pref_error_relay_host_not_set">L’hôte du relai n’est pas définie</string>
   <string name="pref_error_relay_password_not_set">Le mot de passe du relai n’est pas défini</string>
   <string name="pref_error_ssh_host_not_set">L’hôte SSH n’est pas définie</string>
-  <string name="pref_error_no_ssh_key">Pas de clé SSH ni de mot de passe défini</string>
   <string name="pref_error_no_ssh_known_hosts">Les hôtes SSH connues ne sont pas définies</string>
   <string name="pref_connection_group">Connexion</string>
   <string name="pref_connection_type_plain">Connexion en clair</string>

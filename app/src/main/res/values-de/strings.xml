@@ -106,8 +106,6 @@
     <string name="pref_error_relay_host_not_set">Relay-Host ist nicht angelegt</string>
     <string name="pref_error_relay_password_not_set">Kein Relay-Passwort angelegt</string>
     <string name="pref_error_ssh_host_not_set">SSH-Host ist nicht angelegt</string>
-    <string name="pref_error_no_ssh_key">Weder ein SSH-Schlüssel noch ein Passwort wird
-        genutzt</string>
     <string name="pref_error_no_ssh_known_hosts">Bekannte SSH-Hosts sind nicht angelegt</string>
 
     <string name="pref_connection_group">Verbindung</string>

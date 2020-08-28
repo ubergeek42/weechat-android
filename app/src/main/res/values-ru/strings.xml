@@ -62,7 +62,6 @@
     <string name="pref_error_relay_host_not_set">Не задан хост релея</string>
     <string name="pref_error_relay_password_not_set">Не задан пароль релея</string>
     <string name="pref_error_ssh_host_not_set">Не задан хост SSH</string>
-    <string name="pref_error_no_ssh_key">Не задан ни ключ, ни пароль SSH</string>
     <string name="pref_error_no_ssh_known_hosts">Не заданы известные хосты SSH</string>
     <string name="pref_connection_group">Подключение</string>
     <string name="pref_connection_type_plain">Незащищённый релей</string>
