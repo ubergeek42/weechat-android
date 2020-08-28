@@ -11,10 +11,20 @@ import java.io.IOException;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 
 import static com.ubergeek42.weechat.relay.connection.RelayConnection.CONNECTION_TIMEOUT;
 
 public class SSHConnection implements IConnection {
+    final public static String KEYSTORE_ALIAS = "ssh-connection-key-0";
+    final public static byte[] STORED_IN_KEYSTORE_MARKER = new byte[]{13, 37};
+
     public enum AuthenticationMethod {
         PASSWORD, KEY
     }
@@ -37,14 +47,15 @@ public class SSHConnection implements IConnection {
                          AuthenticationMethod authenticationMethod,
                          String sshPassword,
                          byte[] sshKey, String sshPassphrase,
-                         byte[] sshKnownHosts) throws IOException {
+                         byte[] sshKnownHosts) throws Exception {
         this.hostname = hostname;
         this.port = port;
         this.sshUsername = sshUsername;
 
         this.authenticationMethod = authenticationMethod;
         if (authenticationMethod == AuthenticationMethod.KEY) {
-            keyPair = getKeyPair(sshKey, sshPassphrase);
+            keyPair = sshKey == STORED_IN_KEYSTORE_MARKER ?
+                    getKeyPairFromKeyStore() : getKeyPair(sshKey, sshPassphrase);
             this.sshPassword = null;
         } else {
             keyPair = null;
@@ -84,6 +95,15 @@ public class SSHConnection implements IConnection {
     public static KeyPair getKeyPair(byte[] sshKey, String sshPassword) throws IOException {
         char[] charKey = new String(sshKey, StandardCharsets.ISO_8859_1).toCharArray();
         return PEMDecoder.decode(charKey, sshPassword);
+    }
+
+    public static KeyPair getKeyPairFromKeyStore() throws KeyStoreException, CertificateException,
+            NoSuchAlgorithmException, IOException, UnrecoverableKeyException {
+        KeyStore ks = KeyStore.getInstance("AndroidKeyStore");
+        ks.load(null);
+        PrivateKey privateKey = (PrivateKey) ks.getKey(KEYSTORE_ALIAS, null);
+        PublicKey publicKey = ks.getCertificate(KEYSTORE_ALIAS).getPublicKey();
+        return new KeyPair(publicKey, privateKey);
     }
 
     public static KnownHosts getKnownHosts(byte[] knownHosts) throws IOException {

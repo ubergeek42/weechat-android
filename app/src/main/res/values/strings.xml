@@ -143,7 +143,7 @@
 
             <string name="pref_ssh_password">SSH password</string>
             <string name="pref_ssh_keyfile">Private key</string>
-            <string name="pref_ssh_keyfile_summary">Ed25519, ECDSA, RSA key in OpenSSH or PuTTY format</string>
+            <string name="pref_ssh_keyfile_summary">Ed25519, ECDSA, RSA or DSA key</string>
             <string name="pref_ssh_known_hosts">Known hosts</string>
             <string name="pref_ssh_known_hosts_summary">Output of $ ssh-keyscan host</string>
 

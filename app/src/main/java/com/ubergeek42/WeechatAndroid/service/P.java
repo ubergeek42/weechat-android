@@ -23,6 +23,7 @@ import androidx.annotation.WorkerThread;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.preference.FilePreference;
+import androidx.preference.PrivateKeyPickerPreference;
 import androidx.preference.ThemeManager;
 
 import com.ubergeek42.WeechatAndroid.R;
@@ -256,7 +257,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
                 p.getString(PREF_SSH_AUTHENTICATION_METHOD, PREF_SSH_AUTHENTICATION_METHOD_D)) ?
                         SSHConnection.AuthenticationMethod.KEY : SSHConnection.AuthenticationMethod.PASSWORD;
         sshPassword = p.getString(PREF_SSH_PASSWORD, PREF_SSH_PASSWORD_D);
-        sshKeyFile = FilePreference.getData(p.getString(PREF_SSH_KEY_FILE, PREF_SSH_KEY_FILE_D));
+        sshKeyFile = PrivateKeyPickerPreference.getData(p.getString(PREF_SSH_KEY_FILE, PREF_SSH_KEY_FILE_D));
         sshKeyPassphrase = p.getString(PREF_SSH_KEY_PASSPHRASE, PREF_SSH_KEY_PASSPHRASE_D);
         sshKnownHosts = FilePreference.getData(p.getString(PREF_SSH_KNOWN_HOSTS, PREF_SSH_KNOWN_HOSTS_D));
 

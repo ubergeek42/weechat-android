@@ -13,22 +13,21 @@ import androidx.fragment.app.DialogFragment;
 
 import com.ubergeek42.WeechatAndroid.R;
 
-public class PasswordedFilePickerPreference extends FilePreference implements DialogFragmentGetter {
+public abstract class PasswordedFilePickerPreference extends FilePreference implements DialogFragmentGetter {
     private EditText editText = null;
 
     public PasswordedFilePickerPreference(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
 
-    @Override protected void saveData(@Nullable byte[] bytes) throws Exception {
+    @Override protected String saveData(@Nullable byte[] bytes) throws Exception {
         String password = editText.getText().toString();
-        saveData(bytes, password);
+        return saveData(bytes, password);
     }
 
-    protected void saveData(@Nullable byte[] bytes, @NonNull String password) throws Exception {
-        // validate & save data here; save null if empty and any string otherwise
-        // can throw any exceptions!
-    }
+    // validate & save data here; save null if empty and any string otherwise
+    // can throw any exceptions!
+    protected abstract String saveData(@Nullable byte[] bytes, @NonNull String password) throws Exception;
 
     @Override @NonNull public DialogFragment getDialogFragment() {
         return new PasswordedFilePickerPreferenceFragment();

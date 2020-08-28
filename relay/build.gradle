@@ -2,7 +2,7 @@ apply plugin: 'java'
 
 dependencies {
     implementation 'org.slf4j:slf4j-api:1.7.30'
-    implementation 'com.github.oakkitten:sshlib:main-SNAPSHOT'
+    implementation 'com.github.oakkitten:sshlib:de4f543759016043944122934cda4e08824cedef'
     implementation 'com.neovisionaries:nv-websocket-client:2.9'
 }
 

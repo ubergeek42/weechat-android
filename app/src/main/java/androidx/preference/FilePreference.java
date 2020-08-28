@@ -24,6 +24,9 @@ import com.ubergeek42.cats.Root;
 public class FilePreference extends DialogPreference implements DialogFragmentGetter {
     final private static @Root Kitty kitty = Kitty.make();
 
+    final static String DEFAULT_SUCCESSFULLY_SET = "File imported. You can delete it now";
+    final static String DEFAULT_SUCCESSFULLY_CLEARED = "Cleared";
+
     public FilePreference(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
@@ -34,11 +37,12 @@ public class FilePreference extends DialogPreference implements DialogFragmentGe
                 super.getSummary(), set_not_set);
     }
 
-    protected void saveData(@Nullable byte[] bytes) throws Exception {
+    protected String saveData(@Nullable byte[] bytes) throws Exception {
         if (callChangeListener(bytes)) {
             persistString(bytes == null ? null : Base64.encodeToString(bytes, Base64.NO_WRAP));
             notifyChanged();
         }
+        return bytes == null ? DEFAULT_SUCCESSFULLY_CLEARED : DEFAULT_SUCCESSFULLY_SET;
     }
 
     public static @Nullable byte[] getData(String data) {
@@ -50,9 +54,7 @@ public class FilePreference extends DialogPreference implements DialogFragmentGe
 
     // this gets called when a file has been picked
     public void onActivityResult(@NonNull Intent intent) {
-        runAndShowToast(() ->
-                saveData(Utils.readFromUri(getContext(), intent.getData())),
-                R.string.pref_file_imported);
+        runAndShowToast(() -> saveData(Utils.readFromUri(getContext(), intent.getData())));
     }
 
     @NonNull @Override public DialogFragment getDialogFragment() {
@@ -65,7 +67,7 @@ public class FilePreference extends DialogPreference implements DialogFragmentGe
         @Override protected void onPrepareDialogBuilder(AlertDialog.Builder builder) {
             FilePreference preference = (FilePreference) getPreference();
             builder.setNeutralButton(getString(R.string.pref_file_clear_button), (dialog, which) ->
-                    runAndShowToast(() -> preference.saveData(null), R.string.pref_file_cleared))
+                    runAndShowToast(() -> preference.saveData(null)))
                 .setNegativeButton(getString(R.string.pref_file_paste_button), (dialog, which) -> {
                     // noinspection deprecation
                     ClipboardManager cm = (ClipboardManager) requireContext().getSystemService(Context.CLIPBOARD_SERVICE);
@@ -73,7 +75,7 @@ public class FilePreference extends DialogPreference implements DialogFragmentGe
                     if (TextUtils.isEmpty(clip))
                         Weechat.showShortToast(R.string.pref_file_empty_clipboard);
                     else {
-                        runAndShowToast(() -> preference.saveData(clip.toString().getBytes()), R.string.pref_file_pasted);
+                        runAndShowToast(() -> preference.saveData(clip.toString().getBytes()));
                     }
                 })
                 .setPositiveButton(getString(R.string.pref_file_choose_button), (dialog, which) -> {
@@ -87,13 +89,13 @@ public class FilePreference extends DialogPreference implements DialogFragmentGe
         @Override public void onDialogClosed(boolean b) {}
     }
 
-    interface ThrowingRunnable {void run() throws Exception;}
-    public static void runAndShowToast(ThrowingRunnable runnable, int successString) {
+    interface ThrowingRunnable {String run() throws Exception;}
+    public static void runAndShowToast(ThrowingRunnable runnable) {
         try {
-            runnable.run();
-            Weechat.showShortToast(successString);
+            String s = runnable.run();
+            Weechat.showLongToast(s);
         } catch (Exception e) {
-            Weechat.showShortToast(R.string.pref_file_error, e.getMessage());
+            Weechat.showLongToast(R.string.pref_file_error, e.getMessage());
             kitty.error("error", e);
         }
     }

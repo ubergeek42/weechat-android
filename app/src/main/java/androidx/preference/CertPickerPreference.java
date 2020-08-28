@@ -21,11 +21,12 @@ public class CertPickerPreference extends FilePreference implements DialogFragme
         super(context, attrs);
     }
 
-    @Override protected void saveData(@Nullable byte[] bytes) throws Exception {
+    @Override protected String saveData(@Nullable byte[] bytes) throws Exception {
         String password = editText.getText().toString();
         SSLHandler.getInstance(getContext()).setClientCertificate(bytes, password);
         persistString(bytes != null ? "ok" : null);
         notifyChanged();
+        return bytes == null ? DEFAULT_SUCCESSFULLY_CLEARED : DEFAULT_SUCCESSFULLY_SET;
     }
 
     @Override @NonNull public DialogFragment getDialogFragment() {
