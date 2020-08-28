@@ -24,9 +24,6 @@ import com.ubergeek42.cats.Root;
 public class FilePreference extends DialogPreference implements DialogFragmentGetter {
     final private static @Root Kitty kitty = Kitty.make();
 
-    final static String DEFAULT_SUCCESSFULLY_SET = "File imported. You can delete it now";
-    final static String DEFAULT_SUCCESSFULLY_CLEARED = "Cleared";
-
     public FilePreference(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
@@ -37,24 +34,42 @@ public class FilePreference extends DialogPreference implements DialogFragmentGe
                 super.getSummary(), set_not_set);
     }
 
-    protected String saveData(@Nullable byte[] bytes) throws Exception {
+    // validate, if needed, and save data. throw anything on error—it will get printed.
+    // returned string, if not null, will be displayed as a long toast
+    protected @Nullable String saveData(@Nullable byte[] bytes) throws Exception {
         if (callChangeListener(bytes)) {
             persistString(bytes == null ? null : Base64.encodeToString(bytes, Base64.NO_WRAP));
             notifyChanged();
         }
-        return bytes == null ? DEFAULT_SUCCESSFULLY_CLEARED : DEFAULT_SUCCESSFULLY_SET;
+        return null;
     }
 
+    private void saveDataAndShowToast(ThrowingGetter<byte[]> bytesGetter) {
+        try {
+            byte[] bytes = bytesGetter.get();
+            String message = saveData(bytes);
+            if (message != null) Weechat.showLongToast(message);
+        } catch (Exception e) {
+            kitty.error("error", e);
+            Weechat.showLongToast(R.string.pref_file_error, e.getMessage());
+        }
+    }
+
+    // a helper method that gets the original bytes from the strings
     public static @Nullable byte[] getData(String data) {
-        try {return Base64.decode(data.getBytes(), Base64.NO_WRAP);}
-        catch (IllegalArgumentException | NullPointerException ignored) {return null;}
+        try {
+            return Base64.decode(data.getBytes(), Base64.NO_WRAP);
+        } catch (IllegalArgumentException | NullPointerException ignored) {
+            return null;
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
+
     // this gets called when a file has been picked
     public void onActivityResult(@NonNull Intent intent) {
-        runAndShowToast(() -> saveData(Utils.readFromUri(getContext(), intent.getData())));
+        saveDataAndShowToast(() -> Utils.readFromUri(getContext(), intent.getData()));
     }
 
     @NonNull @Override public DialogFragment getDialogFragment() {
@@ -67,7 +82,7 @@ public class FilePreference extends DialogPreference implements DialogFragmentGe
         @Override protected void onPrepareDialogBuilder(AlertDialog.Builder builder) {
             FilePreference preference = (FilePreference) getPreference();
             builder.setNeutralButton(getString(R.string.pref_file_clear_button), (dialog, which) ->
-                    runAndShowToast(() -> preference.saveData(null)))
+                    preference.saveDataAndShowToast(() -> null))
                 .setNegativeButton(getString(R.string.pref_file_paste_button), (dialog, which) -> {
                     // noinspection deprecation
                     ClipboardManager cm = (ClipboardManager) requireContext().getSystemService(Context.CLIPBOARD_SERVICE);
@@ -75,7 +90,7 @@ public class FilePreference extends DialogPreference implements DialogFragmentGe
                     if (TextUtils.isEmpty(clip))
                         Weechat.showShortToast(R.string.pref_file_empty_clipboard);
                     else {
-                        runAndShowToast(() -> preference.saveData(clip.toString().getBytes()));
+                        preference.saveDataAndShowToast(() -> clip.toString().getBytes());
                     }
                 })
                 .setPositiveButton(getString(R.string.pref_file_choose_button), (dialog, which) -> {
@@ -89,14 +104,8 @@ public class FilePreference extends DialogPreference implements DialogFragmentGe
         @Override public void onDialogClosed(boolean b) {}
     }
 
-    interface ThrowingRunnable {String run() throws Exception;}
-    public static void runAndShowToast(ThrowingRunnable runnable) {
-        try {
-            String s = runnable.run();
-            Weechat.showLongToast(s);
-        } catch (Exception e) {
-            Weechat.showLongToast(R.string.pref_file_error, e.getMessage());
-            kitty.error("error", e);
-        }
+    // this slightly simplifies code by allowing onActivityResult not to deal with exceptions
+    interface ThrowingGetter<T> {
+        T get() throws Exception;
     }
 }

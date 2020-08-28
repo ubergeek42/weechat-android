@@ -26,13 +26,17 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.security.KeyFactory;
 import java.security.KeyPair;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Calendar;
+import java.util.Collections;
 
 public class SecurityUtils {
     private interface SignerBuilder {
@@ -85,11 +89,39 @@ public class SecurityUtils {
         return new JcaX509CertificateConverter().getCertificate(certificateHolder);
     }
 
+    public static KeyStore getAndroidKeyStore() throws CertificateException,
+            NoSuchAlgorithmException, IOException, KeyStoreException {
+        KeyStore ks = KeyStore.getInstance("AndroidKeyStore");
+        ks.load(null);
+        return ks;
+    }
+
     @RequiresApi(api = Build.VERSION_CODES.M)
     public static boolean isInsideSecurityHardware(PrivateKey privateKey) throws NoSuchProviderException,
             NoSuchAlgorithmException, InvalidKeySpecException {
         KeyFactory factory = KeyFactory.getInstance(privateKey.getAlgorithm(), "AndroidKeyStore");
         KeyInfo keyInfo = factory.getKeySpec(privateKey, KeyInfo.class);
         return keyInfo.isInsideSecureHardware();
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    public static boolean isInsideSecurityHardware(String androidKeyStoreKeyAlias) throws
+            NoSuchProviderException, NoSuchAlgorithmException, InvalidKeySpecException,
+            CertificateException, IOException, UnrecoverableKeyException, KeyStoreException {
+        PrivateKey privateKey = (PrivateKey) getAndroidKeyStore().getKey(androidKeyStoreKeyAlias, null);
+        return isInsideSecurityHardware(privateKey);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    public static boolean areAllInsideSecurityHardware(String androidKeyStoreKeyAliasPrefix) throws
+            NoSuchProviderException, NoSuchAlgorithmException, InvalidKeySpecException,
+            CertificateException, IOException, UnrecoverableKeyException, KeyStoreException {
+        KeyStore androidKeystore = getAndroidKeyStore();
+        for (String alias : Collections.list(androidKeystore.aliases())) {
+            if (alias.startsWith(androidKeyStoreKeyAliasPrefix)) {
+                if (!isInsideSecurityHardware(alias)) return false;
+            }
+        }
+        return true;
     }
 }

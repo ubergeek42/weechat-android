@@ -305,6 +305,7 @@ public class SSLHandler {
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
+    public final static String KEYSTORE_ALIAS_PREFIX = "tls-client-cert-0.";
     private @Nullable KeyManager[] cachedKeyManagers = null;
 
     public void setClientCertificate(@Nullable byte[] bytes, String password) throws
@@ -319,7 +320,7 @@ public class SSLHandler {
         androidKeystore.load(null);
 
         for (String alias : Collections.list(androidKeystore.aliases())) {
-            if (alias.startsWith("client.")) androidKeystore.deleteEntry(alias);
+            if (alias.startsWith(KEYSTORE_ALIAS_PREFIX)) androidKeystore.deleteEntry(alias);
         }
 
         // the store can also have certificate entries but we are not interested in those
@@ -327,7 +328,7 @@ public class SSLHandler {
             if (pkcs12Keystore.isKeyEntry(alias)) {
                 Key key = pkcs12Keystore.getKey(alias, password.toCharArray());
                 Certificate[] certs = pkcs12Keystore.getCertificateChain(alias);
-                androidKeystore.setKeyEntry("client." + alias, key, new char[0], certs);
+                androidKeystore.setKeyEntry(KEYSTORE_ALIAS_PREFIX + alias, key, new char[0], certs);
             }
         }
     }

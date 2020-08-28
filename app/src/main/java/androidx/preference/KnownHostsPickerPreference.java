@@ -15,6 +15,6 @@ public class KnownHostsPickerPreference extends FilePreference {
     @Override protected String saveData(@Nullable byte[] bytes) throws Exception {
         if (bytes != null) SSHConnection.validateKnownHosts(bytes);
         super.saveData(bytes);
-        return bytes == null ? DEFAULT_SUCCESSFULLY_CLEARED : "Known hosts set; the syntax is valid";
+        return bytes == null ? "Known hosts cleared" : "Known hosts set";
     }
 }
