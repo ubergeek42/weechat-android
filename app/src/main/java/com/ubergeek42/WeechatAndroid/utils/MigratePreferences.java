@@ -21,8 +21,6 @@ import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_AUTHENTICAT
 import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_AUTHENTICATION_METHOD_PASSWORD;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_KEY_FILE;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_KEY_FILE_D;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_KEY_PASSPHRASE;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_KEY_PASSPHRASE_D;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_PASSWORD;
 import static com.ubergeek42.WeechatAndroid.utils.SecurityUtils.putKeyPairIntoAndroidKeyStore;
 
@@ -100,7 +98,7 @@ public class MigratePreferences {
                     .putString(PREF_SSH_AUTHENTICATION_METHOD, authenticationMethod)
                     .putString(PREF_SSH_PASSWORD, sshPassword)
                     .putString(PREF_SSH_KEY_FILE, sshKeyFile)
-                    .putString(PREF_SSH_KEY_PASSPHRASE, sshPassphrase)
+                    .putString(Constants.Deprecated.PREF_SSH_KEY_PASSPHRASE, sshPassphrase)
 
                     .remove(Constants.Deprecated.PREF_SSH_PASS)
                     .remove(Constants.Deprecated.PREF_SSH_KEY)
@@ -109,18 +107,19 @@ public class MigratePreferences {
 
         migrators.add(new Migrator(1, 2, () -> {
             String sshKeyFile = preferences.getString(PREF_SSH_KEY_FILE, PREF_SSH_KEY_FILE_D);
-            String sshPassphrase = preferences.getString(PREF_SSH_KEY_PASSPHRASE, PREF_SSH_KEY_PASSPHRASE_D);
+            String sshPassphrase = preferences.getString(Constants.Deprecated.PREF_SSH_KEY_PASSPHRASE,
+                    Constants.Deprecated.PREF_SSH_KEY_PASSPHRASE_D);
             if (sshKeyFile == null)
                 return;
 
             if (!STORED_IN_KEYSTORE.equals(sshKeyFile)) {
                 byte[] sshKeyFileBytes = PrivateKeyPickerPreference.getData(sshKeyFile);
                 try {
-                    KeyPair keyPair = SSHConnection.getKeyPair(sshKeyFileBytes, sshPassphrase);
+                    KeyPair keyPair = SSHConnection.makeKeyPair(sshKeyFileBytes, sshPassphrase);
                     putKeyPairIntoAndroidKeyStore(keyPair, SSHConnection.KEYSTORE_ALIAS);
                     preferences.edit()
                             .putString(PREF_SSH_KEY_FILE, STORED_IN_KEYSTORE)
-                            .putString(PREF_SSH_KEY_PASSPHRASE, null)
+                            .putString(Constants.Deprecated.PREF_SSH_KEY_PASSPHRASE, null)
                             .apply();
                     String message;
                     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
@@ -138,6 +137,33 @@ public class MigratePreferences {
                             e.getMessage());
                 }
             }
+        }));
+
+        migrators.add(new Migrator(2, 3, () -> {
+            String sshKeyFile = preferences.getString(PREF_SSH_KEY_FILE, PREF_SSH_KEY_FILE_D);
+            String sshPassphrase = preferences.getString(Constants.Deprecated.PREF_SSH_KEY_PASSPHRASE,
+                    Constants.Deprecated.PREF_SSH_KEY_PASSPHRASE_D);
+            if (sshKeyFile == null)
+                return;
+
+            if (!STORED_IN_KEYSTORE.equals(sshKeyFile)) {
+                try {
+                    byte[] sshKeyFileBytes = PrivateKeyPickerPreference.getData(sshKeyFile);
+                    KeyPair keyPair = SSHConnection.makeKeyPair(sshKeyFileBytes, sshPassphrase);
+                    preferences.edit()
+                            .putString(PREF_SSH_KEY_FILE, Utils.serialize(keyPair))
+                            .apply();
+                } catch (Exception e) {
+                    Weechat.showLongToast("Failed to migrate SSH key: " + e);
+                    preferences.edit()
+                            .putString(PREF_SSH_KEY_FILE, PREF_SSH_KEY_FILE_D)
+                            .apply();
+                }
+            }
+
+            preferences.edit()
+                    .remove(Constants.Deprecated.PREF_SSH_KEY_PASSPHRASE)
+                    .apply();
         }));
     }
 }

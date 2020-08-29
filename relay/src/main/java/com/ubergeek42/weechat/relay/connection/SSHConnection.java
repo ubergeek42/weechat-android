@@ -7,7 +7,9 @@ import com.trilead.ssh2.LocalPortForwarder;
 import com.trilead.ssh2.ServerHostKeyVerifier;
 import com.trilead.ssh2.crypto.PEMDecoder;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
@@ -46,7 +48,7 @@ public class SSHConnection implements IConnection {
                          String sshHostname, int sshPort, String sshUsername,
                          AuthenticationMethod authenticationMethod,
                          String sshPassword,
-                         byte[] sshKey, String sshPassphrase,
+                         byte[] serializedSshKey,
                          byte[] sshKnownHosts) throws Exception {
         this.hostname = hostname;
         this.port = port;
@@ -54,8 +56,8 @@ public class SSHConnection implements IConnection {
 
         this.authenticationMethod = authenticationMethod;
         if (authenticationMethod == AuthenticationMethod.KEY) {
-            keyPair = sshKey == STORED_IN_KEYSTORE_MARKER ?
-                    getKeyPairFromKeyStore() : getKeyPair(sshKey, sshPassphrase);
+            keyPair = serializedSshKey == STORED_IN_KEYSTORE_MARKER ?
+                    getKeyPairFromKeyStore() : getKeyPair(serializedSshKey);
             this.sshPassword = null;
         } else {
             keyPair = null;
@@ -92,9 +94,13 @@ public class SSHConnection implements IConnection {
         if (forwarder != null) forwarder.close();
     }
 
-    public static KeyPair getKeyPair(byte[] sshKey, String sshPassword) throws IOException {
+    public static KeyPair makeKeyPair(byte[] sshKey, String sshPassword) throws IOException {
         char[] charKey = new String(sshKey, StandardCharsets.ISO_8859_1).toCharArray();
         return PEMDecoder.decode(charKey, sshPassword);
+    }
+
+    public static KeyPair getKeyPair(byte[] serializedSshKey) throws IOException, ClassNotFoundException {
+        return (KeyPair) deserialize(serializedSshKey);
     }
 
     public static KeyPair getKeyPairFromKeyStore() throws KeyStoreException, CertificateException,
@@ -114,5 +120,11 @@ public class SSHConnection implements IConnection {
     // the above method is not importable from the app
     public static void validateKnownHosts(byte[] knownHosts) throws IOException {
         getKnownHosts(knownHosts);
+    }
+
+    public static Object deserialize(byte[] bytes) throws IOException, ClassNotFoundException {
+        try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(bytes))) {
+            return ois.readObject();
+        }
     }
 }

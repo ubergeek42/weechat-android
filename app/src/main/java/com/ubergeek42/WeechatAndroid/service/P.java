@@ -227,8 +227,8 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     static String sshHost;
     static String sshUser;
     static SSHConnection.AuthenticationMethod sshAuthenticationMethod;
-    static String sshPassword, sshKeyPassphrase;
-    static byte[] sshKeyFile, sshKnownHosts;
+    static String sshPassword;
+    static byte[] sshSerializedKey, sshKnownHosts;
     static public int port;
     static int sshPort;
     static SSLSocketFactory sslSocketFactory;
@@ -257,8 +257,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
                 p.getString(PREF_SSH_AUTHENTICATION_METHOD, PREF_SSH_AUTHENTICATION_METHOD_D)) ?
                         SSHConnection.AuthenticationMethod.KEY : SSHConnection.AuthenticationMethod.PASSWORD;
         sshPassword = p.getString(PREF_SSH_PASSWORD, PREF_SSH_PASSWORD_D);
-        sshKeyFile = PrivateKeyPickerPreference.getData(p.getString(PREF_SSH_KEY_FILE, PREF_SSH_KEY_FILE_D));
-        sshKeyPassphrase = p.getString(PREF_SSH_KEY_PASSPHRASE, PREF_SSH_KEY_PASSPHRASE_D);
+        sshSerializedKey = PrivateKeyPickerPreference.getData(p.getString(PREF_SSH_KEY_FILE, PREF_SSH_KEY_FILE_D));
         sshKnownHosts = FilePreference.getData(p.getString(PREF_SSH_KNOWN_HOSTS, PREF_SSH_KNOWN_HOSTS_D));
 
         lineIncrement = Integer.parseInt(getString(PREF_LINE_INCREMENT, PREF_LINE_INCREMENT_D));
@@ -285,7 +284,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         if (connectionType.equals(PREF_TYPE_SSH)) {
             if (TextUtils.isEmpty(sshHost)) return R.string.pref_error_ssh_host_not_set;
             if (sshAuthenticationMethod == SSHConnection.AuthenticationMethod.KEY) {
-                if (Utils.isEmpty(sshKeyFile)) return R.string.pref_error_no_ssh_key_file;;
+                if (Utils.isEmpty(sshSerializedKey)) return R.string.pref_error_no_ssh_key_file;;
             } else {
                 if (TextUtils.isEmpty(sshPassword)) return R.string.pref_error_no_ssh_password;
             }
