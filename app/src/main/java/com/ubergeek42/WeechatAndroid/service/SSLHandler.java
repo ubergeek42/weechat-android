@@ -187,10 +187,10 @@ public class SSLHandler {
     }
 
     static public boolean isChainTrustedBySystem(X509Certificate[] certificates) {
-        X509TrustManager systemManger = UserTrustManager.buildTrustManger(null);
-        if (systemManger == null) return false;
+        X509TrustManager systemManager = UserTrustManager.buildTrustManger(null);
+        if (systemManager == null) return false;
         try {
-            systemManger.checkServerTrusted(certificates, "GENERIC");
+            systemManager.checkServerTrusted(certificates, "GENERIC");
             return true;
         } catch (CertificateException e) {
             return false;

@@ -8,6 +8,9 @@ import androidx.viewpager.widget.ViewPager;
 
 // this code by Nikhil Kumar has been found here:
 // https://medium.com/winkl-insights/how-to-have-a-height-wrapping-viewpager-when-images-have-variable-heights-on-android-60b18e55e72e
+// see also https://stackoverflow.com/a/48029387/1449683
+// this code has been modified to exclude extra padding (parentWithWithoutPadding) and also
+// to not grow beyond allotted height
 public class HeightWrappingViewPager extends ViewPager {
     public HeightWrappingViewPager(Context context) {
         super(context);

@@ -15,7 +15,6 @@ import androidx.fragment.app.DialogFragment;
 import com.ubergeek42.WeechatAndroid.R;
 
 public class ScrollableDialog extends DialogFragment {
-
     final @NonNull CharSequence title;
     final @NonNull CharSequence text;
     final @Nullable Integer positiveButtonText;

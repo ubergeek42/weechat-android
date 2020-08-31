@@ -6,14 +6,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:scrollbars="none">
-
-            <TextView
-                android:id="@+id/certificate"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingHorizontal="@dimen/dialog_padding_full"
-                android:paddingVertical="@dimen/dialog_padding_half"
-                android:background="@drawable/bg_certificate"/>
+        <TextView
+            android:id="@+id/certificate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="@dimen/dialog_padding_full"
+            android:paddingVertical="@dimen/dialog_padding_half"
+            android:background="@drawable/bg_certificate"/>
     </ScrollView>
     <RadioButton
         android:id="@+id/radio"
