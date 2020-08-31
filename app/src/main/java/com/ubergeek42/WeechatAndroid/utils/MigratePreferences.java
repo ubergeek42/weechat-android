@@ -22,7 +22,7 @@ import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_AUTHENTICAT
 import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_KEY_FILE;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_KEY_FILE_D;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_PASSWORD;
-import static com.ubergeek42.WeechatAndroid.utils.SecurityUtils.putKeyPairIntoAndroidKeyStore;
+import static com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils.putKeyPairIntoAndroidKeyStore;
 
 public class MigratePreferences {
     final private static @Root Kitty kitty = Kitty.make();
@@ -123,7 +123,7 @@ public class MigratePreferences {
                             .apply();
                     String message;
                     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-                        message = SecurityUtils.isInsideSecurityHardware(SSHConnection.KEYSTORE_ALIAS) ?
+                        message = AndroidKeyStoreUtils.isInsideSecurityHardware(SSHConnection.KEYSTORE_ALIAS) ?
                                 "security hardware" :
                                 "key store, but not inside security hardware";
                     } else {

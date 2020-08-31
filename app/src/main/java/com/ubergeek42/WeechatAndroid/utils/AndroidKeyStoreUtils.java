@@ -41,15 +41,19 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.Calendar;
 import java.util.Collections;
 
-public class SecurityUtils {
+public class AndroidKeyStoreUtils {
     private interface SignerBuilder {
-        BcContentSignerBuilder make(AlgorithmIdentifier sigAlgId, AlgorithmIdentifier digAlgId);
+        BcContentSignerBuilder make(AlgorithmIdentifier sigAlgId,
+                                    AlgorithmIdentifier digAlgId);
     }
 
+    // this is generating a certificate that is required to put a KeyPair into AndroidKeyStore.
+    // we will not be using this certificate, only its public key.
     // answer by Tolga Okur https://stackoverflow.com/a/59182063/1449683
-    public static X509Certificate generateSelfSignedCertificate(KeyPair keyPair)
+    public static X509Certificate generateCertificate(KeyPair keyPair)
             throws IOException, OperatorCreationException, CertificateException {
         String keyAlgorithm = keyPair.getPublic().getAlgorithm();
+
         String signingAlgorithm;
         SignerBuilder signerBuilder;
         switch (keyAlgorithm) {
@@ -66,9 +70,10 @@ public class SecurityUtils {
                 signerBuilder = BcDSAContentSignerBuilder::new;
                 break;
             default:
-                throw new RuntimeException("Can't make a certificate for a key algorithm " + keyAlgorithm);
+                throw new CertificateException("Can't make a certificate for a key algorithm " +
+                        keyAlgorithm);
         }
-        System.out.println("$$ using: " + signingAlgorithm);
+
         AlgorithmIdentifier sigAlgId = new DefaultSignatureAlgorithmIdentifierFinder().find(signingAlgorithm);
         AlgorithmIdentifier digAlgId = new DefaultDigestAlgorithmIdentifierFinder().find(sigAlgId);
         AsymmetricKeyParameter keyParam = PrivateKeyFactory.createKey(keyPair.getPrivate().getEncoded());
@@ -133,8 +138,13 @@ public class SecurityUtils {
             OperatorCreationException {
         KeyStore androidKeyStore = getAndroidKeyStore();
         androidKeyStore.setKeyEntry(alias, keyPair.getPrivate(), null, new Certificate[]{
-                generateSelfSignedCertificate(keyPair)
+                generateCertificate(keyPair)
         });
     }
 
+    public static void deleteAndroidKeyStoreEntry(String alias) throws CertificateException,
+            NoSuchAlgorithmException, KeyStoreException, IOException {
+        KeyStore androidKeyStore = getAndroidKeyStore();
+        androidKeyStore.deleteEntry(alias);
+    }
 }

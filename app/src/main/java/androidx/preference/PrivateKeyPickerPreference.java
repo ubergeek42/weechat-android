@@ -6,17 +6,17 @@ import android.util.AttributeSet;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.ubergeek42.WeechatAndroid.utils.SecurityUtils;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
 import com.ubergeek42.weechat.relay.connection.SSHConnection;
 
 import java.security.KeyPair;
-import java.security.KeyStore;
 
+import static com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils.deleteAndroidKeyStoreEntry;
+import static com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils.isInsideSecurityHardware;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_KEY_FILE;
-import static com.ubergeek42.WeechatAndroid.utils.SecurityUtils.putKeyPairIntoAndroidKeyStore;
+import static com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils.putKeyPairIntoAndroidKeyStore;
 
 public class PrivateKeyPickerPreference extends PasswordedFilePickerPreference {
     final private static @Root Kitty kitty = Kitty.make();
@@ -36,26 +36,25 @@ public class PrivateKeyPickerPreference extends PasswordedFilePickerPreference {
                 key = STORED_IN_KEYSTORE;
 
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-                    message = SecurityUtils.isInsideSecurityHardware(SSHConnection.KEYSTORE_ALIAS) ?
+                    message = isInsideSecurityHardware(SSHConnection.KEYSTORE_ALIAS) ?
                             "%s key was stored inside security hardware" :
                             "%s key was stored in key store but not inside security hardware";
                 } else {
                     message = "%s key was stored in key store";
                 }
-                message = String.format(message, keyPair.getPrivate().getAlgorithm());
             } catch (Exception e) {
                 key = Utils.serialize(keyPair);
-                message = "%s key was stored inside the app.\n\nThe key couldn't be stored in the key store: " + e.getMessage();
-                message = String.format(message, keyPair.getPrivate().getAlgorithm());
+                message = "%s key was stored inside the app.\n\n" +
+                        "The key couldn't be stored in the key store: " + e.getMessage();
                 kitty.warn(message, e);
             }
+            message = String.format(message, keyPair.getPrivate().getAlgorithm());
+
         } else {
             key = null;
             message = "Key forgotten";
             try {
-                KeyStore androidKeystore = KeyStore.getInstance("AndroidKeyStore");
-                androidKeystore.load(null);
-                androidKeystore.deleteEntry(SSHConnection.KEYSTORE_ALIAS);
+                deleteAndroidKeyStoreEntry(SSHConnection.KEYSTORE_ALIAS);
             } catch (Exception e) {
                 kitty.warn("Error while deleting key from AndroidKeyStore", e);
             }
