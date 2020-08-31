@@ -5,8 +5,6 @@ import android.security.keystore.KeyInfo;
 
 import androidx.annotation.RequiresApi;
 
-import com.ubergeek42.weechat.relay.connection.SSHConnection;
-
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
@@ -26,6 +24,7 @@ import org.bouncycastle.operator.bc.BcRSAContentSignerBuilder;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.security.Key;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyStore;
@@ -97,32 +96,35 @@ public class AndroidKeyStoreUtils {
         return new JcaX509CertificateConverter().getCertificate(certificateHolder);
     }
 
-    public static KeyStore getAndroidKeyStore() throws CertificateException,
-            NoSuchAlgorithmException, IOException, KeyStoreException {
-        KeyStore ks = KeyStore.getInstance("AndroidKeyStore");
-        ks.load(null);
-        return ks;
+    private static KeyStore androidKeyStore = null;
+    public static KeyStore getAndroidKeyStore()
+            throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException {
+        if (androidKeyStore == null) {
+            androidKeyStore = KeyStore.getInstance("AndroidKeyStore");
+            androidKeyStore.load(null);
+        }
+        return androidKeyStore;
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
-    public static boolean isInsideSecurityHardware(PrivateKey privateKey) throws NoSuchProviderException,
-            NoSuchAlgorithmException, InvalidKeySpecException {
+    public static boolean isInsideSecurityHardware(PrivateKey privateKey)
+            throws NoSuchProviderException, NoSuchAlgorithmException, InvalidKeySpecException {
         KeyFactory factory = KeyFactory.getInstance(privateKey.getAlgorithm(), "AndroidKeyStore");
         KeyInfo keyInfo = factory.getKeySpec(privateKey, KeyInfo.class);
         return keyInfo.isInsideSecureHardware();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
-    public static boolean isInsideSecurityHardware(String androidKeyStoreKeyAlias) throws
-            NoSuchProviderException, NoSuchAlgorithmException, InvalidKeySpecException,
+    public static boolean isInsideSecurityHardware(String androidKeyStoreKeyAlias)
+            throws NoSuchProviderException, NoSuchAlgorithmException, InvalidKeySpecException,
             CertificateException, IOException, UnrecoverableKeyException, KeyStoreException {
         PrivateKey privateKey = (PrivateKey) getAndroidKeyStore().getKey(androidKeyStoreKeyAlias, null);
         return isInsideSecurityHardware(privateKey);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
-    public static boolean areAllInsideSecurityHardware(String androidKeyStoreKeyAliasPrefix) throws
-            NoSuchProviderException, NoSuchAlgorithmException, InvalidKeySpecException,
+    public static boolean areAllInsideSecurityHardware(String androidKeyStoreKeyAliasPrefix)
+            throws NoSuchProviderException, NoSuchAlgorithmException, InvalidKeySpecException,
             CertificateException, IOException, UnrecoverableKeyException, KeyStoreException {
         KeyStore androidKeystore = getAndroidKeyStore();
         for (String alias : Collections.list(androidKeystore.aliases())) {
@@ -142,9 +144,32 @@ public class AndroidKeyStoreUtils {
         });
     }
 
-    public static void deleteAndroidKeyStoreEntry(String alias) throws CertificateException,
-            NoSuchAlgorithmException, KeyStoreException, IOException {
+    public static void deleteAndroidKeyStoreEntry(String alias)
+            throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore androidKeyStore = getAndroidKeyStore();
         androidKeyStore.deleteEntry(alias);
+    }
+
+    // the store can also have certificate entries but we are not interested in those
+    public static void putKeyEntriesIntoAndroidKeyStoreWithPrefix(
+            KeyStore keyStore, String password, String aliasPrefix)
+            throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException,
+            UnrecoverableKeyException {
+        KeyStore androidKeyStore = getAndroidKeyStore();
+        for (String alias : Collections.list(keyStore.aliases())) {
+            if (keyStore.isKeyEntry(alias)) {
+                Key key = keyStore.getKey(alias, password.toCharArray());
+                Certificate[] certs = keyStore.getCertificateChain(alias);
+                androidKeyStore.setKeyEntry(aliasPrefix + alias, key, new char[0], certs);
+            }
+        }
+    }
+
+    public static void deleteAndroidKeyStoreEntriesWithPrefix(String aliasPrefix)
+            throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
+        KeyStore androidKeyStore = getAndroidKeyStore();
+        for (String alias : Collections.list(androidKeyStore.aliases())) {
+            if (alias.startsWith(aliasPrefix)) androidKeyStore.deleteEntry(alias);
+        }
     }
 }

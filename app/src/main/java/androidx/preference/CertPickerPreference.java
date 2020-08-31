@@ -21,12 +21,14 @@ public class CertPickerPreference extends PasswordedFilePickerPreference impleme
         notifyChanged();
         if (bytes == null) {
             return "Certificate forgotten";
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             return AndroidKeyStoreUtils.areAllInsideSecurityHardware(SSLHandler.KEYSTORE_ALIAS_PREFIX) ?
                     "Certificate imported into security hardware" :
                     "Certificate imported into a software key store";
-        } else {
-            return "Certificate imported";
         }
+
+        return "Certificate imported";
     }
 }

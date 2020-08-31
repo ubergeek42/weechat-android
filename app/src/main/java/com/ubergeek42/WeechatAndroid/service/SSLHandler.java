@@ -25,17 +25,14 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.security.Key;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
-import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -53,6 +50,10 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
+
+import static com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils.deleteAndroidKeyStoreEntriesWithPrefix;
+import static com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils.getAndroidKeyStore;
+import static com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils.putKeyEntriesIntoAndroidKeyStoreWithPrefix;
 
 public class SSLHandler {
     final private static @Root Kitty kitty = Kitty.make();
@@ -314,30 +315,17 @@ public class SSLHandler {
         cachedKeyManagers = null;
 
         KeyStore pkcs12Keystore = KeyStore.getInstance("PKCS12");
-        pkcs12Keystore.load(bytes == null ? null : new ByteArrayInputStream(bytes), password.toCharArray());
+        pkcs12Keystore.load(bytes == null ? null :
+                new ByteArrayInputStream(bytes), password.toCharArray());
 
-        KeyStore androidKeystore = KeyStore.getInstance("AndroidKeyStore");
-        androidKeystore.load(null);
-
-        for (String alias : Collections.list(androidKeystore.aliases())) {
-            if (alias.startsWith(KEYSTORE_ALIAS_PREFIX)) androidKeystore.deleteEntry(alias);
-        }
-
-        // the store can also have certificate entries but we are not interested in those
-        for (String alias : Collections.list(pkcs12Keystore.aliases())) {
-            if (pkcs12Keystore.isKeyEntry(alias)) {
-                Key key = pkcs12Keystore.getKey(alias, password.toCharArray());
-                Certificate[] certs = pkcs12Keystore.getCertificateChain(alias);
-                androidKeystore.setKeyEntry(KEYSTORE_ALIAS_PREFIX + alias, key, new char[0], certs);
-            }
-        }
+        deleteAndroidKeyStoreEntriesWithPrefix(KEYSTORE_ALIAS_PREFIX);
+        putKeyEntriesIntoAndroidKeyStoreWithPrefix(pkcs12Keystore, password, KEYSTORE_ALIAS_PREFIX);
     }
 
     private @Nullable KeyManager[] getKeyManagers() {
         if (cachedKeyManagers == null) {
             try {
-                KeyStore androidKeystore = KeyStore.getInstance("AndroidKeyStore");
-                androidKeystore.load(null);
+                KeyStore androidKeystore = getAndroidKeyStore();
                 KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("X509");
                 keyManagerFactory.init(androidKeystore, null);
                 cachedKeyManagers = keyManagerFactory.getKeyManagers();
