@@ -57,7 +57,7 @@ public class SSHConnection implements IConnection {
         this.authenticationMethod = authenticationMethod;
         if (authenticationMethod == AuthenticationMethod.KEY) {
             keyPair = serializedSshKey == STORED_IN_KEYSTORE_MARKER ?
-                    getKeyPairFromKeyStore() : getKeyPair(serializedSshKey);
+                    getKeyPairFromKeyStore() : deserializeKeyPair(serializedSshKey);
             this.sshPassword = null;
         } else {
             keyPair = null;
@@ -68,10 +68,10 @@ public class SSHConnection implements IConnection {
         //connection.setCompression(true);
         //connection.enableDebugging(true, null);
 
-        KnownHosts knownHosts = getKnownHosts(sshKnownHosts);
-        connection.setServerHostKeyAlgorithms(
-                knownHosts.getPreferredServerHostkeyAlgorithmOrder(sshHostname));
-        hostKeyVerifier = new SSHServerKeyVerifier(getKnownHosts(sshKnownHosts));
+        KnownHosts knownHosts = parseKnownHosts(sshKnownHosts);
+        String[] hostKeyAlgorithms = knownHosts.getPreferredServerHostkeyAlgorithmOrder(sshHostname);
+        if (hostKeyAlgorithms != null) connection.setServerHostKeyAlgorithms(hostKeyAlgorithms);
+        hostKeyVerifier = new SSHServerKeyVerifier(parseKnownHosts(sshKnownHosts));
     }
 
     @Override public Streams connect() throws IOException {
@@ -80,10 +80,10 @@ public class SSHConnection implements IConnection {
 
         if (authenticationMethod == AuthenticationMethod.KEY) {
             if (!connection.authenticateWithPublicKey(sshUsername, keyPair))
-                throw new IOException("Failed to authenticate with public key");
+                throw new FailedToAuthenticateWithKeyException(connectionInfo);
         } else {
             if (!connection.authenticateWithPassword(sshUsername, sshPassword))
-                throw new IOException("Failed to authenticate with password");
+                throw new FailedToAuthenticateWithPasswordException(connectionInfo);
         }
 
         int localPort = Utils.findAvailablePort();
@@ -97,12 +97,14 @@ public class SSHConnection implements IConnection {
         if (forwarder != null) forwarder.close();
     }
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
     public static KeyPair makeKeyPair(byte[] sshKey, String sshPassword) throws IOException {
         char[] charKey = new String(sshKey, StandardCharsets.ISO_8859_1).toCharArray();
         return PEMDecoder.decode(charKey, sshPassword);
     }
 
-    public static KeyPair getKeyPair(byte[] serializedSshKey) throws IOException, ClassNotFoundException {
+    public static KeyPair deserializeKeyPair(byte[] serializedSshKey) throws IOException, ClassNotFoundException {
         return (KeyPair) deserialize(serializedSshKey);
     }
 
@@ -115,19 +117,46 @@ public class SSHConnection implements IConnection {
         return new KeyPair(publicKey, privateKey);
     }
 
-    public static KnownHosts getKnownHosts(byte[] knownHosts) throws IOException {
+    public static KnownHosts parseKnownHosts(byte[] knownHosts) throws IOException {
         char[] charKnownHosts = new String(knownHosts, StandardCharsets.ISO_8859_1).toCharArray();
         return new KnownHosts(charKnownHosts);
     }
 
-    // the above method is not importable from the app
-    public static void validateKnownHosts(byte[] knownHosts) throws IOException {
-        getKnownHosts(knownHosts);
-    }
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     public static Object deserialize(byte[] bytes) throws IOException, ClassNotFoundException {
         try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(bytes))) {
             return ois.readObject();
+        }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    public static class FailedToAuthenticateException extends IOException {
+        final public ConnectionInfo connectionInfo;
+
+        public FailedToAuthenticateException(ConnectionInfo connectionInfo) {
+            this.connectionInfo = connectionInfo;
+        }
+    }
+
+    public static class FailedToAuthenticateWithPasswordException extends FailedToAuthenticateException {
+        public FailedToAuthenticateWithPasswordException(ConnectionInfo connectionInfo) {
+            super(connectionInfo);
+        }
+
+        @Override public String getMessage() {
+            return "Failed to authenticate with password";
+        }
+    }
+
+    public static class FailedToAuthenticateWithKeyException extends FailedToAuthenticateException {
+        public FailedToAuthenticateWithKeyException(ConnectionInfo connectionInfo) {
+            super(connectionInfo);
+        }
+
+        @Override public String getMessage() {
+            return "Failed to authenticate with key";
         }
     }
 }
