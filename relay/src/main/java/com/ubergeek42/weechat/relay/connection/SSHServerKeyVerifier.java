@@ -3,15 +3,17 @@ package com.ubergeek42.weechat.relay.connection;
 
 import com.trilead.ssh2.ExtendedServerHostKeyVerifier;
 import com.trilead.ssh2.KnownHosts;
+import com.trilead.ssh2.crypto.Base64;
 
 import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.List;
 
 import static com.trilead.ssh2.KnownHosts.HOSTKEY_HAS_CHANGED;
 import static com.trilead.ssh2.KnownHosts.HOSTKEY_IS_NEW;
 import static com.trilead.ssh2.KnownHosts.HOSTKEY_IS_OK;
-import static com.trilead.ssh2.KnownHosts.createHexFingerprint;
 
 public class SSHServerKeyVerifier extends ExtendedServerHostKeyVerifier {
     final KnownHosts knownHosts;
@@ -49,7 +51,7 @@ public class SSHServerKeyVerifier extends ExtendedServerHostKeyVerifier {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     public static class VerifyException extends IOException {
-        final String hostname;
+        final public String hostname;
 
         public VerifyException(String hostname) {
             this.hostname = hostname;
@@ -67,8 +69,8 @@ public class SSHServerKeyVerifier extends ExtendedServerHostKeyVerifier {
     }
 
     public static class HostKeyNotVerifiedException extends VerifyException {
-        final String algorithm;
-        final byte[] key;
+        final public String algorithm;
+        final public byte[] key;
 
         public HostKeyNotVerifiedException(String host, String algorithm, byte[] key) {
             super(host);
@@ -76,17 +78,22 @@ public class SSHServerKeyVerifier extends ExtendedServerHostKeyVerifier {
             this.key = key;
         }
 
+        public static String makeSha2Fingerprint(byte[] bytes) throws NoSuchAlgorithmException {
+            byte[] sha256 = MessageDigest.getInstance("SHA256").digest(bytes);
+            return new String(Base64.encode(sha256));
+        }
+
         @Override public String getMessage() {
             String fingerprint;
             try {
-                fingerprint = createHexFingerprint(algorithm, key);
+                fingerprint = makeSha2Fingerprint(key);
             } catch (Exception e) {
                 e.printStackTrace();
                 fingerprint = "n/a";
             }
 
             return "Hostname " + hostname + " is known, but could not be verified. " +
-                    "Chosen algorithm: " + algorithm + "; MD5 host key fingerprint: " + fingerprint;
+                    "Chosen algorithm: " + algorithm + "; SHA256 host key fingerprint: " + fingerprint;
         }
     }
 }
