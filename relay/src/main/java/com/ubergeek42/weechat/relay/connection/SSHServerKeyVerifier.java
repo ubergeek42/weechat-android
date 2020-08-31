@@ -1,21 +1,19 @@
 package com.ubergeek42.weechat.relay.connection;
 
 
-import com.trilead.ssh2.ExtendedServerHostKeyVerifier;
 import com.trilead.ssh2.KnownHosts;
+import com.trilead.ssh2.ServerHostKeyVerifier;
 import com.trilead.ssh2.crypto.Base64;
 
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
-import java.util.List;
 
 import static com.trilead.ssh2.KnownHosts.HOSTKEY_HAS_CHANGED;
 import static com.trilead.ssh2.KnownHosts.HOSTKEY_IS_NEW;
 import static com.trilead.ssh2.KnownHosts.HOSTKEY_IS_OK;
 
-public class SSHServerKeyVerifier extends ExtendedServerHostKeyVerifier {
+public class SSHServerKeyVerifier implements ServerHostKeyVerifier {
     final KnownHosts knownHosts;
 
     public SSHServerKeyVerifier(KnownHosts knownHosts) {
@@ -31,21 +29,6 @@ public class SSHServerKeyVerifier extends ExtendedServerHostKeyVerifier {
                     serverHostKeyAlgorithm, serverHostKey);
         }
         throw new RuntimeException("this should not happen");
-    }
-
-    @Override public List<String> getKnownKeyAlgorithmsForHost(String hostname, int port) {
-        String[] algorithms = knownHosts.getPreferredServerHostkeyAlgorithmOrder(hostname);
-        return algorithms == null ? null : Arrays.asList(algorithms);
-    }
-
-    @Override public void removeServerHostKey(String hostname, int port,
-                                              String serverHostKeyAlgorithm, byte[] serverHostKey) {
-        // not implemented
-    }
-
-    @Override public void addServerHostKey(String hostname, int port,
-                                           String keyAlgorithm, byte[] serverHostKey) {
-        // not implemented
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

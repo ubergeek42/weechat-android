@@ -65,9 +65,12 @@ public class SSHConnection implements IConnection {
         }
 
         connection = new Connection(sshHostname, sshPort);
-        connection.setCompression(true);
+        //connection.setCompression(true);
         //connection.enableDebugging(true, null);
 
+        KnownHosts knownHosts = getKnownHosts(sshKnownHosts);
+        connection.setServerHostKeyAlgorithms(
+                knownHosts.getPreferredServerHostkeyAlgorithmOrder(sshHostname));
         hostKeyVerifier = new SSHServerKeyVerifier(getKnownHosts(sshKnownHosts));
     }
 
