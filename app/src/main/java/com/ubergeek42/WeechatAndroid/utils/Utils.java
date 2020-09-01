@@ -284,17 +284,4 @@ public class Utils {
         Collections.reverse(Arrays.asList(copy));
         return copy;
     }
-
-    @SuppressWarnings("ConstantConditions")
-    public static CharSequence getUsefulExceptionString(Throwable t) {
-        ArrayList<CharSequence> messages = new ArrayList<>();
-        while (t != null) {
-            String message = t.getMessage();
-            if (TextUtils.isEmpty(message)) message = t.getClass().getSimpleName();
-            if (!message.endsWith(".")) message += ".";
-            messages.add(message);
-            t = t.getCause();
-        }
-        return join(" ", messages);
-    }
 }

@@ -66,6 +66,7 @@ import com.ubergeek42.WeechatAndroid.service.RelayService.STATE;
 import com.ubergeek42.WeechatAndroid.service.SSLHandler;
 import com.ubergeek42.WeechatAndroid.utils.CertificateDialog;
 import com.ubergeek42.WeechatAndroid.utils.FancyAlertDialogBuilder;
+import com.ubergeek42.WeechatAndroid.utils.FriendlyExceptions;
 import com.ubergeek42.WeechatAndroid.utils.Network;
 import com.ubergeek42.WeechatAndroid.utils.SimpleTransitionDrawable;
 import com.ubergeek42.WeechatAndroid.utils.ThemeFix;
@@ -339,20 +340,11 @@ public class WeechatActivity extends AppCompatActivity implements
                     return;
                 }
             }
-        } else if (e instanceof ClientCertificateMismatchException) {
-            ClientCertificateMismatchException ee = (ClientCertificateMismatchException) e;
-            boolean certificateIsSet = PreferenceManager.getDefaultSharedPreferences(this)
-                    .getString(PREF_SSL_CLIENT_CERTIFICATE, null) != null;
-            Weechat.showLongToast(certificateIsSet ?
-                    R.string.error_client_certificate_mismatch :
-                    R.string.error_client_certificate_not_set,
-                    Utils.join(", ", Arrays.asList(ee.keyType)),
-                    Utils.join(", ", Arrays.asList(ee.issuers)));
-            Weechat.runOnMainThread(this::disconnect);
-            return;
         }
 
-        Weechat.showLongToast(R.string.error, Utils.getUsefulExceptionString(e));
+        FriendlyExceptions.Result result = new FriendlyExceptions(this).getFriendlyException(e);
+        if (result.message != null) Weechat.showLongToast(R.string.error, result.message);
+        if (result.shouldStopConnecting) Weechat.runOnMainThread(this::disconnect);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
