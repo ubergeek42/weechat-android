@@ -12,6 +12,7 @@ import com.ubergeek42.weechat.relay.connection.SSHServerKeyVerifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import static com.ubergeek42.WeechatAndroid.media.Cache.findException;
 import static com.ubergeek42.WeechatAndroid.utils.ThrowingKeyManagerWrapper.ClientCertificateMismatchException;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSL_CLIENT_CERTIFICATE;
 import static com.ubergeek42.WeechatAndroid.utils.Utils.join;
@@ -43,10 +44,13 @@ public class FriendlyExceptions {
         if (e instanceof SSHConnection.FailedToAuthenticateWithKeyException)
             return getFriendlyException((SSHConnection.FailedToAuthenticateWithKeyException) e);
 
-        if (e instanceof SSHServerKeyVerifier.UnknownHostKeyException)
-            return getFriendlyException((SSHServerKeyVerifier.UnknownHostKeyException) e);
-        if (e instanceof SSHServerKeyVerifier.HostKeyNotVerifiedException)
-            return getFriendlyException((SSHServerKeyVerifier.HostKeyNotVerifiedException) e);
+        Exception ee = findException(e, SSHServerKeyVerifier.VerifyException.class);
+        if (ee != null) {
+            if (ee instanceof SSHServerKeyVerifier.UnknownHostKeyException)
+                return getFriendlyException((SSHServerKeyVerifier.UnknownHostKeyException) ee);
+            if (ee instanceof SSHServerKeyVerifier.HostKeyNotVerifiedException)
+                return getFriendlyException((SSHServerKeyVerifier.HostKeyNotVerifiedException) ee);
+        }
 
         return new Result(getJoinedExceptionString(e).toString(), false);
     }

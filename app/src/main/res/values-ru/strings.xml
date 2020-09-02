@@ -88,11 +88,11 @@
     <string name="pref_ssh_host">Хост SSH</string>
     <string name="pref_ssh_user">Имя пользователя SSH</string>
     <string name="pref_ssh_port">Порт SSH</string>
-    <string name="pref_ssh_password">Пароль SSH или ключа</string>
-    <string name="pref_ssh_keyfile">Закрытый ключ</string>
-    <string name="pref_ssh_keyfile_summary">Ключ DSA, RSA, ECDSA в формате OpenSSH или PuTTY</string>
+    <string name="pref_ssh_password">Пароль SSH</string>
+    <string name="pref_ssh_keyfile">Ключ</string>
+    <string name="pref_ssh_keyfile_summary">Ключ Ed25519, ECDSA, RSA или DSA</string>
     <string name="pref_ssh_known_hosts">Известные хосты</string>
-    <string name="pref_ssh_known_hosts_summary">Вывод $ ssh-keyscan хост 2>/dev/null</string>
+    <string name="pref_ssh_known_hosts_summary">Вывод $ ssh-keyscan хост</string>
     <string name="pref_tabbtn_show">Показывать кнопку Tab</string>
     <string name="pref_text_size">Размер текста</string>
     <string name="pref_theme_loading_error">Ошибка при загрузке темы %s</string>
@@ -275,7 +275,7 @@
     <string name="pref_media_preview_strategies">Стратегии</string>
     <string name="strategypreference_error">Ошибка</string>
     <string name="strategypreference_summary">Определяет способы загрузки изображений для отдельных
-            сайтов, а также некоторые фильтры.\n\n%s; %s;\n\n%s</string>
+            сайтов, а также некоторые фильтры.\n\n%1$s; %2$s;\n\n%3$s</string>
     <string name="strategypreference_message_filter_set">Фильтр текста установлен</string>
     <string name="strategypreference_message_filter_not_set">Фильтр текста не установлен</string>
     <string name="strategypreference_line_filters_not_set">фильтры строк не установлены</string>
@@ -347,8 +347,47 @@
     <string name="edittext_password_hint">пароль</string>
 
     <string name="error_client_certificate_not_set">Сервер запрашивает клиентский сертификат, но он
-        не установлен. Серверу нужен сертификат %s, выданный %s</string>
+        не установлен. Серверу нужен сертификат %1$s, выданный %2$s</string>
     <string name="error_client_certificate_mismatch">Сервер запрашивает клиентский сертификат, но
-        установленный в приложении сертификат ему не подходит. Серверу нужен сертификат %s,
-        выданный %s</string>
+        установленный в приложении сертификат ему не подходит. Серверу нужен сертификат %1$s,
+        выданный %2$s</string>
+
+    <string name="pref_error_no_ssh_key_file">Ключ SSH не задан</string>
+    <string name="pref_error_no_ssh_password">Пароль SSH не задан</string>
+
+    <string name="pref_ssh_authentication_method">Метод аутентификации</string>
+    <string-array name="pref_ssh_authentication_method_names">
+        <item>Пароль</item>
+        <item>Ключ</item>
+    </string-array>
+
+    <string name="exceptions_ssh_failed_to_authenticate_with_password">
+        Авторизация по паролю провалилась</string>
+    <string name="exceptions_ssh_failed_to_authenticate_with_key">
+        Авторизация по ключу провалилась</string>
+    <string name="exceptions_ssh_hostname_not_present_in_known_hosts">
+        Хост %s отсутствует в списке известных хостов</string>
+    <string name="exceptions_ssh_hostkey_not_verified">Хост %1$s присутствует в списке известных
+        хостов, но не его ключ. Выбранный алгоритм: %2$s; SHA-256 отпечаток ключа: %3$s</string>
+
+    <string name="pref_ssh_key_stored_inside_security_hardware_yes">
+        Ключ %s помещён в аппаратное хранилище</string>
+    <string name="pref_ssh_key_stored_inside_security_hardware_no">
+        Ключ %s помещён в программное хранилище</string>
+    <string name="pref_ssh_key_stored_inside_security_hardware_cant_tell">
+        Ключ %s помещён в хранилище</string>
+    <string name="pref_ssh_key_stored_outside_key_store">
+        Ключ %1$s помещён в настройки приложения.\n\nНе вышло поместить его в хранилище: %2$s</string>
+    <string name="pref_ssh_key_forgotten">Ключ забыт</string>
+
+    <string name="pref_ssl_certificate_stored_inside_security_hardware_yes">
+        Сертификат помещён в аппаратное хранилище</string>
+    <string name="pref_ssl_certificate_stored_inside_security_hardware_no">
+        Сертификат помещён в программное хранилище</string>
+    <string name="pref_ssl_certificate_stored_inside_security_hardware_cant_tell">
+        Сертификат помещён в хранилище</string>
+    <string name="pref_ssl_certificate_forgotten">Сертификат забыт</string>
+
+    <string name="pref_known_hosts_set">Известные хосты установлены</string>
+    <string name="pref_known_hosts_cleared">Известные хосты забыты</string>
 </resources>
