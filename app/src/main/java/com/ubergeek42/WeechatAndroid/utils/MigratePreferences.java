@@ -22,7 +22,9 @@ import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_AUTHENTICAT
 import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_KEY_FILE;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_KEY_FILE_D;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_PASSWORD;
+import static com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils.isInsideSecurityHardware;
 import static com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils.putKeyPairIntoAndroidKeyStore;
+import static com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils.InsideSecurityHardware;
 
 public class MigratePreferences {
     final private static @Root Kitty kitty = Kitty.make();
@@ -121,14 +123,11 @@ public class MigratePreferences {
                             .putString(PREF_SSH_KEY_FILE, STORED_IN_KEYSTORE)
                             .putString(Constants.Deprecated.PREF_SSH_KEY_PASSPHRASE, null)
                             .apply();
-                    String message;
-                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-                        message = AndroidKeyStoreUtils.isInsideSecurityHardware(SSHConnection.KEYSTORE_ALIAS) ?
-                                "security hardware" :
-                                "key store, but not inside security hardware";
-                    } else {
-                        message = "key store";
-                    }
+                    String message = TinyMap.of(
+                            InsideSecurityHardware.YES, "security hardware",
+                            InsideSecurityHardware.NO, "software key store",
+                            InsideSecurityHardware.CANT_TELL, "key store"
+                    ).get(isInsideSecurityHardware(SSHConnection.KEYSTORE_ALIAS));
                     Weechat.showLongToast("While migrating preferences, private SSH key was moved " +
                             "into " + message);
                 } catch (Exception e) {

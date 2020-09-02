@@ -6,17 +6,22 @@ import android.util.AttributeSet;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.ubergeek42.WeechatAndroid.R;
+import com.ubergeek42.WeechatAndroid.utils.TinyMap;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
 import com.ubergeek42.weechat.relay.connection.SSHConnection;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 
 import static com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils.deleteAndroidKeyStoreEntry;
 import static com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils.isInsideSecurityHardware;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_KEY_FILE;
 import static com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils.putKeyPairIntoAndroidKeyStore;
+import static com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils.InsideSecurityHardware;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_KEY_FILE;
 
 public class PrivateKeyPickerPreference extends PasswordedFilePickerPreference {
     final private static @Root Kitty kitty = Kitty.make();
@@ -27,32 +32,25 @@ public class PrivateKeyPickerPreference extends PasswordedFilePickerPreference {
     }
 
     @Override protected String saveData(@Nullable byte[] bytes, @NonNull String passphrase) throws Exception {
+        Context context = getContext();
         String key, message;
+
         if (bytes != null) {
             KeyPair keyPair = SSHConnection.makeKeyPair(bytes, passphrase);
+            String algorithm = keyPair.getPrivate().getAlgorithm();
 
             try {
                 putKeyPairIntoAndroidKeyStore(keyPair, SSHConnection.KEYSTORE_ALIAS);
                 key = STORED_IN_KEYSTORE;
-
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-                    message = isInsideSecurityHardware(SSHConnection.KEYSTORE_ALIAS) ?
-                            "%s key was stored inside security hardware" :
-                            "%s key was stored in key store but not inside security hardware";
-                } else {
-                    message = "%s key was stored in key store";
-                }
+                message = getInsideSecurityHardwareString(algorithm);
             } catch (Exception e) {
+                kitty.warn("Error while putting %s key into AndroidKeyStore", algorithm, e);
                 key = Utils.serialize(keyPair);
-                message = "%s key was stored inside the app.\n\n" +
-                        "The key couldn't be stored in the key store: " + e.getMessage();
-                kitty.warn(message, e);
+                message = context.getString(R.string.pref_ssh_key_stored_outside_key_store, algorithm, e.getMessage());
             }
-            message = String.format(message, keyPair.getPrivate().getAlgorithm());
-
         } else {
             key = null;
-            message = "Key forgotten";
+            message = context.getString(R.string.pref_ssh_key_forgotten);
             try {
                 deleteAndroidKeyStoreEntry(SSHConnection.KEYSTORE_ALIAS);
             } catch (Exception e) {
@@ -67,9 +65,18 @@ public class PrivateKeyPickerPreference extends PasswordedFilePickerPreference {
         return message;
     }
 
-
     public static @Nullable byte[] getData(String data) {
         return STORED_IN_KEYSTORE.equals(data) ?
                 SSHConnection.STORED_IN_KEYSTORE_MARKER : FilePreference.getData(data);
+    }
+
+    public String getInsideSecurityHardwareString(String algorithm) throws GeneralSecurityException, IOException {
+        InsideSecurityHardware inside = isInsideSecurityHardware(SSHConnection.KEYSTORE_ALIAS);
+        int resId = TinyMap.of(
+                InsideSecurityHardware.YES, R.string.pref_ssh_key_stored_inside_security_hardware_yes,
+                InsideSecurityHardware.NO, R.string.pref_ssh_key_stored_inside_security_hardware_cant_tell,
+                InsideSecurityHardware.CANT_TELL, R.string.pref_ssh_key_stored_inside_security_hardware_cant_tell
+        ).get(inside);
+        return getContext().getString(resId, algorithm);
     }
 }

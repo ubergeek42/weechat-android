@@ -565,12 +565,33 @@ strategies:
 
     <string name="pref_ssh_authentication_method">Authentication method</string>
 
-    <string name="exceptions_ssh_failed_to_authenticate_with_password">Failed to authenticate with
-        password~</string>
-    <string name="exceptions_ssh_failed_to_authenticate_with_key">Failed to authenticate with
-        key</string>
-    <string name="exceptions_ssh_hostname_not_present_in_known_hosts">Hostname %s is not present in
-        known hosts</string>
+    <string name="exceptions_ssh_failed_to_authenticate_with_password">
+        Failed to authenticate with password</string>
+    <string name="exceptions_ssh_failed_to_authenticate_with_key">
+        Failed to authenticate with key</string>
+    <string name="exceptions_ssh_hostname_not_present_in_known_hosts">
+        Hostname %s is not present in known hosts</string>
     <string name="exceptions_ssh_hostkey_not_verified">Hostname %1$s is known, but could not be
         verified. Chosen algorithm: %2$s; SHA256 host key fingerprint: %3$s</string>
+
+    <string name="pref_ssh_key_stored_inside_security_hardware_yes">
+        %s key was stored inside security hardware</string>
+    <string name="pref_ssh_key_stored_inside_security_hardware_no">
+        %s key was stored inside software key store</string>
+    <string name="pref_ssh_key_stored_inside_security_hardware_cant_tell">
+        %s key was stored inside key store</string>
+    <string name="pref_ssh_key_stored_outside_key_store">
+        %1$s key was stored inside the app.\n\nThe key couldn’t be stored in the key store: %2$s</string>
+    <string name="pref_ssh_key_forgotten">Key forgotten</string>
+
+    <string name="pref_ssl_certificate_stored_inside_security_hardware_yes">
+        Certificate was stored inside security hardware</string>
+    <string name="pref_ssl_certificate_stored_inside_security_hardware_no">
+        Certificate was stored inside software key store</string>
+    <string name="pref_ssl_certificate_stored_inside_security_hardware_cant_tell">
+        Certificate was stored inside key store</string>
+    <string name="pref_ssl_certificate_forgotten">Certificate forgotten</string>
+
+    <string name="pref_known_hosts_set">Known hosts set</string>
+    <string name="pref_known_hosts_cleared">Known hosts cleared</string>
 </resources>
