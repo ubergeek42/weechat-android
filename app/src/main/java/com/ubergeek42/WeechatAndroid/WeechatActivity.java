@@ -76,6 +76,7 @@ import com.ubergeek42.WeechatAndroid.utils.Network;
 import com.ubergeek42.WeechatAndroid.utils.SimpleTransitionDrawable;
 import com.ubergeek42.WeechatAndroid.utils.ThemeFix;
 import com.ubergeek42.WeechatAndroid.utils.ToolbarController;
+import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.CatD;
 import com.ubergeek42.cats.Kitty;
@@ -90,6 +91,7 @@ import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateNotYetValidException;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.List;
 
 import javax.net.ssl.SSLPeerUnverifiedException;
 
@@ -647,12 +649,18 @@ public class WeechatActivity extends AppCompatActivity implements
             Intent inner = getIntent().getParcelableExtra(Intent.EXTRA_INTENT);
             if (inner != null) {
                 String type = inner.getType();
-                if ("text/plain".equals(type)) {
-                    String text = inner.getStringExtra(Intent.EXTRA_TEXT);
-                    if (text != null) shareObject = new TextShareObject(text);
-                } else {
-                    Uri uri = inner.getParcelableExtra(Intent.EXTRA_STREAM);
-                    if (uri != null) shareObject = new UrisShareObject(type, uri);
+
+                if (Intent.ACTION_SEND.equals(inner.getAction())) {
+                    if ("text/plain".equals(type)) {
+                        String text = inner.getStringExtra(Intent.EXTRA_TEXT);
+                        if (text != null) shareObject = new TextShareObject(text);
+                    } else {
+                        Uri uri = inner.getParcelableExtra(Intent.EXTRA_STREAM);
+                        if (uri != null) shareObject = new UrisShareObject(type, uri);
+                    }
+                } else if (Intent.ACTION_SEND_MULTIPLE.equals(inner.getAction())) {
+                    List<Uri> uris = inner.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
+                    if (!Utils.isEmpty(uris)) shareObject = new UrisShareObject(type, uris);
                 }
             }
             String text = getIntent().getStringExtra(EXTRA_BUFFER_INPUT_TEXT);

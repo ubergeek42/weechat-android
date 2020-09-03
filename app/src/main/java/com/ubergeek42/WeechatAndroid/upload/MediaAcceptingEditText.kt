@@ -92,13 +92,15 @@ data class TextShareObject(val text: CharSequence) : ShareObject {
 }
 
 @Suppress("ArrayInDataClass")
-data class UrisShareObject(val type: String?, val uris: Array<Uri>) : ShareObject {
-    constructor(type: String?, uri: Uri) : this(type, arrayOf(uri))
+data class UrisShareObject(val type: String?, val uris: List<Uri>) : ShareObject {
+    constructor(type: String?, uri: Uri) : this(type, listOf(uri))
 
     override fun insertAt(editText: EditText, cursorPosition: Int) {
         var text = editText.text as CharSequence
+        var currentCursorPosition = cursorPosition
         for (uri in uris) {
-            text = insertAt(editText.context, text, cursorPosition, uri)
+            text = insertAt(editText.context, text, currentCursorPosition, uri)
+            currentCursorPosition += PLACEHOLDER_TEXT.length
         }
         editText.setText(text)
     }
