@@ -15,7 +15,7 @@
         android:layout_alignParentBottom="true"
         android:padding="0dp">
 
-        <com.ubergeek42.WeechatAndroid.utils.ActionEditText
+        <com.ubergeek42.WeechatAndroid.upload.MediaAcceptingEditText
             android:id="@+id/chatview_input"
             android:layout_weight="1.0"
             android:layout_width="0dp"
@@ -31,7 +31,7 @@
             >
 
             <requestFocus />
-        </com.ubergeek42.WeechatAndroid.utils.ActionEditText>
+        </com.ubergeek42.WeechatAndroid.upload.MediaAcceptingEditText>
 
         <ImageButton
             android:id="@+id/chatview_tab"
