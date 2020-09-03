@@ -54,7 +54,7 @@ public class ShareTextActivity extends AppCompatActivity implements
         }
 
         Intent intent = getIntent();
-        if ((Intent.ACTION_SEND.equals(intent.getAction()) && "text/plain".equals(intent.getType()))) {
+        if ((Intent.ACTION_SEND.equals(intent.getAction()))) {
             dialog = new Dialog(this, R.style.AlertDialogTheme);
             dialog.setContentView(R.layout.bufferlist_share);
 
@@ -92,10 +92,9 @@ public class ShareTextActivity extends AppCompatActivity implements
     }
 
     @Override public void onBufferClick(long pointer) {
-        final String text = getIntent().getStringExtra(Intent.EXTRA_TEXT);
         Intent intent = new Intent(getApplicationContext(), WeechatActivity.class);
-        intent.putExtra(NOTIFICATION_EXTRA_BUFFER_POINTER, pointer);
-        intent.putExtra(NOTIFICATION_EXTRA_BUFFER_INPUT_TEXT, text);
+        intent.putExtra(EXTRA_BUFFER_POINTER, pointer);
+        intent.putExtra(Intent.EXTRA_INTENT, getIntent());
         startActivity(intent);
         finish();
     }

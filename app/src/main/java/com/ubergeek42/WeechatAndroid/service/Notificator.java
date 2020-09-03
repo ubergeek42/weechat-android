@@ -41,7 +41,7 @@ import static androidx.core.app.NotificationCompat.Builder;
 import static androidx.core.app.NotificationCompat.GROUP_ALERT_CHILDREN;
 import static androidx.core.app.NotificationCompat.MessagingStyle;
 import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.AUTHENTICATED;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.NOTIFICATION_EXTRA_BUFFER_POINTER;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.EXTRA_BUFFER_POINTER;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.NOTIFICATION_EXTRA_BUFFER_ANY;
 
 
@@ -261,7 +261,7 @@ public class Notificator {
     // setting action in this way is not quite a proper way, but this ensures that all intents
     // are treated as separate intents
     private static PendingIntent getIntentFor(long pointer) {
-        Intent intent = new Intent(context, WeechatActivity.class).putExtra(NOTIFICATION_EXTRA_BUFFER_POINTER, pointer);
+        Intent intent = new Intent(context, WeechatActivity.class).putExtra(EXTRA_BUFFER_POINTER, pointer);
         intent.setAction(Utils.pointerToString(pointer));
         return PendingIntent.getActivity(context, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }

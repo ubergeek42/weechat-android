@@ -19,6 +19,7 @@ import com.ubergeek42.WeechatAndroid.fragments.BufferFragment;
 import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.WeechatAndroid.service.P;
+import com.ubergeek42.WeechatAndroid.upload.ShareObject;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.CatD;
@@ -26,7 +27,6 @@ import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
 
 import java.util.ArrayList;
-import java.util.Collections;
 
 
 public class MainPagerAdapter extends PagerAdapter {
@@ -74,13 +74,13 @@ public class MainPagerAdapter extends PagerAdapter {
         pager.setCurrentItem(pointers.indexOf(pointer));
     }
 
-    @MainThread public void setBufferInputText(long pointer, @NonNull final String text) {
+    @MainThread public void setBufferInputText(long pointer, @NonNull ShareObject shareObject) {
         BufferFragment bufferFragment = getBufferFragment(pointers.indexOf(pointer));
         if (bufferFragment == null) {
             kitty.warn("Tried to set input text of unknown buffer %s", pointer);
             return;
         }
-        bufferFragment.setText(text);
+        bufferFragment.setShareObject(shareObject);
     }
 
     // returns whether a buffer is inside the pager

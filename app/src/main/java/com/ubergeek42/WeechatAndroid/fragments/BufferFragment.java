@@ -32,6 +32,7 @@ import android.widget.TextView;
 
 import com.ubergeek42.WeechatAndroid.Weechat;
 import com.ubergeek42.WeechatAndroid.copypaste.Paste;
+import com.ubergeek42.WeechatAndroid.upload.ShareObject;
 import com.ubergeek42.WeechatAndroid.utils.AnimatedRecyclerView;
 import com.ubergeek42.WeechatAndroid.adapters.ChatLinesAdapter;
 import com.ubergeek42.WeechatAndroid.R;
@@ -403,10 +404,11 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         tcInProgress = true;
     }
 
-    @MainThread @SuppressLint("SetTextI18n") public void setText(String text) {
+    @MainThread @SuppressLint("SetTextI18n") public void setShareObject(ShareObject shareObject) {
         String oldText = uiInput.getText().toString();
         if (oldText.length() > 0 && oldText.charAt(oldText.length() - 1) != ' ') oldText += ' ';
-        uiInput.setText(oldText + text);
+        uiInput.setText(oldText);
+        shareObject.insertAtEnd(uiInput);
         uiInput.setSelection(uiInput.getText().length());
     }
 

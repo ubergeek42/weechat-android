@@ -65,6 +65,9 @@ import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
 import com.ubergeek42.WeechatAndroid.service.RelayService.STATE;
 import com.ubergeek42.WeechatAndroid.service.SSLHandler;
+import com.ubergeek42.WeechatAndroid.upload.ShareObject;
+import com.ubergeek42.WeechatAndroid.upload.UrisShareObject;
+import com.ubergeek42.WeechatAndroid.upload.TextShareObject;
 import com.ubergeek42.WeechatAndroid.upload.UploadService;
 import com.ubergeek42.WeechatAndroid.utils.CertificateDialog;
 import com.ubergeek42.WeechatAndroid.utils.FancyAlertDialogBuilder;
@@ -95,8 +98,6 @@ import static com.ubergeek42.WeechatAndroid.service.Events.*;
 import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.*;
 import static com.ubergeek42.WeechatAndroid.upload.UploadServiceKt.ACTION_UPLOAD;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
-
-import static com.ubergeek42.WeechatAndroid.utils.ThrowingKeyManagerWrapper.ClientCertificateMismatchException;
 
 public class WeechatActivity extends AppCompatActivity implements
         CutePagerTitleStrip.CutePageChangeListener, BufferListClickListener {
@@ -247,7 +248,7 @@ public class WeechatActivity extends AppCompatActivity implements
         applyColorSchemeToViews();
         super.onStart();
         if (uiMenu != null) uiMenu.findItem(R.id.menu_dark_theme).setVisible(P.themeSwitchEnabled);
-        if (getIntent().hasExtra(NOTIFICATION_EXTRA_BUFFER_POINTER)) openBufferFromIntent();
+        if (getIntent().hasExtra(EXTRA_BUFFER_POINTER)) openBufferFromIntent();
         enableDisableExclusionRects();
     }
 
@@ -530,12 +531,12 @@ public class WeechatActivity extends AppCompatActivity implements
         openBuffer(pointer, null);
     }
 
-    @MainThread @Cat("Buffers") public void openBuffer(long pointer, @Nullable final String text) {
+    @MainThread @Cat("Buffers") public void openBuffer(long pointer, @Nullable ShareObject shareObject) {
         if (adapter.isBufferOpen(pointer) || state.contains(AUTHENTICATED)) {
             adapter.openBuffer(pointer);
             adapter.focusBuffer(pointer);
             // post so that the fragment is created first, if it's not ready
-            if (text != null) Weechat.runOnMainThread(() -> adapter.setBufferInputText(pointer, text));
+            if (shareObject != null) Weechat.runOnMainThread(() -> adapter.setBufferInputText(pointer, shareObject));
             if (slidy) hideDrawer();
         } else {
             Weechat.showShortToast(R.string.not_connected);
@@ -623,7 +624,7 @@ public class WeechatActivity extends AppCompatActivity implements
     // we may get intent while we are connected to the service and when we are not
     @MainThread @Override @Cat("Intent") protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        if (intent.hasExtra(NOTIFICATION_EXTRA_BUFFER_POINTER)) {
+        if (intent.hasExtra(EXTRA_BUFFER_POINTER)) {
             setIntent(intent);
             if (started) openBufferFromIntent();
         }
@@ -633,7 +634,7 @@ public class WeechatActivity extends AppCompatActivity implements
     // if buffer name is "" (any), open that buffer or show drawer
     // else open buffer and set text
     @MainThread @Cat("Intent") private void openBufferFromIntent() {
-        long pointer = getIntent().getLongExtra(NOTIFICATION_EXTRA_BUFFER_POINTER, NOTIFICATION_EXTRA_BUFFER_ANY);
+        long pointer = getIntent().getLongExtra(EXTRA_BUFFER_POINTER, NOTIFICATION_EXTRA_BUFFER_ANY);
         if (pointer == NOTIFICATION_EXTRA_BUFFER_ANY) {
             if (BufferList.getHotBufferCount() > 1) {
                 if (slidy) showDrawer();
@@ -642,11 +643,23 @@ public class WeechatActivity extends AppCompatActivity implements
                 if (buffer != null) openBuffer(buffer.pointer);
             }
         } else {
-            String text = getIntent().getStringExtra(NOTIFICATION_EXTRA_BUFFER_INPUT_TEXT);
-            openBuffer(pointer, text);
+            ShareObject shareObject = null;
+            Intent inner = getIntent().getParcelableExtra(Intent.EXTRA_INTENT);
+            if (inner != null) {
+                String type = inner.getType();
+                if ("text/plain".equals(type)) {
+                    String text = inner.getStringExtra(Intent.EXTRA_TEXT);
+                    if (text != null) shareObject = new TextShareObject(text);
+                } else {
+                    Uri uri = inner.getParcelableExtra(Intent.EXTRA_STREAM);
+                    if (uri != null) shareObject = new UrisShareObject(type, uri);
+                }
+            }
+            String text = getIntent().getStringExtra(EXTRA_BUFFER_INPUT_TEXT);
+            openBuffer(pointer, shareObject);
         }
-        getIntent().removeExtra(NOTIFICATION_EXTRA_BUFFER_INPUT_TEXT);
-        getIntent().removeExtra(NOTIFICATION_EXTRA_BUFFER_POINTER);
+        getIntent().removeExtra(EXTRA_BUFFER_INPUT_TEXT);
+        getIntent().removeExtra(EXTRA_BUFFER_POINTER);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
