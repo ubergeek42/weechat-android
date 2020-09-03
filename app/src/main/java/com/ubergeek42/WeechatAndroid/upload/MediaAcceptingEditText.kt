@@ -2,7 +2,6 @@ package com.ubergeek42.WeechatAndroid.upload
 
 import android.content.Context
 import android.os.Build
-import android.provider.MediaStore
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.TextUtils
@@ -12,13 +11,11 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputConnection
 import androidx.core.view.inputmethod.EditorInfoCompat
 import androidx.core.view.inputmethod.InputConnectionCompat
-import androidx.core.view.inputmethod.InputContentInfoCompat
-import com.ubergeek42.WeechatAndroid.Weechat
 import com.ubergeek42.WeechatAndroid.utils.ActionEditText
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
-import kotlin.concurrent.thread
 
+const val PLACEHOLDER_TEXT = "<placeholder>"
 
 class MediaAcceptingEditText : ActionEditText {
     @Root private val kitty = Kitty.make()
@@ -46,19 +43,15 @@ class MediaAcceptingEditText : ActionEditText {
             }
         }
 
-        // https://stackoverflow.com/a/58008340/1449683
-        thread {
-            val uri = inputContentInfo.contentUri
-            val bitmap = MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
-            val imageSpan = ImageSpan(context, bitmap)
+        val imageSpan = ImageSpan(context, inputContentInfo.contentUri)
+        val newText = SpannableString(TextUtils.concat(text, PLACEHOLDER_TEXT))
+        newText.setSpan(imageSpan,
+                        newText.length - PLACEHOLDER_TEXT.length,
+                        newText.length,
+                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        setText(newText)
 
-            Weechat.runOnMainThread {
-                val newText = SpannableString(TextUtils.concat(text, "?"))
-                newText.setSpan(imageSpan, newText.length - 1, newText.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-                setText(newText)
-                if (shouldRequestPermission) inputContentInfo.releasePermission()
-            }
-        }
+        if (shouldRequestPermission) inputContentInfo.releasePermission()
 
         true
     }
