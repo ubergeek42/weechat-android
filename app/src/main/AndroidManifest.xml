@@ -34,6 +34,7 @@
         android:usesCleartextTraffic="true"
         android:windowSoftInputMode="adjustResize">
         <service android:name=".service.RelayService" />
+        <service android:name=".upload.UploadService" />
         <activity
             android:name=".WeechatActivity"
             android:launchMode="singleTask"

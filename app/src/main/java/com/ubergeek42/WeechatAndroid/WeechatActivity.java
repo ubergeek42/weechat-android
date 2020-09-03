@@ -23,6 +23,7 @@ import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.AttributeSet;
@@ -64,6 +65,7 @@ import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
 import com.ubergeek42.WeechatAndroid.service.RelayService.STATE;
 import com.ubergeek42.WeechatAndroid.service.SSLHandler;
+import com.ubergeek42.WeechatAndroid.upload.UploadService;
 import com.ubergeek42.WeechatAndroid.utils.CertificateDialog;
 import com.ubergeek42.WeechatAndroid.utils.FancyAlertDialogBuilder;
 import com.ubergeek42.WeechatAndroid.utils.FriendlyExceptions;
@@ -71,7 +73,6 @@ import com.ubergeek42.WeechatAndroid.utils.Network;
 import com.ubergeek42.WeechatAndroid.utils.SimpleTransitionDrawable;
 import com.ubergeek42.WeechatAndroid.utils.ThemeFix;
 import com.ubergeek42.WeechatAndroid.utils.ToolbarController;
-import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.CatD;
 import com.ubergeek42.cats.Kitty;
@@ -84,7 +85,6 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateNotYetValidException;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 
@@ -93,6 +93,7 @@ import javax.net.ssl.SSLPeerUnverifiedException;
 import static com.ubergeek42.WeechatAndroid.media.Cache.findException;
 import static com.ubergeek42.WeechatAndroid.service.Events.*;
 import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.*;
+import static com.ubergeek42.WeechatAndroid.upload.UploadServiceKt.ACTION_UPLOAD;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
 
 import static com.ubergeek42.WeechatAndroid.utils.ThrowingKeyManagerWrapper.ClientCertificateMismatchException;
@@ -481,6 +482,14 @@ public class WeechatActivity extends AppCompatActivity implements
                 break;
             case R.id.die:
                 System.exit(0);
+                break;
+            case R.id.upload:
+                Intent i = new Intent(this, UploadService.class);
+                i.setAction(ACTION_UPLOAD);
+                i.setDataAndType(Uri.EMPTY, "poop/haha");
+                startService(i);
+                kitty.warn("ok");
+                break;
         }
         return true;
     }

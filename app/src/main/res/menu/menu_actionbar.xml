@@ -44,6 +44,8 @@
                 android:title="@string/menu_sync_hotlist" />
             <item android:id="@+id/die"
                 android:title="@string/menu_die" />
+            <item android:id="@+id/upload"
+                android:title="Upload" />
         </menu>
     </item>
 </menu>

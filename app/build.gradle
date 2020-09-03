@@ -3,6 +3,8 @@ import org.aspectj.bridge.MessageHandler
 import org.aspectj.tools.ajc.Main
 
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
 
 configurations {
     devreleaseImplementation
@@ -11,6 +13,9 @@ configurations {
 dependencies {
     implementation project (':cats')
     implementation project (':relay')
+
+    implementation "androidx.core:core-ktx:1.3.1"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
     // these two are required for logging within the relay module. todo remove?
     implementation 'org.slf4j:slf4j-api:1.7.30'
