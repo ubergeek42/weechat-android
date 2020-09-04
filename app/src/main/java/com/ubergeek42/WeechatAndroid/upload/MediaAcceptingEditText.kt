@@ -1,7 +1,7 @@
 package com.ubergeek42.WeechatAndroid.upload
 
 import android.content.Context
-import android.graphics.drawable.Drawable
+import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import android.text.SpannableString
@@ -14,9 +14,13 @@ import android.view.inputmethod.InputConnection
 import android.widget.EditText
 import androidx.core.view.inputmethod.EditorInfoCompat
 import androidx.core.view.inputmethod.InputConnectionCompat
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.target.SimpleTarget
+import com.bumptech.glide.request.transition.Transition
 import com.ubergeek42.WeechatAndroid.utils.ActionEditText
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
+import kotlin.concurrent.thread
 
 const val PLACEHOLDER_TEXT = "📎"
 
@@ -33,8 +37,7 @@ class MediaAcceptingEditText : ActionEditText {
         return InputConnectionCompat.createWrapper(inputConnection, editorInfo, callback)
     }
 
-    private val callback = InputConnectionCompat.OnCommitContentListener {
-            inputContentInfo, flags, _ ->
+    private val callback = InputConnectionCompat.OnCommitContentListener { inputContentInfo, flags, _ ->
         val lacksPermission = (flags and InputConnectionCompat.INPUT_CONTENT_GRANT_READ_URI_PERMISSION) != 0
         val shouldRequestPermission = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1 && lacksPermission
 
@@ -49,9 +52,9 @@ class MediaAcceptingEditText : ActionEditText {
         val imageSpan = ImageSpan(context, inputContentInfo.contentUri)
         val newText = SpannableString(TextUtils.concat(text, PLACEHOLDER_TEXT))
         newText.setSpan(imageSpan,
-                        newText.length - PLACEHOLDER_TEXT.length,
-                        newText.length,
-                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                newText.length - PLACEHOLDER_TEXT.length,
+                newText.length,
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         setText(newText)
 
         if (shouldRequestPermission) inputContentInfo.releasePermission()
@@ -60,16 +63,17 @@ class MediaAcceptingEditText : ActionEditText {
     }
 }
 
-const val HEIGHT = 200
-
-class SensibleImageSpan(context: Context, uri: Uri) : ImageSpan(context, uri) {
-    override fun getDrawable(): Drawable {
-        val drawable = super.getDrawable()
-        val width = drawable.intrinsicWidth
-        val height = drawable.intrinsicHeight
-        val nw = HEIGHT.toFloat() / height * width
-        drawable.setBounds(0, 0, nw.toInt(), HEIGHT)
-        return drawable
+fun getThumbnailAnd(context: Context, uri: Uri, onReady: (bitmap: Bitmap) -> Unit) {
+    val path = uri.path
+    if (path != null) {
+        Glide.with(context)
+                .asBitmap()
+                .load(uri)
+                .into(object : SimpleTarget<Bitmap>(250, 250) {
+                    override fun onResourceReady(bitmap: Bitmap, transition: Transition<in Bitmap>?) {
+                        onReady(bitmap)
+                    }
+                })
     }
 }
 
@@ -96,22 +100,39 @@ data class UrisShareObject(val type: String?, val uris: List<Uri>) : ShareObject
     constructor(type: String?, uri: Uri) : this(type, listOf(uri))
 
     override fun insertAt(editText: EditText, cursorPosition: Int) {
-        var text = editText.text as CharSequence
-        var currentCursorPosition = cursorPosition
-        for (uri in uris) {
-            text = insertAt(editText.context, text, currentCursorPosition, uri)
-            currentCursorPosition += PLACEHOLDER_TEXT.length
+        getAllImages(editText.context) {
+            var text = editText.text as CharSequence
+            var currentCursorPosition = cursorPosition
+            uris.forEachIndexed { i, _ ->
+                text = insertAt(editText.context, text, currentCursorPosition, i)
+                currentCursorPosition += PLACEHOLDER_TEXT.length
+            }
+            editText.setText(text)
         }
-        editText.setText(text)
+    }
+
+    private val bitmaps: Array<Bitmap?> = arrayOfNulls(uris.size)
+
+    private fun getAllImages(context: Context, then: () -> Unit) {
+        uris.forEachIndexed { i, uri ->
+            thread {
+                getThumbnailAnd(context, uri) { bitmap ->
+                    synchronized (this) {
+                        bitmaps[i] = bitmap
+                        if (bitmaps.all { it != null }) then()
+                    }
+                }
+            }
+        }
     }
 
     private fun insertAt(context: Context, originalText: CharSequence,
-                         cursorPosition: Int, uri: Uri) : CharSequence {
+                         cursorPosition: Int, i: Int) : CharSequence {
         val newText = SpannableString(TextUtils.concat(
                 originalText.subSequence(0, cursorPosition),
                 PLACEHOLDER_TEXT,
                 originalText.subSequence(cursorPosition, originalText.length)))
-        val imageSpan = SensibleImageSpan(context, uri)
+        val imageSpan = ImageSpan(context, bitmaps[i]!!)
         newText.setSpan(imageSpan,
                 newText.length - PLACEHOLDER_TEXT.length,
                 newText.length,
