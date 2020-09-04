@@ -32,6 +32,7 @@ import android.widget.TextView;
 
 import com.ubergeek42.WeechatAndroid.Weechat;
 import com.ubergeek42.WeechatAndroid.copypaste.Paste;
+import com.ubergeek42.WeechatAndroid.upload.InsertAt;
 import com.ubergeek42.WeechatAndroid.upload.ShareObject;
 import com.ubergeek42.WeechatAndroid.utils.AnimatedRecyclerView;
 import com.ubergeek42.WeechatAndroid.adapters.ChatLinesAdapter;
@@ -405,11 +406,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     }
 
     @MainThread @SuppressLint("SetTextI18n") public void setShareObject(ShareObject shareObject) {
-        String oldText = uiInput.getText().toString();
-        if (oldText.length() > 0 && oldText.charAt(oldText.length() - 1) != ' ') oldText += ' ';
-        uiInput.setText(oldText);
-        shareObject.insertAtEnd(uiInput);
-        uiInput.setSelection(uiInput.getText().length());
+        shareObject.insert(uiInput, InsertAt.END);
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////// text watcher
