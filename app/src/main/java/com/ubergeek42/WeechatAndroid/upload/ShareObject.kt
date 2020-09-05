@@ -2,16 +2,21 @@ package com.ubergeek42.WeechatAndroid.upload
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.text.*
 import android.text.style.ImageSpan
 import android.widget.EditText
 import androidx.annotation.MainThread
 import com.bumptech.glide.Glide
-import com.bumptech.glide.request.target.SimpleTarget
+import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import com.ubergeek42.WeechatAndroid.Weechat
 import kotlin.concurrent.thread
+
 
 enum class InsertAt {
     CURRENT_POSITION, END
@@ -94,9 +99,54 @@ fun getThumbnailAndRunOnMainThread(context: Context, uri: Uri, then: (bitmap: Bi
     Glide.with(context)
             .asBitmap()
             .load(uri)
-            .into(object : SimpleTarget<Bitmap>(THUMBNAIL_MAX_WIDTH, THUMBNAIL_MAX_HEIGHT) {
+            .into(object : CustomTarget<Bitmap>(THUMBNAIL_MAX_WIDTH, THUMBNAIL_MAX_HEIGHT) {
                 override fun onResourceReady(bitmap: Bitmap, transition: Transition<in Bitmap>?) {
                     Weechat.runOnMainThread { then(bitmap) }
                 }
+
+                override fun onLoadFailed(errorDrawable: Drawable?) {
+                    val bitmap = makeThumbnailForUri(uri)
+                    Weechat.runOnMainThread { then(bitmap) }
+                }
+
+                override fun onLoadCleared(placeholder: Drawable?) {
+                    TODO("Not yet implemented")
+                }
             })
+}
+
+
+const val TEXT_SIZE = 40f
+const val PADDING = 10
+const val LAYOUT_MAX_WIDTH = THUMBNAIL_MAX_WIDTH - (PADDING * 2)
+const val LAYOUT_MAX_HEIGHT = THUMBNAIL_MAX_HEIGHT - (PADDING * 2)
+const val TEXT_COLOR = Color.BLACK
+
+fun makeThumbnailForUri(uri: Uri) : Bitmap {
+    val text = uri.lastPathSegment ?: "file"
+
+    val backgroundPaint = Paint()
+    backgroundPaint.color = Color.WHITE
+    backgroundPaint.style = Paint.Style.FILL
+
+    val textPaint = TextPaint(Paint.ANTI_ALIAS_FLAG)
+    textPaint.textSize = TEXT_SIZE
+    textPaint.color = TEXT_COLOR
+
+    val layout = StaticLayout(text, textPaint, LAYOUT_MAX_WIDTH,
+            Layout.Alignment.ALIGN_NORMAL, 1.0f, 0.0f, false)
+    val left = if (layout.maxLineWidth > LAYOUT_MAX_WIDTH) PADDING else (THUMBNAIL_MAX_WIDTH - layout.maxLineWidth) / 2
+    val top = if (layout.height > LAYOUT_MAX_HEIGHT) PADDING else (THUMBNAIL_MAX_HEIGHT - layout.height) / 2
+
+    val image = Bitmap.createBitmap(THUMBNAIL_MAX_WIDTH, THUMBNAIL_MAX_HEIGHT, Bitmap.Config.ARGB_8888)
+    val canvas = Canvas(image)
+    canvas.drawPaint(backgroundPaint)
+    canvas.translate(left.toFloat(), top.toFloat())
+    layout.draw(canvas)
+
+    return image
+}
+
+val Layout.maxLineWidth : Int get() {
+    return (0 until lineCount).map { getLineWidth(it) }.max()?.toInt() ?: width
 }
