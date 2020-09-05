@@ -18,9 +18,23 @@ import com.ubergeek42.WeechatAndroid.Weechat
 import kotlin.concurrent.thread
 
 
+data class ShareUri(val uri: Uri, val type: String?) {
+    var httpUri: String? = null
+    val ready get() = httpUri != null
+}
+
+
+data class ShareSpan(val context: Context, val shareUri: ShareUri, val bitmap: Bitmap)
+        : ImageSpan(context, bitmap)
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 enum class InsertAt {
     CURRENT_POSITION, END
 }
+
 
 interface ShareObject {
     fun insert(editText: EditText, insertAt: InsertAt)
@@ -67,7 +81,7 @@ data class UrisShareObject(val type: String?, val uris: List<Uri>) : ShareObject
 
     private fun makeImageSpanned(context: Context, i: Int) : Spanned {
         val spanned = SpannableString(PLACEHOLDER_TEXT)
-        val imageSpan = ImageSpan(context, bitmaps[i]!!)
+        val imageSpan = ShareSpan(context, ShareUri(uris[i], type), bitmaps[i]!!)
         spanned.setSpan(imageSpan, 0, PLACEHOLDER_TEXT.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         return spanned
     }
@@ -77,23 +91,8 @@ data class UrisShareObject(val type: String?, val uris: List<Uri>) : ShareObject
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-fun EditText.insertAddingSpacesAsNeeded(insertAt: InsertAt, word: CharSequence) {
-    val pos = if (insertAt == InsertAt.CURRENT_POSITION) selectionEnd else text.length
-    val shouldPrependSpace = pos > 0 && text[pos - 1] != ' '
-    val shouldAppendSpace = pos < text.length && text[pos + 1] != ' '
-
-    val wordWithSurroundingSpaces = SpannableStringBuilder()
-    if (shouldPrependSpace) wordWithSurroundingSpaces.append(' ')
-    wordWithSurroundingSpaces.append(word)
-    if (shouldAppendSpace) wordWithSurroundingSpaces.append(' ')
-
-    text.insert(pos, wordWithSurroundingSpaces)
-}
-
-
 const val THUMBNAIL_MAX_WIDTH = 250
 const val THUMBNAIL_MAX_HEIGHT = 250
-
 
 fun getThumbnailAndRunOnMainThread(context: Context, uri: Uri, then: (bitmap: Bitmap) -> Unit) {
     Glide.with(context)
@@ -146,6 +145,24 @@ fun makeThumbnailForUri(uri: Uri) : Bitmap {
 
     return image
 }
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+@MainThread fun EditText.insertAddingSpacesAsNeeded(insertAt: InsertAt, word: CharSequence) {
+    val pos = if (insertAt == InsertAt.CURRENT_POSITION) selectionEnd else text.length
+    val shouldPrependSpace = pos > 0 && text[pos - 1] != ' '
+    val shouldAppendSpace = pos < text.length && text[pos + 1] != ' '
+
+    val wordWithSurroundingSpaces = SpannableStringBuilder()
+    if (shouldPrependSpace) wordWithSurroundingSpaces.append(' ')
+    wordWithSurroundingSpaces.append(word)
+    if (shouldAppendSpace) wordWithSurroundingSpaces.append(' ')
+
+    text.insert(pos, wordWithSurroundingSpaces)
+}
+
 
 val Layout.maxLineWidth : Int get() {
     return (0 until lineCount).map { getLineWidth(it) }.max()?.toInt() ?: width

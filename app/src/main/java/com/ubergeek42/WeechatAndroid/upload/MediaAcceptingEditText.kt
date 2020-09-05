@@ -45,4 +45,12 @@ class MediaAcceptingEditText : ActionEditText {
 
         true
     }
+
+    fun getShareUris() : List<ShareUri> {
+        return text?.let { it.getSpans(0, it.length, ShareUri::class.java).toList() } ?: emptyList()
+    }
+
+    fun getNotReadyShareUris() : List<ShareUri> {
+        return getShareUris().filter { !it.ready }
+    }
 }
