@@ -21,6 +21,7 @@ import kotlin.concurrent.thread
 data class ShareUri(val uri: Uri, val type: String?) {
     var httpUri: String? = null
     val ready get() = httpUri != null
+    val fileName get() = uri.lastPathSegment ?: "unknown"
 }
 
 
