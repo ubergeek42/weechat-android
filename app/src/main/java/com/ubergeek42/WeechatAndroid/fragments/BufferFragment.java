@@ -28,6 +28,7 @@ import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.ubergeek42.WeechatAndroid.Weechat;
@@ -66,6 +67,10 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     private EditText uiInput;
     private ImageButton uiSend;
     private ImageButton uiTab;
+
+    private ViewGroup uploadLayout;
+    private ProgressBar uploadProgressBar;
+    private ImageButton uploadButton;
 
     private long pointer = 0;
     private Buffer buffer;
@@ -109,6 +114,10 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         uiSend = v.findViewById(R.id.chatview_send);
         uiTab = v.findViewById(R.id.chatview_tab);
 
+        uploadLayout = v.findViewById(R.id.upload_layout);
+        uploadProgressBar = v.findViewById(R.id.upload_progress_bar);
+        uploadButton = v.findViewById(R.id.upload_button);
+
         linesAdapter = new ChatLinesAdapter(uiLines);
         uiLines.setAdapter(linesAdapter);
         uiLines.addOnScrollListener(new RecyclerView.OnScrollListener() {
@@ -143,7 +152,22 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
 
     @MainThread @Override @Cat public void onResume() {
         super.onResume();
-        uiSend.setVisibility(P.showSend ? View.VISIBLE : View.GONE);
+
+        // Weechat.runOnMainThread(() -> {
+        //             setUploadStatus(UploadStatus.HAS_THINGS_TO_UPLOAD);
+        //             uploadButton.setOnClickListener(v -> {
+        //                 setUploadStatus(UploadStatus.UPLOADING);
+        //                 setUploadProgress(0);
+        //                 for (int i = 0; i <= 100; i ++) {
+        //                     int y = i;
+        //                     Weechat.runOnMainThread(() -> {
+        //                         setUploadProgress(y / 100f);
+        //                         if (y == 100) setUploadStatus(UploadStatus.NOTHING_TO_UPLOAD);
+        //                     }, 100 * y);
+        //                 }
+        //             });
+        //         }, 2000);
+
         uiTab.setVisibility(P.showTab ? View.VISIBLE : View.GONE);
         uiLines.setBackgroundColor(0xFF000000 | ColorScheme.get().default_color[ColorScheme.OPT_BG]);
         EventBus.getDefault().register(this);
@@ -422,5 +446,51 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
 
     @SuppressWarnings("ConstantConditions") private void applyColorSchemeToViews() {
         getView().findViewById(R.id.chatview_bottombar).setBackgroundColor(P.colorPrimary);
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    enum UploadStatus {
+        NOTHING_TO_UPLOAD,
+        HAS_THINGS_TO_UPLOAD,
+        UPLOADING
+    }
+
+    private UploadStatus lastUploadStatus = UploadStatus.NOTHING_TO_UPLOAD;
+
+    @MainThread void setUploadStatus(UploadStatus uploadStatus) {
+        if (uploadStatus == lastUploadStatus) return;
+        lastUploadStatus = uploadStatus;
+
+        switch (uploadStatus) {
+            case NOTHING_TO_UPLOAD:
+                if (P.showSend) uiSend.setVisibility(View.VISIBLE);
+                uploadLayout.setVisibility(View.GONE);
+                return;
+            case HAS_THINGS_TO_UPLOAD:
+                uiSend.setVisibility(View.GONE);
+                uploadLayout.setVisibility(View.VISIBLE);
+                uploadButton.setImageResource(R.drawable.ic_toolbar_upload);
+                setUploadProgress(-1);
+                break;
+            case UPLOADING:
+                uiSend.setVisibility(View.GONE);
+                uploadLayout.setVisibility(View.VISIBLE);
+                uploadButton.setImageResource(R.drawable.ic_toolbar_upload_cancel);
+                setUploadProgress(-1);
+                break;
+        }
+    }
+
+    @MainThread void setUploadProgress(float ratio) {
+        if (ratio < 0) {
+            uploadProgressBar.setIndeterminate(false);
+            uploadProgressBar.setProgress(0);
+        } else if (ratio < 0.05f) {
+            uploadProgressBar.setIndeterminate(true);
+        } else {
+            uploadProgressBar.setIndeterminate(false);
+            uploadProgressBar.setProgress((int) (100 * ratio));
+        }
     }
 }

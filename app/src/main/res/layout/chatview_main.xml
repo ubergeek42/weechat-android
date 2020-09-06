@@ -54,15 +54,16 @@
             style="@style/ActionButton" />
 
         <FrameLayout
-            android:id="@+id/progress_bar_layout"
+            android:id="@+id/upload_layout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="bottom">
+            android:layout_gravity="bottom"
+            android:visibility="gone">
 
             <!-- ProgressBar provides an indeterminate drawable but not the determinate one.
             drawable/progress_circle here imitates the size of the indeterminate one. -->
             <ProgressBar
-                android:id="@+id/progress_bar"
+                android:id="@+id/upload_progress_bar"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_gravity="center_vertical|center_horizontal"
@@ -72,7 +73,7 @@
                 android:rotation="-90" />
 
             <ImageButton
-                android:id="@+id/progress_bar_button"
+                android:id="@+id/upload_button"
                 android:layout_width="wrap_content"
                 android:layout_height="?actionBarSize"
                 app:srcCompat="@drawable/ic_toolbar_upload"
