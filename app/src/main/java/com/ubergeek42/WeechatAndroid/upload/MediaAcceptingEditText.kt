@@ -7,11 +7,11 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputConnection
 import androidx.core.view.inputmethod.EditorInfoCompat
 import androidx.core.view.inputmethod.InputConnectionCompat
+import com.ubergeek42.WeechatAndroid.Weechat
 import com.ubergeek42.WeechatAndroid.utils.ActionEditText
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
 
-const val PLACEHOLDER_TEXT = "📎"
 
 class MediaAcceptingEditText : ActionEditText {
     @Root private val kitty = Kitty.make()
@@ -39,18 +39,29 @@ class MediaAcceptingEditText : ActionEditText {
             }
         }
 
-        UrisShareObject(null, inputContentInfo.contentUri).insert(this, InsertAt.CURRENT_POSITION) {
-            if (shouldRequestPermission) inputContentInfo.releasePermission()
+        val suri: Suri = try {
+            Suri.fromUri(inputContentInfo.contentUri)
+        } catch (e: java.lang.Exception) {
+            e.printStackTrace()
+            Weechat.showLongToast("Error: ${e.message}")
+            return@OnCommitContentListener false
         }
+
+        object : UrisShareObject(listOf(suri)) {
+            protected fun finalize() {
+                // todo if this causes issues, move this somewhere
+                if (shouldRequestPermission) inputContentInfo.releasePermission()
+            }
+        }.insert(this, InsertAt.CURRENT_POSITION)
 
         true
     }
 
-    fun getShareUris() : List<ShareUri> {
-        return text?.let { it.getSpans(0, it.length, ShareUri::class.java).toList() } ?: emptyList()
+    private fun getSuris() : List<Suri> {
+        return text?.let { it.getSpans(0, it.length, Suri::class.java).toList() } ?: emptyList()
     }
 
-    fun getNotReadyShareUris() : List<ShareUri> {
-        return getShareUris().filter { !it.ready }
+    fun getNotReadySuris() : List<Suri> {
+        return getSuris().filter { !it.ready }
     }
 }

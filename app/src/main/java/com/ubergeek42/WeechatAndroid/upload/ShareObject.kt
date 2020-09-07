@@ -15,18 +15,16 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import com.ubergeek42.WeechatAndroid.Weechat
+import java.io.FileNotFoundException
+import java.io.IOException
 import kotlin.concurrent.thread
 
 
-data class ShareUri(val uri: Uri, val type: String?) {
-    var httpUri: String? = null
-    val ready get() = httpUri != null
-    val fileName get() = uri.lastPathSegment ?: "unknown"
-}
-
-
-data class ShareSpan(val context: Context, val shareUri: ShareUri, val bitmap: Bitmap)
-        : ImageSpan(context, bitmap)
+data class ShareSpan(
+        val context: Context,
+        val suri: Suri,
+        val bitmap: Bitmap
+) : ImageSpan(context, bitmap)
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -42,37 +40,37 @@ interface ShareObject {
 }
 
 
-data class TextShareObject(val text: CharSequence) : ShareObject {
+data class TextShareObject(
+    val text: CharSequence
+) : ShareObject {
     @MainThread override fun insert(editText: EditText, insertAt: InsertAt) {
         editText.insertAddingSpacesAsNeeded(insertAt, text)
     }
 }
 
 
-@Suppress("ArrayInDataClass")
-data class UrisShareObject(val type: String?, val uris: List<Uri>) : ShareObject {
-    private val bitmaps: Array<Bitmap?> = arrayOfNulls(uris.size)
+// non-breaking space. regular spaces and characters can lead to some problems with some keyboards...
+const val PLACEHOLDER_TEXT = "\u00a0"
 
-    constructor(type: String?, uri: Uri) : this(type, listOf(uri))
+@Suppress("ArrayInDataClass")
+open class UrisShareObject(
+    private val suris: List<Suri>
+) : ShareObject {
+    private val bitmaps: Array<Bitmap?> = arrayOfNulls(suris.size)
 
     override fun insert(editText: EditText, insertAt: InsertAt) {
-        insert(editText, insertAt, null)
-    }
-
-    fun insert(editText: EditText, insertAt: InsertAt, then: (() -> Unit)?) {
         val context = editText.context
         getAllImagesAndRunOnMainThread(context) {
-            for (i in uris.indices) {
+            for (i in suris.indices) {
                 editText.insertAddingSpacesAsNeeded(insertAt, makeImageSpanned(context, i))
             }
-            if (then != null) then()
         }
     }
 
     private fun getAllImagesAndRunOnMainThread(context: Context, then: () -> Unit) {
-        uris.forEachIndexed { i, uri ->
+        suris.forEachIndexed { i, suri ->
             thread {
-                getThumbnailAndRunOnMainThread(context, uri) { bitmap ->
+                getThumbnailAndRunOnMainThread(context, suri.uri) { bitmap ->
                     bitmaps[i] = bitmap
                     if (bitmaps.all { it != null }) then()
                 }
@@ -82,9 +80,16 @@ data class UrisShareObject(val type: String?, val uris: List<Uri>) : ShareObject
 
     private fun makeImageSpanned(context: Context, i: Int) : Spanned {
         val spanned = SpannableString(PLACEHOLDER_TEXT)
-        val imageSpan = ShareSpan(context, ShareUri(uris[i], type), bitmaps[i]!!)
+        val imageSpan = ShareSpan(context, suris[i], bitmaps[i]!!)
         spanned.setSpan(imageSpan, 0, PLACEHOLDER_TEXT.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         return spanned
+    }
+
+    companion object {
+        @JvmStatic @Throws(FileNotFoundException::class, IOException::class, SecurityException::class)
+        fun fromUris(uris: List<Uri>): UrisShareObject {
+            return UrisShareObject(uris.map { Suri.fromUri(it) })
+        }
     }
 }
 

@@ -652,18 +652,33 @@ public class WeechatActivity extends AppCompatActivity implements
 
             ShareObject shareObject = null;
 
-            if (Intent.ACTION_SEND.equals(action)) {
-                if ("text/plain".equals(type)) {
-                    String text = intent.getStringExtra(Intent.EXTRA_TEXT);
-                    if (text != null) shareObject = new TextShareObject(text);
-                } else {
+            boolean sendOne = Intent.ACTION_SEND.equals(action);
+            boolean sendMultiple = Intent.ACTION_SEND_MULTIPLE.equals(action);
+
+            if (sendOne && "text/plain".equals(type)) {
+                String text = intent.getStringExtra(Intent.EXTRA_TEXT);
+                if (text != null) shareObject = new TextShareObject(text);
+            } else {
+                List<Uri> uris = null;
+
+                if (sendOne) {
                     Uri uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
-                    if (uri != null) shareObject = new UrisShareObject(type, uri);
+                    if (uri != null) uris = Collections.singletonList(uri);
+                } else if (sendMultiple) {
+                    uris = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
                 }
-            } else if (Intent.ACTION_SEND_MULTIPLE.equals(action)) {
-                List<Uri> uris = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
-                if (!Utils.isEmpty(uris)) shareObject = new UrisShareObject(type, uris);
+
+                if (!Utils.isEmpty(uris)) {
+                    try {
+                        shareObject = UrisShareObject.fromUris(uris);
+                    } catch (Exception e) {
+                        kitty.warn("Error while accessing uri", e);
+                        FriendlyExceptions.Result result = new FriendlyExceptions(this).getFriendlyException(e);
+                        if (result.message != null) Weechat.showLongToast(R.string.error, result.message);
+                    }
+                }
             }
+
             if (shareObject != null) openBuffer(pointer, shareObject);
         }
     }

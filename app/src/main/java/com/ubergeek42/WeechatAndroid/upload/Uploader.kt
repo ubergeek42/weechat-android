@@ -1,8 +1,6 @@
 package com.ubergeek42.WeechatAndroid.upload
 
-import com.ubergeek42.WeechatAndroid.Weechat
 import okhttp3.*
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okio.BufferedSink
 import okio.IOException
 import okio.source
@@ -25,8 +23,8 @@ private val client = OkHttpClient()
 
 
 class Uploader(
-    private val shareUri: ShareUri,
-    private val progressListener: ProgressListener
+        private val suri: Suri,
+        private val progressListener: ProgressListener
 ) {
     var call: Call? = null
 
@@ -49,8 +47,8 @@ class Uploader(
     private fun prepare() : Call {
         val requestBody = MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
-                .addFormDataPart(FORM_FIlE_NAME, shareUri.fileName,
-                        shareUri.asRequestBody(progressListener))
+                .addFormDataPart(FORM_FIlE_NAME, suri.fileName,
+                        suri.asRequestBody(progressListener))
                 .build()
 
         val request = Request.Builder()
@@ -74,20 +72,15 @@ class Uploader(
 }
 
 
-fun ShareUri.asRequestBody(progressListener: ProgressListener): RequestBody {
-    val resolver = Weechat.applicationContext.contentResolver
-    val fileSize = resolver.openFileDescriptor(uri, "r")?.statSize ?: -1L
-    val inputStream = resolver.openInputStream(uri)!!
-
+fun Suri.asRequestBody(progressListener: ProgressListener): RequestBody {
     return object : RequestBody() {
-        override fun contentType() = type?.toMediaTypeOrNull()
-
+        override fun contentType() = mediaType
         override fun contentLength() = fileSize
 
         override fun writeTo(sink: BufferedSink) {
             var totalRead = 0L
 
-            inputStream.source().use {
+            getInputStream().source().use {
                 while (true) {
                     progressListener.onProgress(totalRead, fileSize)
 
