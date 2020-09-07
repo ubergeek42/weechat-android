@@ -92,10 +92,13 @@ public class ShareTextActivity extends AppCompatActivity implements
         dialog.dismiss();                   // must be called in order to not cause leaks
     }
 
+    // as we are receiving uris now, it's important that we keep all permissions associated with them.
+    // while many uris we'll be given for life, some will only last as long as this activity lasts.
+    // see flag FLAG_GRANT_READ_URI_PERMISSION and https://stackoverflow.com/a/39898958/1449683
     @Override public void onBufferClick(long pointer) {
-        Intent intent = new Intent(getApplicationContext(), WeechatActivity.class);
+        Intent intent = getIntent();
+        intent.setClass(getApplicationContext(), WeechatActivity.class);
         intent.putExtra(EXTRA_BUFFER_POINTER, pointer);
-        intent.putExtra(Intent.EXTRA_INTENT, getIntent());
         startActivity(intent);
         finish();
     }

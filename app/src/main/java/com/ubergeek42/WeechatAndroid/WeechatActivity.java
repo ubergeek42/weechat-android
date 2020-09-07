@@ -632,11 +632,13 @@ public class WeechatActivity extends AppCompatActivity implements
         }
     }
 
-    // todo make this sane
-    // if buffer name is "" (any), open that buffer or show drawer
-    // else open buffer and set text
+    // when this is called, EXTRA_BUFFER_POINTER must be set
     @MainThread @Cat("Intent") private void openBufferFromIntent() {
-        long pointer = getIntent().getLongExtra(EXTRA_BUFFER_POINTER, NOTIFICATION_EXTRA_BUFFER_ANY);
+        Intent intent = getIntent();
+
+        long pointer = intent.getLongExtra(EXTRA_BUFFER_POINTER, NOTIFICATION_EXTRA_BUFFER_ANY);
+        intent.removeExtra(EXTRA_BUFFER_POINTER);
+
         if (pointer == NOTIFICATION_EXTRA_BUFFER_ANY) {
             if (BufferList.getHotBufferCount() > 1) {
                 if (slidy) showDrawer();
@@ -645,29 +647,25 @@ public class WeechatActivity extends AppCompatActivity implements
                 if (buffer != null) openBuffer(buffer.pointer);
             }
         } else {
-            ShareObject shareObject = null;
-            Intent inner = getIntent().getParcelableExtra(Intent.EXTRA_INTENT);
-            if (inner != null) {
-                String type = inner.getType();
+            @Nullable String action = intent.getAction();
+            @Nullable String type = intent.getType();
 
-                if (Intent.ACTION_SEND.equals(inner.getAction())) {
-                    if ("text/plain".equals(type)) {
-                        String text = inner.getStringExtra(Intent.EXTRA_TEXT);
-                        if (text != null) shareObject = new TextShareObject(text);
-                    } else {
-                        Uri uri = inner.getParcelableExtra(Intent.EXTRA_STREAM);
-                        if (uri != null) shareObject = new UrisShareObject(type, uri);
-                    }
-                } else if (Intent.ACTION_SEND_MULTIPLE.equals(inner.getAction())) {
-                    List<Uri> uris = inner.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
-                    if (!Utils.isEmpty(uris)) shareObject = new UrisShareObject(type, uris);
+            ShareObject shareObject = null;
+
+            if (Intent.ACTION_SEND.equals(action)) {
+                if ("text/plain".equals(type)) {
+                    String text = intent.getStringExtra(Intent.EXTRA_TEXT);
+                    if (text != null) shareObject = new TextShareObject(text);
+                } else {
+                    Uri uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+                    if (uri != null) shareObject = new UrisShareObject(type, uri);
                 }
+            } else if (Intent.ACTION_SEND_MULTIPLE.equals(action)) {
+                List<Uri> uris = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
+                if (!Utils.isEmpty(uris)) shareObject = new UrisShareObject(type, uris);
             }
-            String text = getIntent().getStringExtra(EXTRA_BUFFER_INPUT_TEXT);
-            openBuffer(pointer, shareObject);
+            if (shareObject != null) openBuffer(pointer, shareObject);
         }
-        getIntent().removeExtra(EXTRA_BUFFER_INPUT_TEXT);
-        getIntent().removeExtra(EXTRA_BUFFER_POINTER);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
