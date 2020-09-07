@@ -1,22 +1,18 @@
 package com.ubergeek42.WeechatAndroid.upload
 
-import android.content.Context
+import com.ubergeek42.WeechatAndroid.Weechat
+import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.MultipartBody
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody
 import okio.BufferedSink
 import okio.IOException
 import okio.source
-import java.lang.Exception
 
 
 interface ProgressListener {
     fun onStarted()
     fun onProgress(read: Long, total: Long)
     fun onDone(body: String)
-    fun onException(e: Exception)
+    fun onFailure(e: Exception)
 }
 
 
@@ -28,12 +24,33 @@ const val SEGMENT_SIZE = 4096L
 private val client = OkHttpClient()
 
 
-fun uploadUri(context: Context, shareUri: ShareUri, progressListener: ProgressListener) {
-    try {
+class Uploader(
+    private val shareUri: ShareUri,
+    private val progressListener: ProgressListener
+) {
+    var call: Call? = null
+
+    fun upload() {
+        try {
+            call = prepare()
+            progressListener.onStarted()
+            val response = execute()
+            progressListener.onDone(response)
+        } catch (e: Exception) {
+            progressListener.onFailure(e)
+        }
+    }
+
+    fun cancel() {
+        call?.cancel()
+    }
+
+    @Throws(IOException::class)
+    private fun prepare() : Call {
         val requestBody = MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
                 .addFormDataPart(FORM_FIlE_NAME, shareUri.fileName,
-                        shareUri.asRequestBody(context, progressListener))
+                        shareUri.asRequestBody(progressListener))
                 .build()
 
         val request = Request.Builder()
@@ -41,25 +58,26 @@ fun uploadUri(context: Context, shareUri: ShareUri, progressListener: ProgressLi
                 .post(requestBody)
                 .build()
 
-        progressListener.onStarted()
+        return client.newCall(request)
+    }
 
-        client.newCall(request).execute().use { response ->
+    @Throws(IOException::class)
+    private fun execute(): String {
+        call!!.execute().use { response ->
             if (response.isSuccessful) {
-                progressListener.onDone(response.body!!.string())
+                return response.body!!.string()
             } else {
                 throw IOException("Unexpected code $response")
             }
         }
-    } catch (e: Exception) {
-        progressListener.onException(e)
     }
 }
 
 
-fun ShareUri.asRequestBody(context: Context, progressListener: ProgressListener): RequestBody {
-    val cr = context.contentResolver
-    val fileSize = cr.openFileDescriptor(uri, "r")?.statSize ?: -1L
-    val inputStream = cr.openInputStream(uri)!!
+fun ShareUri.asRequestBody(progressListener: ProgressListener): RequestBody {
+    val resolver = Weechat.applicationContext.contentResolver
+    val fileSize = resolver.openFileDescriptor(uri, "r")?.statSize ?: -1L
+    val inputStream = resolver.openInputStream(uri)!!
 
     return object : RequestBody() {
         override fun contentType() = type?.toMediaTypeOrNull()
