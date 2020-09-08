@@ -9,7 +9,7 @@ import com.ubergeek42.cats.Root
 private val main: (() -> Unit) -> Unit = { Weechat.runOnMainThread { it() } }
 
 
-interface Observer {
+interface UploadObserver {
     @MainThread fun onUploadsStarted()
     @MainThread fun onProgress(ratio: Float)
     @MainThread fun onUploadDone(suri: Suri, body: String)
@@ -23,7 +23,7 @@ class UploadManager {
 
     val uploaders = mutableListOf<Uploader>()
 
-    var observer: Observer? = null
+    var observer: UploadObserver? = null
         set(observer) {
             field = observer
 
@@ -40,6 +40,7 @@ class UploadManager {
             if (it.suri in suris) {
                 false
             } else {
+                kitty.info("Cancelling upload: $it")
                 it.cancel()
                 true
             }
@@ -62,10 +63,15 @@ class UploadManager {
                 }
             }
 
+            var lastRatio = -1f
             override fun onProgress(uploader: Uploader) {
                 main {
-                    kitty.info("Upload progress: $uploader")
-                    observer?.onProgress(getCumulativeRatio())
+                    val newRatio = getCumulativeRatio();
+                    if (lastRatio != newRatio) {
+                        lastRatio = newRatio
+                        kitty.info("Upload progress: $uploader")
+                        observer?.onProgress(newRatio)
+                    }
                 }
             }
 

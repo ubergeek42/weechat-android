@@ -65,4 +65,15 @@ class MediaAcceptingEditText : ActionEditText {
     fun getNotReadySuris() : List<Suri> {
         return getSuris().filter { !it.ready }
     }
+
+    fun textifyReadySuris() {
+        text?.let {
+            for (span in it.getSpans(0, it.length, ShareSpan::class.java)) {
+                span.suri.httpUri?.let { httpUri ->
+                    it.replace(it.getSpanStart(span), it.getSpanEnd(span), httpUri)
+                    it.removeSpan(span)
+                }
+            }
+        }
+    }
 }

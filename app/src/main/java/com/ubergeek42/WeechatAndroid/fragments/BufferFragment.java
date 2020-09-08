@@ -1,6 +1,7 @@
 package com.ubergeek42.WeechatAndroid.fragments;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import android.annotation.SuppressLint;
@@ -14,6 +15,7 @@ import androidx.fragment.app.Fragment;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+import org.jetbrains.annotations.NotNull;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -34,6 +36,8 @@ import android.widget.TextView;
 import com.ubergeek42.WeechatAndroid.Weechat;
 import com.ubergeek42.WeechatAndroid.copypaste.Paste;
 import com.ubergeek42.WeechatAndroid.upload.InsertAt;
+import com.ubergeek42.WeechatAndroid.upload.UploadObserver;
+import com.ubergeek42.WeechatAndroid.upload.UploadCancelledException;
 import com.ubergeek42.WeechatAndroid.upload.UploadManager;
 import com.ubergeek42.WeechatAndroid.upload.MediaAcceptingEditText;
 import com.ubergeek42.WeechatAndroid.upload.ShareObject;
@@ -46,8 +50,10 @@ import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferEye;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.WeechatAndroid.service.P;
+import com.ubergeek42.WeechatAndroid.utils.FriendlyExceptions;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.cats.Cat;
+import com.ubergeek42.cats.CatD;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
 import com.ubergeek42.weechat.ColorScheme;
@@ -97,6 +103,8 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         super.setArguments(args);
         pointer = getArguments().getLong(POINTER);
         kitty.setPrefix(Utils.pointerToString(pointer));
+        uploadManager = UploadManager.forBuffer(pointer);
+
     }
 
     @MainThread @Override @Cat public void onAttach(Context context) {
@@ -120,6 +128,9 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         uploadLayout = v.findViewById(R.id.upload_layout);
         uploadProgressBar = v.findViewById(R.id.upload_progress_bar);
         uploadButton = v.findViewById(R.id.upload_button);
+        uploadButton.setOnClickListener(vv -> uploadManager.startOrFilterUploads(
+                lastUploadStatus == UploadStatus.UPLOADING ?  Collections.emptyList() : uiInput.getNotReadySuris()));
+
 
         linesAdapter = new ChatLinesAdapter(uiLines);
         uiLines.setAdapter(linesAdapter);
@@ -155,30 +166,17 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
 
     @MainThread @Override @Cat public void onResume() {
         super.onResume();
-
-        // Weechat.runOnMainThread(() -> {
-        //             setUploadStatus(UploadStatus.HAS_THINGS_TO_UPLOAD);
-        //             uploadButton.setOnClickListener(v -> {
-        //                 setUploadStatus(UploadStatus.UPLOADING);
-        //                 setUploadProgress(0);
-        //                 for (int i = 0; i <= 100; i ++) {
-        //                     int y = i;
-        //                     Weechat.runOnMainThread(() -> {
-        //                         setUploadProgress(y / 100f);
-        //                         if (y == 100) setUploadStatus(UploadStatus.NOTHING_TO_UPLOAD);
-        //                     }, 100 * y);
-        //                 }
-        //             });
-        //         }, 2000);
-
         uiTab.setVisibility(P.showTab ? View.VISIBLE : View.GONE);
         uiLines.setBackgroundColor(0xFF000000 | ColorScheme.get().default_color[ColorScheme.OPT_BG]);
         EventBus.getDefault().register(this);
         applyColorSchemeToViews();
+        uploadManager.setObserver(uploadObserver);
     }
 
     @MainThread @Override @Cat public void onPause() {
         super.onPause();
+        uploadManager.setObserver(null);
+        lastUploadStatus = null; // setObserver & afterTextChanged2 will fix this
         detachFromBuffer();
         EventBus.getDefault().unregister(this);
     }
@@ -450,6 +448,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     // tryTabComplete() will set it back if it modified the text causing this function to run
     @MainThread @Override public void afterTextChanged(Editable s) {
         tcInProgress = false;
+        afterTextChanged2();
     }
 
     @SuppressWarnings("ConstantConditions") private void applyColorSchemeToViews() {
@@ -464,9 +463,9 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         UPLOADING
     }
 
-    private UploadStatus lastUploadStatus = UploadStatus.NOTHING_TO_UPLOAD;
+    private UploadStatus lastUploadStatus = null;
 
-    @MainThread void setUploadStatus(UploadStatus uploadStatus) {
+    @CatD @MainThread void setUploadStatus(UploadStatus uploadStatus) {
         if (uploadStatus == lastUploadStatus) return;
         lastUploadStatus = uploadStatus;
 
@@ -493,15 +492,60 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     // show indeterminate progress in 2 cases:
     // * in the beginning, when we are waiting to start uploading (useless?)
     // * in the end, when we are waiting for the server to produce a response
-    @MainThread void setUploadProgress(float ratio) {
+    @CatD @MainThread void setUploadProgress(float ratio) {
         if (ratio < 0) {
-            uploadProgressBar.setIndeterminate(false);
-            uploadProgressBar.setProgress(0);
-        } else if (ratio < 0.05f || ratio >= 1f) {
-            uploadProgressBar.setIndeterminate(true);
+            uploadProgressBar.setVisibility(View.INVISIBLE);
         } else {
-            uploadProgressBar.setIndeterminate(false);
-            uploadProgressBar.setProgress((int) (100 * ratio));
+            uploadProgressBar.setVisibility(View.VISIBLE);
+            if (ratio < 0.05f || ratio >= 1f) {
+                uploadProgressBar.setIndeterminate(true);
+            } else {
+                uploadProgressBar.setIndeterminate(false);
+                uploadProgressBar.setProgress((int) (100 * ratio));
+            }
         }
     }
+
+    UploadManager uploadManager;
+
+    void afterTextChanged2() {
+        List<Suri> suris = uiInput.getNotReadySuris();
+
+        if (suris.size() == 0) {
+            setUploadStatus(UploadStatus.NOTHING_TO_UPLOAD);
+        } else {
+            if (lastUploadStatus == UploadStatus.UPLOADING) {
+                uploadManager.startOrFilterUploads(suris);
+            } else {
+                setUploadStatus(UploadStatus.HAS_THINGS_TO_UPLOAD);
+            }
+        }
+    }
+
+    UploadObserver uploadObserver = new UploadObserver() {
+        @Cat @Override public void onUploadsStarted() {
+            setUploadStatus(UploadStatus.UPLOADING);
+        }
+
+        @Cat @Override public void onProgress(float ratio) {
+            setUploadProgress(ratio);
+        }
+
+        @Cat @Override public void onUploadDone(@NotNull Suri suri, @NotNull String body) {
+            suri.setHttpUri(body);
+            uiInput.textifyReadySuris();
+        }
+
+        @Cat  @Override public void onUploadFailure(@NotNull Suri suri, @NotNull Exception e) {
+            if (!(e instanceof UploadCancelledException)) {
+                String message = new FriendlyExceptions(getContext()).getFriendlyException(e).message;
+                Weechat.showShortToast("Could not upload: %s\n\nError: %s", suri.getUri(), message);
+            }
+        }
+
+        @Cat @Override public void onFinished() {
+            setUploadStatus(uiInput.getNotReadySuris().size() != 0 ?
+                    UploadStatus.HAS_THINGS_TO_UPLOAD : UploadStatus.NOTHING_TO_UPLOAD);
+        }
+    };
 }

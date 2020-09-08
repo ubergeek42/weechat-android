@@ -6,7 +6,7 @@ import okhttp3.*
 import okio.BufferedSink
 import okio.IOException
 import okio.source
-import java.lang.IllegalStateException
+import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 
 
@@ -22,8 +22,12 @@ private const val FORM_FIlE_NAME = "file"
 private const val UPLOAD_URI = "https://x0.at"
 private const val SEGMENT_SIZE = 4096L
 
+private const val TIMEOUT = 60L
 
-private val client = OkHttpClient()
+private val client = OkHttpClient.Builder()
+        .writeTimeout(TIMEOUT, TimeUnit.SECONDS)
+        .readTimeout(TIMEOUT, TimeUnit.SECONDS)
+        .build()
 
 
 class Uploader(
@@ -47,6 +51,8 @@ class Uploader(
                 remove(suri.uri)
             }
         } catch (e: Exception) {
+            e.printStackTrace()
+            if (call?.isCanceled() == true) return
             jobs.lock {
                 listeners.forEach { it.onFailure(this@Uploader, e) }
                 remove(suri.uri)
@@ -54,8 +60,14 @@ class Uploader(
         }
     }
 
+    // cancel() will raise an exception in the execute() method, but it can happen with a slight
+    // delay. to avoid that, cancel here
     fun cancel() {
-        call?.cancel()
+        jobs.lock {
+            call?.cancel()
+            listeners.forEach { it.onFailure(this@Uploader, UploadCancelledException()) }
+            remove(suri.uri)
+        }
     }
 
     private fun prepare() : Call {
@@ -92,7 +104,7 @@ class Uploader(
                 suri.getInputStream().source().use {
                     while (true) {
                         jobs.lock {
-                            listeners.forEach { l -> l.onProgress(this@Uploader) }
+                            if (call?.isCanceled() == false) listeners.forEach { l -> l.onProgress(this@Uploader) }
                         }
 
                         val read = it.read(sink.buffer, SEGMENT_SIZE)
@@ -110,7 +122,7 @@ class Uploader(
     override fun toString(): String {
         val id = System.identityHashCode(this)
         val ratio = transferredBytes.toFloat() / totalBytes
-        return "Uploader@$id<${suri.uri}, transferred $transferredBytes of $totalBytes bytes ($ratio)>"
+        return "Uploader<${suri.uri}, ${ratio.format(2)} transferred ($transferredBytes of $totalBytes bytes)>@$id"
     }
 
     companion object Jobs {
@@ -134,8 +146,12 @@ class Uploader(
     }
 }
 
+class UploadCancelledException : IOException("Upload cancelled")
+
 inline fun <T : Any> T.lock(func: (T.() -> Unit)) {
     synchronized (this) {
         func(this)
     }
 }
+
+fun Float.format(digits: Int) = "%.${digits}f".format(this)
