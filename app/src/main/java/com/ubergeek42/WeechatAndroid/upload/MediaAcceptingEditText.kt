@@ -58,7 +58,8 @@ class MediaAcceptingEditText : ActionEditText {
     }
 
     private fun getSuris() : List<Suri> {
-        return text?.let { it.getSpans(0, it.length, Suri::class.java).toList() } ?: emptyList()
+        val spans = text?.let { it.getSpans(0, it.length, ShareSpan::class.java) }
+        return spans?.map { it.suri }?.toList() ?: emptyList()
     }
 
     fun getNotReadySuris() : List<Suri> {

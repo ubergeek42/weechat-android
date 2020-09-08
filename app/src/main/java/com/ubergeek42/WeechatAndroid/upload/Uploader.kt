@@ -6,14 +6,15 @@ import okhttp3.*
 import okio.BufferedSink
 import okio.IOException
 import okio.source
+import java.lang.IllegalStateException
 import kotlin.concurrent.thread
 
 
 interface ProgressListener {
-    fun onStarted()
-    fun onProgress(read: Long, total: Long)
-    fun onDone(body: String)
-    fun onFailure(e: Exception)
+    fun onStarted(uploader: Uploader)
+    fun onProgress(uploader: Uploader)
+    fun onDone(uploader: Uploader, body: String)
+    fun onFailure(uploader: Uploader, e: Exception)
 }
 
 
@@ -26,8 +27,11 @@ private val client = OkHttpClient()
 
 
 class Uploader(
-    private val suri: Suri
+    val suri: Suri
 ) {
+    var transferredBytes = 0L
+    val totalBytes = suri.fileSize
+
     private val listeners = mutableSetOf<ProgressListener>()
     private var call: Call? = null
 
@@ -35,22 +39,22 @@ class Uploader(
         try {
             call = prepare()
             jobs.lock {
-                listeners.forEach { it.onStarted() }
+                listeners.forEach { it.onStarted(this@Uploader) }
             }
             val response = execute()
             jobs.lock {
-                listeners.forEach { it.onDone(response) }
+                listeners.forEach { it.onDone(this@Uploader, response) }
                 remove(suri.uri)
             }
         } catch (e: Exception) {
             jobs.lock {
-                listeners.forEach { it.onFailure(e) }
+                listeners.forEach { it.onFailure(this@Uploader, e) }
                 remove(suri.uri)
             }
         }
     }
 
-    private fun cancel() {
+    fun cancel() {
         call?.cancel()
     }
 
@@ -82,15 +86,13 @@ class Uploader(
     private fun getRequestBody(): RequestBody {
         return object : RequestBody() {
             override fun contentType() = suri.mediaType
-            override fun contentLength() = suri.fileSize
+            override fun contentLength() = totalBytes
 
             override fun writeTo(sink: BufferedSink) {
-                var totalRead = 0L
-
                 suri.getInputStream().source().use {
                     while (true) {
                         jobs.lock {
-                            listeners.forEach { l -> l.onProgress(totalRead, suri.fileSize) }
+                            listeners.forEach { l -> l.onProgress(this@Uploader) }
                         }
 
                         val read = it.read(sink.buffer, SEGMENT_SIZE)
@@ -98,48 +100,42 @@ class Uploader(
 
                         sink.flush()
 
-                        totalRead += read
+                        transferredBytes += read
                     }
                 }
             }
         }
     }
 
+    override fun toString(): String {
+        val id = System.identityHashCode(this)
+        val ratio = transferredBytes.toFloat() / totalBytes
+        return "Uploader@$id<${suri.uri}, transferred $transferredBytes of $totalBytes bytes ($ratio)>"
+    }
+
     companion object Jobs {
         var counter = 0
         val jobs = mutableMapOf<Uri, Uploader>()
 
-        @MainThread fun upload(suri: Suri, listener: ProgressListener) {
+        @MainThread fun upload(suri: Suri, vararg listeners: ProgressListener) {
             jobs.lock {
                 var uploader = jobs[suri.uri]
                 if (uploader != null) {
-                    uploader.listeners.add(listener)
-                    listener.onStarted()
+                    uploader.listeners.addAll(listeners)
+                    listeners.forEach { it.onStarted(uploader as Uploader) }
                 } else {
                     uploader = Uploader(suri)
-                    uploader.listeners.add(listener)
+                    uploader.listeners.addAll(listeners)
                     jobs[suri.uri] = uploader
                     thread(name = "u-" + counter++) { uploader.upload() }
                 }
             }
         }
-
-        @MainThread fun cancel(suri: Suri) {
-            jobs.lock {
-                jobs[suri.uri]?.cancel()
-            }
-        }
     }
 }
 
-private inline fun <T : Any> T.lock(func: (T.() -> Unit)) {
+inline fun <T : Any> T.lock(func: (T.() -> Unit)) {
     synchronized (this) {
         func(this)
     }
 }
-
-// private fun <T> Iterable<T>.forEachLocked(func: (T.() -> Unit)) {
-//     this.lock {
-//         forEach(func)
-//     }
-// }

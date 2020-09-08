@@ -1,6 +1,7 @@
 package com.ubergeek42.WeechatAndroid.fragments;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import android.annotation.SuppressLint;
 import androidx.annotation.AnyThread;
@@ -26,7 +27,6 @@ import android.view.View.OnClickListener;
 import android.view.View.OnKeyListener;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -34,7 +34,10 @@ import android.widget.TextView;
 import com.ubergeek42.WeechatAndroid.Weechat;
 import com.ubergeek42.WeechatAndroid.copypaste.Paste;
 import com.ubergeek42.WeechatAndroid.upload.InsertAt;
+import com.ubergeek42.WeechatAndroid.upload.UploadManager;
+import com.ubergeek42.WeechatAndroid.upload.MediaAcceptingEditText;
 import com.ubergeek42.WeechatAndroid.upload.ShareObject;
+import com.ubergeek42.WeechatAndroid.upload.Suri;
 import com.ubergeek42.WeechatAndroid.utils.AnimatedRecyclerView;
 import com.ubergeek42.WeechatAndroid.adapters.ChatLinesAdapter;
 import com.ubergeek42.WeechatAndroid.R;
@@ -64,7 +67,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     private boolean attached = false;
 
     private AnimatedRecyclerView uiLines;
-    private EditText uiInput;
+    private MediaAcceptingEditText uiInput;
     private ImageButton uiSend;
     private ImageButton uiTab;
 
@@ -368,6 +371,11 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     //////////////////////////////////////////////////////////////////////////////////////////////// send message
 
     @MainThread private void sendMessage() {
+        List<Suri> suris = uiInput.getNotReadySuris();
+        if (!(Utils.isEmpty(suris))) {
+            UploadManager.forBuffer(buffer.pointer).startOrFilterUploads(suris);
+            return;
+        }
         SendMessageEvent.fireInput(buffer, uiInput.getText().toString());
         uiInput.setText("");   // this will reset tab completion
     }
