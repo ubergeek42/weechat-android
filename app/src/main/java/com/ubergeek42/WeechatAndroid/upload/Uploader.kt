@@ -13,7 +13,7 @@ import kotlin.concurrent.thread
 interface ProgressListener {
     fun onStarted(uploader: Uploader)
     fun onProgress(uploader: Uploader)
-    fun onDone(uploader: Uploader, body: String)
+    fun onDone(uploader: Uploader, httpUri: String)
     fun onFailure(uploader: Uploader, e: Exception)
 }
 
@@ -46,8 +46,9 @@ class Uploader(
                 listeners.forEach { it.onStarted(this@Uploader) }
             }
             val response = wakeLock("upload") { execute() }
+            val httpUri = responseToHttpUri(response)
             jobs.lock {
-                listeners.forEach { it.onDone(this@Uploader, response) }
+                listeners.forEach { it.onDone(this@Uploader, httpUri) }
                 remove(suri.uri)
             }
         } catch (e: Exception) {
@@ -118,6 +119,10 @@ class Uploader(
                 }
             }
         }
+    }
+
+    fun responseToHttpUri(body: String): String {
+        return body     // todo
     }
 
     override fun toString(): String {

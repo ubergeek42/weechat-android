@@ -8,7 +8,7 @@ import com.ubergeek42.cats.Root
 interface UploadObserver {
     @MainThread fun onUploadsStarted()
     @MainThread fun onProgress(ratio: Float)
-    @MainThread fun onUploadDone(suri: Suri, body: String)
+    @MainThread fun onUploadDone(suri: Suri)
     @MainThread fun onUploadFailure(suri: Suri, e: Exception)
     @MainThread fun onFinished()
 }
@@ -65,17 +65,18 @@ class UploadManager {
                     val newRatio = getCumulativeRatio()
                     if (lastRatio != newRatio) {
                         lastRatio = newRatio
-                        kitty.info("Upload progress: $uploader")
+                        kitty.trace("Upload progress: $uploader")
                         observer?.onProgress(newRatio)
                     }
                 }
             }
 
-            override fun onDone(uploader: Uploader, body: String) {
+            override fun onDone(uploader: Uploader, httpUri: String) {
+                suri.httpUri = httpUri
                 main {
-                    kitty.info("Upload done: $uploader, result: $body")
+                    kitty.info("Upload done: $uploader, result: $httpUri")
                     uploaders.remove(uploader)
-                    observer?.onUploadDone(suri, body)
+                    observer?.onUploadDone(suri)
                     if (uploaders.isEmpty()) observer?.onFinished()
                 }
             }

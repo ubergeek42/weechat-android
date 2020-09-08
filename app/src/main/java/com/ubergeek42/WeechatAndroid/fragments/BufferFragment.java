@@ -170,7 +170,10 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         uiLines.setBackgroundColor(0xFF000000 | ColorScheme.get().default_color[ColorScheme.OPT_BG]);
         EventBus.getDefault().register(this);
         applyColorSchemeToViews();
-        uploadManager.setObserver(uploadObserver);
+
+        uiInput.textifyReadySuris();                // this will fix any uploads that were finished while we were absent
+        afterTextChanged2();                        // this will set appropriate upload ui state
+        uploadManager.setObserver(uploadObserver);  // this will resume ui for any uploads that are still running
     }
 
     @MainThread @Override @Cat public void onPause() {
@@ -523,27 +526,26 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     }
 
     UploadObserver uploadObserver = new UploadObserver() {
-        @Cat @Override public void onUploadsStarted() {
+        @Override public void onUploadsStarted() {
             setUploadStatus(UploadStatus.UPLOADING);
         }
 
-        @Cat @Override public void onProgress(float ratio) {
+        @Override public void onProgress(float ratio) {
             setUploadProgress(ratio);
         }
 
-        @Cat @Override public void onUploadDone(@NotNull Suri suri, @NotNull String body) {
-            suri.setHttpUri(body);
+        @Override public void onUploadDone(@NotNull Suri suri) {
             uiInput.textifyReadySuris();
         }
 
-        @Cat  @Override public void onUploadFailure(@NotNull Suri suri, @NotNull Exception e) {
+        @Override public void onUploadFailure(@NotNull Suri suri, @NotNull Exception e) {
             if (!(e instanceof UploadCancelledException)) {
                 String message = new FriendlyExceptions(getContext()).getFriendlyException(e).message;
                 Weechat.showShortToast("Could not upload: %s\n\nError: %s", suri.getUri(), message);
             }
         }
 
-        @Cat @Override public void onFinished() {
+        @Override public void onFinished() {
             setUploadStatus(uiInput.getNotReadySuris().size() != 0 ?
                     UploadStatus.HAS_THINGS_TO_UPLOAD : UploadStatus.NOTHING_TO_UPLOAD);
         }
