@@ -1,12 +1,8 @@
 package com.ubergeek42.WeechatAndroid.upload
 
 import androidx.annotation.MainThread
-import com.ubergeek42.WeechatAndroid.Weechat
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
-
-
-private val main: (() -> Unit) -> Unit = { Weechat.runOnMainThread { it() } }
 
 
 interface UploadObserver {
@@ -66,7 +62,7 @@ class UploadManager {
             var lastRatio = -1f
             override fun onProgress(uploader: Uploader) {
                 main {
-                    val newRatio = getCumulativeRatio();
+                    val newRatio = getCumulativeRatio()
                     if (lastRatio != newRatio) {
                         lastRatio = newRatio
                         kitty.info("Upload progress: $uploader")
@@ -107,5 +103,3 @@ class UploadManager {
         @JvmStatic fun forBuffer(buffer: Long): UploadManager = managers.getValue(buffer)
     }
 }
-
-private infix fun Long.fdiv(i: Long): Float = this / i.toFloat();

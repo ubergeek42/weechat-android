@@ -126,8 +126,8 @@ class Uploader(
     }
 
     companion object Jobs {
-        var counter = 0
-        val jobs = mutableMapOf<Uri, Uploader>()
+        private var counter = 0
+        private val jobs = mutableMapOf<Uri, Uploader>()
 
         @MainThread fun upload(suri: Suri, vararg listeners: ProgressListener) {
             jobs.lock {
@@ -153,5 +153,3 @@ inline fun <T : Any> T.lock(func: (T.() -> Unit)) {
         func(this)
     }
 }
-
-fun Float.format(digits: Int) = "%.${digits}f".format(this)

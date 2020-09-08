@@ -1,19 +1,13 @@
 package com.ubergeek42.WeechatAndroid.upload
 
-import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
 import android.webkit.MimeTypeMap
-import com.ubergeek42.WeechatAndroid.Weechat
 import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.io.InputStream
-
-
-val context: Context = Weechat.applicationContext
-val resolver = context.contentResolver!!
 
 
 // Suri stands for “share uri” which i hated for no solid reason
