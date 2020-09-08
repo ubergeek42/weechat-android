@@ -43,12 +43,10 @@ class Uploader(
         call?.cancel()
     }
 
-    @Throws(IOException::class)
     private fun prepare() : Call {
         val requestBody = MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
-                .addFormDataPart(FORM_FIlE_NAME, suri.fileName,
-                        suri.asRequestBody(progressListener))
+                .addFormDataPart(FORM_FIlE_NAME, suri.fileName, getRequestBody())
                 .build()
 
         val request = Request.Builder()
@@ -59,7 +57,7 @@ class Uploader(
         return client.newCall(request)
     }
 
-    @Throws(IOException::class)
+    @Throws(IOException::class, SecurityException::class)
     private fun execute(): String {
         call!!.execute().use { response ->
             if (response.isSuccessful) {
@@ -69,27 +67,26 @@ class Uploader(
             }
         }
     }
-}
 
+    private fun getRequestBody(): RequestBody {
+        return object : RequestBody() {
+            override fun contentType() = suri.mediaType
+            override fun contentLength() = suri.fileSize
 
-fun Suri.asRequestBody(progressListener: ProgressListener): RequestBody {
-    return object : RequestBody() {
-        override fun contentType() = mediaType
-        override fun contentLength() = fileSize
+            override fun writeTo(sink: BufferedSink) {
+                var totalRead = 0L
 
-        override fun writeTo(sink: BufferedSink) {
-            var totalRead = 0L
+                suri.getInputStream().source().use {
+                    while (true) {
+                        progressListener.onProgress(totalRead, suri.fileSize)
 
-            getInputStream().source().use {
-                while (true) {
-                    progressListener.onProgress(totalRead, fileSize)
+                        val read = it.read(sink.buffer, SEGMENT_SIZE)
+                        if (read == -1L) return
 
-                    val read = it.read(sink.buffer, SEGMENT_SIZE)
-                    if (read == -1L) return
+                        sink.flush()
 
-                    sink.flush()
-
-                    totalRead += read
+                        totalRead += read
+                    }
                 }
             }
         }
