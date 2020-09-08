@@ -45,7 +45,7 @@ class Uploader(
             jobs.lock {
                 listeners.forEach { it.onStarted(this@Uploader) }
             }
-            val response = execute()
+            val response = wakeLock("upload") { execute() }
             jobs.lock {
                 listeners.forEach { it.onDone(this@Uploader, response) }
                 remove(suri.uri)
@@ -104,7 +104,8 @@ class Uploader(
                 suri.getInputStream().source().use {
                     while (true) {
                         jobs.lock {
-                            if (call?.isCanceled() == false) listeners.forEach { l -> l.onProgress(this@Uploader) }
+                            if (call?.isCanceled() == true) return
+                            listeners.forEach { l -> l.onProgress(this@Uploader) }
                         }
 
                         val read = it.read(sink.buffer, SEGMENT_SIZE)
@@ -121,7 +122,7 @@ class Uploader(
 
     override fun toString(): String {
         val id = System.identityHashCode(this)
-        val ratio = transferredBytes.toFloat() / totalBytes
+        val ratio = transferredBytes fdiv totalBytes
         return "Uploader<${suri.uri}, ${ratio.format(2)} transferred ($transferredBytes of $totalBytes bytes)>@$id"
     }
 

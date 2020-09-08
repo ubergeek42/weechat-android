@@ -511,14 +511,14 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     void afterTextChanged2() {
         List<Suri> suris = uiInput.getNotReadySuris();
 
+        if (lastUploadStatus == UploadStatus.UPLOADING) {
+            uploadManager.startOrFilterUploads(suris);
+        }
+
         if (suris.size() == 0) {
             setUploadStatus(UploadStatus.NOTHING_TO_UPLOAD);
-        } else {
-            if (lastUploadStatus == UploadStatus.UPLOADING) {
-                uploadManager.startOrFilterUploads(suris);
-            } else {
-                setUploadStatus(UploadStatus.HAS_THINGS_TO_UPLOAD);
-            }
+        } else if (lastUploadStatus != UploadStatus.UPLOADING) {
+            setUploadStatus(UploadStatus.HAS_THINGS_TO_UPLOAD);
         }
     }
 
