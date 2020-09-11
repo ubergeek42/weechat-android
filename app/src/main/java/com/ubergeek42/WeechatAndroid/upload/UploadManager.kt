@@ -53,6 +53,9 @@ class UploadManager {
 
     private fun startUpload(suri: Suri) {
         Uploader.upload(suri, object : ProgressListener {
+            val progressThrottle = Throttle(min = 0f, max = 1f,
+                                            valueThreshold = 0.01f, timeThreshold = 16)
+
             override fun onStarted(uploader: Uploader) {
                 main {
                     kitty.info("Upload started: $uploader")
@@ -61,14 +64,12 @@ class UploadManager {
                 }
             }
 
-            var lastRatio = -1f
             override fun onProgress(uploader: Uploader) {
                 main {
-                    val newRatio = getCumulativeRatio()
-                    if (lastRatio != newRatio) {
-                        lastRatio = newRatio
+                    val ratio = getCumulativeRatio()
+                    if (progressThrottle.step(ratio)) {
                         kitty.trace("Upload progress: $uploader")
-                        observer?.onProgress(newRatio)
+                        observer?.onProgress(ratio)
                     }
                 }
             }
