@@ -35,10 +35,12 @@ class Uploader(
 ) {
     var transferredBytes = 0L
     val totalBytes = suri.fileSize
-    var active = true
 
     private val listeners = mutableSetOf<ProgressListener>()
     private var call: Call? = null
+
+    enum class State { RUNNING, DONE, FAILED }
+    var state: State = State.RUNNING
 
     private fun upload() {
         try {
@@ -48,13 +50,13 @@ class Uploader(
             }
             val response = wakeLock("upload") { execute() }
             val httpUri = responseToHttpUri(response)
-            active = false
+            state = State.DONE
             jobs.lock {
                 listeners.forEach { it.onDone(this@Uploader, httpUri) }
                 remove(suri.uri)
             }
         } catch (e: Exception) {
-            active = false
+            state = State.FAILED
             e.printStackTrace()
             if (call?.isCanceled() == true) return
             jobs.lock {
@@ -68,6 +70,7 @@ class Uploader(
     // delay. to avoid that, cancel here
     fun cancel() {
         jobs.lock {
+            state = State.FAILED
             call?.cancel()
             listeners.forEach { it.onFailure(this@Uploader, UploadCancelledException()) }
             remove(suri.uri)
@@ -124,7 +127,7 @@ class Uploader(
         }
     }
 
-    fun responseToHttpUri(body: String): String {
+    private fun responseToHttpUri(body: String): String {
         return body     // todo
     }
 

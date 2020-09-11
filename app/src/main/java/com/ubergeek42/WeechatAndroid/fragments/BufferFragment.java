@@ -161,6 +161,9 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         uiInput = null;
         uiSend = null;
         uiTab = null;
+        uploadLayout = null;
+        uploadButton = null;
+        uploadProgressBar = null;
         linesAdapter = null;
     }
 

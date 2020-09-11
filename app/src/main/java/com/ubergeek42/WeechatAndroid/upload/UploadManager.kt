@@ -4,6 +4,7 @@ import androidx.annotation.MainThread
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
 
+const val USE_SERVICE = true
 
 interface UploadObserver {
     @MainThread fun onUploadsStarted()
@@ -16,6 +17,7 @@ interface UploadObserver {
 
 class UploadManager {
     @Root private val kitty = Kitty.make()
+    val useService = USE_SERVICE
 
     val uploaders = mutableListOf<Uploader>()
 
@@ -36,7 +38,7 @@ class UploadManager {
             if (it.suri in suris) {
                 false
             } else {
-                if (it.active) {
+                if (it.state == Uploader.State.RUNNING) {
                     kitty.info("Cancelling upload: $it")
                     it.cancel()
                 }
@@ -53,22 +55,24 @@ class UploadManager {
 
     private fun startUpload(suri: Suri) {
         Uploader.upload(suri, object : ProgressListener {
-            val progressThrottle = Throttle(min = 0f, max = 1f,
-                                            valueThreshold = 0.01f, timeThreshold = 16)
-
             override fun onStarted(uploader: Uploader) {
                 main {
                     kitty.info("Upload started: $uploader")
                     uploaders.add(uploader)
-                    if (uploaders.size == 1) observer?.onUploadsStarted()
+                    if (useService) UploadService.onUploadStarted(uploader)
+                    if (uploaders.size == 1) {
+                        observer?.onUploadsStarted()
+                        limiter.reset()
+                    }
                 }
             }
 
             override fun onProgress(uploader: Uploader) {
                 main {
                     val ratio = getCumulativeRatio()
-                    if (progressThrottle.step(ratio)) {
-                        kitty.trace("Upload progress: $uploader")
+                    if (limiter.step(ratio)) {
+                        kitty.trace("Upload progress: ${ratio.format(2)}; $uploader")
+                        if (useService) UploadService.onUploadProgress()
                         observer?.onProgress(ratio)
                     }
                 }
@@ -79,6 +83,7 @@ class UploadManager {
                 main {
                     kitty.info("Upload done: $uploader, result: $httpUri")
                     uploaders.remove(uploader)
+                    if (useService) UploadService.onUploadRemoved(uploader)
                     observer?.onUploadDone(suri)
                     if (uploaders.isEmpty()) observer?.onFinished()
                 }
@@ -88,12 +93,16 @@ class UploadManager {
                 main {
                     kitty.info("Upload failure: $uploader")
                     uploaders.remove(uploader)
+                    if (useService) UploadService.onUploadRemoved(uploader)
                     observer?.onUploadFailure(suri, e)
                     if (uploaders.isEmpty()) observer?.onFinished()
                 }
             }
         })
     }
+
+    var limiter: SkippingLimiter = SkippingLimiter(min = 0f, max = 1f,
+                                              valueThreshold = 0.01f, timeThreshold = 16)
 
     private fun getCumulativeRatio(): Float {
         val cumulativeTransferredBytes = uploaders.map { it.transferredBytes }.sum()
