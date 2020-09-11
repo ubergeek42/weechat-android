@@ -35,6 +35,7 @@ class Uploader(
 ) {
     var transferredBytes = 0L
     val totalBytes = suri.fileSize
+    var active = true
 
     private val listeners = mutableSetOf<ProgressListener>()
     private var call: Call? = null
@@ -47,11 +48,13 @@ class Uploader(
             }
             val response = wakeLock("upload") { execute() }
             val httpUri = responseToHttpUri(response)
+            active = false
             jobs.lock {
                 listeners.forEach { it.onDone(this@Uploader, httpUri) }
                 remove(suri.uri)
             }
         } catch (e: Exception) {
+            active = false
             e.printStackTrace()
             if (call?.isCanceled() == true) return
             jobs.lock {

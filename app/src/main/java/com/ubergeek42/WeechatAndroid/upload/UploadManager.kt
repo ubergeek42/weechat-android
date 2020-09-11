@@ -36,8 +36,10 @@ class UploadManager {
             if (it.suri in suris) {
                 false
             } else {
-                kitty.info("Cancelling upload: $it")
-                it.cancel()
+                if (it.active) {
+                    kitty.info("Cancelling upload: $it")
+                    it.cancel()
+                }
                 true
             }
         }
