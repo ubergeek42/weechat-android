@@ -33,7 +33,7 @@ class UploadManager {
             }
         }
 
-    @MainThread fun startOrFilterUploads(suris: List<Suri>) {
+    @MainThread fun filterUploads(suris: List<Suri>) {
         uploaders.removeAll {
             if (it.suri in suris) {
                 false
@@ -45,7 +45,9 @@ class UploadManager {
                 true
             }
         }
+    }
 
+    @MainThread fun startUploads(suris: List<Suri>) {
         for (suri in suris) {
             if (suri !in uploaders.map { it.suri }) {
                 startUpload(suri)

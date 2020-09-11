@@ -128,8 +128,13 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         uploadLayout = v.findViewById(R.id.upload_layout);
         uploadProgressBar = v.findViewById(R.id.upload_progress_bar);
         uploadButton = v.findViewById(R.id.upload_button);
-        uploadButton.setOnClickListener(vv -> uploadManager.startOrFilterUploads(
-                lastUploadStatus == UploadStatus.UPLOADING ?  Collections.emptyList() : uiInput.getNotReadySuris()));
+        uploadButton.setOnClickListener(vv -> {
+            if (lastUploadStatus == UploadStatus.UPLOADING) {
+                uploadManager.filterUploads(Collections.emptyList());
+            } else {
+                uploadManager.startUploads(uiInput.getNotReadySuris());
+            }
+        });
 
 
         linesAdapter = new ChatLinesAdapter(uiLines);
@@ -377,7 +382,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     @MainThread private void sendMessage() {
         List<Suri> suris = uiInput.getNotReadySuris();
         if (!(Utils.isEmpty(suris))) {
-            UploadManager.forBuffer(buffer.pointer).startOrFilterUploads(suris);
+            uploadManager.startUploads(suris);
             return;
         }
         SendMessageEvent.fireInput(buffer, uiInput.getText().toString());
@@ -518,7 +523,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         List<Suri> suris = uiInput.getNotReadySuris();
 
         if (lastUploadStatus == UploadStatus.UPLOADING) {
-            uploadManager.startOrFilterUploads(suris);
+            uploadManager.filterUploads(suris);
         }
 
         if (suris.size() == 0) {
