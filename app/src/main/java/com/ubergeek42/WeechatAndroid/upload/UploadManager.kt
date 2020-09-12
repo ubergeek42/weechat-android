@@ -93,7 +93,7 @@ class UploadManager {
 
             override fun onFailure(uploader: Uploader, e: Exception) {
                 main {
-                    kitty.info("Upload failure: $uploader")
+                    kitty.info("Upload failure: $uploader, ${e.javaClass.simpleName}: ${e.message}")
                     uploaders.remove(uploader)
                     if (useService) UploadService.onUploadRemoved(uploader)
                     observer?.onUploadFailure(suri, e)

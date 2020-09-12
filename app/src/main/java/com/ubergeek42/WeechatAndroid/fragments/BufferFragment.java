@@ -501,9 +501,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         }
     }
 
-    // show indeterminate progress in 2 cases:
-    // * in the beginning, when we are waiting to start uploading (useless?)
-    // * in the end, when we are waiting for the server to produce a response
+    // show indeterminate progress in the end, when waiting for the server to produce a response
     @CatD @MainThread void setUploadProgress(float ratio) {
         if (ratio < 0) {
             uploadProgressBar.setVisibility(View.INVISIBLE);
@@ -512,7 +510,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
             uploadProgressBar.setProgress(0);               // set it twice
         } else {
             uploadProgressBar.setVisibility(View.VISIBLE);
-            if (ratio < 0.05f || ratio >= 1f) {
+            if (ratio < 0.005f || ratio >= 1f) {
                 uploadProgressBar.setIndeterminate(true);
             } else {
                 uploadProgressBar.setIndeterminate(false);

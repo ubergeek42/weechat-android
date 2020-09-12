@@ -2,6 +2,8 @@ package com.ubergeek42.WeechatAndroid.upload
 
 import android.net.Uri
 import androidx.annotation.MainThread
+import com.ubergeek42.cats.Kitty
+import com.ubergeek42.cats.Root
 import okhttp3.*
 import okio.BufferedSink
 import okio.IOException
@@ -33,6 +35,8 @@ private val client = OkHttpClient.Builder()
 class Uploader(
     val suri: Suri
 ) {
+    @Root private val kitty: Kitty = Kitty.make()
+
     var transferredBytes = 0L
     val totalBytes = suri.fileSize
 
@@ -54,11 +58,13 @@ class Uploader(
             }
         } catch (e: Exception) {
             state = State.FAILED
-            e.printStackTrace()
-            if (call?.isCanceled() == true) return
-            jobs.lock {
-                listeners.forEach { it.onFailure(this@Uploader, e) }
-                remove(suri.uri)
+            val cancelled = call?.isCanceled() == true
+            if (!cancelled) {
+                kitty.warn("error while uploading", e)
+                jobs.lock {
+                    listeners.forEach { it.onFailure(this@Uploader, e) }
+                    remove(suri.uri)
+                }
             }
         }
     }
@@ -158,7 +164,7 @@ class Uploader(
 class UploadCancelledException : IOException("Upload cancelled")
 
 inline fun <T : Any> T.lock(func: (T.() -> Unit)) {
-    synchronized (this) {
+    synchronized(this) {
         func(this)
     }
 }
