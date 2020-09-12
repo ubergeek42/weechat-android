@@ -12,6 +12,12 @@ val applicationContext: Context = Weechat.applicationContext
 val resolver = applicationContext.contentResolver!!
 
 
+inline fun <T : Any> T.lock(func: (T.() -> Unit)) {
+    synchronized(this) {
+        func(this)
+    }
+}
+
 // this will run stuff on main thread
 fun main(delay: Long = 0L, f: () -> Unit) = Weechat.runOnMainThread({ f() }, delay)
 

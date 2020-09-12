@@ -41,14 +41,14 @@ class UploadService : Service() {
     enum class State { UPLOADING_DETERMINATE, UPLOADING_INDETERMINATE, FINISHED, NOT_FINISHED }
 
     @MainThread fun update() {
-        val numberOfUploads = uploaders.size
-        val transferredBytes = uploaders.map { it.transferredBytes }.sum()
-        val totalBytes = uploaders.map { it.totalBytes }.sum()
+        val numberOfUploads = uploads.size
+        val transferredBytes = uploads.map { it.transferredBytes }.sum()
+        val totalBytes = uploads.map { it.totalBytes }.sum()
         val ratio = transferredBytes fdiv totalBytes
 
         val state = if (numberOfUploads == 0) {
-                        main(delay = 3000) { if (uploaders.size == 0) stopSelf() }
-                        if (lastRemovedUploader?.state == Uploader.State.FAILED) State.NOT_FINISHED else State.FINISHED
+                        main(delay = 3000) { if (uploads.size == 0) stopSelf() }
+                        if (lastRemovedUpload?.state == Upload.State.FAILED) State.NOT_FINISHED else State.FINISHED
                     } else {
                         if (ratio == 1f) State.UPLOADING_INDETERMINATE else State.UPLOADING_DETERMINATE
                     }
@@ -119,24 +119,24 @@ class UploadService : Service() {
 
         ////////////////////////////////////////////////////////////////////////////////////////////
 
-        private val uploaders = mutableSetOf<Uploader>()
-        private var lastRemovedUploader: Uploader? = null
+        private val uploads = mutableSetOf<Upload>()
+        private var lastRemovedUpload: Upload? = null
 
-        @MainThread fun onUploadStarted(uploader: Uploader) {
+        @MainThread fun onUploadStarted(upload: Upload) {
             Intent(applicationContext, UploadService::class.java).apply {
                 action = Intent.ACTION_SEND
-                data = uploader.suri.uri
+                data = upload.suri.uri
                 flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
                 suppress<SecurityException> { applicationContext.startService(this) }
             }
 
-            uploaders.add(uploader)
+            uploads.add(upload)
             updateService()
         }
 
-        @MainThread fun onUploadRemoved(uploader: Uploader) {
-            lastRemovedUploader = uploader
-            uploaders.remove(uploader)
+        @MainThread fun onUploadRemoved(upload: Upload) {
+            lastRemovedUpload = upload
+            uploads.remove(upload)
             updateService()
         }
 
@@ -162,7 +162,7 @@ class UploadService : Service() {
         ////////////////////////////////////////////////////////////////////////////////////////////
 
         @MainThread fun cancelAllUploads() {
-            uploaders.forEach { it.cancel() }
+            uploads.forEach { it.cancel() }
         }
     }
 }

@@ -19,14 +19,14 @@ class UploadManager {
     @Root private val kitty = Kitty.make()
     val useService = USE_SERVICE
 
-    val uploaders = mutableListOf<Uploader>()
+    val uploads = mutableListOf<Upload>()
 
     var observer: UploadObserver? = null
         set(observer) {
             field = observer
 
             observer?.let {
-                if (uploaders.isNotEmpty()) {
+                if (uploads.isNotEmpty()) {
                     it.onUploadsStarted()
                     it.onProgress(getCumulativeRatio())
                 }
@@ -34,11 +34,11 @@ class UploadManager {
         }
 
     @MainThread fun filterUploads(suris: List<Suri>) {
-        uploaders.removeAll {
+        uploads.removeAll {
             if (it.suri in suris) {
                 false
             } else {
-                if (it.state == Uploader.State.RUNNING) {
+                if (it.state == Upload.State.RUNNING) {
                     kitty.info("Cancelling upload: $it")
                     it.cancel()
                 }
@@ -49,55 +49,55 @@ class UploadManager {
 
     @MainThread fun startUploads(suris: List<Suri>) {
         for (suri in suris) {
-            if (suri !in uploaders.map { it.suri }) {
+            if (suri !in uploads.map { it.suri }) {
                 startUpload(suri)
             }
         }
     }
 
     private fun startUpload(suri: Suri) {
-        Uploader.upload(suri, object : ProgressListener {
-            override fun onStarted(uploader: Uploader) {
+        Upload.upload(suri, object : Upload.Listener {
+            override fun onStarted(upload: Upload) {
                 main {
-                    kitty.info("Upload started: $uploader")
-                    uploaders.add(uploader)
-                    if (useService) UploadService.onUploadStarted(uploader)
-                    if (uploaders.size == 1) {
+                    kitty.info("Upload started: $upload")
+                    uploads.add(upload)
+                    if (useService) UploadService.onUploadStarted(upload)
+                    if (uploads.size == 1) {
                         observer?.onUploadsStarted()
                         limiter.reset()
                     }
                 }
             }
 
-            override fun onProgress(uploader: Uploader) {
+            override fun onProgress(upload: Upload) {
                 main {
                     val ratio = getCumulativeRatio()
                     if (limiter.step(ratio)) {
-                        kitty.trace("Upload progress: ${ratio.format(2)}; $uploader")
+                        kitty.trace("Upload progress: ${ratio.format(2)}; $upload")
                         if (useService) UploadService.onUploadProgress()
                         observer?.onProgress(ratio)
                     }
                 }
             }
 
-            override fun onDone(uploader: Uploader, httpUri: String) {
+            override fun onDone(upload: Upload, httpUri: String) {
                 suri.httpUri = httpUri
                 main {
-                    kitty.info("Upload done: $uploader, result: $httpUri")
-                    uploaders.remove(uploader)
-                    if (useService) UploadService.onUploadRemoved(uploader)
+                    kitty.info("Upload done: $upload, result: $httpUri")
+                    uploads.remove(upload)
+                    if (useService) UploadService.onUploadRemoved(upload)
                     observer?.onUploadDone(suri)
-                    if (uploaders.isEmpty()) observer?.onFinished()
+                    if (uploads.isEmpty()) observer?.onFinished()
                 }
             }
 
-            override fun onFailure(uploader: Uploader, e: Exception) {
+            override fun onFailure(upload: Upload, e: Exception) {
                 main {
-                    kitty.info("Upload failure: $uploader, ${e.javaClass.simpleName}: ${e.message}")
-                    uploaders.remove(uploader)
-                    if (useService) UploadService.onUploadRemoved(uploader)
+                    kitty.info("Upload failure: $upload, ${e.javaClass.simpleName}: ${e.message}")
+                    uploads.remove(upload)
+                    if (useService) UploadService.onUploadRemoved(upload)
                     observer?.onUploadFailure(suri, e)
-                    if (uploaders.isEmpty()) observer?.onFinished()
+                    if (uploads.isEmpty()) observer?.onFinished()
                 }
             }
         })
@@ -107,8 +107,8 @@ class UploadManager {
                                               valueThreshold = 0.01f, timeThreshold = 16)
 
     private fun getCumulativeRatio(): Float {
-        val cumulativeTransferredBytes = uploaders.map { it.transferredBytes }.sum()
-        val cumulativeTotalBytes = uploaders.map { it.totalBytes }.sum()
+        val cumulativeTransferredBytes = uploads.map { it.transferredBytes }.sum()
+        val cumulativeTotalBytes = uploads.map { it.totalBytes }.sum()
         return cumulativeTransferredBytes fdiv cumulativeTotalBytes
     }
 

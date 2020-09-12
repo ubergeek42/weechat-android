@@ -11,20 +11,14 @@ import okio.source
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 
-
-interface ProgressListener {
-    fun onStarted(uploader: Uploader)
-    fun onProgress(uploader: Uploader)
-    fun onDone(uploader: Uploader, httpUri: String)
-    fun onFailure(uploader: Uploader, e: Exception)
-}
+@Root private val kitty: Kitty = Kitty.make()
 
 
 private const val FORM_FIlE_NAME = "file"
 private const val UPLOAD_URI = "https://x0.at"
 private const val SEGMENT_SIZE = 4096L
+private const val TIMEOUT = 30L
 
-private const val TIMEOUT = 60L
 
 private val client = OkHttpClient.Builder()
         .writeTimeout(TIMEOUT, TimeUnit.SECONDS)
@@ -32,15 +26,16 @@ private val client = OkHttpClient.Builder()
         .build()
 
 
-class Uploader(
-    val suri: Suri
+class Upload(
+    val suri: Suri,
+    private val uploadUri: String,
+    private val formFileName: String,
+    private val httpUriGetter: HttpUriGetter
 ) {
-    @Root private val kitty: Kitty = Kitty.make()
-
     var transferredBytes = 0L
     val totalBytes = suri.fileSize
 
-    private val listeners = mutableSetOf<ProgressListener>()
+    private val listeners = mutableSetOf<Listener>()
     private var call: Call? = null
 
     enum class State { RUNNING, DONE, FAILED }
@@ -49,11 +44,11 @@ class Uploader(
     private fun upload() {
         try {
             call = prepare()
-            val response = wakeLock("upload") { execute() }
-            val httpUri = responseToHttpUri(response)
+            val responseBody = wakeLock("upload") { execute() }
+            val httpUri = httpUriGetter.getUri(responseBody)
             state = State.DONE
             jobs.lock {
-                listeners.forEach { it.onDone(this@Uploader, httpUri) }
+                listeners.forEach { it.onDone(this@Upload, httpUri) }
                 remove(suri.uri)
             }
         } catch (e: Exception) {
@@ -62,20 +57,20 @@ class Uploader(
             if (!cancelled) {
                 kitty.warn("error while uploading", e)
                 jobs.lock {
-                    listeners.forEach { it.onFailure(this@Uploader, e) }
+                    listeners.forEach { it.onFailure(this@Upload, e) }
                     remove(suri.uri)
                 }
             }
         }
     }
 
-    // cancel() will raise an exception in the execute() method, but it can happen with a slight
-    // delay. to avoid that, cancel here
+    // cancel() will raise an exception in the execute() method, but it can happen
+    // with a slight delay. to avoid that, cancel here
     fun cancel() {
         jobs.lock {
             state = State.FAILED
             call?.cancel()
-            listeners.forEach { it.onFailure(this@Uploader, UploadCancelledException()) }
+            listeners.forEach { it.onFailure(this@Upload, CancelledException()) }
             remove(suri.uri)
         }
     }
@@ -83,11 +78,11 @@ class Uploader(
     private fun prepare() : Call {
         val requestBody = MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
-                .addFormDataPart(FORM_FIlE_NAME, suri.fileName, getRequestBody())
+                .addFormDataPart(formFileName, suri.fileName, getRequestBody())
                 .build()
 
         val request = Request.Builder()
-                .url(UPLOAD_URI)
+                .url(uploadUri)
                 .post(requestBody)
                 .build()
 
@@ -115,7 +110,7 @@ class Uploader(
                     while (true) {
                         jobs.lock {
                             if (call?.isCanceled() == true) return
-                            listeners.forEach { l -> l.onProgress(this@Uploader) }
+                            listeners.forEach { l -> l.onProgress(this@Upload) }
                         }
 
                         val read = it.read(sink.buffer, SEGMENT_SIZE)
@@ -130,41 +125,40 @@ class Uploader(
         }
     }
 
-    private fun responseToHttpUri(body: String): String {
-        return body     // todo
+    class CancelledException : IOException("Upload cancelled")
+
+    interface Listener {
+        fun onStarted(upload: Upload)
+        fun onProgress(upload: Upload)
+        fun onDone(upload: Upload, httpUri: String)
+        fun onFailure(upload: Upload, e: Exception)
     }
 
     override fun toString(): String {
         val id = System.identityHashCode(this)
         val ratio = transferredBytes fdiv totalBytes
-        return "Uploader<${suri.uri}, ${ratio.format(2)} transferred ($transferredBytes of $totalBytes bytes)>@$id"
+        return "Upload<${suri.uri}, ${ratio.format(2)} transferred ($transferredBytes of $totalBytes bytes)>@$id"
     }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     companion object Jobs {
         private var counter = 0
-        private val jobs = mutableMapOf<Uri, Uploader>()
+        private val jobs = mutableMapOf<Uri, Upload>()
 
-        @MainThread fun upload(suri: Suri, vararg listeners: ProgressListener) {
+        @MainThread fun upload(suri: Suri, vararg listeners: Listener) {
             jobs.lock {
-                var uploader = jobs[suri.uri]
-                if (uploader == null) {
-                    uploader = Uploader(suri)
-                    uploader.listeners.addAll(listeners)
-                    jobs[suri.uri] = uploader
-                    thread(name = "u-" + counter++) { uploader.upload() }
-                } else {
-                    uploader.listeners.addAll(listeners)
+                val alreadyUploading = jobs.containsKey(suri.uri)
+                val upload = jobs.getOrPut(suri.uri) {
+                    Upload(suri,
+                           uploadUri = UPLOAD_URI,
+                           formFileName = FORM_FIlE_NAME,
+                           httpUriGetter = HttpUriGetter.fromRegex("https://.+"))
                 }
-                listeners.forEach { it.onStarted(uploader) }
+                upload.listeners.addAll(listeners)
+                listeners.forEach { it.onStarted(upload) }
+                if (!alreadyUploading) thread(name = "u-${counter++}") { upload.upload() }
             }
         }
-    }
-}
-
-class UploadCancelledException : IOException("Upload cancelled")
-
-inline fun <T : Any> T.lock(func: (T.() -> Unit)) {
-    synchronized(this) {
-        func(this)
     }
 }

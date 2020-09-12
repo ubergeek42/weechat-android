@@ -37,8 +37,8 @@ import android.widget.TextView;
 import com.ubergeek42.WeechatAndroid.Weechat;
 import com.ubergeek42.WeechatAndroid.copypaste.Paste;
 import com.ubergeek42.WeechatAndroid.upload.InsertAt;
+import com.ubergeek42.WeechatAndroid.upload.Upload;
 import com.ubergeek42.WeechatAndroid.upload.UploadObserver;
-import com.ubergeek42.WeechatAndroid.upload.UploadCancelledException;
 import com.ubergeek42.WeechatAndroid.upload.UploadManager;
 import com.ubergeek42.WeechatAndroid.upload.MediaAcceptingEditText;
 import com.ubergeek42.WeechatAndroid.upload.ShareObject;
@@ -553,7 +553,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         }
 
         @Override public void onUploadFailure(@NotNull Suri suri, @NotNull Exception e) {
-            if (!(e instanceof UploadCancelledException)) {
+            if (!(e instanceof Upload.CancelledException)) {
                 String message = new FriendlyExceptions(getContext()).getFriendlyException(e).message;
                 Weechat.showShortToast("Could not upload: %s\n\nError: %s", suri.getUri(), message);
             }

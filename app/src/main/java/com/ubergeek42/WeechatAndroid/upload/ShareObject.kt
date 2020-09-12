@@ -171,5 +171,5 @@ fun makeThumbnailForUri(uri: Uri) : Bitmap {
 
 
 val Layout.maxLineWidth : Int get() {
-    return (0 until lineCount).map { getLineWidth(it) }.max()?.toInt() ?: width
+    return (0 until lineCount).maxOfOrNull { getLineWidth(it) }?.toInt() ?: width
 }
