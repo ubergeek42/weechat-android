@@ -92,7 +92,7 @@ class UploadService : Service() {
     // see DEFAULT_MAX_NOTIFICATION_ENQUEUE_RATE here and the relevant rate algorithm here:
     // https://android.googlesource.com/platform/frameworks/base/+/refs/heads/master/services/core/java/com/android/server/notification/NotificationManagerService.java
     // https://android.googlesource.com/platform/frameworks/base/+/refs/heads/master/services/core/java/com/android/server/notification/RateEstimator.java
-    private val limiter = DelayingLimiter(200)
+    private val limiter = DelayingLimiter(250)
 
     companion object {
         init {

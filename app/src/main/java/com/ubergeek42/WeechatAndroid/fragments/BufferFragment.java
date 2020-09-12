@@ -18,6 +18,7 @@ import org.greenrobot.eventbus.ThreadMode;
 import org.jetbrains.annotations.NotNull;
 
 import android.content.Context;
+import android.os.Build;
 import android.os.Bundle;
 import androidx.recyclerview.widget.RecyclerView;
 import android.text.Editable;
@@ -506,13 +507,20 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     @CatD @MainThread void setUploadProgress(float ratio) {
         if (ratio < 0) {
             uploadProgressBar.setVisibility(View.INVISIBLE);
+            uploadProgressBar.setIndeterminate(false);      // this will reset the thing
+            uploadProgressBar.setProgress(1);               // but it has a bug so we need to
+            uploadProgressBar.setProgress(0);               // set it twice
         } else {
             uploadProgressBar.setVisibility(View.VISIBLE);
             if (ratio < 0.05f || ratio >= 1f) {
                 uploadProgressBar.setIndeterminate(true);
             } else {
                 uploadProgressBar.setIndeterminate(false);
-                uploadProgressBar.setProgress((int) (100 * ratio));
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    uploadProgressBar.setProgress((int) (100 * ratio), true);
+                } else {
+                    uploadProgressBar.setProgress((int) (100 * ratio));
+                }
             }
         }
     }
