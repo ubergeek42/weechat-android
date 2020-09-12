@@ -28,7 +28,7 @@ class UploadManager {
             observer?.let {
                 if (uploads.isNotEmpty()) {
                     it.onUploadsStarted()
-                    it.onProgress(getCumulativeRatio())
+                    it.onProgress(uploads.getStats().ratio)
                 }
             }
         }
@@ -71,7 +71,7 @@ class UploadManager {
 
             override fun onProgress(upload: Upload) {
                 main {
-                    val ratio = getCumulativeRatio()
+                    val ratio = uploads.getStats().ratio
                     if (limiter.step(ratio)) {
                         kitty.trace("Upload progress: ${ratio.format(2)}; $upload")
                         if (useService) UploadService.onUploadProgress()
@@ -106,15 +106,20 @@ class UploadManager {
     var limiter: SkippingLimiter = SkippingLimiter(min = 0f, max = 1f,
                                               valueThreshold = 0.01f, timeThreshold = 16)
 
-    private fun getCumulativeRatio(): Float {
-        val cumulativeTransferredBytes = uploads.map { it.transferredBytes }.sum()
-        val cumulativeTotalBytes = uploads.map { it.totalBytes }.sum()
-        return cumulativeTransferredBytes fdiv cumulativeTotalBytes
-    }
-
     companion object {
         private val managers = mutableMapOf<Long, UploadManager>().withDefault { UploadManager() }
 
         @JvmStatic fun forBuffer(buffer: Long): UploadManager = managers.getValue(buffer)
     }
+}
+
+class UploadsStats(val transferredBytes: Long,
+                   val totalBytes: Long,
+                   val ratio: Float)
+
+fun Iterable<Upload>.getStats(): UploadsStats {
+    val transferredBytes = sumOf { it.transferredBytes }
+    val totalBytes = sumOf { it.totalBytes }
+    val ratio = transferredBytes fdiv totalBytes
+    return UploadsStats(transferredBytes, totalBytes, ratio)
 }

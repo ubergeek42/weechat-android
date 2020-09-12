@@ -42,17 +42,15 @@ class UploadService : Service() {
 
     @MainThread fun update() {
         val numberOfUploads = uploads.size
-        val transferredBytes = uploads.map { it.transferredBytes }.sum()
-        val totalBytes = uploads.map { it.totalBytes }.sum()
-        val ratio = transferredBytes fdiv totalBytes
+        val stats = uploads.getStats()
 
         val state = if (numberOfUploads == 0) {
                         main(delay = 3000) { if (uploads.size == 0) stopSelf() }
                         if (lastRemovedUpload?.state == Upload.State.FAILED) State.NOT_FINISHED else State.FINISHED
                     } else {
-                        if (ratio == 1f) State.UPLOADING_INDETERMINATE else State.UPLOADING_DETERMINATE
+                        if (stats.ratio == 1f) State.UPLOADING_INDETERMINATE else State.UPLOADING_DETERMINATE
                     }
-        showNotification(state, numberOfUploads, ratio, totalBytes)
+        showNotification(state, numberOfUploads, stats.ratio, stats.totalBytes)
     }
 
     private fun showNotification(state: State, numberOfUploads: Int, ratio: Float, totalBytes: Long) {
