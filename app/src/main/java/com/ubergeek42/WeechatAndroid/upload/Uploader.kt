@@ -45,9 +45,6 @@ class Uploader(
     private fun upload() {
         try {
             call = prepare()
-            jobs.lock {
-                listeners.forEach { it.onStarted(this@Uploader) }
-            }
             val response = wakeLock("upload") { execute() }
             val httpUri = responseToHttpUri(response)
             state = State.DONE
@@ -144,15 +141,15 @@ class Uploader(
         @MainThread fun upload(suri: Suri, vararg listeners: ProgressListener) {
             jobs.lock {
                 var uploader = jobs[suri.uri]
-                if (uploader != null) {
-                    uploader.listeners.addAll(listeners)
-                    listeners.forEach { it.onStarted(uploader as Uploader) }
-                } else {
+                if (uploader == null) {
                     uploader = Uploader(suri)
                     uploader.listeners.addAll(listeners)
                     jobs[suri.uri] = uploader
                     thread(name = "u-" + counter++) { uploader.upload() }
+                } else {
+                    uploader.listeners.addAll(listeners)
                 }
+                listeners.forEach { it.onStarted(uploader) }
             }
         }
     }
