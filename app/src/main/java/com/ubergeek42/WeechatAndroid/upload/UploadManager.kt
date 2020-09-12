@@ -50,7 +50,13 @@ class UploadManager {
     @MainThread fun startUploads(suris: List<Suri>) {
         for (suri in suris) {
             if (suri !in uploads.map { it.suri }) {
-                startUpload(suri)
+                val cachedHttpUri = Cache.retrieve(suri.uri)
+                if (cachedHttpUri != null) {
+                    suri.httpUri = cachedHttpUri
+                    observer?.onUploadDone(suri)
+                } else {
+                    startUpload(suri)
+                }
             }
         }
     }
@@ -84,6 +90,7 @@ class UploadManager {
                 suri.httpUri = httpUri
                 main {
                     kitty.info("Upload done: $upload, result: $httpUri")
+                    Cache.record(upload.suri.uri, httpUri)
                     uploads.remove(upload)
                     if (useService) UploadService.onUploadRemoved(upload)
                     observer?.onUploadDone(suri)

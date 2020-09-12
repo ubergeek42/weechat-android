@@ -5,6 +5,9 @@ import android.os.PowerManager
 import androidx.annotation.MainThread
 import com.ubergeek42.WeechatAndroid.Weechat
 import java.lang.System.currentTimeMillis
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 import kotlin.math.absoluteValue
 
 
@@ -12,7 +15,9 @@ val applicationContext: Context = Weechat.applicationContext
 val resolver = applicationContext.contentResolver!!
 
 
+@OptIn(ExperimentalContracts::class)
 inline fun <T : Any> T.lock(func: (T.() -> Unit)) {
+    contract { callsInPlace(func, InvocationKind.EXACTLY_ONCE) }
     synchronized(this) {
         func(this)
     }

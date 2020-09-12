@@ -153,7 +153,7 @@ class Upload(
                     Upload(suri,
                            uploadUri = UPLOAD_URI,
                            formFileName = FORM_FIlE_NAME,
-                           httpUriGetter = HttpUriGetter.fromRegex("https://.+"))
+                           httpUriGetter = HttpUriGetter.fromRegex("^https://.+"))
                 }
                 upload.listeners.addAll(listeners)
                 listeners.forEach { it.onStarted(upload) }
