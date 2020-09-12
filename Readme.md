@@ -50,6 +50,13 @@ check with us on IRC before starting a substantial rewrite! For additional infor
  
 ### Changelog
 
+##### v1.1
+* Added a new certificate dialog that displays the full certificate chain
+* Implemented SSL certificate pinning
+* Support for client SSL certificates
+* Added support for Ed25519 keys thanks to [sshlib](https://github.com/connectbot/sshlib)
+* When possible, RSA, EC, DSA keys are stored inside security hardware
+
 ##### v1.0
 * Added media preview
 * Raised minimum Android version to Lollipop (5.0, API level 21)
