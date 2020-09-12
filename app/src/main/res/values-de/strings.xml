@@ -93,7 +93,6 @@
         <b>SHA-256 Fingerprint:</b><br>
         %5$s
     ]]></string>
-    <string name="dialog_button_accept_selected">Akzeptieren</string>
     <string name="dialog_button_reject">Ablehnen</string>
     <string name="dialog_invalid_hostname_text"><![CDATA[
         Sie versuchen eine Verbindung zu <strong>%1$s</strong> herzustellen, aber das Zertifikat ist
@@ -143,12 +142,11 @@
     <string name="pref_ssh_host">SSH-Host</string>
     <string name="pref_ssh_user">SSH-Username</string>
     <string name="pref_ssh_port">SSH-Port</string>
-    <string name="pref_ssh_password">SSH-Passwort/Schlüsselpassphrase</string>
+    <string name="pref_ssh_password">SSH-Passwort</string>
     <string name="pref_ssh_keyfile">Privater Schlüssel</string>
-    <string name="pref_ssh_keyfile_summary">DSA, RSA, ECDSA privater Schlüssel in OpenSSH oder PuTTY
-        Format</string>
+    <string name="pref_ssh_keyfile_summary">Ed25519, ECDSA, RSA, DSA Schlüssel</string>
     <string name="pref_ssh_known_hosts">Bekannte Hosts</string>
-    <string name="pref_ssh_known_hosts_summary">Ausgabe von $ ssh-keyscan host 2>/dev/null</string>
+    <string name="pref_ssh_known_hosts_summary">Ausgabe von $ ssh-keyscan host</string>
 
     <string name="pref_file_imported">Datei importiert. Sie können es jetzt löschen.</string>
     <string name="pref_file_error">Fehler: %s</string>

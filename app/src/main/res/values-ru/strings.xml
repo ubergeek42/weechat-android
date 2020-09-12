@@ -50,7 +50,7 @@
         <b>Отпечаток SHA-256:</b><br>
         %5$s
     ]]></string>
-    <string name="dialog_button_accept_selected">Принять</string>
+    <string name="dialog_button_accept_selected">Принять выбранный сертификат</string>
     <string name="dialog_button_reject">Отклонить</string>
     <string name="dialog_invalid_hostname_text"><![CDATA[
         Вы пытаетесь подключиться к <strong>%1$s</strong>, но данный сертификат верен только для

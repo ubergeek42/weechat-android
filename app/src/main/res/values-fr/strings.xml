@@ -58,7 +58,6 @@
   <string name="certificate_description_unknown_fingerprint">Inconnue</string>
   <string name="certificate_description_text">&lt;b&gt;Délivré à&#8239;:&lt;/b&gt;&lt;br&gt; %1$s&lt;br&gt; &lt;br&gt; &lt;b&gt;Délivré par&#8239;:&lt;/b&gt;&lt;br&gt; %2$s&lt;br&gt; &lt;br&gt; &lt;b&gt;Période de validité&#8239;:&lt;/b&gt;&lt;br&gt; Émis le&#8239;: %3$s&lt;br&gt; Expire le&#8239;: %4$s&lt;br&gt; &lt;br&gt; &lt;b&gt;Empreinte SHA-256&#8239;:&lt;/b&gt;&lt;br&gt; %5$s</string>
   <string name="dialog_untrusted_certificate_title">Certificat non approuvé</string>
-  <string name="dialog_button_accept_selected">Approuver</string>
   <string name="dialog_button_reject">Refuser</string>
   <string name="dialog_invalid_hostname_text">Vous tentez de vous connecter à &lt;strong&gt;%1$s&lt;/strong&gt; mais le certificat n’est valide que pour ces hôtes&#8239;:%2$s</string>
   <string name="dialog_invalid_hostname_title">Hôte invalide</string>
@@ -86,9 +85,9 @@
   <string name="pref_ssh_port">Port SSH</string>
   <string name="pref_ssh_password">Phrase de passe SSH</string>
   <string name="pref_ssh_keyfile">Clé privée</string>
-  <string name="pref_ssh_keyfile_summary">Clé privée DSA, RSA or ECDSA au format OpenSSH ou PuTTY</string>
+  <string name="pref_ssh_keyfile_summary">Clé Ed25519, ECDSA, RSA ou DSA</string>
   <string name="pref_ssh_known_hosts">Hôtes connues</string>
-  <string name="pref_ssh_known_hosts_summary">Résultat de $ ssh-keyscan host 2>/dev/null</string>
+  <string name="pref_ssh_known_hosts_summary">Résultat de $ ssh-keyscan host</string>
   <string name="pref_file_imported">Fichier importé. Vous pouvez supprimer l’original.</string>
   <string name="pref_file_error">Erreur&#8239;: %s</string>
   <string name="pref_file_clear_button">Effacer</string>
@@ -232,7 +231,7 @@
     passez-la en “type: none”. <a href="https://github.com/ubergeek42/weechat-android/wiki/Media-preview">En savoir plus
     (en anglais)</a>]]></string>
   <string name="strategypreference_error">Erreur</string>
-  <string name="strategypreference_summary">Définit comment sont récupérées les miniatures pour chaque contenu et selon quels filtres.\n\n%s&#8239;; %s&#8239;;\n\n%s</string>
+  <string name="strategypreference_summary">Définit comment sont récupérées les miniatures pour chaque contenu et selon quels filtres.\n\n%$1s&#8239;; %s&#8239;;\n\n%$2s</string>
   <string name="strategypreference_message_filter_set">Filtre de messages activé</string>
   <string name="strategypreference_message_filter_not_set">Filtre de messages désactivé</string>
   <string name="strategypreference_strategies_not_loaded">Aucune stratégie</string>
