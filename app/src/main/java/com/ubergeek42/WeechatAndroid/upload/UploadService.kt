@@ -2,11 +2,9 @@ package com.ubergeek42.WeechatAndroid.upload
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
-import android.content.ComponentName
-import android.content.Context
-import android.content.Intent
-import android.content.ServiceConnection
+import android.content.*
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
@@ -58,7 +56,7 @@ class UploadService : Service() {
     }
 
     private fun showNotification(state: State, numberOfUploads: Int, ratio: Float, totalBytes: Long) {
-        val (title, icon) = when(state) {
+        val (title, icon) = when (state) {
             State.UPLOADING_DETERMINATE -> Pair("Uploading $numberOfUploads files", R.drawable.ic_notification_uploading)
             State.UPLOADING_INDETERMINATE -> Pair("Uploading $numberOfUploads files", R.drawable.ic_notification_uploading)
             State.FINISHED -> Pair("Upload finished", R.drawable.ic_notification_upload_done)
@@ -78,6 +76,9 @@ class UploadService : Service() {
         if (numberOfUploads > 0) {
             builder.setContentText("$percentage% of $size")
             builder.setProgress(100, percentage, state == State.UPLOADING_INDETERMINATE)
+            builder.addAction(android.R.drawable.ic_menu_close_clear_cancel,
+                    "Cancel",
+                    getCancelAllUploadsIntent())
         }
 
         val notification = builder.build()
@@ -133,13 +134,13 @@ class UploadService : Service() {
             updateService()
         }
 
-        fun onUploadRemoved(uploader: Uploader) {
+        @MainThread fun onUploadRemoved(uploader: Uploader) {
             lastRemovedUploader = uploader
             uploaders.remove(uploader)
             updateService()
         }
 
-        fun onUploadProgress() {
+        @MainThread fun onUploadProgress() {
             updateService()
         }
 
@@ -153,8 +154,26 @@ class UploadService : Service() {
                             applicationContext.unbindService(this)
                         }
 
-                        override fun onServiceDisconnected(name: ComponentName?) { /* ignored */ }
+                        override fun onServiceDisconnected(name: ComponentName?) { /* ignored */
+                        }
                     }, Context.BIND_AUTO_CREATE)
         }
+
+        ////////////////////////////////////////////////////////////////////////////////////////////
+
+        @MainThread fun cancelAllUploads() {
+            uploaders.forEach { it.cancel() }
+        }
+    }
+}
+
+private fun getCancelAllUploadsIntent(): PendingIntent {
+    val intent = Intent(applicationContext, CancelAllUploadsReceiver::class.java)
+    return PendingIntent.getBroadcast(applicationContext, 2, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+}
+
+class CancelAllUploadsReceiver : BroadcastReceiver() {
+    @MainThread override fun onReceive(context: Context, intent: Intent) {
+        UploadService.cancelAllUploads()
     }
 }
