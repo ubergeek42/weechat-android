@@ -27,10 +27,11 @@ private val client = OkHttpClient.Builder()
 
 
 class Upload(
-    val suri: Suri,
-    private val uploadUri: String,
-    private val formFileName: String,
-    private val httpUriGetter: HttpUriGetter
+        val suri: Suri,
+        private val uploadUri: String,
+        private val formFileName: String,
+        private val httpUriGetter: HttpUriGetter,
+        private val requestModifiers: List<RequestModifier>,
 ) {
     var transferredBytes = 0L
     val totalBytes = suri.fileSize
@@ -81,12 +82,14 @@ class Upload(
                 .addFormDataPart(formFileName, suri.fileName, getRequestBody())
                 .build()
 
-        val request = Request.Builder()
+        val requestBuilder = Request.Builder()
                 .url(uploadUri)
                 .post(requestBody)
-                .build()
 
-        return client.newCall(request)
+        for (requestModifier in requestModifiers)
+            requestModifier.modify(requestBuilder)
+
+        return client.newCall(requestBuilder.build())
     }
 
     @Throws(IOException::class, SecurityException::class)
@@ -153,7 +156,8 @@ class Upload(
                     Upload(suri,
                            uploadUri = UPLOAD_URI,
                            formFileName = FORM_FIlE_NAME,
-                           httpUriGetter = HttpUriGetter.fromRegex("^https://.+"))
+                           httpUriGetter = HttpUriGetter.fromRegex("^https://.+"),
+                           requestModifiers = emptyList())
                 }
                 upload.listeners.addAll(listeners)
                 listeners.forEach { it.onStarted(upload) }
