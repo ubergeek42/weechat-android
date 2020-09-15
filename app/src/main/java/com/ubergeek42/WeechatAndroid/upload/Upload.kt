@@ -29,7 +29,7 @@ private val client = OkHttpClient.Builder()
 class Upload(
         val suri: Suri,
         private val uploadUri: String,
-        private val formFileName: String,
+        private val uploadFormFieldName: String,
         private val httpUriGetter: HttpUriGetter,
         private val requestModifiers: List<RequestModifier>,
 ) {
@@ -79,7 +79,7 @@ class Upload(
     private fun prepare() : Call {
         val requestBody = MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
-                .addFormDataPart(formFileName, suri.fileName, getRequestBody())
+                .addFormDataPart(uploadFormFieldName, suri.fileName, getRequestBody())
                 .build()
 
         val requestBuilder = Request.Builder()
@@ -154,10 +154,10 @@ class Upload(
                 val alreadyUploading = jobs.containsKey(suri.uri)
                 val upload = jobs.getOrPut(suri.uri) {
                     Upload(suri,
-                           uploadUri = UPLOAD_URI,
-                           formFileName = FORM_FIlE_NAME,
-                           httpUriGetter = HttpUriGetter.fromRegex("^https://.+"),
-                           requestModifiers = emptyList())
+                           uploadUri = Config.uploadUri,
+                           uploadFormFieldName = Config.uploadFormFieldName,
+                           httpUriGetter = Config.httpUriGetter,
+                           requestModifiers = Config.requestModifiers)
                 }
                 upload.listeners.addAll(listeners)
                 listeners.forEach { it.onStarted(upload) }

@@ -2,11 +2,14 @@ package androidx.preference;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.text.InputType;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.view.ViewGroup;
 import android.view.ViewParent;
+
+import com.ubergeek42.WeechatAndroid.R;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -43,8 +46,14 @@ public class EditTextPreferenceFix extends EditTextPreference implements DialogF
     @SuppressWarnings("WeakerAccess")
     public EditTextPreferenceFix(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
+
+        TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.EditTextPreferenceFix, 0, 0);
+        boolean singleLine = a.getBoolean(R.styleable.EditTextPreferenceFix_android_singleLine, true);
+        a.recycle();
+
         editText = new AppCompatEditText(context, attrs);
         editText.setId(android.R.id.edit);
+        if (!singleLine) editText.setSingleLine(false);
         isPassword = (editText.getInputType() & PASSWORD_MASK) != 0;
     }
 

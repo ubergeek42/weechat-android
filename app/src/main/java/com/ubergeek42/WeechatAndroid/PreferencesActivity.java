@@ -29,9 +29,13 @@ import androidx.preference.RingtonePreferenceFix;
 import androidx.preference.ThemePreference;
 
 import com.ubergeek42.WeechatAndroid.media.Config;
+import com.ubergeek42.WeechatAndroid.upload.HttpUriGetter;
+import com.ubergeek42.WeechatAndroid.upload.RequestModifier;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 
+import java.io.IOException;
 import java.util.Set;
+import java.util.regex.PatternSyntaxException;
 
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
 
@@ -178,6 +182,12 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
                 listenTo = new String[]{PREF_MEDIA_PREVIEW_ENABLED_FOR_NETWORK,
                         PREF_MEDIA_PREVIEW_ENABLED_FOR_LOCATION,
                         PREF_MEDIA_PREVIEW_STRATEGIES};
+            } else if (PREF_UPLOADING_GROUP.equals(key)) {
+                showHideBasicAuthentication(null);
+                listenTo = new String[]{PREF_UPLOADING_AUTHENTICATION,
+                        PREF_UPLOADING_URI,
+                        PREF_UPLOADING_REGEX,
+                        PREF_UPLOADING_ADDITIONAL_HEADERS};
             }
 
             for (String p : listenTo)
@@ -209,7 +219,7 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
             String key = preference.getKey();
             boolean valid = true;
             int toast = -1;
-            if (Utils.isAnyOf(key, PREF_HOST, PREF_SSH_HOST)) {
+            if (Utils.isAnyOf(key, PREF_HOST, PREF_SSH_HOST, PREF_UPLOADING_URI)) {
                 valid = !((String) o).contains(" ");
                 toast = R.string.pref_hostname_invalid;
             } else if (PREF_SSH_AUTHENTICATION_METHOD.equals(key)) {
@@ -231,6 +241,24 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
             } else if (PREF_MEDIA_PREVIEW_STRATEGIES.equals(key)) {
                 // this method will show a toast on error
                 valid = Config.parseConfigSafe((String) o) != null;
+            } else if (PREF_UPLOADING_AUTHENTICATION.equals(key)) {
+                showHideBasicAuthentication((String) o);
+            } else if (PREF_UPLOADING_REGEX.equals(key)) {
+                if (((String) o).length() > 0) {
+                    try {
+                        HttpUriGetter.fromRegex((String) o);
+                    } catch (PatternSyntaxException e) {
+                        valid = false;
+                        Toast.makeText(getContext(), "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                }
+            } else if (PREF_UPLOADING_ADDITIONAL_HEADERS.equals(key)) {
+                try {
+                    RequestModifier.additionalHeaders((String) o);
+                } catch(RequestModifier.ParseException e) {
+                    valid = false;
+                    Toast.makeText(getContext(), "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
             }
             if (!valid && toast != -1)
                 Toast.makeText(getContext(), toast, Toast.LENGTH_SHORT).show();
@@ -288,6 +316,16 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
 
             Preference p = findPreference(PREF_MEDIA_PREVIEW_ENABLED_FOR_LOCATION);
             if (p != null) p.setEnabled(networkEnabled);
+        }
+
+        private void showHideBasicAuthentication(@Nullable String authentication) {
+            if (authentication == null) authentication = getPreferenceScreen().getSharedPreferences().getString(
+                    PREF_UPLOADING_AUTHENTICATION, PREF_UPLOADING_AUTHENTICATION_D);
+            boolean basic = "basic".equals(authentication);
+            Preference p = findPreference(PREF_UPLOADING_AUTHENTICATION_BASIC_USER);
+            if (p != null) p.setVisible(basic);
+            p = findPreference(PREF_UPLOADING_AUTHENTICATION_BASIC_PASSWORD);
+            if (p != null) p.setVisible(basic);
         }
 
         // recursively make all currently visible preference titles multiline

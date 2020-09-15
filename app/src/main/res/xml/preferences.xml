@@ -187,6 +187,52 @@
         </PreferenceCategory>
     </PreferenceScreen>
 
+    <PreferenceScreen android:key="uploading_group" android:title="Uploading">
+        <EditTextPreferenceFix android:key="uploading_uri"
+            android:title="Upload URL"
+            android:summary="%s"
+            android:singleLine="true"
+            android:inputType="text" />
+        <EditTextPreferenceFix android:key="uploading_form_field_name"
+            android:title="Form field name"
+            android:summary="%s"
+            android:singleLine="true"
+            android:inputType="text"
+            android:defaultValue="file" />
+        <EditTextPreferenceFix android:key="uploading_regex"
+            android:title="Regex"
+            android:summary="%s"
+            android:singleLine="true"
+            android:inputType="text"
+            android:defaultValue="^https://\S+" />
+        <EditTextPreferenceFix android:key="uploading_additional_headers"
+            android:title="Additional headers"
+            android:summary="%s"
+            android:singleLine="false"
+            android:inputType="text" />
+        <ListPreference android:key="uploading_authentication"
+            android:title="Authentication"
+            android:defaultValue="none"
+            android:entryValues="@array/settings_uploading_authentication_values"
+            android:entries="@array/pref_uploading_authentication_names"
+            android:summary="%s"/>
+        <EditTextPreferenceFix android:key="uploading_authentication_basic_user"
+            android:title="User"
+            android:summary="%s"
+            android:singleLine="true"
+            android:inputType="text" />
+        <EditTextPreferenceFix android:key="uploading_authentication_basic_password"
+            android:title="Password"
+            android:summary="%s"
+            android:singleLine="true"
+            android:inputType="textPassword" />
+        <HelpPreference android:key="uploading_help"
+            android:persistent="false"
+            android:selectable="false"
+            android:summary="@string/pref_uploading_help_summary" />
+
+    </PreferenceScreen>
+
     <!-- about -->
 
     <PreferenceScreen android:key="about" android:title="@string/about">

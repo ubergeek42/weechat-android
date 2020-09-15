@@ -13,4 +13,7 @@
     <declare-styleable name="FullScreenEditTextPreference">
         <attr name="resetToDefaultValue" format="string|reference" />
     </declare-styleable>
+    <declare-styleable name="EditTextPreferenceFix">
+        <attr name="android:singleLine" format="boolean" />
+    </declare-styleable>
 </resources>

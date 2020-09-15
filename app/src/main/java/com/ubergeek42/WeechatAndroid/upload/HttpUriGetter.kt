@@ -15,7 +15,7 @@ fun interface HttpUriGetter {
         // this getter will find the uri using provided regex.
         // if that regex has capture groups, the first one is used
         // if there are no capture groups, the whole match is used
-        @Throws(PatternSyntaxException::class)
+        @JvmStatic @Throws(PatternSyntaxException::class)
         fun fromRegex(string: String): HttpUriGetter {
             if (string.isBlank()) throw PatternSyntaxException("Blank regex", string, 0)
             val regex = Regex(string)

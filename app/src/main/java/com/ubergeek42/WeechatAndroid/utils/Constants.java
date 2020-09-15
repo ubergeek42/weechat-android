@@ -149,6 +149,26 @@ public class Constants {
     final public static String PREF_MEDIA_PREVIEW_STRATEGIES = "media_preview_strategies";
     final public static String PREF_MEDIA_PREVIEW_STRATEGIES_D = getResourceString(R.string.pref_media_preview_strategies_default);
 
+
+    // uploading
+    final public static String PREF_UPLOADING_GROUP = "uploading_group";
+    final public static String PREF_UPLOADING_URI = "uploading_uri";
+    final public static String PREF_UPLOADING_URI_D = "";
+    final public static String PREF_UPLOADING_FORM_FIELD_NAME = "uploading_form_field_name";
+    final public static String PREF_UPLOADING_FORM_FIELD_NAME_D = "file";
+    final public static String PREF_UPLOADING_REGEX = "uploading_regex";
+    final public static String PREF_UPLOADING_REGEX_D = "^https://\\S+";
+    final public static String PREF_UPLOADING_ADDITIONAL_HEADERS = "uploading_additional_headers";
+    final public static String PREF_UPLOADING_ADDITIONAL_HEADERS_D = "";
+    final public static String PREF_UPLOADING_AUTHENTICATION = "uploading_authentication";
+    final public static String PREF_UPLOADING_AUTHENTICATION_NONE = "none";
+    final public static String PREF_UPLOADING_AUTHENTICATION_BASIC = "basic";
+    final public static String PREF_UPLOADING_AUTHENTICATION_D = PREF_UPLOADING_AUTHENTICATION_NONE;
+    final public static String PREF_UPLOADING_AUTHENTICATION_BASIC_USER = "uploading_authentication_basic_user";
+    final public static String PREF_UPLOADING_AUTHENTICATION_BASIC_USER_D = "";
+    final public static String PREF_UPLOADING_AUTHENTICATION_BASIC_PASSWORD = "uploading_authentication_basic_password";
+    final public static String PREF_UPLOADING_AUTHENTICATION_BASIC_PASSWORD_D = "";
+
     // etc
     final public static String PREF_THEME_SWITCH = "theme_switch"; final public static boolean PREF_THEME_SWITCH_D = false;
 

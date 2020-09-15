@@ -585,4 +585,16 @@ strategies:
 
     <string name="pref_known_hosts_set">Known hosts set</string>
     <string name="pref_known_hosts_cleared">Known hosts cleared</string>
+    <string name="pref_uploading_help_summary" tools:ignore="TypographyDashes,Typos"><![CDATA[
+        <p>These settings roughly correspond to the following command:
+
+        <p><tt>curl -s --user user:pass --header \'Additional: Header\' --form file=@file.ext https://example.com | perl -nle \'/^https://\\S+/; print $1 // $&\'</tt>
+
+        <p>If the regular expression is set, it is used to find the URL in the response body; either the first capture group is used, or the whole match.]]></string>
+
+    <string-array name="pref_uploading_authentication_names">
+        <item>None</item>
+        <item>Basic</item>
+    </string-array>
+
 </resources>
