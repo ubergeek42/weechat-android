@@ -188,6 +188,12 @@
     </PreferenceScreen>
 
     <PreferenceScreen android:key="uploading_group" android:title="Uploading">
+        <ListPreference android:key="uploading_enabled"
+            android:title="Enabled"
+            android:defaultValue="text_only"
+            android:entryValues="@array/settings_uploading_enabled"
+            android:entries="@array/pref_uploading_enabled_names"
+            android:summary="%s"/>
         <EditTextPreferenceFix android:key="uploading_uri"
             android:title="Upload URL"
             android:summary="%s"

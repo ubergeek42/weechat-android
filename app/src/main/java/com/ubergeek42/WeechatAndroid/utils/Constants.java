@@ -152,6 +152,12 @@ public class Constants {
 
     // uploading
     final public static String PREF_UPLOADING_GROUP = "uploading_group";
+    final public static String PREF_UPLOADING_ENABLED = "uploading_enabled";
+    final public static String PREF_UPLOADING_ENABLED_TEXT_ONLY = "text_only";
+    final public static String PREF_UPLOADING_ENABLED_TEXT_IMAGES_VIDEOS = "text_images_videos";
+    final public static String PREF_UPLOADING_ENABLED_EVERYTHING = "everything";
+    final public static String PREF_UPLOADING_ENABLED_D = PREF_UPLOADING_ENABLED_TEXT_ONLY;
+
     final public static String PREF_UPLOADING_URI = "uploading_uri";
     final public static String PREF_UPLOADING_URI_D = "";
     final public static String PREF_UPLOADING_FORM_FIELD_NAME = "uploading_form_field_name";
@@ -168,6 +174,7 @@ public class Constants {
     final public static String PREF_UPLOADING_AUTHENTICATION_BASIC_USER_D = "";
     final public static String PREF_UPLOADING_AUTHENTICATION_BASIC_PASSWORD = "uploading_authentication_basic_password";
     final public static String PREF_UPLOADING_AUTHENTICATION_BASIC_PASSWORD_D = "";
+    final public static String PREF_UPLOADING_HELP = "uploading_help";
 
     // etc
     final public static String PREF_THEME_SWITCH = "theme_switch"; final public static boolean PREF_THEME_SWITCH_D = false;

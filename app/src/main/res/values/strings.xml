@@ -592,6 +592,11 @@ strategies:
 
         <p>If the regular expression is set, it is used to find the URL in the response body; either the first capture group is used, or the whole match.]]></string>
 
+    <string-array name="pref_uploading_enabled_names">
+        <item>Text only</item>
+        <item>Text, images and videos</item>
+        <item>Everything</item>
+    </string-array>
     <string-array name="pref_uploading_authentication_names">
         <item>None</item>
         <item>Basic</item>

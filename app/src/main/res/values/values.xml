@@ -46,6 +46,11 @@
         <item>required</item>
     </string-array>
 
+    <string-array name="settings_uploading_enabled">
+        <item>text_only</item>
+        <item>text_images_videos</item>
+        <item>everything</item>
+    </string-array>
     <string-array name="settings_uploading_authentication_values">
         <item>none</item>
         <item>basic</item>
