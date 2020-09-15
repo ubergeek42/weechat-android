@@ -164,6 +164,8 @@ public class Constants {
     final public static String PREF_UPLOADING_FORM_FIELD_NAME_D = "file";
     final public static String PREF_UPLOADING_REGEX = "uploading_regex";
     final public static String PREF_UPLOADING_REGEX_D = "^https://\\S+";
+    final public static String PREF_UPLOADING_HELP = "uploading_help";
+    final public static String PREF_UPLOADING_ADVANCED_GROUP = "uploading_advanced_group";
     final public static String PREF_UPLOADING_ADDITIONAL_HEADERS = "uploading_additional_headers";
     final public static String PREF_UPLOADING_ADDITIONAL_HEADERS_D = "";
     final public static String PREF_UPLOADING_AUTHENTICATION = "uploading_authentication";
@@ -174,7 +176,9 @@ public class Constants {
     final public static String PREF_UPLOADING_AUTHENTICATION_BASIC_USER_D = "";
     final public static String PREF_UPLOADING_AUTHENTICATION_BASIC_PASSWORD = "uploading_authentication_basic_password";
     final public static String PREF_UPLOADING_AUTHENTICATION_BASIC_PASSWORD_D = "";
-    final public static String PREF_UPLOADING_HELP = "uploading_help";
+    final public static String PREF_UPLOADING_CACHE_MAX_AGE = "uploading_cache_max_age";
+    final public static String PREF_UPLOADING_CACHE_MAX_AGE_D = "24";   // hours
+
 
     // etc
     final public static String PREF_THEME_SWITCH = "theme_switch"; final public static boolean PREF_THEME_SWITCH_D = false;

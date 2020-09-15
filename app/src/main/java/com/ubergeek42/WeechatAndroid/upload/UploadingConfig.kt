@@ -13,6 +13,7 @@ object Config {
     var uploadFormFieldName = PREF_UPLOADING_FORM_FIELD_NAME
     var httpUriGetter = HttpUriGetter.simple
     var requestModifiers = emptyList<RequestModifier>()
+    var cacheMaxAge = PREF_UPLOADING_CACHE_MAX_AGE_D.toInt()    // hours
 }
 
 fun initPreferences() {
@@ -24,7 +25,8 @@ fun initPreferences() {
             PREF_UPLOADING_ADDITIONAL_HEADERS,
             PREF_UPLOADING_AUTHENTICATION,
             PREF_UPLOADING_AUTHENTICATION_BASIC_USER,
-            PREF_UPLOADING_AUTHENTICATION_BASIC_PASSWORD
+            PREF_UPLOADING_AUTHENTICATION_BASIC_PASSWORD,
+            PREF_UPLOADING_CACHE_MAX_AGE,
     )) {
         onSharedPreferenceChanged(p, key)
     }
@@ -79,6 +81,14 @@ fun onSharedPreferenceChanged(p: SharedPreferences, key: String) {
             }
 
             Config.requestModifiers = requestModifiers
+        }
+
+        PREF_UPLOADING_CACHE_MAX_AGE -> {
+            suppress<NumberFormatException> {
+                Config.cacheMaxAge = (p.getString(key, PREF_UPLOADING_CACHE_MAX_AGE_D)!!
+                        .toFloat() * 60 * 60 * 1000)    // hours to ms
+                        .toInt()
+            }
         }
     }
 }

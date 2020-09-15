@@ -189,7 +189,7 @@
 
     <PreferenceScreen android:key="uploading_group" android:title="Uploading">
         <ListPreference android:key="uploading_enabled"
-            android:title="Enabled"
+            android:title="Accept shared"
             android:defaultValue="text_only"
             android:entryValues="@array/settings_uploading_enabled"
             android:entries="@array/pref_uploading_enabled_names"
@@ -211,32 +211,40 @@
             android:singleLine="true"
             android:inputType="text"
             android:defaultValue="^https://\S+" />
-        <EditTextPreferenceFix android:key="uploading_additional_headers"
-            android:title="Additional headers"
-            android:summary="%s"
-            android:singleLine="false"
-            android:inputType="text" />
-        <ListPreference android:key="uploading_authentication"
-            android:title="Authentication"
-            android:defaultValue="none"
-            android:entryValues="@array/settings_uploading_authentication_values"
-            android:entries="@array/pref_uploading_authentication_names"
-            android:summary="%s"/>
-        <EditTextPreferenceFix android:key="uploading_authentication_basic_user"
-            android:title="User"
-            android:summary="%s"
-            android:singleLine="true"
-            android:inputType="text" />
-        <EditTextPreferenceFix android:key="uploading_authentication_basic_password"
-            android:title="Password"
-            android:summary="%s"
-            android:singleLine="true"
-            android:inputType="textPassword" />
         <HelpPreference android:key="uploading_help"
             android:persistent="false"
             android:selectable="false"
             android:summary="@string/pref_uploading_help_summary" />
-
+        <PreferenceCategory android:key="uploading_advanced_group"
+            android:title="Advanced">
+            <EditTextPreferenceFix android:key="uploading_additional_headers"
+                android:title="Additional headers"
+                android:summary="%s"
+                android:singleLine="false"
+                android:inputType="text" />
+            <ListPreference android:key="uploading_authentication"
+                android:title="Authentication"
+                android:defaultValue="none"
+                android:entryValues="@array/settings_uploading_authentication_values"
+                android:entries="@array/pref_uploading_authentication_names"
+                android:summary="%s"/>
+            <EditTextPreferenceFix android:key="uploading_authentication_basic_user"
+                android:title="User"
+                android:summary="%s"
+                android:singleLine="true"
+                android:inputType="text" />
+            <EditTextPreferenceFix android:key="uploading_authentication_basic_password"
+                android:title="Password"
+                android:summary="%s"
+                android:singleLine="true"
+                android:inputType="textPassword" />
+            <EditTextPreferenceFix android:key="uploading_cache_max_age"
+                android:title="Remember uploads for"
+                android:defaultValue="24"
+                android:summary="%s hours"
+                android:singleLine="true"
+                android:inputType="numberDecimal" />
+        </PreferenceCategory>
     </PreferenceScreen>
 
     <!-- about -->

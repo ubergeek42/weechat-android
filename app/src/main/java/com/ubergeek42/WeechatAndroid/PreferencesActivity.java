@@ -33,7 +33,6 @@ import com.ubergeek42.WeechatAndroid.upload.HttpUriGetter;
 import com.ubergeek42.WeechatAndroid.upload.RequestModifier;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 
-import java.io.IOException;
 import java.util.Set;
 import java.util.regex.PatternSyntaxException;
 
@@ -331,11 +330,8 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
                     PREF_UPLOADING_URI,
                     PREF_UPLOADING_FORM_FIELD_NAME,
                     PREF_UPLOADING_REGEX,
-                    PREF_UPLOADING_ADDITIONAL_HEADERS,
-                    PREF_UPLOADING_AUTHENTICATION,
-                    PREF_UPLOADING_AUTHENTICATION_BASIC_USER,
-                    PREF_UPLOADING_AUTHENTICATION_BASIC_PASSWORD,
-                    PREF_UPLOADING_HELP
+                    PREF_UPLOADING_HELP,
+                    PREF_UPLOADING_ADVANCED_GROUP,
             }) {
                 Preference p = findPreference(key);
                 if (p != null) p.setEnabled(showSettings);
