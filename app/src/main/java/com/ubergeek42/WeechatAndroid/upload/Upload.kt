@@ -14,8 +14,6 @@ import kotlin.concurrent.thread
 @Root private val kitty: Kitty = Kitty.make()
 
 
-private const val FORM_FIlE_NAME = "file"
-private const val UPLOAD_URI = "https://x0.at"
 private const val SEGMENT_SIZE = 4096L
 private const val TIMEOUT = 30L
 

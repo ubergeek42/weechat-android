@@ -59,7 +59,7 @@ public class Config {
 
     final public static int THUMBNAIL_VERTICAL_MARGIN = (int) P._1_33dp;
     final public static int THUMBNAIL_HORIZONTAL_MARGIN = 2 * THUMBNAIL_VERTICAL_MARGIN;
-    final        static int THUMBNAIL_CORNER_RADIUS = 4 * THUMBNAIL_VERTICAL_MARGIN;
+    final public static int THUMBNAIL_CORNER_RADIUS = 4 * THUMBNAIL_VERTICAL_MARGIN;
 
     public static int thumbnailWidth = (int) (80 * P._1dp);
     public static int thumbnailMinHeight = (int) (40 * P._1dp);

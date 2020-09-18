@@ -12,9 +12,12 @@ import android.text.style.ImageSpan
 import android.widget.EditText
 import androidx.annotation.MainThread
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import com.ubergeek42.WeechatAndroid.Weechat
+import com.ubergeek42.WeechatAndroid.media.Config
 import java.io.FileNotFoundException
 import java.io.IOException
 import kotlin.concurrent.thread
@@ -24,7 +27,21 @@ data class ShareSpan(
         val context: Context,
         val suri: Suri,
         val bitmap: Bitmap
-) : ImageSpan(context, bitmap)
+) : ImageSpan(context, bitmap) {
+    // this is a workaround for the weird way android measures ImageSpans
+    // see https://stackoverflow.com/a/63948243/1449683
+    override fun getSize(paint: Paint, text: CharSequence?,
+                         start: Int, end: Int, fm: Paint.FontMetricsInt?): Int {
+        val oldBottom = fm?.bottom
+        val result = super.getSize(paint, text, start, end, fm)
+        fm?.apply {
+            top += oldBottom!!
+            ascent = top
+            bottom = oldBottom
+        }
+        return result
+    }
+}
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -103,6 +120,8 @@ const val THUMBNAIL_MAX_HEIGHT = 250
 fun getThumbnailAndRunOnMainThread(context: Context, uri: Uri, then: (bitmap: Bitmap) -> Unit) {
     Glide.with(context)
             .asBitmap()
+            .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+            .transform(RoundedCorners(Config.THUMBNAIL_CORNER_RADIUS))
             .load(uri)
             .into(object : CustomTarget<Bitmap>(THUMBNAIL_MAX_WIDTH, THUMBNAIL_MAX_HEIGHT) {
                 override fun onResourceReady(bitmap: Bitmap, transition: Transition<in Bitmap>?) {
@@ -115,7 +134,7 @@ fun getThumbnailAndRunOnMainThread(context: Context, uri: Uri, then: (bitmap: Bi
                 }
 
                 override fun onLoadCleared(placeholder: Drawable?) {
-                    TODO("Not yet implemented")
+                    // this shouldn't happen
                 }
             })
 }
