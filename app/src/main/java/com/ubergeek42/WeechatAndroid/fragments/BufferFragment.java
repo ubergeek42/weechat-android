@@ -510,7 +510,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
             uploadProgressBar.setProgress(0);               // set it twice
         } else {
             uploadProgressBar.setVisibility(View.VISIBLE);
-            if (ratio < 0.005f || ratio >= 1f) {
+            if (ratio >= 1f) {
                 uploadProgressBar.setIndeterminate(true);
             } else {
                 uploadProgressBar.setIndeterminate(false);
