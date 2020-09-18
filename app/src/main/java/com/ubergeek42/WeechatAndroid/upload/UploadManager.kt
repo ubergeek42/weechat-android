@@ -4,7 +4,7 @@ import androidx.annotation.MainThread
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
 
-const val USE_SERVICE = true
+const val USE_SERVICE = false
 
 interface UploadObserver {
     @MainThread fun onUploadsStarted()
