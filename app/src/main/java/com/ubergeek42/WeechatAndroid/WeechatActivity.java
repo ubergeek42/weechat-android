@@ -679,7 +679,7 @@ public class WeechatActivity extends AppCompatActivity implements
                 }
             }
 
-            if (shareObject != null) openBuffer(pointer, shareObject);
+            openBuffer(pointer, shareObject);
         }
     }
 
