@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.PowerManager
 import androidx.annotation.MainThread
 import com.ubergeek42.WeechatAndroid.Weechat
+import com.ubergeek42.WeechatAndroid.service.P
 import java.lang.System.currentTimeMillis
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
@@ -31,6 +32,8 @@ fun Float.format(digits: Int) = "%.${digits}f".format(this)
 
 // for floating division of integers
 infix fun Long.fdiv(i: Long): Float = this / i.toFloat();
+
+val Int.dp_to_px get() = (this * P._1dp).toInt()
 
 inline fun <reified T : Throwable> suppress(f: () -> Unit) {
     try {

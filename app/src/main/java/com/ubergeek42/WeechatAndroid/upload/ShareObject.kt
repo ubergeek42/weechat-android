@@ -113,9 +113,8 @@ open class UrisShareObject(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-const val THUMBNAIL_MAX_WIDTH = 250
-const val THUMBNAIL_MAX_HEIGHT = 250
+val THUMBNAIL_MAX_WIDTH = 80.dp_to_px
+val THUMBNAIL_MAX_HEIGHT = 80.dp_to_px
 
 fun getThumbnailAndRunOnMainThread(context: Context, uri: Uri, then: (bitmap: Bitmap) -> Unit) {
     Glide.with(context)
@@ -130,7 +129,7 @@ fun getThumbnailAndRunOnMainThread(context: Context, uri: Uri, then: (bitmap: Bi
 
                 override fun onLoadFailed(errorDrawable: Drawable?) {
                     val bitmap = makeThumbnailForUri(uri)
-                    Weechat.runOnMainThread { then(bitmap) }
+                    main { then(bitmap) }
                 }
 
                 override fun onLoadCleared(placeholder: Drawable?) {
@@ -139,12 +138,11 @@ fun getThumbnailAndRunOnMainThread(context: Context, uri: Uri, then: (bitmap: Bi
             })
 }
 
-
-const val TEXT_SIZE = 40f
-const val PADDING = 10
-const val LAYOUT_MAX_WIDTH = THUMBNAIL_MAX_WIDTH - (PADDING * 2)
-const val LAYOUT_MAX_HEIGHT = THUMBNAIL_MAX_HEIGHT - (PADDING * 2)
 const val TEXT_COLOR = Color.BLACK
+val TEXT_SIZE = 13.dp_to_px.toFloat()
+val PADDING = 3.dp_to_px
+val LAYOUT_MAX_WIDTH  = THUMBNAIL_MAX_WIDTH  - (PADDING * 2)
+val LAYOUT_MAX_HEIGHT = THUMBNAIL_MAX_HEIGHT - (PADDING * 2)
 
 fun makeThumbnailForUri(uri: Uri) : Bitmap {
     val text = uri.lastPathSegment ?: "file"
