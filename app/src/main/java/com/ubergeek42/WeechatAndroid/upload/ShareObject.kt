@@ -16,8 +16,7 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
-import com.ubergeek42.WeechatAndroid.Weechat
-import com.ubergeek42.WeechatAndroid.media.Config
+import com.ubergeek42.WeechatAndroid.media.Config.THUMBNAIL_CORNER_RADIUS
 import java.io.FileNotFoundException
 import java.io.IOException
 import kotlin.concurrent.thread
@@ -77,20 +76,18 @@ open class UrisShareObject(
 
     override fun insert(editText: EditText, insertAt: InsertAt) {
         val context = editText.context
-        getAllImagesAndRunOnMainThread(context) {
+        getAllImagesAndThen(context) {
             for (i in suris.indices) {
                 editText.insertAddingSpacesAsNeeded(insertAt, makeImageSpanned(context, i))
             }
         }
     }
 
-    private fun getAllImagesAndRunOnMainThread(context: Context, then: () -> Unit) {
+    private fun getAllImagesAndThen(context: Context, then: () -> Unit) {
         suris.forEachIndexed { i, suri ->
-            thread {
-                getThumbnailAndRunOnMainThread(context, suri.uri) { bitmap ->
-                    bitmaps[i] = bitmap
-                    if (bitmaps.all { it != null }) then()
-                }
+            getThumbnailAndThen(context, suri.uri) { bitmap ->
+                bitmaps[i] = bitmap
+                if (bitmaps.all { it != null }) then()
             }
         }
     }
@@ -113,23 +110,25 @@ open class UrisShareObject(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
 val THUMBNAIL_MAX_WIDTH = 80.dp_to_px
 val THUMBNAIL_MAX_HEIGHT = 80.dp_to_px
 
-fun getThumbnailAndRunOnMainThread(context: Context, uri: Uri, then: (bitmap: Bitmap) -> Unit) {
+// this starts the upload in a worker thread and exits immediately.
+// target callbacks will be called on the main thread
+fun getThumbnailAndThen(context: Context, uri: Uri, then: (bitmap: Bitmap) -> Unit) {
     Glide.with(context)
             .asBitmap()
             .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-            .transform(RoundedCorners(Config.THUMBNAIL_CORNER_RADIUS))
+            .transform(RoundedCorners(THUMBNAIL_CORNER_RADIUS))
             .load(uri)
             .into(object : CustomTarget<Bitmap>(THUMBNAIL_MAX_WIDTH, THUMBNAIL_MAX_HEIGHT) {
-                override fun onResourceReady(bitmap: Bitmap, transition: Transition<in Bitmap>?) {
-                    Weechat.runOnMainThread { then(bitmap) }
+                @MainThread override fun onResourceReady(bitmap: Bitmap, transition: Transition<in Bitmap>?) {
+                    then(bitmap)
                 }
 
-                override fun onLoadFailed(errorDrawable: Drawable?) {
-                    val bitmap = makeThumbnailForUri(uri)
-                    main { then(bitmap) }
+                @MainThread override fun onLoadFailed(errorDrawable: Drawable?) {
+                    then(makeThumbnailForUri(uri))
                 }
 
                 override fun onLoadCleared(placeholder: Drawable?) {
@@ -137,6 +136,7 @@ fun getThumbnailAndRunOnMainThread(context: Context, uri: Uri, then: (bitmap: Bi
                 }
             })
 }
+
 
 const val TEXT_COLOR = Color.BLACK
 val TEXT_SIZE = 13.dp_to_px.toFloat()
