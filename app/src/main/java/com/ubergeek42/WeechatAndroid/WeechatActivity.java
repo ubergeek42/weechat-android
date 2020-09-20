@@ -69,6 +69,7 @@ import com.ubergeek42.WeechatAndroid.upload.ShareObject;
 import com.ubergeek42.WeechatAndroid.upload.UrisShareObject;
 import com.ubergeek42.WeechatAndroid.upload.TextShareObject;
 import com.ubergeek42.WeechatAndroid.upload.UploadService;
+import com.ubergeek42.WeechatAndroid.upload.UploadDatabase;
 import com.ubergeek42.WeechatAndroid.utils.CertificateDialog;
 import com.ubergeek42.WeechatAndroid.utils.FancyAlertDialogBuilder;
 import com.ubergeek42.WeechatAndroid.utils.FriendlyExceptions;
@@ -261,6 +262,7 @@ public class WeechatActivity extends AppCompatActivity implements
         super.onStop();
         Network.get().unregister(this);
         CachePersist.save();
+        UploadDatabase.save();
     }
 
     @MainThread @Override @CatD protected void onDestroy() {

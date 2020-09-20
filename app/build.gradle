@@ -5,6 +5,7 @@ import org.aspectj.tools.ajc.Main
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
 
 configurations {
     devreleaseImplementation
@@ -30,8 +31,12 @@ dependencies {
     implementation 'com.github.bumptech.glide:glide:4.11.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.11.0'
     implementation 'com.squareup.okhttp3:okhttp:4.8.1'
-    implementation 'androidx.room:room-runtime:2.2.5'
-    annotationProcessor 'androidx.room:room-compiler:2.2.5'
+
+    def room_version = "2.2.5"
+    implementation "androidx.room:room-runtime:$room_version"
+    annotationProcessor "androidx.room:room-compiler:$room_version"
+    kapt "androidx.room:room-compiler:$room_version"
+
     implementation 'org.yaml:snakeyaml:1.26:android'
 
     implementation 'org.aspectj:aspectjrt:1.9.5'

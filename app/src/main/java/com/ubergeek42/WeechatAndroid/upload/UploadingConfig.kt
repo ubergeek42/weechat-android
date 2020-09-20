@@ -13,7 +13,7 @@ object Config {
     var uploadFormFieldName = PREF_UPLOADING_FORM_FIELD_NAME
     var httpUriGetter = HttpUriGetter.simple
     var requestModifiers = emptyList<RequestModifier>()
-    var cacheMaxAge = PREF_UPLOADING_CACHE_MAX_AGE_D.toInt()    // hours
+    var cacheMaxAge = PREF_UPLOADING_CACHE_MAX_AGE_D.hours_to_ms
 }
 
 fun initPreferences() {
@@ -85,9 +85,7 @@ fun onSharedPreferenceChanged(p: SharedPreferences, key: String) {
 
         PREF_UPLOADING_CACHE_MAX_AGE -> {
             suppress<NumberFormatException> {
-                Config.cacheMaxAge = (p.getString(key, PREF_UPLOADING_CACHE_MAX_AGE_D)!!
-                        .toFloat() * 60 * 60 * 1000)    // hours to ms
-                        .toInt()
+                Config.cacheMaxAge = p.getString(key, PREF_UPLOADING_CACHE_MAX_AGE_D)!!.hours_to_ms
             }
         }
     }
@@ -103,3 +101,5 @@ private fun enableDisableComponent(name: String, enabled: Boolean) {
             PackageManager.COMPONENT_ENABLED_STATE_ENABLED else PackageManager.COMPONENT_ENABLED_STATE_DISABLED
     manager.setComponentEnabledSetting(componentName, enabledDisabled, PackageManager.DONT_KILL_APP)
 }
+
+private val String.hours_to_ms get() = (this.toFloat() * 60 * 60 * 1000).toInt()

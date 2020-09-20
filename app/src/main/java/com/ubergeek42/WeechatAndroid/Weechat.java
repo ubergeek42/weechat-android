@@ -15,6 +15,7 @@ import com.ubergeek42.WeechatAndroid.service.Events;
 import com.ubergeek42.WeechatAndroid.service.Notificator;
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.service.RelayService.STATE;
+import com.ubergeek42.WeechatAndroid.upload.UploadDatabase;
 import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.Cats;
 
@@ -38,6 +39,7 @@ public class Weechat extends Application {
         CachePersist.restore();
         P.init(getApplicationContext());
         P.restoreStuff();
+        UploadDatabase.restore();   // wants cache max age from P
         Notificator.init(this);
         EventBus.builder().logNoSubscriberMessages(false).eventInheritance(false).installDefaultEventBus();
         EventBus.getDefault().postSticky(new Events.StateChangedEvent(EnumSet.of(STATE.STOPPED)));
