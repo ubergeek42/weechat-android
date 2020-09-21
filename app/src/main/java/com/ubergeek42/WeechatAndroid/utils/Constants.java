@@ -20,6 +20,9 @@ public class Constants {
 
     // ssl group
     final static public String PREF_SSL_GROUP = "ssl_group";
+    final static public String PREF_SSL_PIN_REQUIRED = "ssl_pin_required"; final static public boolean PREF_SSL_PIN_REQUIRED_D = false;
+    final static public String PREF_SSL_CLEAR_CERTS = "ssl_clear_certs";
+    final static public String PREF_SSL_CLIENT_CERTIFICATE = "ssl_client_certificate"; final static public boolean PREF_SSL_CLIENT_CERTIFICATE_D = false;
 
     // websocket
     final static public String PREF_WS_PATH = "ws_path"; final public static String PREF_WS_PATH_D = "weechat";
@@ -29,8 +32,12 @@ public class Constants {
     final static public String PREF_SSH_HOST = "ssh_host"; final public static String PREF_SSH_HOST_D = "";
     final static public String PREF_SSH_PORT = "ssh_port"; final public static String PREF_SSH_PORT_D = "22";
     final static public String PREF_SSH_USER = "ssh_user"; final public static String PREF_SSH_USER_D = "";
-    final static public String PREF_SSH_PASS = "ssh_pass"; final public static String PREF_SSH_PASS_D = "";
-    final static public String PREF_SSH_KEY = "ssh_key"; final public static String PREF_SSH_KEY_D = null;
+    final static public String PREF_SSH_AUTHENTICATION_METHOD = "ssh_authentication_method";
+    final static public String PREF_SSH_AUTHENTICATION_METHOD_PASSWORD = "password";
+    final static public String PREF_SSH_AUTHENTICATION_METHOD_KEY = "key";
+    final public static String PREF_SSH_AUTHENTICATION_METHOD_D = PREF_SSH_AUTHENTICATION_METHOD_PASSWORD;
+    final static public String PREF_SSH_PASSWORD = "ssh_password"; final public static String PREF_SSH_PASSWORD_D = "";
+    final static public String PREF_SSH_KEY_FILE = "ssh_key_file"; final public static String PREF_SSH_KEY_FILE_D = null;
     final static public String PREF_SSH_KNOWN_HOSTS = "ssh_known_hosts"; final public static String PREF_SSH_KNOWN_HOSTS_D = "";
 
     // relay
@@ -149,5 +156,11 @@ public class Constants {
     @SuppressWarnings("SameParameterValue")
     private static String getResourceString(int id) {
         return Weechat.applicationContext.getResources().getString(id);
+    }
+
+    static public class Deprecated {
+        final static public String PREF_SSH_PASS = "ssh_pass"; final public static String PREF_SSH_PASS_D = "";
+        final static public String PREF_SSH_KEY = "ssh_key"; final public static String PREF_SSH_KEY_D = null;
+        final static public String PREF_SSH_KEY_PASSPHRASE = "ssh_key_passphrase"; final public static String PREF_SSH_KEY_PASSPHRASE_D = null;
     }
 }

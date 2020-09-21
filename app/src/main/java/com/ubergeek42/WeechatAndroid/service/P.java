@@ -23,6 +23,7 @@ import androidx.annotation.WorkerThread;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.preference.FilePreference;
+import androidx.preference.PrivateKeyPickerPreference;
 import androidx.preference.ThemeManager;
 
 import com.ubergeek42.WeechatAndroid.R;
@@ -30,6 +31,7 @@ import com.ubergeek42.WeechatAndroid.Weechat;
 import com.ubergeek42.WeechatAndroid.media.Config;
 import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
+import com.ubergeek42.WeechatAndroid.utils.MigratePreferences;
 import com.ubergeek42.WeechatAndroid.utils.ThemeFix;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.cats.Cat;
@@ -38,6 +40,7 @@ import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
 import com.ubergeek42.weechat.Color;
 import com.ubergeek42.weechat.ColorScheme;
+import com.ubergeek42.weechat.relay.connection.SSHConnection;
 
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -69,6 +72,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         instance = new P();
         P.context = context;
         p = PreferenceManager.getDefaultSharedPreferences(context);
+        new MigratePreferences(context).migrate();
         loadUIPreferences();
         p.registerOnSharedPreferenceChangeListener(instance);
         calculateWeaselWidth();
@@ -222,12 +226,14 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     static String connectionType;
     static String sshHost;
     static String sshUser;
-    static String sshPass;
-    static byte[] sshKey, sshKnownHosts;
+    static SSHConnection.AuthenticationMethod sshAuthenticationMethod;
+    static String sshPassword;
+    static byte[] sshSerializedKey, sshKnownHosts;
     static public int port;
     static int sshPort;
     static SSLSocketFactory sslSocketFactory;
     static boolean reconnect;
+    static public boolean pinRequired;
 
     static boolean pingEnabled;
     static long pingIdleTime, pingTimeout;
@@ -241,13 +247,17 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         pass = p.getString(PREF_PASSWORD, PREF_PASSWORD_D);
         port = Integer.parseInt(getString(PREF_PORT, PREF_PORT_D));
         wsPath = p.getString(PREF_WS_PATH, PREF_WS_PATH_D);
+        pinRequired = p.getBoolean(PREF_SSL_PIN_REQUIRED, PREF_SSL_PIN_REQUIRED_D);
 
         connectionType = p.getString(PREF_CONNECTION_TYPE, PREF_CONNECTION_TYPE_D);
         sshHost = p.getString(PREF_SSH_HOST, PREF_SSH_HOST_D);
         sshPort = Integer.valueOf(getString(PREF_SSH_PORT, PREF_SSH_PORT_D));
         sshUser = p.getString(PREF_SSH_USER, PREF_SSH_USER_D);
-        sshPass = p.getString(PREF_SSH_PASS, PREF_SSH_PASS_D);
-        sshKey = FilePreference.getData(p.getString(PREF_SSH_KEY, PREF_SSH_KEY_D));
+        sshAuthenticationMethod = PREF_SSH_AUTHENTICATION_METHOD_KEY.equals(
+                p.getString(PREF_SSH_AUTHENTICATION_METHOD, PREF_SSH_AUTHENTICATION_METHOD_D)) ?
+                        SSHConnection.AuthenticationMethod.KEY : SSHConnection.AuthenticationMethod.PASSWORD;
+        sshPassword = p.getString(PREF_SSH_PASSWORD, PREF_SSH_PASSWORD_D);
+        sshSerializedKey = PrivateKeyPickerPreference.getData(p.getString(PREF_SSH_KEY_FILE, PREF_SSH_KEY_FILE_D));
         sshKnownHosts = FilePreference.getData(p.getString(PREF_SSH_KNOWN_HOSTS, PREF_SSH_KNOWN_HOSTS_D));
 
         lineIncrement = Integer.parseInt(getString(PREF_LINE_INCREMENT, PREF_LINE_INCREMENT_D));
@@ -273,7 +283,11 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         if (TextUtils.isEmpty(pass)) return R.string.pref_error_relay_password_not_set;
         if (connectionType.equals(PREF_TYPE_SSH)) {
             if (TextUtils.isEmpty(sshHost)) return R.string.pref_error_ssh_host_not_set;
-            if (Utils.isEmpty(sshKey) && TextUtils.isEmpty(sshPass)) return R.string.pref_error_no_ssh_key;
+            if (sshAuthenticationMethod == SSHConnection.AuthenticationMethod.KEY) {
+                if (Utils.isEmpty(sshSerializedKey)) return R.string.pref_error_no_ssh_key_file;;
+            } else {
+                if (TextUtils.isEmpty(sshPassword)) return R.string.pref_error_no_ssh_password;
+            }
             if (Utils.isEmpty(sshKnownHosts)) return R.string.pref_error_no_ssh_known_hosts;
         }
         return 0;

@@ -3,7 +3,6 @@ package androidx.preference;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Typeface;
-import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
@@ -15,6 +14,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
+import androidx.fragment.app.DialogFragment;
 
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.utils.Constants;
@@ -22,7 +22,7 @@ import com.ubergeek42.WeechatAndroid.utils.Constants;
 import java.util.Collections;
 import java.util.LinkedList;
 
-public class FontPreference extends DialogPreference {
+public class FontPreference extends DialogPreference implements DialogFragmentGetter {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -49,20 +49,16 @@ public class FontPreference extends DialogPreference {
                 "".equals(getFontPath()) ? getContext().getString(R.string.pref_font_default) : getFontPath());
     }
 
+    @NonNull @Override public DialogFragment getDialogFragment() {
+        return new FontPreferenceFragment();
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     public static class FontPreferenceFragment extends PreferenceDialogFragmentCompat implements DialogInterface.OnClickListener {
 
         private LinkedList<FontManager.FontInfo> fonts;
         private LayoutInflater inflater;
-
-        public static FontPreferenceFragment newInstance(String key) {
-            FontPreferenceFragment fragment = new FontPreferenceFragment();
-            Bundle b = new Bundle(1);
-            b.putString("key", key);
-            fragment.setArguments(b);
-            return fragment;
-        }
 
         protected void onPrepareDialogBuilder(AlertDialog.Builder builder) {
             super.onPrepareDialogBuilder(builder);

@@ -6,13 +6,20 @@ package com.ubergeek42.WeechatAndroid.service;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.net.SSLCertificateSocketFactory;
+import android.os.Build;
+
 import androidx.annotation.CheckResult;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.ubergeek42.WeechatAndroid.Weechat;
+import com.ubergeek42.WeechatAndroid.utils.CertificateDialog;
+import com.ubergeek42.WeechatAndroid.utils.ThrowingKeyManagerWrapper;
+import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -21,10 +28,11 @@ import java.io.IOException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
-import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -33,6 +41,8 @@ import java.util.regex.Pattern;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
@@ -40,6 +50,10 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
+
+import static com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils.deleteAndroidKeyStoreEntriesWithPrefix;
+import static com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils.getAndroidKeyStore;
+import static com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils.putKeyEntriesIntoAndroidKeyStoreWithPrefix;
 
 public class SSLHandler {
     final private static @Root Kitty kitty = Kitty.make();
@@ -69,57 +83,77 @@ public class SSLHandler {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @SuppressLint("SSLCertificateSocketFactoryGetInsecure")
-    public static Result checkHostname(@NonNull String host, int port) {
-        final SSLSocketFactory factory = SSLCertificateSocketFactory.getInsecure(0, null);
-        SSLSocket ssl = null;
+    public static Result checkHostnameAndValidity(@NonNull String host, int port) {
+        X509Certificate[] certificatesChain = null;
         try {
-            ssl = (SSLSocket) factory.createSocket(host, port);
-            ssl.startHandshake();
-        } catch (IOException e) {
-            return new Result(false, ssl == null ? null : getCertificate(ssl));
+            SSLSocketFactory factory = SSLCertificateSocketFactory.getInsecure(0, null);
+            try (SSLSocket ssl = (SSLSocket) factory.createSocket(host, port)) {
+                ssl.startHandshake();
+                SSLSession session = ssl.getSession();
+                certificatesChain = (X509Certificate[]) session.getPeerCertificates();
+                certificatesChain = appendIssuer(certificatesChain);
+                for (X509Certificate certificate : certificatesChain)
+                    certificate.checkValidity();
+                if (!getHostnameVerifier().verify(host, session))
+                    throw new SSLPeerUnverifiedException("Cannot verify hostname: " + host);
+            }
+        } catch (CertificateException | IOException e) {
+            return new Result(e, certificatesChain);
         }
-        SSLSession session = ssl.getSession();
-        boolean verified = HttpsURLConnection.getDefaultHostnameVerifier().verify(host, session);
-        X509Certificate certificate = getCertificate(ssl);
-        try {ssl.close();} catch (IOException ignored) {}
-        return new Result(verified, certificate);
-    }
-
-    private static @Nullable X509Certificate getCertificate(SSLSocket socket) {
-        try {
-            return (X509Certificate) socket.getSession().getPeerCertificates()[0];
-        } catch (SSLPeerUnverifiedException e) {
-            kitty.error("getCertificate()", e);
-            return null;
-        }
+        return new Result(null, certificatesChain);
     }
 
     public static class Result {
-        public final @Nullable X509Certificate certificate;
-        public final boolean verified;
+        public final @Nullable Exception exception;
+        public final @Nullable X509Certificate[] certificateChain;
 
-        Result(boolean verified, @Nullable X509Certificate certificate) {
-            this.certificate = certificate;
-            this.verified = verified;
+        Result(@Nullable Exception exception, @Nullable X509Certificate[] certificateChain) {
+            this.exception = exception;
+            this.certificateChain = certificateChain;
         }
+    }
+
+    // servers can omit sending root CAs. this retrieves the root CA from the system store
+    // and adds it to the chain. see https://stackoverflow.com/a/42168597/1449683
+    public static X509Certificate[] appendIssuer(X509Certificate[] certificates) {
+        X509TrustManager systemManager = UserTrustManager.buildTrustManger(null);
+        if (systemManager == null) return certificates;
+        X509Certificate rightmost = certificates[certificates.length - 1];
+        for (X509Certificate issuer : systemManager.getAcceptedIssuers()) {
+            try {
+                rightmost.verify(issuer.getPublicKey());
+                certificates = Arrays.copyOf(certificates, certificates.length + 1);
+                certificates[certificates.length - 1] = issuer;
+                return certificates;
+            } catch (Exception ignored) {}
+        }
+        return certificates;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public static Set<String> getCertificateHosts(X509Certificate certificate) {
+    final private static int SAN_DNSNAME = 2;
+    final private static int SAN_IPADDRESS = 7;
+
+    // fall back to parsing CN only if SAN extension is not present. Android P no longer does this.
+    // https://developer.android.com/about/versions/pie/android-9.0-changes-all#certificate-common-name
+    public static Set<String> getCertificateHosts(X509Certificate certificate) throws Exception {
         final Set<String> hosts = new HashSet<>();
-        try {
-            final Matcher matcher = RDN_PATTERN.matcher(certificate.getSubjectDN().getName());
-            if (matcher.find())
-                hosts.add(matcher.group(1));
-        } catch (NullPointerException ignored) {}
-        try {
-            for (List<?> pair : certificate.getSubjectAlternativeNames()) {
-                try {
-                    hosts.add(pair.get(1).toString());
-                } catch (IndexOutOfBoundsException ignored) {}
+
+        Collection<List<?>> san = certificate.getSubjectAlternativeNames();
+
+        if (san == null) {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+                Matcher matcher = RDN_PATTERN.matcher(certificate.getSubjectDN().getName());
+                if (matcher.find())
+                    hosts.add(matcher.group(1));
             }
-        } catch(NullPointerException | CertificateParsingException ignored) {}
+        } else {
+            for (List<?> pair : san) {
+                if (Utils.isAnyOf((Integer) pair.get(0), SAN_DNSNAME, SAN_IPADDRESS))
+                    hosts.add(pair.get(1).toString());
+            }
+        }
         return hosts;
     }
 
@@ -138,6 +172,7 @@ public class SSLHandler {
         try {
             KeyStore.TrustedCertificateEntry x = new KeyStore.TrustedCertificateEntry(cert);
             sslKeystore.setEntry(cert.getSubjectDN().getName(), x, null);
+            kitty.debug("Trusting:\n" + CertificateDialog.buildCertificateDescription(Weechat.applicationContext, cert));
         } catch (KeyStoreException e) {
             kitty.error("trustCertificate()", e);
         }
@@ -146,8 +181,20 @@ public class SSLHandler {
 
     SSLSocketFactory getSSLSocketFactory() {
         SSLCertificateSocketFactory sslSocketFactory = (SSLCertificateSocketFactory) SSLCertificateSocketFactory.getDefault(0, null);
+        sslSocketFactory.setKeyManagers(getKeyManagers());
         sslSocketFactory.setTrustManagers(UserTrustManager.build(sslKeystore));
         return sslSocketFactory;
+    }
+
+    static public boolean isChainTrustedBySystem(X509Certificate[] certificates) {
+        X509TrustManager systemManager = UserTrustManager.buildTrustManger(null);
+        if (systemManager == null) return false;
+        try {
+            systemManager.checkServerTrusted(certificates, "GENERIC");
+            return true;
+        } catch (CertificateException e) {
+            return false;
+        }
     }
 
     // see android.net.SSLCertificateSocketFactory#verifyHostname
@@ -231,14 +278,17 @@ public class SSLHandler {
 
         @Override
         public void checkServerTrusted(X509Certificate[] x509Certificates, String s)
-            throws CertificateException {
+                throws CertificateException {
             try {
-                systemTrustManager.checkServerTrusted(x509Certificates, s);
-                kitty.debug("Server is trusted by system");
-            } catch (CertificateException e) {
-                kitty.debug("Server is NOT trusted by system, trying user");
                 userTrustManager.checkServerTrusted(x509Certificates, s);
                 kitty.debug("Server is trusted by user");
+            } catch (CertificateException e) {
+                kitty.debug("Server is NOT trusted by user; pin " + (P.pinRequired ?
+                        "REQUIRED -- failing" : "not required -- trying system"));
+                if (P.pinRequired) throw e;
+
+                systemTrustManager.checkServerTrusted(x509Certificates, s);
+                kitty.debug("Server is trusted by system");
             }
         }
 
@@ -250,5 +300,42 @@ public class SSLHandler {
             System.arraycopy(user, 0, result, system.length, user.length);
             return result;
         }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    public final static String KEYSTORE_ALIAS_PREFIX = "tls-client-cert-0.";
+    private @Nullable KeyManager[] cachedKeyManagers = null;
+
+    public void setClientCertificate(@Nullable byte[] bytes, String password) throws
+            KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException,
+            UnrecoverableKeyException {
+        cachedKeyManagers = null;
+
+        KeyStore pkcs12Keystore = KeyStore.getInstance("PKCS12");
+        pkcs12Keystore.load(bytes == null ? null :
+                new ByteArrayInputStream(bytes), password.toCharArray());
+
+        deleteAndroidKeyStoreEntriesWithPrefix(KEYSTORE_ALIAS_PREFIX);
+        putKeyEntriesIntoAndroidKeyStoreWithPrefix(pkcs12Keystore, password, KEYSTORE_ALIAS_PREFIX);
+    }
+
+    private @Nullable KeyManager[] getKeyManagers() {
+        if (cachedKeyManagers == null) {
+            try {
+                KeyStore androidKeystore = getAndroidKeyStore();
+                KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("X509");
+                keyManagerFactory.init(androidKeystore, null);
+                cachedKeyManagers = keyManagerFactory.getKeyManagers();
+
+                // this makes managers throw an exception if appropriate certificates can't be found
+                ThrowingKeyManagerWrapper.wrapKeyManagers(cachedKeyManagers);
+            } catch (Exception e) {
+                kitty.error("getKeyManagers()", e);
+            }
+        }
+        return cachedKeyManagers;
     }
 }

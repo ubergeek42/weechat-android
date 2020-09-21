@@ -5,25 +5,23 @@ package androidx.preference;
 
 import android.content.Context;
 import android.content.Intent;
-import android.os.Bundle;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
-
 import android.text.ClipboardManager;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Base64;
-import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.fragment.app.DialogFragment;
 
 import com.ubergeek42.WeechatAndroid.R;
+import com.ubergeek42.WeechatAndroid.Weechat;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
 
-import java.io.IOException;
-
-public class FilePreference extends DialogPreference {
+public class FilePreference extends DialogPreference implements DialogFragmentGetter {
     final private static @Root Kitty kitty = Kitty.make();
 
     public FilePreference(Context context, AttributeSet attrs) {
@@ -36,58 +34,63 @@ public class FilePreference extends DialogPreference {
                 super.getSummary(), set_not_set);
     }
 
-    private void saveData(@Nullable byte[] bytes) {
+    // validate, if needed, and save data. throw anything on error—it will get printed.
+    // returned string, if not null, will be displayed as a long toast
+    protected @Nullable String saveData(@Nullable byte[] bytes) throws Exception {
         if (callChangeListener(bytes)) {
             persistString(bytes == null ? null : Base64.encodeToString(bytes, Base64.NO_WRAP));
             notifyChanged();
         }
+        return null;
     }
 
+    private void saveDataAndShowToast(ThrowingGetter<byte[]> bytesGetter) {
+        try {
+            byte[] bytes = bytesGetter.get();
+            String message = saveData(bytes);
+            if (message != null) Weechat.showLongToast(message);
+        } catch (Exception e) {
+            kitty.error("error", e);
+            Weechat.showLongToast(R.string.pref_file_error, e.getMessage());
+        }
+    }
+
+    // a helper method that gets the original bytes from the strings
     public static @Nullable byte[] getData(String data) {
-        try {return Base64.decode(data.getBytes(), Base64.NO_WRAP);}
-        catch (IllegalArgumentException | NullPointerException ignored) {return null;}
+        try {
+            return Base64.decode(data.getBytes(), Base64.NO_WRAP);
+        } catch (IllegalArgumentException | NullPointerException ignored) {
+            return null;
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
+
     // this gets called when a file has been picked
     public void onActivityResult(@NonNull Intent intent) {
-        try {
-            saveData(Utils.readFromUri(getContext(), intent.getData()));
-            Toast.makeText(getContext(), getContext().getString(R.string.pref_file_imported), Toast.LENGTH_SHORT).show();
-        } catch (IOException e) {
-            Toast.makeText(getContext(), getContext().getString(R.string.pref_file_error, e.getMessage()), Toast.LENGTH_SHORT).show();
-            kitty.error("onActivityResult()", e);
-        }
+        saveDataAndShowToast(() -> Utils.readFromUri(getContext(), intent.getData()));
+    }
+
+    @NonNull @Override public DialogFragment getDialogFragment() {
+        return new FilePreferenceFragment();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     public static class FilePreferenceFragment extends PreferenceDialogFragmentCompat {
-
-        public static FilePreferenceFragment newInstance(String key, int code) {
-            FilePreferenceFragment fragment = new FilePreferenceFragment();
-            Bundle b = new Bundle(1);
-            b.putString("key", key);
-            b.putInt("code", code);
-            fragment.setArguments(b);
-            return fragment;
-        }
-
         @Override protected void onPrepareDialogBuilder(AlertDialog.Builder builder) {
-            builder.setNeutralButton(getString(R.string.pref_file_clear_button), (dialog, which) -> {
-                ((FilePreference) getPreference()).saveData(null);
-                Toast.makeText(getContext(), getString(R.string.pref_file_cleared), Toast.LENGTH_SHORT).show();
-            })
+            FilePreference preference = (FilePreference) getPreference();
+            builder.setNeutralButton(getString(R.string.pref_file_clear_button), (dialog, which) ->
+                    preference.saveDataAndShowToast(() -> null))
                 .setNegativeButton(getString(R.string.pref_file_paste_button), (dialog, which) -> {
                     // noinspection deprecation
                     ClipboardManager cm = (ClipboardManager) requireContext().getSystemService(Context.CLIPBOARD_SERVICE);
                     CharSequence clip = cm.getText();
                     if (TextUtils.isEmpty(clip))
-                        Toast.makeText(getContext(), getString(R.string.pref_file_empty_clipboard), Toast.LENGTH_SHORT).show();
+                        Weechat.showShortToast(R.string.pref_file_empty_clipboard);
                     else {
-                        ((FilePreference) getPreference()).saveData(clip.toString().getBytes());
-                        Toast.makeText(getContext(), getString(R.string.pref_file_pasted), Toast.LENGTH_SHORT).show();
+                        preference.saveDataAndShowToast(() -> clip.toString().getBytes());
                     }
                 })
                 .setPositiveButton(getString(R.string.pref_file_choose_button), (dialog, which) -> {
@@ -99,5 +102,10 @@ public class FilePreference extends DialogPreference {
         }
 
         @Override public void onDialogClosed(boolean b) {}
+    }
+
+    // this slightly simplifies code by allowing onActivityResult not to deal with exceptions
+    interface ThrowingGetter<T> {
+        T get() throws Exception;
     }
 }

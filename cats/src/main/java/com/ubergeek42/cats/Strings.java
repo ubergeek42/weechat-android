@@ -115,6 +115,9 @@ final class Strings {
     private static String byteArrayToString(byte[] bytes) {
         StringBuilder builder = new StringBuilder("[");
         for (int i = 0; i < bytes.length; i++) {
+            if (i > 100) {
+                return builder.append("...").toString();
+            }
             if (i > 0) {
                 builder.append(", ");
             }

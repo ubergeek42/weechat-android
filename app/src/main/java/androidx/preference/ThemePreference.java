@@ -3,19 +3,20 @@ package androidx.preference;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.TypedArray;
-import android.os.Bundle;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
-
 import android.text.TextUtils;
 import android.util.AttributeSet;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.fragment.app.DialogFragment;
 
 import com.ubergeek42.WeechatAndroid.R;
 
 import java.util.Collections;
 import java.util.LinkedList;
 
-public class ThemePreference extends DialogPreference {
+public class ThemePreference extends DialogPreference implements DialogFragmentGetter {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -43,19 +44,15 @@ public class ThemePreference extends DialogPreference {
         return TextUtils.isEmpty(getThemePath()) ? getContext().getString(R.string.pref_theme_not_set) : getThemePath();
     }
 
+    @NonNull @Override public DialogFragment getDialogFragment() {
+        return new ThemePreferenceFragment();
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     public static class ThemePreferenceFragment extends PreferenceDialogFragmentCompat implements DialogInterface.OnClickListener {
 
         private LinkedList<ThemeManager.ThemeInfo> themes;
-
-        public static ThemePreferenceFragment newInstance(String key) {
-            ThemePreferenceFragment fragment = new ThemePreferenceFragment();
-            Bundle b = new Bundle(1);
-            b.putString("key", key);
-            fragment.setArguments(b);
-            return fragment;
-        }
 
         protected void onPrepareDialogBuilder(AlertDialog.Builder builder) {
             super.onPrepareDialogBuilder(builder);

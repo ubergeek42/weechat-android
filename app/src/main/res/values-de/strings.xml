@@ -78,8 +78,8 @@
         Verbindungsaufbaus unerwartet geschlossen. Falsches Passwort oder Verbindungstyp?</string>
     <string name="relay_error_resolve">Adresse %s konnte nicht aufgelöst werden</string>
 
-    <string name="ssl_cert_dialog_unknown_fingerprint">Unbekannt</string>
-    <string name="ssl_cert_dialog_description"><![CDATA[
+    <string name="certificate_description_unknown_fingerprint">Unbekannt</string>
+    <string name="certificate_description_text"><![CDATA[
         <b>Ausgestellt auf:</b><br>
         %1$s<br>
         <br>
@@ -93,21 +93,18 @@
         <b>SHA-256 Fingerprint:</b><br>
         %5$s
     ]]></string>
-    <string name="ssl_cert_dialog_title">Zertifikat nicht vertrauenswürdig</string>
-    <string name="ssl_cert_dialog_accept_button">Akzeptieren</string>
-    <string name="ssl_cert_dialog_reject_button">Ablehnen</string>
-    <string name="invalid_hostname_dialog_body"><![CDATA[
+    <string name="dialog_button_reject">Ablehnen</string>
+    <string name="dialog_invalid_hostname_text"><![CDATA[
         Sie versuchen eine Verbindung zu <strong>%1$s</strong> herzustellen, aber das Zertifikat ist
-        nur gültig für nachfolgende Hosts:<br> %2$s]]></string>
-    <string name="invalid_hostname_dialog_title">Ungültiger Hostname</string>
-    <string name="invalid_hostname_dialog_button">Sicherheit geht vor</string>
-    <string name="invalid_hostname_dialog_empty"><![CDATA[<br><strong>(keine)</strong>]]></string>
+        nur gültig für nachfolgende Hosts:%2$s
+    ]]></string>
+    <string name="dialog_invalid_hostname_title">Ungültiger Hostname</string>
+    <string name="dialog_button_back_to_safety">Sicherheit geht vor</string>
+    <string name="dialog_invalid_hostname_text_empty_line"><![CDATA[<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>(keine)</strong>]]></string>
 
     <string name="pref_error_relay_host_not_set">Relay-Host ist nicht angelegt</string>
     <string name="pref_error_relay_password_not_set">Kein Relay-Passwort angelegt</string>
     <string name="pref_error_ssh_host_not_set">SSH-Host ist nicht angelegt</string>
-    <string name="pref_error_no_ssh_key">Weder ein SSH-Schlüssel noch ein Passwort wird
-        genutzt</string>
     <string name="pref_error_no_ssh_known_hosts">Bekannte SSH-Hosts sind nicht angelegt</string>
 
     <string name="pref_connection_group">Verbindung</string>
@@ -126,6 +123,7 @@
         <item>@string/pref_connection_type_ws_ssl</item>
     </string-array>
 
+    <string name="pref_ssl_group">SSL Einstellungen</string>
     <string name="pref_clear_certs">Zertifikate löschen</string>
     <string name="pref_clear_certs_confirmation">Zertifikate löschen?</string>
     <string name="pref_clear_certs_summary">{0,choice,0#Kein vertrauenswürdiges Zertifikat|1#1
@@ -135,18 +133,20 @@
     <string name="pref_clear_certs_success">Zertifikate gelöscht</string>
     <string name="pref_clear_certs_failure">Zertifikate konnten nicht gelöscht werden</string>
 
+    <string name="pref_ssl_client_certificate">Client-Zertifikate</string>
+    <string name="pref_ssl_client_certificate_summary">PKCS # 12-Datei enthält privaten Schlüssel und Client-Zertifikat</string>
+
     <string name="pref_ws_path">WebSocket Pfad</string>
 
     <string name="pref_ssh_group">Einstellungen SSH-Tunnel</string>
     <string name="pref_ssh_host">SSH-Host</string>
     <string name="pref_ssh_user">SSH-Username</string>
     <string name="pref_ssh_port">SSH-Port</string>
-    <string name="pref_ssh_pass">SSH-Passwort/Schlüsselpassphrase</string>
-    <string name="pref_ssh_key">Privater Schlüssel</string>
-    <string name="pref_ssh_key_summary">DSA, RSA, ECDSA privater Schlüssel in OpenSSH oder PuTTY
-        Format</string>
+    <string name="pref_ssh_password">SSH-Passwort</string>
+    <string name="pref_ssh_keyfile">Privater Schlüssel</string>
+    <string name="pref_ssh_keyfile_summary">Ed25519, ECDSA, RSA, DSA Schlüssel</string>
     <string name="pref_ssh_known_hosts">Bekannte Hosts</string>
-    <string name="pref_ssh_known_hosts_summary">Ausgabe von $ ssh-keyscan host 2>/dev/null</string>
+    <string name="pref_ssh_known_hosts_summary">Ausgabe von $ ssh-keyscan host</string>
 
     <string name="pref_file_imported">Datei importiert. Sie können es jetzt löschen.</string>
     <string name="pref_file_error">Fehler: %s</string>
@@ -372,6 +372,7 @@
         \n
         \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/noveogroup/android-logger">Android Logger von Noveo Group</a>
         \n&#160;&#160;&#160;&#160;•&#160;<a href="https://www.eclipse.org/aspectj/">AspectJ von Eclipse Foundation</a>
+        \n&#160;&#160;&#160;&#160;•&#160;<a href="https://www.bouncycastle.org/">Bouncy Castle</a>
         \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/greenrobot/EventBus">EventBus von greenrobot</a>
         \n&#160;&#160;&#160;&#160;•&#160;<a href="https://bumptech.github.io/glide/">Glide von Bump Technologies</a>
         \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/JakeWharton/hugo">Hugo von Jake Wharton</a>
@@ -384,6 +385,7 @@
         \n&#160;&#160;&#160;&#160;•&#160;<a href="https://square.github.io/okhttp/">OkHttp von Square, Inc</a>
         \n&#160;&#160;&#160;&#160;•&#160;<a href="https://www.slf4j.org/">SLF4J von QOS.ch</a>
         \n&#160;&#160;&#160;&#160;•&#160;<a href="https://bitbucket.org/asomov/snakeyaml">SnakeYAML von Andrey Somov</a>
+        \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/connectbot/sshlib">sshlib von ConnectBot</a>
         \n
         \nSie haben einen Fehler gefunden oder haben einen Verbesserungsvorschlag? Erstelle eine
         Anfrage auf&#160;<a href="https://github.com/ubergeek42/weechat-android/">GitHub</a>!
@@ -402,4 +404,44 @@
     <string name="dialog_discard_changes_prompt">Änderungen verwerfen?</string>
     <string name="dialog_discard_changes_cancel">Abbrechen</string>
     <string name="dialog_discard_changes_discard">Verwerfen</string>
+
+    <string name="dialog_button_pin_selected">Pin ausgewählt</string>
+
+    <string name="dialog_certificate_not_yet_valid_title">Zertifikat noch nicht gültig</string>
+    <string name="dialog_certificate_not_yet_valid_text">Dieses Zertifikat wird in Zukunft gültig
+        sein. Bitte stellen Sie sicher, dass das Gerätedatum korrekt ist.</string>
+
+    <string name="dialog_certificate_expired_title">Zertifikat abgelaufen</string>
+    <string name="dialog_certificate_expired_text">Dieses Zertifikat ist nicht mehr gültig.
+        Bitte stellen Sie sicher, dass das Gerätedatum korrekt ist.</string>
+
+    <string name="dialog_invalid_hostname_text_android_p_warning"><![CDATA[
+        <br>Beachten Sie, dass Android P und höher nicht auf die Validierung von Common Name (CN)
+        zurückgreift. Stattdessen muss der alternative Name des Betreffs (SAN) verwendet werden.
+        <a href="https://github.com/ubergeek42/weechat-android/wiki/Using-SSL-with-WeeChat">Learn more</a>
+    ]]></string>
+
+    <string name="dialog_certificate_not_pinned_title">Zertifikat nicht fixiert</string>
+    <string name="dialog_certificate_not_pinned_text">Dieser Server wird von Android als
+        vertrauenswürdig eingestuft. Für eine Einstellung müssen Sie jedoch bestätigen, dass Sie
+        ihm ebenfalls vertrauen. Die App speichert das ausgewählte Zertifikat sowie alle von ihm
+        signierten Zertifikate und vertraut diesen.</string>
+
+    <string name="dialog_untrusted_certificate_title">Zertifikat nicht vertrauenswürdig</string>
+    <string name="dialog_untrusted_certificate_text">Dieses Zertifikat wird von Android nicht als
+        vertrauenswürdig eingestuft. Sie können jedoch trotzdem eine Verbindung herstellen. Die App
+        speichert das ausgewählte Zertifikat sowie alle von ihm signierten Zertifikate und vertraut
+        diesen.
+    </string>
+
+    <string name="pref_ssl_require_certificate_pin">Benötigt Zertifikate-Pins</string>
+    <string name="pref_ssl_require_certificate_pin_summary">Manuelle Bestätigung das Sie dem Server
+        vertrauen, obwohl das System diesem Vertraut</string>
+
+    <string name="edittext_password_hint">Passwort</string>
+
+    <string name="error_client_certificate_not_set">Der Server fordert ein Client-Zertifikat an,
+        aber keines ist festgelegt. Gesucht: %s Zertifikat ausgestellt von: %s</string>
+    <string name="error_client_certificate_mismatch">Der Server fragt nach einem Client-Zertifikat,
+        aber das was wir haben, passt nicht. Gesucht: %s Zertifikat ausgestellt von: %s</string>
 </resources>

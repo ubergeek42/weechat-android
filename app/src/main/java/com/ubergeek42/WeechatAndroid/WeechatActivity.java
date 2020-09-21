@@ -14,83 +14,88 @@
 
 package com.ubergeek42.WeechatAndroid;
 
-import java.security.cert.CertPathValidatorException;
-import java.security.cert.CertificateException;
-import java.util.Collections;
-import java.util.EnumSet;
-
-import javax.net.ssl.SSLException;
-import javax.net.ssl.SSLPeerUnverifiedException;
-
 import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
-import androidx.preference.PreferenceManager;
-import androidx.annotation.MainThread;
-import androidx.annotation.NonNull;
-import androidx.annotation.WorkerThread;
-import androidx.appcompat.content.res.AppCompatResources;
-import androidx.appcompat.widget.TooltipCompat;
-import androidx.core.content.ContextCompat;
-import androidx.fragment.app.DialogFragment;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.ActionBarDrawerToggle;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.app.AlertDialog;
-
-import android.text.TextUtils;
-import android.util.AttributeSet;
-import android.view.*;
-
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
-
-import android.content.Context;
-import android.content.Intent;
-import android.content.res.Configuration;
 import android.os.Bundle;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.FragmentManager;
-import androidx.viewpager.widget.ViewPager;
-import androidx.drawerlayout.widget.DrawerLayout;
+import android.util.AttributeSet;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import androidx.annotation.MainThread;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.WorkerThread;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.content.res.AppCompatResources;
+import androidx.appcompat.widget.TooltipCompat;
+import androidx.core.content.ContextCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.preference.PreferenceManager;
+import androidx.viewpager.widget.ViewPager;
 
 import com.ubergeek42.WeechatAndroid.adapters.BufferListClickListener;
 import com.ubergeek42.WeechatAndroid.adapters.MainPagerAdapter;
 import com.ubergeek42.WeechatAndroid.adapters.NickListAdapter;
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragment;
 import com.ubergeek42.WeechatAndroid.media.CachePersist;
-import com.ubergeek42.WeechatAndroid.utils.Network;
 import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.WeechatAndroid.relay.Hotlist;
 import com.ubergeek42.WeechatAndroid.relay.Nick;
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
+import com.ubergeek42.WeechatAndroid.service.RelayService.STATE;
 import com.ubergeek42.WeechatAndroid.service.SSLHandler;
+import com.ubergeek42.WeechatAndroid.utils.CertificateDialog;
 import com.ubergeek42.WeechatAndroid.utils.FancyAlertDialogBuilder;
-import com.ubergeek42.WeechatAndroid.utils.InvalidHostnameDialog;
+import com.ubergeek42.WeechatAndroid.utils.FriendlyExceptions;
+import com.ubergeek42.WeechatAndroid.utils.Network;
+import com.ubergeek42.WeechatAndroid.utils.SimpleTransitionDrawable;
 import com.ubergeek42.WeechatAndroid.utils.ThemeFix;
 import com.ubergeek42.WeechatAndroid.utils.ToolbarController;
-import com.ubergeek42.WeechatAndroid.utils.SimpleTransitionDrawable;
-import com.ubergeek42.WeechatAndroid.utils.UntrustedCertificateDialog;
-import com.ubergeek42.WeechatAndroid.service.RelayService.STATE;
+import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.CatD;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateExpiredException;
+import java.security.cert.CertificateNotYetValidException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumSet;
+
+import javax.net.ssl.SSLPeerUnverifiedException;
+
+import static com.ubergeek42.WeechatAndroid.media.Cache.findException;
 import static com.ubergeek42.WeechatAndroid.service.Events.*;
 import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.*;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
+
+import static com.ubergeek42.WeechatAndroid.utils.ThrowingKeyManagerWrapper.ClientCertificateMismatchException;
 
 public class WeechatActivity extends AppCompatActivity implements
         CutePagerTitleStrip.CutePageChangeListener, BufferListClickListener {
@@ -119,7 +124,7 @@ public class WeechatActivity extends AppCompatActivity implements
     @SuppressLint("WrongThread") @MainThread @Override @CatD
     public void onCreate(@Nullable Bundle savedInstanceState) {
         // after OOM kill and not going to restore anything? remove all fragments & open buffers
-        if (!P.isServiceAlive() && !BufferList.hasData()) {
+        if (!P.isServiceAlive() && !BufferList.hasData() && !P.openBuffers.isEmpty()) {
             P.openBuffers.clear();
             savedInstanceState = null;
         }
@@ -266,7 +271,7 @@ public class WeechatActivity extends AppCompatActivity implements
         if (slidy) drawerToggle.syncState();
     }
 
-    @MainThread @Override public void onConfigurationChanged(Configuration newConfig) {
+    @MainThread @Override public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         if (slidy) drawerToggle.onConfigurationChanged(newConfig);
     }
@@ -306,26 +311,40 @@ public class WeechatActivity extends AppCompatActivity implements
     // as this method is doing network, it should be run on a worker thread. currently it's run on
     // the connection thread, which can get interrupted by doge, but this likely not a problem as
     // EventBus won't crash the application by default
+
+    // SSL WebSockets will generate the same errors, except in the case of a certificate with an
+    // invalid host and a missing endpoint (e.g. wrong.host.badssl.com). as we are verifying the
+    // socket after connecting, in this case the user will see a toast with “The status ... is not
+    // '101 Switching Protocols'”. this error is also valid so we consider this a non-issue
     @Subscribe
     @WorkerThread @Cat public void onEvent(final ExceptionEvent event) {
+        kitty.error("onEvent(ExceptionEvent)", event.e);
         final Exception e = event.e;
-        if ((e instanceof SSLPeerUnverifiedException) ||
-                (e instanceof SSLException &&
-                e.getCause() instanceof CertificateException &&
-                e.getCause().getCause() instanceof CertPathValidatorException)) {
-
-            SSLHandler.Result r = SSLHandler.checkHostname(P.host, P.port);
-            if (r.certificate == null) return;
-            DialogFragment fragment = r.verified ?
-                    UntrustedCertificateDialog.newInstance(r.certificate) :
-                    InvalidHostnameDialog.newInstance(r.certificate);
-
-            fragment.show(getSupportFragmentManager(), "ssl-error");
-            Weechat.runOnMainThread(this::disconnect);
-            return;
+        if (findException(e, SSLPeerUnverifiedException.class) != null ||
+                findException(e, CertificateException.class) != null) {
+            SSLHandler.Result r = SSLHandler.checkHostnameAndValidity(P.host, P.port);
+            if (r.certificateChain != null && r.certificateChain.length > 0) {
+                DialogFragment fragment = null;
+                if (r.exception instanceof CertificateExpiredException) {
+                    fragment = CertificateDialog.buildExpiredCertificateDialog(this, r.certificateChain);
+                } else if (r.exception instanceof CertificateNotYetValidException) {
+                    fragment = CertificateDialog.buildNotYetValidCertificateDialog(this, r.certificateChain);
+                } else if (r.exception instanceof SSLPeerUnverifiedException) {
+                    fragment = CertificateDialog.buildInvalidHostnameCertificateDialog(this, r.certificateChain);
+                } else if (r.exception == null) {
+                    fragment = CertificateDialog.buildUntrustedOrNotPinnedCertificateDialog(this, r.certificateChain);
+                }
+                if (fragment != null) {
+                    fragment.show(getSupportFragmentManager(), "ssl-error");
+                    Weechat.runOnMainThread(this::disconnect);
+                    return;
+                }
+            }
         }
-        String message = TextUtils.isEmpty(e.getMessage()) ? e.getClass().getSimpleName() : e.getMessage();
-        Weechat.showLongToast(R.string.error, message);
+
+        FriendlyExceptions.Result result = new FriendlyExceptions(this).getFriendlyException(e);
+        if (result.message != null) Weechat.showLongToast(R.string.error, result.message);
+        if (result.shouldStopConnecting) Weechat.runOnMainThread(this::disconnect);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -631,7 +650,6 @@ public class WeechatActivity extends AppCompatActivity implements
         findViewById(R.id.kitty_background).setBackgroundColor(P.colorPrimary);
         findViewById(R.id.toolbar).setBackgroundColor(P.colorPrimary);
 
-        if (Build.VERSION.SDK_INT < 21) return;
         boolean isLight = ThemeFix.isColorLight(P.colorPrimaryDark);
         if (!isLight || Build.VERSION.SDK_INT >= 23) getWindow().setStatusBarColor(P.colorPrimaryDark);
         if (!isLight || Build.VERSION.SDK_INT >= 26) getWindow().setNavigationBarColor(P.colorPrimaryDark);

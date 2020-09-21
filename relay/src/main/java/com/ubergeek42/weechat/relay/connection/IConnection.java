@@ -1,6 +1,5 @@
 package com.ubergeek42.weechat.relay.connection;
 
-import com.jcraft.jsch.JSchException;
 import com.neovisionaries.ws.client.WebSocketException;
 
 import java.io.IOException;
@@ -20,7 +19,7 @@ public interface IConnection {
     }
 
     // blocking connect. return 2 streams, output stream is optional
-    Streams connect() throws IOException, JSchException, InterruptedException, WebSocketException;
+    Streams connect() throws IOException, InterruptedException, WebSocketException;
 
     // non-blocking disconnect. can be called during the connect() call. the connection is supposed
     // to be closed immediately or in the next few seconds. can be called several times with no harm

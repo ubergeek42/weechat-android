@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.text.TextUtils;
 import android.util.Base64;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,8 +30,10 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.nio.CharBuffer;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -262,10 +265,10 @@ public class Utils {
         return sb.toString();
     }
 
-    public static CharSequence join(CharSequence separator, Collection<CharSequence> list) {
+    public static CharSequence join(CharSequence separator, Collection<?> list) {
         int i = 0, size = list.size();
         StringBuilder sb = new StringBuilder();
-        for (CharSequence element : list) {
+        for (Object element : list) {
             sb.append(element);
             if (++i < size) sb.append(separator);
         }
@@ -274,5 +277,11 @@ public class Utils {
 
     @SafeVarargs public static <T> Set<T> makeSet(T... t) {
         return new HashSet<>(Arrays.asList(t));
+    }
+
+    public static <T> T[] reversed(T[] array) {
+        T[] copy = array.clone();
+        Collections.reverse(Arrays.asList(copy));
+        return copy;
     }
 }

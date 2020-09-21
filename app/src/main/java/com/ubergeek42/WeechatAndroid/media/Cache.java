@@ -221,7 +221,7 @@ public class Cache {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @SuppressWarnings("unchecked")
-    private static <T extends Throwable> T findException(@Nullable Throwable e, @NonNull Class<T> cls) {
+    public static <T extends Throwable> T findException(@Nullable Throwable e, @NonNull Class<T> cls) {
         if (e == null) return null;
         if (cls.isInstance(e)) return (T) e;
         if (e instanceof GlideException) {

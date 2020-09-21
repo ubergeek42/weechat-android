@@ -32,6 +32,7 @@ dependencies {
     implementation 'org.aspectj:aspectjrt:1.9.5'
 
     implementation "commons-codec:commons-codec:1.14"
+    implementation 'org.bouncycastle:bcpkix-jdk15on:1.64'
 
     // needed for thread-safe date formatting as SimpleDateFormat isn't thread-safe
     // the alternatives, including apache commons and threetenabp, seem to be much slower
