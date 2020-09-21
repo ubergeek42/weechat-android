@@ -48,7 +48,7 @@
 
     <string-array name="settings_uploading_enabled">
         <item>text_only</item>
-        <item>text_images_videos</item>
+        <item>text_and_media</item>
         <item>everything</item>
     </string-array>
     <string-array name="settings_uploading_authentication_values">

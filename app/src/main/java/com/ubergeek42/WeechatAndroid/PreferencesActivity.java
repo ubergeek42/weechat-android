@@ -184,7 +184,7 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
             } else if (PREF_UPLOADING_GROUP.equals(key)) {
                 enableDisableUploadingPreferences(null);
                 showHideBasicAuthentication(null);
-                listenTo = new String[]{PREF_UPLOADING_ENABLED,
+                listenTo = new String[]{PREF_UPLOADING_ACCEPT_SHARED,
                         PREF_UPLOADING_AUTHENTICATION,
                         PREF_UPLOADING_URI,
                         PREF_UPLOADING_REGEX,
@@ -242,7 +242,7 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
             } else if (PREF_MEDIA_PREVIEW_STRATEGIES.equals(key)) {
                 // this method will show a toast on error
                 valid = Config.parseConfigSafe((String) o) != null;
-            } else if (PREF_UPLOADING_ENABLED.equals(key)) {
+            } else if (PREF_UPLOADING_ACCEPT_SHARED.equals(key)) {
                 enableDisableUploadingPreferences((String) o);
             } else if (PREF_UPLOADING_AUTHENTICATION.equals(key)) {
                 showHideBasicAuthentication((String) o);
@@ -324,8 +324,8 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
 
         private void enableDisableUploadingPreferences(@Nullable String enabled) {
             if (enabled == null) enabled = getPreferenceScreen().getSharedPreferences().getString(
-                    PREF_UPLOADING_ENABLED, PREF_UPLOADING_ENABLED_D);
-            boolean showSettings = !PREF_UPLOADING_ENABLED_TEXT_ONLY.equals(enabled);
+                    PREF_UPLOADING_ACCEPT_SHARED, PREF_UPLOADING_ACCEPT_SHARED_D);
+            boolean showSettings = !PREF_UPLOADING_ACCEPT_SHARED_TEXT_ONLY.equals(enabled);
             for (String key : new String[] {
                     PREF_UPLOADING_URI,
                     PREF_UPLOADING_FORM_FIELD_NAME,

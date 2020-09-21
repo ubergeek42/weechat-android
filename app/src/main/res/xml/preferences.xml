@@ -187,9 +187,9 @@
         </PreferenceCategory>
     </PreferenceScreen>
 
-    <PreferenceScreen android:key="uploading_group" android:title="Uploading">
-        <ListPreference android:key="uploading_enabled"
-            android:title="Accept shared"
+    <PreferenceScreen android:key="uploading_group" android:title="Sharing">
+        <ListPreference android:key="uploading_accept_shared"
+            android:title="Accept"
             android:defaultValue="text_only"
             android:entryValues="@array/settings_uploading_enabled"
             android:entries="@array/pref_uploading_enabled_names"

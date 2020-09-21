@@ -152,11 +152,11 @@ public class Constants {
 
     // uploading
     final public static String PREF_UPLOADING_GROUP = "uploading_group";
-    final public static String PREF_UPLOADING_ENABLED = "uploading_enabled";
-    final public static String PREF_UPLOADING_ENABLED_TEXT_ONLY = "text_only";
-    final public static String PREF_UPLOADING_ENABLED_TEXT_IMAGES_VIDEOS = "text_images_videos";
-    final public static String PREF_UPLOADING_ENABLED_EVERYTHING = "everything";
-    final public static String PREF_UPLOADING_ENABLED_D = PREF_UPLOADING_ENABLED_TEXT_ONLY;
+    final public static String PREF_UPLOADING_ACCEPT_SHARED = "uploading_accept_shared";
+    final public static String PREF_UPLOADING_ACCEPT_SHARED_TEXT_ONLY = "text_only";
+    final public static String PREF_UPLOADING_ACCEPT_SHARED_TEXT_AND_MEDIA = "text_and_media";
+    final public static String PREF_UPLOADING_ACCEPT_SHARED_EVERYTHING = "everything";
+    final public static String PREF_UPLOADING_ACCEPT_SHARED_D = PREF_UPLOADING_ACCEPT_SHARED_TEXT_ONLY;
 
     final public static String PREF_UPLOADING_URI = "uploading_uri";
     final public static String PREF_UPLOADING_URI_D = "";

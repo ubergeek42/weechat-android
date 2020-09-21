@@ -18,7 +18,7 @@ object Config {
 
 fun initPreferences() {
     val p = PreferenceManager.getDefaultSharedPreferences(applicationContext)
-    for (key in listOf(PREF_UPLOADING_ENABLED,
+    for (key in listOf(PREF_UPLOADING_ACCEPT_SHARED,
                        PREF_UPLOADING_URI,
                        PREF_UPLOADING_FORM_FIELD_NAME,
                        PREF_UPLOADING_REGEX,
@@ -35,15 +35,15 @@ fun initPreferences() {
 @Suppress("BooleanLiteralArgument")
 fun onSharedPreferenceChanged(p: SharedPreferences, key: String) {
     when (key) {
-        PREF_UPLOADING_ENABLED -> {
-            val (text, media, everything) = when(p.getString(key, PREF_UPLOADING_ENABLED_D)) {
-                PREF_UPLOADING_ENABLED_TEXT_ONLY ->          Triple(true, false, false)
-                PREF_UPLOADING_ENABLED_TEXT_IMAGES_VIDEOS -> Triple(false, true, false)
-                PREF_UPLOADING_ENABLED_EVERYTHING ->         Triple(false, false, true)
+        PREF_UPLOADING_ACCEPT_SHARED -> {
+            val (text, media, everything) = when (p.getString(key, PREF_UPLOADING_ACCEPT_SHARED_D)) {
+                PREF_UPLOADING_ACCEPT_SHARED_TEXT_ONLY ->      Triple(true, false, false)
+                PREF_UPLOADING_ACCEPT_SHARED_TEXT_AND_MEDIA -> Triple(false, true, false)
+                PREF_UPLOADING_ACCEPT_SHARED_EVERYTHING ->     Triple(false, false, true)
                 else -> Triple(true, false, false)
             }
-            enableDisableComponent(ShareActivityAliases.TEXT.alias, text)
-            enableDisableComponent(ShareActivityAliases.MEDIA.alias, media)
+            enableDisableComponent(ShareActivityAliases.TEXT_ONLY.alias, text)
+            enableDisableComponent(ShareActivityAliases.TEXT_AND_MEDIA.alias, media)
             enableDisableComponent(ShareActivityAliases.EVERYTHING.alias, everything)
         }
 
@@ -93,8 +93,8 @@ fun onSharedPreferenceChanged(p: SharedPreferences, key: String) {
 }
 
 private enum class ShareActivityAliases(val alias: String) {
-    TEXT("ShareActivityText"),
-    MEDIA("ShareActivityMedia"),
+    TEXT_ONLY("ShareActivityText"),
+    TEXT_AND_MEDIA("ShareActivityMedia"),
     EVERYTHING("ShareActivityEverything"),
 }
 
