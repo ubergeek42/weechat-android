@@ -48,21 +48,31 @@
 
 
         <!-- sharing -->
-        <!-- text-only -->
         <activity android:name=".ShareTextActivity"
             android:theme="@style/WeechatTranslucent"
             android:excludeFromRecents="true">
+        </activity>
+
+        <!-- text only -->
+        <activity-alias
+            android:targetActivity=".ShareTextActivity"
+            android:name=".ShareActivityText">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="text/plain" />
             </intent-filter>
-        </activity>
+        </activity-alias>
 
-        <!-- images and videos -->
+        <!-- text, images and videos -->
         <activity-alias
             android:targetActivity=".ShareTextActivity"
-            android:name=".ShareTextActivityImagesVideosOnly">
+            android:name=".ShareActivityMedia">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -88,7 +98,7 @@
         <!-- everything -->
         <activity-alias
             android:targetActivity=".ShareTextActivity"
-            android:name=".ShareTextActivityEverything">
+            android:name=".ShareActivityEverything">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />

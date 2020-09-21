@@ -19,14 +19,14 @@ object Config {
 fun initPreferences() {
     val p = PreferenceManager.getDefaultSharedPreferences(applicationContext)
     for (key in listOf(PREF_UPLOADING_ENABLED,
-            PREF_UPLOADING_URI,
-            PREF_UPLOADING_FORM_FIELD_NAME,
-            PREF_UPLOADING_REGEX,
-            PREF_UPLOADING_ADDITIONAL_HEADERS,
-            PREF_UPLOADING_AUTHENTICATION,
-            PREF_UPLOADING_AUTHENTICATION_BASIC_USER,
-            PREF_UPLOADING_AUTHENTICATION_BASIC_PASSWORD,
-            PREF_UPLOADING_CACHE_MAX_AGE,
+                       PREF_UPLOADING_URI,
+                       PREF_UPLOADING_FORM_FIELD_NAME,
+                       PREF_UPLOADING_REGEX,
+                       PREF_UPLOADING_ADDITIONAL_HEADERS,
+                       PREF_UPLOADING_AUTHENTICATION,
+                       PREF_UPLOADING_AUTHENTICATION_BASIC_USER,
+                       PREF_UPLOADING_AUTHENTICATION_BASIC_PASSWORD,
+                       PREF_UPLOADING_CACHE_MAX_AGE,
     )) {
         onSharedPreferenceChanged(p, key)
     }
@@ -36,14 +36,15 @@ fun initPreferences() {
 fun onSharedPreferenceChanged(p: SharedPreferences, key: String) {
     when (key) {
         PREF_UPLOADING_ENABLED -> {
-            val (imagesVideos, everything) = when(p.getString(key, PREF_UPLOADING_ENABLED_D)) {
-                PREF_UPLOADING_ENABLED_TEXT_ONLY ->          Pair(false, false)
-                PREF_UPLOADING_ENABLED_TEXT_IMAGES_VIDEOS -> Pair(true,  false)
-                PREF_UPLOADING_ENABLED_EVERYTHING ->         Pair(false, true)
-                else -> Pair(false, false)
+            val (text, media, everything) = when(p.getString(key, PREF_UPLOADING_ENABLED_D)) {
+                PREF_UPLOADING_ENABLED_TEXT_ONLY ->          Triple(true, false, false)
+                PREF_UPLOADING_ENABLED_TEXT_IMAGES_VIDEOS -> Triple(false, true, false)
+                PREF_UPLOADING_ENABLED_EVERYTHING ->         Triple(false, false, true)
+                else -> Triple(true, false, false)
             }
-            enableDisableComponent(IMAGES_VIDEOS, imagesVideos)
-            enableDisableComponent(EVERYTHING, everything)
+            enableDisableComponent(ShareActivityAliases.TEXT.alias, text)
+            enableDisableComponent(ShareActivityAliases.MEDIA.alias, media)
+            enableDisableComponent(ShareActivityAliases.EVERYTHING.alias, everything)
         }
 
         PREF_UPLOADING_URI -> {
@@ -91,8 +92,11 @@ fun onSharedPreferenceChanged(p: SharedPreferences, key: String) {
     }
 }
 
-private const val IMAGES_VIDEOS = "ShareTextActivityImagesVideosOnly"
-private const val EVERYTHING = "ShareTextActivityEverything"
+private enum class ShareActivityAliases(val alias: String) {
+    TEXT("ShareActivityText"),
+    MEDIA("ShareActivityMedia"),
+    EVERYTHING("ShareActivityEverything"),
+}
 
 private fun enableDisableComponent(name: String, enabled: Boolean) {
     val manager = applicationContext.packageManager
