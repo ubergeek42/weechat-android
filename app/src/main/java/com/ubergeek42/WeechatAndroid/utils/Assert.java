@@ -63,6 +63,11 @@ public class Assert {
             return this;
         }
 
+        public A isEmpty() {
+            if (!((Collection) a).isEmpty()) fail("Actual must be empty");
+            return this;
+        }
+
         public A isAnyOf(Object... bb) {
             for (Object b : bb)
                 if (eq(b)) return this;

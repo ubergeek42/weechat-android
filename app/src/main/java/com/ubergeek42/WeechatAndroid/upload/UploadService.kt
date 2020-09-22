@@ -42,7 +42,7 @@ class UploadService : Service() {
 
     @MainThread fun update() {
         val numberOfUploads = uploads.size
-        val stats = uploads.getStats()
+        val stats = uploads.stats
 
         val state = if (numberOfUploads == 0) {
                         main(delay = 3000) { if (uploads.size == 0) stopSelf() }

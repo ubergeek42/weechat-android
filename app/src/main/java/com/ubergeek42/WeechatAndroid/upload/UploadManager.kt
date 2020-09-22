@@ -1,10 +1,10 @@
 package com.ubergeek42.WeechatAndroid.upload
 
 import androidx.annotation.MainThread
+import com.ubergeek42.WeechatAndroid.utils.Assert.assertThat
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
 
-const val USE_SERVICE = false
 
 interface UploadObserver {
     @MainThread fun onUploadsStarted()
@@ -17,8 +17,9 @@ interface UploadObserver {
 
 class UploadManager {
     @Root private val kitty = Kitty.make()
-    val useService = USE_SERVICE
 
+    // list of running and completed uploads in the current batch upload.
+    // failed uploads get removed from this list.
     val uploads = mutableListOf<Upload>()
 
     var observer: UploadObserver? = null
@@ -26,28 +27,27 @@ class UploadManager {
             field = observer
 
             observer?.let {
-                if (uploads.isNotEmpty()) {
+                if (uploads.areRunning) {
                     it.onUploadsStarted()
-                    it.onProgress(uploads.getStats().ratio)
+                    it.onProgress(uploads.stats.ratio)
                 }
             }
         }
 
+    // this will call through to onFailure
     @MainThread fun filterUploads(suris: List<Suri>) {
-        uploads.removeAll {
-            if (it.suri in suris) {
-                false
-            } else {
-                if (it.state == Upload.State.RUNNING) {
-                    kitty.info("Cancelling upload: $it")
-                    it.cancel()
+        for (upload in uploads) {
+            if (upload.suri !in suris) {
+                if (upload.state == Upload.State.RUNNING) {
+                    kitty.info("Cancelling upload: $upload")
+                    upload.cancel()
                 }
-                true
             }
         }
     }
 
     @MainThread fun startUploads(suris: List<Suri>) {
+        assertThat(uploads).isEmpty
         for (suri in suris) {
             if (suri !in uploads.map { it.suri }) {
                 val cachedHttpUri = Cache.retrieve(suri.uri)
@@ -67,7 +67,6 @@ class UploadManager {
                 main {
                     kitty.info("Upload started: $upload")
                     uploads.add(upload)
-                    if (useService) UploadService.onUploadStarted(upload)
                     if (uploads.size == 1) {
                         observer?.onUploadsStarted()
                         limiter.reset()
@@ -77,10 +76,9 @@ class UploadManager {
 
             override fun onProgress(upload: Upload) {
                 main {
-                    val ratio = uploads.getStats().ratio
+                    val ratio = uploads.stats.ratio
                     if (limiter.step(ratio)) {
                         kitty.trace("Upload progress: ${ratio.format(2)}; $upload")
-                        if (useService) UploadService.onUploadProgress()
                         observer?.onProgress(ratio)
                     }
                 }
@@ -91,10 +89,12 @@ class UploadManager {
                 main {
                     kitty.info("Upload done: $upload, result: $httpUri")
                     Cache.record(upload.suri.uri, httpUri)
-                    uploads.remove(upload)
-                    if (useService) UploadService.onUploadRemoved(upload)
+                    // uploads.remove(upload)
                     observer?.onUploadDone(suri)
-                    if (uploads.isEmpty()) observer?.onFinished()
+                    if (!uploads.areRunning) {
+                        observer?.onFinished()
+                        uploads.clear()
+                    }
                 }
             }
 
@@ -102,16 +102,18 @@ class UploadManager {
                 main {
                     kitty.info("Upload failure: $upload, ${e.javaClass.simpleName}: ${e.message}")
                     uploads.remove(upload)
-                    if (useService) UploadService.onUploadRemoved(upload)
                     observer?.onUploadFailure(suri, e)
-                    if (uploads.isEmpty()) observer?.onFinished()
+                    if (!uploads.areRunning) {
+                        observer?.onFinished()
+                        uploads.clear()
+                    }
                 }
             }
         })
     }
 
     var limiter: SkippingLimiter = SkippingLimiter(min = 0f, max = 1f,
-                                              valueThreshold = 0.01f, timeThreshold = 16)
+                                                   valueThreshold = 0.01f, timeThreshold = 16)
 
     companion object {
         private val managers = mutableMapOf<Long, UploadManager>().withDefault { UploadManager() }
@@ -120,13 +122,16 @@ class UploadManager {
     }
 }
 
+@Suppress("unused")
 class UploadsStats(val transferredBytes: Long,
                    val totalBytes: Long,
                    val ratio: Float)
 
-fun Iterable<Upload>.getStats(): UploadsStats {
+val Iterable<Upload>.stats: UploadsStats get() {
     val transferredBytes = sumOf { it.transferredBytes }
     val totalBytes = sumOf { it.totalBytes }
     val ratio = transferredBytes fdiv totalBytes
     return UploadsStats(transferredBytes, totalBytes, ratio)
 }
+
+val Iterable<Upload>.areRunning get() = this.any { it.state == Upload.State.RUNNING }
