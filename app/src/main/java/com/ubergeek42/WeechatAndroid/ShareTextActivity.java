@@ -21,6 +21,7 @@ import com.ubergeek42.WeechatAndroid.adapters.BufferListClickListener;
 import com.ubergeek42.WeechatAndroid.service.Events;
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
+import com.ubergeek42.WeechatAndroid.upload.ShareObjectKt;
 import com.ubergeek42.WeechatAndroid.utils.ThemeFix;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 
@@ -56,6 +57,8 @@ public class ShareTextActivity extends AppCompatActivity implements
 
         Intent intent = getIntent();
         if (Utils.isAnyOf(intent.getAction(), Intent.ACTION_SEND, Intent.ACTION_SEND_MULTIPLE)) {
+            ShareObjectKt.preloadThumbnailsForIntent(intent);
+
             dialog = new Dialog(this, R.style.AlertDialogTheme);
             dialog.setContentView(R.layout.bufferlist_share);
 

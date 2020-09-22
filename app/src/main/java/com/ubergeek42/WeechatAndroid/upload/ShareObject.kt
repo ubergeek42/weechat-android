@@ -1,6 +1,7 @@
 package com.ubergeek42.WeechatAndroid.upload
 
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
@@ -19,7 +20,6 @@ import com.bumptech.glide.request.transition.Transition
 import com.ubergeek42.WeechatAndroid.media.Config.THUMBNAIL_CORNER_RADIUS
 import java.io.FileNotFoundException
 import java.io.IOException
-import kotlin.concurrent.thread
 
 
 data class ShareSpan(
@@ -57,7 +57,7 @@ interface ShareObject {
 
 
 data class TextShareObject(
-    val text: CharSequence
+        val text: CharSequence
 ) : ShareObject {
     @MainThread override fun insert(editText: EditText, insertAt: InsertAt) {
         editText.insertAddingSpacesAsNeeded(insertAt, text)
@@ -70,7 +70,7 @@ const val PLACEHOLDER_TEXT = "\u00a0"
 
 @Suppress("ArrayInDataClass")
 open class UrisShareObject(
-    private val suris: List<Suri>
+        private val suris: List<Suri>
 ) : ShareObject {
     private val bitmaps: Array<Bitmap?> = arrayOfNulls(suris.size)
 
@@ -83,7 +83,7 @@ open class UrisShareObject(
         }
     }
 
-    private fun getAllImagesAndThen(context: Context, then: () -> Unit) {
+    fun getAllImagesAndThen(context: Context, then: () -> Unit) {
         suris.forEachIndexed { i, suri ->
             getThumbnailAndThen(context, suri.uri) { bitmap ->
                 bitmaps[i] = bitmap
@@ -189,4 +189,26 @@ fun makeThumbnailForUri(uri: Uri) : Bitmap {
 
 val Layout.maxLineWidth : Int get() {
     return (0 until lineCount).maxOfOrNull { getLineWidth(it) }?.toInt() ?: width
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+// this simply loads all images for an intent so that they are cached in glide
+fun preloadThumbnailsForIntent(intent: Intent) {
+    val uris = when (intent.action) {
+        Intent.ACTION_SEND -> {
+            val uri = intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)
+            if (uri == null) null else listOf(uri)
+        }
+        Intent.ACTION_SEND_MULTIPLE -> {
+            intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM)
+        }
+        else -> null
+    }
+
+    if (uris != null) {
+         UrisShareObject.fromUris(uris).getAllImagesAndThen(applicationContext) {}
+    }
 }
