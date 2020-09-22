@@ -403,7 +403,9 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     @MainThread @SuppressLint("SetTextI18n") private void tryTabComplete() {
         if (buffer == null) return;
 
-        String txt = uiInput.getText().toString();
+        Editable txt = uiInput.getText();
+        if (txt == null) return;
+
         if (!tcInProgress) {
             // find the end of the word to be completed
             // blabla nick|
@@ -420,7 +422,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
             // get the word to be completed, lowercase
             if (tcWordStart == tcWordEnd)
                 return;
-            String prefix = txt.substring(tcWordStart, tcWordEnd).toLowerCase();
+            String prefix = txt.subSequence(tcWordStart, tcWordEnd).toString().toLowerCase();
 
             // compute a list of possible matches
             // nicks is ordered in last used comes first way, so we just pick whatever comes first
@@ -439,7 +441,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         String nick = tcMatches.get(tcIndex);
         if (tcWordStart == 0)
             nick += ": ";
-        uiInput.setText(txt.substring(0, tcWordStart) + nick + txt.substring(tcWordEnd));
+        txt.replace(tcWordStart, tcWordEnd, nick);
         tcWordEnd = tcWordStart + nick.length();
         uiInput.setSelection(tcWordEnd);
         // altering text in the input box sets tcInProgress to false,
