@@ -51,6 +51,7 @@
             android:contentDescription="@string/sendkey"
             android:layout_gravity="bottom"
             android:layout_margin="0dp"
+            android:visibility="gone"
             style="@style/ActionButton" />
 
         <FrameLayout
