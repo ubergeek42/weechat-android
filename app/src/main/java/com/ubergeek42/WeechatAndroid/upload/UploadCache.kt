@@ -1,4 +1,3 @@
-@file:JvmName("UploadingCache")
 @file:Suppress("ClassName")
 
 package com.ubergeek42.WeechatAndroid.upload
@@ -13,11 +12,15 @@ import kotlin.concurrent.thread
 @Root private val kitty: Kitty = Kitty.make()
 
 
-private class Record(val httpUri: String,
-                     val timestamp: Long = System.currentTimeMillis())
+@Entity(tableName = "upload_records")
+data class UploadRecord(
+    @PrimaryKey                     val uri: Uri,
+    @ColumnInfo(name = "http_uri")  val httpUri: String,
+    @ColumnInfo(name = "timestamp") val timestamp: Long
+)
 
 
-private val cache = ConcurrentHashMap<Uri, Record>()
+private val cache = ConcurrentHashMap<Uri, UploadRecord>()
 
 
 private fun filterRecords() {
@@ -28,8 +31,9 @@ private fun filterRecords() {
 
 object Cache {
     fun record(uri: Uri, httpUri: String) {
-        UploadDatabase.record(uri, httpUri)
-        cache[uri] = Record(httpUri)
+        val record = UploadRecord(uri, httpUri, System.currentTimeMillis())
+        UploadDatabase.record(record)
+        cache[uri] = record
     }
 
     fun retrieve(uri: Uri): String? {
@@ -43,13 +47,6 @@ object Cache {
 
 
 object UploadDatabase {
-    @Entity(tableName = "upload_records")
-    data class UploadRecord(
-        @PrimaryKey                     val uri: String,
-        @ColumnInfo(name = "http_uri")  val httpUri: String,
-        @ColumnInfo(name = "timestamp") val timestamp: Long
-    )
-
     @Dao
     interface UploadRecords {
         @Query("SELECT * FROM upload_records")
@@ -63,6 +60,7 @@ object UploadDatabase {
     }
 
     @Database(entities = [UploadRecord::class], version = 1)
+    @TypeConverters(Converters::class)
     abstract class UploadRecordsDatabase : RoomDatabase() {
         abstract fun uploadRecordsDao(): UploadRecords
     }
@@ -81,8 +79,8 @@ object UploadDatabase {
 
     private val insertCache = ConcurrentHashMap<Uri, UploadRecord>()
 
-    fun record(uri: Uri, httpUri: String) {
-        insertCache[uri] = UploadRecord(uri.toString(), httpUri, System.currentTimeMillis())
+    fun record(record: UploadRecord) {
+        insertCache[record.uri] = record
     }
 
     @JvmStatic fun save() {
@@ -101,9 +99,12 @@ object UploadDatabase {
             val records = records.getAll()
             kitty.trace("restoring %s items; deleted %s entries (max age %s ms)",
                     records.size, deleted, Config.cacheMaxAge)
-            for (record in records) {
-                cache.putIfAbsent(Uri.parse(record.uri), Record(record.httpUri, record.timestamp))
-            }
+            records.forEach { cache.putIfAbsent(it.uri, it) }
         }
+    }
+
+    @Suppress("unused") class Converters {
+        @TypeConverter fun uriToString(uri: Uri): String = uri.toString()
+        @TypeConverter fun stringToUri(string: String): Uri = Uri.parse(string)
     }
 }
