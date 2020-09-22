@@ -23,9 +23,9 @@ import java.io.IOException
 
 
 data class ShareSpan(
-        val context: Context,
-        val suri: Suri,
-        val bitmap: Bitmap
+    val context: Context,
+    val suri: Suri,
+    val bitmap: Bitmap
 ) : ImageSpan(context, bitmap) {
     // this is a workaround for the weird way android measures ImageSpans
     // see https://stackoverflow.com/a/63948243/1449683
@@ -57,7 +57,7 @@ interface ShareObject {
 
 
 data class TextShareObject(
-        val text: CharSequence
+    val text: CharSequence
 ) : ShareObject {
     @MainThread override fun insert(editText: EditText, insertAt: InsertAt) {
         editText.insertAddingSpacesAsNeeded(insertAt, text)
@@ -68,9 +68,8 @@ data class TextShareObject(
 // non-breaking space. regular spaces and characters can lead to some problems with some keyboards...
 const val PLACEHOLDER_TEXT = "\u00a0"
 
-@Suppress("ArrayInDataClass")
 open class UrisShareObject(
-        private val suris: List<Suri>
+    private val suris: List<Suri>
 ) : ShareObject {
     private val bitmaps: Array<Bitmap?> = arrayOfNulls(suris.size)
 
@@ -95,7 +94,7 @@ open class UrisShareObject(
     private fun makeImageSpanned(context: Context, i: Int) : Spanned {
         val spanned = SpannableString(PLACEHOLDER_TEXT)
         val imageSpan = ShareSpan(context, suris[i], bitmaps[i]!!)
-        spanned.setSpan(imageSpan, 0, PLACEHOLDER_TEXT.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        spanned.setSpan(imageSpan, 0, spanned.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         return spanned
     }
 
@@ -145,7 +144,7 @@ val LAYOUT_MAX_WIDTH  = THUMBNAIL_MAX_WIDTH  - (PADDING * 2)
 val LAYOUT_MAX_HEIGHT = THUMBNAIL_MAX_HEIGHT - (PADDING * 2)
 
 fun makeThumbnailForUri(uri: Uri) : Bitmap {
-    val text = uri.lastPathSegment ?: "file"
+    val text = Suri.getFileName(uri) ?: "file"
 
     val backgroundPaint = Paint()
     backgroundPaint.color = Color.WHITE

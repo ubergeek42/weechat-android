@@ -38,7 +38,7 @@ class Suri private constructor(
 
         // adapted from the following answer by Stefan Haustein
         // https://stackoverflow.com/a/25005243/1449683
-        private fun getFileName(uri: Uri): String? {
+        fun getFileName(uri: Uri): String? {
             if (uri.scheme == "content") {
                 resolver.query(uri, null, null, null, null)?.use { cursor ->
                     if (cursor.moveToFirst()) {

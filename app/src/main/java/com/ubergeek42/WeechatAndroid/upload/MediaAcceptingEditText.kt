@@ -41,7 +41,7 @@ class MediaAcceptingEditText : ActionEditText {
 
         val suri: Suri = try {
             Suri.fromUri(inputContentInfo.contentUri)
-        } catch (e: java.lang.Exception) {
+        } catch (e: Exception) {
             e.printStackTrace()
             Weechat.showLongToast("Error: ${e.message}")
             return@OnCommitContentListener false
