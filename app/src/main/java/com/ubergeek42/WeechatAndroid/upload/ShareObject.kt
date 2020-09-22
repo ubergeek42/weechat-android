@@ -110,8 +110,8 @@ open class UrisShareObject(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-val THUMBNAIL_MAX_WIDTH = 80.dp_to_px
-val THUMBNAIL_MAX_HEIGHT = 80.dp_to_px
+private val THUMBNAIL_MAX_WIDTH = 80.dp_to_px
+private val THUMBNAIL_MAX_HEIGHT = 80.dp_to_px
 
 // this starts the upload in a worker thread and exits immediately.
 // target callbacks will be called on the main thread
@@ -127,45 +127,13 @@ fun getThumbnailAndThen(context: Context, uri: Uri, then: (bitmap: Bitmap) -> Un
                 }
 
                 @MainThread override fun onLoadFailed(errorDrawable: Drawable?) {
-                    then(makeThumbnailForUri(uri))
+                    // this shouldn't happen -- see NonImageUriLoader
                 }
 
                 override fun onLoadCleared(placeholder: Drawable?) {
                     // this shouldn't happen
                 }
             })
-}
-
-
-const val TEXT_COLOR = Color.BLACK
-val TEXT_SIZE = 13.dp_to_px.toFloat()
-val PADDING = 3.dp_to_px
-val LAYOUT_MAX_WIDTH  = THUMBNAIL_MAX_WIDTH  - (PADDING * 2)
-val LAYOUT_MAX_HEIGHT = THUMBNAIL_MAX_HEIGHT - (PADDING * 2)
-
-fun makeThumbnailForUri(uri: Uri) : Bitmap {
-    val text = Suri.getFileName(uri) ?: "file"
-
-    val backgroundPaint = Paint()
-    backgroundPaint.color = Color.WHITE
-    backgroundPaint.style = Paint.Style.FILL
-
-    val textPaint = TextPaint(Paint.ANTI_ALIAS_FLAG)
-    textPaint.textSize = TEXT_SIZE
-    textPaint.color = TEXT_COLOR
-
-    val layout = StaticLayout(text, textPaint, LAYOUT_MAX_WIDTH,
-            Layout.Alignment.ALIGN_NORMAL, 1.0f, 0.0f, false)
-    val left = if (layout.maxLineWidth > LAYOUT_MAX_WIDTH) PADDING else (THUMBNAIL_MAX_WIDTH - layout.maxLineWidth) / 2
-    val top = if (layout.height > LAYOUT_MAX_HEIGHT) PADDING else (THUMBNAIL_MAX_HEIGHT - layout.height) / 2
-
-    val image = Bitmap.createBitmap(THUMBNAIL_MAX_WIDTH, THUMBNAIL_MAX_HEIGHT, Bitmap.Config.ARGB_8888)
-    val canvas = Canvas(image)
-    canvas.drawPaint(backgroundPaint)
-    canvas.translate(left.toFloat(), top.toFloat())
-    layout.draw(canvas)
-
-    return image
 }
 
 
