@@ -107,11 +107,12 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     public static void storeThemeOrColorSchemeColors(Context context) {
         ColorScheme scheme = ColorScheme.get();
         TypedArray colors = context.obtainStyledAttributes(
-                new int[] {R.attr.colorPrimary, R.attr.colorPrimaryDark});
+                new int[] {R.attr.colorPrimary, R.attr.colorPrimaryDark, R.attr.toolbarIconColor});
         colorPrimary = scheme.colorPrimary != ColorScheme.NO_COLOR ?
                 scheme.colorPrimary : colors.getColor(0, ColorScheme.NO_COLOR);
         colorPrimaryDark = scheme.colorPrimaryDark != ColorScheme.NO_COLOR ?
                 scheme.colorPrimaryDark : colors.getColor(1, ColorScheme.NO_COLOR);
+        toolbarIconColor = colors.getColor(2, ColorScheme.NO_COLOR);
         colors.recycle();
     }
 
@@ -152,6 +153,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
 
     public static int colorPrimary = ColorScheme.NO_COLOR;
     public static int colorPrimaryDark = ColorScheme.NO_COLOR;
+    public static int toolbarIconColor = ColorScheme.NO_COLOR;
 
     @MainThread private static void loadUIPreferences() {
         // buffer list preferences
