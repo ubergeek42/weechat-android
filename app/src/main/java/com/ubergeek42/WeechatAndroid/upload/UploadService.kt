@@ -55,10 +55,10 @@ class UploadService : Service() {
 
     private fun showNotification(state: State, numberOfUploads: Int, ratio: Float, totalBytes: Long) {
         val (title, icon) = when (state) {
-            State.UPLOADING_DETERMINATE -> Pair("Uploading $numberOfUploads files", R.drawable.ic_notification_uploading)
-            State.UPLOADING_INDETERMINATE -> Pair("Uploading $numberOfUploads files", R.drawable.ic_notification_uploading)
-            State.FINISHED -> Pair("Upload finished", R.drawable.ic_notification_upload_done)
-            State.NOT_FINISHED -> Pair("Upload not finished", R.drawable.ic_notification_upload_cancelled)
+            State.UPLOADING_DETERMINATE -> "Uploading $numberOfUploads files" to R.drawable.ic_notification_uploading
+            State.UPLOADING_INDETERMINATE -> "Uploading $numberOfUploads files" to R.drawable.ic_notification_uploading
+            State.FINISHED -> "Upload finished" to R.drawable.ic_notification_upload_done
+            State.NOT_FINISHED -> "Upload not finished" to R.drawable.ic_notification_upload_cancelled
         }
 
         val percentage = (ratio * 100).toInt()

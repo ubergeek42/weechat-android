@@ -40,6 +40,9 @@ infix fun Int.fdiv(i: Long): Float = this / i.f;
 
 val Int.dp_to_px get() = (this * P._1dp).toInt()
 
+// same as to for Pairs, but for triples
+infix fun <A, B, C> Pair<A, B>.to(that: C): Triple<A, B, C> = Triple(this.first, this.second, that)
+
 inline fun <reified T : Throwable> suppress(f: () -> Unit) {
     try {
         f()
