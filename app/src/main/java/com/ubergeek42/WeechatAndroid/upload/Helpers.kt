@@ -30,9 +30,13 @@ fun main(delay: Long = 0L, f: () -> Unit) = Weechat.runOnMainThread({ f() }, del
 // for use in "${pi.format(2)" where pi is Float
 fun Float.format(digits: Int) = "%.${digits}f".format(this)
 
+val Long.f inline get() = this.toFloat()
+val Int.f inline get() = this.toFloat()
+val Float.i inline get() = this.toInt()
+
 // for floating division of integers
-infix fun Long.fdiv(i: Long): Float = this / i.toFloat();
-infix fun Int.fdiv(i: Long): Float = this / i.toFloat();
+infix fun Long.fdiv(i: Long): Float = this / i.f;
+infix fun Int.fdiv(i: Long): Float = this / i.f;
 
 val Int.dp_to_px get() = (this * P._1dp).toInt()
 
