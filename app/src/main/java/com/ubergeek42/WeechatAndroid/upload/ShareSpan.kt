@@ -15,13 +15,14 @@ import com.ubergeek42.WeechatAndroid.service.P
 
 
 private val CAN_SHOW_ICON = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
-private val ICON_SIZE = if (CAN_SHOW_ICON) 30.dp_to_px else 0
+private val ICON_SIZE = 30.dp_to_px
 
 val THUMBNAIL_MAX_WIDTH = 80.dp_to_px
 val THUMBNAIL_MAX_HEIGHT = 80.dp_to_px
 private val PADDING = 3.dp_to_px
-private val LAYOUT_MAX_WIDTH = THUMBNAIL_MAX_WIDTH - (PADDING * 2)
-private val LAYOUT_MAX_HEIGHT = THUMBNAIL_MAX_HEIGHT - (PADDING * 2) - ICON_SIZE
+private val PADDING_TOP = if (CAN_SHOW_ICON) ICON_SIZE - 3.dp_to_px else PADDING    // slightly smaller than icon as icon itself has padding
+private val LAYOUT_MAX_WIDTH = THUMBNAIL_MAX_WIDTH - PADDING - PADDING
+private val LAYOUT_MAX_HEIGHT = THUMBNAIL_MAX_HEIGHT - PADDING - PADDING_TOP
 private val THUMBNAIL_CORNER_RADIUS = Config.THUMBNAIL_CORNER_RADIUS.f
 private val TEXT_SIZE = 13.dp_to_px.f
 
@@ -62,15 +63,8 @@ class NonBitmapShareSpan(suri: Suri) : ShareSpan(suri) {
 
     private val layout = StaticLayout(suri.fileName,
             textPaint, LAYOUT_MAX_WIDTH, Layout.Alignment.ALIGN_NORMAL, 1.0f, 0.0f, false)
-    private val layoutLeft = if (layout.maxLineWidth > LAYOUT_MAX_WIDTH)
-            PADDING.f else (width - layout.maxLineWidth) fdiv 2
-    private val layoutTop: Float = if (CAN_SHOW_ICON) {
-                ICON_SIZE + if (layout.height > LAYOUT_MAX_HEIGHT)
-                        0f else (LAYOUT_MAX_HEIGHT - layout.height) fdiv 2
-            } else {
-                if (layout.height > LAYOUT_MAX_HEIGHT)
-                        PADDING.f else (height - layout.height) fdiv 2
-            }
+    private val layoutLeft = PADDING + maxOf(0f, (LAYOUT_MAX_WIDTH - layout.maxLineWidth) / 2f)
+    private val layoutTop = PADDING_TOP + maxOf(0f, (LAYOUT_MAX_HEIGHT - layout.height) / 2f)
 
     @SuppressLint("NewApi")
     private val iconDrawable = if (!CAN_SHOW_ICON) null else
