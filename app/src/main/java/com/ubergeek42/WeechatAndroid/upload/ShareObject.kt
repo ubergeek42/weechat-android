@@ -143,6 +143,8 @@ fun preloadThumbnailsForIntent(intent: Intent) {
     }
 
     if (uris != null) {
-         UrisShareObject.fromUris(uris).getAllImagesAndThen(applicationContext) {}
+        suppress<Exception> {
+            UrisShareObject.fromUris(uris).getAllImagesAndThen(applicationContext) {}
+        }
     }
 }
