@@ -32,11 +32,12 @@ fun Float.format(digits: Int) = "%.${digits}f".format(this)
 
 val Long.f inline get() = this.toFloat()
 val Int.f inline get() = this.toFloat()
+val Int.d inline get() = this.toDouble()
 val Float.i inline get() = this.toInt()
+val Double.i inline get() = this.toInt()
 
 // for floating division of integers
 infix fun Long.fdiv(i: Long): Float = this / i.f;
-infix fun Int.fdiv(i: Long): Float = this / i.f;
 
 val Int.dp_to_px get() = (this * P._1dp).toInt()
 

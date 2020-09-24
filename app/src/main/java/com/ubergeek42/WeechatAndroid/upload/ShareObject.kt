@@ -9,6 +9,7 @@ import android.text.*
 import android.widget.EditText
 import androidx.annotation.MainThread
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.MultiTransformation
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.target.CustomTarget
@@ -90,7 +91,7 @@ fun getThumbnailAndThen(context: Context, uri: Uri, then: (bitmap: Bitmap) -> Un
     Glide.with(context)
             .asBitmap()
             .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-            .transform(RoundedCorners(Config.THUMBNAIL_CORNER_RADIUS))
+            .transform(MultiTransformation(NotQuiteCenterCrop(), RoundedCorners(Config.THUMBNAIL_CORNER_RADIUS)))
             .load(uri)
             .into(object : CustomTarget<Bitmap>(THUMBNAIL_MAX_WIDTH, THUMBNAIL_MAX_HEIGHT) {
                 @MainThread override fun onResourceReady(bitmap: Bitmap, transition: Transition<in Bitmap>?) {
