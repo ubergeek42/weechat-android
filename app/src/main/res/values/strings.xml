@@ -35,7 +35,7 @@
 
     <!--  the text shown in the buffer list filter edit text as a placeholder -->
     <string name="filter_bufferlist_placeholder"><i>filter</i></string>
-    
+
     <!-- Some of the notifications the application displays during certain events -->
     <plurals name="hot_messages">
         <item quantity="one">New message in %s</item>
@@ -101,210 +101,210 @@
 
     <string name="pref_connection_group">Connection</string>
 
-        <!-- connection type -->
-        <string name="pref_connection_type">Connection type</string>
-        <string-array name="pref_connection_type_names">
-            <item>Plain connection</item>
-            <item>WeeChat SSL</item>
-            <item>SSH tunnel</item>
-            <item>WebSocket</item>
-            <item>WebSocket (SSL)</item>
-        </string-array>
+    <!-- connection type -->
+    <string name="pref_connection_type">Connection type</string>
+    <string-array name="pref_connection_type_names">
+        <item>Plain connection</item>
+        <item>WeeChat SSL</item>
+        <item>SSH tunnel</item>
+        <item>WebSocket</item>
+        <item>WebSocket (SSL)</item>
+    </string-array>
 
     <string name="pref_ssl_group">SSL settings</string>
-        <string name="pref_clear_certs">Clear certificates</string>
-        <string name="pref_clear_certs_confirmation">Clear certificates?</string>
-        <string name="pref_clear_certs_summary">{0,choice,0#No trusted certificate|1#1 trusted certificate|1&lt;{0} trusted certificates}</string>
-        <string name="pref_clear_certs_positive">Clear</string>
-        <string name="pref_clear_certs_negative">Cancel</string>
-        <string name="pref_clear_certs_success">Certificates cleared</string>
-        <string name="pref_clear_certs_failure">Could not clear certificates</string>
+    <string name="pref_clear_certs">Clear certificates</string>
+    <string name="pref_clear_certs_confirmation">Clear certificates?</string>
+    <string name="pref_clear_certs_summary">{0,choice,0#No trusted certificate|1#1 trusted certificate|1&lt;{0} trusted certificates}</string>
+    <string name="pref_clear_certs_positive">Clear</string>
+    <string name="pref_clear_certs_negative">Cancel</string>
+    <string name="pref_clear_certs_success">Certificates cleared</string>
+    <string name="pref_clear_certs_failure">Could not clear certificates</string>
 
-        <string name="pref_ssl_client_certificate">Client certificate</string>
-        <string name="pref_ssl_client_certificate_summary">PKCS #12 file containing private key and client certificate</string>
+    <string name="pref_ssl_client_certificate">Client certificate</string>
+    <string name="pref_ssl_client_certificate_summary">PKCS #12 file containing private key and client certificate</string>
 
 
-        <string name="pref_ws_path">WebSocket path</string>
+    <string name="pref_ws_path">WebSocket path</string>
 
     <string name="pref_ssh_group">SSH tunnel settings</string>
-            <string name="pref_ssh_host">SSH host</string>
-            <string name="pref_ssh_user">SSH username</string>
-            <string name="pref_ssh_port">SSH port</string>
+    <string name="pref_ssh_host">SSH host</string>
+    <string name="pref_ssh_user">SSH username</string>
+    <string name="pref_ssh_port">SSH port</string>
 
-            <string-array name="pref_ssh_authentication_method_names">
-                <item>Password</item>
-                <item>Key</item>
-            </string-array>
+    <string-array name="pref_ssh_authentication_method_names">
+        <item>Password</item>
+        <item>Key</item>
+    </string-array>
 
-            <string name="pref_ssh_password">SSH password</string>
-            <string name="pref_ssh_keyfile">Private key</string>
-            <string name="pref_ssh_keyfile_summary">Ed25519, ECDSA, RSA or DSA key</string>
-            <string name="pref_ssh_known_hosts">Known hosts</string>
-            <string name="pref_ssh_known_hosts_summary">Output of $ ssh-keyscan host</string>
+    <string name="pref_ssh_password">SSH password</string>
+    <string name="pref_ssh_keyfile">Private key</string>
+    <string name="pref_ssh_keyfile_summary">Ed25519, ECDSA, RSA or DSA key</string>
+    <string name="pref_ssh_known_hosts">Known hosts</string>
+    <string name="pref_ssh_known_hosts_summary">Output of $ ssh-keyscan host</string>
 
-        <!-- file -->
+    <!-- file -->
 
-        <string name="pref_file_imported">File imported. You can delete it now.</string>
-        <string name="pref_file_error">Error: %s</string>
-        <string name="pref_file_clear_button">Clear</string>
-        <string name="pref_file_cleared">Cleared</string>
-        <string name="pref_file_empty_clipboard">Clipboard is empty</string>
-        <string name="pref_file_choose_button">Choose file</string>
-        <string name="pref_file_paste_button">Paste</string>
-        <string name="pref_file_pasted">Pasted from clipboard</string>
-        <string name="pref_file_summary" translatable="false">%1$s (%2$s)</string>
-        <string name="pref_file_set">set</string>
-        <string name="pref_file_not_set">not set</string>
+    <string name="pref_file_imported">File imported. You can delete it now.</string>
+    <string name="pref_file_error">Error: %s</string>
+    <string name="pref_file_clear_button">Clear</string>
+    <string name="pref_file_cleared">Cleared</string>
+    <string name="pref_file_empty_clipboard">Clipboard is empty</string>
+    <string name="pref_file_choose_button">Choose file</string>
+    <string name="pref_file_paste_button">Paste</string>
+    <string name="pref_file_pasted">Pasted from clipboard</string>
+    <string name="pref_file_summary" translatable="false">%1$s (%2$s)</string>
+    <string name="pref_file_set">set</string>
+    <string name="pref_file_not_set">not set</string>
 
-        <!-- relay type -->
+    <!-- relay type -->
 
-        <string name="pref_relay_group">Relay</string>
-            <string name="pref_relay_host">Relay host</string>
-            <string name="pref_relay_port">Relay port</string>
-            <string name="pref_relay_password">Relay password</string>
+    <string name="pref_relay_group">Relay</string>
+    <string name="pref_relay_host">Relay host</string>
+    <string name="pref_relay_port">Relay port</string>
+    <string name="pref_relay_password">Relay password</string>
 
-        <!-- misc -->
+    <!-- misc -->
 
-        <string name="pref_misc_group">Miscellaneous</string>
-            <string name="pref_line_increment">Number of lines to load</string>
-            <string name="pref_line_increment_summary">The number of lines to be loaded when opening a buffer or pressing the “Load more lines” button. Note that due to filtering the number of lines actually shown might be less than the number of loaded lines. Also note that due to WeeChat’s limitations the app has to re-fetch all lines every times it requests more lines. (%s)</string>
-            <string name="pref_reconnect">Reconnect on connection loss</string>
-            <string name="pref_boot_connect">Connect on system boot</string>
-            <string name="pref_notification_ticker">Notifications ticker</string>
-            <string name="pref_notification_ticker_summary">Display connection changes as ticker (does not work on Lollipop)</string>
-            <string name="pref_optimize_traffic">Only sync open buffers</string>
-            <string name="pref_optimize_traffic_summary">Can significantly reduce traffic and battery usage, but hotlist updates will only happen once 5 minutes. Requires WeeChat 1.1 or newer. Takes effect after re-connection.</string>
-            <string name="pref_hotlist_sync">Sync buffer read status</string>
-            <string name="pref_hotlist_sync_summary">Mark buffers as read in WeeChat when you read them in this app. Requires WeeChat 1.0 or newer.</string>
+    <string name="pref_misc_group">Miscellaneous</string>
+    <string name="pref_line_increment">Number of lines to load</string>
+    <string name="pref_line_increment_summary">The number of lines to be loaded when opening a buffer or pressing the “Load more lines” button. Note that due to filtering the number of lines actually shown might be less than the number of loaded lines. Also note that due to WeeChat’s limitations the app has to re-fetch all lines every times it requests more lines. (%s)</string>
+    <string name="pref_reconnect">Reconnect on connection loss</string>
+    <string name="pref_boot_connect">Connect on system boot</string>
+    <string name="pref_notification_ticker">Notifications ticker</string>
+    <string name="pref_notification_ticker_summary">Display connection changes as ticker (does not work on Lollipop)</string>
+    <string name="pref_optimize_traffic">Only sync open buffers</string>
+    <string name="pref_optimize_traffic_summary">Can significantly reduce traffic and battery usage, but hotlist updates will only happen once 5 minutes. Requires WeeChat 1.1 or newer. Takes effect after re-connection.</string>
+    <string name="pref_hotlist_sync">Sync buffer read status</string>
+    <string name="pref_hotlist_sync_summary">Mark buffers as read in WeeChat when you read them in this app. Requires WeeChat 1.0 or newer.</string>
 
-            <string name="pref_ping_group">Ping settings</string>
-                <string name="pref_ping_enabled">Enable ping</string>
-                <string name="pref_ping_idle">Idle time</string>
-                <string name="pref_ping_timeout">Ping timeout</string>
-                <string name="pref_ping_enabled_summary">Periodically check that the relay connection is still alive when idle</string>
-                <string name="pref_ping_idle_summary">Number of seconds to wait before sending a ping when the connection is idle (%s)</string>
-                <string name="pref_ping_timeout_summary">Number of seconds to wait before closing an unresponsive connection (%s)</string>
+    <string name="pref_ping_group">Ping settings</string>
+    <string name="pref_ping_enabled">Enable ping</string>
+    <string name="pref_ping_idle">Idle time</string>
+    <string name="pref_ping_timeout">Ping timeout</string>
+    <string name="pref_ping_enabled_summary">Periodically check that the relay connection is still alive when idle</string>
+    <string name="pref_ping_idle_summary">Number of seconds to wait before sending a ping when the connection is idle (%s)</string>
+    <string name="pref_ping_timeout_summary">Number of seconds to wait before closing an unresponsive connection (%s)</string>
 
-        <!-- buffer list -->
+    <!-- buffer list -->
 
-        <string name="pref_bufferlist_group">Buffer list</string>
-            <string name="pref_sort_buffers">Sort buffer list</string>
-            <string name="pref_sort_buffers_summary">Sort by number of highlights/private messages/unread messages</string>
-            <string name="pref_hide_server_buffers">Hide non-conversation buffers</string>
-            <string name="pref_hide_server_buffers_summary">E.g. server buffers and plugin buffers</string>
-            <string name="pref_hide_hidden_buffers">Hide hidden buffers</string>
-            <string name="pref_hide_hidden_buffers_summary">Hide buffers hidden with /buffer hide</string>
-            <string name="pref_show_buffer_filter">Show buffer filter</string>
-            <string name="pref_show_buffer_filter_summary">Filter matches full buffer names and reveals matching hidden buffers</string>
-            <string name="pref_use_gesture_exclusion_zone">System gesture exclusion zone</string>
-            <string name="pref_use_gesture_exclusion_zone_summary">On Android Q, the left side of the screen is reserved for the back gesture. Enable this to have a small area in the bottom of the screen where you can open the buffer list normally.</string>
+    <string name="pref_bufferlist_group">Buffer list</string>
+    <string name="pref_sort_buffers">Sort buffer list</string>
+    <string name="pref_sort_buffers_summary">Sort by number of highlights/private messages/unread messages</string>
+    <string name="pref_hide_server_buffers">Hide non-conversation buffers</string>
+    <string name="pref_hide_server_buffers_summary">E.g. server buffers and plugin buffers</string>
+    <string name="pref_hide_hidden_buffers">Hide hidden buffers</string>
+    <string name="pref_hide_hidden_buffers_summary">Hide buffers hidden with /buffer hide</string>
+    <string name="pref_show_buffer_filter">Show buffer filter</string>
+    <string name="pref_show_buffer_filter_summary">Filter matches full buffer names and reveals matching hidden buffers</string>
+    <string name="pref_use_gesture_exclusion_zone">System gesture exclusion zone</string>
+    <string name="pref_use_gesture_exclusion_zone_summary">On Android Q, the left side of the screen is reserved for the back gesture. Enable this to have a small area in the bottom of the screen where you can open the buffer list normally.</string>
 
     <!-- look & feel -->
 
-        <string name="pref_lookfeel_group">Look &amp; feel</string>
-            <string name="pref_text_size">Text size</string>
-            <string name="pref_auto_hide_actionbar">Hide action bar</string>
-            <string name="pref_auto_hide_actionbar_summary">Hide the top action bar when the keyboard is open or when scrolling up</string>
-            <string name="pref_chatview_filters">Filter messages</string>
-            <string name="pref_chatview_filters_summary">Hide messages filtered by WeeChat (e.g. irc_smart_filter)</string>
-            <string name="pref_prefix_align">Prefix alignment</string>
-            <string-array name="pref_prefix_align_names">
-                <item>Left aligned</item>
-                <item>Right aligned</item>
-                <item>Timestamp aligned</item>
-                <item>No alignment</item>
-            </string-array>
-            <string name="pref_max_width">Maximum width of prefix</string>
-            <string name="pref_max_width_summary">In terms of letters; longer nicknames will be cut (%s)</string>
-            <string name="pref_enclose_nick">Enclose nicknames</string>
-            <string name="pref_enclose_nick_summary">Enclose the nicknames in &lt;&#xA0;and&#xA0;&gt;</string>
-            <string name="pref_timestamp_format">Timestamp format</string>
-            <string name="pref_timestamp_format_summary">%s (default: HH:mm:ss)</string>
-            <string name="pref_dim_down">Dim down non-human lines</string>
-            <string name="pref_dim_down_summary">Display joins/quits in a faint color, as set in the color scheme</string>
+    <string name="pref_lookfeel_group">Look &amp; feel</string>
+    <string name="pref_text_size">Text size</string>
+    <string name="pref_auto_hide_actionbar">Hide action bar</string>
+    <string name="pref_auto_hide_actionbar_summary">Hide the top action bar when the keyboard is open or when scrolling up</string>
+    <string name="pref_chatview_filters">Filter messages</string>
+    <string name="pref_chatview_filters_summary">Hide messages filtered by WeeChat (e.g. irc_smart_filter)</string>
+    <string name="pref_prefix_align">Prefix alignment</string>
+    <string-array name="pref_prefix_align_names">
+        <item>Left aligned</item>
+        <item>Right aligned</item>
+        <item>Timestamp aligned</item>
+        <item>No alignment</item>
+    </string-array>
+    <string name="pref_max_width">Maximum width of prefix</string>
+    <string name="pref_max_width_summary">In terms of letters; longer nicknames will be cut (%s)</string>
+    <string name="pref_enclose_nick">Enclose nicknames</string>
+    <string name="pref_enclose_nick_summary">Enclose the nicknames in &lt;&#xA0;and&#xA0;&gt;</string>
+    <string name="pref_timestamp_format">Timestamp format</string>
+    <string name="pref_timestamp_format_summary">%s (default: HH:mm:ss)</string>
+    <string name="pref_dim_down">Dim down non-human lines</string>
+    <string name="pref_dim_down_summary">Display joins/quits in a faint color, as set in the color scheme</string>
 
-            <string name="pref_font">Buffer font</string>
+    <string name="pref_font">Buffer font</string>
 
-            <!-- theme (color scheme) -->
-            <string name="pref_theme">Theme</string>
-            <string-array name="pref_theme_names">
-                <item>@string/pref_theme_system</item>
-                <item>Dark</item>
-                <item>Light</item>
-            </string-array>
-            <string name="pref_theme_system">Set by battery saver</string>
+    <!-- theme (color scheme) -->
+    <string name="pref_theme">Theme</string>
+    <string-array name="pref_theme_names">
+        <item>@string/pref_theme_system</item>
+        <item>Dark</item>
+        <item>Light</item>
+    </string-array>
+    <string name="pref_theme_system">Set by battery saver</string>
 
-            <string name="pref_theme_switch">Theme switch</string>
-            <string name="pref_theme_switch_summary">Show theme switch in the menu</string>
+    <string name="pref_theme_switch">Theme switch</string>
+    <string name="pref_theme_switch_summary">Show theme switch in the menu</string>
 
-            <string name="pref_color_scheme_day">Light color scheme</string>
-            <string name="pref_color_scheme_night">Dark color scheme</string>
+    <string name="pref_color_scheme_day">Light color scheme</string>
+    <string name="pref_color_scheme_night">Dark color scheme</string>
 
-            <string name="pref_theme_loading_error">Error loading color scheme %s</string>
-            <string name="pref_theme_help"><![CDATA[You can create custom color schemes for this
+    <string name="pref_theme_loading_error">Error loading color scheme %s</string>
+    <string name="pref_theme_help"><![CDATA[You can create custom color schemes for this
                 application. Use arbitrary colors for UI elements, customize highlight and
                 read marker color, change the WeeChat color palette! <a
                 href="https://github.com/ubergeek42/weechat-android/wiki/Custom-Color-Schemes">Learn
                 more</a><br><br>Put your custom color scheme in any of these folders:%1$s]]></string>
-            <string name="pref_theme_not_set">Not set</string>
+    <string name="pref_theme_not_set">Not set</string>
 
-            <!-- font -->
-            <string name="pref_font_summary">Non-monospace fonts will not work well with alignment. Search path:%1$s\n\nCurrent font:\n\u0020\u0020\u0020\u0020%2$s</string>
-            <string name="pref_font_default">Default</string>
+    <!-- font -->
+    <string name="pref_font_summary">Non-monospace fonts will not work well with alignment. Search path:%1$s\n\nCurrent font:\n\u0020\u0020\u0020\u0020%2$s</string>
+    <string name="pref_font_default">Default</string>
 
     <!-- buttons -->
 
-        <string name="pref_button_group">Buttons</string>
-            <string name="pref_tabbtn_show">Show tab button</string>
-            <string name="pref_sendbtn_show">Show send button</string>
-            <string name="pref_volumebtn_size">Volume buttons change text size</string>
-            <string name="pref_volumebtn_size_summary">If set, volume buttons will change text size instead of volume</string>
+    <string name="pref_button_group">Buttons</string>
+    <string name="pref_tabbtn_show">Show tab button</string>
+    <string name="pref_sendbtn_show">Show send button</string>
+    <string name="pref_volumebtn_size">Volume buttons change text size</string>
+    <string name="pref_volumebtn_size_summary">If set, volume buttons will change text size instead of volume</string>
 
-        <!-- notifications -->
+    <!-- notifications -->
 
-        <string name="pref_notif_group">Notifications</string>
-            <string name="pref_notification_enable">Enable notifications</string>
-            <string name="pref_notification_enable_summary">Notify about hot messages such as private messages or highlights</string>
-            <string name="pref_notification_sound">Notification sound</string>
-            <string name="pref_notification_vibrate">Vibration</string>
-            <string name="pref_notification_light">Notification light</string>
+    <string name="pref_notif_group">Notifications</string>
+    <string name="pref_notification_enable">Enable notifications</string>
+    <string name="pref_notification_enable_summary">Notify about hot messages such as private messages or highlights</string>
+    <string name="pref_notification_sound">Notification sound</string>
+    <string name="pref_notification_vibrate">Vibration</string>
+    <string name="pref_notification_light">Notification light</string>
 
-        <!-- ringtone -->
+    <!-- ringtone -->
 
-        <string name="pref_ringtone_none">None</string>
-        <string name="pref_ringtone_unknown">Unknown</string>
+    <string name="pref_ringtone_none">None</string>
+    <string name="pref_ringtone_unknown">Unknown</string>
 
     <!-- media preview -->
 
-        <string name="pref_media_preview_group">Media preview</string>
-        <string name="pref_media_preview_enabled_for_network">Enabled</string>
-        <string name="pref_media_preview_enabled_for_location">Context</string>
-        <string name="pref_media_preview_enabled_for_location_summary">Enabled for %s</string>
-        <string name="pref_media_preview_enabled_for_location_summary_empty">Disabled everywhere</string>
+    <string name="pref_media_preview_group">Media preview</string>
+    <string name="pref_media_preview_enabled_for_network">Enabled</string>
+    <string name="pref_media_preview_enabled_for_location">Context</string>
+    <string name="pref_media_preview_enabled_for_location_summary">Enabled for %s</string>
+    <string name="pref_media_preview_enabled_for_location_summary_empty">Disabled everywhere</string>
 
-        <string-array name="pref_media_preview_enabled_for_network_names">
-            <item>Never</item>
-            <item>On Wi-Fi only</item>
-            <item>On unmetered networks only</item>
-            <item>Always</item>
-        </string-array>
+    <string-array name="pref_media_preview_enabled_for_network_names">
+        <item>Never</item>
+        <item>On Wi-Fi only</item>
+        <item>On unmetered networks only</item>
+        <item>Always</item>
+    </string-array>
 
-        <string-array name="pref_media_preview_enabled_for_location_names">
-            <item>Chat</item>
-            <item>Paste dialog</item>
-            <item>Notifications</item>
-        </string-array>
+    <string-array name="pref_media_preview_enabled_for_location_names">
+        <item>Chat</item>
+        <item>Paste dialog</item>
+        <item>Notifications</item>
+    </string-array>
 
-        <string name="pref_media_preview_secure_request">Insecure requests</string>
-        <string-array name="pref_media_preview_secure_request_names">
-            <item>Allow</item>
-            <item>Rewrite as HTTPS</item>
-            <item>Disallow</item>
-        </string-array>
+    <string name="pref_media_preview_secure_request">Insecure requests</string>
+    <string-array name="pref_media_preview_secure_request_names">
+        <item>Allow</item>
+        <item>Rewrite as HTTPS</item>
+        <item>Disallow</item>
+    </string-array>
 
-        <string name="pref_media_preview_strategies">Strategies</string>
+    <string name="pref_media_preview_strategies">Strategies</string>
 
-        <string name="pref_media_preview_help"><![CDATA[Enabling media preview for notifications can
+    <string name="pref_media_preview_help"><![CDATA[Enabling media preview for notifications can
             result in duplicate lines being shown on some earlier platforms. Also note that you may
             need to clear the caches for the settings to apply to already existing data.<br /><br /><b>⚠
             Warning:</b> the app is accessing the web directly. A malicious person could craft a
@@ -312,40 +312,40 @@
             websites you don’t know, remove the strategy for the wildcard host “*” or set it to “none”.
             <a href="https://github.com/ubergeek42/weechat-android/wiki/Media-preview">Learn more</a>]]></string>
 
-        <string name="strategypreference_error">Error</string>
-        <string name="strategypreference_summary">Defines the ways images are fetched from individual
+    <string name="strategypreference_error">Error</string>
+    <string name="strategypreference_summary">Defines the ways images are fetched from individual
             websites, and some filters.\n\n%1$s; %2$s;\n\n%3$s</string>
-        <string name="strategypreference_message_filter_set">Message filter set</string>
-        <string name="strategypreference_message_filter_not_set">Message filter not set</string>
-        <string name="strategypreference_line_filters_not_set">line filters not set</string>
-        <string name="strategypreference_strategies_not_loaded">No strategies loaded</string>
-        <string name="strategypreference_strategies_list">Strategies: %s</string>
-        <plurals name="strategypreference_line_filters_set">
-            <item quantity="one">%d line filter set</item>
-            <item quantity="other">%d line filters set</item>
-        </plurals>
+    <string name="strategypreference_message_filter_set">Message filter set</string>
+    <string name="strategypreference_message_filter_not_set">Message filter not set</string>
+    <string name="strategypreference_line_filters_not_set">line filters not set</string>
+    <string name="strategypreference_strategies_not_loaded">No strategies loaded</string>
+    <string name="strategypreference_strategies_list">Strategies: %s</string>
+    <plurals name="strategypreference_line_filters_set">
+        <item quantity="one">%d line filter set</item>
+        <item quantity="other">%d line filters set</item>
+    </plurals>
 
-        <string name="pref_media_preview_advanced_group">Advanced</string>
-            <string name="pref_media_preview_maximum_body_size">Download size limit</string>
-            <string name="pref_media_preview_maximum_body_size_summary">%s MB</string>
-            <string name="pref_image_disk_cache_size">Disk cache</string>
-            <string name="pref_image_disk_cache_size_summary">%s MB; takes effect on restart</string>
-            <string name="pref_media_preview_success_cooldown">Success cooldown</string>
-            <string name="pref_media_preview_success_cooldown_summary">%s hours. The app will
+    <string name="pref_media_preview_advanced_group">Advanced</string>
+    <string name="pref_media_preview_maximum_body_size">Download size limit</string>
+    <string name="pref_media_preview_maximum_body_size_summary">%s MB</string>
+    <string name="pref_image_disk_cache_size">Disk cache</string>
+    <string name="pref_image_disk_cache_size_summary">%s MB; takes effect on restart</string>
+    <string name="pref_media_preview_success_cooldown">Success cooldown</string>
+    <string name="pref_media_preview_success_cooldown_summary">%s hours. The app will
                 consider successfully fetched image available, either from cache or the web, for
                 the specified amount of time.</string>
-        <string name="pref_media_preview_thumbnail_width">Thumbnail width</string>
-        <string name="pref_media_preview_thumbnail_min_height">Minimum thumbnail height</string>
-        <string name="pref_media_preview_thumbnail_max_height">Maximum thumbnail height</string>
+    <string name="pref_media_preview_thumbnail_width">Thumbnail width</string>
+    <string name="pref_media_preview_thumbnail_min_height">Minimum thumbnail height</string>
+    <string name="pref_media_preview_thumbnail_max_height">Maximum thumbnail height</string>
 
     <!-- about -->
 
-        <string name="about">About</string>
-        <string name="build_id">build ID %s</string>
-        <string name="version_string" translatable="false">Weechat-Android %s</string>
-        <string name="created_by">created by ubergeek42</string>
-        <string name="unknown_version_id">Unknown version ID</string>
-        <string name="libraries">
+    <string name="about">About</string>
+    <string name="build_id">build ID %s</string>
+    <string name="version_string" translatable="false">Weechat-Android %s</string>
+    <string name="created_by">created by ubergeek42</string>
+    <string name="unknown_version_id">Unknown version ID</string>
+    <string name="libraries">
             \nThis project uses the following libraries:
             \n
             \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/noveogroup/android-logger">Android Logger by Noveo Group</a>
@@ -369,11 +369,11 @@
             \n\n
         </string>
 
-        <!-- strings used in error messages of the preferences activity -->
+    <!-- strings used in error messages of the preferences activity -->
 
-        <string name="pref_timestamp_invalid">Invalid timestamp format</string>
-        <string name="pref_number_invalid">Invalid number</string>
-        <string name="pref_hostname_invalid">No spaces allowed in hostnames</string>
+    <string name="pref_timestamp_invalid">Invalid timestamp format</string>
+    <string name="pref_number_invalid">Invalid number</string>
+    <string name="pref_hostname_invalid">No spaces allowed in hostnames</string>
     <string name="menu_debug">Debug</string>
     <string name="menu_sync_hotlist">Sync hotlist</string>
     <string name="menu_die">Die</string>
