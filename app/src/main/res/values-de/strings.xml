@@ -93,6 +93,8 @@
         <b>SHA-256 Fingerprint:</b><br>
         %5$s
     ]]></string>
+
+    <string name="dialog_button_accept_selected">Akzeptieren ausgewählt</string>
     <string name="dialog_button_reject">Ablehnen</string>
     <string name="dialog_invalid_hostname_text"><![CDATA[
         Sie versuchen eine Verbindung zu <strong>%1$s</strong> herzustellen, aber das Zertifikat ist
@@ -105,6 +107,8 @@
     <string name="pref_error_relay_host_not_set">Relay-Host ist nicht angelegt</string>
     <string name="pref_error_relay_password_not_set">Kein Relay-Passwort angelegt</string>
     <string name="pref_error_ssh_host_not_set">SSH-Host ist nicht angelegt</string>
+    <string name="pref_error_no_ssh_key_file">Privater SSH-Schlüssel ist nicht festgelegt</string>
+    <string name="pref_error_no_ssh_password">SSH-Passwort ist nicht festgelegt</string>
     <string name="pref_error_no_ssh_known_hosts">Bekannte SSH-Hosts sind nicht angelegt</string>
 
     <string name="pref_connection_group">Verbindung</string>
@@ -137,6 +141,12 @@
     <string name="pref_ssh_host">SSH-Host</string>
     <string name="pref_ssh_user">SSH-Username</string>
     <string name="pref_ssh_port">SSH-Port</string>
+
+    <string-array name="pref_ssh_authentication_method_names">
+        <item>Passwort</item>
+        <item>Schlüssel</item>
+    </string-array>
+
     <string name="pref_ssh_password">SSH-Passwort</string>
     <string name="pref_ssh_keyfile">Privater Schlüssel</string>
     <string name="pref_ssh_keyfile_summary">Ed25519, ECDSA, RSA, DSA Schlüssel</string>
@@ -433,4 +443,37 @@
         aber keines ist festgelegt. Gesucht: %1$s Zertifikat ausgestellt von: %2$s</string>
     <string name="error_client_certificate_mismatch">Der Server fragt nach einem Client-Zertifikat,
         aber das was wir haben, passt nicht. Gesucht: %1$s Zertifikat ausgestellt von: %2$s</string>
+
+    <string name="pref_ssh_authentication_method">Authentifizierungsmethode</string>
+
+    <string name="exceptions_ssh_failed_to_authenticate_with_password">
+        Fehler bei Authentifizierung mit gewähltem Kennwort</string>
+    <string name="exceptions_ssh_failed_to_authenticate_with_key">
+        Authentifizierung mit Schlüssel fehlgeschlagen</string>
+    <string name="exceptions_ssh_hostname_not_present_in_known_hosts">
+        Hostname %s ist in bekannten Hosts nicht vorhanden</string>
+    <string name="exceptions_ssh_hostkey_not_verified">Hostname %1$s ist bekannt, konnte aber nicht
+        verifiziert werden. Wähle Algorithmus: %2$s; SHA256 Host Schlüssel Fingerabdruck: %3$s</string>
+
+    <string name="pref_ssh_key_stored_inside_security_hardware_yes">
+        Der %s Schlüssel wurde in der Sicherheitshardware gespeichert</string>
+    <string name="pref_ssh_key_stored_inside_security_hardware_no">
+        Der %s Schlüssel wurde im Software-Schlüsselspeicher gespeichert</string>
+    <string name="pref_ssh_key_stored_inside_security_hardware_cant_tell">
+        %s Schlüssel wurde im Schlüsselspeicher gespeichert</string>
+    <string name="pref_ssh_key_stored_outside_key_store">
+        %1$s Schlüssel wurde in der App gespeichert.\n\nDer Schlüssel konnte nicht im
+        Schlüsselspeicher gespeichert werden: %2$s</string>
+    <string name="pref_ssh_key_forgotten">Schlüssel vergessen</string>
+
+    <string name="pref_ssl_certificate_stored_inside_security_hardware_yes">
+        Das Zertifikat wurde in einer Sicherheitshardware gespeichert</string>
+    <string name="pref_ssl_certificate_stored_inside_security_hardware_no">
+        Das Zertifikat wurde im Software-Schlüsselspeicher gespeichert</string>
+    <string name="pref_ssl_certificate_stored_inside_security_hardware_cant_tell">
+        Das Zertifikat wurde im Schlüsselspeicher gespeichert</string>
+    <string name="pref_ssl_certificate_forgotten">Zertifikat vergessen</string>
+
+    <string name="pref_known_hosts_set">Bekannte Hosts festgelegt</string>
+    <string name="pref_known_hosts_cleared">Bekannte Hosts gelöscht</string>
 </resources>
