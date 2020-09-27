@@ -325,7 +325,7 @@
 
         <string name="strategypreference_error">Error</string>
         <string name="strategypreference_summary">Defines the ways images are fetched from individual
-            websites, and some filters.\n\n%s; %s;\n\n%s</string>
+            websites, and some filters.\n\n%1$s; %2$s;\n\n%3$s</string>
         <string name="strategypreference_message_filter_set">Message filter set</string>
         <string name="strategypreference_message_filter_not_set">Message filter not set</string>
         <string name="strategypreference_line_filters_not_set">line filters not set</string>

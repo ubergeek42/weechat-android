@@ -339,7 +339,7 @@
 
     <string name="strategypreference_error">Fehler</string>
     <string name="strategypreference_summary">Definiere die Art und Weise wie Bilder von einzelnen
-            Webseiten abgerufen werden, und erstelle Filter.\n\n%s; %s;\n\n%s</string>
+            Webseiten abgerufen werden, und erstelle Filter.\n\n%1$s; %2$s;\n\n%3$s</string>
     <string name="strategypreference_message_filter_set">Nachrichtenfilter gesetzt</string>
     <string name="strategypreference_message_filter_not_set">Nachrichtenfilter nicht gesetzt</string>
     <string name="strategypreference_line_filters_not_set">Filter für Zeilen nicht gesetzt</string>
@@ -441,7 +441,7 @@
     <string name="edittext_password_hint">Passwort</string>
 
     <string name="error_client_certificate_not_set">Der Server fordert ein Client-Zertifikat an,
-        aber keines ist festgelegt. Gesucht: %s Zertifikat ausgestellt von: %s</string>
+        aber keines ist festgelegt. Gesucht: %1$s Zertifikat ausgestellt von: %2$s</string>
     <string name="error_client_certificate_mismatch">Der Server fragt nach einem Client-Zertifikat,
-        aber das was wir haben, passt nicht. Gesucht: %s Zertifikat ausgestellt von: %s</string>
+        aber das was wir haben, passt nicht. Gesucht: %1$s Zertifikat ausgestellt von: %2$s</string>
 </resources>

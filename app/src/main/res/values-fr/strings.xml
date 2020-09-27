@@ -229,7 +229,7 @@
     passez-la en “type: none”. <a href="https://github.com/ubergeek42/weechat-android/wiki/Media-preview">En savoir plus
     (en anglais)</a>]]></string>
     <string name="strategypreference_error">Erreur</string>
-    <string name="strategypreference_summary">Définit comment sont récupérées les miniatures pour chaque contenu et selon quels filtres.\n\n%s ; %s ;\n\n%s</string>
+    <string name="strategypreference_summary">Définit comment sont récupérées les miniatures pour chaque contenu et selon quels filtres.\n\n%1$s ; %2$s ;\n\n%3$s</string>
     <string name="strategypreference_message_filter_set">Filtre de messages activé</string>
     <string name="strategypreference_message_filter_not_set">Filtre de messages désactivé</string>
     <string name="strategypreference_strategies_not_loaded">Aucune stratégie</string>
