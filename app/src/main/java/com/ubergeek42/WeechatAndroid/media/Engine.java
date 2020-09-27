@@ -1,5 +1,6 @@
 package com.ubergeek42.WeechatAndroid.media;
 
+import android.graphics.Bitmap;
 import android.text.style.URLSpan;
 
 import androidx.annotation.NonNull;
@@ -38,9 +39,10 @@ public class Engine {
         NOTIFICATION
     }
 
+    @SuppressWarnings("Convert2Diamond") // `MultiTransformation<>` produces a build warning
     final public static RequestOptions defaultRequestOptions = new RequestOptions()
             .diskCacheStrategy(DiskCacheStrategy.ALL)
-            .transform(new MultiTransformation<>(new CenterCrop(), new RoundedCorners(THUMBNAIL_CORNER_RADIUS)));
+            .transform(new MultiTransformation<Bitmap>(new CenterCrop(), new RoundedCorners(THUMBNAIL_CORNER_RADIUS)));
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
