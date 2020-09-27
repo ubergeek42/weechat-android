@@ -2,11 +2,11 @@ language: android
 addons:
   apt:
     packages:
-      - python-openssl
+      - python3-openssl
 
 before_script:
   - 'export PATH="$HOME/.local/bin:$PATH"'
-  - pip install --user google-api-python-client oauth2client
+  - pip install --user google-api-python-client oauth2client httplib2
 # broken, see below with git depth 99999
 #  - git fetch --unshallow
 
@@ -14,7 +14,7 @@ script: releases/travis_build.sh
 
 after_script:
   - '[ "${TRAVIS_PULL_REQUEST}" = "false" ] && releases/publish_s3.sh'
-  - '[ "${TRAVIS_PULL_REQUEST}" = "false" ] && releases/publish_playstore.py'
+  - '[ "${TRAVIS_PULL_REQUEST}" = "false" ] && releases/publish_playstore_v3.py'
 
 android:
   components:
