@@ -64,12 +64,15 @@
     <string name="pref_error_ssh_host_not_set">Не задан хост SSH</string>
     <string name="pref_error_no_ssh_known_hosts">Не заданы известные хосты SSH</string>
     <string name="pref_connection_group">Подключение</string>
-    <string name="pref_connection_type_plain">Незащищённый релей</string>
-    <string name="pref_connection_type_weechat_ssl">Релей SSL</string>
-    <string name="pref_connection_type_ssh">Туннель SSH</string>
-    <string name="pref_connection_type_ws">Незащищённый веб-сокет</string>
-    <string name="pref_connection_type_ws_ssl">Веб-сокет SSL</string>
+
     <string name="pref_connection_type">Тип соединения</string>
+    <string-array name="pref_connection_type_names">
+        <item>Незащищённый релей</item>
+        <item>Релей SSL</item>
+        <item>Туннель SSH</item>
+        <item>Незащищённый веб-сокет</item>
+        <item>Веб-сокет SSL</item>
+    </string-array>
 
     <string name="pref_ssl_group">Настройки SSL</string>
     <string name="pref_clear_certs">Очистить сертификаты</string>
@@ -174,10 +177,13 @@
     <string name="pref_ping_timeout">Время ожидания ответа</string>
     <string name="pref_ping_timeout_summary">Количество секунд после отсылки пинга, по прошествии которых соединение будет прервано (%s)</string>
     <string name="pref_prefix_align">Выравнивание текста</string>
-    <string name="pref_prefix_align_left">По префиксу</string>
-    <string name="pref_prefix_align_right">По максимальной длине префикса</string>
-    <string name="pref_prefix_align_none">Без выравнивания</string>
-    <string name="pref_prefix_align_timestamp">По метке времени</string>
+    <string-array name="pref_prefix_align_names">
+        <item>По префиксу</item>
+        <item>По максимальной длине префикса</item>
+        <item>По метке времени</item>
+        <item>Без выравнивания</item>
+    </string-array>
+
     <string name="pref_auto_hide_actionbar">Скрывать панель инструментов</string>
     <string name="pref_auto_hide_actionbar_summary">Скрывать панель инструментов при открытии клавиатуры или при прокручивании вверх</string>
     <string name="pref_bufferlist_group">Список буферов</string>
@@ -247,11 +253,16 @@
     </plurals>
     <string name="hot_messages_missing_1">(сообщение не получено)</string>
     <string name="pref_theme">Тема</string>
-    <string name="pref_theme_dark">Тёмная</string>
-    <string name="pref_theme_light">Светлая</string>
+
+    <string-array name="pref_theme_names">
+        <item>@string/pref_theme_system</item>
+        <item>Тёмная</item>
+        <item>Светлая</item>
+    </string-array>
+    <string name="pref_theme_system">Устанавливается режимом энергосбережения</string>
+
     <string name="pref_theme_switch">Переключатель темы</string>
     <string name="pref_theme_switch_summary">Показывать переключатель темы в меню</string>
-    <string name="pref_theme_system">Устанавливается режимом энергосбережения</string>
     <string name="pref_media_preview_group">Миниатюры</string>
     <string name="pref_media_preview_enabled_for_network">Показывать</string>
     <string-array name="pref_media_preview_enabled_for_network_names">

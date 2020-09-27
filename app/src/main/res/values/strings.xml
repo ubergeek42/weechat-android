@@ -102,19 +102,14 @@
     <string name="pref_connection_group">Connection</string>
 
         <!-- connection type -->
-        <string name="pref_connection_type_plain">Plain connection</string>
-        <string name="pref_connection_type_weechat_ssl">WeeChat SSL</string>
-        <string name="pref_connection_type_ssh">SSH tunnel</string>
-        <string name="pref_connection_type_ws">WebSocket</string>
-        <string name="pref_connection_type_ws_ssl">WebSocket (SSL)</string>
         <string name="pref_connection_type">Connection type</string>
-            <string-array name="pref_connection_type_names">
-                <item>@string/pref_connection_type_plain</item>
-                <item>@string/pref_connection_type_weechat_ssl</item>
-                <item>@string/pref_connection_type_ssh</item>
-                <item>@string/pref_connection_type_ws</item>
-                <item>@string/pref_connection_type_ws_ssl</item>
-            </string-array>
+        <string-array name="pref_connection_type_names">
+            <item>Plain connection</item>
+            <item>WeeChat SSL</item>
+            <item>SSH tunnel</item>
+            <item>WebSocket</item>
+            <item>WebSocket (SSL)</item>
+        </string-array>
 
     <string name="pref_ssl_group">SSL settings</string>
         <string name="pref_clear_certs">Clear certificates</string>
@@ -213,16 +208,12 @@
             <string name="pref_chatview_filters">Filter messages</string>
             <string name="pref_chatview_filters_summary">Hide messages filtered by WeeChat (e.g. irc_smart_filter)</string>
             <string name="pref_prefix_align">Prefix alignment</string>
-                <string name="pref_prefix_align_left">Left aligned</string>
-                <string name="pref_prefix_align_right">Right aligned</string>
-                <string name="pref_prefix_align_timestamp">Timestamp aligned</string>
-                <string name="pref_prefix_align_none">No alignment</string>
-                <string-array name="pref_prefix_align_names">
-                    <item>@string/pref_prefix_align_left</item>
-                    <item>@string/pref_prefix_align_right</item>
-                    <item>@string/pref_prefix_align_timestamp</item>
-                    <item>@string/pref_prefix_align_none</item>
-                </string-array>
+            <string-array name="pref_prefix_align_names">
+                <item>Left aligned</item>
+                <item>Right aligned</item>
+                <item>Timestamp aligned</item>
+                <item>No alignment</item>
+            </string-array>
             <string name="pref_max_width">Maximum width of prefix</string>
             <string name="pref_max_width_summary">In terms of letters; longer nicknames will be cut (%s)</string>
             <string name="pref_enclose_nick">Enclose nicknames</string>
@@ -238,12 +229,10 @@
             <string name="pref_theme">Theme</string>
             <string-array name="pref_theme_names">
                 <item>@string/pref_theme_system</item>
-                <item>@string/pref_theme_dark</item>
-                <item>@string/pref_theme_light</item>
+                <item>Dark</item>
+                <item>Light</item>
             </string-array>
             <string name="pref_theme_system">Set by battery saver</string>
-            <string name="pref_theme_dark">Dark</string>
-            <string name="pref_theme_light">Light</string>
 
             <string name="pref_theme_switch">Theme switch</string>
             <string name="pref_theme_switch_summary">Show theme switch in the menu</string>

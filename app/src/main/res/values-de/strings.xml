@@ -109,18 +109,13 @@
 
     <string name="pref_connection_group">Verbindung</string>
 
-    <string name="pref_connection_type_plain">Offene Verbindung</string>
-    <string name="pref_connection_type_weechat_ssl">WeeChat SSL</string>
-    <string name="pref_connection_type_ssh">SSH-Tunnel</string>
-    <string name="pref_connection_type_ws">WebSocket</string>
-    <string name="pref_connection_type_ws_ssl">WebSocket (SSL)</string>
     <string name="pref_connection_type">Typ der Verbindung</string>
     <string-array name="pref_connection_type_names">
-        <item>@string/pref_connection_type_plain</item>
-        <item>@string/pref_connection_type_weechat_ssl</item>
-        <item>@string/pref_connection_type_ssh</item>
-        <item>@string/pref_connection_type_ws</item>
-        <item>@string/pref_connection_type_ws_ssl</item>
+        <item>Offene Verbindung</item>
+        <item>WeeChat SSL</item>
+        <item>SSH-Tunnel</item>
+        <item>WebSocket</item>
+        <item>WebSocket (SSL)</item>
     </string-array>
 
     <string name="pref_ssl_group">SSL Einstellungen</string>
@@ -226,15 +221,11 @@
     <string name="pref_chatview_filters_summary">Verbirgt Nachrichten die von WeeChat gefiltert
         werden (Beispiel: irc_smart_filter)</string>
     <string name="pref_prefix_align">Präfixausrichtung</string>
-    <string name="pref_prefix_align_left">Linksbündig</string>
-    <string name="pref_prefix_align_right">Rechtsbündig</string>
-    <string name="pref_prefix_align_timestamp">Ausrichtung nach Zeitstempel</string>
-    <string name="pref_prefix_align_none">Keine Ausrichtung</string>
     <string-array name="pref_prefix_align_names">
-        <item>@string/pref_prefix_align_left</item>
-        <item>@string/pref_prefix_align_right</item>
-        <item>@string/pref_prefix_align_timestamp</item>
-        <item>@string/pref_prefix_align_none</item>
+        <item>Linksbündig</item>
+        <item>Rechtsbündig</item>
+        <item>Ausrichtung nach Zeitstempel</item>
+        <item>Keine Ausrichtung</item>
     </string-array>
     <string name="pref_max_width">Maximale Breite des Präfix</string>
     <string name="pref_max_width_summary">In Bezug auf die Breite, werden längere Nicknamen
@@ -253,12 +244,10 @@
     <string name="pref_theme">Design</string>
     <string-array name="pref_theme_names">
         <item>@string/pref_theme_system</item>
-        <item>@string/pref_theme_dark</item>
-        <item>@string/pref_theme_light</item>
+        <item>Dunkel</item>
+        <item>Hell</item>
     </string-array>
     <string name="pref_theme_system">Durch Batteriesparmodus einstellen</string>
-    <string name="pref_theme_dark">Dunkel</string>
-    <string name="pref_theme_light">Hell</string>
 
     <string name="pref_theme_switch">Farbschema umschalten</string>
     <string name="pref_theme_switch_summary">Wechsel des Designs im Menü anzeigen</string>

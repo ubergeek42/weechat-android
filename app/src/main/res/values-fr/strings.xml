@@ -66,8 +66,6 @@
     <string name="pref_error_ssh_host_not_set">L’hôte SSH n’est pas définie</string>
     <string name="pref_error_no_ssh_known_hosts">Les hôtes SSH connues ne sont pas définies</string>
     <string name="pref_connection_group">Connexion</string>
-    <string name="pref_connection_type_plain">Connexion en clair</string>
-    <string name="pref_connection_type_ssh">Tunnel SSH</string>
     <string name="pref_connection_type">Type de connexion</string>
     <string name="pref_clear_certs">Supprimer les certificats</string>
     <string name="pref_clear_certs_confirmation">Supprimer les certificats ?</string>
@@ -130,11 +128,15 @@
     <string name="pref_auto_hide_actionbar_summary">Cacher la barre d’action lorsque le clavier est affiché ou lors du défilement vers le haut</string>
     <string name="pref_chatview_filters">Filtrer les messages</string>
     <string name="pref_chatview_filters_summary">Cacher les messages filtrés par WeeChat (p. ex. irc_smart_filter)</string>
+
     <string name="pref_prefix_align">Alignement du préfixe</string>
-    <string name="pref_prefix_align_left">Aligné à gauche</string>
-    <string name="pref_prefix_align_right">Aligné à droite</string>
-    <string name="pref_prefix_align_timestamp">Aligné sur l’heure</string>
-    <string name="pref_prefix_align_none">Non aligné</string>
+    <string-array name="pref_prefix_align_names">
+        <item>Aligné à gauche</item>
+        <item>Aligné à droite</item>
+        <item>Aligné sur l’heure</item>
+        <item>Non aligné</item>
+    </string-array>
+
     <string name="pref_max_width">Largeur max du préfixe</string>
     <string name="pref_max_width_summary">En nombre de lettres ; les pseudos plus longs seront tronqués (%s)</string>
     <string name="pref_enclose_nick">Encadrer les pseudos</string>
@@ -199,10 +201,15 @@
     <string name="pref_show_buffer_filter_summary">Le filtre s’applique au nom complet de chaque tampon et révèle les tampons ma</string>
     <string name="pref_use_gesture_exclusion_zone_summary">Sur Android Q, la bordure gauche de l’écran est réservée au mouvement de retour en arrière. Activer cette option ajoute une petite zone en bas de l’écran pour ouvrir la liste des tampons.</string>
     <string name="pref_theme">Thème</string>
-    <string name="pref_use_gesture_exclusion_zone">Zone d’exclusion des mouvements système</string>
+
+    <string-array name="pref_theme_names">
+        <item>@string/pref_theme_system</item>
+        <item>Sombre</item>
+        <item>Clair</item>
+    </string-array>
     <string name="pref_theme_system">Dépendant de l’économiseur de batterie</string>
-    <string name="pref_theme_dark">Sombre</string>
-    <string name="pref_theme_light">Clair</string>
+
+    <string name="pref_use_gesture_exclusion_zone">Zone d’exclusion des mouvements système</string>
     <string name="pref_theme_switch">Sélecteur de thème</string>
     <string name="pref_theme_switch_summary">Affiche le sélecteur de thème dans le menu</string>
     <string name="pref_color_scheme_day">Thème avec des couleurs claires</string>
@@ -270,9 +277,14 @@
         <item quantity="other">%d filtres de ligne définis</item>
     </plurals>
     <string name="menu_save">Enregistrer</string>
-    <string name="pref_connection_type_weechat_ssl">WeeChat SSL</string>
-    <string name="pref_connection_type_ws">WebSocket</string>
-    <string name="pref_connection_type_ws_ssl">WebSocket (SSL)</string>
+    <string-array name="pref_connection_type_names">
+        <item>Connexion en clair</item>
+        <item>WeeChat SSL</item>
+        <item>Tunnel SSH</item>
+        <item>WebSocket</item>
+        <item>WebSocket (SSL)</item>
+    </string-array>
+
     <string name="dialog_certificate_expired_title">Certificat expiré</string>
     <string name="dialog_certificate_not_yet_valid_title">Le certificat n’est pas encore valide</string>
     <string name="menu_debug">Debug</string>
