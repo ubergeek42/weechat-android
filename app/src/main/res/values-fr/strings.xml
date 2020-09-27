@@ -79,6 +79,10 @@
     <string name="pref_ssh_host">Nom d’hôte SSH</string>
     <string name="pref_ssh_user">Nom d’utilisateur SSH</string>
     <string name="pref_ssh_port">Port SSH</string>
+    <string-array name="pref_ssh_authentication_method_names">
+        <item>Mot de passe</item>
+        <item>Clé</item>
+    </string-array>
     <string name="pref_ssh_password">Phrase de passe SSH</string>
     <string name="pref_ssh_keyfile">Clé privée</string>
     <string name="pref_ssh_keyfile_summary">Clé Ed25519, ECDSA, RSA ou DSA</string>
