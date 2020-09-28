@@ -13,8 +13,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import static com.ubergeek42.WeechatAndroid.media.Cache.findException;
-import static com.ubergeek42.WeechatAndroid.utils.ThrowingKeyManagerWrapper.ClientCertificateMismatchException;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSL_CLIENT_CERTIFICATE;
+import static com.ubergeek42.WeechatAndroid.utils.ThrowingKeyManagerWrapper.ClientCertificateMismatchException;
 import static com.ubergeek42.WeechatAndroid.utils.Utils.join;
 import static com.ubergeek42.weechat.relay.connection.SSHServerKeyVerifier.HostKeyNotVerifiedException.makeSha2Fingerprint;
 
