@@ -68,6 +68,9 @@ public class SSHConnection implements IConnection {
         connection = new Connection(sshHostname, sshPort);
         //connection.setCompression(true);
         //connection.enableDebugging(true, null);
+
+        connection.setServerHostKeyAlgorithms(serverKeyVerifier
+                .getPreferredKeyAlgorithmsForHostAsWellAllTheOthers(sshHostname, sshPort));
     }
 
     @Override public Streams connect() throws IOException {

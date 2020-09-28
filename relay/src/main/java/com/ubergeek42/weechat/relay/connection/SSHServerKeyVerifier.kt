@@ -20,6 +20,10 @@ enum class Algorithms(val string: String) {
     RSA256(RSASHA256Verify.ID_RSA_SHA_2_256),
     RSA(RSASHA1Verify.ID_SSH_RSA),
     DSS(DSASHA1Verify.ID_SSH_DSS);
+
+    companion object {
+        val preferred = values().map { it.string }
+    }
 }
 
 
@@ -106,9 +110,29 @@ interface Identity: Hashable {
         return true
     }
 
+    // if this returns a non-empty list, and the server offers key types that we lack,
+    // the connection will fail without ever calling `verifyServerHostKey()`.
+    // we want it to be called so that we can raise an appropriate exception.
+    // therefore we return null here, and instead the below method is used to advertise all
+    // algorithms that we are aware of
     override fun getKnownKeyAlgorithmsForHost(host: String, port: Int): List<String>? {
+        return null
+    }
+
+    // returns *all* supported algorithms, with the ones that are valid for the server first,
+    // and otherwise sorted by the the default preferred order
+    fun getPreferredKeyAlgorithmsForHostAsWellAllTheOthers(host: String, port: Int): Array<String> {
         val server = ServerImpl.fromHostAndPort(host, port)
-        return knownHosts[server]?.mapNotNull { it.getAlgorithms() }?.flatten()
+        val result = Algorithms.preferred.toMutableList()
+
+        knownHosts[server]?.let { identities ->
+            val serverPreferred = identities.mapNotNull { it.getAlgorithms() }.flatten()
+            Algorithms.preferred.reversed().forEach {
+                if (it in serverPreferred) result.moveToFront(it)
+            }
+        }
+
+        return result.toTypedArray()
     }
 
     override fun removeServerHostKey(host: String, port: Int, algorithm: String, key: ByteArray) {
@@ -159,3 +183,8 @@ private val ByteArray.base64 get() = String(Base64.encode(this))
 
 private val ByteArray.sha256 get() = sha256digest.digest(this).base64
 private val ByteArray.sha256fingerprint get() = this.sha256.trimEnd('=')
+
+private fun <T> MutableList<T>.moveToFront(t: T) {
+    this.remove(t)
+    this.add(0, t)
+}
