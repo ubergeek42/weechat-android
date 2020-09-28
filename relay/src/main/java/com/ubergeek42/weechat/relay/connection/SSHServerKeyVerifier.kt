@@ -4,7 +4,6 @@ import com.trilead.ssh2.ExtendedServerHostKeyVerifier
 import com.trilead.ssh2.crypto.Base64
 import com.trilead.ssh2.signature.*
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -90,7 +89,7 @@ interface Identity: Hashable {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-@Serializable class SSHServerKeyVerifier : ExtendedServerHostKeyVerifier() {
+@Serializable open class SSHServerKeyVerifier : ExtendedServerHostKeyVerifier() {
     private val knownHosts = mutableMapOf<Server, MutableSet<Identity>>()
 
     @Throws(VerifyException::class)
@@ -99,7 +98,7 @@ interface Identity: Hashable {
         val identity = IdentityImpl.fromKey(algorithm, key)
 
         val knownIdentities = knownHosts[server] ?:
-            throw ServerNotKnownException(host, port)
+            throw ServerNotKnownException(host, port, algorithm, key)
 
         if (!knownIdentities.any { it.matches(identity) })
             throw ServerNotVerifiedException(host, port, algorithm, key)
@@ -121,30 +120,34 @@ interface Identity: Hashable {
     override fun addServerHostKey(host: String, port: Int, algorithm: String, key: ByteArray) {
         val server = ServerImpl.fromHostAndPort(host, port)
         val identity = IdentityImpl.fromKey(algorithm, key)
-        knownHosts[server]?.add(identity)
+        knownHosts.getOrPut(server, ::mutableSetOf)
+        knownHosts[server]!!.add(identity)
     }
 
     fun encodeToString() = Json.encodeToString(this)
 
     companion object {
-        @Throws(SerializationException::class)
+        @JvmStatic @Throws(IllegalArgumentException::class)     // actually SerializationException
         fun decodeFromString(string: String) = Json.decodeFromString<SSHServerKeyVerifier>(string)
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    open class VerifyException(val host: String, val port: Int) : IOException()
+    open class VerifyException(val host: String, val port: Int,
+                               val algorithm: String, val key: ByteArray) : IOException() {
+        val fingerprint get() = key.sha256fingerprint
+    }
 
-    class ServerNotKnownException(host: String, port: Int) : VerifyException(host, port) {
+    class ServerNotKnownException(host: String, port: Int, algorithm: String, key: ByteArray)
+            : VerifyException(host, port, algorithm, key) {
         override val message get() = "Server at $host:$port is not known"
     }
 
-    class ServerNotVerifiedException(host: String, port: Int, val algorithm: String, val key: ByteArray) : VerifyException(host, port) {
+    class ServerNotVerifiedException(host: String, port: Int, algorithm: String, key: ByteArray)
+            : VerifyException(host, port, algorithm, key) {
         override val message get() = "Server at $host:$port is known, but could not be verified. " +
                 "Chosen algorithm: $algorithm; " +
                 "SHA256 host key fingerprint: $fingerprint"
-
-        val fingerprint get() = key.sha256fingerprint
     }
 }
 

@@ -41,7 +41,7 @@ public class SSHConnection implements IConnection {
     final private KeyPair keyPair;
 
     final private Connection connection;
-    final private ServerHostKeyVerifier hostKeyVerifier;
+    final private ServerHostKeyVerifier serverKeyVerifier;
     private LocalPortForwarder forwarder;
 
     public SSHConnection(String hostname, int port,
@@ -49,10 +49,11 @@ public class SSHConnection implements IConnection {
                          AuthenticationMethod authenticationMethod,
                          String sshPassword,
                          byte[] serializedSshKey,
-                         byte[] sshKnownHosts) throws Exception {
+                         SSHServerKeyVerifier serverKeyVerifier) throws Exception {
         this.hostname = hostname;
         this.port = port;
         this.sshUsername = sshUsername;
+        this.serverKeyVerifier = serverKeyVerifier;
 
         this.authenticationMethod = authenticationMethod;
         if (authenticationMethod == AuthenticationMethod.KEY) {
@@ -67,12 +68,10 @@ public class SSHConnection implements IConnection {
         connection = new Connection(sshHostname, sshPort);
         //connection.setCompression(true);
         //connection.enableDebugging(true, null);
-
-        hostKeyVerifier = new SSHServerKeyVerifier();
     }
 
     @Override public Streams connect() throws IOException {
-        ConnectionInfo connectionInfo = connection.connect(hostKeyVerifier,
+        ConnectionInfo connectionInfo = connection.connect(serverKeyVerifier,
                 CONNECTION_TIMEOUT, CONNECTION_TIMEOUT);
 
         if (authenticationMethod == AuthenticationMethod.KEY) {
