@@ -68,10 +68,7 @@ public class SSHConnection implements IConnection {
         //connection.setCompression(true);
         //connection.enableDebugging(true, null);
 
-        KnownHosts knownHosts = parseKnownHosts(sshKnownHosts);
-        String[] hostKeyAlgorithms = knownHosts.getPreferredServerHostkeyAlgorithmOrder(sshHostname);
-        if (hostKeyAlgorithms != null) connection.setServerHostKeyAlgorithms(hostKeyAlgorithms);
-        hostKeyVerifier = new SSHServerKeyVerifier(parseKnownHosts(sshKnownHosts));
+        hostKeyVerifier = new SSHServerKeyVerifier();
     }
 
     @Override public Streams connect() throws IOException {

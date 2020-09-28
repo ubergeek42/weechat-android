@@ -16,7 +16,6 @@ import static com.ubergeek42.WeechatAndroid.media.Cache.findException;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSL_CLIENT_CERTIFICATE;
 import static com.ubergeek42.WeechatAndroid.utils.ThrowingKeyManagerWrapper.ClientCertificateMismatchException;
 import static com.ubergeek42.WeechatAndroid.utils.Utils.join;
-import static com.ubergeek42.weechat.relay.connection.SSHServerKeyVerifier.HostKeyNotVerifiedException.makeSha2Fingerprint;
 
 public class FriendlyExceptions {
     final Context context;
@@ -46,10 +45,10 @@ public class FriendlyExceptions {
 
         Exception ee = findException(e, SSHServerKeyVerifier.VerifyException.class);
         if (ee != null) {
-            if (ee instanceof SSHServerKeyVerifier.UnknownHostKeyException)
-                return getFriendlyException((SSHServerKeyVerifier.UnknownHostKeyException) ee);
-            if (ee instanceof SSHServerKeyVerifier.HostKeyNotVerifiedException)
-                return getFriendlyException((SSHServerKeyVerifier.HostKeyNotVerifiedException) ee);
+            if (ee instanceof SSHServerKeyVerifier.ServerNotKnownException)
+                return getFriendlyException((SSHServerKeyVerifier.ServerNotKnownException) ee);
+            if (ee instanceof SSHServerKeyVerifier.ServerNotVerifiedException)
+                return getFriendlyException((SSHServerKeyVerifier.ServerNotVerifiedException) ee);
         }
 
         return new Result(getJoinedExceptionString(e).toString(), false);
@@ -76,23 +75,15 @@ public class FriendlyExceptions {
         return new Result(message, true);
     }
 
-    public Result getFriendlyException(SSHServerKeyVerifier.UnknownHostKeyException e) {
+    public Result getFriendlyException(SSHServerKeyVerifier.ServerNotKnownException e) {
         String message = context.getString(
-                R.string.exceptions_ssh_hostname_not_present_in_known_hosts, e.hostname);
+                R.string.exceptions_ssh_hostname_not_present_in_known_hosts, e.getHost());
         return new Result(message, true);
     }
 
-    public Result getFriendlyException(SSHServerKeyVerifier.HostKeyNotVerifiedException e) {
-        String fingerprint;
-        try {
-            fingerprint = makeSha2Fingerprint(e.key);
-        } catch (Exception ee) {
-            ee.printStackTrace();
-            fingerprint = "n/a";
-        }
-
+    public Result getFriendlyException(SSHServerKeyVerifier.ServerNotVerifiedException e) {
         String message = context.getString(R.string.exceptions_ssh_hostkey_not_verified,
-                e.hostname, e.algorithm, fingerprint);
+                e.getHost(), e.getAlgorithm(), e.getFingerprint());
         return new Result(message, true);
     }
 
