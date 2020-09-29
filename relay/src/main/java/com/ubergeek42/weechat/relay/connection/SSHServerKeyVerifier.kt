@@ -35,7 +35,7 @@ enum class Algorithms(val string: String) {
 enum class Key(vararg preferredAlgorithms: String) {
     DSA(Algorithms.DSS.string),
     RSA(Algorithms.RSA512.string, Algorithms.RSA256.string, Algorithms.RSA.string),
-    ECDSA256(Algorithms.ECDSA256.string, Algorithms.ECDSA384.string, Algorithms.ECDSA521.string), // this one is special
+    ECDSA(Algorithms.ECDSA256.string, Algorithms.ECDSA384.string, Algorithms.ECDSA521.string), // this one is special
     Ed25519(Algorithms.Ed25519.string);
 
     val preferredAlgorithms = preferredAlgorithms.toList()
@@ -49,7 +49,7 @@ enum class Key(vararg preferredAlgorithms: String) {
         fun getPreferredHostKeyAlgorithms(algorithm: String): List<String>? {
             return when (val key = fromHostKeyAlgorithm(algorithm)) {
                 null -> null
-                ECDSA256 -> listOf(algorithm)
+                ECDSA -> listOf(algorithm)
                 else -> key.preferredAlgorithms
             }
         }
@@ -176,8 +176,9 @@ interface Identity: Hashable {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     open class VerifyException(val host: String, val port: Int,
-                               val algorithm: String, val key: ByteArray) : IOException() {
-        val fingerprint get() = key.sha256fingerprint
+                               algorithm: String, val key: ByteArray) : IOException() {
+        val keyType = Key.fromHostKeyAlgorithm(algorithm)?.name ?: "Unknown"
+        val fingerprint = key.sha256fingerprint
     }
 
     class ServerNotKnownException(host: String, port: Int, algorithm: String, key: ByteArray)
@@ -188,8 +189,7 @@ interface Identity: Hashable {
     class ServerNotVerifiedException(host: String, port: Int, algorithm: String, key: ByteArray)
             : VerifyException(host, port, algorithm, key) {
         override val message get() = "Server at $host:$port is known, but could not be verified. " +
-                "Chosen algorithm: $algorithm; " +
-                "SHA256 host key fingerprint: $fingerprint"
+                "$keyType key SHA256 fingerprint: $fingerprint"
     }
 }
 

@@ -72,35 +72,34 @@ public class ScrollableDialog extends DialogFragment {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     static public DialogFragment buildServerNotKnownDialog(String host, int port,
-            String algorithm, byte[] key, String sha256fingerprint) {
+            String keyType, byte[] key, String sha256fingerprint) {
+        String server = port == 22 ? host : host + ":" + port;
         ScrollableDialog dialog = new ScrollableDialog(
                 "Unknown server",
-                "Server " + host + ":" + port + " is not known.\n\n" +
-                        "Chosen key verification algorithm: " + algorithm + ";\n\n" +
-                        "SHA-256 fingerprint: " + sha256fingerprint,
+                "Server at " + server + " is not known.\n\n" +
+                        keyType + " key SHA256 fingerprint:\n" + sha256fingerprint,
                 R.string.dialog_button_accept_selected, null,
                 R.string.dialog_button_reject, null
         );
         dialog.positiveButtonListener = (v, i) -> {
-            P.sshServerKeyVerifier.addServerHostKey(host, port, algorithm, key);
+            P.sshServerKeyVerifier.addServerHostKey(host, port, keyType, key);
             ((WeechatActivity) dialog.requireActivity()).connect();
         };
         return dialog;
     }
 
     static public DialogFragment buildServerNotVerifiedDialog(String host, int port,
-            String algorithm, byte[] key, String sha256fingerprint) {
+            String keyType, String sha256fingerprint) {
+        String server = port == 22 ? host : host + ":" + port;
         return new ScrollableDialog(
                 "Server not verified",
                 "Warning: it's possible that someone is doing evil things!\n\n" +
-                        "Server " + host + ":" + port + " is known, " +
+                        "Server " + server + " is known, " +
                         "but its key doesn't match any of the keys that we have.\n\n" +
-                        "Chosen key verification algorithm: " + algorithm + ";\n\n" +
-                        "SHA-256 fingerprint: " + sha256fingerprint + "\n\n" +
+                        keyType + " key SHA256 fingerprint:\n" + sha256fingerprint + "\n\n" +
                         "If you want to continue, please clear known SSH hosts in preferences.",
                 null, null,
                 R.string.dialog_button_back_to_safety, null
         );
     }
-
 }
