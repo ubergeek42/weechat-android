@@ -585,4 +585,15 @@ strategies:
 
     <string name="pref_known_hosts_set">Known hosts set</string>
     <string name="pref_known_hosts_cleared">Known hosts cleared</string>
+
+    <string name="pref_clear_known_hosts_confirmation">Clear known hosts?</string>
+    <string name="pref_clear_known_hosts_cancel">Cancel</string>
+    <string name="pref_clear_known_hosts_clear">Clear</string>
+    <string name="pref_clear_known_hosts_cleared">Known hosts cleared</string>
+    <string name="pref_clear_known_hosts_entries_0">No entries</string>
+    <plurals name="pref_clear_known_hosts_entries">
+        <item quantity="one">%s entry</item>
+        <item quantity="other">%s entries</item>
+    </plurals>
+
 </resources>

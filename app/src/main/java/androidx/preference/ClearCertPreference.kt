@@ -21,8 +21,7 @@ class ClearCertPreference(context: Context, attrs: AttributeSet) : ClearPreferen
 
     override fun clear() {
         val removed = SSLHandler.getInstance(context).removeKeystore()
-        val msg = context.getString(if (removed)
-            R.string.pref_clear_certs_success else R.string.pref_clear_certs_failure)
-        Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+        val message = if (removed) R.string.pref_clear_certs_success else R.string.pref_clear_certs_failure
+        Toast.makeText(context, message, Toast.LENGTH_LONG).show()
     }
 }
