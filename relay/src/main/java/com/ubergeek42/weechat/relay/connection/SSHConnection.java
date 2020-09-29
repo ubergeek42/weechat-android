@@ -70,7 +70,7 @@ public class SSHConnection implements IConnection {
         //connection.enableDebugging(true, null);
 
         connection.setServerHostKeyAlgorithms(serverKeyVerifier
-                .getPreferredKeyAlgorithmsForHostAsWellAllTheOthers(sshHostname, sshPort));
+                .getPreferredServerHostKeyAlgorithmsForServer(sshHostname, sshPort));
     }
 
     @Override public Streams connect() throws IOException {

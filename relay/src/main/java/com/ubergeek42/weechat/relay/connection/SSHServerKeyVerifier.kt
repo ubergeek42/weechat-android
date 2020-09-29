@@ -1,6 +1,6 @@
 package com.ubergeek42.weechat.relay.connection
 
-import com.trilead.ssh2.ExtendedServerHostKeyVerifier
+import com.trilead.ssh2.ServerHostKeyVerifier
 import com.trilead.ssh2.crypto.Base64
 import com.trilead.ssh2.signature.*
 import kotlinx.serialization.Serializable
@@ -8,22 +8,37 @@ import kotlinx.serialization.Transient
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.modules.SerializersModule
-import kotlinx.serialization.modules.polymorphic
-import kotlinx.serialization.modules.subclass
 import java.io.IOException
 import java.security.MessageDigest
 
 
-enum class Algorithms(val string: String) {
-    Ed25519(Ed25519Verify.ED25519_ID),
-    ECDSA256(ECDSASHA2Verify.ECDSA_SHA2_PREFIX + "nistp256"),
-    ECDSA384(ECDSASHA2Verify.ECDSA_SHA2_PREFIX + "nistp384"),
-    ECDSA521(ECDSASHA2Verify.ECDSA_SHA2_PREFIX + "nistp521"),
-    RSA512(RSASHA512Verify.ID_RSA_SHA_2_512),
-    RSA256(RSASHA256Verify.ID_RSA_SHA_2_256),
-    RSA(RSASHA1Verify.ID_SSH_RSA),
-    DSS(DSASHA1Verify.ID_SSH_DSS);
+// note that this verifier doesn't check for DNS spoofing. while useful, DNS spoofing warnings seem
+// to always be accompanied with verification failure. this will produce a big warning either way.
+// it is possible to have a situation where IP key becomes different from the host key, and the
+// latter is a verifiable key. ssh in this case produces a small warning:
+//
+//   Warning: the ECDSA host key for '...' differs from the key for the IP address '...'
+//   Offending key for IP in /home/user/.ssh/known_hosts:3
+//   Matching host key in /home/user/.ssh/known_hosts:2
+//   Are you sure you want to continue connecting (yes/no)?
+//
+// in this case our verification will silently succeed. it's hard to imagine a situation when this
+// would be a vector of an attack. this might be revisited in the future
+
+
+// these are host key verification algorithms in the order of our preference
+// each string represents a combination of key type (DSA, RSA, ECDSA, Ed25519)
+// and a hashing algorithm (SHA1, SHA2-256, SHA2-384 SHA2-512)
+// note that NIST p curve 521 is not a typo
+enum class HostKeyAlgorithms(val string: String) {
+    Ed25519Sha512(Ed25519Verify.ED25519_ID),
+    EcdsaNistp265Sha256(ECDSASHA2Verify.ECDSA_SHA2_PREFIX + "nistp256"),
+    EcdsaNistp384Sha384(ECDSASHA2Verify.ECDSA_SHA2_PREFIX + "nistp384"),
+    EcdsaNistp521Sha512(ECDSASHA2Verify.ECDSA_SHA2_PREFIX + "nistp521"),
+    RsaSha512(RSASHA512Verify.ID_RSA_SHA_2_512),
+    RsaSha256(RSASHA256Verify.ID_RSA_SHA_2_256),
+    RsaSha1(RSASHA1Verify.ID_SSH_RSA),
+    DsaSha1(DSASHA1Verify.ID_SSH_DSS);
 
     companion object {
         val preferred = values().map { it.string }
@@ -31,27 +46,25 @@ enum class Algorithms(val string: String) {
 }
 
 
-@Suppress("unused", "MemberVisibilityCanBePrivate")
-enum class Key(vararg preferredAlgorithms: String) {
-    DSA(Algorithms.DSS.string),
-    RSA(Algorithms.RSA512.string, Algorithms.RSA256.string, Algorithms.RSA.string),
-    ECDSA(Algorithms.ECDSA256.string, Algorithms.ECDSA384.string, Algorithms.ECDSA521.string), // this one is special
-    Ed25519(Algorithms.Ed25519.string);
+// these are the key types. for simplicity, we consider EC keys with different curves different.
+// accompanying is the display name, as well as the supported host key verification algorithms
+@Suppress("unused")
+enum class KeyType(val displayName: String, vararg algorithms: String) {
+    Ed25519("Ed25519", HostKeyAlgorithms.Ed25519Sha512.string),
+    EcdsaNistp256("ECDSA", HostKeyAlgorithms.EcdsaNistp265Sha256.string),
+    EcdsaNistp384("ECDSA", HostKeyAlgorithms.EcdsaNistp384Sha384.string),
+    EcdsaNistp521("ECDSA", HostKeyAlgorithms.EcdsaNistp521Sha512.string),
+    Rsa("RSA", HostKeyAlgorithms.RsaSha512.string,
+               HostKeyAlgorithms.RsaSha256.string,
+               HostKeyAlgorithms.RsaSha1.string),
+    Dsa("DSA", HostKeyAlgorithms.DsaSha1.string);
 
-    val preferredAlgorithms = preferredAlgorithms.toList()
+    val algorithms = algorithms.toList()
 
     companion object {
-        fun fromHostKeyAlgorithm(algorithm: String): Key? {
-            values().forEach { if (algorithm in it.preferredAlgorithms) return it }
+        fun fromHostKeyAlgorithm(algorithm: String): KeyType? {
+            values().forEach { if (algorithm in it.algorithms) return it }
             return null
-        }
-
-        fun getPreferredHostKeyAlgorithms(algorithm: String): List<String>? {
-            return when (val key = fromHostKeyAlgorithm(algorithm)) {
-                null -> null
-                ECDSA -> listOf(algorithm)
-                else -> key.preferredAlgorithms
-            }
         }
     }
 }
@@ -60,36 +73,32 @@ enum class Key(vararg preferredAlgorithms: String) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-interface Hashable {
-    override fun hashCode(): Int
-    override fun equals(other: Any?): Boolean
-}
+@Serializable data class Server(
+    val host: String,
+    val port: Int
+) {
+    override fun toString() = if (port == 22) host else "$host:$port"
 
-
-interface Server: Hashable
-
-
-interface Identity: Hashable {
-    fun matches(other: Identity): Boolean
-    fun getAlgorithms(): List<String>?
-}
-
-
-@Serializable data class ServerImpl(val hash: String): Server {
     companion object {
-        fun fromHostAndPort(host: String, port: Int) = ServerImpl("$host:$port")
+        fun fromHostAndPort(host: String, port: Int) = Server(host, port)
     }
 }
 
 
-@Serializable data class IdentityImpl(val algorithm: String, val hash: String): Identity {
-    override fun matches(other: Identity) = if (other is IdentityImpl)
-            this.hash == other.hash else false
+// key type here is null if it can't be determined
+// key is stored as a base64-encoded string as data classes don't do byte arrays out of the box yet
+// incidentally, this gets us the same strings as are used in known_hosts files
+@Serializable data class Identity(
+    val keyType: KeyType?,
+    val base64key: String
+) {
+    fun matches(other: Identity) = this.base64key == other.base64key
 
-    override fun getAlgorithms(): List<String>? = Key.getPreferredHostKeyAlgorithms(algorithm)
+    val sha256keyFingerprint get() = base64key.fromBase64.toSha256fingerprint
 
     companion object {
-        fun fromKey(algorithm: String, key: ByteArray) = IdentityImpl(algorithm, key.base64)
+        fun fromAlgorithmAndKey(algorithm: String, key: ByteArray) =
+                Identity(KeyType.fromHostKeyAlgorithm(algorithm), key.toBase64)
     }
 }
 
@@ -97,7 +106,7 @@ interface Identity: Hashable {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-@Serializable class SSHServerKeyVerifier : ExtendedServerHostKeyVerifier() {
+@Serializable class SSHServerKeyVerifier : ServerHostKeyVerifier {
     fun interface Listener {
         fun onChange()
     }
@@ -108,53 +117,43 @@ interface Identity: Hashable {
 
     @Throws(VerifyException::class)
     override fun verifyServerHostKey(host: String, port: Int, algorithm: String, key: ByteArray): Boolean {
-        val server = ServerImpl.fromHostAndPort(host, port)
-        val identity = IdentityImpl.fromKey(algorithm, key)
+        val server = Server.fromHostAndPort(host, port)
+        val identity = Identity.fromAlgorithmAndKey(algorithm, key)
 
-        val knownIdentities = knownHosts[server] ?:
-            throw ServerNotKnownException(host, port, algorithm, key)
+        val knownIdentities = knownHosts[server]
+
+        if (knownIdentities.isNullOrEmpty())
+            throw ServerNotKnownException(server, identity)
 
         if (!knownIdentities.any { it.matches(identity) })
-            throw ServerNotVerifiedException(host, port, algorithm, key)
+            throw ServerNotVerifiedException(server, identity)
 
         return true
     }
 
-    // if this returns a non-empty list, and the server offers key types that we lack,
-    // the connection will fail without ever calling `verifyServerHostKey()`.
-    // we want it to be called so that we can raise an appropriate exception.
-    // therefore we return null here, and instead the below method is used to advertise all
-    // algorithms that we are aware of
-    override fun getKnownKeyAlgorithmsForHost(host: String, port: Int): List<String>? {
-        return null
-    }
+    // returns *all* supported algorithms, in the default preferred order, except that the ones
+    // that are valid for the given server come first.
 
-    // returns *all* supported algorithms, with the ones that are valid for the server first,
-    // and otherwise sorted by the the default preferred order
-    fun getPreferredKeyAlgorithmsForHostAsWellAllTheOthers(host: String, port: Int): Array<String> {
-        val server = ServerImpl.fromHostAndPort(host, port)
-        val result = Algorithms.preferred.toMutableList()
+    // we don't send only those algorithms that are valid for the current server in order to make
+    // sure that verifyServerHostKey is called in the case of key type mismatch. e.g. if we only
+    // offer to verify RSA keys, and the server provides only EC keys, it means that the server
+    // key has changed, and in this case we want to raise ServerNotVerifiedException. but as these
+    // keys are incompatible, the library will simply close the connection with IOException,
+    // and will never call verifyServerHostKey.
+    fun getPreferredServerHostKeyAlgorithmsForServer(host: String, port: Int): Array<String> {
+        val result = HostKeyAlgorithms.preferred.toMutableList()
 
-        knownHosts[server]?.let { identities ->
-            val serverPreferred = identities.mapNotNull { it.getAlgorithms() }.flatten()
-            Algorithms.preferred.reversed().forEach {
-                if (it in serverPreferred) result.moveToFront(it)
+        knownHosts[Server.fromHostAndPort(host, port)]?.let { identities ->
+            val serverAlgorithms = identities.mapNotNull { it.keyType?.algorithms }.flatten()
+            HostKeyAlgorithms.preferred.reversed().forEach {
+                if (it in serverAlgorithms) result.moveToFront(it)
             }
         }
 
         return result.toTypedArray()
     }
 
-    override fun removeServerHostKey(host: String, port: Int, algorithm: String, key: ByteArray) {
-        val server = ServerImpl.fromHostAndPort(host, port)
-        val identity = IdentityImpl.fromKey(algorithm, key)
-        knownHosts[server]?.remove(identity)
-        listener?.onChange()
-    }
-
-    override fun addServerHostKey(host: String, port: Int, algorithm: String, key: ByteArray) {
-        val server = ServerImpl.fromHostAndPort(host, port)
-        val identity = IdentityImpl.fromKey(algorithm, key)
+    fun addServerHostKey(server: Server, identity: Identity) {
         knownHosts.getOrPut(server, ::mutableSetOf).add(identity)
         listener?.onChange()
     }
@@ -175,22 +174,41 @@ interface Identity: Hashable {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    open class VerifyException(val host: String, val port: Int,
-                               algorithm: String, val key: ByteArray) : IOException() {
-        val keyType = Key.fromHostKeyAlgorithm(algorithm)?.name ?: "Unknown"
-        val fingerprint = key.sha256fingerprint
+    open class VerifyException(val server: Server, val identity: Identity) : IOException()
+
+    class ServerNotKnownException(server: Server, identity: Identity) : VerifyException(server, identity) {
+        override val message get() = "Server at $server is not known"
     }
 
-    class ServerNotKnownException(host: String, port: Int, algorithm: String, key: ByteArray)
-            : VerifyException(host, port, algorithm, key) {
-        override val message get() = "Server at $host:$port is not known"
+    class ServerNotVerifiedException(server: Server, identity: Identity) : VerifyException(server, identity) {
+        override val message get() = "Server at $server is known, but could not be verified. " +
+                "${identity.keyType} key SHA256 fingerprint: ${identity.sha256keyFingerprint}"
     }
 
-    class ServerNotVerifiedException(host: String, port: Int, algorithm: String, key: ByteArray)
-            : VerifyException(host, port, algorithm, key) {
-        override val message get() = "Server at $host:$port is known, but could not be verified. " +
-                "$keyType key SHA256 fingerprint: $fingerprint"
-    }
+    // these are methods from ExtendedServerHostKeyVerifier
+    // at the time being these mostly aren't being used
+    // see https://github.com/kruton/sshlib/commits/hostkeys-prove
+    //
+    // the result of this method is filtering the wanted algorithms—either the library default ones
+    // or the ones produced by getPreferredServerHostKeyAlgorithmsForServer. this leads to the same
+    // problem that's mentioned in the comment above, so return null for no-op
+    //override fun getKnownKeyAlgorithmsForHost(host: String, port: Int): List<String>? {
+    //    return null
+    //}
+    //
+    //override fun removeServerHostKey(host: String, port: Int, algorithm: String, key: ByteArray) {
+    //    val server = Server.fromHostAndPort(host, port)
+    //    val identity = Identity.fromKey(KeyType.fromHostKeyAlgorithm(algorithm), key)
+    //    knownHosts[server]?.remove(identity)
+    //    listener?.onChange()
+    //}
+    //
+    //override fun addServerHostKey(host: String, port: Int, algorithm: String, key: ByteArray) {
+    //    val server = Server.fromHostAndPort(host, port)
+    //    val identity = Identity.fromKey(KeyType.fromHostKeyAlgorithm(algorithm), key)
+    //    knownHosts.getOrPut(server, ::mutableSetOf).add(identity)
+    //    listener?.onChange()
+    //}
 }
 
 
@@ -198,21 +216,16 @@ interface Identity: Hashable {
 
 private val sha256digest = MessageDigest.getInstance("SHA256")
 
-private val ByteArray.base64 get() = String(Base64.encode(this))
+private val ByteArray.toBase64 get() = String(Base64.encode(this))
+private val String.fromBase64 get() = Base64.decode(this.toCharArray())
 
-private val ByteArray.sha256 get() = sha256digest.digest(this).base64
-private val ByteArray.sha256fingerprint get() = this.sha256.trimEnd('=')
+private val ByteArray.toSha256 get() = sha256digest.digest(this).toBase64
+private val ByteArray.toSha256fingerprint get() = this.toSha256.trimEnd('=')
 
 private fun <T> MutableList<T>.moveToFront(t: T) {
     this.remove(t)
     this.add(0, t)
 }
 
-val json = Json {
-    allowStructuredMapKeys = true
-
-    serializersModule = SerializersModule {
-        polymorphic(Server::class) { subclass(ServerImpl::class) }
-        polymorphic(Identity::class) { subclass(IdentityImpl::class) }
-    }
-}
+// allows putting Servers into Map
+val json = Json { allowStructuredMapKeys = true }
