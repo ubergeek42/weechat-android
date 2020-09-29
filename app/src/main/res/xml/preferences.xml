@@ -35,7 +35,7 @@
                 android:summary="%s"/>
             <EditTextPreferenceFix android:key="ssh_password" android:title="@string/pref_ssh_password" android:summary="%s" android:password="true" android:singleLine="true"/>
             <PrivateKeyPickerPreference android:key="ssh_key_file" android:title="@string/pref_ssh_keyfile" android:summary="@string/pref_ssh_keyfile_summary" />
-            <ClearKnownHostsPreference android:key="ssl_clear_certs"
+            <ClearKnownHostsPreference android:key="ssh_clear_known_host"
                 android:title="Clear known hosts" />
         </PreferenceScreen>
 

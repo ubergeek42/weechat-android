@@ -228,4 +228,4 @@ private fun <T> MutableList<T>.moveToFront(t: T) {
 }
 
 // allows putting Servers into Map
-val json = Json { allowStructuredMapKeys = true }
+private val json = Json { allowStructuredMapKeys = true }
