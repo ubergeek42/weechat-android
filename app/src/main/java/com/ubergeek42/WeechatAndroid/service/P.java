@@ -53,7 +53,100 @@ import java.util.LinkedList;
 
 import javax.net.ssl.SSLSocketFactory;
 
-import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_AUTO_HIDE_ACTIONBAR;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_AUTO_HIDE_ACTIONBAR_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_BUFFER_FONT;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_BUFFER_FONT_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_COLOR_SCHEME_DAY;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_COLOR_SCHEME_NIGHT;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_CONNECTION_TYPE;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_CONNECTION_TYPE_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_DIM_DOWN;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_DIM_DOWN_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_ENCLOSE_NICK;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_ENCLOSE_NICK_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_FILTER_LINES;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_FILTER_LINES_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_FILTER_NONHUMAN_BUFFERS;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_FILTER_NONHUMAN_BUFFERS_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_HIDE_HIDDEN_BUFFERS;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_HIDE_HIDDEN_BUFFERS_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_HOST;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_HOST_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_HOTLIST_SYNC;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_HOTLIST_SYNC_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_LINE_INCREMENT;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_LINE_INCREMENT_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_MAX_WIDTH;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_MAX_WIDTH_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_NOTIFICATION_ENABLE;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_NOTIFICATION_ENABLE_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_NOTIFICATION_LIGHT;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_NOTIFICATION_LIGHT_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_NOTIFICATION_SOUND;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_NOTIFICATION_SOUND_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_NOTIFICATION_TICKER;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_NOTIFICATION_TICKER_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_NOTIFICATION_VIBRATE;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_NOTIFICATION_VIBRATE_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_OPTIMIZE_TRAFFIC;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_OPTIMIZE_TRAFFIC_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_PASSWORD;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_PASSWORD_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_PING_ENABLED;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_PING_ENABLED_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_PING_IDLE;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_PING_IDLE_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_PING_TIMEOUT;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_PING_TIMEOUT_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_PORT;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_PORT_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_PREFIX_ALIGN;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_PREFIX_ALIGN_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_RECONNECT;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_RECONNECT_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SHOW_BUFFER_FILTER;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SHOW_BUFFER_FILTER_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SHOW_SEND;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SHOW_SEND_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SHOW_TAB;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SHOW_TAB_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SORT_BUFFERS;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SORT_BUFFERS_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_AUTHENTICATION_METHOD;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_AUTHENTICATION_METHOD_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_AUTHENTICATION_METHOD_KEY;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_HOST;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_HOST_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_KEY_FILE;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_KEY_FILE_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_PASSWORD;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_PASSWORD_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_PORT;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_PORT_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_SERVER_KEY_VERIFIER;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_SERVER_KEY_VERIFIER_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_USER;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_USER_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSL_PIN_REQUIRED;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSL_PIN_REQUIRED_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_TEXT_SIZE;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_TEXT_SIZE_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_THEME;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_THEME_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_THEME_DARK;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_THEME_LIGHT;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_THEME_SWITCH;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_THEME_SWITCH_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_TIMESTAMP_FORMAT;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_TIMESTAMP_FORMAT_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_TYPE_SSH;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_TYPE_SSL;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_TYPE_WEBSOCKET_SSL;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_VOLUME_BTN_SIZE;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_VOLUME_BTN_SIZE_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_WS_PATH;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_WS_PATH_D;
 
 
 public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
@@ -260,19 +353,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         sshPassword = p.getString(PREF_SSH_PASSWORD, PREF_SSH_PASSWORD_D);
         sshSerializedKey = PrivateKeyPickerPreference.getData(p.getString(PREF_SSH_KEY_FILE, PREF_SSH_KEY_FILE_D));
 
-        if (sshServerKeyVerifier == null) {
-            String data = p.getString(PREF_SSH_SERVER_KEY_VERIFIER, PREF_SSH_SERVER_KEY_VERIFIER_D);
-            if (data != null && data.length() > 0) {
-                try {
-                    sshServerKeyVerifier = SSHServerKeyVerifier.decodeFromString(data);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-            if (sshServerKeyVerifier == null) sshServerKeyVerifier = new SSHServerKeyVerifier();
-            sshServerKeyVerifier.setListener(() -> p.edit().putString(PREF_SSH_SERVER_KEY_VERIFIER,
-                    sshServerKeyVerifier.encodeToString()).apply());
-        }
+        loadServerKeyVerifier();
 
         lineIncrement = Integer.parseInt(getString(PREF_LINE_INCREMENT, PREF_LINE_INCREMENT_D));
         reconnect = p.getBoolean(PREF_RECONNECT, PREF_RECONNECT_D);
@@ -292,13 +373,35 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         connectionSurelyPossibleWithCurrentPreferences = false;     // and don't call me Shirley
     }
 
+    public static void loadServerKeyVerifier() {
+        if (sshServerKeyVerifier != null)
+            return;
+
+        String data = p.getString(PREF_SSH_SERVER_KEY_VERIFIER, PREF_SSH_SERVER_KEY_VERIFIER_D);
+
+        if (data != null && !TextUtils.isEmpty(data)) {
+            try {
+                sshServerKeyVerifier = SSHServerKeyVerifier.decodeFromString(data);
+            } catch (Exception e) {
+                kitty.warn("Error while decoding server key verifier", e);
+            }
+        }
+
+        if (sshServerKeyVerifier == null) sshServerKeyVerifier = new SSHServerKeyVerifier();
+
+        sshServerKeyVerifier.setListener(() -> {
+            String newData = sshServerKeyVerifier.encodeToString();
+            p.edit().putString(PREF_SSH_SERVER_KEY_VERIFIER, newData).apply();
+        });
+    }
+
     @MainThread public static @StringRes int validateConnectionPreferences() {
         if (TextUtils.isEmpty(host)) return R.string.pref_error_relay_host_not_set;
         if (TextUtils.isEmpty(pass)) return R.string.pref_error_relay_password_not_set;
         if (connectionType.equals(PREF_TYPE_SSH)) {
             if (TextUtils.isEmpty(sshHost)) return R.string.pref_error_ssh_host_not_set;
             if (sshAuthenticationMethod == SSHConnection.AuthenticationMethod.KEY) {
-                if (Utils.isEmpty(sshSerializedKey)) return R.string.pref_error_no_ssh_key_file;;
+                if (Utils.isEmpty(sshSerializedKey)) return R.string.pref_error_no_ssh_key_file;
             } else {
                 if (TextUtils.isEmpty(sshPassword)) return R.string.pref_error_no_ssh_password;
             }

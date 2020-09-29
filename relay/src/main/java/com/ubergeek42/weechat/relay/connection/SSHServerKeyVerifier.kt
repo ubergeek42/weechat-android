@@ -159,6 +159,13 @@ interface Identity: Hashable {
         listener?.onChange()
     }
 
+    fun clear() {
+        knownHosts.clear()
+        listener?.onChange()
+    }
+
+    val numberOfRecords get() = knownHosts.values.sumBy { it.size }
+
     fun encodeToString() = json.encodeToString(this)
 
     companion object {

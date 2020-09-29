@@ -13,13 +13,14 @@ import androidx.appcompat.widget.AppCompatTextView;
 import androidx.fragment.app.DialogFragment;
 
 import com.ubergeek42.WeechatAndroid.R;
+import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.service.P;
 
 public class ScrollableDialog extends DialogFragment {
     final @NonNull CharSequence title;
     final @NonNull CharSequence text;
     final @Nullable Integer positiveButtonText;
-    final @Nullable DialogInterface.OnClickListener positiveButtonListener;
+          @Nullable DialogInterface.OnClickListener positiveButtonListener;
     final @Nullable Integer negativeButtonText;
     final @Nullable DialogInterface.OnClickListener negativeButtonListener;
 
@@ -72,31 +73,33 @@ public class ScrollableDialog extends DialogFragment {
 
     static public DialogFragment buildServerNotKnownDialog(String host, int port,
             String algorithm, byte[] key, String sha256fingerprint) {
-        return new ScrollableDialog(
+        ScrollableDialog dialog = new ScrollableDialog(
                 "Unknown server",
                 "Server " + host + ":" + port + " is not known.\n\n" +
                         "Chosen key verification algorithm: " + algorithm + ";\n\n" +
                         "SHA-256 fingerprint: " + sha256fingerprint,
-                R.string.dialog_button_accept_selected,
-                (v, i) -> P.sshServerKeyVerifier.addServerHostKey(host, port, algorithm, key),
-                R.string.dialog_button_reject,
-                null
+                R.string.dialog_button_accept_selected, null,
+                R.string.dialog_button_reject, null
         );
+        dialog.positiveButtonListener = (v, i) -> {
+            P.sshServerKeyVerifier.addServerHostKey(host, port, algorithm, key);
+            ((WeechatActivity) dialog.requireActivity()).connect();
+        };
+        return dialog;
     }
 
     static public DialogFragment buildServerNotVerifiedDialog(String host, int port,
             String algorithm, byte[] key, String sha256fingerprint) {
         return new ScrollableDialog(
                 "Server not verified",
-                "Server " + host + ":" + port + " is known, but its key doesn't match any of the keys that we have.\n\n" +
-                        "Warning: it's possible that someone is doing evil things!\n\n" +
+                "Warning: it's possible that someone is doing evil things!\n\n" +
+                        "Server " + host + ":" + port + " is known, " +
+                        "but its key doesn't match any of the keys that we have.\n\n" +
                         "Chosen key verification algorithm: " + algorithm + ";\n\n" +
                         "SHA-256 fingerprint: " + sha256fingerprint + "\n\n" +
                         "If you want to continue, please clear known SSH hosts in preferences.",
-                null,
-                null,
-                R.string.dialog_button_back_to_safety,
-                null
+                null, null,
+                R.string.dialog_button_back_to_safety, null
         );
     }
 
