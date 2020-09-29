@@ -39,6 +39,7 @@ public class Constants {
     final static public String PREF_SSH_PASSWORD = "ssh_password"; final public static String PREF_SSH_PASSWORD_D = "";
     final static public String PREF_SSH_KEY_FILE = "ssh_key_file"; final public static String PREF_SSH_KEY_FILE_D = null;
     final static public String PREF_SSH_KNOWN_HOSTS = "ssh_known_hosts"; final public static String PREF_SSH_KNOWN_HOSTS_D = "";
+    final static public String PREF_SSH_SERVER_KEY_VERIFIER = "ssh_server_key_verifier"; final public static String PREF_SSH_SERVER_KEY_VERIFIER_D = "";
 
     // relay
     final static public String PREF_HOST = "host"; final public static String PREF_HOST_D = null;

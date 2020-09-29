@@ -4,9 +4,13 @@ import com.trilead.ssh2.ExtendedServerHostKeyVerifier
 import com.trilead.ssh2.crypto.Base64
 import com.trilead.ssh2.signature.*
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.polymorphic
+import kotlinx.serialization.modules.subclass
 import java.io.IOException
 import java.security.MessageDigest
 
@@ -93,7 +97,13 @@ interface Identity: Hashable {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-@Serializable open class SSHServerKeyVerifier : ExtendedServerHostKeyVerifier() {
+@Serializable class SSHServerKeyVerifier : ExtendedServerHostKeyVerifier() {
+    fun interface Listener {
+        fun onChange()
+    }
+
+    @Transient var listener: Listener? = null
+
     private val knownHosts = mutableMapOf<Server, MutableSet<Identity>>()
 
     @Throws(VerifyException::class)
@@ -139,20 +149,21 @@ interface Identity: Hashable {
         val server = ServerImpl.fromHostAndPort(host, port)
         val identity = IdentityImpl.fromKey(algorithm, key)
         knownHosts[server]?.remove(identity)
+        listener?.onChange()
     }
 
     override fun addServerHostKey(host: String, port: Int, algorithm: String, key: ByteArray) {
         val server = ServerImpl.fromHostAndPort(host, port)
         val identity = IdentityImpl.fromKey(algorithm, key)
-        knownHosts.getOrPut(server, ::mutableSetOf)
-        knownHosts[server]!!.add(identity)
+        knownHosts.getOrPut(server, ::mutableSetOf).add(identity)
+        listener?.onChange()
     }
 
-    fun encodeToString() = Json.encodeToString(this)
+    fun encodeToString() = json.encodeToString(this)
 
     companion object {
         @JvmStatic @Throws(IllegalArgumentException::class)     // actually SerializationException
-        fun decodeFromString(string: String) = Json.decodeFromString<SSHServerKeyVerifier>(string)
+        fun decodeFromString(string: String) = json.decodeFromString<SSHServerKeyVerifier>(string)
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -175,6 +186,7 @@ interface Identity: Hashable {
     }
 }
 
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 private val sha256digest = MessageDigest.getInstance("SHA256")
@@ -187,4 +199,13 @@ private val ByteArray.sha256fingerprint get() = this.sha256.trimEnd('=')
 private fun <T> MutableList<T>.moveToFront(t: T) {
     this.remove(t)
     this.add(0, t)
+}
+
+val json = Json {
+    allowStructuredMapKeys = true
+
+    serializersModule = SerializersModule {
+        polymorphic(Server::class) { subclass(ServerImpl::class) }
+        polymorphic(Identity::class) { subclass(IdentityImpl::class) }
+    }
 }

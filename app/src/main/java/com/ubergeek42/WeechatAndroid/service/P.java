@@ -22,7 +22,6 @@ import androidx.annotation.StringRes;
 import androidx.annotation.WorkerThread;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
-import androidx.preference.FilePreference;
 import androidx.preference.PrivateKeyPickerPreference;
 import androidx.preference.ThemeManager;
 
@@ -47,7 +46,6 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -55,100 +53,7 @@ import java.util.LinkedList;
 
 import javax.net.ssl.SSLSocketFactory;
 
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_AUTO_HIDE_ACTIONBAR;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_AUTO_HIDE_ACTIONBAR_D;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_BUFFER_FONT;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_BUFFER_FONT_D;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_COLOR_SCHEME_DAY;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_COLOR_SCHEME_NIGHT;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_CONNECTION_TYPE;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_CONNECTION_TYPE_D;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_DIM_DOWN;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_DIM_DOWN_D;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_ENCLOSE_NICK;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_ENCLOSE_NICK_D;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_FILTER_LINES;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_FILTER_LINES_D;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_FILTER_NONHUMAN_BUFFERS;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_FILTER_NONHUMAN_BUFFERS_D;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_HIDE_HIDDEN_BUFFERS;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_HIDE_HIDDEN_BUFFERS_D;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_HOST;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_HOST_D;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_HOTLIST_SYNC;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_HOTLIST_SYNC_D;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_LINE_INCREMENT;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_LINE_INCREMENT_D;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_MAX_WIDTH;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_MAX_WIDTH_D;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_NOTIFICATION_ENABLE;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_NOTIFICATION_ENABLE_D;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_NOTIFICATION_LIGHT;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_NOTIFICATION_LIGHT_D;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_NOTIFICATION_SOUND;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_NOTIFICATION_SOUND_D;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_NOTIFICATION_TICKER;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_NOTIFICATION_TICKER_D;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_NOTIFICATION_VIBRATE;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_NOTIFICATION_VIBRATE_D;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_OPTIMIZE_TRAFFIC;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_OPTIMIZE_TRAFFIC_D;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_PASSWORD;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_PASSWORD_D;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_PING_ENABLED;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_PING_ENABLED_D;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_PING_IDLE;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_PING_IDLE_D;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_PING_TIMEOUT;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_PING_TIMEOUT_D;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_PORT;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_PORT_D;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_PREFIX_ALIGN;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_PREFIX_ALIGN_D;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_RECONNECT;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_RECONNECT_D;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SHOW_BUFFER_FILTER;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SHOW_BUFFER_FILTER_D;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SHOW_SEND;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SHOW_SEND_D;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SHOW_TAB;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SHOW_TAB_D;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SORT_BUFFERS;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SORT_BUFFERS_D;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_AUTHENTICATION_METHOD;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_AUTHENTICATION_METHOD_D;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_AUTHENTICATION_METHOD_KEY;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_HOST;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_HOST_D;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_KEY_FILE;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_KEY_FILE_D;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_KNOWN_HOSTS;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_KNOWN_HOSTS_D;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_PASSWORD;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_PASSWORD_D;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_PORT;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_PORT_D;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_USER;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_USER_D;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSL_PIN_REQUIRED;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSL_PIN_REQUIRED_D;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_TEXT_SIZE;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_TEXT_SIZE_D;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_THEME;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_THEME_D;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_THEME_DARK;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_THEME_LIGHT;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_THEME_SWITCH;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_THEME_SWITCH_D;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_TIMESTAMP_FORMAT;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_TIMESTAMP_FORMAT_D;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_TYPE_SSH;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_TYPE_SSL;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_TYPE_WEBSOCKET_SSL;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_VOLUME_BTN_SIZE;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_VOLUME_BTN_SIZE_D;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_WS_PATH;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_WS_PATH_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
 
 
 public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
@@ -356,13 +261,17 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         sshSerializedKey = PrivateKeyPickerPreference.getData(p.getString(PREF_SSH_KEY_FILE, PREF_SSH_KEY_FILE_D));
 
         if (sshServerKeyVerifier == null) {
-            try {
-                sshServerKeyVerifier = SSHServerKeyVerifier.decodeFromString(Arrays.toString(
-                        FilePreference.getData(p.getString(PREF_SSH_KNOWN_HOSTS, PREF_SSH_KNOWN_HOSTS_D))));
-            } catch (Exception e) {
-                e.printStackTrace();
-                sshServerKeyVerifier = new SSHServerKeyVerifier();
+            String data = p.getString(PREF_SSH_SERVER_KEY_VERIFIER, PREF_SSH_SERVER_KEY_VERIFIER_D);
+            if (data != null && data.length() > 0) {
+                try {
+                    sshServerKeyVerifier = SSHServerKeyVerifier.decodeFromString(data);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
+            if (sshServerKeyVerifier == null) sshServerKeyVerifier = new SSHServerKeyVerifier();
+            sshServerKeyVerifier.setListener(() -> p.edit().putString(PREF_SSH_SERVER_KEY_VERIFIER,
+                    sshServerKeyVerifier.encodeToString()).apply());
         }
 
         lineIncrement = Integer.parseInt(getString(PREF_LINE_INCREMENT, PREF_LINE_INCREMENT_D));
