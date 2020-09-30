@@ -312,7 +312,6 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
             } else {
                 if (TextUtils.isEmpty(sshPassword)) return R.string.pref_error_no_ssh_password;
             }
-            // if (Utils.isEmpty(sshServerKeyVerifier)) return R.string.pref_error_no_ssh_known_hosts;
         }
         return 0;
     }

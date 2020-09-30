@@ -55,3 +55,14 @@
 # glide
 -keep public class * extends com.bumptech.glide.module.AppGlideModule
 -keep class com.bumptech.glide.GeneratedAppGlideModuleImpl
+
+# https://github.com/Kotlin/kotlinx.serialization#android
+-keepattributes *Annotation*, InnerClasses
+-dontnote kotlinx.serialization.SerializationKt
+-keep,includedescriptorclasses class com.ubergeek42.weechat.**$$serializer { *; }
+-keepclassmembers class com.ubergeek42.weechat.** {
+    *** Companion;
+}
+-keepclasseswithmembers class com.ubergeek42.weechat.** {
+    kotlinx.serialization.KSerializer serializer(...);
+}

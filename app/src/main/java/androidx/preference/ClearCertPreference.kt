@@ -16,7 +16,6 @@ class ClearCertPreference(context: Context, attrs: AttributeSet) : ClearPreferen
         val count = SSLHandler.getInstance(context).userCertificateCount
         isEnabled = count > 0
         summary = MessageFormat.format(context.getString(R.string.pref_clear_certs_summary), count)
-
     }
 
     override fun clear() {
