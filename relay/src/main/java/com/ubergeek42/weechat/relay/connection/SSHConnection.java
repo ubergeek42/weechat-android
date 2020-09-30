@@ -2,7 +2,6 @@ package com.ubergeek42.weechat.relay.connection;
 
 import com.trilead.ssh2.Connection;
 import com.trilead.ssh2.ConnectionInfo;
-import com.trilead.ssh2.KnownHosts;
 import com.trilead.ssh2.LocalPortForwarder;
 import com.trilead.ssh2.ServerHostKeyVerifier;
 import com.trilead.ssh2.crypto.PEMDecoder;
@@ -114,11 +113,6 @@ public class SSHConnection implements IConnection {
         PrivateKey privateKey = (PrivateKey) ks.getKey(KEYSTORE_ALIAS, null);
         PublicKey publicKey = ks.getCertificate(KEYSTORE_ALIAS).getPublicKey();
         return new KeyPair(publicKey, privateKey);
-    }
-
-    public static KnownHosts parseKnownHosts(byte[] knownHosts) throws IOException {
-        char[] charKnownHosts = new String(knownHosts, StandardCharsets.ISO_8859_1).toCharArray();
-        return new KnownHosts(charKnownHosts);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

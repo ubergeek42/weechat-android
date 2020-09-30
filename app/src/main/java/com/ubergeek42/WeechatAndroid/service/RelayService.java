@@ -54,10 +54,7 @@ import static com.ubergeek42.WeechatAndroid.service.Events.ExceptionEvent;
 import static com.ubergeek42.WeechatAndroid.service.Events.SendMessageEvent;
 import static com.ubergeek42.WeechatAndroid.service.Events.StateChangedEvent;
 import static com.ubergeek42.WeechatAndroid.utils.Assert.assertThat;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_TYPE_SSH;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_TYPE_SSL;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_TYPE_WEBSOCKET;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_TYPE_WEBSOCKET_SSL;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
 
 
 public class RelayService extends Service implements IObserver {

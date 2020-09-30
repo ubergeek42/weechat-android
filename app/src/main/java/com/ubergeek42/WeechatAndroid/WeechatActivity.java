@@ -98,15 +98,7 @@ import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.AUTHENTIC
 import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.LISTED;
 import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.STARTED;
 import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.STOPPED;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.NOTIFICATION_EXTRA_BUFFER_ANY;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.NOTIFICATION_EXTRA_BUFFER_INPUT_TEXT;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.NOTIFICATION_EXTRA_BUFFER_POINTER;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_FILTER_LINES;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_THEME;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_THEME_DARK;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_THEME_LIGHT;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_USE_GESTURE_EXCLUSION_ZONE;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_USE_GESTURE_EXCLUSION_ZONE_D;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
 
 public class WeechatActivity extends AppCompatActivity implements
         CutePagerTitleStrip.CutePageChangeListener, BufferListClickListener {
