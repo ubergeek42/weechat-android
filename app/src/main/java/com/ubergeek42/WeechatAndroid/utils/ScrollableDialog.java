@@ -1,8 +1,10 @@
 package com.ubergeek42.WeechatAndroid.utils;
 
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.text.Html;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
@@ -73,14 +75,17 @@ public class ScrollableDialog extends DialogFragment {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    static public DialogFragment buildServerNotKnownDialog(Server server, Identity identity) {
-        String keyType = identity.getKeyType() == null ? "Unknown" : identity.getKeyType().getDisplayName();
+    static public DialogFragment buildServerNotKnownDialog(Context context,
+                                                           Server server, Identity identity) {
+        String keyType = identity.getKeyType() == null ?
+                context.getString(R.string.dialog_ssh_server_unknown_unknown_key_type) :
+                identity.getKeyType().getDisplayName();
         ScrollableDialog dialog = new ScrollableDialog(
-                "Unknown server",
-                "Server at " + server + " is not known.\n\n" +
-                        keyType + " key SHA256 fingerprint:\n" + identity.getSha256keyFingerprint(),
-                R.string.dialog_button_accept_selected, null,
-                R.string.dialog_button_reject, null
+                context.getString(R.string.dialog_ssh_server_unknown_title),
+                Html.fromHtml(context.getString(R.string.dialog_ssh_server_unknown_text,
+                        server, keyType, identity.getSha256keyFingerprint())),
+                R.string.dialog_ssh_server_unknown_button_positive, null,
+                R.string.dialog_ssh_server_unknown_button_negative, null
         );
         dialog.positiveButtonListener = (v, i) -> {
             P.sshServerKeyVerifier.addServerHostKey(server, identity);
@@ -89,15 +94,15 @@ public class ScrollableDialog extends DialogFragment {
         return dialog;
     }
 
-    static public DialogFragment buildServerNotVerifiedDialog(Server server, Identity identity) {
-        String keyType = identity.getKeyType() == null ? "Unknown" : identity.getKeyType().getDisplayName();
+    static public DialogFragment buildServerNotVerifiedDialog(Context context,
+                                                              Server server, Identity identity) {
+        String keyType = identity.getKeyType() == null ?
+                context.getString(R.string.dialog_ssh_server_unknown_unknown_key_type) :
+                identity.getKeyType().getDisplayName();
         return new ScrollableDialog(
-                "Server not verified",
-                "Warning: it's possible that someone is doing evil things!\n\n" +
-                        "Server " + server + " is known, " +
-                        "but its key doesn't match any of the keys that we have.\n\n" +
-                        keyType + " key SHA256 fingerprint:\n" + identity.getSha256keyFingerprint() + "\n\n" +
-                        "If you want to continue, please clear known SSH hosts in preferences.",
+                context.getString(R.string.dialog_ssh_server_not_verified_title),
+                Html.fromHtml(context.getString(R.string.dialog_ssh_server_not_verified_text,
+                        server, keyType, identity.getSha256keyFingerprint())),
                 null, null,
                 R.string.dialog_button_back_to_safety, null
         );

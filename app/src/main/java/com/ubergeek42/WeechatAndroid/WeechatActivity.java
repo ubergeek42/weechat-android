@@ -353,14 +353,12 @@ public class WeechatActivity extends AppCompatActivity implements
         if (verifyException != null) {
             if (verifyException instanceof SSHServerKeyVerifier.ServerNotKnownException) {
                 fragment = ScrollableDialog.buildServerNotKnownDialog(
-                        verifyException.getServer(),
-                        verifyException.getIdentity());
+                        this, verifyException.getServer(), verifyException.getIdentity());
             }
 
             if (verifyException instanceof SSHServerKeyVerifier.ServerNotVerifiedException) {
                 fragment = ScrollableDialog.buildServerNotVerifiedDialog(
-                        verifyException.getServer(),
-                        verifyException.getIdentity());
+                        this, verifyException.getServer(), verifyException.getIdentity());
             }
         }
 
