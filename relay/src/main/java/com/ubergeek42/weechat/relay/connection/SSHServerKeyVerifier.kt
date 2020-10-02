@@ -27,14 +27,20 @@ import java.security.MessageDigest
 
 
 // these are host key verification algorithms in the order of our preference
-// each string represents a combination of key type (DSA, RSA, ECDSA, Ed25519)
-// and a hashing algorithm (SHA1, SHA2-256, SHA2-384 SHA2-512)
-// note that NIST p curve 521 is not a typo
+// each string represents a combination of key type (see KeyType)
+// and a hashing algorithm (SHA1, SHA2-256, SHA2-384 or SHA2-512)
+
+// the preferred order differs slightly from the one used by OpenSSH. we prefer Ed25519 because it
+// is supposed to be the best one, and we don't have any compatibility considerations here as we
+// might have were the keys exportable; we prefer nistp256 curves over other ECDSA curves as these
+// good enough, and also easier on the server (Raspberry PI 3 takes 0.0004s to sign a hash using
+// nistp256 vs 0.0181s for nistp384 and whopping 0.0421s for nistp251); and SHA-512 used for RSA
+// is not significantly slower than SHA-256. see https://crypto.stackexchange.com/q/84271/83908
 enum class HostKeyAlgorithms(val string: String) {
     Ed25519Sha512(Ed25519Verify.ED25519_ID),
-    EcdsaNistp265Sha256(ECDSASHA2Verify.ECDSA_SHA2_PREFIX + "nistp256"),
+    EcdsaNistp256Sha256(ECDSASHA2Verify.ECDSA_SHA2_PREFIX + "nistp256"),
     EcdsaNistp384Sha384(ECDSASHA2Verify.ECDSA_SHA2_PREFIX + "nistp384"),
-    EcdsaNistp521Sha512(ECDSASHA2Verify.ECDSA_SHA2_PREFIX + "nistp521"),
+    EcdsaNistp521Sha512(ECDSASHA2Verify.ECDSA_SHA2_PREFIX + "nistp521"),    // note that 521 is not a typo
     RsaSha512(RSASHA512Verify.ID_RSA_SHA_2_512),
     RsaSha256(RSASHA256Verify.ID_RSA_SHA_2_256),
     RsaSha1(RSASHA1Verify.ID_SSH_RSA),
@@ -46,12 +52,17 @@ enum class HostKeyAlgorithms(val string: String) {
 }
 
 
-// these are the key types. for simplicity, we consider EC keys with different curves different.
-// accompanying is the display name, as well as the supported host key verification algorithms
+// these are the distinct key types that can be used to verify the hostname. although rfc4253
+// specifies that a host can have multiple host keys of the same or different types, it appears
+// that of keys of the same type (e.g. 2 RSA keys, or 2 ECDSA nistp256 keys) you can only connect
+// to the first one, while if the server has e.g. ECDSA nist256 and nist521 keys, you can connect
+// using either one. for this reason, we consider the three ECDSA keys different keys.
+
+// accompanying are the display name, as well as the supported host key verification algorithms
 @Suppress("unused")
 enum class KeyType(val displayName: String, vararg algorithms: String) {
     Ed25519("Ed25519", HostKeyAlgorithms.Ed25519Sha512.string),
-    EcdsaNistp256("ECDSA", HostKeyAlgorithms.EcdsaNistp265Sha256.string),
+    EcdsaNistp256("ECDSA", HostKeyAlgorithms.EcdsaNistp256Sha256.string),
     EcdsaNistp384("ECDSA", HostKeyAlgorithms.EcdsaNistp384Sha384.string),
     EcdsaNistp521("ECDSA", HostKeyAlgorithms.EcdsaNistp521Sha512.string),
     Rsa("RSA", HostKeyAlgorithms.RsaSha512.string,
