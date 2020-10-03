@@ -43,6 +43,7 @@ import static com.ubergeek42.WeechatAndroid.media.Config.THUMBNAIL_VERTICAL_MARG
 import static com.ubergeek42.WeechatAndroid.media.Config.thumbnailMaxHeight;
 import static com.ubergeek42.WeechatAndroid.media.Config.thumbnailMinHeight;
 import static com.ubergeek42.WeechatAndroid.media.Config.thumbnailWidth;
+import static com.ubergeek42.WeechatAndroid.media.WAGlideModule.isContextValidForGlide;
 import static com.ubergeek42.WeechatAndroid.utils.Assert.assertThat;
 
 public class LineView extends View {
@@ -91,7 +92,9 @@ public class LineView extends View {
         state = State.TEXT_ONLY;
         if (animator != null) animator.cancel();
         animator = null;
-        Glide.with(getContext()).clear(target);     // will call the listener!
+        if (isContextValidForGlide(getContext())) {
+            Glide.with(getContext()).clear(target);     // will call the listener!
+        }
         target = null;
     }
 
@@ -118,13 +121,15 @@ public class LineView extends View {
         if (url == null || info == Cache.Info.FAILED_RECENTLY) return;
 
         ensureLayout(LayoutType.NARROW);
-        target = Glide.with(getContext())
-                .asBitmap()
-                .apply(Engine.defaultRequestOptions)
-                .listener(Cache.bitmapListener)
-                .load(url)
-                .onlyRetrieveFromCache(Engine.isDisabledForCurrentNetwork())
-                .into(new Target(thumbnailWidth, getThumbnailHeight()));
+        if (isContextValidForGlide(getContext())) {
+            target = Glide.with(getContext())
+                    .asBitmap()
+                    .apply(Engine.defaultRequestOptions)
+                    .listener(Cache.bitmapListener)
+                    .load(url)
+                    .onlyRetrieveFromCache(Engine.isDisabledForCurrentNetwork())
+                    .into(new Target(thumbnailWidth, getThumbnailHeight()));
+        }
     }
 
     private class Target extends CustomTarget<Bitmap> {
@@ -144,7 +149,11 @@ public class LineView extends View {
         // that, clear target soon, but not on current thread as the library doesn't allow it
         @Override public void onLoadFailed(@Nullable Drawable errorDrawable) {
             Target local = target;
-            Weechat.runOnMainThread(() -> Glide.with(getContext()).clear(local));
+            Weechat.runOnMainThread(() -> {
+                if (isContextValidForGlide(getContext())) {
+                    Glide.with(getContext()).clear(local);
+                }
+            });
             setImage(null);
         }
     }
