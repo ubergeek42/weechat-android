@@ -13,9 +13,9 @@ import java.security.MessageDigest
 
 
 // note that this verifier doesn't check for DNS spoofing. while useful, DNS spoofing warnings seem
-// to always be accompanied with verification failure. this will produce a big warning either way.
+// to always be accompanied with verification failure. this produces a big warning either way.
 // it is possible to have a situation where IP key becomes different from the host key, and the
-// latter is a verifiable key. ssh in this case produces a small warning:
+// latter is verifiable; ssh in this case produces a *small* warning:
 //
 //   Warning: the ECDSA host key for '...' differs from the key for the IP address '...'
 //   Offending key for IP in /home/user/.ssh/known_hosts:3
@@ -53,10 +53,10 @@ enum class HostKeyAlgorithms(val string: String) {
 
 
 // these are the distinct key types that can be used to verify the hostname. although rfc4253
-// specifies that a host can have multiple host keys of the same or different types, it appears
-// that of keys of the same type (e.g. 2 RSA keys, or 2 ECDSA nistp256 keys) you can only connect
-// to the first one, while if the server has e.g. ECDSA nist256 and nist521 keys, you can connect
-// using either one. for this reason, we consider the three ECDSA keys different keys.
+// specifies that a host “may” have multiple host keys of the same or different types, it appears
+// that using keys of the same type (e.g. 2 RSA keys, or 2 ECDSA nistp256 keys) you can only connect
+// having the the first one, while if the server uses e.g. ECDSA nist256 and nist521 keys, you can
+// connect having either one. for this reason, we consider the three ECDSA keys different keys.
 
 // accompanying are the display name, as well as the supported host key verification algorithms
 @Suppress("unused")

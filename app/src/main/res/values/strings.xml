@@ -616,4 +616,6 @@ strategies:
         <br><b>%3$s</b>
         <br>
         <br>If you want to continue, please clear known hosts in preferences.]]></string>
+
+    <string name="pref_ssh_clear_known_hosts">Clear known hosts</string>
 </resources>
