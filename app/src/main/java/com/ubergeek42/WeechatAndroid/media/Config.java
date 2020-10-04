@@ -104,7 +104,7 @@ public class Config {
 
     static SecureRequest secureRequestsPolicy = SecureRequest.REWRITE;
 
-    static Enable enabledForNetwork = Enable.UNMETERED_ONLY;
+    static Enable enabledForNetwork = Enable.NEVER;
 
     static boolean enabledForChat = true;
     static boolean enabledForPaste = true;
