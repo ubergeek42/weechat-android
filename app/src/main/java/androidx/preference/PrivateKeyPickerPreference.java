@@ -9,6 +9,7 @@ import androidx.annotation.Nullable;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.utils.TinyMap;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
+import com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtilsKt;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
 import com.ubergeek42.weechat.relay.connection.SSHConnection;
@@ -36,7 +37,14 @@ public class PrivateKeyPickerPreference extends PasswordedFilePickerPreference {
         String key, message;
 
         if (bytes != null) {
-            KeyPair keyPair = SSHConnection.makeKeyPair(bytes, passphrase);
+            KeyPair keyPair;
+            try {
+                keyPair = SSHConnection.makeKeyPair(bytes, passphrase);
+            } catch (Exception e) {
+                keyPair = AndroidKeyStoreUtilsKt.makeKeyPair(
+                        AndroidKeyStoreUtilsKt.toReader(bytes), passphrase.toCharArray());
+            }
+
             String algorithm = keyPair.getPrivate().getAlgorithm();
 
             try {
