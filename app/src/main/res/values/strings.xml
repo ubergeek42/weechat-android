@@ -598,7 +598,7 @@ strategies:
 
     <string name="dialog_ssh_server_unknown_title">Unknown server</string>
     <string name="dialog_ssh_server_unknown_text"><![CDATA[
-        Server at <b>%1$s</b> is not recognized.
+        Server at <b>%1$s</b> has never been encountered.
         <br>
         <br>%2$s key SHA256 fingerprint:
         <br><b>%3$s</b>]]></string>
@@ -606,11 +606,11 @@ strategies:
     <string name="dialog_ssh_server_unknown_button_negative">Reject</string>
     <string name="dialog_ssh_server_unknown_unknown_key_type">Unknown</string>
 
-    <string name="dialog_ssh_server_not_verified_title">Server not verified</string>
+    <string name="dialog_ssh_server_not_verified_title">Server changed key</string>
     <string name="dialog_ssh_server_not_verified_text"><![CDATA[
-        <b>⚠ Warning:</b> it’s possible that someone is doing evil things!
+        <b>⚠ Warning:</b> it’s possible that someone is trying to hijack this connection!
         <br>
-        <br>Server at <b>%1$s</b> is known, but its key doesn’t match any of the keys that we have.
+        <br>Server at <b>%1$s</b> is known, but its key doesn’t match the key you previously accepted.
         <br>
         <br>%2$s key SHA256 fingerprint:
         <br><b>%3$s</b>
