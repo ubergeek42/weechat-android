@@ -22,7 +22,6 @@ import androidx.annotation.StringRes;
 import androidx.annotation.WorkerThread;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
-import androidx.preference.FilePreference;
 import androidx.preference.PrivateKeyPickerPreference;
 import androidx.preference.ThemeManager;
 
@@ -41,6 +40,7 @@ import com.ubergeek42.cats.Root;
 import com.ubergeek42.weechat.Color;
 import com.ubergeek42.weechat.ColorScheme;
 import com.ubergeek42.weechat.relay.connection.SSHConnection;
+import com.ubergeek42.weechat.relay.connection.SSHServerKeyVerifier;
 
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -228,7 +228,8 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     static String sshUser;
     static SSHConnection.AuthenticationMethod sshAuthenticationMethod;
     static String sshPassword;
-    static byte[] sshSerializedKey, sshKnownHosts;
+    static byte[] sshSerializedKey;
+    static public SSHServerKeyVerifier sshServerKeyVerifier;
     static public int port;
     static int sshPort;
     static SSLSocketFactory sslSocketFactory;
@@ -258,7 +259,8 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
                         SSHConnection.AuthenticationMethod.KEY : SSHConnection.AuthenticationMethod.PASSWORD;
         sshPassword = p.getString(PREF_SSH_PASSWORD, PREF_SSH_PASSWORD_D);
         sshSerializedKey = PrivateKeyPickerPreference.getData(p.getString(PREF_SSH_KEY_FILE, PREF_SSH_KEY_FILE_D));
-        sshKnownHosts = FilePreference.getData(p.getString(PREF_SSH_KNOWN_HOSTS, PREF_SSH_KNOWN_HOSTS_D));
+
+        loadServerKeyVerifier();
 
         lineIncrement = Integer.parseInt(getString(PREF_LINE_INCREMENT, PREF_LINE_INCREMENT_D));
         reconnect = p.getBoolean(PREF_RECONNECT, PREF_RECONNECT_D);
@@ -278,17 +280,38 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         connectionSurelyPossibleWithCurrentPreferences = false;     // and don't call me Shirley
     }
 
+    public static void loadServerKeyVerifier() {
+        if (sshServerKeyVerifier != null)
+            return;
+
+        String data = p.getString(PREF_SSH_SERVER_KEY_VERIFIER, PREF_SSH_SERVER_KEY_VERIFIER_D);
+
+        if (data != null && !TextUtils.isEmpty(data)) {
+            try {
+                sshServerKeyVerifier = SSHServerKeyVerifier.decodeFromString(data);
+            } catch (Exception e) {
+                kitty.warn("Error while decoding server key verifier", e);
+            }
+        }
+
+        if (sshServerKeyVerifier == null) sshServerKeyVerifier = new SSHServerKeyVerifier();
+
+        sshServerKeyVerifier.setListener(() -> {
+            String newData = sshServerKeyVerifier.encodeToString();
+            p.edit().putString(PREF_SSH_SERVER_KEY_VERIFIER, newData).apply();
+        });
+    }
+
     @MainThread public static @StringRes int validateConnectionPreferences() {
         if (TextUtils.isEmpty(host)) return R.string.pref_error_relay_host_not_set;
         if (TextUtils.isEmpty(pass)) return R.string.pref_error_relay_password_not_set;
         if (connectionType.equals(PREF_TYPE_SSH)) {
             if (TextUtils.isEmpty(sshHost)) return R.string.pref_error_ssh_host_not_set;
             if (sshAuthenticationMethod == SSHConnection.AuthenticationMethod.KEY) {
-                if (Utils.isEmpty(sshSerializedKey)) return R.string.pref_error_no_ssh_key_file;;
+                if (Utils.isEmpty(sshSerializedKey)) return R.string.pref_error_no_ssh_key_file;
             } else {
                 if (TextUtils.isEmpty(sshPassword)) return R.string.pref_error_no_ssh_password;
             }
-            if (Utils.isEmpty(sshKnownHosts)) return R.string.pref_error_no_ssh_known_hosts;
         }
         return 0;
     }

@@ -2,7 +2,6 @@ package com.ubergeek42.weechat.relay.connection;
 
 import com.trilead.ssh2.Connection;
 import com.trilead.ssh2.ConnectionInfo;
-import com.trilead.ssh2.KnownHosts;
 import com.trilead.ssh2.LocalPortForwarder;
 import com.trilead.ssh2.ServerHostKeyVerifier;
 import com.trilead.ssh2.crypto.PEMDecoder;
@@ -41,7 +40,7 @@ public class SSHConnection implements IConnection {
     final private KeyPair keyPair;
 
     final private Connection connection;
-    final private ServerHostKeyVerifier hostKeyVerifier;
+    final private ServerHostKeyVerifier serverKeyVerifier;
     private LocalPortForwarder forwarder;
 
     public SSHConnection(String hostname, int port,
@@ -49,10 +48,11 @@ public class SSHConnection implements IConnection {
                          AuthenticationMethod authenticationMethod,
                          String sshPassword,
                          byte[] serializedSshKey,
-                         byte[] sshKnownHosts) throws Exception {
+                         SSHServerKeyVerifier serverKeyVerifier) throws Exception {
         this.hostname = hostname;
         this.port = port;
         this.sshUsername = sshUsername;
+        this.serverKeyVerifier = serverKeyVerifier;
 
         this.authenticationMethod = authenticationMethod;
         if (authenticationMethod == AuthenticationMethod.KEY) {
@@ -68,14 +68,12 @@ public class SSHConnection implements IConnection {
         //connection.setCompression(true);
         //connection.enableDebugging(true, null);
 
-        KnownHosts knownHosts = parseKnownHosts(sshKnownHosts);
-        String[] hostKeyAlgorithms = knownHosts.getPreferredServerHostkeyAlgorithmOrder(sshHostname);
-        if (hostKeyAlgorithms != null) connection.setServerHostKeyAlgorithms(hostKeyAlgorithms);
-        hostKeyVerifier = new SSHServerKeyVerifier(parseKnownHosts(sshKnownHosts));
+        connection.setServerHostKeyAlgorithms(serverKeyVerifier
+                .getPreferredServerHostKeyAlgorithmsForServer(sshHostname, sshPort));
     }
 
     @Override public Streams connect() throws IOException {
-        ConnectionInfo connectionInfo = connection.connect(hostKeyVerifier,
+        ConnectionInfo connectionInfo = connection.connect(serverKeyVerifier,
                 CONNECTION_TIMEOUT, CONNECTION_TIMEOUT);
 
         if (authenticationMethod == AuthenticationMethod.KEY) {
@@ -115,11 +113,6 @@ public class SSHConnection implements IConnection {
         PrivateKey privateKey = (PrivateKey) ks.getKey(KEYSTORE_ALIAS, null);
         PublicKey publicKey = ks.getCertificate(KEYSTORE_ALIAS).getPublicKey();
         return new KeyPair(publicKey, privateKey);
-    }
-
-    public static KnownHosts parseKnownHosts(byte[] knownHosts) throws IOException {
-        char[] charKnownHosts = new String(knownHosts, StandardCharsets.ISO_8859_1).toCharArray();
-        return new KnownHosts(charKnownHosts);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

@@ -476,4 +476,38 @@
 
     <string name="pref_known_hosts_set">Bekannte Hosts festgelegt</string>
     <string name="pref_known_hosts_cleared">Bekannte Hosts gelöscht</string>
+
+    <string name="pref_clear_known_hosts_confirmation">Bekannte Hosts löschen?</string>
+    <string name="pref_clear_known_hosts_cancel">Abbrechen</string>
+    <string name="pref_clear_known_hosts_clear">Löschen</string>
+    <string name="pref_clear_known_hosts_cleared">Bekannte Hosts gelöscht</string>
+    <string name="pref_clear_known_hosts_entries_0">Keine Einträge</string>
+    <plurals name="pref_clear_known_hosts_entries">
+        <item quantity="one">%s Eintrag</item>
+        <item quantity="other">%s Einträge</item>
+    </plurals>
+
+    <string name="dialog_ssh_server_unknown_title">Server unbekannt</string>
+    <string name="dialog_ssh_server_unknown_text"><![CDATA[
+        Server unter <b>%1$s</b> wurde nie angetroffen.
+        <br>
+        <br>%2$s Schlüssel SHA256 Fingerabdruck:
+        <br><b>%3$s</b>]]></string>
+    <string name="dialog_ssh_server_unknown_button_positive">Server-Schlüssel akzeptieren</string>
+    <string name="dialog_ssh_server_unknown_button_negative">Ablehnen</string>
+    <string name="dialog_ssh_server_unknown_unknown_key_type">Unbekannter</string>
+
+    <string name="dialog_ssh_server_not_verified_title">Server hat Schlüssel geändert</string>
+    <string name="dialog_ssh_server_not_verified_text"><![CDATA[
+        <b>⚠ Warnung:</b> Es ist möglich, dass jemand versucht, diese Verbindung zu nutzen!
+        <br>
+        <br>Server unter <b>%1$s</b> ist bekannt, aber sein Schlüssel entspricht nicht dem
+        Schlüssel, den Sie zuvor akzeptiert haben.
+        <br>
+        <br>%2$s Schlüssel SHA256 Fingerabdruck:
+        <br><b>%3$s</b>
+        <br>
+        <br>Wenn Sie fortfahren möchten, bitte bekannte Hosts in den Einstellungen löschen.]]></string>
+
+    <string name="pref_ssh_clear_known_hosts">Bekannte Hosts löschen</string>
 </resources>

@@ -68,14 +68,15 @@ import com.ubergeek42.WeechatAndroid.utils.CertificateDialog;
 import com.ubergeek42.WeechatAndroid.utils.FancyAlertDialogBuilder;
 import com.ubergeek42.WeechatAndroid.utils.FriendlyExceptions;
 import com.ubergeek42.WeechatAndroid.utils.Network;
+import com.ubergeek42.WeechatAndroid.utils.ScrollableDialog;
 import com.ubergeek42.WeechatAndroid.utils.SimpleTransitionDrawable;
 import com.ubergeek42.WeechatAndroid.utils.ThemeFix;
 import com.ubergeek42.WeechatAndroid.utils.ToolbarController;
-import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.CatD;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
+import com.ubergeek42.weechat.relay.connection.SSHServerKeyVerifier;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -84,18 +85,20 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateNotYetValidException;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 
 import javax.net.ssl.SSLPeerUnverifiedException;
 
 import static com.ubergeek42.WeechatAndroid.media.Cache.findException;
-import static com.ubergeek42.WeechatAndroid.service.Events.*;
-import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.*;
+import static com.ubergeek42.WeechatAndroid.service.Events.ExceptionEvent;
+import static com.ubergeek42.WeechatAndroid.service.Events.SendMessageEvent;
+import static com.ubergeek42.WeechatAndroid.service.Events.StateChangedEvent;
+import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.AUTHENTICATED;
+import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.LISTED;
+import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.STARTED;
+import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.STOPPED;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
-
-import static com.ubergeek42.WeechatAndroid.utils.ThrowingKeyManagerWrapper.ClientCertificateMismatchException;
 
 public class WeechatActivity extends AppCompatActivity implements
         CutePagerTitleStrip.CutePageChangeListener, BufferListClickListener {
@@ -320,11 +323,12 @@ public class WeechatActivity extends AppCompatActivity implements
     @WorkerThread @Cat public void onEvent(final ExceptionEvent event) {
         kitty.error("onEvent(ExceptionEvent)", event.e);
         final Exception e = event.e;
+        DialogFragment fragment = null;
+
         if (findException(e, SSLPeerUnverifiedException.class) != null ||
                 findException(e, CertificateException.class) != null) {
             SSLHandler.Result r = SSLHandler.checkHostnameAndValidity(P.host, P.port);
             if (r.certificateChain != null && r.certificateChain.length > 0) {
-                DialogFragment fragment = null;
                 if (r.exception instanceof CertificateExpiredException) {
                     fragment = CertificateDialog.buildExpiredCertificateDialog(this, r.certificateChain);
                 } else if (r.exception instanceof CertificateNotYetValidException) {
@@ -334,12 +338,26 @@ public class WeechatActivity extends AppCompatActivity implements
                 } else if (r.exception == null) {
                     fragment = CertificateDialog.buildUntrustedOrNotPinnedCertificateDialog(this, r.certificateChain);
                 }
-                if (fragment != null) {
-                    fragment.show(getSupportFragmentManager(), "ssl-error");
-                    Weechat.runOnMainThread(this::disconnect);
-                    return;
-                }
             }
+        }
+
+        SSHServerKeyVerifier.VerifyException verifyException = findException(e, SSHServerKeyVerifier.VerifyException.class);
+        if (verifyException != null) {
+            if (verifyException instanceof SSHServerKeyVerifier.ServerNotKnownException) {
+                fragment = ScrollableDialog.buildServerNotKnownDialog(
+                        this, verifyException.getServer(), verifyException.getIdentity());
+            }
+
+            if (verifyException instanceof SSHServerKeyVerifier.ServerNotVerifiedException) {
+                fragment = ScrollableDialog.buildServerNotVerifiedDialog(
+                        this, verifyException.getServer(), verifyException.getIdentity());
+            }
+        }
+
+        if (fragment != null) {
+            fragment.show(getSupportFragmentManager(), "ssl-or-ssh-error");
+            Weechat.runOnMainThread(this::disconnect);
+            return;
         }
 
         FriendlyExceptions.Result result = new FriendlyExceptions(this).getFriendlyException(e);

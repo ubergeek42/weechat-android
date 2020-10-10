@@ -3,6 +3,7 @@ package com.ubergeek42.WeechatAndroid.utils;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.text.TextUtils;
 
 import androidx.preference.PrivateKeyPickerPreference;
 
@@ -62,6 +63,7 @@ public class MigratePreferences {
 
 
     public void migrate() {
+        kitty.info("Preferences version: %s", preferences.getInt(VERSION_KEY, 0));
         main: while (true) {
             int version = preferences.getInt(VERSION_KEY, 0);
             for (Migrator migrator : migrators) {
@@ -162,6 +164,21 @@ public class MigratePreferences {
 
             preferences.edit()
                     .remove(Constants.Deprecated.PREF_SSH_KEY_PASSPHRASE)
+                    .apply();
+        }));
+
+        migrators.add(new Migrator(3, 4, () -> {
+            String knownHosts = preferences.getString(Constants.Deprecated.PREF_SSH_KNOWN_HOSTS,
+                    Constants.Deprecated.PREF_SSH_KNOWN_HOSTS_D);
+            if (Constants.Deprecated.PREF_SSH_KNOWN_HOSTS_D.equals(knownHosts))
+                return;
+
+            Weechat.showLongToast("While migrating preferences, the SSH known hosts preference" +
+                    " was removed. You will be prompted to accept SSH host key the next time you" +
+                    " connect using SSH.");
+
+            preferences.edit()
+                    .remove(Constants.Deprecated.PREF_SSH_KNOWN_HOSTS)
                     .apply();
         }));
     }

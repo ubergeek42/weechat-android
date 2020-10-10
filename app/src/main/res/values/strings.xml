@@ -585,4 +585,37 @@ strategies:
 
     <string name="pref_known_hosts_set">Known hosts set</string>
     <string name="pref_known_hosts_cleared">Known hosts cleared</string>
+
+    <string name="pref_clear_known_hosts_confirmation">Clear known hosts?</string>
+    <string name="pref_clear_known_hosts_cancel">Cancel</string>
+    <string name="pref_clear_known_hosts_clear">Clear</string>
+    <string name="pref_clear_known_hosts_cleared">Known hosts cleared</string>
+    <string name="pref_clear_known_hosts_entries_0">No entries</string>
+    <plurals name="pref_clear_known_hosts_entries">
+        <item quantity="one">%s entry</item>
+        <item quantity="other">%s entries</item>
+    </plurals>
+
+    <string name="dialog_ssh_server_unknown_title">Unknown server</string>
+    <string name="dialog_ssh_server_unknown_text"><![CDATA[
+        Server at <b>%1$s</b> has never been encountered.
+        <br>
+        <br>%2$s key SHA256 fingerprint:
+        <br><b>%3$s</b>]]></string>
+    <string name="dialog_ssh_server_unknown_button_positive">Accept server key</string>
+    <string name="dialog_ssh_server_unknown_button_negative">Reject</string>
+    <string name="dialog_ssh_server_unknown_unknown_key_type">Unknown</string>
+
+    <string name="dialog_ssh_server_not_verified_title">Server changed key</string>
+    <string name="dialog_ssh_server_not_verified_text"><![CDATA[
+        <b>⚠ Warning:</b> it’s possible that someone is trying to hijack this connection!
+        <br>
+        <br>Server at <b>%1$s</b> is known, but its key doesn’t match the key you previously accepted.
+        <br>
+        <br>%2$s key SHA256 fingerprint:
+        <br><b>%3$s</b>
+        <br>
+        <br>If you want to continue, please clear known hosts in preferences.]]></string>
+
+    <string name="pref_ssh_clear_known_hosts">Clear known hosts</string>
 </resources>
