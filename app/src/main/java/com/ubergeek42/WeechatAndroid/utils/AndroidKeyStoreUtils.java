@@ -61,6 +61,7 @@ public class AndroidKeyStoreUtils {
                 signerBuilder = BcRSAContentSignerBuilder::new;
                 break;
             case "EC":
+            case "ECDSA":
                 signingAlgorithm = "SHA256withECDSA";
                 signerBuilder = BcECContentSignerBuilder::new;
                 break;
