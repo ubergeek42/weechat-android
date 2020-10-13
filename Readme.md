@@ -50,6 +50,10 @@ check with us on IRC before starting a substantial rewrite! For additional infor
  
 ### Changelog
 
+##### v1.2
+* Let users interactively accept or reject SSH host keys
+* Accept private SSH keys in PKCS #8 format
+
 ##### v1.1
 * Added a new certificate dialog that displays the full certificate chain
 * Implemented SSL certificate pinning
