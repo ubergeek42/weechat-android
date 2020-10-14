@@ -15,6 +15,7 @@ import com.ubergeek42.cats.Root;
 import com.ubergeek42.weechat.relay.connection.SSHConnection;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 
@@ -40,9 +41,14 @@ public class PrivateKeyPickerPreference extends PasswordedFilePickerPreference {
             KeyPair keyPair;
             try {
                 keyPair = SSHConnection.makeKeyPair(bytes, passphrase);
-            } catch (Exception e) {
-                keyPair = AndroidKeyStoreUtilsKt.makeKeyPair(
-                        AndroidKeyStoreUtilsKt.toReader(bytes), passphrase.toCharArray());
+            } catch (Exception sshlibException) {
+                try {
+                    keyPair = AndroidKeyStoreUtilsKt.makeKeyPair(
+                            AndroidKeyStoreUtilsKt.toReader(bytes), passphrase.toCharArray());
+                } catch (Exception bouncyCastleException) {
+                    throw new String(bytes, StandardCharsets.UTF_8).contains("OPENSSH") ?
+                            sshlibException : bouncyCastleException;
+                }
             }
 
             String algorithm = keyPair.getPrivate().getAlgorithm();
