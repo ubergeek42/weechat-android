@@ -35,7 +35,8 @@
                 android:summary="%s"/>
             <EditTextPreferenceFix android:key="ssh_password" android:title="@string/pref_ssh_password" android:summary="%s" android:password="true" android:singleLine="true"/>
             <PrivateKeyPickerPreference android:key="ssh_key_file" android:title="@string/pref_ssh_keyfile" android:summary="@string/pref_ssh_keyfile_summary" />
-            <KnownHostsPickerPreference android:key="ssh_known_hosts" android:title="@string/pref_ssh_known_hosts" android:summary="@string/pref_ssh_known_hosts_summary" />
+            <ClearKnownHostsPreference android:key="ssh_clear_known_host"
+                android:title="@string/pref_ssh_clear_known_hosts" />
         </PreferenceScreen>
 
         <!-- relay settings and the rest -->
@@ -210,7 +211,7 @@
             android:summary="%s"
             android:singleLine="true"
             android:inputType="text"
-            android:defaultValue="^https://\S+" />
+            android:defaultValue="^https://\\S+" />
         <HelpPreference android:key="uploading_help"
             android:persistent="false"
             android:selectable="false"

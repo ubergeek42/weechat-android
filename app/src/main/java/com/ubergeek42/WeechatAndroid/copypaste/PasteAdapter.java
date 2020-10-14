@@ -27,6 +27,8 @@ import com.ubergeek42.cats.Root;
 
 import java.util.List;
 
+import static com.ubergeek42.WeechatAndroid.media.WAGlideModule.isContextValidForGlide;
+
 public class PasteAdapter extends RecyclerView.Adapter<PasteAdapter.PasteLine> {
     final private static  @Root Kitty kitty = Kitty.make();
 
@@ -75,21 +77,25 @@ public class PasteAdapter extends RecyclerView.Adapter<PasteAdapter.PasteLine> {
             viewSwitcher.reset(info == Cache.Info.FETCHED_RECENTLY ? 1 : 0);
 
             if (url == null || info == Cache.Info.FAILED_RECENTLY) {
-                Glide.with(context).clear(imageView);
+                if (isContextValidForGlide(context)) {
+                    Glide.with(context).clear(imageView);
+                }
                 return;
             }
 
             kitty.info("loading: %s", url);
             imageView.layout(0, 0, 0, 0);       // https://github.com/bumptech/glide/issues/1591
             imageView.requestLayout();
-            Glide.with(context)
-                    .asBitmap()
-                    .apply(Engine.defaultRequestOptions)
-                    .listener(Cache.bitmapListener)
-                    .addListener(this)
-                    .load(url)
-                    .onlyRetrieveFromCache(Engine.isDisabledForCurrentNetwork())
-                    .into(imageView);
+            if (isContextValidForGlide(context)) {
+                Glide.with(context)
+                        .asBitmap()
+                        .apply(Engine.defaultRequestOptions)
+                        .listener(Cache.bitmapListener)
+                        .addListener(this)
+                        .load(url)
+                        .onlyRetrieveFromCache(Engine.isDisabledForCurrentNetwork())
+                        .into(imageView);
+            }
         }
 
         @Cat @Override public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Bitmap> target, boolean isFirstResource) {

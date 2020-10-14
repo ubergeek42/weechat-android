@@ -9,11 +9,13 @@ import androidx.annotation.Nullable;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.utils.TinyMap;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
+import com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtilsKt;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
 import com.ubergeek42.weechat.relay.connection.SSHConnection;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 
@@ -36,7 +38,19 @@ public class PrivateKeyPickerPreference extends PasswordedFilePickerPreference {
         String key, message;
 
         if (bytes != null) {
-            KeyPair keyPair = SSHConnection.makeKeyPair(bytes, passphrase);
+            KeyPair keyPair;
+            try {
+                keyPair = SSHConnection.makeKeyPair(bytes, passphrase);
+            } catch (Exception sshlibException) {
+                try {
+                    keyPair = AndroidKeyStoreUtilsKt.makeKeyPair(
+                            AndroidKeyStoreUtilsKt.toReader(bytes), passphrase.toCharArray());
+                } catch (Exception bouncyCastleException) {
+                    throw new String(bytes, StandardCharsets.UTF_8).contains("OPENSSH") ?
+                            sshlibException : bouncyCastleException;
+                }
+            }
+
             String algorithm = keyPair.getPrivate().getAlgorithm();
 
             try {

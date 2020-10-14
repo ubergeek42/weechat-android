@@ -403,4 +403,38 @@
 
     <string name="pref_known_hosts_set">Известные хосты установлены</string>
     <string name="pref_known_hosts_cleared">Известные хосты забыты</string>
+
+    <string name="pref_clear_known_hosts_confirmation">Забыть известные хосты?</string>
+    <string name="pref_clear_known_hosts_cancel">Отмена</string>
+    <string name="pref_clear_known_hosts_clear">Забыть</string>
+    <string name="pref_clear_known_hosts_cleared">Известные хосты забыты</string>
+    <string name="pref_clear_known_hosts_entries_0">Нет записей</string>
+    <plurals name="pref_clear_known_hosts_entries">
+        <item quantity="one">%s запись</item>
+        <item quantity="few">%s записи</item>
+        <item quantity="many">%s записей</item>
+    </plurals>
+
+    <string name="dialog_ssh_server_unknown_title">Сервер неизвестен</string>
+    <string name="dialog_ssh_server_unknown_text"><![CDATA[
+        Сервер <b>%1$s</b> нам ранее не встречался.
+        <br>
+        <br>SHA-256 отпечаток ключа %2$s:
+        <br><b>%3$s</b>]]></string>
+    <string name="dialog_ssh_server_unknown_button_positive">Принять ключ сервера</string>
+    <string name="dialog_ssh_server_unknown_button_negative">Отклонить</string>
+    <string name="dialog_ssh_server_unknown_unknown_key_type">неизвестного типа</string>
+
+    <string name="dialog_ssh_server_not_verified_title">Сервер изменил ключ</string>
+    <string name="dialog_ssh_server_not_verified_text"><![CDATA[
+        <b>⚠ Внимание:</b> возможно, кто-то пытается перехватить это соединение!
+        <br>
+        <br>Сервер <b>%1$s</b> нам известен, но его ключ не совпадает с ключом, принятым вами ранее.
+        <br>
+        <br>SHA-256 отпечаток ключа %2$s:
+        <br><b>%3$s</b>
+        <br>
+        <br>Если вы хотите продолжить соединение, очистите известные хосты в настройках приложения.]]></string>
+
+    <string name="pref_ssh_clear_known_hosts">Забыть известные хосты</string>
 </resources>

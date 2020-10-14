@@ -55,3 +55,64 @@
 # glide
 -keep public class * extends com.bumptech.glide.module.AppGlideModule
 -keep class com.bumptech.glide.GeneratedAppGlideModuleImpl
+
+# https://github.com/Kotlin/kotlinx.serialization#android
+-keepattributes *Annotation*, InnerClasses
+-dontnote kotlinx.serialization.SerializationKt
+-keep,includedescriptorclasses class com.ubergeek42.weechat.**$$serializer { *; }
+-keepclassmembers class com.ubergeek42.weechat.** {
+    *** Companion;
+}
+-keepclasseswithmembers class com.ubergeek42.weechat.** {
+    kotlinx.serialization.KSerializer serializer(...);
+}
+
+# the following are rules that are needed for PEM/PKCS #8 decoding (AndroidKeyStoreUtils.kt)
+# these have been roughly determined by placing a logging break point on:
+#   java.lang.ClassLoader.loadClass(java.lang.String, boolean)
+-keep class org.bouncycastle.jcajce.provider.digest.MD2** { *; }
+-keep class org.bouncycastle.jcajce.provider.digest.MD4** { *; }
+-keep class org.bouncycastle.jcajce.provider.digest.MD5** { *; }
+-keep class org.bouncycastle.jcajce.provider.digest.SHA1** { *; }
+-keep class org.bouncycastle.jcajce.provider.digest.SHA224** { *; }
+-keep class org.bouncycastle.jcajce.provider.digest.SHA256** { *; }
+-keep class org.bouncycastle.jcajce.provider.digest.SHA384** { *; }
+-keep class org.bouncycastle.jcajce.provider.digest.SHA512** { *; }
+
+-keep class org.bouncycastle.jcajce.provider.symmetric.PBEPBKDF1** { *; }
+-keep class org.bouncycastle.jcajce.provider.symmetric.PBEPBKDF2** { *; }
+-keep class org.bouncycastle.jcajce.provider.symmetric.PBEPKCS12** { *; }
+-keep class org.bouncycastle.jcajce.provider.symmetric.AES** { *; }
+-keep class org.bouncycastle.jcajce.provider.symmetric.ARC4** { *; }
+-keep class org.bouncycastle.jcajce.provider.symmetric.ARIA** { *; }
+-keep class org.bouncycastle.jcajce.provider.symmetric.Blowfish** { *; }
+-keep class org.bouncycastle.jcajce.provider.symmetric.Camellia** { *; }
+-keep class org.bouncycastle.jcajce.provider.symmetric.DES** { *; }
+-keep class org.bouncycastle.jcajce.provider.symmetric.DESede** { *; }
+-keep class org.bouncycastle.jcajce.provider.symmetric.IDEA** { *; }
+-keep class org.bouncycastle.jcajce.provider.symmetric.RC2** { *; }
+-keep class org.bouncycastle.jcajce.provider.symmetric.RC5** { *; }
+-keep class org.bouncycastle.jcajce.provider.symmetric.RC6** { *; }
+-keep class org.bouncycastle.jcajce.provider.symmetric.Twofish** { *; }
+-keep class org.bouncycastle.jcajce.provider.symmetric.Threefish** { *; }
+-keep class org.bouncycastle.jcajce.provider.symmetric.OpenSSLPBKDF** { *; }
+
+-keep class org.bouncycastle.jcajce.provider.asymmetric.DSA$Mappings { *; }
+-keep class org.bouncycastle.jcajce.provider.asymmetric.EC$Mappings { *; }
+-keep class org.bouncycastle.jcajce.provider.asymmetric.RSA$Mappings { *; }
+-keep class org.bouncycastle.jcajce.provider.asymmetric.EdEC$Mappings { *; }
+
+-keep class org.bouncycastle.jcajce.provider.keystore.BC$Mappings { *; }
+-keep class org.bouncycastle.jcajce.provider.keystore.BCFKS$Mappings { *; }
+-keep class org.bouncycastle.jcajce.provider.keystore.PKCS12$Mappings { *; }
+
+-keep class org.bouncycastle.jcajce.provider.asymmetric.dsa.KeyFactorySpi { *; }
+-keep class org.bouncycastle.jcajce.provider.asymmetric.rsa.KeyFactorySpi { *; }
+-keep class org.bouncycastle.jcajce.provider.asymmetric.ec.KeyFactorySpi** { *; }
+-keep class org.bouncycastle.jcajce.provider.asymmetric.edec.KeyFactorySpi** { *; }
+-keep class org.bouncycastle.jcajce.provider.asymmetric.edec.KeyFactorySpi** { *; }
+
+-keep class org.bouncycastle.jcajce.provider.drbg.DRBG$Mappings { *; }
+-keep class javax.crypto.spec.GCMParameterSpec { *; }
+-keep class org.bouncycastle.openssl.jcajce.PEMUtilities** { *; }
+-keep class org.bouncycastle.jcajce.provider.symmetric.util.IvAlgorithmParameters { *; }
