@@ -36,6 +36,8 @@ import com.ubergeek42.WeechatAndroid.utils.Utils;
 import java.util.Set;
 import java.util.regex.PatternSyntaxException;
 
+import okhttp3.HttpUrl;
+
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
 
 public class PreferencesActivity extends AppCompatActivity implements PreferenceFragmentCompat.OnPreferenceStartScreenCallback {
@@ -217,9 +219,16 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
             String key = preference.getKey();
             boolean valid = true;
             int toast = -1;
-            if (Utils.isAnyOf(key, PREF_HOST, PREF_SSH_HOST, PREF_UPLOADING_URI)) {
+            if (Utils.isAnyOf(key, PREF_HOST, PREF_SSH_HOST)) {
                 valid = !((String) o).contains(" ");
                 toast = R.string.pref_hostname_invalid;
+            } else if (PREF_UPLOADING_URI.equals(key)) {
+                try {
+                    System.out.println(HttpUrl.get((String) o));
+                } catch (Exception e) {
+                    valid = false;
+                    Toast.makeText(getContext(), "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
             } else if (PREF_SSH_AUTHENTICATION_METHOD.equals(key)) {
                 switchSshAuthenticationMethodPreferences((String) o);
             } else if (Utils.isAnyOf(key, PREF_TEXT_SIZE, PREF_MAX_WIDTH, PREF_PORT, PREF_SSH_PORT, PREF_PING_IDLE, PREF_PING_TIMEOUT)) {
