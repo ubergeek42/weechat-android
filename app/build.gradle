@@ -152,41 +152,59 @@ static String versionBanner() {
 }
 
 
+def weaveCats(String classPath, String aspectPath, String inputOutput) {
+    String[] args = [
+            "-showWeaveInfo",
+            "-1.8",
+            "-inpath", inputOutput,
+            "-aspectpath", aspectPath,
+            "-d", inputOutput,
+            "-classpath", classPath,
+            "-bootclasspath", android.bootClasspath.join(File.pathSeparator)
+    ]
+
+    MessageHandler handler = new MessageHandler(true)
+    new Main().run(args, handler)
+
+    def log = project.logger
+    for (IMessage message : handler.getMessages(null, true)) {
+        switch (message.getKind()) {
+            case IMessage.ABORT:
+            case IMessage.ERROR:
+            case IMessage.FAIL:
+                log.error "ERROR: " + message.message, message.thrown
+                break
+            case IMessage.WARNING:
+                log.warn "WARN: " + message.message, message.thrown
+                break
+            case IMessage.INFO:
+                log.info "INFO: " + message.message, message.thrown
+                break
+            case IMessage.DEBUG:
+                log.info "DEBUG " + message.message, message.thrown
+                break
+        }
+    }
+}
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile) {
+    if (name == "compileDebugKotlin") {
+        doLast {
+            println "weaving cats into the kotlin part of the app..."
+            weaveCats(classpath.asPath + File.pathSeparator + project.buildDir.path + "/intermediates/javac/debug/classes",
+                      classpath.asPath,
+                      destinationDir.toString())
+        }
+    }
+}
+
 tasks.withType(JavaCompile) {
-    if (name != "compileDebugJavaWithJavac") return
-    doLast {
-        println "weaving cats into the app..."
-        String[] args = [
-                "-showWeaveInfo",
-                "-1.5",
-                "-inpath", destinationDir.toString(),
-                "-aspectpath", classpath.asPath,
-                "-d", destinationDir.toString(),
-                "-classpath", classpath.asPath,
-                "-bootclasspath", android.bootClasspath.join(File.pathSeparator)
-        ]
-
-        MessageHandler handler = new MessageHandler(true)
-        new Main().run(args, handler)
-
-        def log = project.logger
-        for (IMessage message : handler.getMessages(null, true)) {
-            switch (message.getKind()) {
-                case IMessage.ABORT:
-                case IMessage.ERROR:
-                case IMessage.FAIL:
-                    log.error "ERROR: " + message.message, message.thrown
-                    break
-                case IMessage.WARNING:
-                    log.warn "WARN: " + message.message, message.thrown
-                    break
-                case IMessage.INFO:
-                    log.info "INFO: " + message.message, message.thrown
-                    break
-                case IMessage.DEBUG:
-                    log.info "DEBUG " + message.message, message.thrown
-                    break
-            }
+    if (name == "compileDebugJavaWithJavac") {
+        doLast {
+            println "weaving cats into the java part of the app..."
+            weaveCats(classpath.asPath,
+                      classpath.asPath,
+                      destinationDir.toString())
         }
     }
 }

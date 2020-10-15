@@ -5,6 +5,7 @@ import androidx.annotation.StringRes
 import androidx.core.content.ContextCompat
 import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.Weechat
+import com.ubergeek42.cats.Cat
 import java.lang.Exception
 
 private val context = Weechat.applicationContext
@@ -14,7 +15,7 @@ class Toaster(
     private val duration: Int,
     private val colorResource: Int?,
 ) {
-    fun show(message: String) {
+    @Cat fun show(message: String) {
         Weechat.runOnMainThread {
             Toast.makeText(context, message, duration).apply {
                 colorResource?.let {
