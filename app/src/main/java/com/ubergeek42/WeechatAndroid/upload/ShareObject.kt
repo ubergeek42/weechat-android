@@ -15,6 +15,7 @@ import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import com.ubergeek42.WeechatAndroid.media.Config
+import com.ubergeek42.WeechatAndroid.media.WAGlideModule.isContextValidForGlide
 import java.io.FileNotFoundException
 import java.io.IOException
 
@@ -88,24 +89,29 @@ open class UrisShareObject(
 // this starts the upload in a worker thread and exits immediately.
 // target callbacks will be called on the main thread
 fun getThumbnailAndThen(context: Context, uri: Uri, then: (bitmap: Bitmap) -> Unit) {
-    Glide.with(context)
-            .asBitmap()
-            .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-            .transform(MultiTransformation(NotQuiteCenterCrop(), RoundedCorners(Config.THUMBNAIL_CORNER_RADIUS)))
-            .load(uri)
-            .into(object : CustomTarget<Bitmap>(THUMBNAIL_MAX_WIDTH, THUMBNAIL_MAX_HEIGHT) {
-                @MainThread override fun onResourceReady(bitmap: Bitmap, transition: Transition<in Bitmap>?) {
-                    then(bitmap)
-                }
+    if (isContextValidForGlide(context)) {
+        Glide.with(context)
+                .asBitmap()
+                .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+                .transform(MultiTransformation(
+                        NotQuiteCenterCrop(),
+                        RoundedCorners(Config.THUMBNAIL_CORNER_RADIUS),
+                ))
+                .load(uri)
+                .into(object : CustomTarget<Bitmap>(THUMBNAIL_MAX_WIDTH, THUMBNAIL_MAX_HEIGHT) {
+                    @MainThread override fun onResourceReady(bitmap: Bitmap, transition: Transition<in Bitmap>?) {
+                        then(bitmap)
+                    }
 
-                @MainThread override fun onLoadFailed(errorDrawable: Drawable?) {
-                    then(NO_BITMAP)
-                }
+                    @MainThread override fun onLoadFailed(errorDrawable: Drawable?) {
+                        then(NO_BITMAP)
+                    }
 
-                override fun onLoadCleared(placeholder: Drawable?) {
-                    // this shouldn't happen
-                }
-            })
+                    override fun onLoadCleared(placeholder: Drawable?) {
+                        // this shouldn't happen
+                    }
+                })
+    }
 }
 
 private val NO_BITMAP = Bitmap.createBitmap(1, 1, Bitmap.Config.ALPHA_8)
