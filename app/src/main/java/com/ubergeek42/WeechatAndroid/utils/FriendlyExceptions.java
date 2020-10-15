@@ -3,6 +3,7 @@ package com.ubergeek42.WeechatAndroid.utils;
 import android.content.Context;
 import android.text.TextUtils;
 
+import androidx.annotation.NonNull;
 import androidx.preference.PreferenceManager;
 
 import com.ubergeek42.WeechatAndroid.R;
@@ -23,10 +24,10 @@ public class FriendlyExceptions {
     }
 
     public static class Result {
-        final public String message;
+        final public @NonNull String message;
         final public boolean shouldStopConnecting;
 
-        public Result(String message, boolean shouldStopConnecting) {
+        public Result(@NonNull String message, boolean shouldStopConnecting) {
             this.message = message;
             this.shouldStopConnecting = shouldStopConnecting;
         }

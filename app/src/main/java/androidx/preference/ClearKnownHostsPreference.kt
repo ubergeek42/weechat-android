@@ -2,9 +2,9 @@ package androidx.preference
 
 import android.content.Context
 import android.util.AttributeSet
-import android.widget.Toast
 import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.service.P
+import com.ubergeek42.WeechatAndroid.utils.Toaster.Companion.SuccessToast
 
 class ClearKnownHostsPreference(context: Context, attrs: AttributeSet) : ClearPreference(context, attrs) {
     override val message = R.string.pref_clear_known_hosts_confirmation
@@ -22,6 +22,6 @@ class ClearKnownHostsPreference(context: Context, attrs: AttributeSet) : ClearPr
 
     override fun clear() {
         P.sshServerKeyVerifier.clear()
-        Toast.makeText(context, R.string.pref_clear_known_hosts_cleared, Toast.LENGTH_LONG).show()
+        SuccessToast.show(R.string.pref_clear_known_hosts_cleared)
     }
 }

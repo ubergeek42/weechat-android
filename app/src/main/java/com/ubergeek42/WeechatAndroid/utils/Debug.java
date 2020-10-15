@@ -13,7 +13,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
 import android.view.WindowManager;
-import android.widget.Toast;
 
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
@@ -48,11 +47,6 @@ public class Debug {
             dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
             dialog.show();
         });
-    }
-
-    public static void showLongToast(final Context ctx, final String message, final Object... args) {
-        final Handler handler = new Handler(Looper.getMainLooper());
-        handler.post(() -> Toast.makeText(ctx, String.format(message, args), Toast.LENGTH_LONG).show());
     }
 
     public static String getExceptionAsString(Exception e) {

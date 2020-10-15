@@ -28,6 +28,7 @@ import com.ubergeek42.WeechatAndroid.utils.Utils;
 import org.greenrobot.eventbus.EventBus;
 
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
+import static com.ubergeek42.WeechatAndroid.utils.Toaster.ErrorToast;
 
 public class ShareTextActivity extends AppCompatActivity implements
         DialogInterface.OnDismissListener, BufferListClickListener {
@@ -50,7 +51,7 @@ public class ShareTextActivity extends AppCompatActivity implements
         super.onStart();
 
         if (!EventBus.getDefault().getStickyEvent(Events.StateChangedEvent.class).state.contains(RelayService.STATE.LISTED)) {
-            Weechat.showShortToast(R.string.not_connected);
+            ErrorToast.show(R.string.not_connected);
             finish();
             return;
         }

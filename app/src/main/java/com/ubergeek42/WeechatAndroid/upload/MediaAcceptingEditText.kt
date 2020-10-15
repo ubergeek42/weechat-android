@@ -7,8 +7,8 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputConnection
 import androidx.core.view.inputmethod.EditorInfoCompat
 import androidx.core.view.inputmethod.InputConnectionCompat
-import com.ubergeek42.WeechatAndroid.Weechat
 import com.ubergeek42.WeechatAndroid.utils.ActionEditText
+import com.ubergeek42.WeechatAndroid.utils.Toaster.Companion.ErrorToast
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
 
@@ -43,7 +43,7 @@ class MediaAcceptingEditText : ActionEditText {
             Suri.fromUri(inputContentInfo.contentUri)
         } catch (e: Exception) {
             e.printStackTrace()
-            Weechat.showLongToast("Error: ${e.message}")
+            ErrorToast.show(e)
             return@OnCommitContentListener false
         }
 

@@ -16,10 +16,12 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 
 import com.ubergeek42.WeechatAndroid.R;
-import com.ubergeek42.WeechatAndroid.Weechat;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
+
+import static com.ubergeek42.WeechatAndroid.utils.Toaster.ErrorToast;
+import static com.ubergeek42.WeechatAndroid.utils.Toaster.SuccessToast;
 
 public class FilePreference extends DialogPreference implements DialogFragmentGetter {
     final private static @Root Kitty kitty = Kitty.make();
@@ -48,10 +50,10 @@ public class FilePreference extends DialogPreference implements DialogFragmentGe
         try {
             byte[] bytes = bytesGetter.get();
             String message = saveData(bytes);
-            if (message != null) Weechat.showLongToast(message);
+            if (message != null) SuccessToast.show(message);
         } catch (Exception e) {
             kitty.error("error", e);
-            Weechat.showLongToast(R.string.pref_file_error, e.getMessage());
+            ErrorToast.show(e);
         }
     }
 
@@ -88,7 +90,7 @@ public class FilePreference extends DialogPreference implements DialogFragmentGe
                     ClipboardManager cm = (ClipboardManager) requireContext().getSystemService(Context.CLIPBOARD_SERVICE);
                     CharSequence clip = cm.getText();
                     if (TextUtils.isEmpty(clip))
-                        Weechat.showShortToast(R.string.pref_file_empty_clipboard);
+                        ErrorToast.show(R.string.pref_file_empty_clipboard);
                     else {
                         preference.saveDataAndShowToast(() -> clip.toString().getBytes());
                     }

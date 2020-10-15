@@ -13,14 +13,14 @@ import android.text.Spanned;
 import android.text.TextPaint;
 import android.text.style.URLSpan;
 import android.view.View;
-import android.widget.Toast;
 
 import com.ubergeek42.WeechatAndroid.R;
-import com.ubergeek42.WeechatAndroid.relay.Line;
 
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static com.ubergeek42.WeechatAndroid.utils.Toaster.ErrorToast;
 
 /**
  * Our own Linkifier
@@ -83,8 +83,7 @@ public class Linkify {
             try {
                 context.startActivity(intent);
             } catch (ActivityNotFoundException e) {
-                CharSequence text = context.getString(R.string.linkify_error_no_activity, getURL());
-                Toast.makeText(widget.getContext(), text, Toast.LENGTH_SHORT).show();
+                ErrorToast.show(R.string.linkify_error_no_activity, getURL());
             }
         }
     }

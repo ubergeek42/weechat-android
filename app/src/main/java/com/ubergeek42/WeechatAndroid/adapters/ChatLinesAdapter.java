@@ -53,6 +53,7 @@ import static com.ubergeek42.WeechatAndroid.R.layout.read_marker;
 import static com.ubergeek42.WeechatAndroid.relay.Lines.HEADER_POINTER;
 import static com.ubergeek42.WeechatAndroid.relay.Lines.MARKER_POINTER;
 
+import static com.ubergeek42.WeechatAndroid.utils.Toaster.ShortToast;
 import static com.ubergeek42.WeechatAndroid.utils.Utils.Predicate;
 import static com.ubergeek42.WeechatAndroid.utils.Assert.assertThat;
 
@@ -295,7 +296,7 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     @MainThread @Cat("Scrolling") public void scrollToHotLineIfNeeded() {
         final int idx = findHotLine();
         if (idx == HOT_LINE_NOT_PRESENT) return;
-        if (idx == HOT_LINE_LOST) Weechat.showShortToast(R.string.autoscroll_no_line);
+        if (idx == HOT_LINE_LOST) ShortToast.show(R.string.autoscroll_no_line);
         // run scrolling slightly delayed so that stuff on current thread doesn't get in the way
         else Weechat.runOnMainThread(() -> uiLines.smoothScrollToPositionAfterAnimation(idx), 100);
     }

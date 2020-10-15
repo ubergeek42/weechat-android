@@ -3,11 +3,9 @@ package com.ubergeek42.WeechatAndroid.utils;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-import android.text.TextUtils;
 
 import androidx.preference.PrivateKeyPickerPreference;
 
-import com.ubergeek42.WeechatAndroid.Weechat;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
 import com.ubergeek42.weechat.relay.connection.SSHConnection;
@@ -26,6 +24,7 @@ import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_PASSWORD;
 import static com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils.isInsideSecurityHardware;
 import static com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils.putKeyPairIntoAndroidKeyStore;
 import static com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils.InsideSecurityHardware;
+import static com.ubergeek42.WeechatAndroid.utils.Toaster.InfoToast;
 
 public class MigratePreferences {
     final private static @Root Kitty kitty = Kitty.make();
@@ -130,10 +129,10 @@ public class MigratePreferences {
                             InsideSecurityHardware.NO, "software key store",
                             InsideSecurityHardware.CANT_TELL, "key store"
                     ).get(isInsideSecurityHardware(SSHConnection.KEYSTORE_ALIAS));
-                    Weechat.showLongToast("While migrating preferences, private SSH key was moved " +
+                    InfoToast.show("While migrating preferences, private SSH key was moved " +
                             "into " + message);
                 } catch (Exception e) {
-                    Weechat.showLongToast("While migrating preferences, attempted to move SSH " +
+                    InfoToast.show("While migrating preferences, attempted to move SSH " +
                             "private key into AndroidKeyStore. This was unsuccessful. Reason: " +
                             e.getMessage());
                 }
@@ -155,7 +154,7 @@ public class MigratePreferences {
                             .putString(PREF_SSH_KEY_FILE, Utils.serialize(keyPair))
                             .apply();
                 } catch (Exception e) {
-                    Weechat.showLongToast("Failed to migrate SSH key: " + e);
+                    InfoToast.show("Failed to migrate SSH key: " + e);
                     preferences.edit()
                             .putString(PREF_SSH_KEY_FILE, PREF_SSH_KEY_FILE_D)
                             .apply();
@@ -173,7 +172,7 @@ public class MigratePreferences {
             if (Constants.Deprecated.PREF_SSH_KNOWN_HOSTS_D.equals(knownHosts))
                 return;
 
-            Weechat.showLongToast("While migrating preferences, the SSH known hosts preference" +
+            InfoToast.show("While migrating preferences, the SSH known hosts preference" +
                     " was removed. You will be prompted to accept SSH host key the next time you" +
                     " connect using SSH.");
 

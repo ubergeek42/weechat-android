@@ -61,6 +61,7 @@ import com.ubergeek42.weechat.ColorScheme;
 
 import static com.ubergeek42.WeechatAndroid.service.Events.*;
 import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.*;
+import static com.ubergeek42.WeechatAndroid.utils.Toaster.ErrorToast;
 
 
 public class BufferFragment extends Fragment implements BufferEye, OnKeyListener,
@@ -557,7 +558,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         @Override public void onUploadFailure(@NotNull Suri suri, @NotNull Exception e) {
             if (!(e instanceof Upload.CancelledException)) {
                 String message = new FriendlyExceptions(getContext()).getFriendlyException(e).message;
-                Weechat.showShortToast("Could not upload: %s\n\nError: %s", suri.getUri(), message);
+                ErrorToast.show("Could not upload: %s\n\nError: %s", suri.getUri(), message);
             }
         }
 

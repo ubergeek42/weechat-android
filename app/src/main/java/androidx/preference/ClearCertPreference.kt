@@ -2,9 +2,10 @@ package androidx.preference
 
 import android.content.Context
 import android.util.AttributeSet
-import android.widget.Toast
 import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.service.SSLHandler
+import com.ubergeek42.WeechatAndroid.utils.Toaster.Companion.ErrorToast
+import com.ubergeek42.WeechatAndroid.utils.Toaster.Companion.SuccessToast
 import java.text.MessageFormat
 
 class ClearCertPreference(context: Context, attrs: AttributeSet) : ClearPreference(context, attrs) {
@@ -20,7 +21,10 @@ class ClearCertPreference(context: Context, attrs: AttributeSet) : ClearPreferen
 
     override fun clear() {
         val removed = SSLHandler.getInstance(context).removeKeystore()
-        val message = if (removed) R.string.pref_clear_certs_success else R.string.pref_clear_certs_failure
-        Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+        if (removed) {
+            SuccessToast.show(R.string.pref_clear_certs_success)
+        } else {
+            ErrorToast.show(R.string.pref_clear_certs_failure)
+        }
     }
 }

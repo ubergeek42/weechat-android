@@ -103,6 +103,8 @@ import static com.ubergeek42.WeechatAndroid.service.Events.*;
 import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.*;
 import static com.ubergeek42.WeechatAndroid.upload.UploadServiceKt.ACTION_UPLOAD;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
+import static com.ubergeek42.WeechatAndroid.utils.Toaster.ErrorToast;
+import static com.ubergeek42.WeechatAndroid.utils.Toaster.ShortToast;
 
 public class WeechatActivity extends AppCompatActivity implements
         CutePagerTitleStrip.CutePageChangeListener, BufferListClickListener {
@@ -209,7 +211,7 @@ public class WeechatActivity extends AppCompatActivity implements
         P.loadConnectionPreferences();
         int error = P.validateConnectionPreferences();
         if (error != 0) {
-            Weechat.showLongToast(error);
+            ErrorToast.show(error);
             return;
         }
 
@@ -366,7 +368,7 @@ public class WeechatActivity extends AppCompatActivity implements
         }
 
         FriendlyExceptions.Result result = new FriendlyExceptions(this).getFriendlyException(e);
-        if (result.message != null) Weechat.showLongToast(R.string.error, result.message);
+        ErrorToast.show(R.string.error, result.message);
         if (result.shouldStopConnecting) Weechat.runOnMainThread(this::disconnect);
     }
 
@@ -521,7 +523,7 @@ public class WeechatActivity extends AppCompatActivity implements
         if (buffer != null)
             openBuffer(buffer.pointer);
         else
-            Weechat.showShortToast(R.string.no_hot_buffers);
+            ShortToast.show(R.string.no_hot_buffers);
     }
 
     @MainThread @Cat("Menu") private void makeMenuReflectConnectionStatus() {
@@ -560,7 +562,7 @@ public class WeechatActivity extends AppCompatActivity implements
             if (shareObject != null) Weechat.runOnMainThread(() -> adapter.setBufferInputText(pointer, shareObject));
             if (slidy) hideDrawer();
         } else {
-            Weechat.showShortToast(R.string.not_connected);
+            ErrorToast.show(R.string.not_connected);
         }
     }
 
@@ -692,8 +694,7 @@ public class WeechatActivity extends AppCompatActivity implements
                         shareObject = UrisShareObject.fromUris(uris);
                     } catch (Exception e) {
                         kitty.warn("Error while accessing uri", e);
-                        FriendlyExceptions.Result result = new FriendlyExceptions(this).getFriendlyException(e);
-                        if (result.message != null) Weechat.showLongToast(R.string.error, result.message);
+                        ErrorToast.show(e);
                     }
                 }
             }
