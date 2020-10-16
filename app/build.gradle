@@ -152,6 +152,19 @@ static String versionBanner() {
 }
 
 
+// the problem with weaving Kotlin and Java is that:
+//   * Java is compiled by task compileDebugJavaWithJavac
+//   * gradle can run either one of these tasks, or both of them
+//   * compileDebugJavaWithJavac depends on compileDebugKotlin
+//   * weaving Kotlin requires Java classes
+//
+// this is an attempt to resolve this by postponing weaving until after task
+// compileDebugJavaWithJavac has run. gradle.taskGraph.afterTask seems to be executed
+// regardless of whether or not the task has been actually run
+
+// the downside here is the the classes are modified in place, and so both compilation tasks
+// have to be re-run on every assemble
+
 def weaveCats(String classPath, String aspectPath, String inputOutput) {
     String[] args = [
             "-showWeaveInfo",
@@ -187,13 +200,16 @@ def weaveCats(String classPath, String aspectPath, String inputOutput) {
     }
 }
 
+ext.javaPath = null
+ext.kotlinPath = null
+ext.classPath = null
+
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile) {
     if (name == "compileDebugKotlin") {
         doLast {
-            println "weaving cats into the kotlin part of the app..."
-            weaveCats(classpath.asPath + File.pathSeparator + project.buildDir.path + "/intermediates/javac/debug/classes",
-                      classpath.asPath,
-                      destinationDir.toString())
+            println "scheduling kotlin weaving..."
+            kotlinPath = destinationDir.toString()
+            classPath = classpath.asPath
         }
     }
 }
@@ -201,10 +217,23 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile) {
 tasks.withType(JavaCompile) {
     if (name == "compileDebugJavaWithJavac") {
         doLast {
+            println "scheduling java weaving..."
+            javaPath = destinationDir.toString()
+            classPath = classpath.asPath
+        }
+    }
+}
+
+gradle.taskGraph.afterTask { Task task, TaskState state ->
+    if (task.name == "compileDebugJavaWithJavac" && !state.failure) {
+        if (kotlinPath) {
+            println "weaving cats into the kotlin part of the app..."
+            if (!javaPath) javaPath = project.buildDir.path + "/intermediates/javac/debug/classes"
+            weaveCats(classPath + File.pathSeparator + javaPath, classPath, kotlinPath)
+        }
+        if (javaPath) {
             println "weaving cats into the java part of the app..."
-            weaveCats(classpath.asPath,
-                      classpath.asPath,
-                      destinationDir.toString())
+            weaveCats(classPath, classPath, javaPath)
         }
     }
 }
