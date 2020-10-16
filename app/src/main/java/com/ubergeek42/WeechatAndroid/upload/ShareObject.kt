@@ -85,7 +85,6 @@ open class UrisShareObject(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-
 // this starts the upload in a worker thread and exits immediately.
 // target callbacks will be called on the main thread
 fun getThumbnailAndThen(context: Context, uri: Uri, then: (bitmap: Bitmap) -> Unit) {
@@ -119,7 +118,7 @@ private val NO_BITMAP = Bitmap.createBitmap(1, 1, Bitmap.Config.ALPHA_8)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-@MainThread fun EditText.insertAddingSpacesAsNeeded(insertAt: InsertAt, word: CharSequence) {
+@MainThread private fun EditText.insertAddingSpacesAsNeeded(insertAt: InsertAt, word: CharSequence) {
     val pos = if (insertAt == InsertAt.CURRENT_POSITION) selectionEnd else text.length
     val shouldPrependSpace = pos > 0 && text[pos - 1] != ' '
     val shouldAppendSpace = pos < text.length && text[pos + 1] != ' '

@@ -9,6 +9,7 @@ import android.os.Build
 import android.text.Layout
 import android.text.StaticLayout
 import android.text.TextPaint
+import android.text.TextUtils
 import android.text.style.ReplacementSpan
 import com.ubergeek42.WeechatAndroid.media.Config
 import com.ubergeek42.WeechatAndroid.service.P
@@ -28,7 +29,7 @@ private val TEXT_SIZE = 13.dp_to_px.f
 
 
 abstract class ShareSpan(
-    val suri: Suri,
+        val suri: Suri,
 ) : ReplacementSpan() {
     protected abstract val width: Int
     protected abstract val height: Int
@@ -61,8 +62,20 @@ class NonBitmapShareSpan(suri: Suri) : ShareSpan(suri) {
     override val width = THUMBNAIL_MAX_WIDTH
     override val height = THUMBNAIL_MAX_HEIGHT
 
-    private val layout = StaticLayout(suri.fileName,
-            textPaint, LAYOUT_MAX_WIDTH, Layout.Alignment.ALIGN_NORMAL, 1.0f, 0.0f, false)
+    @SuppressLint("WrongConstant") @Suppress("DEPRECATION")
+    private val layout = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                StaticLayout.Builder.obtain(suri.fileName, 0, suri.fileName.length,
+                                            textPaint, LAYOUT_MAX_WIDTH)
+                        .setBreakStrategy(Layout.BREAK_STRATEGY_BALANCED)
+                        .setHyphenationFrequency(Layout.HYPHENATION_FREQUENCY_NONE)
+                        .setMaxLines(3)
+                        .setEllipsize(TextUtils.TruncateAt.END)
+                        .build()
+            } else {
+                StaticLayout(suri.fileName, textPaint, LAYOUT_MAX_WIDTH,
+                             Layout.Alignment.ALIGN_NORMAL, 1.0f, 0.0f, false)
+            }
+
     private val layoutLeft = PADDING + maxOf(0f, (LAYOUT_MAX_WIDTH - layout.maxLineWidth) / 2f)
     private val layoutTop = PADDING_TOP + maxOf(0f, (LAYOUT_MAX_HEIGHT - layout.height) / 2f)
 

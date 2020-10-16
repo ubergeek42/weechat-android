@@ -29,7 +29,7 @@ private fun reduce(ratio: Double, bend: Double, ceiling: Double): Double {
 // this is like center crop, but instead the longer side of the image is sli-i-ightly bigger
 // than the target dimension. this would be something between center crop and the default behavior
 class NotQuiteCenterCrop : BitmapTransformation() {
-    override fun transform(pool: BitmapPool, bitmap: Bitmap, ow: Int, oh: Int): Bitmap {
+    override fun transform(pool: BitmapPool, bitmap: Bitmap, outWidth: Int, outHeight: Int): Bitmap {
         val dimensions = Dimensions(bitmap.width, bitmap.height)
 
         dimensions.whileRotatedToLandscape {

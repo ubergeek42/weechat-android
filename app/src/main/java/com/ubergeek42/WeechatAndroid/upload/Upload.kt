@@ -25,11 +25,11 @@ private val client = OkHttpClient.Builder()
 
 
 class Upload(
-        val suri: Suri,
-        private val uploadUri: String,
-        private val uploadFormFieldName: String,
-        private val httpUriGetter: HttpUriGetter,
-        private val requestModifiers: List<RequestModifier>,
+    val suri: Suri,
+    private val uploadUri: String,
+    private val uploadFormFieldName: String,
+    private val httpUriGetter: HttpUriGetter,
+    private val requestModifiers: List<RequestModifier>,
 ) {
     var transferredBytes = 0L
     val totalBytes = suri.fileSize
@@ -38,7 +38,7 @@ class Upload(
     private var call: Call? = null
 
     enum class State { RUNNING, DONE, FAILED }
-    var state: State = State.RUNNING
+    @Volatile var state: State = State.RUNNING
 
     private fun upload() {
         try {
@@ -96,7 +96,7 @@ class Upload(
             if (response.isSuccessful) {
                 return response.body!!.string()
             } else {
-                throw IOException("Unexpected code $response")
+                throw IOException("Unexpected code ${response.code}")
             }
         }
     }

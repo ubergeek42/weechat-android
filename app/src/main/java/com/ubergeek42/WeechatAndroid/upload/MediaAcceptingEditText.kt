@@ -34,7 +34,7 @@ class MediaAcceptingEditText : ActionEditText {
             try {
                 inputContentInfo.requestPermission()
             } catch (e: Exception) {
-                e.printStackTrace()
+                kitty.error("Failed to acquire permission for %s", inputContentInfo.description, e)
                 return@OnCommitContentListener false
             }
         }
@@ -42,7 +42,7 @@ class MediaAcceptingEditText : ActionEditText {
         val suri: Suri = try {
             Suri.fromUri(inputContentInfo.contentUri)
         } catch (e: Exception) {
-            e.printStackTrace()
+            kitty.error("Error while accessing uri", e)
             ErrorToast.show(e)
             return@OnCommitContentListener false
         }

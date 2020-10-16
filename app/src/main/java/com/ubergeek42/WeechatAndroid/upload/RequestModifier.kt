@@ -1,6 +1,7 @@
 package com.ubergeek42.WeechatAndroid.upload
 
 import okhttp3.Credentials
+import okhttp3.Headers
 import okhttp3.Request
 
 fun interface RequestModifier {
@@ -13,12 +14,12 @@ fun interface RequestModifier {
             }
         }
 
-        @JvmStatic @Throws(ParseException::class)
+        @JvmStatic @Throws(ParseException::class, IllegalArgumentException::class)
         fun additionalHeaders(string: String): RequestModifier? {
             val headers = string.lineSequence()
                     .filter { line -> line.isNotBlank() }
-                    .map { line -> line.split(": ", limit = 2) }
-                    .filter { list -> if (list.size == 2) true else throw ParseException("Line ${list[0]} doesn’t contain ': '") }
+                    .map { line -> line.splitIntoTwoBy(": ") }
+                    .onEach { (name, value) -> Headers.Builder().add(name, value) }
                     .toList()
             if (headers.isEmpty())
                 return null
@@ -29,4 +30,10 @@ fun interface RequestModifier {
     }
 
     class ParseException(message: String): Exception(message)
+}
+
+private fun String.splitIntoTwoBy(delimiter: String) : Pair<String, String> {
+    val parts = this.split(delimiter, limit = 2)
+    if (parts.size != 2) throw RequestModifier.ParseException("Line doesn’t contain '$delimiter': $this")
+    return parts[0] to parts[1]
 }
