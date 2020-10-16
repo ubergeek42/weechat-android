@@ -68,7 +68,6 @@ import com.ubergeek42.WeechatAndroid.service.SSLHandler;
 import com.ubergeek42.WeechatAndroid.upload.ShareObject;
 import com.ubergeek42.WeechatAndroid.upload.UrisShareObject;
 import com.ubergeek42.WeechatAndroid.upload.TextShareObject;
-import com.ubergeek42.WeechatAndroid.upload.UploadService;
 import com.ubergeek42.WeechatAndroid.upload.UploadDatabase;
 import com.ubergeek42.WeechatAndroid.utils.CertificateDialog;
 import com.ubergeek42.WeechatAndroid.utils.FancyAlertDialogBuilder;
@@ -101,7 +100,6 @@ import javax.net.ssl.SSLPeerUnverifiedException;
 import static com.ubergeek42.WeechatAndroid.media.Cache.findException;
 import static com.ubergeek42.WeechatAndroid.service.Events.*;
 import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.*;
-import static com.ubergeek42.WeechatAndroid.upload.UploadServiceKt.ACTION_UPLOAD;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
 import static com.ubergeek42.WeechatAndroid.utils.Toaster.ErrorToast;
 import static com.ubergeek42.WeechatAndroid.utils.Toaster.ShortToast;
@@ -506,13 +504,6 @@ public class WeechatActivity extends AppCompatActivity implements
                 break;
             case R.id.die:
                 System.exit(0);
-                break;
-            case R.id.upload:
-                Intent i = new Intent(this, UploadService.class);
-                i.setAction(ACTION_UPLOAD);
-                i.setDataAndType(Uri.EMPTY, "poop/haha");
-                startService(i);
-                kitty.warn("ok");
                 break;
         }
         return true;
