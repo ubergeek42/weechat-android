@@ -109,7 +109,6 @@
     <string name="pref_error_ssh_host_not_set">SSH-Host ist nicht angelegt</string>
     <string name="pref_error_no_ssh_key_file">Privater SSH-Schlüssel ist nicht festgelegt</string>
     <string name="pref_error_no_ssh_password">SSH-Passwort ist nicht festgelegt</string>
-    <string name="pref_error_no_ssh_known_hosts">Bekannte SSH-Hosts sind nicht angelegt</string>
 
     <string name="pref_connection_group">Verbindung</string>
 
@@ -150,17 +149,11 @@
     <string name="pref_ssh_password">SSH-Passwort</string>
     <string name="pref_ssh_keyfile">Privater Schlüssel</string>
     <string name="pref_ssh_keyfile_summary">Ed25519, ECDSA, RSA, DSA Schlüssel</string>
-    <string name="pref_ssh_known_hosts">Bekannte Hosts</string>
-    <string name="pref_ssh_known_hosts_summary">Ausgabe von $ ssh-keyscan host</string>
 
-    <string name="pref_file_imported">Datei importiert. Sie können es jetzt löschen.</string>
-    <string name="pref_file_error">Fehler: %s</string>
     <string name="pref_file_clear_button">Löschen</string>
-    <string name="pref_file_cleared">Gelöscht</string>
     <string name="pref_file_empty_clipboard">Zwischenablage ist leer</string>
     <string name="pref_file_choose_button">Wähle Datei</string>
     <string name="pref_file_paste_button">Einfügen</string>
-    <string name="pref_file_pasted">Von Zwischenablage eingefügt</string>
     <string name="pref_file_set">einstellen</string>
     <string name="pref_file_not_set">nicht einstellen</string>
 
@@ -450,10 +443,6 @@
         Fehler bei Authentifizierung mit gewähltem Kennwort</string>
     <string name="exceptions_ssh_failed_to_authenticate_with_key">
         Authentifizierung mit Schlüssel fehlgeschlagen</string>
-    <string name="exceptions_ssh_hostname_not_present_in_known_hosts">
-        Hostname %s ist in bekannten Hosts nicht vorhanden</string>
-    <string name="exceptions_ssh_hostkey_not_verified">Hostname %1$s ist bekannt, konnte aber nicht
-        verifiziert werden. Wähle Algorithmus: %2$s; SHA256 Host Schlüssel Fingerabdruck: %3$s</string>
 
     <string name="pref_ssh_key_stored_inside_security_hardware_yes">
         Der %s Schlüssel wurde in der Sicherheitshardware gespeichert</string>
@@ -473,9 +462,6 @@
     <string name="pref_ssl_certificate_stored_inside_security_hardware_cant_tell">
         Das Zertifikat wurde im Schlüsselspeicher gespeichert</string>
     <string name="pref_ssl_certificate_forgotten">Zertifikat vergessen</string>
-
-    <string name="pref_known_hosts_set">Bekannte Hosts festgelegt</string>
-    <string name="pref_known_hosts_cleared">Bekannte Hosts gelöscht</string>
 
     <string name="pref_clear_known_hosts_confirmation">Bekannte Hosts löschen?</string>
     <string name="pref_clear_known_hosts_cancel">Abbrechen</string>

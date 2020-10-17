@@ -1,52 +1,91 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- internally used names -->
+    <!-- ####################################################################################### -->
+    <!-- ######################################### etc ######################################### -->
+    <!-- ####################################################################################### -->
+
+    <!-- ################################ internally used names ################################ -->
+
     <string name="app_name" translatable="false">Weechat-Android</string>
     <string name="package_name" translatable="false">com.ubergeek42.WeechatAndroid</string>
+
+    <!-- ################################### runtime errors #################################### -->
+
+    <string name="pref_error_relay_host_not_set">Relay host is not set</string>
+    <string name="pref_error_relay_password_not_set">Relay password is not set</string>
+    <string name="pref_error_ssh_host_not_set">SSH host is not set</string>
+    <string name="pref_error_no_ssh_key_file">SSH private key is not set</string>
+    <string name="pref_error_no_ssh_password">SSH password is not set</string>
+
+    <string name="relay_error_server_closed">Server unexpectedly closed connection while connecting. Wrong password or connection type?</string>
+    <string name="relay_error_resolve">Could not resolve address %s</string>
+
+    <string name="exceptions_ssh_failed_to_authenticate_with_password">
+        Failed to authenticate with password</string>
+    <string name="exceptions_ssh_failed_to_authenticate_with_key">
+        Failed to authenticate with key</string>
+
+    <string name="autoscroll_no_line">Buffer lost some hot messages because of new lines</string>
+    <string name="no_hot_buffers">There are no hot buffers for now</string>
+    <string name="not_connected">Not connected</string>
+    <string name="error">Error: %s</string>
+    <string name="linkify_error_no_activity">Activity not found for intent %s</string>
+
+    <!-- ############################## main activity ui elements ############################## -->
+
+    <string name="tabkey">Tab</string>
+    <string name="sendkey">Send</string>
+
+    <string name="more_button">Fetch more lines</string>
+    <string name="more_button_fetching">Fetching lines…</string>
+
+    <!-- needed by ActionBarDrawerToggle -->
+    <string name="open_drawer">Open drawer</string>
+    <string name="close_drawer">Close drawer</string>
+
+    <!-- ######################################### etc ######################################### -->
+
+    <string name="filter_bufferlist_placeholder"><i>filter</i></string>
+    <string name="hint_show_hot_message">Show hot message</string>
+
+
+    <!-- ####################################################################################### -->
+    <!-- ###################################### main menu ###################################### -->
+    <!-- ####################################################################################### -->
+
+    <string name="menu_nicklist">Users</string>
+    <string name="menu_hotlist">Hotlist</string>
+    <string name="menu_close">Close</string>
+
+    <string name="connect">Connect</string>
+    <string name="disconnect">Disconnect</string>
+    <string name="stop_connecting">Stop connecting</string>
+
+    <string name="menu_preferences">Settings</string>
+    <string name="menu_filter_lines">Filter lines</string>
+    <string name="menu_dark_theme">Dark theme</string>
+
+    <string name="menu_debug">Debug</string>
+    <string name="menu_sync_hotlist">Sync hotlist</string>
+    <string name="menu_die">Die</string>
+
+    <!-- ####################################################################################### -->
+    <!-- #################################### notifications #################################### -->
+    <!-- ####################################################################################### -->
+
     <string name="notification_channel_connection_status">Connection Status</string>
     <string name="notification_channel_hotlist">Hotlist</string>
     <string name="notification_channel_hotlist_async">Hotlist (async)</string>
 
-    <!-- widget and button contentDescription-s -->
-    <string name="sendkey">Send</string>
-    <string name="menu_preferences">Settings</string>
-    <string name="menu_close">Close</string>
-    <string name="menu_filter_lines">Filter lines</string>
-    <string name="menu_dark_theme">Dark theme</string>
-    <string name="connect">Connect</string>
-    <string name="disconnect">Disconnect</string>
-    <string name="stop_connecting">Stop connecting</string>
-    <string name="menu_hotlist">Hotlist</string>
-    <string name="menu_nicklist">Users</string>
-    <string name="tabkey">Tab</string>
-    <string name="open_drawer">Open drawer</string>
-    <string name="close_drawer">Close drawer</string>
-    <string name="more_button">Fetch more lines</string>
-    <string name="more_button_fetching">Fetching lines…</string>
-    <string name="nick_list_title" translatable="false">%1$s (%2$s)</string>
-    <plurals name="nick_list_count">
-        <item quantity="one">%1$d user</item>
-        <item quantity="other">%1$d users</item>
-    </plurals>
-    <string name="dialog_copy_title">Copy</string>
-    <string name="dialog_paste_title">Paste</string>
-    <string name="linkify_error_no_activity">Activity not found for intent %s</string>
+    <string name="notification_waiting_network">Waiting for network</string>
+    <string name="notification_connecting_details">Will connect in %d seconds…</string>
+    <string name="notification_connecting_details_now">Connecting now…</string>
+    <string name="notification_connected_to">Connected to %s</string>
 
-    <!--  the text shown in the buffer list filter edit text as a placeholder -->
-    <string name="filter_bufferlist_placeholder"><i>filter</i></string>
-
-    <!-- Some of the notifications the application displays during certain events -->
     <plurals name="hot_messages">
-        <item quantity="one">New message in %s</item>
-        <item quantity="other">%d new messages in %s</item>
-    </plurals>
-
-    <!-- plurals -->
-    <string name="hot_messages_missing_1">(message not fetched)</string>
-    <plurals name="hot_messages_missing">
-        <item quantity="one">(message not fetched)</item>
-        <item quantity="other">(%d messages not fetched)</item>
+        <item quantity="one">New message in %2$s</item>
+        <item quantity="other">%1$d new messages in %2$s</item>
     </plurals>
 
     <plurals name="hot_messages_missing_user">
@@ -54,8 +93,11 @@
         <item quantity="other">(users unknown)</item>
     </plurals>
 
-    <!-- “Me” in the “Me: my message” part of NotificationCompat.MessagingStyle -->
-    <string name="me">Me</string>
+    <string name="hot_messages_missing_1">(message not fetched)</string>
+    <plurals name="hot_messages_missing">
+        <item quantity="one">(message not fetched)</item>
+        <item quantity="other">(%d messages not fetched)</item>
+    </plurals>
 
     <plurals name="messages">
         <item quantity="one">%d message</item>
@@ -67,41 +109,173 @@
         <item quantity="other">&#160;in %d buffers</item>
     </plurals>
 
+    <string name="me">Me</string>
+
     <string name="reply_label">Reply</string>
 
-    <string name="notification_connected_to">Connected to %s</string>
+    <!-- ####################################################################################### -->
+    <!-- ####################################################################################### -->
+    <!-- ####################################### dialogs ####################################### -->
+    <!-- ####################################################################################### -->
+    <!-- ####################################################################################### -->
 
-    <string name="notification_connecting_details_now">Connecting now…</string>
-    <string name="notification_connecting_details">Will connect in %d seconds…</string>
+    <!-- ####################################################################################### -->
+    <!-- ###################################### nick list ###################################### -->
+    <!-- ####################################################################################### -->
 
-    <string name="notification_waiting_network">Waiting for network</string>
+    <string name="nick_list_title" translatable="false">%1$s (%2$s)</string>
+    <plurals name="nick_list_count">
+        <item quantity="one">%1$d user</item>
+        <item quantity="other">%1$d users</item>
+    </plurals>
 
-    <!-- toasts -->
-    <string name="autoscroll_no_line">Buffer lost some hot messages because of new lines</string>
-    <string name="no_hot_buffers">There are no hot buffers for now</string>
-    <string name="not_connected">Not connected</string>
-    <string name="error">Error: %s</string>
+    <string name="dialog_copy_title">Copy</string>
+    <string name="dialog_paste_title">Paste</string>
 
-    <!-- hints -->
-    <string name="hint_show_hot_message">Show hot message</string>
+    <!-- ####################################################################################### -->
+    <!-- ################################# certificate dialogs ################################# -->
+    <!-- ####################################################################################### -->
 
-    <!-- network errors -->
-    <string name="relay_error_server_closed">Server unexpectedly closed connection while connecting. Wrong password or connection type?</string>
-    <string name="relay_error_resolve">Could not resolve address %s</string>
+    <string name="certificate_description_text"><![CDATA[
+        <b>Issued to:</b><br>
+        %1$s<br>
+        <br>
+        <b>Issued by:</b><br>
+        %2$s<br>
+        <br>
+        <b>Validity period:</b><br>
+        Issued on: %3$s<br>
+        Expires on: %4$s<br>
+        <br>
+        <b>SHA-256 fingerprint:</b><br>
+        %5$s
+    ]]></string>
+    <string name="certificate_description_unknown_fingerprint">Unknown</string>
 
+    <string name="dialog_button_reject">Reject</string>
+    <string name="dialog_button_back_to_safety">Back to safety</string>
+
+    <!-- ############################### invalid hostname dialog ############################### -->
+
+    <string name="dialog_invalid_hostname_title">Invalid hostname</string>
+    <string name="dialog_invalid_hostname_text"><![CDATA[
+        You are trying to connect to <strong>%1$s</strong> but the certificate is only valid for
+        the following hosts: %2$s
+    ]]></string>
+    <string name="dialog_invalid_hostname_text_android_p_warning"><![CDATA[
+        <br>Note that Android P and beyond does not fall back to Common Name (CN) validation. Subject
+        Alternative Name (SAN) must be used instead.
+        <a href="https://github.com/ubergeek42/weechat-android/wiki/Using-SSL-with-WeeChat">Learn more</a>
+    ]]></string>
+    <string name="dialog_invalid_hostname_text_host_line" translatable="false"><![CDATA[
+        <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>%s</strong>
+    ]]></string>
+    <string name="dialog_invalid_hostname_text_empty_line"><![CDATA[
+        <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>(none)</strong>
+    ]]></string>
+
+    <!-- ############################## certificate expired dialog ############################# -->
+
+    <string name="dialog_certificate_expired_title">Certificate expired</string>
+    <string name="dialog_certificate_expired_text">This certificate is no longer valid. Please make
+        sure that the device date is correct.</string>
+
+    <!-- ########################### certificate not yet valid dialog ########################## -->
+
+    <string name="dialog_certificate_not_yet_valid_title">Certificate not yet valid</string>
+    <string name="dialog_certificate_not_yet_valid_text">This certificate will be valid in the
+        future. Please make sure that the device date is correct.</string>
+
+    <!-- ############################# untrusted certificate dialog ############################ -->
+
+    <string name="dialog_untrusted_certificate_title">Untrusted certificate</string>
+    <string name="dialog_untrusted_certificate_text">This certificate isn’t trusted by Android, but
+        you can still connect. The app will remember the selected certificate and trust it and any
+        certificates signed by it.
+    </string>
+    <string name="dialog_button_accept_selected">Accept selected</string>
+
+    <!-- ############################ certificate not pinned dialog ############################ -->
+
+    <string name="dialog_certificate_not_pinned_title">Certificate not pinned</string>
+    <string name="dialog_certificate_not_pinned_text">This server is trusted by Android, but a
+        setting requires you to confirm that you trust it as well. The app will remember the
+        selected certificate and trust it and any certificates signed by it.</string>
+    <string name="dialog_button_pin_selected">Pin selected</string>
+
+    <!-- ####################################################################################### -->
+    <!-- ##################################### ssh dialogs ##################################### -->
+    <!-- ####################################################################################### -->
+
+    <!-- #################################### unknown server ################################### -->
+
+    <string name="dialog_ssh_server_unknown_title">Unknown server</string>
+    <string name="dialog_ssh_server_unknown_text"><![CDATA[
+        Server at <b>%1$s</b> has never been encountered.
+        <br>
+        <br>%2$s key SHA256 fingerprint:
+        <br><b>%3$s</b>]]></string>
+    <string name="dialog_ssh_server_unknown_button_positive">Accept server key</string>
+    <string name="dialog_ssh_server_unknown_button_negative">Reject</string>
+    <string name="dialog_ssh_server_unknown_unknown_key_type">Unknown</string>
+
+    <!-- ################################## server changed key ################################# -->
+
+    <string name="dialog_ssh_server_not_verified_title">Server changed key</string>
+    <string name="dialog_ssh_server_not_verified_text"><![CDATA[
+        <b>⚠ Warning:</b> it’s possible that someone is trying to hijack this connection!
+        <br>
+        <br>Server at <b>%1$s</b> is known, but its key doesn’t match the key you previously accepted.
+        <br>
+        <br>%2$s key SHA256 fingerprint:
+        <br><b>%3$s</b>
+        <br>
+        <br>If you want to continue, please clear known hosts in preferences.]]></string>
+
+    <!-- ####################################################################################### -->
+    <!-- ####################################################################################### -->
     <!-- ##################################### preferences ##################################### -->
+    <!-- ####################################################################################### -->
+    <!-- ####################################################################################### -->
 
-    <!-- validation errors -->
-    <string name="pref_error_relay_host_not_set">Relay host is not set</string>
-    <string name="pref_error_relay_password_not_set">Relay password is not set</string>
-    <string name="pref_error_ssh_host_not_set">SSH host is not set</string>
-    <string name="pref_error_no_ssh_key_file">SSH private key is not set</string>
-    <string name="pref_error_no_ssh_password">SSH password is not set</string>
-    <string name="pref_error_no_ssh_known_hosts">SSH known hosts are not set</string>
+    <!-- ####################################################################################### -->
+    <!-- ############################# generic preferences strings ############################# -->
+    <!-- ####################################################################################### -->
+
+    <string name="pref_number_invalid">Invalid number</string>
+    <string name="pref_hostname_invalid">No spaces allowed in hostnames</string>
+
+    <!-- FilePreference -->
+    <string name="pref_file_clear_button">Clear</string>
+    <string name="pref_file_empty_clipboard">Clipboard is empty</string>
+    <string name="pref_file_choose_button">Choose file</string>
+    <string name="pref_file_paste_button">Paste</string>
+    <string name="pref_file_summary" translatable="false">%1$s (%2$s)</string>
+    <string name="pref_file_set">set</string>
+    <string name="pref_file_not_set">not set</string>
+
+    <!-- PasswordedFilePickerPreference -->
+    <string name="edittext_password_hint">password</string>
+
+    <!-- FullScreenEditTextPreference menu -->
+    <string name="menu_save">Save</string>
+    <string name="menu_reset_to_default">Default</string>
+
+    <!-- FullScreenEditTextPreference discard dialog -->
+    <string name="dialog_discard_changes_prompt">Discard changes?</string>
+    <string name="dialog_discard_changes_cancel">Cancel</string>
+    <string name="dialog_discard_changes_discard">Discard</string>
+
+    <!-- RingtonePreferenceFix -->
+    <string name="pref_ringtone_none">None</string>
+    <string name="pref_ringtone_unknown">Unknown</string>
+
+    <!-- ####################################################################################### -->
+    <!-- ###################################### connection ##################################### -->
+    <!-- ####################################################################################### -->
 
     <string name="pref_connection_group">Connection</string>
 
-    <!-- connection type -->
     <string name="pref_connection_type">Connection type</string>
     <string-array name="pref_connection_type_names">
         <item>Plain connection</item>
@@ -111,7 +285,18 @@
         <item>WebSocket (SSL)</item>
     </string-array>
 
+    <!-- ########################### connection: web socket settings ########################### -->
+
+    <string name="pref_ws_path">WebSocket path</string>
+
+    <!-- ############################### connection: tsl settings ############################## -->
+
     <string name="pref_ssl_group">SSL settings</string>
+
+    <string name="pref_ssl_require_certificate_pin">Require certificate pins</string>
+    <string name="pref_ssl_require_certificate_pin_summary">Prompt to confirm that you trust the server,
+        even if the system trusts it</string>
+
     <string name="pref_clear_certs">Clear certificates</string>
     <string name="pref_clear_certs_confirmation">Clear certificates?</string>
     <string name="pref_clear_certs_summary">{0,choice,0#No trusted certificate|1#1 trusted certificate|1&lt;{0} trusted certificates}</string>
@@ -122,91 +307,134 @@
 
     <string name="pref_ssl_client_certificate">Client certificate</string>
     <string name="pref_ssl_client_certificate_summary">PKCS #12 file containing private key and client certificate</string>
+    <string name="pref_ssl_certificate_stored_inside_security_hardware_yes">
+        Certificate was stored inside security hardware</string>
+    <string name="pref_ssl_certificate_stored_inside_security_hardware_no">
+        Certificate was stored inside software key store</string>
+    <string name="pref_ssl_certificate_stored_inside_security_hardware_cant_tell">
+        Certificate was stored inside key store</string>
+    <string name="pref_ssl_certificate_forgotten">Certificate forgotten</string>
+    <string name="error_client_certificate_not_set">Server is asking for a client certificate but
+        none is set. Wanted: %1$s certificate issued by: %2$s</string> <!-- todo -->
+    <string name="error_client_certificate_mismatch">Server is asking for a client certificate but
+        the one we have doesn’t fit. Wanted: %1$s certificate issued by: %2$s</string> <!-- todo -->
 
-
-    <string name="pref_ws_path">WebSocket path</string>
+    <!-- ########################### connection: ssh tunnel settings ########################### -->
 
     <string name="pref_ssh_group">SSH tunnel settings</string>
+
     <string name="pref_ssh_host">SSH host</string>
-    <string name="pref_ssh_user">SSH username</string>
+
     <string name="pref_ssh_port">SSH port</string>
 
+    <string name="pref_ssh_user">SSH username</string>
+
+    <string name="pref_ssh_authentication_method">Authentication method</string>
     <string-array name="pref_ssh_authentication_method_names">
         <item>Password</item>
         <item>Key</item>
     </string-array>
 
     <string name="pref_ssh_password">SSH password</string>
+
     <string name="pref_ssh_keyfile">Private key</string>
     <string name="pref_ssh_keyfile_summary">Ed25519, ECDSA, RSA or DSA key</string>
-    <string name="pref_ssh_known_hosts">Known hosts</string>
-    <string name="pref_ssh_known_hosts_summary">Output of $ ssh-keyscan host</string>
+    <string name="pref_ssh_key_stored_inside_security_hardware_yes"> <!-- todo -->
+        %s key was stored inside security hardware</string>
+    <string name="pref_ssh_key_stored_inside_security_hardware_no"> <!-- todo -->
+        %s key was stored inside software key store</string>
+    <string name="pref_ssh_key_stored_inside_security_hardware_cant_tell"> <!-- todo -->
+        %s key was stored inside key store</string>
+    <string name="pref_ssh_key_stored_outside_key_store"> <!-- todo -->
+        %1$s key was stored inside the app.\n\nThe key couldn’t be stored in the key store: %2$s</string>
+    <string name="pref_ssh_key_forgotten">Key forgotten</string> <!-- todo -->
 
-    <!-- file -->
+    <string name="pref_ssh_clear_known_hosts">Clear known hosts</string>
+    <string name="pref_clear_known_hosts_entries_0">No entries</string>
+    <plurals name="pref_clear_known_hosts_entries">
+        <item quantity="one">%s entry</item>
+        <item quantity="other">%s entries</item>
+    </plurals>
+    <string name="pref_clear_known_hosts_confirmation">Clear known hosts?</string>
+    <string name="pref_clear_known_hosts_cancel">Cancel</string>
+    <string name="pref_clear_known_hosts_clear">Clear</string>
+    <string name="pref_clear_known_hosts_cleared">Known hosts cleared</string>
 
-    <string name="pref_file_imported">File imported. You can delete it now.</string>
-    <string name="pref_file_error">Error: %s</string>
-    <string name="pref_file_clear_button">Clear</string>
-    <string name="pref_file_cleared">Cleared</string>
-    <string name="pref_file_empty_clipboard">Clipboard is empty</string>
-    <string name="pref_file_choose_button">Choose file</string>
-    <string name="pref_file_paste_button">Paste</string>
-    <string name="pref_file_pasted">Pasted from clipboard</string>
-    <string name="pref_file_summary" translatable="false">%1$s (%2$s)</string>
-    <string name="pref_file_set">set</string>
-    <string name="pref_file_not_set">not set</string>
-
-    <!-- relay type -->
+    <!-- ################################## connection: relay ################################## -->
 
     <string name="pref_relay_group">Relay</string>
+
     <string name="pref_relay_host">Relay host</string>
+
     <string name="pref_relay_port">Relay port</string>
+
     <string name="pref_relay_password">Relay password</string>
 
-    <!-- misc -->
+    <!-- ############################## connection: miscellaneous ############################## -->
 
     <string name="pref_misc_group">Miscellaneous</string>
+
     <string name="pref_line_increment">Number of lines to load</string>
     <string name="pref_line_increment_summary">The number of lines to be loaded when opening a buffer or pressing the “Load more lines” button. Note that due to filtering the number of lines actually shown might be less than the number of loaded lines. Also note that due to WeeChat’s limitations the app has to re-fetch all lines every times it requests more lines. (%s)</string>
+
     <string name="pref_reconnect">Reconnect on connection loss</string>
+
     <string name="pref_boot_connect">Connect on system boot</string>
-    <string name="pref_notification_ticker">Notifications ticker</string>
-    <string name="pref_notification_ticker_summary">Display connection changes as ticker (does not work on Lollipop)</string>
+
     <string name="pref_optimize_traffic">Only sync open buffers</string>
     <string name="pref_optimize_traffic_summary">Can significantly reduce traffic and battery usage, but hotlist updates will only happen once 5 minutes. Requires WeeChat 1.1 or newer. Takes effect after re-connection.</string>
+
     <string name="pref_hotlist_sync">Sync buffer read status</string>
     <string name="pref_hotlist_sync_summary">Mark buffers as read in WeeChat when you read them in this app. Requires WeeChat 1.0 or newer.</string>
 
+    <!-- ############################## connection: ping settings ############################## -->
+
     <string name="pref_ping_group">Ping settings</string>
+
     <string name="pref_ping_enabled">Enable ping</string>
-    <string name="pref_ping_idle">Idle time</string>
-    <string name="pref_ping_timeout">Ping timeout</string>
     <string name="pref_ping_enabled_summary">Periodically check that the relay connection is still alive when idle</string>
+
+    <string name="pref_ping_idle">Idle time</string>
     <string name="pref_ping_idle_summary">Number of seconds to wait before sending a ping when the connection is idle (%s)</string>
+
+    <string name="pref_ping_timeout">Ping timeout</string>
     <string name="pref_ping_timeout_summary">Number of seconds to wait before closing an unresponsive connection (%s)</string>
 
-    <!-- buffer list -->
+    <!-- ####################################################################################### -->
+    <!-- ##################################### buffer list ##################################### -->
+    <!-- ####################################################################################### -->
 
     <string name="pref_bufferlist_group">Buffer list</string>
+
     <string name="pref_sort_buffers">Sort buffer list</string>
     <string name="pref_sort_buffers_summary">Sort by number of highlights/private messages/unread messages</string>
+
     <string name="pref_hide_server_buffers">Hide non-conversation buffers</string>
     <string name="pref_hide_server_buffers_summary">E.g. server buffers and plugin buffers</string>
+
     <string name="pref_hide_hidden_buffers">Hide hidden buffers</string>
     <string name="pref_hide_hidden_buffers_summary">Hide buffers hidden with /buffer hide</string>
+
     <string name="pref_show_buffer_filter">Show buffer filter</string>
     <string name="pref_show_buffer_filter_summary">Filter matches full buffer names and reveals matching hidden buffers</string>
+
     <string name="pref_use_gesture_exclusion_zone">System gesture exclusion zone</string>
     <string name="pref_use_gesture_exclusion_zone_summary">On Android Q, the left side of the screen is reserved for the back gesture. Enable this to have a small area in the bottom of the screen where you can open the buffer list normally.</string>
 
-    <!-- look & feel -->
+    <!-- ####################################################################################### -->
+    <!-- #################################### look and feel #################################### -->
+    <!-- ####################################################################################### -->
 
     <string name="pref_lookfeel_group">Look &amp; feel</string>
+
     <string name="pref_text_size">Text size</string>
+
     <string name="pref_auto_hide_actionbar">Hide action bar</string>
     <string name="pref_auto_hide_actionbar_summary">Hide the top action bar when the keyboard is open or when scrolling up</string>
+
     <string name="pref_chatview_filters">Filter messages</string>
     <string name="pref_chatview_filters_summary">Hide messages filtered by WeeChat (e.g. irc_smart_filter)</string>
+
     <string name="pref_prefix_align">Prefix alignment</string>
     <string-array name="pref_prefix_align_names">
         <item>Left aligned</item>
@@ -214,18 +442,25 @@
         <item>Timestamp aligned</item>
         <item>No alignment</item>
     </string-array>
+
     <string name="pref_max_width">Maximum width of prefix</string>
     <string name="pref_max_width_summary">In terms of letters; longer nicknames will be cut (%s)</string>
+
     <string name="pref_enclose_nick">Enclose nicknames</string>
     <string name="pref_enclose_nick_summary">Enclose the nicknames in &lt;&#xA0;and&#xA0;&gt;</string>
+
     <string name="pref_timestamp_format">Timestamp format</string>
     <string name="pref_timestamp_format_summary">%s (default: HH:mm:ss)</string>
-    <string name="pref_dim_down">Dim down non-human lines</string>
-    <string name="pref_dim_down_summary">Display joins/quits in a faint color, as set in the color scheme</string>
+    <string name="pref_timestamp_invalid">Invalid timestamp format</string> <!-- todo -->
 
     <string name="pref_font">Buffer font</string>
+    <string name="pref_font_summary">Non-monospace fonts will not work well with alignment. Search path:%1$s\n\nCurrent font:\n\u0020\u0020\u0020\u0020%2$s</string>
+    <string name="pref_font_default">Default</string>
 
-    <!-- theme (color scheme) -->
+    <!-- ####################################################################################### -->
+    <!-- ######################################## theme ######################################## -->
+    <!-- ####################################################################################### -->
+
     <string name="pref_theme">Theme</string>
     <string-array name="pref_theme_names">
         <item>@string/pref_theme_system</item>
@@ -239,49 +474,56 @@
 
     <string name="pref_color_scheme_day">Light color scheme</string>
     <string name="pref_color_scheme_night">Dark color scheme</string>
+    <string name="pref_theme_loading_error">Error loading color scheme %s</string> <!-- todo -->
+    <string name="pref_theme_not_set">Not set</string>
 
-    <string name="pref_theme_loading_error">Error loading color scheme %s</string>
     <string name="pref_theme_help"><![CDATA[You can create custom color schemes for this
                 application. Use arbitrary colors for UI elements, customize highlight and
                 read marker color, change the WeeChat color palette! <a
                 href="https://github.com/ubergeek42/weechat-android/wiki/Custom-Color-Schemes">Learn
                 more</a><br><br>Put your custom color scheme in any of these folders:%1$s]]></string>
-    <string name="pref_theme_not_set">Not set</string>
 
-    <!-- font -->
-    <string name="pref_font_summary">Non-monospace fonts will not work well with alignment. Search path:%1$s\n\nCurrent font:\n\u0020\u0020\u0020\u0020%2$s</string>
-    <string name="pref_font_default">Default</string>
+    <string name="pref_dim_down">Dim down non-human lines</string>
+    <string name="pref_dim_down_summary">Display joins/quits in a faint color, as set in the color scheme</string>
 
-    <!-- buttons -->
+    <!-- ####################################################################################### -->
+    <!-- ####################################### buttons ####################################### -->
+    <!-- ####################################################################################### -->
 
     <string name="pref_button_group">Buttons</string>
+
     <string name="pref_tabbtn_show">Show tab button</string>
+
     <string name="pref_sendbtn_show">Show send button</string>
+
     <string name="pref_volumebtn_size">Volume buttons change text size</string>
     <string name="pref_volumebtn_size_summary">If set, volume buttons will change text size instead of volume</string>
 
-    <!-- notifications -->
+    <!-- ####################################################################################### -->
+    <!-- #################################### notifications #################################### -->
+    <!-- ####################################################################################### -->
 
     <string name="pref_notif_group">Notifications</string>
+
     <string name="pref_notification_enable">Enable notifications</string>
     <string name="pref_notification_enable_summary">Notify about hot messages such as private messages or highlights</string>
+
     <string name="pref_notification_sound">Notification sound</string>
+
     <string name="pref_notification_vibrate">Vibration</string>
+
     <string name="pref_notification_light">Notification light</string>
 
-    <!-- ringtone -->
+    <string name="pref_notification_ticker">Notifications ticker</string>
+    <string name="pref_notification_ticker_summary">Display connection changes as ticker (does not work on Lollipop)</string>
 
-    <string name="pref_ringtone_none">None</string>
-    <string name="pref_ringtone_unknown">Unknown</string>
-
-    <!-- media preview -->
+    <!-- ####################################################################################### -->
+    <!-- #################################### media preview #################################### -->
+    <!-- ####################################################################################### -->
 
     <string name="pref_media_preview_group">Media preview</string>
-    <string name="pref_media_preview_enabled_for_network">Enabled</string>
-    <string name="pref_media_preview_enabled_for_location">Context</string>
-    <string name="pref_media_preview_enabled_for_location_summary">Enabled for %s</string>
-    <string name="pref_media_preview_enabled_for_location_summary_empty">Disabled everywhere</string>
 
+    <string name="pref_media_preview_enabled_for_network">Enabled</string>
     <string-array name="pref_media_preview_enabled_for_network_names">
         <item>Never</item>
         <item>On Wi-Fi only</item>
@@ -289,6 +531,9 @@
         <item>Always</item>
     </string-array>
 
+    <string name="pref_media_preview_enabled_for_location">Context</string>
+    <string name="pref_media_preview_enabled_for_location_summary">Enabled for %s</string>
+    <string name="pref_media_preview_enabled_for_location_summary_empty">Disabled everywhere</string>
     <string-array name="pref_media_preview_enabled_for_location_names">
         <item>Chat</item>
         <item>Paste dialog</item>
@@ -302,8 +547,6 @@
         <item>Disallow</item>
     </string-array>
 
-    <string name="pref_media_preview_strategies">Strategies</string>
-
     <string name="pref_media_preview_help"><![CDATA[Enabling media preview for notifications can
             result in duplicate lines being shown on some earlier platforms. Also note that you may
             need to clear the caches for the settings to apply to already existing data.<br /><br /><b>⚠
@@ -312,9 +555,10 @@
             websites you don’t know, remove the strategy for the wildcard host “*” or set it to “none”.
             <a href="https://github.com/ubergeek42/weechat-android/wiki/Media-preview">Learn more</a>]]></string>
 
-    <string name="strategypreference_error">Error</string>
+    <string name="pref_media_preview_strategies">Strategies</string>
     <string name="strategypreference_summary">Defines the ways images are fetched from individual
             websites, and some filters.\n\n%1$s; %2$s;\n\n%3$s</string>
+    <string name="strategypreference_error">Error</string>
     <string name="strategypreference_message_filter_set">Message filter set</string>
     <string name="strategypreference_message_filter_not_set">Message filter not set</string>
     <string name="strategypreference_line_filters_not_set">line filters not set</string>
@@ -324,66 +568,6 @@
         <item quantity="one">%d line filter set</item>
         <item quantity="other">%d line filters set</item>
     </plurals>
-
-    <string name="pref_media_preview_advanced_group">Advanced</string>
-    <string name="pref_media_preview_maximum_body_size">Download size limit</string>
-    <string name="pref_media_preview_maximum_body_size_summary">%s MB</string>
-    <string name="pref_image_disk_cache_size">Disk cache</string>
-    <string name="pref_image_disk_cache_size_summary">%s MB; takes effect on restart</string>
-    <string name="pref_media_preview_success_cooldown">Success cooldown</string>
-    <string name="pref_media_preview_success_cooldown_summary">%s hours. The app will
-                consider successfully fetched image available, either from cache or the web, for
-                the specified amount of time.</string>
-    <string name="pref_media_preview_thumbnail_width">Thumbnail width</string>
-    <string name="pref_media_preview_thumbnail_min_height">Minimum thumbnail height</string>
-    <string name="pref_media_preview_thumbnail_max_height">Maximum thumbnail height</string>
-
-    <!-- about -->
-
-    <string name="about">About</string>
-    <string name="build_id">build ID %s</string>
-    <string name="version_string" translatable="false">Weechat-Android %s</string>
-    <string name="created_by">created by ubergeek42</string>
-    <string name="unknown_version_id">Unknown version ID</string>
-    <string name="libraries">
-            \nThis project uses the following libraries:
-            \n
-            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/noveogroup/android-logger">Android Logger by Noveo Group</a>
-            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://www.eclipse.org/aspectj/">AspectJ by Eclipse Foundation</a>
-            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://www.bouncycastle.org/">Bouncy Castle</a>
-            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/greenrobot/EventBus">EventBus by greenrobot</a>
-            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://bumptech.github.io/glide/">Glide by Bump Technologies</a>
-            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/JakeWharton/hugo">Hugo by Jake Wharton</a>
-            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/TooTallNate/Java-WebSocket">Java-WebSocket by Nathan Rajlich</a>
-            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/dlew/joda-time-android">joda-time-android by Daniel Lew</a>
-            \n&#160;&#160;&#160;&#160;•&#160;<a href="http://www.jcraft.com/jsch/">JSch by JCraft</a>
-            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://square.github.io/leakcanary/">LeakCanary by Square, Inc</a>
-            \n&#160;&#160;&#160;&#160;•&#160;<a href="http://site.mockito.org/">Mockito by Szczepan Faber and friends</a>
-            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/TakahikoKawasaki/nv-websocket-client">nv-websocket-client by Takahiko Kawasaki</a>
-            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://square.github.io/okhttp/">OkHttp by Square, Inc</a>
-            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://www.slf4j.org/">SLF4J by QOS.ch</a>
-            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://bitbucket.org/asomov/snakeyaml">SnakeYAML by Andrey Somov</a>
-            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/connectbot/sshlib">sshlib by ConnectBot</a>
-            \n
-            \nPlease create an issue on&#160;<a href="https://github.com/ubergeek42/weechat-android/">GitHub</a> if you find a bug or have a feature request.
-            \n\n
-        </string>
-
-    <!-- strings used in error messages of the preferences activity -->
-
-    <string name="pref_timestamp_invalid">Invalid timestamp format</string>
-    <string name="pref_number_invalid">Invalid number</string>
-    <string name="pref_hostname_invalid">No spaces allowed in hostnames</string>
-    <string name="menu_debug">Debug</string>
-    <string name="menu_sync_hotlist">Sync hotlist</string>
-    <string name="menu_die">Die</string>
-    <string name="menu_save">Save</string>
-    <string name="menu_reset_to_default">Default</string>
-
-    <string name="dialog_discard_changes_prompt">Discard changes?</string>
-    <string name="dialog_discard_changes_cancel">Cancel</string>
-    <string name="dialog_discard_changes_discard">Discard</string>
-
     <string name="pref_media_preview_strategies_default" translatable="false">
 "# don’t look for links in the part
 # of the message that matches the
@@ -484,140 +668,28 @@ strategies:
   body size: 131072
 "</string>
 
-    <!-- Certificate dialog -->
+    <string name="pref_media_preview_advanced_group">Advanced</string>
 
-    <string name="certificate_description_unknown_fingerprint">Unknown</string>
-    <string name="certificate_description_text"><![CDATA[
-        <b>Issued to:</b><br>
-        %1$s<br>
-        <br>
-        <b>Issued by:</b><br>
-        %2$s<br>
-        <br>
-        <b>Validity period:</b><br>
-        Issued on: %3$s<br>
-        Expires on: %4$s<br>
-        <br>
-        <b>SHA-256 fingerprint:</b><br>
-        %5$s
-    ]]></string>
+    <string name="pref_media_preview_maximum_body_size">Download size limit</string>
+    <string name="pref_media_preview_maximum_body_size_summary">%s MB</string>
 
-    <string name="dialog_button_accept_selected">Accept selected</string>
-    <string name="dialog_button_reject">Reject</string>
-    <string name="dialog_button_pin_selected">Pin selected</string>
-    <string name="dialog_button_back_to_safety">Back to safety</string>
+    <string name="pref_image_disk_cache_size">Disk cache</string>
+    <string name="pref_image_disk_cache_size_summary">%s MB; takes effect on restart</string>
 
-    <string name="dialog_invalid_hostname_title">Invalid hostname</string>
-    <string name="dialog_invalid_hostname_text"><![CDATA[
-        You are trying to connect to <strong>%1$s</strong> but the certificate is only valid for
-        the following hosts: %2$s
-    ]]></string>
-    <string name="dialog_invalid_hostname_text_android_p_warning"><![CDATA[
-        <br>Note that Android P and beyond does not fall back to Common Name (CN) validation. Subject
-        Alternative Name (SAN) must be used instead.
-        <a href="https://github.com/ubergeek42/weechat-android/wiki/Using-SSL-with-WeeChat">Learn more</a>
-    ]]></string>
-    <string name="dialog_invalid_hostname_text_host_line" translatable="false"><![CDATA[
-        <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>%s</strong>
-    ]]></string>
-    <string name="dialog_invalid_hostname_text_empty_line"><![CDATA[
-        <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>(none)</strong>
-    ]]></string>
+    <string name="pref_media_preview_success_cooldown">Success cooldown</string>
+    <string name="pref_media_preview_success_cooldown_summary">%s hours. The app will
+                consider successfully fetched image available, either from cache or the web, for
+                the specified amount of time.</string>
 
-    <string name="dialog_certificate_expired_title">Certificate expired</string>
-    <string name="dialog_certificate_expired_text">This certificate is no longer valid. Please make
-        sure that the device date is correct.</string>
+    <string name="pref_media_preview_thumbnail_width">Thumbnail width</string>
 
-    <string name="dialog_certificate_not_yet_valid_title">Certificate not yet valid</string>
-    <string name="dialog_certificate_not_yet_valid_text">This certificate will be valid in the
-        future. Please make sure that the device date is correct.</string>
+    <string name="pref_media_preview_thumbnail_min_height">Minimum thumbnail height</string>
 
-    <string name="dialog_untrusted_certificate_title">Untrusted certificate</string>
-    <string name="dialog_untrusted_certificate_text">This certificate isn’t trusted by Android, but
-        you can still connect. The app will remember the selected certificate and trust it and any
-        certificates signed by it.
-    </string>
+    <string name="pref_media_preview_thumbnail_max_height">Maximum thumbnail height</string>
 
-    <string name="dialog_certificate_not_pinned_title">Certificate not pinned</string>
-    <string name="dialog_certificate_not_pinned_text">This server is trusted by Android, but a
-        setting requires you to confirm that you trust it as well. The app will remember the
-        selected certificate and trust it and any certificates signed by it.</string>
-
-    <string name="pref_ssl_require_certificate_pin">Require certificate pins</string>
-    <string name="pref_ssl_require_certificate_pin_summary">Prompt to confirm that you trust the server,
-        even if the system trusts it</string>
-
-    <string name="edittext_password_hint">password</string>
-
-    <string name="error_client_certificate_not_set">Server is asking for a client certificate but
-        none is set. Wanted: %1$s certificate issued by: %2$s</string>
-    <string name="error_client_certificate_mismatch">Server is asking for a client certificate but
-        the one we have doesn’t fit. Wanted: %1$s certificate issued by: %2$s</string>
-
-    <string name="pref_ssh_authentication_method">Authentication method</string>
-
-    <string name="exceptions_ssh_failed_to_authenticate_with_password">
-        Failed to authenticate with password</string>
-    <string name="exceptions_ssh_failed_to_authenticate_with_key">
-        Failed to authenticate with key</string>
-    <string name="exceptions_ssh_hostname_not_present_in_known_hosts">
-        Hostname %s is not present in known hosts</string>
-    <string name="exceptions_ssh_hostkey_not_verified">Hostname %1$s is known, but could not be
-        verified. Chosen algorithm: %2$s; SHA256 host key fingerprint: %3$s</string>
-
-    <string name="pref_ssh_key_stored_inside_security_hardware_yes">
-        %s key was stored inside security hardware</string>
-    <string name="pref_ssh_key_stored_inside_security_hardware_no">
-        %s key was stored inside software key store</string>
-    <string name="pref_ssh_key_stored_inside_security_hardware_cant_tell">
-        %s key was stored inside key store</string>
-    <string name="pref_ssh_key_stored_outside_key_store">
-        %1$s key was stored inside the app.\n\nThe key couldn’t be stored in the key store: %2$s</string>
-    <string name="pref_ssh_key_forgotten">Key forgotten</string>
-
-    <string name="pref_ssl_certificate_stored_inside_security_hardware_yes">
-        Certificate was stored inside security hardware</string>
-    <string name="pref_ssl_certificate_stored_inside_security_hardware_no">
-        Certificate was stored inside software key store</string>
-    <string name="pref_ssl_certificate_stored_inside_security_hardware_cant_tell">
-        Certificate was stored inside key store</string>
-    <string name="pref_ssl_certificate_forgotten">Certificate forgotten</string>
-
-    <string name="pref_known_hosts_set">Known hosts set</string>
-    <string name="pref_known_hosts_cleared">Known hosts cleared</string>
-
-    <string name="pref_clear_known_hosts_confirmation">Clear known hosts?</string>
-    <string name="pref_clear_known_hosts_cancel">Cancel</string>
-    <string name="pref_clear_known_hosts_clear">Clear</string>
-    <string name="pref_clear_known_hosts_cleared">Known hosts cleared</string>
-    <string name="pref_clear_known_hosts_entries_0">No entries</string>
-    <plurals name="pref_clear_known_hosts_entries">
-        <item quantity="one">%s entry</item>
-        <item quantity="other">%s entries</item>
-    </plurals>
-
-    <string name="dialog_ssh_server_unknown_title">Unknown server</string>
-    <string name="dialog_ssh_server_unknown_text"><![CDATA[
-        Server at <b>%1$s</b> has never been encountered.
-        <br>
-        <br>%2$s key SHA256 fingerprint:
-        <br><b>%3$s</b>]]></string>
-    <string name="dialog_ssh_server_unknown_button_positive">Accept server key</string>
-    <string name="dialog_ssh_server_unknown_button_negative">Reject</string>
-    <string name="dialog_ssh_server_unknown_unknown_key_type">Unknown</string>
-
-    <string name="dialog_ssh_server_not_verified_title">Server changed key</string>
-    <string name="dialog_ssh_server_not_verified_text"><![CDATA[
-        <b>⚠ Warning:</b> it’s possible that someone is trying to hijack this connection!
-        <br>
-        <br>Server at <b>%1$s</b> is known, but its key doesn’t match the key you previously accepted.
-        <br>
-        <br>%2$s key SHA256 fingerprint:
-        <br><b>%3$s</b>
-        <br>
-        <br>If you want to continue, please clear known hosts in preferences.]]></string>
-
-    <string name="pref_ssh_clear_known_hosts">Clear known hosts</string>
+    <!-- ####################################################################################### -->
+    <!-- ####################################### sharing ####################################### -->
+    <!-- ####################################################################################### -->
 
     <string name="pref_uploading_help_summary" tools:ignore="TypographyDashes,Typos"><![CDATA[
         These settings roughly correspond to the following command:
@@ -631,9 +703,46 @@ strategies:
         <item>Text, images and videos</item>
         <item>Everything</item>
     </string-array>
+
     <string-array name="pref_uploading_authentication_names">
         <item>None</item>
         <item>Basic</item>
     </string-array>
 
+    <!-- ####################################################################################### -->
+    <!-- ######################################## about ######################################## -->
+    <!-- ####################################################################################### -->
+
+    <string name="about">About</string>
+
+    <string name="version_string" translatable="false">Weechat-Android %s</string>
+
+    <string name="created_by">created by ubergeek42</string>
+
+    <string name="build_id">build ID %s</string>
+    <string name="unknown_version_id">Unknown version ID</string>
+
+    <string name="libraries">
+            \nThis project uses the following libraries:
+            \n
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/noveogroup/android-logger">Android Logger by Noveo Group</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://www.eclipse.org/aspectj/">AspectJ by Eclipse Foundation</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://www.bouncycastle.org/">Bouncy Castle</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/greenrobot/EventBus">EventBus by greenrobot</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://bumptech.github.io/glide/">Glide by Bump Technologies</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/JakeWharton/hugo">Hugo by Jake Wharton</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/TooTallNate/Java-WebSocket">Java-WebSocket by Nathan Rajlich</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/dlew/joda-time-android">joda-time-android by Daniel Lew</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="http://www.jcraft.com/jsch/">JSch by JCraft</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://square.github.io/leakcanary/">LeakCanary by Square, Inc</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="http://site.mockito.org/">Mockito by Szczepan Faber and friends</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/TakahikoKawasaki/nv-websocket-client">nv-websocket-client by Takahiko Kawasaki</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://square.github.io/okhttp/">OkHttp by Square, Inc</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://www.slf4j.org/">SLF4J by QOS.ch</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://bitbucket.org/asomov/snakeyaml">SnakeYAML by Andrey Somov</a>
+            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/connectbot/sshlib">sshlib by ConnectBot</a>
+            \n
+            \nPlease create an issue on&#160;<a href="https://github.com/ubergeek42/weechat-android/">GitHub</a> if you find a bug or have a feature request.
+            \n\n
+        </string>
 </resources>

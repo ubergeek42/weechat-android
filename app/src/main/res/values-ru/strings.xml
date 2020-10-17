@@ -62,7 +62,6 @@
     <string name="pref_error_relay_host_not_set">Не задан хост релея</string>
     <string name="pref_error_relay_password_not_set">Не задан пароль релея</string>
     <string name="pref_error_ssh_host_not_set">Не задан хост SSH</string>
-    <string name="pref_error_no_ssh_known_hosts">Не заданы известные хосты SSH</string>
     <string name="pref_connection_group">Подключение</string>
 
     <string name="pref_connection_type">Тип соединения</string>
@@ -94,8 +93,6 @@
     <string name="pref_ssh_password">Пароль SSH</string>
     <string name="pref_ssh_keyfile">Ключ</string>
     <string name="pref_ssh_keyfile_summary">Ключ Ed25519, ECDSA, RSA или DSA</string>
-    <string name="pref_ssh_known_hosts">Известные хосты</string>
-    <string name="pref_ssh_known_hosts_summary">Вывод $ ssh-keyscan хост</string>
     <string name="pref_tabbtn_show">Показывать кнопку Tab</string>
     <string name="pref_text_size">Размер текста</string>
     <string name="pref_theme_loading_error">Ошибка при загрузке темы %s</string>
@@ -144,14 +141,10 @@
             \nНашли баг или хотите предложить новый функционал? Создайте тикет на&#160;<a href="https://github.com/ubergeek42/weechat-android/">GitHub</a>!
             \n\n
         </string>
-    <string name="pref_file_imported">Файл импортирован. Можете его удалить.</string>
-    <string name="pref_file_error">Ошибка: %s</string>
     <string name="pref_file_clear_button">Очистить</string>
-    <string name="pref_file_cleared">Очищено</string>
     <string name="pref_file_empty_clipboard">Буфер обмена пуст</string>
     <string name="pref_file_choose_button">Выбрать файл</string>
     <string name="pref_file_paste_button">Вставить из буфера обмена</string>
-    <string name="pref_file_pasted">Вставлено</string>
     <string name="pref_file_set">установлен</string>
     <string name="pref_file_not_set">отсутствует</string>
     <string name="pref_relay_group">Релей</string>
@@ -378,10 +371,6 @@
         Авторизация по паролю провалилась</string>
     <string name="exceptions_ssh_failed_to_authenticate_with_key">
         Авторизация по ключу провалилась</string>
-    <string name="exceptions_ssh_hostname_not_present_in_known_hosts">
-        Хост %s отсутствует в списке известных хостов</string>
-    <string name="exceptions_ssh_hostkey_not_verified">Хост %1$s присутствует в списке известных
-        хостов, но не его ключ. Выбранный алгоритм: %2$s; SHA-256 отпечаток ключа: %3$s</string>
 
     <string name="pref_ssh_key_stored_inside_security_hardware_yes">
         Ключ %s помещён в аппаратное хранилище</string>
@@ -400,9 +389,6 @@
     <string name="pref_ssl_certificate_stored_inside_security_hardware_cant_tell">
         Сертификат помещён в хранилище</string>
     <string name="pref_ssl_certificate_forgotten">Сертификат забыт</string>
-
-    <string name="pref_known_hosts_set">Известные хосты установлены</string>
-    <string name="pref_known_hosts_cleared">Известные хосты забыты</string>
 
     <string name="pref_clear_known_hosts_confirmation">Забыть известные хосты?</string>
     <string name="pref_clear_known_hosts_cancel">Отмена</string>

@@ -64,7 +64,6 @@
     <string name="pref_error_relay_host_not_set">L’hôte du relai n’est pas définie</string>
     <string name="pref_error_relay_password_not_set">Le mot de passe du relai n’est pas défini</string>
     <string name="pref_error_ssh_host_not_set">L’hôte SSH n’est pas définie</string>
-    <string name="pref_error_no_ssh_known_hosts">Les hôtes SSH connues ne sont pas définies</string>
     <string name="pref_connection_group">Connexion</string>
     <string name="pref_connection_type">Type de connexion</string>
     <string name="pref_clear_certs">Supprimer les certificats</string>
@@ -86,16 +85,10 @@
     <string name="pref_ssh_password">Phrase de passe SSH</string>
     <string name="pref_ssh_keyfile">Clé privée</string>
     <string name="pref_ssh_keyfile_summary">Clé Ed25519, ECDSA, RSA ou DSA</string>
-    <string name="pref_ssh_known_hosts">Hôtes connues</string>
-    <string name="pref_ssh_known_hosts_summary">Résultat de $ ssh-keyscan host</string>
-    <string name="pref_file_imported">Fichier importé. Vous pouvez supprimer l’original.</string>
-    <string name="pref_file_error">Erreur : %s</string>
     <string name="pref_file_clear_button">Effacer</string>
-    <string name="pref_file_cleared">Effacé</string>
     <string name="pref_file_empty_clipboard">Le presse-papier est vide</string>
     <string name="pref_file_choose_button">Choisir un fichier</string>
     <string name="pref_file_paste_button">Coller</string>
-    <string name="pref_file_pasted">Collé depuis le presse-papier</string>
     <string name="pref_file_set">défini</string>
     <string name="pref_file_not_set">indéfini</string>
     <string name="pref_relay_group">Relai</string>
@@ -302,7 +295,6 @@
     <string name="dialog_invalid_hostname_text_android_p_warning">&lt;br&gt;Notez qu’Android P et supérieur ne lit pas le champ Common Name (CN) pour valider le nom d’hôte. Il est impératif d’utiliser le Subject Alternative Name (SAN). &lt;a href=https://github.com/ubergeek42/weechat-android/wiki/Using-SSL-with-WeeChat&gt;Plus de détails&lt;/a&gt; (en anglais)</string>
     <string name="dialog_untrusted_certificate_text">Android ne considère pas que ce certificat soit de confiance, mais vous pouvez vous connecter malgré tout. L’app se souviendra du certificat sélectionné comme étant de confiance, ainsi que tout autre certificat signé par celui-ci.</string>
     <string name="error_client_certificate_mismatch">Le serveur requière un certificat client, mais celui qui est défini ne convient pas. Demandé : certificat %1$s délivré par %2$s</string>
-    <string name="exceptions_ssh_hostkey_not_verified">Le nom d’hôte %1$s est connu, mais ne peut être vérifié. Algorithme utilisé : %2$s ; empreinte SHA256 de clé hôte : %3$s</string>
     <string name="pref_ssh_key_stored_inside_security_hardware_no">La clé %s a été sauvegardée dans le porte-clé logiciel</string>
     <string name="pref_ssh_key_stored_inside_security_hardware_cant_tell">La clé %s a été sauvegardée dans le porte-clé</string>
     <string name="pref_ssl_certificate_stored_inside_security_hardware_yes">Le certificat a été sauvegardée dans le stockage sécurisé matériel</string>
@@ -323,15 +315,12 @@
     <string name="pref_ssh_authentication_method">Méthode d’authentification</string>
     <string name="exceptions_ssh_failed_to_authenticate_with_password">Échec de l’authentification par mot de passe</string>
     <string name="exceptions_ssh_failed_to_authenticate_with_key">Échec de l’authentification par clé</string>
-    <string name="exceptions_ssh_hostname_not_present_in_known_hosts">Le nom d’hôte %s n’est pas connu</string>
     <string name="pref_ssh_key_stored_inside_security_hardware_yes">La clé %s a été sauvegardée dans un stockage sécurisé matériel</string>
     <string name="dialog_certificate_not_yet_valid_text">Le certificat est valide dans le futur. Assurez-vous que la date de votre appareil est à jour.</string>
     <string name="pref_ssh_key_forgotten">Clé supprimée</string>
     <string name="pref_ssl_certificate_stored_inside_security_hardware_no">Le certificat a été sauvegardé dans le porte-clé logiciel</string>
     <string name="pref_ssl_certificate_stored_inside_security_hardware_cant_tell">Le certificat a été sauvegardé dans le porte-clé</string>
     <string name="pref_ssl_certificate_forgotten">Certificat supprimé</string>
-    <string name="pref_known_hosts_set">Hôtes connus sauvegardés</string>
-    <string name="pref_known_hosts_cleared">Hôtes connus effacés</string>
 
     <string name="pref_clear_known_hosts_confirmation">Effacer les hôtes connus ?</string>
     <string name="pref_clear_known_hosts_cancel">Annuler</string>
