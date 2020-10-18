@@ -41,7 +41,7 @@ public class ThemePreference extends DialogPreference implements DialogFragmentG
     }
 
     @Override public CharSequence getSummary() {
-        return TextUtils.isEmpty(getThemePath()) ? getContext().getString(R.string.pref_theme_not_set) : getThemePath();
+        return TextUtils.isEmpty(getThemePath()) ? getContext().getString(R.string.pref__ThemePreference__not_set) : getThemePath();
     }
 
     @NonNull @Override public DialogFragment getDialogFragment() {

@@ -47,7 +47,7 @@ public class ThemeManager {
                         P.darkThemeActive ? PREF_COLOR_SCHEME_NIGHT_D : PREF_COLOR_SCHEME_DAY_D);
         Properties p = loadColorScheme(path, context.getAssets());
         if (p == null)
-            ErrorToast.show(R.string.pref_theme_loading_error, path);
+            ErrorToast.show(R.string.pref__ThemeManager__error_loading_color_scheme, path);
         else
             ColorScheme.set(new ColorScheme(p));
     }

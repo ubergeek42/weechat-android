@@ -44,9 +44,9 @@ public class FontPreference extends DialogPreference implements DialogFragmentGe
         StringBuilder sb = new StringBuilder();
         for (String p: FontManager.getFontSearchDirectories(getContext()))
             sb.append("\n    ").append(p);
-        return getContext().getString(R.string.pref_font_summary,
+        return getContext().getString(R.string.pref__FontPreference__summary,
                 sb.toString(),
-                "".equals(getFontPath()) ? getContext().getString(R.string.pref_font_default) : getFontPath());
+                "".equals(getFontPath()) ? getContext().getString(R.string.pref__FontPreference__default) : getFontPath());
     }
 
     @NonNull @Override public DialogFragment getDialogFragment() {
@@ -68,7 +68,7 @@ public class FontPreference extends DialogPreference implements DialogFragmentGe
             Collections.sort(fonts);
 
             // add a "fake" default monospace font
-            fonts.addFirst(new FontManager.FontInfo(getString(R.string.pref_font_default), "", Typeface.MONOSPACE));
+            fonts.addFirst(new FontManager.FontInfo(getString(R.string.pref__FontPreference__default), "", Typeface.MONOSPACE));
 
             // get index of currently selected font
             String currentPath = ((FontPreference) getPreference()).getFontPath();

@@ -49,20 +49,20 @@ public class FriendlyExceptions {
         boolean certificateIsSet = PreferenceManager.getDefaultSharedPreferences(context)
                 .getString(PREF_SSL_CLIENT_CERTIFICATE, null) != null;
         String message = context.getString(certificateIsSet ?
-                        R.string.error_client_certificate_mismatch :
-                        R.string.error_client_certificate_not_set,
+                        R.string.error__connection__ssl__client_certificate__certificate_mismatch :
+                        R.string.error__connection__ssl__client_certificate__not_set,
                 join(", ", Arrays.asList(e.keyType)),
                 join(", ", Arrays.asList(e.issuers)));
         return new Result(message, true);
     }
 
     public Result getFriendlyException(SSHConnection.FailedToAuthenticateWithPasswordException e) {
-        String message = context.getString(R.string.exceptions_ssh_failed_to_authenticate_with_password);
+        String message = context.getString(R.string.error__connection__ssh__failed_to_authenticate_with_password);
         return new Result(message, true);
     }
 
     public Result getFriendlyException(SSHConnection.FailedToAuthenticateWithKeyException e) {
-        String message = context.getString(R.string.exceptions_ssh_failed_to_authenticate_with_key);
+        String message = context.getString(R.string.error__connection__ssh__failed_to_authenticate_with_key);
         return new Result(message, true);
     }
 

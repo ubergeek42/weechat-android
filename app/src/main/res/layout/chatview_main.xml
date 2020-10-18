@@ -38,7 +38,7 @@
             android:layout_width="wrap_content"
             android:layout_height="?actionBarSize"
             app:srcCompat="@drawable/ic_toolbar_tab"
-            android:contentDescription="@string/tabkey"
+            android:contentDescription="@string/ui__button_tab"
             android:layout_gravity="bottom"
             android:layout_margin="0dp"
             style="@style/ActionButton" />
@@ -48,7 +48,7 @@
             android:layout_width="wrap_content"
             android:layout_height="?actionBarSize"
             app:srcCompat="@drawable/ic_toolbar_send"
-            android:contentDescription="@string/sendkey"
+            android:contentDescription="@string/ui__button_send"
             android:layout_gravity="bottom"
             android:layout_margin="0dp"
             android:visibility="gone"

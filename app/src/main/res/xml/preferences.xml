@@ -4,183 +4,183 @@
 
     <!-- connection -->
 
-    <PreferenceScreen android:key="connection_group" android:title="@string/pref_connection_group">
+    <PreferenceScreen android:key="connection_group" android:title="@string/pref__connection_group">
 
         <!-- connection type. the next three screens are only visible when relevant connection type is selected -->
 
-        <ListPreference android:key="connection_type" android:title="@string/pref_connection_type" android:defaultValue="plain" android:entries="@array/pref_connection_type_names" android:entryValues="@array/settings_connection_type_values"  android:summary="%s"/>
+        <ListPreference android:key="connection_type" android:title="@string/pref__connection_type" android:defaultValue="plain" android:entries="@array/pref__connection_type__names" android:entryValues="@array/settings_connection_type_values"  android:summary="%s"/>
 
-        <EditTextPreferenceFix android:key="ws_path" android:title="@string/pref_ws_path" android:summary="%s" android:singleLine="true" android:defaultValue="weechat" />
+        <EditTextPreferenceFix android:key="ws_path" android:title="@string/pref__connection__websocket_path" android:summary="%s" android:singleLine="true" android:defaultValue="weechat" />
 
-        <PreferenceScreen android:key="ssl_group" android:title="@string/pref_ssl_group">
+        <PreferenceScreen android:key="ssl_group" android:title="@string/pref__connection__ssl_group">
             <CheckBoxPreference android:key="ssl_pin_required"
-                android:title="@string/pref_ssl_require_certificate_pin"
-                android:summary="@string/pref_ssl_require_certificate_pin_summary"/>
+                android:title="@string/pref__connection__ssl__require_certificate_pin"
+                android:summary="@string/pref__connection__ssl__require_certificate_pin_summary"/>
             <ClearCertPreference android:key="ssl_clear_certs"
-                android:title="@string/pref_clear_certs" />
+                android:title="@string/pref__connection__ssl__clear_certificates" />
             <CertPickerPreference android:key="ssl_client_certificate"
-                android:title="@string/pref_ssl_client_certificate"
-                android:summary="@string/pref_ssl_client_certificate_summary" />
+                android:title="@string/pref__connection__ssl__client_certificate"
+                android:summary="@string/pref__connection__ssl__client_certificate_summary" />
         </PreferenceScreen>
 
-        <PreferenceScreen android:key="ssh_group" android:title="@string/pref_ssh_group">
-            <EditTextPreferenceFix android:key="ssh_host" android:title="@string/pref_ssh_host" android:summary="%s" android:singleLine="true" />
-            <EditTextPreferenceFix android:key="ssh_port" android:title="@string/pref_ssh_port" android:summary="%s" android:numeric="integer" android:defaultValue="22" />
-            <EditTextPreferenceFix android:key="ssh_user" android:title="@string/pref_ssh_user" android:summary="%s" android:singleLine="true" />
+        <PreferenceScreen android:key="ssh_group" android:title="@string/pref__connection__ssh_group">
+            <EditTextPreferenceFix android:key="ssh_host" android:title="@string/pref__connection__ssh__host" android:summary="%s" android:singleLine="true" />
+            <EditTextPreferenceFix android:key="ssh_port" android:title="@string/pref__connection__ssh__port" android:summary="%s" android:numeric="integer" android:defaultValue="22" />
+            <EditTextPreferenceFix android:key="ssh_user" android:title="@string/pref__connection__ssh__user" android:summary="%s" android:singleLine="true" />
             <ListPreference android:key="ssh_authentication_method"
-                android:title="@string/pref_ssh_authentication_method"
+                android:title="@string/pref__connection__ssh__authentication_method"
                 android:defaultValue="password"
-                android:entries="@array/pref_ssh_authentication_method_names"
+                android:entries="@array/pref__connection__ssh__authentication_method_names"
                 android:entryValues="@array/pref_ssh_authentication_method_values"
                 android:summary="%s"/>
-            <EditTextPreferenceFix android:key="ssh_password" android:title="@string/pref_ssh_password" android:summary="%s" android:password="true" android:singleLine="true"/>
-            <PrivateKeyPickerPreference android:key="ssh_key_file" android:title="@string/pref_ssh_keyfile" android:summary="@string/pref_ssh_keyfile_summary" />
+            <EditTextPreferenceFix android:key="ssh_password" android:title="@string/pref__connection__ssh__password" android:summary="%s" android:password="true" android:singleLine="true"/>
+            <PrivateKeyPickerPreference android:key="ssh_key_file" android:title="@string/pref__connection__ssh__key" android:summary="@string/pref__connection__ssh__key_summary" />
             <ClearKnownHostsPreference android:key="ssh_clear_known_host"
-                android:title="@string/pref_ssh_clear_known_hosts" />
+                android:title="@string/pref__connection__ssh__clear_known_hosts" />
         </PreferenceScreen>
 
         <!-- relay settings and the rest -->
 
-        <PreferenceCategory android:key="connection_relay_group" android:title="@string/pref_relay_group">
-            <EditTextPreferenceFix android:key="host" android:title="@string/pref_relay_host" android:summary="%s" android:singleLine="true" />
-            <EditTextPreferenceFix android:key="port" android:title="@string/pref_relay_port" android:summary="%s" android:numeric="integer" android:defaultValue="9001" />
-            <EditTextPreferenceFix android:key="password" android:title="@string/pref_relay_password" android:summary="%s" android:inputType="textPassword" android:password="true" android:singleLine="true" />
+        <PreferenceCategory android:key="connection_relay_group" android:title="@string/pref__connection__relay_group">
+            <EditTextPreferenceFix android:key="host" android:title="@string/pref__connection__relay_host" android:summary="%s" android:singleLine="true" />
+            <EditTextPreferenceFix android:key="port" android:title="@string/pref__connection__relay_port" android:summary="%s" android:numeric="integer" android:defaultValue="9001" />
+            <EditTextPreferenceFix android:key="password" android:title="@string/pref__connection__relay_password" android:summary="%s" android:inputType="textPassword" android:password="true" android:singleLine="true" />
         </PreferenceCategory>
 
-        <PreferenceCategory android:key="connection_misc_group" android:title="@string/pref_misc_group">
-            <EditTextPreferenceFix android:key="line_increment" android:title="@string/pref_line_increment" android:summary="@string/pref_line_increment_summary" android:numeric="integer" android:defaultValue="100" />
-            <CheckBoxPreference android:key="reconnect" android:title="@string/pref_reconnect" />
-            <CheckBoxPreference android:key="boot_connect" android:title="@string/pref_boot_connect" />
-            <CheckBoxPreference android:key="optimize_traffic" android:summary="@string/pref_optimize_traffic_summary" android:title="@string/pref_optimize_traffic" android:defaultValue="false"/>
-            <CheckBoxPreference android:key="hotlist_sync" android:summary="@string/pref_hotlist_sync_summary" android:title="@string/pref_hotlist_sync" android:defaultValue="false"/>
+        <PreferenceCategory android:key="connection_misc_group" android:title="@string/pref__connection__misc_group">
+            <EditTextPreferenceFix android:key="line_increment" android:title="@string/pref__connection__number_of_lines_to_load" android:summary="@string/pref__connection__number_of_lines_to_load_summary" android:numeric="integer" android:defaultValue="100" />
+            <CheckBoxPreference android:key="reconnect" android:title="@string/pref__connection__reconnect_on_connection_loss" />
+            <CheckBoxPreference android:key="boot_connect" android:title="@string/pref__connection__connect_on_boot" />
+            <CheckBoxPreference android:key="optimize_traffic" android:summary="@string/pref__connection__only_sync_open_buffers_summary" android:title="@string/pref__connection__only_sync_open_buffers" android:defaultValue="false"/>
+            <CheckBoxPreference android:key="hotlist_sync" android:summary="@string/pref__connection__sync_read_status_summary" android:title="@string/pref__connection__sync_read_status" android:defaultValue="false"/>
 
-            <PreferenceScreen android:key="ping_group" android:title="@string/pref_ping_group">
-                <CheckBoxPreference android:key="ping_enabled" android:title="@string/pref_ping_enabled" android:summary="@string/pref_ping_enabled_summary" android:defaultValue="true" />
-                <EditTextPreferenceFix android:key="ping_idle" android:title="@string/pref_ping_idle" android:summary="@string/pref_ping_idle_summary" android:numeric="integer" android:defaultValue="300" android:dependency="ping_enabled" />
-                <EditTextPreferenceFix android:key="ping_timeout" android:title="@string/pref_ping_timeout" android:summary="@string/pref_ping_timeout_summary" android:numeric="integer" android:defaultValue="30" android:dependency="ping_enabled" />
+            <PreferenceScreen android:key="ping_group" android:title="@string/pref__connection__ping_group">
+                <CheckBoxPreference android:key="ping_enabled" android:title="@string/pref__connection__ping_enabled" android:summary="@string/pref__connection__ping_enabled_summary" android:defaultValue="true" />
+                <EditTextPreferenceFix android:key="ping_idle" android:title="@string/pref__connection__ping_idle" android:summary="@string/pref__connection__ping_idle_summary" android:numeric="integer" android:defaultValue="300" android:dependency="ping_enabled" />
+                <EditTextPreferenceFix android:key="ping_timeout" android:title="@string/pref__connection__ping_timeout" android:summary="@string/pref__connection__ping_timeout_summary" android:numeric="integer" android:defaultValue="30" android:dependency="ping_enabled" />
             </PreferenceScreen>
         </PreferenceCategory>
     </PreferenceScreen>
 
     <!-- buffer list -->
 
-    <PreferenceScreen android:key="bufferlist_group" android:title="@string/pref_bufferlist_group">
-		<CheckBoxPreference android:key="sort_buffers" android:summary="@string/pref_sort_buffers_summary" android:title="@string/pref_sort_buffers" android:defaultValue="false" />
-		<CheckBoxPreference android:key="filter_nonhuman_buffers" android:title="@string/pref_hide_server_buffers" android:summary="@string/pref_hide_server_buffers_summary" android:defaultValue="false" />
-        <CheckBoxPreference android:key="hide_hidden_buffers" android:title="@string/pref_hide_hidden_buffers" android:summary="@string/pref_hide_hidden_buffers_summary" android:defaultValue="false" />
-		<CheckBoxPreference android:key="show_buffer_filter" android:title="@string/pref_show_buffer_filter" android:summary="@string/pref_show_buffer_filter_summary"  android:defaultValue="false" />
-        <CheckBoxPreference android:key="use_gesture_exclusion_zone" android:title="@string/pref_use_gesture_exclusion_zone" android:summary="@string/pref_use_gesture_exclusion_zone_summary" android:defaultValue="false" />
+    <PreferenceScreen android:key="bufferlist_group" android:title="@string/pref__buffer_list_group">
+		<CheckBoxPreference android:key="sort_buffers" android:summary="@string/pref__buffer_list__sort_by_hot_summary" android:title="@string/pref__buffer_list__sort_by_hot" android:defaultValue="false" />
+		<CheckBoxPreference android:key="filter_nonhuman_buffers" android:title="@string/pref__buffer_list__hide_server_buffers" android:summary="@string/pref__buffer_list__hide_server_buffers_summary" android:defaultValue="false" />
+        <CheckBoxPreference android:key="hide_hidden_buffers" android:title="@string/pref__buffer_list__hide_hidden_buffers" android:summary="@string/pref__buffer_list__hide_hidden_buffers_summary" android:defaultValue="false" />
+		<CheckBoxPreference android:key="show_buffer_filter" android:title="@string/pref__buffer_list__show_buffer_filter" android:summary="@string/pref__buffer_list__show_buffer_filter_summary"  android:defaultValue="false" />
+        <CheckBoxPreference android:key="use_gesture_exclusion_zone" android:title="@string/pref__buffer_list__use_gesture_exclusion_zone" android:summary="@string/pref__buffer_list__use_gesture_exclusion_zone_summary" android:defaultValue="false" />
     </PreferenceScreen>
 
     <!-- look and feel -->
 
-    <PreferenceScreen android:key="lookfeel_group" android:title="@string/pref_lookfeel_group">
-        <EditTextPreferenceFix android:key="text_size" android:title="@string/pref_text_size" android:summary="%s" android:defaultValue="12" android:numeric="integer" />
-        <CheckBoxPreference android:key="auto_hide_actionbar" android:title="@string/pref_auto_hide_actionbar" android:summary="@string/pref_auto_hide_actionbar_summary" android:defaultValue="true"/>
-        <CheckBoxPreference android:key="chatview_filters" android:title="@string/pref_chatview_filters" android:summary="@string/pref_chatview_filters_summary" android:defaultValue="true" />
-        <ListPreference android:key="prefix_align" android:title="@string/pref_prefix_align" android:summary="%s" android:defaultValue="right" android:entries="@array/pref_prefix_align_names" android:entryValues="@array/settings_prefix_alignment_values" />
-        <EditTextPreferenceFix android:key="prefix_max_width" android:title="@string/pref_max_width" android:summary="@string/pref_max_width_summary" android:numeric="integer" android:defaultValue="7" />
-        <CheckBoxPreference android:key="enclose_nick" android:title="@string/pref_enclose_nick" android:summary="@string/pref_enclose_nick_summary" android:defaultValue="false" />
-		<EditTextPreferenceFix android:key="timestamp_format" android:title="@string/pref_timestamp_format" android:summary="@string/pref_timestamp_format_summary" android:defaultValue="HH:mm:ss" android:singleLine="true" />
-	    <FontPreference android:key="buffer_font" android:title="@string/pref_font" />
+    <PreferenceScreen android:key="lookfeel_group" android:title="@string/pref__look_n_feel_group">
+        <EditTextPreferenceFix android:key="text_size" android:title="@string/pref__look_n_feel__text_size" android:summary="%s" android:defaultValue="12" android:numeric="integer" />
+        <CheckBoxPreference android:key="auto_hide_actionbar" android:title="@string/pref__look_n_feel__hide_toolbar" android:summary="@string/pref__look_n_feel__hide_toolbar_summary" android:defaultValue="true"/>
+        <CheckBoxPreference android:key="chatview_filters" android:title="@string/pref__look_n_feel__filter_messages" android:summary="@string/pref__look_n_feel__filter_messages_summary" android:defaultValue="true" />
+        <ListPreference android:key="prefix_align" android:title="@string/pref__look_n_feel__alignment" android:summary="%s" android:defaultValue="right" android:entries="@array/pref__look_n_feel__alignment_names" android:entryValues="@array/settings_prefix_alignment_values" />
+        <EditTextPreferenceFix android:key="prefix_max_width" android:title="@string/pref__look_n_feel__maximum_prefix_width" android:summary="@string/pref__look_n_feel__maximum_prefix_width_summary" android:numeric="integer" android:defaultValue="7" />
+        <CheckBoxPreference android:key="enclose_nick" android:title="@string/pref__look_n_feel__enclose_nicks" android:summary="@string/pref__look_n_feel__enclose_nicks_summary" android:defaultValue="false" />
+		<EditTextPreferenceFix android:key="timestamp_format" android:title="@string/pref__look_n_feel__timestamp_format" android:summary="@string/pref__look_n_feel__timestamp_format_summary" android:defaultValue="HH:mm:ss" android:singleLine="true" />
+	    <FontPreference android:key="buffer_font" android:title="@string/pref__look_n_feel__font" />
     </PreferenceScreen>
 
     <!-- theme -->
 
-    <PreferenceScreen android:key="theme_group" android:title="@string/pref_theme">
-        <ListPreference android:key="theme" android:title="@string/pref_theme" android:defaultValue="system" android:entries="@array/pref_theme_names" android:entryValues="@array/settings_theme_values"  android:summary="%s"/>
-        <CheckBoxPreference android:key="theme_switch" android:title="@string/pref_theme_switch" android:summary="@string/pref_theme_switch_summary" android:defaultValue="false" />
-        <ThemePreference android:key="color_scheme_day" android:title="@string/pref_color_scheme_day" android:defaultValue="squirrely-light-theme.properties" />
-        <ThemePreference android:key="color_scheme_night" android:title="@string/pref_color_scheme_night" android:defaultValue="squirrely-dark-theme.properties" />
+    <PreferenceScreen android:key="theme_group" android:title="@string/pref__theme">
+        <ListPreference android:key="theme" android:title="@string/pref__theme" android:defaultValue="system" android:entries="@array/pref__theme__theme_names" android:entryValues="@array/settings_theme_values"  android:summary="%s"/>
+        <CheckBoxPreference android:key="theme_switch" android:title="@string/pref__theme__menu_switch" android:summary="@string/pref__theme__menu_switch_summary" android:defaultValue="false" />
+        <ThemePreference android:key="color_scheme_day" android:title="@string/pref__theme__color_scheme_light" android:defaultValue="squirrely-light-theme.properties" />
+        <ThemePreference android:key="color_scheme_night" android:title="@string/pref__theme__color_scheme_dark" android:defaultValue="squirrely-dark-theme.properties" />
         <ThemePreferenceHelp android:selectable="false" android:persistent="false" />
-        <CheckBoxPreference android:key="dim_down" android:title="@string/pref_dim_down" android:summary="@string/pref_dim_down_summary" android:defaultValue="false" />
+        <CheckBoxPreference android:key="dim_down" android:title="@string/pref__theme__dim_down_non_human_lines" android:summary="@string/pref__theme__dim_down_non_human_lines_summary" android:defaultValue="false" />
     </PreferenceScreen>
 
     <!-- buttons -->
 
-    <PreferenceScreen android:key="button_group" android:title="@string/pref_button_group">
-		<CheckBoxPreference android:key="tabbtn_show" android:title="@string/pref_tabbtn_show" android:defaultValue="true" />
-		<CheckBoxPreference android:key="sendbtn_show" android:title="@string/pref_sendbtn_show" android:defaultValue="true" />
-		<CheckBoxPreference android:key="volumebtn_size" android:title="@string/pref_volumebtn_size" android:summary="@string/pref_volumebtn_size_summary" android:defaultValue="true" />
+    <PreferenceScreen android:key="button_group" android:title="@string/pref__buttons_group">
+		<CheckBoxPreference android:key="tabbtn_show" android:title="@string/pref__buttons__show_tab" android:defaultValue="true" />
+		<CheckBoxPreference android:key="sendbtn_show" android:title="@string/pref__buttons__show_send" android:defaultValue="true" />
+		<CheckBoxPreference android:key="volumebtn_size" android:title="@string/pref__buttons__volume_buttons_change_text_size" android:summary="@string/pref__buttons__volume_buttons_change_text_size_summary" android:defaultValue="true" />
 	</PreferenceScreen>
 
     <!-- notifications -->
 
-    <PreferenceScreen android:key="notif_group" android:title="@string/pref_notif_group">
-		<CheckBoxPreference android:key="notification_enable" android:title="@string/pref_notification_enable" android:summary="@string/pref_notification_enable_summary" android:defaultValue="true" />
-        <RingtonePreferenceFix android:key="notification_sound" android:title="@string/pref_notification_sound" android:dependency="notification_enable" android:defaultValue="content://settings/system/notification_sound" />
-		<CheckBoxPreference android:key="notification_vibrate" android:title="@string/pref_notification_vibrate" android:defaultValue="false" android:dependency="notification_enable" />
-		<CheckBoxPreference android:key="notification_light" android:title="@string/pref_notification_light" android:defaultValue="false" android:dependency="notification_enable"/>
-        <CheckBoxPreference android:key="notification_ticker" android:summary="@string/pref_notification_ticker_summary" android:title="@string/pref_notification_ticker" android:defaultValue="true" android:dependency="notification_enable" />
+    <PreferenceScreen android:key="notif_group" android:title="@string/pref__notifications_group">
+		<CheckBoxPreference android:key="notification_enable" android:title="@string/pref__notifications__enable" android:summary="@string/pref__notifications__enable_summary" android:defaultValue="true" />
+        <RingtonePreferenceFix android:key="notification_sound" android:title="@string/pref__notifications__sound" android:dependency="notification_enable" android:defaultValue="content://settings/system/notification_sound" />
+		<CheckBoxPreference android:key="notification_vibrate" android:title="@string/pref__notifications__vibration" android:defaultValue="false" android:dependency="notification_enable" />
+		<CheckBoxPreference android:key="notification_light" android:title="@string/pref__notifications__light" android:defaultValue="false" android:dependency="notification_enable"/>
+        <CheckBoxPreference android:key="notification_ticker" android:summary="@string/pref__notifications__ticker_summary" android:title="@string/pref__notifications__ticker" android:defaultValue="true" android:dependency="notification_enable" />
     </PreferenceScreen>
 
     <!-- media preview -->
 
-    <PreferenceScreen android:key="media_preview_group" android:title="@string/pref_media_preview_group">
+    <PreferenceScreen android:key="media_preview_group" android:title="@string/pref__media_preview_group">
         <ListPreference android:key="media_preview_enabled_for_network"
-            android:title="@string/pref_media_preview_enabled_for_network"
+            android:title="@string/pref__media_preview__enabled_for_network"
             android:defaultValue="never"
             android:entryValues="@array/settings_media_preview_enabled_for_network_values"
-            android:entries="@array/pref_media_preview_enabled_for_network_names"
+            android:entries="@array/pref__media_preview__enabled_for_network_names"
             android:summary="%s"/>
         <MultiSelectListPreferenceWithSummary android:key="media_preview_enabled_for_location"
             xmlns:app="http://schemas.android.com/apk/res-auto"
-            android:title="@string/pref_media_preview_enabled_for_location"
+            android:title="@string/pref__media_preview__enabled_for_context"
             android:defaultValue="@array/settings_media_preview_enabled_for_location_values_default"
             android:entryValues="@array/settings_media_preview_enabled_for_location_values"
-            android:entries="@array/pref_media_preview_enabled_for_location_names"
-            android:summary="@string/pref_media_preview_enabled_for_location_summary"
-            app:emptySummary="@string/pref_media_preview_enabled_for_location_summary_empty"/>
+            android:entries="@array/pref__media_preview__enabled_for_context_names"
+            android:summary="@string/pref__media_preview__enabled_for_context_summary"
+            app:emptySummary="@string/pref__media_preview__enabled_for_context_summary_empty"/>
         <ListPreference android:key="media_preview_secure_request"
-            android:title="@string/pref_media_preview_secure_request"
+            android:title="@string/pref__media_preview__secure_requests"
             android:defaultValue="rewrite"
             android:entryValues="@array/settings_media_preview_secure_request_values"
-            android:entries="@array/pref_media_preview_secure_request_names"
+            android:entries="@array/pref__media_preview__secure_requests_names"
             android:summary="%s"/>
         <HelpPreference android:key="media_preview_help"
             android:persistent="false"
             android:selectable="false"
-            android:summary="@string/pref_media_preview_help" />
+            android:summary="@string/pref__media_preview__help" />
         <StrategyPreference android:key="media_preview_strategies"
             xmlns:app="http://schemas.android.com/apk/res-auto"
-            android:title="@string/pref_media_preview_strategies"
-            android:defaultValue="@string/pref_media_preview_strategies_default"
-            app:resetToDefaultValue="@string/pref_media_preview_strategies_default"
+            android:title="@string/pref__media_preview__strategies"
+            android:defaultValue="@string/pref__media_preview__strategies_default"
+            app:resetToDefaultValue="@string/pref__media_preview__strategies_default"
             android:summary="%s"/>
         <PreferenceCategory android:key="media_preview_advanced_group"
-            android:title="@string/pref_media_preview_advanced_group">
+            android:title="@string/pref__media_preview__advanced_group">
             <EditTextPreferenceFix android:key="media_preview_maximum_body_size"
-                android:title="@string/pref_media_preview_maximum_body_size"
-                android:summary="@string/pref_media_preview_maximum_body_size_summary"
+                android:title="@string/pref__media_preview__maximum_body_size"
+                android:summary="@string/pref__media_preview__maximum_body_size_summary"
                 android:singleLine="true"
                 android:inputType="numberDecimal"
                 android:defaultValue="10" />
             <EditTextPreferenceFix android:key="image_disk_cache_size"
-                android:title="@string/pref_image_disk_cache_size"
-                android:summary="@string/pref_image_disk_cache_size_summary"
+                android:title="@string/pref__media_preview__image_disk_cache_size"
+                android:summary="@string/pref__media_preview__image_disk_cache_size_summary"
                 android:singleLine="true"
                 android:inputType="numberDecimal"
                 android:defaultValue="250" />
             <EditTextPreferenceFix android:key="media_preview_success_cooldown"
-                android:title="@string/pref_media_preview_success_cooldown"
-                android:summary="@string/pref_media_preview_success_cooldown_summary"
+                android:title="@string/pref__media_preview__success_cooldown"
+                android:summary="@string/pref__media_preview__success_cooldown_summary"
                 android:singleLine="true"
                 android:inputType="numberDecimal"
                 android:defaultValue="24" />
             <EditTextPreferenceFix android:key="media_preview_thumbnail_width"
-                android:title="@string/pref_media_preview_thumbnail_width"
+                android:title="@string/pref__media_preview__thumbnail_width"
                 android:summary="%s dp"
                 android:singleLine="true"
                 android:inputType="numberDecimal"
                 android:defaultValue="80" />
             <EditTextPreferenceFix android:key="media_preview_thumbnail_min_height"
-                android:title="@string/pref_media_preview_thumbnail_min_height"
+                android:title="@string/pref__media_preview__thumbnail_min_height"
                 android:summary="%s dp"
                 android:singleLine="true"
                 android:inputType="numberDecimal"
                 android:defaultValue="40" />
             <EditTextPreferenceFix android:key="media_preview_thumbnail_max_height"
-                android:title="@string/pref_media_preview_thumbnail_max_height"
+                android:title="@string/pref__media_preview__thumbnail_max_height"
                 android:summary="%s dp"
                 android:singleLine="true"
                 android:inputType="numberDecimal"
@@ -193,7 +193,7 @@
             android:title="Accept"
             android:defaultValue="text_only"
             android:entryValues="@array/settings_uploading_enabled"
-            android:entries="@array/pref_uploading_enabled_names"
+            android:entries="@array/pref__sharing__accept_names"
             android:summary="%s"/>
         <EditTextPreferenceFix android:key="uploading_uri"
             android:title="Upload URL"
@@ -215,7 +215,7 @@
         <HelpPreference android:key="uploading_help"
             android:persistent="false"
             android:selectable="false"
-            android:summary="@string/pref_uploading_help_summary" />
+            android:summary="@string/pref__sharing__help" />
         <PreferenceCategory android:key="uploading_advanced_group"
             android:title="Advanced">
             <EditTextPreferenceFix android:key="uploading_additional_headers"
@@ -227,7 +227,7 @@
                 android:title="Authentication"
                 android:defaultValue="none"
                 android:entryValues="@array/settings_uploading_authentication_values"
-                android:entries="@array/pref_uploading_authentication_names"
+                android:entries="@array/pref__sharing_authentication_names"
                 android:summary="%s"/>
             <EditTextPreferenceFix android:key="uploading_authentication_basic_user"
                 android:title="User"
@@ -250,7 +250,7 @@
 
     <!-- about -->
 
-    <PreferenceScreen android:key="about" android:title="@string/about">
-        <intent android:action="android.intent.action.VIEW" android:targetPackage="@string/package_name" android:targetClass="com.ubergeek42.WeechatAndroid.WeechatAboutActivity" />
+    <PreferenceScreen android:key="about" android:title="@string/pref__about_group">
+        <intent android:action="android.intent.action.VIEW" android:targetPackage="@string/etc__package_name" android:targetClass="com.ubergeek42.WeechatAndroid.WeechatAboutActivity" />
     </PreferenceScreen>
 </PreferenceScreen>

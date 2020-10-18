@@ -71,8 +71,8 @@ public class NickListAdapter extends BaseAdapter implements BufferNicklistEye,
     @AnyThread @Cat synchronized public void onNicklistChanged() {
         final ArrayList<Nick> newNicks = buffer.getNicksCopySortedByPrefixAndName();
         final String nicklistCount = context.getResources().getQuantityString(
-                R.plurals.nick_list_count, newNicks.size(), newNicks.size());
-        final String title = context.getString(R.string.nick_list_title,
+                R.plurals.dialog__nicklist__n_users, newNicks.size(), newNicks.size());
+        final String title = context.getString(R.string.dialog__nicklist__title,
                 buffer.shortName, nicklistCount);
         Weechat.runOnMainThread(() -> {
             nicks = newNicks;

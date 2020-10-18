@@ -58,7 +58,7 @@ public class Paste {
             list.add(new PasteItem(clipboard, true));
 
         AlertDialog dialog = new FancyAlertDialogBuilder(context)
-                .setTitle(R.string.dialog_paste_title)
+                .setTitle(R.string.dialog__paste__title)
                 .create();
 
         RecyclerView recyclerView = (RecyclerView) LayoutInflater.from(context)

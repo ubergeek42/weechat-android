@@ -156,10 +156,10 @@ public class CertificateDialog extends DialogFragment {
         try {
             fingerprint = new String(Hex.encodeHex(DigestUtils.sha256(certificate.getEncoded())));
         } catch (CertificateEncodingException e) {
-            fingerprint = context.getString(R.string.certificate_description_unknown_fingerprint);
+            fingerprint = context.getString(R.string.dialog__certificate__unknown_fingerprint);
         }
 
-        String html = context.getString(R.string.certificate_description_text,
+        String html = context.getString(R.string.dialog__certificate__certificate_description,
                 certificate.getSubjectDN().getName(),
                 certificate.getIssuerDN().getName(),
                 DateFormat.getDateTimeInstance().format(certificate.getNotBefore()),
@@ -176,13 +176,13 @@ public class CertificateDialog extends DialogFragment {
             Context context, X509Certificate[] certificateChain) {
         int title, text, positive;
         if (SSLHandler.isChainTrustedBySystem(certificateChain)) {
-            title = R.string.dialog_certificate_not_pinned_title;
-            text = R.string.dialog_certificate_not_pinned_text;
-            positive = R.string.dialog_button_pin_selected;
+            title = R.string.dialog__certificate__not_pinned__title;
+            text = R.string.dialog__certificate__not_pinned__text;
+            positive = R.string.dialog__certificate__not_pinned__pin_selected;
         } else {
-            title = R.string.dialog_untrusted_certificate_title;
-            text = R.string.dialog_untrusted_certificate_text;
-            positive = R.string.dialog_button_accept_selected;
+            title = R.string.dialog__certificate__untrusted__title;
+            text = R.string.dialog__certificate__untrusted__text;
+            positive = R.string.dialog__certificate__untrusted__button_accept;
         }
 
         CertificateDialog dialog = new CertificateDialog(
@@ -190,7 +190,7 @@ public class CertificateDialog extends DialogFragment {
                 context.getString(text),
                 certificateChain,
                 positive, null,
-                R.string.dialog_button_reject, null);
+                R.string.dialog__certificate__button_reject, null);
         dialog.positiveButtonListener = (d, which) -> {
             SSLHandler.getInstance(context).trustCertificate(
                     dialog.reversedCertificateChain[dialog.selectedCertificate]);
@@ -203,22 +203,22 @@ public class CertificateDialog extends DialogFragment {
             CharSequence title, CharSequence text, X509Certificate[] certificateChain) {
         return new CertificateDialog(title, text, certificateChain,
                                      null, null,
-                                     R.string.dialog_button_back_to_safety, null);
+                                     R.string.dialog__certificate__button_back_to_safety, null);
     }
 
     public static CertificateDialog buildExpiredCertificateDialog(
             Context context, X509Certificate[] certificateChain) {
         return buildBackToSafetyCertificateDialog(
-                context.getString(R.string.dialog_certificate_expired_title),
-                context.getString(R.string.dialog_certificate_expired_text),
+                context.getString(R.string.dialog__certificate__expired__title),
+                context.getString(R.string.dialog__certificate__expired__text),
                 certificateChain);
     }
 
     public static CertificateDialog buildNotYetValidCertificateDialog(
             Context context, X509Certificate[] certificateChain) {
         return buildBackToSafetyCertificateDialog(
-                context.getString(R.string.dialog_certificate_not_yet_valid_title),
-                context.getString(R.string.dialog_certificate_not_yet_valid_text),
+                context.getString(R.string.dialog__certificate__not_yet_valid__title),
+                context.getString(R.string.dialog__certificate__not_yet_valid__text),
                 certificateChain);
     }
 
@@ -230,23 +230,23 @@ public class CertificateDialog extends DialogFragment {
             StringBuilder sb = new StringBuilder();
             for (String certificateHost : certificateHosts)
                 sb.append(context.getString(
-                        R.string.dialog_invalid_hostname_text_host_line,
+                        R.string.dialog__certificate__invalid_hostname__text__host_line,
                         Html.escapeHtml(certificateHost)));
             String allowedHosts = sb.length() > 0 ?
                     sb.toString() :
-                    context.getString(R.string.dialog_invalid_hostname_text_empty_line);
+                    context.getString(R.string.dialog__certificate__invalid_hostname__text__host_line_empty);
             String html = context.getString(
-                    R.string.dialog_invalid_hostname_text,
+                    R.string.dialog__certificate__invalid_hostname__text,
                     Html.escapeHtml(P.host), allowedHosts);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
-                html += context.getString(R.string.dialog_invalid_hostname_text_android_p_warning);
+                html += context.getString(R.string.dialog__certificate__invalid_hostname__text__android_p_warning);
             text = Html.fromHtml(html);
         } catch (Exception e) {
-            text = context.getString(R.string.error, e.getMessage());
+            text = context.getString(R.string.error__etc__prefix, e.getMessage());
         }
 
         return buildBackToSafetyCertificateDialog(
-                context.getString(R.string.dialog_invalid_hostname_title),
+                context.getString(R.string.dialog__certificate__invalid_hostname__title),
                 text,
                 certificateChain);
     }

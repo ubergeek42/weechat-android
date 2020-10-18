@@ -40,7 +40,7 @@ class Toaster(
     }
 
     fun show(e: Exception) {
-        show(R.string.error, FriendlyExceptions(context).getFriendlyException(e).message)
+        show(R.string.error__etc__prefix, FriendlyExceptions(context).getFriendlyException(e).message)
     }
 
     // long and short toasts are insignificant messages that routinely appear during the use

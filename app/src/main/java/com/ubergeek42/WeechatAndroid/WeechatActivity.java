@@ -179,7 +179,7 @@ public class WeechatActivity extends AppCompatActivity implements
         uiDrawer = findViewById(R.id.bufferlist_fragment);
         if (slidy) {
             uiDrawerLayout = findViewById(R.id.drawer_layout);
-            drawerToggle = new ActionBarDrawerToggle(this, uiDrawerLayout, R.string.open_drawer, R.string.close_drawer) {
+            drawerToggle = new ActionBarDrawerToggle(this, uiDrawerLayout, R.string.ui__ActionBarDrawerToggle__open_drawer, R.string.ui__ActionBarDrawerToggle__close_drawer) {
                 @Override public void onDrawerSlide(View drawerView, float slideOffset) {
                     drawerVisibilityChanged(slideOffset > 0);
                 }
@@ -366,7 +366,7 @@ public class WeechatActivity extends AppCompatActivity implements
         }
 
         FriendlyExceptions.Result result = new FriendlyExceptions(this).getFriendlyException(e);
-        ErrorToast.show(R.string.error, result.message);
+        ErrorToast.show(R.string.error__etc__prefix, result.message);
         if (result.shouldStopConnecting) Weechat.runOnMainThread(this::disconnect);
     }
 
@@ -439,7 +439,7 @@ public class WeechatActivity extends AppCompatActivity implements
         drawable.setStroke((int) (P.darkThemeActive ? P._4dp / 2 : P._4dp / 2 - 1), P.colorPrimary);
         uiHot.setTextColor(P.darkThemeActive ? 0xffffffff : P.colorPrimary);
 
-        TooltipCompat.setTooltipText(menuHotlist, getString(R.string.hint_show_hot_message));
+        TooltipCompat.setTooltipText(menuHotlist, getString(R.string.menu__hotlist_hint));
         menuHotlist.setOnClickListener((View v) -> onHotlistSelected());
         uiMenu = menu;
         updateMenuItems();
@@ -514,7 +514,7 @@ public class WeechatActivity extends AppCompatActivity implements
         if (buffer != null)
             openBuffer(buffer.pointer);
         else
-            ShortToast.show(R.string.no_hot_buffers);
+            ShortToast.show(R.string.error__etc__no_hot_buffers);
     }
 
     @MainThread @Cat("Menu") private void makeMenuReflectConnectionStatus() {
@@ -522,9 +522,9 @@ public class WeechatActivity extends AppCompatActivity implements
         MenuItem connectionStatus = uiMenu.findItem(R.id.menu_connection_state);
         String msg;
 
-        if (state.contains(AUTHENTICATED)) msg = getString(R.string.disconnect);
-        else if (state.contains(STARTED)) msg = getString(R.string.stop_connecting);
-        else msg = getString(R.string.connect);
+        if (state.contains(AUTHENTICATED)) msg = getString(R.string.menu__connection_state__disconnect);
+        else if (state.contains(STARTED)) msg = getString(R.string.menu__connection_state__stop_connecting);
+        else msg = getString(R.string.menu__connection_state__connect);
         connectionStatus.setTitle(msg);
 
         final View menuHotlist = uiMenu.findItem(R.id.menu_hotlist).getActionView();
@@ -553,7 +553,7 @@ public class WeechatActivity extends AppCompatActivity implements
             if (shareObject != null) Weechat.runOnMainThread(() -> adapter.setBufferInputText(pointer, shareObject));
             if (slidy) hideDrawer();
         } else {
-            ErrorToast.show(R.string.not_connected);
+            ErrorToast.show(R.string.error__etc__not_connected);
         }
     }
 

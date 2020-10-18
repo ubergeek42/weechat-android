@@ -83,7 +83,7 @@ public class Linkify {
             try {
                 context.startActivity(intent);
             } catch (ActivityNotFoundException e) {
-                ErrorToast.show(R.string.linkify_error_no_activity, getURL());
+                ErrorToast.show(R.string.error__etc__activity_not_found_for_url, getURL());
             }
         }
     }

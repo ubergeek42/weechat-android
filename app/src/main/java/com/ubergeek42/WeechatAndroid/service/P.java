@@ -307,14 +307,14 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     }
 
     @MainThread public static @StringRes int validateConnectionPreferences() {
-        if (TextUtils.isEmpty(host)) return R.string.pref_error_relay_host_not_set;
-        if (TextUtils.isEmpty(pass)) return R.string.pref_error_relay_password_not_set;
+        if (TextUtils.isEmpty(host)) return R.string.error__pref_validation__relay_host_not_set;
+        if (TextUtils.isEmpty(pass)) return R.string.error__pref_validation__relay_password_not_set;
         if (connectionType.equals(PREF_TYPE_SSH)) {
-            if (TextUtils.isEmpty(sshHost)) return R.string.pref_error_ssh_host_not_set;
+            if (TextUtils.isEmpty(sshHost)) return R.string.error__pref_validation__ssh_host_not_set;
             if (sshAuthenticationMethod == SSHConnection.AuthenticationMethod.KEY) {
-                if (Utils.isEmpty(sshSerializedKey)) return R.string.pref_error_no_ssh_key_file;
+                if (Utils.isEmpty(sshSerializedKey)) return R.string.error__pref_validation__ssh_key_not_set;
             } else {
-                if (TextUtils.isEmpty(sshPassword)) return R.string.pref_error_no_ssh_password;
+                if (TextUtils.isEmpty(sshPassword)) return R.string.error__pref_validation__ssh_password_not_set;
             }
         }
         return 0;

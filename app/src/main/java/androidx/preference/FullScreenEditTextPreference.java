@@ -33,9 +33,9 @@ public class FullScreenEditTextPreference extends EditTextPreference implements 
     final private static int MENU = R.menu.fullscreen_edit_text;
     final private static int MENU_SAVE = R.id.action_save;
     final private static int MENU_DEFAULT = R.id.action_reset_to_default;
-    final private static int DISCARD_CHANGES_PROMPT = R.string.dialog_discard_changes_prompt;
-    final private static int DISCARD_CHANGES_CANCEL = R.string.dialog_discard_changes_cancel;
-    final private static int DISCARD_CHANGES_DISCARD = R.string.dialog_discard_changes_discard;
+    final private static int DISCARD_CHANGES_PROMPT = R.string.pref__FullScreenEditTextPreference__discard_changes_prompt;
+    final private static int DISCARD_CHANGES_CANCEL = R.string.pref__FullScreenEditTextPreference__discard_changes_cancel;
+    final private static int DISCARD_CHANGES_DISCARD = R.string.pref__FullScreenEditTextPreference__discard_changes_discard;
 
     final private String defaultValue;
 

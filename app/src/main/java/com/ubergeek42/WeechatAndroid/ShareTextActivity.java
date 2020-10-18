@@ -51,7 +51,7 @@ public class ShareTextActivity extends AppCompatActivity implements
         super.onStart();
 
         if (!EventBus.getDefault().getStickyEvent(Events.StateChangedEvent.class).state.contains(RelayService.STATE.LISTED)) {
-            ErrorToast.show(R.string.not_connected);
+            ErrorToast.show(R.string.error__etc__not_connected);
             finish();
             return;
         }

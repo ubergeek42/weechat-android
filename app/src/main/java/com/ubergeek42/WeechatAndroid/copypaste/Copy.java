@@ -32,7 +32,7 @@ public class Copy {
         }
 
         AlertDialog dialog = new FancyAlertDialogBuilder(context)
-                .setTitle(R.string.dialog_copy_title)
+                .setTitle(R.string.dialog__copy__title)
                 .create();
 
         RecyclerView recyclerView = (RecyclerView) LayoutInflater.from(context)

@@ -7,15 +7,15 @@
     <item android:id="@+id/menu_nicklist"
           app:showAsAction="always"
           android:icon="@drawable/ic_toolbar_users"
-          android:title="@string/menu_nicklist" />
+          android:title="@string/menu__nicklist" />
     <item android:id="@+id/menu_hotlist"
           app:actionLayout="@layout/toolbar_bell"
           app:showAsAction="always"
-          android:title="@string/menu_hotlist" />
+          android:title="@string/menu__hotlist" />
     <item android:id="@+id/menu_close"
           android:menuCategory="secondary"
           app:showAsAction="never"
-          android:title="@string/menu_close"/>
+          android:title="@string/menu__close"/>
     <item android:id="@+id/menu_connection_state"
           android:menuCategory="secondary"
           app:showAsAction="never"
@@ -23,27 +23,27 @@
     <item android:id="@+id/menu_preferences"
           android:menuCategory="secondary"
           app:showAsAction="never"
-          android:title="@string/menu_preferences"/>
+          android:title="@string/menu__preferences"/>
     <item android:id="@+id/menu_filter_lines"
         android:menuCategory="secondary"
         app:showAsAction="never"
-        android:title="@string/menu_filter_lines"
+        android:title="@string/menu__filter_lines"
         android:checkable="true"/>
     <item android:id="@+id/menu_dark_theme"
         android:menuCategory="secondary"
         app:showAsAction="never"
-        android:title="@string/menu_dark_theme"
+        android:title="@string/menu__dark_theme"
         android:checkable="true"/>
     <item android:id="@+id/debug"
         android:visible="@bool/debug"
         android:menuCategory="secondary"
         app:showAsAction="never"
-        android:title="@string/menu_debug">
+        android:title="@string/menu__debug">
         <menu>
             <item android:id="@+id/sync_hotlist"
-                android:title="@string/menu_sync_hotlist" />
+                android:title="@string/menu__debug__sync_hotlist" />
             <item android:id="@+id/die"
-                android:title="@string/menu_die" />
+                android:title="@string/menu__debug__die" />
         </menu>
     </item>
 </menu>

@@ -1,85 +1,85 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="notification_channel_connection_status">Verbindungsstatus</string>
-    <string name="notification_channel_hotlist">Neue Nachrichten</string>
-    <string name="notification_channel_hotlist_async">Neue Nachrichten (async)</string>
+    <string name="notifications__channel__connection_status">Verbindungsstatus</string>
+    <string name="notifications__channel__hotlist">Neue Nachrichten</string>
+    <string name="notifications__channel__hotlist_async">Neue Nachrichten (async)</string>
 
-    <string name="sendkey">Senden</string>
-    <string name="menu_preferences">Einstellungen</string>
-    <string name="menu_close">Schließen</string>
-    <string name="menu_filter_lines">Zeilen filtern</string>
-    <string name="menu_dark_theme">Dunkles Design</string>
-    <string name="connect">Verbinden</string>
-    <string name="disconnect">Verbindung trennen</string>
-    <string name="stop_connecting">Verbindungsaufbau beenden</string>
-    <string name="menu_hotlist">Hotlist</string>
-    <string name="menu_nicklist">Benutzernamen</string>
-    <string name="tabkey">Tab</string>
-    <string name="open_drawer">Schublade öffnen</string>
-    <string name="close_drawer">Schublade schließen</string>
-    <string name="more_button">Weitere Zeilen anfordern</string>
-    <string name="more_button_fetching">Zeilen werden geholt…</string>
-    <plurals name="nick_list_count">
+    <string name="ui__button_send">Senden</string>
+    <string name="menu__preferences">Einstellungen</string>
+    <string name="menu__close">Schließen</string>
+    <string name="menu__filter_lines">Zeilen filtern</string>
+    <string name="menu__dark_theme">Dunkles Design</string>
+    <string name="menu__connection_state__connect">Verbinden</string>
+    <string name="menu__connection_state__disconnect">Verbindung trennen</string>
+    <string name="menu__connection_state__stop_connecting">Verbindungsaufbau beenden</string>
+    <string name="menu__hotlist">Hotlist</string>
+    <string name="menu__nicklist">Benutzernamen</string>
+    <string name="ui__button_tab">Tab</string>
+    <string name="ui__ActionBarDrawerToggle__open_drawer">Schublade öffnen</string>
+    <string name="ui__ActionBarDrawerToggle__close_drawer">Schublade schließen</string>
+    <string name="ui__button_fetch_more_lines">Weitere Zeilen anfordern</string>
+    <string name="ui__button_fetching_lines">Zeilen werden geholt…</string>
+    <plurals name="dialog__nicklist__n_users">
         <item quantity="one">%1$d Benutzer</item>
         <item quantity="other">%1$d Benutzer</item>
     </plurals>
-    <string name="dialog_copy_title">Kopieren</string>
-    <string name="dialog_paste_title">Einfügen</string>
-    <string name="linkify_error_no_activity">Keine Aktivität gefunden für %s</string>
+    <string name="dialog__copy__title">Kopieren</string>
+    <string name="dialog__paste__title">Einfügen</string>
+    <string name="error__etc__activity_not_found_for_url">Keine Aktivität gefunden für %s</string>
 
-    <string name="filter_bufferlist_placeholder"><i>Filter</i></string>
+    <string name="ui__buffer_list_filter_placeholder"><i>Filter</i></string>
 
-    <plurals name="hot_messages">
+    <plurals name="notifications__hot__text">
         <item quantity="one">Neue Nachrichten in %s</item>
         <item quantity="other">%d neue Nachrichten in %s</item>
     </plurals>
 
-    <string name="hot_messages_missing_1">(Nachricht nicht abgerufen)</string>
-    <plurals name="hot_messages_missing">
+    <string name="notifications__MessagingStyle__missing_messages_1">(Nachricht nicht abgerufen)</string>
+    <plurals name="notifications__MessagingStyle__missing_messages">
         <item quantity="one">(Nachricht nicht abgerufen)</item>
         <item quantity="other">(%d Nachrichten nicht abgerufen)</item>
     </plurals>
 
-    <plurals name="hot_messages_missing_user">
+    <plurals name="notifications__MessagingStyle__missing_users">
         <item quantity="one">(Unbekannter Anwender)</item>
         <item quantity="other">(Unbekannte Anwender)</item>
     </plurals>
 
-    <string name="me">Ich</string>
+    <string name="notifications__MessagingStyle__me">Ich</string>
 
-    <plurals name="messages">
+    <plurals name="notifications__hot_summary__messages">
         <item quantity="one">%d Nachricht</item>
         <item quantity="other">%d Nachrichten</item>
     </plurals>
 
-    <plurals name="in_buffers">
+    <plurals name="notifications__hot_summary__in_buffers">
         <item quantity="one">&#160;in %d Buffer</item>
         <item quantity="other">&#160;in %d Buffern</item>
     </plurals>
 
-    <string name="reply_label">Antworten</string>
+    <string name="notifications__RemoteInput__label">Antworten</string>
 
-    <string name="notification_connected_to">Verbunden mit %s</string>
+    <string name="notifications__main__connected_to">Verbunden mit %s</string>
 
-    <string name="notification_connecting_details_now">Verbindung wird hergestellt…</string>
-    <string name="notification_connecting_details">In %d Sekunden verbinden…</string>
+    <string name="notifications__main__connecting_now">Verbindung wird hergestellt…</string>
+    <string name="notifications__main__will_connect_in_n_seconds">In %d Sekunden verbinden…</string>
 
-    <string name="notification_waiting_network">Warte auf Netzwerk</string>
+    <string name="notifications__main__waiting_for_network">Warte auf Netzwerk</string>
 
-    <string name="autoscroll_no_line">Aufgrund neuer Nachrichten wurden alte Nachrichten
+    <string name="error__etc__hot_line_lost">Aufgrund neuer Nachrichten wurden alte Nachrichten
         verloren</string>
-    <string name="no_hot_buffers">Derzeit keine Buffer mit neuen heißen Nachrichten</string>
-    <string name="not_connected">Nicht verbunden</string>
-    <string name="error">Fehler: %s</string>
+    <string name="error__etc__no_hot_buffers">Derzeit keine Buffer mit neuen heißen Nachrichten</string>
+    <string name="error__etc__not_connected">Nicht verbunden</string>
+    <string name="error__etc__prefix">Fehler: %s</string>
 
-    <string name="hint_show_hot_message">Zeige heiße Nachricht</string>
+    <string name="menu__hotlist_hint">Zeige heiße Nachricht</string>
 
-    <string name="relay_error_server_closed">Der Server hat die Verbindung während des
+    <string name="error__connection__server_unexpectedly_closed_connection">Der Server hat die Verbindung während des
         Verbindungsaufbaus unerwartet geschlossen. Falsches Passwort oder Verbindungstyp?</string>
-    <string name="relay_error_resolve">Adresse %s konnte nicht aufgelöst werden</string>
+    <string name="error__connection__could_not_resolve_address">Adresse %s konnte nicht aufgelöst werden</string>
 
-    <string name="certificate_description_unknown_fingerprint">Unbekannt</string>
-    <string name="certificate_description_text"><![CDATA[
+    <string name="dialog__certificate__unknown_fingerprint">Unbekannt</string>
+    <string name="dialog__certificate__certificate_description"><![CDATA[
         <b>Ausgestellt auf:</b><br>
         %1$s<br>
         <br>
@@ -94,26 +94,26 @@
         %5$s
     ]]></string>
 
-    <string name="dialog_button_accept_selected">Akzeptieren ausgewählt</string>
-    <string name="dialog_button_reject">Ablehnen</string>
-    <string name="dialog_invalid_hostname_text"><![CDATA[
+    <string name="dialog__certificate__untrusted__button_accept">Akzeptieren ausgewählt</string>
+    <string name="dialog__certificate__button_reject">Ablehnen</string>
+    <string name="dialog__certificate__invalid_hostname__text"><![CDATA[
         Sie versuchen eine Verbindung zu <strong>%1$s</strong> herzustellen, aber das Zertifikat ist
         nur gültig für nachfolgende Hosts:%2$s
     ]]></string>
-    <string name="dialog_invalid_hostname_title">Ungültiger Hostname</string>
-    <string name="dialog_button_back_to_safety">Sicherheit geht vor</string>
-    <string name="dialog_invalid_hostname_text_empty_line"><![CDATA[<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>(keine)</strong>]]></string>
+    <string name="dialog__certificate__invalid_hostname__title">Ungültiger Hostname</string>
+    <string name="dialog__certificate__button_back_to_safety">Sicherheit geht vor</string>
+    <string name="dialog__certificate__invalid_hostname__text__host_line_empty"><![CDATA[<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>(keine)</strong>]]></string>
 
-    <string name="pref_error_relay_host_not_set">Relay-Host ist nicht angelegt</string>
-    <string name="pref_error_relay_password_not_set">Kein Relay-Passwort angelegt</string>
-    <string name="pref_error_ssh_host_not_set">SSH-Host ist nicht angelegt</string>
-    <string name="pref_error_no_ssh_key_file">Privater SSH-Schlüssel ist nicht festgelegt</string>
-    <string name="pref_error_no_ssh_password">SSH-Passwort ist nicht festgelegt</string>
+    <string name="error__pref_validation__relay_host_not_set">Relay-Host ist nicht angelegt</string>
+    <string name="error__pref_validation__relay_password_not_set">Kein Relay-Passwort angelegt</string>
+    <string name="error__pref_validation__ssh_host_not_set">SSH-Host ist nicht angelegt</string>
+    <string name="error__pref_validation__ssh_key_not_set">Privater SSH-Schlüssel ist nicht festgelegt</string>
+    <string name="error__pref_validation__ssh_password_not_set">SSH-Passwort ist nicht festgelegt</string>
 
-    <string name="pref_connection_group">Verbindung</string>
+    <string name="pref__connection_group">Verbindung</string>
 
-    <string name="pref_connection_type">Typ der Verbindung</string>
-    <string-array name="pref_connection_type_names">
+    <string name="pref__connection_type">Typ der Verbindung</string>
+    <string-array name="pref__connection_type__names">
         <item>Offene Verbindung</item>
         <item>WeeChat SSL</item>
         <item>SSH-Tunnel</item>
@@ -121,204 +121,210 @@
         <item>WebSocket (SSL)</item>
     </string-array>
 
-    <string name="pref_ssl_group">SSL Einstellungen</string>
-    <string name="pref_clear_certs">Zertifikate löschen</string>
-    <string name="pref_clear_certs_confirmation">Zertifikate löschen?</string>
-    <string name="pref_clear_certs_summary">{0,choice,0#Kein vertrauenswürdiges Zertifikat|1#1
-        vertrauenswürdiges Zertifikat|1&lt;{0} vertrauenswürdiges Zertifikate}</string>
-    <string name="pref_clear_certs_positive">Löschen</string>
-    <string name="pref_clear_certs_negative">Abbrechen</string>
-    <string name="pref_clear_certs_success">Zertifikate gelöscht</string>
-    <string name="pref_clear_certs_failure">Zertifikate konnten nicht gelöscht werden</string>
+    <string name="pref__connection__ssl_group">SSL Einstellungen</string>
+    <string name="pref__connection__ssl__clear_certificates">Zertifikate löschen</string>
+    <string name="pref__ClearCertPreference__prompt">Zertifikate löschen?</string>
+    <string name="pref__ClearCertPreference__0_entries">
+        Kein vertrauenswürdiges Zertifikat</string>
+    <string name="pref__ClearCertPreference__1_entries">
+        Ein vertrauenswürdiges Zertifikat</string>
+    <plurals name="pref__ClearCertPreference__n_entries">
+        <item quantity="one">%s vertrauenswürdiges Zertifikat</item>
+        <item quantity="other">%s vertrauenswürdiges Zertifikate</item>
+    </plurals>
+    <string name="pref__ClearCertPreference__button_clear">Löschen</string>
+    <string name="pref__ClearCertPreference__button_cancel">Abbrechen</string>
+    <string name="pref__ClearCertPreference__success_cleared">Zertifikate gelöscht</string>
+    <string name="pref__ClearCertPreference__error_could_not_clear">Zertifikate konnten nicht gelöscht werden</string>
 
-    <string name="pref_ssl_client_certificate">Client-Zertifikate</string>
-    <string name="pref_ssl_client_certificate_summary">PKCS # 12-Datei enthält privaten Schlüssel und Client-Zertifikat</string>
+    <string name="pref__connection__ssl__client_certificate">Client-Zertifikate</string>
+    <string name="pref__connection__ssl__client_certificate_summary">PKCS # 12-Datei enthält privaten Schlüssel und Client-Zertifikat</string>
 
-    <string name="pref_ws_path">WebSocket Pfad</string>
+    <string name="pref__connection__websocket_path">WebSocket Pfad</string>
 
-    <string name="pref_ssh_group">Einstellungen SSH-Tunnel</string>
-    <string name="pref_ssh_host">SSH-Host</string>
-    <string name="pref_ssh_user">SSH-Username</string>
-    <string name="pref_ssh_port">SSH-Port</string>
+    <string name="pref__connection__ssh_group">Einstellungen SSH-Tunnel</string>
+    <string name="pref__connection__ssh__host">SSH-Host</string>
+    <string name="pref__connection__ssh__user">SSH-Username</string>
+    <string name="pref__connection__ssh__port">SSH-Port</string>
 
-    <string-array name="pref_ssh_authentication_method_names">
+    <string-array name="pref__connection__ssh__authentication_method_names">
         <item>Passwort</item>
         <item>Schlüssel</item>
     </string-array>
 
-    <string name="pref_ssh_password">SSH-Passwort</string>
-    <string name="pref_ssh_keyfile">Privater Schlüssel</string>
-    <string name="pref_ssh_keyfile_summary">Ed25519, ECDSA, RSA, DSA Schlüssel</string>
+    <string name="pref__connection__ssh__password">SSH-Passwort</string>
+    <string name="pref__connection__ssh__key">Privater Schlüssel</string>
+    <string name="pref__connection__ssh__key_summary">Ed25519, ECDSA, RSA, DSA Schlüssel</string>
 
-    <string name="pref_file_clear_button">Löschen</string>
-    <string name="pref_file_empty_clipboard">Zwischenablage ist leer</string>
-    <string name="pref_file_choose_button">Wähle Datei</string>
-    <string name="pref_file_paste_button">Einfügen</string>
-    <string name="pref_file_set">einstellen</string>
-    <string name="pref_file_not_set">nicht einstellen</string>
+    <string name="pref__FilePreference__button_clear">Löschen</string>
+    <string name="error__pref__clipboard_empty">Zwischenablage ist leer</string>
+    <string name="pref__FilePreference__button_choose_file">Wähle Datei</string>
+    <string name="pref__FilePreference__button_paste">Einfügen</string>
+    <string name="pref__FilePreference__summary_status_set">einstellen</string>
+    <string name="pref__FilePreference__summary_status_not_set">nicht einstellen</string>
 
-    <string name="pref_relay_group">Relay</string>
-    <string name="pref_relay_host">Relay-Host</string>
-    <string name="pref_relay_port">Relay-Port</string>
-    <string name="pref_relay_password">Relay-Passwort</string>
+    <string name="pref__connection__relay_group">Relay</string>
+    <string name="pref__connection__relay_host">Relay-Host</string>
+    <string name="pref__connection__relay_port">Relay-Port</string>
+    <string name="pref__connection__relay_password">Relay-Passwort</string>
 
-    <string name="pref_misc_group">Sonstiges</string>
-    <string name="pref_line_increment">Anzahl der anzufordernden Zeilen</string>
-    <string name="pref_line_increment_summary">Die Anzahl der Zeilen, die beim Öffnen eines Buffers
+    <string name="pref__connection__misc_group">Sonstiges</string>
+    <string name="pref__connection__number_of_lines_to_load">Anzahl der anzufordernden Zeilen</string>
+    <string name="pref__connection__number_of_lines_to_load_summary">Die Anzahl der Zeilen, die beim Öffnen eines Buffers
         oder beim Drücken der Schaltfläche „Weitere Zeilen anfordern“ geladen werden sollen. Beachten
         Sie, dass aufgrund der Filterung die Anzahl der tatsächlich angezeigten Zeilen möglicherweise
         geringer ist als die Anzahl der geladenen Zeilen. Beachten Sie auch, dass die App aufgrund
         der Einschränkungen von WeeChat jedes Mal, wenn mehr Zeilen angefordert werden, alle Zeilen
         erneut abrufen muss. (%s)</string>
-    <string name="pref_reconnect">Bei Verbindungsverlust erneut verbinden</string>
-    <string name="pref_boot_connect">Beim Systemstart eine Verbindung herstellen</string>
-    <string name="pref_notification_ticker">Benachrichtigungsticker</string>
-    <string name="pref_notification_ticker_summary">Verbindungsänderungen im Ticker anzeigen
+    <string name="pref__connection__reconnect_on_connection_loss">Bei Verbindungsverlust erneut verbinden</string>
+    <string name="pref__connection__connect_on_boot">Beim Systemstart eine Verbindung herstellen</string>
+    <string name="pref__notifications__ticker">Benachrichtigungsticker</string>
+    <string name="pref__notifications__ticker_summary">Verbindungsänderungen im Ticker anzeigen
         (funktioniert nicht unter Lollipop)</string>
-    <string name="pref_optimize_traffic">Synchronisierung von geöffneten Buffern</string>
-    <string name="pref_optimize_traffic_summary">Kann den Datenverkehr und den Batterieverbrauch
+    <string name="pref__connection__only_sync_open_buffers">Synchronisierung von geöffneten Buffern</string>
+    <string name="pref__connection__only_sync_open_buffers_summary">Kann den Datenverkehr und den Batterieverbrauch
         erheblich reduzieren, Hotlist-Updates werden jedoch nur alle 5 Minuten durchgeführt.
         Benötigt WeeChat 1.1 oder neuer. Einstellung wird erst nach einer erneuten Verbindung
         wirksam.</string>
-    <string name="pref_hotlist_sync">Lesestatus des Buffer synchronisieren</string>
-    <string name="pref_hotlist_sync_summary">Markiert Buffer in WeeChat als gelesen, wenn Sie sie in
+    <string name="pref__connection__sync_read_status">Lesestatus des Buffer synchronisieren</string>
+    <string name="pref__connection__sync_read_status_summary">Markiert Buffer in WeeChat als gelesen, wenn Sie sie in
         dieser App gelesen wurden. Benötigt WeeChat 1.0 oder neuer.</string>
 
-    <string name="pref_ping_group">Ping Einstellungen</string>
-    <string name="pref_ping_enabled">Aktiviere Ping</string>
-    <string name="pref_ping_idle">Wartezeit</string>
-    <string name="pref_ping_timeout">Ping Zeitüberschreitung</string>
-    <string name="pref_ping_enabled_summary">Überprüft regelmäßig, ob die Relay-Verbindung im
+    <string name="pref__connection__ping_group">Ping Einstellungen</string>
+    <string name="pref__connection__ping_enabled">Aktiviere Ping</string>
+    <string name="pref__connection__ping_idle">Wartezeit</string>
+    <string name="pref__connection__ping_timeout">Ping Zeitüberschreitung</string>
+    <string name="pref__connection__ping_enabled_summary">Überprüft regelmäßig, ob die Relay-Verbindung im
         Wartezustand noch aktiv ist</string>
-    <string name="pref_ping_idle_summary">Anzahl der Sekunden, die gewartet werden muss, bevor ein
+    <string name="pref__connection__ping_idle_summary">Anzahl der Sekunden, die gewartet werden muss, bevor ein
         Ping gesendet wird, wenn die Verbindung im Wartezustand ist (%s)</string>
-    <string name="pref_ping_timeout_summary">Anzahl der Sekunden, die gewartet werden muss, bevor
+    <string name="pref__connection__ping_timeout_summary">Anzahl der Sekunden, die gewartet werden muss, bevor
         eine nicht reagierende Verbindung geschlossen wird (%s)</string>
 
-    <string name="pref_bufferlist_group">Buffer-Liste</string>
-    <string name="pref_sort_buffers">Liste der Buffer sortieren</string>
-    <string name="pref_sort_buffers_summary">Sortierung nach Anzahl der Highlights/privaten
+    <string name="pref__buffer_list_group">Buffer-Liste</string>
+    <string name="pref__buffer_list__sort_by_hot">Liste der Buffer sortieren</string>
+    <string name="pref__buffer_list__sort_by_hot_summary">Sortierung nach Anzahl der Highlights/privaten
         Nachrichten/ungelesenen Nachrichten</string>
-    <string name="pref_hide_server_buffers">Ausblenden von Buffern in denen man nicht
+    <string name="pref__buffer_list__hide_server_buffers">Ausblenden von Buffern in denen man nicht
         schreibt</string>
-    <string name="pref_hide_server_buffers_summary">Beispiel: Server-Buffer und Buffer von
+    <string name="pref__buffer_list__hide_server_buffers_summary">Beispiel: Server-Buffer und Buffer von
         Erweiterungen (/fset)</string>
-    <string name="pref_hide_hidden_buffers">Ausblenden von versteckten Buffern</string>
-    <string name="pref_hide_hidden_buffers_summary">Blendet Buffer aus, wenn sie mittels /buffer
+    <string name="pref__buffer_list__hide_hidden_buffers">Ausblenden von versteckten Buffern</string>
+    <string name="pref__buffer_list__hide_hidden_buffers_summary">Blendet Buffer aus, wenn sie mittels /buffer
         hide versteckt werden</string>
-    <string name="pref_show_buffer_filter">Zeigt Filter für Buffer</string>
-    <string name="pref_show_buffer_filter_summary">Der Filter stimmt mit den vollständigen
+    <string name="pref__buffer_list__show_buffer_filter">Zeigt Filter für Buffer</string>
+    <string name="pref__buffer_list__show_buffer_filter_summary">Der Filter stimmt mit den vollständigen
         Buffernamen überein und zeigt übereinstimmende versteckte Buffer an</string>
-    <string name="pref_use_gesture_exclusion_zone">Ausschlusszone für Systemgesten</string>
-    <string name="pref_use_gesture_exclusion_zone_summary">Unter Android Q ist die linke Seite des
+    <string name="pref__buffer_list__use_gesture_exclusion_zone">Ausschlusszone für Systemgesten</string>
+    <string name="pref__buffer_list__use_gesture_exclusion_zone_summary">Unter Android Q ist die linke Seite des
         Bildschirms für die Rückbewegung reserviert. Aktivieren Sie diese Funktion, um einen
         kleinen Bereich am unteren Bildschirmrand zu haben, in dem Sie die Bufferliste normal
         öffnen können.</string>
 
-    <string name="pref_lookfeel_group">Erscheinungsbild</string>
-    <string name="pref_text_size">Textgröße</string>
-    <string name="pref_auto_hide_actionbar">Verstecke Aktionsleiste</string>
-    <string name="pref_auto_hide_actionbar_summary">Blenden Sie die obere Aktionsleiste aus, wenn
+    <string name="pref__look_n_feel_group">Erscheinungsbild</string>
+    <string name="pref__look_n_feel__text_size">Textgröße</string>
+    <string name="pref__look_n_feel__hide_toolbar">Verstecke Aktionsleiste</string>
+    <string name="pref__look_n_feel__hide_toolbar_summary">Blenden Sie die obere Aktionsleiste aus, wenn
         die Tastatur geöffnet ist oder wenn Sie nach oben scrollen</string>
-    <string name="pref_chatview_filters">Nachrichtenfilter</string>
-    <string name="pref_chatview_filters_summary">Verbirgt Nachrichten die von WeeChat gefiltert
+    <string name="pref__look_n_feel__filter_messages">Nachrichtenfilter</string>
+    <string name="pref__look_n_feel__filter_messages_summary">Verbirgt Nachrichten die von WeeChat gefiltert
         werden (Beispiel: irc_smart_filter)</string>
-    <string name="pref_prefix_align">Präfixausrichtung</string>
-    <string-array name="pref_prefix_align_names">
+    <string name="pref__look_n_feel__alignment">Präfixausrichtung</string>
+    <string-array name="pref__look_n_feel__alignment_names">
         <item>Linksbündig</item>
         <item>Rechtsbündig</item>
         <item>Ausrichtung nach Zeitstempel</item>
         <item>Keine Ausrichtung</item>
     </string-array>
-    <string name="pref_max_width">Maximale Breite des Präfix</string>
-    <string name="pref_max_width_summary">In Bezug auf die Breite, werden längere Nicknamen
+    <string name="pref__look_n_feel__maximum_prefix_width">Maximale Breite des Präfix</string>
+    <string name="pref__look_n_feel__maximum_prefix_width_summary">In Bezug auf die Breite, werden längere Nicknamen
         abgeschnitten (%s)</string>
-    <string name="pref_enclose_nick">Nicknamen einschließen</string>
-    <string name="pref_enclose_nick_summary">Nicknamen werden zwischen &lt;&#xA0;und&#xA0;&gt;
+    <string name="pref__look_n_feel__enclose_nicks">Nicknamen einschließen</string>
+    <string name="pref__look_n_feel__enclose_nicks_summary">Nicknamen werden zwischen &lt;&#xA0;und&#xA0;&gt;
         dargestellt</string>
-    <string name="pref_timestamp_format">Anzeige der Uhrzeit</string>
-    <string name="pref_timestamp_format_summary">%s (Standardwert: HH:mm:ss)</string>
-    <string name="pref_dim_down">Abdunkeln von Zeilen die automatisch erstellt wurden</string>
-    <string name="pref_dim_down_summary">Anzeigen von join/quit Nachrichten in einer schwächeren
+    <string name="pref__look_n_feel__timestamp_format">Anzeige der Uhrzeit</string>
+    <string name="pref__look_n_feel__timestamp_format_summary">%s (Standardwert: HH:mm:ss)</string>
+    <string name="pref__theme__dim_down_non_human_lines">Abdunkeln von Zeilen die automatisch erstellt wurden</string>
+    <string name="pref__theme__dim_down_non_human_lines_summary">Anzeigen von join/quit Nachrichten in einer schwächeren
         Farbe, wie im Farbschema festgelegt</string>
 
-    <string name="pref_font">Zeichensatz für Buffer</string>
+    <string name="pref__look_n_feel__font">Zeichensatz für Buffer</string>
 
-    <string name="pref_theme">Design</string>
-    <string-array name="pref_theme_names">
-        <item>@string/pref_theme_system</item>
+    <string name="pref__theme">Design</string>
+    <string-array name="pref__theme__theme_names">
+        <item>@string/pref__theme__theme__system</item>
         <item>Dunkel</item>
         <item>Hell</item>
     </string-array>
-    <string name="pref_theme_system">Durch Batteriesparmodus einstellen</string>
+    <string name="pref__theme__theme__system">Durch Batteriesparmodus einstellen</string>
 
-    <string name="pref_theme_switch">Farbschema umschalten</string>
-    <string name="pref_theme_switch_summary">Wechsel des Designs im Menü anzeigen</string>
+    <string name="pref__theme__menu_switch">Farbschema umschalten</string>
+    <string name="pref__theme__menu_switch_summary">Wechsel des Designs im Menü anzeigen</string>
 
-    <string name="pref_color_scheme_day">Helles Farbschema</string>
-    <string name="pref_color_scheme_night">Dunkles Farbschema</string>
+    <string name="pref__theme__color_scheme_light">Helles Farbschema</string>
+    <string name="pref__theme__color_scheme_dark">Dunkles Farbschema</string>
 
-    <string name="pref_theme_loading_error">Fehler beim Laden des Farbschema %s</string>
-    <string name="pref_theme_help"><![CDATA[Sie können benutzerdefinierte Farbschemata für diese
+    <string name="pref__ThemeManager__error_loading_color_scheme">Fehler beim Laden des Farbschema %s</string>
+    <string name="pref__ThemePreferenceHelp__summary"><![CDATA[Sie können benutzerdefinierte Farbschemata für diese
         Applikation erstellen. Verwenden Sie beliebige Farben für die UI-Elemente, passen Sie die
         Farben für Highlights und Lesezeichen an und ändern Sie die WeeChat Farbpalette! <a
         href="https://github.com/ubergeek42/weechat-android/wiki/Custom-Color-Schemes">Lerne
         mehr</a><br><br>Kopieren Sie Ihr benutzerdefiniertes Farbschema in einen dieser
         Ordner:%1$s]]></string>
-    <string name="pref_theme_not_set">Nicht gesetzt</string>
+    <string name="pref__ThemePreference__not_set">Nicht gesetzt</string>
 
-    <string name="pref_font_summary">Nicht-Monospace-Schriftarten funktionieren nicht gut mit der
+    <string name="pref__FontPreference__summary">Nicht-Monospace-Schriftarten funktionieren nicht gut mit der
         Präfix-Ausrichtung. Suchpfad:%1$s\n\nAktueller
         Zeichensatz:\n\u0020\u0020\u0020\u0020%2$s</string>
-    <string name="pref_font_default">Standard</string>
+    <string name="pref__FontPreference__default">Standard</string>
 
-    <string name="pref_button_group">Tasten</string>
-    <string name="pref_tabbtn_show">Zeige Tab-Taste</string>
-    <string name="pref_sendbtn_show">Zeige Sende-Taste</string>
-    <string name="pref_volumebtn_size">Lautstärketasten ändern die Textgröße</string>
-    <string name="pref_volumebtn_size_summary">Wenn diese Option aktiviert ist, ändern die
+    <string name="pref__buttons_group">Tasten</string>
+    <string name="pref__buttons__show_tab">Zeige Tab-Taste</string>
+    <string name="pref__buttons__show_send">Zeige Sende-Taste</string>
+    <string name="pref__buttons__volume_buttons_change_text_size">Lautstärketasten ändern die Textgröße</string>
+    <string name="pref__buttons__volume_buttons_change_text_size_summary">Wenn diese Option aktiviert ist, ändern die
         Lautstärketasten die Textgröße, anstelle der Lautstärke</string>
 
-    <string name="pref_notif_group">Benachrichtigungen</string>
-    <string name="pref_notification_enable">Benachrichtigungen einschalten</string>
-    <string name="pref_notification_enable_summary">Benachrichtigt über aktuelle Nachrichten, wie
+    <string name="pref__notifications_group">Benachrichtigungen</string>
+    <string name="pref__notifications__enable">Benachrichtigungen einschalten</string>
+    <string name="pref__notifications__enable_summary">Benachrichtigt über aktuelle Nachrichten, wie
         private Nachrichten oder Highlights</string>
-    <string name="pref_notification_sound">Benachrichtigungston</string>
-    <string name="pref_notification_vibrate">Vibration</string>
-    <string name="pref_notification_light">Benachrichtigungslicht</string>
+    <string name="pref__notifications__sound">Benachrichtigungston</string>
+    <string name="pref__notifications__vibration">Vibration</string>
+    <string name="pref__notifications__light">Benachrichtigungslicht</string>
 
-    <string name="pref_ringtone_none">Keine</string>
-    <string name="pref_ringtone_unknown">Unbekannt</string>
+    <string name="pref__RingtonePreferenceFix__summary_none">Keine</string>
+    <string name="pref__RingtonePreferenceFix__summary_unknown">Unbekannt</string>
 
-    <string name="pref_media_preview_group">Medienvorschau</string>
-    <string name="pref_media_preview_enabled_for_network">Aktiviert</string>
-    <string name="pref_media_preview_enabled_for_location">Kontext</string>
-    <string name="pref_media_preview_enabled_for_location_summary">Aktiviert für %s</string>
-    <string name="pref_media_preview_enabled_for_location_summary_empty">Überall deaktiviert</string>
+    <string name="pref__media_preview_group">Medienvorschau</string>
+    <string name="pref__media_preview__enabled_for_network">Aktiviert</string>
+    <string name="pref__media_preview__enabled_for_context">Kontext</string>
+    <string name="pref__media_preview__enabled_for_context_summary">Aktiviert für %s</string>
+    <string name="pref__media_preview__enabled_for_context_summary_empty">Überall deaktiviert</string>
 
-    <string-array name="pref_media_preview_enabled_for_network_names">
+    <string-array name="pref__media_preview__enabled_for_network_names">
         <item>Niemals</item>
         <item>Nur über WLAN</item>
         <item>Bei gebührenfreien Netzwerken</item>
         <item>Immer</item>
     </string-array>
 
-    <string-array name="pref_media_preview_enabled_for_location_names">
+    <string-array name="pref__media_preview__enabled_for_context_names">
         <item>Chat</item>
         <item>Dialog einfügen</item>
         <item>Benachrichtigungen</item>
     </string-array>
 
-    <string name="pref_media_preview_secure_request">Unsichere Anfragen</string>
-    <string-array name="pref_media_preview_secure_request_names">
+    <string name="pref__media_preview__secure_requests">Unsichere Anfragen</string>
+    <string-array name="pref__media_preview__secure_requests_names">
         <item>Erlauben</item>
         <item>Auf HTTPS umstellen</item>
         <item>Verbieten</item>
     </string-array>
 
-    <string name="pref_media_preview_strategies">Strategien</string>
+    <string name="pref__media_preview__strategies">Strategien</string>
 
-    <string name="pref_media_preview_help"><![CDATA[Das Aktivieren der Medienvorschau für
+    <string name="pref__media_preview__help"><![CDATA[Das Aktivieren der Medienvorschau für
         Benachrichtigungen kann dazu führen, das auf älteren Plattformen die Zeilen doppelt
         angezeigt werden. Bitte beachten Sie, das Sie möglicherweise den Cache löschen müssen,
         damit die Einstellungen auf bereits vorhandene Zeilen angewand werden.<br /><br /><b>⚠
@@ -329,37 +335,37 @@
         href="https://github.com/ubergeek42/weechat-android/wiki/Media-preview">Lerne mehr
         darüber</a>]]></string>
 
-    <string name="strategypreference_error">Fehler</string>
-    <string name="strategypreference_summary">Definiere die Art und Weise wie Bilder von einzelnen
+    <string name="pref__StrategyPreference__summary_error">Fehler</string>
+    <string name="pref__StrategyPreference__summary">Definiere die Art und Weise wie Bilder von einzelnen
             Webseiten abgerufen werden, und erstelle Filter.\n\n%1$s; %2$s;\n\n%3$s</string>
-    <string name="strategypreference_message_filter_set">Nachrichtenfilter gesetzt</string>
-    <string name="strategypreference_message_filter_not_set">Nachrichtenfilter nicht gesetzt</string>
-    <string name="strategypreference_line_filters_not_set">Filter für Zeilen nicht gesetzt</string>
-    <string name="strategypreference_strategies_not_loaded">Keine Strategien geladen</string>
-    <string name="strategypreference_strategies_list">Strategien: %s</string>
-    <plurals name="strategypreference_line_filters_set">
+    <string name="pref__StrategyPreference__message_filter_set">Nachrichtenfilter gesetzt</string>
+    <string name="pref__StrategyPreference__message_filter_not_set">Nachrichtenfilter nicht gesetzt</string>
+    <string name="pref__StrategyPreference__0_line_filters_set">Filter für Zeilen nicht gesetzt</string>
+    <string name="pref__StrategyPreference__strategies_not_loaded">Keine Strategien geladen</string>
+    <string name="pref__StrategyPreference__strategies_list">Strategien: %s</string>
+    <plurals name="pref__StrategyPreference__n_line_filters_set">
         <item quantity="one">%d Zeilenfilter gesetzt</item>
         <item quantity="other">%d Zeilenfilter gesetzt</item>
     </plurals>
 
-    <string name="pref_media_preview_advanced_group">Erweitere Einstellungen</string>
-    <string name="pref_media_preview_maximum_body_size">Größenbeschränkung für Download</string>
-    <string name="pref_media_preview_maximum_body_size_summary">%s MB</string>
-    <string name="pref_image_disk_cache_size">Disk Cache</string>
-    <string name="pref_image_disk_cache_size_summary">%s MB; wird bei einem Neustart wirksam</string>
-    <string name="pref_media_preview_success_cooldown">Erfolgreicher Rückgriff auf Bilder</string>
-    <string name="pref_media_preview_success_cooldown_summary">%s Stunden. Die App berücksichtigt,
+    <string name="pref__media_preview__advanced_group">Erweitere Einstellungen</string>
+    <string name="pref__media_preview__maximum_body_size">Größenbeschränkung für Download</string>
+    <string name="pref__media_preview__maximum_body_size_summary">%s MB</string>
+    <string name="pref__media_preview__image_disk_cache_size">Disk Cache</string>
+    <string name="pref__media_preview__image_disk_cache_size_summary">%s MB; wird bei einem Neustart wirksam</string>
+    <string name="pref__media_preview__success_cooldown">Erfolgreicher Rückgriff auf Bilder</string>
+    <string name="pref__media_preview__success_cooldown_summary">%s Stunden. Die App berücksichtigt,
         dass erfolgreich abgerufene Bilder für den angegebenen Zeitraum entweder aus dem Cache oder
         aus dem Internet verfügbar sind.</string>
-    <string name="pref_media_preview_thumbnail_width">Vorschaubild Höhe</string>
-    <string name="pref_media_preview_thumbnail_min_height">Minimale Höhe der Vorschau</string>
-    <string name="pref_media_preview_thumbnail_max_height">Maximale Höhe der Vorschau</string>
+    <string name="pref__media_preview__thumbnail_width">Vorschaubild Höhe</string>
+    <string name="pref__media_preview__thumbnail_min_height">Minimale Höhe der Vorschau</string>
+    <string name="pref__media_preview__thumbnail_max_height">Maximale Höhe der Vorschau</string>
 
-    <string name="about">Über</string>
-    <string name="build_id">Erstellungs-ID %s</string>
-    <string name="created_by">Erstellt von ubergeek42</string>
-    <string name="unknown_version_id">Unbekannte Versions-ID</string>
-    <string name="libraries">
+    <string name="pref__about_group">Über</string>
+    <string name="pref__about__build_id">Erstellungs-ID %s</string>
+    <string name="pref__about__created_by">Erstellt von ubergeek42</string>
+    <string name="pref__about__unknown_version_id">Unbekannte Versions-ID</string>
+    <string name="pref__about__used_libraries">
         \nDieses Projekt verwendet die folgenden Bibliotheken:
         \n
         \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/noveogroup/android-logger">Android Logger von Noveo Group</a>
@@ -384,107 +390,107 @@
         \n\n
     </string>
 
-    <string name="pref_timestamp_invalid">Ungültiges Format für Zeitstempel</string>
-    <string name="pref_number_invalid">Ungültige Nummer</string>
-    <string name="pref_hostname_invalid">Keine Leerzeichen im Hostnamen erlaubt</string>
-    <string name="menu_debug">Debug</string>
-    <string name="menu_sync_hotlist">Sync Hotlist</string>
-    <string name="menu_die">Sterbe</string>
-    <string name="menu_save">Sichern</string>
-    <string name="menu_reset_to_default">Standard</string>
+    <string name="error__pref__invalid_timestamp_format">Ungültiges Format für Zeitstempel</string>
+    <string name="error__pref__invalid_number">Ungültige Nummer</string>
+    <string name="error__pref__no_spaces_allowed_in_hostnames">Keine Leerzeichen im Hostnamen erlaubt</string>
+    <string name="menu__debug">Debug</string>
+    <string name="menu__debug__sync_hotlist">Sync Hotlist</string>
+    <string name="menu__debug__die">Sterbe</string>
+    <string name="pref__FullScreenEditTextPreference__menu_save">Sichern</string>
+    <string name="pref__FullScreenEditTextPreference__menu_reset_to_default">Standard</string>
 
-    <string name="dialog_discard_changes_prompt">Änderungen verwerfen?</string>
-    <string name="dialog_discard_changes_cancel">Abbrechen</string>
-    <string name="dialog_discard_changes_discard">Verwerfen</string>
+    <string name="pref__FullScreenEditTextPreference__discard_changes_prompt">Änderungen verwerfen?</string>
+    <string name="pref__FullScreenEditTextPreference__discard_changes_cancel">Abbrechen</string>
+    <string name="pref__FullScreenEditTextPreference__discard_changes_discard">Verwerfen</string>
 
-    <string name="dialog_button_pin_selected">Pin ausgewählt</string>
+    <string name="dialog__certificate__not_pinned__pin_selected">Pin ausgewählt</string>
 
-    <string name="dialog_certificate_not_yet_valid_title">Zertifikat noch nicht gültig</string>
-    <string name="dialog_certificate_not_yet_valid_text">Dieses Zertifikat wird in Zukunft gültig
+    <string name="dialog__certificate__not_yet_valid__title">Zertifikat noch nicht gültig</string>
+    <string name="dialog__certificate__not_yet_valid__text">Dieses Zertifikat wird in Zukunft gültig
         sein. Bitte stellen Sie sicher, dass das Gerätedatum korrekt ist.</string>
 
-    <string name="dialog_certificate_expired_title">Zertifikat abgelaufen</string>
-    <string name="dialog_certificate_expired_text">Dieses Zertifikat ist nicht mehr gültig.
+    <string name="dialog__certificate__expired__title">Zertifikat abgelaufen</string>
+    <string name="dialog__certificate__expired__text">Dieses Zertifikat ist nicht mehr gültig.
         Bitte stellen Sie sicher, dass das Gerätedatum korrekt ist.</string>
 
-    <string name="dialog_invalid_hostname_text_android_p_warning"><![CDATA[
+    <string name="dialog__certificate__invalid_hostname__text__android_p_warning"><![CDATA[
         <br>Beachten Sie, dass Android P und höher nicht auf die Validierung von Common Name (CN)
         zurückgreift. Stattdessen muss der alternative Name des Betreffs (SAN) verwendet werden.
         <a href="https://github.com/ubergeek42/weechat-android/wiki/Using-SSL-with-WeeChat">Learn more</a>
     ]]></string>
 
-    <string name="dialog_certificate_not_pinned_title">Zertifikat nicht fixiert</string>
-    <string name="dialog_certificate_not_pinned_text">Dieser Server wird von Android als
+    <string name="dialog__certificate__not_pinned__title">Zertifikat nicht fixiert</string>
+    <string name="dialog__certificate__not_pinned__text">Dieser Server wird von Android als
         vertrauenswürdig eingestuft. Für eine Einstellung müssen Sie jedoch bestätigen, dass Sie
         ihm ebenfalls vertrauen. Die App speichert das ausgewählte Zertifikat sowie alle von ihm
         signierten Zertifikate und vertraut diesen.</string>
 
-    <string name="dialog_untrusted_certificate_title">Zertifikat nicht vertrauenswürdig</string>
-    <string name="dialog_untrusted_certificate_text">Dieses Zertifikat wird von Android nicht als
+    <string name="dialog__certificate__untrusted__title">Zertifikat nicht vertrauenswürdig</string>
+    <string name="dialog__certificate__untrusted__text">Dieses Zertifikat wird von Android nicht als
         vertrauenswürdig eingestuft. Sie können jedoch trotzdem eine Verbindung herstellen. Die App
         speichert das ausgewählte Zertifikat sowie alle von ihm signierten Zertifikate und vertraut
         diesen.
     </string>
 
-    <string name="pref_ssl_require_certificate_pin">Benötigt Zertifikate-Pins</string>
-    <string name="pref_ssl_require_certificate_pin_summary">Manuelle Bestätigung das Sie dem Server
+    <string name="pref__connection__ssl__require_certificate_pin">Benötigt Zertifikate-Pins</string>
+    <string name="pref__connection__ssl__require_certificate_pin_summary">Manuelle Bestätigung das Sie dem Server
         vertrauen, obwohl das System diesem Vertraut</string>
 
-    <string name="edittext_password_hint">Passwort</string>
+    <string name="pref__PasswordedFilePickerPreference__input_hint">Passwort</string>
 
-    <string name="error_client_certificate_not_set">Der Server fordert ein Client-Zertifikat an,
+    <string name="error__connection__ssl__client_certificate__not_set">Der Server fordert ein Client-Zertifikat an,
         aber keines ist festgelegt. Gesucht: %1$s Zertifikat ausgestellt von: %2$s</string>
-    <string name="error_client_certificate_mismatch">Der Server fragt nach einem Client-Zertifikat,
+    <string name="error__connection__ssl__client_certificate__certificate_mismatch">Der Server fragt nach einem Client-Zertifikat,
         aber das was wir haben, passt nicht. Gesucht: %1$s Zertifikat ausgestellt von: %2$s</string>
 
-    <string name="pref_ssh_authentication_method">Authentifizierungsmethode</string>
+    <string name="pref__connection__ssh__authentication_method">Authentifizierungsmethode</string>
 
-    <string name="exceptions_ssh_failed_to_authenticate_with_password">
+    <string name="error__connection__ssh__failed_to_authenticate_with_password">
         Fehler bei Authentifizierung mit gewähltem Kennwort</string>
-    <string name="exceptions_ssh_failed_to_authenticate_with_key">
+    <string name="error__connection__ssh__failed_to_authenticate_with_key">
         Authentifizierung mit Schlüssel fehlgeschlagen</string>
 
-    <string name="pref_ssh_key_stored_inside_security_hardware_yes">
+    <string name="pref__PrivateKeyPickerPreference__success_stored_inside_security_hardware_yes">
         Der %s Schlüssel wurde in der Sicherheitshardware gespeichert</string>
-    <string name="pref_ssh_key_stored_inside_security_hardware_no">
+    <string name="pref__PrivateKeyPickerPreference__success_stored_inside_security_hardware_no">
         Der %s Schlüssel wurde im Software-Schlüsselspeicher gespeichert</string>
-    <string name="pref_ssh_key_stored_inside_security_hardware_cant_tell">
+    <string name="pref__PrivateKeyPickerPreference__success_stored_inside_security_hardware_cant_tell">
         %s Schlüssel wurde im Schlüsselspeicher gespeichert</string>
-    <string name="pref_ssh_key_stored_outside_key_store">
+    <string name="pref__PrivateKeyPickerPreference__success_stored_outside_key_store">
         %1$s Schlüssel wurde in der App gespeichert.\n\nDer Schlüssel konnte nicht im
         Schlüsselspeicher gespeichert werden: %2$s</string>
-    <string name="pref_ssh_key_forgotten">Schlüssel vergessen</string>
+    <string name="pref__PrivateKeyPickerPreference__success_key_forgotten">Schlüssel vergessen</string>
 
-    <string name="pref_ssl_certificate_stored_inside_security_hardware_yes">
+    <string name="pref__CertPickerPreference__success_stored_inside_security_hardware_yes">
         Das Zertifikat wurde in einer Sicherheitshardware gespeichert</string>
-    <string name="pref_ssl_certificate_stored_inside_security_hardware_no">
+    <string name="pref__CertPickerPreference__success_stored_inside_security_hardware_no">
         Das Zertifikat wurde im Software-Schlüsselspeicher gespeichert</string>
-    <string name="pref_ssl_certificate_stored_inside_security_hardware_cant_tell">
+    <string name="pref__CertPickerPreference__success_stored_inside_security_hardware_yes_cant_tell">
         Das Zertifikat wurde im Schlüsselspeicher gespeichert</string>
-    <string name="pref_ssl_certificate_forgotten">Zertifikat vergessen</string>
+    <string name="pref__CertPickerPreference__success_certificate_forgotten">Zertifikat vergessen</string>
 
-    <string name="pref_clear_known_hosts_confirmation">Bekannte Hosts löschen?</string>
-    <string name="pref_clear_known_hosts_cancel">Abbrechen</string>
-    <string name="pref_clear_known_hosts_clear">Löschen</string>
-    <string name="pref_clear_known_hosts_cleared">Bekannte Hosts gelöscht</string>
-    <string name="pref_clear_known_hosts_entries_0">Keine Einträge</string>
-    <plurals name="pref_clear_known_hosts_entries">
+    <string name="pref__ClearKnownHostsPreference__prompt">Bekannte Hosts löschen?</string>
+    <string name="pref__ClearKnownHostsPreference__button_cancel">Abbrechen</string>
+    <string name="pref__ClearKnownHostsPreference__button_clear">Löschen</string>
+    <string name="pref__ClearKnownHostsPreference__success_cleared">Bekannte Hosts gelöscht</string>
+    <string name="pref__ClearKnownHostsPreference__0_entries">Keine Einträge</string>
+    <plurals name="pref__ClearKnownHostsPreference__n_entries">
         <item quantity="one">%s Eintrag</item>
         <item quantity="other">%s Einträge</item>
     </plurals>
 
-    <string name="dialog_ssh_server_unknown_title">Server unbekannt</string>
-    <string name="dialog_ssh_server_unknown_text"><![CDATA[
+    <string name="dialog__ssh__server_unknown__title">Server unbekannt</string>
+    <string name="dialog__ssh__server_unknown__text"><![CDATA[
         Server unter <b>%1$s</b> wurde nie angetroffen.
         <br>
         <br>%2$s Schlüssel SHA256 Fingerabdruck:
         <br><b>%3$s</b>]]></string>
-    <string name="dialog_ssh_server_unknown_button_positive">Server-Schlüssel akzeptieren</string>
-    <string name="dialog_ssh_server_unknown_button_negative">Ablehnen</string>
-    <string name="dialog_ssh_server_unknown_unknown_key_type">Unbekannter</string>
+    <string name="dialog__ssh__server_unknown__button_accept_key">Server-Schlüssel akzeptieren</string>
+    <string name="dialog__ssh__server_unknown__button_reject_key">Ablehnen</string>
+    <string name="dialog__ssh__etc_unknown_key_type">Unbekannter</string>
 
-    <string name="dialog_ssh_server_not_verified_title">Server hat Schlüssel geändert</string>
-    <string name="dialog_ssh_server_not_verified_text"><![CDATA[
+    <string name="dialog__ssh__server_changed_key__title">Server hat Schlüssel geändert</string>
+    <string name="dialog__ssh__server_changed_key__text"><![CDATA[
         <b>⚠ Warnung:</b> Es ist möglich, dass jemand versucht, diese Verbindung zu nutzen!
         <br>
         <br>Server unter <b>%1$s</b> ist bekannt, aber sein Schlüssel entspricht nicht dem
@@ -495,5 +501,5 @@
         <br>
         <br>Wenn Sie fortfahren möchten, bitte bekannte Hosts in den Einstellungen löschen.]]></string>
 
-    <string name="pref_ssh_clear_known_hosts">Bekannte Hosts löschen</string>
+    <string name="pref__connection__ssh__clear_known_hosts">Bekannte Hosts löschen</string>
 </resources>

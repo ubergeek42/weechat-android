@@ -16,7 +16,7 @@
         android:id="@+id/button_more"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/more_button"
+        android:text="@string/ui__button_fetch_more_lines"
         android:layout_gravity="right"
         style="@style/Widget.AppCompat.Button.Borderless" />
 </LinearLayout>

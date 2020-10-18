@@ -51,10 +51,10 @@ public class RingtonePreferenceFix extends DialogPreference {
 
     @Override public CharSequence getSummary() {
         String tmp = getRingtonePath();
-        if ("".equals(tmp)) return getContext().getString(R.string.pref_ringtone_none);
+        if ("".equals(tmp)) return getContext().getString(R.string.pref__RingtonePreferenceFix__summary_none);
         else {
             Ringtone ringtone = RingtoneManager.getRingtone(getContext(), Uri.parse(tmp));
-            return (ringtone == null) ? getContext().getString(R.string.pref_ringtone_unknown) : ringtone.getTitle(getContext());
+            return (ringtone == null) ? getContext().getString(R.string.pref__RingtonePreferenceFix__summary_unknown) : ringtone.getTitle(getContext());
         }
     }
 }

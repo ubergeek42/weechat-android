@@ -1,170 +1,175 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <string name="notification_channel_connection_status">État de la connexion</string>
-    <string name="notification_channel_hotlist">Notables</string>
-    <string name="sendkey">Envoyer</string>
-    <string name="menu_preferences">Paramètres</string>
-    <string name="menu_close">Fermer</string>
-    <string name="menu_filter_lines">Filtrer les lignes</string>
-    <string name="connect">Connecter</string>
-    <string name="disconnect">Déconnecter</string>
-    <string name="stop_connecting">Arrêter de se connecter</string>
-    <string name="menu_hotlist">Messages notables</string>
-    <string name="menu_nicklist">Pseudos</string>
-    <string name="tabkey">Tab</string>
-    <string name="open_drawer">Ouvrir le tiroir</string>
-    <string name="close_drawer">Fermer le tiroir</string>
-    <string name="more_button">Récupérer plus de lignes</string>
-    <string name="more_button_fetching">Récupération…</string>
-    <plurals name="nick_list_count">
+    <string name="notifications__channel__connection_status">État de la connexion</string>
+    <string name="notifications__channel__hotlist">Notables</string>
+    <string name="ui__button_send">Envoyer</string>
+    <string name="menu__preferences">Paramètres</string>
+    <string name="menu__close">Fermer</string>
+    <string name="menu__filter_lines">Filtrer les lignes</string>
+    <string name="menu__connection_state__connect">Connecter</string>
+    <string name="menu__connection_state__disconnect">Déconnecter</string>
+    <string name="menu__connection_state__stop_connecting">Arrêter de se connecter</string>
+    <string name="menu__hotlist">Messages notables</string>
+    <string name="menu__nicklist">Pseudos</string>
+    <string name="ui__button_tab">Tab</string>
+    <string name="ui__ActionBarDrawerToggle__open_drawer">Ouvrir le tiroir</string>
+    <string name="ui__ActionBarDrawerToggle__close_drawer">Fermer le tiroir</string>
+    <string name="ui__button_fetch_more_lines">Récupérer plus de lignes</string>
+    <string name="ui__button_fetching_lines">Récupération…</string>
+    <plurals name="dialog__nicklist__n_users">
         <item quantity="one">%1$d utilisateur</item>
         <item quantity="other">%1$d utilisateurs</item>
     </plurals>
-    <string name="dialog_copy_title">Copier</string>
-    <string name="dialog_paste_title">Coller</string>
-    <string name="linkify_error_no_activity">Activité introuvable pour “l’intent” %s</string>
-    <string name="filter_bufferlist_placeholder"><i>filtre</i></string>
-    <plurals name="hot_messages">
+    <string name="dialog__copy__title">Copier</string>
+    <string name="dialog__paste__title">Coller</string>
+    <string name="error__etc__activity_not_found_for_url">Activité introuvable pour “l’intent” %s</string>
+    <string name="ui__buffer_list_filter_placeholder"><i>filtre</i></string>
+    <plurals name="notifications__hot__text">
         <item quantity="one">Nouveau message dans %s</item>
         <item quantity="other">%d nouveaux messages dans %s</item>
     </plurals>
-    <string name="hot_messages_missing_1">(message non récupéré)</string>
-    <plurals name="hot_messages_missing">
+    <string name="notifications__MessagingStyle__missing_messages_1">(message non récupéré)</string>
+    <plurals name="notifications__MessagingStyle__missing_messages">
         <item quantity="one" tools:ignore="ImpliedQuantity">(message non récupéré)</item>
         <item quantity="other">(%d messages non récupérés)</item>
     </plurals>
-    <plurals name="messages">
+    <plurals name="notifications__hot_summary__messages">
         <item quantity="one">%d message</item>
         <item quantity="other">%d messages</item>
     </plurals>
-    <plurals name="in_buffers">
+    <plurals name="notifications__hot_summary__in_buffers">
         <item quantity="one"> dans %d tampon</item>
         <item quantity="other"> dans %d tampons</item>
     </plurals>
-    <string name="reply_label">Répondre</string>
-    <string name="notification_connected_to">Connecté à %s</string>
-    <string name="notification_connecting_details_now">Connexion…</string>
-    <string name="notification_connecting_details">Connexion dans %d secondes…</string>
-    <string name="notification_waiting_network">Attente de connectivité réseau</string>
-    <string name="autoscroll_no_line">Des messages notables ont été perdus à cause des lignes plus récentes</string>
-    <string name="no_hot_buffers">Il n’y a pas de tampon notable</string>
-    <string name="not_connected">Non connecté</string>
-    <string name="error">Erreur : %s</string>
-    <string name="hint_show_hot_message">Messages notables</string>
-    <string name="relay_error_server_closed">Le serveur a abruptement fermé la connexion pendant la tentative. Mot de passe invalide ou type de connexion incorrect ?</string>
-    <string name="relay_error_resolve">Impossible de résoudre l’adresse %s</string>
-    <string name="certificate_description_unknown_fingerprint">Inconnue</string>
-    <string name="certificate_description_text">&lt;b&gt;Délivré à :&lt;/b&gt;&lt;br&gt; %1$s&lt;br&gt; &lt;br&gt; &lt;b&gt;Délivré par :&lt;/b&gt;&lt;br&gt; %2$s&lt;br&gt; &lt;br&gt; &lt;b&gt;Période de validité :&lt;/b&gt;&lt;br&gt; Émis le : %3$s&lt;br&gt; Expire le : %4$s&lt;br&gt; &lt;br&gt; &lt;b&gt;Empreinte SHA-256 :&lt;/b&gt;&lt;br&gt; %5$s</string>
-    <string name="dialog_untrusted_certificate_title">Certificat non approuvé</string>
-    <string name="dialog_button_reject">Refuser</string>
-    <string name="dialog_invalid_hostname_text">Vous tentez de vous connecter à &lt;strong&gt;%1$s&lt;/strong&gt; mais le certificat n’est valide que pour ces hôtes :%2$s</string>
-    <string name="dialog_invalid_hostname_title">Hôte invalide</string>
-    <string name="dialog_button_back_to_safety">Retour en sécurité</string>
-    <string name="dialog_invalid_hostname_text_empty_line"><![CDATA[<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>(aucune)</strong>]]></string>
-    <string name="pref_error_relay_host_not_set">L’hôte du relai n’est pas définie</string>
-    <string name="pref_error_relay_password_not_set">Le mot de passe du relai n’est pas défini</string>
-    <string name="pref_error_ssh_host_not_set">L’hôte SSH n’est pas définie</string>
-    <string name="pref_connection_group">Connexion</string>
-    <string name="pref_connection_type">Type de connexion</string>
-    <string name="pref_clear_certs">Supprimer les certificats</string>
-    <string name="pref_clear_certs_confirmation">Supprimer les certificats ?</string>
-    <string name="pref_clear_certs_summary">{0,choice,0#Aucun certificat|1#1 certificat|1&lt;{0} certificats}</string>
-    <string name="pref_clear_certs_positive">Supprimer</string>
-    <string name="pref_clear_certs_negative">Annuler</string>
-    <string name="pref_clear_certs_success">Certificats supprimés</string>
-    <string name="pref_clear_certs_failure">Impossible de supprimer les certificats</string>
-    <string name="pref_ws_path">Chemin WebSocket</string>
-    <string name="pref_ssh_group">Paramètres du tunnel SSH</string>
-    <string name="pref_ssh_host">Nom d’hôte SSH</string>
-    <string name="pref_ssh_user">Nom d’utilisateur SSH</string>
-    <string name="pref_ssh_port">Port SSH</string>
-    <string-array name="pref_ssh_authentication_method_names">
+    <string name="notifications__RemoteInput__label">Répondre</string>
+    <string name="notifications__main__connected_to">Connecté à %s</string>
+    <string name="notifications__main__connecting_now">Connexion…</string>
+    <string name="notifications__main__will_connect_in_n_seconds">Connexion dans %d secondes…</string>
+    <string name="notifications__main__waiting_for_network">Attente de connectivité réseau</string>
+    <string name="error__etc__hot_line_lost">Des messages notables ont été perdus à cause des lignes plus récentes</string>
+    <string name="error__etc__no_hot_buffers">Il n’y a pas de tampon notable</string>
+    <string name="error__etc__not_connected">Non connecté</string>
+    <string name="error__etc__prefix">Erreur : %s</string>
+    <string name="menu__hotlist_hint">Messages notables</string>
+    <string name="error__connection__server_unexpectedly_closed_connection">Le serveur a abruptement fermé la connexion pendant la tentative. Mot de passe invalide ou type de connexion incorrect ?</string>
+    <string name="error__connection__could_not_resolve_address">Impossible de résoudre l’adresse %s</string>
+    <string name="dialog__certificate__unknown_fingerprint">Inconnue</string>
+    <string name="dialog__certificate__certificate_description">&lt;b&gt;Délivré à :&lt;/b&gt;&lt;br&gt; %1$s&lt;br&gt; &lt;br&gt; &lt;b&gt;Délivré par :&lt;/b&gt;&lt;br&gt; %2$s&lt;br&gt; &lt;br&gt; &lt;b&gt;Période de validité :&lt;/b&gt;&lt;br&gt; Émis le : %3$s&lt;br&gt; Expire le : %4$s&lt;br&gt; &lt;br&gt; &lt;b&gt;Empreinte SHA-256 :&lt;/b&gt;&lt;br&gt; %5$s</string>
+    <string name="dialog__certificate__untrusted__title">Certificat non approuvé</string>
+    <string name="dialog__certificate__button_reject">Refuser</string>
+    <string name="dialog__certificate__invalid_hostname__text">Vous tentez de vous connecter à &lt;strong&gt;%1$s&lt;/strong&gt; mais le certificat n’est valide que pour ces hôtes :%2$s</string>
+    <string name="dialog__certificate__invalid_hostname__title">Hôte invalide</string>
+    <string name="dialog__certificate__button_back_to_safety">Retour en sécurité</string>
+    <string name="dialog__certificate__invalid_hostname__text__host_line_empty"><![CDATA[<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>(aucune)</strong>]]></string>
+    <string name="error__pref_validation__relay_host_not_set">L’hôte du relai n’est pas définie</string>
+    <string name="error__pref_validation__relay_password_not_set">Le mot de passe du relai n’est pas défini</string>
+    <string name="error__pref_validation__ssh_host_not_set">L’hôte SSH n’est pas définie</string>
+    <string name="pref__connection_group">Connexion</string>
+    <string name="pref__connection_type">Type de connexion</string>
+    <string name="pref__connection__ssl__clear_certificates">Supprimer les certificats</string>
+    <string name="pref__ClearCertPreference__prompt">Supprimer les certificats ?</string>
+    <string name="pref__ClearCertPreference__0_entries">Aucun certificat</string>
+    <string name="pref__ClearCertPreference__1_entries">Un certificat</string>
+    <plurals name="pref__ClearCertPreference__n_entries">
+        <item quantity="one">%s certificat</item>
+        <item quantity="other">%s certificats</item>
+    </plurals>
+    <string name="pref__ClearCertPreference__button_clear">Supprimer</string>
+    <string name="pref__ClearCertPreference__button_cancel">Annuler</string>
+    <string name="pref__ClearCertPreference__success_cleared">Certificats supprimés</string>
+    <string name="pref__ClearCertPreference__error_could_not_clear">Impossible de supprimer les certificats</string>
+    <string name="pref__connection__websocket_path">Chemin WebSocket</string>
+    <string name="pref__connection__ssh_group">Paramètres du tunnel SSH</string>
+    <string name="pref__connection__ssh__host">Nom d’hôte SSH</string>
+    <string name="pref__connection__ssh__user">Nom d’utilisateur SSH</string>
+    <string name="pref__connection__ssh__port">Port SSH</string>
+    <string-array name="pref__connection__ssh__authentication_method_names">
         <item>Mot de passe</item>
         <item>Clé</item>
     </string-array>
-    <string name="pref_ssh_password">Phrase de passe SSH</string>
-    <string name="pref_ssh_keyfile">Clé privée</string>
-    <string name="pref_ssh_keyfile_summary">Clé Ed25519, ECDSA, RSA ou DSA</string>
-    <string name="pref_file_clear_button">Effacer</string>
-    <string name="pref_file_empty_clipboard">Le presse-papier est vide</string>
-    <string name="pref_file_choose_button">Choisir un fichier</string>
-    <string name="pref_file_paste_button">Coller</string>
-    <string name="pref_file_set">défini</string>
-    <string name="pref_file_not_set">indéfini</string>
-    <string name="pref_relay_group">Relai</string>
-    <string name="pref_relay_host">Nom d’hôte du relai</string>
-    <string name="pref_relay_port">Port du relai</string>
-    <string name="pref_relay_password">Mot de passe du relai</string>
-    <string name="pref_misc_group">Divers</string>
-    <string name="pref_line_increment">Nombre de lignes à charger</string>
-    <string name="pref_line_increment_summary">Le nombre de lignes à charger lors de l’ouverture d’un tampon ou via le bouton « Récupérer plus de lignes ». Notez qu’à cause du filtrage, le nombre de lignes affichées peut être inférieur au nombre de lignes chargées. Notez que l’application doit recharger l’intégralité des lignes à chaque fois. (%s)</string>
-    <string name="pref_reconnect">Reconnexion sur connexion rompue</string>
-    <string name="pref_boot_connect">Connexion au démarrage du système</string>
-    <string name="pref_notification_ticker">Notifier dans le “ticker”</string>
-    <string name="pref_notification_ticker_summary">Affiche les changements de connectivité dans la barre de notifications (ne fonctionne pas sur Lollipop)</string>
-    <string name="pref_optimize_traffic">Synchroniser uniquement les tampons ouverts</string>
-    <string name="pref_optimize_traffic_summary">Peut réduire significativement le trafic réseau et l’utilisation de la batterie, mais le chargement des messages notables ne se fera que toutes les 5 minutes. Nécessite WeeChat 1.1 ou ultérieur.</string>
-    <string name="pref_hotlist_sync">Synchroniser l’état lu des tampons</string>
-    <string name="pref_hotlist_sync_summary">Marque les tampons comme lus dans WeeChat quand vous lisez dans cette app. Nécessite WeeChat 1.0 ou ultérieur.</string>
-    <string name="pref_ping_group">Paramètres de ping</string>
-    <string name="pref_ping_enabled">Activer les pings</string>
-    <string name="pref_ping_enabled_summary">Au repos, vérifie périodiquement que la connexion au relai est fonctionnelle</string>
-    <string name="pref_ping_idle">Interval de ping</string>
-    <string name="pref_ping_idle_summary">Temps en secondes entre chaque ping (%s)</string>
-    <string name="pref_ping_timeout">Timeout du ping</string>
-    <string name="pref_ping_timeout_summary">Temps en secondes après lequel la connexion est considérée rompue (%s)</string>
-    <string name="pref_bufferlist_group">Liste des tampons</string>
-    <string name="pref_sort_buffers">Trier la liste des tampons</string>
-    <string name="pref_sort_buffers_summary">Trier par le nombre de messages notables/messages privés/messages non lus</string>
-    <string name="pref_hide_server_buffers">Cacher les tampons hors salons</string>
-    <string name="pref_hide_server_buffers_summary">Par ex. les tampons serveurs et plugins</string>
-    <string name="pref_show_buffer_filter">Afficher le filtre des tampons</string>
-    <string name="pref_lookfeel_group">Affichage</string>
-    <string name="pref_text_size">Taille du texte</string>
-    <string name="pref_auto_hide_actionbar">Cacher la barre d’action</string>
-    <string name="pref_auto_hide_actionbar_summary">Cacher la barre d’action lorsque le clavier est affiché ou lors du défilement vers le haut</string>
-    <string name="pref_chatview_filters">Filtrer les messages</string>
-    <string name="pref_chatview_filters_summary">Cacher les messages filtrés par WeeChat (p. ex. irc_smart_filter)</string>
+    <string name="pref__connection__ssh__password">Phrase de passe SSH</string>
+    <string name="pref__connection__ssh__key">Clé privée</string>
+    <string name="pref__connection__ssh__key_summary">Clé Ed25519, ECDSA, RSA ou DSA</string>
+    <string name="pref__FilePreference__button_clear">Effacer</string>
+    <string name="error__pref__clipboard_empty">Le presse-papier est vide</string>
+    <string name="pref__FilePreference__button_choose_file">Choisir un fichier</string>
+    <string name="pref__FilePreference__button_paste">Coller</string>
+    <string name="pref__FilePreference__summary_status_set">défini</string>
+    <string name="pref__FilePreference__summary_status_not_set">indéfini</string>
+    <string name="pref__connection__relay_group">Relai</string>
+    <string name="pref__connection__relay_host">Nom d’hôte du relai</string>
+    <string name="pref__connection__relay_port">Port du relai</string>
+    <string name="pref__connection__relay_password">Mot de passe du relai</string>
+    <string name="pref__connection__misc_group">Divers</string>
+    <string name="pref__connection__number_of_lines_to_load">Nombre de lignes à charger</string>
+    <string name="pref__connection__number_of_lines_to_load_summary">Le nombre de lignes à charger lors de l’ouverture d’un tampon ou via le bouton « Récupérer plus de lignes ». Notez qu’à cause du filtrage, le nombre de lignes affichées peut être inférieur au nombre de lignes chargées. Notez que l’application doit recharger l’intégralité des lignes à chaque fois. (%s)</string>
+    <string name="pref__connection__reconnect_on_connection_loss">Reconnexion sur connexion rompue</string>
+    <string name="pref__connection__connect_on_boot">Connexion au démarrage du système</string>
+    <string name="pref__notifications__ticker">Notifier dans le “ticker”</string>
+    <string name="pref__notifications__ticker_summary">Affiche les changements de connectivité dans la barre de notifications (ne fonctionne pas sur Lollipop)</string>
+    <string name="pref__connection__only_sync_open_buffers">Synchroniser uniquement les tampons ouverts</string>
+    <string name="pref__connection__only_sync_open_buffers_summary">Peut réduire significativement le trafic réseau et l’utilisation de la batterie, mais le chargement des messages notables ne se fera que toutes les 5 minutes. Nécessite WeeChat 1.1 ou ultérieur.</string>
+    <string name="pref__connection__sync_read_status">Synchroniser l’état lu des tampons</string>
+    <string name="pref__connection__sync_read_status_summary">Marque les tampons comme lus dans WeeChat quand vous lisez dans cette app. Nécessite WeeChat 1.0 ou ultérieur.</string>
+    <string name="pref__connection__ping_group">Paramètres de ping</string>
+    <string name="pref__connection__ping_enabled">Activer les pings</string>
+    <string name="pref__connection__ping_enabled_summary">Au repos, vérifie périodiquement que la connexion au relai est fonctionnelle</string>
+    <string name="pref__connection__ping_idle">Interval de ping</string>
+    <string name="pref__connection__ping_idle_summary">Temps en secondes entre chaque ping (%s)</string>
+    <string name="pref__connection__ping_timeout">Timeout du ping</string>
+    <string name="pref__connection__ping_timeout_summary">Temps en secondes après lequel la connexion est considérée rompue (%s)</string>
+    <string name="pref__buffer_list_group">Liste des tampons</string>
+    <string name="pref__buffer_list__sort_by_hot">Trier la liste des tampons</string>
+    <string name="pref__buffer_list__sort_by_hot_summary">Trier par le nombre de messages notables/messages privés/messages non lus</string>
+    <string name="pref__buffer_list__hide_server_buffers">Cacher les tampons hors salons</string>
+    <string name="pref__buffer_list__hide_server_buffers_summary">Par ex. les tampons serveurs et plugins</string>
+    <string name="pref__buffer_list__show_buffer_filter">Afficher le filtre des tampons</string>
+    <string name="pref__look_n_feel_group">Affichage</string>
+    <string name="pref__look_n_feel__text_size">Taille du texte</string>
+    <string name="pref__look_n_feel__hide_toolbar">Cacher la barre d’action</string>
+    <string name="pref__look_n_feel__hide_toolbar_summary">Cacher la barre d’action lorsque le clavier est affiché ou lors du défilement vers le haut</string>
+    <string name="pref__look_n_feel__filter_messages">Filtrer les messages</string>
+    <string name="pref__look_n_feel__filter_messages_summary">Cacher les messages filtrés par WeeChat (p. ex. irc_smart_filter)</string>
 
-    <string name="pref_prefix_align">Alignement du préfixe</string>
-    <string-array name="pref_prefix_align_names">
+    <string name="pref__look_n_feel__alignment">Alignement du préfixe</string>
+    <string-array name="pref__look_n_feel__alignment_names">
         <item>Aligné à gauche</item>
         <item>Aligné à droite</item>
         <item>Aligné sur l’heure</item>
         <item>Non aligné</item>
     </string-array>
 
-    <string name="pref_max_width">Largeur max du préfixe</string>
-    <string name="pref_max_width_summary">En nombre de lettres ; les pseudos plus longs seront tronqués (%s)</string>
-    <string name="pref_enclose_nick">Encadrer les pseudos</string>
-    <string name="pref_enclose_nick_summary">Encadrer les pseudos avec &lt; et &gt;</string>
-    <string name="pref_timestamp_format">Format de la date/heure</string>
-    <string name="pref_timestamp_format_summary">%s (par défaut : HH:mm:ss)</string>
-    <string name="pref_dim_down">Atténuer les lignes hors discussion</string>
-    <string name="pref_dim_down_summary">Afficher les joint/part dans une couleur sombre</string>
-    <string name="pref_font">Police des tampons</string>
-    <string name="pref_theme_loading_error">Erreur lors du chargement du thème %s</string>
-    <string name="pref_theme_not_set">Non défini</string>
-    <string name="pref_font_summary">L’alignement fonctionne mal avec les polices non-monospace. Chemins de recherche :%1$s\n\nValeur actuelle :\n    %2$s</string>
-    <string name="pref_font_default">Par défaut</string>
-    <string name="pref_button_group">Boutons</string>
-    <string name="pref_tabbtn_show">Afficher le bouton d’autocomplétion</string>
-    <string name="pref_sendbtn_show">Afficher le bouton d’envoi</string>
-    <string name="pref_volumebtn_size">Taille du texte via le volume</string>
-    <string name="pref_volumebtn_size_summary">Si coché, les boutons du volume audio changent la taille du texte lorsque Weechat est au premier plan</string>
-    <string name="pref_notif_group">Notifications</string>
-    <string name="pref_notification_enable">Activer les notifications</string>
-    <string name="pref_notification_enable_summary">Notifier des messages notables comme les messages privés ou les “highlights”</string>
-    <string name="pref_notification_sound">Son de notification</string>
-    <string name="pref_notification_vibrate">Vibrer</string>
-    <string name="pref_notification_light">Allumer la LED</string>
-    <string name="pref_ringtone_none">Aucune</string>
-    <string name="pref_ringtone_unknown">Inconnue</string>
-    <string name="about">À propos</string>
-    <string name="build_id">numéro de build %s</string>
-    <string name="created_by">créé par ubergeek42</string>
-    <string name="unknown_version_id">Version inconnue</string>
-    <string name="libraries">
+    <string name="pref__look_n_feel__maximum_prefix_width">Largeur max du préfixe</string>
+    <string name="pref__look_n_feel__maximum_prefix_width_summary">En nombre de lettres ; les pseudos plus longs seront tronqués (%s)</string>
+    <string name="pref__look_n_feel__enclose_nicks">Encadrer les pseudos</string>
+    <string name="pref__look_n_feel__enclose_nicks_summary">Encadrer les pseudos avec &lt; et &gt;</string>
+    <string name="pref__look_n_feel__timestamp_format">Format de la date/heure</string>
+    <string name="pref__look_n_feel__timestamp_format_summary">%s (par défaut : HH:mm:ss)</string>
+    <string name="pref__theme__dim_down_non_human_lines">Atténuer les lignes hors discussion</string>
+    <string name="pref__theme__dim_down_non_human_lines_summary">Afficher les joint/part dans une couleur sombre</string>
+    <string name="pref__look_n_feel__font">Police des tampons</string>
+    <string name="pref__ThemeManager__error_loading_color_scheme">Erreur lors du chargement du thème %s</string>
+    <string name="pref__ThemePreference__not_set">Non défini</string>
+    <string name="pref__FontPreference__summary">L’alignement fonctionne mal avec les polices non-monospace. Chemins de recherche :%1$s\n\nValeur actuelle :\n    %2$s</string>
+    <string name="pref__FontPreference__default">Par défaut</string>
+    <string name="pref__buttons_group">Boutons</string>
+    <string name="pref__buttons__show_tab">Afficher le bouton d’autocomplétion</string>
+    <string name="pref__buttons__show_send">Afficher le bouton d’envoi</string>
+    <string name="pref__buttons__volume_buttons_change_text_size">Taille du texte via le volume</string>
+    <string name="pref__buttons__volume_buttons_change_text_size_summary">Si coché, les boutons du volume audio changent la taille du texte lorsque Weechat est au premier plan</string>
+    <string name="pref__notifications_group">Notifications</string>
+    <string name="pref__notifications__enable">Activer les notifications</string>
+    <string name="pref__notifications__enable_summary">Notifier des messages notables comme les messages privés ou les “highlights”</string>
+    <string name="pref__notifications__sound">Son de notification</string>
+    <string name="pref__notifications__vibration">Vibrer</string>
+    <string name="pref__notifications__light">Allumer la LED</string>
+    <string name="pref__RingtonePreferenceFix__summary_none">Aucune</string>
+    <string name="pref__RingtonePreferenceFix__summary_unknown">Inconnue</string>
+    <string name="pref__about_group">À propos</string>
+    <string name="pref__about__build_id">numéro de build %s</string>
+    <string name="pref__about__created_by">créé par ubergeek42</string>
+    <string name="pref__about__unknown_version_id">Version inconnue</string>
+    <string name="pref__about__used_libraries">
       \nCe projet utilise les bibliothèques logicielles suivantes :
       \n
       \n    • <a href="https://github.com/noveogroup/android-logger">Android Logger de Noveo Group</a>
@@ -187,43 +192,43 @@
       \nVous avez trouvé un bug ou vous avez une suggestion ? Créez un ticket sur <a href="https://github.com/ubergeek42/weechat-android/">GitHub</a> !
       \n\n
     </string>
-    <string name="pref_timestamp_invalid">Format de date/heure invalide</string>
-    <string name="pref_number_invalid">Nombre invalide</string>
-    <string name="pref_hostname_invalid">Pas d’espace dans le nom d’hôte</string>
-    <string name="notification_channel_hotlist_async">Notables (asynchrone)</string>
-    <string name="menu_dark_theme">Thème sombre</string>
-    <string name="me">Moi</string>
-    <string name="pref_hide_hidden_buffers">Masquer les tampons cachés</string>
-    <string name="pref_hide_hidden_buffers_summary">Masquer les tampons cachés via /buffer hide</string>
-    <string name="pref_show_buffer_filter_summary">Le filtre s’applique au nom complet de chaque tampon et révèle les tampons ma</string>
-    <string name="pref_use_gesture_exclusion_zone_summary">Sur Android Q, la bordure gauche de l’écran est réservée au mouvement de retour en arrière. Activer cette option ajoute une petite zone en bas de l’écran pour ouvrir la liste des tampons.</string>
-    <string name="pref_theme">Thème</string>
+    <string name="error__pref__invalid_timestamp_format">Format de date/heure invalide</string>
+    <string name="error__pref__invalid_number">Nombre invalide</string>
+    <string name="error__pref__no_spaces_allowed_in_hostnames">Pas d’espace dans le nom d’hôte</string>
+    <string name="notifications__channel__hotlist_async">Notables (asynchrone)</string>
+    <string name="menu__dark_theme">Thème sombre</string>
+    <string name="notifications__MessagingStyle__me">Moi</string>
+    <string name="pref__buffer_list__hide_hidden_buffers">Masquer les tampons cachés</string>
+    <string name="pref__buffer_list__hide_hidden_buffers_summary">Masquer les tampons cachés via /buffer hide</string>
+    <string name="pref__buffer_list__show_buffer_filter_summary">Le filtre s’applique au nom complet de chaque tampon et révèle les tampons ma</string>
+    <string name="pref__buffer_list__use_gesture_exclusion_zone_summary">Sur Android Q, la bordure gauche de l’écran est réservée au mouvement de retour en arrière. Activer cette option ajoute une petite zone en bas de l’écran pour ouvrir la liste des tampons.</string>
+    <string name="pref__theme">Thème</string>
 
-    <string-array name="pref_theme_names">
-        <item>@string/pref_theme_system</item>
+    <string-array name="pref__theme__theme_names">
+        <item>@string/pref__theme__theme__system</item>
         <item>Sombre</item>
         <item>Clair</item>
     </string-array>
-    <string name="pref_theme_system">Dépendant de l’économiseur de batterie</string>
+    <string name="pref__theme__theme__system">Dépendant de l’économiseur de batterie</string>
 
-    <string name="pref_use_gesture_exclusion_zone">Zone d’exclusion des mouvements système</string>
-    <string name="pref_theme_switch">Sélecteur de thème</string>
-    <string name="pref_theme_switch_summary">Affiche le sélecteur de thème dans le menu</string>
-    <string name="pref_color_scheme_day">Thème avec des couleurs claires</string>
-    <string name="pref_color_scheme_night">Thèmes avec des couleurs sombres</string>
-    <string name="pref_theme_help"><![CDATA[Vous pouvez créer des thèmes personnalisés pour cette application.
+    <string name="pref__buffer_list__use_gesture_exclusion_zone">Zone d’exclusion des mouvements système</string>
+    <string name="pref__theme__menu_switch">Sélecteur de thème</string>
+    <string name="pref__theme__menu_switch_summary">Affiche le sélecteur de thème dans le menu</string>
+    <string name="pref__theme__color_scheme_light">Thème avec des couleurs claires</string>
+    <string name="pref__theme__color_scheme_dark">Thèmes avec des couleurs sombres</string>
+    <string name="pref__ThemePreferenceHelp__summary"><![CDATA[Vous pouvez créer des thèmes personnalisés pour cette application.
    Choisissez vos propres couleurs pour les éléments de l’interface, la mise en valeur des messages notables
    et le marqueur de lecture&#8239;!
    <a href="https://github.com/ubergeek42/weechat-android/wiki/Custom-Color-Schemes">En savoir plus (en anglais)</a>
    <br><br>Déposez votre palette de couleurs dans l’un de ces dossiers&#8239;:%1$s]]></string>
-    <string name="pref_media_preview_group">Aperçu des médias</string>
-    <string name="pref_media_preview_enabled_for_network">Activé</string>
-    <string name="pref_media_preview_enabled_for_location">Contextes</string>
-    <string name="pref_media_preview_enabled_for_location_summary">Activé pour %s</string>
-    <string name="pref_media_preview_enabled_for_location_summary_empty">Désactivé partout</string>
-    <string name="pref_media_preview_secure_request">Requêtes non sécurisées</string>
-    <string name="pref_media_preview_strategies">Stratégies</string>
-    <string name="pref_media_preview_help"><![CDATA[
+    <string name="pref__media_preview_group">Aperçu des médias</string>
+    <string name="pref__media_preview__enabled_for_network">Activé</string>
+    <string name="pref__media_preview__enabled_for_context">Contextes</string>
+    <string name="pref__media_preview__enabled_for_context_summary">Activé pour %s</string>
+    <string name="pref__media_preview__enabled_for_context_summary_empty">Désactivé partout</string>
+    <string name="pref__media_preview__secure_requests">Requêtes non sécurisées</string>
+    <string name="pref__media_preview__strategies">Stratégies</string>
+    <string name="pref__media_preview__help"><![CDATA[
     Sur d’anciennes versions d’Android, activer l’aperçu des médias peut provoquer l’affichage
     en double de certaines lignes. Pour que ces paramètres prennent effet sur les médias déjà
     téléchargés, il est possible qu’il faille vider le cache de l’app.<br /><br />
@@ -232,49 +237,49 @@
     d’accéder aux sites que vous ne connaissez pas, supprimez la stratégie “hosts: [\'*\']” ou
     passez-la en “type: none”. <a href="https://github.com/ubergeek42/weechat-android/wiki/Media-preview">En savoir plus
     (en anglais)</a>]]></string>
-    <string name="strategypreference_error">Erreur</string>
-    <string name="strategypreference_summary">Définit comment sont récupérées les miniatures pour chaque contenu et selon quels filtres.\n\n%1$s ; %2$s ;\n\n%3$s</string>
-    <string name="strategypreference_message_filter_set">Filtre de messages activé</string>
-    <string name="strategypreference_message_filter_not_set">Filtre de messages désactivé</string>
-    <string name="strategypreference_strategies_not_loaded">Aucune stratégie</string>
-    <string name="strategypreference_strategies_list">Stratégies : %s</string>
-    <string name="pref_media_preview_advanced_group">Avancé</string>
-    <string name="pref_media_preview_maximum_body_size_summary">%s Mo</string>
-    <string name="pref_image_disk_cache_size">Espace de stockage en cache</string>
-    <string name="pref_image_disk_cache_size_summary">%s Mo ; prend effet au redémarrage</string>
-    <string name="pref_media_preview_success_cooldown">Mise en cache des réussites</string>
-    <string name="pref_media_preview_success_cooldown_summary">%s heures. Durée pendant laquelle les images téléchargées sont considérées valides, que ce soit depuis le cache local ou depuis Internet.</string>
-    <string name="pref_media_preview_thumbnail_width">Largeur des miniatures</string>
-    <string name="pref_media_preview_thumbnail_min_height">Hauteur minimum des miniatures</string>
-    <string name="pref_media_preview_thumbnail_max_height">Hauteur maximum des miniatures</string>
-    <string name="menu_reset_to_default">Par défaut</string>
-    <string name="dialog_discard_changes_prompt">Abandonner les changements ?</string>
-    <string name="dialog_discard_changes_cancel">Annuler</string>
-    <string name="dialog_discard_changes_discard">Abandonner</string>
-    <string name="pref_media_preview_maximum_body_size">Plafond de taille</string>
-    <string name="strategypreference_line_filters_not_set">aucun filtre de ligne défini</string>
-    <string-array name="pref_media_preview_enabled_for_network_names">
+    <string name="pref__StrategyPreference__summary_error">Erreur</string>
+    <string name="pref__StrategyPreference__summary">Définit comment sont récupérées les miniatures pour chaque contenu et selon quels filtres.\n\n%1$s ; %2$s ;\n\n%3$s</string>
+    <string name="pref__StrategyPreference__message_filter_set">Filtre de messages activé</string>
+    <string name="pref__StrategyPreference__message_filter_not_set">Filtre de messages désactivé</string>
+    <string name="pref__StrategyPreference__strategies_not_loaded">Aucune stratégie</string>
+    <string name="pref__StrategyPreference__strategies_list">Stratégies : %s</string>
+    <string name="pref__media_preview__advanced_group">Avancé</string>
+    <string name="pref__media_preview__maximum_body_size_summary">%s Mo</string>
+    <string name="pref__media_preview__image_disk_cache_size">Espace de stockage en cache</string>
+    <string name="pref__media_preview__image_disk_cache_size_summary">%s Mo ; prend effet au redémarrage</string>
+    <string name="pref__media_preview__success_cooldown">Mise en cache des réussites</string>
+    <string name="pref__media_preview__success_cooldown_summary">%s heures. Durée pendant laquelle les images téléchargées sont considérées valides, que ce soit depuis le cache local ou depuis Internet.</string>
+    <string name="pref__media_preview__thumbnail_width">Largeur des miniatures</string>
+    <string name="pref__media_preview__thumbnail_min_height">Hauteur minimum des miniatures</string>
+    <string name="pref__media_preview__thumbnail_max_height">Hauteur maximum des miniatures</string>
+    <string name="pref__FullScreenEditTextPreference__menu_reset_to_default">Par défaut</string>
+    <string name="pref__FullScreenEditTextPreference__discard_changes_prompt">Abandonner les changements ?</string>
+    <string name="pref__FullScreenEditTextPreference__discard_changes_cancel">Annuler</string>
+    <string name="pref__FullScreenEditTextPreference__discard_changes_discard">Abandonner</string>
+    <string name="pref__media_preview__maximum_body_size">Plafond de taille</string>
+    <string name="pref__StrategyPreference__0_line_filters_set">aucun filtre de ligne défini</string>
+    <string-array name="pref__media_preview__enabled_for_network_names">
         <item>Jamais</item>
         <item>Sur Wi-Fi uniquement</item>
         <item>Sur réseaux illimités uniquement</item>
         <item>Toujours</item>
     </string-array>
-    <string-array name="pref_media_preview_enabled_for_location_names">
+    <string-array name="pref__media_preview__enabled_for_context_names">
         <item>Chat</item>
         <item>Dialogue presse-papier</item>
         <item>Notifications</item>
     </string-array>
-    <string-array name="pref_media_preview_secure_request_names">
+    <string-array name="pref__media_preview__secure_requests_names">
         <item>Autoriser</item>
         <item>Essayer la version HTTPS</item>
         <item>Bloquer</item>
     </string-array>
-    <plurals name="strategypreference_line_filters_set">
+    <plurals name="pref__StrategyPreference__n_line_filters_set">
         <item quantity="one">%d filtre de ligne défini</item>
         <item quantity="other">%d filtres de ligne définis</item>
     </plurals>
-    <string name="menu_save">Enregistrer</string>
-    <string-array name="pref_connection_type_names">
+    <string name="pref__FullScreenEditTextPreference__menu_save">Enregistrer</string>
+    <string-array name="pref__connection_type__names">
         <item>Connexion en clair</item>
         <item>WeeChat SSL</item>
         <item>Tunnel SSH</item>
@@ -282,68 +287,68 @@
         <item>WebSocket (SSL)</item>
     </string-array>
 
-    <string name="dialog_certificate_expired_title">Certificat expiré</string>
-    <string name="dialog_certificate_not_yet_valid_title">Le certificat n’est pas encore valide</string>
-    <string name="menu_debug">Debug</string>
-    <plurals name="hot_messages_missing_user">
+    <string name="dialog__certificate__expired__title">Certificat expiré</string>
+    <string name="dialog__certificate__not_yet_valid__title">Le certificat n’est pas encore valide</string>
+    <string name="menu__debug">Debug</string>
+    <plurals name="notifications__MessagingStyle__missing_users">
         <item quantity="one" tools:ignore="ImpliedQuantity">(utilisateur inconnu)</item>
         <item quantity="other">(utilisateurs inconnus)</item>
     </plurals>
-    <string name="pref_error_no_ssh_password">Le mot de passe SSH n’est pas défini</string>
-    <string name="pref_ssl_client_certificate_summary">Fichier PKCS #12 contenant clés privées et certificat client</string>
-    <string name="dialog_button_accept_selected">Accepter sélection</string>
-    <string name="dialog_invalid_hostname_text_android_p_warning">&lt;br&gt;Notez qu’Android P et supérieur ne lit pas le champ Common Name (CN) pour valider le nom d’hôte. Il est impératif d’utiliser le Subject Alternative Name (SAN). &lt;a href=https://github.com/ubergeek42/weechat-android/wiki/Using-SSL-with-WeeChat&gt;Plus de détails&lt;/a&gt; (en anglais)</string>
-    <string name="dialog_untrusted_certificate_text">Android ne considère pas que ce certificat soit de confiance, mais vous pouvez vous connecter malgré tout. L’app se souviendra du certificat sélectionné comme étant de confiance, ainsi que tout autre certificat signé par celui-ci.</string>
-    <string name="error_client_certificate_mismatch">Le serveur requière un certificat client, mais celui qui est défini ne convient pas. Demandé : certificat %1$s délivré par %2$s</string>
-    <string name="pref_ssh_key_stored_inside_security_hardware_no">La clé %s a été sauvegardée dans le porte-clé logiciel</string>
-    <string name="pref_ssh_key_stored_inside_security_hardware_cant_tell">La clé %s a été sauvegardée dans le porte-clé</string>
-    <string name="pref_ssl_certificate_stored_inside_security_hardware_yes">Le certificat a été sauvegardée dans le stockage sécurisé matériel</string>
-    <string name="pref_ssh_key_stored_outside_key_store">La clé %1$s a été sauvegardée dans l’app.\n\nLa clé n’a pas pu être sauvegardée dans le porte-clé : %2$s</string>
-    <string name="pref_error_no_ssh_key_file">La clé SSH privée n’est pas définie</string>
-    <string name="pref_ssl_group">Paramètres SSL</string>
-    <string name="pref_ssl_client_certificate">Certificat client</string>
-    <string name="menu_sync_hotlist">Sync. les notables</string>
-    <string name="menu_die">Quitter</string>
-    <string name="dialog_button_pin_selected">Épingler sélection</string>
-    <string name="dialog_certificate_expired_text">Le certificat n’est plus valide. Assurez-vous que la date de votre appareil est à jour.</string>
-    <string name="dialog_certificate_not_pinned_title">Certificat non épinglé</string>
-    <string name="dialog_certificate_not_pinned_text">Android considère que ce certificat est de confiance, mais vous avez activé la vérification systématique. L’app se souviendra que le certificat sélectionné est de confiance, ainsi que tout autre certificat signé par celui-ci.</string>
-    <string name="pref_ssl_require_certificate_pin">Épingler systématiquement</string>
-    <string name="pref_ssl_require_certificate_pin_summary">Demander confirmation que le serveur est de confiance, même s’il est déjà considéré de confiance par le système</string>
-    <string name="edittext_password_hint">mot de passe</string>
-    <string name="error_client_certificate_not_set">Le serveur requière un certificat client, mais aucun n’est défini. Demandé : certificat %1$s délivré par %2$s</string>
-    <string name="pref_ssh_authentication_method">Méthode d’authentification</string>
-    <string name="exceptions_ssh_failed_to_authenticate_with_password">Échec de l’authentification par mot de passe</string>
-    <string name="exceptions_ssh_failed_to_authenticate_with_key">Échec de l’authentification par clé</string>
-    <string name="pref_ssh_key_stored_inside_security_hardware_yes">La clé %s a été sauvegardée dans un stockage sécurisé matériel</string>
-    <string name="dialog_certificate_not_yet_valid_text">Le certificat est valide dans le futur. Assurez-vous que la date de votre appareil est à jour.</string>
-    <string name="pref_ssh_key_forgotten">Clé supprimée</string>
-    <string name="pref_ssl_certificate_stored_inside_security_hardware_no">Le certificat a été sauvegardé dans le porte-clé logiciel</string>
-    <string name="pref_ssl_certificate_stored_inside_security_hardware_cant_tell">Le certificat a été sauvegardé dans le porte-clé</string>
-    <string name="pref_ssl_certificate_forgotten">Certificat supprimé</string>
+    <string name="error__pref_validation__ssh_password_not_set">Le mot de passe SSH n’est pas défini</string>
+    <string name="pref__connection__ssl__client_certificate_summary">Fichier PKCS #12 contenant clés privées et certificat client</string>
+    <string name="dialog__certificate__untrusted__button_accept">Accepter sélection</string>
+    <string name="dialog__certificate__invalid_hostname__text__android_p_warning">&lt;br&gt;Notez qu’Android P et supérieur ne lit pas le champ Common Name (CN) pour valider le nom d’hôte. Il est impératif d’utiliser le Subject Alternative Name (SAN). &lt;a href=https://github.com/ubergeek42/weechat-android/wiki/Using-SSL-with-WeeChat&gt;Plus de détails&lt;/a&gt; (en anglais)</string>
+    <string name="dialog__certificate__untrusted__text">Android ne considère pas que ce certificat soit de confiance, mais vous pouvez vous connecter malgré tout. L’app se souviendra du certificat sélectionné comme étant de confiance, ainsi que tout autre certificat signé par celui-ci.</string>
+    <string name="error__connection__ssl__client_certificate__certificate_mismatch">Le serveur requière un certificat client, mais celui qui est défini ne convient pas. Demandé : certificat %1$s délivré par %2$s</string>
+    <string name="pref__PrivateKeyPickerPreference__success_stored_inside_security_hardware_no">La clé %s a été sauvegardée dans le porte-clé logiciel</string>
+    <string name="pref__PrivateKeyPickerPreference__success_stored_inside_security_hardware_cant_tell">La clé %s a été sauvegardée dans le porte-clé</string>
+    <string name="pref__CertPickerPreference__success_stored_inside_security_hardware_yes">Le certificat a été sauvegardée dans le stockage sécurisé matériel</string>
+    <string name="pref__PrivateKeyPickerPreference__success_stored_outside_key_store">La clé %1$s a été sauvegardée dans l’app.\n\nLa clé n’a pas pu être sauvegardée dans le porte-clé : %2$s</string>
+    <string name="error__pref_validation__ssh_key_not_set">La clé SSH privée n’est pas définie</string>
+    <string name="pref__connection__ssl_group">Paramètres SSL</string>
+    <string name="pref__connection__ssl__client_certificate">Certificat client</string>
+    <string name="menu__debug__sync_hotlist">Sync. les notables</string>
+    <string name="menu__debug__die">Quitter</string>
+    <string name="dialog__certificate__not_pinned__pin_selected">Épingler sélection</string>
+    <string name="dialog__certificate__expired__text">Le certificat n’est plus valide. Assurez-vous que la date de votre appareil est à jour.</string>
+    <string name="dialog__certificate__not_pinned__title">Certificat non épinglé</string>
+    <string name="dialog__certificate__not_pinned__text">Android considère que ce certificat est de confiance, mais vous avez activé la vérification systématique. L’app se souviendra que le certificat sélectionné est de confiance, ainsi que tout autre certificat signé par celui-ci.</string>
+    <string name="pref__connection__ssl__require_certificate_pin">Épingler systématiquement</string>
+    <string name="pref__connection__ssl__require_certificate_pin_summary">Demander confirmation que le serveur est de confiance, même s’il est déjà considéré de confiance par le système</string>
+    <string name="pref__PasswordedFilePickerPreference__input_hint">mot de passe</string>
+    <string name="error__connection__ssl__client_certificate__not_set">Le serveur requière un certificat client, mais aucun n’est défini. Demandé : certificat %1$s délivré par %2$s</string>
+    <string name="pref__connection__ssh__authentication_method">Méthode d’authentification</string>
+    <string name="error__connection__ssh__failed_to_authenticate_with_password">Échec de l’authentification par mot de passe</string>
+    <string name="error__connection__ssh__failed_to_authenticate_with_key">Échec de l’authentification par clé</string>
+    <string name="pref__PrivateKeyPickerPreference__success_stored_inside_security_hardware_yes">La clé %s a été sauvegardée dans un stockage sécurisé matériel</string>
+    <string name="dialog__certificate__not_yet_valid__text">Le certificat est valide dans le futur. Assurez-vous que la date de votre appareil est à jour.</string>
+    <string name="pref__PrivateKeyPickerPreference__success_key_forgotten">Clé supprimée</string>
+    <string name="pref__CertPickerPreference__success_stored_inside_security_hardware_no">Le certificat a été sauvegardé dans le porte-clé logiciel</string>
+    <string name="pref__CertPickerPreference__success_stored_inside_security_hardware_yes_cant_tell">Le certificat a été sauvegardé dans le porte-clé</string>
+    <string name="pref__CertPickerPreference__success_certificate_forgotten">Certificat supprimé</string>
 
-    <string name="pref_clear_known_hosts_confirmation">Effacer les hôtes connus ?</string>
-    <string name="pref_clear_known_hosts_cancel">Annuler</string>
-    <string name="pref_clear_known_hosts_clear">Effacer tout</string>
-    <string name="pref_clear_known_hosts_cleared">Hôtes connus effacés</string>
-    <string name="pref_clear_known_hosts_entries_0">Aucune entrée</string>
-    <plurals name="pref_clear_known_hosts_entries">
+    <string name="pref__ClearKnownHostsPreference__prompt">Effacer les hôtes connus ?</string>
+    <string name="pref__ClearKnownHostsPreference__button_cancel">Annuler</string>
+    <string name="pref__ClearKnownHostsPreference__button_clear">Effacer tout</string>
+    <string name="pref__ClearKnownHostsPreference__success_cleared">Hôtes connus effacés</string>
+    <string name="pref__ClearKnownHostsPreference__0_entries">Aucune entrée</string>
+    <plurals name="pref__ClearKnownHostsPreference__n_entries">
         <item quantity="one">%s entrée</item>
         <item quantity="other">%s entrées</item>
     </plurals>
 
-    <string name="dialog_ssh_server_unknown_title">Serveur inconnu</string>
-    <string name="dialog_ssh_server_unknown_text"><![CDATA[
+    <string name="dialog__ssh__server_unknown__title">Serveur inconnu</string>
+    <string name="dialog__ssh__server_unknown__text"><![CDATA[
         Serveur <b>%1$s</b> non reconnu.
         <br>
         <br>Empreinte SHA256 de la clé %2$s :
         <br><b>%3$s</b>]]></string>
-    <string name="dialog_ssh_server_unknown_button_positive">Accepter la clé serveur</string>
-    <string name="dialog_ssh_server_unknown_button_negative">Rejeter</string>
-    <string name="dialog_ssh_server_unknown_unknown_key_type">de type inconnu</string>
+    <string name="dialog__ssh__server_unknown__button_accept_key">Accepter la clé serveur</string>
+    <string name="dialog__ssh__server_unknown__button_reject_key">Rejeter</string>
+    <string name="dialog__ssh__etc_unknown_key_type">de type inconnu</string>
 
-    <string name="dialog_ssh_server_not_verified_title">Serveur non vérifié</string>
-    <string name="dialog_ssh_server_not_verified_text"><![CDATA[
+    <string name="dialog__ssh__server_changed_key__title">Serveur non vérifié</string>
+    <string name="dialog__ssh__server_changed_key__text"><![CDATA[
         <b>⚠ Attention :</b> activité malicieuse possible !
         <br>
         <br>Le serveur <b>%1$s</b> est reconnu mais sa clé ne correspond pas à cette que nous connaissons.
@@ -353,5 +358,5 @@
         <br>
         <br>Si vous voulez continuer, effacez les hôtes connus dans les préférences.]]></string>
 
-    <string name="pref_ssh_clear_known_hosts">Effacer les hôtes connus</string>
+    <string name="pref__connection__ssh__clear_known_hosts">Effacer les hôtes connus</string>
 </resources>

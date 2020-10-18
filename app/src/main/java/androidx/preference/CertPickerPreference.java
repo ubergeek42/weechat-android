@@ -24,13 +24,13 @@ public class CertPickerPreference extends PasswordedFilePickerPreference impleme
         persistString(bytes != null ? "ok" : null);
         notifyChanged();
         if (bytes == null) {
-            return context.getString(R.string.pref_ssl_certificate_forgotten);
+            return context.getString(R.string.pref__CertPickerPreference__success_certificate_forgotten);
         }
 
         return context.getString(TinyMap.of(
-                InsideSecurityHardware.YES, R.string.pref_ssl_certificate_stored_inside_security_hardware_yes,
-                InsideSecurityHardware.NO, R.string.pref_ssl_certificate_stored_inside_security_hardware_no,
-                InsideSecurityHardware.CANT_TELL, R.string.pref_ssl_certificate_stored_inside_security_hardware_cant_tell
+                InsideSecurityHardware.YES, R.string.pref__CertPickerPreference__success_stored_inside_security_hardware_yes,
+                InsideSecurityHardware.NO, R.string.pref__CertPickerPreference__success_stored_inside_security_hardware_no,
+                InsideSecurityHardware.CANT_TELL, R.string.pref__CertPickerPreference__success_stored_inside_security_hardware_yes_cant_tell
         ).get(areAllInsideSecurityHardware(SSLHandler.KEYSTORE_ALIAS_PREFIX)));
     }
 }

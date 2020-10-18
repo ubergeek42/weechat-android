@@ -23,25 +23,25 @@
             android:id="@+id/versionStr"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/app_name"
+            android:text="@string/etc__application_name"
             android:textAppearance="?android:attr/textAppearanceMedium" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/created_by" />
+            android:text="@string/pref__about__created_by" />
 
         <TextView
             android:id="@+id/versionID"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/unknown_version_id" />
+            android:text="@string/pref__about__unknown_version_id" />
 
         <TextView
             android:id="@+id/libraries"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/libraries"
+            android:text="@string/pref__about__used_libraries"
             android:linksClickable="true"
             android:clickable="true"
             android:focusable="true" />

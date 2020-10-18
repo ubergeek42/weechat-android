@@ -60,11 +60,11 @@ public class PrivateKeyPickerPreference extends PasswordedFilePickerPreference {
             } catch (Exception e) {
                 kitty.warn("Error while putting %s key into AndroidKeyStore", algorithm, e);
                 key = Utils.serialize(keyPair);
-                message = context.getString(R.string.pref_ssh_key_stored_outside_key_store, algorithm, e.getMessage());
+                message = context.getString(R.string.pref__PrivateKeyPickerPreference__success_stored_outside_key_store, algorithm, e.getMessage());
             }
         } else {
             key = null;
-            message = context.getString(R.string.pref_ssh_key_forgotten);
+            message = context.getString(R.string.pref__PrivateKeyPickerPreference__success_key_forgotten);
             try {
                 deleteAndroidKeyStoreEntry(SSHConnection.KEYSTORE_ALIAS);
             } catch (Exception e) {
@@ -87,9 +87,9 @@ public class PrivateKeyPickerPreference extends PasswordedFilePickerPreference {
     public String getInsideSecurityHardwareString(String algorithm) throws GeneralSecurityException, IOException {
         InsideSecurityHardware inside = isInsideSecurityHardware(SSHConnection.KEYSTORE_ALIAS);
         int resId = TinyMap.of(
-                InsideSecurityHardware.YES, R.string.pref_ssh_key_stored_inside_security_hardware_yes,
-                InsideSecurityHardware.NO, R.string.pref_ssh_key_stored_inside_security_hardware_cant_tell,
-                InsideSecurityHardware.CANT_TELL, R.string.pref_ssh_key_stored_inside_security_hardware_cant_tell
+                InsideSecurityHardware.YES, R.string.pref__PrivateKeyPickerPreference__success_stored_inside_security_hardware_yes,
+                InsideSecurityHardware.NO, R.string.pref__PrivateKeyPickerPreference__success_stored_inside_security_hardware_cant_tell,
+                InsideSecurityHardware.CANT_TELL, R.string.pref__PrivateKeyPickerPreference__success_stored_inside_security_hardware_cant_tell
         ).get(inside);
         return getContext().getString(resId, algorithm);
     }

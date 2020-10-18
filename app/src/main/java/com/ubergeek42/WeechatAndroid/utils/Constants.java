@@ -147,7 +147,7 @@ public class Constants {
     final public static String PREF_MEDIA_PREVIEW_THUMBNAIL_MAX_HEIGHT_D = "160";
 
     final public static String PREF_MEDIA_PREVIEW_STRATEGIES = "media_preview_strategies";
-    final public static String PREF_MEDIA_PREVIEW_STRATEGIES_D = getResourceString(R.string.pref_media_preview_strategies_default);
+    final public static String PREF_MEDIA_PREVIEW_STRATEGIES_D = getResourceString(R.string.pref__media_preview__strategies_default);
 
 
     // uploading

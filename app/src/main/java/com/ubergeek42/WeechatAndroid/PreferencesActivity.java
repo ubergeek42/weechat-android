@@ -198,7 +198,7 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
         @Override public void onActivityCreated(Bundle savedInstanceState) {
             ActionBar actionBar = ((AppCompatActivity) requireActivity()).getSupportActionBar();
             if (actionBar != null)
-                actionBar.setTitle((key == null) ? getString(R.string.menu_preferences) : findPreference(key).getTitle());
+                actionBar.setTitle((key == null) ? getString(R.string.menu__preferences) : findPreference(key).getTitle());
             super.onActivityCreated(savedInstanceState);
         }
 
@@ -222,17 +222,17 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
             try {
                 if (Utils.isAnyOf(key, PREF_HOST, PREF_SSH_HOST)) {
                     valid = !((String) o).contains(" ");
-                    errorResource = R.string.pref_hostname_invalid;
+                    errorResource = R.string.error__pref__no_spaces_allowed_in_hostnames;
                 } else if (PREF_UPLOADING_URI.equals(key)) {
                     System.out.println(HttpUrl.get((String) o));
                 } else if (PREF_SSH_AUTHENTICATION_METHOD.equals(key)) {
                     switchSshAuthenticationMethodPreferences((String) o);
                 } else if (Utils.isAnyOf(key, PREF_TEXT_SIZE, PREF_MAX_WIDTH, PREF_PORT, PREF_SSH_PORT, PREF_PING_IDLE, PREF_PING_TIMEOUT)) {
                     valid = Utils.isAllDigits((String) o);
-                    errorResource = R.string.pref_number_invalid;
+                    errorResource = R.string.error__pref__invalid_number;
                 } else if (PREF_TIMESTAMP_FORMAT.equals(key)) {
                     valid = Utils.isValidTimestampFormat((String) o);
-                    errorResource = R.string.pref_timestamp_invalid;
+                    errorResource = R.string.error__pref__invalid_timestamp_format;
                 } else if (PREF_CONNECTION_TYPE.equals(key)) {
                     showHideStuff((String) o);
                 } else if (PREF_THEME.equals(key)) {
@@ -257,7 +257,7 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
                 }
             } catch (Exception e) {
                 valid = false;
-                ErrorToast.show(R.string.error, e.getMessage());
+                ErrorToast.show(R.string.error__etc__prefix, e.getMessage());
             }
 
             if (!valid && errorResource != -1)

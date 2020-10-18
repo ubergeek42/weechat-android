@@ -37,7 +37,7 @@ when the filter is not displayed -->
             android:id="@+id/bufferlist_filter"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/filter_bufferlist_placeholder"
+            android:hint="@string/ui__buffer_list_filter_placeholder"
             android:singleLine="true"
             android:layout_centerVertical="true"
             android:background="@android:color/transparent"

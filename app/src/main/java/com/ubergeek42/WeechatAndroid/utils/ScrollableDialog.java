@@ -78,14 +78,14 @@ public class ScrollableDialog extends DialogFragment {
     static public DialogFragment buildServerNotKnownDialog(Context context,
                                                            Server server, Identity identity) {
         String keyType = identity.getKeyType() == null ?
-                context.getString(R.string.dialog_ssh_server_unknown_unknown_key_type) :
+                context.getString(R.string.dialog__ssh__etc_unknown_key_type) :
                 identity.getKeyType().getDisplayName();
         ScrollableDialog dialog = new ScrollableDialog(
-                context.getString(R.string.dialog_ssh_server_unknown_title),
-                Html.fromHtml(context.getString(R.string.dialog_ssh_server_unknown_text,
+                context.getString(R.string.dialog__ssh__server_unknown__title),
+                Html.fromHtml(context.getString(R.string.dialog__ssh__server_unknown__text,
                         server, keyType, identity.getSha256keyFingerprint())),
-                R.string.dialog_ssh_server_unknown_button_positive, null,
-                R.string.dialog_ssh_server_unknown_button_negative, null
+                R.string.dialog__ssh__server_unknown__button_accept_key, null,
+                R.string.dialog__ssh__server_unknown__button_reject_key, null
         );
         dialog.positiveButtonListener = (v, i) -> {
             P.sshServerKeyVerifier.addServerHostKey(server, identity);
@@ -97,14 +97,14 @@ public class ScrollableDialog extends DialogFragment {
     static public DialogFragment buildServerNotVerifiedDialog(Context context,
                                                               Server server, Identity identity) {
         String keyType = identity.getKeyType() == null ?
-                context.getString(R.string.dialog_ssh_server_unknown_unknown_key_type) :
+                context.getString(R.string.dialog__ssh__etc_unknown_key_type) :
                 identity.getKeyType().getDisplayName();
         return new ScrollableDialog(
-                context.getString(R.string.dialog_ssh_server_not_verified_title),
-                Html.fromHtml(context.getString(R.string.dialog_ssh_server_not_verified_text,
+                context.getString(R.string.dialog__ssh__server_changed_key__title),
+                Html.fromHtml(context.getString(R.string.dialog__ssh__server_changed_key__text,
                         server, keyType, identity.getSha256keyFingerprint())),
                 null, null,
-                R.string.dialog_button_back_to_safety, null
+                R.string.dialog__certificate__button_back_to_safety, null
         );
     }
 }
