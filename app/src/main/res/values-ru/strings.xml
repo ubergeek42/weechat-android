@@ -1,41 +1,142 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE resources [
+    <!ENTITY nbsp "&#160;">
+]>
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <string name="notifications__channel__connection_status">Статус соединения</string>
-    <string name="notifications__channel__hotlist">Новое сообщение</string>
-    <string name="notifications__channel__hotlist_async">Новое сообщение (асинхронно)</string>
+
+    <!-- ####################################################################################### -->
+    <!-- ######################################### etc ######################################### -->
+    <!-- ####################################################################################### -->
+
+    <!-- ################################### runtime errors #################################### -->
+
+    <string name="error__pref_validation__relay_host_not_set">Не задан хост релея</string>
+    <string name="error__pref_validation__relay_password_not_set">Не задан пароль релея</string>
+    <string name="error__pref_validation__ssh_host_not_set">Не задан хост SSH</string>
+    <string name="error__pref_validation__ssh_password_not_set">Пароль SSH не задан</string>
+    <string name="error__pref_validation__ssh_key_not_set">Ключ SSH не задан</string>
+
+    <!-- more connection errors in preferences section -->
+    <string name="error__connection__server_unexpectedly_closed_connection">
+        Сервер неожиданно прервал связь в момент подключения.
+        Возможно, неверен пароль или тип подключения</string>
+    <string name="error__connection__could_not_resolve_address">
+        Не смогла найти адрес %s</string>
+
+    <string name="error__etc__prefix">Ошибка: %s</string>
+    <string name="error__etc__hot_line_lost">
+        Некоторые важные сообщения были утеряны из-за наплыва новых строк</string>
+    <string name="error__etc__no_hot_buffers">Важных сообщений нет</string>
+    <string name="error__etc__not_connected">Нет соединения</string>
+    <string name="error__etc__activity_not_found_for_url">Не найдена Activity для Intent-а %s</string>
+
+    <!-- ############################## main activity ui elements ############################## -->
+
+    <string name="ui__button_tab">Tab</string>
     <string name="ui__button_send">Отправить</string>
-    <string name="menu__preferences">Настройки</string>
+
+    <string name="ui__button_fetch_more_lines">Загрузить больше строк</string>
+    <string name="ui__button_fetching_lines">Загрузка…</string>
+
+    <string name="ui__buffer_list_filter_placeholder"><i>фильтр</i></string>
+
+    <string name="ui__ActionBarDrawerToggle__open_drawer">Открыть список буферов</string>
+    <string name="ui__ActionBarDrawerToggle__close_drawer">Закрыть список буферов</string>
+
+    <!-- ####################################################################################### -->
+    <!-- ###################################### main menu ###################################### -->
+    <!-- ####################################################################################### -->
+
+    <string name="menu__nicklist">Пользователи</string>
+
+    <string name="menu__hotlist">Важные сообщения</string>
+    <string name="menu__hotlist_hint">Важные сообщения</string>
+
     <string name="menu__close">Закрыть</string>
-    <string name="menu__filter_lines">Фильтр строк</string>
-    <string name="menu__dark_theme">Тёмная тема</string>
+
     <string name="menu__connection_state__connect">Подключиться</string>
     <string name="menu__connection_state__disconnect">Отключиться</string>
     <string name="menu__connection_state__stop_connecting">Не подключаться</string>
-    <string name="menu__hotlist">Важные сообщения</string>
-    <string name="menu__nicklist">Пользователи</string>
-    <string name="ui__button_tab">Tab</string>
-    <string name="ui__ActionBarDrawerToggle__open_drawer">Открыть список буферов</string>
-    <string name="ui__ActionBarDrawerToggle__close_drawer">Закрыть список буферов</string>
-    <string name="ui__button_fetch_more_lines">Загрузить больше строк</string>
-    <string name="ui__button_fetching_lines">Загрузка…</string>
-    <string name="dialog__copy__title">Копировать</string>
-    <string name="dialog__paste__title">Вставить</string>
-    <string name="error__etc__activity_not_found_for_url">Не найдена Activity для Intent-а %s</string>
-    <string name="ui__buffer_list_filter_placeholder"><i>фильтр</i></string>
-    <string name="notifications__MessagingStyle__me">Я</string>
-    <string name="notifications__RemoteInput__label">Ответить</string>
-    <string name="notifications__main__connected_to">Подключена к %s</string>
-    <string name="notifications__main__connecting_now">Подключаюсь…</string>
-    <string name="notifications__main__will_connect_in_n_seconds">Попробую снова через %d секунд…</string>
+
+    <string name="menu__preferences">Настройки</string>
+
+    <string name="menu__filter_lines">Фильтр строк</string>
+
+    <string name="menu__dark_theme">Тёмная тема</string>
+
+    <string name="menu__debug">Отладка</string>
+    <string name="menu__debug__sync_hotlist">Синхронизация</string>
+    <string name="menu__debug__die">Умереть</string>
+
+    <!-- ####################################################################################### -->
+    <!-- #################################### notifications #################################### -->
+    <!-- ####################################################################################### -->
+
+    <string name="notifications__channel__connection_status">Статус соединения</string>
+    <string name="notifications__channel__hotlist">Новое сообщение</string>
+    <string name="notifications__channel__hotlist_async">Новое сообщение (асинхронно)</string>
+
     <string name="notifications__main__waiting_for_network">Ожидаю доступ в сеть</string>
-    <string name="error__etc__hot_line_lost">Некоторые важные сообщения были утеряны из-за наплыва новых строк</string>
-    <string name="error__etc__no_hot_buffers">Важных сообщений нет</string>
-    <string name="error__etc__not_connected">Нет соединения</string>
-    <string name="error__etc__prefix">Ошибка: %s</string>
-    <string name="menu__hotlist_hint">Важные сообщения</string>
-    <string name="error__connection__server_unexpectedly_closed_connection">Сервер неожиданно прервал связь в момент подключения. Возможно, неверен пароль или тип подключения</string>
-    <string name="error__connection__could_not_resolve_address">Не смогла найти адрес %s</string>
-    <string name="dialog__certificate__unknown_fingerprint">Неизвестен</string>
+    <string name="notifications__main__will_connect_in_n_seconds">Попробую снова через %d секунд…</string>
+    <string name="notifications__main__connecting_now">Подключаюсь…</string>
+    <string name="notifications__main__connected_to">Подключена к %s</string>
+
+    <!-- the is the title for the summary notification, it is visible to users -->
+    <plurals name="notifications__hot_summary__messages">
+        <item quantity="one">%d сообщение</item>
+        <item quantity="few">%d сообщения</item>
+        <item quantity="many">%d сообщений</item>
+    </plurals>
+    <plurals name="notifications__hot_summary__in_buffers">
+        <item quantity="one">&nbsp;в %d буфере</item>
+        <item quantity="few">&nbsp;в %d буферах</item>
+        <item quantity="many">&nbsp;в %d буферах</item>
+    </plurals>
+
+    <!-- this is the title for individual buffer hot message notifications. it is not normally
+    visible to users in any way as they instead see messages from MessagingStyle -->
+    <plurals name="notifications__hot__text">
+        <item quantity="one">%d новое сообщение в %s</item>
+        <item quantity="few">%d новых сообщения в %s</item>
+        <item quantity="many">%d новых сообщений в %s</item>
+    </plurals>
+
+    <plurals name="notifications__MessagingStyle__missing_users" tools:ignore="MissingQuantity">
+        <item quantity="one" tools:ignore="ImpliedQuantity">(пользователь неизвестен)</item>
+        <item quantity="other">(пользователи неизвестны)</item>
+    </plurals>
+    <string name="notifications__MessagingStyle__missing_messages_1">(сообщение не получено)</string>
+    <plurals name="notifications__MessagingStyle__missing_messages">
+        <item quantity="one">(%d сообщение не получено)</item>
+        <item quantity="few">(%d сообщения не получено)</item>
+        <item quantity="many">(%d сообщений не получено)</item>
+    </plurals>
+
+    <!-- this is displayed when you reply to messages from notification itself -->
+    <string name="notifications__MessagingStyle__me">Я</string>
+
+    <string name="notifications__RemoteInput__label">Ответить</string>
+
+    <!-- ####################################################################################### -->
+    <!-- ####################################################################################### -->
+    <!-- ####################################### dialogs ####################################### -->
+    <!-- ####################################################################################### -->
+    <!-- ####################################################################################### -->
+
+    <plurals name="dialog__nicklist__n_users">
+        <item quantity="one">%1$d пользователь</item>
+        <item quantity="few">%1$d пользователя</item>
+        <item quantity="many">%1$d пользователей</item>
+    </plurals>
+
+    <string name="dialog__copy__title">Копировать</string>
+
+    <string name="dialog__paste__title">Вставить</string>
+
+    <!-- ####################################################################################### -->
+    <!-- ################################# certificate dialogs ################################# -->
+    <!-- ####################################################################################### -->
+
     <string name="dialog__certificate__certificate_description"><![CDATA[
         <b>Кому выдан:</b><br>
         %1$s<br>
@@ -50,18 +151,139 @@
         <b>Отпечаток SHA-256:</b><br>
         %5$s
     ]]></string>
-    <string name="dialog__certificate__untrusted__button_accept">Принять выбранный сертификат</string>
+    <string name="dialog__certificate__unknown_fingerprint">Неизвестен</string>
+
     <string name="dialog__certificate__button_reject">Отклонить</string>
-    <string name="dialog__certificate__invalid_hostname__text"><![CDATA[
-        Вы пытаетесь подключиться к <strong>%1$s</strong>, но данный сертификат верен только для
-        следующих хостов:%2$s
-    ]]></string>
-    <string name="dialog__certificate__invalid_hostname__title">Неверный хост</string>
     <string name="dialog__certificate__button_back_to_safety">Увы</string>
-    <string name="dialog__certificate__invalid_hostname__text__host_line_empty"><![CDATA[<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>(пусто)</strong>]]></string>
-    <string name="error__pref_validation__relay_host_not_set">Не задан хост релея</string>
-    <string name="error__pref_validation__relay_password_not_set">Не задан пароль релея</string>
-    <string name="error__pref_validation__ssh_host_not_set">Не задан хост SSH</string>
+
+    <!-- ############################### invalid hostname dialog ############################### -->
+
+    <string name="dialog__certificate__invalid_hostname__title">
+        Неверный хост</string>
+
+    <string name="dialog__certificate__invalid_hostname__text"><![CDATA[
+        Вы пытаетесь подключиться к <strong>%1$s</strong>,
+        но данный сертификат верен только для следующих хостов: %2$s
+    ]]></string>
+    <string name="dialog__certificate__invalid_hostname__text__android_p_warning"><![CDATA[
+        <br>Примечание: начиная с версии P,
+        Android более не использует поле Common Name (CN) для проверки хоста.
+        Вместо него необходимо использовать поле Subject Alternative Name (SAN).
+        <a href="https://github.com/ubergeek42/weechat-android/wiki/Using-SSL-with-WeeChat">Узнать больше</a>
+    ]]></string>
+    <string name="dialog__certificate__invalid_hostname__text__host_line_empty"><![CDATA[
+        <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>(пусто)</strong>
+    ]]></string>
+
+    <!-- ############################## certificate expired dialog ############################# -->
+
+    <string name="dialog__certificate__expired__title">
+        Срок действия сертификата истёк</string>
+    <string name="dialog__certificate__expired__text">
+        Пожалуйста, проверьте, правильно ли задана дата на устройстве.</string>
+
+    <!-- ########################### certificate not yet valid dialog ########################## -->
+
+    <string name="dialog__certificate__not_yet_valid__title">
+        Сертификат ещё не действителен</string>
+    <string name="dialog__certificate__not_yet_valid__text">
+        Время действия сертификата ещё не наступило.
+        Пожалуйста, проверьте, правильно ли задана дата на устройстве.</string>
+
+    <!-- ############################# untrusted certificate dialog ############################ -->
+
+    <string name="dialog__certificate__untrusted__title">
+        Недоверенный сертификат</string>
+    <string name="dialog__certificate__untrusted__text">
+        Система не доверяет данному сертификату, но вы можете подключиться на свой страх и риск.
+        Приложение запомнит выбранный сертификат
+        и будет доверять ему и подписанным им сертификатам.</string>
+
+    <string name="dialog__certificate__untrusted__button_accept">
+        Принять выбранный сертификат</string>
+
+    <!-- ############################ certificate not pinned dialog ############################ -->
+
+    <string name="dialog__certificate__not_pinned__title">
+        Сертификат не привязан</string>
+    <string name="dialog__certificate__not_pinned__text">
+        Система доверяет данному сертификату,
+        но, согласно текущим настройкам, вы должны подтвердить, что также доверяете ему.
+        Приложение запомнит выбранный сертификат
+        и будет доверять ему и подписанным им сертификатам.</string>
+
+    <string name="dialog__certificate__not_pinned__pin_selected">
+        Привязать выбранный сертификат</string>
+
+    <!-- ####################################################################################### -->
+    <!-- ##################################### ssh dialogs ##################################### -->
+    <!-- ####################################################################################### -->
+
+    <!-- as used by dialog__ssh__server_unknown__text and dialog__ssh__server_changed_key__text -->
+    <string name="dialog__ssh__etc_unknown_key_type">неизвестного типа</string>
+
+    <!-- #################################### unknown server ################################### -->
+
+    <string name="dialog__ssh__server_unknown__title">
+        Сервер неизвестен</string>
+    <string name="dialog__ssh__server_unknown__text"><![CDATA[
+        Сервер <b>%1$s</b> нам ранее не встречался.
+        <br>
+        <br>SHA-256 отпечаток ключа %2$s:
+        <br><b>%3$s</b>
+    ]]></string>
+
+    <string name="dialog__ssh__server_unknown__button_accept_key">Принять ключ сервера</string>
+    <string name="dialog__ssh__server_unknown__button_reject_key">Отклонить</string>
+
+    <!-- ################################## server changed key ################################# -->
+
+    <string name="dialog__ssh__server_changed_key__title">
+        Сервер изменил ключ</string>
+    <string name="dialog__ssh__server_changed_key__text"><![CDATA[
+        <b>⚠ Внимание:</b> возможно, кто-то пытается перехватить это соединение!
+        <br>
+        <br>Сервер <b>%1$s</b> нам известен, но его ключ не совпадает с ключом, принятым вами ранее.
+        <br>
+        <br>SHA-256 отпечаток ключа %2$s:
+        <br><b>%3$s</b>
+        <br>
+        <br>Если вы хотите продолжить соединение, очистите известные хосты в настройках приложения.
+    ]]></string>
+
+    <!-- ####################################################################################### -->
+    <!-- ####################################################################################### -->
+    <!-- ##################################### preferences ##################################### -->
+    <!-- ####################################################################################### -->
+    <!-- ####################################################################################### -->
+
+    <!-- ############################# generic preferences strings ############################# -->
+
+    <string name="pref__FilePreference__button_clear">Очистить</string>
+    <string name="pref__FilePreference__button_paste">Вставить из буфера обмена</string>
+    <string name="pref__FilePreference__button_choose_file">Выбрать файл</string>
+    <string name="pref__FilePreference__summary_status_set">установлен</string>
+    <string name="pref__FilePreference__summary_status_not_set">отсутствует</string>
+    <string name="error__pref__clipboard_empty">Буфер обмена пуст</string>
+
+    <string name="pref__PasswordedFilePickerPreference__input_hint">пароль</string>
+
+    <string name="pref__FullScreenEditTextPreference__menu_save">Сохранить</string>
+    <string name="pref__FullScreenEditTextPreference__menu_reset_to_default">По умолчанию</string>
+    <string name="pref__FullScreenEditTextPreference__discard_changes_prompt">Забыть изменения?</string>
+    <string name="pref__FullScreenEditTextPreference__discard_changes_cancel">Отмена</string>
+    <string name="pref__FullScreenEditTextPreference__discard_changes_discard">Забыть</string>
+
+    <string name="pref__RingtonePreferenceFix__summary_none">Без звука</string>
+    <string name="pref__RingtonePreferenceFix__summary_unknown">Неизвестно</string>
+
+    <string name="error__pref__invalid_number">Это вовсе не число</string>
+    <string name="error__pref__no_spaces_allowed_in_hostnames">В имени хоста не могут быть пробелы</string>
+
+    <!-- ####################################################################################### -->
+    <!-- ###################################### connection ##################################### -->
+    <!-- ####################################################################################### -->
+
     <string name="pref__connection_group">Подключение</string>
 
     <string name="pref__connection_type">Тип соединения</string>
@@ -73,111 +295,223 @@
         <item>Веб-сокет SSL</item>
     </string-array>
 
+    <!-- ########################### connection: web socket settings ########################### -->
+
+    <string name="pref__connection__websocket_path">Путь веб-сокета</string>
+
+    <!-- ############################### connection: ssl settings ############################## -->
+
+    <!-- note that we prefer “ssl” over “tsl” as it's used throughout the app
+    and also by weechat itself, as in `/relay add ssl.weechat` -->
+
     <string name="pref__connection__ssl_group">Настройки SSL</string>
+
+    <string name="pref__connection__ssl__require_certificate_pin">
+        Привязка сертификата</string>
+    <string name="pref__connection__ssl__require_certificate_pin_summary">
+        Запрашивать подтверждение того, что вы доверяете серверу, даже если система ему доверяет</string>
+
     <string name="pref__connection__ssl__clear_certificates">Очистить сертификаты</string>
-    <string name="pref__ClearCertPreference__prompt">Очистить сертификаты?</string>
-    <string name="pref__ClearCertPreference__0_entries">
-        Нет доверенных сертификатов</string>
-    <string name="pref__ClearCertPreference__1_entries">
-        Один доверенный сертификат</string>
+    <string name="pref__ClearCertPreference__0_entries">Нет доверенных сертификатов</string>
+    <string name="pref__ClearCertPreference__1_entries">Один доверенный сертификат</string>
     <plurals name="pref__ClearCertPreference__n_entries">
         <item quantity="one">%s доверенный сертификат</item>
         <item quantity="few">%s доверенных сертификата</item>
         <item quantity="many">%s доверенных сертификатов</item>
     </plurals>
+    <string name="pref__ClearCertPreference__prompt">Очистить сертификаты?</string>
     <string name="pref__ClearCertPreference__button_clear">Очистить</string>
     <string name="pref__ClearCertPreference__button_cancel">Отмена</string>
     <string name="pref__ClearCertPreference__success_cleared">Сертификаты очищены</string>
     <string name="pref__ClearCertPreference__error_could_not_clear">Не смогла очистить сертификаты</string>
-    <string name="pref__connection__ssl__client_certificate">Клиентский сертификат</string>
-    <string name="pref__connection__ssl__client_certificate_summary">Закрытый ключ и сертификат пользователя в
-        формате PKCS #12</string>
 
-    <string name="pref__connection__websocket_path">Путь веб-сокета</string>
+    <string name="pref__connection__ssl__client_certificate">
+        Клиентский сертификат</string>
+    <string name="pref__connection__ssl__client_certificate_summary">
+        Закрытый ключ и сертификат пользователя в формате PKCS #12</string>
+    <string name="pref__CertPickerPreference__success_stored_inside_security_hardware_yes">
+        Сертификат помещён в аппаратное хранилище</string>
+    <string name="pref__CertPickerPreference__success_stored_inside_security_hardware_no">
+        Сертификат помещён в программное хранилище</string>
+    <string name="pref__CertPickerPreference__success_stored_inside_security_hardware_yes_cant_tell">
+        Сертификат помещён в хранилище</string>
+    <string name="pref__CertPickerPreference__success_certificate_forgotten">
+        Сертификат забыт</string>
+
+    <string name="error__connection__ssl__client_certificate__not_set">
+        Сервер запрашивает клиентский сертификат, но он не установлен.
+        Серверу нужен сертификат %1$s, выданный %2$s</string>
+    <string name="error__connection__ssl__client_certificate__certificate_mismatch">
+        Сервер запрашивает клиентский сертификат,
+        но установленный в приложении сертификат ему не подходит.
+        Серверу нужен сертификат %1$s, выданный %2$s</string>
+
+    <!-- ########################### connection: ssh tunnel settings ########################### -->
+
     <string name="pref__connection__ssh_group">Настройки туннеля SSH</string>
+
     <string name="pref__connection__ssh__host">Хост SSH</string>
-    <string name="pref__connection__ssh__user">Имя пользователя SSH</string>
+
     <string name="pref__connection__ssh__port">Порт SSH</string>
-    <string name="pref__connection__ssh__password">Пароль SSH</string>
+
+    <string name="pref__connection__ssh__user">Имя пользователя SSH</string>
+
+    <string name="pref__connection__ssh__authentication_method">Метод аутентификации</string>
+    <string-array name="pref__connection__ssh__authentication_method_names">
+        <item>Пароль</item>
+        <item>Ключ</item>
+    </string-array>
+
+    <string name="pref__connection__ssh__password">Пароль</string>
+
     <string name="pref__connection__ssh__key">Ключ</string>
     <string name="pref__connection__ssh__key_summary">Ключ Ed25519, ECDSA, RSA или DSA</string>
-    <string name="pref__buttons__show_tab">Показывать кнопку Tab</string>
-    <string name="pref__look_n_feel__text_size">Размер текста</string>
-    <string name="pref__ThemeManager__error_loading_color_scheme">Ошибка при загрузке темы %s</string>
-    <string name="pref__ThemePreference__not_set">Не установлена</string>
-    <string name="pref__ThemePreferenceHelp__summary"><![CDATA[Вы можете создать свои цветовые схемы для этого
-         приложения. Поменяйте цвета интерфейса приложения, цвета своих и помеченных сообщений,
-         измените цветовую палитру WeeChat! <a
-                href="https://github.com/ubergeek42/weechat-android/wiki/Custom-Color-Schemes">Больше
-                информации</a><br><br>Поместите свои цветовые схемы в одну из этих папок:%1$s]]></string>
-    <string name="pref__look_n_feel__timestamp_format">Формат времени</string>
-    <string name="pref__look_n_feel__timestamp_format_summary">%s (по умолчанию: HH:mm:ss)</string>
-    <string name="error__pref__invalid_timestamp_format">Неверный формат времени</string>
-    <string name="pref__buttons__volume_buttons_change_text_size">Кнопки громкости меняют размер текста</string>
-    <string name="pref__buttons__volume_buttons_change_text_size_summary">Если настройка включена, кнопки громкости будут менять размер текста вместо громкости</string>
-    <string name="pref__notifications_group">Уведомления</string>
-    <string name="pref__notifications__enable">Включить уведомления</string>
-    <string name="pref__notifications__enable_summary">Уведомлять о важных сообщениях\u0020— сообщениях в приватных буферах и упоминаниях на каналах</string>
-    <string name="pref__notifications__sound">Звук уведомления</string>
-    <string name="pref__notifications__vibration">Вибрация</string>
-    <string name="pref__notifications__light">LED-индикатор</string>
-    <string name="pref__RingtonePreferenceFix__summary_none">Без звука</string>
-    <string name="pref__RingtonePreferenceFix__summary_unknown">Неизвестно</string>
-    <string name="pref__about__created_by">создано ubergeek42</string>
-    <string name="pref__about__build_id">сборка: %s</string>
-    <string name="pref__about_group">О приложении</string>
-    <string name="pref__about__used_libraries">
-            \nВ проекте используются следующие библиотеки:
-            \n
-            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/noveogroup/android-logger">Android Logger от Noveo Group</a>
-            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://www.eclipse.org/aspectj/">AspectJ от Eclipse Foundation</a>
-            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://www.bouncycastle.org/">Bouncy Castle</a>
-            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/greenrobot/EventBus">EventBus от greenrobot</a>
-            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://bumptech.github.io/glide/">Glide от Bump Technologies</a>
-            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/JakeWharton/hugo">Hugo от Jake Wharton</a>
-            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/TooTallNate/Java-WebSocket">Java-WebSocket от Nathan Rajlich</a>
-            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/dlew/joda-time-android">joda-time-android от Daniel Lew</a>
-            \n&#160;&#160;&#160;&#160;•&#160;<a href="http://www.jcraft.com/jsch/">JSch от JCraft</a>
-            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://square.github.io/leakcanary/">LeakCanary от Square, Inc</a>
-            \n&#160;&#160;&#160;&#160;•&#160;<a href="http://site.mockito.org/">Mockito от Szczepan Faber и друзей</a>
-            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/TakahikoKawasaki/nv-websocket-client">nv-websocket-client от Takahiko Kawasaki</a>
-            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://square.github.io/okhttp/">OkHttp от Square, Inc</a>
-            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://www.slf4j.org/">SLF4J от QOS.ch</a>
-            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://bitbucket.org/asomov/snakeyaml">SnakeYAML от Андрея Сомова</a>
-            \n&#160;&#160;&#160;&#160;•&#160;<a href="https://github.com/connectbot/sshlib">sshlib от ConnectBot</a>
-            \n
-            \nНашли баг или хотите предложить новый функционал? Создайте тикет на&#160;<a href="https://github.com/ubergeek42/weechat-android/">GitHub</a>!
-            \n\n
-        </string>
-    <string name="pref__FilePreference__button_clear">Очистить</string>
-    <string name="error__pref__clipboard_empty">Буфер обмена пуст</string>
-    <string name="pref__FilePreference__button_choose_file">Выбрать файл</string>
-    <string name="pref__FilePreference__button_paste">Вставить из буфера обмена</string>
-    <string name="pref__FilePreference__summary_status_set">установлен</string>
-    <string name="pref__FilePreference__summary_status_not_set">отсутствует</string>
+    <string name="pref__PrivateKeyPickerPreference__success_stored_inside_security_hardware_yes">
+        Ключ %s помещён в аппаратное хранилище</string>
+    <string name="pref__PrivateKeyPickerPreference__success_stored_inside_security_hardware_no">
+        Ключ %s помещён в программное хранилище</string>
+    <string name="pref__PrivateKeyPickerPreference__success_stored_inside_security_hardware_cant_tell">
+        Ключ %s помещён в хранилище</string>
+    <string name="pref__PrivateKeyPickerPreference__success_stored_outside_key_store">
+        Ключ %1$s помещён в настройки приложения.
+        \n
+        \nНе вышло поместить его в хранилище: %2$s</string>
+    <string name="pref__PrivateKeyPickerPreference__success_key_forgotten">
+        Ключ забыт</string>
+
+    <string name="pref__connection__ssh__clear_known_hosts">Забыть известные хосты</string>
+    <string name="pref__ClearKnownHostsPreference__0_entries">Нет записей</string>
+    <plurals name="pref__ClearKnownHostsPreference__n_entries">
+        <item quantity="one">%s запись</item>
+        <item quantity="few">%s записи</item>
+        <item quantity="many">%s записей</item>
+    </plurals>
+
+    <string name="pref__ClearKnownHostsPreference__prompt">Забыть известные хосты?</string>
+    <string name="pref__ClearKnownHostsPreference__button_cancel">Отмена</string>
+    <string name="pref__ClearKnownHostsPreference__button_clear">Забыть</string>
+    <string name="pref__ClearKnownHostsPreference__success_cleared">Известные хосты забыты</string>
+
+    <string name="error__connection__ssh__failed_to_authenticate_with_password">
+        Авторизация по паролю провалилась</string>
+    <string name="error__connection__ssh__failed_to_authenticate_with_key">
+        Авторизация по ключу провалилась</string>
+
+    <!-- ################################## connection: relay ################################## -->
+
     <string name="pref__connection__relay_group">Релей</string>
+
     <string name="pref__connection__relay_host">Хост релея</string>
+
     <string name="pref__connection__relay_port">Порт релея</string>
+
     <string name="pref__connection__relay_password">Пароль релея</string>
+
+    <!-- ############################## connection: miscellaneous ############################## -->
+
     <string name="pref__connection__misc_group">Всякая всячина</string>
-    <string name="pref__connection__number_of_lines_to_load">Количество загружаемых строк</string>
-    <string name="pref__connection__number_of_lines_to_load_summary">Количество строк, загружаемых при открытии буфера или нажатии на кнопку «Загрузить больше строк». Количество отображаемых строк может быть меньше загруженного числа, если включена фильтрация. Ввиду ограничений протокола приложение каждый раз запрашивает все строки. (%s)</string>
-    <string name="pref__connection__reconnect_on_connection_loss">Восстанавливать соединение при обрыве</string>
+
+    <string name="pref__connection__number_of_lines_to_load">
+        Количество загружаемых строк</string>
+    <string name="pref__connection__number_of_lines_to_load_summary">
+        Количество строк, загружаемых при открытии буфера
+        или нажатии на кнопку «Загрузить больше строк».
+        Количество отображаемых строк может быть меньше загруженного числа,
+        если включена фильтрация.
+        Ввиду ограничений протокола приложение каждый раз запрашивает все строки. (%s)</string>
+
+    <string name="pref__connection__reconnect_on_connection_loss">
+        Восстанавливать соединение при обрыве</string>
+
     <string name="pref__connection__connect_on_boot">Подключаться при загрузке системы</string>
-    <string name="pref__notifications__ticker">Использовать «тикер»</string>
-    <string name="pref__notifications__ticker_summary">Отображать сообщения в панели статуса (только на KitKat)</string>
-    <string name="pref__connection__only_sync_open_buffers">Оптимизировать трафик</string>
-    <string name="pref__connection__only_sync_open_buffers_summary">Не запрашивать строки буферов, которые не открыты. Может значительно уменьшить трафик и расход батареи, но синхронизация важных сообщений будет происходить лишь раз в 5 минут. Требует WeeChat версии 1.1 и выше, вступает в силу после переподключения.</string>
-    <string name="pref__connection__sync_read_status">Синхронизировать прочитанные буферы</string>
-    <string name="pref__connection__sync_read_status_summary">Помечать буферы как прочитанные в WeeChat. Требует версии WeeChat 1.0 или выше.</string>
+
+    <string name="pref__connection__only_sync_open_buffers">
+        Оптимизировать трафик</string>
+    <string name="pref__connection__only_sync_open_buffers_summary">
+        Не запрашивать строки буферов, которые не открыты.
+        Может значительно уменьшить трафик и расход батареи,
+        но синхронизация важных сообщений будет происходить лишь раз в 5 минут.
+        Требует WeeChat версии 1.1 и выше, вступает в силу после переподключения.</string>
+
+    <string name="pref__connection__sync_read_status">
+        Синхронизировать прочитанные буферы</string>
+    <string name="pref__connection__sync_read_status_summary">
+        Помечать буферы как прочитанные в WeeChat. Требует версии WeeChat 1.0 или выше.</string>
+
+    <!-- ############################## connection: ping settings ############################## -->
+
     <string name="pref__connection__ping_group">Настройки пинга</string>
-    <string name="pref__connection__ping_enabled">Включить пинг</string>
-    <string name="pref__connection__ping_enabled_summary">Периодически проверять, не оборвалась ли связь, если давно не было сообщений от сервера</string>
-    <string name="pref__connection__ping_idle">Время простоя</string>
-    <string name="pref__connection__ping_idle_summary">Количество секунд без сетевой активности, по прошествии которых приложение пошлёт пинг (%s)</string>
-    <string name="pref__connection__ping_timeout">Время ожидания ответа</string>
-    <string name="pref__connection__ping_timeout_summary">Количество секунд после отсылки пинга, по прошествии которых соединение будет прервано (%s)</string>
-    <string name="pref__look_n_feel__alignment">Выравнивание текста</string>
+
+    <string name="pref__connection__ping_enabled">
+        Включить пинг</string>
+    <string name="pref__connection__ping_enabled_summary">
+        Периодически проверять, не оборвалась ли связь, если давно не было сообщений от сервера</string>
+
+    <string name="pref__connection__ping_idle">
+        Время простоя</string>
+    <string name="pref__connection__ping_idle_summary">
+        Количество секунд без сетевой активности,
+        по прошествии которых приложение пошлёт пинг (%s)</string>
+
+    <string name="pref__connection__ping_timeout">
+        Время ожидания ответа</string>
+    <string name="pref__connection__ping_timeout_summary">
+        Количество секунд после отсылки пинга,
+        по прошествии которых соединение будет прервано (%s)</string>
+
+    <!-- ####################################################################################### -->
+    <!-- ##################################### buffer list ##################################### -->
+    <!-- ####################################################################################### -->
+
+    <string name="pref__buffer_list_group">Список буферов</string>
+
+    <string name="pref__buffer_list__sort_by_hot">
+        Сортировать список буферов</string>
+    <string name="pref__buffer_list__sort_by_hot_summary">
+        Сортировать по количество упоминаний и новых сообщений в приватных буферах</string>
+
+    <string name="pref__buffer_list__hide_server_buffers">
+        Скрывать буферы без людей</string>
+    <string name="pref__buffer_list__hide_server_buffers_summary">
+        Например, буферы серверов и плагинов</string>
+
+    <string name="pref__buffer_list__hide_hidden_buffers">
+        Скрывать скрытые буферы</string>
+    <string name="pref__buffer_list__hide_hidden_buffers_summary">
+        Скрывать буферы, скрытые командой /buffer hide</string>
+
+    <string name="pref__buffer_list__show_buffer_filter">
+        Показывать фильтр буферов</string>
+    <string name="pref__buffer_list__show_buffer_filter_summary">
+        Фильтр работает с полными именами буферов и показывает скрытые буферы</string>
+
+    <string name="pref__buffer_list__use_gesture_exclusion_zone">
+        Исключение из системных жестов</string>
+    <string name="pref__buffer_list__use_gesture_exclusion_zone_summary">
+        На Android Q левая грань экрана предназначена для жеста «назад».
+        Эта опция позволяет оставить свободной от этого жеста небольшую зону внизу экрана,
+        чтобы можно было как обычно открывать список буферов.</string>
+
+    <!-- ####################################################################################### -->
+    <!-- #################################### look and feel #################################### -->
+    <!-- ####################################################################################### -->
+
+    <string name="pref__look_n_feel_group">Отображение</string>
+
+    <string name="pref__look_n_feel__text_size">Размер текста</string>
+
+    <string name="pref__look_n_feel__hide_toolbar">
+        Скрывать панель инструментов</string>
+    <string name="pref__look_n_feel__hide_toolbar_summary">
+        Скрывать панель инструментов при открытии клавиатуры или при прокручивании вверх</string>
+
+    <string name="pref__look_n_feel__filter_messages">
+        Фильтровать сообщения</string>
+    <string name="pref__look_n_feel__filter_messages_summary">
+        Скрывать сообщения, скрытые в WeeChat с помощью фильтра (например, irc_smart_filter)</string>
+
+    <string name="pref__look_n_feel__alignment">
+        Выравнивание текста</string>
     <string-array name="pref__look_n_feel__alignment_names">
         <item>По префиксу</item>
         <item>По максимальной длине префикса</item>
@@ -185,86 +519,109 @@
         <item>Без выравнивания</item>
     </string-array>
 
-    <string name="pref__look_n_feel__hide_toolbar">Скрывать панель инструментов</string>
-    <string name="pref__look_n_feel__hide_toolbar_summary">Скрывать панель инструментов при открытии клавиатуры или при прокручивании вверх</string>
-    <string name="pref__buffer_list_group">Список буферов</string>
-    <string name="pref__buttons_group">Кнопки</string>
-    <string name="pref__look_n_feel__filter_messages">Фильтровать сообщения</string>
-    <string name="pref__look_n_feel__filter_messages_summary">Скрывать сообщения, скрытые в WeeChat с помощью фильтра (например, irc_smart_filter)</string>
-    <string name="pref__theme__color_scheme_light">Светлая тема</string>
-    <string name="pref__theme__color_scheme_dark">Тёмная тема</string>
-    <string name="pref__theme__dim_down_non_human_lines">Цвет технических строк</string>
-    <string name="pref__theme__dim_down_non_human_lines_summary">Отображать приходы/уходы пользователей и подобные строки в более тусклом цвете (устанавливается темой)</string>
-    <string name="pref__look_n_feel__enclose_nicks">Ники в стиле IRC</string>
-    <string name="pref__look_n_feel__enclose_nicks_summary">Отображать символы &lt; и &gt; вокруг ников</string>
-    <string name="pref__look_n_feel__font">Шрифт буфера</string>
+    <string name="pref__look_n_feel__maximum_prefix_width">
+        Максимальная длина префикса</string>
+    <string name="pref__look_n_feel__maximum_prefix_width_summary">
+        Максимальное количество отображаемых символов префикса (%s)</string>
+
+    <string name="pref__look_n_feel__enclose_nicks">
+        Ники в стиле IRC</string>
+    <string name="pref__look_n_feel__enclose_nicks_summary">
+        Отображать символы &lt;&nbsp;и&nbsp;&gt; вокруг ников</string>
+
+    <string name="pref__look_n_feel__timestamp_format">Формат времени</string>
+    <string name="pref__look_n_feel__timestamp_format_summary">%s (по умолчанию: HH:mm:ss)</string>
+    <string name="error__pref__invalid_timestamp_format">Неверный формат времени</string>
+
+    <string name="pref__look_n_feel__font">
+        Шрифт буфера</string>
+    <string name="pref__FontPreference__summary">
+        Пропорциональные шрифты лучше не смешивать с выравниванием.
+        Пути поиска:%1$s
+        \n
+        \nТекущий шрифт:
+        \n&nbsp;&nbsp;&nbsp;&nbsp;%2$s</string>
     <string name="pref__FontPreference__default">По умолчанию</string>
-    <string name="pref__FontPreference__summary">Пропорциональные шрифты лучше не смешивать с выравниванием. Пути поиска:%1$s\n\nТекущий шрифт:\n\u0020\u0020\u0020\u0020%2$s</string>
-    <string name="pref__buffer_list__hide_hidden_buffers">Скрывать скрытые буферы</string>
-    <string name="pref__buffer_list__hide_hidden_buffers_summary">Скрывать буферы, скрытые командой /buffer hide</string>
-    <string name="pref__buffer_list__hide_server_buffers">Скрывать буферы без людей</string>
-    <string name="pref__buffer_list__hide_server_buffers_summary">Например, буферы серверов и плагинов</string>
-    <string name="error__pref__no_spaces_allowed_in_hostnames">В имени хоста не могут быть пробелы</string>
-    <string name="pref__look_n_feel_group">Отображение</string>
-    <string name="pref__look_n_feel__maximum_prefix_width">Максимальная длина префикса</string>
-    <string name="pref__look_n_feel__maximum_prefix_width_summary">Максимальное количество отображаемых символов префикса (%s)</string>
-    <string name="error__pref__invalid_number">Это вовсе не число</string>
-    <string name="pref__buttons__show_send">Показывать кнопку Отправить</string>
-    <string name="pref__buffer_list__show_buffer_filter">Показывать фильтр буферов</string>
-    <string name="pref__buffer_list__show_buffer_filter_summary">Фильтр работает с полными именами буферов и показывает скрытые буферы</string>
-    <string name="pref__buffer_list__sort_by_hot">Сортировать список буферов</string>
-    <string name="pref__buffer_list__sort_by_hot_summary">Сортировать по количество упоминаний и новых сообщений в приватных буферах</string>
-    <string name="pref__buffer_list__use_gesture_exclusion_zone">Исключение из системных жестов</string>
-    <string name="pref__buffer_list__use_gesture_exclusion_zone_summary">На Android Q левая грань экрана предназначена для жеста «назад». Эта опция позволяет оставить свободной от этого жеста небольшую зону внизу экрана, чтобы можно было как обычно открывать список буферов.</string>
-    <string name="pref__about__unknown_version_id">Версия неизвестна</string>
 
-    <plurals name="dialog__nicklist__n_users">
-        <item quantity="one">%1$d пользователь</item>
-        <item quantity="few">%1$d пользователя</item>
-        <item quantity="many">%1$d пользователей</item>
-    </plurals>
+    <!-- ####################################################################################### -->
+    <!-- ######################################## theme ######################################## -->
+    <!-- ####################################################################################### -->
 
-    <plurals name="notifications__hot__text">
-        <item quantity="one">%d новое сообщение в %s</item>
-        <item quantity="few">%d новых сообщения в %s</item>
-        <item quantity="many">%d новых сообщений в %s</item>
-    </plurals>
-
-    <plurals name="notifications__MessagingStyle__missing_messages">
-        <item quantity="one">(%d сообщение не получено)</item>
-        <item quantity="few">(%d сообщения не получено)</item>
-        <item quantity="many">(%d сообщений не получено)</item>
-    </plurals>
-
-    <!-- возможные значения: 1 и 2 (для кол-ва сообщений > 1) -->
-    <plurals name="notifications__MessagingStyle__missing_users" tools:ignore="MissingQuantity">
-        <item quantity="one" tools:ignore="ImpliedQuantity">(пользователь неизвестен)</item>
-        <item quantity="other">(пользователи неизвестны)</item>
-    </plurals>
-
-    <plurals name="notifications__hot_summary__messages">
-        <item quantity="one">%d сообщение</item>
-        <item quantity="few">%d сообщения</item>
-        <item quantity="many">%d сообщений</item>
-    </plurals>
-    <plurals name="notifications__hot_summary__in_buffers">
-        <item quantity="one">&#160;в %d буфере</item>
-        <item quantity="few">&#160;в %d буферах</item>
-        <item quantity="many">&#160;в %d буферах</item>
-    </plurals>
-    <string name="notifications__MessagingStyle__missing_messages_1">(сообщение не получено)</string>
     <string name="pref__theme">Тема</string>
-
     <string-array name="pref__theme__theme_names">
         <item>@string/pref__theme__theme__system</item>
         <item>Тёмная</item>
         <item>Светлая</item>
     </string-array>
+    <!-- overridden in -v29 -->
     <string name="pref__theme__theme__system">Устанавливается режимом энергосбережения</string>
 
     <string name="pref__theme__menu_switch">Переключатель темы</string>
     <string name="pref__theme__menu_switch_summary">Показывать переключатель темы в меню</string>
+
+    <string name="pref__theme__color_scheme_light">Светлая тема</string>
+    <string name="pref__theme__color_scheme_dark">Тёмная тема</string>
+    <string name="pref__ThemeManager__error_loading_color_scheme">Ошибка при загрузке темы %s</string>
+    <string name="pref__ThemePreference__not_set">Не установлена</string>
+
+    <string name="pref__ThemePreferenceHelp__summary"><![CDATA[
+         Вы можете создать свои цветовые схемы для этого приложения.
+         Поменяйте цвета интерфейса приложения,
+         цвета своих и помеченных сообщений,
+         измените цветовую палитру WeeChat!
+         <a href="https://github.com/ubergeek42/weechat-android/wiki/Custom-Color-Schemes">Больше информации</a>
+         <br>
+         <br>Поместите свои цветовые схемы в одну из этих папок:%1$s]]></string>
+
+    <string name="pref__theme__dim_down_non_human_lines">
+        Цвет технических строк</string>
+    <string name="pref__theme__dim_down_non_human_lines_summary">
+        Отображать приходы/уходы пользователей и подобные строки в более тусклом цвете
+        (устанавливается темой)</string>
+
+    <!-- ####################################################################################### -->
+    <!-- ####################################### buttons ####################################### -->
+    <!-- ####################################################################################### -->
+
+    <string name="pref__buttons_group">Кнопки</string>
+
+    <string name="pref__buttons__show_tab">Показывать кнопку Tab</string>
+
+    <string name="pref__buttons__show_send">Показывать кнопку Отправить</string>
+
+    <string name="pref__buttons__volume_buttons_change_text_size">
+        Кнопки громкости меняют размер текста</string>
+    <string name="pref__buttons__volume_buttons_change_text_size_summary">
+        Если настройка включена, кнопки громкости будут менять размер текста вместо громкости</string>
+
+    <!-- ####################################################################################### -->
+    <!-- #################################### notifications #################################### -->
+    <!-- ####################################################################################### -->
+
+    <string name="pref__notifications_group">Уведомления</string>
+
+    <string name="pref__notifications__enable">
+        Включить уведомления</string>
+    <string name="pref__notifications__enable_summary">
+        Уведомлять о важных сообщениях&nbsp;— сообщениях в приватных буферах и упоминаниях на каналах</string>
+
+    <string name="pref__notifications__sound">Звук уведомления</string>
+
+    <string name="pref__notifications__vibration">Вибрация</string>
+
+    <string name="pref__notifications__light">LED-индикатор</string>
+
+    <string name="pref__notifications__ticker">
+        Использовать «тикер»</string>
+    <string name="pref__notifications__ticker_summary">
+        Отображать сообщения в панели статуса (только на KitKat)</string>
+
+    <!-- ####################################################################################### -->
+    <!-- #################################### media preview #################################### -->
+    <!-- ####################################################################################### -->
+
     <string name="pref__media_preview_group">Миниатюры</string>
+
     <string name="pref__media_preview__enabled_for_network">Показывать</string>
     <string-array name="pref__media_preview__enabled_for_network_names">
         <item>Не показывать</item>
@@ -272,24 +629,46 @@
         <item>Только на сетях без тарификации</item>
         <item>Показывать на любых сетях</item>
     </string-array>
+
     <string name="pref__media_preview__enabled_for_context">Контекст</string>
+    <string name="pref__media_preview__enabled_for_context_summary_empty">Нигде не показывать</string>
     <string name="pref__media_preview__enabled_for_context_summary">Показывать в: %s</string>
     <string-array name="pref__media_preview__enabled_for_context_names">
         <item>Чат</item>
         <item>Диалог вставки</item>
         <item>Уведомления</item>
     </string-array>
-    <string name="pref__media_preview__enabled_for_context_summary_empty">Нигде не показывать</string>
+
+    <!-- originally secure requests: optional, rewrite, require, hence the naming -->
     <string name="pref__media_preview__secure_requests">Незащищённые запросы</string>
     <string-array name="pref__media_preview__secure_requests_names">
         <item>Разрешены</item>
         <item>Переписывать на HTTPS</item>
         <item>Запрещены</item>
     </string-array>
-    <string name="pref__media_preview__strategies">Стратегии</string>
+
+    <string name="pref__media_preview__help"><![CDATA[
+        На ранних версиях системы
+        активация миниатюр в уведомлениях может привести к повторению сообщений.
+        Чтобы настройки вступили в силу для уже загруженных данных,
+        может быть необходимо очистить кэш.
+        <br />
+        <br /><b>⚠ Внимание:</b> приложение запрашивает данные напрямую,
+        что может выдать серверу злоумышленника ваш IP-адрес и другие данные.
+        Чтобы запретить приложению доступ к неизвестным сайтам,
+        удалите стратегию для шаблонного хоста «*» или замените её на “none”.
+        <a href="https://github.com/ubergeek42/weechat-android/wiki/Media-preview">Больше информации</a>
+    ]]></string>
+
+    <string name="pref__media_preview__strategies">
+        Стратегии</string>
+    <string name="pref__StrategyPreference__summary">
+        Определяет способы загрузки изображений для отдельных сайтов, а также некоторые фильтры.
+        \n
+        \n%1$s; %2$s;
+        \n
+        \n%3$s</string>
     <string name="pref__StrategyPreference__summary_error">Ошибка</string>
-    <string name="pref__StrategyPreference__summary">Определяет способы загрузки изображений для отдельных
-            сайтов, а также некоторые фильтры.\n\n%1$s; %2$s;\n\n%3$s</string>
     <string name="pref__StrategyPreference__message_filter_set">Фильтр текста установлен</string>
     <string name="pref__StrategyPreference__message_filter_not_set">Фильтр текста не установлен</string>
     <string name="pref__StrategyPreference__0_line_filters_set">фильтры строк не установлены</string>
@@ -300,135 +679,66 @@
     </plurals>
     <string name="pref__StrategyPreference__strategies_not_loaded">Стратегии не заданы</string>
     <string name="pref__StrategyPreference__strategies_list">Стратегии: %s</string>
+
     <string name="pref__media_preview__advanced_group">Расширенные настройки</string>
+
     <string name="pref__media_preview__maximum_body_size">Ограничение размера загрузки</string>
     <string name="pref__media_preview__maximum_body_size_summary">%s МБ</string>
-    <string name="pref__media_preview__image_disk_cache_size">Дисковый кэш</string>
-    <string name="pref__media_preview__image_disk_cache_size_summary">%s МБ, вступает в силу при перезапуске</string>
-    <string name="pref__media_preview__success_cooldown">Успешная загрузка</string>
-    <string name="pref__media_preview__success_cooldown_summary">%s часа. В течение этого времени
-        приложение будет ожидать, что последующие загрузки\u00A0— из кэша или из сети\u00A0— также
-        будут успешны.</string>
+
+    <string name="pref__media_preview__image_disk_cache_size">
+        Дисковый кэш</string>
+    <string name="pref__media_preview__image_disk_cache_size_summary">
+        %s МБ, вступает в силу при перезапуске</string>
+
+    <string name="pref__media_preview__success_cooldown">
+        Успешная загрузка</string>
+    <string name="pref__media_preview__success_cooldown_summary">
+        %s часа. В течение этого времени приложение будет ожидать,
+        что последующие загрузки&nbsp;— из кэша или из сети&nbsp;— также будут успешны.</string>
+
     <string name="pref__media_preview__thumbnail_width">Ширина миниатюр</string>
+
     <string name="pref__media_preview__thumbnail_min_height">Минимальная высота миниатюр</string>
+
     <string name="pref__media_preview__thumbnail_max_height">Максимальная высота миниатюр</string>
-    <string name="menu__debug">Отладка</string>
-    <string name="menu__debug__sync_hotlist">Синхронизация</string>
-    <string name="menu__debug__die">Умереть</string>
-    <string name="pref__FullScreenEditTextPreference__menu_save">Сохранить</string>
-    <string name="pref__FullScreenEditTextPreference__menu_reset_to_default">По умолчанию</string>
-    <string name="pref__FullScreenEditTextPreference__discard_changes_prompt">Забыть изменения?</string>
-    <string name="pref__FullScreenEditTextPreference__discard_changes_cancel">Отмена</string>
-    <string name="pref__FullScreenEditTextPreference__discard_changes_discard">Забыть</string>
-    <string name="pref__media_preview__help"><![CDATA[На ранних версиях системы активация миниатюр в
-        уведомлениях может привести к повторению сообщений. Чтобы настройки вступили в силу для уже
-        загруженных данных, может быть необходимо очистить кэш.<br /><br /><b>⚠ Внимание:</b>
-        приложение запрашивает данные напрямую, что может выдать серверу злоумышленника ваш
-        IP-адрес и другие данные. Чтобы запретить приложению доступ к неизвестным сайтам, удалите
-        стратегию для шаблонного хоста «*» или замените её на “none”.
-        <a href="https://github.com/ubergeek42/weechat-android/wiki/Media-preview">Больше информации</a>]]></string>
 
-    <string name="dialog__certificate__not_pinned__pin_selected">Привязать выбранный сертификат</string>
+    <!-- ####################################################################################### -->
+    <!-- ####################################### sharing ####################################### -->
+    <!-- ####################################################################################### -->
 
-    <string name="dialog__certificate__invalid_hostname__text__android_p_warning"><![CDATA[
-        <br>Примечание: начиная с версии P, Android более не использует поле Common Name (CN) для
-        проверки хоста. Вместо него необходимо использовать поле Subject Alternative Name (SAN).
-        <a href="https://github.com/ubergeek42/weechat-android/wiki/Using-SSL-with-WeeChat">Узнать больше</a>
-    ]]></string>
+    <!-- ####################################################################################### -->
+    <!-- ######################################## about ######################################## -->
+    <!-- ####################################################################################### -->
 
-    <string name="dialog__certificate__not_yet_valid__title">Сертификат ещё не действителен</string>
-    <string name="dialog__certificate__not_yet_valid__text">Время действия сертификата ещё не наступило.
-        Пожалуйста, проверьте, правильно ли задана дата на устройстве.</string>
+    <string name="pref__about_group">О приложении</string>
 
-    <string name="dialog__certificate__expired__title">Срок действия сертификата истёк</string>
-    <string name="dialog__certificate__expired__text">Пожалуйста, проверьте, правильно ли задана дата
-        на устройстве.</string>
+    <string name="pref__about__created_by">создано ubergeek42</string>
 
-    <string name="dialog__certificate__untrusted__title">Недоверенный сертификат</string>
-    <string name="dialog__certificate__untrusted__text">Система не доверяет данному сертификату, но вы
-        можете подключиться на свой страх и риск. Приложение запомнит выбранный сертификат и будет
-        доверять ему и подписанным им сертификатам.</string>
+    <string name="pref__about__build_id">сборка: %s</string>
+    <string name="pref__about__unknown_version_id">Версия неизвестна</string>
 
-    <string name="dialog__certificate__not_pinned__title">Сертификат не привязан</string>
-    <string name="dialog__certificate__not_pinned__text">Система доверяет данному сертификату, но,
-        согласно текущим настройкам, вы должны подтвердить, что также доверяете ему. Приложение
-        запомнит выбранный сертификат и будет доверять ему и подписанным им сертификатам.</string>
-
-    <string name="pref__connection__ssl__require_certificate_pin">Привязка сертификата</string>
-    <string name="pref__connection__ssl__require_certificate_pin_summary">Запрашивать подтверждение того, что вы
-        доверяете серверу, даже если система ему доверяет</string>
-
-    <string name="pref__PasswordedFilePickerPreference__input_hint">пароль</string>
-
-    <string name="error__connection__ssl__client_certificate__not_set">Сервер запрашивает клиентский сертификат, но он
-        не установлен. Серверу нужен сертификат %1$s, выданный %2$s</string>
-    <string name="error__connection__ssl__client_certificate__certificate_mismatch">Сервер запрашивает клиентский сертификат, но
-        установленный в приложении сертификат ему не подходит. Серверу нужен сертификат %1$s,
-        выданный %2$s</string>
-
-    <string name="error__pref_validation__ssh_key_not_set">Ключ SSH не задан</string>
-    <string name="error__pref_validation__ssh_password_not_set">Пароль SSH не задан</string>
-
-    <string name="pref__connection__ssh__authentication_method">Метод аутентификации</string>
-    <string-array name="pref__connection__ssh__authentication_method_names">
-        <item>Пароль</item>
-        <item>Ключ</item>
-    </string-array>
-
-    <string name="error__connection__ssh__failed_to_authenticate_with_password">
-        Авторизация по паролю провалилась</string>
-    <string name="error__connection__ssh__failed_to_authenticate_with_key">
-        Авторизация по ключу провалилась</string>
-
-    <string name="pref__PrivateKeyPickerPreference__success_stored_inside_security_hardware_yes">
-        Ключ %s помещён в аппаратное хранилище</string>
-    <string name="pref__PrivateKeyPickerPreference__success_stored_inside_security_hardware_no">
-        Ключ %s помещён в программное хранилище</string>
-    <string name="pref__PrivateKeyPickerPreference__success_stored_inside_security_hardware_cant_tell">
-        Ключ %s помещён в хранилище</string>
-    <string name="pref__PrivateKeyPickerPreference__success_stored_outside_key_store">
-        Ключ %1$s помещён в настройки приложения.\n\nНе вышло поместить его в хранилище: %2$s</string>
-    <string name="pref__PrivateKeyPickerPreference__success_key_forgotten">Ключ забыт</string>
-
-    <string name="pref__CertPickerPreference__success_stored_inside_security_hardware_yes">
-        Сертификат помещён в аппаратное хранилище</string>
-    <string name="pref__CertPickerPreference__success_stored_inside_security_hardware_no">
-        Сертификат помещён в программное хранилище</string>
-    <string name="pref__CertPickerPreference__success_stored_inside_security_hardware_yes_cant_tell">
-        Сертификат помещён в хранилище</string>
-    <string name="pref__CertPickerPreference__success_certificate_forgotten">Сертификат забыт</string>
-
-    <string name="pref__ClearKnownHostsPreference__prompt">Забыть известные хосты?</string>
-    <string name="pref__ClearKnownHostsPreference__button_cancel">Отмена</string>
-    <string name="pref__ClearKnownHostsPreference__button_clear">Забыть</string>
-    <string name="pref__ClearKnownHostsPreference__success_cleared">Известные хосты забыты</string>
-    <string name="pref__ClearKnownHostsPreference__0_entries">Нет записей</string>
-    <plurals name="pref__ClearKnownHostsPreference__n_entries">
-        <item quantity="one">%s запись</item>
-        <item quantity="few">%s записи</item>
-        <item quantity="many">%s записей</item>
-    </plurals>
-
-    <string name="dialog__ssh__server_unknown__title">Сервер неизвестен</string>
-    <string name="dialog__ssh__server_unknown__text"><![CDATA[
-        Сервер <b>%1$s</b> нам ранее не встречался.
-        <br>
-        <br>SHA-256 отпечаток ключа %2$s:
-        <br><b>%3$s</b>]]></string>
-    <string name="dialog__ssh__server_unknown__button_accept_key">Принять ключ сервера</string>
-    <string name="dialog__ssh__server_unknown__button_reject_key">Отклонить</string>
-    <string name="dialog__ssh__etc_unknown_key_type">неизвестного типа</string>
-
-    <string name="dialog__ssh__server_changed_key__title">Сервер изменил ключ</string>
-    <string name="dialog__ssh__server_changed_key__text"><![CDATA[
-        <b>⚠ Внимание:</b> возможно, кто-то пытается перехватить это соединение!
-        <br>
-        <br>Сервер <b>%1$s</b> нам известен, но его ключ не совпадает с ключом, принятым вами ранее.
-        <br>
-        <br>SHA-256 отпечаток ключа %2$s:
-        <br><b>%3$s</b>
-        <br>
-        <br>Если вы хотите продолжить соединение, очистите известные хосты в настройках приложения.]]></string>
-
-    <string name="pref__connection__ssh__clear_known_hosts">Забыть известные хосты</string>
+    <string name="pref__about__used_libraries">
+        \nВ проекте используются следующие библиотеки:
+        \n
+        \n&nbsp;&nbsp;&nbsp;&nbsp;•&nbsp;<a href="https://github.com/noveogroup/android-logger">Android Logger от Noveo Group</a>
+        \n&nbsp;&nbsp;&nbsp;&nbsp;•&nbsp;<a href="https://www.eclipse.org/aspectj/">AspectJ от Eclipse Foundation</a>
+        \n&nbsp;&nbsp;&nbsp;&nbsp;•&nbsp;<a href="https://www.bouncycastle.org/">Bouncy Castle</a>
+        \n&nbsp;&nbsp;&nbsp;&nbsp;•&nbsp;<a href="https://github.com/greenrobot/EventBus">EventBus от greenrobot</a>
+        \n&nbsp;&nbsp;&nbsp;&nbsp;•&nbsp;<a href="https://bumptech.github.io/glide/">Glide от Bump Technologies</a>
+        \n&nbsp;&nbsp;&nbsp;&nbsp;•&nbsp;<a href="https://github.com/JakeWharton/hugo">Hugo от Jake Wharton</a>
+        \n&nbsp;&nbsp;&nbsp;&nbsp;•&nbsp;<a href="https://github.com/TooTallNate/Java-WebSocket">Java-WebSocket от Nathan Rajlich</a>
+        \n&nbsp;&nbsp;&nbsp;&nbsp;•&nbsp;<a href="https://github.com/dlew/joda-time-android">joda-time-android от Daniel Lew</a>
+        \n&nbsp;&nbsp;&nbsp;&nbsp;•&nbsp;<a href="http://www.jcraft.com/jsch/">JSch от JCraft</a>
+        \n&nbsp;&nbsp;&nbsp;&nbsp;•&nbsp;<a href="https://square.github.io/leakcanary/">LeakCanary от Square, Inc</a>
+        \n&nbsp;&nbsp;&nbsp;&nbsp;•&nbsp;<a href="http://site.mockito.org/">Mockito от Szczepan Faber и друзей</a>
+        \n&nbsp;&nbsp;&nbsp;&nbsp;•&nbsp;<a href="https://github.com/TakahikoKawasaki/nv-websocket-client">nv-websocket-client от Takahiko Kawasaki</a>
+        \n&nbsp;&nbsp;&nbsp;&nbsp;•&nbsp;<a href="https://square.github.io/okhttp/">OkHttp от Square, Inc</a>
+        \n&nbsp;&nbsp;&nbsp;&nbsp;•&nbsp;<a href="https://www.slf4j.org/">SLF4J от QOS.ch</a>
+        \n&nbsp;&nbsp;&nbsp;&nbsp;•&nbsp;<a href="https://bitbucket.org/asomov/snakeyaml">SnakeYAML от Андрея Сомова</a>
+        \n&nbsp;&nbsp;&nbsp;&nbsp;•&nbsp;<a href="https://github.com/connectbot/sshlib">sshlib от ConnectBot</a>
+        \n
+        \nНашли баг или хотите предложить новый функционал?
+        Создайте тикет на&nbsp;<a href="https://github.com/ubergeek42/weechat-android/">GitHub</a>!
+        \n
+        \n</string>
 </resources>

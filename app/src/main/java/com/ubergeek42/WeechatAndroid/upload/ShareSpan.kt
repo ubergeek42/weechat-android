@@ -29,7 +29,7 @@ private val TEXT_SIZE = 13.dp_to_px.f
 
 
 abstract class ShareSpan(
-        val suri: Suri,
+    val suri: Suri,
 ) : ReplacementSpan() {
     protected abstract val width: Int
     protected abstract val height: Int
