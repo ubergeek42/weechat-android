@@ -803,30 +803,51 @@ strategies:
     <!-- ####################################### sharing ####################################### -->
     <!-- ####################################################################################### -->
 
+    <string name="pref__sharing_group">File sharing</string>
+
+    <string name="pref__sharing__accept">Accept</string>
     <string-array name="pref__sharing__accept_names">
         <item>Text only</item>
         <item>Text, images and videos</item>
         <item>Everything</item>
     </string-array>
 
+    <string name="pref__sharing__upload_uri">Upload URL</string>
+
+    <string name="pref__sharing__form_field_name">Form field name</string>
+
+    <string name="pref__sharing__regex">Regex</string>
+
     <string name="pref__sharing__help" tools:ignore="TypographyDashes,Typos"><![CDATA[
         These settings roughly correspond to the following command:
         <br>
-        <br><tt>curl -s
-            --user user:pass
-            --header \'Additional: Header\'
-            --form file=@file.ext
-            https://example.com
-            | perl -nle \'/^https://\\S+/; print $1 // $&\'</tt>
+        <br><tt><small> curl -s --user user:pass \\
+        <br>&nbsp;&nbsp;--header \'Additional: Header\' \\
+        <br>&nbsp;&nbsp;--form file=@file.ext \\
+        <br>&nbsp;&nbsp;https://example.com | perl -nle \\
+        <br>&nbsp;&nbsp;\'m#^https://\\S+#; print $1//$&\'</small></tt>
         <br>
         <br>If the regular expression is set, it is used to find the URL in the response body;
         either the first capture group is used, or the whole match.
+        <a href="https://github.com/ubergeek42/weechat-android/wiki/File-sharing">Learn more</a>
     ]]></string>
 
+    <string name="pref__sharing__advanced_group">Advanced</string>
+
+    <string name="pref__sharing__additional_headers">Additional headers</string>
+
+    <string name="pref__sharing__authentication">Authentication</string>
     <string-array name="pref__sharing_authentication_names">
         <item>None</item>
         <item>Basic</item>
     </string-array>
+
+    <string name="pref__sharing__authentication_basic_user">User</string>
+
+    <string name="pref__sharing__authentication_basic_password">Password</string>
+
+    <string name="pref__sharing__remember_uploads_for">Remember uploads for</string>
+    <string name="pref__sharing__remember_uploads_for_summary">%s hours</string>
 
     <!-- ####################################################################################### -->
     <!-- ######################################## about ######################################## -->
