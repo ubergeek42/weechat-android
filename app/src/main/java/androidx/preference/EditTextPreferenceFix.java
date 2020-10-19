@@ -3,11 +3,11 @@ package androidx.preference;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.text.InputType;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.view.ViewGroup;
 import android.view.ViewParent;
+import android.view.inputmethod.EditorInfo;
 
 import com.ubergeek42.WeechatAndroid.R;
 
@@ -21,12 +21,8 @@ import androidx.fragment.app.DialogFragment;
 //   - automatically sets summary to *** if is a password edit
 
 public class EditTextPreferenceFix extends EditTextPreference implements DialogFragmentGetter {
-    private AppCompatEditText editText;
-    private boolean isPassword = false;
-    private final static int PASSWORD_MASK = InputType.TYPE_TEXT_VARIATION_PASSWORD
-            | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
-            | InputType.TYPE_NUMBER_VARIATION_PASSWORD
-            | InputType.TYPE_TEXT_VARIATION_WEB_PASSWORD;
+    final private AppCompatEditText editText;
+    final private boolean isPassword;
 
     @SuppressWarnings("unused")
     public EditTextPreferenceFix(Context context) {
@@ -54,7 +50,7 @@ public class EditTextPreferenceFix extends EditTextPreference implements DialogF
         editText = new AppCompatEditText(context, attrs);
         editText.setId(android.R.id.edit);
         if (!singleLine) editText.setSingleLine(false);
-        isPassword = (editText.getInputType() & PASSWORD_MASK) != 0;
+        isPassword = isPasswordInputType(editText.getInputType());
     }
 
     private AppCompatEditText getEditText() {
@@ -113,11 +109,13 @@ public class EditTextPreferenceFix extends EditTextPreference implements DialogF
             return (EditTextPreferenceFix) this.getPreference();
         }
 
-        @Override protected boolean needInputMethod() {
+        @Override
+        protected boolean needInputMethod() {
             return true;
         }
 
-        @Override public void onDialogClosed(boolean positiveResult) {
+        @Override
+        public void onDialogClosed(boolean positiveResult) {
             if (positiveResult && mEditText.getText() != null) {
                 String value = mEditText.getText().toString();
                 if (this.getEditTextPreference().callChangeListener(value)) {
@@ -125,5 +123,17 @@ public class EditTextPreferenceFix extends EditTextPreference implements DialogF
                 }
             }
         }
+    }
+
+    // copy-pasted from non-public TextView.isPasswordInputType
+    static boolean isPasswordInputType(int inputType) {
+        final int variation =
+                inputType & (EditorInfo.TYPE_MASK_CLASS | EditorInfo.TYPE_MASK_VARIATION);
+        return variation
+                == (EditorInfo.TYPE_CLASS_TEXT | EditorInfo.TYPE_TEXT_VARIATION_PASSWORD)
+                || variation
+                == (EditorInfo.TYPE_CLASS_TEXT | EditorInfo.TYPE_TEXT_VARIATION_WEB_PASSWORD)
+                || variation
+                == (EditorInfo.TYPE_CLASS_NUMBER | EditorInfo.TYPE_NUMBER_VARIATION_PASSWORD);
     }
 }

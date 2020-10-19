@@ -55,7 +55,7 @@
                 android:title="@string/pref__connection__ssh__port"
                 android:summary="%s"
                 android:defaultValue="22"
-                android:numeric="integer" />
+                android:inputType="number" />
             <EditTextPreferenceFix
                 android:key="ssh_user"
                 android:title="@string/pref__connection__ssh__user"
@@ -72,8 +72,8 @@
                 android:key="ssh_password"
                 android:title="@string/pref__connection__ssh__password"
                 android:summary="%s"
-                android:password="true"
-                android:singleLine="true" />
+                android:singleLine="true"
+                android:inputType="textPassword" />
             <PrivateKeyPickerPreference
                 android:key="ssh_key_file"
                 android:title="@string/pref__connection__ssh__key"
@@ -98,14 +98,13 @@
                 android:title="@string/pref__connection__relay_port"
                 android:summary="%s"
                 android:defaultValue="9001"
-                android:numeric="integer" />
+                android:inputType="number" />
             <EditTextPreferenceFix
                 android:key="password"
                 android:title="@string/pref__connection__relay_password"
                 android:summary="%s"
-                android:inputType="textPassword"
-                android:password="true"
-                android:singleLine="true" />
+                android:singleLine="true"
+                android:inputType="textPassword" />
         </PreferenceCategory>
 
         <PreferenceCategory
@@ -116,7 +115,7 @@
                 android:title="@string/pref__connection__number_of_lines_to_load"
                 android:summary="@string/pref__connection__number_of_lines_to_load_summary"
                 android:defaultValue="100"
-                android:numeric="integer" />
+                android:inputType="number" />
             <CheckBoxPreference
                 android:key="reconnect"
                 android:title="@string/pref__connection__reconnect_on_connection_loss" />
@@ -147,14 +146,14 @@
                     android:title="@string/pref__connection__ping_idle"
                     android:summary="@string/pref__connection__ping_idle_summary"
                     android:defaultValue="300"
-                    android:numeric="integer"
+                    android:inputType="number"
                     android:dependency="ping_enabled" />
                 <EditTextPreferenceFix
                     android:key="ping_timeout"
                     android:title="@string/pref__connection__ping_timeout"
                     android:summary="@string/pref__connection__ping_timeout_summary"
                     android:defaultValue="30"
-                    android:numeric="integer"
+                    android:inputType="number"
                     android:dependency="ping_enabled" />
             </PreferenceScreen>
         </PreferenceCategory>
@@ -202,7 +201,7 @@
             android:title="@string/pref__look_n_feel__text_size"
             android:summary="%s"
             android:defaultValue="12"
-            android:numeric="integer" />
+            android:inputType="numberDecimal" />
         <CheckBoxPreference
             android:key="auto_hide_actionbar"
             android:title="@string/pref__look_n_feel__hide_toolbar"
@@ -225,7 +224,7 @@
             android:title="@string/pref__look_n_feel__maximum_prefix_width"
             android:summary="@string/pref__look_n_feel__maximum_prefix_width_summary"
             android:defaultValue="7"
-            android:numeric="integer" />
+            android:inputType="number" />
         <CheckBoxPreference
             android:key="enclose_nick"
             android:title="@string/pref__look_n_feel__enclose_nicks"
@@ -433,7 +432,7 @@
             android:title="Upload URL"
             android:summary="%s"
             android:singleLine="true"
-            android:inputType="text" />
+            android:inputType="textUri" />
         <EditTextPreferenceFix
             android:key="uploading_form_field_name"
             android:title="Form field name"
