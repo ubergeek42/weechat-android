@@ -114,11 +114,12 @@
                 android:key="line_increment"
                 android:title="@string/pref__connection__number_of_lines_to_load"
                 android:summary="@string/pref__connection__number_of_lines_to_load_summary"
-                android:defaultValue="100"
+                android:defaultValue="300"
                 android:inputType="number" />
             <CheckBoxPreference
                 android:key="reconnect"
-                android:title="@string/pref__connection__reconnect_on_connection_loss" />
+                android:title="@string/pref__connection__reconnect_on_connection_loss"
+                android:defaultValue="true" />
             <CheckBoxPreference
                 android:key="boot_connect"
                 android:title="@string/pref__connection__connect_on_boot" />
@@ -173,22 +174,22 @@
             android:key="filter_nonhuman_buffers"
             android:title="@string/pref__buffer_list__hide_server_buffers"
             android:summary="@string/pref__buffer_list__hide_server_buffers_summary"
-            android:defaultValue="false" />
+            android:defaultValue="true" />
         <CheckBoxPreference
             android:key="hide_hidden_buffers"
             android:title="@string/pref__buffer_list__hide_hidden_buffers"
             android:summary="@string/pref__buffer_list__hide_hidden_buffers_summary"
-            android:defaultValue="false" />
+            android:defaultValue="true" />
         <CheckBoxPreference
             android:key="show_buffer_filter"
             android:title="@string/pref__buffer_list__show_buffer_filter"
             android:summary="@string/pref__buffer_list__show_buffer_filter_summary"
-            android:defaultValue="false" />
+            android:defaultValue="true" />
         <CheckBoxPreference
             android:key="use_gesture_exclusion_zone"
             android:title="@string/pref__buffer_list__use_gesture_exclusion_zone"
             android:summary="@string/pref__buffer_list__use_gesture_exclusion_zone_summary"
-            android:defaultValue="false" />
+            android:defaultValue="true" />
     </PreferenceScreen>
 
     <!-- look and feel -->
@@ -200,7 +201,7 @@
             android:key="text_size"
             android:title="@string/pref__look_n_feel__text_size"
             android:summary="%s"
-            android:defaultValue="12"
+            android:defaultValue="16"
             android:inputType="numberDecimal" />
         <CheckBoxPreference
             android:key="auto_hide_actionbar"
@@ -273,7 +274,7 @@
             android:key="dim_down"
             android:title="@string/pref__theme__dim_down_non_human_lines"
             android:summary="@string/pref__theme__dim_down_non_human_lines_summary"
-            android:defaultValue="false" />
+            android:defaultValue="true" />
     </PreferenceScreen>
 
     <!-- buttons -->
