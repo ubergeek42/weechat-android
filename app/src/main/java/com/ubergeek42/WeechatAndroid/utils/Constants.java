@@ -184,37 +184,38 @@ public class Constants {
 
 
     // uploading
-    final public static String PREF_UPLOADING_GROUP = "uploading_group";
-    final public static String PREF_UPLOADING_ACCEPT_SHARED = "uploading_accept_shared";
-    final public static String PREF_UPLOADING_ACCEPT_SHARED_TEXT_ONLY = "text_only";
-    final public static String PREF_UPLOADING_ACCEPT_SHARED_TEXT_AND_MEDIA = "text_and_media";
-    final public static String PREF_UPLOADING_ACCEPT_SHARED_EVERYTHING = "everything";
-    final public static String PREF_UPLOADING_ACCEPT_SHARED_D = PREF_UPLOADING_ACCEPT_SHARED_TEXT_ONLY;
+    final public static String PREF_UPLOAD_GROUP = "upload_group";
+    final public static String PREF_UPLOAD_ACCEPT = "upload_accept";
+    final public static String PREF_UPLOAD_ACCEPT_TEXT_ONLY = "text_only";
+    final public static String PREF_UPLOAD_ACCEPT_TEXT_AND_MEDIA = "text_and_media";
+    final public static String PREF_UPLOAD_ACCEPT_EVERYTHING = "everything";
+    final public static String PREF_UPLOAD_ACCEPT_D = PREF_UPLOAD_ACCEPT_TEXT_ONLY;
 
-    final public static String PREF_UPLOADING_URI = "uploading_uri";
-    final public static String PREF_UPLOADING_URI_D = "";
-    final public static String PREF_UPLOADING_FORM_FIELD_NAME = "uploading_form_field_name";
-    final public static String PREF_UPLOADING_FORM_FIELD_NAME_D = "file";
-    final public static String PREF_UPLOADING_REGEX = "uploading_regex";
-    final public static String PREF_UPLOADING_REGEX_D = "^https://\\S+";
-    final public static String PREF_UPLOADING_HELP = "uploading_help";
-    final public static String PREF_UPLOADING_ADVANCED_GROUP = "uploading_advanced_group";
-    final public static String PREF_UPLOADING_ADDITIONAL_HEADERS = "uploading_additional_headers";
-    final public static String PREF_UPLOADING_ADDITIONAL_HEADERS_D = "";
-    final public static String PREF_UPLOADING_AUTHENTICATION = "uploading_authentication";
-    final public static String PREF_UPLOADING_AUTHENTICATION_NONE = "none";
-    final public static String PREF_UPLOADING_AUTHENTICATION_BASIC = "basic";
-    final public static String PREF_UPLOADING_AUTHENTICATION_D = PREF_UPLOADING_AUTHENTICATION_NONE;
-    final public static String PREF_UPLOADING_AUTHENTICATION_BASIC_USER = "uploading_authentication_basic_user";
-    final public static String PREF_UPLOADING_AUTHENTICATION_BASIC_USER_D = "";
-    final public static String PREF_UPLOADING_AUTHENTICATION_BASIC_PASSWORD = "uploading_authentication_basic_password";
-    final public static String PREF_UPLOADING_AUTHENTICATION_BASIC_PASSWORD_D = "";
-    final public static String PREF_UPLOADING_CACHE_MAX_AGE = "uploading_cache_max_age";
-    final public static String PREF_UPLOADING_CACHE_MAX_AGE_D = "24";   // hours
+    final public static String PREF_UPLOAD_URI = "upload_uri";
+    final public static String PREF_UPLOAD_URI_D = "";
+    final public static String PREF_UPLOAD_FORM_FIELD_NAME = "upload_form_field_name";
+    final public static String PREF_UPLOAD_FORM_FIELD_NAME_D = "file";
+    final public static String PREF_UPLOAD_REGEX = "upload_regex";
+    final public static String PREF_UPLOAD_REGEX_D = "^https://\\S+";
+    final public static String PREF_UPLOAD_HELP = "upload_help";
+    final public static String PREF_UPLOAD_ADVANCED_GROUP = "upload_advanced_group";
+    final public static String PREF_UPLOAD_ADDITIONAL_HEADERS = "upload_additional_headers";
+    final public static String PREF_UPLOAD_ADDITIONAL_HEADERS_D = "";
+    final public static String PREF_UPLOAD_AUTHENTICATION = "upload_authentication";
+    final public static String PREF_UPLOAD_AUTHENTICATION_NONE = "none";
+    final public static String PREF_UPLOAD_AUTHENTICATION_BASIC = "basic";
+    final public static String PREF_UPLOAD_AUTHENTICATION_D = PREF_UPLOAD_AUTHENTICATION_NONE;
+    final public static String PREF_UPLOAD_AUTHENTICATION_BASIC_USER = "upload_authentication_basic_user";
+    final public static String PREF_UPLOAD_AUTHENTICATION_BASIC_USER_D = "";
+    final public static String PREF_UPLOAD_AUTHENTICATION_BASIC_PASSWORD = "upload_authentication_basic_password";
+    final public static String PREF_UPLOAD_AUTHENTICATION_BASIC_PASSWORD_D = "";
+    final public static String PREF_UPLOAD_REMEMBER_UPLOADS_FOR = "upload_remember_uploads_for";
+    final public static String PREF_UPLOAD_REMEMBER_UPLOADS_FOR_D = "24";   // hours
 
 
     // etc
-    final public static String PREF_THEME_SWITCH = "theme_switch"; final public static boolean PREF_THEME_SWITCH_D = false;
+    final public static String PREF_THEME_SWITCH = "theme_switch";
+    final public static boolean PREF_THEME_SWITCH_D = false;
 
     @SuppressWarnings("SameParameterValue")
     private static String getResourceString(int id) {

@@ -419,70 +419,70 @@
     <!-- sharing -->
 
     <PreferenceScreen
-        android:key="uploading_group"
+        android:key="upload_group"
         android:title="@string/pref__sharing_group">
         <ListPreference
-            android:key="uploading_accept_shared"
+            android:key="upload_accept"
             android:title="@string/pref__sharing__accept"
             android:summary="%s"
             android:entryValues="@array/pref__sharing__accept_values"
             android:entries="@array/pref__sharing__accept_names"
             android:defaultValue="text_only" />
         <EditTextPreferenceFix
-            android:key="uploading_uri"
+            android:key="upload_uri"
             android:title="@string/pref__sharing__upload_uri"
             android:summary="%s"
             android:singleLine="true"
             android:inputType="textUri" />
         <EditTextPreferenceFix
-            android:key="uploading_form_field_name"
+            android:key="upload_form_field_name"
             android:title="@string/pref__sharing__form_field_name"
             android:summary="%s"
             android:defaultValue="file"
             android:singleLine="true"
             android:inputType="text" />
         <EditTextPreferenceFix
-            android:key="uploading_regex"
+            android:key="upload_regex"
             android:title="@string/pref__sharing__regex"
             android:summary="%s"
             android:defaultValue="^https://\\S+"
             android:singleLine="true"
             android:inputType="text" />
         <HelpPreference
-            android:key="uploading_help"
+            android:key="upload_help"
             android:summary="@string/pref__sharing__help"
             android:persistent="false"
             android:selectable="false" />
         <PreferenceCategory
-            android:key="uploading_advanced_group"
+            android:key="upload_advanced_group"
             android:title="@string/pref__sharing__advanced_group">
             <EditTextPreferenceFix
-                android:key="uploading_additional_headers"
+                android:key="upload_additional_headers"
                 android:title="@string/pref__sharing__additional_headers"
                 android:summary="%s"
                 android:singleLine="false"
                 android:inputType="text" />
             <ListPreference
-                android:key="uploading_authentication"
+                android:key="upload_authentication"
                 android:title="@string/pref__sharing__authentication"
                 android:summary="%s"
                 android:entryValues="@array/pref__sharing_authentication_values"
                 android:entries="@array/pref__sharing_authentication_names"
                 android:defaultValue="none" />
             <EditTextPreferenceFix
-                android:key="uploading_authentication_basic_user"
+                android:key="upload_authentication_basic_user"
                 android:title="@string/pref__sharing__authentication_basic_user"
                 android:summary="%s"
                 android:singleLine="true"
                 android:inputType="text" />
             <EditTextPreferenceFix
-                android:key="uploading_authentication_basic_password"
+                android:key="upload_authentication_basic_password"
                 android:title="@string/pref__sharing__authentication_basic_password"
                 android:summary="%s"
                 android:singleLine="true"
                 android:inputType="textPassword" />
             <EditTextPreferenceFix
-                android:key="uploading_cache_max_age"
+                android:key="upload_remember_uploads_for"
                 android:title="@string/pref__sharing__remember_uploads_for"
                 android:summary="@string/pref__sharing__remember_uploads_for_summary"
                 android:defaultValue="24"

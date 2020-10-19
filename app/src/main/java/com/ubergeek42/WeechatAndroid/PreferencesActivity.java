@@ -181,14 +181,14 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
                 listenTo = new String[]{PREF_MEDIA_PREVIEW_ENABLED_FOR_NETWORK,
                         PREF_MEDIA_PREVIEW_ENABLED_FOR_LOCATION,
                         PREF_MEDIA_PREVIEW_STRATEGIES};
-            } else if (PREF_UPLOADING_GROUP.equals(key)) {
+            } else if (PREF_UPLOAD_GROUP.equals(key)) {
                 enableDisableUploadingPreferences(null);
                 showHideBasicAuthentication(null);
-                listenTo = new String[]{PREF_UPLOADING_ACCEPT_SHARED,
-                        PREF_UPLOADING_AUTHENTICATION,
-                        PREF_UPLOADING_URI,
-                        PREF_UPLOADING_REGEX,
-                        PREF_UPLOADING_ADDITIONAL_HEADERS};
+                listenTo = new String[]{PREF_UPLOAD_ACCEPT,
+                        PREF_UPLOAD_AUTHENTICATION,
+                        PREF_UPLOAD_URI,
+                        PREF_UPLOAD_REGEX,
+                        PREF_UPLOAD_ADDITIONAL_HEADERS};
             }
 
             for (String p : listenTo)
@@ -224,7 +224,7 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
                 if (Utils.isAnyOf(key, PREF_HOST, PREF_SSH_HOST)) {
                     valid = !((String) o).contains(" ");
                     errorResource = R.string.error__pref__no_spaces_allowed_in_hostnames;
-                } else if (PREF_UPLOADING_URI.equals(key)) {
+                } else if (PREF_UPLOAD_URI.equals(key)) {
                     if (!TextUtils.isEmpty((String) o)) HttpUrl.get((String) o);
                 } else if (PREF_SSH_AUTHENTICATION_METHOD.equals(key)) {
                     switchSshAuthenticationMethodPreferences((String) o);
@@ -245,15 +245,15 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
                 } else if (PREF_MEDIA_PREVIEW_STRATEGIES.equals(key)) {
                     // this method will show a toast on error
                     valid = Config.parseConfigSafe((String) o) != null;
-                } else if (PREF_UPLOADING_ACCEPT_SHARED.equals(key)) {
+                } else if (PREF_UPLOAD_ACCEPT.equals(key)) {
                     enableDisableUploadingPreferences((String) o);
-                } else if (PREF_UPLOADING_AUTHENTICATION.equals(key)) {
+                } else if (PREF_UPLOAD_AUTHENTICATION.equals(key)) {
                     showHideBasicAuthentication((String) o);
-                } else if (PREF_UPLOADING_REGEX.equals(key)) {
+                } else if (PREF_UPLOAD_REGEX.equals(key)) {
                     if (((String) o).length() > 0) {
                         HttpUriGetter.fromRegex((String) o);
                     }
-                } else if (PREF_UPLOADING_ADDITIONAL_HEADERS.equals(key)) {
+                } else if (PREF_UPLOAD_ADDITIONAL_HEADERS.equals(key)) {
                     RequestModifier.additionalHeaders((String) o);
                 }
             } catch (Exception e) {
@@ -322,14 +322,14 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
 
         private void enableDisableUploadingPreferences(@Nullable String enabled) {
             if (enabled == null) enabled = getPreferenceScreen().getSharedPreferences().getString(
-                    PREF_UPLOADING_ACCEPT_SHARED, PREF_UPLOADING_ACCEPT_SHARED_D);
-            boolean showSettings = !PREF_UPLOADING_ACCEPT_SHARED_TEXT_ONLY.equals(enabled);
-            for (String key : new String[] {
-                    PREF_UPLOADING_URI,
-                    PREF_UPLOADING_FORM_FIELD_NAME,
-                    PREF_UPLOADING_REGEX,
-                    PREF_UPLOADING_HELP,
-                    PREF_UPLOADING_ADVANCED_GROUP,
+                    PREF_UPLOAD_ACCEPT, PREF_UPLOAD_ACCEPT_D);
+            boolean showSettings = !PREF_UPLOAD_ACCEPT_TEXT_ONLY.equals(enabled);
+            for (String key : new String[]{
+                    PREF_UPLOAD_URI,
+                    PREF_UPLOAD_FORM_FIELD_NAME,
+                    PREF_UPLOAD_REGEX,
+                    PREF_UPLOAD_HELP,
+                    PREF_UPLOAD_ADVANCED_GROUP,
             }) {
                 Preference p = findPreference(key);
                 if (p != null) p.setEnabled(showSettings);
@@ -337,12 +337,13 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
         }
 
         private void showHideBasicAuthentication(@Nullable String authentication) {
-            if (authentication == null) authentication = getPreferenceScreen().getSharedPreferences().getString(
-                    PREF_UPLOADING_AUTHENTICATION, PREF_UPLOADING_AUTHENTICATION_D);
+            if (authentication == null)
+                authentication = getPreferenceScreen().getSharedPreferences().getString(
+                        PREF_UPLOAD_AUTHENTICATION, PREF_UPLOAD_AUTHENTICATION_D);
             boolean basic = "basic".equals(authentication);
-            Preference p = findPreference(PREF_UPLOADING_AUTHENTICATION_BASIC_USER);
+            Preference p = findPreference(PREF_UPLOAD_AUTHENTICATION_BASIC_USER);
             if (p != null) p.setVisible(basic);
-            p = findPreference(PREF_UPLOADING_AUTHENTICATION_BASIC_PASSWORD);
+            p = findPreference(PREF_UPLOAD_AUTHENTICATION_BASIC_PASSWORD);
             if (p != null) p.setVisible(basic);
         }
 

@@ -25,7 +25,7 @@ private val cache = ConcurrentHashMap<Uri, UploadRecord>()
 
 private fun filterRecords() {
     val now = System.currentTimeMillis()
-    cache.values.retainAll { now - it.timestamp < Config.cacheMaxAge }
+    cache.values.retainAll { now - it.timestamp < Config.rememberUploadsFor }
 }
 
 
@@ -95,10 +95,10 @@ object UploadDatabase {
 
     @JvmStatic fun restore() {
         thread {
-            val deleted = records.deleteRecordsOlderThan(System.currentTimeMillis() - Config.cacheMaxAge)
+            val deleted = records.deleteRecordsOlderThan(System.currentTimeMillis() - Config.rememberUploadsFor)
             val records = records.getAll()
-            kitty.trace("restoring %s items; deleted %s entries (max age %s ms)",
-                    records.size, deleted, Config.cacheMaxAge)
+            kitty.trace("restoring %s items; deleted %s entries (remembering uploads for %s ms)",
+                    records.size, deleted, Config.rememberUploadsFor)
             records.forEach { cache.putIfAbsent(it.uri, it) }
         }
     }

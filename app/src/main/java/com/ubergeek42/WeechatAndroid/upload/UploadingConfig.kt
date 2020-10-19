@@ -9,24 +9,25 @@ import com.ubergeek42.WeechatAndroid.utils.Constants.*
 
 
 object Config {
-    var uploadUri = PREF_UPLOADING_URI_D
-    var uploadFormFieldName = PREF_UPLOADING_FORM_FIELD_NAME
+    var uploadUri = PREF_UPLOAD_URI_D
+    var uploadFormFieldName = PREF_UPLOAD_FORM_FIELD_NAME
     var httpUriGetter = HttpUriGetter.simple
     var requestModifiers = emptyList<RequestModifier>()
-    var cacheMaxAge = PREF_UPLOADING_CACHE_MAX_AGE_D.hours_to_ms
+    var rememberUploadsFor = PREF_UPLOAD_REMEMBER_UPLOADS_FOR_D.hours_to_ms
 }
 
 fun initPreferences() {
     val p = PreferenceManager.getDefaultSharedPreferences(applicationContext)
-    for (key in listOf(PREF_UPLOADING_ACCEPT_SHARED,
-                       PREF_UPLOADING_URI,
-                       PREF_UPLOADING_FORM_FIELD_NAME,
-                       PREF_UPLOADING_REGEX,
-                       PREF_UPLOADING_ADDITIONAL_HEADERS,
-                       PREF_UPLOADING_AUTHENTICATION,
-                       PREF_UPLOADING_AUTHENTICATION_BASIC_USER,
-                       PREF_UPLOADING_AUTHENTICATION_BASIC_PASSWORD,
-                       PREF_UPLOADING_CACHE_MAX_AGE,
+    for (key in listOf(
+            PREF_UPLOAD_ACCEPT,
+            PREF_UPLOAD_URI,
+            PREF_UPLOAD_FORM_FIELD_NAME,
+            PREF_UPLOAD_REGEX,
+            PREF_UPLOAD_ADDITIONAL_HEADERS,
+            PREF_UPLOAD_AUTHENTICATION,
+            PREF_UPLOAD_AUTHENTICATION_BASIC_USER,
+            PREF_UPLOAD_AUTHENTICATION_BASIC_PASSWORD,
+            PREF_UPLOAD_REMEMBER_UPLOADS_FOR,
     )) {
         onSharedPreferenceChanged(p, key)
     }
@@ -35,11 +36,11 @@ fun initPreferences() {
 @Suppress("BooleanLiteralArgument")
 fun onSharedPreferenceChanged(p: SharedPreferences, key: String) {
     when (key) {
-        PREF_UPLOADING_ACCEPT_SHARED -> {
-            val (text, media, everything) = when (p.getString(key, PREF_UPLOADING_ACCEPT_SHARED_D)) {
-                PREF_UPLOADING_ACCEPT_SHARED_TEXT_ONLY ->      true to false to false
-                PREF_UPLOADING_ACCEPT_SHARED_TEXT_AND_MEDIA -> false to true to false
-                PREF_UPLOADING_ACCEPT_SHARED_EVERYTHING ->     false to false to true
+        PREF_UPLOAD_ACCEPT -> {
+            val (text, media, everything) = when (p.getString(key, PREF_UPLOAD_ACCEPT_D)) {
+                PREF_UPLOAD_ACCEPT_TEXT_ONLY -> true to false to false
+                PREF_UPLOAD_ACCEPT_TEXT_AND_MEDIA -> false to true to false
+                PREF_UPLOAD_ACCEPT_EVERYTHING -> false to false to true
                 else -> true to false to false
             }
             enableDisableComponent(ShareActivityAliases.TEXT_ONLY.alias, text)
@@ -47,16 +48,16 @@ fun onSharedPreferenceChanged(p: SharedPreferences, key: String) {
             enableDisableComponent(ShareActivityAliases.EVERYTHING.alias, everything)
         }
 
-        PREF_UPLOADING_URI -> {
-            Config.uploadUri = p.getString(key, PREF_UPLOADING_URI_D)!!
+        PREF_UPLOAD_URI -> {
+            Config.uploadUri = p.getString(key, PREF_UPLOAD_URI_D)!!
         }
 
-        PREF_UPLOADING_FORM_FIELD_NAME -> {
-            Config.uploadFormFieldName = p.getString(key, PREF_UPLOADING_FORM_FIELD_NAME_D)!!
+        PREF_UPLOAD_FORM_FIELD_NAME -> {
+            Config.uploadFormFieldName = p.getString(key, PREF_UPLOAD_FORM_FIELD_NAME_D)!!
         }
 
-        PREF_UPLOADING_REGEX -> {
-            val regex = p.getString(key, PREF_UPLOADING_REGEX_D)!!
+        PREF_UPLOAD_REGEX -> {
+            val regex = p.getString(key, PREF_UPLOAD_REGEX_D)!!
             Config.httpUriGetter = if (regex.isEmpty()) {
                 HttpUriGetter.simple
             } else {
@@ -64,29 +65,29 @@ fun onSharedPreferenceChanged(p: SharedPreferences, key: String) {
             }
         }
 
-        PREF_UPLOADING_ADDITIONAL_HEADERS,
-        PREF_UPLOADING_AUTHENTICATION,
-        PREF_UPLOADING_AUTHENTICATION_BASIC_USER,
-        PREF_UPLOADING_AUTHENTICATION_BASIC_PASSWORD -> {
+        PREF_UPLOAD_ADDITIONAL_HEADERS,
+        PREF_UPLOAD_AUTHENTICATION,
+        PREF_UPLOAD_AUTHENTICATION_BASIC_USER,
+        PREF_UPLOAD_AUTHENTICATION_BASIC_PASSWORD -> {
             val requestModifiers = mutableListOf<RequestModifier>()
 
             val additionalHeaders = RequestModifier.additionalHeaders(
-                    p.getString(PREF_UPLOADING_ADDITIONAL_HEADERS, PREF_UPLOADING_ADDITIONAL_HEADERS_D)!!)
+                    p.getString(PREF_UPLOAD_ADDITIONAL_HEADERS, PREF_UPLOAD_ADDITIONAL_HEADERS_D)!!)
             if (additionalHeaders != null)
                 requestModifiers.add(additionalHeaders)
 
-            if (p.getString(PREF_UPLOADING_AUTHENTICATION, PREF_UPLOADING_AUTHENTICATION_D) == PREF_UPLOADING_AUTHENTICATION_BASIC) {
-                val user = p.getString(PREF_UPLOADING_AUTHENTICATION_BASIC_USER, PREF_UPLOADING_AUTHENTICATION_BASIC_USER_D)!!
-                val password = p.getString(PREF_UPLOADING_AUTHENTICATION_BASIC_PASSWORD, PREF_UPLOADING_AUTHENTICATION_BASIC_PASSWORD_D)!!
+            if (p.getString(PREF_UPLOAD_AUTHENTICATION, PREF_UPLOAD_AUTHENTICATION_D) == PREF_UPLOAD_AUTHENTICATION_BASIC) {
+                val user = p.getString(PREF_UPLOAD_AUTHENTICATION_BASIC_USER, PREF_UPLOAD_AUTHENTICATION_BASIC_USER_D)!!
+                val password = p.getString(PREF_UPLOAD_AUTHENTICATION_BASIC_PASSWORD, PREF_UPLOAD_AUTHENTICATION_BASIC_PASSWORD_D)!!
                 requestModifiers.add(RequestModifier.basicAuthentication(user, password))
             }
 
             Config.requestModifiers = requestModifiers
         }
 
-        PREF_UPLOADING_CACHE_MAX_AGE -> {
+        PREF_UPLOAD_REMEMBER_UPLOADS_FOR -> {
             suppress<NumberFormatException> {
-                Config.cacheMaxAge = p.getString(key, PREF_UPLOADING_CACHE_MAX_AGE_D)!!.hours_to_ms
+                Config.rememberUploadsFor = p.getString(key, PREF_UPLOAD_REMEMBER_UPLOADS_FOR_D)!!.hours_to_ms
             }
         }
     }
