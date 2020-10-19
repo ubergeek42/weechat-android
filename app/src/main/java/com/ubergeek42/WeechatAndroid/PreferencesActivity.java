@@ -6,6 +6,7 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.text.TextUtils;
 import android.view.MenuItem;
 
 import androidx.annotation.NonNull;
@@ -224,7 +225,7 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
                     valid = !((String) o).contains(" ");
                     errorResource = R.string.error__pref__no_spaces_allowed_in_hostnames;
                 } else if (PREF_UPLOADING_URI.equals(key)) {
-                    System.out.println(HttpUrl.get((String) o));
+                    if (!TextUtils.isEmpty((String) o)) HttpUrl.get((String) o);
                 } else if (PREF_SSH_AUTHENTICATION_METHOD.equals(key)) {
                     switchSshAuthenticationMethodPreferences((String) o);
                 } else if (Utils.isAnyOf(key, PREF_TEXT_SIZE, PREF_MAX_WIDTH, PREF_PORT, PREF_SSH_PORT, PREF_PING_IDLE, PREF_PING_TIMEOUT)) {
