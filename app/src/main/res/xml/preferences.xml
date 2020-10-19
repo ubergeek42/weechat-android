@@ -15,8 +15,8 @@
             android:key="connection_type"
             android:title="@string/pref__connection_type"
             android:summary="%s"
-            android:entries="@array/pref__connection_type__names"
-            android:entryValues="@array/settings_connection_type_values"
+            android:entries="@array/pref__connection_type_names"
+            android:entryValues="@array/pref__connection_type_values"
             android:defaultValue="plain" />
 
         <EditTextPreferenceFix
@@ -66,7 +66,7 @@
                 android:title="@string/pref__connection__ssh__authentication_method"
                 android:summary="%s"
                 android:entries="@array/pref__connection__ssh__authentication_method_names"
-                android:entryValues="@array/pref_ssh_authentication_method_values"
+                android:entryValues="@array/pref__connection__ssh__authentication_method_values"
                 android:defaultValue="password" />
             <EditTextPreferenceFix
                 android:key="ssh_password"
@@ -218,7 +218,7 @@
             android:title="@string/pref__look_n_feel__alignment"
             android:summary="%s"
             android:entries="@array/pref__look_n_feel__alignment_names"
-            android:entryValues="@array/settings_prefix_alignment_values"
+            android:entryValues="@array/pref__look_n_feel__alignment_values"
             android:defaultValue="right" />
         <EditTextPreferenceFix
             android:key="prefix_max_width"
@@ -252,7 +252,7 @@
             android:title="@string/pref__theme"
             android:summary="%s"
             android:entries="@array/pref__theme__theme_names"
-            android:entryValues="@array/settings_theme_values"
+            android:entryValues="@array/pref__theme__theme_values"
             android:defaultValue="system" />
         <CheckBoxPreference
             android:key="theme_switch"
@@ -339,22 +339,22 @@
             android:key="media_preview_enabled_for_network"
             android:title="@string/pref__media_preview__enabled_for_network"
             android:summary="%s"
-            android:entryValues="@array/settings_media_preview_enabled_for_network_values"
+            android:entryValues="@array/pref__media_preview__enabled_for_network_values"
             android:entries="@array/pref__media_preview__enabled_for_network_names"
             android:defaultValue="never" />
         <MultiSelectListPreferenceWithSummary
             android:key="media_preview_enabled_for_location"
             android:title="@string/pref__media_preview__enabled_for_context"
             android:summary="@string/pref__media_preview__enabled_for_context_summary"
-            android:entryValues="@array/settings_media_preview_enabled_for_location_values"
+            app:emptySummary="@string/pref__media_preview__enabled_for_context_summary_empty"
+            android:entryValues="@array/pref__media_preview__enabled_for_context_values"
             android:entries="@array/pref__media_preview__enabled_for_context_names"
-            android:defaultValue="@array/settings_media_preview_enabled_for_location_values_default"
-            app:emptySummary="@string/pref__media_preview__enabled_for_context_summary_empty" />
+            android:defaultValue="@array/pref__media_preview__enabled_for_context_values_default" />
         <ListPreference
             android:key="media_preview_secure_request"
             android:title="@string/pref__media_preview__secure_requests"
             android:summary="%s"
-            android:entryValues="@array/settings_media_preview_secure_request_values"
+            android:entryValues="@array/pref__media_preview__secure_requests_values"
             android:entries="@array/pref__media_preview__secure_requests_names"
             android:defaultValue="rewrite" />
         <HelpPreference
@@ -425,7 +425,7 @@
             android:key="uploading_accept_shared"
             android:title="@string/pref__sharing__accept"
             android:summary="%s"
-            android:entryValues="@array/settings_uploading_enabled"
+            android:entryValues="@array/pref__sharing__accept_values"
             android:entries="@array/pref__sharing__accept_names"
             android:defaultValue="text_only" />
         <EditTextPreferenceFix
@@ -466,7 +466,7 @@
                 android:key="uploading_authentication"
                 android:title="@string/pref__sharing__authentication"
                 android:summary="%s"
-                android:entryValues="@array/settings_uploading_authentication_values"
+                android:entryValues="@array/pref__sharing_authentication_values"
                 android:entries="@array/pref__sharing_authentication_names"
                 android:defaultValue="none" />
             <EditTextPreferenceFix

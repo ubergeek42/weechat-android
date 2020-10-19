@@ -283,7 +283,7 @@
     <string name="pref__connection_group">Connexion</string>
 
     <string name="pref__connection_type">Type de connexion</string>
-    <string-array name="pref__connection_type__names">
+    <string-array name="pref__connection_type_names">
         <item>Connexion en clair</item>
         <item>WeeChat SSL</item>
         <item>Tunnel SSH</item>

@@ -1,57 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
+
     <!--  Don't touch these, they are internal names -->
-    <string-array name="settings_prefix_alignment_values">
+
+    <string-array name="pref__look_n_feel__alignment_values">
         <item>left</item>
         <item>right</item>
         <item>timestamp</item>
         <item>none</item>
     </string-array>
-    <string-array name="settings_connection_type_values">
-        <item >plain</item>
-        <item >ssl</item>
-        <item >ssh</item>
-        <item >websocket</item>
-        <item >websocket-ssl</item>
+
+    <string-array name="pref__connection_type_values">
+        <item>plain</item>
+        <item>ssl</item>
+        <item>ssh</item>
+        <item>websocket</item>
+        <item>websocket-ssl</item>
     </string-array>
-    <string-array name="pref_ssh_authentication_method_values">
+
+    <string-array name="pref__connection__ssh__authentication_method_values">
         <item>password</item>
         <item>key</item>
     </string-array>
-    <string-array name="settings_theme_values">
-        <item >system</item>
-        <item >dark</item>
-        <item >light</item>
+
+    <string-array name="pref__theme__theme_values">
+        <item>system</item>
+        <item>dark</item>
+        <item>light</item>
     </string-array>
 
-    <string-array name="settings_media_preview_enabled_for_network_values">
+    <string-array name="pref__media_preview__enabled_for_network_values">
         <item>never</item>
         <item>wifi_only</item>
         <item>unmetered_only</item>
         <item>always</item>
     </string-array>
-    <string-array name="settings_media_preview_enabled_for_location_values">
+
+    <string-array name="pref__media_preview__enabled_for_context_values">
         <item>chat</item>
         <item>paste</item>
         <item>notifications</item>
     </string-array>
-    <string-array name="settings_media_preview_enabled_for_location_values_default"
-        tools:ignore="InconsistentArrays">
+
+    <!-- overridden in -v24 -->
+    <string-array name="pref__media_preview__enabled_for_context_values_default" tools:ignore="InconsistentArrays">
         <item>chat</item>
         <item>paste</item>
     </string-array>
-    <string-array name="settings_media_preview_secure_request_values">
+
+    <string-array name="pref__media_preview__secure_requests_values">
         <item>optional</item>
         <item>rewrite</item>
         <item>required</item>
     </string-array>
 
-    <string-array name="settings_uploading_enabled">
+    <string-array name="pref__sharing__accept_values">
         <item>text_only</item>
         <item>text_and_media</item>
         <item>everything</item>
     </string-array>
-    <string-array name="settings_uploading_authentication_values">
+    <string-array name="pref__sharing_authentication_values">
         <item>none</item>
         <item>basic</item>
     </string-array>

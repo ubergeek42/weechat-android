@@ -287,7 +287,7 @@
     <string name="pref__connection_group">Подключение</string>
 
     <string name="pref__connection_type">Тип соединения</string>
-    <string-array name="pref__connection_type__names">
+    <string-array name="pref__connection_type_names">
         <item>Незащищённый релей</item>
         <item>Релей SSL</item>
         <item>Туннель SSH</item>
