@@ -1,3 +1,4 @@
+import org.gradle.internal.os.OperatingSystem
 import org.aspectj.bridge.IMessage
 import org.aspectj.bridge.MessageHandler
 import org.aspectj.tools.ajc.Main
@@ -39,8 +40,6 @@ dependencies {
 
     implementation 'org.yaml:snakeyaml:1.27:android'
 
-    implementation 'org.aspectj:aspectjrt:1.9.6'
-
     implementation "commons-codec:commons-codec:1.14"
     implementation 'org.bouncycastle:bcpkix-jdk15on:1.64'
 
@@ -51,6 +50,7 @@ dependencies {
 
     implementation 'org.greenrobot:eventbus:3.2.0'
 
+    debugImplementation "org.aspectj:aspectjtools:$aspectj_version"
     debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.5'
 }
 
@@ -166,8 +166,19 @@ static String versionBanner() {
 // the downside here is the the classes are modified in place, and so both compilation tasks
 // have to be re-run on every assemble
 
+
+// another problem is that ajc gets hold of some files such as R.jar, and so on Windows it leads to
+// errors such as “The process cannot access the file because it is being used by another process.”
+// to avoid these, weave in a process, which `javaexec` will helpfully launch for us.
+
+// note that javaexec needs to find aspectjtools on its classpath. this is a problem because
+// i have no idea how to get the path of build script dependencies in gradle. a workaround is to
+// also have aspectjtools as an *app* dependency. as we only need this in debug builds,
+// this shouldn't be an issue... right?
+
+
 def weaveCats(String classPath, String aspectPath, String inputOutput) {
-    String[] args = [
+    String[] arguments = [
             "-showWeaveInfo",
             "-1.8",
             "-inpath", inputOutput,
@@ -177,26 +188,34 @@ def weaveCats(String classPath, String aspectPath, String inputOutput) {
             "-bootclasspath", android.bootClasspath.join(File.pathSeparator)
     ]
 
-    MessageHandler handler = new MessageHandler(true)
-    new Main().run(args, handler)
+    if (OperatingSystem.current().isWindows()) {
+        javaexec {
+            classpath classPath.split(File.pathSeparator)
+            main = "org.aspectj.tools.ajc.Main"
+            args arguments
+        }
+    } else {
+        MessageHandler handler = new MessageHandler(true)
+        new Main().run(arguments, handler)
 
-    def log = project.logger
-    for (IMessage message : handler.getMessages(null, true)) {
-        switch (message.getKind()) {
-            case IMessage.ABORT:
-            case IMessage.ERROR:
-            case IMessage.FAIL:
-                log.error "ERROR: " + message.message, message.thrown
-                break
-            case IMessage.WARNING:
-                log.warn "WARN: " + message.message, message.thrown
-                break
-            case IMessage.INFO:
-                log.info "INFO: " + message.message, message.thrown
-                break
-            case IMessage.DEBUG:
-                log.info "DEBUG " + message.message, message.thrown
-                break
+        def log = project.logger
+        for (IMessage message : handler.getMessages(null, true)) {
+            switch (message.getKind()) {
+                case IMessage.ABORT:
+                case IMessage.ERROR:
+                case IMessage.FAIL:
+                    log.error "ERROR: " + message.message, message.thrown
+                    break
+                case IMessage.WARNING:
+                    log.warn "WARN: " + message.message, message.thrown
+                    break
+                case IMessage.INFO:
+                    log.info "INFO: " + message.message, message.thrown
+                    break
+                case IMessage.DEBUG:
+                    log.info "DEBUG " + message.message, message.thrown
+                    break
+            }
         }
     }
 }
