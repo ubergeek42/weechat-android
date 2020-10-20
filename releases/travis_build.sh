@@ -8,19 +8,19 @@ if [ -z "$DEVKEYALIAS" ]; then
     DEVKEYALIAS="weechat"
 fi
 
-DEVRELEASE="1"
+DEV="1"
 if [ -z "$DEVSTOREPASSWORD" ]; then
     echo "\$DEVSTOREPASSWORD must be set to build a release"
-    DEVRELEASE="0"
+    DEV="0"
 fi
 
 if [ -z "$DEVKEYPASSWORD" ]; then
     echo "\$DEVKEYPASSWORD must be set to build a release"
-    DEVRELEASE="0"
+    DEV="0"
 fi
 
-if [ "$DEVRELEASE" == "1" ]; then
-    ./gradlew clean :app:assembleDevrelease \
+if [ "$DEV" == "1" ]; then
+    ./gradlew clean :app:assembleDev \
         -PdevStorefile="$DEVSTOREFILE" \
         -PdevStorePassword="$DEVSTOREPASSWORD" \
         -PdevKeyAlias="$DEVKEYALIAS" \
