@@ -48,7 +48,7 @@ dependencies {
 
     implementation("org.greenrobot:eventbus:3.2.0")
 
-    debugImplementation("org.aspectj:aspectjtools:1.9.6")
+    debugImplementation("org.aspectj:aspectjrt:1.9.6")
     debugImplementation("com.squareup.leakcanary:leakcanary-android:2.5")
 }
 
@@ -147,11 +147,6 @@ fun versionBanner(): String {
 // errors such as “The process cannot access the file because it is being used by another process.”
 // to avoid these, weave in a process, which `javaexec` will helpfully launch for us.
 
-// note that javaexec needs to find aspectjtools on its classpath. this is a problem because
-// i have no idea how to get the path of build script dependencies in gradle. a workaround is to
-// also have aspectjtools as an *app* dependency. as we only need this in debug builds,
-// this shouldn’t be an issue... right?
-
 
 fun weaveCats(classPath: String, aspectPath: String, inputOutput: String) {
     val arguments = listOf("-showWeaveInfo",
@@ -164,7 +159,7 @@ fun weaveCats(classPath: String, aspectPath: String, inputOutput: String) {
 
     if (OperatingSystem.current().isWindows) {
         javaexec {
-            classpath(classPath.split(File.pathSeparator))
+            classpath = fileTree(weavingToolsClassPath)
             main = "org.aspectj.tools.ajc.Main"
             args = arguments
         }
@@ -198,6 +193,7 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
             classPath = classpath.asPath
         }
     }
+    dependsOn("fetchAspectjToolsBecauseIHaveNoIdeaHowToGetBuildScriptClassPath")
 }
 
 tasks.withType<JavaCompile> {
@@ -207,6 +203,7 @@ tasks.withType<JavaCompile> {
             javaPath = destinationDir.toString()
             classPath = classpath.asPath
         }
+        dependsOn("fetchAspectjToolsBecauseIHaveNoIdeaHowToGetBuildScriptClassPath")
     }
 }
 
@@ -222,4 +219,26 @@ gradle.taskGraph.afterTask {
             weaveCats(classPath!!, classPath!!, javaPath!!)
         }
     }
+}
+
+
+// javaexec needs to find aspectjtools on its classpath. this is a problem because
+// i have no idea how to get the path of build script dependencies in gradle.
+//
+// one workaround is to also have aspectjtools as an *app* dependency.
+// as we only need this in debug builds, this shouldn’t be an issue... right?
+//
+// a probably better one, implemented here, is using another configuration to find aspectjtools,
+// and then have a task that copies the jars to a known location... hey, don't look at me like that!
+
+val weavingToolsClassPath = "$buildDir/weaving"
+val weaving: Configuration by configurations.creating
+
+dependencies {
+    weaving("org.aspectj:aspectjtools:1.9.6")
+}
+
+tasks.register<Copy>("fetchAspectjToolsBecauseIHaveNoIdeaHowToGetBuildScriptClassPath") {
+    from(weaving)
+    into(weavingToolsClassPath)
 }
