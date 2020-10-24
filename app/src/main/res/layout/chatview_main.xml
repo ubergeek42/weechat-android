@@ -34,6 +34,16 @@
         </com.ubergeek42.WeechatAndroid.upload.MediaAcceptingEditText>
 
         <ImageButton
+            android:id="@+id/chatview_paperclip"
+            android:layout_width="wrap_content"
+            android:layout_height="?actionBarSize"
+            app:srcCompat="@drawable/ic_toolbar_paperclip"
+            android:contentDescription="@string/ui__button_paperclip"
+            android:layout_gravity="bottom"
+            android:layout_margin="0dp"
+            style="@style/ActionButton" />
+
+        <ImageButton
             android:id="@+id/chatview_tab"
             android:layout_width="wrap_content"
             android:layout_height="?actionBarSize"

@@ -38,6 +38,7 @@
 
     <string name="ui__button_tab">Tab</string>
     <string name="ui__button_send">Send</string>
+    <string name="ui__button_paperclip">Upload file</string>
 
     <string name="ui__button_fetch_more_lines">Fetch more lines</string>
     <string name="ui__button_fetching_lines">Fetching lines…</string>
