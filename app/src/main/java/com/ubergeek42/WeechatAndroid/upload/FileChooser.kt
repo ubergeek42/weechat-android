@@ -1,5 +1,6 @@
 package com.ubergeek42.WeechatAndroid.upload
 
+import android.content.ContentValues
 import android.content.Intent
 import android.content.Intent.EXTRA_ALLOW_MULTIPLE
 import android.graphics.Bitmap
@@ -9,14 +10,18 @@ import android.provider.MediaStore
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import com.ubergeek42.WeechatAndroid.media.ContentUriFetcher.FILE_PROVIDER_SUFFIX
+import com.ubergeek42.WeechatAndroid.utils.Toaster.Companion.ErrorToast
 import java.io.File
 import java.io.IOException
-import java.lang.IllegalArgumentException
 import java.text.SimpleDateFormat
 import java.util.*
 
 
 private val context = applicationContext
+
+
+private const val DEFAULT_FLAGS = Intent.FLAG_GRANT_READ_URI_PERMISSION or
+        Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION
 
 
 private interface Target {
@@ -25,49 +30,80 @@ private interface Target {
 }
 
 
-// the intent to pick images only, as opposed to images and videos, is much more user friendly
 enum class Targets(override val requestCode: Int) : Target {
-    Anything(1010) {
+    // these three open files using the default file manager
+    // the intent to pick images only, as opposed to images and videos, is a bit more cute
+    Images(1091) {
         override val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
-                                  type = "*/*"
+                                  type = "image/*"
+                                  flags = DEFAULT_FLAGS
                                   addCategory(Intent.CATEGORY_OPENABLE)
                                   putExtra(EXTRA_ALLOW_MULTIPLE, true)
                               }
     },
-    Images(1009) {
-        override val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
-                                  type = "images/*"
-                                  addCategory(Intent.CATEGORY_OPENABLE)
-                                  putExtra(EXTRA_ALLOW_MULTIPLE, true)
-                              }
-    },
-    ImagesAndVideos(1008) {
+    ImagesAndVideos(1093) {
         override val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
                                   type = "*/*"
+                                  flags = DEFAULT_FLAGS
                                   addCategory(Intent.CATEGORY_OPENABLE)
                                   putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("image/*", "video/*"))
                                   putExtra(EXTRA_ALLOW_MULTIPLE, true)
                               }
     },
-    Camera(1007) {
+    Anything(1097) {
+        override val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
+                                  type = "*/*"
+                                  flags = DEFAULT_FLAGS
+                                  addCategory(Intent.CATEGORY_OPENABLE)
+                                  putExtra(EXTRA_ALLOW_MULTIPLE, true)
+                              }
+    },
+
+    // these two will offer to pick images using apps such as Photos or Simple Gallery.
+    // the images & videos intent doesn't work with Simple Gallery;
+    // while the app opens, it doesn't offer to actually pick anything
+    MediaStoreImages(1080) {
+        override val intent = Intent(Intent.ACTION_PICK,
+                                     MediaStore.Images.Media.EXTERNAL_CONTENT_URI).apply {
+                                  flags = DEFAULT_FLAGS
+                                  putExtra(EXTRA_ALLOW_MULTIPLE, true)
+                              }
+    },
+    MediaStoreImagesAndVideos(1083) {
+        override val intent = Intent(Intent.ACTION_PICK,
+                                     MediaStore.Images.Media.EXTERNAL_CONTENT_URI).apply {
+                                  type = "*/*"
+                                  flags = DEFAULT_FLAGS
+                                  putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("image/*", "video/*"))
+                                  putExtra(EXTRA_ALLOW_MULTIPLE, true)
+                              }
+    },
+
+    Camera(1060) {
         override val intent get() = Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
-                                        putExtra(MediaStore.EXTRA_OUTPUT, createTemporaryFile())
+                                        putExtra(MediaStore.EXTRA_OUTPUT, createMediaStoreFile())
                                     }
     },
 }
 
 
 fun chooseFiles(fragment: Fragment, longClick: Boolean) {
-    val target = if (longClick) Targets.Camera else Targets.ImagesAndVideos
-    fragment.startActivityForResult(target.intent, target.requestCode)
+    val target = if (longClick) Targets.Camera else Targets.MediaStoreImages
+    try {
+        fragment.startActivityForResult(target.intent, target.requestCode)
+    } catch (e: Exception) {
+        ErrorToast.show(e)
+    }
 }
 
 
 fun getShareObjectFromIntent(requestCode: Int, intent: Intent?): ShareObject {
     when (requestCode) {
+        Targets.Images.requestCode,
+        Targets.ImagesAndVideos.requestCode,
         Targets.Anything.requestCode,
-        Targets.ImagesAndVideos.requestCode -> {
-
+        Targets.MediaStoreImages.requestCode,
+        Targets.MediaStoreImagesAndVideos.requestCode -> {
             // multiple files selected
             intent!!.clipData?.let { clipData ->
                 val uris = (0 until clipData.itemCount).map { clipData.getItemAt(it).uri }
@@ -81,7 +117,7 @@ fun getShareObjectFromIntent(requestCode: Int, intent: Intent?): ShareObject {
         }
 
         Targets.Camera.requestCode -> {
-            val uri = Uri.fromFile(currentPhotoPath)
+            val uri = currentPhotoUri
 
             // the bitmap that the intent contains is supposed to show a smaller image
             // suitable for displaying to the user. in practice, however, the intent is null.
@@ -105,7 +141,7 @@ fun getShareObjectFromIntent(requestCode: Int, intent: Intent?): ShareObject {
 // * external dir MediaStore.Images table -- no permissions required, api 29+
 
 // this pass is not returned back to us, so we simply save it here
-lateinit var currentPhotoPath: File
+lateinit var currentPhotoUri: Uri
 
 @Throws(IOException::class)
 private fun createTemporaryFile(): Uri {
@@ -113,9 +149,23 @@ private fun createTemporaryFile(): Uri {
     val directory: File = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
             ?: throw IOException("Storage directory not available")
 
-    currentPhotoPath = File.createTempFile("WeechatAndroid_${timestamp}_", ".jpeg", directory)
+    val file = File.createTempFile("WeechatAndroid_${timestamp}_", ".jpeg", directory)
+    currentPhotoUri = Uri.fromFile(file)
+    return FileProvider.getUriForFile(context, context.packageName + FILE_PROVIDER_SUFFIX, file)
+}
 
-    return FileProvider.getUriForFile(context,
-            context.packageName + FILE_PROVIDER_SUFFIX,
-            currentPhotoPath)
+
+// todo api 29+ only!
+private fun createMediaStoreFile(): Uri {
+    val timestamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+
+    val contentValues = ContentValues()
+    contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, "WeechatAndroid_${timestamp}.jpeg")
+    contentValues.put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
+
+    val resolver = context.contentResolver
+    val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+            ?: throw IOException("Content provider returned null")
+    currentPhotoUri = uri
+    return uri
 }
