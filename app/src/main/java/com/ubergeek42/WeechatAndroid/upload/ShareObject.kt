@@ -45,7 +45,7 @@ const val PLACEHOLDER_TEXT = "\u00a0"
 open class UrisShareObject(
     private val suris: List<Suri>
 ) : ShareObject {
-    private val bitmaps: Array<Bitmap?> = arrayOfNulls(suris.size)
+    protected val bitmaps: Array<Bitmap?> = arrayOfNulls(suris.size)
 
     override fun insert(editText: EditText, insertAt: InsertAt) {
         val context = editText.context
@@ -56,7 +56,7 @@ open class UrisShareObject(
         }
     }
 
-    fun getAllImagesAndThen(context: Context, then: () -> Unit) {
+    open fun getAllImagesAndThen(context: Context, then: () -> Unit) {
         suris.forEachIndexed { i, suri ->
             getThumbnailAndThen(context, suri.uri) { bitmap ->
                 bitmaps[i] = bitmap
@@ -77,6 +77,17 @@ open class UrisShareObject(
         @JvmStatic @Throws(FileNotFoundException::class, IOException::class, SecurityException::class)
         fun fromUris(uris: List<Uri>): UrisShareObject {
             return UrisShareObject(uris.map { Suri.fromUri(it) })
+        }
+
+        // camera is supposed to provide a scaled down bitmap for us to display
+        // in practice this doesn't happen. todo remove?
+        fun fromCamera(bitmap: Bitmap, uri: Uri): UrisShareObject {
+            return object : UrisShareObject(listOf(Suri.fromUri(uri))) {
+                override fun getAllImagesAndThen(context: Context, then: () -> Unit) {
+                    bitmaps[0] = bitmap
+                    then ()
+                }
+            }
         }
     }
 }

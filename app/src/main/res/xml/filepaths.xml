@@ -3,4 +3,9 @@
     <!-- Based on default Glide operation, see InternalCacheDiskCacheFactory instantiated from
         GlideBuilder.createGlide() https://github.com/bumptech/glide/issues/ -->
     <cache-path name="cache" path="image_manager_disk_cache" tools:path="DiskCache.Factory.DEFAULT_DISK_CACHE_DIR" />
+
+    <!-- see https://developer.android.com/training/camera/photobasics
+             https://stackoverflow.com/q/42516126/1449683 -->
+    <external-files-path name="external_files" path="." />
+    <external-path name="external" path="." />
 </paths>

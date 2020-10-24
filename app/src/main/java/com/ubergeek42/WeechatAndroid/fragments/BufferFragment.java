@@ -18,6 +18,7 @@ import org.greenrobot.eventbus.ThreadMode;
 import org.jetbrains.annotations.NotNull;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import androidx.recyclerview.widget.RecyclerView;
@@ -36,6 +37,7 @@ import android.widget.TextView;
 
 import com.ubergeek42.WeechatAndroid.Weechat;
 import com.ubergeek42.WeechatAndroid.copypaste.Paste;
+import com.ubergeek42.WeechatAndroid.upload.FileChooserKt;
 import com.ubergeek42.WeechatAndroid.upload.InsertAt;
 import com.ubergeek42.WeechatAndroid.upload.Upload;
 import com.ubergeek42.WeechatAndroid.upload.UploadObserver;
@@ -52,6 +54,7 @@ import com.ubergeek42.WeechatAndroid.relay.BufferEye;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.utils.FriendlyExceptions;
+import com.ubergeek42.WeechatAndroid.utils.Toaster;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.CatD;
@@ -59,8 +62,10 @@ import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
 import com.ubergeek42.weechat.ColorScheme;
 
+import static android.app.Activity.RESULT_OK;
 import static com.ubergeek42.WeechatAndroid.service.Events.*;
 import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.*;
+import static com.ubergeek42.WeechatAndroid.upload.FileChooserKt.chooseFiles;
 import static com.ubergeek42.WeechatAndroid.utils.Toaster.ErrorToast;
 
 
@@ -76,6 +81,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
 
     private AnimatedRecyclerView uiLines;
     private MediaAcceptingEditText uiInput;
+    private ImageButton uiPaperclip;
     private ImageButton uiSend;
     private ImageButton uiTab;
 
@@ -124,6 +130,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
 
         uiLines = v.findViewById(R.id.chatview_lines);
         uiInput = v.findViewById(R.id.chatview_input);
+        uiPaperclip = v.findViewById(R.id.chatview_paperclip);
         uiSend = v.findViewById(R.id.chatview_send);
         uiTab = v.findViewById(R.id.chatview_tab);
 
@@ -145,6 +152,12 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
             @Override public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 if (focused && dy != 0) activity.toolbarController.onScroll(dy, uiLines.getOnTop(), uiLines.getOnBottom());
             }
+        });
+
+        uiPaperclip.setOnClickListener((View view) -> chooseFiles(this, false));
+        uiPaperclip.setOnLongClickListener((View view) -> {
+            chooseFiles(this, true);
+            return true;
         });
 
         uiSend.setOnClickListener(this);
@@ -567,4 +580,15 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
                     UploadStatus.HAS_THINGS_TO_UPLOAD : UploadStatus.NOTHING_TO_UPLOAD);
         }
     };
+
+    @Override @Cat public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        if (resultCode == RESULT_OK) {
+            try {
+                FileChooserKt.getShareObjectFromIntent(requestCode, data)
+                        .insert(uiInput, InsertAt.CURRENT_POSITION);
+            } catch (Exception e) {
+                ErrorToast.show(e);
+            }
+        }
+    }
 }

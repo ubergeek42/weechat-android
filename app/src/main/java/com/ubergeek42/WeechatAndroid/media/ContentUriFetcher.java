@@ -23,7 +23,7 @@ import java.io.File;
 public class ContentUriFetcher {
     final private static @Root Kitty kitty = Kitty.make();
 
-    final private static String FILE_PROVIDER_SUFFIX = ".file_provider";
+    final public static String FILE_PROVIDER_SUFFIX = ".file_provider";
 
     public interface ContentUriReadyCallback {
         void onContentUriReady(Uri uri);
