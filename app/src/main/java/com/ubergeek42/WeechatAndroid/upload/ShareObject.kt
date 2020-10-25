@@ -78,17 +78,6 @@ open class UrisShareObject(
         fun fromUris(uris: List<Uri>): UrisShareObject {
             return UrisShareObject(uris.map { Suri.fromUri(it) })
         }
-
-        // camera is supposed to provide a scaled down bitmap for us to display
-        // in practice this doesn't happen. todo remove?
-        fun fromCamera(bitmap: Bitmap, uri: Uri): UrisShareObject {
-            return object : UrisShareObject(listOf(Suri.fromUri(uri))) {
-                override fun getAllImagesAndThen(context: Context, then: () -> Unit) {
-                    bitmaps[0] = bitmap
-                    then ()
-                }
-            }
-        }
     }
 }
 

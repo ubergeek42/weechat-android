@@ -127,10 +127,6 @@ fun getShareObjectFromIntent(requestCode: Int, intent: Intent?): ShareObject {
             // suitable for displaying to the user. in practice, however, the intent is null.
             // in both cases the url that we provided to the picker will point at the full image
             // see https://stackoverflow.com/a/12564910/1449683
-            intent?.extras?.get("data")?.also {
-                return UrisShareObject.fromCamera(it as Bitmap, currentPhotoUri)
-            }
-
             return UrisShareObject.fromUris(listOf(currentPhotoUri))
         }
 
