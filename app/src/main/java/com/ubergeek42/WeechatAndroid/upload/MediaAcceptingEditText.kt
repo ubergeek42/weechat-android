@@ -22,7 +22,7 @@ class MediaAcceptingEditText : ActionEditText {
 
     override fun onCreateInputConnection(editorInfo: EditorInfo): InputConnection {
         val inputConnection: InputConnection = super.onCreateInputConnection(editorInfo)
-        EditorInfoCompat.setContentMimeTypes(editorInfo, arrayOf("*/*"))
+        EditorInfoCompat.setContentMimeTypes(editorInfo, arrayOf("*/*", "image/*", "image/png", "image/gif", "image/jpeg"))
         return InputConnectionCompat.createWrapper(inputConnection, editorInfo, callback)
     }
 
