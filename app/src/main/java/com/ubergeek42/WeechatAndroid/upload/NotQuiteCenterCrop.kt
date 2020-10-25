@@ -32,6 +32,8 @@ class NotQuiteCenterCrop : BitmapTransformation() {
     override fun transform(pool: BitmapPool, bitmap: Bitmap, outWidth: Int, outHeight: Int): Bitmap {
         val dimensions = Dimensions(bitmap.width, bitmap.height)
 
+        dimensions.fill(outWidth, outHeight)
+
         dimensions.whileRotatedToLandscape {
             var ratio = dimensions.width / dimensions.height.d
             ratio = reduce(ratio, BEND, CEILING)
@@ -65,5 +67,15 @@ private class Dimensions(var width: Int, var height: Int) {
             f()
             rotate()
         }
+    }
+
+    // this transformation usually receives images of correct size, so most of the time this is noop
+    // however, on L, video thumbnails can come in being too big.
+    // this will shrink or enlarge the image so that it fills the output and
+    // so that at least one side is the same as output size
+    fun fill(outWidth: Int, outHeight: Int) {
+        val correction = minOf(height.d / outHeight, width.d / outWidth)
+        height = (height / correction).i
+        width = (width / correction).i
     }
 }
