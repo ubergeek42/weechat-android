@@ -104,8 +104,7 @@ enum class Targets(override val requestCode: Int) : Target {
 }
 
 
-fun chooseFiles(fragment: Fragment, longClick: Boolean) {
-    val target = if (longClick) Targets.Camera else Targets.MediaStoreImages
+fun chooseFiles(fragment: Fragment, target: Targets) {
     try {
         fragment.startActivityForResult(target.intent, target.requestCode)
     } catch (e: WritePermissionRequiredError) {

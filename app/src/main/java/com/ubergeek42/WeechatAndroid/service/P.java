@@ -185,7 +185,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         // buffer fragment
         showSend = p.getBoolean(PREF_SHOW_SEND, PREF_SHOW_SEND_D);
         showTab = p.getBoolean(PREF_SHOW_TAB, PREF_SHOW_TAB_D);
-        showPaperclip = true;
+        showPaperclip = p.getBoolean(PREF_SHOW_PAPERCLIP, PREF_SHOW_PAPERCLIP_D);
         hotlistSync = p.getBoolean(PREF_HOTLIST_SYNC, PREF_HOTLIST_SYNC_D);
         volumeBtnSize = p.getBoolean(PREF_VOLUME_BTN_SIZE, PREF_VOLUME_BTN_SIZE_D);
 
@@ -384,6 +384,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
             // buffer fragment
             case PREF_SHOW_SEND: showSend = p.getBoolean(key, PREF_SHOW_SEND_D); break;
             case PREF_SHOW_TAB: showTab = p.getBoolean(key, PREF_SHOW_TAB_D); break;
+            case PREF_SHOW_PAPERCLIP: showPaperclip = p.getBoolean(key, PREF_SHOW_PAPERCLIP_D); break;
             case PREF_HOTLIST_SYNC: hotlistSync = p.getBoolean(key, PREF_HOTLIST_SYNC_D); break;
             case PREF_VOLUME_BTN_SIZE: volumeBtnSize = p.getBoolean(key, PREF_VOLUME_BTN_SIZE_D); break;
 

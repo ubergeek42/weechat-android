@@ -69,6 +69,13 @@
 
     <string name="menu__dark_theme">Dark theme</string>
 
+    <string name="menu__upload_actions__content_images">Attach image</string>
+    <string name="menu__upload_actions__content_media">Attach media</string>
+    <string name="menu__upload_actions__content_anything">Attach file</string>
+    <string name="menu__upload_actions__mediastore_images">Attach image</string>
+    <string name="menu__upload_actions__mediastore_media">Attach media</string>
+    <string name="menu__upload_actions__camera">Take photo</string>
+
     <string name="menu__debug">Debug</string>
     <string name="menu__debug__sync_hotlist">Sync hotlist</string>
     <string name="menu__debug__die">Die</string>
@@ -594,6 +601,48 @@
     <string name="pref__buttons__show_tab">Show tab button</string>
 
     <string name="pref__buttons__show_send">Show send button</string>
+
+    <string name="pref__buttons__show_paperclip">Show paperclip button</string>
+
+    <string name="pref__buttons__paperclip__action_1">Paperclip button short tap</string>
+    <string-array name="pref__buttons__paperclip__action_1_names" translatable="false">
+        <item>@string/pref__buttons__paperclip__actions__content_images</item>
+        <item>@string/pref__buttons__paperclip__actions__content_media</item>
+        <item>@string/pref__buttons__paperclip__actions__content_anything</item>
+        <item>@string/pref__buttons__paperclip__actions__mediastore_images</item>
+        <item>@string/pref__buttons__paperclip__actions__mediastore_media</item>
+        <item>@string/pref__buttons__paperclip__actions__camera</item>
+    </string-array>
+
+    <string name="pref__buttons__paperclip__action_2">Paperclip button long tap</string>
+    <string-array name="pref__buttons__paperclip__action_2_names" translatable="false">
+        <item>@string/pref__buttons__paperclip__actions__none</item>
+        <item>@string/pref__buttons__paperclip__actions__content_images</item>
+        <item>@string/pref__buttons__paperclip__actions__content_media</item>
+        <item>@string/pref__buttons__paperclip__actions__content_anything</item>
+        <item>@string/pref__buttons__paperclip__actions__mediastore_images</item>
+        <item>@string/pref__buttons__paperclip__actions__mediastore_media</item>
+        <item>@string/pref__buttons__paperclip__actions__camera</item>
+    </string-array>
+    <string name="pref__buttons__paperclip__actions__none">
+        Disabled</string>
+    <string name="pref__buttons__paperclip__actions__content_images">
+        System: attach images</string>
+    <string name="pref__buttons__paperclip__actions__content_media">
+        System: attach images and videos</string>
+    <string name="pref__buttons__paperclip__actions__content_anything">
+        System: attach any files</string>
+    <string name="pref__buttons__paperclip__actions__mediastore_images">
+        Gallery: attach images</string>
+    <string name="pref__buttons__paperclip__actions__mediastore_media">
+        Gallery: attach images and videos</string>
+    <string name="pref__buttons__paperclip__actions__camera">
+        Take photo</string>
+
+    <string name="pref__paperclip__help">
+        When paperclip button gets hidden to provide more space for the input field,
+        you can still attach files via overflow menu.
+    </string>
 
     <string name="pref__buttons__volume_buttons_change_text_size">
         Volume buttons change text size</string>

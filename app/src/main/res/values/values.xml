@@ -64,6 +64,23 @@
         <item>basic</item>
     </string-array>
 
+    <string-array name="pref__buttons__paperclip__action_1_values">
+        <item>content_images</item>
+        <item>content_media</item>
+        <item>content_anything</item>
+        <item>mediastore_images</item>
+        <item>mediastore_media</item>
+        <item>camera</item>
+    </string-array>
+    <string-array name="pref__buttons__paperclip__action_2_values">
+        <item>none</item>
+        <item>content_images</item>
+        <item>content_media</item>
+        <item>content_anything</item>
+        <item>mediastore_images</item>
+        <item>mediastore_media</item>
+        <item>camera</item>
+    </string-array>
 
     <bool name="debug">false</bool>
 

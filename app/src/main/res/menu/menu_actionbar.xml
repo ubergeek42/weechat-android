@@ -39,12 +39,12 @@
         android:menuCategory="secondary"
         android:visible="false"
         app:showAsAction="never"
-        android:title="Upload file" />
+        android:title="@null" />
     <item android:id="@+id/menu_upload_2"
         android:menuCategory="secondary"
         android:visible="false"
         app:showAsAction="never"
-        android:title="Take photo" />
+        android:title="@null" />
 
     <item android:id="@+id/debug"
         android:visible="@bool/debug"

@@ -283,13 +283,38 @@
         android:key="button_group"
         android:title="@string/pref__buttons_group">
         <CheckBoxPreference
+            android:key="sendbtn_show"
+            android:title="@string/pref__buttons__show_send"
+            android:defaultValue="true" />
+        <CheckBoxPreference
             android:key="tabbtn_show"
             android:title="@string/pref__buttons__show_tab"
             android:defaultValue="true" />
         <CheckBoxPreference
-            android:key="sendbtn_show"
-            android:title="@string/pref__buttons__show_send"
+            android:key="buttons__show_paperclip"
+            android:title="@string/pref__buttons__show_paperclip"
             android:defaultValue="true" />
+        <ListPreference
+            android:key="buttons__paperclip_action_1"
+            android:title="@string/pref__buttons__paperclip__action_1"
+            android:summary="%s"
+            android:entries="@array/pref__buttons__paperclip__action_1_names"
+            android:entryValues="@array/pref__buttons__paperclip__action_1_values"
+            android:defaultValue="content_media"
+            android:dependency="buttons__show_paperclip" />
+        <ListPreference
+            android:key="buttons__paperclip_action_2"
+            android:title="@string/pref__buttons__paperclip__action_2"
+            android:summary="%s"
+            android:entries="@array/pref__buttons__paperclip__action_2_names"
+            android:entryValues="@array/pref__buttons__paperclip__action_2_values"
+            android:defaultValue="camera"
+            android:dependency="buttons__show_paperclip" />
+        <HelpPreference
+            android:summary="@string/pref__paperclip__help"
+            android:persistent="false"
+            android:selectable="false"
+            android:dependency="buttons__show_paperclip" />
         <CheckBoxPreference
             android:key="volumebtn_size"
             android:title="@string/pref__buttons__volume_buttons_change_text_size"

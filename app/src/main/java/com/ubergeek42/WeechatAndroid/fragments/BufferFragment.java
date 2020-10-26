@@ -41,8 +41,10 @@ import android.widget.TextView;
 
 import com.ubergeek42.WeechatAndroid.Weechat;
 import com.ubergeek42.WeechatAndroid.copypaste.Paste;
+import com.ubergeek42.WeechatAndroid.upload.Config;
 import com.ubergeek42.WeechatAndroid.upload.FileChooserKt;
 import com.ubergeek42.WeechatAndroid.upload.InsertAt;
+import com.ubergeek42.WeechatAndroid.upload.Targets;
 import com.ubergeek42.WeechatAndroid.upload.Upload;
 import com.ubergeek42.WeechatAndroid.upload.UploadObserver;
 import com.ubergeek42.WeechatAndroid.upload.UploadManager;
@@ -58,7 +60,6 @@ import com.ubergeek42.WeechatAndroid.relay.BufferEye;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.utils.FriendlyExceptions;
-import com.ubergeek42.WeechatAndroid.utils.Toaster;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.CatD;
@@ -159,11 +160,13 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
             }
         });
 
-        hidingPaperclip = false;
-        uiPaperclip.setOnClickListener((View view) -> chooseFiles(this, false));
+        uiPaperclip.setOnClickListener((View view) -> chooseFiles(this, Config.filePickerAction1));
         uiPaperclip.setOnLongClickListener((View view) -> {
-            chooseFiles(this, true);
-            return true;
+            if (Config.filePickerAction2 != null) {
+                chooseFiles(this, Config.filePickerAction2);
+                return true;
+            }
+            return false;
         });
 
         uiSend.setOnClickListener(this);
@@ -197,6 +200,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     @MainThread @Override @Cat public void onResume() {
         super.onResume();
         uiTab.setVisibility(P.showTab ? View.VISIBLE : View.GONE);
+        uiPaperclip.setVisibility(P.showPaperclip ? View.VISIBLE : View.GONE);
         uiLines.setBackgroundColor(0xFF000000 | ColorScheme.get().default_color[ColorScheme.OPT_BG]);
         EventBus.getDefault().register(this);
         applyColorSchemeToViews();
@@ -603,19 +607,15 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     }
 
 
-    public boolean hidingPaperclip = false;
+    public boolean shouldShowUploadMenus() {
+        return P.showPaperclip && uiPaperclip.getVisibility() == View.GONE;
+    }
 
     @MainThread void showHidePaperclip(boolean userTyping) {
-        if (activity == null || uiPaperclip == null) return;
+        if (!P.showPaperclip || activity == null || uiPaperclip == null) return;
 
-        if (!P.showPaperclip) {
-            uiPaperclip.setVisibility(View.GONE);
-            return;
-        }
-
-        boolean shouldHidePaperclip = uiInput.getText().length() > 14;
-        if (shouldHidePaperclip == hidingPaperclip) return;
-        hidingPaperclip = shouldHidePaperclip;
+        boolean shouldShowPaperclip = uiInput.getText().length() < 20;
+        if (shouldShowPaperclip == (uiPaperclip.getVisibility() == View.VISIBLE)) return;
 
         if (userTyping) {
             Transition transition = new Fade();
@@ -624,14 +624,14 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
             TransitionManager.beginDelayedTransition((ViewGroup) uiPaperclip.getParent(), transition);
         }
 
-        uiPaperclip.setVisibility(hidingPaperclip ? View.GONE : View.VISIBLE);
+        uiPaperclip.setVisibility(shouldShowPaperclip ? View.VISIBLE : View.GONE);
         activity.updateMenuItems();
     }
 
     @Override public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == WRITE_PERMISSION_REQUEST_FOR_CAMERA) {
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                chooseFiles(this, true);
+                chooseFiles(this, Targets.Camera);
             }
         }
     }

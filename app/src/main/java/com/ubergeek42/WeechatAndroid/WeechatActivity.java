@@ -65,8 +65,10 @@ import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
 import com.ubergeek42.WeechatAndroid.service.RelayService.STATE;
 import com.ubergeek42.WeechatAndroid.service.SSLHandler;
+import com.ubergeek42.WeechatAndroid.upload.Config;
 import com.ubergeek42.WeechatAndroid.upload.FileChooserKt;
 import com.ubergeek42.WeechatAndroid.upload.ShareObject;
+import com.ubergeek42.WeechatAndroid.upload.Targets;
 import com.ubergeek42.WeechatAndroid.upload.UrisShareObject;
 import com.ubergeek42.WeechatAndroid.upload.TextShareObject;
 import com.ubergeek42.WeechatAndroid.upload.UploadDatabase;
@@ -101,6 +103,7 @@ import javax.net.ssl.SSLPeerUnverifiedException;
 import static com.ubergeek42.WeechatAndroid.media.Cache.findException;
 import static com.ubergeek42.WeechatAndroid.service.Events.*;
 import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.*;
+import static com.ubergeek42.WeechatAndroid.upload.UploadingConfigKt.getUploadMenuTitleResId;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
 import static com.ubergeek42.WeechatAndroid.utils.Toaster.ErrorToast;
 import static com.ubergeek42.WeechatAndroid.utils.Toaster.ShortToast;
@@ -429,13 +432,18 @@ public class WeechatActivity extends AppCompatActivity implements
         uiMenu.findItem(R.id.menu_dark_theme).setVisible(P.themeSwitchEnabled);
         uiMenu.findItem(R.id.menu_dark_theme).setChecked(P.darkThemeActive);
 
-        boolean showUploadItems = false;
+        MenuItem upload1 = uiMenu.findItem(R.id.menu_upload_1);
+        MenuItem upload2 = uiMenu.findItem(R.id.menu_upload_2);
+        boolean showUpload1 = false;
         if (bufferVisible) {
             BufferFragment fragment = adapter.getCurrentBufferFragment();
-            if (fragment != null && fragment.hidingPaperclip) showUploadItems = true;
+            if (fragment != null && fragment.shouldShowUploadMenus()) showUpload1 = true;
         }
-        uiMenu.findItem(R.id.menu_upload_1).setVisible(showUploadItems);
-        uiMenu.findItem(R.id.menu_upload_2).setVisible(showUploadItems);
+        boolean showUpload2 = showUpload1 && Config.filePickerAction2 != null;
+        upload1.setVisible(showUpload1);
+        upload2.setVisible(showUpload2);
+        if (showUpload1) upload1.setTitle(getUploadMenuTitleResId(Config.filePickerAction1));
+        if (showUpload2) upload2.setTitle(getUploadMenuTitleResId(Config.filePickerAction2));
     }
 
     @Override @MainThread @Cat("Menu") public boolean onCreateOptionsMenu(final Menu menu) {
@@ -510,9 +518,10 @@ public class WeechatActivity extends AppCompatActivity implements
                 break;
             case R.id.menu_upload_1:
             case R.id.menu_upload_2:
-                boolean secondary = item.getItemId() == R.id.menu_upload_2;
+                Targets target = item.getItemId() == R.id.menu_upload_1 ?
+                        Config.filePickerAction1 : Config.filePickerAction2;
                 BufferFragment fragment = adapter.getCurrentBufferFragment();
-                if (fragment != null) FileChooserKt.chooseFiles(fragment, secondary);
+                if (fragment != null && target != null) FileChooserKt.chooseFiles(fragment, target);
                 break;
             case R.id.sync_hotlist:
                 BufferList.syncHotlist();
