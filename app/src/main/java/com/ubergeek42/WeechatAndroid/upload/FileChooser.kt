@@ -162,7 +162,7 @@ private fun createMediaStoreFile(): Uri {
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
         contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH,
-                Environment.DIRECTORY_PICTURES +  "/WeechatAndroid")
+                Environment.DIRECTORY_PICTURES +  "/Weechat-Android")
     }
 
     return (resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
