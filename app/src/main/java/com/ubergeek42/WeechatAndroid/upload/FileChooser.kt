@@ -1,20 +1,31 @@
 package com.ubergeek42.WeechatAndroid.upload
 
+import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+import android.annotation.TargetApi
 import android.content.ContentValues
 import android.content.Intent
 import android.content.Intent.EXTRA_ALLOW_MULTIPLE
+import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import androidx.core.content.ContextCompat.checkSelfPermission
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
+import com.ubergeek42.WeechatAndroid.WeechatActivity
 import com.ubergeek42.WeechatAndroid.media.ContentUriFetcher.FILE_PROVIDER_SUFFIX
+import com.ubergeek42.WeechatAndroid.utils.ScrollableDialog
 import com.ubergeek42.WeechatAndroid.utils.Toaster.Companion.ErrorToast
+import com.ubergeek42.cats.Kitty
+import com.ubergeek42.cats.Root
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
+
+
+@Root private val kitty: Kitty = Kitty.make()
 
 
 private val context = applicationContext
@@ -82,7 +93,8 @@ enum class Targets(override val requestCode: Int) : Target {
     Camera(1060) {
         override val intent get(): Intent {
             val uri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
-                createMediaStoreFile() else createExternalFile()
+                createMediaStoreFile() else
+                createFileInPublicExternalDirectory()
 
             return Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
                 putExtra(MediaStore.EXTRA_OUTPUT, uri)
@@ -96,13 +108,21 @@ fun chooseFiles(fragment: Fragment, longClick: Boolean) {
     val target = if (longClick) Targets.Camera else Targets.MediaStoreImages
     try {
         fragment.startActivityForResult(target.intent, target.requestCode)
+    } catch (e: WritePermissionRequiredError) {
+        val activity = fragment.activity as WeechatActivity
+        val dialog = ScrollableDialog.buildWritePermissionRequiredDialog(activity) { _, _ ->
+            fragment.requestPermissions(arrayOf(WRITE_EXTERNAL_STORAGE),
+                    WRITE_PERMISSION_REQUEST_FOR_CAMERA)
+        }
+        dialog.show(activity.supportFragmentManager, "camera-write-permission-dialog")
     } catch (e: Exception) {
+        kitty.warn("Error while starting file picker activity", e)
         ErrorToast.show(e)
     }
 }
 
 
-fun getShareObjectFromIntent(requestCode: Int, intent: Intent?): ShareObject {
+fun getShareObjectFromIntent(requestCode: Int, intent: Intent?): ShareObject? {
     when (requestCode) {
         Targets.Images.requestCode,
         Targets.ImagesAndVideos.requestCode,
@@ -129,10 +149,14 @@ fun getShareObjectFromIntent(requestCode: Int, intent: Intent?): ShareObject {
             return UrisShareObject.fromUris(listOf(currentPhotoUri))
         }
 
-        else -> throw IllegalArgumentException("Unknown request code: $requestCode")
+        else -> return null
     }
 }
 
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////// files
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // we must provide a writeable path for the camera to write to. it can be:
 // * our private dir: getExternalFilesDir() -- no permissions required
@@ -145,12 +169,30 @@ fun getShareObjectFromIntent(requestCode: Int, intent: Intent?): ShareObject {
 lateinit var currentPhotoUri: Uri
 
 
-private fun createExternalFile(): Uri {
-    val directory: File = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-            ?: throw IOException("Storage directory not available")
+private fun createFile(directory: File): Uri {
     val file = File.createTempFile("IMG_${timestamp()}_", ".jpeg", directory)
     currentPhotoUri = Uri.fromFile(file)
     return FileProvider.getUriForFile(context, context.packageName + FILE_PROVIDER_SUFFIX, file)
+}
+
+
+private fun createFileInAppSpecificExternalDirectory(): Uri {
+    val directory = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+            ?: throw IOException("App-specific storage directory not available")
+    return createFile(directory)
+}
+
+
+@Suppress("DEPRECATION")
+@TargetApi(28)
+private fun createFileInPublicExternalDirectory(): Uri {
+    if (checkSelfPermission(context, WRITE_EXTERNAL_STORAGE) != PERMISSION_GRANTED)
+            throw WritePermissionRequiredError()
+    val rootDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+            ?: throw IOException("Public storage directory not available")
+    val appDirectory = File(rootDirectory, APP_FOLDER)
+    if (!appDirectory.exists()) appDirectory.mkdirs()
+    return createFile(appDirectory)
 }
 
 
@@ -161,7 +203,7 @@ private fun createMediaStoreFile(): Uri {
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
         contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH,
-                Environment.DIRECTORY_PICTURES +  "/Weechat-Android")
+                Environment.DIRECTORY_PICTURES + File.separator + APP_FOLDER)
     }
 
     return (resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
@@ -170,4 +212,10 @@ private fun createMediaStoreFile(): Uri {
     }
 }
 
+
+const val WRITE_PERMISSION_REQUEST_FOR_CAMERA = 1060
+private const val APP_FOLDER = "Weechat-Android"
+
 private fun timestamp() = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+
+private class WritePermissionRequiredError : Exception("Write permission required")

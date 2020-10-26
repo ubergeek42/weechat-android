@@ -19,6 +19,7 @@ import org.jetbrains.annotations.NotNull;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import androidx.recyclerview.widget.RecyclerView;
@@ -68,6 +69,7 @@ import com.ubergeek42.weechat.ColorScheme;
 import static android.app.Activity.RESULT_OK;
 import static com.ubergeek42.WeechatAndroid.service.Events.*;
 import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.*;
+import static com.ubergeek42.WeechatAndroid.upload.FileChooserKt.WRITE_PERMISSION_REQUEST_FOR_CAMERA;
 import static com.ubergeek42.WeechatAndroid.upload.FileChooserKt.chooseFiles;
 import static com.ubergeek42.WeechatAndroid.utils.Toaster.ErrorToast;
 
@@ -592,8 +594,8 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     @Override @Cat public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         if (resultCode == RESULT_OK) {
             try {
-                FileChooserKt.getShareObjectFromIntent(requestCode, data)
-                        .insert(uiInput, InsertAt.CURRENT_POSITION);
+                ShareObject shareObject = FileChooserKt.getShareObjectFromIntent(requestCode, data);
+                if (shareObject != null) shareObject.insert(uiInput, InsertAt.CURRENT_POSITION);
             } catch (Exception e) {
                 ErrorToast.show(e);
             }
@@ -624,5 +626,13 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
 
         uiPaperclip.setVisibility(hidingPaperclip ? View.GONE : View.VISIBLE);
         activity.updateMenuItems();
+    }
+
+    @Override public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == WRITE_PERMISSION_REQUEST_FOR_CAMERA) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                chooseFiles(this, true);
+            }
+        }
     }
 }

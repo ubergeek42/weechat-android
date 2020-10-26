@@ -134,6 +134,13 @@
 
     <string name="dialog__paste__title">Paste</string>
 
+    <string name="dialog__write_permission_for_camera__title">
+        Permission required</string>
+    <string name="dialog__write_permission_for_camera__text">
+        To take photos, app needs write access to public storage</string>
+    <string name="dialog__write_permission_for_camera__button_ok">OK</string>
+
+
     <!-- ####################################################################################### -->
     <!-- ################################# certificate dialogs ################################# -->
     <!-- ####################################################################################### -->

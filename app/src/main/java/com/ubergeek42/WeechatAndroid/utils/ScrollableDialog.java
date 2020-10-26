@@ -11,6 +11,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatTextView;
 import androidx.fragment.app.DialogFragment;
 
@@ -105,6 +106,16 @@ public class ScrollableDialog extends DialogFragment {
                         server, keyType, identity.getSha256keyFingerprint())),
                 null, null,
                 R.string.dialog__certificate__button_back_to_safety, null
+        );
+    }
+
+    static public DialogFragment buildWritePermissionRequiredDialog(AppCompatActivity context,
+            DialogInterface.OnClickListener positiveButtonListener) {
+        return new ScrollableDialog(
+                context.getString(R.string.dialog__write_permission_for_camera__title),
+                context.getString(R.string.dialog__write_permission_for_camera__text),
+                R.string.dialog__write_permission_for_camera__button_ok, positiveButtonListener,
+                null, null
         );
     }
 }
