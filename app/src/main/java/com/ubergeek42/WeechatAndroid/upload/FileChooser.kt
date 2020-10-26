@@ -3,7 +3,6 @@ package com.ubergeek42.WeechatAndroid.upload
 import android.content.ContentValues
 import android.content.Intent
 import android.content.Intent.EXTRA_ALLOW_MULTIPLE
-import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
@@ -94,7 +93,7 @@ enum class Targets(override val requestCode: Int) : Target {
 
 
 fun chooseFiles(fragment: Fragment, longClick: Boolean) {
-    val target = if (longClick) Targets.Camera else Targets.MediaStoreImagesAndVideos
+    val target = if (longClick) Targets.Camera else Targets.MediaStoreImages
     try {
         fragment.startActivityForResult(target.intent, target.requestCode)
     } catch (e: Exception) {

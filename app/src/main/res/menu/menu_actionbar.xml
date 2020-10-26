@@ -34,6 +34,18 @@
         app:showAsAction="never"
         android:title="@string/menu__dark_theme"
         android:checkable="true"/>
+
+    <item android:id="@+id/menu_upload_1"
+        android:menuCategory="secondary"
+        android:visible="false"
+        app:showAsAction="never"
+        android:title="Upload file" />
+    <item android:id="@+id/menu_upload_2"
+        android:menuCategory="secondary"
+        android:visible="false"
+        app:showAsAction="never"
+        android:title="Take photo" />
+
     <item android:id="@+id/debug"
         android:visible="@bool/debug"
         android:menuCategory="secondary"

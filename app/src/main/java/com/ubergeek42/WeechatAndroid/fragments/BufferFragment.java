@@ -24,6 +24,9 @@ import android.os.Bundle;
 import androidx.recyclerview.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.transition.Fade;
+import android.transition.Transition;
+import android.transition.TransitionManager;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -154,6 +157,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
             }
         });
 
+        hidingPaperclip = false;
         uiPaperclip.setOnClickListener((View view) -> chooseFiles(this, false));
         uiPaperclip.setOnLongClickListener((View view) -> {
             chooseFiles(this, true);
@@ -181,6 +185,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         uiInput = null;
         uiSend = null;
         uiTab = null;
+        uiPaperclip = null;
         uploadLayout = null;
         uploadButton = null;
         uploadProgressBar = null;
@@ -196,6 +201,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
 
         uiInput.textifyReadySuris();                // this will fix any uploads that were finished while we were absent
         afterTextChanged2();                        // this will set appropriate upload ui state
+        showHidePaperclip(false);
         uploadManager.setObserver(uploadObserver);  // this will resume ui for any uploads that are still running
     }
 
@@ -292,6 +298,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         uiInput.setEnabled(online);
         uiSend.setEnabled(online);
         uiTab.setEnabled(online);
+        uiPaperclip.setEnabled(online);
         if (!online) activity.hideSoftwareKeyboard();
     }
 
@@ -477,6 +484,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     @MainThread @Override public void afterTextChanged(Editable s) {
         tcInProgress = false;
         afterTextChanged2();
+        showHidePaperclip(true);
     }
 
     @SuppressWarnings("ConstantConditions") private void applyColorSchemeToViews() {
@@ -590,5 +598,31 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
                 ErrorToast.show(e);
             }
         }
+    }
+
+
+    public boolean hidingPaperclip = false;
+
+    @MainThread void showHidePaperclip(boolean userTyping) {
+        if (activity == null || uiPaperclip == null) return;
+
+        if (!P.showPaperclip) {
+            uiPaperclip.setVisibility(View.GONE);
+            return;
+        }
+
+        boolean shouldHidePaperclip = uiInput.getText().length() > 14;
+        if (shouldHidePaperclip == hidingPaperclip) return;
+        hidingPaperclip = shouldHidePaperclip;
+
+        if (userTyping) {
+            Transition transition = new Fade();
+            transition.setDuration(300);
+            transition.addTarget(R.id.chatview_paperclip);
+            TransitionManager.beginDelayedTransition((ViewGroup) uiPaperclip.getParent(), transition);
+        }
+
+        uiPaperclip.setVisibility(hidingPaperclip ? View.GONE : View.VISIBLE);
+        activity.updateMenuItems();
     }
 }

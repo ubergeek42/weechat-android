@@ -144,7 +144,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     static boolean notificationVibrate;
     static String notificationSound;
 
-    public static boolean showSend, showTab, hotlistSync, volumeBtnSize;
+    public static boolean showSend, showTab, showPaperclip, hotlistSync, volumeBtnSize;
 
     public static boolean showBufferFilter;
 
@@ -185,6 +185,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         // buffer fragment
         showSend = p.getBoolean(PREF_SHOW_SEND, PREF_SHOW_SEND_D);
         showTab = p.getBoolean(PREF_SHOW_TAB, PREF_SHOW_TAB_D);
+        showPaperclip = true;
         hotlistSync = p.getBoolean(PREF_HOTLIST_SYNC, PREF_HOTLIST_SYNC_D);
         volumeBtnSize = p.getBoolean(PREF_VOLUME_BTN_SIZE, PREF_VOLUME_BTN_SIZE_D);
 

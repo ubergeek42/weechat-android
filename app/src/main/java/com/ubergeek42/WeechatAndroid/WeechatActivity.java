@@ -65,6 +65,7 @@ import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
 import com.ubergeek42.WeechatAndroid.service.RelayService.STATE;
 import com.ubergeek42.WeechatAndroid.service.SSLHandler;
+import com.ubergeek42.WeechatAndroid.upload.FileChooserKt;
 import com.ubergeek42.WeechatAndroid.upload.ShareObject;
 import com.ubergeek42.WeechatAndroid.upload.UrisShareObject;
 import com.ubergeek42.WeechatAndroid.upload.TextShareObject;
@@ -419,7 +420,7 @@ public class WeechatActivity extends AppCompatActivity implements
     }
 
     // hide or show nicklist/close menu item according to buffer
-    @MainThread private void updateMenuItems() {
+    @MainThread public void updateMenuItems() {
         if (uiMenu == null) return;
         boolean bufferVisible = adapter.getCount() > 0;
         uiMenu.findItem(R.id.menu_nicklist).setVisible(bufferVisible);
@@ -427,6 +428,14 @@ public class WeechatActivity extends AppCompatActivity implements
         uiMenu.findItem(R.id.menu_filter_lines).setChecked(P.filterLines);
         uiMenu.findItem(R.id.menu_dark_theme).setVisible(P.themeSwitchEnabled);
         uiMenu.findItem(R.id.menu_dark_theme).setChecked(P.darkThemeActive);
+
+        boolean showUploadItems = false;
+        if (bufferVisible) {
+            BufferFragment fragment = adapter.getCurrentBufferFragment();
+            if (fragment != null && fragment.hidingPaperclip) showUploadItems = true;
+        }
+        uiMenu.findItem(R.id.menu_upload_1).setVisible(showUploadItems);
+        uiMenu.findItem(R.id.menu_upload_2).setVisible(showUploadItems);
     }
 
     @Override @MainThread @Cat("Menu") public boolean onCreateOptionsMenu(final Menu menu) {
@@ -498,6 +507,12 @@ public class WeechatActivity extends AppCompatActivity implements
                 item.setChecked(!P.darkThemeActive);
                 PreferenceManager.getDefaultSharedPreferences(this).edit().putString(
                         PREF_THEME, P.darkThemeActive ? PREF_THEME_LIGHT : PREF_THEME_DARK).apply();
+                break;
+            case R.id.menu_upload_1:
+            case R.id.menu_upload_2:
+                boolean secondary = item.getItemId() == R.id.menu_upload_2;
+                BufferFragment fragment = adapter.getCurrentBufferFragment();
+                if (fragment != null) FileChooserKt.chooseFiles(fragment, secondary);
                 break;
             case R.id.sync_hotlist:
                 BufferList.syncHotlist();
