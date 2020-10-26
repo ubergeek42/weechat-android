@@ -54,12 +54,12 @@
         <item>required</item>
     </string-array>
 
-    <string-array name="pref__sharing__accept_values">
+    <string-array name="pref__upload__accept_shared_values">
         <item>text_only</item>
         <item>text_and_media</item>
         <item>everything</item>
     </string-array>
-    <string-array name="pref__sharing_authentication_values">
+    <string-array name="pref__upload__authentication_values">
         <item>none</item>
         <item>basic</item>
     </string-array>
