@@ -182,9 +182,8 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
                         PREF_MEDIA_PREVIEW_ENABLED_FOR_LOCATION,
                         PREF_MEDIA_PREVIEW_STRATEGIES};
             } else if (PREF_UPLOAD_GROUP.equals(key)) {
-                enableDisableUploadingPreferences(null);
                 showHideBasicAuthentication(null);
-                listenTo = new String[]{PREF_UPLOAD_ACCEPT,
+                listenTo = new String[]{
                         PREF_UPLOAD_AUTHENTICATION,
                         PREF_UPLOAD_URI,
                         PREF_UPLOAD_REGEX,
@@ -245,8 +244,6 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
                 } else if (PREF_MEDIA_PREVIEW_STRATEGIES.equals(key)) {
                     // this method will show a toast on error
                     valid = Config.parseConfigSafe((String) o) != null;
-                } else if (PREF_UPLOAD_ACCEPT.equals(key)) {
-                    enableDisableUploadingPreferences((String) o);
                 } else if (PREF_UPLOAD_AUTHENTICATION.equals(key)) {
                     showHideBasicAuthentication((String) o);
                 } else if (PREF_UPLOAD_REGEX.equals(key)) {
@@ -319,28 +316,11 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
             if (p != null) p.setEnabled(networkEnabled);
         }
 
-
-        private void enableDisableUploadingPreferences(@Nullable String enabled) {
-            if (enabled == null) enabled = getPreferenceScreen().getSharedPreferences().getString(
-                    PREF_UPLOAD_ACCEPT, PREF_UPLOAD_ACCEPT_D);
-            boolean showSettings = !PREF_UPLOAD_ACCEPT_TEXT_ONLY.equals(enabled);
-            for (String key : new String[]{
-                    PREF_UPLOAD_URI,
-                    PREF_UPLOAD_FORM_FIELD_NAME,
-                    PREF_UPLOAD_REGEX,
-                    PREF_UPLOAD_HELP,
-                    PREF_UPLOAD_ADVANCED_GROUP,
-            }) {
-                Preference p = findPreference(key);
-                if (p != null) p.setEnabled(showSettings);
-            }
-        }
-
         private void showHideBasicAuthentication(@Nullable String authentication) {
             if (authentication == null)
                 authentication = getPreferenceScreen().getSharedPreferences().getString(
                         PREF_UPLOAD_AUTHENTICATION, PREF_UPLOAD_AUTHENTICATION_D);
-            boolean basic = "basic".equals(authentication);
+            boolean basic = PREF_UPLOAD_AUTHENTICATION_BASIC.equals(authentication);
             Preference p = findPreference(PREF_UPLOAD_AUTHENTICATION_BASIC_USER);
             if (p != null) p.setVisible(basic);
             p = findPreference(PREF_UPLOAD_AUTHENTICATION_BASIC_PASSWORD);
