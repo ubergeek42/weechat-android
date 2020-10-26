@@ -21,6 +21,8 @@
         <item name="alertDialogTheme">@style/PreferenceAlertDialogBackgroundFix</item>
         <item name="buttonStyle">@style/NormalCaseButton</item>
         <item name="textAllCaps">false</item>
+        <item name="actionButtonStyle">@style/ActionButton</item>
+        <item name="android:actionButtonStyle">@style/ActionButton</item>
     </style>
 
     <!-- actually used by app's dialogs. don't set any background color; android:windowBackground
@@ -71,7 +73,10 @@
     </style>
 
     <!-- buttons such as tab, send and bell -->
-    <style name="ActionButton" parent="@android:style/Widget.ActionButton" />
+    <style name="ActionButton" parent="@android:style/Widget.ActionButton">
+        <item name="android:padding">0dip</item>
+        <item name="android:minWidth">48dip</item>
+    </style>
 
     <!-- share text activity -->
     <style name="WeechatTranslucent" parent="Weechat">
