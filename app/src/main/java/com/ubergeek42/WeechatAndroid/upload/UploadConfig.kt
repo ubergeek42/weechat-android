@@ -108,6 +108,14 @@ fun onSharedPreferenceChanged(p: SharedPreferences, key: String) {
     }
 }
 
+
+fun validateUploadConfig() {
+    if (Config.uploadUri.isBlank()) throw UploadConfigValidationError("Upload URL not set")
+}
+
+class UploadConfigValidationError(message: String) : Exception(message)
+
+
 private fun String.toTarget(): Targets? {
     return when (this) {
         PREF_SHOW_PAPERCLIP_ACTION_NONE -> null

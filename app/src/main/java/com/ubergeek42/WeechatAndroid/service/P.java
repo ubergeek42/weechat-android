@@ -30,7 +30,7 @@ import com.ubergeek42.WeechatAndroid.Weechat;
 import com.ubergeek42.WeechatAndroid.media.Config;
 import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
-import com.ubergeek42.WeechatAndroid.upload.UploadingConfigKt;
+import com.ubergeek42.WeechatAndroid.upload.UploadConfigKt;
 import com.ubergeek42.WeechatAndroid.utils.MigratePreferences;
 import com.ubergeek42.WeechatAndroid.utils.ThemeFix;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
@@ -78,7 +78,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         p.registerOnSharedPreferenceChangeListener(instance);
         calculateWeaselWidth();
         Config.initPreferences();
-        UploadingConfigKt.initPreferences();
+        UploadConfigKt.initPreferences();
     }
 
     // sets the width of weasel (effectively the recycler view) for LineView. this is a workaround
@@ -393,7 +393,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
 
             default:
                 Config.onSharedPreferenceChanged(p, key);
-                UploadingConfigKt.onSharedPreferenceChanged(p, key);
+                UploadConfigKt.onSharedPreferenceChanged(p, key);
         }
     }
 

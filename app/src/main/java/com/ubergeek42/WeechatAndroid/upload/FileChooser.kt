@@ -106,6 +106,7 @@ enum class Targets(override val requestCode: Int) : Target {
 
 fun chooseFiles(fragment: Fragment, target: Targets) {
     try {
+        validateUploadConfig()
         fragment.startActivityForResult(target.intent, target.requestCode)
     } catch (e: WritePermissionRequiredError) {
         val activity = fragment.activity as WeechatActivity

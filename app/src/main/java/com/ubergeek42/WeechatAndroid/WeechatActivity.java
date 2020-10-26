@@ -103,7 +103,7 @@ import javax.net.ssl.SSLPeerUnverifiedException;
 import static com.ubergeek42.WeechatAndroid.media.Cache.findException;
 import static com.ubergeek42.WeechatAndroid.service.Events.*;
 import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.*;
-import static com.ubergeek42.WeechatAndroid.upload.UploadingConfigKt.getUploadMenuTitleResId;
+import static com.ubergeek42.WeechatAndroid.upload.UploadConfigKt.getUploadMenuTitleResId;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
 import static com.ubergeek42.WeechatAndroid.utils.Toaster.ErrorToast;
 import static com.ubergeek42.WeechatAndroid.utils.Toaster.ShortToast;

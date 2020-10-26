@@ -46,6 +46,7 @@ import com.ubergeek42.WeechatAndroid.upload.FileChooserKt;
 import com.ubergeek42.WeechatAndroid.upload.InsertAt;
 import com.ubergeek42.WeechatAndroid.upload.Targets;
 import com.ubergeek42.WeechatAndroid.upload.Upload;
+import com.ubergeek42.WeechatAndroid.upload.UploadConfigKt;
 import com.ubergeek42.WeechatAndroid.upload.UploadObserver;
 import com.ubergeek42.WeechatAndroid.upload.UploadManager;
 import com.ubergeek42.WeechatAndroid.upload.MediaAcceptingEditText;
@@ -147,7 +148,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
             if (lastUploadStatus == UploadStatus.UPLOADING) {
                 uploadManager.filterUploads(Collections.emptyList());
             } else {
-                uploadManager.startUploads(uiInput.getNotReadySuris());
+                startUploads(uiInput.getNotReadySuris());
             }
         });
 
@@ -410,7 +411,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     @MainThread private void sendMessage() {
         List<Suri> suris = uiInput.getNotReadySuris();
         if (!(Utils.isEmpty(suris))) {
-            uploadManager.startUploads(suris);
+            startUploads(suris);
             return;
         }
         SendMessageEvent.fireInput(buffer, uiInput.getText().toString());
@@ -633,6 +634,15 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 chooseFiles(this, Targets.Camera);
             }
+        }
+    }
+
+    void startUploads(List<Suri> suris) {
+        try {
+            UploadConfigKt.validateUploadConfig();
+            uploadManager.startUploads(suris);
+        } catch (Exception e) {
+            ErrorToast.show(e);
         }
     }
 }
