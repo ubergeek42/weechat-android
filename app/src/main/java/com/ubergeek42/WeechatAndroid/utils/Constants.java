@@ -203,7 +203,7 @@ public class Constants {
     final public static String PREF_UPLOAD_ACCEPT_TEXT_ONLY = "text_only";
     final public static String PREF_UPLOAD_ACCEPT_TEXT_AND_MEDIA = "text_and_media";
     final public static String PREF_UPLOAD_ACCEPT_EVERYTHING = "everything";
-    final public static String PREF_UPLOAD_ACCEPT_D = PREF_UPLOAD_ACCEPT_TEXT_ONLY;
+    final public static String PREF_UPLOAD_ACCEPT_D = PREF_UPLOAD_ACCEPT_EVERYTHING;
 
     final public static String PREF_UPLOAD_URI = "upload_uri";
     final public static String PREF_UPLOAD_URI_D = "";

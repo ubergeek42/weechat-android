@@ -452,7 +452,7 @@
             android:summary="%s"
             android:entryValues="@array/pref__upload__accept_shared_values"
             android:entries="@array/pref__upload__accept_shared_names"
-            android:defaultValue="text_only" />
+            android:defaultValue="everything" />
         <EditTextPreferenceFix
             android:key="upload_uri"
             android:title="@string/pref__upload__upload_uri"
