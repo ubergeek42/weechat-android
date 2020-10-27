@@ -44,7 +44,7 @@ import com.ubergeek42.WeechatAndroid.copypaste.Paste;
 import com.ubergeek42.WeechatAndroid.upload.Config;
 import com.ubergeek42.WeechatAndroid.upload.FileChooserKt;
 import com.ubergeek42.WeechatAndroid.upload.InsertAt;
-import com.ubergeek42.WeechatAndroid.upload.Targets;
+import com.ubergeek42.WeechatAndroid.upload.Target;
 import com.ubergeek42.WeechatAndroid.upload.Upload;
 import com.ubergeek42.WeechatAndroid.upload.UploadConfigKt;
 import com.ubergeek42.WeechatAndroid.upload.UploadObserver;
@@ -161,10 +161,10 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
             }
         });
 
-        uiPaperclip.setOnClickListener((View view) -> chooseFiles(this, Config.filePickerAction1));
+        uiPaperclip.setOnClickListener((View view) -> chooseFiles(this, Config.paperclipAction1));
         uiPaperclip.setOnLongClickListener((View view) -> {
-            if (Config.filePickerAction2 != null) {
-                chooseFiles(this, Config.filePickerAction2);
+            if (Config.paperclipAction2 != null) {
+                chooseFiles(this, Config.paperclipAction2);
                 return true;
             }
             return false;
@@ -632,7 +632,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     @Override public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == WRITE_PERMISSION_REQUEST_FOR_CAMERA) {
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                chooseFiles(this, Targets.Camera);
+                chooseFiles(this, Target.Camera);
             }
         }
     }

@@ -13,8 +13,10 @@ import android.provider.MediaStore
 import androidx.core.content.ContextCompat.checkSelfPermission
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
+import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.WeechatActivity
 import com.ubergeek42.WeechatAndroid.media.ContentUriFetcher.FILE_PROVIDER_SUFFIX
+import com.ubergeek42.WeechatAndroid.utils.Constants
 import com.ubergeek42.WeechatAndroid.utils.ScrollableDialog
 import com.ubergeek42.WeechatAndroid.utils.Toaster.Companion.ErrorToast
 import com.ubergeek42.cats.Kitty
@@ -35,16 +37,20 @@ private const val DEFAULT_FLAGS = Intent.FLAG_GRANT_READ_URI_PERMISSION or
         Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION
 
 
-private interface Target {
+private interface TargetInfo {
     val intent: Intent
-    val requestCode: Int
 }
 
 
-enum class Targets(override val requestCode: Int) : Target {
+enum class Target(
+    val requestCode: Int,
+    val menuItemResId: Int,
+    val preferenceValue: String,
+) : TargetInfo {
     // these three open files using the default file manager
     // the intent to pick images only, as opposed to images and videos, is a bit more cute
-    Images(1091) {
+    ContentImages(1091, R.string.menu__upload_actions__content_images,
+                        Constants.PREF_PAPERCLIP_ACTION_CONTENT_IMAGES) {
         override val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
                                   type = "image/*"
                                   flags = DEFAULT_FLAGS
@@ -52,7 +58,8 @@ enum class Targets(override val requestCode: Int) : Target {
                                   putExtra(EXTRA_ALLOW_MULTIPLE, true)
                               }
     },
-    ImagesAndVideos(1093) {
+    ContentMedia(1093, R.string.menu__upload_actions__content_media,
+                       Constants.PREF_PAPERCLIP_ACTION_CONTENT_MEDIA) {
         override val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
                                   type = "*/*"
                                   flags = DEFAULT_FLAGS
@@ -61,7 +68,8 @@ enum class Targets(override val requestCode: Int) : Target {
                                   putExtra(EXTRA_ALLOW_MULTIPLE, true)
                               }
     },
-    Anything(1097) {
+    ContentAnything(1097, R.string.menu__upload_actions__content_anything,
+                          Constants.PREF_PAPERCLIP_ACTION_CONTENT_ANYTHING) {
         override val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
                                   type = "*/*"
                                   flags = DEFAULT_FLAGS
@@ -73,14 +81,16 @@ enum class Targets(override val requestCode: Int) : Target {
     // these two will offer to pick images using apps such as Photos or Simple Gallery.
     // the images & videos intent doesn't work with Simple Gallery;
     // while the app opens, it doesn't offer to actually pick anything
-    MediaStoreImages(1080) {
+    MediaStoreImages(1080, R.string.menu__upload_actions__mediastore_images,
+                           Constants.PREF_PAPERCLIP_ACTION_MEDIASTORE_IMAGES) {
         override val intent = Intent(Intent.ACTION_PICK,
                                      MediaStore.Images.Media.EXTERNAL_CONTENT_URI).apply {
                                   flags = DEFAULT_FLAGS
                                   putExtra(EXTRA_ALLOW_MULTIPLE, true)
                               }
     },
-    MediaStoreImagesAndVideos(1083) {
+    MediaStoreMedia(1083, R.string.menu__upload_actions__mediastore_media,
+                          Constants.PREF_PAPERCLIP_ACTION_MEDIASTORE_MEDIA) {
         override val intent = Intent(Intent.ACTION_PICK,
                                      MediaStore.Images.Media.EXTERNAL_CONTENT_URI).apply {
                                   type = "*/*"
@@ -90,7 +100,8 @@ enum class Targets(override val requestCode: Int) : Target {
                               }
     },
 
-    Camera(1060) {
+    Camera(1060, R.string.menu__upload_actions__camera,
+                 Constants.PREF_PAPERCLIP_ACTION_CAMERA) {
         override val intent get(): Intent {
             val uri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
                 createMediaStoreFile() else
@@ -100,11 +111,18 @@ enum class Targets(override val requestCode: Int) : Target {
                 putExtra(MediaStore.EXTRA_OUTPUT, uri)
             }
         }
-    },
+    };
+
+    companion object {
+        fun fromPreferenceValue(string: String?): Target? {
+            values().forEach { if (string == it.preferenceValue) return it }
+            return null
+        }
+    }
 }
 
 
-fun chooseFiles(fragment: Fragment, target: Targets) {
+fun chooseFiles(fragment: Fragment, target: Target) {
     try {
         validateUploadConfig()
         fragment.startActivityForResult(target.intent, target.requestCode)
@@ -124,11 +142,11 @@ fun chooseFiles(fragment: Fragment, target: Targets) {
 
 fun getShareObjectFromIntent(requestCode: Int, intent: Intent?): ShareObject? {
     when (requestCode) {
-        Targets.Images.requestCode,
-        Targets.ImagesAndVideos.requestCode,
-        Targets.Anything.requestCode,
-        Targets.MediaStoreImages.requestCode,
-        Targets.MediaStoreImagesAndVideos.requestCode -> {
+        Target.ContentImages.requestCode,
+        Target.ContentMedia.requestCode,
+        Target.ContentAnything.requestCode,
+        Target.MediaStoreImages.requestCode,
+        Target.MediaStoreMedia.requestCode -> {
             // multiple files selected
             intent!!.clipData?.let { clipData ->
                 val uris = (0 until clipData.itemCount).map { clipData.getItemAt(it).uri }
@@ -141,7 +159,7 @@ fun getShareObjectFromIntent(requestCode: Int, intent: Intent?): ShareObject? {
             }
         }
 
-        Targets.Camera.requestCode -> {
+        Target.Camera.requestCode -> {
             // the bitmap that the intent contains is supposed to show a smaller image
             // suitable for displaying to the user. in practice, however, the intent is null.
             // in both cases the url that we provided to the picker will point at the full image

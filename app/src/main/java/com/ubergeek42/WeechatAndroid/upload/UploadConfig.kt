@@ -5,7 +5,6 @@ import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import androidx.preference.PreferenceManager
 import com.ubergeek42.WeechatAndroid.BuildConfig
-import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.utils.Constants.*
 
 
@@ -15,8 +14,8 @@ object Config {
     var httpUriGetter = HttpUriGetter.simple
     var requestModifiers = emptyList<RequestModifier>()
     var rememberUploadsFor = PREF_UPLOAD_REMEMBER_UPLOADS_FOR_D.hours_to_ms
-    @JvmField var filePickerAction1: Targets = Targets.MediaStoreImages
-    @JvmField var filePickerAction2: Targets? = Targets.Camera
+    @JvmField var paperclipAction1: Target = Target.MediaStoreImages
+    @JvmField var paperclipAction2: Target? = Target.Camera
 }
 
 fun initPreferences() {
@@ -31,8 +30,8 @@ fun initPreferences() {
             PREF_UPLOAD_AUTHENTICATION_BASIC_USER,
             PREF_UPLOAD_AUTHENTICATION_BASIC_PASSWORD,
             PREF_UPLOAD_REMEMBER_UPLOADS_FOR,
-            PREF_SHOW_PAPERCLIP_ACTION_1,
-            PREF_SHOW_PAPERCLIP_ACTION_2,
+            PREF_PAPERCLIP_ACTION_1,
+            PREF_PAPERCLIP_ACTION_2,
     )) {
         onSharedPreferenceChanged(p, key)
     }
@@ -96,14 +95,14 @@ fun onSharedPreferenceChanged(p: SharedPreferences, key: String) {
             }
         }
 
-        PREF_SHOW_PAPERCLIP_ACTION_1 -> {
-            val value = p.getString(key, PREF_SHOW_PAPERCLIP_ACTION_1_D)
-            Config.filePickerAction1 = value?.toTarget() ?: Targets.ImagesAndVideos
+        PREF_PAPERCLIP_ACTION_1 -> {
+            val value = p.getString(key, PREF_PAPERCLIP_ACTION_1_D)
+            Config.paperclipAction1 = Target.fromPreferenceValue(value) ?: Target.ContentMedia
         }
 
-        PREF_SHOW_PAPERCLIP_ACTION_2 -> {
-            val value = p.getString(key, PREF_SHOW_PAPERCLIP_ACTION_2_D)
-            Config.filePickerAction2 = value?.toTarget()
+        PREF_PAPERCLIP_ACTION_2 -> {
+            val value = p.getString(key, PREF_PAPERCLIP_ACTION_2_D)
+            Config.paperclipAction2 = Target.fromPreferenceValue(value)
         }
     }
 }
@@ -115,30 +114,6 @@ fun validateUploadConfig() {
 
 class UploadConfigValidationError(message: String) : Exception(message)
 
-
-private fun String.toTarget(): Targets? {
-    return when (this) {
-        PREF_SHOW_PAPERCLIP_ACTION_NONE -> null
-        PREF_SHOW_PAPERCLIP_ACTION_CONTENT_IMAGES -> Targets.Images
-        PREF_SHOW_PAPERCLIP_ACTION_CONTENT_MEDIA -> Targets.ImagesAndVideos
-        PREF_SHOW_PAPERCLIP_ACTION_CONTENT_ANYTHING -> Targets.Anything
-        PREF_SHOW_PAPERCLIP_ACTION_MEDIASTORE_IMAGES -> Targets.MediaStoreImages
-        PREF_SHOW_PAPERCLIP_ACTION_MEDIASTORE_MEDIA -> Targets.MediaStoreImagesAndVideos
-        PREF_SHOW_PAPERCLIP_ACTION_MEDIASTORE_CAMERA -> Targets.Camera
-        else -> null
-    }
-}
-
-fun getUploadMenuTitleResId(target: Targets): Int {
-    return when (target) {
-        Targets.Images -> R.string.menu__upload_actions__content_images
-        Targets.ImagesAndVideos -> R.string.menu__upload_actions__content_media
-        Targets.Anything -> R.string.menu__upload_actions__content_anything
-        Targets.MediaStoreImages -> R.string.menu__upload_actions__mediastore_images
-        Targets.MediaStoreImagesAndVideos -> R.string.menu__upload_actions__mediastore_media
-        Targets.Camera ->  R.string.menu__upload_actions__camera
-    }
-}
 
 private enum class ShareActivityAliases(val alias: String) {
     TEXT_ONLY("ShareActivityText"),

@@ -120,17 +120,17 @@ public class Constants {
 
     final public static String PREF_SHOW_PAPERCLIP = "buttons__show_paperclip";
     final public static boolean PREF_SHOW_PAPERCLIP_D = true;
-    final public static String PREF_SHOW_PAPERCLIP_ACTION_NONE = "none";
-    final public static String PREF_SHOW_PAPERCLIP_ACTION_CONTENT_IMAGES = "content_images";
-    final public static String PREF_SHOW_PAPERCLIP_ACTION_CONTENT_MEDIA = "content_media";
-    final public static String PREF_SHOW_PAPERCLIP_ACTION_CONTENT_ANYTHING = "content_anything";
-    final public static String PREF_SHOW_PAPERCLIP_ACTION_MEDIASTORE_IMAGES = "mediastore_images";
-    final public static String PREF_SHOW_PAPERCLIP_ACTION_MEDIASTORE_MEDIA = "mediastore_media";
-    final public static String PREF_SHOW_PAPERCLIP_ACTION_MEDIASTORE_CAMERA = "camera";
-    final public static String PREF_SHOW_PAPERCLIP_ACTION_1 = "buttons__paperclip_action_1";
-    final public static String PREF_SHOW_PAPERCLIP_ACTION_2 = "buttons__paperclip_action_2";
-    final public static String PREF_SHOW_PAPERCLIP_ACTION_1_D = "content_media";
-    final public static String PREF_SHOW_PAPERCLIP_ACTION_2_D = "camera";
+    final public static String PREF_PAPERCLIP_ACTION_NONE = "none";
+    final public static String PREF_PAPERCLIP_ACTION_CONTENT_IMAGES = "content_images";
+    final public static String PREF_PAPERCLIP_ACTION_CONTENT_MEDIA = "content_media";
+    final public static String PREF_PAPERCLIP_ACTION_CONTENT_ANYTHING = "content_anything";
+    final public static String PREF_PAPERCLIP_ACTION_MEDIASTORE_IMAGES = "mediastore_images";
+    final public static String PREF_PAPERCLIP_ACTION_MEDIASTORE_MEDIA = "mediastore_media";
+    final public static String PREF_PAPERCLIP_ACTION_CAMERA = "camera";
+    final public static String PREF_PAPERCLIP_ACTION_1 = "buttons__paperclip_action_1";
+    final public static String PREF_PAPERCLIP_ACTION_2 = "buttons__paperclip_action_2";
+    final public static String PREF_PAPERCLIP_ACTION_1_D = PREF_PAPERCLIP_ACTION_CONTENT_MEDIA;
+    final public static String PREF_PAPERCLIP_ACTION_2_D = PREF_PAPERCLIP_ACTION_CAMERA;
 
     // notifications
     final static public String PREF_NOTIFICATION_GROUP = "notif_group";
