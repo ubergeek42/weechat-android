@@ -105,6 +105,8 @@ android {
         }
 
         create("dev") {
+            applicationIdSuffix = ".dev"
+            versionNameSuffix = "-dev"
             signingConfig = signingConfigs.getByName("dev")
             isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -159,7 +161,7 @@ fun weaveCats(classPath: String, aspectPath: String, inputOutput: String) {
 
     if (OperatingSystem.current().isWindows) {
         javaexec {
-            classpath = fileTree(weavingToolsClassPath)
+            classpath = weaving
             main = "org.aspectj.tools.ajc.Main"
             args = arguments
         }
@@ -193,7 +195,6 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
             classPath = classpath.asPath
         }
     }
-    dependsOn("fetchAspectjToolsBecauseIHaveNoIdeaHowToGetBuildScriptClassPath")
 }
 
 tasks.withType<JavaCompile> {
@@ -203,7 +204,6 @@ tasks.withType<JavaCompile> {
             javaPath = destinationDir.toString()
             classPath = classpath.asPath
         }
-        dependsOn("fetchAspectjToolsBecauseIHaveNoIdeaHowToGetBuildScriptClassPath")
     }
 }
 
@@ -228,17 +228,14 @@ gradle.taskGraph.afterTask {
 // one workaround is to also have aspectjtools as an *app* dependency.
 // as we only need this in debug builds, this shouldn’t be an issue... right?
 //
-// a probably better one, implemented here, is using another configuration to find aspectjtools,
+// a probably better one would be using another configuration to find aspectjtools,
 // and then have a task that copies the jars to a known location... hey, don't look at me like that!
+//
+// ..and the proper one would be simply using a configuration as classpath
+// see https://discuss.gradle.org/t/how-do-i-determine-buildscript-classpath/37973/3
 
-val weavingToolsClassPath = "$buildDir/weaving"
 val weaving: Configuration by configurations.creating
 
 dependencies {
     weaving("org.aspectj:aspectjtools:1.9.6")
-}
-
-tasks.register<Copy>("fetchAspectjToolsBecauseIHaveNoIdeaHowToGetBuildScriptClassPath") {
-    from(weaving)
-    into(weavingToolsClassPath)
 }
