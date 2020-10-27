@@ -609,7 +609,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
 
 
     public boolean shouldShowUploadMenus() {
-        return P.showPaperclip && uiPaperclip.getVisibility() == View.GONE;
+        return P.showPaperclip && uiPaperclip != null && uiPaperclip.getVisibility() == View.GONE;
     }
 
     @MainThread void showHidePaperclip(boolean userTyping) {
