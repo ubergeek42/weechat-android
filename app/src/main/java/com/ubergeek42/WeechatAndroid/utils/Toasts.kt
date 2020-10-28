@@ -20,7 +20,7 @@ class Toaster(
             Toast.makeText(context, message, duration).apply {
                 colorResource?.let {
                     val color = ContextCompat.getColor(context, it)
-                    view.background.setTint(color)
+                    view?.background?.setTint(color)
                 }
                 show()
             }
