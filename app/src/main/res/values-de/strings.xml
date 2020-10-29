@@ -551,7 +551,7 @@
 
     <string name="pref__theme">Design</string>
     <string-array name="pref__theme__theme_names">
-        <item>@string/pref__theme__theme__system</item>
+        <item translatable="false">@string/pref__theme__theme__system</item>
         <item>Dunkel</item>
         <item>Hell</item>
     </string-array>
