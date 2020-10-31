@@ -74,6 +74,10 @@ class MediaAcceptingEditText : ActionEditText {
         }
     }
 
+    private fun hasShareSpans(): Boolean {
+        return text?.run { getSpans(0, length, ShareSpan::class.java).isNotEmpty() } == true
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////// save & restore
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -93,6 +97,11 @@ class MediaAcceptingEditText : ActionEditText {
     override fun onRestoreInstanceState(state: Parcelable?) {
         if (state is SavedState) {
             super.onRestoreInstanceState(state.superState)
+
+            // most of the time TextView will have restored our spans from memory already
+            // if so, make sure we don't create them twice
+            if (state.shareSpans.isEmpty() || text == null || hasShareSpans()) return
+
             state.shareSpans.forEach {
                 suppress<Exception>(showToast = true) {
                     val suri = Suri.fromUri(it.uri)
