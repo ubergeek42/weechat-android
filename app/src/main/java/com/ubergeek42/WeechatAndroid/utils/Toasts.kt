@@ -39,7 +39,7 @@ class Toaster(
         show(context.resources.getString(id, *args))
     }
 
-    fun show(e: Exception) {
+    fun show(e: Throwable) {
         show(R.string.error__etc__prefix, FriendlyExceptions(context).getFriendlyException(e).message)
     }
 

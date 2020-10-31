@@ -33,7 +33,7 @@ public class FriendlyExceptions {
         }
     }
 
-    public Result getFriendlyException(Exception e) {
+    public Result getFriendlyException(Throwable e) {
         if (e instanceof ClientCertificateMismatchException)
             return getFriendlyException((ClientCertificateMismatchException) e);
 

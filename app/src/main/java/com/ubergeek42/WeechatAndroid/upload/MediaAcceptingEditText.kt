@@ -1,7 +1,11 @@
 package com.ubergeek42.WeechatAndroid.upload
 
 import android.content.Context
+import android.net.Uri
 import android.os.Build
+import android.os.Parcel
+import android.os.Parcelable
+import android.text.Spanned
 import android.util.AttributeSet
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputConnection
@@ -32,6 +36,7 @@ class MediaAcceptingEditText : ActionEditText {
 
         if (shouldRequestPermission) {
             try {
+                // todo release the permission at some point?
                 inputContentInfo.requestPermission()
             } catch (e: Exception) {
                 kitty.error("Failed to acquire permission for %s", inputContentInfo.description, e)
@@ -39,22 +44,14 @@ class MediaAcceptingEditText : ActionEditText {
             }
         }
 
-        val suri: Suri = try {
-            Suri.fromUri(inputContentInfo.contentUri)
-        } catch (e: Exception) {
+        try {
+            UrisShareObject.fromUris(listOf(inputContentInfo.contentUri)).insert(this, InsertAt.CURRENT_POSITION)
+            true
+        } catch(e:Exception) {
             kitty.error("Error while accessing uri", e)
             ErrorToast.show(e)
-            return@OnCommitContentListener false
+            false
         }
-
-        object : UrisShareObject(listOf(suri)) {
-            protected fun finalize() {
-                // todo if this causes issues, move this somewhere
-                if (shouldRequestPermission) inputContentInfo.releasePermission()
-            }
-        }.insert(this, InsertAt.CURRENT_POSITION)
-
-        true
     }
 
     private fun getSuris() : List<Suri> {
@@ -73,6 +70,72 @@ class MediaAcceptingEditText : ActionEditText {
                     it.replace(it.getSpanStart(span), it.getSpanEnd(span), httpUri)
                     it.removeSpan(span)
                 }
+            }
+        }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////// save & restore
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    class ShareSpanInfo(val uri: Uri, val start: Int, val end: Int)
+
+    override fun onSaveInstanceState(): Parcelable? {
+        return SavedState(super.onSaveInstanceState()).apply {
+            text?.run {
+                shareSpans = getSpans(0, length, ShareSpan::class.java).map {
+                    ShareSpanInfo(it.suri.uri, getSpanStart(it), getSpanEnd(it))
+                }
+            }
+        }
+    }
+
+    override fun onRestoreInstanceState(state: Parcelable?) {
+        if (state is SavedState) {
+            super.onRestoreInstanceState(state.superState)
+            state.shareSpans.forEach {
+                suppress<Exception>(showToast = true) {
+                    val suri = Suri.fromUri(it.uri)
+                    getThumbnailAndThen(context, it.uri) { bitmap ->
+                        val span = if (bitmap != NO_BITMAP)
+                            BitmapShareSpan(suri, bitmap) else NonBitmapShareSpan(suri)
+                        suppress<Exception>(showToast = true) {
+                            text?.setSpan(span, it.start, it.end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                        }
+                    }
+                }
+            }
+        } else {
+            super.onRestoreInstanceState(state)
+        }
+    }
+
+    class SavedState : BaseSavedState {
+        var shareSpans = listOf<ShareSpanInfo>()
+
+        constructor(source: Parcel) : super(source) {
+            shareSpans = (0 until source.readInt()).map {
+                ShareSpanInfo(Uri.CREATOR.createFromParcel(source), source.readInt(), source.readInt())
+            }
+        }
+
+        constructor(superState: Parcelable?) : super(superState)
+
+        override fun writeToParcel(dest: Parcel, flags: Int) {
+            super.writeToParcel(dest, flags)
+            dest.writeInt(shareSpans.size)
+            shareSpans.forEach {
+                it.uri.writeToParcel(dest, flags)
+                dest.writeInt(it.start)
+                dest.writeInt(it.end)
+            }
+        }
+
+        companion object {
+            @Suppress("unused")
+            @JvmField val CREATOR = object : Parcelable.Creator<SavedState> {
+                override fun createFromParcel(source: Parcel) = SavedState(source)
+                override fun newArray(size: Int) = arrayOfNulls<SavedState>(size)
             }
         }
     }

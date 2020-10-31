@@ -113,7 +113,7 @@ fun getThumbnailAndThen(context: Context, uri: Uri, then: (bitmap: Bitmap) -> Un
     }
 }
 
-private val NO_BITMAP = Bitmap.createBitmap(1, 1, Bitmap.Config.ALPHA_8)
+val NO_BITMAP: Bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ALPHA_8)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
