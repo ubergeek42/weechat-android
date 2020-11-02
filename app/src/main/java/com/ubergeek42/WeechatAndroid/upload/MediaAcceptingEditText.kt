@@ -78,6 +78,18 @@ class MediaAcceptingEditText : ActionEditText {
         return text?.run { getSpans(0, length, ShareSpan::class.java).isNotEmpty() } == true
     }
 
+    // text width in pixels. if has more than 1 line, returns Float.MAX_VALUE;
+    // if text hasn't been laid out yet, returns -1f
+    fun getTextWidth(): Float {
+        if (length() == 0) return 0f
+
+        return layout?.let {
+            if (it.lineCount < 1) return 0f
+            if (it.lineCount > 1) return Float.MAX_VALUE
+            return it.getLineWidth(0)
+        } ?: -1f
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////// save & restore
     ////////////////////////////////////////////////////////////////////////////////////////////////

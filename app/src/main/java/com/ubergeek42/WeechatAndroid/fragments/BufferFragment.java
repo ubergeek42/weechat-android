@@ -491,7 +491,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     @MainThread @Override public void afterTextChanged(Editable s) {
         tcInProgress = false;
         afterTextChanged2();
-        showHidePaperclip(true);
+        showHidePaperclip(isResumed());
     }
 
     @SuppressWarnings("ConstantConditions") private void applyColorSchemeToViews() {
@@ -615,18 +615,40 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     @MainThread void showHidePaperclip(boolean userTyping) {
         if (!P.showPaperclip || activity == null || uiPaperclip == null) return;
 
-        boolean shouldShowPaperclip = uiInput.getText().length() < 20;
+        ViewGroup layout = (ViewGroup) uiPaperclip.getParent();
+
+        // other buttons at this point might not have been measured, so we can't simply get width
+        // of the input field; calculate through layout width instead. see R.layout.chatview_main
+        final float layoutWidth = layout.getWidth();
+        final float textWidth = uiInput.getTextWidth();
+
+        if (layoutWidth <= 0 || textWidth < 0) {
+            uiInput.post(() -> showHidePaperclip(userTyping));  // wait for layout and try again
+            return;
+        }
+
+        // for the purpose of the subsequent calculation we pretend that paperclip is shown,
+        // else ratio can jump backwards on character entry, revealing the button again.
+        // if the send button is off, adding a ShareSpan can reveal it (well, upload button),
+        // but it's not a problem as it can only appear on text addition and disappear on deletion*
+        float widgetWidth = layoutWidth - P._4dp - actionButtonWidth;
+        if (uiTab.getVisibility() != View.GONE) widgetWidth -= actionButtonWidth;
+        if (uiSend.getVisibility() != View.GONE) widgetWidth -= actionButtonWidth;
+
+        boolean shouldShowPaperclip = (textWidth / widgetWidth) < 0.8f;
         if (shouldShowPaperclip == (uiPaperclip.getVisibility() == View.VISIBLE)) return;
 
-        if (userTyping) {
-            Transition transition = new Fade();
-            transition.setDuration(300);
-            transition.addTarget(R.id.chatview_paperclip);
-            TransitionManager.beginDelayedTransition((ViewGroup) uiPaperclip.getParent(), transition);
-        }
+        if (userTyping) TransitionManager.beginDelayedTransition(layout, paperclipTransition);
 
         uiPaperclip.setVisibility(shouldShowPaperclip ? View.VISIBLE : View.GONE);
         activity.updateMenuItems();
+    }
+
+    private final static float actionButtonWidth = 48 * P._1dp;     // as set in ActionButton style
+    private final static Transition paperclipTransition = new Fade();
+    static {
+        paperclipTransition.setDuration(200);
+        paperclipTransition.addTarget(R.id.chatview_paperclip);
     }
 
     @Override public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
