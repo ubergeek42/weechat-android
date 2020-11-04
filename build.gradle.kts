@@ -7,6 +7,12 @@ subprojects {
     }
 }
 
+// to print a sensible task graph, uncomment the following lines and run:
+//   $ gradlew :app:assembleDebug taskTree --no-repeat
+// plugins {
+//     id("com.dorongold.task-tree") version "1.5"
+// }
+
 defaultTasks("assembleDebug")
 
 repositories {

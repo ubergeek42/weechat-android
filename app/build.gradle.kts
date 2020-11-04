@@ -1,3 +1,6 @@
+import com.android.build.api.transform.*
+import com.android.build.api.variant.VariantInfo
+import com.android.utils.FileUtils
 import org.gradle.internal.os.OperatingSystem
 import org.aspectj.bridge.IMessage
 import org.aspectj.bridge.MessageHandler
@@ -130,36 +133,35 @@ fun versionBanner(): String {
     return String(os.toByteArray()).trim()
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////// cats
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// the problem with weaving Kotlin and Java is that:
-//   * Java is compiled by task compileDebugJavaWithJavac
-//   * gradle can run either one of these tasks, or both of them
-//   * compileDebugJavaWithJavac depends on compileDebugKotlin
-//   * weaving Kotlin requires Java classes
-//
-// this is an attempt to resolve this by postponing weaving until after task
-// compileDebugJavaWithJavac has run. gradle.taskGraph.afterTask seems to be executed
-// regardless of whether or not the task has been actually run
-
-// the downside here is the the classes are modified in place, and so both compilation tasks
-// have to be re-run on every assemble
-
-
-// another problem is that ajc gets hold of some files such as R.jar, and so on Windows it leads to
-// errors such as “The process cannot access the file because it is being used by another process.”
+// ajc gets hold of some files such as R.jar, and on Windows it leads to errors such as:
+//   The process cannot access the file because it is being used by another process
 // to avoid these, weave in a process, which `javaexec` will helpfully launch for us.
 
+fun weave(classPath: Iterable<File>, aspectPath: Iterable<File>, input: Iterable<File>, output: File) {
+    val runInAProcess = OperatingSystem.current().isWindows
+    val bootClassPath = android.bootClasspath
 
-fun weaveCats(classPath: String, aspectPath: String, inputOutput: String) {
+    println(if (runInAProcess) ":: weaving in a process..." else ":: weaving...")
+    println(":: boot class path:  $bootClassPath")
+    println(":: class path:       $classPath")
+    println(":: aspect path:      $aspectPath")
+    println(":: input:            $input")
+    println(":: output:           $output")
+
     val arguments = listOf("-showWeaveInfo",
-            "-1.8",
-            "-inpath", inputOutput,
-            "-aspectpath", aspectPath,
-            "-d", inputOutput,
-            "-classpath", classPath,
-            "-bootclasspath", android.bootClasspath.joinToString(File.pathSeparator))
+                           "-1.8",
+                           "-preserveAllLocals",
+                           "-bootclasspath", bootClassPath.asArgument,
+                           "-classpath", classPath.asArgument,
+                           "-aspectpath", aspectPath.asArgument,
+                           "-inpath", input.asArgument,
+                           "-d", output.absolutePath)
 
-    if (OperatingSystem.current().isWindows) {
+    if (runInAProcess) {
         javaexec {
             classpath = weaving
             main = "org.aspectj.tools.ajc.Main"
@@ -183,55 +185,8 @@ fun weaveCats(classPath: String, aspectPath: String, inputOutput: String) {
     }
 }
 
-var javaPath: String? = null
-var kotlinPath: String? = null
-var classPath: String? = null
-
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    if (name == "compileDebugKotlin") {
-        doLast {
-            println("scheduling kotlin weaving...")
-            kotlinPath = destinationDir.toString()
-            classPath = classpath.asPath
-        }
-    }
-}
-
-tasks.withType<JavaCompile> {
-    if (name == "compileDebugJavaWithJavac") {
-        doLast {
-            println("scheduling java weaving...")
-            javaPath = destinationDir.toString()
-            classPath = classpath.asPath
-        }
-    }
-}
-
-gradle.taskGraph.afterTask {
-    if (name == "compileDebugJavaWithJavac" && state.failure == null) {
-        if (kotlinPath != null) {
-            println("weaving cats into the kotlin part of the app...")
-            if (javaPath == null) javaPath = project.buildDir.path + "/intermediates/javac/debug/classes"
-            weaveCats(classPath + File.pathSeparator + javaPath, classPath!!, kotlinPath!!)
-        }
-        if (javaPath != null) {
-            println("weaving cats into the java part of the app...")
-            weaveCats(classPath!!, classPath!!, javaPath!!)
-        }
-    }
-}
-
-
-// javaexec needs to find aspectjtools on its classpath. this is a problem because
-// i have no idea how to get the path of build script dependencies in gradle.
-//
-// one workaround is to also have aspectjtools as an *app* dependency.
-// as we only need this in debug builds, this shouldn’t be an issue... right?
-//
-// a probably better one would be using another configuration to find aspectjtools,
-// and then have a task that copies the jars to a known location... hey, don't look at me like that!
-//
-// ..and the proper one would be simply using a configuration as classpath
+// the only purpose of the following is to get a hold of aspectjtools jar
+// this jar is already on build script classpath, but that classpath is impossible to get
 // see https://discuss.gradle.org/t/how-do-i-determine-buildscript-classpath/37973/3
 
 val weaving: Configuration by configurations.creating
@@ -239,3 +194,77 @@ val weaving: Configuration by configurations.creating
 dependencies {
     weaving("org.aspectj:aspectjtools:1.9.6")
 }
+
+// historical note: the problem with weaving Kotlin and Java in-place is that:
+//   * Java is compiled by task compileDebugJavaWithJavac
+//   * gradle can run either one of these tasks, or both of them
+//   * compileDebugJavaWithJavac depends on compileDebugKotlin
+//   * weaving Kotlin requires Java classes
+//
+// a transformation is a poorly advertised feature that works on merged code, and also has its own
+// inputs and outputs, so this fixes all of our problems...
+
+class TransformCats : Transform() {
+    override fun getName(): String = TransformCats::class.simpleName!!
+
+    override fun getInputTypes() = setOf(QualifiedContent.DefaultContentType.CLASSES)
+
+    // only look for annotations in app classes
+    // transformation will consume these and put woven classes in the output dir
+    override fun getScopes() = mutableSetOf(QualifiedContent.Scope.PROJECT)
+
+    // but also have the rest on our class path
+    // these will not be touched by the transformation
+    override fun getReferencedScopes() = mutableSetOf(QualifiedContent.Scope.SUB_PROJECTS,
+                                                      QualifiedContent.Scope.EXTERNAL_LIBRARIES)
+
+    override fun isIncremental() = false
+
+    // only run on debug builds
+    override fun applyToVariant(variant: VariantInfo) = variant.isDebuggable
+
+    override fun transform(invocation: TransformInvocation) {
+        if (!invocation.isIncremental) {
+            invocation.outputProvider.deleteAll()
+        }
+
+        val output = invocation.outputProvider.getContentLocation(name, outputTypes,
+                                                                  scopes, Format.DIRECTORY)
+        if (output.isDirectory) FileUtils.deleteDirectoryContents(output)
+        FileUtils.mkdirs(output)
+
+        val input = mutableListOf<File>()
+        val classPath = mutableListOf<File>()
+        val aspectPath = mutableListOf<File>()
+
+        invocation.inputs.forEach { source ->
+            source.directoryInputs.forEach { dir ->
+                input.add(dir.file)
+                classPath.add(dir.file)
+            }
+
+            source.jarInputs.forEach { jar ->
+                input.add(jar.file)
+                classPath.add(jar.file)
+            }
+        }
+
+        invocation.referencedInputs.forEach { source ->
+            source.directoryInputs.forEach { dir ->
+                classPath.add(dir.file)
+            }
+
+            source.jarInputs.forEach { jar ->
+                classPath.add(jar.file)
+                if (jar.name == ":cats") aspectPath.add(jar.file)
+            }
+
+        }
+
+        weave(classPath, aspectPath, input, output)
+    }
+}
+
+android.registerTransform(TransformCats())
+
+val Iterable<File>.asArgument get() = joinToString(File.pathSeparator)
