@@ -572,9 +572,21 @@ public class WeechatActivity extends AppCompatActivity implements
         if (adapter.isBufferOpen(pointer) || state.contains(AUTHENTICATED)) {
             adapter.openBuffer(pointer);
             adapter.focusBuffer(pointer);
-            // post so that the fragment is created first, if it's not ready
-            if (shareObject != null) Weechat.runOnMainThread(() -> adapter.setBufferInputText(pointer, shareObject));
+
             if (slidy) hideDrawer();
+
+            if (shareObject != null) {
+                BufferFragment fragment = adapter.getCurrentBufferFragment();
+                if (fragment != null) {
+                    fragment.setShareObject(shareObject);
+                } else {
+                    // let fragment be created first, if it's not ready
+                    Weechat.runOnMainThread(() -> {
+                        BufferFragment fragment1 = adapter.getCurrentBufferFragment();
+                        if (fragment1 != null) fragment1.setShareObject(shareObject);
+                    });
+                }
+            }
         } else {
             ErrorToast.show(R.string.error__etc__not_connected);
         }

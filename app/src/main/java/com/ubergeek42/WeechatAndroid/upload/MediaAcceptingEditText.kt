@@ -78,6 +78,19 @@ class MediaAcceptingEditText : ActionEditText {
         return text?.run { getSpans(0, length, ShareSpan::class.java).isNotEmpty() } == true
     }
 
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        val oldLayout = layout
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+        if (oldLayout == null && layout != null) {
+            hasLayoutListener?.onHasLayout()
+            hasLayoutListener = null
+        }
+    }
+
+    fun interface HasLayoutListener { fun onHasLayout() }
+
+    var hasLayoutListener: HasLayoutListener? = null
+
     // text width in pixels. if has more than 1 line, returns Float.MAX_VALUE;
     // if text hasn't been laid out yet, returns -1f
     fun getTextWidth(): Float {

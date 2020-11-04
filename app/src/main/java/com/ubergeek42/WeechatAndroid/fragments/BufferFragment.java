@@ -208,7 +208,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
 
         uiInput.textifyReadySuris();                // this will fix any uploads that were finished while we were absent
         afterTextChanged2();                        // this will set appropriate upload ui state
-        showHidePaperclip(false);
+        showHidePaperclip();
         uploadManager.setObserver(uploadObserver);  // this will resume ui for any uploads that are still running
     }
 
@@ -491,7 +491,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     @MainThread @Override public void afterTextChanged(Editable s) {
         tcInProgress = false;
         afterTextChanged2();
-        showHidePaperclip(isResumed());
+        showHidePaperclip();
     }
 
     @SuppressWarnings("ConstantConditions") private void applyColorSchemeToViews() {
@@ -612,18 +612,19 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         return P.showPaperclip && uiPaperclip != null && uiPaperclip.getVisibility() == View.GONE;
     }
 
-    @MainThread void showHidePaperclip(boolean userTyping) {
+    @MainThread void showHidePaperclip() {
         if (!P.showPaperclip || activity == null || uiPaperclip == null) return;
 
         ViewGroup layout = (ViewGroup) uiPaperclip.getParent();
 
         // other buttons at this point might not have been measured, so we can't simply get width
         // of the input field; calculate through layout width instead. see R.layout.chatview_main
-        final float layoutWidth = layout.getWidth();
         final float textWidth = uiInput.getTextWidth();
 
-        if (layoutWidth <= 0 || textWidth < 0) {
-            uiInput.post(() -> showHidePaperclip(userTyping));  // wait for layout and try again
+        if (textWidth < 0) {
+            // rerun when we can determine text width. we can post() but this ensures the code
+            // is re-run earlier, and we can actually show-hide paperclip before the first draw
+            uiInput.setHasLayoutListener(this::showHidePaperclip);
             return;
         }
 
@@ -631,14 +632,16 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         // else ratio can jump backwards on character entry, revealing the button again.
         // if the send button is off, adding a ShareSpan can reveal it (well, upload button),
         // but it's not a problem as it can only appear on text addition and disappear on deletion*
-        float widgetWidth = layoutWidth - P._4dp - actionButtonWidth;
+        float widgetWidth = P.weaselWidth - P._4dp - actionButtonWidth;
         if (uiTab.getVisibility() != View.GONE) widgetWidth -= actionButtonWidth;
         if (uiSend.getVisibility() != View.GONE) widgetWidth -= actionButtonWidth;
 
         boolean shouldShowPaperclip = (textWidth / widgetWidth) < 0.8f;
         if (shouldShowPaperclip == (uiPaperclip.getVisibility() == View.VISIBLE)) return;
 
-        if (userTyping) TransitionManager.beginDelayedTransition(layout, paperclipTransition);
+        // not entirely correct, but good enough; don't animate if invisible
+        boolean alreadyDrawn = layout.getWidth() > 0;
+        if (alreadyDrawn) TransitionManager.beginDelayedTransition(layout, paperclipTransition);
 
         uiPaperclip.setVisibility(shouldShowPaperclip ? View.VISIBLE : View.GONE);
         activity.updateMenuItems();

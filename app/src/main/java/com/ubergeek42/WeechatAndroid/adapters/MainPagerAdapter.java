@@ -74,15 +74,6 @@ public class MainPagerAdapter extends PagerAdapter {
         pager.setCurrentItem(pointers.indexOf(pointer));
     }
 
-    @MainThread public void setBufferInputText(long pointer, @NonNull ShareObject shareObject) {
-        BufferFragment bufferFragment = getBufferFragment(pointers.indexOf(pointer));
-        if (bufferFragment == null) {
-            kitty.warn("Tried to set input text of unknown buffer %s", pointer);
-            return;
-        }
-        bufferFragment.setShareObject(shareObject);
-    }
-
     // returns whether a buffer is inside the pager
     @MainThread public boolean isBufferOpen(long pointer) {
         return pointers.contains(pointer);
