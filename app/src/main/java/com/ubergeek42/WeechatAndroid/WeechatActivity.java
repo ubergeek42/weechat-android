@@ -577,7 +577,7 @@ public class WeechatActivity extends AppCompatActivity implements
 
             if (shareObject != null) {
                 BufferFragment fragment = adapter.getCurrentBufferFragment();
-                if (fragment != null) {
+                if (fragment != null && fragment.getView() != null) {
                     fragment.setShareObject(shareObject);
                 } else {
                     // let fragment be created first, if it's not ready
