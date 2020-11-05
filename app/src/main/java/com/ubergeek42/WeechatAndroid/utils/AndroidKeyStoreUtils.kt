@@ -86,6 +86,8 @@ fun makeKeyPair(keyReader: Reader, passphrase: CharArray): KeyPair {
         return pkcs1pemKeyConverter.getKeyPair(obj)
     }
 
+    if (obj == null) throw IllegalArgumentException("File does not contain PEM objects")
+
     throw IllegalArgumentException("Don't know how to decode " + obj.javaClass.simpleName)
 }
 
