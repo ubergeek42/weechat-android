@@ -34,6 +34,7 @@
 
     <string name="ui__button_tab">Tab</string>
     <string name="ui__button_send">Отправить</string>
+    <string name="ui__button_paperclip">Загрузить</string>
 
     <string name="ui__button_fetch_more_lines">Загрузить больше строк</string>
     <string name="ui__button_fetching_lines">Загрузка…</string>
@@ -63,6 +64,13 @@
     <string name="menu__filter_lines">Фильтр строк</string>
 
     <string name="menu__dark_theme">Тёмная тема</string>
+
+    <string name="menu__upload_actions__content_images">Загрузить изображение</string>
+    <string name="menu__upload_actions__content_media">Загрузить медиа</string>
+    <string name="menu__upload_actions__content_anything">Загрузить файл</string>
+    <string name="menu__upload_actions__mediastore_images">Загрузить изображение</string>
+    <string name="menu__upload_actions__mediastore_media">Загрузить медиа</string>
+    <string name="menu__upload_actions__camera">Сделать фото</string>
 
     <string name="menu__debug">Отладка</string>
     <string name="menu__debug__sync_hotlist">Синхронизация</string>
@@ -132,6 +140,12 @@
     <string name="dialog__copy__title">Копировать</string>
 
     <string name="dialog__paste__title">Вставить</string>
+
+    <string name="dialog__write_permission_for_camera__title">
+        Необходимо разрешение</string>
+    <string name="dialog__write_permission_for_camera__text">
+        Чтобы сделать фото, приложению требуется разрешение на запись в хранилище</string>
+    <string name="dialog__write_permission_for_camera__button_ok">Хорошо</string>
 
     <!-- ####################################################################################### -->
     <!-- ################################# certificate dialogs ################################# -->
@@ -589,6 +603,29 @@
 
     <string name="pref__buttons__show_send">Показывать кнопку Отправить</string>
 
+    <string name="pref__buttons__show_paperclip">Показывать кнопку Скрепка</string>
+
+    <string name="pref__buttons__paperclip__action_1">Краткое нажатие на скрепку</string>
+    <string name="pref__buttons__paperclip__action_2">Долгое нажатие на скрепку</string>
+    <string name="pref__buttons__paperclip__actions__none">
+        Отключено</string>
+    <string name="pref__buttons__paperclip__actions__content_images">
+        Система: выбрать изображение</string>
+    <string name="pref__buttons__paperclip__actions__content_media">
+        Система: выбрать изображение или видео</string>
+    <string name="pref__buttons__paperclip__actions__content_anything">
+        Система: выбрать файл</string>
+    <string name="pref__buttons__paperclip__actions__mediastore_images">
+        Галерея: выбрать изображение</string>
+    <string name="pref__buttons__paperclip__actions__mediastore_media">
+        Галерея: выбрать изображение или видео</string>
+    <string name="pref__buttons__paperclip__actions__camera">
+        Сделать фото</string>
+
+    <string name="pref__paperclip__help">
+        Когда кнопка «Скрепка» скрыта, чтобы оставить больше места для поля ввода,
+        выбирать файлы можно через меню.</string>
+
     <string name="pref__buttons__volume_buttons_change_text_size">
         Кнопки громкости меняют размер текста</string>
     <string name="pref__buttons__volume_buttons_change_text_size_summary">
@@ -705,6 +742,53 @@
     <!-- ####################################################################################### -->
     <!-- ####################################### sharing ####################################### -->
     <!-- ####################################################################################### -->
+
+    <string name="pref__upload_group">Загрузка файлов</string>
+
+    <string name="pref__upload__accept_shared">Принимать из других приложений</string>
+    <string-array name="pref__upload__accept_shared_names">
+        <item>Только текст</item>
+        <item>Текст, изображения и видео</item>
+        <item>Всё</item>
+    </string-array>
+
+    <string name="pref__upload__upload_uri">URL загрузки</string>
+
+    <string name="pref__upload__form_field_name">Имя поля формы</string>
+
+    <string name="pref__upload__regex">Регулярное выражение</string>
+
+    <string name="pref__upload__help" tools:ignore="TypographyDashes,Typos"><![CDATA[
+        Данные настройки примерно соответствуют следующей команде:
+        <br>
+        <br><tt><small> curl -s --user user:pass \\
+        <br>&nbsp;&nbsp;--header \'Additional: Header\' \\
+        <br>&nbsp;&nbsp;--form file=@file.ext \\
+        <br>&nbsp;&nbsp;https://example.com | perl -nle \\
+        <br>&nbsp;&nbsp;\'m#^https://\\S+#; print $1//$&\'</small></tt>
+        <br>
+        <br>Если регулярное выражение задано, то оно применяется для поиска URL в теле ответа;
+        при совпадении используется либо первая группа захвата, если таковая имеется,
+        либо всё совпадение целиком.
+        <a href="https://github.com/ubergeek42/weechat-android/wiki/File-sharing">Узнать больше</a>
+    ]]></string>
+
+    <string name="pref__upload__advanced_group">Расширенные настройки</string>
+
+    <string name="pref__upload__additional_headers">Допольнительные заголовки</string>
+
+    <string name="pref__upload__authentication">Аутентификация</string>
+    <string-array name="pref__upload__authentication_names">
+        <item>Без аутентификации</item>
+        <item>Базовая</item>
+    </string-array>
+
+    <string name="pref__upload__authentication_basic_user">Имя пользователя</string>
+
+    <string name="pref__upload__authentication_basic_password">Пароль</string>
+
+    <string name="pref__upload__remember_uploads_for">Помнить загрузки</string>
+    <string name="pref__upload__remember_uploads_for_summary">%s часов</string>
 
     <!-- ####################################################################################### -->
     <!-- ######################################## about ######################################## -->

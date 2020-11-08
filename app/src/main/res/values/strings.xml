@@ -147,7 +147,6 @@
         To take photos, app needs write access to public storage</string>
     <string name="dialog__write_permission_for_camera__button_ok">OK</string>
 
-
     <!-- ####################################################################################### -->
     <!-- ################################# certificate dialogs ################################# -->
     <!-- ####################################################################################### -->
@@ -640,9 +639,8 @@
         Take photo</string>
 
     <string name="pref__paperclip__help">
-        When paperclip button gets hidden to provide more space for the input field,
-        you can still attach files via overflow menu.
-    </string>
+        When the paperclip button gets hidden to provide more space for the input field,
+        you can still attach files via overflow menu.</string>
 
     <string name="pref__buttons__volume_buttons_change_text_size">
         Volume buttons change text size</string>
