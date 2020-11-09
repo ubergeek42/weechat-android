@@ -860,7 +860,7 @@ strategies:
 
     <string name="pref__upload_group">File sharing</string>
 
-    <string name="pref__upload__accept_shared">Accept shared</string>
+    <string name="pref__upload__accept_shared">Accept from other apps</string>
     <string-array name="pref__upload__accept_shared_names">
         <item>Text only</item>
         <item>Text, images and videos</item>
