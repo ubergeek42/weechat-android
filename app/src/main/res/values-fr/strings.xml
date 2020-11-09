@@ -35,6 +35,7 @@
 
     <string name="ui__button_tab">Tab</string>
     <string name="ui__button_send">Envoyer</string>
+    <string name="ui__button_paperclip">Téléverser un fichier</string>
 
     <string name="ui__button_fetch_more_lines">Récupérer plus de lignes</string>
     <string name="ui__button_fetching_lines">Récupération…</string>
@@ -64,6 +65,13 @@
     <string name="menu__filter_lines">Filtrer les lignes</string>
 
     <string name="menu__dark_theme">Thème sombre</string>
+
+    <string name="menu__upload_actions__content_images">Joindre une image</string>
+    <string name="menu__upload_actions__content_media">Joindre un média</string>
+    <string name="menu__upload_actions__content_anything">Joindre un fichier</string>
+    <string name="menu__upload_actions__mediastore_images">Joindre une image</string>
+    <string name="menu__upload_actions__mediastore_media">Joindre un média</string>
+    <string name="menu__upload_actions__camera">Prendre une photo</string>
 
     <string name="menu__debug">Debug</string>
     <string name="menu__debug__sync_hotlist">Sync. les notables</string>
@@ -127,6 +135,12 @@
     <string name="dialog__copy__title">Copier</string>
 
     <string name="dialog__paste__title">Coller</string>
+
+    <string name="dialog__write_permission_for_camera__title">
+        Autorisation requise</string>
+    <string name="dialog__write_permission_for_camera__text">
+        Pour prendre des photos, l’application a besoin d’un accès en écriture au stockage</string>
+    <string name="dialog__write_permission_for_camera__button_ok">OK</string>
 
     <!-- ####################################################################################### -->
     <!-- ################################# certificate dialogs ################################# -->
@@ -579,6 +593,29 @@
 
     <string name="pref__buttons__show_send">Afficher le bouton d’envoi</string>
 
+    <string name="pref__buttons__show_paperclip">Afficher le bouton «&#8239;trombone&#8239;»</string>
+
+    <string name="pref__buttons__paperclip__action_1">Appui court sur le bouton «&#8239;trombone&#8239;»</string>
+    <string name="pref__buttons__paperclip__action_2">Appui long sur le bouton «&#8239;trombone&#8239;»</string>
+    <string name="pref__buttons__paperclip__actions__none">
+        Désactivé</string>
+    <string name="pref__buttons__paperclip__actions__content_images">
+        Système&#8239;: joindre des images</string>
+    <string name="pref__buttons__paperclip__actions__content_media">
+        Système&#8239;: joindre des images ou vidéos</string>
+    <string name="pref__buttons__paperclip__actions__content_anything">
+        Système&#8239;: joindre tout type de fichiers</string>
+    <string name="pref__buttons__paperclip__actions__mediastore_images">
+        Galerie&#8239;: joindre des images</string>
+    <string name="pref__buttons__paperclip__actions__mediastore_media">
+        Galerie&#8239;: joindre des images ou vidéos</string>
+    <string name="pref__buttons__paperclip__actions__camera">
+        Prendre une photo</string>
+
+    <string name="pref__paperclip__help">
+        Quand le bouton «&#8239;trombone&#8239;» devient invisible pour laisser de la place au champ de saisie,
+        il reste possible de joindre des fichiers via le menu déroulant.</string>
+
     <string name="pref__buttons__volume_buttons_change_text_size">
         Taille du texte via le volume</string>
     <string name="pref__buttons__volume_buttons_change_text_size_summary">
@@ -697,6 +734,53 @@
     <!-- ####################################################################################### -->
     <!-- ####################################### sharing ####################################### -->
     <!-- ####################################################################################### -->
+
+    <string name="pref__upload_group">Partage de fichiers</string>
+
+    <string name="pref__upload__accept_shared">Médias acceptés par l’app lors du partage</string>
+    <string-array name="pref__upload__accept_shared_names">
+        <item>Texte seulement</item>
+        <item>Texte, images et vidéos</item>
+        <item>Tout</item>
+    </string-array>
+
+    <string name="pref__upload__upload_uri">URL de téléversement</string>
+
+    <string name="pref__upload__form_field_name">Nom du champ pour le fichier</string>
+
+    <string name="pref__upload__regex">Expression régulière</string>
+
+    <string name="pref__upload__help" tools:ignore="TypographyDashes,Typos"><![CDATA[
+        Ces paramètres sont grossièrement équivalents à la commande&#8239;:
+        <br>
+        <br><tt><small> curl -s --user user:pass \\
+        <br>&nbsp;&nbsp;--header \'Additional: Header\' \\
+        <br>&nbsp;&nbsp;--form file=@file.ext \\
+        <br>&nbsp;&nbsp;https://example.com | perl -nle \\
+        <br>&nbsp;&nbsp;\'m#^https://\\S+#; print $1//$&\'</small></tt>
+        <br>
+        <br>Si l’expression régulière est définie,
+        elle est utilisée pour récupérer l’URL depuis le contenu de la réponse HTTP,
+        via le premier groupe de capture s’il y en a un, sinon via le match complet.
+        <a href="https://github.com/ubergeek42/weechat-android/wiki/File-sharing">Plus de détails</a> (en anglais)
+    ]]></string>
+
+    <string name="pref__upload__advanced_group">Avancé</string>
+
+    <string name="pref__upload__additional_headers">En-têtes HTTP supplémentaires</string>
+
+    <string name="pref__upload__authentication">Authentification</string>
+    <string-array name="pref__upload__authentication_names">
+        <item>Aucune</item>
+        <item>Basique</item>
+    </string-array>
+
+    <string name="pref__upload__authentication_basic_user">Utilisateur</string>
+
+    <string name="pref__upload__authentication_basic_password">Mot de passe</string>
+
+    <string name="pref__upload__remember_uploads_for">Se souvenir des téléversements pendant</string>
+    <string name="pref__upload__remember_uploads_for_summary">%s heures</string>
 
     <!-- ####################################################################################### -->
     <!-- ######################################## about ######################################## -->
