@@ -119,7 +119,6 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         pointer = getArguments().getLong(POINTER);
         kitty.setPrefix(Utils.pointerToString(pointer));
         uploadManager = UploadManager.forBuffer(pointer);
-
     }
 
     @MainThread @Override @Cat public void onAttach(Context context) {
@@ -409,13 +408,14 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     //////////////////////////////////////////////////////////////////////////////////////////////// send message
 
     @MainThread private void sendMessage() {
+        if (buffer == null || uiInput == null) return;
         List<Suri> suris = uiInput.getNotReadySuris();
         if (!(Utils.isEmpty(suris))) {
             startUploads(suris);
-            return;
+        } else {
+            SendMessageEvent.fireInput(buffer, uiInput.getText().toString());
+            uiInput.setText("");   // this will reset tab completion
         }
-        SendMessageEvent.fireInput(buffer, uiInput.getText().toString());
-        uiInput.setText("");   // this will reset tab completion
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
