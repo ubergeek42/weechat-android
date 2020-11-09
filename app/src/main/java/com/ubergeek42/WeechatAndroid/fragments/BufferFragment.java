@@ -41,6 +41,8 @@ import android.widget.TextView;
 
 import com.ubergeek42.WeechatAndroid.Weechat;
 import com.ubergeek42.WeechatAndroid.copypaste.Paste;
+import com.ubergeek42.WeechatAndroid.tabcomplete.OnlineTabCompleter;
+import com.ubergeek42.WeechatAndroid.tabcomplete.TabCompleter;
 import com.ubergeek42.WeechatAndroid.upload.Config;
 import com.ubergeek42.WeechatAndroid.upload.FileChooserKt;
 import com.ubergeek42.WeechatAndroid.upload.InsertAt;
@@ -422,59 +424,13 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     //////////////////////////////////////////////////////////////////////////////////////////////// tab completion
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private boolean tcInProgress;
-    private ArrayList<String> tcMatches;
-    private int tcIndex;
-    private int tcWordStart;
-    private int tcWordEnd;
+    private TabCompleter completer = null;
 
     @MainThread @SuppressLint("SetTextI18n") private void tryTabComplete() {
         if (buffer == null) return;
-
-        Editable txt = uiInput.getText();
-        if (txt == null) return;
-
-        if (!tcInProgress) {
-            // find the end of the word to be completed
-            // blabla nick|
-            tcWordEnd = uiInput.getSelectionStart();
-            if (tcWordEnd <= 0)
-                return;
-
-            // find the beginning of the word to be completed
-            // blabla |nick
-            tcWordStart = tcWordEnd;
-            while (tcWordStart > 0 && txt.charAt(tcWordStart - 1) != ' ')
-                tcWordStart--;
-
-            // get the word to be completed, lowercase
-            if (tcWordStart == tcWordEnd)
-                return;
-            String prefix = txt.subSequence(tcWordStart, tcWordEnd).toString().toLowerCase();
-
-            // compute a list of possible matches
-            // nicks is ordered in last used comes first way, so we just pick whatever comes first
-            // if computed list is empty, abort
-            tcMatches = buffer.getMostRecentNicksMatching(prefix);
-            if (tcMatches.size() == 0)
-                return;
-
-            tcIndex = 0;
-        } else {
-            tcIndex = (tcIndex + 1) % tcMatches.size();
-        }
-
-        // get new nickname, adjust the end of the word marker
-        // and finally set the text and place the cursor on the end of completed word
-        String nick = tcMatches.get(tcIndex);
-        if (tcWordStart == 0)
-            nick += ": ";
-        txt.replace(tcWordStart, tcWordEnd, nick);
-        tcWordEnd = tcWordStart + nick.length();
-        uiInput.setSelection(tcWordEnd);
-        // altering text in the input box sets tcInProgress to false,
-        // so this is the last thing we do in this function:
-        tcInProgress = true;
+        if (completer == null)
+            completer = TabCompleter.obtain(getLifecycle(), buffer, uiInput);
+        completer.next();
     }
 
     @MainThread @SuppressLint("SetTextI18n") public void setShareObject(ShareObject shareObject) {
@@ -489,7 +445,11 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     // invalidate tab completion progress on input box text change
     // tryTabComplete() will set it back if it modified the text causing this function to run
     @MainThread @Override public void afterTextChanged(Editable s) {
-        tcInProgress = false;
+        if (completer != null) {
+            completer.cancel();
+            if (!completer.shouldntNullOut())
+                completer = null;
+        }
         afterTextChanged2();
         showHidePaperclip();
     }

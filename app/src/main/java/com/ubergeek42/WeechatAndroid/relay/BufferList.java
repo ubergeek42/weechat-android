@@ -97,7 +97,13 @@ public class BufferList {
         assertThat(handlers.put(id, handler)).isNull();
     }
 
-    @AnyThread private static void removeMessageHandler(String id, RelayMessageHandler handler) {
+    @AnyThread public static String addOneOffMessageHandler(RelayMessageHandler handler) {
+        String id = String.valueOf(counter++);
+        assertThat(handlers.put(id, handler)).isNull();
+        return id;
+    }
+
+    @AnyThread public static void removeMessageHandler(String id, RelayMessageHandler handler) {
         handlers.remove(id, handler);
     }
 
