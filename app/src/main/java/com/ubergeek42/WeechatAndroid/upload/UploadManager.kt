@@ -116,9 +116,9 @@ class UploadManager {
                                                    valueThreshold = 0.01f, timeThreshold = 16)
 
     companion object {
-        private val managers = mutableMapOf<Long, UploadManager>().withDefault { UploadManager() }
+        private val managers = mutableMapOf<Long, UploadManager>()
 
-        @JvmStatic fun forBuffer(buffer: Long): UploadManager = managers.getValue(buffer)
+        @JvmStatic fun forBuffer(buffer: Long) = managers.getOrPut(buffer, ::UploadManager)
     }
 }
 
