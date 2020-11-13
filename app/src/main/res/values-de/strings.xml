@@ -36,7 +36,8 @@
 
     <string name="ui__button_tab">Tab</string>
     <string name="ui__button_send">Senden</string>
-    
+    <string name="ui__button_paperclip">Datei hochladen</string>
+
     <string name="ui__button_fetch_more_lines">Weitere Zeilen anfordern</string>
     <string name="ui__button_fetching_lines">Zeilen werden geholt…</string>
     
@@ -65,7 +66,14 @@
     <string name="menu__filter_lines">Zeilen filtern</string>
     
     <string name="menu__dark_theme">Dunkles Design</string>
-    
+
+    <string name="menu__upload_actions__content_images">Bild hinzufügen</string>
+    <string name="menu__upload_actions__content_media">Medien anhängen</string>
+    <string name="menu__upload_actions__content_anything">Datei anhängen</string>
+    <string name="menu__upload_actions__mediastore_images">Bild hinzufügen</string>
+    <string name="menu__upload_actions__mediastore_media">Medien anhängen</string>
+    <string name="menu__upload_actions__camera">Foto aufnehmen</string>
+
     <string name="menu__debug">Debug</string>
     <string name="menu__debug__sync_hotlist">Sync Hotlist</string>
     <string name="menu__debug__die">Sterbe</string>
@@ -128,6 +136,12 @@
     <string name="dialog__copy__title">Kopieren</string>
 
     <string name="dialog__paste__title">Einfügen</string>
+
+    <string name="dialog__write_permission_for_camera__title">
+        Berechtigung erforderlich</string>
+    <string name="dialog__write_permission_for_camera__text">
+        Um Fotos zu erstellen, benötigt die App Schreibzugriff auf den öffentlichen Speicher</string>
+    <string name="dialog__write_permission_for_camera__button_ok">Ok</string>
 
     <!-- ####################################################################################### -->
     <!-- ################################# certificate dialogs ################################# -->
@@ -591,6 +605,25 @@
 
     <string name="pref__buttons__show_send">Zeige Sende-Taste</string>
 
+    <string name="pref__buttons__show_paperclip">Zeige Paperclip Button</string>
+
+    <string name="pref__buttons__paperclip__action_1">Paperclip Taste kurz tippen</string>
+    <string name="pref__buttons__paperclip__action_2">Paperclip Taste lange tippen</string>
+    <string name="pref__buttons__paperclip__actions__none">
+        Deaktiviert</string>
+    <string name="pref__buttons__paperclip__actions__content_images">
+        System: Bilder anhängen</string>
+    <string name="pref__buttons__paperclip__actions__content_media">
+        System: Bilder und Videos anhängen</string>
+    <string name="pref__buttons__paperclip__actions__content_anything">
+        System: alle Dateien anhängen</string>
+    <string name="pref__buttons__paperclip__actions__mediastore_images">
+        Galerie: Bilder anhängen</string>
+    <string name="pref__buttons__paperclip__actions__mediastore_media">
+        Galerie: Bilder und Videos anhängen</string>
+    <string name="pref__buttons__paperclip__actions__camera">
+        Foto aufnehmen</string>
+
     <string name="pref__buttons__volume_buttons_change_text_size">
         Lautstärketasten ändern die Textgröße</string>
     <string name="pref__buttons__volume_buttons_change_text_size_summary">
@@ -709,6 +742,53 @@
     <!-- ####################################################################################### -->
     <!-- ####################################### sharing ####################################### -->
     <!-- ####################################################################################### -->
+
+    <string name="pref__upload_group">Datei teilen</string>
+
+    <string-array name="pref__upload__accept_shared_names">
+        <item>Nur Text</item>
+        <item>Text, Bilder und Videos</item>
+        <item>Alles</item>
+    </string-array>
+
+    <string name="pref__upload__upload_uri">Upload-URL</string>
+
+    <string name="pref__upload__form_field_name">Formular Feldname</string>
+
+    <string name="pref__upload__regex">Regulärer Ausdruck</string>
+
+    <string name="pref__upload__help" tools:ignore="TypographyDashes,Typos"><![CDATA[
+        Diese Einstellungen entsprechen in etwa folgendem Befehl:
+        <br>
+        <br><tt><small> curl -s --user user:pass \\
+        <br>&nbsp;&nbsp;--header \'Additional: Header\' \\
+        <br>&nbsp;&nbsp;--form file=@file.ext \\
+        <br>&nbsp;&nbsp;https://example.com | perl -nle \\
+        <br>&nbsp;&nbsp;\'m#^https://\\S+#; print $1//$&\'</small></tt>
+        <br>
+        <br>Wenn der reguläre Ausdruck festgelegt ist, wird er verwendet,
+        um die URL im Antworttext zu finden;
+        entweder findet das erste Gruppierungskonstrukt Anwendung
+        oder der ganze reguläre Ausdruck wird verwendet.
+        <a href="https://github.com/ubergeek42/weechat-android/wiki/File-sharing">Lerne mehr</a>
+    ]]></string>
+
+    <string name="pref__upload__advanced_group">Erweitert</string>
+
+    <string name="pref__upload__additional_headers">Zusätzliche Header</string>
+
+    <string name="pref__upload__authentication">Authentifizierung</string>
+    <string-array name="pref__upload__authentication_names">
+        <item>Keine</item>
+        <item>Basisauthentifizierung</item>
+    </string-array>
+
+    <string name="pref__upload__authentication_basic_user">Benutzer</string>
+
+    <string name="pref__upload__authentication_basic_password">Passwort</string>
+
+    <string name="pref__upload__remember_uploads_for">Merke Uploads für</string>
+    <string name="pref__upload__remember_uploads_for_summary">%s Stunden</string>
 
     <!-- ####################################################################################### -->
     <!-- ######################################## about ######################################## -->
