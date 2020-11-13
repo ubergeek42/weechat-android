@@ -605,10 +605,10 @@
 
     <string name="pref__buttons__show_send">Zeige Sende-Taste</string>
 
-    <string name="pref__buttons__show_paperclip">Zeige Paperclip Button</string>
+    <string name="pref__buttons__show_paperclip">Zeige Büroklammer-Taste</string>
 
-    <string name="pref__buttons__paperclip__action_1">Paperclip Taste kurz tippen</string>
-    <string name="pref__buttons__paperclip__action_2">Paperclip Taste lange tippen</string>
+    <string name="pref__buttons__paperclip__action_1">Büroklammer-Taste kurz tippen</string>
+    <string name="pref__buttons__paperclip__action_2">Büroklammer-Taste lang drücken</string>
     <string name="pref__buttons__paperclip__actions__none">
         Deaktiviert</string>
     <string name="pref__buttons__paperclip__actions__content_images">
@@ -623,6 +623,11 @@
         Galerie: Bilder und Videos anhängen</string>
     <string name="pref__buttons__paperclip__actions__camera">
         Foto aufnehmen</string>
+
+    <string name="pref__paperclip__help">
+        Sie können Dateien immer noch via Menü anhängen,
+        wenn der Büroklammer-Taste versteckt wurde,
+        um mehr Platz für das Eingabefeld zu schaffen.</string>
 
     <string name="pref__buttons__volume_buttons_change_text_size">
         Lautstärketasten ändern die Textgröße</string>
@@ -745,6 +750,7 @@
 
     <string name="pref__upload_group">Datei teilen</string>
 
+    <string name="pref__upload__accept_shared">Akzeptiere von anderen Apps</string>
     <string-array name="pref__upload__accept_shared_names">
         <item>Nur Text</item>
         <item>Text, Bilder und Videos</item>
