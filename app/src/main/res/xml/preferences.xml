@@ -461,7 +461,7 @@
             android:inputType="textUri" />
         <EditTextPreferenceFix
             android:key="upload_form_field_name"
-            android:title="@string/pref__upload__form_field_name"
+            android:title="@string/pref__upload__file_field"
             android:summary="%s"
             android:defaultValue="file"
             android:singleLine="true"

@@ -759,7 +759,7 @@
 
     <string name="pref__upload__upload_uri">Upload-URL</string>
 
-    <string name="pref__upload__form_field_name">Formular Feldname</string>
+    <string name="pref__upload__file_field">Dateifeld</string>
 
     <string name="pref__upload__regex">Regulärer Ausdruck</string>
 
@@ -768,6 +768,7 @@
         <br>
         <br><tt><small> curl -s --user user:pass \\
         <br>&nbsp;&nbsp;--header \'Additional: Header\' \\
+        <br>&nbsp;&nbsp;--form additional=field \\
         <br>&nbsp;&nbsp;--form file=@file.ext \\
         <br>&nbsp;&nbsp;https://example.com | perl -nle \\
         <br>&nbsp;&nbsp;\'m#^https://\\S+#; print $1//$&\'</small></tt>
@@ -782,6 +783,8 @@
     <string name="pref__upload__advanced_group">Erweitert</string>
 
     <string name="pref__upload__additional_headers">Zusätzliche Header</string>
+
+    <string name="pref__upload__additional_fields">Zusätzliche Felder</string>
 
     <string name="pref__upload__authentication">Authentifizierung</string>
     <string-array name="pref__upload__authentication_names">

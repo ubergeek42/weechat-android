@@ -869,7 +869,7 @@ strategies:
 
     <string name="pref__upload__upload_uri">Upload URL</string>
 
-    <string name="pref__upload__form_field_name">Form field name</string>
+    <string name="pref__upload__file_field">File field</string>
 
     <string name="pref__upload__regex">Regex</string>
 
@@ -878,6 +878,7 @@ strategies:
         <br>
         <br><tt><small> curl -s --user user:pass \\
         <br>&nbsp;&nbsp;--header \'Additional: Header\' \\
+        <br>&nbsp;&nbsp;--form additional=field \\
         <br>&nbsp;&nbsp;--form file=@file.ext \\
         <br>&nbsp;&nbsp;https://example.com | perl -nle \\
         <br>&nbsp;&nbsp;\'m#^https://\\S+#; print $1//$&\'</small></tt>
