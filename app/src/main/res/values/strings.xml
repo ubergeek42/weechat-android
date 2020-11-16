@@ -891,6 +891,8 @@ strategies:
 
     <string name="pref__upload__additional_headers">Additional headers</string>
 
+    <string name="pref__upload__additional_fields">Additional fields</string>
+
     <string name="pref__upload__authentication">Authentication</string>
     <string-array name="pref__upload__authentication_names">
         <item>None</item>

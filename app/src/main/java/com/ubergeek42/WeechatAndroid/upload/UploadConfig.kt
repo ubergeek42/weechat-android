@@ -13,6 +13,7 @@ object Config {
     var uploadFormFieldName = PREF_UPLOAD_FORM_FIELD_NAME
     var httpUriGetter = HttpUriGetter.simple
     var requestModifiers = emptyList<RequestModifier>()
+    var requestBodyModifiers = emptyList<RequestBodyModifier>()
     var rememberUploadsFor = PREF_UPLOAD_REMEMBER_UPLOADS_FOR_D.hours_to_ms
     @JvmField var paperclipAction1: Target = Target.MediaStoreImages
     @JvmField var paperclipAction2: Target? = Target.Camera
@@ -26,6 +27,7 @@ fun initPreferences() {
             PREF_UPLOAD_FORM_FIELD_NAME,
             PREF_UPLOAD_REGEX,
             PREF_UPLOAD_ADDITIONAL_HEADERS,
+            PREF_UPLOAD_ADDITIONAL_FIELDS,
             PREF_UPLOAD_AUTHENTICATION,
             PREF_UPLOAD_AUTHENTICATION_BASIC_USER,
             PREF_UPLOAD_AUTHENTICATION_BASIC_PASSWORD,
@@ -87,6 +89,13 @@ fun onSharedPreferenceChanged(p: SharedPreferences, key: String) {
             }
 
             Config.requestModifiers = requestModifiers
+        }
+
+        PREF_UPLOAD_ADDITIONAL_FIELDS -> {
+            val additionalFields = RequestBodyModifier.additionalFields(
+                    p.getString(key, PREF_UPLOAD_ADDITIONAL_FIELDS_D)!!)
+            Config.requestBodyModifiers = if (additionalFields == null)
+                emptyList() else listOf(additionalFields)
         }
 
         PREF_UPLOAD_REMEMBER_UPLOADS_FOR -> {

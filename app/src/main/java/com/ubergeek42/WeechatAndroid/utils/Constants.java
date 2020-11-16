@@ -215,6 +215,8 @@ public class Constants {
     final public static String PREF_UPLOAD_ADVANCED_GROUP = "upload_advanced_group";
     final public static String PREF_UPLOAD_ADDITIONAL_HEADERS = "upload_additional_headers";
     final public static String PREF_UPLOAD_ADDITIONAL_HEADERS_D = "";
+    final public static String PREF_UPLOAD_ADDITIONAL_FIELDS = "upload_additional_fields";
+    final public static String PREF_UPLOAD_ADDITIONAL_FIELDS_D = "";
     final public static String PREF_UPLOAD_AUTHENTICATION = "upload_authentication";
     final public static String PREF_UPLOAD_AUTHENTICATION_NONE = "none";
     final public static String PREF_UPLOAD_AUTHENTICATION_BASIC = "basic";

@@ -30,6 +30,7 @@ import androidx.preference.ThemePreference;
 
 import com.ubergeek42.WeechatAndroid.media.Config;
 import com.ubergeek42.WeechatAndroid.upload.HttpUriGetter;
+import com.ubergeek42.WeechatAndroid.upload.RequestBodyModifier;
 import com.ubergeek42.WeechatAndroid.upload.RequestModifier;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 
@@ -187,7 +188,8 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
                         PREF_UPLOAD_AUTHENTICATION,
                         PREF_UPLOAD_URI,
                         PREF_UPLOAD_REGEX,
-                        PREF_UPLOAD_ADDITIONAL_HEADERS};
+                        PREF_UPLOAD_ADDITIONAL_HEADERS,
+                        PREF_UPLOAD_ADDITIONAL_FIELDS};
             }
 
             for (String p : listenTo)
@@ -252,6 +254,8 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
                     }
                 } else if (PREF_UPLOAD_ADDITIONAL_HEADERS.equals(key)) {
                     RequestModifier.additionalHeaders((String) o);
+                } else if (PREF_UPLOAD_ADDITIONAL_FIELDS.equals(key)) {
+                    RequestBodyModifier.additionalFields((String) o);
                 }
             } catch (Exception e) {
                 valid = false;

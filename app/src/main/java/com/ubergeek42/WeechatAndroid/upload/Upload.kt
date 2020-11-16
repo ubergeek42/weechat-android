@@ -30,6 +30,7 @@ class Upload(
     private val uploadFormFieldName: String,
     private val httpUriGetter: HttpUriGetter,
     private val requestModifiers: List<RequestModifier>,
+    private val requestBodyModifiers: List<RequestBodyModifier>,
 ) {
     var transferredBytes = 0L
     val totalBytes = suri.fileSize
@@ -75,14 +76,16 @@ class Upload(
     }
 
     private fun prepare() : Call {
-        val requestBody = MultipartBody.Builder()
+        val requestBodyBuilder = MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
                 .addFormDataPart(uploadFormFieldName, suri.fileName, getRequestBody())
-                .build()
+
+        for (requestBodyModifier in requestBodyModifiers)
+            requestBodyModifier.modify(requestBodyBuilder)
 
         val requestBuilder = Request.Builder()
                 .url(uploadUri)
-                .post(requestBody)
+                .post(requestBodyBuilder.build())
 
         for (requestModifier in requestModifiers)
             requestModifier.modify(requestBuilder)
@@ -155,7 +158,8 @@ class Upload(
                            uploadUri = Config.uploadUri,
                            uploadFormFieldName = Config.uploadFormFieldName,
                            httpUriGetter = Config.httpUriGetter,
-                           requestModifiers = Config.requestModifiers)
+                           requestModifiers = Config.requestModifiers,
+                           requestBodyModifiers = Config.requestBodyModifiers)
                 }
                 upload.listeners.addAll(listeners)
                 listeners.forEach { it.onStarted(upload) }

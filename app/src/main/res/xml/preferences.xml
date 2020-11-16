@@ -487,6 +487,12 @@
                 android:summary="%s"
                 android:singleLine="false"
                 android:inputType="text" />
+            <EditTextPreferenceFix
+                android:key="upload_additional_fields"
+                android:title="@string/pref__upload__additional_fields"
+                android:summary="%s"
+                android:singleLine="false"
+                android:inputType="text" />
             <ListPreference
                 android:key="upload_authentication"
                 android:title="@string/pref__upload__authentication"
