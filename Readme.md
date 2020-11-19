@@ -50,6 +50,14 @@ check with us on IRC before starting a substantial rewrite! For additional infor
  
 ### Changelog
 
+##### v1.3
+* allow uploading files via user-supplied HTTP POST services
+* added file picker/take photo button
+* app can be a share target for files as well as text
+* app can receive media through keyboard
+* parts of the app are using Kotlin now!
+* toast background is colored to signify success or failure
+
 ##### v1.2
 * Let users interactively accept or reject SSH host keys
 * Accept private SSH keys in PKCS #8 format
