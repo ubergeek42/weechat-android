@@ -828,7 +828,7 @@ strategies:
 - name: reddit
   type: any
   hosts: [v.redd.it, reddit.com, www.reddit.com, old.reddit.com]
-  body size: 131072
+  body size: 196608
 "</string>
 
     <string name="pref__media_preview__advanced_group">Advanced</string>
