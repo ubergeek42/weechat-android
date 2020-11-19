@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="pref_theme_system">Systemstandardeinstellung</string>
+    <string name="pref__theme__theme__system">Systemstandardeinstellung</string>
 </resources>

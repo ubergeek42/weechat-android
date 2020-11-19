@@ -21,11 +21,14 @@ import com.ubergeek42.WeechatAndroid.adapters.BufferListClickListener;
 import com.ubergeek42.WeechatAndroid.service.Events;
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
+import com.ubergeek42.WeechatAndroid.upload.ShareObjectKt;
 import com.ubergeek42.WeechatAndroid.utils.ThemeFix;
+import com.ubergeek42.WeechatAndroid.utils.Utils;
 
 import org.greenrobot.eventbus.EventBus;
 
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
+import static com.ubergeek42.WeechatAndroid.utils.Toaster.ErrorToast;
 
 public class ShareTextActivity extends AppCompatActivity implements
         DialogInterface.OnDismissListener, BufferListClickListener {
@@ -48,13 +51,15 @@ public class ShareTextActivity extends AppCompatActivity implements
         super.onStart();
 
         if (!EventBus.getDefault().getStickyEvent(Events.StateChangedEvent.class).state.contains(RelayService.STATE.LISTED)) {
-            Weechat.showShortToast(R.string.not_connected);
+            ErrorToast.show(R.string.error__etc__not_connected);
             finish();
             return;
         }
 
         Intent intent = getIntent();
-        if ((Intent.ACTION_SEND.equals(intent.getAction()) && "text/plain".equals(intent.getType()))) {
+        if (Utils.isAnyOf(intent.getAction(), Intent.ACTION_SEND, Intent.ACTION_SEND_MULTIPLE)) {
+            ShareObjectKt.preloadThumbnailsForIntent(intent);
+
             dialog = new Dialog(this, R.style.AlertDialogTheme);
             dialog.setContentView(R.layout.bufferlist_share);
 
@@ -91,11 +96,13 @@ public class ShareTextActivity extends AppCompatActivity implements
         dialog.dismiss();                   // must be called in order to not cause leaks
     }
 
+    // as we are receiving uris now, it's important that we keep all permissions associated with them.
+    // while many uris we'll be given for life, some will only last as long as this activity lasts.
+    // see flag FLAG_GRANT_READ_URI_PERMISSION and https://stackoverflow.com/a/39898958/1449683
     @Override public void onBufferClick(long pointer) {
-        final String text = getIntent().getStringExtra(Intent.EXTRA_TEXT);
-        Intent intent = new Intent(getApplicationContext(), WeechatActivity.class);
-        intent.putExtra(NOTIFICATION_EXTRA_BUFFER_POINTER, pointer);
-        intent.putExtra(NOTIFICATION_EXTRA_BUFFER_INPUT_TEXT, text);
+        Intent intent = getIntent();
+        intent.setClass(getApplicationContext(), WeechatActivity.class);
+        intent.putExtra(EXTRA_BUFFER_POINTER, pointer);
         startActivity(intent);
         finish();
     }

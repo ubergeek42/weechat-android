@@ -30,6 +30,7 @@ import com.ubergeek42.WeechatAndroid.Weechat;
 import com.ubergeek42.WeechatAndroid.media.Config;
 import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
+import com.ubergeek42.WeechatAndroid.upload.UploadConfigKt;
 import com.ubergeek42.WeechatAndroid.utils.MigratePreferences;
 import com.ubergeek42.WeechatAndroid.utils.ThemeFix;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
@@ -77,6 +78,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         p.registerOnSharedPreferenceChangeListener(instance);
         calculateWeaselWidth();
         Config.initPreferences();
+        UploadConfigKt.initPreferences();
     }
 
     // sets the width of weasel (effectively the recycler view) for LineView. this is a workaround
@@ -105,11 +107,12 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     public static void storeThemeOrColorSchemeColors(Context context) {
         ColorScheme scheme = ColorScheme.get();
         TypedArray colors = context.obtainStyledAttributes(
-                new int[] {R.attr.colorPrimary, R.attr.colorPrimaryDark});
+                new int[] {R.attr.colorPrimary, R.attr.colorPrimaryDark, R.attr.toolbarIconColor});
         colorPrimary = scheme.colorPrimary != ColorScheme.NO_COLOR ?
                 scheme.colorPrimary : colors.getColor(0, ColorScheme.NO_COLOR);
         colorPrimaryDark = scheme.colorPrimaryDark != ColorScheme.NO_COLOR ?
                 scheme.colorPrimaryDark : colors.getColor(1, ColorScheme.NO_COLOR);
+        toolbarIconColor = colors.getColor(2, ColorScheme.NO_COLOR);
         colors.recycle();
     }
 
@@ -141,7 +144,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     static boolean notificationVibrate;
     static String notificationSound;
 
-    public static boolean showSend, showTab, hotlistSync, volumeBtnSize;
+    public static boolean showSend, showTab, showPaperclip, hotlistSync, volumeBtnSize;
 
     public static boolean showBufferFilter;
 
@@ -150,6 +153,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
 
     public static int colorPrimary = ColorScheme.NO_COLOR;
     public static int colorPrimaryDark = ColorScheme.NO_COLOR;
+    public static int toolbarIconColor = ColorScheme.NO_COLOR;
 
     @MainThread private static void loadUIPreferences() {
         // buffer list preferences
@@ -181,6 +185,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         // buffer fragment
         showSend = p.getBoolean(PREF_SHOW_SEND, PREF_SHOW_SEND_D);
         showTab = p.getBoolean(PREF_SHOW_TAB, PREF_SHOW_TAB_D);
+        showPaperclip = p.getBoolean(PREF_SHOW_PAPERCLIP, PREF_SHOW_PAPERCLIP_D);
         hotlistSync = p.getBoolean(PREF_HOTLIST_SYNC, PREF_HOTLIST_SYNC_D);
         volumeBtnSize = p.getBoolean(PREF_VOLUME_BTN_SIZE, PREF_VOLUME_BTN_SIZE_D);
 
@@ -303,14 +308,14 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     }
 
     @MainThread public static @StringRes int validateConnectionPreferences() {
-        if (TextUtils.isEmpty(host)) return R.string.pref_error_relay_host_not_set;
-        if (TextUtils.isEmpty(pass)) return R.string.pref_error_relay_password_not_set;
+        if (TextUtils.isEmpty(host)) return R.string.error__pref_validation__relay_host_not_set;
+        if (TextUtils.isEmpty(pass)) return R.string.error__pref_validation__relay_password_not_set;
         if (connectionType.equals(PREF_TYPE_SSH)) {
-            if (TextUtils.isEmpty(sshHost)) return R.string.pref_error_ssh_host_not_set;
+            if (TextUtils.isEmpty(sshHost)) return R.string.error__pref_validation__ssh_host_not_set;
             if (sshAuthenticationMethod == SSHConnection.AuthenticationMethod.KEY) {
-                if (Utils.isEmpty(sshSerializedKey)) return R.string.pref_error_no_ssh_key_file;
+                if (Utils.isEmpty(sshSerializedKey)) return R.string.error__pref_validation__ssh_key_not_set;
             } else {
-                if (TextUtils.isEmpty(sshPassword)) return R.string.pref_error_no_ssh_password;
+                if (TextUtils.isEmpty(sshPassword)) return R.string.error__pref_validation__ssh_password_not_set;
             }
         }
         return 0;
@@ -379,6 +384,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
             // buffer fragment
             case PREF_SHOW_SEND: showSend = p.getBoolean(key, PREF_SHOW_SEND_D); break;
             case PREF_SHOW_TAB: showTab = p.getBoolean(key, PREF_SHOW_TAB_D); break;
+            case PREF_SHOW_PAPERCLIP: showPaperclip = p.getBoolean(key, PREF_SHOW_PAPERCLIP_D); break;
             case PREF_HOTLIST_SYNC: hotlistSync = p.getBoolean(key, PREF_HOTLIST_SYNC_D); break;
             case PREF_VOLUME_BTN_SIZE: volumeBtnSize = p.getBoolean(key, PREF_VOLUME_BTN_SIZE_D); break;
 
@@ -387,6 +393,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
 
             default:
                 Config.onSharedPreferenceChanged(p, key);
+                UploadConfigKt.onSharedPreferenceChanged(p, key);
         }
     }
 

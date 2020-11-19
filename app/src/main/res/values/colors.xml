@@ -32,4 +32,8 @@
     <color name="toolbarHotIconTextColor">@color/primary</color>
 
     <color name="launcherIconKittyBackgroundColor">#800000</color>
+
+    <color name="toastError">#ff6666</color>
+    <color name="toastSuccess">#aaee88</color>
+    <color name="toastInfo">#597d9e</color>
 </resources>

@@ -10,7 +10,7 @@ local.properties
 .gradle
 build
 /captures
-/app/devrelease
+/app/dev
 /app/release
 
 # eclipse project stuff

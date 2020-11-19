@@ -9,7 +9,9 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.Base64;
 import android.view.View;
 import android.view.ViewGroup;
@@ -283,5 +285,10 @@ public class Utils {
         T[] copy = array.clone();
         Collections.reverse(Arrays.asList(copy));
         return copy;
+    }
+
+    abstract public static class SimpleTextWatcher implements TextWatcher {
+        @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+        @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
     }
 }

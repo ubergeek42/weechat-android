@@ -23,6 +23,7 @@ import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.AttributeSet;
@@ -64,6 +65,13 @@ import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
 import com.ubergeek42.WeechatAndroid.service.RelayService.STATE;
 import com.ubergeek42.WeechatAndroid.service.SSLHandler;
+import com.ubergeek42.WeechatAndroid.upload.Config;
+import com.ubergeek42.WeechatAndroid.upload.FileChooserKt;
+import com.ubergeek42.WeechatAndroid.upload.ShareObject;
+import com.ubergeek42.WeechatAndroid.upload.Target;
+import com.ubergeek42.WeechatAndroid.upload.UrisShareObject;
+import com.ubergeek42.WeechatAndroid.upload.TextShareObject;
+import com.ubergeek42.WeechatAndroid.upload.UploadDatabase;
 import com.ubergeek42.WeechatAndroid.utils.CertificateDialog;
 import com.ubergeek42.WeechatAndroid.utils.FancyAlertDialogBuilder;
 import com.ubergeek42.WeechatAndroid.utils.FriendlyExceptions;
@@ -72,6 +80,7 @@ import com.ubergeek42.WeechatAndroid.utils.ScrollableDialog;
 import com.ubergeek42.WeechatAndroid.utils.SimpleTransitionDrawable;
 import com.ubergeek42.WeechatAndroid.utils.ThemeFix;
 import com.ubergeek42.WeechatAndroid.utils.ToolbarController;
+import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.CatD;
 import com.ubergeek42.cats.Kitty;
@@ -87,18 +96,16 @@ import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateNotYetValidException;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.List;
 
 import javax.net.ssl.SSLPeerUnverifiedException;
 
 import static com.ubergeek42.WeechatAndroid.media.Cache.findException;
-import static com.ubergeek42.WeechatAndroid.service.Events.ExceptionEvent;
-import static com.ubergeek42.WeechatAndroid.service.Events.SendMessageEvent;
-import static com.ubergeek42.WeechatAndroid.service.Events.StateChangedEvent;
-import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.AUTHENTICATED;
-import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.LISTED;
-import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.STARTED;
-import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.STOPPED;
+import static com.ubergeek42.WeechatAndroid.service.Events.*;
+import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.*;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
+import static com.ubergeek42.WeechatAndroid.utils.Toaster.ErrorToast;
+import static com.ubergeek42.WeechatAndroid.utils.Toaster.ShortToast;
 
 public class WeechatActivity extends AppCompatActivity implements
         CutePagerTitleStrip.CutePageChangeListener, BufferListClickListener {
@@ -175,7 +182,7 @@ public class WeechatActivity extends AppCompatActivity implements
         uiDrawer = findViewById(R.id.bufferlist_fragment);
         if (slidy) {
             uiDrawerLayout = findViewById(R.id.drawer_layout);
-            drawerToggle = new ActionBarDrawerToggle(this, uiDrawerLayout, R.string.open_drawer, R.string.close_drawer) {
+            drawerToggle = new ActionBarDrawerToggle(this, uiDrawerLayout, R.string.ui__ActionBarDrawerToggle__open_drawer, R.string.ui__ActionBarDrawerToggle__close_drawer) {
                 @Override public void onDrawerSlide(View drawerView, float slideOffset) {
                     drawerVisibilityChanged(slideOffset > 0);
                 }
@@ -205,7 +212,7 @@ public class WeechatActivity extends AppCompatActivity implements
         P.loadConnectionPreferences();
         int error = P.validateConnectionPreferences();
         if (error != 0) {
-            Weechat.showLongToast(error);
+            ErrorToast.show(error);
             return;
         }
 
@@ -249,7 +256,7 @@ public class WeechatActivity extends AppCompatActivity implements
         applyColorSchemeToViews();
         super.onStart();
         if (uiMenu != null) uiMenu.findItem(R.id.menu_dark_theme).setVisible(P.themeSwitchEnabled);
-        if (getIntent().hasExtra(NOTIFICATION_EXTRA_BUFFER_POINTER)) openBufferFromIntent();
+        if (getIntent().hasExtra(EXTRA_BUFFER_POINTER)) openBufferFromIntent();
         enableDisableExclusionRects();
     }
 
@@ -260,6 +267,7 @@ public class WeechatActivity extends AppCompatActivity implements
         super.onStop();
         Network.get().unregister(this);
         CachePersist.save();
+        UploadDatabase.save();
     }
 
     @MainThread @Override @CatD protected void onDestroy() {
@@ -361,7 +369,7 @@ public class WeechatActivity extends AppCompatActivity implements
         }
 
         FriendlyExceptions.Result result = new FriendlyExceptions(this).getFriendlyException(e);
-        if (result.message != null) Weechat.showLongToast(R.string.error, result.message);
+        ErrorToast.show(R.string.error__etc__prefix, result.message);
         if (result.shouldStopConnecting) Weechat.runOnMainThread(this::disconnect);
     }
 
@@ -414,7 +422,7 @@ public class WeechatActivity extends AppCompatActivity implements
     }
 
     // hide or show nicklist/close menu item according to buffer
-    @MainThread private void updateMenuItems() {
+    @MainThread public void updateMenuItems() {
         if (uiMenu == null) return;
         boolean bufferVisible = adapter.getCount() > 0;
         uiMenu.findItem(R.id.menu_nicklist).setVisible(bufferVisible);
@@ -422,6 +430,19 @@ public class WeechatActivity extends AppCompatActivity implements
         uiMenu.findItem(R.id.menu_filter_lines).setChecked(P.filterLines);
         uiMenu.findItem(R.id.menu_dark_theme).setVisible(P.themeSwitchEnabled);
         uiMenu.findItem(R.id.menu_dark_theme).setChecked(P.darkThemeActive);
+
+        MenuItem upload1 = uiMenu.findItem(R.id.menu_upload_1);
+        MenuItem upload2 = uiMenu.findItem(R.id.menu_upload_2);
+        boolean showUpload1 = false;
+        if (bufferVisible) {
+            BufferFragment fragment = adapter.getCurrentBufferFragment();
+            if (fragment != null && fragment.shouldShowUploadMenus()) showUpload1 = true;
+        }
+        boolean showUpload2 = showUpload1 && Config.paperclipAction2 != null;
+        upload1.setVisible(showUpload1);
+        upload2.setVisible(showUpload2);
+        if (showUpload1) upload1.setTitle(Config.paperclipAction1.getMenuItemResId());
+        if (showUpload2) upload2.setTitle(Config.paperclipAction2.getMenuItemResId());
     }
 
     @Override @MainThread @Cat("Menu") public boolean onCreateOptionsMenu(final Menu menu) {
@@ -434,7 +455,7 @@ public class WeechatActivity extends AppCompatActivity implements
         drawable.setStroke((int) (P.darkThemeActive ? P._4dp / 2 : P._4dp / 2 - 1), P.colorPrimary);
         uiHot.setTextColor(P.darkThemeActive ? 0xffffffff : P.colorPrimary);
 
-        TooltipCompat.setTooltipText(menuHotlist, getString(R.string.hint_show_hot_message));
+        TooltipCompat.setTooltipText(menuHotlist, getString(R.string.menu__hotlist_hint));
         menuHotlist.setOnClickListener((View v) -> onHotlistSelected());
         uiMenu = menu;
         updateMenuItems();
@@ -494,11 +515,19 @@ public class WeechatActivity extends AppCompatActivity implements
                 PreferenceManager.getDefaultSharedPreferences(this).edit().putString(
                         PREF_THEME, P.darkThemeActive ? PREF_THEME_LIGHT : PREF_THEME_DARK).apply();
                 break;
+            case R.id.menu_upload_1:
+            case R.id.menu_upload_2:
+                Target target = item.getItemId() == R.id.menu_upload_1 ?
+                        Config.paperclipAction1 : Config.paperclipAction2;
+                BufferFragment fragment = adapter.getCurrentBufferFragment();
+                if (fragment != null && target != null) FileChooserKt.chooseFiles(fragment, target);
+                break;
             case R.id.sync_hotlist:
                 BufferList.syncHotlist();
                 break;
             case R.id.die:
                 System.exit(0);
+                break;
         }
         return true;
     }
@@ -508,7 +537,7 @@ public class WeechatActivity extends AppCompatActivity implements
         if (buffer != null)
             openBuffer(buffer.pointer);
         else
-            Weechat.showShortToast(R.string.no_hot_buffers);
+            ShortToast.show(R.string.error__etc__no_hot_buffers);
     }
 
     @MainThread @Cat("Menu") private void makeMenuReflectConnectionStatus() {
@@ -516,9 +545,9 @@ public class WeechatActivity extends AppCompatActivity implements
         MenuItem connectionStatus = uiMenu.findItem(R.id.menu_connection_state);
         String msg;
 
-        if (state.contains(AUTHENTICATED)) msg = getString(R.string.disconnect);
-        else if (state.contains(STARTED)) msg = getString(R.string.stop_connecting);
-        else msg = getString(R.string.connect);
+        if (state.contains(AUTHENTICATED)) msg = getString(R.string.menu__connection_state__disconnect);
+        else if (state.contains(STARTED)) msg = getString(R.string.menu__connection_state__stop_connecting);
+        else msg = getString(R.string.menu__connection_state__connect);
         connectionStatus.setTitle(msg);
 
         final View menuHotlist = uiMenu.findItem(R.id.menu_hotlist).getActionView();
@@ -539,15 +568,27 @@ public class WeechatActivity extends AppCompatActivity implements
         openBuffer(pointer, null);
     }
 
-    @MainThread @Cat("Buffers") public void openBuffer(long pointer, @Nullable final String text) {
+    @MainThread @Cat("Buffers") public void openBuffer(long pointer, @Nullable ShareObject shareObject) {
         if (adapter.isBufferOpen(pointer) || state.contains(AUTHENTICATED)) {
             adapter.openBuffer(pointer);
             adapter.focusBuffer(pointer);
-            // post so that the fragment is created first, if it's not ready
-            if (text != null) Weechat.runOnMainThread(() -> adapter.setBufferInputText(pointer, text));
+
             if (slidy) hideDrawer();
+
+            if (shareObject != null) {
+                BufferFragment fragment = adapter.getCurrentBufferFragment();
+                if (fragment != null && fragment.getView() != null) {
+                    fragment.setShareObject(shareObject);
+                } else {
+                    // let fragment be created first, if it's not ready
+                    Weechat.runOnMainThread(() -> {
+                        BufferFragment fragment1 = adapter.getCurrentBufferFragment();
+                        if (fragment1 != null) fragment1.setShareObject(shareObject);
+                    });
+                }
+            }
         } else {
-            Weechat.showShortToast(R.string.not_connected);
+            ErrorToast.show(R.string.error__etc__not_connected);
         }
     }
 
@@ -632,17 +673,19 @@ public class WeechatActivity extends AppCompatActivity implements
     // we may get intent while we are connected to the service and when we are not
     @MainThread @Override @Cat("Intent") protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        if (intent.hasExtra(NOTIFICATION_EXTRA_BUFFER_POINTER)) {
+        if (intent.hasExtra(EXTRA_BUFFER_POINTER)) {
             setIntent(intent);
             if (started) openBufferFromIntent();
         }
     }
 
-    // todo make this sane
-    // if buffer name is "" (any), open that buffer or show drawer
-    // else open buffer and set text
+    // when this is called, EXTRA_BUFFER_POINTER must be set
     @MainThread @Cat("Intent") private void openBufferFromIntent() {
-        long pointer = getIntent().getLongExtra(NOTIFICATION_EXTRA_BUFFER_POINTER, NOTIFICATION_EXTRA_BUFFER_ANY);
+        Intent intent = getIntent();
+
+        long pointer = intent.getLongExtra(EXTRA_BUFFER_POINTER, NOTIFICATION_EXTRA_BUFFER_ANY);
+        intent.removeExtra(EXTRA_BUFFER_POINTER);
+
         if (pointer == NOTIFICATION_EXTRA_BUFFER_ANY) {
             if (BufferList.getHotBufferCount() > 1) {
                 if (slidy) showDrawer();
@@ -651,11 +694,39 @@ public class WeechatActivity extends AppCompatActivity implements
                 if (buffer != null) openBuffer(buffer.pointer);
             }
         } else {
-            String text = getIntent().getStringExtra(NOTIFICATION_EXTRA_BUFFER_INPUT_TEXT);
-            openBuffer(pointer, text);
+            @Nullable String action = intent.getAction();
+            @Nullable String type = intent.getType();
+
+            ShareObject shareObject = null;
+
+            boolean sendOne = Intent.ACTION_SEND.equals(action);
+            boolean sendMultiple = Intent.ACTION_SEND_MULTIPLE.equals(action);
+
+            if (sendOne && "text/plain".equals(type)) {
+                String text = intent.getStringExtra(Intent.EXTRA_TEXT);
+                if (text != null) shareObject = new TextShareObject(text);
+            } else {
+                List<Uri> uris = null;
+
+                if (sendOne) {
+                    Uri uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+                    if (uri != null) uris = Collections.singletonList(uri);
+                } else if (sendMultiple) {
+                    uris = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
+                }
+
+                if (!Utils.isEmpty(uris)) {
+                    try {
+                        shareObject = UrisShareObject.fromUris(uris);
+                    } catch (Exception e) {
+                        kitty.warn("Error while accessing uri", e);
+                        ErrorToast.show(e);
+                    }
+                }
+            }
+
+            openBuffer(pointer, shareObject);
         }
-        getIntent().removeExtra(NOTIFICATION_EXTRA_BUFFER_INPUT_TEXT);
-        getIntent().removeExtra(NOTIFICATION_EXTRA_BUFFER_POINTER);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

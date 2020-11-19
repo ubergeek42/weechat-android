@@ -41,7 +41,7 @@ import static androidx.core.app.NotificationCompat.Builder;
 import static androidx.core.app.NotificationCompat.GROUP_ALERT_CHILDREN;
 import static androidx.core.app.NotificationCompat.MessagingStyle;
 import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.AUTHENTICATED;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.NOTIFICATION_EXTRA_BUFFER_POINTER;
+import static com.ubergeek42.WeechatAndroid.utils.Constants.EXTRA_BUFFER_POINTER;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.NOTIFICATION_EXTRA_BUFFER_ANY;
 
 
@@ -79,14 +79,14 @@ public class Notificator {
         // the user can manually hide the icon by setting the importance to low
         NotificationChannel channel = new NotificationChannel(
                 NOTIFICATION_CHANNEL_CONNECTION_STATUS,
-                context.getString(R.string.notification_channel_connection_status),
+                context.getString(R.string.notifications__channel__connection_status),
                 NotificationManager.IMPORTANCE_MIN);
         channel.setShowBadge(false);
         manager.createNotificationChannel(channel);
 
         channel = new NotificationChannel(
                 NOTIFICATION_CHANNEL_HOTLIST,
-                context.getString(R.string.notification_channel_hotlist),
+                context.getString(R.string.notifications__channel__hotlist),
                 NotificationManager.IMPORTANCE_HIGH);
         channel.enableLights(true);
         manager.createNotificationChannel(channel);
@@ -95,13 +95,13 @@ public class Notificator {
         // it seems that you have to use IMPORTANCE_DEFAULT, else the notification light won't work
         channel = new NotificationChannel(
                 NOTIFICATION_CHANNEL_HOTLIST_ASYNC,
-                context.getString(R.string.notification_channel_hotlist_async),
+                context.getString(R.string.notifications__channel__hotlist_async),
                 NotificationManager.IMPORTANCE_DEFAULT);
         channel.setSound(null, null);
         channel.enableVibration(false);
         channel.enableLights(true);
         manager.createNotificationChannel(channel);
-        MYSELF = new Person.Builder().setName(c.getString(R.string.me)).build();
+        MYSELF = new Person.Builder().setName(c.getString(R.string.notifications__MessagingStyle__me)).build();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -125,7 +125,7 @@ public class Notificator {
         if (P.notificationTicker)
             builder.setTicker(content);
 
-        String disconnectText = context.getString(authenticated ? R.string.disconnect : R.string.stop_connecting);
+        String disconnectText = context.getString(authenticated ? R.string.menu__connection_state__disconnect : R.string.menu__connection_state__stop_connecting);
         builder.addAction(
                 android.R.drawable.ic_menu_close_clear_cancel, disconnectText,
                 PendingIntent.getService(
@@ -192,8 +192,8 @@ public class Notificator {
         // (re)build the “parent” summary notification. in practice, it should never be visible on
         // Lollipop and later, except for the SubText part, which appears on the right of app name
 
-        String nMessagesInNBuffers = res.getQuantityString(R.plurals.messages, totalHotCount, totalHotCount) +
-                res.getQuantityString(R.plurals.in_buffers, hotBufferCount, hotBufferCount);
+        String nMessagesInNBuffers = res.getQuantityString(R.plurals.notifications__hot_summary__messages, totalHotCount, totalHotCount) +
+                res.getQuantityString(R.plurals.notifications__hot_summary__in_buffers, hotBufferCount, hotBufferCount);
         Builder summary = new Builder(context, channel)
                 .setContentIntent(getIntentFor(NOTIFICATION_EXTRA_BUFFER_ANY))
                 .setSmallIcon(R.drawable.ic_notification_hot)
@@ -225,7 +225,7 @@ public class Notificator {
 
         ////////////////////////////////////////////////////////////////////////////////////////////
 
-        String newMessageInB = res.getQuantityString(R.plurals.hot_messages, hotCount, hotCount, shortName);
+        String newMessageInB = res.getQuantityString(R.plurals.notifications__hot__text, hotCount, hotCount, shortName);
         Builder builder = new Builder(context, channel)
                 .setContentIntent(getIntentFor(pointer))
                 .setSmallIcon(R.drawable.ic_notification_hot)
@@ -234,7 +234,7 @@ public class Notificator {
                 .setWhen(hotBuffer.lastMessageTimestamp)
                 .setGroup(GROUP_KEY)
                 .setGroupAlertBehavior(GROUP_ALERT_CHILDREN);
-        setNotificationTitleAndText(summary, newMessageInB);
+        setNotificationTitleAndText(builder, newMessageInB);
 
         // messages hold the latest messages, don't show the reply button if user can't see any
         if (connected && messages.size() > 0) builder.addAction(getAction(context, Utils.pointerToString(pointer)));
@@ -261,7 +261,7 @@ public class Notificator {
     // setting action in this way is not quite a proper way, but this ensures that all intents
     // are treated as separate intents
     private static PendingIntent getIntentFor(long pointer) {
-        Intent intent = new Intent(context, WeechatActivity.class).putExtra(NOTIFICATION_EXTRA_BUFFER_POINTER, pointer);
+        Intent intent = new Intent(context, WeechatActivity.class).putExtra(EXTRA_BUFFER_POINTER, pointer);
         intent.setAction(Utils.pointerToString(pointer));
         return PendingIntent.getActivity(context, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
@@ -283,15 +283,15 @@ public class Notificator {
         if (Build.VERSION.SDK_INT >= 28)
             nick = hotBuffer != null && hotBuffer.isPrivate ?
                     (hotBuffer.messages.isEmpty() ? hotBuffer.shortName : hotBuffer.messages.get(0).nick) :
-                    res.getQuantityString(R.plurals.hot_messages_missing_user, missingMessages == 1 ? 1 : 2);
-        String message = missingMessages == 1 ? res.getString(R.string.hot_messages_missing_1) :
-                res.getQuantityString(R.plurals.hot_messages_missing, missingMessages, missingMessages);
+                    res.getQuantityString(R.plurals.notifications__MessagingStyle__missing_users, missingMessages == 1 ? 1 : 2);
+        String message = missingMessages == 1 ? res.getString(R.string.notifications__MessagingStyle__missing_messages_1) :
+                res.getQuantityString(R.plurals.notifications__MessagingStyle__missing_messages, missingMessages, missingMessages);
         addMessage(style, message, 0, nick, null);
     }
 
     private static void makeNoise(Builder builder, Resources res, List<HotMessage> messages) {
         if (P.notificationTicker) builder.setTicker(messages.size() == 0 ?
-                res.getQuantityString(R.plurals.hot_messages_missing, 1) :
+                res.getQuantityString(R.plurals.notifications__MessagingStyle__missing_messages, 1) :
                 messages.get(messages.size() - 1).forTicker());
         builder.setPriority(Notification.PRIORITY_HIGH);
         if (!TextUtils.isEmpty(P.notificationSound)) builder.setSound(Uri.parse(P.notificationSound));
@@ -303,7 +303,7 @@ public class Notificator {
 
     public static final String KEY_TEXT_REPLY = "key_text_reply";
     private static NotificationCompat.Action getAction(Context ctx, String strPointer) {
-        String replyLabel = ctx.getResources().getString(R.string.reply_label);
+        String replyLabel = ctx.getResources().getString(R.string.notifications__RemoteInput__label);
         RemoteInput remoteInput = new RemoteInput.Builder(KEY_TEXT_REPLY)
                 .setLabel(replyLabel)
                 .build();
@@ -344,7 +344,7 @@ public class Notificator {
         if (Build.VERSION.SDK_INT > 23) {
             builder.setContentTitle(text);
         } else {
-            builder.setContentTitle(context.getString(R.string.app_name) + " " + BuildConfig.VERSION_NAME)
+            builder.setContentTitle(context.getString(R.string.etc__application_name) + " " + BuildConfig.VERSION_NAME)
                     .setContentText(text);
         }
     }

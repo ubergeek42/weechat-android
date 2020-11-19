@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rotate xmlns:android="http://schemas.android.com/apk/res/android"
+        android:pivotX="50.0%"
+        android:pivotY="50.0%"
+        android:fromDegrees="0.0"
+        android:toDegrees="-720.0">
+    <layer-list>
+        <item android:gravity="right|center"
+            android:right="7.6dp">
+            <shape android:shape="oval">
+                <size android:width="2dp" android:height="2dp" />
+                <solid android:color="@color/toolbar_icon" />
+            </shape>
+        </item>
+    </layer-list>
+</rotate>

@@ -6,8 +6,8 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.text.TextUtils;
 import android.view.MenuItem;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -29,11 +29,17 @@ import androidx.preference.RingtonePreferenceFix;
 import androidx.preference.ThemePreference;
 
 import com.ubergeek42.WeechatAndroid.media.Config;
+import com.ubergeek42.WeechatAndroid.upload.HttpUriGetter;
+import com.ubergeek42.WeechatAndroid.upload.RequestBodyModifier;
+import com.ubergeek42.WeechatAndroid.upload.RequestModifier;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 
 import java.util.Set;
 
+import okhttp3.HttpUrl;
+
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
+import static com.ubergeek42.WeechatAndroid.utils.Toaster.ErrorToast;
 
 public class PreferencesActivity extends AppCompatActivity implements PreferenceFragmentCompat.OnPreferenceStartScreenCallback {
     final static private String KEY = "key";
@@ -176,6 +182,14 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
                 listenTo = new String[]{PREF_MEDIA_PREVIEW_ENABLED_FOR_NETWORK,
                         PREF_MEDIA_PREVIEW_ENABLED_FOR_LOCATION,
                         PREF_MEDIA_PREVIEW_STRATEGIES};
+            } else if (PREF_UPLOAD_GROUP.equals(key)) {
+                showHideBasicAuthentication(null);
+                listenTo = new String[]{
+                        PREF_UPLOAD_AUTHENTICATION,
+                        PREF_UPLOAD_URI,
+                        PREF_UPLOAD_REGEX,
+                        PREF_UPLOAD_ADDITIONAL_HEADERS,
+                        PREF_UPLOAD_ADDITIONAL_FIELDS};
             }
 
             for (String p : listenTo)
@@ -186,7 +200,7 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
         @Override public void onActivityCreated(Bundle savedInstanceState) {
             ActionBar actionBar = ((AppCompatActivity) requireActivity()).getSupportActionBar();
             if (actionBar != null)
-                actionBar.setTitle((key == null) ? getString(R.string.menu_preferences) : findPreference(key).getTitle());
+                actionBar.setTitle((key == null) ? getString(R.string.menu__preferences) : findPreference(key).getTitle());
             super.onActivityCreated(savedInstanceState);
         }
 
@@ -205,32 +219,51 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
         @Override public boolean onPreferenceChange(Preference preference, Object o) {
             String key = preference.getKey();
             boolean valid = true;
-            int toast = -1;
-            if (Utils.isAnyOf(key, PREF_HOST, PREF_SSH_HOST)) {
-                valid = !((String) o).contains(" ");
-                toast = R.string.pref_hostname_invalid;
-            } else if (PREF_SSH_AUTHENTICATION_METHOD.equals(key)) {
-                switchSshAuthenticationMethodPreferences((String) o);
-            } else if (Utils.isAnyOf(key, PREF_TEXT_SIZE, PREF_MAX_WIDTH, PREF_PORT, PREF_SSH_PORT, PREF_PING_IDLE, PREF_PING_TIMEOUT)) {
-                valid = Utils.isAllDigits((String) o);
-                toast = R.string.pref_number_invalid;
-            } else if (PREF_TIMESTAMP_FORMAT.equals(key)) {
-                valid = Utils.isValidTimestampFormat((String) o);
-                toast = R.string.pref_timestamp_invalid;
-            } else if (PREF_CONNECTION_TYPE.equals(key)) {
-                showHideStuff((String) o);
-            } else if (PREF_THEME.equals(key)) {
-                enableDisableThemeSwitch((String) o);
-            } else if (PREF_MEDIA_PREVIEW_ENABLED_FOR_NETWORK.equals(key)) {
-                enableDisableMediaPreviewPreferences((String) o, null);
-            } else if (PREF_MEDIA_PREVIEW_ENABLED_FOR_LOCATION.equals(key)) {
-                enableDisableMediaPreviewPreferences(null, (Set) o);
-            } else if (PREF_MEDIA_PREVIEW_STRATEGIES.equals(key)) {
-                // this method will show a toast on error
-                valid = Config.parseConfigSafe((String) o) != null;
+            int errorResource = -1;
+
+            try {
+                if (Utils.isAnyOf(key, PREF_HOST, PREF_SSH_HOST)) {
+                    valid = !((String) o).contains(" ");
+                    errorResource = R.string.error__pref__no_spaces_allowed_in_hostnames;
+                } else if (PREF_UPLOAD_URI.equals(key)) {
+                    if (!TextUtils.isEmpty((String) o)) HttpUrl.get((String) o);
+                } else if (PREF_SSH_AUTHENTICATION_METHOD.equals(key)) {
+                    switchSshAuthenticationMethodPreferences((String) o);
+                } else if (Utils.isAnyOf(key, PREF_TEXT_SIZE, PREF_MAX_WIDTH, PREF_PORT, PREF_SSH_PORT, PREF_PING_IDLE, PREF_PING_TIMEOUT)) {
+                    valid = Utils.isAllDigits((String) o);
+                    errorResource = R.string.error__pref__invalid_number;
+                } else if (PREF_TIMESTAMP_FORMAT.equals(key)) {
+                    valid = Utils.isValidTimestampFormat((String) o);
+                    errorResource = R.string.error__pref__invalid_timestamp_format;
+                } else if (PREF_CONNECTION_TYPE.equals(key)) {
+                    showHideStuff((String) o);
+                } else if (PREF_THEME.equals(key)) {
+                    enableDisableThemeSwitch((String) o);
+                } else if (PREF_MEDIA_PREVIEW_ENABLED_FOR_NETWORK.equals(key)) {
+                    enableDisableMediaPreviewPreferences((String) o, null);
+                } else if (PREF_MEDIA_PREVIEW_ENABLED_FOR_LOCATION.equals(key)) {
+                    enableDisableMediaPreviewPreferences(null, (Set) o);
+                } else if (PREF_MEDIA_PREVIEW_STRATEGIES.equals(key)) {
+                    // this method will show a toast on error
+                    valid = Config.parseConfigSafe((String) o) != null;
+                } else if (PREF_UPLOAD_AUTHENTICATION.equals(key)) {
+                    showHideBasicAuthentication((String) o);
+                } else if (PREF_UPLOAD_REGEX.equals(key)) {
+                    if (((String) o).length() > 0) {
+                        HttpUriGetter.fromRegex((String) o);
+                    }
+                } else if (PREF_UPLOAD_ADDITIONAL_HEADERS.equals(key)) {
+                    RequestModifier.additionalHeaders((String) o);
+                } else if (PREF_UPLOAD_ADDITIONAL_FIELDS.equals(key)) {
+                    RequestBodyModifier.additionalFields((String) o);
+                }
+            } catch (Exception e) {
+                valid = false;
+                ErrorToast.show(R.string.error__etc__prefix, e.getMessage());
             }
-            if (!valid && toast != -1)
-                Toast.makeText(getContext(), toast, Toast.LENGTH_SHORT).show();
+
+            if (!valid && errorResource != -1)
+                ErrorToast.show(errorResource);
             return valid;
          }
 
@@ -285,6 +318,17 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
 
             Preference p = findPreference(PREF_MEDIA_PREVIEW_ENABLED_FOR_LOCATION);
             if (p != null) p.setEnabled(networkEnabled);
+        }
+
+        private void showHideBasicAuthentication(@Nullable String authentication) {
+            if (authentication == null)
+                authentication = getPreferenceScreen().getSharedPreferences().getString(
+                        PREF_UPLOAD_AUTHENTICATION, PREF_UPLOAD_AUTHENTICATION_D);
+            boolean basic = PREF_UPLOAD_AUTHENTICATION_BASIC.equals(authentication);
+            Preference p = findPreference(PREF_UPLOAD_AUTHENTICATION_BASIC_USER);
+            if (p != null) p.setVisible(basic);
+            p = findPreference(PREF_UPLOAD_AUTHENTICATION_BASIC_PASSWORD);
+            if (p != null) p.setVisible(basic);
         }
 
         // recursively make all currently visible preference titles multiline

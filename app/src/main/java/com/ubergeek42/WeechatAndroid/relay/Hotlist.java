@@ -37,6 +37,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static android.text.TextUtils.isEmpty;
 import static com.ubergeek42.WeechatAndroid.relay.Buffer.PRIVATE;
 import static com.ubergeek42.WeechatAndroid.service.Notificator.KEY_TEXT_REPLY;
+import static com.ubergeek42.WeechatAndroid.utils.Toaster.ErrorToast;
 
 
 public class Hotlist {
@@ -239,7 +240,7 @@ public class Hotlist {
             if (isEmpty(input) || buffer == null || !connected) {
                 kitty.error("error while receiving remote input: pointer=%s, input=%s, " +
                         "buffer=%s, connected=%s", strPointer, input, buffer, connected);
-                Weechat.showShortToast("Something went terribly wrong");
+                ErrorToast.show("Error while receiving remote input");
                 return;
             }
             //noinspection ConstantConditions   -- linter error

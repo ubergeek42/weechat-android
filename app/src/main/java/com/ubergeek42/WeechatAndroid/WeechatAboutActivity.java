@@ -30,14 +30,14 @@ public class WeechatAboutActivity extends AppCompatActivity {
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
-            actionBar.setTitle(getString(R.string.about));
+            actionBar.setTitle(getString(R.string.pref__about_group));
         }
 
         ((TextView) this.findViewById(R.id.versionID))
-            .setText(getString(R.string.build_id, BuildConfig.VERSION_BANNER));
+            .setText(getString(R.string.pref__about__build_id, BuildConfig.VERSION_BANNER));
 
         ((TextView) this.findViewById(R.id.versionStr))
-            .setText(getString(R.string.version_string, BuildConfig.VERSION_NAME));
+            .setText(getString(R.string.pref__about__weechat_android_v, BuildConfig.VERSION_NAME));
 
         ((TextView) this.findViewById(R.id.libraries))
             .setMovementMethod(android.text.method.LinkMovementMethod.getInstance());

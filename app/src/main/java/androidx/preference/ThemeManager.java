@@ -3,7 +3,6 @@ package androidx.preference;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.os.Environment;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -27,6 +26,7 @@ import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_COLOR_SCHEME_DA
 import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_COLOR_SCHEME_DAY_D;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_COLOR_SCHEME_NIGHT;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_COLOR_SCHEME_NIGHT_D;
+import static com.ubergeek42.WeechatAndroid.utils.Toaster.ErrorToast;
 
 public class ThemeManager {
 
@@ -47,7 +47,7 @@ public class ThemeManager {
                         P.darkThemeActive ? PREF_COLOR_SCHEME_NIGHT_D : PREF_COLOR_SCHEME_DAY_D);
         Properties p = loadColorScheme(path, context.getAssets());
         if (p == null)
-            Toast.makeText(context, context.getString(R.string.pref_theme_loading_error, path), Toast.LENGTH_SHORT).show();
+            ErrorToast.show(R.string.pref__ThemeManager__error_loading_color_scheme, path);
         else
             ColorScheme.set(new ColorScheme(p));
     }

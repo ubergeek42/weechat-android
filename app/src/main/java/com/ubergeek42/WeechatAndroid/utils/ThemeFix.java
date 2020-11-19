@@ -2,7 +2,6 @@ package com.ubergeek42.WeechatAndroid.utils;
 
 import android.app.ActivityManager;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
@@ -73,7 +72,7 @@ public class ThemeFix {
     public static void fixIconAndColor(AppCompatActivity activity) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) return;
 
-        String appName = activity.getString(R.string.app_name);
+        String appName = activity.getString(R.string.etc__application_name);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             activity.setTaskDescription(new ActivityManager.TaskDescription(null,

@@ -53,6 +53,7 @@ import static com.ubergeek42.WeechatAndroid.R.layout.read_marker;
 import static com.ubergeek42.WeechatAndroid.relay.Lines.HEADER_POINTER;
 import static com.ubergeek42.WeechatAndroid.relay.Lines.MARKER_POINTER;
 
+import static com.ubergeek42.WeechatAndroid.utils.Toaster.ShortToast;
 import static com.ubergeek42.WeechatAndroid.utils.Utils.Predicate;
 import static com.ubergeek42.WeechatAndroid.utils.Assert.assertThat;
 
@@ -151,7 +152,7 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
                 button.setVisibility(View.VISIBLE);
                 boolean more = s == Lines.STATUS.CAN_FETCH_MORE;
                 button.setEnabled(more);
-                button.setText(button.getContext().getString(more ? R.string.more_button : R.string.more_button_fetching));
+                button.setText(button.getContext().getString(more ? R.string.ui__button_fetch_more_lines : R.string.ui__button_fetching_lines));
             }
         }
 
@@ -295,7 +296,7 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     @MainThread @Cat("Scrolling") public void scrollToHotLineIfNeeded() {
         final int idx = findHotLine();
         if (idx == HOT_LINE_NOT_PRESENT) return;
-        if (idx == HOT_LINE_LOST) Weechat.showShortToast(R.string.autoscroll_no_line);
+        if (idx == HOT_LINE_LOST) ShortToast.show(R.string.error__etc__hot_line_lost);
         // run scrolling slightly delayed so that stuff on current thread doesn't get in the way
         else Weechat.runOnMainThread(() -> uiLines.smoothScrollToPositionAfterAnimation(idx), 100);
     }

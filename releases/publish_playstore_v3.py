@@ -16,7 +16,7 @@ SERVICE_ACCOUNT_EMAIL = os.environ['GOOGLEPLAY_ACCT_EMAIL']
 KEY_PATH = 'releases/google-play-key.p12'
 
 PACKAGE_NAME = 'com.ubergeek42.WeechatAndroid.dev'
-APK_PATH = "app/build/outputs/apk/devrelease/app-devrelease.apk"
+APK_PATH = "app/build/outputs/apk/dev/app-dev.apk"
 
 
 def credentials():

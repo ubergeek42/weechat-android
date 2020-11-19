@@ -23,27 +23,27 @@ public class StrategyPreference extends FullScreenEditTextPreference {
 
         Config.Info info = Config.parseConfigSafe(getText());
         if (info == null)
-            return context.getString(R.string.strategypreference_error);
+            return context.getString(R.string.pref__StrategyPreference__summary_error);
 
         String messageFilter = info.messageFilter != null ?
-                context.getString(R.string.strategypreference_message_filter_set) :
-                context.getString(R.string.strategypreference_message_filter_not_set);
+                context.getString(R.string.pref__StrategyPreference__message_filter_set) :
+                context.getString(R.string.pref__StrategyPreference__message_filter_not_set);
 
         String lineFilters = info.lineFilters == null ?
-                context.getString(R.string.strategypreference_line_filters_not_set) :
-                context.getResources().getQuantityString(R.plurals.strategypreference_line_filters_set,
+                context.getString(R.string.pref__StrategyPreference__0_line_filters_set) :
+                context.getResources().getQuantityString(R.plurals.pref__StrategyPreference__n_line_filters_set,
                         info.lineFilters.size(), info.lineFilters.size());
 
         String summaries;
         if (info.strategies == null) {
-            summaries = context.getString(R.string.strategypreference_strategies_not_loaded);
+            summaries = context.getString(R.string.pref__StrategyPreference__strategies_not_loaded);
         } else {
             List<CharSequence> names = new ArrayList<>();
             for (Strategy s : info.strategies) names.add(s.getName());
-            summaries = context.getString(R.string.strategypreference_strategies_list, Utils.join(", ", names));
+            summaries = context.getString(R.string.pref__StrategyPreference__strategies_list, Utils.join(", ", names));
         }
 
-        return context.getString(R.string.strategypreference_summary, messageFilter, lineFilters, summaries);
+        return context.getString(R.string.pref__StrategyPreference__summary, messageFilter, lineFilters, summaries);
     }
 
     @Override public void onBindViewHolder(PreferenceViewHolder holder) {

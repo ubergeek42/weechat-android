@@ -16,10 +16,12 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 
 import com.ubergeek42.WeechatAndroid.R;
-import com.ubergeek42.WeechatAndroid.Weechat;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
+
+import static com.ubergeek42.WeechatAndroid.utils.Toaster.ErrorToast;
+import static com.ubergeek42.WeechatAndroid.utils.Toaster.SuccessToast;
 
 public class FilePreference extends DialogPreference implements DialogFragmentGetter {
     final private static @Root Kitty kitty = Kitty.make();
@@ -29,8 +31,8 @@ public class FilePreference extends DialogPreference implements DialogFragmentGe
     }
 
     @Override public CharSequence getSummary() {
-        final String set_not_set = getContext().getString(Utils.isEmpty(getData(getPersistedString(null))) ? R.string.pref_file_not_set : R.string.pref_file_set);
-        return getContext().getString(R.string.pref_file_summary,
+        final String set_not_set = getContext().getString(Utils.isEmpty(getData(getPersistedString(null))) ? R.string.pref__FilePreference__summary_status_not_set : R.string.pref__FilePreference__summary_status_set);
+        return getContext().getString(R.string.pref__FilePreference__summary_adapter,
                 super.getSummary(), set_not_set);
     }
 
@@ -48,10 +50,10 @@ public class FilePreference extends DialogPreference implements DialogFragmentGe
         try {
             byte[] bytes = bytesGetter.get();
             String message = saveData(bytes);
-            if (message != null) Weechat.showLongToast(message);
+            if (message != null) SuccessToast.show(message);
         } catch (Exception e) {
             kitty.error("error", e);
-            Weechat.showLongToast(R.string.pref_file_error, e.getMessage());
+            ErrorToast.show(e);
         }
     }
 
@@ -81,19 +83,19 @@ public class FilePreference extends DialogPreference implements DialogFragmentGe
     public static class FilePreferenceFragment extends PreferenceDialogFragmentCompat {
         @Override protected void onPrepareDialogBuilder(AlertDialog.Builder builder) {
             FilePreference preference = (FilePreference) getPreference();
-            builder.setNeutralButton(getString(R.string.pref_file_clear_button), (dialog, which) ->
+            builder.setNeutralButton(getString(R.string.pref__FilePreference__button_clear), (dialog, which) ->
                     preference.saveDataAndShowToast(() -> null))
-                .setNegativeButton(getString(R.string.pref_file_paste_button), (dialog, which) -> {
+                .setNegativeButton(getString(R.string.pref__FilePreference__button_paste), (dialog, which) -> {
                     // noinspection deprecation
                     ClipboardManager cm = (ClipboardManager) requireContext().getSystemService(Context.CLIPBOARD_SERVICE);
                     CharSequence clip = cm.getText();
                     if (TextUtils.isEmpty(clip))
-                        Weechat.showShortToast(R.string.pref_file_empty_clipboard);
+                        ErrorToast.show(R.string.error__pref__clipboard_empty);
                     else {
                         preference.saveDataAndShowToast(() -> clip.toString().getBytes());
                     }
                 })
-                .setPositiveButton(getString(R.string.pref_file_choose_button), (dialog, which) -> {
+                .setPositiveButton(getString(R.string.pref__FilePreference__button_choose_file), (dialog, which) -> {
                     Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
                     intent.setType("*/*");
                     //noinspection ConstantConditions   -- both target fragment and arguments are set

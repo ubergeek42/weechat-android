@@ -147,8 +147,8 @@ public class RelayService extends Service implements IObserver {
             int reconnects = 0;
             boolean waiting = false;
 
-            final String willConnectSoon = getString(R.string.notification_connecting_details);
-            final String connectingNow = getString(R.string.notification_connecting_details_now);
+            final String willConnectSoon = getString(R.string.notifications__main__will_connect_in_n_seconds);
+            final String connectingNow = getString(R.string.notifications__main__connecting_now);
 
             @WorkerThread @Override public void run() {
                 if (state.contains(STATE.AUTHENTICATED)) {
@@ -207,7 +207,7 @@ public class RelayService extends Service implements IObserver {
             connection.disconnect();
 
         if (!Network.get().hasProperty(Network.Property.CONNECTED)) {
-            Notificator.showMain(this, getString(R.string.notification_waiting_network));
+            Notificator.showMain(this, getString(R.string.notifications__main__waiting_for_network));
             return TRY.LATER;
         }
 
@@ -253,7 +253,7 @@ public class RelayService extends Service implements IObserver {
                 return;
             case AUTHENTICATED:
                 changeState(EnumSet.of(STATE.STARTED, STATE.AUTHENTICATED));
-                Notificator.showMain(this, getString(R.string.notification_connected_to, P.printableHost));
+                Notificator.showMain(this, getString(R.string.notifications__main__connected_to, P.printableHost));
                 hello();
                 break;
             case BUFFERS_LISTED:
@@ -301,9 +301,9 @@ public class RelayService extends Service implements IObserver {
         kitty.error("→ onException(%s)", e.getClass().getSimpleName());
         if (state.contains(STATE.STOPPED)) return;
         if (e instanceof Utils.StreamClosed && (!state.contains(STATE.AUTHENTICATED)))
-            e = new ExceptionWrapper(e, getString(R.string.relay_error_server_closed));
+            e = new ExceptionWrapper(e, getString(R.string.error__connection__server_unexpectedly_closed_connection));
         else if (e instanceof UnresolvedAddressException)
-            e = new ExceptionWrapper(e, getString(R.string.relay_error_resolve, P.connectionType.equals(PREF_TYPE_SSH) ? P.sshHost : P.host));
+            e = new ExceptionWrapper(e, getString(R.string.error__connection__could_not_resolve_address, P.connectionType.equals(PREF_TYPE_SSH) ? P.sshHost : P.host));
         EventBus.getDefault().post(new ExceptionEvent(e));
     }
 

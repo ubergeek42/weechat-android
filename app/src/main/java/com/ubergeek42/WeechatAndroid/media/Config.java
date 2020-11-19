@@ -52,6 +52,8 @@ import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_MEDIA_PREVIEW_T
 import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_MEDIA_PREVIEW_THUMBNAIL_WIDTH;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_MEDIA_PREVIEW_THUMBNAIL_WIDTH_D;
 
+import static com.ubergeek42.WeechatAndroid.utils.Toaster.ErrorToast;
+
 public class Config {
     final private static @Root Kitty kitty = Kitty.make();
 
@@ -59,7 +61,7 @@ public class Config {
 
     final public static int THUMBNAIL_VERTICAL_MARGIN = (int) P._1_33dp;
     final public static int THUMBNAIL_HORIZONTAL_MARGIN = 2 * THUMBNAIL_VERTICAL_MARGIN;
-    final        static int THUMBNAIL_CORNER_RADIUS = 4 * THUMBNAIL_VERTICAL_MARGIN;
+    final public static int THUMBNAIL_CORNER_RADIUS = 4 * THUMBNAIL_VERTICAL_MARGIN;
 
     public static int thumbnailWidth = (int) (80 * P._1dp);
     public static int thumbnailMinHeight = (int) (40 * P._1dp);
@@ -197,7 +199,7 @@ public class Config {
             return parseConfig(text);
         } catch (ConfigException e) {
             kitty.warn("Error while parsing media preview config", e);
-            Weechat.showLongToast(e.getMessage());
+            ErrorToast.show(e.getMessage());
             return null;
         }
     }
