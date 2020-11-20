@@ -206,7 +206,7 @@ public class Buffer {
     @WorkerThread @Cat("??") synchronized void addLine(final Line line, final boolean isLast) {
         // check if the line in question is already in the buffer
         // happens when reverse request throws in lines even though some are already here
-        if (lines.contains(line)) return;
+        if (!isLast && lines.contains(line)) return;
 
         if (isLast) lines.addLast(line); else lines.addFirst(line);
 
