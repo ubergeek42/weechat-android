@@ -52,7 +52,8 @@
         <!-- sharing -->
         <activity android:name=".ShareTextActivity"
             android:theme="@style/WeechatTranslucent"
-            android:excludeFromRecents="true">
+            android:excludeFromRecents="true"
+            android:launchMode="singleInstance">
         </activity>
 
         <!-- text only -->
