@@ -117,6 +117,11 @@ android {
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"),
                           "proguard-rules.pro",
                           "../cats/proguard-rules.pro")
+            // kotlinx-coroutines-core debug-only artifact
+            // see https://github.com/Kotlin/kotlinx.coroutines#avoiding-including-the-debug-infrastructure-in-the-resulting-apk
+            packagingOptions {
+                exclude("DebugProbesKt.bin")
+            }
         }
 
         compileOptions {
