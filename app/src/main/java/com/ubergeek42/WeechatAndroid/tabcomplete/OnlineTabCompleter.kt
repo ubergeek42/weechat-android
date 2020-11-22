@@ -3,99 +3,96 @@ package com.ubergeek42.WeechatAndroid.tabcomplete
 import android.widget.EditText
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.coroutineScope
-import com.ubergeek42.WeechatAndroid.Weechat
 import com.ubergeek42.WeechatAndroid.relay.Buffer
+import com.ubergeek42.WeechatAndroid.upload.suppress
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
 import com.ubergeek42.weechat.relay.protocol.Hdata
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlin.math.min
-import kotlin.properties.Delegates
 
-class OnlineTabCompleter() : TabCompleter() {
-    @Root
-    private val kitty = Kitty.make()
 
-    private lateinit var job: Job;
+class OnlineTabCompleter(
+    private val lifecycle: Lifecycle,
+    private val buffer: Buffer,
+    private val input: EditText,
+) : TabCompleter {
+    companion object { @Root private val kitty = Kitty.make() }
 
-    private lateinit var tcBaseString: String // the entire original input
-    private var tcIndex by Delegates.notNull<Int>() // index used when looping over tcCompletionResults
-    private lateinit var tcCompletionResults: Array<String>
-    private var tcAddSpace by Delegates.notNull<Boolean>() // to add a space after completion
-    private var tcPosStart by Delegates.notNull<Int>() // beginning of section to be replaced by one of the suggestions
-    private var tcPosEnd by Delegates.notNull<Int>() // end of said section in tcBaseString
+    private var job: Job? = null
+    private lateinit var replacements: Iterator<Replacement>
 
-    private lateinit var tcBaseWord: String
-    private var tcSelectionIndex by Delegates.notNull<Int>() // where the cursor was when tab was pressed
-
-    constructor(lifecycle: Lifecycle, buffer: Buffer, uiInput: EditText) : this() {
-        this.lifecycle = lifecycle
-        this.buffer = buffer
-        this.uiInput = uiInput
-        this.tcBaseString = uiInput.text.toString()
-        this.tcSelectionIndex = uiInput.selectionStart
-    }
-
+    @Suppress("CascadeIf")
     override fun next() {
-        val txt = uiInput.text ?: return
-
-        if (this::tcCompletionResults.isInitialized) {
-            // tcCompletionResults.size == 0 if exception thrown; null out upon next user input
-            if (tcCompletionResults.size > 1) {
-                val resultsSize = tcCompletionResults.size
-                tcIndex = (tcIndex + 1) % resultsSize
-                shouldntNullOut = true
-                val completionText = tcCompletionResults[tcIndex] + if (tcAddSpace) " " else ""
-                txt.replace(tcPosStart, tcPosEnd, completionText)
-                tcPosEnd = tcPosStart + completionText.length
-            }
-            return
-        }
-
-        cancel() // could be initialized but response hasn't arrived yet (e.g. tab pressed rapidly)
-        job = this.lifecycle.coroutineScope.launch {
-            runCatching {
-                val completionMessage = "completion 0x%x %d %s"
-                        .format(buffer.pointer, uiInput.selectionStart, uiInput.text.toString())
-                val relayObject = sendMessageAndGetResponse(completionMessage) as Hdata
-                kitty.info("got relay completion response: $relayObject")
-
-                if (relayObject.count == 0)
-                    throw NoSuchElementException("No completion results from relay.")
-
-                val item = relayObject.getItem(0)
-                tcCompletionResults =
-                        item.getItem("list").asArray().asStringArray()
-
-                tcAddSpace = item.getItem("add_space").asInt() == 1
-                tcPosStart = item.getItem("pos_start").asInt()
-                tcPosEnd = item.getItem("pos_end").asInt()
-                tcBaseWord = item.getItem("base_word").asString()
-                tcIndex = 0
-
-                if (tcCompletionResults.isEmpty())
-                    throw NoSuchElementException("No completion results from relay.")
-
-                if (!isActive) return@launch
-
-                // let BufferFragment null this out if only one completion result
-                if (tcCompletionResults.size > 1)
-                    shouldntNullOut = true
-
-                Weechat.runOnMainThread {
-                    val completionText = tcCompletionResults[0] + if (tcAddSpace) " " else ""
-                    txt.replace(tcPosStart, min(++tcPosEnd, txt.length), completionText)
-                    tcPosEnd = tcPosStart + completionText.length
+        if (this::replacements.isInitialized) {
+            performCompletion()
+        } else if (job != null) {
+            return  // job is initialized, but it hasn't run to completion yet — do nothing & wait
+        } else {
+            job = lifecycle.coroutineScope.launch {
+                suppress<Exception>(showToast = true) {
+                    replacements = fetchCompletions()
+                    performCompletion()
                 }
-            }.onFailure { kitty.info("Error while tab completing", it); }
+            }
         }
     }
 
-    override fun cancel() {
-        if (this::job.isInitialized) {
-            job.cancel()
-        }
+    // the completions can be (pos_start..pos_end, base_word, completion):
+    //   "s|": 0..0, "s", "squirrel"
+    //   "/|s": 1..1, "", "# "
+    // in the first example, the range 0..0 means that we have to replace one character,
+    // as "end" is inclusive (docs: "index of last char to replace")
+    // in the second example, however, the situation is the same while base word is empty.
+    // therefore we're using base word instead of end to determine what exactly should be replaced
+    private suspend fun fetchCompletions(): Iterator<Replacement> {
+        val message = "completion 0x%x %d %s".format(buffer.pointer, input.selectionStart, input.text)
+        val relayObject = sendMessageAndGetResponse(message) as Hdata
+
+        if (relayObject.count == 0) return EmptyReplacements
+
+        val item = relayObject.getItem(0)
+        val completions = item.getItem("list").asArray().asStringArray()
+
+        if (completions.isEmpty()) return EmptyReplacements
+
+        val start = item.getItem("pos_start").asInt()
+        val addSpace = item.getItem("add_space").asInt() == 1
+        var completion = item.getItem("base_word").asString()
+
+        var index = 0
+
+        return sequence {
+            while (true) {
+                val previousCompletionLength = completion.length
+                completion = completions[index++ % completions.size]
+                if (addSpace) completion += " "
+                yield(Replacement(start, start + previousCompletionLength, completion))
+            }
+        }.iterator()
+    }
+
+    private var replacingText = false
+
+    private fun performCompletion() {
+        if (replacements === EmptyReplacements) return
+        val (start, end, text) = replacements.next()
+        replacingText = true
+        input.text.replace(start, end, text)
+        replacingText = false
+    }
+
+    override fun cancel(): Boolean {
+        job?.cancel()
+        return !replacingText
     }
 }
+
+
+private data class Replacement(
+    val start: Int,
+    val end: Int,
+    val text: String,
+)
+
+private val EmptyReplacements = emptyList<Replacement>().iterator()

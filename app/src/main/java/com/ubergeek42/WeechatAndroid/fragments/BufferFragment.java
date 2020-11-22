@@ -1,6 +1,5 @@
 package com.ubergeek42.WeechatAndroid.fragments;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -41,7 +40,6 @@ import android.widget.TextView;
 
 import com.ubergeek42.WeechatAndroid.Weechat;
 import com.ubergeek42.WeechatAndroid.copypaste.Paste;
-import com.ubergeek42.WeechatAndroid.tabcomplete.OnlineTabCompleter;
 import com.ubergeek42.WeechatAndroid.tabcomplete.TabCompleter;
 import com.ubergeek42.WeechatAndroid.upload.Config;
 import com.ubergeek42.WeechatAndroid.upload.FileChooserKt;
@@ -446,9 +444,8 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     // tryTabComplete() will set it back if it modified the text causing this function to run
     @MainThread @Override public void afterTextChanged(Editable s) {
         if (completer != null) {
-            completer.cancel();
-            if (!completer.shouldntNullOut())
-                completer = null;
+            boolean cancelled = completer.cancel();
+            if (cancelled) completer = null;
         }
         afterTextChanged2();
         showHidePaperclip();

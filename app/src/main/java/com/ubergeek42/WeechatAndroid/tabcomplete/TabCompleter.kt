@@ -11,19 +11,11 @@ import com.ubergeek42.weechat.relay.protocol.RelayObject
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 
-abstract class TabCompleter {
+interface TabCompleter {
+    fun next()
 
-    lateinit var lifecycle: Lifecycle
-    lateinit var buffer: Buffer // LocalTabCompleter needs access to the buffer
-    lateinit var uiInput: EditText
-
-    var shouldntNullOut = false
-
-    fun shouldntNullOut(): Boolean {
-        val temp = shouldntNullOut
-        shouldntNullOut = false
-        return temp
-    }
+    // returns true if cancel was successful
+    fun cancel(): Boolean
 
     companion object {
         @JvmStatic
@@ -31,23 +23,20 @@ abstract class TabCompleter {
             return if (RelayConnection.weechatVersion >= 0x2090000) {
                 OnlineTabCompleter(lifecycle, buffer, uiInput)
             } else {
-                LocalTabCompleter(lifecycle, buffer, uiInput)
+                LocalTabCompleter(buffer, uiInput)
             }
         }
     }
+}
 
-    abstract fun next()
-    abstract fun cancel()
-
-    suspend fun sendMessageAndGetResponse(message: String) = suspendCancellableCoroutine<RelayObject> {
-        val handler = object : RelayMessageHandler {
-            override fun handleMessage(obj: RelayObject, id: String) {
-                it.resume(obj)
-                BufferList.removeMessageHandler(id, this);
-            }
+suspend fun sendMessageAndGetResponse(message: String) = suspendCancellableCoroutine<RelayObject> {
+    val handler = object : RelayMessageHandler {
+        override fun handleMessage(obj: RelayObject, id: String) {
+            it.resume(obj)
+            BufferList.removeMessageHandler(id, this);
         }
-
-        val id = BufferList.addOneOffMessageHandler(handler)
-        Events.SendMessageEvent.fire("($id) $message")
     }
+
+    val id = BufferList.addOneOffMessageHandler(handler)
+    Events.SendMessageEvent.fire("($id) $message")
 }
