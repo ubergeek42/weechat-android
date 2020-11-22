@@ -10,6 +10,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
 import android.text.TextUtils;
 
+import com.ubergeek42.WeechatAndroid.tabcomplete.TabCompleter;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
 
@@ -82,6 +83,7 @@ class Nicks {
 
     @WorkerThread void bumpNickToTop(@Nullable String name) {
         if (name == null) return;
+        if (TabCompleter.canDoOnlineCompletions()) return;
         for (Iterator<Nick> it = nicks.iterator(); it.hasNext();) {
             Nick nick = it.next();
             if (name.equals(nick.name)) {
@@ -93,6 +95,8 @@ class Nicks {
     }
 
     @WorkerThread void sortNicksByLines(Iterator<Line> it) {
+        if (TabCompleter.canDoOnlineCompletions()) return;
+
         final HashMap<String, Integer> nameToPosition = new HashMap<>();
 
         while (it.hasNext()) {

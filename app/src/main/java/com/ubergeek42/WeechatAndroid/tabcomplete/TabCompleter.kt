@@ -40,12 +40,15 @@ abstract class TabCompleter(val input: EditText) {
 
         @JvmStatic
         fun obtain(lifecycle: Lifecycle, buffer: Buffer, uiInput: EditText): TabCompleter {
-            return if (RelayConnection.weechatVersion >= 0x2090000) {
+            return if (canDoOnlineCompletions()) {
                 OnlineTabCompleter(lifecycle, buffer, uiInput)
             } else {
                 LocalTabCompleter(buffer, uiInput)
             }
         }
+
+        @JvmStatic
+        fun canDoOnlineCompletions() = RelayConnection.weechatVersion >= 0x2090000
     }
 }
 
