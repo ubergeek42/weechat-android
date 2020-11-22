@@ -6,6 +6,7 @@ import androidx.lifecycle.coroutineScope
 import com.ubergeek42.WeechatAndroid.relay.Buffer
 import com.ubergeek42.WeechatAndroid.upload.suppress
 import com.ubergeek42.weechat.relay.protocol.Hdata
+import com.ubergeek42.weechat.relay.protocol.RelayObject
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
@@ -45,18 +46,11 @@ class OnlineTabCompleter(
     private suspend fun fetchCompletions(): Iterator<Replacement> {
         val selectionStart = input.selectionStart
         val message = "completion 0x%x %d %s".format(buffer.pointer, selectionStart, input.text)
-        val relayObject = sendMessageAndGetResponse(message) as Hdata
 
-        if (relayObject.count == 0) return EmptyReplacements
+        val (completions, baseWord, addSpace) = queryWeechat(message).asCompletions()
+                ?: return EmptyReplacements
 
-        val item = relayObject.getItem(0)
-        val completions = item.getItem("list").asArray().asStringArray()
-        val baseWord = item.getItem("base_word").asString()
-        val addSpace = item.getItem("add_space").asInt() == 1
-
-        if (completions.isEmpty()) return EmptyReplacements
-
-        return replacements(completions = completions.toList(),
+        return replacements(completions = completions,
                             start = selectionStart - baseWord.length,
                             baseWord = baseWord,
                             suffix = if (addSpace) " " else "")
@@ -66,4 +60,25 @@ class OnlineTabCompleter(
         job?.cancel()
         return super.cancel()
     }
+}
+
+
+private data class Completions(
+    val completions: List<String>,
+    val baseWord: String,
+    val addSpace: Boolean
+)
+
+private fun RelayObject.asCompletions(): Completions? {
+    if (this !is Hdata || count == 0) return null
+
+    val item = getItem(0)
+    val completions = item.getItem("list").asArray().asStringArray().toList()
+
+    if (completions.isEmpty()) return null
+
+    val baseWord = item.getItem("base_word").asString()
+    val addSpace = item.getItem("add_space").asInt() == 1
+
+    return Completions(completions, baseWord, addSpace)
 }

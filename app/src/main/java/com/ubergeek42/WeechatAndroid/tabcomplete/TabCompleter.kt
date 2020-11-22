@@ -29,6 +29,7 @@ abstract class TabCompleter(val input: EditText) {
     protected fun performCompletion() {
         if (replacements === EmptyReplacements) return
         val (start, end, text) = replacements?.next() ?: return
+
         replacingText = true
         suppress<Exception> { input.text.replace(start, end, text) }
         replacingText = false
@@ -48,14 +49,8 @@ abstract class TabCompleter(val input: EditText) {
     }
 }
 
-suspend fun sendMessageAndGetResponse(message: String) = suspendCancellableCoroutine<RelayObject> {
-    val handler = object : RelayMessageHandler {
-        override fun handleMessage(obj: RelayObject, id: String) {
-            it.resume(obj)
-            BufferList.removeMessageHandler(id, this);
-        }
-    }
-
+suspend fun queryWeechat(message: String) = suspendCancellableCoroutine<RelayObject> {
+    val handler = RelayMessageHandler { obj, _ -> it.resume(obj) }
     val id = BufferList.addOneOffMessageHandler(handler)
     Events.SendMessageEvent.fire("($id) $message")
 }

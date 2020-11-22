@@ -98,8 +98,14 @@ public class BufferList {
     }
 
     @AnyThread public static String addOneOffMessageHandler(RelayMessageHandler handler) {
+        RelayMessageHandler wrappedHandler = new RelayMessageHandler() {
+            @Override public void handleMessage(RelayObject obj, String id) {
+                handler.handleMessage(obj, id);
+                removeMessageHandler(id, this);
+            }
+        };
         String id = String.valueOf(counter++);
-        assertThat(handlers.put(id, handler)).isNull();
+        assertThat(handlers.put(id, wrappedHandler)).isNull();
         return id;
     }
 
