@@ -6,6 +6,7 @@ import com.ubergeek42.WeechatAndroid.Weechat
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.utils.Toaster.Companion.ErrorToast
 import java.lang.System.currentTimeMillis
+import java.util.concurrent.CancellationException
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
@@ -47,6 +48,8 @@ infix fun <A, B, C> Pair<A, B>.to(that: C): Triple<A, B, C> = Triple(this.first,
 inline fun <reified T : Throwable> suppress(showToast: Boolean = false, f: () -> Unit) {
     try {
         f()
+    } catch (e: CancellationException) {
+        throw e
     } catch (t: Throwable) {
         if (t !is T) throw t
         if (showToast) ErrorToast.show(t)
