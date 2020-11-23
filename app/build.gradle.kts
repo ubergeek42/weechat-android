@@ -95,8 +95,8 @@ android {
                 keyPassword = project.properties["devKeyPassword"] as String
             } catch (e: TypeCastException) {
                 project.logger.warn("WARNING: Set the values devStorefile, devStorePassword, " +
-                                    "devKeyAlias, and devKeyPassword " +
-                                    "in ~/.gradle/gradle.properties to sign the release.")
+                        "devKeyAlias, and devKeyPassword " +
+                        "in ~/.gradle/gradle.properties to sign the release.")
             }
         }
     }
@@ -107,14 +107,18 @@ android {
             versionNameSuffix = "-debug"
         }
 
-        create("dev") {
-            applicationIdSuffix = ".dev"
-            versionNameSuffix = "-dev"
-            signingConfig = signingConfigs.getByName("dev")
+        getByName("release") {
             isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"),
                           "proguard-rules.pro",
                           "../cats/proguard-rules.pro")
+        }
+
+        create("dev") {
+            initWith(getByName("release"))
+            applicationIdSuffix = ".dev"
+            versionNameSuffix = "-dev"
+            signingConfig = signingConfigs.getByName("dev")
         }
 
         compileOptions {
