@@ -39,16 +39,18 @@ abstract class TabCompleter(val input: EditText) {
         @Root private val kitty = Kitty.make()
 
         @JvmStatic
-        fun obtain(lifecycle: Lifecycle, buffer: Buffer, uiInput: EditText): TabCompleter {
-            return if (canDoOnlineCompletions()) {
-                OnlineTabCompleter(lifecycle, buffer, uiInput)
+        fun obtain(lifecycle: Lifecycle, buffer: Buffer, input: EditText): TabCompleter {
+            val localCompleter = LocalTabCompleter(buffer, input)
+
+            return if (canDoOnlineCompletions() && localCompleter.lacksCompletions()) {
+                OnlineTabCompleter(lifecycle, buffer, input)
             } else {
-                LocalTabCompleter(buffer, uiInput)
+                localCompleter
             }
         }
 
         @JvmStatic
-        fun canDoOnlineCompletions() = RelayConnection.weechatVersion >= 0x2090000
+        private fun canDoOnlineCompletions() = RelayConnection.weechatVersion >= 0x2090000
     }
 }
 

@@ -426,8 +426,8 @@ public class Buffer {
         return nicks.status == Nicks.STATUS.READY;
     }
 
-    @MainThread synchronized public @NonNull ArrayList<String> getMostRecentNicksMatching(String prefix) {
-        return nicks.getMostRecentNicksMatching(prefix);
+    @MainThread synchronized public @NonNull ArrayList<String> getMostRecentNicksMatching(String prefix, String ignoreChars) {
+        return nicks.getMostRecentNicksMatching(prefix, ignoreChars);
     }
 
     @AnyThread synchronized public @NonNull ArrayList<Nick> getNicksCopySortedByPrefixAndName() {

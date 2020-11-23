@@ -3,15 +3,18 @@ package com.ubergeek42.WeechatAndroid.tabcomplete
 import android.widget.EditText
 import com.ubergeek42.WeechatAndroid.relay.Buffer
 
+const val IGNORE_CHARS = "[]`_-^"
 
 class LocalTabCompleter(
     private val buffer: Buffer,
     input: EditText,
 ) : TabCompleter(input) {
+
+    init {
+        replacements = retrieveCompletions()
+    }
+
     override fun next() {
-        if (replacements == null) {
-            replacements = retrieveCompletions()
-        }
         performCompletion()
     }
 
@@ -31,7 +34,7 @@ class LocalTabCompleter(
         val baseWord = text.subSequence(start, end).toString()
 
         // nicks is ordered in last used comes first way, so we just pick whatever comes first
-        val matchingNicks = buffer.getMostRecentNicksMatching(baseWord)
+        val matchingNicks = buffer.getMostRecentNicksMatching(baseWord, IGNORE_CHARS)
         if (matchingNicks.size == 0) return EmptyReplacements
 
         return replacements(completions = matchingNicks,
@@ -39,4 +42,6 @@ class LocalTabCompleter(
                             baseWord = baseWord,
                             suffix = if (start == 0) ": " else "")
     }
+
+    fun lacksCompletions() = replacements === EmptyReplacements
 }

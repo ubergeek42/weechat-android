@@ -74,16 +74,21 @@ class Nicks {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @MainThread ArrayList<String> getMostRecentNicksMatching(String prefix) {
-        prefix = prefix.toLowerCase();
+    @MainThread ArrayList<String> getMostRecentNicksMatching(String prefix, String ignoreChars) {
+        String lowerCasePrefix = prefix.toLowerCase();
+        ignoreChars = removeChars(ignoreChars, lowerCasePrefix);
+
         ArrayList<String> out = new ArrayList<>(20);
-        for (Nick nick : nicks) if (nick.name.toLowerCase().startsWith(prefix)) out.add(nick.name);
+        for (Nick nick : nicks) {
+            String lowerCaseNick = nick.name.toLowerCase();
+            String lowerCaseNickWithoutIgnoreChars = removeChars(lowerCaseNick, ignoreChars);
+            if (lowerCaseNickWithoutIgnoreChars.startsWith(lowerCasePrefix)) out.add(nick.name);
+        }
         return out;
     }
 
     @WorkerThread void bumpNickToTop(@Nullable String name) {
         if (name == null) return;
-        if (TabCompleter.canDoOnlineCompletions()) return;
         for (Iterator<Nick> it = nicks.iterator(); it.hasNext();) {
             Nick nick = it.next();
             if (name.equals(nick.name)) {
@@ -95,8 +100,6 @@ class Nicks {
     }
 
     @WorkerThread void sortNicksByLines(Iterator<Line> it) {
-        if (TabCompleter.canDoOnlineCompletions()) return;
-
         final HashMap<String, Integer> nameToPosition = new HashMap<>();
 
         while (it.hasNext()) {
@@ -138,5 +141,12 @@ class Nicks {
             case '+': return 5;  // Voiced
             default: return 100; // Other
         }
+    }
+
+    private static String removeChars(String string, String chars) {
+        for(int i = 0; i < chars.length(); i++) {
+            string = string.replace(chars.substring(i, i + 1), "");
+        }
+        return string;
     }
 }
