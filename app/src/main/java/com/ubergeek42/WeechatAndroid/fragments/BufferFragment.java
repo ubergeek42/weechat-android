@@ -200,7 +200,6 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     @MainThread @Override @Cat public void onResume() {
         super.onResume();
         uiTab.setVisibility(P.showTab ? View.VISIBLE : View.GONE);
-        uiPaperclip.setVisibility(P.showPaperclip ? View.VISIBLE : View.GONE);
         uiLines.setBackgroundColor(0xFF000000 | ColorScheme.get().default_color[ColorScheme.OPT_BG]);
         EventBus.getDefault().register(this);
         applyColorSchemeToViews();
@@ -613,7 +612,12 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     }
 
     @MainThread void showHidePaperclip() {
-        if (!P.showPaperclip || activity == null || uiPaperclip == null) return;
+        if (activity == null || uiPaperclip == null) return;
+
+        if (!P.showPaperclip) {
+            if (uiPaperclip.getVisibility() != View.GONE) uiPaperclip.setVisibility(View.GONE);
+            return;
+        }
 
         ViewGroup layout = (ViewGroup) uiPaperclip.getParent();
 

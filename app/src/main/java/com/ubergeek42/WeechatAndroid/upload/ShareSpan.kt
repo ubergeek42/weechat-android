@@ -64,13 +64,13 @@ class NonBitmapShareSpan(suri: Suri) : ShareSpan(suri) {
 
     @SuppressLint("WrongConstant") @Suppress("DEPRECATION")
     private val layout = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                StaticLayout.Builder.obtain(suri.fileName, 0, suri.fileName.length,
-                                            textPaint, LAYOUT_MAX_WIDTH)
-                        .setBreakStrategy(Layout.BREAK_STRATEGY_BALANCED)
-                        .setHyphenationFrequency(Layout.HYPHENATION_FREQUENCY_NONE)
-                        .setMaxLines(3)
-                        .setEllipsize(TextUtils.TruncateAt.END)
-                        .build()
+            StaticLayout.Builder.obtain(suri.fileName, 0, suri.fileName.length,
+                                        textPaint, LAYOUT_MAX_WIDTH)
+                    .setBreakStrategy(Layout.BREAK_STRATEGY_BALANCED)
+                    .setHyphenationFrequency(Layout.HYPHENATION_FREQUENCY_NONE)
+                    .setMaxLines(3)
+                    .setEllipsize(TextUtils.TruncateAt.END)
+                    .build()
             } else {
                 StaticLayout(suri.fileName, textPaint, LAYOUT_MAX_WIDTH,
                              Layout.Alignment.ALIGN_NORMAL, 1.0f, 0.0f, false)
