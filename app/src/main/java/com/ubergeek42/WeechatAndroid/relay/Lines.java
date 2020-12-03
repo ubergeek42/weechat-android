@@ -17,8 +17,6 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import static com.ubergeek42.WeechatAndroid.utils.Assert.assertThat;
-
 
 // this class is supposed to be synchronized by Buffer
 public class Lines {
@@ -72,8 +70,10 @@ public class Lines {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
+    // in very rare cases status might not be FETCHING here, particularly when closing buffers
+    // while the app is connecting and has already requested lines
     @WorkerThread void addFirst(Line line) {
-        assertThat(status).isEqualTo(STATUS.FETCHING);
+        if (status != STATUS.FETCHING) return;
         ensureSizeBeforeAddition();
         unfiltered.addFirst(line);
         if (line.isVisible) filtered.addFirst(line);
@@ -112,7 +112,10 @@ public class Lines {
         status = STATUS.FETCHING;
     }
 
+    // in very rare cases status might not be FETCHING here, particularly when closing buffers
+    // while the app is connecting and has already requested lines
     @WorkerThread void onLinesListed() {
+        if (status != STATUS.FETCHING) return;
         status = unfiltered.size() == maxUnfilteredSize ? STATUS.CAN_FETCH_MORE : STATUS.EVERYTHING_FETCHED;
         setSkipsUsingPointer();
     }
