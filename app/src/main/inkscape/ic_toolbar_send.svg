@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- Created with Inkscape (http://www.inkscape.org/) -->
-
 <svg
    xmlns:dc="http://purl.org/dc/elements/1.1/"
    xmlns:cc="http://creativecommons.org/ns#"
@@ -13,8 +11,8 @@
    height="64px"
    id="svg2996"
    version="1.1"
-   inkscape:version="0.91pre2 r13516"
-   sodipodi:docname="ic_send.svg"
+   inkscape:version="1.0.1 (3bc2e813f5, 2020-09-07)"
+   sodipodi:docname="ic_toolbar_send.svg"
    inkscape:export-filename="C:\Users\sq\Desktop\goof\ic_send.png"
    inkscape:export-xdpi="90"
    inkscape:export-ydpi="90">
@@ -22,24 +20,24 @@
      id="defs2998" />
   <sodipodi:namedview
      id="base"
-     pagecolor="#1b1f22"
+     pagecolor="#ffffff"
      bordercolor="#666666"
      borderopacity="1"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.9999999"
-     inkscape:cx="-65.406845"
-     inkscape:cy="64.156305"
-     inkscape:current-layer="layer1"
+     inkscape:zoom="11.313708"
+     inkscape:cx="33.81045"
+     inkscape:cy="30.826526"
+     inkscape:current-layer="layer3"
      showgrid="true"
      inkscape:document-units="px"
      inkscape:grid-bbox="true"
      inkscape:snap-bbox="true"
      inkscape:snap-global="false"
-     inkscape:window-width="1366"
-     inkscape:window-height="706"
-     inkscape:window-x="-8"
-     inkscape:window-y="149"
+     inkscape:window-width="1303"
+     inkscape:window-height="745"
+     inkscape:window-x="55"
+     inkscape:window-y="-8"
      inkscape:window-maximized="1"
      inkscape:showpageshadow="true"
      borderlayer="false"
@@ -47,7 +45,10 @@
      inkscape:guide-bbox="true"
      inkscape:bbox-paths="false"
      inkscape:snap-nodes="true"
-     showborder="true">
+     showborder="true"
+     inkscape:document-rotation="0"
+     guidecolor="#bdc1ff"
+     guideopacity="0.49803922">
     <inkscape:grid
        type="xygrid"
        id="grid3015"
@@ -55,7 +56,11 @@
        visible="true"
        enabled="true"
        snapvisiblegridlinesonly="true"
-       units="px" />
+       units="px"
+       color="#ffffff"
+       opacity="0.09019608"
+       empcolor="#ffffff"
+       empopacity="0.17647059" />
     <sodipodi:guide
        orientation="1,0"
        position="53,32"
@@ -86,14 +91,14 @@
     </rdf:RDF>
   </metadata>
   <g
-     id="layer1"
-     inkscape:label="Layer 1"
-     inkscape:groupmode="layer">
+     inkscape:groupmode="layer"
+     id="layer3"
+     inkscape:label="Layer 3"
+     style="display:inline">
     <path
-       style="fill:#ffffff;fill-opacity:0.80000000000000004;stroke:none"
-       d="m 54.750269,9.753791 -2.99843,-0.0038 -33.687503,10.8125 -17.1874993,13.1875 7.71875,-0.3125 C 23.964913,25.512869 54.750269,9.753791 54.750269,9.753791 z m 2.43907,0.621209 -30.531253,33.71875 5.5,11.6875 L 52.939339,43 l 6.3125,-29.75 z m -7.375,4.625 -38.404623,19.725357 8.55088,13.205861 c 0,0 19.901103,-21.955411 29.853743,-32.931218 z"
-       id="path3812"
-       inkscape:connector-curvature="0"
-       sodipodi:nodetypes="cccccccccccccccc" />
+       style="opacity:1;fill:none;stroke:#000000;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 28.369386,41.544761 35.174475,51.886736 49.317377,42.165131 53.73871,17.858683 52.41308,15.383705 48.208844,14.935878 20.139313,26.683325 8.1288648,36.328255 17.01687,36.376288 23.26395,46.080654 52.853308,16.531261 51.50363,15.421292 16.917755,36.428057"
+       id="path1544"
+       sodipodi:nodetypes="ccccccccccccc" />
   </g>
 </svg>
