@@ -6,24 +6,13 @@ This application is *not* a standalone an IRC client. It connects to [WeeChat](h
 running on a remote machine. If you are looking for a standalone IRC client for Android,
 you will need to look elsewhere.
 
-### Get the app!
-
-[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" alt="Get it on F-Droid" height="60">](https://f-droid.org/packages/com.ubergeek42.WeechatAndroid)
-
-Note that while the app is present on Google Play, due to technical difficulties it hasn't been
-updated for a long time. 
-
-##### Nightly builds [![Build Status](https://travis-ci.org/ubergeek42/weechat-android.svg?branch=master)](https://travis-ci.org/ubergeek42/weechat-android)
-
-[Nightly builds](http://weechat-android.ubergeek42.com/) are automatically made after every commit.
-These may fail or have major bugs; use at your own risk.
-
-##### Setup and usage
+[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" alt="Get it on F-Droid" height="60">](https://f-droid.org/packages/com.ubergeek42.WeechatAndroid) 
+[<img src="https://play.google.com/intl/en_gb/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" height="60">](https://play.google.com/store/apps/details?id=com.ubergeek42.WeechatAndroid.dev)
 
 Please refer to the [quick start guide](https://github.com/ubergeek42/weechat-android/wiki/Quickstart-Guide) 
 for details. Make sure to check out our [FAQ](https://github.com/ubergeek42/weechat-android/wiki/FAQ).
 If you have problems connecting to WeeChat via SSL, note that while we support unsigned certificates,
-we are still verifying the hostname. This requires [additional care on Android](https://github.com/ubergeek42/weechat-android/wiki/Using-SSL-with-WeeChat). 
+we are still verifying the hostname. This requires [additional care on Android](https://github.com/ubergeek42/weechat-android/wiki/Using-SSL-with-WeeChat).
 
 <a href="metadata/en-US/images/phoneScreenshots/screenshot-1.png"><img src="metadata/en-US/images/phoneScreenshots/screenshot-1.png" height="500px"></a>
 <a href="metadata/en-US/images/phoneScreenshots/screenshot-2.png"><img src="metadata/en-US/images/phoneScreenshots/screenshot-2.png" height="500px"></a>
