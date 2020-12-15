@@ -29,6 +29,8 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.2.0")
     implementation("androidx.preference:preference-ktx:1.1.1")  // preference fragment & al
     implementation("androidx.legacy:legacy-preference-v14:1.0.0") // styling for the fragment
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.2.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.4.1")
 
     implementation("com.github.bumptech.glide:glide:4.11.0")
     kapt("com.github.bumptech.glide:compiler:4.11.0")
@@ -112,6 +114,11 @@ android {
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"),
                           "proguard-rules.pro",
                           "../cats/proguard-rules.pro")
+            // kotlinx-coroutines-core debug-only artifact
+            // see https://github.com/Kotlin/kotlinx.coroutines#avoiding-including-the-debug-infrastructure-in-the-resulting-apk
+            packagingOptions {
+                exclude("DebugProbesKt.bin")
+            }
         }
 
         create("dev") {

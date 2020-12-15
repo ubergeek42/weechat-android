@@ -10,6 +10,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
 import android.text.TextUtils;
 
+import com.ubergeek42.WeechatAndroid.tabcomplete.TabCompleter;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
 
@@ -73,9 +74,16 @@ class Nicks {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @MainThread ArrayList<String> getMostRecentNicksMatching(String prefix) {
+    @MainThread ArrayList<String> getMostRecentNicksMatching(String prefix, String ignoreChars) {
+        String lowerCasePrefix = prefix.toLowerCase();
+        ignoreChars = removeChars(ignoreChars, lowerCasePrefix);
+
         ArrayList<String> out = new ArrayList<>(20);
-        for (Nick nick : nicks) if (nick.name.toLowerCase().startsWith(prefix)) out.add(nick.name);
+        for (Nick nick : nicks) {
+            String lowerCaseNick = nick.name.toLowerCase();
+            String lowerCaseNickWithoutIgnoreChars = removeChars(lowerCaseNick, ignoreChars);
+            if (lowerCaseNickWithoutIgnoreChars.startsWith(lowerCasePrefix)) out.add(nick.name);
+        }
         return out;
     }
 
@@ -133,5 +141,12 @@ class Nicks {
             case '+': return 5;  // Voiced
             default: return 100; // Other
         }
+    }
+
+    private static String removeChars(String string, String chars) {
+        for(int i = 0; i < chars.length(); i++) {
+            string = string.replace(chars.substring(i, i + 1), "");
+        }
+        return string;
     }
 }
