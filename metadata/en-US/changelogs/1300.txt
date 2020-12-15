@@ -1,6 +1,6 @@
-* allow uploading files via user-supplied HTTP POST services
-* added file picker/take photo button
-* app can be a share target for files as well as text
-* app can receive media through keyboard
-* parts of the app are using Kotlin now!
-* toast background is colored to signify success or failure
+* Allow uploading files via user-supplied HTTP POST services
+* Added file picker/take photo button
+* App can be a share target for files as well as text
+* App can receive media through keyboard
+* Parts of the app are using Kotlin now!
+* Toast background is colored to signify success or failure

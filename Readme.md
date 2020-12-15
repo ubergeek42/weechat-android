@@ -50,13 +50,20 @@ check with us on IRC before starting a substantial rewrite! For additional infor
  
 ### Changelog
 
+##### v1.4
+* Implemented command and channel name completion
+* Updated icons to have wireframe look
+
+##### v1.3.1
+* Fixed F-Droid builds
+
 ##### v1.3
-* allow uploading files via user-supplied HTTP POST services
-* added file picker/take photo button
-* app can be a share target for files as well as text
-* app can receive media through keyboard
-* parts of the app are using Kotlin now!
-* toast background is colored to signify success or failure
+* Allow uploading files via user-supplied HTTP POST services
+* Added file picker/take photo button
+* App can be a share target for files as well as text
+* App can receive media through keyboard
+* Parts of the app are using Kotlin now!
+* Toast background is colored to signify success or failure
 
 ##### v1.2
 * Let users interactively accept or reject SSH host keys

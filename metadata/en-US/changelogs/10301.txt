@@ -1,1 +1,1 @@
-* fixed F-Droid builds
+* Fixed F-Droid builds

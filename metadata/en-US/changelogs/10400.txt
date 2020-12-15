@@ -1,0 +1,2 @@
+* Implemented command and channel name completion
+* Updated icons to have wireframe look
