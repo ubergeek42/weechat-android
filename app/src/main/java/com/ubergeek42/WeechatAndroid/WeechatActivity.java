@@ -451,8 +451,8 @@ public class WeechatActivity extends AppCompatActivity implements
         uiHot = menuHotlist.findViewById(R.id.hotlist_hot);
 
         // set color of the border around the [2] badge on the bell, as well as text color
-        GradientDrawable drawable = (GradientDrawable) uiHot.getBackground();
-        drawable.setStroke((int) (P.darkThemeActive ? P._4dp / 2 : P._4dp / 2 - 1), P.colorPrimary);
+        //GradientDrawable drawable = (GradientDrawable) uiHot.getBackground();
+        //drawable.setStroke((int) (P.darkThemeActive ? P._4dp / 2 : P._4dp / 2 - 1), P.colorPrimary);
         uiHot.setTextColor(P.darkThemeActive ? 0xffffffff : P.colorPrimary);
 
         TooltipCompat.setTooltipText(menuHotlist, getString(R.string.menu__hotlist_hint));

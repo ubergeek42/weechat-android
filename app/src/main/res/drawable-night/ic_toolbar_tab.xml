@@ -1,6 +1,0 @@
-<vector android:height="32dp" android:viewportHeight="64"
-    android:viewportWidth="64" android:width="32dp" xmlns:android="http://schemas.android.com/apk/res/android">
-    <path android:fillAlpha="1"
-        android:fillColor="?attr/toolbarIconColor"
-        android:pathData="M50,21C49.446,21 49,21.446 49,22L49,29.5313L49,34.4688L49,42C49,42.554 49.446,43 50,43L52,43C52.554,43 53,42.554 53,42L53,34.4688L53,29.5313L53,22C53,21.446 52.554,21 52,21L50,21zM36.375,21.1875C36.2333,21.1889 36.1023,21.2296 36.0313,21.3125C34.8951,22.6389 36.828,26.373 39.4688,30L24,30L12,30C11.446,30 11,30.446 11,31L11,33C11,33.554 11.446,34 12,34L24,34L39.4688,34C36.828,37.627 34.8951,41.3611 36.0313,42.6875C37.1674,44.0139 48,34.3536 48,32C48,29.7935 38.5004,21.1661 36.375,21.1875z" android:strokeColor="#00000000"/>
-</vector>
