@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.text.Html;
+import android.text.TextUtils;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
@@ -28,6 +29,15 @@ public class ScrollableDialog extends DialogFragment {
           @Nullable DialogInterface.OnClickListener positiveButtonListener;
     final @Nullable Integer negativeButtonText;
     final @Nullable DialogInterface.OnClickListener negativeButtonListener;
+
+    public ScrollableDialog() {
+        this("", "", null, null, null, null);       // see comment in CertificateDialog
+    }
+
+    @Override public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (TextUtils.isEmpty(title)) dismiss();    // see comment in CertificateDialog
+    }
 
     public ScrollableDialog(@NonNull CharSequence title, @NonNull CharSequence text,
                             @Nullable Integer positiveButtonText,

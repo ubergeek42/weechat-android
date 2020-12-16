@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.Html;
+import android.text.TextUtils;
 import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -49,6 +50,19 @@ public class CertificateDialog extends DialogFragment {
 
     final RadioButton[] radioButtons;
     int selectedCertificate = -1;
+
+    // 0-argument constructor required to restore this after app death.
+    // it's a tad complicated to save and restore this, so we simply don't show the dialog
+    // it's also nearly impossible to simply not save it
+    // instead we create a bogus instance and dismiss it in onCreate
+    public CertificateDialog() {
+        this("", "", new X509Certificate[]{}, null, null, null, null);
+    }
+
+    @Override public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (TextUtils.isEmpty(title)) dismiss();
+    }
 
     public CertificateDialog(@NonNull CharSequence title, @NonNull CharSequence text,
                              @NonNull X509Certificate[] certificateChain,
