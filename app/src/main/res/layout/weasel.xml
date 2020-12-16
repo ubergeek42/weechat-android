@@ -25,7 +25,7 @@
     </FrameLayout>
 
     <!-- has transparent background. frames get to color themselves -->
-    <androidx.viewpager.widget.ViewPager
+    <com.ubergeek42.WeechatAndroid.utils.ViewPagerFix
         android:id="@+id/main_viewpager"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />

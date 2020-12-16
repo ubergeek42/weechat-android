@@ -11,7 +11,7 @@ import androidx.viewpager.widget.ViewPager;
 // see also https://stackoverflow.com/a/48029387/1449683
 // this code has been modified to exclude extra padding (parentWithWithoutPadding) and also
 // to not grow beyond allotted height
-public class HeightWrappingViewPager extends ViewPager {
+public class HeightWrappingViewPager extends ViewPagerFix {
     public HeightWrappingViewPager(Context context) {
         super(context);
     }
