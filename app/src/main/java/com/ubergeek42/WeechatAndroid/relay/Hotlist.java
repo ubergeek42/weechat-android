@@ -223,7 +223,7 @@ public class Hotlist {
         }
 
         // older messages come first
-        Collections.sort(allMessages, (m1, m2) -> (int) (m1.timestamp - m2.timestamp));
+        Collections.sort(allMessages, (m1, m2) -> Long.compare(m1.timestamp, m2.timestamp));
         Notificator.showHot(connected, totalHotCount.get(), hotBufferCount, allMessages, buffer, reason, lastMessageTimestamp);
     }
 
