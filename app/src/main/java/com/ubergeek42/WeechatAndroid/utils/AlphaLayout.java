@@ -50,7 +50,10 @@ class AlphaLayout {
     private final static float SPACING_ADDITION = 0f;
     private final static boolean INCLUDE_PADDING = false;
 
+    // in the super rare case where thumbnail width > screen width
+    // text width can be calculated to be less than 0, so set it to a positive value else crash
     static AlphaLayout make(Spannable spannable, int width) {
+        if (width <= 0) width = 100;
         Layout layout = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ?
                 StaticLayout.Builder.obtain(spannable, 0, spannable.length(),
                         P.textPaint, width)

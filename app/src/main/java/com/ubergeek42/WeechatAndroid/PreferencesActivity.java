@@ -29,6 +29,7 @@ import androidx.preference.RingtonePreferenceFix;
 import androidx.preference.ThemePreference;
 
 import com.ubergeek42.WeechatAndroid.media.Config;
+import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.upload.HttpUriGetter;
 import com.ubergeek42.WeechatAndroid.upload.RequestBodyModifier;
 import com.ubergeek42.WeechatAndroid.upload.RequestModifier;
@@ -181,7 +182,9 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
                 enableDisableMediaPreviewPreferences(null, null);
                 listenTo = new String[]{PREF_MEDIA_PREVIEW_ENABLED_FOR_NETWORK,
                         PREF_MEDIA_PREVIEW_ENABLED_FOR_LOCATION,
-                        PREF_MEDIA_PREVIEW_STRATEGIES};
+                        PREF_MEDIA_PREVIEW_STRATEGIES,
+                        PREF_MEDIA_PREVIEW_THUMBNAIL_WIDTH,
+                        PREF_MEDIA_PREVIEW_THUMBNAIL_MAX_HEIGHT};
             } else if (PREF_UPLOAD_GROUP.equals(key)) {
                 showHideBasicAuthentication(null);
                 listenTo = new String[]{
@@ -246,8 +249,13 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
                 } else if (PREF_MEDIA_PREVIEW_STRATEGIES.equals(key)) {
                     // this method will show a toast on error
                     valid = Config.parseConfigSafe((String) o) != null;
-                } else if (PREF_UPLOAD_AUTHENTICATION.equals(key)) {
-                    showHideBasicAuthentication((String) o);
+                } else if (PREF_MEDIA_PREVIEW_THUMBNAIL_WIDTH.equals(key)) {
+                    float thumbnailWidth = P._1dp * Float.parseFloat((String) o);
+                    if (thumbnailWidth <= 0) throw new IllegalArgumentException("Thumbnail width must be > 0");
+                    if (thumbnailWidth > (P.weaselWidth * 0.9)) throw new IllegalArgumentException("Thumbnail width must be less than screen width");
+                } else if (PREF_MEDIA_PREVIEW_THUMBNAIL_MAX_HEIGHT.equals(key)) {
+                    float thumbnailMaxHeight = P._1dp * Float.parseFloat((String) o);
+                    if (thumbnailMaxHeight <= 0) throw new IllegalArgumentException("Thumbnail max height must be > 0");
                 } else if (PREF_UPLOAD_REGEX.equals(key)) {
                     if (((String) o).length() > 0) {
                         HttpUriGetter.fromRegex((String) o);

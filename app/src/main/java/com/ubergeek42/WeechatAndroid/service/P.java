@@ -134,7 +134,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     public static @Nullable DateTimeFormatter dateFormat;
     public static int align;
 
-    public static int weaselWidth = 200;
+    public static int weaselWidth = 1080;
     public static float textSize, letterWidth;
     public static TextPaint textPaint;
 
