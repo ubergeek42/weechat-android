@@ -1,6 +1,8 @@
 package com.ubergeek42.WeechatAndroid.utils;
 
 import androidx.appcompat.widget.Toolbar;
+import androidx.lifecycle.Lifecycle;
+
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
@@ -100,6 +102,11 @@ public class ToolbarController implements ViewTreeObserver.OnGlobalLayoutListene
     // activityHeight is the height of the activity not including any of the system stuff.
     @Override public void onGlobalLayout() {
         if (canNotAutoHide()) return;
+
+        // on android 7, if changing the day/night theme in settings, the activity can be recreated
+        // right away but with a wrong window height. so we wait until it's actually resumed
+        if (activity.getLifecycle().getCurrentState() != Lifecycle.State.RESUMED) return;
+
         int windowHeight = root.getRootView().getHeight();
         int activityHeight = root.getHeight();
         int systemAreaHeight = windowHeight - activityHeight;
