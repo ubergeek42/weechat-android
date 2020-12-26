@@ -17,7 +17,7 @@ import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.WeechatActivity
 import com.ubergeek42.WeechatAndroid.media.ContentUriFetcher.FILE_PROVIDER_SUFFIX
 import com.ubergeek42.WeechatAndroid.utils.Constants
-import com.ubergeek42.WeechatAndroid.utils.ScrollableDialog
+import com.ubergeek42.WeechatAndroid.dialogs.ScrollableDialog
 import com.ubergeek42.WeechatAndroid.utils.Toaster.Companion.ErrorToast
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root

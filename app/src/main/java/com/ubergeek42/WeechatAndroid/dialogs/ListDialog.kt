@@ -11,7 +11,6 @@ import androidx.fragment.app.DialogFragment
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.ubergeek42.WeechatAndroid.R
-import com.ubergeek42.WeechatAndroid.utils.FancyAlertDialogBuilder
 
 
 abstract class ListDialog : DialogFragment() {

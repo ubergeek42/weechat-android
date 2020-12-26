@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.relay.Line;
-import com.ubergeek42.WeechatAndroid.utils.FancyAlertDialogBuilder;
+import com.ubergeek42.WeechatAndroid.dialogs.FancyAlertDialogBuilder;
 import com.ubergeek42.WeechatAndroid.utils.LineView;
 
 import java.util.ArrayList;

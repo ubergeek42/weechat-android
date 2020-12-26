@@ -14,7 +14,7 @@ import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.media.Engine;
 import com.ubergeek42.WeechatAndroid.media.Strategy;
 import com.ubergeek42.WeechatAndroid.service.P;
-import com.ubergeek42.WeechatAndroid.utils.FancyAlertDialogBuilder;
+import com.ubergeek42.WeechatAndroid.dialogs.FancyAlertDialogBuilder;
 import com.ubergeek42.WeechatAndroid.utils.Linkify;
 
 import java.util.ArrayList;
