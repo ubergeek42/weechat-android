@@ -22,7 +22,6 @@ import android.content.res.Configuration;
 import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -41,7 +40,6 @@ import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.ActionBarDrawerToggle;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.content.res.AppCompatResources;
 import androidx.appcompat.widget.TooltipCompat;
@@ -54,13 +52,11 @@ import androidx.viewpager.widget.ViewPager;
 
 import com.ubergeek42.WeechatAndroid.adapters.BufferListClickListener;
 import com.ubergeek42.WeechatAndroid.adapters.MainPagerAdapter;
-import com.ubergeek42.WeechatAndroid.adapters.NickListAdapter;
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragment;
 import com.ubergeek42.WeechatAndroid.media.CachePersist;
 import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.WeechatAndroid.relay.Hotlist;
-import com.ubergeek42.WeechatAndroid.relay.Nick;
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
 import com.ubergeek42.WeechatAndroid.service.RelayService.STATE;
@@ -73,9 +69,9 @@ import com.ubergeek42.WeechatAndroid.upload.UrisShareObject;
 import com.ubergeek42.WeechatAndroid.upload.TextShareObject;
 import com.ubergeek42.WeechatAndroid.upload.UploadDatabase;
 import com.ubergeek42.WeechatAndroid.utils.CertificateDialog;
-import com.ubergeek42.WeechatAndroid.utils.FancyAlertDialogBuilder;
 import com.ubergeek42.WeechatAndroid.utils.FriendlyExceptions;
 import com.ubergeek42.WeechatAndroid.utils.Network;
+import com.ubergeek42.WeechatAndroid.dialogs.NicklistDialog;
 import com.ubergeek42.WeechatAndroid.utils.ScrollableDialog;
 import com.ubergeek42.WeechatAndroid.utils.SimpleTransitionDrawable;
 import com.ubergeek42.WeechatAndroid.utils.ThemeFix;
@@ -488,21 +484,8 @@ public class WeechatActivity extends AppCompatActivity implements
             case R.id.menu_hotlist:
                 break;
             case R.id.menu_nicklist:
-                final Buffer buffer = BufferList.findByPointer(adapter.getCurrentBufferPointer());
-                if (buffer == null) break;
-
-                final NickListAdapter nicklistAdapter = new NickListAdapter(WeechatActivity.this, buffer);
-
-                AlertDialog.Builder builder = new FancyAlertDialogBuilder(this);
-                builder.setAdapter(nicklistAdapter, (dialogInterface, position) -> {
-                    Nick nick = nicklistAdapter.getItem(position);
-                    SendMessageEvent.fire("input 0x%x /query %s", buffer.pointer, nick.name);
-                });
-                AlertDialog dialog = builder.create();
-                dialog.setTitle("squirrels are awesome");
-                dialog.setOnShowListener(nicklistAdapter);
-                dialog.setOnDismissListener(nicklistAdapter);
-                dialog.show();
+                final long pointer = adapter.getCurrentBufferPointer();
+                NicklistDialog.show(this, pointer);
                 break;
             case R.id.menu_filter_lines:
                 final SharedPreferences p = PreferenceManager.getDefaultSharedPreferences(this);

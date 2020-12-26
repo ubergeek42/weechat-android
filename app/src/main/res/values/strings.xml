@@ -136,6 +136,8 @@
         <item quantity="one">%1$d user</item>
         <item quantity="other">%1$d users</item>
     </plurals>
+    <string name="dialog__nicklist__user_away">%s (away)</string>
+
 
     <string name="dialog__copy__title">Copy</string>
 
