@@ -39,6 +39,9 @@ check with us on IRC before starting a substantial rewrite! For additional infor
  
 ### Changelog
 
+##### v1.4.1
+* Fixed a few bugs
+
 ##### v1.4
 * Implemented command and channel name completion
 * Updated icons to have wireframe look
