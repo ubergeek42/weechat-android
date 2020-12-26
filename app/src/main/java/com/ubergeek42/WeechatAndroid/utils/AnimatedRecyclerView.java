@@ -94,12 +94,13 @@ public class AnimatedRecyclerView extends RecyclerView {
         else onAnimationsCancelled.run();
     }
 
-    private Runnable onAnimationsCancelled = new Runnable() {
+    final private Runnable onAnimationsCancelled = new Runnable() {
         @Override @UiThread public void run() {
             if (getItemAnimator() == null) setItemAnimator(animator);
-            if (scrollToPosition != -1) {
+            int position = scrollToPosition;
+            if (position != -1) {
                 postDelayed(() -> {
-                    smoothScrollToPositionFix(scrollToPosition);
+                    smoothScrollToPositionFix(position);
                     scrollToPosition = -1;
                 }, SCROLL_DELAY);
             }
