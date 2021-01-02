@@ -4,15 +4,21 @@
 package com.ubergeek42.WeechatAndroid.utils;
 
 import android.content.Context;
+
+import androidx.annotation.Nullable;
 import androidx.annotation.UiThread;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import android.os.Looper;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
+
+import static com.ubergeek42.WeechatAndroid.utils.Assert.assertThat;
 
 public class AnimatedRecyclerView extends RecyclerView {
 
@@ -124,6 +130,11 @@ public class AnimatedRecyclerView extends RecyclerView {
         alpha.setDuration(DURATION);
         alpha.setStartOffset(position * DELAY);
         view.startAnimation(alpha);
+    }
+
+    @Override public void setItemAnimator(@Nullable ItemAnimator animator) {
+        assertThat(Looper.myLooper()).isEqualTo(Looper.getMainLooper());
+        super.setItemAnimator(animator);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
