@@ -243,7 +243,7 @@ public class WeechatActivity extends AppCompatActivity implements
 
     @MainThread @Override @CatD protected void onStart() {
         Network.get().register(this, null);     // no callback, simply make sure that network info is correct while we are showing
-        P.calculateWeaselWidth();
+        // P.calculateWeaselWidth(); -- now performed by WeaselMeasuringViewPager
         EventBus.getDefault().register(this);
         state = EventBus.getDefault().getStickyEvent(StateChangedEvent.class).state;
         updateHotCount(Hotlist.getHotCount());

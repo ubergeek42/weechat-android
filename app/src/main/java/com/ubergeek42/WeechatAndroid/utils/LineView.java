@@ -138,11 +138,11 @@ public class LineView extends View {
         }
 
         @Override public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition transition) {
-            setImage(resource);
+            setImage(resource, true);
         }
 
         @Override public void onLoadCleared(@Nullable Drawable placeholder) {
-            setImage(null);
+            setImage(null, false);
         }
 
         // the request seems to be attempted once again on minimizing/restoring the app. to avoid
@@ -154,15 +154,15 @@ public class LineView extends View {
                     Glide.with(getContext()).clear(local);
                 }
             });
-            setImage(null);
+            setImage(null, true);
         }
     }
 
-    private void setImage(@Nullable Bitmap image) {
+    private void setImage(@Nullable Bitmap image, boolean maybeAnimate) {
         if (this.image == image && !(image == null && state == State.WITH_IMAGE)) return;
         this.image = image;
         if (text == null) return;   // text can be null if called from reset(), in this case don't proceed
-        if (shouldAnimateChange()) {
+        if (maybeAnimate && shouldAnimateChange()) {
             animateChange();
         } else {
             setLayout(image == null ? LayoutType.WIDE : LayoutType.NARROW);
@@ -187,8 +187,22 @@ public class LineView extends View {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
+    private int oldWidth = P.weaselWidth;
+
     @Override protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        setMeasuredDimension(P.weaselWidth, getViewHeight(state));
+        int newWidth = P.weaselWidth;
+        if (oldWidth != newWidth) {
+            if (narrowLayout != null) {
+                narrowLayout = null;
+                ensureLayout(LayoutType.NARROW);
+            }
+            if (wideLayout != null) {
+                wideLayout = null;
+                ensureLayout(LayoutType.WIDE);
+            }
+        }
+        oldWidth = newWidth;
+        setMeasuredDimension(newWidth, getViewHeight(state));
     }
 
     private int getViewHeight(State state) {
