@@ -65,6 +65,7 @@ public class LineView extends View {
     private AlphaLayout narrowLayout = null;
     private AlphaLayout wideLayout = null;
 
+    private Line line = null;
     private Spannable text = null;
     private Bitmap image = null;
     private Target target;
@@ -102,9 +103,10 @@ public class LineView extends View {
         Strategy.Url url = null;
         Cache.Info info = null;
 
-        if (text == line.getSpannable() && getCurrentLayout().getPaint() == P.textPaint) return;
+        if (this.line == line && text == line.getSpannable() && getCurrentLayout().getPaint() == P.textPaint) return;
         reset();
 
+        this.line = line;
         text = line.getSpannable();
 
         if (Engine.isEnabledAtAll() && Engine.isEnabledForLocation(Engine.Location.CHAT) && Engine.isEnabledForLine(line)) {
@@ -192,16 +194,11 @@ public class LineView extends View {
     @Override protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         int newWidth = P.weaselWidth;
         if (oldWidth != newWidth) {
-            if (narrowLayout != null) {
-                narrowLayout = null;
-                ensureLayout(LayoutType.NARROW);
-            }
-            if (wideLayout != null) {
-                wideLayout = null;
-                ensureLayout(LayoutType.WIDE);
-            }
+            oldWidth = newWidth;
+            Line line = this.line;
+            this.line = null;
+            setText(line);
         }
-        oldWidth = newWidth;
         setMeasuredDimension(newWidth, getViewHeight(state));
     }
 
