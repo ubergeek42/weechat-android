@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
-    <com.ubergeek42.WeechatAndroid.utils.LineView
+    <com.ubergeek42.WeechatAndroid.views.LineView
         android:id="@+id/title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
