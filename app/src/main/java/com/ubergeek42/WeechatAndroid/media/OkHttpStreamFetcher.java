@@ -87,13 +87,11 @@ public class OkHttpStreamFetcher implements DataFetcher<InputStream> {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private class CallHandler implements Callback {
-        final private @Root Kitty handler_kitty = kitty.kid("CallHandler");
-
         final private Call call;
 
         private ResponseBody body;
 
-        @Cat CallHandler(Request request) {
+        CallHandler(Request request) {
             Call.Factory client = Config.secureRequestsPolicy == Config.SecureRequest.OPTIONAL ?
                     regularClient : sslOnlyClient;
             call = client.newCall(request);
@@ -141,11 +139,11 @@ public class OkHttpStreamFetcher implements DataFetcher<InputStream> {
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @Override @Cat public void cleanup() {
+    @Override public void cleanup() {
         if (lastCallHandler != null && lastCallHandler.body != null) lastCallHandler.body.close();
     }
 
-    @Override @Cat public void cancel() {
+    @Override public void cancel() {
         if (lastCallHandler != null) lastCallHandler.call.cancel();
     }
 
