@@ -93,17 +93,15 @@ class NicklistAdapter(
 
     inner class VisualNick(nick: Nick) : DiffItem<VisualNick>, ListDialog.Item {
         private val id = nick.pointer
-        private val away = nick.away
         val name: String = nick.name
 
-        override val text
-            get() = if (away) {
-                        context.getString(R.string.dialog__nicklist__user_away, name)
-                    } else {
-                        name
-                    }
+        override val text: String = if (nick.away) {
+                    context.getString(R.string.dialog__nicklist__user_away, nick.asString())
+                } else {
+                    nick.asString()
+                }
 
         override fun isSameItem(other: VisualNick) = id == other.id
-        override fun isSameContents(other: VisualNick) = name == other.name && away == other.away
+        override fun isSameContents(other: VisualNick) = text == other.text
     }
 }
