@@ -111,15 +111,15 @@ public class ToolbarController implements ViewTreeObserver.OnGlobalLayoutListene
         int activityHeight = root.getHeight();
         int systemAreaHeight = windowHeight - activityHeight;
 
+        if (windowHeight <= 0) return;
+        if (systemAreaHeight <= 0) return;
+
         // note the initial system area (assuming keyboard closed) and return. we should be getting
         // a few more calls to this method without any changes to the height numbers
         if (initialSystemAreaHeight == -1) {
             initialSystemAreaHeight = systemAreaHeight;
             return;
         }
-
-        assertThat(windowHeight).isGreaterThan(0);
-        assertThat(initialSystemAreaHeight).isGreaterThan(0);
 
         // weed out some insanity that's happening when the window is in split screen mode. it seems
         // that while resizing some elements can temporarily have the height 0.

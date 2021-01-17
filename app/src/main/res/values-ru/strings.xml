@@ -136,6 +136,7 @@
         <item quantity="few">%1$d пользователя</item>
         <item quantity="many">%1$d пользователей</item>
     </plurals>
+    <string name="dialog__nicklist__user_away">%s (отсутствует)</string>
 
     <string name="dialog__copy__title">Копировать</string>
 

@@ -6,6 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:scrollbars="vertical"
+    app:stackFromEnd="true"
     android:paddingTop="@dimen/dialog_padding_vertical"
     android:paddingBottom="@dimen/dialog_padding_vertical"
     app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />

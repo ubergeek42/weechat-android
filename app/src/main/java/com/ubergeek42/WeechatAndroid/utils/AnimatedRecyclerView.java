@@ -4,15 +4,21 @@
 package com.ubergeek42.WeechatAndroid.utils;
 
 import android.content.Context;
+
+import androidx.annotation.Nullable;
 import androidx.annotation.UiThread;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import android.os.Looper;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
+
+import static com.ubergeek42.WeechatAndroid.utils.Assert.assertThat;
 
 public class AnimatedRecyclerView extends RecyclerView {
 
@@ -94,12 +100,13 @@ public class AnimatedRecyclerView extends RecyclerView {
         else onAnimationsCancelled.run();
     }
 
-    private Runnable onAnimationsCancelled = new Runnable() {
+    final private Runnable onAnimationsCancelled = new Runnable() {
         @Override @UiThread public void run() {
             if (getItemAnimator() == null) setItemAnimator(animator);
-            if (scrollToPosition != -1) {
+            int position = scrollToPosition;
+            if (position != -1) {
                 postDelayed(() -> {
-                    smoothScrollToPositionFix(scrollToPosition);
+                    smoothScrollToPositionFix(position);
                     scrollToPosition = -1;
                 }, SCROLL_DELAY);
             }
@@ -123,6 +130,11 @@ public class AnimatedRecyclerView extends RecyclerView {
         alpha.setDuration(DURATION);
         alpha.setStartOffset(position * DELAY);
         view.startAnimation(alpha);
+    }
+
+    @Override public void setItemAnimator(@Nullable ItemAnimator animator) {
+        assertThat(Looper.myLooper()).isEqualTo(Looper.getMainLooper());
+        super.setItemAnimator(animator);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

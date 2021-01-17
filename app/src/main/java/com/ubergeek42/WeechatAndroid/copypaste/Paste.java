@@ -14,7 +14,7 @@ import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.media.Engine;
 import com.ubergeek42.WeechatAndroid.media.Strategy;
 import com.ubergeek42.WeechatAndroid.service.P;
-import com.ubergeek42.WeechatAndroid.utils.FancyAlertDialogBuilder;
+import com.ubergeek42.WeechatAndroid.dialogs.FancyAlertDialogBuilder;
 import com.ubergeek42.WeechatAndroid.utils.Linkify;
 
 import java.util.ArrayList;
@@ -62,7 +62,7 @@ public class Paste {
                 .create();
 
         RecyclerView recyclerView = (RecyclerView) LayoutInflater.from(context)
-                .inflate(R.layout.dialog_list, null);
+                .inflate(R.layout.dialog_paste_list, null);
         recyclerView.setAdapter(new PasteAdapter(context, list, item -> {
             editText.setText(item.text);
             editText.setSelection(editText.getText().length());

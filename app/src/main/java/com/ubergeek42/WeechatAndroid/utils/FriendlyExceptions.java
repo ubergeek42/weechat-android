@@ -12,6 +12,7 @@ import com.ubergeek42.weechat.relay.connection.SSHConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import static com.ubergeek42.WeechatAndroid.media.Cache.findException;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSL_CLIENT_CERTIFICATE;
 import static com.ubergeek42.WeechatAndroid.utils.ThrowingKeyManagerWrapper.ClientCertificateMismatchException;
 import static com.ubergeek42.WeechatAndroid.utils.Utils.join;
@@ -34,8 +35,10 @@ public class FriendlyExceptions {
     }
 
     public Result getFriendlyException(Throwable e) {
-        if (e instanceof ClientCertificateMismatchException)
-            return getFriendlyException((ClientCertificateMismatchException) e);
+        ClientCertificateMismatchException clientCertificateMismatchException =
+                findException(e, ClientCertificateMismatchException.class);
+        if (clientCertificateMismatchException != null)
+            return getFriendlyException(clientCertificateMismatchException);
 
         if (e instanceof SSHConnection.FailedToAuthenticateWithPasswordException)
             return getFriendlyException((SSHConnection.FailedToAuthenticateWithPasswordException) e);

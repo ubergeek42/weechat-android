@@ -249,6 +249,8 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
                 } else if (PREF_MEDIA_PREVIEW_STRATEGIES.equals(key)) {
                     // this method will show a toast on error
                     valid = Config.parseConfigSafe((String) o) != null;
+                } else if (PREF_UPLOAD_AUTHENTICATION.equals(key)) {
+                    showHideBasicAuthentication((String) o);
                 } else if (PREF_MEDIA_PREVIEW_THUMBNAIL_WIDTH.equals(key)) {
                     float thumbnailWidth = P._1dp * Float.parseFloat((String) o);
                     if (thumbnailWidth <= 0) throw new IllegalArgumentException("Thumbnail width must be > 0");

@@ -37,8 +37,8 @@ import com.ubergeek42.WeechatAndroid.relay.Line;
 import com.ubergeek42.WeechatAndroid.relay.Lines;
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.utils.AnimatedRecyclerView;
-import com.ubergeek42.WeechatAndroid.utils.LineView;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
+import com.ubergeek42.WeechatAndroid.views.LineView;
 import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
@@ -92,10 +92,6 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         @MainThread void update(Line line) {
             lineView.setTag(line);
             lineView.setText(line);
-        }
-
-        @MainThread void cancelAnimation() {
-            lineView.cancelAnimation();
         }
     }
 
@@ -209,10 +205,6 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 
     @MainThread @Override public long getItemId(int position) {
         return lines.get(position).pointer;
-    }
-
-    @MainThread @Override public void onViewDetachedFromWindow(@NonNull RecyclerView.ViewHolder holder) {
-        if (holder instanceof Row) ((Row) holder).cancelAnimation();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

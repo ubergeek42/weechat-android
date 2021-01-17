@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="etc__application_name" translatable="false">Weechat-Android (debug)</string>
     <string name="etc__package_name" translatable="false">com.ubergeek42.WeechatAndroid.debug</string>
 </resources>

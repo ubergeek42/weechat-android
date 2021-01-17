@@ -133,6 +133,8 @@
         <item quantity="one">%1$d Benutzer</item>
         <item quantity="other">%1$d Benutzer</item>
     </plurals>
+    <string name="dialog__nicklist__user_away">%s (abwesend)</string>
+
     <string name="dialog__copy__title">Kopieren</string>
 
     <string name="dialog__paste__title">Einfügen</string>

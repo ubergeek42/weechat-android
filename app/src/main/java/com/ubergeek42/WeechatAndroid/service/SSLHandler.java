@@ -13,7 +13,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.ubergeek42.WeechatAndroid.Weechat;
-import com.ubergeek42.WeechatAndroid.utils.CertificateDialog;
+import com.ubergeek42.WeechatAndroid.dialogs.CertificateDialog;
 import com.ubergeek42.WeechatAndroid.utils.ThrowingKeyManagerWrapper;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.cats.Kitty;

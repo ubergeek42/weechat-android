@@ -1,4 +1,4 @@
-package com.ubergeek42.WeechatAndroid.utils;
+package com.ubergeek42.WeechatAndroid.dialogs;
 
 import android.app.Dialog;
 import android.content.Context;
@@ -25,6 +25,7 @@ import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.service.SSLHandler;
+import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
 

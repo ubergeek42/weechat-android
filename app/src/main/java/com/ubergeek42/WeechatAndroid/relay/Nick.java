@@ -5,7 +5,7 @@ package com.ubergeek42.WeechatAndroid.relay;
 
 
 public class Nick {
-    final long pointer;
+    final public long pointer;
     final String prefix;
     final public String name;
     final public boolean away;

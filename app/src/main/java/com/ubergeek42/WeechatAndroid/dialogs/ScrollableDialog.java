@@ -1,4 +1,4 @@
-package com.ubergeek42.WeechatAndroid.utils;
+package com.ubergeek42.WeechatAndroid.dialogs;
 
 import android.app.Dialog;
 import android.content.Context;
