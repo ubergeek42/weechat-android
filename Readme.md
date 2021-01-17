@@ -39,6 +39,10 @@ check with us on IRC before starting a substantial rewrite! For additional infor
  
 ### Changelog
 
+##### v1.4.2
+* Fixed freeform window mode
+* Fixed a few rare crashes
+
 ##### v1.4.1
 * Fixed a few bugs
 

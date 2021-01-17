@@ -1,0 +1,2 @@
+* Fixed freeform window mode
+* Fixed a few rare crashes
