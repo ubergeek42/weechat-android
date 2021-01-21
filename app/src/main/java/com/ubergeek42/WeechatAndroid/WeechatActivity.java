@@ -213,15 +213,12 @@ public class WeechatActivity extends AppCompatActivity implements
         }
 
         kitty.debug("proceeding!");
-        Intent i = new Intent(this, RelayService.class);
-        i.setAction(RelayService.ACTION_START);
-        startService(i);
+
+        RelayService.startWithAction(this, RelayService.ACTION_START);
     }
 
     @MainThread @CatD public void disconnect() {
-        Intent i = new Intent(this, RelayService.class);
-        i.setAction(RelayService.ACTION_STOP);
-        startService(i);
+        RelayService.startWithAction(this, RelayService.ACTION_STOP);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

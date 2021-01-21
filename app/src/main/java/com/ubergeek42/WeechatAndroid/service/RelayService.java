@@ -15,13 +15,16 @@
 package com.ubergeek42.WeechatAndroid.service;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
 
 import androidx.annotation.AnyThread;
 import androidx.annotation.MainThread;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
 
@@ -65,6 +68,20 @@ public class RelayService extends Service implements IObserver {
     volatile public RelayConnection connection;
     private PingActionReceiver ping;
     private Handler doge;               // thread "doge" used for connecting/disconnecting
+
+    // action is one of ACTION_START or ACTION_STOP
+    // see https://stackoverflow.com/a/47654126/1449683 regarding the version check
+    public static void startWithAction(@NonNull Context context, @NonNull String action) {
+        Intent intent = new Intent(context, RelayService.class);
+        intent.setAction(action);
+
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startForegroundService(intent);
+        } else {
+            context.startService(intent);
+        }
+    }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// status & life cycle
