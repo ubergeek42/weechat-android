@@ -10,12 +10,15 @@ import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
 import kotlin.random.Random
 
+
 private const val HANDSHAKE_MESSAGE_ID = "handshake"
 private const val VERSION_MESSAGE_ID = "version"
+
 
 private val logger = LoggerFactory.getLogger("Handshake")
 
 
+@Suppress("unused")
 enum class HandshakeMethod(val string: String) {
     Compatibility("compatibility"),
     ModernFast("modern_fast_only"),
@@ -36,10 +39,6 @@ interface Handshake {
 
     fun start()
     fun onMessage(message: RelayMessage): Authenticated
-
-    fun sendVersionRequest() {
-        connection.sendMessage("($VERSION_MESSAGE_ID) info version_number\n")
-    }
 
     fun checkForVersionResponse(message: RelayMessage): Authenticated {
         return if (VERSION_MESSAGE_ID == message.id) {
@@ -65,8 +64,8 @@ class CompatibilityHandshake(
     private val password: String
 ): Handshake {
     override fun start() {
-        connection.sendMessage("init password=${password.withCommasEscaped},compression=zlib\n")
-        sendVersionRequest()
+        connection.sendMessage("init password=${password.withCommasEscaped},compression=zlib\n" +
+                               "($VERSION_MESSAGE_ID) info version_number\n")
     }
 
     override fun onMessage(message: RelayMessage) = checkForVersionResponse(message)
@@ -107,8 +106,8 @@ class ModernHandshake(
                 }
             }
 
-            connection.sendMessage("init $passwordOptionPair\n")
-            sendVersionRequest()
+            connection.sendMessage("init $passwordOptionPair\n" +
+                                   "($VERSION_MESSAGE_ID) info version_number\n")
         }
         return checkForVersionResponse(message)
     }
