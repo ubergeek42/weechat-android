@@ -16,7 +16,17 @@ private const val VERSION_MESSAGE_ID = "version"
 private val logger = LoggerFactory.getLogger("Handshake")
 
 
-enum class HandshakeMethod { Compatibility, SecureFast, SecureFastAndSlow }
+enum class HandshakeMethod(val string: String) {
+    Compatibility("compatibility"),
+    SecureFast("secure_fast"),
+    SecureFastAndSlow("secure_fast_and_slow");
+
+    companion object {
+        @JvmStatic fun fromString(string: String) = HandshakeMethod::string.find(string)
+                ?: throw IllegalArgumentException("Bad handshake method: '$string'")
+    }
+}
+
 
 enum class Authenticated { Yes, NotYet }
 

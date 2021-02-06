@@ -49,7 +49,8 @@ public class RelayConnection {
 
     private Handshake handshake;
 
-    public RelayConnection(IConnection connection, String password, IObserver observer) {
+    public RelayConnection(IConnection connection, HandshakeMethod handshakeMethod,
+                           String password, IObserver observer) {
         this.connection = connection;
         this.observer = observer;
         iteration = iterationCounter++;
@@ -57,8 +58,6 @@ public class RelayConnection {
         controlStream = new Events.EventStream("ControlStream", iteration);
         eventStream = new Events.EventStream("EventStream", iteration);
         writerStream = new Events.EventStream("WriteStream", iteration);
-
-        HandshakeMethod handshakeMethod = HandshakeMethod.SecureFastAndSlow;
 
         if (handshakeMethod == HandshakeMethod.Compatibility) {
             handshake = new CompatibilityHandshake(this, password);

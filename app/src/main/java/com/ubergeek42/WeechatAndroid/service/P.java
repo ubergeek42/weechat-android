@@ -40,6 +40,7 @@ import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
 import com.ubergeek42.weechat.Color;
 import com.ubergeek42.weechat.ColorScheme;
+import com.ubergeek42.weechat.relay.connection.HandshakeMethod;
 import com.ubergeek42.weechat.relay.connection.SSHConnection;
 import com.ubergeek42.weechat.relay.connection.SSHServerKeyVerifier;
 
@@ -236,6 +237,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     static byte[] sshSerializedKey;
     static public SSHServerKeyVerifier sshServerKeyVerifier;
     static public int port;
+    static public HandshakeMethod handshakeMethod;
     static int sshPort;
     static SSLSocketFactory sslSocketFactory;
     static boolean reconnect;
@@ -252,6 +254,9 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         host = p.getString(PREF_HOST, PREF_HOST_D);
         pass = p.getString(PREF_PASSWORD, PREF_PASSWORD_D);
         port = Integer.parseInt(getString(PREF_PORT, PREF_PORT_D));
+        handshakeMethod = HandshakeMethod.fromString(
+                p.getString(PREF_HANDSHAKE_METHOD, PREF_HANDSHAKE_METHOD_D));
+
         wsPath = p.getString(PREF_WS_PATH, PREF_WS_PATH_D);
         pinRequired = p.getBoolean(PREF_SSL_PIN_REQUIRED, PREF_SSL_PIN_REQUIRED_D);
 

@@ -423,6 +423,13 @@
 
     <string name="pref__connection__relay_password">Relay password</string>
 
+    <string name="pref__connection__relay_handshake_method">Handshake</string>
+    <string-array name="pref__connection__relay_handshake_method_names">
+        <item>Compatible with WeeChat &lt;2.9</item>
+        <item>Secure (fast algorithms only)</item>
+        <item>Secure</item>
+    </string-array>
+
     <!-- ############################## connection: miscellaneous ############################## -->
 
     <string name="pref__connection__misc_group">Miscellaneous</string>

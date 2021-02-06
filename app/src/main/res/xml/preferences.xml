@@ -105,6 +105,13 @@
                 android:summary="%s"
                 android:singleLine="true"
                 android:inputType="textPassword" />
+            <ListPreference
+                android:key="handshake_method"
+                android:title="@string/pref__connection__relay_handshake_method"
+                android:summary="%s"
+                android:entries="@array/pref__connection__relay_handshake_method_names"
+                android:entryValues="@array/pref__connection__relay_handshake_method_values"
+                android:defaultValue="compatibility" />
         </PreferenceCategory>
 
         <PreferenceCategory
