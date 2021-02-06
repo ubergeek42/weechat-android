@@ -9,7 +9,7 @@ import com.ubergeek42.WeechatAndroid.upload.suppress
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
 import com.ubergeek42.weechat.relay.RelayMessageHandler
-import com.ubergeek42.weechat.relay.connection.RelayConnection
+import com.ubergeek42.weechat.relay.connection.Handshake
 import com.ubergeek42.weechat.relay.protocol.RelayObject
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
@@ -50,7 +50,7 @@ abstract class TabCompleter(val input: EditText) {
         }
 
         @JvmStatic
-        private fun canDoOnlineCompletions() = RelayConnection.weechatVersion >= 0x2090000
+        private fun canDoOnlineCompletions() = Handshake.weechatVersion >= 0x2090000
     }
 }
 

@@ -25,7 +25,7 @@ import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
 import com.ubergeek42.weechat.Color;
 import com.ubergeek42.weechat.ColorScheme;
-import com.ubergeek42.weechat.relay.connection.RelayConnection;
+import com.ubergeek42.weechat.relay.connection.Handshake;
 import com.ubergeek42.weechat.relay.protocol.HdataEntry;
 import com.ubergeek42.weechat.relay.protocol.RelayObject;
 
@@ -175,7 +175,7 @@ public class Line {
 
             // starting with roughly 3.0 (2b16036), if a line has the tag notify_none, or if
             // notify_level is -1, it is not added to the hotlist nor it beeps—even if highlighted.
-            boolean notifyNoneForced = RelayConnection.weechatVersion >= 0x3000000 &&
+            boolean notifyNoneForced = Handshake.getWeechatVersion() >= 0x3000000 &&
                     (notify == Notify.NONE || notify_none);
 
             if (notifyNoneForced) {
@@ -198,7 +198,7 @@ public class Line {
 
             if (tags.length > 0 && isMessageFromSelfOrUser) {
                 boolean isMessageFromSelf = self_msg ||
-                        RelayConnection.weechatVersion < 0x1070000 && notify == Notify.NONE;
+                        Handshake.getWeechatVersion() < 0x1070000 && notify == Notify.NONE;
                 type = isMessageFromSelf ? Type.OUTCOMING_MESSAGE : Type.INCOMING_MESSAGE;
             }
 

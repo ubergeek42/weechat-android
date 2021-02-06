@@ -2,7 +2,6 @@ package com.ubergeek42.weechat.relay.connection;
 
 
 import com.ubergeek42.weechat.relay.RelayMessage;
-import com.ubergeek42.weechat.relay.protocol.Info;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,10 +13,7 @@ public class RelayConnection {
 
     final static int CONNECTION_TIMEOUT = 5 * 1000;
 
-    final private static String ID_VERSION = "version";
     final private static String ID_LIST_BUFFERS = "listbuffers";
-
-    public static long weechatVersion = 0;
 
     public enum STATE {
         UNKNOWN,
@@ -37,7 +33,6 @@ public class RelayConnection {
     private static int iterationCounter = 0;
 
     final private IConnection connection;
-    final private String password;
     final private IObserver observer;
     final private int iteration;
 
@@ -52,15 +47,24 @@ public class RelayConnection {
 
     private volatile STATE state = STATE.UNKNOWN;
 
+    private Handshake handshake;
+
     public RelayConnection(IConnection connection, String password, IObserver observer) {
         this.connection = connection;
-        this.password = password;
         this.observer = observer;
         iteration = iterationCounter++;
 
         controlStream = new Events.EventStream("ControlStream", iteration);
         eventStream = new Events.EventStream("EventStream", iteration);
         writerStream = new Events.EventStream("WriteStream", iteration);
+
+        HandshakeMethod handshakeMethod = HandshakeMethod.SecureFastAndSlow;
+
+        if (handshakeMethod == HandshakeMethod.Compatibility) {
+            handshake = new CompatibilityHandshake(this, password);
+        } else {
+            handshake = new SecureHandshake(this, password, handshakeMethod == HandshakeMethod.SecureFast);
+        }
     }
 
     public void sendMessage(String message) {
@@ -126,9 +130,7 @@ public class RelayConnection {
 
         if (streams.outputStream != null) writerStream.start();
 
-        String password = this.password.replace(",", "\\,");
-        sendMessage(String.format("init password=%s,compression=zlib\n" +
-                "(%s) info version_number", password, ID_VERSION));
+        handshake.start();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -149,11 +151,9 @@ public class RelayConnection {
         // logger.trace("onMessage(id={})", message.getID());
         if (state == STATE.DISCONNECTED) return;
 
-        if (ID_VERSION.equals(message.getID())) {
-            Long version = Long.parseLong(((Info) message.getObjects()[0]).getValue());
-            RelayConnection.weechatVersion = version;
-            logger.info("WeeChat version: {}", String.format("0x%x", version));
+        if (handshake != null && handshake.onMessage(message) == Authenticated.Yes) {
             setState(STATE.AUTHENTICATED);
+            handshake = null;
         }
 
         eventStream.post(() -> observer.onMessage(message));
