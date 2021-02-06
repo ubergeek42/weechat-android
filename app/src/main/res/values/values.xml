@@ -25,8 +25,8 @@
 
     <string-array name="pref__connection__relay_handshake_method_values">
         <item>compatibility</item>
-        <item>secure_fast</item>
-        <item>secure_fast_and_slow</item>
+        <item>modern_fast_only</item>
+        <item>modern_fast_and_slow</item>
     </string-array>
 
     <string-array name="pref__theme__theme_values">

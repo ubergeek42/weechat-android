@@ -62,7 +62,7 @@ public class RelayConnection {
         if (handshakeMethod == HandshakeMethod.Compatibility) {
             handshake = new CompatibilityHandshake(this, password);
         } else {
-            handshake = new SecureHandshake(this, password, handshakeMethod == HandshakeMethod.SecureFast);
+            handshake = new ModernHandshake(this, password, handshakeMethod == HandshakeMethod.ModernFast);
         }
     }
 

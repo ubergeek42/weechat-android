@@ -52,8 +52,8 @@ public class Constants {
     final public static String PREF_PASSWORD_D = null;
     final static public String PREF_HANDSHAKE_METHOD = "handshake_method";
     final static public String PREF_HANDSHAKE_METHOD_COMPATIBILITY = "compatibility";
-    final static public String PREF_HANDSHAKE_METHOD_SECURE_FAST = "secure_fast";
-    final static public String PREF_HANDSHAKE_METHOD_SECURE_FAST_AND_SLOW = "secure_fast_and_slow";
+    final static public String PREF_HANDSHAKE_METHOD_MODERN_FAST_ONLY = "modern_fast_only";
+    final static public String PREF_HANDSHAKE_METHOD_MODERN_FAST_AND_SLOW = "modern_fast_and_slow";
     final static public String PREF_HANDSHAKE_METHOD_D = PREF_HANDSHAKE_METHOD_COMPATIBILITY;
 
 

@@ -18,8 +18,8 @@ private val logger = LoggerFactory.getLogger("Handshake")
 
 enum class HandshakeMethod(val string: String) {
     Compatibility("compatibility"),
-    SecureFast("secure_fast"),
-    SecureFastAndSlow("secure_fast_and_slow");
+    ModernFast("modern_fast_only"),
+    ModernFastAndSlow("modern_fast_and_slow");
 
     companion object {
         @JvmStatic fun fromString(string: String) = HandshakeMethod::string.find(string)
@@ -73,7 +73,7 @@ class CompatibilityHandshake(
 }
 
 
-class SecureHandshake(
+class ModernHandshake(
     override val connection: RelayConnection,
     private val password: String,
     private val onlyFastHashingAlgorithms: Boolean
@@ -161,11 +161,12 @@ private enum class Compression(val string: String) {
 }
 
 
+@Suppress("ArrayInDataClass")
 private data class HandshakeResponse(
     val passwordHashAlgorithm: Algorithm,
     val passwordHashIterations: Int,
     val totp: Totp,
-    val serverNonce: String,
+    val serverNonce: ByteArray,
     val compression: Compression,
 )
 
@@ -176,7 +177,7 @@ private fun RelayMessage.asHandshakeResponse(): HandshakeResponse {
         passwordHashAlgorithm = o.get("password_hash_algo").asString().run(Algorithm::fromString),
         passwordHashIterations = o.get("password_hash_iterations").asString().toInt(),
         totp = o.get("totp").asString().run(Totp::fromString),
-        serverNonce = o.get("nonce").asString(),
+        serverNonce = o.get("nonce").asString().fromHex,
         compression = o.get("compression").asString().run(Compression::fromString)
     )
 }
@@ -191,19 +192,16 @@ private fun RelayMessage.asVersionResponse() = VersionResponse((objects[0] as In
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 @Suppress("ArrayInDataClass")
-data class HashResult(
-    val salt: ByteArray,
-    val hash: ByteArray,
-)
+data class HashResult(val salt: ByteArray, val hash: ByteArray)
 
-private fun hashSha(shaSize: Int, serverNonce: String, password: String): HashResult {
-    val salt = serverNonce.fromHex + generateClientNonce()
+private fun hashSha(shaSize: Int, serverNonce: ByteArray, password: String): HashResult {
+    val salt = serverNonce + generateClientNonce()
     val hash = DigestUtils.getDigest("SHA-$shaSize").digest(salt + password.encodeToByteArray())
     return HashResult(salt, hash)
 }
 
-private fun hashPbkdf2(shaSize: Int, serverNonce: String, iterations: Int, password: String): HashResult {
-    val salt = serverNonce.fromHex + generateClientNonce()
+private fun hashPbkdf2(shaSize: Int, serverNonce: ByteArray, iterations: Int, password: String): HashResult {
+    val salt = serverNonce + generateClientNonce()
     val spec = PBEKeySpec(password.toCharArray(), salt, iterations, shaSize)
     val secretKeyFactory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA$shaSize")
     val hash = secretKeyFactory.generateSecret(spec).encoded
