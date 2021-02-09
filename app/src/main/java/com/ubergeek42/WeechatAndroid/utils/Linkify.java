@@ -110,14 +110,14 @@ public class Linkify {
               "(?:\\.(?:[1-9]\\d?|1\\d\\d|2[0-4]\\d|25[0-4]))" +
         "|" +
               // domain name (a.b.c.com)
-              "(?:" + IRIC + "+(?:-" + IRIC + "+)*\\.)+" +  // (\w+(-\w+)*\.)+      a. a-b. a-b.a-b.
-              GLTDC + "{2,63}" +                            // (\w){2,63}           com ninja
+              "(?:" + IRIC + "+(?:-" + IRIC + "+)*\\.)*" +  // (\w+(-\w+)*\.)*      a. a-b. a-b.a-b.
+              GLTDC + "{1,63}" +                            // (\w){1,63}           com ninja r
         ")" +
         // port?
         "(?::\\d{2,5})?" +
         // & the rest
         "(?:" +
-              "\\.?/" +
+              "\\.?[/?]" +
               "(?:" +
                     // hello(world) in hello(world))
                     "(?:" +
