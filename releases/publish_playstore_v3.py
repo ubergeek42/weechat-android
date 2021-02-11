@@ -7,7 +7,9 @@
 # pip install google-auth google-auth-httplib2 google-api-python-client oauth2client
 
 import os
+import re
 import httplib2
+import subprocess
 import googleapiclient.discovery
 from oauth2client.service_account import ServiceAccountCredentials
 
@@ -78,5 +80,10 @@ if __name__ == '__main__':
 
     if os.environ.get('TRAVIS_PULL_REQUEST', None) != "false":
         raise Exception("Won't publish play store app for pull requests")
+
+    re_version = re.compile(r"^v\d+(\.\d+)*$")
+    output = subprocess.check_output(["git", "tag", "--points-at", "HEAD"]).decode("utf-8")
+    if not any(re_version.match(line) for line in output.splitlines()):
+        raise Exception("No version tags point to HEAD")
 
     upload()
