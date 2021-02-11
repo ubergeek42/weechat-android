@@ -1,6 +1,7 @@
 package com.ubergeek42.cats;
 
-import org.hamcrest.Description;
+import androidx.annotation.NonNull;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -49,23 +50,24 @@ public class CatTest {
         inOrder.verifyNoMoreInteractions();
     }
 
-    private static class IgnoringDelayMatcher extends ArgumentMatcher<String> {
+    private static class IgnoringDelayMatcher implements ArgumentMatcher<String> {
         final String expected;
 
         IgnoringDelayMatcher(String expected) {
             this.expected = normalize(expected);
         }
 
-        @Override public boolean matches(Object argument) {
-            return expected.equals(normalize((String) argument));
+        @Override public boolean matches(String argument) {
+            return expected.equals(normalize(argument));
         }
 
-        @Override public void describeTo(Description description) {
-            description.appendText("\"" + expected + "\"");
+        @NonNull public String toString() {
+            return "\"" + expected + "\"";
         }
 
         private static String normalize(String message) {
-            return message.replaceFirst(" \\[\\d+ms]", " [*ms]");
+            return message.replaceFirst("^Test :", "main :")
+                          .replaceFirst(" \\[\\d+ms]", " [*ms]");
         }
     }
 

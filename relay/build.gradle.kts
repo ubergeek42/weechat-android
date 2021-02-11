@@ -18,6 +18,8 @@ dependencies {
 
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.4.10")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.0.0")
+
+    testImplementation("junit:junit:4.13.1")
 }
 
 tasks.withType<JavaCompile> {
