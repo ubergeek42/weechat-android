@@ -10,7 +10,9 @@ before_script:
 # broken, see below with git depth 99999
 #  - git fetch --unshallow
 
-script: releases/travis_build.sh
+script:
+  - ./gradlew test
+  - releases/travis_build.sh
 
 after_script:
   - '[ "${TRAVIS_PULL_REQUEST}" = "false" ] && releases/publish_s3.sh'
