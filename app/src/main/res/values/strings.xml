@@ -423,12 +423,29 @@
 
     <string name="pref__connection__relay_password">Relay password</string>
 
-    <string name="pref__connection__relay_handshake_method">Handshake</string>
-    <string-array name="pref__connection__relay_handshake_method_names">
-        <item>Compatible with WeeChat&nbsp;&lt;2.9</item>
-        <item>Modern: fast algorithms only</item>
-        <item>Modern: including slower but more secure algorithms</item>
+    <string name="pref__connection__handshake_group">Handshake settings</string>
+
+    <string name="pref__connection__handshake">Handshake</string>
+    <string-array name="pref__connection__handshake_method_names">
+        <item>Compatibility</item>
+        <item>Modern &amp; fast</item>
+        <item>Modern</item>
     </string-array>
+
+    <string name="pref__connection__handshake_help"><![CDATA[
+        This option determines the way the password is hashed during authentication.
+
+        <p>In <b>compatibility</b> mode, the password isn’t hashed. This is the fastest method.
+        This method is required if using WeeChat < 2.9, but works on the later versions as well.
+
+        <p><b>Modern & fast</b> handshake limits algorithms to the SHA-2 family.
+
+        <p><b>Modern</b> handshake also includes PBKDF2.
+        These algorithms can be very slow, depending on the number of iterations.
+
+        <p>Password hashing offers little to no benefit if the connection is encrypted.
+        <a href="https://github.com/ubergeek42/weechat-android/wiki/FAQ#what-does-the-handshake-option-do">Learn more</a>
+    ]]></string>
 
     <!-- ############################## connection: miscellaneous ############################## -->
 

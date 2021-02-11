@@ -105,13 +105,22 @@
                 android:summary="%s"
                 android:singleLine="true"
                 android:inputType="textPassword" />
-            <ListPreference
-                android:key="handshake_method"
-                android:title="@string/pref__connection__relay_handshake_method"
-                android:summary="%s"
-                android:entries="@array/pref__connection__relay_handshake_method_names"
-                android:entryValues="@array/pref__connection__relay_handshake_method_values"
-                android:defaultValue="compatibility" />
+
+            <PreferenceScreen
+                android:key="connection_handshake_group"
+                android:title="@string/pref__connection__handshake_group">
+                <ListPreference
+                    android:key="handshake_method"
+                    android:title="@string/pref__connection__handshake"
+                    android:summary="%s"
+                    android:entries="@array/pref__connection__handshake_method_names"
+                    android:entryValues="@array/pref__connection__handshake_method_values"
+                    android:defaultValue="compatibility" />
+                <HelpPreference
+                    android:summary="@string/pref__connection__handshake_help"
+                    android:persistent="false"
+                    android:selectable="false" />
+            </PreferenceScreen>
         </PreferenceCategory>
 
         <PreferenceCategory
