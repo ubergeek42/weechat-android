@@ -1,14 +1,17 @@
 package com.ubergeek42.weechat.relay.protocol;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+
+import org.junit.jupiter.api.Test;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 
 public class DataTest {
 
@@ -192,41 +195,58 @@ public class DataTest {
 	
 	
 	// Tests that involve exceptions
-	@Test(expected = IndexOutOfBoundsException.class)
+	@Test
 	public void testGetIntegerException() {
-		Data d = new Data(new byte[]{3}); // Missing data
-		d.getUnsignedInt(); // Exception
-	}
-	@Test(expected = IndexOutOfBoundsException.class)
-	public void testGetLongIntegerException1() {
-		Data d = new Data(new byte[]{5}); // Missing data
-		d.getLongInteger(); // Exception
-	}
-	@Test(expected = RuntimeException.class)
-	public void testGetLongIntegerException2() {
-		Data d = new Data(new byte[]{0}); // Get long int of length 0
-		d.getLongInteger(); // Exception
-	}
-	@Test(expected = IndexOutOfBoundsException.class)
-	public void testGetStringException() {
-		ByteBuffer bb = ByteBuffer.allocate(4);
-		bb.order(ByteOrder.BIG_ENDIAN);
-		bb.putInt(bb.capacity());
-		Data d = new Data(bb.array());
-		d.getString(); // Exception, no character data
-	}
-	@Test(expected = IndexOutOfBoundsException.class)
-	public void testGetBufferException() {
-		ByteBuffer bb = ByteBuffer.allocate(4);
-		bb.order(ByteOrder.BIG_ENDIAN);
-		bb.putInt(bb.capacity());
-		Data d = new Data(bb.array());
-		d.getBuffer(); // Exception, no character data
-	}
-	@Test(expected = IndexOutOfBoundsException.class)
-	public void testGetPointerException() {
-		Data d = new Data(new byte[]{5}); // Missing data
-		d.getPointer(); // Exceptin
+		assertThrows(IndexOutOfBoundsException.class, () -> {
+			Data d = new Data(new byte[]{3}); // Missing data
+			d.getUnsignedInt(); // Exception
+		});
 	}
 
+	@Test
+	public void testGetLongIntegerException1() {
+		assertThrows(IndexOutOfBoundsException.class, () -> {
+			Data d = new Data(new byte[]{5}); // Missing data
+			d.getLongInteger(); // Exception
+		});
+	}
+
+	@Test
+	public void testGetLongIntegerException2() {
+		assertThrows(RuntimeException.class, () -> {
+			Data d = new Data(new byte[]{0}); // Get long int of length 0
+			d.getLongInteger(); // Exception
+		});
+
+	}
+
+	@Test
+	public void testGetStringException() {
+		assertThrows(IndexOutOfBoundsException.class, () -> {
+			ByteBuffer bb = ByteBuffer.allocate(4);
+			bb.order(ByteOrder.BIG_ENDIAN);
+			bb.putInt(bb.capacity());
+			Data d = new Data(bb.array());
+			d.getString(); // Exception, no character data
+		});
+	}
+
+	@Test
+	public void testGetBufferException() {
+		assertThrows(IndexOutOfBoundsException.class, () -> {
+			ByteBuffer bb = ByteBuffer.allocate(4);
+			bb.order(ByteOrder.BIG_ENDIAN);
+			bb.putInt(bb.capacity());
+			Data d = new Data(bb.array());
+			d.getBuffer(); // Exception, no character data
+		});
+	}
+
+	@Test
+	public void testGetPointerException() {
+		assertThrows(IndexOutOfBoundsException.class, () -> {
+			Data d = new Data(new byte[]{5}); // Missing data
+			d.getPointer(); // Exceptin
+		});
+	}
 }

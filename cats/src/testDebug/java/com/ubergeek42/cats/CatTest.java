@@ -2,12 +2,12 @@ package com.ubergeek42.cats;
 
 import androidx.annotation.NonNull;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+
 import org.mockito.ArgumentMatcher;
 import org.mockito.InOrder;
-import org.mockito.runners.MockitoJUnitRunner;
 
 import static android.util.Log.DEBUG;
 import static android.util.Log.ERROR;
@@ -17,7 +17,7 @@ import static org.mockito.Mockito.*;
 import static android.util.Log.VERBOSE;
 
 @SuppressWarnings({"UnusedReturnValue", "SameParameterValue"})
-@RunWith(MockitoJUnitRunner.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class CatTest {
     private static @Root Kitty test;
     private Kitty kid;
@@ -31,7 +31,7 @@ public class CatTest {
         }
     }
 
-    @Before
+    @BeforeEach
     public void setup() {
         disabled.add("*/?");
         test = Kitty.make("Test");

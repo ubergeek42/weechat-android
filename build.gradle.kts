@@ -35,13 +35,15 @@ buildscript {
 
 subprojects {
     tasks.withType<Test> {
+        useJUnitPlatform()                      // aka JUnit 5
+
         testLogging {
-            // always rerun tests
-            outputs.upToDateWhen { false }
+            outputs.upToDateWhen { false }      // always rerun tests
 
             events("skipped", "failed")
 
             // https://github.com/gradle/gradle/issues/5431
+            // https://github.com/gradle/kotlin-dsl-samples/issues/836#issuecomment-384206237
             addTestListener(object : TestListener {
                 override fun beforeSuite(suite: TestDescriptor) {}
                 override fun beforeTest(testDescriptor: TestDescriptor) {}
@@ -50,11 +52,16 @@ subprojects {
                     // print only the bottom-level test result information
                     if (suite.className == null) return
 
+                    val details = if (result.skippedTestCount > 0 || result.failedTestCount > 0) {
+                        ": ${result.successfulTestCount} successes, " +
+                                "${result.failedTestCount} failures, " +
+                                "${result.skippedTestCount} skipped"
+                    } else {
+                        ""
+                    }
+
                     println("${suite.displayName}: ${result.resultType} " +
-                            "(${result.testCount} tests: " +
-                            "${result.successfulTestCount} successes, " +
-                            "${result.failedTestCount} failures, " +
-                            "${result.skippedTestCount} skipped)")
+                            "(${result.testCount} tests$details)")
                 }
             })
         }

@@ -55,6 +55,9 @@ dependencies {
 
     debugImplementation("org.aspectj:aspectjrt:1.9.6")
     debugImplementation("com.squareup.leakcanary:leakcanary-android:2.5")
+
+    testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.7.1")
 }
 
 tasks.withType<JavaCompile> {

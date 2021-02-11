@@ -18,9 +18,11 @@
 package com.ubergeek42.cats;
 
 import java.math.BigInteger;
-import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 
 public final class StringsTest {
     @Test public void nullValue() {
