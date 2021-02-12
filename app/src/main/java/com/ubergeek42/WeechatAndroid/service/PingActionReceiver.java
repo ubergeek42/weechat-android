@@ -91,7 +91,17 @@ public class PingActionReceiver extends BroadcastReceiver {
         Intent intent = new Intent(PING_ACTION);
         PendingIntent pi = PendingIntent.getBroadcast(bone, 0, intent, PendingIntent.FLAG_NO_CREATE);
         if (pi != null) alarmManager.cancel(pi);
-        bone.unregisterReceiver(this);
+        try {
+            bone.unregisterReceiver(this);
+        } catch (IllegalArgumentException e) {
+            // there's a rare crash in developer console that happens here
+            // not sure what causes it, as it doesn't seem to be possible for
+            // unschedulePing() to be run twice or without scheduleFirstPing() having ran first
+            // todo find the cause of this and fix more properly
+            // todo look for other crashes that the underlying issue might cause
+            // https://github.com/ubergeek42/weechat-android/issues/482
+            // https://android.googlesource.com/platform/frameworks/base/+/master/core/java/android/app/LoadedApk.java#1451
+        }
     }
 
     @WorkerThread public void onMessage() {
