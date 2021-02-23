@@ -81,40 +81,17 @@ private class URLSpan2(url: String) : URLSpan(url) {
 // a0        nbsp
 @Suppress("RegExpRepeatedSpace", "SpellCheckingInspection", "RegExpRedundantEscape")
 private val URL = run {
-    val ipv4Segment = """(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)"""
-    val ipv6Segment = """[0-9A-Fa-f]{1,4}"""
-
     val purePunycodeChar = """[a-z0-9]"""   // not mixed with ascii
     val badCharRange = """\x00-\x20\x7f-\xa0\ufff0-\uffff\s"""
     val goodChar = """[^$badCharRange]"""
     val goodHostChar = """[^\x00-\x2f\x3a-\x40\x5b-\x60\x7b-\xa0\ufff0-\uffff]"""
     val goodTldChar = """[^\x00-\x40\x5b-\x60\x7b-\xa0\ufff0-\uffff]"""
 
-    val hostSegment = """$goodHostChar+(?:-+$goodHostChar+)*"""
-    val tld = """(?:$goodTldChar{1,63}|xn--$purePunycodeChar+)"""
+    val ipv4Segment = """(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)"""
+    val ipv4 = """(?:$ipv4Segment\.){3} $ipv4Segment"""
 
-    """
-    # url must be preceded by a word boundary
-    \b
-
-    # protocol:// or www.
-    (?:[A-Za-z+]+://|[Ww]{3}\.)
-
-    # optional user info
-    (?:[^$badCharRange@]*@)?
-
-    # host or ip
-    (?:
-        # domain name: com, com.r, a.b.c.com
-        (?:$hostSegment\.)*$tld
-        
-        # fqdn dot, but only if followed by url-ish things: / or :123
-        (?:\.(?=/|:\d))?
-    |
-        # ipv4
-        (?:$ipv4Segment\.){3}$ipv4Segment
-    |
-        # ipv6
+    val ipv6Segment = """[0-9A-Fa-f]{1,4}"""
+    val ipv6 = """
         \[
         (?:
                                                          (?:$ipv6Segment:){7} $ipv6Segment
@@ -128,6 +105,26 @@ private val URL = run {
             | (?:(?:$ipv6Segment:){0,6}$ipv6Segment)? ::
         )
         \]
+    """
+
+    // domain name includes non-standard single-letter top level domains and signle label domains;
+    // also, the fqdn dot, but only if followed by url-ish things: / or :123
+    val hostSegment = """$goodHostChar+(?:-+$goodHostChar+)*"""
+    val tld = """(?:$goodTldChar{1,63}|xn--$purePunycodeChar+)"""
+    val domainName = """(?:$hostSegment\.)*$tld (?:\.(?=/|:\d))?"""
+    val optionalUserInfo = """(?:[^$badCharRange@]*@)?"""
+
+    """
+    # url must be preceded by a word boundary
+    \b
+    
+    (?:
+        [A-Za-z+]+://
+        $optionalUserInfo
+        (?:$domainName|$ipv4|$ipv6)
+    |
+        [Ww]{3}\.
+        $domainName
     )
 
     # optional port

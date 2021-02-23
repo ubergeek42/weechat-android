@@ -32,9 +32,13 @@ internal class LinkifyTest {
             "http://[3210:123z::]:80/bye#",
             "www.mail-.lv",
             "www.ma.-il.lv",
+            "www.127.0.0.1",
+            "www.[2607:f8b0:4009:810::200e]",
+            "www.123",
             "http://ser\$ver.com",
             "http://ser_ver.com",
             "http://www.abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijkl/",
+            "h[://a.com/"
         )
 
 
@@ -80,11 +84,13 @@ internal class LinkifyTest {
             "http://abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcde.abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijk.abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijk.abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijk.com",
 
             "http://➡.ws/䨹",
+            "http://i❤️.ws/",
             "HTTP://ПРЕЗИДЕНТ.РФ",
             "https://моя-молитва.рф/",
             "(https://ru.wikipedia.org/wiki/Мыло_(значения))" to "https://ru.wikipedia.org/wiki/Мыло_(значения)",
             "http://➡.ws/♥/pa%2Fth;par%2Fams?que%2Fry=a&b=c",
-            "http://website.com/path/is%2fslash/!$&'()*+,;=:@/path?query=!$&'()*+,;=:@?query#fragment!$&'()*+,;=:@#fragment"
+            "http://website.com/path/is%2fslash/!$&'()*+,;=:@/path?query=!$&'()*+,;=:@?query#fragment!$&'()*+,;=:@#fragment",
+            "http://10.0.0.1?a=1",
         ).map {
             if (it is String) it to it else it as Pair<*, *>
         }
