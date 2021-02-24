@@ -200,7 +200,6 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     @MainThread @Override @Cat public void onResume() {
         super.onResume();
         uiTab.setVisibility(P.showTab ? View.VISIBLE : View.GONE);
-        uiLines.setBackgroundColor(0xFF000000 | ColorScheme.get().default_color[ColorScheme.OPT_BG]);
         EventBus.getDefault().register(this);
         applyColorSchemeToViews();
 
