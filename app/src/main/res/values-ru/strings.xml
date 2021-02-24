@@ -422,6 +422,30 @@
 
     <string name="pref__connection__relay_password">Пароль релея</string>
 
+    <string name="pref__connection__handshake_group">Настройки рукопожатия</string>
+
+    <string name="pref__connection__handshake">Рукопожатие</string>
+    <string-array name="pref__connection__handshake_method_names">
+        <item>Режим совместимости</item>
+        <item>Быстрое современное</item>
+        <item>Современное</item>
+    </string-array>
+
+    <string name="pref__connection__handshake_help"><![CDATA[
+        Данная настройка определяет способ хеширования пароля во время аутентификации.
+
+        <p>В <b>режиме совместимости</b> пароль не хешируется. Этот метод наиболее быстр;
+        только он работает с WeeChat < 2.9, но может быть использован и на поздних версиях.
+
+        <p>В рамках <b>быстрого cовременного</b> рукопожатия алгоритмы ограничены семейством SHA-2.
+
+        <p><b>Современное</b> рукопожатие также включает в себя алгоритмы PBKDF2.
+        В зависимости от количества итераций, они могут быть весьма медленны.
+
+        <p>Если соединение зашифровано, хеширование пароля не приносит значительной пользы.
+        <a href="https://github.com/ubergeek42/weechat-android/wiki/FAQ#what-does-the-handshake-option-do">Узнать&nbsp;больше</a>
+    ]]></string>
+
     <!-- ############################## connection: miscellaneous ############################## -->
 
     <string name="pref__connection__misc_group">Всякая всячина</string>

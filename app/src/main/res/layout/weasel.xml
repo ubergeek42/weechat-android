@@ -1,28 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/weasel_background"
+    android:background="?attr/colorPrimary"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- a cute kitty with a background, positioned “under” the toolbar
-    is hidden when ViewPager gets pages and is shown when it becomes empty
-    there is no background behind it, activity's bg gets unset
-    NOTE: android:layout_gravity="top" is necessary for API 10 to work properly-->
-    <FrameLayout
-        android:id="@+id/kitty_background"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="?attr/colorPrimary"
-        android:layout_marginTop="?attr/actionBarSize"
-        android:layout_gravity="top">
+    <!-- the activity gets transparent background.
+    this frame layout is the one that draws background, both for the kitty and the chat -->
 
-        <ImageView
-            android:id="@+id/kitty"
-            android:gravity="center"
-            android:layout_width="200dp"
-            android:layout_height="200dp"
-            android:scaleType="center"
-            android:layout_gravity="center"/>
-    </FrameLayout>
+    <ImageView
+        android:id="@+id/kitty"
+        android:gravity="center"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:scaleType="center"
+        android:layout_gravity="center"/>
 
     <!-- has transparent background. frames get to color themselves -->
     <com.ubergeek42.WeechatAndroid.utils.WeaselMeasuringViewPager

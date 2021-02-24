@@ -50,6 +50,12 @@ public class Constants {
     final public static String PREF_PORT_D = "9001";
     final static public String PREF_PASSWORD = "password";
     final public static String PREF_PASSWORD_D = null;
+    final static public String PREF_HANDSHAKE_METHOD = "handshake_method";
+    final static public String PREF_HANDSHAKE_METHOD_COMPATIBILITY = "compatibility";
+    final static public String PREF_HANDSHAKE_METHOD_MODERN_FAST_ONLY = "modern_fast_only";
+    final static public String PREF_HANDSHAKE_METHOD_MODERN_FAST_AND_SLOW = "modern_fast_and_slow";
+    final static public String PREF_HANDSHAKE_METHOD_D = PREF_HANDSHAKE_METHOD_COMPATIBILITY;
+
 
     // misc
     final static public String PREF_LINE_INCREMENT = "line_increment";

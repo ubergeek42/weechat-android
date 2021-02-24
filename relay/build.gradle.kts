@@ -8,6 +8,7 @@ plugins {
 
 dependencies {
     implementation("org.slf4j:slf4j-api:1.7.30")
+    implementation("commons-codec:commons-codec:1.14")
 
     // "api" because we are calling `SSHConnection.getKnownHosts` from the app
     // and it returns something from inside sshlib
@@ -18,6 +19,8 @@ dependencies {
 
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.4.10")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.0.0")
+
+    testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
 }
 
 tasks.withType<JavaCompile> {

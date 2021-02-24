@@ -33,14 +33,9 @@ import com.ubergeek42.WeechatAndroid.upload.f
 import com.ubergeek42.WeechatAndroid.upload.i
 import com.ubergeek42.WeechatAndroid.upload.main
 import com.ubergeek42.WeechatAndroid.utils.invalidatableLazy
-import com.ubergeek42.cats.Kitty
-import com.ubergeek42.cats.Root
 
 
 private const val ANIMATION_DURATION = 250L // ms
-
-
-private var instanceCounter = 0
 
 
 private enum class State(
@@ -61,7 +56,7 @@ class LineView @JvmOverloads constructor(
     attrs: AttributeSet? = null,
     defStyle: Int = 0,
 ) : View(context, attrs, defStyle) {
-    @Root private val kitty = Kitty.make().apply { setPrefix(instanceCounter++.toString()) }
+    private val glide = getSafeGlide()
 
     private var text: Spannable = NoText
 
@@ -84,7 +79,7 @@ class LineView @JvmOverloads constructor(
         animatedValue = 0f
         animator?.cancel()
         animator = null
-        target?.let { safeGlide?.clear(it) }    // will call the listener!
+        target?.let { glide?.clear(it) }    // will call the listener!
         target = null
     }
 
@@ -146,7 +141,7 @@ class LineView @JvmOverloads constructor(
     private fun requestThumbnail(url: Strategy.Url) {
         lastRequestedUrl = url
 
-        target = (safeGlide ?: return)
+        target = (glide ?: return)
                 .asBitmap()
                 .apply(Engine.defaultRequestOptions)
                 .listener(Cache.bitmapListener)
@@ -163,7 +158,7 @@ class LineView @JvmOverloads constructor(
         // the request seems to be attempted once again on minimizing/restoring the app.
         // to avoid that, clear target soon, but not on current thread--the library doesn't allow it
         override fun onLoadFailed(errorDrawable: Drawable?) {
-            target?.let { main { safeGlide?.clear(it) } }
+            target?.let { main { glide?.clear(it) } }
             setImage(null)
         }
 
@@ -364,7 +359,7 @@ private val NoText = SpannableString("error")   // just so that we don't need to
 private inline val wideLayoutWidth get() = P.weaselWidth
 private inline val narrowLayoutWidth get() = P.weaselWidth - Config.thumbnailAreaWidth
 
-val View.safeGlide get() = if (WAGlideModule.isContextValidForGlide(context)) {
+fun View.getSafeGlide() = if (WAGlideModule.isContextValidForGlide(context)) {
                                Glide.with(context)
                            } else {
                                null

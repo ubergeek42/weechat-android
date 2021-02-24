@@ -81,6 +81,7 @@ import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.CatD;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
+import com.ubergeek42.weechat.ColorScheme;
 import com.ubergeek42.weechat.relay.connection.SSHServerKeyVerifier;
 
 import org.greenrobot.eventbus.EventBus;
@@ -213,15 +214,12 @@ public class WeechatActivity extends AppCompatActivity implements
         }
 
         kitty.debug("proceeding!");
-        Intent i = new Intent(this, RelayService.class);
-        i.setAction(RelayService.ACTION_START);
-        startService(i);
+
+        RelayService.startWithAction(this, RelayService.ACTION_START);
     }
 
     @MainThread @CatD public void disconnect() {
-        Intent i = new Intent(this, RelayService.class);
-        i.setAction(RelayService.ACTION_STOP);
-        startService(i);
+        RelayService.startWithAction(this, RelayService.ACTION_STOP);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -390,9 +388,8 @@ public class WeechatActivity extends AppCompatActivity implements
         hideSoftwareKeyboard();
         toolbarController.onPageChangedOrSelected();
         if (needToChangeKittyVisibility) {
-            int visible = adapter.getCount() == 0 ? View.VISIBLE : View.GONE;
-            uiPager.post(() -> findViewById(R.id.kitty_background).setVisibility(visible));
-            findViewById(R.id.kitty).setVisibility(visible);
+            findViewById(R.id.kitty).setVisibility(adapter.getCount() == 0 ? View.VISIBLE : View.GONE);
+            applyMainBackgroundColor();
         }
     }
 
@@ -719,12 +716,20 @@ public class WeechatActivity extends AppCompatActivity implements
     // SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR, which the theming engine seems to be setting
     // automatically, and since api 27 via android:navigationBarColor
     private void applyColorSchemeToViews() {
-        findViewById(R.id.kitty_background).setBackgroundColor(P.colorPrimary);
+        applyMainBackgroundColor();
         findViewById(R.id.toolbar).setBackgroundColor(P.colorPrimary);
 
         boolean isLight = ThemeFix.isColorLight(P.colorPrimaryDark);
         if (!isLight || Build.VERSION.SDK_INT >= 23) getWindow().setStatusBarColor(P.colorPrimaryDark);
         if (!isLight || Build.VERSION.SDK_INT >= 26) getWindow().setNavigationBarColor(P.colorPrimaryDark);
+    }
+
+    // to reduce overdraw, change background color instead of drawing over it
+    private void applyMainBackgroundColor() {
+        int color = adapter.getCount() == 0 ?
+                P.colorPrimary :
+                0xFF000000 | ColorScheme.get().default_color[ColorScheme.OPT_BG];
+        findViewById(R.id.weasel_background).setBackgroundColor(color);
     }
 
     @MainThread void enableDisableExclusionRects() {

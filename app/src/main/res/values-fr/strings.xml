@@ -416,6 +416,32 @@
 
     <string name="pref__connection__relay_password">Mot de passe du relai</string>
 
+    <string name="pref__connection__handshake_group">Paramètres de négociation</string>
+
+    <string name="pref__connection__handshake">Négociation</string>
+    <string-array name="pref__connection__handshake_method_names">
+        <item>Compatibilité</item>
+        <item>Moderne &amp; rapide</item>
+        <item>Moderne</item>
+    </string-array>
+
+    <string name="pref__connection__handshake_help"><![CDATA[
+        Cette option détermine la manière dont le mot de passe est haché lors de l’authentification.
+
+        <p>En mode <b>Compatibilité</b>, le mot de passe n’est pas haché.
+        C’est la méthode la plus rapide.
+        Cette méthode est obligatoire si vous utilisez WeeChat&nbsp;&lt;&nbsp;2.9,
+        mais fonctionne aussi sur les versions ultérieures.
+
+        <p>En mode <b>Moderne & rapide</b>, l’algorithme de hachage se limite à la famille SHA-2.
+
+        <p>En mode <b>Moderne</b>, le choix s’étend à la famille PBKDF2.
+        Ces algorithmes peuvent être très lents, selon le nombre d’itérations utilisé.
+
+        <p>Le hachage du mot de passe n’offre que peu d’avantages si la connexion est chiffrée.
+        <a href="https://github.com/ubergeek42/weechat-android/wiki/FAQ#what-does-the-handshake-option-do">En&nbsp;savoir&nbsp;plus</a>
+    ]]></string>
+
     <!-- ############################## connection: miscellaneous ############################## -->
 
     <string name="pref__connection__misc_group">Divers</string>

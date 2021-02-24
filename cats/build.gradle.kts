@@ -10,7 +10,7 @@ dependencies {
     implementation("org.aspectj:aspectjrt:1.9.6")
     implementation("androidx.annotation:annotation:1.1.0")
 
-    testImplementation("junit:junit:4.13.1")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
     testImplementation("org.mockito:mockito-core:3.5.13")
 }
 

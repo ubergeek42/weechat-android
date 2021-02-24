@@ -17,14 +17,7 @@ public class BootUpReceiver extends BroadcastReceiver {
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         if (prefs.getBoolean(PREF_BOOT_CONNECT, PREF_BOOT_CONNECT_D)) {
-            Intent i = new Intent(context, RelayService.class);
-            i.setAction(RelayService.ACTION_START);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                // https://stackoverflow.com/a/47654126/1449683
-                context.startForegroundService(i);
-            } else {
-                context.startService(i);
-            }
+            RelayService.startWithAction(context, RelayService.ACTION_START);
         }
     }
 }
