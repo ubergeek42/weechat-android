@@ -4,36 +4,41 @@
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         tools:ignore="AlwaysShowAction">
-    <item android:id="@+id/menu_nicklist"
+
+    <item android:id="@+id/menu_close"
+        app:showAsAction="never"
+        android:title="@string/menu__close" />
+    <item android:id="@+id/menu_connection_state"
+        app:showAsAction="never"
+        android:title="@null" />
+
+    <item android:id="@+id/menu_search"
           app:showAsAction="always"
+          android:icon="@drawable/ic_toolbar_magnifying_glass"
+          android:title="Search" />
+    <item android:id="@+id/menu_nicklist"
+          app:showAsAction="ifRoom"
           android:icon="@drawable/ic_toolbar_users"
           android:title="@string/menu__nicklist" />
     <item android:id="@+id/menu_hotlist"
           app:actionLayout="@layout/toolbar_bell"
           app:showAsAction="always"
           android:title="@string/menu__hotlist" />
-    <item android:id="@+id/menu_close"
-          android:menuCategory="secondary"
-          app:showAsAction="never"
-          android:title="@string/menu__close"/>
-    <item android:id="@+id/menu_connection_state"
-          android:menuCategory="secondary"
-          app:showAsAction="never"
-          android:title="@null"/>
+
     <item android:id="@+id/menu_preferences"
           android:menuCategory="secondary"
           app:showAsAction="never"
-          android:title="@string/menu__preferences"/>
+          android:title="@string/menu__preferences" />
     <item android:id="@+id/menu_filter_lines"
         android:menuCategory="secondary"
         app:showAsAction="never"
         android:title="@string/menu__filter_lines"
-        android:checkable="true"/>
+        android:checkable="true" />
     <item android:id="@+id/menu_dark_theme"
         android:menuCategory="secondary"
         app:showAsAction="never"
         android:title="@string/menu__dark_theme"
-        android:checkable="true"/>
+        android:checkable="true" />
 
     <item android:id="@+id/menu_upload_1"
         android:menuCategory="secondary"
