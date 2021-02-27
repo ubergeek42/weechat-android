@@ -34,6 +34,8 @@ import android.view.View.OnClickListener;
 import android.view.View.OnKeyListener;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -62,11 +64,11 @@ import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.utils.FriendlyExceptions;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
+import com.ubergeek42.WeechatAndroid.views.BackGestureAwareEditText;
 import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.CatD;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
-import com.ubergeek42.weechat.ColorScheme;
 
 import static android.app.Activity.RESULT_OK;
 import static com.ubergeek42.WeechatAndroid.service.Events.*;
@@ -179,6 +181,16 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         uiLines.setFocusableInTouchMode(false);
 
         uiInput.setOnLongClickListener((View view) -> Paste.showPasteDialog(uiInput));
+
+        v.findViewById(R.id.search_cancel).setOnClickListener(v1 -> searchEnableDisable(false));
+        ((BackGestureAwareEditText) v.findViewById(R.id.search_input))
+                .setOnBackGestureListener(() -> {
+                    if (v.findViewById(R.id.search_bar).getVisibility() == View.VISIBLE) {
+                        searchEnableDisable(false);
+                        return true;
+                    }
+                    return false;
+                });
 
         online = true;
         return v;
@@ -450,7 +462,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     }
 
     @SuppressWarnings("ConstantConditions") private void applyColorSchemeToViews() {
-        getView().findViewById(R.id.chatview_bottombar).setBackgroundColor(P.colorPrimary);
+        getView().findViewById(R.id.bottom_bar).setBackgroundColor(P.colorPrimary);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -630,4 +642,24 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
             ErrorToast.show(e);
         }
     }
+
+
+    public void searchEnableDisable(boolean enable) {
+        View v = getView();
+        v.findViewById(R.id.search_bar).setVisibility(enable ? View.VISIBLE : View.GONE);
+        v.findViewById(R.id.input_bar).setVisibility(enable ? View.GONE : View.VISIBLE);
+
+         if (enable) {
+             EditText searchInput = v.findViewById(R.id.search_input);
+             searchInput.requestFocus();
+             InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+             imm.showSoftInput(v.findViewById(R.id.search_input), InputMethodManager.SHOW_IMPLICIT);
+             searchInput.selectAll();
+         } else {
+             uiInput.requestFocus();
+             activity.hideSoftwareKeyboard();
+         }
+    }
+
+
 }

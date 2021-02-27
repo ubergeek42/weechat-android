@@ -13,8 +13,6 @@ import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.service.P;
 
-import static com.ubergeek42.WeechatAndroid.utils.Assert.assertThat;
-
 public class ToolbarController implements ViewTreeObserver.OnGlobalLayoutListener {
     private final WeechatActivity activity;
     private final Toolbar toolbar;
@@ -23,7 +21,7 @@ public class ToolbarController implements ViewTreeObserver.OnGlobalLayoutListene
     private final int toolbarHeight;
 
     private boolean shown = true;
-    private boolean keyboardVisible = false;
+    public boolean keyboardVisible = false;
 
     public ToolbarController(WeechatActivity activity) {
         this.activity = activity;
@@ -53,7 +51,7 @@ public class ToolbarController implements ViewTreeObserver.OnGlobalLayoutListene
     }
 
     private void onSoftwareKeyboardStateChanged(boolean visible) {
-        if (canNotAutoHide() || !activity.isChatInputFocused()) return;
+        if (canNotAutoHide() || !activity.isChatInputOrSearchInputFocused()) return;
         if (keyboardVisible == visible) return;
         keyboardVisible = visible;
         if (visible) hide();

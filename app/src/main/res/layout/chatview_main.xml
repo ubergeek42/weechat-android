@@ -6,100 +6,158 @@
     android:layout_height="fill_parent"
     android:orientation="vertical">
 
-    <LinearLayout
-        android:id="@+id/chatview_bottombar"
+    <FrameLayout
+        android:id="@+id/bottom_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:minHeight="?actionBarSize"
-        android:background="?attr/colorPrimary"
-        android:layout_alignParentBottom="true"
-        android:paddingRight="4dp">
+        android:layout_alignParentBottom="true" >
 
-        <com.ubergeek42.WeechatAndroid.upload.MediaAcceptingEditText
-            android:id="@+id/chatview_input"
-            android:layout_weight="1.0"
-            android:layout_width="0dp"
+        <LinearLayout
+            android:id="@+id/search_bar"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="textCapSentences|textMultiLine|textAutoCorrect"
-            android:imeOptions="flagNoFullscreen|flagNoExtractUi|actionSend"
-            android:maxLines="4"
-            android:minLines="1"
-            android:scrollbars="vertical"
-            android:layout_gravity="center"
-            android:background="@android:color/transparent"
-            android:paddingLeft="12dp"
-            >
-
-            <requestFocus />
-        </com.ubergeek42.WeechatAndroid.upload.MediaAcceptingEditText>
-
-        <ImageButton
-            android:id="@+id/chatview_paperclip"
-            android:layout_width="wrap_content"
-            android:layout_height="?actionBarSize"
-            app:srcCompat="@drawable/ic_toolbar_paperclip"
-            android:contentDescription="@string/ui__button_paperclip"
-            android:layout_gravity="bottom"
-            android:layout_margin="0dp"
-            style="@style/ActionButton" />
-
-        <ImageButton
-            android:id="@+id/chatview_tab"
-            android:layout_width="wrap_content"
-            android:layout_height="?actionBarSize"
-            app:srcCompat="@drawable/ic_toolbar_tab"
-            android:contentDescription="@string/ui__button_tab"
-            android:layout_gravity="bottom"
-            android:layout_margin="0dp"
-            style="@style/ActionButton" />
-
-        <ImageButton
-            android:id="@+id/chatview_send"
-            android:layout_width="wrap_content"
-            android:layout_height="?actionBarSize"
-            app:srcCompat="@drawable/ic_toolbar_send"
-            android:contentDescription="@string/ui__button_send"
-            android:layout_gravity="bottom"
-            android:layout_margin="0dp"
-            android:visibility="gone"
-            style="@style/ActionButton" />
-
-        <FrameLayout
-            android:id="@+id/upload_layout"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:visibility="gone">
-
-            <!-- ProgressBar provides an indeterminate drawable but not the determinate one.
-            drawable/progress_circle here imitates the size of the indeterminate one. -->
-            <ProgressBar
-                android:id="@+id/upload_progress_bar"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_gravity="center_vertical|center_horizontal"
-                android:progressDrawable="@drawable/progress_circle"
-                android:indeterminateDrawable="@drawable/progress_rotating_dot"
-                android:indeterminateOnly="false"
-                android:rotation="-90" />
+            android:visibility="gone" >
 
             <ImageButton
-                android:id="@+id/upload_button"
+                android:id="@+id/search_cancel"
                 android:layout_width="wrap_content"
                 android:layout_height="?actionBarSize"
-                app:srcCompat="@drawable/ic_toolbar_upload"
-                android:contentDescription="Upload"
+                app:srcCompat="@drawable/ic_toolbar_upload_cancel"
+                android:contentDescription="Cancel search"
                 android:layout_margin="0dp"
                 style="@style/ActionButton" />
-        </FrameLayout>
-    </LinearLayout>
+
+            <com.ubergeek42.WeechatAndroid.views.BackGestureAwareEditText
+                android:id="@+id/search_input"
+                android:layout_weight="1.0"
+                android:layout_width="0dp"
+                android:layout_gravity="center"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:imeOptions="flagNoFullscreen|flagNoExtractUi|actionSearch"
+                android:background="@android:color/transparent"
+                android:hint="search text" />
+
+            <ImageButton
+                android:id="@+id/search_up"
+                android:layout_width="wrap_content"
+                android:layout_height="?actionBarSize"
+                app:srcCompat="@drawable/ic_toolbar_search_up"
+                android:contentDescription="Search up"
+                android:layout_margin="0dp"
+                style="@style/ActionButton" />
+
+            <ImageButton
+                android:id="@+id/search_down"
+                android:layout_width="wrap_content"
+                android:layout_height="?actionBarSize"
+                app:srcCompat="@drawable/ic_toolbar_search_down"
+                android:contentDescription="Search down"
+                android:layout_margin="0dp"
+                style="@style/ActionButton" />
+
+            <ImageButton
+                android:id="@+id/search_overflow"
+                android:layout_width="wrap_content"
+                android:layout_height="?actionBarSize"
+                android:contentDescription="More"
+                android:layout_margin="0dp"
+                style="@style/Widget.AppCompat.ActionButton.Overflow" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/input_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="?actionBarSize"
+            android:paddingRight="4dp">
+
+            <com.ubergeek42.WeechatAndroid.upload.MediaAcceptingEditText
+                android:id="@+id/chatview_input"
+                android:layout_weight="1.0"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:inputType="textCapSentences|textMultiLine|textAutoCorrect"
+                android:imeOptions="flagNoFullscreen|flagNoExtractUi|actionSend"
+                android:maxLines="4"
+                android:minLines="1"
+                android:scrollbars="vertical"
+                android:layout_gravity="center"
+                android:background="@android:color/transparent"
+                android:paddingLeft="12dp"
+                >
+
+                <requestFocus />
+            </com.ubergeek42.WeechatAndroid.upload.MediaAcceptingEditText>
+
+            <ImageButton
+                android:id="@+id/chatview_paperclip"
+                android:layout_width="wrap_content"
+                android:layout_height="?actionBarSize"
+                app:srcCompat="@drawable/ic_toolbar_paperclip"
+                android:contentDescription="@string/ui__button_paperclip"
+                android:layout_gravity="bottom"
+                android:layout_margin="0dp"
+                style="@style/ActionButton" />
+
+            <ImageButton
+                android:id="@+id/chatview_tab"
+                android:layout_width="wrap_content"
+                android:layout_height="?actionBarSize"
+                app:srcCompat="@drawable/ic_toolbar_tab"
+                android:contentDescription="@string/ui__button_tab"
+                android:layout_gravity="bottom"
+                android:layout_margin="0dp"
+                style="@style/ActionButton" />
+
+            <ImageButton
+                android:id="@+id/chatview_send"
+                android:layout_width="wrap_content"
+                android:layout_height="?actionBarSize"
+                app:srcCompat="@drawable/ic_toolbar_send"
+                android:contentDescription="@string/ui__button_send"
+                android:layout_gravity="bottom"
+                android:layout_margin="0dp"
+                android:visibility="gone"
+                style="@style/ActionButton" />
+
+            <FrameLayout
+                android:id="@+id/upload_layout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:visibility="gone">
+
+                <!-- ProgressBar provides an indeterminate drawable but not the determinate one.
+                drawable/progress_circle here imitates the size of the indeterminate one. -->
+                <ProgressBar
+                    android:id="@+id/upload_progress_bar"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center_vertical|center_horizontal"
+                    android:progressDrawable="@drawable/progress_circle"
+                    android:indeterminateDrawable="@drawable/progress_rotating_dot"
+                    android:indeterminateOnly="false"
+                    android:rotation="-90" />
+
+                <ImageButton
+                    android:id="@+id/upload_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="?actionBarSize"
+                    app:srcCompat="@drawable/ic_toolbar_upload"
+                    android:contentDescription="Upload"
+                    android:layout_margin="0dp"
+                    style="@style/ActionButton" />
+            </FrameLayout>
+        </LinearLayout>
+    </FrameLayout>
 
     <com.ubergeek42.WeechatAndroid.utils.AnimatedRecyclerView
         android:id="@+id/chatview_lines"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:paddingBottom="2dp"
-        android:layout_above="@+id/chatview_bottombar"
+        android:layout_above="@+id/bottom_bar"
         android:layout_alignParentTop="true"
 
         android:clickable="false"

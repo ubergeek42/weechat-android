@@ -465,6 +465,11 @@ public class WeechatActivity extends AppCompatActivity implements
                     else showDrawer();
                 }
                 break;
+            case R.id.menu_search:
+                BufferFragment current1 = adapter.getCurrentBufferFragment();
+                if (current1!= null)
+                    current1.searchEnableDisable(true);
+                break;
             case R.id.menu_connection_state:
                 if (state.contains(STARTED)) disconnect();
                 else connect();
@@ -582,13 +587,19 @@ public class WeechatActivity extends AppCompatActivity implements
     }
 
     @MainThread @Override public void onBackPressed() {
-        if (slidy && drawerShowing) hideDrawer();
-        else moveTaskToBack(true);
+        if (getCurrentFocus().getId() == R.id.search_input) {
+            BufferFragment current = adapter.getCurrentBufferFragment();
+            if (current != null) current.searchEnableDisable(false);
+        } else if (slidy && drawerShowing) {
+            hideDrawer();
+        } else {
+            moveTaskToBack(true);
+        }
     }
 
-    @MainThread public boolean isChatInputFocused() {
+    @MainThread public boolean isChatInputOrSearchInputFocused() {
         View view = getCurrentFocus();
-        return view != null && view.getId() == R.id.chatview_input;
+        return view != null && (view.getId() == R.id.chatview_input || view.getId() == R.id.search_input);
     }
 
     // this gets called on *every* change to the whole buffer list including hotlist changes
