@@ -112,7 +112,7 @@ public class WeechatActivity extends AppCompatActivity implements
     private Menu uiMenu;
     private ViewPager uiPager;
     private MainPagerAdapter adapter;
-    private InputMethodManager imm;
+    public InputMethodManager imm;
 
     private boolean slidy;
     private boolean drawerEnabled = true;

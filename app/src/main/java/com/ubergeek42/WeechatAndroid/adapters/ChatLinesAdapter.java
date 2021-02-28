@@ -35,6 +35,7 @@ import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferEye;
 import com.ubergeek42.WeechatAndroid.relay.Line;
 import com.ubergeek42.WeechatAndroid.relay.Lines;
+import com.ubergeek42.WeechatAndroid.search.Search;
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.utils.AnimatedRecyclerView;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
@@ -233,6 +234,7 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
             }
             else uiLines.flashScrollbar();
             uiLines.scheduleAnimationRestoring();
+            if (search != null) search.onLinesChanged(newLines);
         });
     }
 
@@ -333,6 +335,28 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 
         @Override public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
             return areItemsTheSame(oldItemPosition, newItemPosition);
+        }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private Search search = null;
+
+    @MainThread public void setSearch(Search search) {
+        this.search = search;
+        if (search != null) search.onLinesChanged(lines);
+    }
+
+    @MainThread public void scrollToPointer(Long pointer) {
+        int index = 0;
+        for (Line line: lines) {
+            if (line.pointer == pointer) {
+                uiLines.smoothScrollToPosition(index);
+                return;
+            }
+            index++;
         }
     }
 }

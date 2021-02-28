@@ -19,6 +19,9 @@ import org.jetbrains.annotations.NotNull;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
 import androidx.recyclerview.widget.RecyclerView;
@@ -35,13 +38,13 @@ import android.view.View.OnKeyListener;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.ubergeek42.WeechatAndroid.Weechat;
 import com.ubergeek42.WeechatAndroid.copypaste.Paste;
+import com.ubergeek42.WeechatAndroid.search.Search;
 import com.ubergeek42.WeechatAndroid.tabcomplete.TabCompleter;
 import com.ubergeek42.WeechatAndroid.upload.Config;
 import com.ubergeek42.WeechatAndroid.upload.FileChooserKt;
@@ -71,6 +74,7 @@ import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
 
 import static android.app.Activity.RESULT_OK;
+import static android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH;
 import static com.ubergeek42.WeechatAndroid.service.Events.*;
 import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.*;
 import static com.ubergeek42.WeechatAndroid.upload.FileChooserKt.WRITE_PERMISSION_REQUEST_FOR_CAMERA;
@@ -182,15 +186,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
 
         uiInput.setOnLongClickListener((View view) -> Paste.showPasteDialog(uiInput));
 
-        v.findViewById(R.id.search_cancel).setOnClickListener(v1 -> searchEnableDisable(false));
-        ((BackGestureAwareEditText) v.findViewById(R.id.search_input))
-                .setOnBackGestureListener(() -> {
-                    if (v.findViewById(R.id.search_bar).getVisibility() == View.VISIBLE) {
-                        searchEnableDisable(false);
-                        return true;
-                    }
-                    return false;
-                });
+        initSearchViews(v);
 
         online = true;
         return v;
@@ -643,23 +639,131 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         }
     }
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public void searchEnableDisable(boolean enable) {
-        View v = getView();
-        v.findViewById(R.id.search_bar).setVisibility(enable ? View.VISIBLE : View.GONE);
-        v.findViewById(R.id.input_bar).setVisibility(enable ? View.GONE : View.VISIBLE);
+    View searchBar = null;
+    View inputBar = null;
 
-         if (enable) {
-             EditText searchInput = v.findViewById(R.id.search_input);
-             searchInput.requestFocus();
-             InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
-             imm.showSoftInput(v.findViewById(R.id.search_input), InputMethodManager.SHOW_IMPLICIT);
-             searchInput.selectAll();
-         } else {
-             uiInput.requestFocus();
-             activity.hideSoftwareKeyboard();
-         }
+    BackGestureAwareEditText searchInput = null;
+    ImageButton searchUp = null;
+    ImageButton searchDown = null;
+
+    void initSearchViews(View root) {
+        searchBar = root.findViewById(R.id.search_bar);
+        inputBar = root.findViewById(R.id.input_bar);
+
+        ImageButton searchCancel = root.findViewById(R.id.search_cancel);
+        searchInput = root.findViewById(R.id.search_input);
+        searchUp = root.findViewById(R.id.search_up);
+        searchDown = root.findViewById(R.id.search_down);
+
+        searchCancel.setOnClickListener(v1 -> searchEnableDisable(false));
+
+        searchInput.addTextChangedListener(new Utils.SimpleTextWatcher() {
+            @Override public void afterTextChanged(Editable s) {
+                triggerNewSearch();
+            }
+        });
+
+        searchInput.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == IME_ACTION_SEARCH) {
+                searchUp.performClick();
+            }
+            return false;   // not consuming event — letting the keyboard close
+        });
+
+        searchInput.setOnBackGestureListener(() -> {
+            if (searchBar.getVisibility() == View.VISIBLE) {
+                searchEnableDisable(false);
+                return true;
+            }
+            return false;
+        });
+
+        searchUp.setOnClickListener(searchButtonClickListener);
+        searchDown.setOnClickListener(searchButtonClickListener);
     }
 
+    @MainThread public void searchEnableDisable(boolean enable) {
+        searchBar.setVisibility(enable ? View.VISIBLE : View.GONE);
+        inputBar.setVisibility(enable ? View.GONE : View.VISIBLE);
 
+        if (enable) {
+            searchInput.requestFocus();
+            activity.imm.showSoftInput(searchInput, InputMethodManager.SHOW_IMPLICIT);
+            searchInput.selectAll();
+            uiLines.addItemDecoration(decoration);
+            triggerNewSearch();
+        } else {
+            uiInput.requestFocus();
+            activity.hideSoftwareKeyboard();
+            matches = null;
+            lastFocusedMatch = null;
+            uiLines.removeItemDecoration(decoration);
+            linesAdapter.setSearch(null);
+        }
+    }
+
+    void triggerNewSearch() {
+        String text = searchInput.getText().toString();
+        linesAdapter.setSearch(new Search(Search.Matcher.fromString(text), searchListener));
+    }
+
+    List<Long> matches = null;
+    Long lastFocusedMatch = null;
+
+    // todo clear lastFocusedMatch here?
+    Search.Listener searchListener = matches -> {
+        kitty.info("matches: %s", matches);
+        this.matches = matches;
+        enableDisableSearchButtons();
+    };
+
+    void enableDisableSearchButtons() {
+        if (matches == null) return;
+        boolean hasMatches = !matches.isEmpty();
+        int lastMatchIndex = matches.indexOf(lastFocusedMatch);
+        if (lastMatchIndex == -1) lastMatchIndex = matches.size();
+        searchUp.setEnabled(hasMatches && lastMatchIndex > 0);
+        searchDown.setEnabled(hasMatches && lastMatchIndex < matches.size() - 1);
+    }
+
+    OnClickListener searchButtonClickListener = v -> {
+        if (matches == null) return;
+        int lastMatchIndex = matches.indexOf(lastFocusedMatch);
+        if (lastMatchIndex == -1) lastMatchIndex = matches.size();
+
+        int delta = v.getId() == R.id.search_up ? -1 : +1;
+        int index = lastMatchIndex + delta;
+        if ((index < 0) || (index >= matches.size())) return;
+
+        kitty.info("scrolling to %s/%s", index, matches.size());
+        lastFocusedMatch = matches.get(index);
+        linesAdapter.scrollToPointer(lastFocusedMatch);
+        uiLines.invalidate();   // trigger redecoration
+        enableDisableSearchButtons();
+    };
+
+    RecyclerView.ItemDecoration decoration = new RecyclerView.ItemDecoration() {
+        @Override public void onDraw(@NonNull Canvas canvas, @NonNull RecyclerView parent,
+                                     @NonNull RecyclerView.State state) {
+            int childCount = parent.getChildCount();
+            Rect rect = new Rect();
+            Paint paint = new Paint();
+            paint.setColor(0x11884400);
+
+            for (int i = 0; i < childCount; ++i) {
+                View child = parent.getChildAt(i);
+                long pointer = parent.getChildItemId(child);
+                boolean highlight = lastFocusedMatch != null && pointer == lastFocusedMatch;
+
+                if (highlight) {
+                    parent.getDecoratedBoundsWithMargins(child, rect);
+                    canvas.drawRect(rect, paint);
+                }
+            }
+        }
+    };
 }
