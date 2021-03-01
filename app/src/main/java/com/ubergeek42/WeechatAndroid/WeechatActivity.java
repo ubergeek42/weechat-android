@@ -467,7 +467,7 @@ public class WeechatActivity extends AppCompatActivity implements
             case R.id.menu_search:
                 BufferFragment current1 = adapter.getCurrentBufferFragment();
                 if (current1!= null)
-                    current1.searchEnableDisable(true);
+                    current1.searchEnableDisable(true, true);
                 break;
             case R.id.menu_connection_state:
                 if (state.contains(STARTED)) disconnect();
@@ -588,7 +588,7 @@ public class WeechatActivity extends AppCompatActivity implements
     @MainThread @Override public void onBackPressed() {
         if (getCurrentFocus().getId() == R.id.search_input) {
             BufferFragment current = adapter.getCurrentBufferFragment();
-            if (current != null) current.searchEnableDisable(false);
+            if (current != null) current.searchEnableDisable(false, false);
         } else if (slidy && drawerShowing) {
             hideDrawer();
         } else {

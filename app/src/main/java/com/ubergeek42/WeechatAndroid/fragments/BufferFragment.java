@@ -27,6 +27,8 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
+
+import androidx.lifecycle.Lifecycle;
 import androidx.recyclerview.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -192,7 +194,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
 
         uiInput.setOnLongClickListener((View view) -> Paste.showPasteDialog(uiInput));
 
-        initSearchViews(v);
+        initSearchViews(v, savedInstanceState);
 
         online = true;
         return v;
@@ -659,7 +661,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     ImageButton searchDown = null;
     ImageButton searchOverflow = null;
 
-    void initSearchViews(View root) {
+    void initSearchViews(View root, Bundle savedInstanceState) {
         searchBar = root.findViewById(R.id.search_bar);
         inputBar = root.findViewById(R.id.input_bar);
 
@@ -671,24 +673,28 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         searchDown = root.findViewById(R.id.search_down);
         searchOverflow = root.findViewById(R.id.search_overflow);
 
-        searchCancel.setOnClickListener(v1 -> searchEnableDisable(false));
+        searchCancel.setOnClickListener(v1 -> searchEnableDisable(false, false));
 
+        // check lifecycle, so that this is not triggered by restoring state
         searchInput.addTextChangedListener(new Utils.SimpleTextWatcher() {
             @Override public void afterTextChanged(Editable s) {
-                triggerNewSearch();
+                if  (getLifecycle().getCurrentState().isAtLeast(Lifecycle.State.RESUMED)) {
+                    triggerNewSearch();
+                }
             }
         });
 
+        // not consuming event — letting the keyboard close
         searchInput.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == IME_ACTION_SEARCH) {
                 searchUp.performClick();
             }
-            return false;   // not consuming event — letting the keyboard close
+            return false;
         });
 
         searchInput.setOnBackGestureListener(() -> {
             if (searchBar.getVisibility() == View.VISIBLE) {
-                searchEnableDisable(false);
+                searchEnableDisable(false, false);
                 return true;
             }
             return false;
@@ -698,23 +704,48 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         searchDown.setOnClickListener(searchButtonClickListener);
 
         searchOverflow.setOnClickListener(v -> createPopupMenu().show());
+
+        // todo figure out why views are recreated while the instance is retained
+        // post to searchInput so that this is run after search input has been restored
+        if (matches != emptyMatches) {
+            searchInput.post(() -> searchEnableDisable(true, false));
+        } else if (savedInstanceState != null && savedInstanceState.getBoolean("searching")) {
+            lastFocusedMatch = savedInstanceState.getLong("lastFocusedMatch");
+            searchConfig = new SearchConfig(
+                    savedInstanceState.getBoolean("caseSensitive"),
+                    savedInstanceState.getBoolean("regex"),
+                    SearchConfig.Source.valueOf(savedInstanceState.getString("source"))
+            );
+            searchInput.post(() -> searchEnableDisable(true, false));
+        }
     }
 
-    @MainThread public void searchEnableDisable(boolean enable) {
+    @Override public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean("searching", matches != emptyMatches);
+        outState.putLong("lastFocusedMatch", lastFocusedMatch);
+        outState.putBoolean("regex", searchConfig.regex);
+        outState.putBoolean("caseSensitive", searchConfig.caseSensitive);
+        outState.putString("source", searchConfig.source.name());
+    }
+
+    @MainThread @Cat public void searchEnableDisable(boolean enable, boolean newSearch) {
         searchBar.setVisibility(enable ? View.VISIBLE : View.GONE);
         inputBar.setVisibility(enable ? View.GONE : View.VISIBLE);
 
         if (enable) {
             searchInput.requestFocus();
-            activity.imm.showSoftInput(searchInput, InputMethodManager.SHOW_IMPLICIT);
-            searchInput.selectAll();
             uiLines.addItemDecoration(decoration);
             triggerNewSearch();
+            if (newSearch) {
+                activity.imm.showSoftInput(searchInput, InputMethodManager.SHOW_IMPLICIT);
+                searchInput.selectAll();
+            }
         } else {
             uiInput.requestFocus();
             activity.hideSoftwareKeyboard();
             matches = emptyMatches;
-            lastFocusedMatch = null;
+            lastFocusedMatch = 0;
             uiLines.removeItemDecoration(decoration);
             linesAdapter.setSearch(null);
         }
@@ -734,7 +765,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     final static List<Long> badRegexPatternMatches = new ArrayList<>();
 
     List<Long> matches = emptyMatches;
-    Long lastFocusedMatch = null;
+    long lastFocusedMatch = 0;
 
     // todo clear lastFocusedMatch here?
     Search.Listener searchListener = matches -> {
@@ -814,7 +845,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     RecyclerView.ItemDecoration decoration = new RecyclerView.ItemDecoration() {
         @Override public void onDraw(@NonNull Canvas canvas, @NonNull RecyclerView parent,
                                      @NonNull RecyclerView.State state) {
-            if (lastFocusedMatch == null || !matches.contains(lastFocusedMatch)) return;
+            if (!matches.contains(lastFocusedMatch)) return;
 
             int childCount = parent.getChildCount();
             Rect rect = new Rect();
