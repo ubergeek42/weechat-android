@@ -814,17 +814,18 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     RecyclerView.ItemDecoration decoration = new RecyclerView.ItemDecoration() {
         @Override public void onDraw(@NonNull Canvas canvas, @NonNull RecyclerView parent,
                                      @NonNull RecyclerView.State state) {
+            if (lastFocusedMatch == null || !matches.contains(lastFocusedMatch)) return;
+
             int childCount = parent.getChildCount();
             Rect rect = new Rect();
             Paint paint = new Paint();
-            paint.setColor(0x11884400);
+            paint.setColor(0x22588ab8);
 
             for (int i = 0; i < childCount; ++i) {
                 View child = parent.getChildAt(i);
                 long pointer = parent.getChildItemId(child);
-                boolean highlight = lastFocusedMatch != null && pointer == lastFocusedMatch;
 
-                if (highlight) {
+                if (pointer == lastFocusedMatch) {
                     parent.getDecoratedBoundsWithMargins(child, rect);
                     canvas.drawRect(rect, paint);
                 }
