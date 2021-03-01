@@ -71,9 +71,9 @@ class Search(
 }
 
 object SearchConfig {
-    var caseSensitive = false
-    var regex = false
-    var source = Source.PrefixAndMessage
+    @JvmField var caseSensitive = false
+    @JvmField var regex = false
+    @JvmField var source = Source.PrefixAndMessage
 
     enum class Source {
         Prefix,

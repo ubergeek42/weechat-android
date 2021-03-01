@@ -33,6 +33,7 @@ import android.transition.Transition;
 import android.transition.TransitionManager;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnKeyListener;
@@ -47,6 +48,7 @@ import android.widget.TextView;
 import com.ubergeek42.WeechatAndroid.Weechat;
 import com.ubergeek42.WeechatAndroid.copypaste.Paste;
 import com.ubergeek42.WeechatAndroid.search.Search;
+import com.ubergeek42.WeechatAndroid.search.SearchConfig;
 import com.ubergeek42.WeechatAndroid.tabcomplete.TabCompleter;
 import com.ubergeek42.WeechatAndroid.upload.Config;
 import com.ubergeek42.WeechatAndroid.upload.FileChooserKt;
@@ -693,12 +695,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         searchUp.setOnClickListener(searchButtonClickListener);
         searchDown.setOnClickListener(searchButtonClickListener);
 
-        searchOverflow.setOnClickListener(v -> {
-            PopupMenu menu = new PopupMenu(getContext(), v);
-            menu.inflate(R.menu.menu_search);
-            MenuCompat.setGroupDividerEnabled(menu.getMenu(), true);
-            menu.show();
-        });
+        searchOverflow.setOnClickListener(v -> createPopupMenu().show());
     }
 
     @MainThread public void searchEnableDisable(boolean enable) {
@@ -752,6 +749,39 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         searchResultNo.setText(lastMatchIndex == -1 ?
                 "-" : String.valueOf(matches.size() - lastMatchIndex));
         searchResultCount.setText(String.valueOf(matches.size()));
+    }
+
+    PopupMenu createPopupMenu() {
+        PopupMenu menu = new PopupMenu(getContext(), searchOverflow);
+        menu.inflate(R.menu.menu_search);
+        MenuCompat.setGroupDividerEnabled(menu.getMenu(), true);
+        menu.setOnMenuItemClickListener(item -> {
+            int id = item.getItemId();
+            if (id == R.id.menu_search_source_prefix) {
+                SearchConfig.source = SearchConfig.Source.Prefix;
+            } else if (id == R.id.menu_search_source_message) {
+                SearchConfig.source = SearchConfig.Source.Message;
+            } else if (id == R.id.menu_search_source_message_and_prefix) {
+                SearchConfig.source = SearchConfig.Source.PrefixAndMessage;
+            } else if (id == R.id.menu_search_regex) {
+                SearchConfig.regex = !item.isChecked();
+            } else if (id == R.id.menu_search_case_sensitive) {
+                SearchConfig.caseSensitive = !item.isChecked();
+            }
+            adjustSearchMenu(menu.getMenu());
+            triggerNewSearch();
+            return true;
+        });
+        adjustSearchMenu(menu.getMenu());
+        return menu;
+    }
+
+    void adjustSearchMenu(Menu menu) {
+        if (SearchConfig.source == SearchConfig.Source.Prefix) menu.findItem(R.id.menu_search_source_prefix).setChecked(true);
+        if (SearchConfig.source == SearchConfig.Source.Message) menu.findItem(R.id.menu_search_source_message).setChecked(true);
+        if (SearchConfig.source == SearchConfig.Source.PrefixAndMessage) menu.findItem(R.id.menu_search_source_message_and_prefix).setChecked(true);
+        menu.findItem(R.id.menu_search_regex).setChecked(SearchConfig.regex);
+        menu.findItem(R.id.menu_search_case_sensitive).setChecked(SearchConfig.caseSensitive);
     }
 
     OnClickListener searchButtonClickListener = v -> {
