@@ -1,7 +1,8 @@
 package com.ubergeek42.WeechatAndroid.search
 
 import com.ubergeek42.WeechatAndroid.relay.Line
-import java.util.*
+import com.ubergeek42.WeechatAndroid.upload.applicationContext
+import java.util.regex.PatternSyntaxException
 
 typealias MatchList = List<Long>
 
@@ -31,6 +32,7 @@ class Search(
         fun matches(line: Line): Boolean
 
         companion object {
+            @Throws(PatternSyntaxException::class)
             @JvmStatic fun fromString(text: String): Matcher {
                 return if (text.isEmpty()) {
                     Matcher { line -> line.isHighlighted }
@@ -47,12 +49,12 @@ class Search(
 
                     val sourceMatchesSearch: ((String) -> Boolean) = if (regex) {
                         val flags = if (caseSensitive) emptySet() else setOf(RegexOption.IGNORE_CASE)
-                        text.toRegex(flags)::matches
+                        text.toRegex(flags)::containsMatchIn
                     } else {
                         if (caseSensitive) {
                             { string: String -> string.contains(text) }
                         } else {
-                            val locale = Locale.getDefault()
+                            val locale = applicationContext.resources.configuration.locale;
                             val textUpper = text.toUpperCase(locale)
                             val textLower = text.toLowerCase(locale);
 

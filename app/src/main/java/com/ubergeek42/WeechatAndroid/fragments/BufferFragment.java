@@ -1,7 +1,9 @@
 package com.ubergeek42.WeechatAndroid.fragments;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.PatternSyntaxException;
 
 import android.annotation.SuppressLint;
 import androidx.annotation.AnyThread;
@@ -711,7 +713,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         } else {
             uiInput.requestFocus();
             activity.hideSoftwareKeyboard();
-            matches = null;
+            matches = emptyMatches;
             lastFocusedMatch = null;
             uiLines.removeItemDecoration(decoration);
             linesAdapter.setSearch(null);
@@ -720,10 +722,18 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
 
     void triggerNewSearch() {
         String text = searchInput.getText().toString();
-        linesAdapter.setSearch(new Search(Search.Matcher.fromString(text), searchListener));
+        try {
+            linesAdapter.setSearch(new Search(Search.Matcher.fromString(text), searchListener));
+        } catch (PatternSyntaxException e) {
+            linesAdapter.setSearch(null);
+            searchListener.onSearchResultsChanged(badRegexPatternMatches);
+        }
     }
 
-    List<Long> matches = null;
+    final static List<Long> emptyMatches = new ArrayList<>();
+    final static List<Long> badRegexPatternMatches = new ArrayList<>();
+
+    List<Long> matches = emptyMatches;
     Long lastFocusedMatch = null;
 
     // todo clear lastFocusedMatch here?
@@ -735,7 +745,6 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     };
 
     void enableDisableSearchButtons() {
-        if (matches == null) return;
         boolean hasMatches = !matches.isEmpty();
         int lastMatchIndex = matches.indexOf(lastFocusedMatch);
         if (lastMatchIndex == -1) lastMatchIndex = matches.size();
@@ -744,11 +753,11 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     }
 
     void adjustSearchNumbers() {
-        if (matches == null) return;
         int lastMatchIndex = matches.indexOf(lastFocusedMatch);
         searchResultNo.setText(lastMatchIndex == -1 ?
                 "-" : String.valueOf(matches.size() - lastMatchIndex));
-        searchResultCount.setText(String.valueOf(matches.size()));
+        searchResultCount.setText(matches == badRegexPatternMatches ?
+                "err" : String.valueOf(matches.size()));
     }
 
     PopupMenu createPopupMenu() {
@@ -785,7 +794,6 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     }
 
     OnClickListener searchButtonClickListener = v -> {
-        if (matches == null) return;
         int lastMatchIndex = matches.indexOf(lastFocusedMatch);
         if (lastMatchIndex == -1) lastMatchIndex = matches.size();
 
