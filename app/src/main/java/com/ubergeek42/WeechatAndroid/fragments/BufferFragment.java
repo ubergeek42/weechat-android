@@ -40,6 +40,7 @@ import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageButton;
+import android.widget.PopupMenu;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -692,10 +693,11 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         searchUp.setOnClickListener(searchButtonClickListener);
         searchDown.setOnClickListener(searchButtonClickListener);
 
-        searchOverflow.setOnClickListener(v -> v.showContextMenu(0, 0));
-        searchOverflow.setOnCreateContextMenuListener((menu, v, menuInfo) -> {
-            activity.getMenuInflater().inflate(R.menu.menu_search, menu);
-            MenuCompat.setGroupDividerEnabled(menu, true);
+        searchOverflow.setOnClickListener(v -> {
+            PopupMenu menu = new PopupMenu(getContext(), v);
+            menu.inflate(R.menu.menu_search);
+            MenuCompat.setGroupDividerEnabled(menu.getMenu(), true);
+            menu.show();
         });
     }
 
