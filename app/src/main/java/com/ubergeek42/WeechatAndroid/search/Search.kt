@@ -1,6 +1,7 @@
 package com.ubergeek42.WeechatAndroid.search
 
 import com.ubergeek42.WeechatAndroid.relay.Line
+import com.ubergeek42.WeechatAndroid.search.Search.Matcher
 import com.ubergeek42.WeechatAndroid.upload.applicationContext
 import java.util.regex.PatternSyntaxException
 
@@ -33,13 +34,11 @@ class Search(
 
         companion object {
             @Throws(PatternSyntaxException::class)
-            @JvmStatic fun fromString(text: String): Matcher {
+            @JvmStatic fun fromString(text: String, config: SearchConfig): Matcher {
                 return if (text.isEmpty()) {
                     Matcher { line -> line.isHighlighted }
                 } else {
-                    val source = SearchConfig.source
-                    val caseSensitive = SearchConfig.caseSensitive
-                    val regex = SearchConfig.regex
+                    val (caseSensitive, regex, source) = config
 
                     val getSource: ((Line) -> String) = when (source) {
                         SearchConfig.Source.Prefix -> Line::getPrefixString
@@ -52,13 +51,13 @@ class Search(
                         text.toRegex(flags)::containsMatchIn
                     } else {
                         if (caseSensitive) {
-                            { string: String -> string.contains(text) }
+                            { string -> string.contains(text) }
                         } else {
                             val locale = applicationContext.resources.configuration.locale;
                             val textUpper = text.toUpperCase(locale)
                             val textLower = text.toLowerCase(locale);
 
-                            { string: String ->
+                            { string ->
                                 string.toUpperCase(locale).contains(textUpper) ||
                                         string.toLowerCase(locale).contains(textLower)
                             }
@@ -72,14 +71,20 @@ class Search(
     }
 }
 
-object SearchConfig {
-    @JvmField var caseSensitive = false
-    @JvmField var regex = false
-    @JvmField var source = Source.PrefixAndMessage
-
+data class SearchConfig(
+        @JvmField val caseSensitive: Boolean,
+        @JvmField val regex: Boolean,
+        @JvmField val source: Source,
+) {
     enum class Source {
         Prefix,
         Message,
         PrefixAndMessage
+    }
+
+    companion object {
+        @JvmStatic val default = SearchConfig(caseSensitive = false,
+                                              regex = false,
+                                              source = Source.PrefixAndMessage)
     }
 }

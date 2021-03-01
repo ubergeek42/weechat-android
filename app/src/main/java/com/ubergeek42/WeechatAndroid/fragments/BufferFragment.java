@@ -723,7 +723,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     void triggerNewSearch() {
         String text = searchInput.getText().toString();
         try {
-            linesAdapter.setSearch(new Search(Search.Matcher.fromString(text), searchListener));
+            linesAdapter.setSearch(new Search(Search.Matcher.fromString(text, searchConfig), searchListener));
         } catch (PatternSyntaxException e) {
             linesAdapter.setSearch(null);
             searchListener.onSearchResultsChanged(badRegexPatternMatches);
@@ -760,6 +760,8 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
                 "err" : String.valueOf(matches.size()));
     }
 
+    SearchConfig searchConfig = SearchConfig.getDefault();
+
     PopupMenu createPopupMenu() {
         PopupMenu menu = new PopupMenu(getContext(), searchOverflow);
         menu.inflate(R.menu.menu_search);
@@ -767,15 +769,15 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         menu.setOnMenuItemClickListener(item -> {
             int id = item.getItemId();
             if (id == R.id.menu_search_source_prefix) {
-                SearchConfig.source = SearchConfig.Source.Prefix;
+                searchConfig = searchConfig.copy(searchConfig.caseSensitive, searchConfig.regex, SearchConfig.Source.Prefix);
             } else if (id == R.id.menu_search_source_message) {
-                SearchConfig.source = SearchConfig.Source.Message;
+                searchConfig = searchConfig.copy(searchConfig.caseSensitive, searchConfig.regex, SearchConfig.Source.Message);
             } else if (id == R.id.menu_search_source_message_and_prefix) {
-                SearchConfig.source = SearchConfig.Source.PrefixAndMessage;
+                searchConfig = searchConfig.copy(searchConfig.caseSensitive, searchConfig.regex, SearchConfig.Source.PrefixAndMessage);
             } else if (id == R.id.menu_search_regex) {
-                SearchConfig.regex = !item.isChecked();
+                searchConfig = searchConfig.copy(searchConfig.caseSensitive, !item.isChecked(), searchConfig.source);
             } else if (id == R.id.menu_search_case_sensitive) {
-                SearchConfig.caseSensitive = !item.isChecked();
+                searchConfig = searchConfig.copy(!item.isChecked(), searchConfig.regex, searchConfig.source);
             }
             adjustSearchMenu(menu.getMenu());
             triggerNewSearch();
@@ -786,11 +788,11 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     }
 
     void adjustSearchMenu(Menu menu) {
-        if (SearchConfig.source == SearchConfig.Source.Prefix) menu.findItem(R.id.menu_search_source_prefix).setChecked(true);
-        if (SearchConfig.source == SearchConfig.Source.Message) menu.findItem(R.id.menu_search_source_message).setChecked(true);
-        if (SearchConfig.source == SearchConfig.Source.PrefixAndMessage) menu.findItem(R.id.menu_search_source_message_and_prefix).setChecked(true);
-        menu.findItem(R.id.menu_search_regex).setChecked(SearchConfig.regex);
-        menu.findItem(R.id.menu_search_case_sensitive).setChecked(SearchConfig.caseSensitive);
+        if (searchConfig.source == SearchConfig.Source.Prefix) menu.findItem(R.id.menu_search_source_prefix).setChecked(true);
+        if (searchConfig.source == SearchConfig.Source.Message) menu.findItem(R.id.menu_search_source_message).setChecked(true);
+        if (searchConfig.source == SearchConfig.Source.PrefixAndMessage) menu.findItem(R.id.menu_search_source_message_and_prefix).setChecked(true);
+        menu.findItem(R.id.menu_search_regex).setChecked(searchConfig.regex);
+        menu.findItem(R.id.menu_search_case_sensitive).setChecked(searchConfig.caseSensitive);
     }
 
     OnClickListener searchButtonClickListener = v -> {
