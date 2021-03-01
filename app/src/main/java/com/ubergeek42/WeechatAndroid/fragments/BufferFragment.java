@@ -9,6 +9,7 @@ import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
+import androidx.core.view.MenuCompat;
 import androidx.fragment.app.Fragment;
 
 import org.greenrobot.eventbus.EventBus;
@@ -651,6 +652,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     TextView searchResultCount = null;
     ImageButton searchUp = null;
     ImageButton searchDown = null;
+    ImageButton searchOverflow = null;
 
     void initSearchViews(View root) {
         searchBar = root.findViewById(R.id.search_bar);
@@ -662,6 +664,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         searchResultCount = root.findViewById(R.id.search_result_count);
         searchUp = root.findViewById(R.id.search_up);
         searchDown = root.findViewById(R.id.search_down);
+        searchOverflow = root.findViewById(R.id.search_overflow);
 
         searchCancel.setOnClickListener(v1 -> searchEnableDisable(false));
 
@@ -688,6 +691,12 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
 
         searchUp.setOnClickListener(searchButtonClickListener);
         searchDown.setOnClickListener(searchButtonClickListener);
+
+        searchOverflow.setOnClickListener(v -> v.showContextMenu(0, 0));
+        searchOverflow.setOnCreateContextMenuListener((menu, v, menuInfo) -> {
+            activity.getMenuInflater().inflate(R.menu.menu_search, menu);
+            MenuCompat.setGroupDividerEnabled(menu, true);
+        });
     }
 
     @MainThread public void searchEnableDisable(boolean enable) {

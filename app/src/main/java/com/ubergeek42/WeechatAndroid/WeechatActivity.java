@@ -228,8 +228,7 @@ public class WeechatActivity extends AppCompatActivity implements
 
     // a dirty but quick & safe hack that sets background color of the popup menu
     @Override public View onCreateView(View parent, String name, @NonNull Context context, @NonNull AttributeSet attrs) {
-        if (name.equals("androidx.appcompat.view.menu.ListMenuItemView") &&
-                parent.getParent() instanceof FrameLayout) {
+        if (name.endsWith(".menu.ListMenuItemView") && parent.getParent() instanceof FrameLayout) {
             Drawable drawable = ContextCompat.getDrawable(context, R.drawable.bg_popup_menu);
             if (drawable != null) {
                 drawable.setColorFilter(0xff000000 | P.colorPrimary, PorterDuff.Mode.MULTIPLY);
