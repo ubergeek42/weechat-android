@@ -31,7 +31,11 @@ class Search(
 
         companion object {
             @JvmStatic fun fromString(text: String): Matcher {
-                return Matcher { line -> line.ircLikeString.contains(text) }
+                return if (text.isEmpty()) {
+                    Matcher { line -> line.isHighlighted }
+                } else {
+                    Matcher { line -> line.ircLikeString.contains(text) }
+                }
             }
         }
     }

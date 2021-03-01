@@ -647,6 +647,8 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
     View inputBar = null;
 
     BackGestureAwareEditText searchInput = null;
+    TextView searchResultNo = null;
+    TextView searchResultCount = null;
     ImageButton searchUp = null;
     ImageButton searchDown = null;
 
@@ -656,6 +658,8 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
 
         ImageButton searchCancel = root.findViewById(R.id.search_cancel);
         searchInput = root.findViewById(R.id.search_input);
+        searchResultNo = root.findViewById(R.id.search_result_no);
+        searchResultCount = root.findViewById(R.id.search_result_count);
         searchUp = root.findViewById(R.id.search_up);
         searchDown = root.findViewById(R.id.search_down);
 
@@ -719,6 +723,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         kitty.info("matches: %s", matches);
         this.matches = matches;
         enableDisableSearchButtons();
+        adjustSearchNumbers();
     };
 
     void enableDisableSearchButtons() {
@@ -728,6 +733,14 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         if (lastMatchIndex == -1) lastMatchIndex = matches.size();
         searchUp.setEnabled(hasMatches && lastMatchIndex > 0);
         searchDown.setEnabled(hasMatches && lastMatchIndex < matches.size() - 1);
+    }
+
+    void adjustSearchNumbers() {
+        if (matches == null) return;
+        int lastMatchIndex = matches.indexOf(lastFocusedMatch);
+        searchResultNo.setText(lastMatchIndex == -1 ?
+                "-" : String.valueOf(matches.size() - lastMatchIndex));
+        searchResultCount.setText(String.valueOf(matches.size()));
     }
 
     OnClickListener searchButtonClickListener = v -> {
@@ -744,6 +757,7 @@ public class BufferFragment extends Fragment implements BufferEye, OnKeyListener
         linesAdapter.scrollToPointer(lastFocusedMatch);
         uiLines.invalidate();   // trigger redecoration
         enableDisableSearchButtons();
+        adjustSearchNumbers();
     };
 
     RecyclerView.ItemDecoration decoration = new RecyclerView.ItemDecoration() {
