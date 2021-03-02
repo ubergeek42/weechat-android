@@ -39,6 +39,12 @@ check with us on IRC before starting a substantial rewrite! For additional infor
  
 ### Changelog
 
+##### v1.5
+* Added support for the handshake relay command
+* Improved the way URLs are recognized
+* Black background is no longer shown when switching buffers
+* Fixed a couple of rare crashes
+
 ##### v1.4.2
 * Fixed freeform window mode
 * Fixed a few rare crashes

@@ -4,7 +4,8 @@ language: android
 before_script:
   - 'export PATH="$HOME/.local/bin:$PATH"'
   - pyenv install --skip-existing 3.6.0 && pyenv global 3.6.0
-  - python3 -m pip install --user google-api-python-client oauth2client httplib2
+  - python3 -m pip install --upgrade pip
+  - python3 -m pip install --user google-api-python-client oauth2client httplib2 pyOpenSSL
 
 script:
   - ./gradlew test

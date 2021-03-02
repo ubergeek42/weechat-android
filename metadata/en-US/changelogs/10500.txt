@@ -1,0 +1,4 @@
+* Added support for the handshake relay command
+* Improved the way URLs are recognized
+* Black background is no longer shown when switching buffers
+* Fixed a couple of rare crashes
