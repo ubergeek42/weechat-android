@@ -136,8 +136,7 @@ class BufferFragment : Fragment(), BufferEye {
     }
 
     @MainThread @Cat override fun onCreateView(
-            inflater: LayoutInflater, container: ViewGroup?,
-            savedInstanceState: Bundle?,
+            inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
     ): View? {
         val v = inflater.inflate(R.layout.chatview_main, container, false)
 
@@ -151,26 +150,28 @@ class BufferFragment : Fragment(), BufferEye {
         uploadProgressBar = v.findViewById(R.id.upload_progress_bar)
         uploadButton = v.findViewById(R.id.upload_button)
 
-        uploadButton!!.setOnClickListener {
+        uploadButton?.setOnClickListener {
             if (lastUploadStatus == UploadStatus.UPLOADING) {
-                uploadManager!!.filterUploads(emptyList())
+                uploadManager?.filterUploads(emptyList())
             } else {
-                startUploads(uiInput!!.getNotReadySuris())
+                startUploads(uiInput?.getNotReadySuris())
             }
         }
 
         linesAdapter = ChatLinesAdapter(uiLines)
-        uiLines!!.adapter = linesAdapter
-        uiLines!!.isFocusable = false
-        uiLines!!.isFocusableInTouchMode = false
-        uiLines!!.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+
+        uiLines?.adapter = linesAdapter
+        uiLines?.isFocusable = false
+        uiLines?.isFocusableInTouchMode = false
+        uiLines?.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                if (focusedInViewPager && dy != 0) weechatActivity!!.toolbarController.onScroll(dy, uiLines!!.onTop, uiLines!!.onBottom)
+                if (focusedInViewPager && dy != 0) weechatActivity?.toolbarController
+                        ?.onScroll(dy, uiLines!!.onTop, uiLines!!.onBottom)
             }
         })
 
-        uiPaperclip!!.setOnClickListener { chooseFiles(this, Config.paperclipAction1) }
-        uiPaperclip!!.setOnLongClickListener {
+        uiPaperclip?.setOnClickListener { chooseFiles(this, Config.paperclipAction1) }
+        uiPaperclip?.setOnLongClickListener {
             return@setOnLongClickListener if (Config.paperclipAction2 != null) {
                 chooseFiles(this, Config.paperclipAction2!!)
                 true
@@ -179,18 +180,18 @@ class BufferFragment : Fragment(), BufferEye {
             }
         }
 
-        uiSend!!.setOnClickListener { sendMessageOrStartUpload() }
-        uiTab!!.setOnClickListener { tryTabComplete() }
+        uiSend?.setOnClickListener { sendMessageOrStartUpload() }
+        uiTab?.setOnClickListener { tryTabComplete() }
 
-        uiInput!!.setOnKeyListener(uiInputHardwareKeyPressListener)
-        uiInput!!.setOnLongClickListener { Paste.showPasteDialog(uiInput) }
-        uiInput!!.afterTextChanged {
+        uiInput?.setOnKeyListener(uiInputHardwareKeyPressListener)
+        uiInput?.setOnLongClickListener { Paste.showPasteDialog(uiInput) }
+        uiInput?.afterTextChanged {
             cancelTabCompletionOnInputTextChange()
             fixupUploadsOnInputTextChange()
             showHidePaperclip()
         }
 
-        uiInput!!.setOnEditorActionListener { _: TextView, actionId: Int, _: KeyEvent ->
+        uiInput?.setOnEditorActionListener { _: TextView, actionId: Int, _: KeyEvent ->
             if (actionId == EditorInfo.IME_ACTION_SEND) {
                 sendMessageOrStartUpload()
                 true
@@ -200,7 +201,7 @@ class BufferFragment : Fragment(), BufferEye {
         }
 
         initSearchViews(v, savedInstanceState)
-        connectedToRelay = true
+        connectedToRelay = true     // assume true, this will get corrected later
         return v
     }
 
@@ -215,22 +216,24 @@ class BufferFragment : Fragment(), BufferEye {
         uploadButton = null
         uploadProgressBar = null
         linesAdapter = null
+
+        destroySearchViews()
     }
 
     @MainThread @Cat override fun onResume() {
         super.onResume()
-        uiTab!!.visibility = if (P.showTab) View.VISIBLE else View.GONE
+        uiTab?.visibility = if (P.showTab) View.VISIBLE else View.GONE
         EventBus.getDefault().register(this)
         applyColorSchemeToViews()
-        uiInput!!.textifyReadySuris()   // this will fix any uploads that were finished while we were absent
+        uiInput?.textifyReadySuris()   // this will fix any uploads that were finished while we were absent
         fixupUploadsOnInputTextChange()             // this will set appropriate upload ui state
         showHidePaperclip()
-        uploadManager!!.observer = uploadObserver   // this will resume ui for any uploads that are still running
+        uploadManager?.observer = uploadObserver   // this will resume ui for any uploads that are still running
     }
 
     @MainThread @Cat override fun onPause() {
         super.onPause()
-        uploadManager!!.observer = null
+        uploadManager?.observer = null
         lastUploadStatus = null         // setObserver & afterTextChanged2 will fix this
         detachFromBuffer()
         EventBus.getDefault().unregister(this)
@@ -643,6 +646,17 @@ class BufferFragment : Fragment(), BufferEye {
             )
             searchInput?.post { searchEnableDisable(enable = true, newSearch = false) }
         }
+    }
+
+    private fun destroySearchViews() {
+        searchBar = null
+        inputBar = null
+        searchInput = null
+        searchResultNo = null
+        searchResultCount = null
+        searchUp = null
+        searchDown = null
+        searchOverflow = null
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
