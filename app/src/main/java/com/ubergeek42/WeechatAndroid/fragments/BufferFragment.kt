@@ -160,47 +160,51 @@ class BufferFragment : Fragment(), BufferEye {
 
         linesAdapter = ChatLinesAdapter(uiLines)
 
-        uiLines?.adapter = linesAdapter
-        uiLines?.isFocusable = false
-        uiLines?.isFocusableInTouchMode = false
-        uiLines?.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                if (focusedInViewPager && dy != 0) weechatActivity?.toolbarController
-                        ?.onScroll(dy, uiLines!!.onTop, uiLines!!.onBottom)
-            }
-        })
+        uiLines?.run {
+            adapter = linesAdapter
+            isFocusable = false
+            isFocusableInTouchMode = false
+            addOnScrollListener(object : RecyclerView.OnScrollListener() {
+                override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                    if (focusedInViewPager && dy != 0) weechatActivity?.toolbarController
+                            ?.onScroll(dy, this@run.onTop, this@run.onBottom)
+                }
+            })
+        }
 
-        uiPaperclip?.setOnClickListener { chooseFiles(this, Config.paperclipAction1) }
-        uiPaperclip?.setOnLongClickListener {
-            return@setOnLongClickListener if (Config.paperclipAction2 != null) {
-                chooseFiles(this, Config.paperclipAction2!!)
-                true
-            } else {
-                false
+        uiPaperclip?.run {
+            setOnClickListener { chooseFiles(this@BufferFragment, Config.paperclipAction1) }
+            setOnLongClickListener {
+                Config.paperclipAction2?.let { action2 ->
+                    chooseFiles(this@BufferFragment, action2)
+                    true
+                } ?: false
             }
         }
 
         uiSend?.setOnClickListener { sendMessageOrStartUpload() }
         uiTab?.setOnClickListener { tryTabComplete() }
 
-        uiInput?.setOnKeyListener(uiInputHardwareKeyPressListener)
-        uiInput?.setOnLongClickListener { Paste.showPasteDialog(uiInput) }
-        uiInput?.afterTextChanged {
-            cancelTabCompletionOnInputTextChange()
-            fixupUploadsOnInputTextChange()
-            showHidePaperclip()
-        }
-
-        uiInput?.setOnEditorActionListener { _: TextView, actionId: Int, _: KeyEvent ->
-            if (actionId == EditorInfo.IME_ACTION_SEND) {
-                sendMessageOrStartUpload()
-                true
-            } else {
-                false
+        uiInput?.run {
+            setOnKeyListener(uiInputHardwareKeyPressListener)
+            setOnLongClickListener { Paste.showPasteDialog(uiInput) }
+            afterTextChanged {
+                cancelTabCompletionOnInputTextChange()
+                fixupUploadsOnInputTextChange()
+                showHidePaperclip()
+            }
+            setOnEditorActionListener { _: TextView, actionId: Int, _: KeyEvent ->
+                if (actionId == EditorInfo.IME_ACTION_SEND) {
+                    sendMessageOrStartUpload()
+                    true
+                } else {
+                    false
+                }
             }
         }
 
         initSearchViews(v, savedInstanceState)
+
         connectedToRelay = true     // assume true, this will get corrected later
         return v
     }
@@ -608,29 +612,30 @@ class BufferFragment : Fragment(), BufferEye {
         searchOverflow = root.findViewById(R.id.search_overflow)
         searchCancel.setOnClickListener { searchEnableDisable(enable = false) }
 
-        // check lifecycle, so that this is not triggered by restoring state
-        searchInput?.afterTextChanged {
-            if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) triggerNewSearch()
-        }
+        searchInput?.run {
+            // check lifecycle, so that this is not triggered by restoring state
+            afterTextChanged {
+                if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) triggerNewSearch()
+            }
 
-        // not consuming event — letting the keyboard close
-        searchInput?.setOnEditorActionListener { _: TextView?, actionId: Int, _: KeyEvent? ->
-            if (actionId == EditorInfo.IME_ACTION_SEARCH) searchUp?.performClick()
-            false
-        }
-
-        searchInput?.onBackGestureListener = OnBackGestureListener {
-            return@OnBackGestureListener if (searchBar?.visibility == View.VISIBLE) {
-                searchEnableDisable(enable = false)
-                true
-            } else {
+            // not consuming event — letting the keyboard close
+            setOnEditorActionListener { _: TextView?, actionId: Int, _: KeyEvent? ->
+                if (actionId == EditorInfo.IME_ACTION_SEARCH) searchUp?.performClick()
                 false
+            }
+
+            onBackGestureListener = OnBackGestureListener {
+                return@OnBackGestureListener if (searchBar?.visibility == View.VISIBLE) {
+                    searchEnableDisable(enable = false)
+                    true
+                } else {
+                    false
+                }
             }
         }
 
         searchUp?.setOnClickListener(searchButtonClickListener)
         searchDown?.setOnClickListener(searchButtonClickListener)
-
         searchOverflow?.setOnClickListener { createPopupMenu().show() }
 
         // todo figure out why views are recreated while the instance is retained
