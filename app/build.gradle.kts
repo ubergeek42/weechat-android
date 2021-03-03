@@ -43,7 +43,7 @@ dependencies {
     implementation("org.yaml:snakeyaml:1.28:android")
 
     implementation("commons-codec:commons-codec:1.14")
-    implementation("org.bouncycastle:bcpkix-jdk15on:1.64")
+    implementation("org.bouncycastle:bcpkix-jdk15on:1.68")
 
     // needed for thread-safe date formatting as SimpleDateFormat isn"t thread-safe
     // the alternatives, including apache commons and threetenabp, seem to be much slower
