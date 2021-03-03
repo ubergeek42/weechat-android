@@ -1,6 +1,5 @@
 package com.ubergeek42.WeechatAndroid.fragments
 
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -10,8 +9,6 @@ import android.graphics.Paint
 import android.graphics.Rect
 import android.os.Build
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.transition.Fade
 import android.transition.TransitionManager
 import android.view.KeyEvent
@@ -26,7 +23,6 @@ import android.widget.ImageButton
 import android.widget.PopupMenu
 import android.widget.ProgressBar
 import android.widget.TextView
-import android.widget.TextView.OnEditorActionListener
 import androidx.annotation.AnyThread
 import androidx.annotation.MainThread
 import androidx.annotation.WorkerThread
@@ -70,7 +66,7 @@ import com.ubergeek42.WeechatAndroid.utils.AnimatedRecyclerView
 import com.ubergeek42.WeechatAndroid.utils.FriendlyExceptions
 import com.ubergeek42.WeechatAndroid.utils.Toaster
 import com.ubergeek42.WeechatAndroid.utils.Utils
-import com.ubergeek42.WeechatAndroid.utils.Utils.SimpleTextWatcher
+import com.ubergeek42.WeechatAndroid.utils.afterTextChanged
 import com.ubergeek42.WeechatAndroid.views.BackGestureAwareEditText
 import com.ubergeek42.WeechatAndroid.views.OnBackGestureListener
 import com.ubergeek42.cats.Cat
@@ -87,8 +83,7 @@ import java.util.regex.PatternSyntaxException
 private const val POINTER_KEY = "pointer"
 
 
-class BufferFragment : Fragment(), BufferEye,
-        View.OnKeyListener, View.OnClickListener, TextWatcher, OnEditorActionListener {
+class BufferFragment : Fragment(), BufferEye {
 
     @Root private val kitty: Kitty = Kitty.make("BF")
 
@@ -181,13 +176,25 @@ class BufferFragment : Fragment(), BufferEye,
             }
         }
 
-        uiSend!!.setOnClickListener(this)
-        uiTab!!.setOnClickListener(this)
+        uiSend!!.setOnClickListener { sendMessage() }
+        uiTab!!.setOnClickListener { tryTabComplete() }
 
-        uiInput!!.setOnKeyListener(this)          // listen for hardware keyboard
-        uiInput!!.addTextChangedListener(this)    // listen for software keyboard through watching input box text
-        uiInput!!.setOnEditorActionListener(this) // listen for software keyboard's “send” click. see onEditorAction()
+        uiInput!!.setOnKeyListener(uiInputHardwareKeyPressListener)
         uiInput!!.setOnLongClickListener { Paste.showPasteDialog(uiInput) }
+        uiInput!!.afterTextChanged {
+            cancelTabCompletionOnInputTextChange()
+            afterTextChanged2()
+            showHidePaperclip()
+        }
+
+        uiInput!!.setOnEditorActionListener { _: TextView, actionId: Int, _: KeyEvent ->
+            if (actionId == EditorInfo.IME_ACTION_SEND) {
+                sendMessage()
+                true
+            } else {
+                false
+            }
+        }
 
         initSearchViews(v, savedInstanceState)
         online = true
@@ -314,6 +321,10 @@ class BufferFragment : Fragment(), BufferEye,
         if (!online) weechatActivity!!.hideSoftwareKeyboard()
     }
 
+    private fun applyColorSchemeToViews() {
+        requireView().findViewById<View>(R.id.bottom_bar).setBackgroundColor(P.colorPrimary)
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////// BufferEye stuff
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -344,53 +355,32 @@ class BufferFragment : Fragment(), BufferEye,
     ///////////////////////////////////////////////////////////////////////////// keyboard / buttons
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    // the only OnKeyListener's method, only applies to hardware buttons
-    // User pressed some key in the input box, check for what it was
-    @MainThread override fun onKey(v: View, keycode: Int, event: KeyEvent): Boolean {
-        if (event.action != KeyEvent.ACTION_DOWN) return false
+    private val uiInputHardwareKeyPressListener = View.OnKeyListener { _, keyCode, event ->
+        if (event.action != KeyEvent.ACTION_DOWN) return@OnKeyListener false
 
-        when (keycode) {
+        when (keyCode) {
             KeyEvent.KEYCODE_ENTER -> {
                 sendMessage()
-                return true
+                return@OnKeyListener true
             }
             KeyEvent.KEYCODE_TAB, KeyEvent.KEYCODE_SEARCH -> {
                 tryTabComplete()
-                return true
+                return@OnKeyListener true
             }
             KeyEvent.KEYCODE_VOLUME_DOWN, KeyEvent.KEYCODE_VOLUME_UP -> {
                 if (P.volumeBtnSize) {
-                    val change = if (keycode == KeyEvent.KEYCODE_VOLUME_UP) 1f else -1f
+                    val change = if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) 1f else -1f
                     val textSize = (P.textSize + change).coerceIn(5f, 30f)
                     P.setTextSizeColorAndLetterWidth(textSize)
-                    return true
+                    return@OnKeyListener true
                 }
             }
         }
 
-        return false
+        return@OnKeyListener false
     }
 
-    // the only OnClickListener's method. send button or tab button pressed
-    @MainThread override fun onClick(view: View) {
-        when (view.id) {
-            R.id.chatview_send -> sendMessage()
-            R.id.chatview_tab -> tryTabComplete()
-        }
-    }
-
-    // the only OnEditorActionListener's method
-    // listens to keyboard's “send” press (not our button)
-    @MainThread override fun onEditorAction(textView: TextView, actionId: Int, keyEvent: KeyEvent?): Boolean {
-        return if (actionId == EditorInfo.IME_ACTION_SEND) {
-            sendMessage()
-            return true
-        } else {
-            false
-        }
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////send message
+    /////////////////////////////////////////////////////////////////////////////////// send message
 
     @MainThread private fun sendMessage() {
         if (buffer == null || uiInput == null) return
@@ -404,42 +394,31 @@ class BufferFragment : Fragment(), BufferEye,
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// tab completion
+    ///////////////////////////////////////////////////////////////////////////////// tab completion
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private var completer: TabCompleter? = null
-    @MainThread @SuppressLint("SetTextI18n")
-    private fun tryTabComplete() {
+
+    @MainThread private fun tryTabComplete() {
         if (buffer == null) return
         if (completer == null) completer = obtain(lifecycle, buffer!!, uiInput!!)
         completer!!.next()
     }
 
-    @MainThread @SuppressLint("SetTextI18n")
-    fun setShareObject(shareObject: ShareObject) {
-        shareObject.insert(uiInput!!, InsertAt.END)
-    }
-
-    //////////////////////////////////////////////////////////////////////////////////////////////// text watcher
-
-    override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {}
-    override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {}
-
-    // invalidate tab completion progress on input box text change
-    // tryTabComplete() will set it back if it modified the text causing this function to run
-    @MainThread override fun afterTextChanged(s: Editable) {
+    // check if this input change is caused by tab completion. if not, cancel tab completer
+    @MainThread private fun cancelTabCompletionOnInputTextChange() {
         if (completer != null) {
             val cancelled = completer!!.cancel()
             if (cancelled) completer = null
         }
-        afterTextChanged2()
-        showHidePaperclip()
     }
 
-    private fun applyColorSchemeToViews() {
-        requireView().findViewById<View>(R.id.bottom_bar).setBackgroundColor(P.colorPrimary)
+    @MainThread fun setShareObject(shareObject: ShareObject) {
+        shareObject.insert(uiInput!!, InsertAt.END)
     }
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////// upload
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     enum class UploadStatus {
@@ -636,13 +615,11 @@ class BufferFragment : Fragment(), BufferEye,
         searchCancel.setOnClickListener { searchEnableDisable(enable = false, newSearch = false) }
 
         // check lifecycle, so that this is not triggered by restoring state
-        searchInput!!.addTextChangedListener(object : SimpleTextWatcher() {
-            override fun afterTextChanged(s: Editable) {
-                if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                    triggerNewSearch()
-                }
+        searchInput!!.afterTextChanged {
+            if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                triggerNewSearch()
             }
-        })
+        }
 
         // not consuming event — letting the keyboard close
         searchInput!!.setOnEditorActionListener { _: TextView?, actionId: Int, _: KeyEvent? ->
