@@ -24,6 +24,15 @@ inline fun EditText.afterTextChanged(crossinline after: (s: Editable) -> Unit) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 @OptIn(ExperimentalContracts::class)
+inline fun <A, B> ulet(a: A?, b: B?, block: (A, B) -> Unit) {
+    contract { callsInPlace(block, InvocationKind.AT_MOST_ONCE) }
+
+    if (a != null && b != null) {
+        block(a, b)
+    }
+}
+
+@OptIn(ExperimentalContracts::class)
 inline fun <A, B, R> let(a: A?, b: B?, block: (A, B) -> R): R? {
     contract { callsInPlace(block, InvocationKind.AT_MOST_ONCE) }
 
@@ -35,6 +44,15 @@ inline fun <A, B, R> let(a: A?, b: B?, block: (A, B) -> R): R? {
 }
 
 @OptIn(ExperimentalContracts::class)
+inline fun <A, B, C> ulet(a: A?, b: B?, c: C?, block: (A, B, C) -> Unit) {
+    contract { callsInPlace(block, InvocationKind.AT_MOST_ONCE) }
+
+    if (a != null && b != null && c != null) {
+        block(a, b, c)
+    }
+}
+
+@OptIn(ExperimentalContracts::class)
 inline fun <A, B, C, R> let(a: A?, b: B?, c: C?, block: (A, B, C) -> R): R? {
     contract { callsInPlace(block, InvocationKind.AT_MOST_ONCE) }
 
@@ -42,6 +60,15 @@ inline fun <A, B, C, R> let(a: A?, b: B?, c: C?, block: (A, B, C) -> R): R? {
         block(a, b, c)
     } else {
         null
+    }
+}
+
+@OptIn(ExperimentalContracts::class)
+inline fun <A, B, C, D> ulet(a: A?, b: B?, c: C?, d: D?, block: (A, B, C, D) -> Unit) {
+    contract { callsInPlace(block, InvocationKind.AT_MOST_ONCE) }
+
+    if (a != null && b != null && c != null && d != null) {
+        block(a, b, c, d)
     }
 }
 

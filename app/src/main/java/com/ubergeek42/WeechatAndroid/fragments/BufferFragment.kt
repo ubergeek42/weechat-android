@@ -61,12 +61,15 @@ import com.ubergeek42.WeechatAndroid.upload.UploadObserver
 import com.ubergeek42.WeechatAndroid.upload.WRITE_PERMISSION_REQUEST_FOR_CAMERA
 import com.ubergeek42.WeechatAndroid.upload.chooseFiles
 import com.ubergeek42.WeechatAndroid.upload.getShareObjectFromIntent
+import com.ubergeek42.WeechatAndroid.upload.i
+import com.ubergeek42.WeechatAndroid.upload.suppress
 import com.ubergeek42.WeechatAndroid.upload.validateUploadConfig
 import com.ubergeek42.WeechatAndroid.utils.AnimatedRecyclerView
 import com.ubergeek42.WeechatAndroid.utils.FriendlyExceptions
 import com.ubergeek42.WeechatAndroid.utils.Toaster
 import com.ubergeek42.WeechatAndroid.utils.Utils
 import com.ubergeek42.WeechatAndroid.utils.afterTextChanged
+import com.ubergeek42.WeechatAndroid.utils.ulet
 import com.ubergeek42.WeechatAndroid.views.BackGestureAwareEditText
 import com.ubergeek42.WeechatAndroid.views.OnBackGestureListener
 import com.ubergeek42.cats.Cat
@@ -425,6 +428,7 @@ class BufferFragment : Fragment(), BufferEye {
         NOTHING_TO_UPLOAD, HAS_THINGS_TO_UPLOAD, UPLOADING
     }
 
+    private var uploadManager: UploadManager? = null
     private var lastUploadStatus: UploadStatus? = null
 
     @CatD @MainThread fun setUploadStatus(uploadStatus: UploadStatus) {
@@ -433,53 +437,48 @@ class BufferFragment : Fragment(), BufferEye {
 
         when (uploadStatus) {
             UploadStatus.NOTHING_TO_UPLOAD -> {
-                if (P.showSend) uiSend!!.visibility = View.VISIBLE
-                uploadLayout!!.visibility = View.GONE
-                return
+                if (P.showSend) uiSend?.visibility = View.VISIBLE
+                uploadLayout?.visibility = View.GONE
             }
-            UploadStatus.HAS_THINGS_TO_UPLOAD -> {
-                uiSend!!.visibility = View.GONE
-                uploadLayout!!.visibility = View.VISIBLE
-                uploadButton!!.setImageResource(R.drawable.ic_toolbar_upload)
+            UploadStatus.HAS_THINGS_TO_UPLOAD, UploadStatus.UPLOADING -> {
+                uiSend?.visibility = View.GONE
+                uploadLayout?.visibility = View.VISIBLE
                 setUploadProgress(-1f)
-            }
-            UploadStatus.UPLOADING -> {
-                uiSend!!.visibility = View.GONE
-                uploadLayout!!.visibility = View.VISIBLE
-                uploadButton!!.setImageResource(R.drawable.ic_toolbar_upload_cancel)
-                setUploadProgress(-1f)
+                val uploadIcon = if (uploadStatus == UploadStatus.HAS_THINGS_TO_UPLOAD)
+                    R.drawable.ic_toolbar_upload else R.drawable.ic_toolbar_upload_cancel
+                uploadButton?.setImageResource(uploadIcon)
             }
         }
     }
 
     // show indeterminate progress in the end, when waiting for the server to produce a response
     @CatD @MainThread fun setUploadProgress(ratio: Float) {
-        if (ratio < 0) {
-            uploadProgressBar!!.visibility = View.INVISIBLE
-            uploadProgressBar!!.isIndeterminate = false     // this will reset the thing
-            uploadProgressBar!!.progress = 1                // but it has a bug so we need to
-            uploadProgressBar!!.progress = 0                // set it twice
-        } else {
-            uploadProgressBar!!.visibility = View.VISIBLE
-            if (ratio >= 1f) {
-                uploadProgressBar!!.isIndeterminate = true
+        uploadProgressBar?.apply {
+            if (ratio < 0) {
+                visibility = View.INVISIBLE
+                isIndeterminate = false     // this will reset the thing
+                progress = 1                // but it has a bug so we need to
+                progress = 0                // set it twice
             } else {
-                uploadProgressBar!!.isIndeterminate = false
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    uploadProgressBar!!.setProgress((100 * ratio).toInt(), true)
+                visibility = View.VISIBLE
+                if (ratio >= 1f) {
+                    isIndeterminate = true
                 } else {
-                    uploadProgressBar!!.progress = (100 * ratio).toInt()
+                    isIndeterminate = false
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        setProgress((100 * ratio).i, true)
+                    } else {
+                        progress = (100 * ratio).i
+                    }
                 }
             }
         }
     }
 
-    private var uploadManager: UploadManager? = null
-
     private fun fixupUploadsOnInputTextChange() {
         val suris = uiInput!!.getNotReadySuris()
         if (lastUploadStatus == UploadStatus.UPLOADING) {
-            uploadManager!!.filterUploads(suris)
+            uploadManager?.filterUploads(suris)
         }
         if (suris.isEmpty()) {
             setUploadStatus(UploadStatus.NOTHING_TO_UPLOAD)
@@ -498,7 +497,7 @@ class BufferFragment : Fragment(), BufferEye {
         }
 
         override fun onUploadDone(suri: Suri) {
-            uiInput!!.textifyReadySuris()
+            uiInput?.textifyReadySuris()
         }
 
         override fun onUploadFailure(suri: Suri, e: Exception) {
@@ -516,36 +515,30 @@ class BufferFragment : Fragment(), BufferEye {
 
     @Cat override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (resultCode == Activity.RESULT_OK) {
-            try {
-                getShareObjectFromIntent(requestCode, data)
-                        ?.insert(uiInput!!, InsertAt.CURRENT_POSITION)
-            } catch (e: Exception) {
-                Toaster.ErrorToast.show(e)
+            suppress<Exception>(showToast = true) {
+                getShareObjectFromIntent(requestCode, data)?.insert(uiInput!!, InsertAt.CURRENT_POSITION)
             }
         }
     }
 
-    fun shouldShowUploadMenus(): Boolean {
-        return P.showPaperclip && uiPaperclip != null && uiPaperclip!!.visibility == View.GONE
-    }
+    fun shouldShowUploadMenus() = P.showPaperclip && uiPaperclip?.visibility == View.GONE
 
-    @MainThread fun showHidePaperclip() {
-        if (weechatActivity == null || uiPaperclip == null) return
-
+    @MainThread fun showHidePaperclip(): Unit = ulet(weechatActivity, uiPaperclip, uiInput) {
+            activity, paperclip, input ->
         if (!P.showPaperclip) {
-            if (uiPaperclip!!.visibility != View.GONE) uiPaperclip!!.visibility = View.GONE
+            if (paperclip.visibility != View.GONE) paperclip.visibility = View.GONE
             return
         }
 
-        val layout = uiPaperclip!!.parent as ViewGroup
+        val layout = paperclip.parent as ViewGroup
 
         // other buttons at this point might not have been measured, so we can't simply get width
         // of the input field; calculate through layout width instead. see R.layout.chatview_main
-        val textWidth = uiInput!!.getTextWidth()
+        val textWidth = input.getTextWidth()
         if (textWidth < 0) {
             // rerun when we can determine text width. we can post() but this ensures the code
             // is re-run earlier, and we can actually show-hide paperclip before the first draw
-            uiInput!!.hasLayoutListener = HasLayoutListener { showHidePaperclip() }
+            input.hasLayoutListener = HasLayoutListener { showHidePaperclip() }
             return
         }
 
@@ -554,36 +547,31 @@ class BufferFragment : Fragment(), BufferEye {
         // if the send button is off, adding a ShareSpan can reveal it (well, upload button),
         // but it's not a problem as it can only appear on text addition and disappear on deletion*
         var widgetWidth = P.weaselWidth - P._4dp - actionButtonWidth
-        if (uiTab!!.visibility != View.GONE) widgetWidth -= actionButtonWidth
-        if (uiSend!!.visibility != View.GONE) widgetWidth -= actionButtonWidth
+        if (uiTab?.visibility != View.GONE) widgetWidth -= actionButtonWidth
+        if (uiSend?.visibility != View.GONE) widgetWidth -= actionButtonWidth
 
         val shouldShowPaperclip = textWidth / widgetWidth < 0.8f
-        if (shouldShowPaperclip == (uiPaperclip!!.visibility == View.VISIBLE)) return
+        if (shouldShowPaperclip == (paperclip.visibility == View.VISIBLE)) return
 
         // not entirely correct, but good enough; don't animate if invisible
         val alreadyDrawn = layout.width > 0
         if (alreadyDrawn) TransitionManager.beginDelayedTransition(layout, paperclipTransition)
 
-        uiPaperclip!!.visibility = if (shouldShowPaperclip) View.VISIBLE else View.GONE
-        weechatActivity!!.updateMenuItems()
+        paperclip.visibility = if (shouldShowPaperclip) View.VISIBLE else View.GONE
+        activity.updateMenuItems()
     }
 
-
-
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
-        if (requestCode == WRITE_PERMISSION_REQUEST_FOR_CAMERA) {
-            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                chooseFiles(this, Target.Camera)
-            }
+        if (requestCode == WRITE_PERMISSION_REQUEST_FOR_CAMERA &&
+                grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED) {
+            chooseFiles(this, Target.Camera)
         }
     }
 
     private fun startUploads(suris: List<Suri>?) {
-        try {
+        suppress<Exception>(showToast = true) {
             validateUploadConfig()
             uploadManager!!.startUploads(suris!!)
-        } catch (e: Exception) {
-            Toaster.ErrorToast.show(e)
         }
     }
 
