@@ -27,6 +27,7 @@ import androidx.annotation.AnyThread
 import androidx.annotation.MainThread
 import androidx.annotation.WorkerThread
 import androidx.core.view.MenuCompat
+import androidx.core.view.forEach
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.RecyclerView
@@ -40,7 +41,6 @@ import com.ubergeek42.WeechatAndroid.relay.Buffer
 import com.ubergeek42.WeechatAndroid.relay.BufferEye
 import com.ubergeek42.WeechatAndroid.relay.BufferList
 import com.ubergeek42.WeechatAndroid.search.Search
-import com.ubergeek42.WeechatAndroid.search.Search.Matcher.Companion.fromString
 import com.ubergeek42.WeechatAndroid.search.SearchConfig
 import com.ubergeek42.WeechatAndroid.service.Events.SendMessageEvent
 import com.ubergeek42.WeechatAndroid.service.Events.StateChangedEvent
@@ -69,6 +69,7 @@ import com.ubergeek42.WeechatAndroid.utils.FriendlyExceptions
 import com.ubergeek42.WeechatAndroid.utils.Toaster
 import com.ubergeek42.WeechatAndroid.utils.Utils
 import com.ubergeek42.WeechatAndroid.utils.afterTextChanged
+import com.ubergeek42.WeechatAndroid.utils.indexOfOrElse
 import com.ubergeek42.WeechatAndroid.utils.ulet
 import com.ubergeek42.WeechatAndroid.views.BackGestureAwareEditText
 import com.ubergeek42.WeechatAndroid.views.OnBackGestureListener
@@ -600,99 +601,94 @@ class BufferFragment : Fragment(), BufferEye {
         searchUp = root.findViewById(R.id.search_up)
         searchDown = root.findViewById(R.id.search_down)
         searchOverflow = root.findViewById(R.id.search_overflow)
-        searchCancel.setOnClickListener { searchEnableDisable(enable = false, newSearch = false) }
+        searchCancel.setOnClickListener { searchEnableDisable(enable = false) }
 
         // check lifecycle, so that this is not triggered by restoring state
-        searchInput!!.afterTextChanged {
-            if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                triggerNewSearch()
-            }
+        searchInput?.afterTextChanged {
+            if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) triggerNewSearch()
         }
 
         // not consuming event — letting the keyboard close
-        searchInput!!.setOnEditorActionListener { _: TextView?, actionId: Int, _: KeyEvent? ->
-            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                searchUp!!.performClick()
-            }
+        searchInput?.setOnEditorActionListener { _: TextView?, actionId: Int, _: KeyEvent? ->
+            if (actionId == EditorInfo.IME_ACTION_SEARCH) searchUp?.performClick()
             false
         }
 
-        searchInput!!.onBackGestureListener = OnBackGestureListener {
-            return@OnBackGestureListener if (searchBar!!.visibility == View.VISIBLE) {
-                searchEnableDisable(enable = false, newSearch = false)
+        searchInput?.onBackGestureListener = OnBackGestureListener {
+            return@OnBackGestureListener if (searchBar?.visibility == View.VISIBLE) {
+                searchEnableDisable(enable = false)
                 true
             } else {
                 false
             }
         }
 
-        searchUp!!.setOnClickListener(searchButtonClickListener)
-        searchDown!!.setOnClickListener(searchButtonClickListener)
+        searchUp?.setOnClickListener(searchButtonClickListener)
+        searchDown?.setOnClickListener(searchButtonClickListener)
 
-        searchOverflow!!.setOnClickListener { createPopupMenu().show() }
+        searchOverflow?.setOnClickListener { createPopupMenu().show() }
 
         // todo figure out why views are recreated while the instance is retained
         // post to searchInput so that this is run after search input has been restored
         if (matches !== emptyMatches) {
-            searchInput!!.post { searchEnableDisable(enable = true, newSearch = false) }
-        } else if (savedInstanceState != null && savedInstanceState.getBoolean("searching")) {
-            lastFocusedMatch = savedInstanceState.getLong("lastFocusedMatch")
+            searchInput?.post { searchEnableDisable(enable = true, newSearch = false) }
+        } else if (savedInstanceState != null && savedInstanceState.getBoolean(KEY_SEARCHING)) {
+            focusedMatch = savedInstanceState.getLong(KEY_LAST_FOCUSED_MATCH)
             searchConfig = SearchConfig(
-                    savedInstanceState.getBoolean("caseSensitive"),
-                    savedInstanceState.getBoolean("regex"),
-                    SearchConfig.Source.valueOf(savedInstanceState.getString("source")!!)
+                    caseSensitive = savedInstanceState.getBoolean(KEY_CASE_SENSITIVE),
+                    regex = savedInstanceState.getBoolean(KEY_REGEX),
+                    SearchConfig.Source.valueOf(savedInstanceState.getString(KEY_SOURCE)!!)
             )
-            searchInput!!.post { searchEnableDisable(enable = true, newSearch = false) }
+            searchInput?.post { searchEnableDisable(enable = true, newSearch = false) }
         }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putBoolean("searching", matches !== emptyMatches)
-        outState.putLong("lastFocusedMatch", lastFocusedMatch)
-        outState.putBoolean("regex", searchConfig.regex)
-        outState.putBoolean("caseSensitive", searchConfig.caseSensitive)
-        outState.putString("source", searchConfig.source.name)
+        outState.putBoolean(KEY_SEARCHING, matches !== emptyMatches)
+        outState.putLong(KEY_LAST_FOCUSED_MATCH, focusedMatch)
+        outState.putBoolean(KEY_CASE_SENSITIVE, searchConfig.caseSensitive)
+        outState.putBoolean(KEY_REGEX, searchConfig.regex)
+        outState.putString(KEY_SOURCE, searchConfig.source.name)
     }
 
-    @MainThread @Cat fun searchEnableDisable(enable: Boolean, newSearch: Boolean) {
-        searchBar!!.visibility = if (enable) View.VISIBLE else View.GONE
-        inputBar!!.visibility = if (enable) View.GONE else View.VISIBLE
+    @MainThread @Cat fun searchEnableDisable(enable: Boolean, newSearch: Boolean = false) {
+        searchBar?.visibility = if (enable) View.VISIBLE else View.GONE
+        inputBar?.visibility = if (enable) View.GONE else View.VISIBLE
 
         if (enable) {
-            searchInput!!.requestFocus()
-            uiLines!!.addItemDecoration(decoration)
+            searchInput?.requestFocus()
+            uiLines?.addItemDecoration(decoration)
             triggerNewSearch()
             if (newSearch) {
-                weechatActivity!!.imm.showSoftInput(searchInput, InputMethodManager.SHOW_IMPLICIT)
-                searchInput!!.selectAll()
+                weechatActivity?.imm?.showSoftInput(searchInput, InputMethodManager.SHOW_IMPLICIT)
+                searchInput?.selectAll()
             }
         } else {
-            uiInput!!.requestFocus()
-            weechatActivity!!.hideSoftwareKeyboard()
+            uiInput?.requestFocus()
+            weechatActivity?.hideSoftwareKeyboard()
             matches = emptyMatches
-            lastFocusedMatch = 0
-            uiLines!!.removeItemDecoration(decoration)
-            linesAdapter!!.setSearch(null)
+            focusedMatch = 0
+            uiLines?.removeItemDecoration(decoration)
+            linesAdapter?.setSearch(null)
         }
     }
 
     private fun triggerNewSearch() {
-        val text = searchInput!!.text.toString()
+        val text = searchInput?.text.toString()
         try {
-            linesAdapter!!.setSearch(Search(fromString(text, searchConfig), searchListener))
+            val matcher = Search.Matcher.fromString(text, searchConfig)
+            linesAdapter?.setSearch(Search(matcher, searchListener))
         } catch (e: PatternSyntaxException) {
-            linesAdapter!!.setSearch(null)
+            linesAdapter?.setSearch(null)
             searchListener.onSearchResultsChanged(badRegexPatternMatches)
         }
     }
 
-    private var matches = emptyMatches
-    private var lastFocusedMatch: Long = 0
+    private var matches = emptyMatches          // list of pointers
+    private var focusedMatch: Long = 0      // pointer to the last focused match, or 0 if n/a
 
-    // todo clear lastFocusedMatch here?
     private var searchListener = Search.Listener { matches: List<Long> ->
-        kitty.info("matches: %s", matches)
         this.matches = matches
         enableDisableSearchButtons()
         adjustSearchNumbers()
@@ -700,17 +696,16 @@ class BufferFragment : Fragment(), BufferEye {
 
     private fun enableDisableSearchButtons() {
         val hasMatches = matches.isNotEmpty()
-        var lastMatchIndex = matches.indexOf(lastFocusedMatch)
-        if (lastMatchIndex == -1) lastMatchIndex = matches.size
-        searchUp!!.isEnabled = hasMatches && lastMatchIndex > 0
-        searchDown!!.isEnabled = hasMatches && lastMatchIndex < matches.size - 1
+        val matchIndex = matches.indexOfOrElse(focusedMatch, matches::size)
+        searchUp?.isEnabled = hasMatches && matchIndex > 0
+        searchDown?.isEnabled = hasMatches && matchIndex < matches.size - 1
     }
 
     private fun adjustSearchNumbers() {
-        val lastMatchIndex = matches.indexOf(lastFocusedMatch)
-        searchResultNo!!.text = if (lastMatchIndex == -1)
-            "-" else (matches.size - lastMatchIndex).toString()
-        searchResultCount!!.text = if (matches === badRegexPatternMatches)
+        val matchIndex = matches.indexOf(focusedMatch)
+        searchResultNo?.text = if (matchIndex == -1)
+            "-" else (matches.size - matchIndex).toString()
+        searchResultCount?.text = if (matches === badRegexPatternMatches)
             "err" else matches.size.toString()
     }
 
@@ -724,7 +719,7 @@ class BufferFragment : Fragment(), BufferEye {
             searchConfig = when (item.itemId) {
                 R.id.menu_search_source_prefix -> searchConfig.copy(source = SearchConfig.Source.Prefix)
                 R.id.menu_search_source_message -> searchConfig.copy(source = SearchConfig.Source.Message)
-                R.id.menu_search_source_message_and_prefix -> searchConfig.copy(source = SearchConfig.Source.PrefixAndMessage)
+                R.id.menu_search_source_prefix_and_message -> searchConfig.copy(source = SearchConfig.Source.PrefixAndMessage)
                 R.id.menu_search_regex -> searchConfig.copy(regex = !item.isChecked)
                 R.id.menu_search_case_sensitive -> searchConfig.copy(caseSensitive = !item.isChecked)
                 else -> return@setOnMenuItemClickListener false
@@ -741,7 +736,7 @@ class BufferFragment : Fragment(), BufferEye {
         val sourceId = when (searchConfig.source) {
             SearchConfig.Source.Prefix -> R.id.menu_search_source_prefix
             SearchConfig.Source.Message -> R.id.menu_search_source_message
-            SearchConfig.Source.PrefixAndMessage -> R.id.menu_search_source_message_and_prefix
+            SearchConfig.Source.PrefixAndMessage -> R.id.menu_search_source_prefix_and_message
         }
         menu.findItem(sourceId).isChecked = true
         menu.findItem(R.id.menu_search_regex).isChecked = searchConfig.regex
@@ -749,35 +744,28 @@ class BufferFragment : Fragment(), BufferEye {
     }
 
     private var searchButtonClickListener = View.OnClickListener { view: View ->
-        var lastMatchIndex = matches.indexOf(lastFocusedMatch)
-        if (lastMatchIndex == -1) lastMatchIndex = matches.size
+        val matchIndex = matches.indexOfOrElse(focusedMatch, matches::size)
+        val change = if (view.id == R.id.search_up) -1 else +1
+        val index = matchIndex + change
 
-        val delta = if (view.id == R.id.search_up) -1 else +1
-        val index = lastMatchIndex + delta
-        if (index < 0 || index >= matches.size) return@OnClickListener
-
-        kitty.info("scrolling to %s/%s", index, matches.size)
-        lastFocusedMatch = matches[index]
-        linesAdapter!!.scrollToPointer(lastFocusedMatch)
-        uiLines!!.invalidate()  // trigger redecoration
-        enableDisableSearchButtons()
-        adjustSearchNumbers()
+        matches.getOrNull(index)?.let {
+            focusedMatch = it
+            linesAdapter?.scrollToPointer(it)
+            uiLines?.invalidate()   // trigger redecoration
+            enableDisableSearchButtons()
+            adjustSearchNumbers()
+        }
     }
 
     private var decoration: ItemDecoration = object : ItemDecoration() {
         override fun onDraw(canvas: Canvas, parent: RecyclerView, state: RecyclerView.State) {
-            if (!matches.contains(lastFocusedMatch)) return
+            if (!matches.contains(focusedMatch)) return
 
-            val childCount = parent.childCount
             val rect = Rect()
-            val paint = Paint()
-            paint.color = 0x22588ab8
+            val paint = Paint().apply { color = 0x22588ab8 }
 
-            for (i in 0 until childCount) {
-                val child = parent.getChildAt(i)
-                val pointer = parent.getChildItemId(child)
-
-                if (pointer == lastFocusedMatch) {
+            parent.forEach { child ->
+                if (parent.getChildItemId(child) == focusedMatch) {
                     parent.getDecoratedBoundsWithMargins(child, rect)
                     canvas.drawRect(rect, paint)
                 }
@@ -796,3 +784,9 @@ private val paperclipTransition = Fade().apply {
 
 private val emptyMatches: List<Long> = ArrayList()
 private val badRegexPatternMatches: List<Long> = ArrayList()
+
+private const val KEY_SEARCHING = "searching"
+private const val KEY_LAST_FOCUSED_MATCH = "lastFocusedMatch"
+private const val KEY_REGEX = "regex"
+private const val KEY_CASE_SENSITIVE = "caseSensitive"
+private const val KEY_SOURCE = "source"

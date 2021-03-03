@@ -10,7 +10,7 @@
         <item android:id="@+id/menu_search_source_message"
             android:title="Message" />
 
-        <item android:id="@+id/menu_search_source_message_and_prefix"
+        <item android:id="@+id/menu_search_source_prefix_and_message"
             android:title="Both" />
     </group>
 

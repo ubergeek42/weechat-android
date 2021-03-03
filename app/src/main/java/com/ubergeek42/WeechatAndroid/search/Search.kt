@@ -72,9 +72,9 @@ class Search(
 }
 
 data class SearchConfig(
-        @JvmField val caseSensitive: Boolean,
-        @JvmField val regex: Boolean,
-        @JvmField val source: Source,
+    @JvmField val caseSensitive: Boolean,
+    @JvmField val regex: Boolean,
+    @JvmField val source: Source,
 ) {
     enum class Source {
         Prefix,

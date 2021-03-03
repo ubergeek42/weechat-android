@@ -18,6 +18,10 @@ inline fun EditText.afterTextChanged(crossinline after: (s: Editable) -> Unit) {
     addTextChangedListener(textWatcher)
 }
 
+inline fun <T> List<T>.indexOfOrElse(t: T, default: () -> Int): Int {
+    val index = this.indexOf(t)
+    return if (index == -1) default() else index
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////// let
