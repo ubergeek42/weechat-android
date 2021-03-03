@@ -94,7 +94,7 @@ class BufferFragment : Fragment(), BufferEye {
 
     private var weechatActivity: WeechatActivity? = null
     private var buffer: Buffer? = null
-    private var attached = false
+    private var attachedToBuffer = false
     private var linesAdapter: ChatLinesAdapter? = null
 
     private var uiLines: AnimatedRecyclerView? = null
@@ -200,7 +200,7 @@ class BufferFragment : Fragment(), BufferEye {
         }
 
         initSearchViews(v, savedInstanceState)
-        online = true
+        connectedToRelay = true
         return v
     }
 
@@ -250,14 +250,14 @@ class BufferFragment : Fragment(), BufferEye {
         if (weechatActivity == null || buffer == null || !buffer!!.linesAreReady()) return
         kitty.trace("proceeding!")
 
-        val watched = attached && focused && !weechatActivity!!.isPagerNoticeablyObscured
+        val watched = attachedToBuffer && focused && !weechatActivity!!.isPagerNoticeablyObscured
         if (buffer!!.isWatched != watched) {
             if (watched) linesAdapter!!.scrollToHotLineIfNeeded()
             buffer!!.setWatched(watched)
         }
 
         if (state == State.PAGER_FOCUS && !focused ||                   // swiping left/right or
-                state == State.ATTACHMENT && !attached && focused) {    // minimizing app, closing buffer, disconnecting
+                state == State.ATTACHMENT && !attachedToBuffer && focused) {    // minimizing app, closing buffer, disconnecting
             buffer!!.moveReadMarkerToEnd()
             if (state == State.PAGER_FOCUS) linesAdapter!!.onLineAdded()
         }
@@ -277,51 +277,57 @@ class BufferFragment : Fragment(), BufferEye {
     ///////////////////////////////////////////////////////////////////////////////////////// events
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private var online = true
+    // this is used instead of `buffer == null` as we need buffer while detachFromBuffer is running
+    private var connectedToRelay = true
 
     // this can be forced to always run in background, but then it would run after onStart()
     // if the fragment hasn't been initialized yet, that would lead to a bit of flicker
     @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
     @MainThread @Cat fun onEvent(event: StateChangedEvent) {
-        val online = event.state.contains(RelayService.STATE.LISTED)
-        if (buffer == null || online) {
+        val connectedToRelay = event.state.contains(RelayService.STATE.LISTED)
+
+        if (buffer == null || connectedToRelay) {
             buffer = BufferList.findByPointer(pointer)
-            if (online && buffer == null) {
+            if (connectedToRelay && buffer == null) {
                 onBufferClosed()
                 return
             }
             if (buffer != null) attachToBuffer() else kitty.warn("...buffer is null")   // this should only happen after OOM kill
         }
-        if (this.online != online.also { this.online = it }) initUI()
+
+        if (this.connectedToRelay != connectedToRelay) {
+            this.connectedToRelay = connectedToRelay
+            adjustUiConnectedState()
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////////////// attach detach
 
     @MainThread @Cat private fun attachToBuffer() {
-        buffer!!.setBufferEye(this)
-        linesAdapter!!.setBuffer(buffer)
-        linesAdapter!!.loadLinesWithoutAnimation()
-        attached = true
+        buffer?.setBufferEye(this)
+        linesAdapter?.setBuffer(buffer)
+        linesAdapter?.loadLinesWithoutAnimation()
+        attachedToBuffer = true
         onVisibilityStateChanged(State.ATTACHMENT)
     }
 
     // buffer might be null if we are closing fragment that is not connected
     @MainThread @Cat private fun detachFromBuffer() {
-        attached = false
+        attachedToBuffer = false
         onVisibilityStateChanged(State.ATTACHMENT)
-        linesAdapter!!.setBuffer(null)
-        if (buffer != null) buffer!!.setBufferEye(null)
+        linesAdapter?.setBuffer(null)
+        buffer?.setBufferEye(null)
         buffer = null
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////// ui
 
-    @MainThread @Cat private fun initUI() {
-        uiInput!!.isEnabled = online
-        uiSend!!.isEnabled = online
-        uiTab!!.isEnabled = online
-        uiPaperclip!!.isEnabled = online
-        if (!online) weechatActivity!!.hideSoftwareKeyboard()
+    @MainThread @Cat private fun adjustUiConnectedState() {
+        uiInput?.isEnabled = connectedToRelay
+        uiSend?.isEnabled = connectedToRelay
+        uiTab?.isEnabled = connectedToRelay
+        uiPaperclip?.isEnabled = connectedToRelay
+        if (!connectedToRelay) weechatActivity?.hideSoftwareKeyboard()
     }
 
     private fun applyColorSchemeToViews() {
