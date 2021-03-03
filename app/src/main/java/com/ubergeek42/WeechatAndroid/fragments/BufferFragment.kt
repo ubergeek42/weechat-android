@@ -47,7 +47,6 @@ import com.ubergeek42.WeechatAndroid.service.Events.StateChangedEvent
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.service.RelayService
 import com.ubergeek42.WeechatAndroid.tabcomplete.TabCompleter
-import com.ubergeek42.WeechatAndroid.tabcomplete.TabCompleter.Companion.obtain
 import com.ubergeek42.WeechatAndroid.upload.Config
 import com.ubergeek42.WeechatAndroid.upload.InsertAt
 import com.ubergeek42.WeechatAndroid.upload.MediaAcceptingEditText
@@ -180,7 +179,7 @@ class BufferFragment : Fragment(), BufferEye {
             }
         }
 
-        uiSend!!.setOnClickListener { sendMessage() }
+        uiSend!!.setOnClickListener { sendMessageOrStartUpload() }
         uiTab!!.setOnClickListener { tryTabComplete() }
 
         uiInput!!.setOnKeyListener(uiInputHardwareKeyPressListener)
@@ -193,7 +192,7 @@ class BufferFragment : Fragment(), BufferEye {
 
         uiInput!!.setOnEditorActionListener { _: TextView, actionId: Int, _: KeyEvent ->
             if (actionId == EditorInfo.IME_ACTION_SEND) {
-                sendMessage()
+                sendMessageOrStartUpload()
                 true
             } else {
                 false
@@ -356,7 +355,7 @@ class BufferFragment : Fragment(), BufferEye {
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////////////////////////////// keyboard / buttons
+    /////////////////////////////////////////////////////////////////////////////////////// keyboard
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private val uiInputHardwareKeyPressListener = View.OnKeyListener { _, keyCode, event ->
@@ -364,7 +363,7 @@ class BufferFragment : Fragment(), BufferEye {
 
         when (keyCode) {
             KeyEvent.KEYCODE_ENTER -> {
-                sendMessage()
+                sendMessageOrStartUpload()
                 return@OnKeyListener true
             }
             KeyEvent.KEYCODE_TAB, KeyEvent.KEYCODE_SEARCH -> {
@@ -386,14 +385,13 @@ class BufferFragment : Fragment(), BufferEye {
 
     /////////////////////////////////////////////////////////////////////////////////// send message
 
-    @MainThread private fun sendMessage() {
-        if (buffer == null || uiInput == null) return
-        val suris = uiInput!!.getNotReadySuris()
-        if (!Utils.isEmpty(suris)) {
+    @MainThread private fun sendMessageOrStartUpload() = ulet(buffer, uiInput) { buffer, input ->
+        val suris = input.getNotReadySuris()
+        if (suris.isNotEmpty()) {
             startUploads(suris)
         } else {
-            SendMessageEvent.fireInput(buffer!!, uiInput!!.text.toString())
-            uiInput!!.setText("")   // this will reset tab completion
+            SendMessageEvent.fireInput(buffer, input.text.toString())
+            input.setText("")   // this will reset tab completion
         }
     }
 
@@ -403,18 +401,15 @@ class BufferFragment : Fragment(), BufferEye {
 
     private var completer: TabCompleter? = null
 
-    @MainThread private fun tryTabComplete() {
-        if (buffer == null) return
-        if (completer == null) completer = obtain(lifecycle, buffer!!, uiInput!!)
-        completer!!.next()
+    @MainThread private fun tryTabComplete() = ulet(buffer, uiInput) { buffer, input ->
+        if (completer == null) completer = TabCompleter.obtain(lifecycle, buffer, input)
+        completer?.next()
     }
 
     // check if this input change is caused by tab completion. if not, cancel tab completer
     @MainThread private fun cancelTabCompletionOnInputTextChange() {
-        if (completer != null) {
-            val cancelled = completer!!.cancel()
-            if (cancelled) completer = null
-        }
+        val cancelled = completer?.cancel()
+        if (cancelled == true) completer = null
     }
 
     @MainThread fun setShareObject(shareObject: ShareObject) {
