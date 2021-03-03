@@ -165,7 +165,7 @@ class BufferFragment : Fragment(), BufferEye {
         uiLines!!.isFocusableInTouchMode = false
         uiLines!!.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                if (focused && dy != 0) weechatActivity!!.toolbarController.onScroll(dy, uiLines!!.onTop, uiLines!!.onBottom)
+                if (focusedInViewPager && dy != 0) weechatActivity!!.toolbarController.onScroll(dy, uiLines!!.onTop, uiLines!!.onBottom)
             }
         })
 
@@ -242,35 +242,36 @@ class BufferFragment : Fragment(), BufferEye {
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////// visibility state
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    enum class State { ATTACHMENT, PAGER_FOCUS, FULL_VISIBILITY, LINES }
-    @MainThread @Cat(linger = true) fun onVisibilityStateChanged(state: State) {
-        if (weechatActivity == null || buffer == null || !buffer!!.linesAreReady()) return
+    enum class ChangedState { BufferAttachment, PagerFocus, FullVisibility, LinesListed }
+    @MainThread @Cat(linger = true) fun onVisibilityStateChanged(changedState: ChangedState)
+            = ulet(weechatActivity, buffer) { activity, buffer ->
+        if (!buffer.linesAreReady()) return
         kitty.trace("proceeding!")
 
-        val watched = attachedToBuffer && focused && !weechatActivity!!.isPagerNoticeablyObscured
-        if (buffer!!.isWatched != watched) {
-            if (watched) linesAdapter!!.scrollToHotLineIfNeeded()
-            buffer!!.setWatched(watched)
+        val watched = attachedToBuffer && focusedInViewPager && !activity.isPagerNoticeablyObscured
+        if (buffer.isWatched != watched) {
+            if (watched) linesAdapter?.scrollToHotLineIfNeeded()
+            buffer.setWatched(watched)
         }
 
-        if (state == State.PAGER_FOCUS && !focused ||                   // swiping left/right or
-                state == State.ATTACHMENT && !attachedToBuffer && focused) {    // minimizing app, closing buffer, disconnecting
-            buffer!!.moveReadMarkerToEnd()
-            if (state == State.PAGER_FOCUS) linesAdapter!!.onLineAdded()
+        if (changedState == ChangedState.PagerFocus && !focusedInViewPager ||                                   // swiping left/right or
+                changedState == ChangedState.BufferAttachment && !attachedToBuffer && focusedInViewPager) {     // minimizing app, closing buffer, disconnecting
+            buffer.moveReadMarkerToEnd()
+            if (changedState == ChangedState.PagerFocus) linesAdapter?.onLineAdded()                            // trigger redraw after moving marker to end
         }
     }
 
-    private var focused = false
+    private var focusedInViewPager = false
 
     // called by MainPagerAdapter
     // if true the page is the main in the adapter; called when sideways scrolling is complete
     @MainThread override fun setUserVisibleHint(focused: Boolean) {
         super.setUserVisibleHint(focused)
-        this.focused = focused
-        onVisibilityStateChanged(State.PAGER_FOCUS)
+        this.focusedInViewPager = focused
+        onVisibilityStateChanged(ChangedState.PagerFocus)
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -308,13 +309,13 @@ class BufferFragment : Fragment(), BufferEye {
         linesAdapter?.setBuffer(buffer)
         linesAdapter?.loadLinesWithoutAnimation()
         attachedToBuffer = true
-        onVisibilityStateChanged(State.ATTACHMENT)
+        onVisibilityStateChanged(ChangedState.BufferAttachment)
     }
 
     // buffer might be null if we are closing fragment that is not connected
     @MainThread @Cat private fun detachFromBuffer() {
         attachedToBuffer = false
-        onVisibilityStateChanged(State.ATTACHMENT)
+        onVisibilityStateChanged(ChangedState.BufferAttachment)
         linesAdapter?.setBuffer(null)
         buffer?.setBufferEye(null)
         buffer = null
@@ -349,7 +350,7 @@ class BufferFragment : Fragment(), BufferEye {
     @WorkerThread override fun onLinesListed() {
         uiLines?.requestAnimation()
         linesAdapter?.onLinesListed()
-        Weechat.runOnMainThread { onVisibilityStateChanged(State.LINES) }
+        Weechat.runOnMainThread { onVisibilityStateChanged(ChangedState.LinesListed) }
     }
 
     @WorkerThread override fun onPropertiesChanged() {

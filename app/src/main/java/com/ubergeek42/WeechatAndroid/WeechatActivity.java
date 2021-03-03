@@ -617,7 +617,7 @@ public class WeechatActivity extends AppCompatActivity implements
         hideSoftwareKeyboard();
         BufferFragment current = adapter.getCurrentBufferFragment();
         if (current != null)
-            current.onVisibilityStateChanged(BufferFragment.State.FULL_VISIBILITY);
+            current.onVisibilityStateChanged(BufferFragment.ChangedState.FullVisibility);
     }
 
     @MainThread public boolean isPagerNoticeablyObscured() {
