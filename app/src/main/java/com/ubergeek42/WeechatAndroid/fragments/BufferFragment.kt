@@ -183,7 +183,7 @@ class BufferFragment : Fragment(), BufferEye {
         uiInput!!.setOnLongClickListener { Paste.showPasteDialog(uiInput) }
         uiInput!!.afterTextChanged {
             cancelTabCompletionOnInputTextChange()
-            afterTextChanged2()
+            fixupUploadsOnInputTextChange()
             showHidePaperclip()
         }
 
@@ -220,7 +220,7 @@ class BufferFragment : Fragment(), BufferEye {
         EventBus.getDefault().register(this)
         applyColorSchemeToViews()
         uiInput!!.textifyReadySuris()   // this will fix any uploads that were finished while we were absent
-        afterTextChanged2()             // this will set appropriate upload ui state
+        fixupUploadsOnInputTextChange()             // this will set appropriate upload ui state
         showHidePaperclip()
         uploadManager!!.observer = uploadObserver   // this will resume ui for any uploads that are still running
     }
@@ -476,7 +476,7 @@ class BufferFragment : Fragment(), BufferEye {
 
     private var uploadManager: UploadManager? = null
 
-    private fun afterTextChanged2() {
+    private fun fixupUploadsOnInputTextChange() {
         val suris = uiInput!!.getNotReadySuris()
         if (lastUploadStatus == UploadStatus.UPLOADING) {
             uploadManager!!.filterUploads(suris)
