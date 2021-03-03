@@ -347,43 +347,27 @@ class BufferFragment : Fragment(), BufferEye,
     // the only OnKeyListener's method, only applies to hardware buttons
     // User pressed some key in the input box, check for what it was
     @MainThread override fun onKey(v: View, keycode: Int, event: KeyEvent): Boolean {
-        val action = event.action
-        return checkSendMessage(keycode, action) ||
-                checkVolumeButtonResize(keycode, action) ||
-                checkForTabCompletion(keycode, action)
-    }
+        if (event.action != KeyEvent.ACTION_DOWN) return false
 
-    @MainThread private fun checkSendMessage(keycode: Int, action: Int): Boolean {
-        if (keycode == KeyEvent.KEYCODE_ENTER) {
-            if (action == KeyEvent.ACTION_UP) sendMessage()
-            return true
-        }
-        return false
-    }
-
-    @MainThread private fun checkForTabCompletion(keycode: Int, action: Int): Boolean {
-        if ((keycode == KeyEvent.KEYCODE_TAB || keycode == KeyEvent.KEYCODE_SEARCH) &&
-                action == KeyEvent.ACTION_DOWN) {
-            tryTabComplete()
-            return true
-        }
-        return false
-    }
-
-    @MainThread private fun checkVolumeButtonResize(keycode: Int, action: Int): Boolean {
-        if (keycode == KeyEvent.KEYCODE_VOLUME_DOWN || keycode == KeyEvent.KEYCODE_VOLUME_UP) {
-            if (P.volumeBtnSize) {
-                if (action == KeyEvent.ACTION_UP) {
-                    var textSize = P.textSize
-                    when (keycode) {
-                        KeyEvent.KEYCODE_VOLUME_UP -> if (textSize < 30) textSize += 1f
-                        KeyEvent.KEYCODE_VOLUME_DOWN -> if (textSize > 5) textSize -= 1f
-                    }
-                    P.setTextSizeColorAndLetterWidth(textSize)
-                }
+        when (keycode) {
+            KeyEvent.KEYCODE_ENTER -> {
+                sendMessage()
                 return true
             }
+            KeyEvent.KEYCODE_TAB, KeyEvent.KEYCODE_SEARCH -> {
+                tryTabComplete()
+                return true
+            }
+            KeyEvent.KEYCODE_VOLUME_DOWN, KeyEvent.KEYCODE_VOLUME_UP -> {
+                if (P.volumeBtnSize) {
+                    val change = if (keycode == KeyEvent.KEYCODE_VOLUME_UP) 1f else -1f
+                    val textSize = (P.textSize + change).coerceIn(5f, 30f)
+                    P.setTextSizeColorAndLetterWidth(textSize)
+                    return true
+                }
+            }
         }
+
         return false
     }
 
