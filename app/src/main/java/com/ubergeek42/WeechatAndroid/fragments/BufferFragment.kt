@@ -1,10 +1,12 @@
 package com.ubergeek42.WeechatAndroid.fragments
 
+import android.animation.ValueAnimator
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Rect
 import android.os.Build
@@ -107,6 +109,8 @@ class BufferFragment : Fragment(), BufferEye {
     private var uploadProgressBar: ProgressBar? = null
     private var uploadButton: ImageButton? = null
 
+    private var connectivityIndicator: View? = null
+
     companion object {
         @JvmStatic fun newInstance(pointer: Long) =
                 BufferFragment().apply {
@@ -158,6 +162,8 @@ class BufferFragment : Fragment(), BufferEye {
         uploadLayout = v.findViewById(R.id.upload_layout)
         uploadProgressBar = v.findViewById(R.id.upload_progress_bar)
         uploadButton = v.findViewById(R.id.upload_button)
+
+        connectivityIndicator = v.findViewById(R.id.chatview_indicator)
 
         uploadButton?.setOnClickListener {
             if (lastUploadStatus == UploadStatus.UPLOADING) {
@@ -235,6 +241,7 @@ class BufferFragment : Fragment(), BufferEye {
         uploadButton = null
         uploadProgressBar = null
         linesAdapter = null
+        connectivityIndicator = null
 
         destroySearchViews()
     }
@@ -244,6 +251,7 @@ class BufferFragment : Fragment(), BufferEye {
         uiTab?.visibility = if (P.showTab) View.VISIBLE else View.GONE
         EventBus.getDefault().register(this)
         applyColorSchemeToViews()
+        adjustConnectivityIndicator(false)
         uiInput?.textifyReadySuris()   // this will fix any uploads that were finished while we were absent
         fixupUploadsOnInputTextChange()             // this will set appropriate upload ui state
         showHidePaperclip()
@@ -325,10 +333,14 @@ class BufferFragment : Fragment(), BufferEye {
             if (buffer != null) attachToBuffer() else kitty.warn("...buffer is null")   // this should only happen after OOM kill
         }
 
-        if (this.connectedToRelay != connectedToRelay) {
+        val connectivityChange = this.connectedToRelay != connectedToRelay
+
+        if (connectivityChange) {
             this.connectedToRelay = connectedToRelay
             adjustUiConnectedState()
         }
+
+        adjustConnectivityIndicator(connectivityChange)
     }
 
     ////////////////////////////////////////////////////////////////////////////////// attach detach
@@ -339,7 +351,7 @@ class BufferFragment : Fragment(), BufferEye {
         // todo when attaching to the buffer, there's a period when buffers are listed but lines
         // todo for the current buffer have not yet arrived
         // todo make sure that this behaves fine on slow connections
-        linesAdapter?.setBuffer(buffer)
+        if (linesAdapter?.hasBuffer() == false) linesAdapter?.setBuffer(buffer)
 
         linesAdapter?.loadLinesWithoutAnimation()
         attachedToBuffer = true
@@ -364,6 +376,21 @@ class BufferFragment : Fragment(), BufferEye {
         uiPaperclip?.isEnabled = connectedToRelay
         if (!connectedToRelay) weechatActivity?.hideSoftwareKeyboard()
         if (connectedToRelay) (if (isSearchEnabled) searchInput else uiInput)?.requestFocus()
+    }
+
+    @MainThread private fun adjustConnectivityIndicator(animate: Boolean) = ulet(connectivityIndicator) {
+        val linesReady = connectedToRelay && buffer?.linesAreReady() == true
+
+        it.setBackgroundColor(Color.parseColor(when {
+            linesReady -> "#229933"
+            connectedToRelay -> "#FF8C00"
+            else -> "#bb2222"
+        }))
+
+        it.post {
+            val height = if (linesReady) 0 else P._4dp.i
+            if (animate) it.setHeightAnimated(height) else it.setHeight(height)
+        }
     }
 
     private fun applyColorSchemeToViews() {
@@ -426,7 +453,10 @@ class BufferFragment : Fragment(), BufferEye {
         uiLines?.requestAnimation()
         linesAdapter?.setBuffer(buffer)
         linesAdapter?.onLinesListed()
-        Weechat.runOnMainThread { onVisibilityStateChanged(ChangedState.LinesListed) }
+        Weechat.runOnMainThread {
+            adjustConnectivityIndicator(true)
+            onVisibilityStateChanged(ChangedState.LinesListed)
+        }
     }
 
     @WorkerThread override fun onPropertiesChanged() {
@@ -900,4 +930,18 @@ fun RecyclerView.scrollToPositionWithOffsetFix(position: Int, desiredInvisiblePi
         val correction = desiredInvisiblePixels - currentInvisiblePixels
         scrollBy(0, -correction)
     }
+}
+
+
+private fun View.setHeight(height: Int) {
+    val layoutParams = layoutParams
+    layoutParams.height = height
+    this.layoutParams = layoutParams
+}
+
+private fun View.setHeightAnimated(height: Int) {
+    ValueAnimator.ofInt(measuredHeight, height).apply {
+        duration = 500L
+        addUpdateListener { setHeight(animatedValue as Int) }
+    }.start()
 }

@@ -194,12 +194,19 @@
         </LinearLayout>
     </FrameLayout>
 
+    <View android:id="@+id/chatview_indicator"
+        android:layout_width="fill_parent"
+        android:layout_height="0dp"
+        android:background="#ff444444"
+        android:layout_above="@+id/bottom_bar" />
+
+
     <com.ubergeek42.WeechatAndroid.utils.AnimatedRecyclerView
         android:id="@+id/chatview_lines"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:paddingBottom="2dp"
-        android:layout_above="@+id/bottom_bar"
+        android:layout_above="@+id/chatview_indicator"
         android:layout_alignParentTop="true"
 
         android:clickable="false"

@@ -72,6 +72,10 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         setHasStableIds(true);
     }
 
+    @MainThread public boolean hasBuffer() {
+        return buffer != null;
+    }
+
     @MainThread public synchronized void setBuffer(@Nullable Buffer buffer) {
         if (this.buffer == buffer) return;
         this.buffer = buffer;
