@@ -30,6 +30,7 @@ import androidx.core.view.MenuCompat
 import androidx.core.view.forEach
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ItemDecoration
 import com.ubergeek42.WeechatAndroid.R
@@ -204,6 +205,7 @@ class BufferFragment : Fragment(), BufferEye {
         }
 
         initSearchViews(v, savedInstanceState)
+        onRestoreRecyclerViewState(savedInstanceState)
 
         connectedToRelay = true     // assume true, this will get corrected later
         return v
@@ -240,12 +242,19 @@ class BufferFragment : Fragment(), BufferEye {
         uploadManager?.observer = null
         lastUploadStatus = null         // setObserver & afterTextChanged2 will fix this
         detachFromBuffer()
+        recordRecyclerViewState()
         EventBus.getDefault().unregister(this)
     }
 
     @MainThread @Cat override fun onDetach() {
         weechatActivity = null
         super.onDetach()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        onSaveRecyclerViewState(outState)
+        onSaveSearchState(outState)
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -315,6 +324,7 @@ class BufferFragment : Fragment(), BufferEye {
         buffer?.setBufferEye(this)
         linesAdapter?.setBuffer(buffer)
         linesAdapter?.loadLinesWithoutAnimation()
+        maybeRestoreRecyclerViewState()
         attachedToBuffer = true
         onVisibilityStateChanged(ChangedState.BufferAttachment)
     }
@@ -340,6 +350,42 @@ class BufferFragment : Fragment(), BufferEye {
 
     private fun applyColorSchemeToViews() {
         requireView().findViewById<View>(R.id.bottom_bar).setBackgroundColor(P.colorPrimary)
+    }
+
+    data class RecyclerViewState(val lastChildPointer: Long, val invisiblePixels: Int)
+
+    private var recyclerViewState: RecyclerViewState? = null
+
+    private fun onRestoreRecyclerViewState(savedInstanceState: Bundle?) {
+        savedInstanceState?.run {
+            recyclerViewState = RecyclerViewState(
+                    getLong(KEY_LAST_CHILD_POINTER),
+                    getInt(KEY_INVISIBLE_PIXELS)
+            )
+        }
+    }
+
+    private fun maybeRestoreRecyclerViewState() = ulet(uiLines, recyclerViewState, linesAdapter) {
+            lines, state, adapter ->
+        val position = adapter.findPositionByPointer(state.lastChildPointer)
+        if (position == -1) return
+
+        lines.post {
+            lines.scrollToPositionWithOffsetFix(position, state.invisiblePixels)
+            lines.post { lines.recheckTopBottom() }
+        }
+    }
+
+    private fun recordRecyclerViewState() = ulet(uiLines) { lines ->
+        val lastChild: View = lines.getChildAt(lines.childCount - 1) ?: return
+        val lastChildPointer = lines.getChildItemId(lastChild)
+        val invisiblePixels = lastChild.bottom - lines.height
+        recyclerViewState = RecyclerViewState(lastChildPointer, invisiblePixels)
+    }
+
+    private fun onSaveRecyclerViewState(outState: Bundle) = ulet(recyclerViewState) { state ->
+        outState.putLong(KEY_LAST_CHILD_POINTER, state.lastChildPointer)
+        outState.putInt(KEY_INVISIBLE_PIXELS, state.invisiblePixels)
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -664,8 +710,7 @@ class BufferFragment : Fragment(), BufferEye {
         searchOverflow = null
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
+    private fun onSaveSearchState(outState: Bundle) {
         outState.putBoolean(KEY_SEARCHING, matches !== emptyMatches)
         outState.putLong(KEY_LAST_FOCUSED_MATCH, focusedMatch)
         outState.putBoolean(KEY_CASE_SENSITIVE, searchConfig.caseSensitive)
@@ -771,7 +816,9 @@ class BufferFragment : Fragment(), BufferEye {
 
         matches.getOrNull(index)?.let {
             focusedMatch = it
-            linesAdapter?.scrollToPointer(it)
+            linesAdapter?.findPositionByPointer(it)?.let { position ->
+                if (position != -1) uiLines?.smoothScrollToPosition(position)
+            }
             uiLines?.invalidate()   // trigger redecoration
             enableDisableSearchButtons()
             adjustSearchNumbers()
@@ -806,8 +853,22 @@ private val paperclipTransition = Fade().apply {
 private val emptyMatches: List<Long> = ArrayList()
 private val badRegexPatternMatches: List<Long> = ArrayList()
 
+private const val KEY_LAST_CHILD_POINTER = "lastChildPointer"
+private const val KEY_INVISIBLE_PIXELS = "invisiblePixels"
 private const val KEY_SEARCHING = "searching"
 private const val KEY_LAST_FOCUSED_MATCH = "lastFocusedMatch"
 private const val KEY_REGEX = "regex"
 private const val KEY_CASE_SENSITIVE = "caseSensitive"
 private const val KEY_SOURCE = "source"
+
+
+fun RecyclerView.scrollToPositionWithOffsetFix(position: Int, desiredInvisiblePixels: Int) {
+    val linearLayoutManager = layoutManager as LinearLayoutManager
+    linearLayoutManager.scrollToPositionWithOffset(position, height - 1)
+    post {
+        val lastChild = getChildAt(childCount - 1) ?: return@post
+        val currentInvisiblePixels = lastChild.bottom - height
+        val correction = desiredInvisiblePixels - currentInvisiblePixels
+        scrollBy(0, -correction)
+    }
+}

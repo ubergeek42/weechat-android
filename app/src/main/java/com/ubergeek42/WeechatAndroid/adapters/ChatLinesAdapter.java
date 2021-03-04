@@ -349,14 +349,14 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         if (search != null) search.onLinesChanged(lines);
     }
 
-    @MainThread public void scrollToPointer(Long pointer) {
+    @MainThread public int findPositionByPointer(long pointer) {
         int index = 0;
         for (Line line: lines) {
             if (line.pointer == pointer) {
-                uiLines.smoothScrollToPosition(index);
-                return;
+                return index;
             }
             index++;
         }
+        return -1;
     }
 }

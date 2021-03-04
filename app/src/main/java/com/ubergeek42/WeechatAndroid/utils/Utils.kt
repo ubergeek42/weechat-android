@@ -28,6 +28,15 @@ inline fun <T> List<T>.indexOfOrElse(t: T, default: () -> Int): Int {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 @OptIn(ExperimentalContracts::class)
+inline fun <A> ulet(a: A?, block: (A) -> Unit) {
+    contract { callsInPlace(block, InvocationKind.AT_MOST_ONCE) }
+
+    if (a != null) {
+        block(a)
+    }
+}
+
+@OptIn(ExperimentalContracts::class)
 inline fun <A, B> ulet(a: A?, b: B?, block: (A, B) -> Unit) {
     contract { callsInPlace(block, InvocationKind.AT_MOST_ONCE) }
 

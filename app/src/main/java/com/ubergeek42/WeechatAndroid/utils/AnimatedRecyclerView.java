@@ -201,4 +201,10 @@ public class AnimatedRecyclerView extends RecyclerView {
         if (dy > 0 && !firstVisible) onTop = false;
         else if (dy < 0 && firstVisible) onTop = true;
     }
+
+    public void recheckTopBottom() {
+        if (getAdapter() == null) return;
+        onTop = manager.findFirstCompletelyVisibleItemPosition() == 0;
+        onBottom = manager.findLastCompletelyVisibleItemPosition() == getAdapter().getItemCount() - 1;
+    }
 }
