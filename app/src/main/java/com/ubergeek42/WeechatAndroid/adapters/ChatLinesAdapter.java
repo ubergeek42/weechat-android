@@ -73,6 +73,7 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     }
 
     @MainThread public synchronized void setBuffer(@Nullable Buffer buffer) {
+        if (this.buffer == buffer) return;
         this.buffer = buffer;
         kitty.setPrefix(buffer == null ? null : buffer.shortName);
     }
@@ -276,6 +277,13 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         if (buffer == null) return;
         uiLines.disableAnimationForNextUpdate();
         onLinesChanged();
+    }
+
+    @MainThread synchronized public void loadLinesSilently() {
+        if (buffer == null) return;
+        final ArrayList<Line> newLines = buffer.getLinesCopy();
+        _lines = newLines;
+        lines = newLines;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

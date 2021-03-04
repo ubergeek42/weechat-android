@@ -119,7 +119,10 @@ class BufferFragment : Fragment(), BufferEye {
     @MainThread override fun setArguments(args: Bundle?) {
         super.setArguments(args)
         pointer = requireArguments().getLong(POINTER_KEY)
-        kitty.setPrefix(Utils.pointerToString(pointer))
+        BufferList.findByPointer(pointer)?.let {
+            buffer = it
+            kitty.setPrefix(it.shortName)
+        } ?: kitty.setPrefix(Utils.pointerToString(pointer))
         uploadManager = UploadManager.forBuffer(pointer)
     }
 
@@ -134,6 +137,11 @@ class BufferFragment : Fragment(), BufferEye {
 
     @MainThread @Cat override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        savedInstanceState?.let {
+            restoreRecyclerViewState(it)
+            restoreSearchState(it)
+        }
     }
 
     @MainThread @Cat override fun onCreateView(
@@ -159,7 +167,12 @@ class BufferFragment : Fragment(), BufferEye {
             }
         }
 
-        linesAdapter = ChatLinesAdapter(uiLines)
+        linesAdapter = ChatLinesAdapter(uiLines).apply {
+            this@BufferFragment.buffer?.let {
+                setBuffer(it)
+                loadLinesSilently()
+            }
+        }
 
         uiLines?.run {
             adapter = linesAdapter
@@ -204,8 +217,8 @@ class BufferFragment : Fragment(), BufferEye {
             }
         }
 
-        initSearchViews(v, savedInstanceState)
-        onRestoreRecyclerViewState(savedInstanceState)
+        initSearchViews(v)
+        uiLines?.post { applyRecyclerViewState() }
 
         connectedToRelay = true     // assume true, this will get corrected later
         return v
@@ -253,8 +266,8 @@ class BufferFragment : Fragment(), BufferEye {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        onSaveRecyclerViewState(outState)
-        onSaveSearchState(outState)
+        saveRecyclerViewState(outState)
+        saveSearchState(outState)
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -322,9 +335,13 @@ class BufferFragment : Fragment(), BufferEye {
 
     @MainThread @Cat private fun attachToBuffer() {
         buffer?.setBufferEye(this)
+
+        // todo when attaching to the buffer, there's a period when buffers are listed but lines
+        // todo for the current buffer have not yet arrived
+        // todo make sure that this behaves fine on slow connections
         linesAdapter?.setBuffer(buffer)
+
         linesAdapter?.loadLinesWithoutAnimation()
-        maybeRestoreRecyclerViewState()
         attachedToBuffer = true
         onVisibilityStateChanged(ChangedState.BufferAttachment)
     }
@@ -333,12 +350,12 @@ class BufferFragment : Fragment(), BufferEye {
     @MainThread @Cat private fun detachFromBuffer() {
         attachedToBuffer = false
         onVisibilityStateChanged(ChangedState.BufferAttachment)
-        linesAdapter?.setBuffer(null)
         buffer?.setBufferEye(null)
-        buffer = null
     }
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////// ui
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @MainThread @Cat private fun adjustUiConnectedState() {
         uiInput?.isEnabled = connectedToRelay
@@ -346,46 +363,51 @@ class BufferFragment : Fragment(), BufferEye {
         uiTab?.isEnabled = connectedToRelay
         uiPaperclip?.isEnabled = connectedToRelay
         if (!connectedToRelay) weechatActivity?.hideSoftwareKeyboard()
+        if (connectedToRelay) (if (isSearchEnabled) searchInput else uiInput)?.requestFocus()
     }
 
     private fun applyColorSchemeToViews() {
         requireView().findViewById<View>(R.id.bottom_bar).setBackgroundColor(P.colorPrimary)
     }
 
-    data class RecyclerViewState(val lastChildPointer: Long, val invisiblePixels: Int)
+    //////////////////////////////////////////////////////////////////////////// recycler view state
+
+    private data class RecyclerViewState(
+        val lastChildPointer: Long,
+        val invisiblePixels: Int,
+    )
 
     private var recyclerViewState: RecyclerViewState? = null
 
-    private fun onRestoreRecyclerViewState(savedInstanceState: Bundle?) {
-        savedInstanceState?.run {
-            recyclerViewState = RecyclerViewState(
-                    getLong(KEY_LAST_CHILD_POINTER),
-                    getInt(KEY_INVISIBLE_PIXELS)
-            )
-        }
+    private fun saveRecyclerViewState(outState: Bundle) = ulet(recyclerViewState) {
+        outState.putLong(KEY_LAST_CHILD_POINTER, it.lastChildPointer)
+        outState.putInt(KEY_INVISIBLE_PIXELS, it.invisiblePixels)
     }
 
-    private fun maybeRestoreRecyclerViewState() = ulet(uiLines, recyclerViewState, linesAdapter) {
-            lines, state, adapter ->
-        val position = adapter.findPositionByPointer(state.lastChildPointer)
-        if (position == -1) return
-
-        lines.post {
-            lines.scrollToPositionWithOffsetFix(position, state.invisiblePixels)
-            lines.post { lines.recheckTopBottom() }
-        }
+    private fun restoreRecyclerViewState(savedInstanceState: Bundle) {
+        recyclerViewState = RecyclerViewState(
+                savedInstanceState.getLong(KEY_LAST_CHILD_POINTER),
+                savedInstanceState.getInt(KEY_INVISIBLE_PIXELS))
     }
 
     private fun recordRecyclerViewState() = ulet(uiLines) { lines ->
-        val lastChild: View = lines.getChildAt(lines.childCount - 1) ?: return
-        val lastChildPointer = lines.getChildItemId(lastChild)
-        val invisiblePixels = lastChild.bottom - lines.height
-        recyclerViewState = RecyclerViewState(lastChildPointer, invisiblePixels)
+        recyclerViewState = if (lines.onBottom) {
+            null
+        } else {
+            val lastChild: View = lines.getChildAt(lines.childCount - 1) ?: return
+            val lastChildPointer = lines.getChildItemId(lastChild)
+            val invisiblePixels = lastChild.bottom - lines.height
+            RecyclerViewState(lastChildPointer, invisiblePixels)
+        }
     }
 
-    private fun onSaveRecyclerViewState(outState: Bundle) = ulet(recyclerViewState) { state ->
-        outState.putLong(KEY_LAST_CHILD_POINTER, state.lastChildPointer)
-        outState.putInt(KEY_INVISIBLE_PIXELS, state.invisiblePixels)
+    private fun applyRecyclerViewState() = ulet(recyclerViewState, uiLines, linesAdapter) {
+            state, lines, adapter ->
+        val position = adapter.findPositionByPointer(state.lastChildPointer)
+        if (position == -1) return
+
+        lines.scrollToPositionWithOffsetFix(position, state.invisiblePixels)
+        lines.post { lines.recheckTopBottom() }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -402,6 +424,7 @@ class BufferFragment : Fragment(), BufferEye {
 
     @WorkerThread override fun onLinesListed() {
         uiLines?.requestAnimation()
+        linesAdapter?.setBuffer(buffer)
         linesAdapter?.onLinesListed()
         Weechat.runOnMainThread { onVisibilityStateChanged(ChangedState.LinesListed) }
     }
@@ -645,7 +668,26 @@ class BufferFragment : Fragment(), BufferEye {
     private var searchDown: ImageButton? = null
     private var searchOverflow: ImageButton? = null
 
-    private fun initSearchViews(root: View, savedInstanceState: Bundle?) {
+    private fun saveSearchState(outState: Bundle) {
+        outState.putBoolean(KEY_SEARCHING, isSearchEnabled)
+        outState.putLong(KEY_LAST_FOCUSED_MATCH, focusedMatch)
+        outState.putBoolean(KEY_CASE_SENSITIVE, searchConfig.caseSensitive)
+        outState.putBoolean(KEY_REGEX, searchConfig.regex)
+        outState.putString(KEY_SOURCE, searchConfig.source.name)
+    }
+
+    private fun restoreSearchState(savedInstanceState: Bundle) {
+        matches = if (savedInstanceState.getBoolean(KEY_SEARCHING))
+                pendingMatches else emptyMatches
+        focusedMatch = savedInstanceState.getLong(KEY_LAST_FOCUSED_MATCH)
+        searchConfig = SearchConfig(
+                caseSensitive = savedInstanceState.getBoolean(KEY_CASE_SENSITIVE),
+                regex = savedInstanceState.getBoolean(KEY_REGEX),
+                SearchConfig.Source.valueOf(savedInstanceState.getString(KEY_SOURCE)!!)
+        )
+    }
+
+    private fun initSearchViews(root: View) {
         searchBar = root.findViewById(R.id.search_bar)
         inputBar = root.findViewById(R.id.input_bar)
 
@@ -686,15 +728,7 @@ class BufferFragment : Fragment(), BufferEye {
 
         // todo figure out why views are recreated while the instance is retained
         // post to searchInput so that this is run after search input has been restored
-        if (matches !== emptyMatches) {
-            searchInput?.post { searchEnableDisable(enable = true, newSearch = false) }
-        } else if (savedInstanceState != null && savedInstanceState.getBoolean(KEY_SEARCHING)) {
-            focusedMatch = savedInstanceState.getLong(KEY_LAST_FOCUSED_MATCH)
-            searchConfig = SearchConfig(
-                    caseSensitive = savedInstanceState.getBoolean(KEY_CASE_SENSITIVE),
-                    regex = savedInstanceState.getBoolean(KEY_REGEX),
-                    SearchConfig.Source.valueOf(savedInstanceState.getString(KEY_SOURCE)!!)
-            )
+        if (isSearchEnabled) {
             searchInput?.post { searchEnableDisable(enable = true, newSearch = false) }
         }
     }
@@ -708,14 +742,6 @@ class BufferFragment : Fragment(), BufferEye {
         searchUp = null
         searchDown = null
         searchOverflow = null
-    }
-
-    private fun onSaveSearchState(outState: Bundle) {
-        outState.putBoolean(KEY_SEARCHING, matches !== emptyMatches)
-        outState.putLong(KEY_LAST_FOCUSED_MATCH, focusedMatch)
-        outState.putBoolean(KEY_CASE_SENSITIVE, searchConfig.caseSensitive)
-        outState.putBoolean(KEY_REGEX, searchConfig.regex)
-        outState.putString(KEY_SOURCE, searchConfig.source.name)
     }
 
     @MainThread @Cat fun searchEnableDisable(enable: Boolean, newSearch: Boolean = false) {
@@ -751,8 +777,10 @@ class BufferFragment : Fragment(), BufferEye {
         }
     }
 
-    private var matches = emptyMatches          // list of pointers
+    private var matches = emptyMatches      // list of pointers
     private var focusedMatch: Long = 0      // pointer to the last focused match, or 0 if n/a
+
+    private val isSearchEnabled get() = matches !== emptyMatches
 
     private var searchListener = Search.Listener { matches: List<Long> ->
         this.matches = matches
@@ -851,6 +879,7 @@ private val paperclipTransition = Fade().apply {
 }
 
 private val emptyMatches: List<Long> = ArrayList()
+private val pendingMatches: List<Long> = ArrayList()
 private val badRegexPatternMatches: List<Long> = ArrayList()
 
 private const val KEY_LAST_CHILD_POINTER = "lastChildPointer"
