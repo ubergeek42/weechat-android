@@ -1,6 +1,5 @@
 package com.ubergeek42.WeechatAndroid.fragments
 
-import android.animation.ValueAnimator
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -74,6 +73,7 @@ import com.ubergeek42.WeechatAndroid.utils.afterTextChanged
 import com.ubergeek42.WeechatAndroid.utils.indexOfOrElse
 import com.ubergeek42.WeechatAndroid.utils.ulet
 import com.ubergeek42.WeechatAndroid.views.BackGestureAwareEditText
+import com.ubergeek42.WeechatAndroid.views.CircleView
 import com.ubergeek42.WeechatAndroid.views.OnBackGestureListener
 import com.ubergeek42.cats.Cat
 import com.ubergeek42.cats.CatD
@@ -90,7 +90,6 @@ private const val POINTER_KEY = "pointer"
 
 
 class BufferFragment : Fragment(), BufferEye {
-
     @Root private val kitty: Kitty = Kitty.make("BF")
 
     private var pointer: Long = 0
@@ -109,7 +108,7 @@ class BufferFragment : Fragment(), BufferEye {
     private var uploadProgressBar: ProgressBar? = null
     private var uploadButton: ImageButton? = null
 
-    private var connectivityIndicator: View? = null
+    private var connectivityIndicator: CircleView? = null
 
     companion object {
         @JvmStatic fun newInstance(pointer: Long) =
@@ -163,7 +162,7 @@ class BufferFragment : Fragment(), BufferEye {
         uploadProgressBar = v.findViewById(R.id.upload_progress_bar)
         uploadButton = v.findViewById(R.id.upload_button)
 
-        connectivityIndicator = v.findViewById(R.id.chatview_indicator)
+        connectivityIndicator = v.findViewById(R.id.connectivity_indicator)
 
         uploadButton?.setOnClickListener {
             if (lastUploadStatus == UploadStatus.UPLOADING) {
@@ -381,15 +380,17 @@ class BufferFragment : Fragment(), BufferEye {
     @MainThread private fun adjustConnectivityIndicator(animate: Boolean) = ulet(connectivityIndicator) {
         val linesReady = connectedToRelay && buffer?.linesAreReady() == true
 
-        it.setBackgroundColor(Color.parseColor(when {
+        it.setColor(Color.parseColor(when {
             linesReady -> "#229933"
             connectedToRelay -> "#FF8C00"
             else -> "#bb2222"
         }))
 
-        it.post {
-            val height = if (linesReady) 0 else P._4dp.i
-            if (animate) it.setHeightAnimated(height) else it.setHeight(height)
+        val visibility = if (linesReady) View.GONE else View.VISIBLE
+        if (it.visibility != visibility) {
+            if (animate) TransitionManager.beginDelayedTransition(
+                    it.parent as ViewGroup, connectivityIndicatorTransition)
+            it.visibility = visibility
         }
     }
 
@@ -908,6 +909,11 @@ private val paperclipTransition = Fade().apply {
     addTarget(R.id.chatview_paperclip)
 }
 
+private val connectivityIndicatorTransition = Fade().apply {
+    duration = 500
+    addTarget(R.id.connectivity_indicator)
+}
+
 private val emptyMatches: List<Long> = ArrayList()
 private val pendingMatches: List<Long> = ArrayList()
 private val badRegexPatternMatches: List<Long> = ArrayList()
@@ -930,18 +936,4 @@ fun RecyclerView.scrollToPositionWithOffsetFix(position: Int, desiredInvisiblePi
         val correction = desiredInvisiblePixels - currentInvisiblePixels
         scrollBy(0, -correction)
     }
-}
-
-
-private fun View.setHeight(height: Int) {
-    val layoutParams = layoutParams
-    layoutParams.height = height
-    this.layoutParams = layoutParams
-}
-
-private fun View.setHeightAnimated(height: Int) {
-    ValueAnimator.ofInt(measuredHeight, height).apply {
-        duration = 500L
-        addUpdateListener { setHeight(animatedValue as Int) }
-    }.start()
 }
