@@ -415,6 +415,7 @@ public class WeechatActivity extends AppCompatActivity implements
     @MainThread public void updateMenuItems() {
         if (uiMenu == null) return;
         boolean bufferVisible = adapter.getCount() > 0;
+        uiMenu.findItem(R.id.menu_search).setVisible(bufferVisible);
         uiMenu.findItem(R.id.menu_nicklist).setVisible(bufferVisible);
         uiMenu.findItem(R.id.menu_close).setVisible(bufferVisible);
         uiMenu.findItem(R.id.menu_filter_lines).setChecked(P.filterLines);
