@@ -1,16 +1,12 @@
 package com.ubergeek42.WeechatAndroid
 
 import android.app.Dialog
-import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.View
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.RelativeLayout
-import androidx.annotation.MainThread
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.ubergeek42.WeechatAndroid.adapters.BufferListAdapter
@@ -22,14 +18,14 @@ import com.ubergeek42.WeechatAndroid.upload.preloadThumbnailsForIntent
 import com.ubergeek42.WeechatAndroid.utils.Constants
 import com.ubergeek42.WeechatAndroid.utils.ThemeFix
 import com.ubergeek42.WeechatAndroid.utils.Toaster
-import com.ubergeek42.WeechatAndroid.utils.Utils
+import com.ubergeek42.WeechatAndroid.utils.afterTextChanged
+import com.ubergeek42.WeechatAndroid.utils.isAnyOf
 import org.greenrobot.eventbus.EventBus
 
-class ShareTextActivity : AppCompatActivity(), DialogInterface.OnDismissListener, BufferListClickListener {
+class ShareTextActivity : AppCompatActivity(), BufferListClickListener {
     private var dialog: Dialog? = null
 
     private var uiRecycler: RecyclerView? = null
-    private var adapter: BufferListAdapter? = null
     private var uiFilterBar: RelativeLayout? = null
     private var uiFilter: EditText? = null
     private var uiFilterClear: ImageButton? = null
@@ -50,44 +46,54 @@ class ShareTextActivity : AppCompatActivity(), DialogInterface.OnDismissListener
             return
         }
 
-        if (Utils.isAnyOf(intent.action, Intent.ACTION_SEND, Intent.ACTION_SEND_MULTIPLE)) {
+        if (intent.action.isAnyOf(Intent.ACTION_SEND, Intent.ACTION_SEND_MULTIPLE)) {
             preloadThumbnailsForIntent(intent)
 
-            dialog = Dialog(this, R.style.AlertDialogTheme)
-            dialog!!.setContentView(R.layout.bufferlist_share)
+            dialog = Dialog(this, R.style.AlertDialogTheme).also {
+                it.setContentView(R.layout.bufferlist_share)
+                it.setCanceledOnTouchOutside(true)
+                it.setCancelable(true)
+                it.setOnDismissListener { finish() }
 
-            uiRecycler = dialog!!.findViewById(R.id.recycler)
-            uiFilterBar = dialog!!.findViewById(R.id.filter_bar)
-            uiFilter = dialog!!.findViewById(R.id.bufferlist_filter)
-            uiFilterClear = dialog!!.findViewById(R.id.bufferlist_filter_clear)
+                uiRecycler = it.findViewById(R.id.recycler)
+                uiFilterBar = it.findViewById(R.id.filter_bar)
+                uiFilter = it.findViewById(R.id.bufferlist_filter)
+                uiFilterClear = it.findViewById(R.id.bufferlist_filter_clear)
+            }
 
-            adapter = BufferListAdapter()
-            uiRecycler!!.adapter = adapter
-            uiFilterClear!!.setOnClickListener { uiFilter!!.text = null }
-            uiFilter!!.addTextChangedListener(filterTextWatcher)
-            uiFilter!!.setText(BufferListAdapter.filterGlobal)
+            val adapter = BufferListAdapter()
 
-            adapter!!.onBuffersChanged()
-            dialog!!.setCanceledOnTouchOutside(true)
-            dialog!!.setCancelable(true)
-            dialog!!.setOnDismissListener(this)
+            uiRecycler?.adapter = adapter
+            uiFilterClear?.setOnClickListener { uiFilter?.text = null }
+
+            uiFilter?.run {
+                setText(BufferListAdapter.filterGlobal)
+                afterTextChanged {
+                    uiFilterClear?.visibility = if (it.isEmpty()) View.INVISIBLE else View.VISIBLE
+                    adapter.setFilter(it.toString(), false)
+                    adapter.onBuffersChanged()
+                }
+            }
+
+            adapter.onBuffersChanged()
 
             if (!P.showBufferFilter) {
-                uiFilterBar!!.visibility = View.GONE
-                uiRecycler!!.setPadding(0, 0, 0, 0)
+                uiFilterBar?.visibility = View.GONE
+                uiRecycler?.setPadding(0, 0, 0, 0)
             }
 
             applyColorSchemeToViews()
 
-            dialog!!.show()
+            dialog?.show()
         }
     }
 
     override fun onStop() {
         super.onStop()
-        if (dialog == null) return
-        dialog!!.setOnDismissListener(null)     // prevent dismiss() from finish()ing the activity
-        dialog!!.dismiss()                      // must be called in order to not cause leaks
+        dialog?.let {
+            it.setOnDismissListener(null)       // prevent dismiss() from finish()ing the activity
+            it.dismiss()                        // must be called in order to not cause leaks
+        }
     }
 
     // as we are receiving uris now, it's important that we keep all permissions associated with them.
@@ -100,22 +106,8 @@ class ShareTextActivity : AppCompatActivity(), DialogInterface.OnDismissListener
         finish()
     }
 
-    override fun onDismiss(dialog: DialogInterface) {
-        finish()
-    }
-
-    private val filterTextWatcher: TextWatcher = object : TextWatcher {
-        @MainThread override fun afterTextChanged(a: Editable) { }
-        @MainThread override fun beforeTextChanged(arg0: CharSequence, a: Int, b: Int, c: Int) { }
-        @MainThread override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
-            uiFilterClear!!.visibility = if (s.isEmpty()) View.INVISIBLE else View.VISIBLE
-            adapter!!.setFilter(s.toString(), false)
-            adapter!!.onBuffersChanged()
-        }
-    }
-
     private fun applyColorSchemeToViews() {
-        uiFilterBar!!.setBackgroundColor(P.colorPrimary)
-        uiRecycler!!.setBackgroundColor(P.colorPrimary)
+        uiFilterBar?.setBackgroundColor(P.colorPrimary)
+        uiRecycler?.setBackgroundColor(P.colorPrimary)
     }
 }

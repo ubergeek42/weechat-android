@@ -1,3 +1,5 @@
+@file:Suppress("NOTHING_TO_INLINE")
+
 package com.ubergeek42.WeechatAndroid.utils
 
 import android.text.Editable
@@ -22,6 +24,10 @@ inline fun <T> List<T>.indexOfOrElse(t: T, default: () -> Int): Int {
     val index = this.indexOf(t)
     return if (index == -1) default() else index
 }
+
+inline fun <T> T.isAnyOf(a: T, b: T) = this == a || this == b
+inline fun <T> T.isAnyOf(a: T, b: T, c: T) = this == a || this == b || this == c
+inline fun <T> T.isAnyOf(a: T, b: T, c: T, d: T) = this == a || this == b || this == c || this == d
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////// let
