@@ -115,7 +115,6 @@ public class WeechatActivity extends AppCompatActivity implements
     public InputMethodManager imm;
 
     private boolean slidy;
-    private boolean drawerEnabled = true;
     private boolean drawerShowing = false;
     private DrawerLayout uiDrawerLayout = null;
     private View uiDrawer = null;
@@ -290,7 +289,6 @@ public class WeechatActivity extends AppCompatActivity implements
         else if (state.contains(AUTHENTICATED)) image = R.drawable.ic_big_connected;
         else image = R.drawable.ic_big_connecting;
         setInfoImage(image);
-        setDrawerEnabled(state.contains(LISTED));
         makeMenuReflectConnectionStatus();
     }
 
@@ -459,7 +457,7 @@ public class WeechatActivity extends AppCompatActivity implements
     @MainThread @Override @Cat("Menu") public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
-                if (slidy && drawerEnabled) {
+                if (slidy) {
                     if (drawerShowing) hideDrawer();
                     else showDrawer();
                 }
@@ -553,26 +551,22 @@ public class WeechatActivity extends AppCompatActivity implements
     }
 
     @MainThread @Cat("Buffers") public void openBuffer(long pointer, @Nullable ShareObject shareObject) {
-        if (adapter.isBufferOpen(pointer) || state.contains(AUTHENTICATED)) {
-            adapter.openBuffer(pointer);
-            adapter.focusBuffer(pointer);
+        adapter.openBuffer(pointer);
+        adapter.focusBuffer(pointer);
 
-            if (slidy) hideDrawer();
+        if (slidy) hideDrawer();
 
-            if (shareObject != null) {
-                BufferFragment fragment = adapter.getCurrentBufferFragment();
-                if (fragment != null && fragment.getView() != null) {
-                    fragment.setShareObject(shareObject);
-                } else {
-                    // let fragment be created first, if it's not ready
-                    Weechat.runOnMainThread(() -> {
-                        BufferFragment fragment1 = adapter.getCurrentBufferFragment();
-                        if (fragment1 != null) fragment1.setShareObject(shareObject);
-                    });
-                }
+        if (shareObject != null) {
+            BufferFragment fragment = adapter.getCurrentBufferFragment();
+            if (fragment != null && fragment.getView() != null) {
+                fragment.setShareObject(shareObject);
+            } else {
+                // let fragment be created first, if it's not ready
+                Weechat.runOnMainThread(() -> {
+                    BufferFragment fragment1 = adapter.getCurrentBufferFragment();
+                    if (fragment1 != null) fragment1.setShareObject(shareObject);
+                });
             }
-        } else {
-            ErrorToast.show(R.string.error__etc__not_connected);
         }
     }
 
@@ -624,15 +618,7 @@ public class WeechatActivity extends AppCompatActivity implements
         return drawerShowing;
     }
 
-    @MainThread @Cat("Drawer") private void setDrawerEnabled(final boolean enabled) {
-        drawerEnabled = enabled;
-        if (slidy) uiDrawerLayout.setDrawerLockMode(enabled ?
-                DrawerLayout.LOCK_MODE_UNLOCKED : DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
-        else uiDrawer.setVisibility(enabled ? View.VISIBLE : View.GONE);
-    }
-
     @MainThread @Cat("Drawer") public void showDrawer() {
-        if (!drawerEnabled) return;
         if (!drawerShowing) drawerVisibilityChanged(true); // we need this so that drawerShowing is set immediately
         uiDrawerLayout.openDrawer(uiDrawer, started);
     }
