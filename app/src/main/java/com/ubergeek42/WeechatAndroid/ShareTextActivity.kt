@@ -23,11 +23,6 @@ import com.ubergeek42.WeechatAndroid.utils.isNotAnyOf
 class ShareTextActivity : AppCompatActivity(), BufferListClickListener {
     private var dialog: Dialog? = null
 
-    private var uiRecycler: RecyclerView? = null
-    private var uiFilterBar: RelativeLayout? = null
-    private var uiFilter: EditText? = null
-    private var uiFilterClear: ImageButton? = null
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         P.applyThemeAfterActivityCreation(this)
@@ -43,51 +38,53 @@ class ShareTextActivity : AppCompatActivity(), BufferListClickListener {
             return
         }
 
+        val adapter = BufferListAdapter().apply {
+            onBuffersChanged()
+
+            if (pendingItemCount == 0) {
+                val canShowBuffers = P.showBufferFilter && BufferList.buffers.isNotEmpty()
+                if (!canShowBuffers) {
+                    Toaster.ErrorToast.show("Buffer list empty")    // todo extract string
+                    finish()
+                    return
+                }
+            }
+        }
+
         preloadThumbnailsForIntent(intent)
 
-        val adapter = BufferListAdapter()
-        adapter.onBuffersChanged()
-        if (adapter.pendingItemCount == 0) {
-            val canShowBuffers = P.showBufferFilter && BufferList.buffers.isNotEmpty()
-            if (!canShowBuffers) {
-                Toaster.ErrorToast.show("Buffer list empty")    // todo extract string
-                finish()
-                return
-            }
+        val dialog = Dialog(this, R.style.AlertDialogTheme).apply {
+            setContentView(R.layout.bufferlist_share)
+            setCanceledOnTouchOutside(true)
+            setCancelable(true)
+            setOnDismissListener { finish() }
         }
 
-        dialog = Dialog(this, R.style.AlertDialogTheme).also {
-            it.setContentView(R.layout.bufferlist_share)
-            it.setCanceledOnTouchOutside(true)
-            it.setCancelable(true)
-            it.setOnDismissListener { finish() }
+        val uiRecyclerView = dialog.findViewById<RecyclerView>(R.id.recycler)
+        val uiFilterBar = dialog.findViewById<RelativeLayout>(R.id.filter_bar)
+        val uiFilter = dialog.findViewById<EditText>(R.id.bufferlist_filter)
+        val uiFilterClear = dialog.findViewById<ImageButton>(R.id.bufferlist_filter_clear)
 
-            uiRecycler = it.findViewById(R.id.recycler)
-            uiFilterBar = it.findViewById(R.id.filter_bar)
-            uiFilter = it.findViewById(R.id.bufferlist_filter)
-            uiFilterClear = it.findViewById(R.id.bufferlist_filter_clear)
+        uiRecyclerView.adapter = adapter
+        uiFilterClear.setOnClickListener { uiFilter.text = null }
+
+        uiFilter.afterTextChanged {
+            uiFilterClear.visibility = if (it.isEmpty()) View.INVISIBLE else View.VISIBLE
+            adapter.setFilter(it.toString(), false)
+            adapter.onBuffersChanged()
         }
 
-        uiRecycler?.adapter = adapter
-        uiFilterClear?.setOnClickListener { uiFilter?.text = null }
-
-        uiFilter?.run {
-            setText(BufferListAdapter.filterGlobal)
-            afterTextChanged {
-                uiFilterClear?.visibility = if (it.isEmpty()) View.INVISIBLE else View.VISIBLE
-                adapter.setFilter(it.toString(), false)
-                adapter.onBuffersChanged()
-            }
-        }
+        uiFilter.setText(BufferListAdapter.filterGlobal)
 
         if (!P.showBufferFilter) {
-            uiFilterBar?.visibility = View.GONE
-            uiRecycler?.setPadding(0, 0, 0, 0)
+            uiFilterBar.visibility = View.GONE
+            uiRecyclerView.setPadding(0, 0, 0, 0)
         }
 
-        applyColorSchemeToViews()
+        applyColorSchemeToViews(uiFilterBar, uiRecyclerView)
 
-        dialog?.show()
+        this.dialog = dialog
+        dialog.show()
     }
 
     override fun onStop() {
@@ -108,8 +105,7 @@ class ShareTextActivity : AppCompatActivity(), BufferListClickListener {
         finish()
     }
 
-    private fun applyColorSchemeToViews() {
-        uiFilterBar?.setBackgroundColor(P.colorPrimary)
-        uiRecycler?.setBackgroundColor(P.colorPrimary)
+    private fun applyColorSchemeToViews(vararg primaryBackgroundColorViews: View) {
+        primaryBackgroundColorViews.forEach { it.setBackgroundColor(P.colorPrimary) }
     }
 }
