@@ -25,8 +25,8 @@ class BackGestureAwareEditText @JvmOverloads constructor(
 
     var onBackGestureListener: OnBackGestureListener? = null
 
-    override fun onKeyPreIme(keyCode: Int, event: KeyEvent): Boolean {
-        if (event.isBackGesture && event.action == ACTION_UP) {
+    override fun onKeyPreIme(keyCode: Int, event: KeyEvent?): Boolean {
+        if (event != null && event.isBackGesture && event.action == ACTION_UP) {
             if (onBackGestureListener?.onBackGesture() == true) return true
         }
 

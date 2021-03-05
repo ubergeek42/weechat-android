@@ -18,8 +18,10 @@ class CircleView @JvmOverloads constructor(
     }
 
     fun setColor(color: Int) {
-        if (color != paint.color) invalidate()
-        paint.color = color
+        if (color != paint.color) {
+            paint.color = color
+            invalidate()
+        }
     }
 
     override fun onDraw(canvas: Canvas) {

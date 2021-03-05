@@ -66,6 +66,7 @@ import com.ubergeek42.WeechatAndroid.upload.i
 import com.ubergeek42.WeechatAndroid.upload.suppress
 import com.ubergeek42.WeechatAndroid.upload.validateUploadConfig
 import com.ubergeek42.WeechatAndroid.utils.AnimatedRecyclerView
+import com.ubergeek42.WeechatAndroid.utils.Assert.assertThat
 import com.ubergeek42.WeechatAndroid.utils.FriendlyExceptions
 import com.ubergeek42.WeechatAndroid.utils.Toaster
 import com.ubergeek42.WeechatAndroid.utils.Utils
@@ -174,7 +175,7 @@ class BufferFragment : Fragment(), BufferEye {
 
         linesAdapter = ChatLinesAdapter(uiLines).apply {
             this@BufferFragment.buffer?.let {
-                setBuffer(it)
+                buffer = it
                 loadLinesSilently()
             }
         }
@@ -212,7 +213,7 @@ class BufferFragment : Fragment(), BufferEye {
                 fixupUploadsOnInputTextChange()
                 showHidePaperclip()
             }
-            setOnEditorActionListener { _: TextView, actionId: Int, _: KeyEvent ->
+            setOnEditorActionListener { _: TextView, actionId: Int, _: KeyEvent? ->
                 if (actionId == EditorInfo.IME_ACTION_SEND) {
                     sendMessageOrStartUpload()
                     true
@@ -340,14 +341,14 @@ class BufferFragment : Fragment(), BufferEye {
 
     ////////////////////////////////////////////////////////////////////////////////// attach detach
 
-    @MainThread @Cat private fun attachToBuffer() {
-        buffer?.setBufferEye(this)
-
-        // todo when attaching to the buffer, there's a period when buffers are listed but lines
-        // todo for the current buffer have not yet arrived
-        // todo make sure that this behaves fine on slow connections
-        if (linesAdapter?.hasBuffer() == false) linesAdapter?.setBuffer(buffer)
-
+    // when attaching to the buffer, there's a period when buffers are listed,
+    // but lines for the current buffer have not yet arrived.
+    // so we only set adapter's buffer if lines are ready for the current buffer.
+    // if they're not, the adapter will be using the old buffer, if any, until onLinesListed is run.
+    // todo make sure that this behaves fine on slow connections
+    @MainThread @Cat private fun attachToBuffer() = ulet(buffer) { buffer ->
+        buffer.setBufferEye(this)
+        if (buffer.linesAreReady()) linesAdapter?.buffer = buffer
         linesAdapter?.loadLinesWithoutAnimation()
         attachedToBuffer = true
         onVisibilityStateChanged(ChangedState.BufferAttachment)
@@ -367,7 +368,7 @@ class BufferFragment : Fragment(), BufferEye {
     @MainThread private fun adjustConnectivityIndications(animate: Boolean)
             = ulet(connectivityIndicator) { indicator ->
         val state = when {
-            connectedToRelay && buffer?.linesAreReady() == true -> ConnectivityState.OnlineAndSynced
+            connectedToRelayAndSynced -> ConnectivityState.OnlineAndSynced
             connectedToRelay -> ConnectivityState.OnlineAndSyncing
             else -> ConnectivityState.Offline
         }
@@ -442,7 +443,7 @@ class BufferFragment : Fragment(), BufferEye {
 
     @WorkerThread override fun onLinesListed() {
         uiLines?.requestAnimation()
-        linesAdapter?.setBuffer(buffer)
+        linesAdapter?.buffer = buffer
         linesAdapter?.onLinesListed()
         Weechat.runOnMainThread {
             adjustConnectivityIndications(true)
@@ -489,13 +490,20 @@ class BufferFragment : Fragment(), BufferEye {
 
     /////////////////////////////////////////////////////////////////////////////////// send message
 
+    private val connectedToRelayAndSynced get() = connectedToRelay && buffer?.linesAreReady() == true
+
     @MainThread private fun sendMessageOrStartUpload() = ulet(buffer, uiInput) { buffer, input ->
         val suris = input.getNotReadySuris()
         if (suris.isNotEmpty()) {
             startUploads(suris)
         } else {
-            SendMessageEvent.fireInput(buffer, input.text.toString())
-            input.setText("")   // this will reset tab completion
+            assertThat(buffer).isEqualTo(linesAdapter?.buffer)
+            if (connectedToRelayAndSynced) {
+                SendMessageEvent.fireInput(buffer, input.text.toString())
+                input.setText("")   // this will reset tab completion
+            } else {
+                Toaster.ErrorToast.show(R.string.error__etc__not_connected)
+            }
         }
     }
 
