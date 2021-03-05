@@ -250,7 +250,7 @@ class BufferFragment : Fragment(), BufferEye {
         uiTab?.visibility = if (P.showTab) View.VISIBLE else View.GONE
         EventBus.getDefault().register(this)
         applyColorSchemeToViews()
-        adjustConnectivityIndicator(false)
+        adjustConnectivityIndications(false)
         uiInput?.textifyReadySuris()   // this will fix any uploads that were finished while we were absent
         fixupUploadsOnInputTextChange()             // this will set appropriate upload ui state
         showHidePaperclip()
@@ -332,14 +332,10 @@ class BufferFragment : Fragment(), BufferEye {
             if (buffer != null) attachToBuffer() else kitty.warn("...buffer is null")   // this should only happen after OOM kill
         }
 
-        val connectivityChange = this.connectedToRelay != connectedToRelay
+        val connectivityChanged = this.connectedToRelay != connectedToRelay
+        this.connectedToRelay = connectedToRelay
 
-        if (connectivityChange) {
-            this.connectedToRelay = connectedToRelay
-            adjustUiConnectedState()
-        }
-
-        adjustConnectivityIndicator(connectivityChange)
+        adjustConnectivityIndications(connectivityChanged)
     }
 
     ////////////////////////////////////////////////////////////////////////////////// attach detach
@@ -368,29 +364,23 @@ class BufferFragment : Fragment(), BufferEye {
     ///////////////////////////////////////////////////////////////////////////////////////////// ui
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @MainThread @Cat private fun adjustUiConnectedState() {
-        uiInput?.isEnabled = connectedToRelay
-        uiSend?.isEnabled = connectedToRelay
-        uiTab?.isEnabled = connectedToRelay
-        uiPaperclip?.isEnabled = connectedToRelay
-        if (!connectedToRelay) weechatActivity?.hideSoftwareKeyboard()
-        if (connectedToRelay) (if (isSearchEnabled) searchInput else uiInput)?.requestFocus()
-    }
+    @MainThread private fun adjustConnectivityIndications(animate: Boolean)
+            = ulet(connectivityIndicator) { indicator ->
+        val state = when {
+            connectedToRelay && buffer?.linesAreReady() == true -> ConnectivityState.OnlineAndSynced
+            connectedToRelay -> ConnectivityState.OnlineAndSyncing
+            else -> ConnectivityState.Offline
+        }
 
-    @MainThread private fun adjustConnectivityIndicator(animate: Boolean) = ulet(connectivityIndicator) {
-        val linesReady = connectedToRelay && buffer?.linesAreReady() == true
+        uiSend?.isEnabled = state.sendEnabled
 
-        it.setColor(Color.parseColor(when {
-            linesReady -> "#229933"
-            connectedToRelay -> "#FF8C00"
-            else -> "#bb2222"
-        }))
+        indicator.setColor(state.badgeColor)
 
-        val visibility = if (linesReady) View.GONE else View.VISIBLE
-        if (it.visibility != visibility) {
+        val indicatorVisibility = if (state.displayBadge) View.VISIBLE else View.GONE
+        if (indicator.visibility != indicatorVisibility) {
             if (animate) TransitionManager.beginDelayedTransition(
-                    it.parent as ViewGroup, connectivityIndicatorTransition)
-            it.visibility = visibility
+                    indicator.parent as ViewGroup, connectivityIndicatorTransition)
+            indicator.visibility = indicatorVisibility
         }
     }
 
@@ -455,7 +445,7 @@ class BufferFragment : Fragment(), BufferEye {
         linesAdapter?.setBuffer(buffer)
         linesAdapter?.onLinesListed()
         Weechat.runOnMainThread {
-            adjustConnectivityIndicator(true)
+            adjustConnectivityIndications(true)
             onVisibilityStateChanged(ChangedState.LinesListed)
         }
     }
@@ -936,4 +926,17 @@ fun RecyclerView.scrollToPositionWithOffsetFix(position: Int, desiredInvisiblePi
         val correction = desiredInvisiblePixels - currentInvisiblePixels
         scrollBy(0, -correction)
     }
+}
+
+
+private enum class ConnectivityState(
+    val displayBadge: Boolean,
+    colorString: String
+) {
+    Offline(true, "#ff0000"),
+    OnlineAndSyncing(true, "#ffaa00"),
+    OnlineAndSynced(false,"#00bb33");
+
+    val sendEnabled = !displayBadge
+    val badgeColor = Color.parseColor(colorString)
 }
