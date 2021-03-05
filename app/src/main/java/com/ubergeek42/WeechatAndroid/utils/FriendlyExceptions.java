@@ -9,6 +9,7 @@ import androidx.preference.PreferenceManager;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.weechat.relay.connection.SSHConnection;
 
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -40,6 +41,9 @@ public class FriendlyExceptions {
         if (clientCertificateMismatchException != null)
             return getFriendlyException(clientCertificateMismatchException);
 
+        if (e instanceof UnknownHostException)
+            return getFriendlyException((UnknownHostException) e);
+
         if (e instanceof SSHConnection.FailedToAuthenticateWithPasswordException)
             return getFriendlyException((SSHConnection.FailedToAuthenticateWithPasswordException) e);
         if (e instanceof SSHConnection.FailedToAuthenticateWithKeyException)
@@ -67,6 +71,12 @@ public class FriendlyExceptions {
     public Result getFriendlyException(SSHConnection.FailedToAuthenticateWithKeyException e) {
         String message = context.getString(R.string.error__connection__ssh__failed_to_authenticate_with_key);
         return new Result(message, true);
+    }
+
+    // todo extract string
+    public Result getFriendlyException(UnknownHostException e) {
+        String message = "Unknown host: " + e.getMessage();
+        return new Result(message, false);
     }
 
     @SuppressWarnings("ConstantConditions")
