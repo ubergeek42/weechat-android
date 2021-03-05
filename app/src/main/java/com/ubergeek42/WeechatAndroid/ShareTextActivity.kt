@@ -11,16 +11,14 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.ubergeek42.WeechatAndroid.adapters.BufferListAdapter
 import com.ubergeek42.WeechatAndroid.adapters.BufferListClickListener
-import com.ubergeek42.WeechatAndroid.service.Events.StateChangedEvent
+import com.ubergeek42.WeechatAndroid.relay.BufferList
 import com.ubergeek42.WeechatAndroid.service.P
-import com.ubergeek42.WeechatAndroid.service.RelayService
 import com.ubergeek42.WeechatAndroid.upload.preloadThumbnailsForIntent
 import com.ubergeek42.WeechatAndroid.utils.Constants
 import com.ubergeek42.WeechatAndroid.utils.ThemeFix
 import com.ubergeek42.WeechatAndroid.utils.Toaster
 import com.ubergeek42.WeechatAndroid.utils.afterTextChanged
-import com.ubergeek42.WeechatAndroid.utils.isAnyOf
-import org.greenrobot.eventbus.EventBus
+import com.ubergeek42.WeechatAndroid.utils.isNotAnyOf
 
 class ShareTextActivity : AppCompatActivity(), BufferListClickListener {
     private var dialog: Dialog? = null
@@ -40,52 +38,56 @@ class ShareTextActivity : AppCompatActivity(), BufferListClickListener {
     override fun onStart() {
         super.onStart()
 
-        if (!EventBus.getDefault().getStickyEvent(StateChangedEvent::class.java).state.contains(RelayService.STATE.LISTED)) {
-            Toaster.ErrorToast.show(R.string.error__etc__not_connected)
+        if (intent.action.isNotAnyOf(Intent.ACTION_SEND, Intent.ACTION_SEND_MULTIPLE)) {
             finish()
             return
         }
 
-        if (intent.action.isAnyOf(Intent.ACTION_SEND, Intent.ACTION_SEND_MULTIPLE)) {
-            preloadThumbnailsForIntent(intent)
+        preloadThumbnailsForIntent(intent)
 
-            dialog = Dialog(this, R.style.AlertDialogTheme).also {
-                it.setContentView(R.layout.bufferlist_share)
-                it.setCanceledOnTouchOutside(true)
-                it.setCancelable(true)
-                it.setOnDismissListener { finish() }
-
-                uiRecycler = it.findViewById(R.id.recycler)
-                uiFilterBar = it.findViewById(R.id.filter_bar)
-                uiFilter = it.findViewById(R.id.bufferlist_filter)
-                uiFilterClear = it.findViewById(R.id.bufferlist_filter_clear)
+        val adapter = BufferListAdapter()
+        adapter.onBuffersChanged()
+        if (adapter.pendingItemCount == 0) {
+            val canShowBuffers = P.showBufferFilter && BufferList.buffers.isNotEmpty()
+            if (!canShowBuffers) {
+                Toaster.ErrorToast.show("Buffer list empty")    // todo extract string
+                finish()
+                return
             }
-
-            val adapter = BufferListAdapter()
-
-            uiRecycler?.adapter = adapter
-            uiFilterClear?.setOnClickListener { uiFilter?.text = null }
-
-            uiFilter?.run {
-                setText(BufferListAdapter.filterGlobal)
-                afterTextChanged {
-                    uiFilterClear?.visibility = if (it.isEmpty()) View.INVISIBLE else View.VISIBLE
-                    adapter.setFilter(it.toString(), false)
-                    adapter.onBuffersChanged()
-                }
-            }
-
-            adapter.onBuffersChanged()
-
-            if (!P.showBufferFilter) {
-                uiFilterBar?.visibility = View.GONE
-                uiRecycler?.setPadding(0, 0, 0, 0)
-            }
-
-            applyColorSchemeToViews()
-
-            dialog?.show()
         }
+
+        dialog = Dialog(this, R.style.AlertDialogTheme).also {
+            it.setContentView(R.layout.bufferlist_share)
+            it.setCanceledOnTouchOutside(true)
+            it.setCancelable(true)
+            it.setOnDismissListener { finish() }
+
+            uiRecycler = it.findViewById(R.id.recycler)
+            uiFilterBar = it.findViewById(R.id.filter_bar)
+            uiFilter = it.findViewById(R.id.bufferlist_filter)
+            uiFilterClear = it.findViewById(R.id.bufferlist_filter_clear)
+        }
+
+        uiRecycler?.adapter = adapter
+        uiFilterClear?.setOnClickListener { uiFilter?.text = null }
+
+        uiFilter?.run {
+            setText(BufferListAdapter.filterGlobal)
+            afterTextChanged {
+                uiFilterClear?.visibility = if (it.isEmpty()) View.INVISIBLE else View.VISIBLE
+                adapter.setFilter(it.toString(), false)
+                adapter.onBuffersChanged()
+            }
+        }
+
+        if (!P.showBufferFilter) {
+            uiFilterBar?.visibility = View.GONE
+            uiRecycler?.setPadding(0, 0, 0, 0)
+        }
+
+        applyColorSchemeToViews()
+
+        dialog?.show()
     }
 
     override fun onStop() {

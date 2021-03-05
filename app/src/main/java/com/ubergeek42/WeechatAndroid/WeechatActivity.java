@@ -581,7 +581,8 @@ public class WeechatActivity extends AppCompatActivity implements
     }
 
     @MainThread @Override public void onBackPressed() {
-        if (getCurrentFocus().getId() == R.id.search_input) {
+        View currentFocus = getCurrentFocus();
+        if (currentFocus != null && currentFocus.getId() == R.id.search_input) {
             BufferFragment current = adapter.getCurrentBufferFragment();
             if (current != null) current.searchEnableDisable(false, false);
         } else if (slidy && drawerShowing) {

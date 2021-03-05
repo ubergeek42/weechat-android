@@ -29,6 +29,10 @@ inline fun <T> T.isAnyOf(a: T, b: T) = this == a || this == b
 inline fun <T> T.isAnyOf(a: T, b: T, c: T) = this == a || this == b || this == c
 inline fun <T> T.isAnyOf(a: T, b: T, c: T, d: T) = this == a || this == b || this == c || this == d
 
+inline fun <T> T.isNotAnyOf(a: T, b: T) = !isAnyOf(a, b)
+inline fun <T> T.isNotAnyOf(a: T, b: T, c: T) = !isAnyOf(a, b, c)
+inline fun <T> T.isNotAnyOf(a: T, b: T, c: T, d: T) = !isAnyOf(a, b, c, d)
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////// let
 ////////////////////////////////////////////////////////////////////////////////////////////////////
