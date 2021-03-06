@@ -308,37 +308,41 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
     @Subscribe
     @WorkerThread fun onEvent(event: ExceptionEvent) {
         kitty.error("onEvent(ExceptionEvent)", event.e)
-        var fragment: DialogFragment? = null
+        var fragmentMaker: (() -> DialogFragment)? = null
 
         if (event.e.wasCausedByEither<SSLPeerUnverifiedException, CertificateException>()) {
             val hostValidityCheckResult = SSLHandler.checkHostnameAndValidity(P.host, P.port)
             val certificateChain = hostValidityCheckResult.certificateChain
             if (!certificateChain.isNullOrEmpty()) {
-                fragment = when (hostValidityCheckResult.exception) {
-                    is CertificateExpiredException -> CertificateDialog.buildExpiredCertificateDialog(this, certificateChain)
-                    is CertificateNotYetValidException -> CertificateDialog.buildNotYetValidCertificateDialog(this, certificateChain)
-                    is SSLPeerUnverifiedException -> CertificateDialog.buildInvalidHostnameCertificateDialog(this, certificateChain)
-                    null -> CertificateDialog.buildUntrustedOrNotPinnedCertificateDialog(this, certificateChain)
+                fragmentMaker = when (hostValidityCheckResult.exception) {
+                    is CertificateExpiredException -> {{ CertificateDialog
+                            .buildExpiredCertificateDialog(this, certificateChain) }}
+                    is CertificateNotYetValidException -> {{ CertificateDialog
+                            .buildNotYetValidCertificateDialog(this, certificateChain) }}
+                    is SSLPeerUnverifiedException -> {{ CertificateDialog
+                            .buildInvalidHostnameCertificateDialog(this, certificateChain) }}
+                    null -> {{ CertificateDialog
+                            .buildUntrustedOrNotPinnedCertificateDialog(this, certificateChain) }}
                     else -> null
                 }
             }
         }
 
-        event.e.findCause<SSHServerKeyVerifier.VerifyException>()?.let { verifyException ->
-            fragment = when (verifyException) {
-                is SSHServerKeyVerifier.ServerNotKnownException ->
-                        ScrollableDialog.buildServerNotKnownDialog(
-                                this, verifyException.server, verifyException.identity)
-                is SSHServerKeyVerifier.ServerNotVerifiedException ->
-                        ScrollableDialog.buildServerNotVerifiedDialog(
-                                this, verifyException.server, verifyException.identity)
+        event.e.findCause<SSHServerKeyVerifier.VerifyException>()?.let { e ->
+            fragmentMaker = when (e) {
+                is SSHServerKeyVerifier.ServerNotKnownException -> {{ ScrollableDialog
+                        .buildServerNotKnownDialog(this, e.server, e.identity) }}
+                is SSHServerKeyVerifier.ServerNotVerifiedException -> {{ ScrollableDialog
+                        .buildServerNotVerifiedDialog(this, e.server, e.identity) }}
                 else -> null
             }
         }
 
-        if (fragment != null) {
-            fragment?.show(supportFragmentManager, "ssl-or-ssh-error")
-            main { disconnect() }
+        if (fragmentMaker != null) {
+            main {
+                fragmentMaker!!.invoke().show(supportFragmentManager, "ssl-or-ssh-error")
+                disconnect()
+            }
         } else {
             val friendlyException = FriendlyExceptions(this).getFriendlyException(event.e)
             Toaster.ErrorToast.show(R.string.error__etc__prefix, friendlyException.message)
