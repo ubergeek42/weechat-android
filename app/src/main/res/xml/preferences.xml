@@ -126,12 +126,6 @@
         <PreferenceCategory
             android:key="connection_misc_group"
             android:title="@string/pref__connection__misc_group">
-            <EditTextPreferenceFix
-                android:key="line_increment"
-                android:title="@string/pref__connection__number_of_lines_to_load"
-                android:summary="@string/pref__connection__number_of_lines_to_load_summary"
-                android:defaultValue="300"
-                android:inputType="number" />
             <CheckBoxPreference
                 android:key="reconnect"
                 android:title="@string/pref__connection__reconnect_on_connection_loss"
@@ -139,6 +133,24 @@
             <CheckBoxPreference
                 android:key="boot_connect"
                 android:title="@string/pref__connection__connect_on_boot" />
+            <EditTextPreferenceFix
+                android:key="line_increment"
+                android:title="Number of lines to fetch"
+                android:summary="The number of lines requested when opening a buffer or pressing the “Load more lines” button (%s)"
+                android:defaultValue="300"
+                android:inputType="number" />
+            <EditTextPreferenceFix
+                android:key="line_number_to_request_when_starting_search"
+                android:title="Number of lines to fetch for search"
+                android:summary="When starting a new search, unless already fetched, the app will request up to this many lines from WeeChat (%s)"
+                android:defaultValue="4097"
+                android:inputType="number" />
+            <HelpPreference
+                android:summary="Note that due to filtering the number of lines actually shown might
+                be less than the number of loaded lines. Also note that due to WeeChat’s limitations
+                the app has to re-fetch all lines every times it requests more lines."
+                android:persistent="false"
+                android:selectable="false" />
             <CheckBoxPreference
                 android:key="optimize_traffic"
                 android:title="@string/pref__connection__only_sync_open_buffers"
