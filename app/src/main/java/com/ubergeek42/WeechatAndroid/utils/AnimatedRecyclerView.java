@@ -204,7 +204,10 @@ public class AnimatedRecyclerView extends RecyclerView {
 
     public void recheckTopBottom() {
         if (getAdapter() == null) return;
-        onTop = manager.findFirstCompletelyVisibleItemPosition() == 0;
-        onBottom = manager.findFirstVisibleItemPosition() == getAdapter().getItemCount() - 1;
+        int firstCompletelyVisible = manager.findFirstCompletelyVisibleItemPosition();
+        if (firstCompletelyVisible == RecyclerView.NO_POSITION) return;
+        int lastVisible = manager.findLastVisibleItemPosition();
+        onTop = firstCompletelyVisible == 0;
+        onBottom = lastVisible == getAdapter().getItemCount() - 1;
     }
 }

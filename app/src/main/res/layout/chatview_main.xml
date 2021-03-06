@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/chatview_layout"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
@@ -217,4 +218,31 @@
         android:transcriptMode="normal"
         android:fadingEdge="none"
         android:scrollbars="vertical" />
+
+    <!-- tools:targetApi suppresses warning for the shadow color options.
+     these only make the shadow less pronounced and are of little importance -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_above="@+id/bottom_bar"
+
+        android:src="@drawable/ic_fab_go_to_bottom"
+        android:contentDescription="Go to bottom"
+
+        android:scaleType="centerCrop"
+        android:layout_margin="12dp"
+
+        app:fabSize="mini"
+        app:borderWidth="0dp"
+        app:maxImageSize="32dp"
+        app:elevation="3dp"
+
+        android:visibility="gone"
+
+        tools:targetApi="p"
+        android:outlineAmbientShadowColor="#7000"
+        android:outlineSpotShadowColor="#7000" />
+
 </RelativeLayout>

@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.ColorStateList
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
@@ -34,6 +35,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ItemDecoration
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.Weechat
 import com.ubergeek42.WeechatAndroid.WeechatActivity
@@ -98,6 +100,8 @@ class BufferFragment : Fragment(), BufferEye {
     private var weechatActivity: WeechatActivity? = null
     private var buffer: Buffer? = null
     private var attachedToBuffer = false
+
+    // todo make lateinit soon
     private var linesAdapter: ChatLinesAdapter? = null
 
     private var uiLines: AnimatedRecyclerView? = null
@@ -110,6 +114,7 @@ class BufferFragment : Fragment(), BufferEye {
     private var uploadButton: ImageButton? = null
 
     private var connectivityIndicator: CircleView? = null
+    private var fab: FloatingActionButton? = null
 
     companion object {
         @JvmStatic fun newInstance(pointer: Long) =
@@ -164,6 +169,7 @@ class BufferFragment : Fragment(), BufferEye {
         uploadButton = v.findViewById(R.id.upload_button)
 
         connectivityIndicator = v.findViewById(R.id.connectivity_indicator)
+        fab = v.findViewById(R.id.fab)
 
         uploadButton?.setOnClickListener {
             if (lastUploadStatus == UploadStatus.UPLOADING) {
@@ -187,7 +193,8 @@ class BufferFragment : Fragment(), BufferEye {
             addOnScrollListener(object : RecyclerView.OnScrollListener() {
                 override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                     if (focusedInViewPager && dy != 0) weechatActivity?.toolbarController
-                            ?.onScroll(dy, this@run.onTop, this@run.onBottom)
+                            ?.onScroll(dy, onTop, onBottom)
+                    showHideFabWhenScrolled(dy, onBottom)
                 }
             })
         }
@@ -223,6 +230,10 @@ class BufferFragment : Fragment(), BufferEye {
             }
         }
 
+        fab?.setOnClickListener {
+            uiLines?.smoothScrollToPosition(linesAdapter!!.itemCount - 1)
+        }
+
         initSearchViews(v)
         uiLines?.post { applyRecyclerViewState() }
 
@@ -242,6 +253,7 @@ class BufferFragment : Fragment(), BufferEye {
         uploadProgressBar = null
         linesAdapter = null
         connectivityIndicator = null
+        fab = null
 
         destroySearchViews()
     }
@@ -255,6 +267,7 @@ class BufferFragment : Fragment(), BufferEye {
         uiInput?.textifyReadySuris()   // this will fix any uploads that were finished while we were absent
         fixupUploadsOnInputTextChange()             // this will set appropriate upload ui state
         showHidePaperclip()
+        showHideFabAfterRecyclerViewRestored()
         uploadManager?.observer = uploadObserver   // this will resume ui for any uploads that are still running
     }
 
@@ -386,7 +399,38 @@ class BufferFragment : Fragment(), BufferEye {
     }
 
     private fun applyColorSchemeToViews() {
+        fab?.backgroundTintList = ColorStateList.valueOf(P.colorPrimary)
         requireView().findViewById<View>(R.id.bottom_bar).setBackgroundColor(P.colorPrimary)
+    }
+    //////////////////////////////////////////////////////////////////////////////////////////// fab
+
+    private var fabShowing = false
+    private var uiLinesBottomOffset = 0
+
+    private fun showHideFabWhenScrolled(dy: Int, onBottom: Boolean) {
+        if (onBottom) {
+            uiLinesBottomOffset = 0
+            if (fabShowing) {
+                fabShowing = false
+                fab?.hide()
+            }
+        } else {
+            uiLinesBottomOffset += dy
+            if (uiLinesBottomOffset < -FAB_SHOW_THRESHOLD && !fabShowing) {
+                fabShowing = true
+                fab?.show()
+            }
+        }
+    }
+
+    private fun showHideFabAfterRecyclerViewRestored() {
+        if (uiLines?.onBottom == false) {
+            fabShowing = true
+            fab?.show()
+        } else {
+            fabShowing = false
+            fab?.hide()
+        }
     }
 
     //////////////////////////////////////////////////////////////////////////// recycler view state
@@ -426,7 +470,10 @@ class BufferFragment : Fragment(), BufferEye {
         if (position == -1) return
 
         lines.scrollToPositionWithOffsetFix(position, state.invisiblePixels)
-        lines.post { lines.recheckTopBottom() }
+        lines.post {
+            lines.recheckTopBottom()
+            showHideFabAfterRecyclerViewRestored()
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -948,3 +995,6 @@ private enum class ConnectivityState(
     val sendEnabled = !displayBadge
     val badgeColor = Color.parseColor(colorString)
 }
+
+
+private val FAB_SHOW_THRESHOLD = P._200dp * 7
