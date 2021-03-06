@@ -222,7 +222,7 @@
     <!-- tools:targetApi suppresses warning for the shadow color options.
      these only make the shadow less pronounced and are of little importance -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fab"
+        android:id="@+id/fab_scroll_to_bottom"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"

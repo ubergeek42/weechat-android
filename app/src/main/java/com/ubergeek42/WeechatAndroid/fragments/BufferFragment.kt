@@ -114,7 +114,7 @@ class BufferFragment : Fragment(), BufferEye {
     private var uploadButton: ImageButton? = null
 
     private var connectivityIndicator: CircleView? = null
-    private var fab: FloatingActionButton? = null
+    private var fabScrollToBottom: FloatingActionButton? = null
 
     companion object {
         @JvmStatic fun newInstance(pointer: Long) =
@@ -169,7 +169,7 @@ class BufferFragment : Fragment(), BufferEye {
         uploadButton = v.findViewById(R.id.upload_button)
 
         connectivityIndicator = v.findViewById(R.id.connectivity_indicator)
-        fab = v.findViewById(R.id.fab)
+        fabScrollToBottom = v.findViewById(R.id.fab_scroll_to_bottom)
 
         uploadButton?.setOnClickListener {
             if (lastUploadStatus == UploadStatus.UPLOADING) {
@@ -230,7 +230,7 @@ class BufferFragment : Fragment(), BufferEye {
             }
         }
 
-        fab?.setOnClickListener {
+        fabScrollToBottom?.setOnClickListener {
             uiLines?.smoothScrollToPosition(linesAdapter!!.itemCount - 1)
         }
 
@@ -253,7 +253,7 @@ class BufferFragment : Fragment(), BufferEye {
         uploadProgressBar = null
         linesAdapter = null
         connectivityIndicator = null
-        fab = null
+        fabScrollToBottom = null
 
         destroySearchViews()
     }
@@ -399,38 +399,32 @@ class BufferFragment : Fragment(), BufferEye {
     }
 
     private fun applyColorSchemeToViews() {
-        fab?.backgroundTintList = ColorStateList.valueOf(P.colorPrimary)
+        fabScrollToBottom?.backgroundTintList = ColorStateList.valueOf(P.colorPrimary)
         requireView().findViewById<View>(R.id.bottom_bar).setBackgroundColor(P.colorPrimary)
     }
     //////////////////////////////////////////////////////////////////////////////////////////// fab
 
     private var fabShowing = false
-    private var uiLinesBottomOffset = 0
+        set(show) {
+            if (field != show) {
+                field = show
+                fabScrollToBottom?.run { if (show) show() else hide() }
+            }
+        }
 
+    private var uiLinesBottomOffset = 0
     private fun showHideFabWhenScrolled(dy: Int, onBottom: Boolean) {
         if (onBottom) {
             uiLinesBottomOffset = 0
-            if (fabShowing) {
-                fabShowing = false
-                fab?.hide()
-            }
+            fabShowing = false
         } else {
             uiLinesBottomOffset += dy
-            if (uiLinesBottomOffset < -FAB_SHOW_THRESHOLD && !fabShowing) {
-                fabShowing = true
-                fab?.show()
-            }
+            if (uiLinesBottomOffset < -FAB_SHOW_THRESHOLD) fabShowing = true
         }
     }
 
     private fun showHideFabAfterRecyclerViewRestored() {
-        if (uiLines?.onBottom == false) {
-            fabShowing = true
-            fab?.show()
-        } else {
-            fabShowing = false
-            fab?.hide()
-        }
+        fabShowing = uiLines?.onBottom == false
     }
 
     //////////////////////////////////////////////////////////////////////////// recycler view state
