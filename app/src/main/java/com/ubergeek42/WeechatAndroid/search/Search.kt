@@ -44,7 +44,7 @@ class Search(
                 } else {
                     val (caseSensitive, regex, source) = config
 
-                    val getSource: ((Line) -> String) = when (source) {
+                    val getSource = when (source) {
                         SearchConfig.Source.Prefix -> Line::getPrefixString
                         SearchConfig.Source.Message -> Line::getMessageString
                         SearchConfig.Source.PrefixAndMessage -> Line::getIrcLikeString
