@@ -1,9 +1,13 @@
 package com.ubergeek42.WeechatAndroid.search
 
+import android.content.Context
+import androidx.recyclerview.widget.LinearSmoothScroller
+import androidx.recyclerview.widget.RecyclerView
 import com.ubergeek42.WeechatAndroid.relay.Line
 import com.ubergeek42.WeechatAndroid.search.Search.Matcher
 import com.ubergeek42.WeechatAndroid.upload.applicationContext
 import java.util.regex.PatternSyntaxException
+
 
 typealias MatchList = List<Long>
 
@@ -71,6 +75,7 @@ class Search(
     }
 }
 
+
 data class SearchConfig(
     @JvmField val caseSensitive: Boolean,
     @JvmField val regex: Boolean,
@@ -87,4 +92,19 @@ data class SearchConfig(
                                               regex = false,
                                               source = Source.PrefixAndMessage)
     }
+}
+
+
+private class CenteringSmoothScroller(context: Context) : LinearSmoothScroller(context) {
+    override fun calculateDtToFit(viewStart: Int, viewEnd: Int,
+                                  boxStart: Int, boxEnd: Int,
+                                  snapPreference: Int): Int {
+        return boxStart + (boxEnd - boxStart) / 2 - (viewStart + (viewEnd - viewStart) / 2)
+    }
+}
+
+fun RecyclerView.smoothScrollToPositionCentering(position: Int) {
+    val scroller = CenteringSmoothScroller(this.context)
+    scroller.targetPosition = position
+    layoutManager?.startSmoothScroll(scroller)
 }

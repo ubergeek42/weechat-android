@@ -46,6 +46,7 @@ import com.ubergeek42.WeechatAndroid.relay.BufferEye
 import com.ubergeek42.WeechatAndroid.relay.BufferList
 import com.ubergeek42.WeechatAndroid.search.Search
 import com.ubergeek42.WeechatAndroid.search.SearchConfig
+import com.ubergeek42.WeechatAndroid.search.smoothScrollToPositionCentering
 import com.ubergeek42.WeechatAndroid.service.Events.SendMessageEvent
 import com.ubergeek42.WeechatAndroid.service.Events.StateChangedEvent
 import com.ubergeek42.WeechatAndroid.service.P
@@ -916,7 +917,7 @@ class BufferFragment : Fragment(), BufferEye {
         matches.getOrNull(index)?.let {
             focusedMatch = it
             linesAdapter?.findPositionByPointer(it)?.let { position ->
-                if (position != -1) uiLines?.smoothScrollToPosition(position)
+                if (position != -1) uiLines?.smoothScrollToPositionCentering(position)
             }
             uiLines?.invalidate()   // trigger redecoration
             enableDisableSearchButtons()
