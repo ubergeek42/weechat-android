@@ -841,6 +841,7 @@ class BufferFragment : Fragment(), BufferEye {
         try {
             val matcher = Search.Matcher.fromString(text, searchConfig)
             linesAdapter?.setSearch(Search(matcher, searchListener))
+            buffer?.requestMoreLines(REQUEST_LINE_COUNT_FOR_SEARCH)
         } catch (e: PatternSyntaxException) {
             linesAdapter?.setSearch(null)
             searchListener.onSearchResultsChanged(badRegexPatternMatches)
@@ -991,4 +992,5 @@ private enum class ConnectivityState(
 }
 
 
+private const val REQUEST_LINE_COUNT_FOR_SEARCH = 4097
 private val FAB_SHOW_THRESHOLD = P._200dp * 7

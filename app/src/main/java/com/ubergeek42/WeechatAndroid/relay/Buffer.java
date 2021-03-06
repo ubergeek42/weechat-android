@@ -171,7 +171,13 @@ public class Buffer {
     }
 
     @MainThread synchronized public void requestMoreLines() {
-        lines.onMoreLinesRequested();
+        requestMoreLines(lines.getMaxLines() + P.lineIncrement);
+    }
+
+    @MainThread synchronized public void requestMoreLines(int newSize) {
+        if (lines.getMaxLines() >= newSize) return;
+        if (lines.status == Lines.STATUS.EVERYTHING_FETCHED) return;
+        lines.onMoreLinesRequested(newSize);
         BufferList.requestLinesForBufferByPointer(pointer, lines.getMaxLines());
     }
 

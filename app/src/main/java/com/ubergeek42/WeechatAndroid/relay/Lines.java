@@ -107,8 +107,8 @@ public class Lines {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @MainThread void onMoreLinesRequested() {
-        if (status != STATUS.INIT) maxUnfilteredSize += P.lineIncrement;
+    @MainThread void onMoreLinesRequested(int newSize) {
+        if (status != STATUS.INIT) maxUnfilteredSize = newSize;
         status = STATUS.FETCHING;
     }
 
