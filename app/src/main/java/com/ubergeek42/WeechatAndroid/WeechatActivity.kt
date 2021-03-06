@@ -11,299 +11,287 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+package com.ubergeek42.WeechatAndroid
 
-package com.ubergeek42.WeechatAndroid;
+import android.content.Context
+import android.content.Intent
+import android.content.res.Configuration
+import android.graphics.PorterDuff
+import android.graphics.Rect
+import android.net.Uri
+import android.os.Build
+import android.os.Bundle
+import android.util.AttributeSet
+import android.view.Menu
+import android.view.MenuItem
+import android.view.View
+import android.view.inputmethod.InputMethodManager
+import android.widget.FrameLayout
+import android.widget.ImageView
+import android.widget.TextView
+import androidx.annotation.MainThread
+import androidx.annotation.WorkerThread
+import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.content.res.AppCompatResources
+import androidx.appcompat.widget.TooltipCompat
+import androidx.core.content.ContextCompat
+import androidx.drawerlayout.widget.DrawerLayout
+import androidx.fragment.app.DialogFragment
+import androidx.preference.PreferenceManager
+import androidx.viewpager.widget.ViewPager
+import com.ubergeek42.WeechatAndroid.CutePagerTitleStrip.CutePageChangeListener
+import com.ubergeek42.WeechatAndroid.adapters.BufferListClickListener
+import com.ubergeek42.WeechatAndroid.adapters.MainPagerAdapter
+import com.ubergeek42.WeechatAndroid.dialogs.CertificateDialog
+import com.ubergeek42.WeechatAndroid.dialogs.NicklistDialog
+import com.ubergeek42.WeechatAndroid.dialogs.ScrollableDialog
+import com.ubergeek42.WeechatAndroid.fragments.BufferFragment
+import com.ubergeek42.WeechatAndroid.media.CachePersist
+import com.ubergeek42.WeechatAndroid.relay.BufferList
+import com.ubergeek42.WeechatAndroid.relay.Hotlist
+import com.ubergeek42.WeechatAndroid.service.Events.ExceptionEvent
+import com.ubergeek42.WeechatAndroid.service.Events.StateChangedEvent
+import com.ubergeek42.WeechatAndroid.service.P
+import com.ubergeek42.WeechatAndroid.service.RelayService
+import com.ubergeek42.WeechatAndroid.service.SSLHandler
+import com.ubergeek42.WeechatAndroid.upload.Config
+import com.ubergeek42.WeechatAndroid.upload.ShareObject
+import com.ubergeek42.WeechatAndroid.upload.TextShareObject
+import com.ubergeek42.WeechatAndroid.upload.UploadDatabase
+import com.ubergeek42.WeechatAndroid.upload.UrisShareObject.Companion.fromUris
+import com.ubergeek42.WeechatAndroid.upload.chooseFiles
+import com.ubergeek42.WeechatAndroid.upload.main
+import com.ubergeek42.WeechatAndroid.utils.Constants
+import com.ubergeek42.WeechatAndroid.utils.FriendlyExceptions
+import com.ubergeek42.WeechatAndroid.utils.Network
+import com.ubergeek42.WeechatAndroid.utils.SimpleTransitionDrawable
+import com.ubergeek42.WeechatAndroid.utils.ThemeFix
+import com.ubergeek42.WeechatAndroid.utils.Toaster
+import com.ubergeek42.WeechatAndroid.utils.ToolbarController
+import com.ubergeek42.WeechatAndroid.utils.findCause
+import com.ubergeek42.WeechatAndroid.utils.isAnyOf
+import com.ubergeek42.WeechatAndroid.utils.let
+import com.ubergeek42.WeechatAndroid.utils.u
+import com.ubergeek42.WeechatAndroid.utils.ulet
+import com.ubergeek42.WeechatAndroid.utils.wasCausedByEither
+import com.ubergeek42.cats.Cat
+import com.ubergeek42.cats.CatD
+import com.ubergeek42.cats.Kitty
+import com.ubergeek42.cats.Root
+import com.ubergeek42.weechat.ColorScheme
+import com.ubergeek42.weechat.relay.connection.SSHServerKeyVerifier
+import org.greenrobot.eventbus.EventBus
+import org.greenrobot.eventbus.Subscribe
+import org.greenrobot.eventbus.ThreadMode
+import java.security.cert.CertificateException
+import java.security.cert.CertificateExpiredException
+import java.security.cert.CertificateNotYetValidException
+import java.util.*
+import javax.net.ssl.SSLPeerUnverifiedException
+import kotlin.system.exitProcess
 
-import android.annotation.SuppressLint;
-import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.res.Configuration;
-import android.graphics.PorterDuff;
-import android.graphics.Rect;
-import android.graphics.drawable.Drawable;
-import android.net.Uri;
-import android.os.Build;
-import android.os.Bundle;
-import android.util.AttributeSet;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.FrameLayout;
-import android.widget.ImageView;
-import android.widget.TextView;
+class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListClickListener {
+    private var uiMenu: Menu? = null
 
-import androidx.annotation.MainThread;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.WorkerThread;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.ActionBarDrawerToggle;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.content.res.AppCompatResources;
-import androidx.appcompat.widget.TooltipCompat;
-import androidx.core.content.ContextCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.fragment.app.DialogFragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.preference.PreferenceManager;
-import androidx.viewpager.widget.ViewPager;
+    private lateinit var uiPager: ViewPager
+    private lateinit var pagerAdapter: MainPagerAdapter
+    lateinit var imm: InputMethodManager
 
-import com.ubergeek42.WeechatAndroid.adapters.BufferListClickListener;
-import com.ubergeek42.WeechatAndroid.adapters.MainPagerAdapter;
-import com.ubergeek42.WeechatAndroid.fragments.BufferFragment;
-import com.ubergeek42.WeechatAndroid.media.CachePersist;
-import com.ubergeek42.WeechatAndroid.relay.Buffer;
-import com.ubergeek42.WeechatAndroid.relay.BufferList;
-import com.ubergeek42.WeechatAndroid.relay.Hotlist;
-import com.ubergeek42.WeechatAndroid.service.P;
-import com.ubergeek42.WeechatAndroid.service.RelayService;
-import com.ubergeek42.WeechatAndroid.service.RelayService.STATE;
-import com.ubergeek42.WeechatAndroid.service.SSLHandler;
-import com.ubergeek42.WeechatAndroid.upload.Config;
-import com.ubergeek42.WeechatAndroid.upload.FileChooserKt;
-import com.ubergeek42.WeechatAndroid.upload.ShareObject;
-import com.ubergeek42.WeechatAndroid.upload.Target;
-import com.ubergeek42.WeechatAndroid.upload.UrisShareObject;
-import com.ubergeek42.WeechatAndroid.upload.TextShareObject;
-import com.ubergeek42.WeechatAndroid.upload.UploadDatabase;
-import com.ubergeek42.WeechatAndroid.dialogs.CertificateDialog;
-import com.ubergeek42.WeechatAndroid.utils.FriendlyExceptions;
-import com.ubergeek42.WeechatAndroid.utils.Network;
-import com.ubergeek42.WeechatAndroid.dialogs.NicklistDialog;
-import com.ubergeek42.WeechatAndroid.dialogs.ScrollableDialog;
-import com.ubergeek42.WeechatAndroid.utils.SimpleTransitionDrawable;
-import com.ubergeek42.WeechatAndroid.utils.ThemeFix;
-import com.ubergeek42.WeechatAndroid.utils.ToolbarController;
-import com.ubergeek42.WeechatAndroid.utils.Utils;
-import com.ubergeek42.cats.Cat;
-import com.ubergeek42.cats.CatD;
-import com.ubergeek42.cats.Kitty;
-import com.ubergeek42.cats.Root;
-import com.ubergeek42.weechat.ColorScheme;
-import com.ubergeek42.weechat.relay.connection.SSHServerKeyVerifier;
+    private var slidy = false
 
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
+    private lateinit var uiDrawerLayout: DrawerLayout
+    private lateinit var uiDrawer: View
+    private lateinit var drawerToggle: ActionBarDrawerToggle
+    private lateinit var uiKitty: ImageView
 
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateExpiredException;
-import java.security.cert.CertificateNotYetValidException;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.List;
+    @JvmField var toolbarController: ToolbarController? = null
 
-import javax.net.ssl.SSLPeerUnverifiedException;
-
-import static com.ubergeek42.WeechatAndroid.media.Cache.findException;
-import static com.ubergeek42.WeechatAndroid.service.Events.*;
-import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.*;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
-import static com.ubergeek42.WeechatAndroid.utils.Toaster.ErrorToast;
-import static com.ubergeek42.WeechatAndroid.utils.Toaster.ShortToast;
-
-public class WeechatActivity extends AppCompatActivity implements
-        CutePagerTitleStrip.CutePageChangeListener, BufferListClickListener {
-
-    final private static @Root Kitty kitty = Kitty.make("WA");
-
-    private Menu uiMenu;
-    private ViewPager uiPager;
-    private MainPagerAdapter adapter;
-    public InputMethodManager imm;
-
-    private boolean slidy;
-    private boolean drawerShowing = false;
-    private DrawerLayout uiDrawerLayout = null;
-    private View uiDrawer = null;
-    private ActionBarDrawerToggle drawerToggle = null;
-    private ImageView uiInfo;
-
-    public ToolbarController toolbarController;
+    @get:MainThread var isPagerNoticeablyObscured = false
+        private set
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// life cycle
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @SuppressLint("WrongThread") @MainThread @Override @CatD
-    public void onCreate(@Nullable Bundle savedInstanceState) {
+    @MainThread @CatD public override fun onCreate(savedInstanceState: Bundle?) {
         // after OOM kill and not going to restore anything? remove all fragments & open buffers
-        if (!P.isServiceAlive() && !BufferList.hasData() && !P.openBuffers.isEmpty()) {
-            P.openBuffers.clear();
-            savedInstanceState = null;
+        if (!P.isServiceAlive() && !BufferList.hasData() && P.openBuffers.isNotEmpty()) {
+            P.openBuffers.clear()
+            super.onCreate(null)
+        } else {
+            super.onCreate(savedInstanceState)
         }
 
-        super.onCreate(savedInstanceState);
-
-        // load layout
-        setContentView(R.layout.main_screen);
+        setContentView(R.layout.main_screen)
+        setSupportActionBar(findViewById(R.id.toolbar))
 
         // remove window color so that we get low overdraw
-        getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        window.setBackgroundDrawableResource(android.R.color.transparent)
 
         // fix status bar and navigation bar icon color on Oreo.
         // TODO remove this once the bug has been fixed
-        ThemeFix.fixLightStatusAndNavigationBar(this);
+        ThemeFix.fixLightStatusAndNavigationBar(this)
 
-        // prepare pager
-        FragmentManager manager = getSupportFragmentManager();
-        uiPager = findViewById(R.id.main_viewpager);
-        adapter = new MainPagerAdapter(manager, uiPager);
-        uiPager.setAdapter(adapter);
+        uiPager = findViewById(R.id.main_viewpager)
+        uiKitty = findViewById(R.id.kitty)
+        uiDrawer = findViewById(R.id.bufferlist_fragment)
 
-        // prepare action bar
-        setSupportActionBar(findViewById(R.id.toolbar));
-        final ActionBar uiActionBar = getSupportActionBar();
-        //noinspection ConstantConditions
-        uiActionBar.setHomeButtonEnabled(true);
-        uiActionBar.setDisplayShowCustomEnabled(true);
-        uiActionBar.setDisplayShowTitleEnabled(false);
-        uiActionBar.setDisplayHomeAsUpEnabled(false);
+        pagerAdapter = MainPagerAdapter(supportFragmentManager, uiPager)
+        uiPager.adapter = pagerAdapter
 
-        CutePagerTitleStrip uiStrip = findViewById(R.id.cute_pager_title_strip);
-        uiStrip.setViewPager(uiPager);
-        uiStrip.setOnPageChangeListener(this);
+        findViewById<CutePagerTitleStrip>(R.id.cute_pager_title_strip).run {
+            setViewPager(uiPager)
+            setOnPageChangeListener(this@WeechatActivity)
+        }
+
+        supportActionBar?.run {
+            setHomeButtonEnabled(true)
+            setDisplayShowCustomEnabled(true)
+            setDisplayShowTitleEnabled(false)
+            setDisplayHomeAsUpEnabled(false)
+        }
 
         // this is the text view behind the uiPager
         // it says stuff like 'connecting', 'disconnected' et al
-        uiInfo = findViewById(R.id.kitty);
-        uiInfo.setImageDrawable(new SimpleTransitionDrawable());
-        uiInfo.setOnClickListener(v -> {if (state.contains(STARTED)) disconnect(); else connect();});
-
-        // if this is true, we've got notification drawer and have to deal with it
-        // setup drawer toggle, which calls drawerVisibilityChanged()
-        slidy = getResources().getBoolean(R.bool.slidy);
-        uiDrawer = findViewById(R.id.bufferlist_fragment);
-        if (slidy) {
-            uiDrawerLayout = findViewById(R.id.drawer_layout);
-            drawerToggle = new ActionBarDrawerToggle(this, uiDrawerLayout, R.string.ui__ActionBarDrawerToggle__open_drawer, R.string.ui__ActionBarDrawerToggle__close_drawer) {
-                @Override public void onDrawerSlide(View drawerView, float slideOffset) {
-                    drawerVisibilityChanged(slideOffset > 0);
-                }
-            };
-            drawerShowing = uiDrawerLayout.isDrawerVisible(uiDrawer);
-            uiDrawerLayout.addDrawerListener(drawerToggle);
-            uiActionBar.setDisplayHomeAsUpEnabled(true);
+        uiKitty.setImageDrawable(SimpleTransitionDrawable())
+        uiKitty.setOnClickListener {
+            if (connectionState.isStarted) disconnect() else connect()
         }
 
-        toolbarController = new ToolbarController(this);
+        // if this is true, we've got navigation drawer and have to deal with it
+        // setup drawer toggle, which calls drawerVisibilityChanged()
+        slidy = resources.getBoolean(R.bool.slidy)
 
-        imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (slidy) {
+            uiDrawerLayout = findViewById(R.id.drawer_layout)
+            drawerToggle = object : ActionBarDrawerToggle(this, uiDrawerLayout,
+                    R.string.ui__ActionBarDrawerToggle__open_drawer,
+                    R.string.ui__ActionBarDrawerToggle__close_drawer) {
+                override fun onDrawerSlide(drawerView: View, slideOffset: Float) {
+                    drawerVisibilityChanged(slideOffset > 0)
+                }
+            }
+            isPagerNoticeablyObscured = uiDrawerLayout.isDrawerVisible(uiDrawer)
+            uiDrawerLayout.addDrawerListener(drawerToggle)
+            supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        }
 
-        if (P.isServiceAlive()) connect();
+        toolbarController = ToolbarController(this)
+
+        imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+
+        if (P.isServiceAlive()) connect()
 
         // restore buffers if we have data in the static
         // if no data and not going to connect, clear stuff
         // if no data and going to connect, let the LISTED event restore it all
-        if (adapter.canRestoreBuffers()) adapter.restoreBuffers();
+        if (pagerAdapter.canRestoreBuffers()) pagerAdapter.restoreBuffers()
 
-        P.applyThemeAfterActivityCreation(this);
-        P.storeThemeOrColorSchemeColors(this);  // required for ThemeFix.fixIconAndColor()
-        ThemeFix.fixIconAndColor(this);
+        P.applyThemeAfterActivityCreation(this)
+        P.storeThemeOrColorSchemeColors(this)   // required for ThemeFix.fixIconAndColor()
+        ThemeFix.fixIconAndColor(this)
     }
 
-    @MainThread @CatD(linger=true) public void connect() {
-        P.loadConnectionPreferences();
-        int error = P.validateConnectionPreferences();
+    @MainThread @CatD(linger = true) fun connect() {
+        P.loadConnectionPreferences()
+        val error = P.validateConnectionPreferences()
         if (error != 0) {
-            ErrorToast.show(error);
-            return;
+            Toaster.ErrorToast.show(error)
+        } else {
+            kitty.debug("proceeding!")
+            RelayService.startWithAction(this, RelayService.ACTION_START)
         }
-
-        kitty.debug("proceeding!");
-
-        RelayService.startWithAction(this, RelayService.ACTION_START);
     }
 
-    @MainThread @CatD public void disconnect() {
-        RelayService.startWithAction(this, RelayService.ACTION_STOP);
+    @MainThread @CatD fun disconnect() {
+        RelayService.startWithAction(this, RelayService.ACTION_STOP)
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private boolean started = false;
+    private var started = false
 
     // a dirty but quick & safe hack that sets background color of the popup menu
-    @Override public View onCreateView(View parent, String name, @NonNull Context context, @NonNull AttributeSet attrs) {
-        if (name.endsWith(".menu.ListMenuItemView") && parent.getParent() instanceof FrameLayout) {
-            Drawable drawable = ContextCompat.getDrawable(context, R.drawable.bg_popup_menu);
-            if (drawable != null) {
-                drawable.setColorFilter(0xff000000 | P.colorPrimary, PorterDuff.Mode.MULTIPLY);
-                ((View) parent.getParent()).setBackground(drawable);
+    override fun onCreateView(parent: View?, name: String, context: Context, attrs: AttributeSet): View? {
+        if (name.endsWith(".menu.ListMenuItemView") && parent?.parent is FrameLayout) {
+            ContextCompat.getDrawable(context, R.drawable.bg_popup_menu)?.let {
+                it.setColorFilter(0xff000000.u or P.colorPrimary, PorterDuff.Mode.MULTIPLY)
+                (parent.parent as View).background = it
             }
         }
-        return super.onCreateView(parent, name, context, attrs);
+        return super.onCreateView(parent, name, context, attrs)
     }
 
-    @MainThread @Override @CatD protected void onStart() {
-        Network.get().register(this, null);     // no callback, simply make sure that network info is correct while we are showing
-        // P.calculateWeaselWidth(); -- now performed by WeaselMeasuringViewPager
-        EventBus.getDefault().register(this);
-        state = EventBus.getDefault().getStickyEvent(StateChangedEvent.class).state;
-        updateHotCount(Hotlist.getHotCount());
-        started = true;
-        P.storeThemeOrColorSchemeColors(this);
-        applyColorSchemeToViews();
-        super.onStart();
-        if (uiMenu != null) uiMenu.findItem(R.id.menu_dark_theme).setVisible(P.themeSwitchEnabled);
-        if (getIntent().hasExtra(EXTRA_BUFFER_POINTER)) openBufferFromIntent();
-        enableDisableExclusionRects();
+    @MainThread @CatD override fun onStart() {
+        Network.get().register(this, null)  // no callback, simply make sure that network info is correct while we are showing
+        EventBus.getDefault().register(this)
+        connectionState = EventBus.getDefault().getStickyEvent(StateChangedEvent::class.java).state
+        updateHotCount(Hotlist.getHotCount())
+        started = true
+        P.storeThemeOrColorSchemeColors(this)
+        applyColorSchemeToViews()
+        super.onStart()
+        uiMenu?.findItem(R.id.menu_dark_theme)?.isVisible = P.themeSwitchEnabled
+        if (intent.hasExtra(Constants.EXTRA_BUFFER_POINTER)) openBufferFromIntent()
+        enableDisableExclusionRects()
     }
 
-    @MainThread @Override @CatD protected void onStop() {
-        started = false;
-        EventBus.getDefault().unregister(this);
-        P.saveStuff();
-        super.onStop();
-        Network.get().unregister(this);
-        CachePersist.save();
-        UploadDatabase.save();
+    @MainThread @CatD override fun onStop() {
+        started = false
+        EventBus.getDefault().unregister(this)
+        P.saveStuff()
+        super.onStop()
+        Network.get().unregister(this)
+        CachePersist.save()
+        UploadDatabase.save()
     }
 
-    @MainThread @Override @CatD protected void onDestroy() {
-        toolbarController.detach();
-        super.onDestroy();
+    @MainThread @CatD override fun onDestroy() {
+        toolbarController?.detach()
+        super.onDestroy()
     }
 
-    //////////////////////////////////////////////////////////////////////////////////////////////// these two are necessary for the drawer
+    ///////////////////////////////////////////////////////// these two are necessary for the drawer
 
-    @MainThread @Override protected void onPostCreate(Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
-        if (slidy) drawerToggle.syncState();
+    @MainThread override fun onPostCreate(savedInstanceState: Bundle?) {
+        super.onPostCreate(savedInstanceState)
+        if (slidy) drawerToggle.syncState()
     }
 
-    @MainThread @Override public void onConfigurationChanged(@NonNull Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        if (slidy) drawerToggle.onConfigurationChanged(newConfig);
+    @MainThread override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        if (slidy) drawerToggle.onConfigurationChanged(newConfig)
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// the joy
+    //////////////////////////////////////////////////////////////////////////////////////// the joy
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @MainThread @Cat private void adjustUI() {
-        final int image;
-        if (state.contains(STOPPED)) image = R.drawable.ic_big_disconnected;
-        else if (state.contains(AUTHENTICATED)) image = R.drawable.ic_big_connected;
-        else image = R.drawable.ic_big_connecting;
-        setInfoImage(image);
-        makeMenuReflectConnectionStatus();
+    @MainThread @Cat private fun adjustUI() {
+        setKittyImage(when {
+            connectionState.isStopped -> R.drawable.ic_big_disconnected
+            connectionState.isAuthenticated -> R.drawable.ic_big_connected
+            else -> R.drawable.ic_big_connecting
+        })
+        makeMenuReflectConnectionStatus()
     }
 
-    //////////////////////////////////////////////////////////////////////////////////////////////// events?
+    //////////////////////////////////////////////////////////////////////////////////////// events?
 
-    private EnumSet<STATE> state = null;
+    private var connectionState: EnumSet<RelayService.STATE>? = null
 
-    @Subscribe(sticky=true, threadMode=ThreadMode.MAIN_ORDERED)
-    @MainThread @Cat public void onEvent(StateChangedEvent event) {
-        boolean init = state == event.state;
-        state = event.state;
-        adjustUI();
-        if (state.contains(LISTED)) {
-            if (adapter.canRestoreBuffers()) adapter.restoreBuffers();
-            else if (!init && slidy) showDrawerIfPagerIsEmpty();
+    @Subscribe(sticky = true, threadMode = ThreadMode.MAIN_ORDERED)
+    @MainThread @Cat fun onEvent(event: StateChangedEvent) {
+        val init = connectionState === event.state
+        connectionState = event.state
+        adjustUI()
+        if (connectionState.isListed) {
+            if (pagerAdapter.canRestoreBuffers()) {
+                pagerAdapter.restoreBuffers()
+            } else if (!init && slidy) {
+                showDrawerIfPagerIsEmpty()
+            }
         }
     }
 
@@ -313,431 +301,415 @@ public class WeechatActivity extends AppCompatActivity implements
     // as this method is doing network, it should be run on a worker thread. currently it's run on
     // the connection thread, which can get interrupted by doge, but this likely not a problem as
     // EventBus won't crash the application by default
-
     // SSL WebSockets will generate the same errors, except in the case of a certificate with an
     // invalid host and a missing endpoint (e.g. wrong.host.badssl.com). as we are verifying the
     // socket after connecting, in this case the user will see a toast with “The status ... is not
     // '101 Switching Protocols'”. this error is also valid so we consider this a non-issue
     @Subscribe
-    @WorkerThread @Cat public void onEvent(final ExceptionEvent event) {
-        kitty.error("onEvent(ExceptionEvent)", event.e);
-        final Exception e = event.e;
-        DialogFragment fragment = null;
+    @WorkerThread fun onEvent(event: ExceptionEvent) {
+        kitty.error("onEvent(ExceptionEvent)", event.e)
+        var fragment: DialogFragment? = null
 
-        if (findException(e, SSLPeerUnverifiedException.class) != null ||
-                findException(e, CertificateException.class) != null) {
-            SSLHandler.Result r = SSLHandler.checkHostnameAndValidity(P.host, P.port);
-            if (r.certificateChain != null && r.certificateChain.length > 0) {
-                if (r.exception instanceof CertificateExpiredException) {
-                    fragment = CertificateDialog.buildExpiredCertificateDialog(this, r.certificateChain);
-                } else if (r.exception instanceof CertificateNotYetValidException) {
-                    fragment = CertificateDialog.buildNotYetValidCertificateDialog(this, r.certificateChain);
-                } else if (r.exception instanceof SSLPeerUnverifiedException) {
-                    fragment = CertificateDialog.buildInvalidHostnameCertificateDialog(this, r.certificateChain);
-                } else if (r.exception == null) {
-                    fragment = CertificateDialog.buildUntrustedOrNotPinnedCertificateDialog(this, r.certificateChain);
+        if (event.e.wasCausedByEither<SSLPeerUnverifiedException, CertificateException>()) {
+            val hostValidityCheckResult = SSLHandler.checkHostnameAndValidity(P.host, P.port)
+            val certificateChain = hostValidityCheckResult.certificateChain
+            if (!certificateChain.isNullOrEmpty()) {
+                fragment = when (hostValidityCheckResult.exception) {
+                    is CertificateExpiredException -> CertificateDialog.buildExpiredCertificateDialog(this, certificateChain)
+                    is CertificateNotYetValidException -> CertificateDialog.buildNotYetValidCertificateDialog(this, certificateChain)
+                    is SSLPeerUnverifiedException -> CertificateDialog.buildInvalidHostnameCertificateDialog(this, certificateChain)
+                    null -> CertificateDialog.buildUntrustedOrNotPinnedCertificateDialog(this, certificateChain)
+                    else -> null
                 }
             }
         }
 
-        SSHServerKeyVerifier.VerifyException verifyException = findException(e, SSHServerKeyVerifier.VerifyException.class);
-        if (verifyException != null) {
-            if (verifyException instanceof SSHServerKeyVerifier.ServerNotKnownException) {
-                fragment = ScrollableDialog.buildServerNotKnownDialog(
-                        this, verifyException.getServer(), verifyException.getIdentity());
-            }
-
-            if (verifyException instanceof SSHServerKeyVerifier.ServerNotVerifiedException) {
-                fragment = ScrollableDialog.buildServerNotVerifiedDialog(
-                        this, verifyException.getServer(), verifyException.getIdentity());
+        event.e.findCause<SSHServerKeyVerifier.VerifyException>()?.let { verifyException ->
+            fragment = when (verifyException) {
+                is SSHServerKeyVerifier.ServerNotKnownException ->
+                        ScrollableDialog.buildServerNotKnownDialog(
+                                this, verifyException.server, verifyException.identity)
+                is SSHServerKeyVerifier.ServerNotVerifiedException ->
+                        ScrollableDialog.buildServerNotVerifiedDialog(
+                                this, verifyException.server, verifyException.identity)
+                else -> null
             }
         }
 
         if (fragment != null) {
-            fragment.show(getSupportFragmentManager(), "ssl-or-ssh-error");
-            Weechat.runOnMainThread(this::disconnect);
-            return;
+            fragment?.show(supportFragmentManager, "ssl-or-ssh-error")
+            main { disconnect() }
+        } else {
+            val friendlyException = FriendlyExceptions(this).getFriendlyException(event.e)
+            Toaster.ErrorToast.show(R.string.error__etc__prefix, friendlyException.message)
+            if (friendlyException.shouldStopConnecting) main { disconnect() }
         }
-
-        FriendlyExceptions.Result result = new FriendlyExceptions(this).getFriendlyException(e);
-        ErrorToast.show(R.string.error__etc__prefix, result.message);
-        if (result.shouldStopConnecting) Weechat.runOnMainThread(this::disconnect);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// OnPageChangeListener
+    /////////////////////////////////////////////////////////////////////////// OnPageChangeListener
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @Cat("Page") @Override public void onPageScrollStateChanged(int state) {}
-    @Cat("Page") @Override public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {}
-    @Cat("Page") @Override public void onPageSelected(int position) {onChange();}
+    @Cat("Page")override fun onPageScrollStateChanged(state: Int) {}
+    @Cat("Page") override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {}
+    @Cat("Page") override fun onPageSelected(position: Int) { onChange() }
 
     // this method gets called repeatedly on various pager changes; make sure to only do stuff
     // when an actual change takes place
-    private long currentBufferPointer = -1;
-    @Cat("Page") @Override public void onChange() {
-        long pointer = adapter.getCurrentBufferPointer();
-        if (currentBufferPointer == pointer) return;
-        boolean needToChangeKittyVisibility = currentBufferPointer == -1 || currentBufferPointer == 0 || pointer == 0;
-        currentBufferPointer = pointer;
+    private var currentBufferPointer: Long = -1
+    @Cat("Page") override fun onChange() {
+        val pointer = pagerAdapter.currentBufferPointer
+        if (currentBufferPointer == pointer) return
+        val needToChangeKittyVisibility = currentBufferPointer == -1L || currentBufferPointer == 0L || pointer == 0L
+        currentBufferPointer = pointer
 
-        updateMenuItems();
-        hideSoftwareKeyboard();
-        toolbarController.onPageChangedOrSelected();
+        updateMenuItems()
+        hideSoftwareKeyboard()
+        toolbarController?.onPageChangedOrSelected()
         if (needToChangeKittyVisibility) {
-            findViewById(R.id.kitty).setVisibility(adapter.getCount() == 0 ? View.VISIBLE : View.GONE);
-            applyMainBackgroundColor();
+            uiKitty.visibility = if (pagerAdapter.count == 0) View.VISIBLE else View.GONE
+            applyMainBackgroundColor()
         }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// MENU
+    /////////////////////////////////////////////////////////////////////////////////////////// MENU
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    volatile private int hotNumber = 0;
-    private @Nullable TextView uiHot = null;
+    @Volatile private var hotNumber = 0
+    private var uiHot: TextView? = null
 
     // update hot count (that red square over the bell icon) at any time
     // also sets "hotNumber" in case menu has to be recreated
-    @MainThread @Cat("Menu") public void updateHotCount(final int newHotNumber) {
+    @MainThread @Cat("Menu") fun updateHotCount(newHotNumber: Int) {
         //if (hotNumber == newHotNumber) return;
-        hotNumber = newHotNumber;
-        if (uiHot == null) return;
-        if (newHotNumber == 0) {
-            uiHot.setVisibility(View.INVISIBLE);
-        } else {
-            uiHot.setVisibility(View.VISIBLE);
-            uiHot.setText(String.valueOf(newHotNumber));
+        hotNumber = newHotNumber
+        uiHot?.apply {
+            visibility = if (newHotNumber != 0) View.VISIBLE else View.INVISIBLE
+            if (newHotNumber != 0) text = newHotNumber.toString()
         }
     }
 
     // hide or show nicklist/close menu item according to buffer
-    @MainThread public void updateMenuItems() {
-        if (uiMenu == null) return;
-        boolean bufferVisible = adapter.getCount() > 0;
-        uiMenu.findItem(R.id.menu_search).setVisible(bufferVisible);
-        uiMenu.findItem(R.id.menu_nicklist).setVisible(bufferVisible);
-        uiMenu.findItem(R.id.menu_close).setVisible(bufferVisible);
-        uiMenu.findItem(R.id.menu_filter_lines).setChecked(P.filterLines);
-        uiMenu.findItem(R.id.menu_dark_theme).setVisible(P.themeSwitchEnabled);
-        uiMenu.findItem(R.id.menu_dark_theme).setChecked(P.darkThemeActive);
+    @MainThread fun updateMenuItems() = ulet(uiMenu) { menu ->
+        val bufferVisible = pagerAdapter.count > 0
 
-        MenuItem upload1 = uiMenu.findItem(R.id.menu_upload_1);
-        MenuItem upload2 = uiMenu.findItem(R.id.menu_upload_2);
-        boolean showUpload1 = false;
-        if (bufferVisible) {
-            BufferFragment fragment = adapter.getCurrentBufferFragment();
-            if (fragment != null && fragment.shouldShowUploadMenus()) showUpload1 = true;
+        menu.run {
+            findItem(R.id.menu_search).isVisible = bufferVisible
+            findItem(R.id.menu_nicklist).isVisible = bufferVisible
+            findItem(R.id.menu_close).isVisible = bufferVisible
+            findItem(R.id.menu_filter_lines).isChecked = P.filterLines
+            findItem(R.id.menu_dark_theme).isVisible = P.themeSwitchEnabled
+            findItem(R.id.menu_dark_theme).isChecked = P.darkThemeActive
         }
-        boolean showUpload2 = showUpload1 && Config.paperclipAction2 != null;
-        upload1.setVisible(showUpload1);
-        upload2.setVisible(showUpload2);
-        if (showUpload1) upload1.setTitle(Config.paperclipAction1.getMenuItemResId());
-        if (showUpload2) upload2.setTitle(Config.paperclipAction2.getMenuItemResId());
+
+        val showUpload1 = bufferVisible &&
+                pagerAdapter.currentBufferFragment?.shouldShowUploadMenus() == true
+        val showUpload2 = showUpload1 && Config.paperclipAction2 != null
+
+        menu.findItem(R.id.menu_upload_1).run {
+            isVisible = showUpload1
+            if (showUpload1) setTitle(Config.paperclipAction1.menuItemResId)
+        }
+
+        menu.findItem(R.id.menu_upload_2).run {
+            isVisible = showUpload2
+            if (showUpload2) setTitle(Config.paperclipAction2!!.menuItemResId)
+        }
     }
 
-    @Override @MainThread @Cat("Menu") public boolean onCreateOptionsMenu(final Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_actionbar, menu);
-        final View menuHotlist = menu.findItem(R.id.menu_hotlist).getActionView();
-        uiHot = menuHotlist.findViewById(R.id.hotlist_hot);
+    @MainThread @Cat("Menu") override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.menu_actionbar, menu)
+
+        val menuHotlist = menu.findItem(R.id.menu_hotlist).actionView
+        uiHot = menuHotlist.findViewById(R.id.hotlist_hot)
 
         // set color of the border around the [2] badge on the bell, as well as text color
         //GradientDrawable drawable = (GradientDrawable) uiHot.getBackground();
         //drawable.setStroke((int) (P.darkThemeActive ? P._4dp / 2 : P._4dp / 2 - 1), P.colorPrimary);
-        uiHot.setTextColor(P.darkThemeActive ? 0xffffffff : P.colorPrimary);
+        uiHot?.setTextColor(if (P.darkThemeActive) 0xffffffff.u else P.colorPrimary)
 
-        TooltipCompat.setTooltipText(menuHotlist, getString(R.string.menu__hotlist_hint));
-        menuHotlist.setOnClickListener((View v) -> onHotlistSelected());
-        uiMenu = menu;
-        updateMenuItems();
-        makeMenuReflectConnectionStatus();
-        updateHotCount(hotNumber);
-        return super.onCreateOptionsMenu(menu);
+        TooltipCompat.setTooltipText(menuHotlist, getString(R.string.menu__hotlist_hint))
+        menuHotlist.setOnClickListener { onHotlistSelected() }
+        uiMenu = menu
+        updateMenuItems()
+        makeMenuReflectConnectionStatus()
+        updateHotCount(hotNumber)
+        return super.onCreateOptionsMenu(menu)
     }
 
-    @MainThread @Override @Cat("Menu") public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home:
-                if (slidy) {
-                    if (drawerShowing) hideDrawer();
-                    else showDrawer();
+    @MainThread @Cat("Menu") override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            android.R.id.home -> if (slidy) {
+                if (isPagerNoticeablyObscured) hideDrawer() else showDrawer()
+            }
+            R.id.menu_search -> {
+                pagerAdapter.currentBufferFragment?.searchEnableDisable(enable = true, newSearch = true)
+            }
+            R.id.menu_connection_state -> {
+                if (connectionState.isStarted) disconnect() else connect()
+            }
+            R.id.menu_preferences -> {
+                startActivity(Intent(this, PreferencesActivity::class.java))
+            }
+            R.id.menu_close -> {
+                pagerAdapter.currentBufferFragment?.onBufferClosed()
+            }
+            R.id.menu_hotlist -> {
+                // see method below
+            }
+            R.id.menu_nicklist -> {
+                NicklistDialog.show(this, pagerAdapter.currentBufferPointer)
+            }
+            R.id.menu_filter_lines -> {
+                item.isChecked = !P.filterLines
+                PreferenceManager.getDefaultSharedPreferences(this)
+                        .edit()
+                        .putBoolean(Constants.PREF_FILTER_LINES, item.isChecked)
+                        .apply()
+            }
+            R.id.menu_dark_theme -> {
+                item.isChecked = !P.darkThemeActive
+                val value = if (item.isChecked) Constants.PREF_THEME_DARK else Constants.PREF_THEME_LIGHT
+                PreferenceManager.getDefaultSharedPreferences(this)
+                        .edit()
+                        .putString(Constants.PREF_THEME, value)
+                        .apply()
+            }
+            R.id.menu_upload_1, R.id.menu_upload_2 -> {
+                val paperclipTarget = if (item.itemId == R.id.menu_upload_1)
+                        Config.paperclipAction1 else Config.paperclipAction2
+                let(pagerAdapter.currentBufferFragment, paperclipTarget) { fragment, target ->
+                    chooseFiles(fragment, target)
                 }
-                break;
-            case R.id.menu_search:
-                BufferFragment current1 = adapter.getCurrentBufferFragment();
-                if (current1!= null)
-                    current1.searchEnableDisable(true, true);
-                break;
-            case R.id.menu_connection_state:
-                if (state.contains(STARTED)) disconnect();
-                else connect();
-                break;
-            case R.id.menu_preferences:
-                Intent intent = new Intent(this, PreferencesActivity.class);
-                startActivity(intent);
-                break;
-            case R.id.menu_close:
-                BufferFragment current = adapter.getCurrentBufferFragment();
-                if (current != null)
-                    current.onBufferClosed();
-                break;
-            case R.id.menu_hotlist:
-                break;
-            case R.id.menu_nicklist:
-                final long pointer = adapter.getCurrentBufferPointer();
-                NicklistDialog.show(this, pointer);
-                break;
-            case R.id.menu_filter_lines:
-                final SharedPreferences p = PreferenceManager.getDefaultSharedPreferences(this);
-                final boolean filter = !P.filterLines;
-                item.setChecked(filter);
-                p.edit().putBoolean(PREF_FILTER_LINES, filter).apply();
-                break;
-            case R.id.menu_dark_theme:
-                item.setChecked(!P.darkThemeActive);
-                PreferenceManager.getDefaultSharedPreferences(this).edit().putString(
-                        PREF_THEME, P.darkThemeActive ? PREF_THEME_LIGHT : PREF_THEME_DARK).apply();
-                break;
-            case R.id.menu_upload_1:
-            case R.id.menu_upload_2:
-                Target target = item.getItemId() == R.id.menu_upload_1 ?
-                        Config.paperclipAction1 : Config.paperclipAction2;
-                BufferFragment fragment = adapter.getCurrentBufferFragment();
-                if (fragment != null && target != null) FileChooserKt.chooseFiles(fragment, target);
-                break;
-            case R.id.sync_hotlist:
-                BufferList.syncHotlist();
-                break;
-            case R.id.die:
-                System.exit(0);
-                break;
+            }
+            R.id.sync_hotlist -> BufferList.syncHotlist()
+            R.id.die -> exitProcess(0)
         }
-        return true;
+        return true
     }
 
-    @MainThread @Cat("Menu") private void onHotlistSelected() {
-        Buffer buffer = BufferList.getHotBuffer();
-        if (buffer != null)
-            openBuffer(buffer.pointer);
-        else
-            ShortToast.show(R.string.error__etc__no_hot_buffers);
+    @MainThread @Cat("Menu") private fun onHotlistSelected() {
+        val buffer = BufferList.getHotBuffer()
+        if (buffer != null) {
+            openBuffer(buffer.pointer)
+        } else {
+            Toaster.ShortToast.show(R.string.error__etc__no_hot_buffers)
+        }
     }
 
-    @MainThread @Cat("Menu") private void makeMenuReflectConnectionStatus() {
-        if (uiMenu == null) return;
-        MenuItem connectionStatus = uiMenu.findItem(R.id.menu_connection_state);
-        String msg;
+    @MainThread @Cat("Menu") private fun makeMenuReflectConnectionStatus() = ulet(uiMenu) { menu ->
+        val connectionStateTitle = getString(when {
+            connectionState.isAuthenticated -> R.string.menu__connection_state__disconnect
+            connectionState.isStarted -> R.string.menu__connection_state__stop_connecting
+            else -> R.string.menu__connection_state__connect
+        })
+        menu.findItem(R.id.menu_connection_state).title = connectionStateTitle
 
-        if (state.contains(AUTHENTICATED)) msg = getString(R.string.menu__connection_state__disconnect);
-        else if (state.contains(STARTED)) msg = getString(R.string.menu__connection_state__stop_connecting);
-        else msg = getString(R.string.menu__connection_state__connect);
-        connectionStatus.setTitle(msg);
-
-        final View menuHotlist = uiMenu.findItem(R.id.menu_hotlist).getActionView();
-        ImageView bellImage = menuHotlist.findViewById(R.id.hotlist_bell);
-        bellImage.setImageResource(P.optimizeTraffic ? R.drawable.ic_toolbar_bell_cracked : R.drawable.ic_toolbar_bell);
+        val menuHotlist = menu.findItem(R.id.menu_hotlist).actionView
+        val bellImage = menuHotlist.findViewById<ImageView>(R.id.hotlist_bell)
+        bellImage.setImageResource(if (P.optimizeTraffic) R.drawable.ic_toolbar_bell_cracked else R.drawable.ic_toolbar_bell)
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// MISC
+    /////////////////////////////////////////////////////////////////////////////////////////// MISC
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-    @MainThread @Override public void onBufferClick(long pointer) {
-        openBuffer(pointer);
+    @MainThread override fun onBufferClick(pointer: Long) {
+        openBuffer(pointer)
     }
 
-    @MainThread public void openBuffer(long pointer) {
-        openBuffer(pointer, null);
-    }
+    @MainThread @Cat("Buffers") fun openBuffer(pointer: Long, shareObject: ShareObject? = null) {
+        pagerAdapter.openBuffer(pointer)
+        pagerAdapter.focusBuffer(pointer)
 
-    @MainThread @Cat("Buffers") public void openBuffer(long pointer, @Nullable ShareObject shareObject) {
-        adapter.openBuffer(pointer);
-        adapter.focusBuffer(pointer);
-
-        if (slidy) hideDrawer();
+        if (slidy) hideDrawer()
 
         if (shareObject != null) {
-            BufferFragment fragment = adapter.getCurrentBufferFragment();
-            if (fragment != null && fragment.getView() != null) {
-                fragment.setShareObject(shareObject);
+            val fragment = pagerAdapter.currentBufferFragment
+            if (fragment != null && fragment.view != null) {
+                fragment.setShareObject(shareObject)
             } else {
                 // let fragment be created first, if it's not ready
-                Weechat.runOnMainThread(() -> {
-                    BufferFragment fragment1 = adapter.getCurrentBufferFragment();
-                    if (fragment1 != null) fragment1.setShareObject(shareObject);
-                });
+                main { pagerAdapter.currentBufferFragment?.setShareObject(shareObject)}
             }
         }
     }
 
-    @MainThread @Cat("Buffers") public void closeBuffer(long pointer) {
-        adapter.closeBuffer(pointer);
-        if (slidy) showDrawerIfPagerIsEmpty();
+    @MainThread @Cat("Buffers") fun closeBuffer(pointer: Long) {
+        pagerAdapter.closeBuffer(pointer)
+        if (slidy) showDrawerIfPagerIsEmpty()
     }
 
-    @MainThread public void hideSoftwareKeyboard() {
-        imm.hideSoftInputFromWindow(uiPager.getWindowToken(), 0);
+    @MainThread fun hideSoftwareKeyboard() {
+        imm.hideSoftInputFromWindow(uiPager.windowToken, 0)
     }
 
-    @MainThread @Override public void onBackPressed() {
-        View currentFocus = getCurrentFocus();
-        if (currentFocus != null && currentFocus.getId() == R.id.search_input) {
-            BufferFragment current = adapter.getCurrentBufferFragment();
-            if (current != null) current.searchEnableDisable(false, false);
-        } else if (slidy && drawerShowing) {
-            hideDrawer();
+    @MainThread override fun onBackPressed() {
+        if (currentFocus?.id == R.id.search_input) {
+            pagerAdapter.currentBufferFragment?.searchEnableDisable(enable = false, newSearch = false)
+        } else if (slidy && isPagerNoticeablyObscured) {
+            hideDrawer()
         } else {
-            moveTaskToBack(true);
+            moveTaskToBack(true)
         }
     }
 
-    @MainThread public boolean isChatInputOrSearchInputFocused() {
-        View view = getCurrentFocus();
-        return view != null && (view.getId() == R.id.chatview_input || view.getId() == R.id.search_input);
-    }
+    val isChatInputOrSearchInputFocused: Boolean
+        @MainThread get() = currentFocus?.id.isAnyOf(R.id.chatview_input, R.id.search_input)
 
     // this gets called on *every* change to the whole buffer list including hotlist changes
     // todo only sort open buffers on major buffer list changes
-    @MainThread public void onBuffersChanged() {
-        adapter.sortOpenBuffers();
+    @MainThread fun onBuffersChanged() {
+        pagerAdapter.sortOpenBuffers()
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// drawer stuff
+    /////////////////////////////////////////////////////////////////////////////////// drawer stuff
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @MainThread public void drawerVisibilityChanged(boolean showing) {
-        if (drawerShowing == showing) return;
-        drawerShowing = showing;
-        hideSoftwareKeyboard();
-        BufferFragment current = adapter.getCurrentBufferFragment();
-        if (current != null)
-            current.onVisibilityStateChanged(BufferFragment.ChangedState.FullVisibility);
+    @MainThread fun drawerVisibilityChanged(showing: Boolean) {
+        if (isPagerNoticeablyObscured == showing) return
+        isPagerNoticeablyObscured = showing
+        hideSoftwareKeyboard()
+        pagerAdapter.currentBufferFragment?.onVisibilityStateChanged(BufferFragment.ChangedState.FullVisibility)
     }
 
-    @MainThread public boolean isPagerNoticeablyObscured() {
-        return drawerShowing;
+    // call drawerVisibilityChanged() right away
+    // as we need for isPagerNoticeablyObscured to be set immediately
+    @MainThread @Cat("Drawer") fun showDrawer() {
+        if (!isPagerNoticeablyObscured) drawerVisibilityChanged(true)
+        uiDrawerLayout.openDrawer(uiDrawer, started)
     }
 
-    @MainThread @Cat("Drawer") public void showDrawer() {
-        if (!drawerShowing) drawerVisibilityChanged(true); // we need this so that drawerShowing is set immediately
-        uiDrawerLayout.openDrawer(uiDrawer, started);
+    @MainThread @Cat("Drawer") fun hideDrawer() {
+        uiDrawerLayout.closeDrawer(uiDrawer, started)
     }
 
-    @MainThread @Cat("Drawer") public void hideDrawer() {
-        uiDrawerLayout.closeDrawer(uiDrawer, started);
-    }
-
-    @MainThread @Cat("Drawer") public void showDrawerIfPagerIsEmpty() {
-        if (!drawerShowing && state.contains(LISTED) && adapter.getCount() == 0) showDrawer();
+    @MainThread @Cat("Drawer") fun showDrawerIfPagerIsEmpty() {
+        if (!isPagerNoticeablyObscured && connectionState.isListed && pagerAdapter.count == 0) {
+            showDrawer()
+        }
     }
 
     // set the kitty image that appears when no pages are open
-    int infoImageId = -1;
-    @Cat @MainThread private void setInfoImage(final int id) {
-        if (infoImageId == id) return;
-        infoImageId = id;
-        SimpleTransitionDrawable trans = (SimpleTransitionDrawable) uiInfo.getDrawable();
-        trans.setTarget(AppCompatResources.getDrawable(this, id));
-        trans.startTransition(350);
+    private var kittyImageResourceId = -1
+    @MainThread @Cat private fun setKittyImage(resourceId: Int) {
+        if (kittyImageResourceId == resourceId) return
+        kittyImageResourceId = resourceId
+        val drawable = uiKitty.drawable as SimpleTransitionDrawable
+        drawable.setTarget(AppCompatResources.getDrawable(this, resourceId))
+        drawable.startTransition(350)
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// intent
+    ///////////////////////////////////////////////////////////////////////////////////////// intent
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-
     // we may get intent while we are connected to the service and when we are not
-    @MainThread @Override @Cat("Intent") protected void onNewIntent(Intent intent) {
-        super.onNewIntent(intent);
-        if (intent.hasExtra(EXTRA_BUFFER_POINTER)) {
-            setIntent(intent);
-            if (started) openBufferFromIntent();
+    @MainThread @Cat("Intent") override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        if (intent.hasExtra(Constants.EXTRA_BUFFER_POINTER)) {
+            setIntent(intent)
+            if (started) openBufferFromIntent()
         }
     }
 
     // when this is called, EXTRA_BUFFER_POINTER must be set
-    @MainThread @Cat("Intent") private void openBufferFromIntent() {
-        Intent intent = getIntent();
+    @MainThread @Cat("Intent") private fun openBufferFromIntent() {
+        val intent = intent
+        val pointer = intent.getLongExtra(Constants.EXTRA_BUFFER_POINTER,
+                                          Constants.NOTIFICATION_EXTRA_BUFFER_ANY)
+        intent.removeExtra(Constants.EXTRA_BUFFER_POINTER)
 
-        long pointer = intent.getLongExtra(EXTRA_BUFFER_POINTER, NOTIFICATION_EXTRA_BUFFER_ANY);
-        intent.removeExtra(EXTRA_BUFFER_POINTER);
-
-        if (pointer == NOTIFICATION_EXTRA_BUFFER_ANY) {
+        if (pointer == Constants.NOTIFICATION_EXTRA_BUFFER_ANY) {
             if (BufferList.getHotBufferCount() > 1) {
-                if (slidy) showDrawer();
+                if (slidy) showDrawer()
             } else {
-                Buffer buffer = BufferList.getHotBuffer();
-                if (buffer != null) openBuffer(buffer.pointer);
+                BufferList.getHotBuffer()?.let { openBuffer(it.pointer) }
             }
         } else {
-            @Nullable String action = intent.getAction();
-            @Nullable String type = intent.getType();
+            var shareObject: ShareObject? = null
 
-            ShareObject shareObject = null;
+            val sendOne = intent.action == Intent.ACTION_SEND
+            val sendMultiple = intent.action == Intent.ACTION_SEND_MULTIPLE
 
-            boolean sendOne = Intent.ACTION_SEND.equals(action);
-            boolean sendMultiple = Intent.ACTION_SEND_MULTIPLE.equals(action);
-
-            if (sendOne && "text/plain".equals(type)) {
-                String text = intent.getStringExtra(Intent.EXTRA_TEXT);
-                if (text != null) shareObject = new TextShareObject(text);
+            if (sendOne && "text/plain" == intent.type) {
+                intent.getStringExtra(Intent.EXTRA_TEXT)?.let { shareObject = TextShareObject(it) }
             } else {
-                List<Uri> uris = null;
-
-                if (sendOne) {
-                    Uri uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
-                    if (uri != null) uris = Collections.singletonList(uri);
-                } else if (sendMultiple) {
-                    uris = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
+                val uris = when {
+                    sendOne -> intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)?.let { listOf(it) }
+                    sendMultiple -> intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM)
+                    else -> null
                 }
 
-                if (!Utils.isEmpty(uris)) {
+                if (!uris.isNullOrEmpty()) {
                     try {
-                        shareObject = UrisShareObject.fromUris(uris);
-                    } catch (Exception e) {
-                        kitty.warn("Error while accessing uri", e);
-                        ErrorToast.show(e);
+                        shareObject = fromUris(uris)
+                    } catch (e: Exception) {
+                        kitty.warn("Error while accessing uri", e)
+                        Toaster.ErrorToast.show(e)
                     }
                 }
             }
 
-            openBuffer(pointer, shareObject);
+            openBuffer(pointer, shareObject)
         }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    // status bad can be colored since api 21 and have dark icons since api 23
+    // status bar can be colored since api 21 and have dark icons since api 23
     // navigation bar can be colored since api 21 and can have dark icons since api 26 via
     // SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR, which the theming engine seems to be setting
     // automatically, and since api 27 via android:navigationBarColor
-    private void applyColorSchemeToViews() {
-        applyMainBackgroundColor();
-        findViewById(R.id.toolbar).setBackgroundColor(P.colorPrimary);
+    private fun applyColorSchemeToViews() {
+        applyMainBackgroundColor()
+        findViewById<View>(R.id.toolbar).setBackgroundColor(P.colorPrimary)
 
-        boolean isLight = ThemeFix.isColorLight(P.colorPrimaryDark);
-        if (!isLight || Build.VERSION.SDK_INT >= 23) getWindow().setStatusBarColor(P.colorPrimaryDark);
-        if (!isLight || Build.VERSION.SDK_INT >= 26) getWindow().setNavigationBarColor(P.colorPrimaryDark);
+        val isDark = !ThemeFix.isColorLight(P.colorPrimaryDark)
+        if (isDark || Build.VERSION.SDK_INT >= 23) window.statusBarColor = P.colorPrimaryDark
+        if (isDark || Build.VERSION.SDK_INT >= 26) window.navigationBarColor = P.colorPrimaryDark
     }
 
     // to reduce overdraw, change background color instead of drawing over it
-    private void applyMainBackgroundColor() {
-        int color = adapter.getCount() == 0 ?
-                P.colorPrimary :
-                0xFF000000 | ColorScheme.get().default_color[ColorScheme.OPT_BG];
-        findViewById(R.id.weasel_background).setBackgroundColor(color);
+    // todo extract view
+    private fun applyMainBackgroundColor() {
+        val color = if (pagerAdapter.count == 0) {
+            P.colorPrimary
+        } else {
+            0xFF000000.u or ColorScheme.get().default_color[ColorScheme.OPT_BG]
+        }
+        findViewById<View>(R.id.weasel_background).setBackgroundColor(color)
     }
 
-    @MainThread void enableDisableExclusionRects() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q || !slidy) return;
-        uiPager.post(() -> {
-            int pagerHeight = uiPager.getHeight();
-            uiPager.setSystemGestureExclusionRects(
-                    PreferenceManager.getDefaultSharedPreferences(this).getBoolean(PREF_USE_GESTURE_EXCLUSION_ZONE, PREF_USE_GESTURE_EXCLUSION_ZONE_D) ?
-                            Collections.singletonList(new Rect(0, pagerHeight / 2, 200, pagerHeight)) :
-                            Collections.emptyList());
-        });
+    // todo extract preference
+    @MainThread fun enableDisableExclusionRects() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q || !slidy) return
+        val preferences = PreferenceManager.getDefaultSharedPreferences(this)
+        val enable = preferences.getBoolean(Constants.PREF_USE_GESTURE_EXCLUSION_ZONE,
+                                            Constants.PREF_USE_GESTURE_EXCLUSION_ZONE_D)
+        uiPager.post {
+            val pagerHeight = uiPager.height
+            uiPager.systemGestureExclusionRects = if (enable) {
+                listOf(Rect(0, pagerHeight / 2, 200, pagerHeight))
+            } else {
+                emptyList()
+            }
+        }
+    }
+
+    companion object {
+        @Root private val kitty: Kitty = Kitty.make("WA")
     }
 }
+
+
+private inline val EnumSet<RelayService.STATE>?.isAuthenticated get () =
+    this != null && contains(RelayService.STATE.AUTHENTICATED)
+private inline val EnumSet<RelayService.STATE>?.isListed get () =
+    this != null && contains(RelayService.STATE.LISTED)
+private inline val EnumSet<RelayService.STATE>?.isStarted get () =
+    this != null && contains(RelayService.STATE.STARTED)
+private inline val EnumSet<RelayService.STATE>?.isStopped get () =
+    this != null && size == 1 && contains(RelayService.STATE.STOPPED)

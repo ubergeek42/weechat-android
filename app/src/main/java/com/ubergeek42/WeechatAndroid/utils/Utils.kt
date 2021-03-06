@@ -5,10 +5,15 @@ package com.ubergeek42.WeechatAndroid.utils
 import android.text.Editable
 import android.text.TextWatcher
 import android.widget.EditText
+import com.bumptech.glide.load.engine.GlideException
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
+
+// color = 0xff123456.u -- see https://youtrack.jetbrains.com/issue/KT-4749
+val Int.u: Int get() = this
+val Long.u: Int get() = toInt()
 
 inline fun EditText.afterTextChanged(crossinline after: (s: Editable) -> Unit) {
     val textWatcher = object : TextWatcher {
@@ -32,6 +37,40 @@ inline fun <T> T.isAnyOf(a: T, b: T, c: T, d: T) = this == a || this == b || thi
 inline fun <T> T.isNotAnyOf(a: T, b: T) = !isAnyOf(a, b)
 inline fun <T> T.isNotAnyOf(a: T, b: T, c: T) = !isAnyOf(a, b, c)
 inline fun <T> T.isNotAnyOf(a: T, b: T, c: T, d: T) = !isAnyOf(a, b, c, d)
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+@Suppress("UNCHECKED_CAST")
+fun <T : Throwable> Throwable.findCauseInternal(cls: Class<T>): T? {
+    return when {
+        cls.isInstance(this) -> {
+            this as T
+        }
+        this is GlideException -> {
+            rootCauses.forEach { cause ->
+                cause.findCauseInternal(cls)?.let { return it }
+            }
+            null
+        }
+        else -> {
+            cause?.findCauseInternal(cls)
+        }
+    }
+}
+
+inline fun <reified T: Throwable> Throwable.findCause(): T? {
+    return findCauseInternal(T::class.java)?.let { return it }
+}
+
+inline fun <reified T: Throwable> Throwable.wasCausedBy(): Boolean {
+    return findCause<T>() != null
+}
+
+inline fun <reified T1: Throwable, reified T2: Throwable> Throwable.wasCausedByEither(): Boolean {
+    return findCause<T1>() != null || findCause<T2>() != null
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////// let
