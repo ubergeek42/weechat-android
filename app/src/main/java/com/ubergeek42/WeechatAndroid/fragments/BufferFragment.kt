@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.content.res.ColorStateList
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
@@ -45,7 +44,6 @@ import com.ubergeek42.WeechatAndroid.relay.BufferEye
 import com.ubergeek42.WeechatAndroid.relay.BufferList
 import com.ubergeek42.WeechatAndroid.search.Search
 import com.ubergeek42.WeechatAndroid.search.SearchConfig
-import com.ubergeek42.WeechatAndroid.search.smoothScrollToPositionCentering
 import com.ubergeek42.WeechatAndroid.service.Events.SendMessageEvent
 import com.ubergeek42.WeechatAndroid.service.Events.StateChangedEvent
 import com.ubergeek42.WeechatAndroid.service.P
@@ -79,6 +77,8 @@ import com.ubergeek42.WeechatAndroid.views.BackGestureAwareEditText
 import com.ubergeek42.WeechatAndroid.views.CircleView
 import com.ubergeek42.WeechatAndroid.views.CircularImageButton
 import com.ubergeek42.WeechatAndroid.views.OnBackGestureListener
+import com.ubergeek42.WeechatAndroid.views.jumpThenSmoothScroll
+import com.ubergeek42.WeechatAndroid.views.jumpThenSmoothScrollCentering
 import com.ubergeek42.cats.Cat
 import com.ubergeek42.cats.CatD
 import com.ubergeek42.cats.Kitty
@@ -232,7 +232,7 @@ class BufferFragment : Fragment(), BufferEye {
         }
 
         fabScrollToBottom?.setOnClickListener {
-            uiLines?.smoothScrollToPosition(linesAdapter!!.itemCount - 1)
+            uiLines?.jumpThenSmoothScroll(linesAdapter!!.itemCount - 1)
         }
 
         initSearchViews(v)
@@ -918,7 +918,7 @@ class BufferFragment : Fragment(), BufferEye {
         matches.getOrNull(index)?.let {
             focusedMatch = it
             linesAdapter?.findPositionByPointer(it)?.let { position ->
-                if (position != -1) uiLines?.smoothScrollToPositionCentering(position)
+                if (position != -1) uiLines?.jumpThenSmoothScrollCentering(position)
             }
             uiLines?.invalidate()   // trigger redecoration
             enableDisableSearchButtons()
