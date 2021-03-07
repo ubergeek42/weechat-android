@@ -193,11 +193,17 @@ class BufferFragment : Fragment(), BufferEye {
             isFocusableInTouchMode = false
             addOnScrollListener(object : RecyclerView.OnScrollListener() {
                 override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                    if (focusedInViewPager && dy != 0) weechatActivity?.toolbarController
-                            ?.onScroll(dy, onTop, onBottom)
-                    showHideFabWhenScrolled(dy, onBottom)
+                    if (dy != 0) {
+                        if (focusedInViewPager) {
+                            weechatActivity?.toolbarController?.onScroll(dy, onTop, onBottom)
+                        }
+                        showHideFabWhenScrolled(dy, onBottom)
+                    }
                 }
             })
+            setOnJumpedUpWhileScrollingListener {
+                showHideFabWhenScrolled(-100000, onBottom = false)
+            }
         }
 
         uiPaperclip?.run {

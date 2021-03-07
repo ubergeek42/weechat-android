@@ -16,11 +16,12 @@ import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 
+import com.ubergeek42.WeechatAndroid.views.OnJumpedUpWhileScrollingListener;
 import com.ubergeek42.WeechatAndroid.views.ViewUtilsKt;
 
 import static com.ubergeek42.WeechatAndroid.utils.Assert.assertThat;
 
-public class AnimatedRecyclerView extends RecyclerView {
+public class AnimatedRecyclerView extends RecyclerView implements OnJumpedUpWhileScrollingListener {
 
     private final static int DELAY = 10;
     private final static int DURATION = 300;
@@ -153,6 +154,17 @@ public class AnimatedRecyclerView extends RecyclerView {
     }
 
 
+    public void setOnJumpedUpWhileScrollingListener(OnJumpedUpWhileScrollingListener listener) {
+        onJumpedUpWhileScrollingListener = listener;
+    }
+
+    private OnJumpedUpWhileScrollingListener onJumpedUpWhileScrollingListener = null;
+
+    @Override public void onJumpedUpWhileScrolling() {
+        if (onJumpedUpWhileScrollingListener != null) {
+            onJumpedUpWhileScrollingListener.onJumpedUpWhileScrolling();
+        }
+    }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// disabling animation for some updates

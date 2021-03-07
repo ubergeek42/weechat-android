@@ -10,6 +10,11 @@ import kotlin.math.absoluteValue
 import kotlin.math.pow
 
 
+fun interface OnJumpedUpWhileScrollingListener {
+    fun onJumpedUpWhileScrolling()
+}
+
+
 fun RecyclerView.jumpThenSmoothScroll(position: Int) {
     jumpThenSmoothScroll(LinearSmoothScroller(context), position)
 }
@@ -51,6 +56,10 @@ private fun RecyclerView.jumpThenSmoothScroll(smoothScroller: RecyclerView.Smoot
         val positionsToJump = positionDifference - positionsToScroll
 
         layoutManager.scrollToPositionWithOffset(edge + direction * positionsToJump, 0)
+
+        if (direction == -1 && this is OnJumpedUpWhileScrollingListener) {
+            post { onJumpedUpWhileScrolling() }
+        }
     }
 
     smoothScroller.targetPosition = position
