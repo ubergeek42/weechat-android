@@ -51,6 +51,7 @@
     public void onEvent*(**);
 }
 -keep class org.apache.commons.codec.digest.* { *; }
+-keep class org.apache.commons.codec.binary.* { *; }
 
 # glide
 -keep public class * extends com.bumptech.glide.module.AppGlideModule
