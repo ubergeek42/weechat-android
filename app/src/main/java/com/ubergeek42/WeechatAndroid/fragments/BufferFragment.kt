@@ -233,6 +233,9 @@ class BufferFragment : Fragment(), BufferEye {
 
         fabScrollToBottom?.setOnClickListener {
             uiLines?.jumpThenSmoothScroll(linesAdapter!!.itemCount - 1)
+            focusedMatch = 0
+            enableDisableSearchButtons()
+            adjustSearchNumbers()
         }
 
         initSearchViews(v)
