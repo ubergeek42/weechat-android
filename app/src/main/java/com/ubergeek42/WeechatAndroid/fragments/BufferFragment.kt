@@ -79,6 +79,7 @@ import com.ubergeek42.WeechatAndroid.views.CircularImageButton
 import com.ubergeek42.WeechatAndroid.views.OnBackGestureListener
 import com.ubergeek42.WeechatAndroid.views.jumpThenSmoothScroll
 import com.ubergeek42.WeechatAndroid.views.jumpThenSmoothScrollCentering
+import com.ubergeek42.WeechatAndroid.views.scrollToPositionWithOffsetFix
 import com.ubergeek42.cats.Cat
 import com.ubergeek42.cats.CatD
 import com.ubergeek42.cats.Kitty
@@ -976,18 +977,6 @@ private const val KEY_LAST_FOCUSED_MATCH = "lastFocusedMatch"
 private const val KEY_REGEX = "regex"
 private const val KEY_CASE_SENSITIVE = "caseSensitive"
 private const val KEY_SOURCE = "source"
-
-
-fun RecyclerView.scrollToPositionWithOffsetFix(position: Int, desiredInvisiblePixels: Int) {
-    val linearLayoutManager = layoutManager as LinearLayoutManager
-    linearLayoutManager.scrollToPositionWithOffset(position, height - 1)
-    post {
-        val lastChild = getChildAt(childCount - 1) ?: return@post
-        val currentInvisiblePixels = lastChild.bottom - height
-        val correction = desiredInvisiblePixels - currentInvisiblePixels
-        scrollBy(0, -correction)
-    }
-}
 
 
 private enum class ConnectivityState(
