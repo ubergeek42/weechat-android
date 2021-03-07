@@ -221,28 +221,25 @@
 
     <!-- tools:targetApi suppresses warning for the shadow color options.
      these only make the shadow less pronounced and are of little importance -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
+    <com.ubergeek42.WeechatAndroid.views.CircularImageButton
         android:id="@+id/fab_scroll_to_bottom"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
         android:layout_alignParentRight="true"
         android:layout_above="@+id/bottom_bar"
 
         android:src="@drawable/ic_fab_go_to_bottom"
+        android:scaleType="center"
         android:contentDescription="Go to bottom"
 
-        android:scaleType="centerCrop"
         android:layout_margin="12dp"
+        android:elevation="3dp"
 
-        app:fabSize="mini"
-        app:borderWidth="0dp"
-        app:maxImageSize="32dp"
-        app:elevation="3dp"
-
-        android:visibility="gone"
+        android:visibility="invisible"
 
         tools:targetApi="p"
         android:outlineAmbientShadowColor="#7000"
-        android:outlineSpotShadowColor="#7000" />
+        android:outlineSpotShadowColor="#7000"
+        android:foreground="?attr/selectableItemBackgroundBorderless" />
 
 </RelativeLayout>

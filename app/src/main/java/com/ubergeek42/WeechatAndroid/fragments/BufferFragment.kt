@@ -35,7 +35,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ItemDecoration
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.Weechat
 import com.ubergeek42.WeechatAndroid.WeechatActivity
@@ -78,6 +77,7 @@ import com.ubergeek42.WeechatAndroid.utils.indexOfOrElse
 import com.ubergeek42.WeechatAndroid.utils.ulet
 import com.ubergeek42.WeechatAndroid.views.BackGestureAwareEditText
 import com.ubergeek42.WeechatAndroid.views.CircleView
+import com.ubergeek42.WeechatAndroid.views.CircularImageButton
 import com.ubergeek42.WeechatAndroid.views.OnBackGestureListener
 import com.ubergeek42.cats.Cat
 import com.ubergeek42.cats.CatD
@@ -115,7 +115,7 @@ class BufferFragment : Fragment(), BufferEye {
     private var uploadButton: ImageButton? = null
 
     private var connectivityIndicator: CircleView? = null
-    private var fabScrollToBottom: FloatingActionButton? = null
+    private var fabScrollToBottom: CircularImageButton? = null
 
     companion object {
         @JvmStatic fun newInstance(pointer: Long) =
@@ -400,9 +400,10 @@ class BufferFragment : Fragment(), BufferEye {
     }
 
     private fun applyColorSchemeToViews() {
-        fabScrollToBottom?.backgroundTintList = ColorStateList.valueOf(P.colorPrimary)
+        fabScrollToBottom?.setBackgroundColor(P.colorPrimary)
         requireView().findViewById<View>(R.id.bottom_bar).setBackgroundColor(P.colorPrimary)
     }
+
     //////////////////////////////////////////////////////////////////////////////////////////// fab
 
     private var fabShowing = false

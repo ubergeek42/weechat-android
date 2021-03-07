@@ -4,6 +4,7 @@ package com.ubergeek42.WeechatAndroid.utils
 
 import android.text.Editable
 import android.text.TextWatcher
+import android.view.animation.Animation
 import android.widget.EditText
 import com.bumptech.glide.load.engine.GlideException
 import kotlin.contracts.ExperimentalContracts
@@ -15,6 +16,7 @@ import kotlin.contracts.contract
 val Int.u: Int get() = this
 val Long.u: Int get() = toInt()
 
+
 inline fun EditText.afterTextChanged(crossinline after: (s: Editable) -> Unit) {
     val textWatcher = object : TextWatcher {
         override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -25,10 +27,23 @@ inline fun EditText.afterTextChanged(crossinline after: (s: Editable) -> Unit) {
     addTextChangedListener(textWatcher)
 }
 
+
+inline fun Animation.onAnimationEnd(crossinline block: () -> Unit) {
+    setAnimationListener(object : Animation.AnimationListener {
+        override fun onAnimationStart(animation: Animation?) {}
+        override fun onAnimationRepeat(animation: Animation?) {}
+        override fun onAnimationEnd(animation: Animation?) {
+            block()
+        }
+    })
+}
+
+
 inline fun <T> List<T>.indexOfOrElse(t: T, default: () -> Int): Int {
     val index = this.indexOf(t)
     return if (index == -1) default() else index
 }
+
 
 inline fun <T> T.isAnyOf(a: T, b: T) = this == a || this == b
 inline fun <T> T.isAnyOf(a: T, b: T, c: T) = this == a || this == b || this == c
