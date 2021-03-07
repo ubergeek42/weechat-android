@@ -106,4 +106,6 @@
     <dimen name="paste_dialog_image_margin_left">3dp</dimen>
     <dimen name="paste_dialog_image_margin_right">9.5dp</dimen> <!-- dialog_item_padding_vertical + paste_dialog_image_half_vertical_margin -->
     <dimen name="paste_dialog_image_half_vertical_margin">1.5dp</dimen>
+
+    <dimen name="connectivity_indicator_bottom_margin">30dp</dimen>
 </resources>

@@ -200,7 +200,7 @@
             android:layout_height="12dp"
             android:layout_gravity="bottom|right"
             android:layout_marginRight="12dp"
-            android:layout_marginBottom="31dp" />
+            android:layout_marginBottom="@dimen/connectivity_indicator_bottom_margin" />
     </FrameLayout>
 
     <com.ubergeek42.WeechatAndroid.utils.AnimatedRecyclerView
