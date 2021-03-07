@@ -31,7 +31,7 @@ private class CenteringSmoothScroller(context: Context) : LinearSmoothScroller(c
 // this was adapted from this Stack Overflow comment by Vlad:
 // https://stackoverflow.com/a/63643036
 private fun RecyclerView.jumpThenSmoothScroll(smoothScroller: RecyclerView.SmoothScroller, position: Int) {
-    val layoutManager = layoutManager as LinearLayoutManager
+    val layoutManager = layoutManager as? LinearLayoutManager ?: return
 
     val firstVisiblePosition = layoutManager.findFirstVisibleItemPosition()
     val lastVisiblePosition = layoutManager.findLastVisibleItemPosition()

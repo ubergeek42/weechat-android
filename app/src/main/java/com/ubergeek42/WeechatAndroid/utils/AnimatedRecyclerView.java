@@ -16,7 +16,7 @@ import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 
-import com.ubergeek42.WeechatAndroid.WeechatActivity;
+import com.ubergeek42.WeechatAndroid.views.ViewUtilsKt;
 
 import static com.ubergeek42.WeechatAndroid.utils.Assert.assertThat;
 
@@ -149,12 +149,7 @@ public class AnimatedRecyclerView extends RecyclerView {
 
     @UiThread private void smoothScrollToPositionFix(int position) {
         if (getLayoutManager() == null) return;
-        LinearSmoothScrollerFix scroller = new LinearSmoothScrollerFix(this);
-        scroller.setTargetPosition(position);
-        getLayoutManager().startSmoothScroll(scroller);
-        // a dirty but dead simple way to hide Toolbar when scrolling not very far
-        if (position < manager.findFirstCompletelyVisibleItemPosition())
-            ((WeechatActivity) getContext()).toolbarController.onScroll(-10000, true, false);
+        ViewUtilsKt.jumpThenSmoothScrollCentering(this, position);
     }
 
 
