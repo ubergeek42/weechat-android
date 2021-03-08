@@ -23,7 +23,7 @@ class Buffer @WorkerThread internal constructor(
         @JvmField val pointer: Long,
         @JvmField var number: Int,
         @JvmField var fullName: String,
-        shortName1: String?,
+        shortName: String?,
         @JvmField var title: String?,
         private val notifyLevel: Int,
         @JvmField var localVars: Hashtable,
@@ -41,16 +41,15 @@ class Buffer @WorkerThread internal constructor(
         }
     }
 
-    @Root private val kitty: Kitty = Kitty.make("Buffer").apply { setPrefix(shortName1) }
-    private val kitty_hot: Kitty = kitty.kid("Hot")
-
     private var bufferEye: BufferEye = detachedEye
     private var bufferNickListEye: BufferNicklistEye? = null
 
-    @JvmField var shortName: String = shortName1 ?: fullName
+    @JvmField var shortName: String = shortName ?: fullName
     @JvmField var lastReadLineServer = BufferList.LAST_READ_LINE_MISSING
     @JvmField var readUnreads = 0
     @JvmField var readHighlights = 0
+
+    @Root private val kitty: Kitty = Kitty.make("Buffer").apply { setPrefix(this@Buffer.shortName) }
 
     // number of hotlist updates while syncing this buffer. if >= 2, when the new update arrives, we
     // keep own unreads/highlights as they have been correct since the last update
@@ -58,8 +57,8 @@ class Buffer @WorkerThread internal constructor(
 
     @JvmField @Volatile var flagResetHotMessagesOnNewOwnLine = false
 
-    private val lines: Lines = Lines(shortName1)
-    private val nicks: Nicks = Nicks(shortName1)
+    private val lines: Lines = Lines(this.shortName)
+    private val nicks: Nicks = Nicks(this.shortName)
 
     @JvmField var isOpen = false
     @JvmField var isWatched = false
@@ -187,7 +186,7 @@ class Buffer @WorkerThread internal constructor(
     /////////////////////////////////////////////////////////////// stuff called by message handlers
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @WorkerThread @Cat("??") @Synchronized fun addLine(line: Line, isLast: Boolean) {
+    @WorkerThread @Synchronized fun addLine(line: Line, isLast: Boolean) {
         // check if the line in question is already in the buffer
         // happens when reverse request throws in lines even though some are already here
         if (!isLast && lines.contains(line)) return
@@ -266,14 +265,11 @@ class Buffer @WorkerThread internal constructor(
     // number of new unreads can be smaller than either value stored in the buffer. in such cases,
     // we opt for full update.
     // returns whether local hot messages are to be invalidated
-    @WorkerThread @Cat(value = "Hot") @Synchronized fun updateHotlist(
+    @WorkerThread @Synchronized fun updateHotlist(
             newHighlights: Int, newUnreads: Int, lastReadLine: Long, timeSinceLastHotlistUpdate: Long
     ): Boolean {
         var bufferHasBeenReadInWeechat = false
         var syncedSinceLastUpdate = false
-
-        kitty_hot.tracel(shortName)
-        kitty_hot.tracel("[U%s+%s H%s+%s]", readUnreads, unreads, readHighlights, highlights)
 
         if (isOpen || !P.optimizeTraffic) {
             hotlistUpdatesWhileSyncing++
@@ -287,30 +283,23 @@ class Buffer @WorkerThread internal constructor(
                     timeSinceLastHotlistUpdate > 10 * 60 * 1000) bufferHasBeenReadInWeechat = true
         }
 
-        kitty_hot.tracel("<watched=%s, synced=%s, read=%s>", isWatched, syncedSinceLastUpdate, bufferHasBeenReadInWeechat)
-
         val fullUpdate = !syncedSinceLastUpdate && bufferHasBeenReadInWeechat
         if (!fullUpdate) {
             if (syncedSinceLastUpdate) {
-                kitty_hot.tracel("diff/synced")
                 readUnreads = newUnreads - unreads
                 readHighlights = newHighlights - highlights
             } else {
-                kitty_hot.tracel("diff/unsynced")
                 unreads = newUnreads - readUnreads
                 highlights = newHighlights - readHighlights
             }
         }
 
         if (fullUpdate || readUnreads < 0 || readHighlights < 0 || unreads < 0 || highlights < 0) {
-            kitty_hot.tracel("full")
             unreads = newUnreads
             highlights = newHighlights
             readHighlights = 0
             readUnreads = readHighlights
         }
-
-        kitty_hot.trace("[U%s+%s H%s+%s]", readUnreads, unreads, readHighlights, highlights)
 
         Assert.assertThat(unreads + readUnreads).isEqualTo(newUnreads)
         Assert.assertThat(highlights + readHighlights).isEqualTo(newHighlights)
@@ -346,7 +335,7 @@ class Buffer @WorkerThread internal constructor(
         bufferEye.onPropertiesChanged()
     }
 
-    @WorkerThread @Cat fun onBufferClosed() {
+    @WorkerThread fun onBufferClosed() {
         synchronized(this) {
             unreads = 0
             highlights = 0
@@ -355,7 +344,8 @@ class Buffer @WorkerThread internal constructor(
         bufferEye.onBufferClosed()
     }
 
-    //////////////////////////////////////////////////////////////////////////////////////////////// private stuffs
+    ///////////////////////////////////////////////////////////////////////////////// private stuffs
+
     // determine if the buffer is PRIVATE, CHANNEL, OTHER or HARD_HIDDEN
     // hard-hidden channels do not show in any way. to hide a channel,
     // do "/buffer set localvar_set_relay hard-hide"
@@ -388,7 +378,7 @@ class Buffer @WorkerThread internal constructor(
 
     // sets highlights/unreads to 0 and,
     // if something has actually changed, notifies whoever cares about it
-    @AnyThread @Cat("?") @Synchronized private fun resetUnreadsAndHighlights() {
+    @AnyThread @Synchronized private fun resetUnreadsAndHighlights() {
         if (unreads == 0 && highlights == 0) return
         readUnreads += unreads
         readHighlights += highlights
@@ -411,23 +401,23 @@ class Buffer @WorkerThread internal constructor(
     val nicksCopySortedByPrefixAndName: ArrayList<Nick>
         @AnyThread @Synchronized get() = nicks.copySortedByPrefixAndName
 
-    @MainThread @Cat("??") @Synchronized fun setBufferNicklistEye(bufferNickListEye: BufferNicklistEye?) {
+    @MainThread @Synchronized fun setBufferNicklistEye(bufferNickListEye: BufferNicklistEye?) {
         this.bufferNickListEye = bufferNickListEye
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @WorkerThread @Cat("??") @Synchronized fun addNick(nick: Nick?) {
+    @WorkerThread @Synchronized fun addNick(nick: Nick?) {
         nicks.addNick(nick)
         notifyNicklistChanged()
     }
 
-    @WorkerThread @Cat("??") @Synchronized fun removeNick(pointer: Long) {
+    @WorkerThread @Synchronized fun removeNick(pointer: Long) {
         nicks.removeNick(pointer)
         notifyNicklistChanged()
     }
 
-    @WorkerThread @Cat("??") @Synchronized fun updateNick(nick: Nick?) {
+    @WorkerThread @Synchronized fun updateNick(nick: Nick?) {
         nicks.updateNick(nick)
         notifyNicklistChanged()
     }
@@ -436,7 +426,7 @@ class Buffer @WorkerThread internal constructor(
         nicks.clear()
     }
 
-    @WorkerThread @Cat("??") @Synchronized fun onNicksListed() {
+    @WorkerThread @Synchronized fun onNicksListed() {
         nicks.sortNicksByLines(lines.descendingFilteredIterator)
     }
 
@@ -452,7 +442,7 @@ class Buffer @WorkerThread internal constructor(
 
     companion object {
         const val PRIVATE = 2
-        private const val CHANNEL = 1
+        const val CHANNEL = 1
         const val OTHER = 0
         const val HARD_HIDDEN = -1
     }
