@@ -45,11 +45,11 @@ public class Constants {
 
     // relay
     final static public String PREF_HOST = "host";
-    final public static String PREF_HOST_D = null;
+    final public static String PREF_HOST_D = "";
     final static public String PREF_PORT = "port";
     final public static String PREF_PORT_D = "9001";
     final static public String PREF_PASSWORD = "password";
-    final public static String PREF_PASSWORD_D = null;
+    final public static String PREF_PASSWORD_D = "";
     final static public String PREF_HANDSHAKE_METHOD = "handshake_method";
     final static public String PREF_HANDSHAKE_METHOD_COMPATIBILITY = "compatibility";
     final static public String PREF_HANDSHAKE_METHOD_MODERN_FAST_ONLY = "modern_fast_only";

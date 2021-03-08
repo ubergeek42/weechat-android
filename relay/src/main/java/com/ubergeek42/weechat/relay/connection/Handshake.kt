@@ -214,8 +214,8 @@ fun generateClientNonce(length: Int = 16) = Random.nextBytes(length)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 private inline val String.withCommasEscaped: String get() = replace(",", "\\,")
-private inline val ByteArray.asHex: String get() = Hex.encodeHexString(this)
-private inline val String.fromHex: ByteArray get() = Hex.decodeHex(this)
+private inline val ByteArray.asHex: String get() = String(Hex.encodeHex(this))
+private inline val String.fromHex: ByteArray get() = Hex.decodeHex(this.toCharArray())
 
 inline fun <reified T : Enum<T>, V> ((T) -> V).find(value: V): T? {
     return enumValues<T>().firstOrNull { this(it) == value }
