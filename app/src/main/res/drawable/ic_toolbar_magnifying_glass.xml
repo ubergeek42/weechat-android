@@ -1,11 +1,20 @@
-<vector android:height="32dp" android:viewportHeight="64"
-    android:viewportWidth="64" android:width="32dp" xmlns:android="http://schemas.android.com/apk/res/android">
-    <path android:fillColor="?attr/toolbarIconColor"
-        android:pathData="m19.8411,10.9932c-0.7409,-0.0188 -1.3097,0.0959 -1.5639,0.3207 -0.6574,0.5685 0.1896,4.7219 1.4255,7.2651 1.0264,-1.742 2.5265,-3.9185 5.4997,-5.6536 -2.0139,-1.4997 -4.1265,-1.9008 -5.3613,-1.9322z" android:strokeWidth="1.03"/>
-    <path android:fillColor="?attr/toolbarIconColor"
-        android:pathData="m44.1924,10.9905c0.7354,-0.0232 1.3007,0.0871 1.5545,0.3087 0.6561,0.5603 -0.1591,4.6886 -1.3703,7.2209 -1.0297,-1.723 -2.5322,-3.8743 -5.4944,-5.5784 1.99,-1.5012 4.0847,-1.9124 5.3103,-1.9512z" android:strokeWidth="1.03"/>
-    <path
-        android:pathData="m39.0243,34.6704c2.9434,-2.1301 5.0258,-5.5733 5.0129,-9.7077C44.0155,17.9627 38,12.9814 32,13c-6,0.0186 -12.0018,5.0633 -11.9627,12.0372 0.0239,4.261 2.2724,7.7879 5.3867,9.8828 1.6475,1.0954 2.4574,2.1713 2.3867,5.4452 -0.0921,4.2661 1.1814,7.5378 3.3918,9.269 1.6596,1.2998 5.1761,2.2831 7.2734,-0.2475 2.0973,-2.5306 -0.0198,-5.5953 -0.6347,-6.0628 -0.9715,-0.7387 -1.7774,-1.9926 -1.8311,-3.435 -0.1002,-2.692 1.0614,-3.8988 3.0142,-5.2184z"
-        android:strokeColor="?attr/toolbarIconColor"
-        android:strokeLineCap="round" android:strokeLineJoin="round" android:strokeWidth="4"/>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="64dp"
+    android:height="64dp"
+    android:viewportWidth="64"
+    android:viewportHeight="64">
+  <path
+      android:pathData="M19.84,11c-0.74,-0.03 -1.3,0.09 -1.56,0.31 -0.66,0.57 0.19,4.73 1.42,7.27a14.84,14.84 0,0 1,5.5 -5.65,9.66 9.66,0 0,0 -5.36,-1.94z"
+      android:strokeWidth="1.03"
+      android:fillColor="?attr/toolbarIconColor"/>
+  <path
+      android:pathData="M44.1927,11.0021c0.7344,-0.0343 1.2911,0.0813 1.5505,0.2981 0.6587,0.5618 -0.1594,4.6966 -1.3648,7.2257a14.732,14.732 134.6439,0 0,-5.4947 -5.5748,9.5897 9.5897,134.6439 0,1 5.3089,-1.9589z"
+      android:strokeWidth="1.03"
+      android:fillColor="?attr/toolbarIconColor"/>
+  <path
+      android:pathData="M39.02,34.67a11.88,11.88 0,0 0,5.02 -9.7C44.02,17.96 38,12.97 32,13c-6,0.02 -12,5.06 -11.96,12.04a11.96,11.96 0,0 0,5.38 9.88c1.65,1.1 2.46,2.17 2.4,5.45 -0.1,4.26 1.17,7.53 3.38,9.26 1.66,1.3 5.18,2.29 7.28,-0.24 2.1,-2.53 -0.02,-5.6 -0.64,-6.07 -0.97,-0.73 -1.78,-1.99 -1.83,-3.43 -0.1,-2.7 1.06,-3.9 3.01,-5.22z"
+      android:strokeLineJoin="round"
+      android:strokeWidth="4"
+      android:strokeColor="?attr/toolbarIconColor"
+      android:strokeLineCap="round"/>
 </vector>
