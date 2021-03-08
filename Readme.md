@@ -27,6 +27,11 @@ Please report any bugs or feature requests here on GitHub. You can also find us 
 on freenode. When reporting an issue, please include build ID that you can find in Settings → About 
 (looks something like “v0.13-123-g1234567”).
 
+[![Translation status](https://weblate.jerrycraft.tk/widgets/weechat-android/-/svg-badge.svg)](https://weblate.jerrycraft.tk/engage/weechat-android/?utm_source=widget)  
+If you're comfortable in a language beyond English, you can help translate Weechat-Android!
+Head over to our [Weblate instance](https://weblate.jerrycraft.tk/engage/weechat-android/)
+to start contributing translations. You'll need to sign-in using your GitHub account.
+
 It is easy to start contributing to Weechat-Android! Fork the repo, install Android Studio, choose
 “Check out from Version Control”, and you should be good to go. Pull requests are welcome—but please
 check with us on IRC before starting a substantial rewrite! For additional information, see:
