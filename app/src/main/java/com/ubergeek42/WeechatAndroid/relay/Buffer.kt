@@ -1,153 +1,133 @@
-package com.ubergeek42.WeechatAndroid.relay;
+package com.ubergeek42.WeechatAndroid.relay
 
-import android.text.Spannable;
-import android.text.SpannableString;
-import android.text.Spanned;
-import android.text.TextUtils;
-import android.text.style.RelativeSizeSpan;
-import android.text.style.SuperscriptSpan;
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.TextUtils
+import android.text.style.RelativeSizeSpan
+import android.text.style.SuperscriptSpan
+import androidx.annotation.AnyThread
+import androidx.annotation.MainThread
+import androidx.annotation.WorkerThread
+import com.ubergeek42.WeechatAndroid.service.Events
+import com.ubergeek42.WeechatAndroid.service.P
+import com.ubergeek42.WeechatAndroid.utils.Assert
+import com.ubergeek42.cats.Cat
+import com.ubergeek42.cats.Kitty
+import com.ubergeek42.cats.Root
+import com.ubergeek42.weechat.relay.protocol.Hashtable
+import com.ubergeek42.weechat.relay.protocol.RelayObject
+import java.util.*
 
-import androidx.annotation.AnyThread;
-import androidx.annotation.MainThread;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.WorkerThread;
+class Buffer @WorkerThread internal constructor(
+        @JvmField val pointer: Long,
+        @JvmField var number: Int,
+        @JvmField var fullName: String,
+        shortName1: String?,
+        @JvmField var title: String?,
+        private val notifyLevel: Int,
+        @JvmField var localVars: Hashtable,
+        @JvmField var hidden: Boolean,
+        openWhileRunning: Boolean
+) {
+    // placed here for correct initialization
+    private val detachedEye: BufferEye = object : BufferEye {
+        override fun onLinesListed() {}
+        override fun onLineAdded() {}
+        override fun onPropertiesChanged() {}
+        override fun onBufferClosed() {}
+        override fun onGlobalPreferencesChanged(numberChanged: Boolean) {
+            needsToBeNotifiedAboutGlobalPreferencesChanged = true
+        }
+    }
 
-import com.ubergeek42.WeechatAndroid.service.Events;
-import com.ubergeek42.WeechatAndroid.service.P;
-import com.ubergeek42.cats.Cat;
-import com.ubergeek42.cats.Kitty;
-import com.ubergeek42.cats.Root;
-import com.ubergeek42.weechat.relay.protocol.Hashtable;
-import com.ubergeek42.weechat.relay.protocol.RelayObject;
+    @Root private val kitty: Kitty = Kitty.make("Buffer").apply { setPrefix(shortName1) }
+    private val kitty_hot: Kitty = kitty.kid("Hot")
 
-import java.util.ArrayList;
-import java.util.Arrays;
+    private var bufferEye: BufferEye = detachedEye
+    private var bufferNickListEye: BufferNicklistEye? = null
 
-import static com.ubergeek42.WeechatAndroid.relay.BufferList.LAST_READ_LINE_MISSING;
-import static com.ubergeek42.WeechatAndroid.utils.Assert.assertThat;
-
-public class Buffer {
-    final private @Root Kitty kitty = Kitty.make();
-    final private Kitty kitty_hot = kitty.kid("Hot");
-
-    final public static int PRIVATE = 2;
-    final private static int CHANNEL = 1;
-    final public static int OTHER = 0;
-    final public static int HARD_HIDDEN = -1;
-
-    private BufferEye bufferEye;
-    private BufferNicklistEye bufferNickListEye;
-
-    public final long pointer;
-    public String fullName, shortName, title;
-    public int number;
-    private int notifyLevel;
-    Hashtable localVars;
-    public boolean hidden;
-
-    public long lastReadLineServer = LAST_READ_LINE_MISSING;
-    public int readUnreads = 0;
-    public int readHighlights = 0;
+    @JvmField var shortName: String = shortName1 ?: fullName
+    @JvmField var lastReadLineServer = BufferList.LAST_READ_LINE_MISSING
+    @JvmField var readUnreads = 0
+    @JvmField var readHighlights = 0
 
     // number of hotlist updates while syncing this buffer. if >= 2, when the new update arrives, we
     // keep own unreads/highlights as they have been correct since the last update
-    private int hotlistUpdatesWhileSyncing = 0;
+    private var hotlistUpdatesWhileSyncing = 0
 
-    volatile boolean flagResetHotMessagesOnNewOwnLine = false;
+    @JvmField @Volatile var flagResetHotMessagesOnNewOwnLine = false
 
-    final private Lines lines;
-    final private Nicks nicks;
+    private val lines: Lines = Lines(shortName1)
+    private val nicks: Nicks = Nicks(shortName1)
 
-    public boolean isOpen = false;
-    public boolean isWatched = false;
+    @JvmField var isOpen = false
+    @JvmField var isWatched = false
 
-    public int type = OTHER;
-    public int unreads = 0;
-    public int highlights = 0;
+    @JvmField var type = OTHER
+    @JvmField var unreads = 0
+    @JvmField var highlights = 0
 
-    public Spannable printable = null; // printable buffer without title (for TextView)
-    public Line titleLine;
+    @JvmField var printable: Spannable? = null  // printable buffer without title (for TextView)
+    @JvmField var titleLine: Line? = null
 
-    @WorkerThread Buffer(long pointer, int number, String fullName, String shortName, String title,
-                         int notifyLevel, Hashtable localVars, boolean hidden, boolean openWhileRunning) {
-        this.pointer = pointer;
-        this.number = number;
-        this.fullName = fullName;
-        this.shortName = (shortName != null) ? shortName : fullName;
-        this.title = title;
-        this.notifyLevel = notifyLevel;
-        this.localVars = localVars;
-        this.hidden = hidden;
-        kitty.setPrefix(this.shortName);
+    init {
+        processBufferType()
+        processBufferTitle()
 
-        bufferEye = detachedEye;
-
-        processBufferType();
-        processBufferTitle();
-
-        lines = new Lines(shortName);
-        nicks = new Nicks(shortName);
-
-        if (P.isBufferOpen(pointer)) setOpen(true, false);
+        if (P.isBufferOpen(pointer)) setOpen(open = true, syncHotlistOnOpen = false)
 
         // saved data would be meaningless for a newly opened buffer
-        if (!openWhileRunning) P.restoreLastReadLine(this);
+        if (!openWhileRunning) P.restoreLastReadLine(this)
 
         // when a buffer is open while the application is already connected, such as when someone
         // pms us, we don't have lastReadLine yet and so the subsequent hotlist update will trigger
         // a full update. in order to avoid that, if we are syncing, let's pretend that a hotlist
         // update has happened at this point so that the next update is “synced”
-        if (openWhileRunning && !P.optimizeTraffic)
-            hotlistUpdatesWhileSyncing++;
-
-        kitty.trace("→ Buffer(number=%s, fullName=%s) isOpen? %s", number, fullName, isOpen);
+        if (openWhileRunning && !P.optimizeTraffic) hotlistUpdatesWhileSyncing++
+        kitty.trace("→ Buffer(number=%s, fullName=%s) isOpen? %s", number, fullName, isOpen)
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// LINES
+    ////////////////////////////////////////////////////////////////////////////////////////// LINES
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     // get a copy of lines, filtered or not according to global settings
     // contains read marker and header
-    @AnyThread synchronized public @NonNull ArrayList<Line> getLinesCopy() {
-        return lines.getCopy();
-    }
+    val linesCopy: ArrayList<Line>
+        @Synchronized @AnyThread get() = lines.copy
 
-    @AnyThread public boolean linesAreReady() {
-        return lines.status.ready();
-    }
+    @AnyThread fun linesAreReady() = lines.status.ready()
 
-    @AnyThread public @NonNull Lines.STATUS getLinesStatus() {
-        return lines.status;
-    }
+    val linesStatus: Lines.STATUS
+        @AnyThread get() = lines.status
 
     // sets buffer as open or closed
     // an open buffer is such that:
     //     has processed lines and processes lines as they come by
     //     is synced
     //     is marked as "open" in the buffer list fragment or wherever
-    @AnyThread @Cat synchronized public void setOpen(boolean open, boolean syncHotlistOnOpen) {
-        if (isOpen == open) return;
-        isOpen = open;
+    @AnyThread @Cat @Synchronized fun setOpen(open: Boolean, syncHotlistOnOpen: Boolean) {
+        if (isOpen == open) return
+        isOpen = open
         if (open) {
-            BufferList.syncBuffer(this, syncHotlistOnOpen);
-            lines.ensureSpannables();
+            BufferList.syncBuffer(this, syncHotlistOnOpen)
+            lines.ensureSpannables()
         } else {
-            BufferList.desyncBuffer(this);
-            lines.invalidateSpannables();
+            BufferList.desyncBuffer(this)
+            lines.invalidateSpannables()
             if (P.optimizeTraffic) {
                 // if traffic is optimized, the next time we open the buffer, it might have been updated
                 // this presents two problems. first, we will not be able to update if we think
                 // that we have all the lines needed. second, if we have lines and request lines again,
                 // it'd be cumbersome to find the place to put lines. like, for iteration #3,
                 // [[old lines] [#3] [#2] [#1]] unless #3 is inside old lines. hence, reset everything!
-                lines.clear();
-                nicks.clear();
-                hotlistUpdatesWhileSyncing = 0;
+                lines.clear()
+                nicks.clear()
+                hotlistUpdatesWhileSyncing = 0
             }
         }
-        BufferList.notifyBuffersChanged();
+        BufferList.notifyBuffersChanged()
     }
 
     // set buffer eye, i.e. something that watches buffer events
@@ -158,87 +138,85 @@ public class Buffer {
     //     so we request lines and nicks upon user actually (getting close to) opening the buffer.
     // we are requesting nicks along with the lines because:
     //     nick completion
-    @MainThread @Cat synchronized public void setBufferEye(@Nullable BufferEye bufferEye) {
-        this.bufferEye = bufferEye == null ? detachedEye : bufferEye;
+    @MainThread @Cat @Synchronized fun setBufferEye(bufferEye: BufferEye?) {
+        this.bufferEye = bufferEye ?: detachedEye
         if (bufferEye != null) {
-            if (lines.status == Lines.STATUS.INIT) requestMoreLines();
-            if (nicks.status == Nicks.STATUS.INIT) BufferList.requestNicklistForBufferByPointer(pointer);
+            if (lines.status == Lines.STATUS.INIT) requestMoreLines()
+            if (nicks.status == Nicks.STATUS.INIT) BufferList.requestNicklistForBufferByPointer(pointer)
             if (needsToBeNotifiedAboutGlobalPreferencesChanged) {
-                bufferEye.onGlobalPreferencesChanged(false);
-                needsToBeNotifiedAboutGlobalPreferencesChanged = false;
+                bufferEye.onGlobalPreferencesChanged(false)
+                needsToBeNotifiedAboutGlobalPreferencesChanged = false
             }
         }
     }
 
-    @MainThread synchronized public void requestMoreLines() {
-        requestMoreLines(lines.getMaxLines() + P.lineIncrement);
+    @MainThread @Synchronized fun requestMoreLines() {
+        requestMoreLines(lines.maxLines + P.lineIncrement)
     }
 
-    @MainThread synchronized public void requestMoreLines(int newSize) {
-        if (lines.getMaxLines() >= newSize) return;
-        if (lines.status == Lines.STATUS.EVERYTHING_FETCHED) return;
-        lines.onMoreLinesRequested(newSize);
-        BufferList.requestLinesForBufferByPointer(pointer, lines.getMaxLines());
+    @MainThread @Synchronized fun requestMoreLines(newSize: Int) {
+        if (lines.maxLines >= newSize) return
+        if (lines.status == Lines.STATUS.EVERYTHING_FETCHED) return
+        lines.onMoreLinesRequested(newSize)
+        BufferList.requestLinesForBufferByPointer(pointer, lines.maxLines)
     }
 
     // tells buffer whether it is fully display on screen
     // called after setOpen(true) and before setOpen(false)
     // lines must be ready!
     // affects the way buffer advertises highlights/unreads count and notifications */
-    @MainThread @Cat synchronized public void setWatched(boolean watched) {
-        assertThat(linesAreReady()).isTrue();
-        assertThat(isWatched).isNotEqualTo(watched);
-        assertThat(isOpen).isTrue();
-        isWatched = watched;
-        if (watched) resetUnreadsAndHighlights();
-        else lines.rememberCurrentSkipsOffset();
+    @MainThread @Cat @Synchronized fun setWatched(watched: Boolean) {
+        Assert.assertThat(linesAreReady()).isTrue()
+        Assert.assertThat(isWatched).isNotEqualTo(watched)
+        Assert.assertThat(isOpen).isTrue()
+        isWatched = watched
+        if (watched) resetUnreadsAndHighlights() else lines.rememberCurrentSkipsOffset()
     }
 
-    @MainThread synchronized public void moveReadMarkerToEnd() {
-        lines.moveReadMarkerToEnd();
+    @MainThread @Synchronized fun moveReadMarkerToEnd() {
+        lines.moveReadMarkerToEnd()
         if (P.hotlistSync) Events.SendMessageEvent.fire(
-                "input 0x%1$x /buffer set hotlist -1\n" +
-                "input 0x%1$x /input set_unread_current_buffer", pointer);
+                "input 0x%1${"$"}x /buffer set hotlist -1" +
+                "input 0x%1${"$"}x /input set_unread_current_buffer", pointer)
     }
 
-    @AnyThread synchronized public int getHotCount() {
-        return type == Buffer.PRIVATE ? unreads + highlights : highlights;
-    }
+    val hotCount: Int
+        @AnyThread @Synchronized get() = if (type == PRIVATE) unreads + highlights else highlights
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// stuff called by message handlers
+    /////////////////////////////////////////////////////////////// stuff called by message handlers
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @WorkerThread @Cat("??") synchronized void addLine(final Line line, final boolean isLast) {
+    @WorkerThread @Cat("??") @Synchronized fun addLine(line: Line, isLast: Boolean) {
         // check if the line in question is already in the buffer
         // happens when reverse request throws in lines even though some are already here
-        if (!isLast && lines.contains(line)) return;
+        if (!isLast && lines.contains(line)) return
 
-        if (isLast) lines.addLast(line); else lines.addFirst(line);
+        if (isLast) lines.addLast(line) else lines.addFirst(line)
 
         // calculate spannable, if needed
-        if (isOpen) line.ensureSpannable();
+        if (isOpen) line.ensureSpannable()
 
         // notify levels: 0 none 1 highlight 2 message 3 all
         // treat hidden lines and lines that are not supposed to generate a “notification” as read
         if (isLast) {
-            boolean notifyHighlight = line.notify == Line.Notify.HIGHLIGHT;
-            boolean notifyPm = line.notify == Line.Notify.PRIVATE;
-            boolean notifyPmOrMessage = line.notify == Line.Notify.MESSAGE || notifyPm;
+            val notifyHighlight = line.notify == Line.Notify.HIGHLIGHT
+            val notifyPm = line.notify == Line.Notify.PRIVATE
+            val notifyPmOrMessage = line.notify == Line.Notify.MESSAGE || notifyPm
 
             if (isWatched || type == HARD_HIDDEN || (P.filterLines && !line.isVisible) ||
-                    notifyLevel == 0 || notifyLevel == 1 && !notifyHighlight) {
-                if (notifyHighlight) readHighlights++;
-                else if (notifyPmOrMessage) readUnreads++;
+                    notifyLevel == 0 || (notifyLevel == 1 && !notifyHighlight)) {
+                if (notifyHighlight) { readHighlights++ }
+                else if (notifyPmOrMessage) { readUnreads++ }
             } else {
                 if (notifyHighlight) {
-                    highlights++;
-                    Hotlist.onNewHotLine(this, line);
-                    BufferList.notifyBuffersChanged();
+                    highlights++
+                    Hotlist.onNewHotLine(this, line)
+                    BufferList.notifyBuffersChanged()
                 } else if (notifyPmOrMessage) {
-                    unreads++;
-                    if (notifyPm) Hotlist.onNewHotLine(this, line);
-                    BufferList.notifyBuffersChanged();
+                    unreads++
+                    if (notifyPm) Hotlist.onNewHotLine(this, line)
+                    BufferList.notifyBuffersChanged()
                 }
             }
         }
@@ -246,21 +224,19 @@ public class Buffer {
         // if current line's an event line and we've got a speaker, move nick to fist position
         // nick in question is supposed to be in the nicks already, for we only shuffle these
         // nicks when someone spoke, i.e. NOT when user joins.
-        if (isLast && nicksAreReady() && line.type == Line.Type.INCOMING_MESSAGE) nicks.bumpNickToTop(line.getNick());
+        if (isLast && nicksAreReady() && line.type == Line.Type.INCOMING_MESSAGE) {
+            nicks.bumpNickToTop(line.nick)
+        }
 
         if (flagResetHotMessagesOnNewOwnLine && line.type == Line.Type.OUTCOMING_MESSAGE) {
-            flagResetHotMessagesOnNewOwnLine = false;
-            resetUnreadsAndHighlights();
+            flagResetHotMessagesOnNewOwnLine = false
+            resetUnreadsAndHighlights()
         }
     }
 
-    @WorkerThread public void setLastSeenLine(long pointer) {
-        lines.setLastSeenLine(pointer);
-    }
-
-    @AnyThread public long getLastSeenLine() {
-        return lines.getLastSeenLine();
-    }
+    var lastSeenLine: Long
+        @AnyThread get() = lines.lastSeenLine
+        @WorkerThread set(pointer) { lines.lastSeenLine = pointer }
 
     // possible changes in the pointer:
     // legend for hotlist changes (numbers) if the buffer is NOT synchronized:
@@ -284,212 +260,205 @@ public class Buffer {
     //                quite some time, so we can detect this change.
     //      3.3. [--] the buffer lost its last read line naturally—due to new lines. both the
     //                hotlist and the hot messages are still correct!
-
     // this tries to satisfy the following equation: server unreads = this.unreads + this.readUnreads
     // when synced, we are trying to not touch unreads/highlights; when unsynced, these are the ones
     // updated. in some circumstances, especially when the buffer has been read in weechat, the
     // number of new unreads can be smaller than either value stored in the buffer. in such cases,
     // we opt for full update.
-
     // returns whether local hot messages are to be invalidated
-    @WorkerThread @Cat(value="Hot") synchronized boolean updateHotlist(
-            int newHighlights, int newUnreads, long lastReadLine, long timeSinceLastHotlistUpdate) {
-        boolean bufferHasBeenReadInWeechat = false;
-        boolean syncedSinceLastUpdate = false;
+    @WorkerThread @Cat(value = "Hot") @Synchronized fun updateHotlist(
+            newHighlights: Int, newUnreads: Int, lastReadLine: Long, timeSinceLastHotlistUpdate: Long
+    ): Boolean {
+        var bufferHasBeenReadInWeechat = false
+        var syncedSinceLastUpdate = false
 
-        kitty_hot.tracel(shortName);
-        kitty_hot.tracel("[U%s+%s H%s+%s]", readUnreads, unreads, readHighlights, highlights);
+        kitty_hot.tracel(shortName)
+        kitty_hot.tracel("[U%s+%s H%s+%s]", readUnreads, unreads, readHighlights, highlights)
 
         if (isOpen || !P.optimizeTraffic) {
-            hotlistUpdatesWhileSyncing++;
-            syncedSinceLastUpdate = hotlistUpdatesWhileSyncing >= 2;
+            hotlistUpdatesWhileSyncing++
+            syncedSinceLastUpdate = hotlistUpdatesWhileSyncing >= 2
         }
 
         if (lastReadLine != lastReadLineServer) {
-            setLastSeenLine(lastReadLine);
-            lastReadLineServer = lastReadLine;
-            if (lastReadLine != LAST_READ_LINE_MISSING ||
-                    timeSinceLastHotlistUpdate > 10 * 60 * 1000) bufferHasBeenReadInWeechat = true;
+            lastSeenLine = lastReadLine
+            lastReadLineServer = lastReadLine
+            if (lastReadLine != BufferList.LAST_READ_LINE_MISSING ||
+                    timeSinceLastHotlistUpdate > 10 * 60 * 1000) bufferHasBeenReadInWeechat = true
         }
 
-        kitty_hot.tracel("<watched=%s, synced=%s, read=%s>", isWatched, syncedSinceLastUpdate, bufferHasBeenReadInWeechat);
+        kitty_hot.tracel("<watched=%s, synced=%s, read=%s>", isWatched, syncedSinceLastUpdate, bufferHasBeenReadInWeechat)
 
-        boolean fullUpdate = !syncedSinceLastUpdate && bufferHasBeenReadInWeechat;
+        val fullUpdate = !syncedSinceLastUpdate && bufferHasBeenReadInWeechat
         if (!fullUpdate) {
             if (syncedSinceLastUpdate) {
-                kitty_hot.tracel("diff/synced");
-                readUnreads = newUnreads - unreads;
-                readHighlights = newHighlights - highlights;
+                kitty_hot.tracel("diff/synced")
+                readUnreads = newUnreads - unreads
+                readHighlights = newHighlights - highlights
             } else {
-                kitty_hot.tracel("diff/unsynced");
-                unreads = newUnreads - readUnreads;
-                highlights = newHighlights - readHighlights;
+                kitty_hot.tracel("diff/unsynced")
+                unreads = newUnreads - readUnreads
+                highlights = newHighlights - readHighlights
             }
         }
 
         if (fullUpdate || readUnreads < 0 || readHighlights < 0 || unreads < 0 || highlights < 0) {
-            kitty_hot.tracel("full");
-            unreads = newUnreads;
-            highlights = newHighlights;
-            readUnreads = readHighlights = 0;
+            kitty_hot.tracel("full")
+            unreads = newUnreads
+            highlights = newHighlights
+            readHighlights = 0
+            readUnreads = readHighlights
         }
 
-        kitty_hot.trace("[U%s+%s H%s+%s]", readUnreads, unreads, readHighlights, highlights);
+        kitty_hot.trace("[U%s+%s H%s+%s]", readUnreads, unreads, readHighlights, highlights)
 
-        assertThat(unreads + readUnreads).isEqualTo(newUnreads);
-        assertThat(highlights + readHighlights).isEqualTo(newHighlights);
+        Assert.assertThat(unreads + readUnreads).isEqualTo(newUnreads)
+        Assert.assertThat(highlights + readHighlights).isEqualTo(newHighlights)
 
-        return fullUpdate;
+        return fullUpdate
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @WorkerThread void onLineAdded() {
-        bufferEye.onLineAdded();
+    @WorkerThread fun onLineAdded() {
+        bufferEye.onLineAdded()
     }
 
-    @MainThread void onGlobalPreferencesChanged(boolean numberChanged) {
-        synchronized (this) {
-            if (!numberChanged) lines.invalidateSpannables();
-            lines.ensureSpannables();
-        }
-        bufferEye.onGlobalPreferencesChanged(numberChanged);
-    }
-
-    @WorkerThread void onLinesListed() {
-        synchronized (this) {lines.onLinesListed();}
-        bufferEye.onLinesListed();
-    }
-
-    @WorkerThread void onPropertiesChanged() {
-        synchronized (this) {
-            processBufferType();
-            processBufferTitle();
-            Hotlist.adjustHotListForBuffer(this, false);   // update buffer names in the notifications
-        }
-        bufferEye.onPropertiesChanged();
-    }
-
-    @WorkerThread @Cat void onBufferClosed() {
+    @MainThread fun onGlobalPreferencesChanged(numberChanged: Boolean) {
         synchronized(this) {
-            highlights = unreads = 0;
-            Hotlist.adjustHotListForBuffer(this, true);
+            if (!numberChanged) lines.invalidateSpannables()
+            lines.ensureSpannables()
         }
-        bufferEye.onBufferClosed();
+        bufferEye.onGlobalPreferencesChanged(numberChanged)
+    }
+
+    @WorkerThread fun onLinesListed() {
+        synchronized(this) { lines.onLinesListed() }
+        bufferEye.onLinesListed()
+    }
+
+    @WorkerThread fun onPropertiesChanged() {
+        synchronized(this) {
+            processBufferType()
+            processBufferTitle()
+            Hotlist.adjustHotListForBuffer(this, false) // update buffer names in the notifications
+        }
+        bufferEye.onPropertiesChanged()
+    }
+
+    @WorkerThread @Cat fun onBufferClosed() {
+        synchronized(this) {
+            unreads = 0
+            highlights = 0
+            Hotlist.adjustHotListForBuffer(this, true)
+        }
+        bufferEye.onBufferClosed()
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////// private stuffs
-
     // determine if the buffer is PRIVATE, CHANNEL, OTHER or HARD_HIDDEN
     // hard-hidden channels do not show in any way. to hide a channel,
     // do "/buffer set localvar_set_relay hard-hide"
-    @WorkerThread private void processBufferType() {
-        RelayObject t;
-        t = localVars.get("relay");
-        if (t != null && Arrays.asList(t.asString().split(",")).contains("hard-hide"))
-            type = HARD_HIDDEN;
-        else {
-            t = localVars.get("type");
-            if (t == null) type = OTHER;
-            else if ("private".equals(t.asString())) type = PRIVATE;
-            else if ("channel".equals(t.asString())) type = CHANNEL;
-            else type = OTHER;
+    @WorkerThread private fun processBufferType() {
+        val relay: RelayObject? = localVars["relay"]
+        type = if (relay != null && relay.asString().split(",").contains("hard-hide")) {
+            HARD_HIDDEN
+        } else {
+            val type: RelayObject? = localVars["type"]
+            when {
+                type == null -> OTHER
+                type.asString() == "private" -> PRIVATE
+                type.asString() == "channel" -> CHANNEL
+                else -> OTHER
+            }
         }
     }
 
-    private final static SuperscriptSpan SUPER = new SuperscriptSpan();
-    private final static RelativeSizeSpan SMALL = new RelativeSizeSpan(0.6f);
-    private final static int EX = Spanned.SPAN_EXCLUSIVE_EXCLUSIVE;
+    @WorkerThread private fun processBufferTitle() {
+        val numberString = "$number "
+        val spannable = SpannableString(numberString + shortName)
+        spannable.setSpan(SUPER, 0, numberString.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        spannable.setSpan(SMALL, 0, numberString.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        printable = spannable
 
-    @WorkerThread private void processBufferTitle() {
-        Spannable spannable;
-        final String number = this.number + " ";
-        spannable = new SpannableString(number + shortName);
-        spannable.setSpan(SUPER, 0, number.length(), EX);
-        spannable.setSpan(SMALL, 0, number.length(), EX);
-        printable = spannable;
         if (!TextUtils.isEmpty(title)) {
-            titleLine = new TitleLine(title);
+            titleLine = TitleLine(title)
         }
     }
 
     // sets highlights/unreads to 0 and,
     // if something has actually changed, notifies whoever cares about it
-    @AnyThread @Cat("?") synchronized private void resetUnreadsAndHighlights() {
-        if ((unreads | highlights) == 0) return;
-        readUnreads += unreads;
-        readHighlights += highlights;
-        unreads = highlights = 0;
-        Hotlist.adjustHotListForBuffer(this, true);
-        BufferList.notifyBuffersChanged();
+    @AnyThread @Cat("?") @Synchronized private fun resetUnreadsAndHighlights() {
+        if (unreads == 0 && highlights == 0) return
+        readUnreads += unreads
+        readHighlights += highlights
+        highlights = 0
+        unreads = 0
+        Hotlist.adjustHotListForBuffer(this, true)
+        BufferList.notifyBuffersChanged()
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// NICKS
+    ////////////////////////////////////////////////////////////////////////////////////////// NICKS
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @AnyThread boolean nicksAreReady() {
-        return nicks.status == Nicks.STATUS.READY;
+    @AnyThread fun nicksAreReady() = nicks.status == Nicks.STATUS.READY
+
+    @MainThread @Synchronized fun getMostRecentNicksMatching(prefix: String?, ignoreChars: String?): List<String> {
+        return nicks.getMostRecentNicksMatching(prefix, ignoreChars)
     }
 
-    @MainThread synchronized public @NonNull ArrayList<String> getMostRecentNicksMatching(String prefix, String ignoreChars) {
-        return nicks.getMostRecentNicksMatching(prefix, ignoreChars);
-    }
+    val nicksCopySortedByPrefixAndName: ArrayList<Nick>
+        @AnyThread @Synchronized get() = nicks.copySortedByPrefixAndName
 
-    @AnyThread synchronized public @NonNull ArrayList<Nick> getNicksCopySortedByPrefixAndName() {
-        return nicks.getCopySortedByPrefixAndName();
-    }
-
-    @MainThread @Cat("??")
-    synchronized public void setBufferNicklistEye(@Nullable BufferNicklistEye bufferNickListEye) {
-        this.bufferNickListEye = bufferNickListEye;
+    @MainThread @Cat("??") @Synchronized fun setBufferNicklistEye(bufferNickListEye: BufferNicklistEye?) {
+        this.bufferNickListEye = bufferNickListEye
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @WorkerThread @Cat("??") synchronized void addNick(Nick nick) {
-        nicks.addNick(nick);
-        notifyNicklistChanged();
+    @WorkerThread @Cat("??") @Synchronized fun addNick(nick: Nick?) {
+        nicks.addNick(nick)
+        notifyNicklistChanged()
     }
 
-    @WorkerThread @Cat("??") synchronized void removeNick(long pointer) {
-        nicks.removeNick(pointer);
-        notifyNicklistChanged();
+    @WorkerThread @Cat("??") @Synchronized fun removeNick(pointer: Long) {
+        nicks.removeNick(pointer)
+        notifyNicklistChanged()
     }
 
-    @WorkerThread @Cat("??") synchronized void updateNick(Nick nick) {
-        nicks.updateNick(nick);
-        notifyNicklistChanged();
+    @WorkerThread @Cat("??") @Synchronized fun updateNick(nick: Nick?) {
+        nicks.updateNick(nick)
+        notifyNicklistChanged()
     }
 
-    @WorkerThread synchronized void removeAllNicks() {
-        nicks.clear();
+    @WorkerThread @Synchronized fun removeAllNicks() {
+        nicks.clear()
     }
 
-    @WorkerThread @Cat("??") synchronized void onNicksListed() {
-        nicks.sortNicksByLines(lines.getDescendingFilteredIterator());
+    @WorkerThread @Cat("??") @Synchronized fun onNicksListed() {
+        nicks.sortNicksByLines(lines.descendingFilteredIterator)
     }
 
-    @WorkerThread private void notifyNicklistChanged() {
-        if (bufferNickListEye != null) bufferNickListEye.onNicklistChanged();
+    @WorkerThread private fun notifyNicklistChanged() {
+        bufferNickListEye?.onNicklistChanged()
     }
 
-    @Override public @NonNull String toString() {
-        return "Buffer(" + shortName + ")";
-    }
+    override fun toString() = "Buffer($shortName)"
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private boolean needsToBeNotifiedAboutGlobalPreferencesChanged = false;
+    private var needsToBeNotifiedAboutGlobalPreferencesChanged = false
 
-    private final BufferEye detachedEye = new BufferEye() {
-        @Override public void onLinesListed() {}
-        @Override public void onLineAdded() {}
-        @Override public void onPropertiesChanged() {}
-        @Override public void onBufferClosed() {}
-        @Override public void onGlobalPreferencesChanged(boolean numberChanged) {
-            needsToBeNotifiedAboutGlobalPreferencesChanged = true;
-        }
-    };
+    companion object {
+        const val PRIVATE = 2
+        private const val CHANNEL = 1
+        const val OTHER = 0
+        const val HARD_HIDDEN = -1
+    }
 }
+
+
+private val SUPER = SuperscriptSpan()
+private val SMALL = RelativeSizeSpan(0.6f)
 
