@@ -25,15 +25,15 @@
      borderopacity="1"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:zoom="5.656854"
-     inkscape:cx="21.01058"
-     inkscape:cy="17.481769"
-     inkscape:current-layer="layer1"
+     inkscape:zoom="45.254834"
+     inkscape:cx="34.635157"
+     inkscape:cy="32.566587"
+     inkscape:current-layer="g1483"
      showgrid="true"
      inkscape:document-units="px"
      inkscape:grid-bbox="true"
      inkscape:snap-bbox="true"
-     inkscape:snap-global="true"
+     inkscape:snap-global="false"
      inkscape:window-width="1920"
      inkscape:window-height="1027"
      inkscape:window-x="1358"
@@ -91,19 +91,20 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
   <g
-     id="layer1"
-     inkscape:label="Layer 1"
-     inkscape:groupmode="layer">
+     id="g1483"
+     inkscape:label="Layer 1 copy"
+     inkscape:groupmode="layer"
+     style="opacity:1">
     <path
        inkscape:connector-curvature="0"
-       style="opacity:1;fill:#000000;fill-opacity:0.8;stroke:none"
-       d="m 21.187787,34.875 c 0.001,0.1417 0.0421,0.27274 0.125,0.34375 1.32643,1.13615 5.06051,-0.79672 8.6875,-3.4375 L 30,33.75 v 6 c 0,0.554 0.446,1 1,1 h 2 c 0.554,0 1,-0.446 1,-1 v -6 l 2.87e-4,-1.96875 c 3.62699,2.64078 7.36107,4.57365 8.6875,3.4375 1.32643,-1.13616 -8.33395,-11.96875 -10.6875,-11.96875 -2.20646,0 -10.83395,9.49956 -10.8125,11.625 z"
-       id="rect4009-9-9"
-       sodipodi:nodetypes="ccccsssscccsc" />
+       style="opacity:1;fill:#000000;fill-opacity:1;stroke:none"
+       d="m 21.312787,35.21875 c 1.284024,1.169117 5.06051,-0.79672 8.6875,-3.4375 L 30,39.75 c 0,0.554 0.446,1 1,1 h 2 c 0.554,0 1,-0.446 1,-1 l 2.87e-4,-7.96875 c 3.62699,2.64078 7.36107,4.573655 8.6875,3.4375 1.32643,-1.136155 -8.343362,-11.966942 -10.6875,-11.96875 -2.344138,-0.0018 -11.971524,10.799633 -10.6875,11.96875 z"
+       id="path1481"
+       sodipodi:nodetypes="zccsscczzz" />
   </g>
 </svg>
