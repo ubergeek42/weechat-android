@@ -39,6 +39,10 @@ check with us on IRC before starting a substantial rewrite! For additional infor
  
 ### Changelog
 
+##### v1.5.1
+* Fixed a crash when the password has never been set
+* Fixed a crash when using Modern handshake on Android 7-
+
 ##### v1.5
 * Added support for the handshake relay command
 * Improved the way URLs are recognized

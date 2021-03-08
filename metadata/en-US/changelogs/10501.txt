@@ -1,0 +1,2 @@
+* Fixed a crash when the password has never been set
+* Fixed a crash when using Modern handshake on Android 7-
