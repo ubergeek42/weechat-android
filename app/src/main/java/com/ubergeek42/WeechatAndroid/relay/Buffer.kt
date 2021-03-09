@@ -186,23 +186,28 @@ class Buffer @WorkerThread internal constructor(
     /////////////////////////////////////////////////////////////// stuff called by message handlers
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @WorkerThread @Synchronized fun addLine(line: Line, isLast: Boolean) {
-        // check if the line in question is already in the buffer
-        // happens when reverse request throws in lines even though some are already here
-        if (!isLast && lines.contains(line)) return
+    @WorkerThread @Synchronized fun replaceLines(newLines: Collection<Line>) {
+        if (isOpen) {
+            newLines.forEach { it.ensureSpannable() }
+        }
 
-        if (isLast) lines.addLast(line) else lines.addFirst(line)
+        synchronized(this) {
+            lines.replaceLines(newLines)
+        }
+   }
 
-        // calculate spannable, if needed
+    @WorkerThread fun addLineBottom(line: Line) {
         if (isOpen) line.ensureSpannable()
 
-        // notify levels: 0 none 1 highlight 2 message 3 all
-        // treat hidden lines and lines that are not supposed to generate a “notification” as read
-        if (isLast) {
-            val notifyHighlight = line.notify == Line.Notify.HIGHLIGHT
-            val notifyPm = line.notify == Line.Notify.PRIVATE
-            val notifyPmOrMessage = line.notify == Line.Notify.MESSAGE || notifyPm
+        val notifyHighlight = line.notify == Line.Notify.HIGHLIGHT
+        val notifyPm = line.notify == Line.Notify.PRIVATE
+        val notifyPmOrMessage = line.notify == Line.Notify.MESSAGE || notifyPm
 
+        synchronized(this) {
+            lines.addLast(line)
+
+            // notify levels: 0 none 1 highlight 2 message 3 all
+            // treat hidden lines and lines that are not supposed to generate a “notification” as read
             if (isWatched || type == HARD_HIDDEN || (P.filterLines && !line.isVisible) ||
                     notifyLevel == 0 || (notifyLevel == 1 && !notifyHighlight)) {
                 if (notifyHighlight) { readHighlights++ }
@@ -218,18 +223,18 @@ class Buffer @WorkerThread internal constructor(
                     BufferList.notifyBuffersChanged()
                 }
             }
-        }
 
-        // if current line's an event line and we've got a speaker, move nick to fist position
-        // nick in question is supposed to be in the nicks already, for we only shuffle these
-        // nicks when someone spoke, i.e. NOT when user joins.
-        if (isLast && nicksAreReady() && line.type == Line.Type.INCOMING_MESSAGE) {
-            nicks.bumpNickToTop(line.nick)
-        }
+            // if current line's an event line and we've got a speaker, move nick to fist position
+            // nick in question is supposed to be in the nicks already, for we only shuffle these
+            // nicks when someone spoke, i.e. NOT when user joins.
+            if (nicksAreReady() && line.type == Line.Type.INCOMING_MESSAGE) {
+                nicks.bumpNickToTop(line.nick)
+            }
 
-        if (flagResetHotMessagesOnNewOwnLine && line.type == Line.Type.OUTCOMING_MESSAGE) {
-            flagResetHotMessagesOnNewOwnLine = false
-            resetUnreadsAndHighlights()
+            if (flagResetHotMessagesOnNewOwnLine && line.type == Line.Type.OUTCOMING_MESSAGE) {
+                flagResetHotMessagesOnNewOwnLine = false
+                resetUnreadsAndHighlights()
+            }
         }
     }
 

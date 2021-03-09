@@ -15,6 +15,7 @@ import com.ubergeek42.cats.Root;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 
 
@@ -72,11 +73,18 @@ public class Lines {
 
     // in very rare cases status might not be FETCHING here, particularly when closing buffers
     // while the app is connecting and has already requested lines
-    @WorkerThread void addFirst(Line line) {
+
+    // todo this assumes that size of new lines > size of old lines, and also
+    // todo that maxUnfilteredSize <= size of new lines.
+    // todo determine if violating these assumptions can lead to problems
+    @WorkerThread void replaceLines(Collection<Line> lines) {
         if (status != STATUS.FETCHING) return;
-        ensureSizeBeforeAddition();
-        unfiltered.addFirst(line);
-        if (line.isVisible) filtered.addFirst(line);
+        unfiltered.clear();
+        filtered.clear();
+        unfiltered.addAll(lines);
+        for (Line line: lines) {
+            if (line.isVisible) { filtered.add(line); }
+        }
     }
 
     // note that rarely, especially when opening a buffer that weechat is loading backlog for at the

@@ -13,6 +13,7 @@ import android.util.LongSparseArray;
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.service.RelayService;
 import com.ubergeek42.WeechatAndroid.service.RelayService.STATE;
+import com.ubergeek42.WeechatAndroid.utils.Assert;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.Kitty;
@@ -393,12 +394,18 @@ public class BufferList {
                 return;
             }
 
-            for (int i = 0, size = data.getCount(); i < size; i++) {
-                buffer.addLine(Line.make(data.getItem(i)), isBottom);
-                if (isBottom) buffer.onLineAdded();
-            }
+            if (isBottom) {
+                Assert.assertThat(data.getCount()).isEqualTo(1);
+                Line line = Line.make(data.getItem(0));
+                buffer.addLineBottom(line);
 
-            if (!isBottom) {
+                buffer.onLineAdded();
+            } else {
+                int dataSize = data.getCount();
+                ArrayList<Line> lines = new ArrayList<>(data.getCount());
+                for (int i = dataSize - 1; i >= 0; i--) { lines.add(Line.make(data.getItem(i))); }
+                buffer.replaceLines(lines);
+
                 buffer.onLinesListed();
                 removeMessageHandler(this.id, this);
             }
