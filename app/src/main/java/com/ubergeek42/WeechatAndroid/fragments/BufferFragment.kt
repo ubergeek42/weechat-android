@@ -42,6 +42,7 @@ import com.ubergeek42.WeechatAndroid.copypaste.Paste
 import com.ubergeek42.WeechatAndroid.relay.Buffer
 import com.ubergeek42.WeechatAndroid.relay.BufferEye
 import com.ubergeek42.WeechatAndroid.relay.BufferList
+import com.ubergeek42.WeechatAndroid.relay.Lines
 import com.ubergeek42.WeechatAndroid.search.Search
 import com.ubergeek42.WeechatAndroid.search.SearchConfig
 import com.ubergeek42.WeechatAndroid.service.Events.SendMessageEvent
@@ -500,6 +501,7 @@ class BufferFragment : Fragment(), BufferEye {
         linesAdapter?.onLinesListed()
         Weechat.runOnMainThread {
             adjustConnectivityIndications(true)
+            adjustSearchNumbers()   // remove the "+", if needed
             onVisibilityStateChanged(ChangedState.LinesListed)
         }
     }
@@ -879,11 +881,16 @@ class BufferFragment : Fragment(), BufferEye {
     }
 
     private fun adjustSearchNumbers() {
+        if (!isSearchEnabled) return
         val matchIndex = matches.indexOf(focusedMatch)
         searchResultNo?.text = if (matchIndex == -1)
-            "-" else (matches.size - matchIndex).toString()
+                "-" else (matches.size - matchIndex).toString()
         searchResultCount?.text = if (matches === badRegexPatternMatches)
-            "err" else matches.size.toString()
+                "err" else {
+            val size = matches.size.toString()
+            val allLinesFetched = buffer?.linesStatus == Lines.STATUS.EVERYTHING_FETCHED
+            if (allLinesFetched) size else "$size+"
+        }
     }
 
     private var searchConfig = SearchConfig.default
