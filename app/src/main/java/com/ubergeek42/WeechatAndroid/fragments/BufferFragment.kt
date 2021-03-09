@@ -581,6 +581,7 @@ class BufferFragment : Fragment(), BufferEye {
 
     @MainThread fun setShareObject(shareObject: ShareObject) {
         shareObject.insert(uiInput!!, InsertAt.END)
+        if (isSearchEnabled) searchInput?.post { searchEnableDisable(enable = false) }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
