@@ -859,9 +859,9 @@ class BufferFragment : Fragment(), BufferEye {
     private fun triggerNewSearch() {
         val text = searchInput?.text.toString()
         try {
+            buffer?.requestMoreLines(P.searchLineIncrement)
             val matcher = Search.Matcher.fromString(text, searchConfig)
             linesAdapter?.setSearch(Search(matcher, searchListener))
-            buffer?.requestMoreLines(P.searchLineIncrement)
         } catch (e: PatternSyntaxException) {
             linesAdapter?.setSearch(null)
             searchListener.onSearchResultsChanged(badRegexPatternMatches)
@@ -886,6 +886,10 @@ class BufferFragment : Fragment(), BufferEye {
         searchDown?.isEnabled = hasMatches && matchIndex < matches.size - 1
     }
 
+    // we could be detecting the way the + is shown in different ways.
+    // but a + that depends on true availability of lines isn't very useful if we are not
+    // requesting the entirety of lines available.
+    // so we only show it to indicate that we are fetching lines.
     private fun adjustSearchNumbers() {
         if (!isSearchEnabled) return
         val matchIndex = matches.indexOf(focusedMatch)
@@ -894,8 +898,8 @@ class BufferFragment : Fragment(), BufferEye {
         searchResultCount?.text = if (matches === badRegexPatternMatches)
                 "err" else {
             val size = matches.size.toString()
-            val allLinesFetched = buffer?.linesStatus == Lines.STATUS.EVERYTHING_FETCHED
-            if (allLinesFetched) size else "$size+"
+            val fetching = buffer?.linesStatus == Lines.STATUS.FETCHING
+            if (fetching) "$size+" else size
         }
     }
 
