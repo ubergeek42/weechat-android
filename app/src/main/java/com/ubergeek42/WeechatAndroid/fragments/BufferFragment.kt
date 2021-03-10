@@ -813,7 +813,9 @@ class BufferFragment : Fragment(), BufferEye {
         }
 
         searchUp?.setOnClickListener(searchButtonClickListener)
+        searchUp?.setOnLongClickListener(searchButtonLongClickListener)
         searchDown?.setOnClickListener(searchButtonClickListener)
+        searchDown?.setOnLongClickListener(searchButtonLongClickListener)
         searchOverflow?.setOnClickListener { createPopupMenu().show() }
 
         // todo figure out why views are recreated while the instance is retained
@@ -883,7 +885,7 @@ class BufferFragment : Fragment(), BufferEye {
         val hasMatches = matches.isNotEmpty()
         val matchIndex = matches.indexOfOrElse(focusedMatch, matches::size)
         searchUp?.isEnabled = hasMatches && matchIndex > 0
-        searchDown?.isEnabled = hasMatches && matchIndex < matches.size - 1
+        searchDown?.isEnabled = hasMatches && matchIndex < matches.lastIndex
     }
 
     // we could be detecting the way the + is shown in different ways.
@@ -938,10 +940,17 @@ class BufferFragment : Fragment(), BufferEye {
     }
 
     private var searchButtonClickListener = View.OnClickListener { view: View ->
-        val matchIndex = matches.indexOfOrElse(focusedMatch, matches::size)
+        val index = matches.indexOfOrElse(focusedMatch, matches::size)
         val change = if (view.id == R.id.search_up) -1 else +1
-        val index = matchIndex + change
+        scrollToSearchIndex(index + change)
+    }
 
+    private var searchButtonLongClickListener = View.OnLongClickListener { view: View ->
+        scrollToSearchIndex(if (view.id == R.id.search_up) 0 else matches.lastIndex)
+        true
+    }
+
+    private fun scrollToSearchIndex(index: Int) {
         matches.getOrNull(index)?.let {
             focusedMatch = it
             linesAdapter?.findPositionByPointer(it)?.let { position ->
