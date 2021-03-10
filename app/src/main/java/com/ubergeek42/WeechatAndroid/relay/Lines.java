@@ -93,7 +93,14 @@ public class Lines {
     // doesn't take line position and lines are simply skipped if they are already present, which
     // would place these lines above lines already in the buffer. todo make addFirst take position?
     @WorkerThread void addLast(Line line) {
-        ensureSizeBeforeAddition();
+        int unfilteredSize = unfiltered.size();
+        int maxUnfilteredSize = this.maxUnfilteredSize;
+        boolean shouldRemoveFirstLine = unfilteredSize == maxUnfilteredSize;
+
+        if (shouldRemoveFirstLine) {
+            if (unfiltered.removeFirst().isVisible) filtered.removeFirst();
+        }
+
         unfiltered.addLast(line);
         if (line.isVisible) filtered.addLast(line);
 
@@ -102,8 +109,17 @@ public class Lines {
         if (skipFiltered >= 0 && line.isVisible) skipFiltered++;
         if (skipUnfiltered >= 0) skipUnfiltered++;
 
-        // if we hit max size while the buffer is not open, behave as if lines were requested
-        if (!status.ready() && unfiltered.size() == maxUnfilteredSize) onLinesListed();
+        if (shouldRemoveFirstLine) {
+            if (status != STATUS.CAN_FETCH_MORE) {
+                if (!status.ready()) setSkipsUsingPointer();
+                status = STATUS.CAN_FETCH_MORE;
+            }
+        } else if (unfilteredSize + 1 == maxUnfilteredSize) {
+            if (status != STATUS.EVERYTHING_FETCHED) {
+                if (!status.ready()) setSkipsUsingPointer();
+                status = STATUS.EVERYTHING_FETCHED;
+            }
+        }
     }
 
     @AnyThread void clear() {
@@ -221,11 +237,4 @@ public class Lines {
 //            if (line.visible) idx_f++;
 //        }
 //    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    @WorkerThread private void ensureSizeBeforeAddition() {
-        if (unfiltered.size() == maxUnfilteredSize)
-            if (unfiltered.removeFirst().isVisible) filtered.removeFirst();
-    }
 }

@@ -265,8 +265,14 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         updateHeader();
     }
 
+    volatile Lines.STATUS cachedStatus = null;
     @AnyThread @Override public void onLineAdded() {    // todo change to @WorkerThread
         onLinesChanged();
+        Lines.STATUS status = buffer.getLinesStatus();
+        if (cachedStatus != status) {
+            cachedStatus = status;
+            updateHeader();
+        }
     }
 
     @WorkerThread @Override public void onPropertiesChanged() {
