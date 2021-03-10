@@ -1,46 +1,48 @@
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
+package com.ubergeek42.WeechatAndroid.relay
 
-package com.ubergeek42.WeechatAndroid.relay;
+import android.graphics.Typeface
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.style.BackgroundColorSpan
+import android.text.style.ForegroundColorSpan
+import android.text.style.LeadingMarginSpan
+import android.text.style.StyleSpan
+import android.text.style.UnderlineSpan
+import androidx.annotation.AnyThread
+import androidx.annotation.WorkerThread
+import com.ubergeek42.WeechatAndroid.service.P
+import com.ubergeek42.WeechatAndroid.upload.i
+import com.ubergeek42.WeechatAndroid.utils.Linkify.linkify
+import com.ubergeek42.cats.Kitty
+import com.ubergeek42.cats.Root
+import com.ubergeek42.weechat.Color
+import com.ubergeek42.weechat.ColorScheme
+import com.ubergeek42.weechat.relay.connection.Handshake.Companion.weechatVersion
+import com.ubergeek42.weechat.relay.protocol.HdataEntry
+import com.ubergeek42.weechat.relay.protocol.RelayObject
 
-import android.graphics.Typeface;
-import android.text.Spannable;
-import android.text.SpannableString;
-import android.text.Spanned;
-import android.text.style.BackgroundColorSpan;
-import android.text.style.CharacterStyle;
-import android.text.style.ForegroundColorSpan;
-import android.text.style.LeadingMarginSpan;
-import android.text.style.StyleSpan;
-import android.text.style.UnderlineSpan;
-
-import androidx.annotation.AnyThread;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.WorkerThread;
-
-import com.ubergeek42.WeechatAndroid.service.P;
-import com.ubergeek42.WeechatAndroid.utils.Linkify;
-import com.ubergeek42.cats.Kitty;
-import com.ubergeek42.cats.Root;
-import com.ubergeek42.weechat.Color;
-import com.ubergeek42.weechat.ColorScheme;
-import com.ubergeek42.weechat.relay.connection.Handshake;
-import com.ubergeek42.weechat.relay.protocol.HdataEntry;
-import com.ubergeek42.weechat.relay.protocol.RelayObject;
-
-import org.joda.time.format.DateTimeFormatter;
-
-public class Line {
-    final private static @Root Kitty kitty = Kitty.make();
-
-    public enum Type {
+open class Line internal constructor(
+    @JvmField val pointer: Long,
+    @JvmField val type: Type,
+    @JvmField val timestamp: Long,
+    private val rawPrefix: String,
+    private val rawMessage: String,
+    @JvmField val nick: String?,
+    @JvmField val isVisible: Boolean,
+    @JvmField val isHighlighted: Boolean,
+    @JvmField val displayAs: DisplayAs,
+    @JvmField val notify: Notify
+) {
+    enum class Type {
         OTHER,
         INCOMING_MESSAGE,
-        OUTCOMING_MESSAGE
+        OUTCOMING_MESSAGE,
     }
 
-    public enum DisplayAs {
+    enum class DisplayAs {
         UNSPECIFIED,    // not any of:
         SAY,            // can be written as <nick> message
         ACTION,         // can be written as * nick message
@@ -71,233 +73,196 @@ public class Line {
 
     // our final `notify` field represents the “final product”. it is the level with which the line
     // was added to hotlist and if it's private or highlight we know we should issue a notification.
-    public enum Notify {
+
+    // see table at https://weechat.org/files/doc/stable/weechat_plugin_api.en.html#_hook_line
+    enum class Notify {
         NONE,
         LOW,
         MESSAGE,
         PRIVATE,
         HIGHLIGHT;
 
-        // see table at https://weechat.org/files/doc/stable/weechat_plugin_api.en.html#_hook_line
-        static Notify fromNotifyLevelBit(byte notify_level) {
-            switch (notify_level) {
-                case -1: return NONE;
-                default:
-                case 0: return LOW;
-                case 1: return MESSAGE;
-                case 2: return PRIVATE;
-                case 3: return HIGHLIGHT;
+        companion object {
+            fun fromByte(byte: Byte) = when (byte) {
+                (-1).toByte() -> NONE
+                0.toByte() -> LOW
+                1.toByte() -> MESSAGE
+                2.toByte() -> PRIVATE
+                3.toByte()-> HIGHLIGHT
+                else -> LOW
             }
         }
-    }
-
-    final private static byte NOTIFY_LEVEL_BIT_NOT_PRESENT = -123;
-
-    final public long pointer;
-    final public Type type;
-    final public boolean isHighlighted;
-
-    final public DisplayAs displayAs;
-    final public Notify notify;
-
-    final long timestamp;
-    final boolean isVisible;
-
-    final private String rawPrefix;
-    final private String rawMessage;
-    final private @Nullable String nick;
-
-    Line(long pointer, Type type, long timestamp, @NonNull String rawPrefix, @NonNull String rawMessage,
-         @Nullable String nick, boolean visible, boolean isHighlighted, DisplayAs displayAs, Notify notify) {
-        this.pointer = pointer;
-        this.type = type;
-        this.timestamp = timestamp;
-        this.rawPrefix = rawPrefix;
-        this.rawMessage = rawMessage;
-        this.nick = nick;
-        this.isVisible = visible;
-        this.isHighlighted = isHighlighted;
-        this.displayAs = displayAs;
-        this.notify = notify;
-    }
-
-    @WorkerThread public static @NonNull Line make(@NonNull HdataEntry entry) {
-        long pointer = entry.getPointerLong();
-        String message = entry.getItem("message").asString();
-        String prefix = entry.getItem("prefix").asString();
-        boolean visible = entry.getItem("displayed").asChar() == 0x01;
-        long timestamp = entry.getItem("date").asTime().getTime();
-
-        RelayObject high = entry.getItem("highlight");
-        boolean highlighted = high != null && high.asChar() == 0x01;
-
-        RelayObject notifyLevelObj = entry.getItem("notify_level");
-        byte notifyLevelBit = notifyLevelObj == null ? NOTIFY_LEVEL_BIT_NOT_PRESENT : notifyLevelObj.asByte();
-
-        RelayObject tagsItem = entry.getItem("tags_array");
-        String[] tags = tagsItem != null && tagsItem.getType() == RelayObject.WType.ARR ?
-                tagsItem.asArray().asStringArray() : null;
-
-        message = message == null ? "" : message;
-        prefix = prefix == null ? "" : prefix;
-        String nick = null;
-
-        Type type = Type.OTHER;
-        DisplayAs displayAs = DisplayAs.UNSPECIFIED;
-        Notify notify = Notify.LOW;
-
-        if (tags == null) {
-            // there are no tags, it's probably an old version of weechat, so we err
-            // on the safe side and treat it as from human
-            type = Type.INCOMING_MESSAGE;
-        } else {
-            boolean log1 = false, self_msg = false, irc_action = false, irc_privmsg = false,
-                    notify_none = false;
-
-            for (String tag : tags) {
-                switch (tag) {
-                    case "log1":        log1 = true; break;
-                    case "self_msg":    self_msg = true; break;
-                    case "irc_privmsg": irc_privmsg = true; break;
-                    case "irc_action":  irc_action = true; break;
-                    case "notify_none":      notify = Notify.NONE; notify_none = true; break;
-                    case "notify_message":   notify = Notify.MESSAGE; break;
-                    case "notify_private":   notify = Notify.PRIVATE; break;
-                    case "notify_highlight": notify = Notify.HIGHLIGHT; break;
-                    default:
-                        if (tag.startsWith("nick_")) nick = tag.substring(5);
-                }
-            }
-
-            // notify_level bit supersedes tags
-            if (notifyLevelBit != NOTIFY_LEVEL_BIT_NOT_PRESENT)
-                notify = Notify.fromNotifyLevelBit(notifyLevelBit);
-
-            // starting with roughly 3.0 (2b16036), if a line has the tag notify_none, or if
-            // notify_level is -1, it is not added to the hotlist nor it beeps—even if highlighted.
-            boolean notifyNoneForced = Handshake.getWeechatVersion() >= 0x3000000 &&
-                    (notify == Notify.NONE || notify_none);
-
-            if (notifyNoneForced) {
-                notify = Notify.NONE;
-            } else if (highlighted) {
-                // highlights from irc will have the level message or private upon inspection. since
-                // we are thinking of notify as the level with which the message was added to
-                // hotlist, we have to “fix” this by looking at the highlight bit.
-                notify = Notify.HIGHLIGHT;
-            }
-
-            // log1 should be reliable enough method of telling if a line is a message from user,
-            // our own or someone else's. see `/help logger`: log levels 2+ are nick changes, etc.
-            // ignoring `prefix_nick_...`, `nick_...` and `host_...` tags:
-            //   * join: `irc_join`, `log4`
-            //   * user message:  `irc_privmsg`, `notify_message`, `log1`
-            //   * own message:   `irc_privmsg`, `notify_none`, `self_msg`, `no_highlight`, `log1`
-            // note: some messages such as those produced by `/help` itself won't have tags at all.
-            boolean isMessageFromSelfOrUser = log1 || irc_privmsg || irc_action;
-
-            if (tags.length > 0 && isMessageFromSelfOrUser) {
-                boolean isMessageFromSelf = self_msg ||
-                        Handshake.getWeechatVersion() < 0x1070000 && notify == Notify.NONE;
-                type = isMessageFromSelf ? Type.OUTCOMING_MESSAGE : Type.INCOMING_MESSAGE;
-            }
-
-            if (irc_action) displayAs = DisplayAs.ACTION;
-            else if (irc_privmsg) displayAs = DisplayAs.SAY;
-        }
-
-        return new Line(pointer, type, timestamp, prefix, message, nick, visible, highlighted,
-                displayAs, notify);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private String prefixString = null;
-    private String messageString = null;
-    volatile private Spannable spannable = null;
+    private var prefixString: String? = null
+    private var messageString: String? = null
 
-    @AnyThread void invalidateSpannable() {
-        spannable = null;
-        prefixString = messageString = null;
+    @Volatile private var spannable: Spannable? = null
+
+    @AnyThread fun invalidateSpannable() {
+        spannable = null
+        messageString = null
+        prefixString = messageString
     }
 
-    @AnyThread void ensureSpannable() {
-        if (spannable != null) return;
+    @AnyThread fun ensureSpannable() {
+        if (spannable != null) return
 
-        StringBuilder timestamp = null;
-        DateTimeFormatter dateFormat = P.dateFormat;
-        if (dateFormat != null) {
-            timestamp = new StringBuilder();
-            dateFormat.printTo(timestamp, this.timestamp);
+        val timestamp: CharSequence? = P.dateFormat?.let { dateFormat ->
+            StringBuilder().also { builder -> dateFormat.printTo(builder, this.timestamp) }
         }
 
-        boolean encloseNick = P.encloseNick && displayAs == DisplayAs.SAY;
-        Color color = new Color(timestamp, rawPrefix, rawMessage, encloseNick, isHighlighted, P.maxWidth, P.align);
-        Spannable spannable = new SpannableString(color.lineString);
+        val encloseNick = P.encloseNick && displayAs == DisplayAs.SAY
+        val color = Color(timestamp, rawPrefix, rawMessage, encloseNick, isHighlighted, P.maxWidth, P.align)
+        val spannable: Spannable = SpannableString(color.lineString)
 
         if (type == Type.OTHER && P.dimDownNonHumanLines) {
-            spannable.setSpan(new ForegroundColorSpan(ColorScheme.get().chat_inactive_buffer[0] |
-                    0xFF000000), 0, spannable.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            spannable.setSpan(ForegroundColorSpan(ColorScheme.get().chat_inactive_buffer[0] or
+                    -0x1000000), 0, spannable.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         } else {
-            CharacterStyle droidSpan;
-            for (Color.Span span : color.finalSpanList) {
-                switch (span.type) {
-                    case Color.Span.FGCOLOR:   droidSpan = new ForegroundColorSpan(span.color | 0xFF000000); break;
-                    case Color.Span.BGCOLOR:   droidSpan = new BackgroundColorSpan(span.color | 0xFF000000); break;
-                    case Color.Span.ITALIC:    droidSpan = new StyleSpan(Typeface.ITALIC); break;
-                    case Color.Span.BOLD:      droidSpan = new StyleSpan(Typeface.BOLD); break;
-                    case Color.Span.UNDERLINE: droidSpan = new UnderlineSpan(); break;
-                    default: continue;
+            for (span in color.finalSpanList) {
+                val droidSpan = when (span.type) {
+                    Color.Span.FGCOLOR -> ForegroundColorSpan(span.color or -0x1000000)
+                    Color.Span.BGCOLOR -> BackgroundColorSpan(span.color or -0x1000000)
+                    Color.Span.ITALIC -> StyleSpan(Typeface.ITALIC)
+                    Color.Span.BOLD -> StyleSpan(Typeface.BOLD)
+                    Color.Span.UNDERLINE -> UnderlineSpan()
+                    else -> continue
                 }
-                spannable.setSpan(droidSpan, span.start, span.end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                spannable.setSpan(droidSpan, span.start, span.end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
             }
         }
-
         if (P.align != Color.ALIGN_NONE) {
-            LeadingMarginSpan margin_span = new LeadingMarginSpan.Standard(0, (int) (P.letterWidth * color.margin));
-            spannable.setSpan(margin_span, 0, spannable.length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
+            val marginSpan = LeadingMarginSpan.Standard(0, (P.letterWidth * color.margin).i)
+            spannable.setSpan(marginSpan, 0, spannable.length, Spanned.SPAN_INCLUSIVE_INCLUSIVE)
         }
 
-        Linkify.linkify(spannable, color.messageString);
+        linkify(spannable, color.messageString)
 
-        this.prefixString = color.prefixString;
-        this.messageString = color.messageString;
-        this.spannable = spannable;
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    public @Nullable String getNick() {
-        return nick;
+        this.prefixString = color.prefixString
+        this.messageString = color.messageString
+        this.spannable = spannable
     }
 
     // can't simply do ensureSpannable() here as this can be called for a highlights when there's no
     // activity (after OOM kill). this would parse the spannable using incorrect colors, and this
     // spannable wouldn't get reset by P if the buffer's not open.
-    public @NonNull String getPrefixString() {
-        return prefixString != null ? prefixString : new Color().parseColors(rawPrefix).toString();
+    open fun getPrefixString() = prefixString ?: Color().parseColors(rawPrefix).toString()
+    open fun getMessageString() = messageString ?: Color().parseColors(rawMessage).toString()
+
+    val ircLikeString: String
+        get() {
+            val prefix = getPrefixString()
+            val message = getMessageString()
+            return if (displayAs == DisplayAs.SAY) "<$prefix> $message" else "$prefix $message"
+        }
+
+    open fun getSpannable(): Spannable {
+        ensureSpannable()
+        return spannable!!
     }
 
-    public @NonNull String getMessageString() {
-        return messageString != null ? messageString : new Color().parseColors(rawMessage).toString();
+    override fun toString(): String {
+        return "Line(0x" + java.lang.Long.toHexString(pointer) + ": " + ircLikeString + ")"
     }
 
-    public @NonNull String getIrcLikeString() {
-        return String.format(displayAs == DisplayAs.SAY ? "<%s> %s" : "%s %s",
-                getPrefixString(),
-                getMessageString());
-    }
+    companion object {
+        @Root private val kitty: Kitty = Kitty.make()
 
-    public @NonNull Spannable getSpannable() {
-        ensureSpannable();
-        return spannable;
-    }
+        @JvmStatic @WorkerThread fun make(entry: HdataEntry): Line {
+            val pointer = entry.pointerLong
+            val message = entry.getItem("message").asString() ?: ""
+            val prefix = entry.getItem("prefix").asString() ?: ""
+            val visible = entry.getItem("displayed").asChar().toInt() == 0x01
+            val timestamp = entry.getItem("date").asTime().time
 
-    @NonNull @Override public String toString() {
-        return "Line(0x" + Long.toHexString(pointer) + ": " + getIrcLikeString() + ")";
+            val high = entry.getItem("highlight")
+            val highlighted = high != null && high.asChar().toInt() == 0x01
+
+            val notifyLevelBit = entry.getItem("notify_level")?.asByte() ?: NOTIFY_LEVEL_BIT_NOT_PRESENT
+
+            val tagsItem = entry.getItem("tags_array")
+            val tags = if (tagsItem?.type == RelayObject.WType.ARR) tagsItem.asArray().asStringArray() else null
+
+            var nick: String? = null
+            var type = Type.OTHER
+            var displayAs = DisplayAs.UNSPECIFIED
+            var notify = Notify.LOW
+
+            if (tags == null) {
+                // there are no tags, it's probably an old version of weechat, so we err
+                // on the safe side and treat it as from human
+                type = Type.INCOMING_MESSAGE
+            } else {
+                var log1 = false
+                var selfMsg = false
+                var ircAction = false
+                var ircPrivmsg = false
+                var notifyNone = false
+
+                for (tag in tags) {
+                    when (tag) {
+                        "log1" -> log1 = true
+                        "self_msg" -> selfMsg = true
+                        "irc_privmsg" -> ircPrivmsg = true
+                        "irc_action" -> ircAction = true
+                        "notify_none" -> { notify = Notify.NONE; notifyNone = true }
+                        "notify_message" -> notify = Notify.MESSAGE
+                        "notify_private" -> notify = Notify.PRIVATE
+                        "notify_highlight" -> notify = Notify.HIGHLIGHT
+                        else -> if (tag.startsWith("nick_")) nick = tag.substring(5)
+                    }
+                }
+
+                // notify_level bit supersedes tags
+                if (notifyLevelBit != NOTIFY_LEVEL_BIT_NOT_PRESENT) {
+                    notify = Notify.fromByte(notifyLevelBit)
+                }
+
+                // starting with roughly 3.0 (2b16036), if a line has the tag notify_none, or if
+                // notify_level is -1, it is not added to the hotlist nor it beeps—even if highlighted.
+                val notifyNoneForced = weechatVersion >= 0x3000000 &&
+                        (notify == Notify.NONE || notifyNone)
+
+                if (notifyNoneForced) {
+                    notify = Notify.NONE
+                } else if (highlighted) {
+                    // highlights from irc will have the level message or private upon inspection. since
+                    // we are thinking of notify as the level with which the message was added to
+                    // hotlist, we have to “fix” this by looking at the highlight bit.
+                    notify = Notify.HIGHLIGHT
+                }
+
+                // log1 should be reliable enough method of telling if a line is a message from user,
+                // our own or someone else's. see `/help logger`: log levels 2+ are nick changes, etc.
+                // ignoring `prefix_nick_...`, `nick_...` and `host_...` tags:
+                //   * join: `irc_join`, `log4`
+                //   * user message:  `irc_privmsg`, `notify_message`, `log1`
+                //   * own message:   `irc_privmsg`, `notify_none`, `self_msg`, `no_highlight`, `log1`
+                // note: some messages such as those produced by `/help` itself won't have tags at all.
+                val isMessageFromSelfOrUser = log1 || ircPrivmsg || ircAction
+
+                if (tags.isNotEmpty() && isMessageFromSelfOrUser) {
+                    val isMessageFromSelf = selfMsg ||
+                            weechatVersion < 0x1070000 && notify == Notify.NONE
+                    type = if (isMessageFromSelf) Type.OUTCOMING_MESSAGE else Type.INCOMING_MESSAGE
+                }
+
+                if (ircAction) {
+                    displayAs = DisplayAs.ACTION
+                } else if (ircPrivmsg) {
+                    displayAs = DisplayAs.SAY
+                }
+            }
+
+            return Line(pointer, type, timestamp, prefix, message, nick, visible, highlighted,
+                    displayAs, notify)
+        }
     }
 }
+
+private const val NOTIFY_LEVEL_BIT_NOT_PRESENT: Byte = -123

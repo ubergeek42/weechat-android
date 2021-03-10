@@ -106,7 +106,7 @@ class Nicks {
             Line line = it.next();
             if (line.type != Line.Type.INCOMING_MESSAGE)
                 continue;
-            String name = line.getNick();
+            String name = line.nick;
             if (name != null && !nameToPosition.containsKey(name))
                 nameToPosition.put(name, nameToPosition.size());
         }

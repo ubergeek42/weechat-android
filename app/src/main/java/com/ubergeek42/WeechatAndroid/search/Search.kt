@@ -1,8 +1,5 @@
 package com.ubergeek42.WeechatAndroid.search
 
-import android.content.Context
-import androidx.recyclerview.widget.LinearSmoothScroller
-import androidx.recyclerview.widget.RecyclerView
 import com.ubergeek42.WeechatAndroid.relay.Line
 import com.ubergeek42.WeechatAndroid.search.Search.Matcher
 import com.ubergeek42.WeechatAndroid.upload.applicationContext
@@ -47,7 +44,7 @@ class Search(
                     val getSource = when (source) {
                         SearchConfig.Source.Prefix -> Line::getPrefixString
                         SearchConfig.Source.Message -> Line::getMessageString
-                        SearchConfig.Source.PrefixAndMessage -> Line::getIrcLikeString
+                        SearchConfig.Source.PrefixAndMessage -> Line::ircLikeString
                     }
 
                     val sourceMatchesSearch: ((String) -> Boolean) = if (regex) {
