@@ -39,6 +39,7 @@ public class ColorScheme {
 
     final public int colorPrimary;
     final public int colorPrimaryDark;
+    final public int searchMatchBackground;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////// constructors /////////
@@ -51,6 +52,7 @@ public class ColorScheme {
         loadDefaultOptions();
         setUsedFields();
         colorPrimary = colorPrimaryDark = NO_COLOR;
+        searchMatchBackground = 0x22588ab8;
     }
 
     public ColorScheme(Properties p) {
@@ -70,6 +72,7 @@ public class ColorScheme {
         // alpha better be specified
         colorPrimary = getPropertyInt(p, "primary", NO_COLOR);
         colorPrimaryDark = getPropertyInt(p, "primary_dark", NO_COLOR);
+        searchMatchBackground = getPropertyInt(p, "search_match_bg", 0x22588ab8);
     }
 
     private void setUsedFields() {

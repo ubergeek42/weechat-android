@@ -31,7 +31,6 @@ import androidx.core.view.MenuCompat
 import androidx.core.view.forEach
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ItemDecoration
 import com.ubergeek42.WeechatAndroid.R
@@ -85,6 +84,7 @@ import com.ubergeek42.cats.Cat
 import com.ubergeek42.cats.CatD
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
+import com.ubergeek42.weechat.ColorScheme
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
@@ -112,10 +112,12 @@ class BufferFragment : Fragment(), BufferEye {
     private var uiPaperclip: ImageButton? = null
     private var uiSend: ImageButton? = null
     private var uiTab: ImageButton? = null
+
     private var uploadLayout: ViewGroup? = null
     private var uploadProgressBar: ProgressBar? = null
     private var uploadButton: ImageButton? = null
 
+    private var uiBottomBar: ViewGroup? = null
     private var connectivityIndicator: CircleView? = null
     private var fabScrollToBottom: CircularImageButton? = null
 
@@ -171,6 +173,7 @@ class BufferFragment : Fragment(), BufferEye {
         uploadProgressBar = v.findViewById(R.id.upload_progress_bar)
         uploadButton = v.findViewById(R.id.upload_button)
 
+        uiBottomBar = v.findViewById(R.id.bottom_bar)
         connectivityIndicator = v.findViewById(R.id.connectivity_indicator)
         fabScrollToBottom = v.findViewById(R.id.fab_scroll_to_bottom)
 
@@ -264,6 +267,7 @@ class BufferFragment : Fragment(), BufferEye {
         uploadButton = null
         uploadProgressBar = null
         linesAdapter = null
+        uiBottomBar = null
         connectivityIndicator = null
         fabScrollToBottom = null
 
@@ -412,7 +416,8 @@ class BufferFragment : Fragment(), BufferEye {
 
     private fun applyColorSchemeToViews() {
         fabScrollToBottom?.setBackgroundColor(P.colorPrimary)
-        requireView().findViewById<View>(R.id.bottom_bar).setBackgroundColor(P.colorPrimary)
+        uiBottomBar?.setBackgroundColor(P.colorPrimary)
+        searchMatchDecorationPaint.color = ColorScheme.get().searchMatchBackground
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////// fab
@@ -835,7 +840,7 @@ class BufferFragment : Fragment(), BufferEye {
 
         if (enable) {
             searchInput?.requestFocus()
-            uiLines?.addItemDecoration(decoration)
+            uiLines?.addItemDecoration(searchMatchDecoration)
             triggerNewSearch()
             if (newSearch) {
                 weechatActivity?.imm?.showSoftInput(searchInput, InputMethodManager.SHOW_IMPLICIT)
@@ -846,7 +851,7 @@ class BufferFragment : Fragment(), BufferEye {
             weechatActivity?.hideSoftwareKeyboard()
             matches = emptyMatches
             focusedMatch = 0
-            uiLines?.removeItemDecoration(decoration)
+            uiLines?.removeItemDecoration(searchMatchDecoration)
             linesAdapter?.setSearch(null)
         }
     }
@@ -944,12 +949,13 @@ class BufferFragment : Fragment(), BufferEye {
         }
     }
 
-    private var decoration: ItemDecoration = object : ItemDecoration() {
+    private var searchMatchDecorationPaint = Paint()
+    private var searchMatchDecoration = object : ItemDecoration() {
         override fun onDraw(canvas: Canvas, parent: RecyclerView, state: RecyclerView.State) {
             if (!matches.contains(focusedMatch)) return
 
             val rect = Rect()
-            val paint = Paint().apply { color = 0x22588ab8 }
+            val paint = searchMatchDecorationPaint
 
             parent.forEach { child ->
                 if (parent.getChildItemId(child) == focusedMatch) {
