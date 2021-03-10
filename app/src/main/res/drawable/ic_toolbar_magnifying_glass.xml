@@ -1,20 +1,11 @@
-<vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="64dp"
-    android:height="64dp"
-    android:viewportWidth="64"
-    android:viewportHeight="64">
-  <path
-      android:pathData="M19.84,11c-0.74,-0.03 -1.3,0.09 -1.56,0.31 -0.66,0.57 0.19,4.73 1.42,7.27a14.84,14.84 0,0 1,5.5 -5.65,9.66 9.66,0 0,0 -5.36,-1.94z"
-      android:strokeWidth="1.03"
-      android:fillColor="?attr/toolbarIconColor"/>
-  <path
-      android:pathData="M44.1927,11.0021c0.7344,-0.0343 1.2911,0.0813 1.5505,0.2981 0.6587,0.5618 -0.1594,4.6966 -1.3648,7.2257a14.732,14.732 134.6439,0 0,-5.4947 -5.5748,9.5897 9.5897,134.6439 0,1 5.3089,-1.9589z"
-      android:strokeWidth="1.03"
-      android:fillColor="?attr/toolbarIconColor"/>
-  <path
-      android:pathData="M39.02,34.67a11.88,11.88 0,0 0,5.02 -9.7C44.02,17.96 38,12.97 32,13c-6,0.02 -12,5.06 -11.96,12.04a11.96,11.96 0,0 0,5.38 9.88c1.65,1.1 2.46,2.17 2.4,5.45 -0.1,4.26 1.17,7.53 3.38,9.26 1.66,1.3 5.18,2.29 7.28,-0.24 2.1,-2.53 -0.02,-5.6 -0.64,-6.07 -0.97,-0.73 -1.78,-1.99 -1.83,-3.43 -0.1,-2.7 1.06,-3.9 3.01,-5.22z"
-      android:strokeLineJoin="round"
-      android:strokeWidth="4"
-      android:strokeColor="?attr/toolbarIconColor"
-      android:strokeLineCap="round"/>
+<vector android:height="32dp" android:viewportHeight="64"
+    android:viewportWidth="64" android:width="32dp" xmlns:android="http://schemas.android.com/apk/res/android">
+    <path android:fillColor="?attr/toolbarIconColor"
+        android:pathData="M19.78,11.5c-0.74,-0.01 -1.3,0.1 -1.56,0.33 -0.66,0.56 0.27,4.88 1.5,7.43a15.4,15.4 0,0 1,5.62 -5.74,10.4 10.4,0 0,0 -5.56,-2.01z" android:strokeWidth="1.03"/>
+    <path android:fillColor="?attr/toolbarIconColor"
+        android:pathData="M44.1754,11.4981c0.7345,-0.0145 1.2911,0.0912 1.5506,0.318 0.6586,0.5518 -0.2379,4.846 -1.4432,7.385a15.2879,15.2879 134.6439,0 0,-5.6144 -5.6634,10.3243 10.3243,134.6439 0,1 5.507,-2.0296z" android:strokeWidth="1.03"/>
+    <path
+        android:pathData="M39,35.18a11.88,11.88 0,0 0,5.01 -9.7c-0.02,-7 -6.03,-11.99 -12.03,-11.97 -6,0.02 -12,5.07 -11.97,12.04a11.96,11.96 0,0 0,5.4 9.88c1.64,1.1 2.45,2.17 2.38,5.45 -0.1,4.26 1.18,7.54 3.39,9.27 1.66,1.3 5.18,2.28 7.27,-0.25 2.1,-2.53 -0.02,-5.6 -0.63,-6.06 -0.97,-0.74 -1.78,-2 -1.83,-3.44 -0.1,-2.7 1.06,-3.9 3.01,-5.22z"
+        android:strokeColor="?attr/toolbarIconColor" android:strokeLineCap="round"
+        android:strokeLineJoin="round" android:strokeWidth="4"/>
 </vector>
