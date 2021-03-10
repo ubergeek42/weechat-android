@@ -61,7 +61,7 @@ class LineView @JvmOverloads constructor(
     private var text: Spannable = NoText
 
     fun setText(line: Line) {
-        if (text == line.getSpannable() && currentLayout.usesCurrentPaint()) return
+        if (text == line.spannable && currentLayout.usesCurrentPaint()) return
 
         invalidateInternal()
         setTextInternal(line)
@@ -84,7 +84,7 @@ class LineView @JvmOverloads constructor(
     }
 
     private fun setTextInternal(line: Line) {
-        this.text = line.getSpannable()
+        this.text = line.spannable
 
         val (url, cacheInfo) = getUrlInfo(line)
         val prettySureWillShowImage = cacheInfo == Cache.Info.FETCHED_RECENTLY

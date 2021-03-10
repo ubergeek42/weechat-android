@@ -23,6 +23,7 @@ import com.ubergeek42.weechat.ColorScheme
 import com.ubergeek42.weechat.relay.connection.Handshake.Companion.weechatVersion
 import com.ubergeek42.weechat.relay.protocol.HdataEntry
 import com.ubergeek42.weechat.relay.protocol.RelayObject
+import java.lang.Long.toHexString
 
 open class Line internal constructor(
     @JvmField val pointer: Long,
@@ -98,19 +99,8 @@ open class Line internal constructor(
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private var prefixString: String? = null
-    private var messageString: String? = null
-
-    @Volatile private var spannable: Spannable? = null
-
-    @AnyThread fun invalidateSpannable() {
-        spannable = null
-        messageString = null
-        prefixString = messageString
-    }
-
     @AnyThread fun ensureSpannable() {
-        if (spannable != null) return
+        if (_spannable != null) return
 
         val timestamp: CharSequence? = P.dateFormat?.let { dateFormat ->
             StringBuilder().also { builder -> dateFormat.printTo(builder, this.timestamp) }
@@ -143,32 +133,38 @@ open class Line internal constructor(
 
         linkify(spannable, color.messageString)
 
-        this.prefixString = color.prefixString
-        this.messageString = color.messageString
-        this.spannable = spannable
+        _prefixString = color.prefixString
+        _messageString = color.messageString
+        _spannable = spannable
+    }
+
+    @AnyThread fun invalidateSpannable() {
+        _spannable = null
+        _messageString = null
+        _prefixString = null
+    }
+
+    @Volatile private var _spannable: Spannable? = null;
+    open val spannable get(): Spannable {
+        ensureSpannable()
+        return _spannable!!
     }
 
     // can't simply do ensureSpannable() here as this can be called for a highlights when there's no
     // activity (after OOM kill). this would parse the spannable using incorrect colors, and this
     // spannable wouldn't get reset by P if the buffer's not open.
-    open fun getPrefixString() = prefixString ?: Color().parseColors(rawPrefix).toString()
-    open fun getMessageString() = messageString ?: Color().parseColors(rawMessage).toString()
+    private var _prefixString: String? = null
+    open val prefixString get() = _prefixString ?: Color().parseColors(rawPrefix).toString()
 
-    val ircLikeString: String
-        get() {
-            val prefix = getPrefixString()
-            val message = getMessageString()
-            return if (displayAs == DisplayAs.SAY) "<$prefix> $message" else "$prefix $message"
-        }
+    private var _messageString: String? = null
+    open val messageString get() = _messageString ?: Color().parseColors(rawMessage).toString()
 
-    open fun getSpannable(): Spannable {
-        ensureSpannable()
-        return spannable!!
-    }
+    // caching this method (for the purpose of speeding up search)
+    // yields about 5ms for searches of 4096 lines, despite what the flame chart shows
+    val ircLikeString get() = if (displayAs == DisplayAs.SAY)
+                "<$prefixString> $messageString" else "$prefixString $messageString"
 
-    override fun toString(): String {
-        return "Line(0x" + java.lang.Long.toHexString(pointer) + ": " + ircLikeString + ")"
-    }
+    override fun toString() = "Line(0x${toHexString(pointer)}: $ircLikeString)"
 
     companion object {
         @Root private val kitty: Kitty = Kitty.make()
@@ -177,11 +173,10 @@ open class Line internal constructor(
             val pointer = entry.pointerLong
             val message = entry.getItem("message").asString() ?: ""
             val prefix = entry.getItem("prefix").asString() ?: ""
-            val visible = entry.getItem("displayed").asChar().toInt() == 0x01
+            val visible = entry.getItem("displayed").asChar() == 1.toChar()
             val timestamp = entry.getItem("date").asTime().time
 
-            val high = entry.getItem("highlight")
-            val highlighted = high != null && high.asChar().toInt() == 0x01
+            val highlighted = entry.getItem("highlight")?.asChar() == 1.toChar()
 
             val notifyLevelBit = entry.getItem("notify_level")?.asByte() ?: NOTIFY_LEVEL_BIT_NOT_PRESENT
 
