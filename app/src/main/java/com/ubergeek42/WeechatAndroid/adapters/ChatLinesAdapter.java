@@ -30,7 +30,7 @@ import android.widget.Button;
 
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.Weechat;
-import com.ubergeek42.WeechatAndroid.copypaste.Copy;
+import com.ubergeek42.WeechatAndroid.copypaste.CopyKt;
 import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferEye;
 import com.ubergeek42.WeechatAndroid.relay.Line;
@@ -87,12 +87,15 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private static class Row extends RecyclerView.ViewHolder {
-        private LineView lineView;
+        final private LineView lineView;
 
-        @MainThread Row(View view) {
+        @MainThread Row(View view, long bufferPointer) {
             super(view);
             lineView = (LineView) view;
-            lineView.setOnLongClickListener((View v) -> Copy.showCopyDialog(lineView));
+            lineView.setOnLongClickListener((View v) -> {
+                CopyKt.showCopyDialog(lineView, bufferPointer);
+                return true;
+            });
         }
 
         @MainThread void update(Line line) {
@@ -132,7 +135,10 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
             super(header);
             this.adapter = adapter;
             title = header.findViewById(R.id.title);
-            title.setOnLongClickListener((View v) -> Copy.showCopyDialog(title));
+            title.setOnLongClickListener((View v) -> {
+                CopyKt.showCopyDialog(title, adapter.buffer.pointer);
+                return true;
+            });
             button = header.findViewById(R.id.button_more);
             button.setOnClickListener(this);
         }
@@ -195,7 +201,7 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         LayoutInflater i = LayoutInflater.from(parent.getContext());
         if (viewType == HEADER_TYPE) return new Header(i.inflate(more_button, parent, false), this);
         else if (viewType == MARKER_TYPE) return new ReadMarkerRow(i.inflate(read_marker, parent, false));
-        else return new Row(new LineView(parent.getContext()));
+        else return new Row(new LineView(parent.getContext()), buffer.pointer);
     }
 
     @MainThread @Override public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {

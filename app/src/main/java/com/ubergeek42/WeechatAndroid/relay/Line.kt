@@ -102,12 +102,8 @@ open class Line internal constructor(
     @AnyThread fun ensureSpannable() {
         if (_spannable != null) return
 
-        val timestamp: CharSequence? = P.dateFormat?.let { dateFormat ->
-            StringBuilder().also { builder -> dateFormat.printTo(builder, this.timestamp) }
-        }
-
         val encloseNick = P.encloseNick && displayAs == DisplayAs.SAY
-        val color = Color(timestamp, rawPrefix, rawMessage, encloseNick, isHighlighted, P.maxWidth, P.align)
+        val color = Color(timestampString, rawPrefix, rawMessage, encloseNick, isHighlighted, P.maxWidth, P.align)
         val spannable: Spannable = SpannableString(color.lineString)
 
         if (type == Type.OTHER && P.dimDownNonHumanLines) {
@@ -150,6 +146,10 @@ open class Line internal constructor(
         return _spannable!!
     }
 
+    val timestampString get() = P.dateFormat?.let { dateFormat ->
+        StringBuilder().also { builder -> dateFormat.printTo(builder, this.timestamp) }
+    }
+
     // can't simply do ensureSpannable() here as this can be called for a highlights when there's no
     // activity (after OOM kill). this would parse the spannable using incorrect colors, and this
     // spannable wouldn't get reset by P if the buffer's not open.
@@ -162,7 +162,10 @@ open class Line internal constructor(
     // caching this method (for the purpose of speeding up search)
     // yields about 5ms for searches of 4096 lines, despite what the flame chart shows
     val ircLikeString get() = if (displayAs == DisplayAs.SAY)
-                "<$prefixString> $messageString" else "$prefixString $messageString"
+            "<$prefixString> $messageString" else "$prefixString $messageString"
+
+    val timestampedIrcLikeString: String get() =
+            timestampString?.let { timestamp -> "$timestamp $ircLikeString" } ?: ircLikeString
 
     override fun toString() = "Line(0x${toHexString(pointer)}: $ircLikeString)"
 
