@@ -5,7 +5,9 @@ import android.app.Dialog
 import android.content.Context
 import android.os.Build
 import android.text.ClipboardManager
+import android.text.style.URLSpan
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.EditText
@@ -27,6 +29,14 @@ import java.lang.StringBuilder
 import java.util.*
 
 
+fun showCopyDialog(lineView: LineView, bufferPointer: Long) {
+    Copy(lineView.context, bufferPointer, lineView, lineView.tag as Line)
+            .buildCopyDialog()
+            .show()
+}
+
+
+@Suppress("unused")
 private enum class Select(val id: Int, val textGetter: (Line) -> String) {
     WithTimestamps(R.id.menu_select_with_timestamps, Line::timestampedIrcLikeString),
     WithoutTimestamps(R.id.menu_select_without_timestamps, Line::ircLikeString),
@@ -34,96 +44,106 @@ private enum class Select(val id: Int, val textGetter: (Line) -> String) {
 }
 
 
-fun showCopyDialog(lineView: LineView, bufferPointer: Long) {
-    val context = lineView.context
-    val line = lineView.tag as Line
+private class Copy(
+    private val context: Context,
+    private val bufferPointer: Long,
+    private val sourceLineView: LineView,
+    private val sourceLine: Line,
+) {
+    private fun getSourceLines(): List<String> {
+        return mutableListOf<String>().apply {
+            if (sourceLine.prefixString.isNotEmpty()) add(sourceLine.ircLikeString)
+            add(sourceLine.messageString)
+            addAll(sourceLineView.urls.map(URLSpan::getURL))
+        }.distinct()
+    }
 
-    val list = ArrayList<CharSequence>()
-    if (line.prefixString.isNotEmpty()) list.add(line.ircLikeString)
-    list.add(line.messageString)
-    list.addAll(lineView.urls.map { it.url })
-
-    val dialog = FancyAlertDialogBuilder(context).create()
-
-    val layout = LayoutInflater.from(context).inflate(R.layout.dialog_copy, null) as ViewGroup
-    val recyclerView = layout.findViewById<RecyclerView>(R.id.list)
-    val title = layout.findViewById<TextView>(R.id.title)
-    val overflow = layout.findViewById<ImageButton>(R.id.overflow)
-
-    title.setText(R.string.dialog__copy__title)
-
-    overflow.setOnClickListener {
-        PopupMenu(context, it).apply {
+    private fun buildPopupMenu(anchor: View, listener: (Select) -> Unit): PopupMenu {
+        return PopupMenu(context, anchor).apply {
             inflate(R.menu.copy_dialog)
             setOnMenuItemClickListener menuListener@{ menuItem ->
                 val select = Select::id.find(menuItem.itemId) ?: return@menuListener false
-                createFullScreenCopyDialog(context, bufferPointer, line.pointer, select).show()
-                dialog.dismiss()
+                listener.invoke(select)
                 return@menuListener true
             }
-        }.show()
-    }
-
-    recyclerView.adapter = CopyAdapter(context, list.distinct()) { item ->
-        setClipboard(item)
-        dialog.dismiss()
-    }
-
-    dialog.setView(layout)
-    dialog.show()
-}
-
-
-private fun createFullScreenCopyDialog(context: Context, bufferPointer: Long,
-                                       currentLinePointer: Long, select: Select): Dialog {
-    val buffer = BufferList.findByPointer(bufferPointer)
-    val lines = buffer!!.linesCopy
-
-    val getter = select.textGetter
-    val body = StringBuilder()
-
-    var start = -1
-    var end = -1
-
-    lines.forEach { line ->
-        if (line.pointer == currentLinePointer) start = body.length
-        body.append(getter(line)).append("\n")
-        if (line.pointer == currentLinePointer) end = body.length
-    }
-
-    val dialog = AlertDialog.Builder(context, R.style.FullScreenAlertDialogTheme).create()
-
-    val contents = LayoutInflater.from(context)
-            .inflate(R.layout.preferences_full_screen_edit_text, null).apply {
-                setBackgroundColor(P.colorPrimary)
-                dialog.setView(this)
-            }
-
-    contents.findViewById<EditText>(R.id.text).apply {
-        setText(body)
-        if (start != -1 && end != -1) post {
-            requestFocus()
-            setTextIsSelectable(true)
-            setSelection(start, end)
         }
     }
 
-    contents.findViewById<Toolbar>(R.id.toolbar).apply {
-        setTitle(R.string.dialog__copy__title)
-        setNavigationOnClickListener { dialog.dismiss() }
+    fun buildCopyDialog(): Dialog {
+        val dialog = FancyAlertDialogBuilder(context).create()
+        val layout = LayoutInflater.from(context).inflate(R.layout.dialog_copy, null) as ViewGroup
+
+        layout.findViewById<TextView>(R.id.title).setText(R.string.dialog__copy__title)
+
+        layout.findViewById<RecyclerView>(R.id.list).adapter =
+                CopyAdapter(context, getSourceLines()) { item ->
+            setClipboard(item)
+            dialog.dismiss()
+        }
+
+        layout.findViewById<ImageButton>(R.id.overflow).setOnClickListener { overflow ->
+            buildPopupMenu(overflow) { select ->
+                buildFullScreenCopyDialog(select)?.show()
+                dialog.dismiss()
+            }.show()
+        }
+
+        dialog.setView(layout)
+        return dialog
     }
 
-    dialog.window?.run {
-        setDimAmount(0f)
-        val isDark = !ThemeFix.isColorLight(P.colorPrimaryDark)
-        if (isDark || Build.VERSION.SDK_INT >= 23) statusBarColor = P.colorPrimaryDark
-        if (isDark || Build.VERSION.SDK_INT >= 26) navigationBarColor = P.colorPrimaryDark
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
-        setFlags(WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM,
-                WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
+    private fun buildFullScreenCopyDialog(select: Select): Dialog? {
+        val lines = (BufferList.findByPointer(bufferPointer) ?: return null).linesCopy
+        val lineTextGetter = select.textGetter
+
+        val body = StringBuilder()
+        var selectionStart = -1
+        var selectionEnd = -1
+
+        lines.forEach { line ->
+            if (line.pointer == sourceLine.pointer) selectionStart = body.length
+            body.append(lineTextGetter(line))
+            if (line.pointer == sourceLine.pointer) selectionEnd = body.length
+            body.append("\n")
+        }
+
+        val dialog = AlertDialog.Builder(context, R.style.FullScreenAlertDialogTheme).create()
+        val layout = LayoutInflater.from(context)
+                .inflate(R.layout.preferences_full_screen_edit_text, null)
+        layout.setBackgroundColor(P.colorPrimary)
+
+        layout.findViewById<EditText>(R.id.text).apply {
+            setText(body)
+            if (selectionStart != -1 && selectionEnd != -1) post {
+                requestFocus()
+                setTextIsSelectable(true)
+                setSelection(selectionStart, selectionEnd)
+            }
+        }
+
+        layout.findViewById<Toolbar>(R.id.toolbar).apply {
+            setTitle(R.string.dialog__copy__title)
+            setNavigationOnClickListener { dialog.dismiss() }
+        }
+
+        dialog.window?.run {
+            setDimAmount(0f)
+
+            val isDark = !ThemeFix.isColorLight(P.colorPrimaryDark)
+            if (isDark || Build.VERSION.SDK_INT >= 23) statusBarColor = P.colorPrimaryDark
+            if (isDark || Build.VERSION.SDK_INT >= 26) navigationBarColor = P.colorPrimaryDark
+
+            // prevent keyboard from showing, while still allow selecting text
+            // apparently you can't just disable editing text
+            setFlags(WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM,
+                    WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM)
+        }
+
+        dialog.setView(layout)
+        return dialog
     }
-
-    return dialog
 }
 
 
