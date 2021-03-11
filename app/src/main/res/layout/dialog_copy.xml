@@ -10,7 +10,7 @@
 
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
-        android:layout_margin="0dp"
+        android:layout_marginRight="8dp"
 
         android:contentDescription="More"
         style="@style/Widget.AppCompat.ActionButton.Overflow" />

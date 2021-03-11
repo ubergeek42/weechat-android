@@ -119,7 +119,7 @@ private class Copy(
             if (selectionStart != -1 && selectionEnd != -1) post {
                 requestFocus()
                 setTextIsSelectable(true)
-                setSelection(selectionStart, selectionEnd)
+                selectTextCentering(selectionStart, selectionEnd)
             }
         }
 
@@ -151,4 +151,21 @@ private fun setClipboard(text: CharSequence) {
     val clipboardManager = applicationContext
             .getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager?
     clipboardManager?.text = text
+}
+
+
+// this is a hacky way of centering the selection. EditText wants to show the whole selection,
+// so selecting a bigger portion of text and then narrowing down the selection
+// makes it appear closer to the center. this does not account for line height;
+// also the number 400 is rather random and might not work as well on other devices
+// todo find a better way of centering selection
+fun EditText.selectTextCentering(selectionStart: Int, selectionEnd: Int) {
+    selectTextSafe(selectionStart - 400, selectionEnd + 400)
+    post { selectTextSafe(selectionStart, selectionEnd) }
+}
+
+
+fun EditText.selectTextSafe(selectionStart: Int, selectionEnd: Int) {
+    setSelection(selectionStart.coerceIn(text.indices),
+                 selectionEnd.coerceIn(text.indices))
 }
