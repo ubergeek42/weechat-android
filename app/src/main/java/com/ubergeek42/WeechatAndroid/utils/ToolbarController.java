@@ -15,7 +15,7 @@ import com.ubergeek42.WeechatAndroid.service.P;
 
 public class ToolbarController implements ViewTreeObserver.OnGlobalLayoutListener {
     private final WeechatActivity activity;
-    private final Toolbar toolbar;
+    private final View toolbarContainer;
     private final View root;
     private final View mainView;
     private final int toolbarHeight;
@@ -25,11 +25,11 @@ public class ToolbarController implements ViewTreeObserver.OnGlobalLayoutListene
 
     public ToolbarController(WeechatActivity activity) {
         this.activity = activity;
-        this.toolbar = activity.findViewById(R.id.toolbar);
+        this.toolbarContainer = activity.findViewById(R.id.toolbar_container);
         this.mainView = activity.findViewById(R.id.main_viewpager);
         this.root = activity.findViewById(android.R.id.content);
         root.getViewTreeObserver().addOnGlobalLayoutListener(this);
-        toolbarHeight = toolbar.getLayoutParams().height;
+        toolbarHeight = toolbarContainer.getLayoutParams().height;
     }
 
     public void detach() {
@@ -80,13 +80,13 @@ public class ToolbarController implements ViewTreeObserver.OnGlobalLayoutListene
     private void show() {
         if (shown) return;
         shown = true;
-        toolbar.animate().translationY(0).setInterpolator(new DecelerateInterpolator()).start();
+        toolbarContainer.animate().translationY(0).setInterpolator(new DecelerateInterpolator()).start();
     }
 
     private void hide() {
         if (!shown) return;
         shown = false;
-        toolbar.animate().translationY(-toolbar.getBottom()).setInterpolator(new AccelerateInterpolator()).start();
+        toolbarContainer.animate().translationY(-toolbarContainer.getBottom()).setInterpolator(new AccelerateInterpolator()).start();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

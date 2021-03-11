@@ -669,7 +669,7 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
     // automatically, and since api 27 via android:navigationBarColor
     private fun applyColorSchemeToViews() {
         applyMainBackgroundColor()
-        findViewById<View>(R.id.toolbar).setBackgroundColor(P.colorPrimary)
+        findViewById<View>(R.id.toolbar_container).setBackgroundColor(P.colorPrimary)
 
         val isDark = !ThemeFix.isColorLight(P.colorPrimaryDark)
         if (isDark || Build.VERSION.SDK_INT >= 23) window.statusBarColor = P.colorPrimaryDark
