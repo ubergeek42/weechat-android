@@ -7,12 +7,10 @@ import android.os.Build
 import android.text.ClipboardManager
 import android.text.style.URLSpan
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.EditText
 import android.widget.ImageButton
-import android.widget.PopupMenu
 import android.widget.TextView
 import androidx.appcompat.widget.Toolbar
 import androidx.recyclerview.widget.RecyclerView
@@ -58,17 +56,6 @@ private class Copy(
         }.distinct()
     }
 
-    private fun buildPopupMenu(anchor: View, listener: (Select) -> Unit): PopupMenu {
-        return PopupMenu(context, anchor).apply {
-            inflate(R.menu.copy_dialog)
-            setOnMenuItemClickListener menuListener@{ menuItem ->
-                val select = Select::id.find(menuItem.itemId) ?: return@menuListener false
-                listener.invoke(select)
-                return@menuListener true
-            }
-        }
-    }
-
     fun buildCopyDialog(): Dialog {
         val dialog = FancyAlertDialogBuilder(context).create()
         val layout = LayoutInflater.from(context).inflate(R.layout.dialog_copy, null) as ViewGroup
@@ -81,11 +68,9 @@ private class Copy(
             dialog.dismiss()
         }
 
-        layout.findViewById<ImageButton>(R.id.overflow).setOnClickListener { overflow ->
-            buildPopupMenu(overflow) { select ->
-                buildFullScreenCopyDialog(select)?.show()
-                dialog.dismiss()
-            }.show()
+        layout.findViewById<ImageButton>(R.id.select_text).setOnClickListener {
+            buildFullScreenCopyDialog()?.show()
+            dialog.dismiss()
         }
 
         dialog.setView(layout)
@@ -94,38 +79,43 @@ private class Copy(
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private fun buildFullScreenCopyDialog(select: Select): Dialog? {
+    private fun buildBody(select: Select): Body? {
         val lines = (BufferList.findByPointer(bufferPointer) ?: return null).linesCopy
         val lineTextGetter = select.textGetter
 
-        val body = StringBuilder()
+        val text = StringBuilder()
         var selectionStart = -1
         var selectionEnd = -1
 
         lines.forEach { line ->
-            if (line.pointer == sourceLine.pointer) selectionStart = body.length
-            body.append(lineTextGetter(line))
-            if (line.pointer == sourceLine.pointer) selectionEnd = body.length
-            body.append("\n")
+            if (line.pointer == sourceLine.pointer) selectionStart = text.length
+            text.append(lineTextGetter(line))
+            if (line.pointer == sourceLine.pointer) selectionEnd = text.length
+            text.append("\n")
         }
 
+        return Body(text, selectionStart, selectionEnd)
+    }
+
+    private fun buildFullScreenCopyDialog(): Dialog? {
         val dialog = AlertDialog.Builder(context, R.style.FullScreenAlertDialogTheme).create()
         val layout = LayoutInflater.from(context)
                 .inflate(R.layout.preferences_full_screen_edit_text, null)
         layout.setBackgroundColor(P.colorPrimary)
 
-        layout.findViewById<EditText>(R.id.text).apply {
-            setText(body)
-            if (selectionStart != -1 && selectionEnd != -1) post {
-                requestFocus()
-                setTextIsSelectable(true)
-                selectTextCentering(selectionStart, selectionEnd)
-            }
-        }
+        val editText = layout.findViewById<EditText>(R.id.text)
+        editText.setBody(buildBody(Select.WithoutTimestamps) ?: return null)
 
         layout.findViewById<Toolbar>(R.id.toolbar).apply {
             setTitle(R.string.dialog__copy__title)
             setNavigationOnClickListener { dialog.dismiss() }
+            inflateMenu(R.menu.copy_dialog_fullscreen)
+            setOnMenuItemClickListener listener@{ menuItem ->
+                val select = Select::id.find(menuItem.itemId) ?: return@listener false
+                val body = buildBody(select) ?: return@listener false
+                editText.setBody(body)
+                true
+            }
         }
 
         dialog.window?.run {
@@ -153,6 +143,17 @@ private fun setClipboard(text: CharSequence) {
     clipboardManager?.text = text
 }
 
+
+private data class Body(val text: CharSequence, val selectionStart: Int, val selectionEnd: Int)
+
+private fun EditText.setBody(body: Body) {
+    setText(body.text)
+    if (body.selectionStart != -1 && body.selectionEnd != -1) post {
+        requestFocus()
+        setTextIsSelectable(true)
+        selectTextCentering(body.selectionStart, body.selectionEnd)
+    }
+}
 
 // this is a hacky way of centering the selection. EditText wants to show the whole selection,
 // so selecting a bigger portion of text and then narrowing down the selection
