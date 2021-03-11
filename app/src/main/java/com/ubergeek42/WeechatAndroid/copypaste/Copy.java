@@ -5,6 +5,8 @@ import android.text.ClipboardManager;
 import android.text.TextUtils;
 import android.text.style.URLSpan;
 import android.view.LayoutInflater;
+import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
@@ -31,18 +33,22 @@ public class Copy {
             if (!list.contains(url)) list.add(url);
         }
 
-        AlertDialog dialog = new FancyAlertDialogBuilder(context)
-                .setTitle(R.string.dialog__copy__title)
-                .create();
+        AlertDialog dialog = new FancyAlertDialogBuilder(context).create();
 
-        RecyclerView recyclerView = (RecyclerView) LayoutInflater.from(context)
-                .inflate(R.layout.dialog_list, null);
+        ViewGroup layout = (ViewGroup) LayoutInflater.from(context)
+                .inflate(R.layout.dialog_copy, null);
+
+        RecyclerView recyclerView = layout.findViewById(R.id.list);
+        TextView title = layout.findViewById(R.id.title);
+
+        title.setText(R.string.dialog__copy__title);
+
         recyclerView.setAdapter(new CopyAdapter(context, list, item -> {
             setClipboard(context, item);
             dialog.dismiss();
         }));
 
-        dialog.setView(recyclerView);
+        dialog.setView(layout);
         dialog.show();
         return true;
     }
