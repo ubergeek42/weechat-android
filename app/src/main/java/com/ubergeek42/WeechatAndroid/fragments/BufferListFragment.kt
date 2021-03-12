@@ -54,7 +54,7 @@ class BufferListFragment : Fragment(), BufferListEye {
 
     @MainThread @Cat override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        adapter = BufferListAdapter()
+        adapter = BufferListAdapter(requireContext())
     }
 
     @MainThread @Cat override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,

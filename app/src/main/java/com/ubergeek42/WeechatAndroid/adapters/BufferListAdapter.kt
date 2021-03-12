@@ -11,245 +11,236 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+package com.ubergeek42.WeechatAndroid.adapters
 
-package com.ubergeek42.WeechatAndroid.adapters;
-
-import androidx.annotation.AnyThread;
-import androidx.annotation.MainThread;
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.DiffUtil;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.recyclerview.widget.RecyclerView.ViewHolder;
-import android.text.Spannable;
-import android.text.TextUtils;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.TextView;
-
-import com.ubergeek42.WeechatAndroid.R;
-import com.ubergeek42.WeechatAndroid.Weechat;
-import com.ubergeek42.WeechatAndroid.relay.Buffer;
-import com.ubergeek42.WeechatAndroid.relay.BufferList;
-import com.ubergeek42.WeechatAndroid.relay.BufferListEye;
-import com.ubergeek42.WeechatAndroid.service.P;
-import com.ubergeek42.WeechatAndroid.utils.Utils;
-import com.ubergeek42.cats.Cat;
-import com.ubergeek42.cats.Kitty;
-import com.ubergeek42.cats.Root;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
+import android.content.Context
+import android.text.Spannable
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.TextView
+import androidx.annotation.AnyThread
+import androidx.annotation.MainThread
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerView.ViewHolder
+import com.ubergeek42.WeechatAndroid.R
+import com.ubergeek42.WeechatAndroid.adapters.BufferListAdapter.*
+import com.ubergeek42.WeechatAndroid.relay.Buffer
+import com.ubergeek42.WeechatAndroid.relay.BufferList
+import com.ubergeek42.WeechatAndroid.relay.BufferListEye
+import com.ubergeek42.WeechatAndroid.service.P
+import com.ubergeek42.WeechatAndroid.upload.main
+import com.ubergeek42.WeechatAndroid.utils.Utils
+import com.ubergeek42.cats.Kitty
+import com.ubergeek42.cats.Root
+import java.util.*
 
 
-public class BufferListAdapter extends RecyclerView.Adapter<ViewHolder> implements BufferListEye {
+class BufferListAdapter(
+    val context: Context
+) : RecyclerView.Adapter<ViewHolder>(), BufferListEye {
+    private val inflater = LayoutInflater.from(context)
 
-    final private static @Root Kitty kitty = Kitty.make();
+    private var buffers = ArrayList<VisualBuffer>()
 
-    private ArrayList<VisualBuffer> buffers = new ArrayList<>();
-
-    public static @NonNull String filterGlobal = "";
-    private @NonNull String filterLowerCase = "";
-    private @NonNull String filterUpperCase = "";
-
-    final private static int[][] COLORS = new int[][] {
-            {R.color.bufferListOther, R.color.bufferListOtherHot},
-            {R.color.bufferListChannel, R.color.bufferListChannelHot},
-            {R.color.bufferListPrivate, R.color.bufferListPrivateHot},
-    };
-
-    public BufferListAdapter() {
-        // if setHasStableIds(true) is called here, RecyclerView will play move animations
-    }
+    private var filterLowerCase = ""
+    private var filterUpperCase = ""
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// VH
+    ///////////////////////////////////////////////////////////////////////////////////////////// VH
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private static class Row extends ViewHolder implements View.OnClickListener {
-        private long pointer;
-        private TextView uiHot;
-        private TextView uiWarm;
-        private TextView uiBuffer;
-        private View uiOpen;
+    private class Row @MainThread constructor(view: View) : ViewHolder(view), View.OnClickListener {
+        private var pointer: Long = 0
 
-        @MainThread Row(View view) {
-            super(view);
-            uiOpen = view.findViewById(R.id.open);
-            uiBuffer = view.findViewById(R.id.buffer);
-            uiWarm = view.findViewById(R.id.buffer_warm);
-            uiHot = view.findViewById(R.id.buffer_hot);
-            view.setOnClickListener(this);
-        }
+        private val uiHot = view.findViewById<TextView>(R.id.buffer_hot)
+        private val uiWarm = view.findViewById<TextView>(R.id.buffer_warm)
+        private val uiBuffer = view.findViewById<TextView>(R.id.buffer)
+        private val uiOpen = view.findViewById<View>(R.id.open)
 
-        @MainThread void update(VisualBuffer buffer) {
-            pointer = buffer.pointer;
-            uiBuffer.setText(buffer.printable);
-            int unreads = buffer.unreads;
-            int highlights = buffer.highlights;
+        init { view.setOnClickListener(this) }
 
-            int important = (highlights > 0 || (unreads > 0 && buffer.type == Buffer.PRIVATE)) ? 1 : 0;
-            uiBuffer.setBackgroundResource(COLORS[buffer.type][important]);
-            uiOpen.setVisibility(buffer.isOpen ? View.VISIBLE : View.GONE);
+        @MainThread fun update(buffer: VisualBuffer) {
+            pointer = buffer.pointer
+            uiBuffer.text = buffer.printable
+            val unreads = buffer.unreads
+            val highlights = buffer.highlights
+
+            val important = if (highlights > 0 || unreads > 0 && buffer.type == Buffer.PRIVATE) 1 else 0
+            uiBuffer.setBackgroundResource(COLORS[buffer.type][important])
+            uiOpen.visibility = if (buffer.isOpen) View.VISIBLE else View.GONE
 
             if (highlights > 0) {
-                uiHot.setText(String.valueOf(highlights));
-                uiHot.setVisibility(View.VISIBLE);
-            } else
-                uiHot.setVisibility(View.INVISIBLE);
+                uiHot.text = highlights.toString()
+                uiHot.visibility = View.VISIBLE
+            } else {
+                uiHot.visibility = View.INVISIBLE
+            }
 
             if (unreads > 0) {
-                uiWarm.setText(String.valueOf(unreads));
-                uiWarm.setVisibility(View.VISIBLE);
-            } else
-                uiWarm.setVisibility(View.GONE);
+                uiWarm.text = unreads.toString()
+                uiWarm.visibility = View.VISIBLE
+            } else {
+                uiWarm.visibility = View.GONE
+            }
         }
 
-        @MainThread @Override @SuppressWarnings("ConstantConditions")
-        public void onClick(View v) {
-            ((BufferListClickListener) Utils.getActivity(v)).onBufferClick(pointer);
+        @MainThread override fun onClick(v: View) {
+            (Utils.getActivity(v) as BufferListClickListener).onBufferClick(pointer)
         }
     }
 
-    public int getPendingItemCount() {
-        return _buffers.size();
-    }
+    // very special; see usage
+    val pendingItemCount get() = _buffers.size
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// adapter methods
+    //////////////////////////////////////////////////////////////////////////////// adapter methods
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @MainThread @Override @Cat("???") public @NonNull ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        LayoutInflater i = LayoutInflater.from(parent.getContext());
-        return new Row(i.inflate(R.layout.bufferlist_item, parent, false));
+    @MainThread override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        return Row(inflater.inflate(R.layout.bufferlist_item, parent, false))
     }
 
-    @MainThread @Override @Cat("???") public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        ((Row) holder).update(buffers.get(position));
+    @MainThread override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        (holder as Row).update(buffers[position])
     }
 
-    @MainThread @Override @Cat("???") public long getItemId(int position) {
-        return buffers.get(position).pointer;
-    }
+    @MainThread override fun getItemId(position: Int) = buffers[position].pointer
 
-    @MainThread @Override @Cat(value="???", exit=true) public int getItemCount() {
-        return buffers.size();
-    }
+    @MainThread override fun getItemCount() = buffers.size
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// BufferListEye
+    ////////////////////////////////////////////////////////////////////////////////// BufferListEye
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private ArrayList<VisualBuffer> _buffers = new ArrayList<>();
-    @AnyThread @Override @Cat("??") synchronized public void onBuffersChanged() {
-        final ArrayList<VisualBuffer> newBuffers = new ArrayList<>();
+    private var _buffers = ArrayList<VisualBuffer>()
+
+    @AnyThread @Synchronized override fun onBuffersChanged() {
+        val newBuffers = ArrayList<VisualBuffer>()
 
         // this method must not call any synchronized methods of Buffer as this could result in a
         // deadlock (worker thread e: Buffer.addLine() (locks BufferA) -> this.onBuffersChanged()
         // (waiting for main to release this) vs. main thread: onBuffersChanged() (locks this) ->
         // iteration on Buffers: (waiting for e to release BufferA). todo: resolve this gracefully
-        for (Buffer buffer : BufferList.buffers) {
-            if (buffer.type == Buffer.HARD_HIDDEN) continue;
-            if (!buffer.fullName.toLowerCase().contains(filterLowerCase) && !buffer.fullName.toUpperCase().contains(filterUpperCase)) continue;
-            if (TextUtils.isEmpty(filterLowerCase)) {
-                if (P.hideHiddenBuffers && buffer.hidden &&
-                        buffer.highlights == 0 && !(buffer.type == Buffer.PRIVATE && buffer.unreads != 0)) continue;
-                if (P.filterBuffers && buffer.type == Buffer.OTHER && buffer.highlights == 0 && buffer.unreads == 0) continue;
+        for (buffer in BufferList.buffers) {
+            if (buffer.type == Buffer.HARD_HIDDEN) continue
+            if (!buffer.fullName.toLowerCase().contains(filterLowerCase)
+                    && !buffer.fullName.toUpperCase().contains(filterUpperCase)) continue
+            if (filterLowerCase.isEmpty()) {
+                if (P.hideHiddenBuffers && buffer.hidden
+                        && buffer.highlights == 0
+                        && !(buffer.type == Buffer.PRIVATE && buffer.unreads != 0)) continue
+                if (P.filterBuffers && buffer.type == Buffer.OTHER
+                        && buffer.highlights == 0 && buffer.unreads == 0) continue
             }
-            newBuffers.add(new VisualBuffer(buffer));
+            newBuffers.add(VisualBuffer.fromBuffer(buffer))
         }
 
-        if (P.sortBuffers) Collections.sort(newBuffers, sortByHotAndMessageCountComparator);
-        else Collections.sort(newBuffers, sortByHotCountAndNumberComparator);
+        if (P.sortBuffers) {
+            Collections.sort(newBuffers, sortByHotAndMessageCountComparator)
+        } else {
+            Collections.sort(newBuffers, sortByHotCountAndNumberComparator)
+        }
 
         // store new buffers in _buffers for the sole purpose of doing a diff against, since
         // this method might be called again before buffers is assigned
-        final DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new DiffCallback(_buffers, newBuffers), false);
-        _buffers = newBuffers;
+        val diffResult = DiffUtil.calculateDiff(DiffCallback(_buffers, newBuffers), false)
+        _buffers = newBuffers
 
-        Weechat.runOnMainThread(() -> {
-            buffers = newBuffers;
-            diffResult.dispatchUpdatesTo(BufferListAdapter.this);
-        });
-    }
-
-    @AnyThread synchronized public void setFilter(final String s, boolean global) {
-        if (global) filterGlobal = s;
-        filterLowerCase = s.toLowerCase();
-        filterUpperCase = s.toUpperCase();
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// Diff
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    private static class VisualBuffer {
-        String fullName;
-        Spannable printable;
-        boolean isOpen;
-        int highlights, unreads, type, number;
-        long pointer;
-
-        VisualBuffer(Buffer buffer) {
-            fullName = buffer.fullName;
-            isOpen = buffer.isOpen;
-            printable = buffer.printable;
-            highlights = buffer.highlights;
-            unreads = buffer.unreads;
-            type = buffer.type;
-            number = buffer.number;
-            pointer = buffer.pointer;
+        main {
+            buffers = newBuffers
+            diffResult.dispatchUpdatesTo(this@BufferListAdapter)
         }
     }
 
-    private static class DiffCallback extends DiffUtil.Callback {
-        private ArrayList<VisualBuffer> oldBuffers, newBuffers;
+    @AnyThread @Synchronized fun setFilter(s: String, global: Boolean) {
+        if (global) filterGlobal = s
 
-        DiffCallback(ArrayList<VisualBuffer> oldBuffers, ArrayList<VisualBuffer> newBuffers) {
-            this.oldBuffers = oldBuffers;
-            this.newBuffers = newBuffers;
-        }
-
-        @Override public int getOldListSize() {
-            return oldBuffers.size();
-        }
-
-        @Override public int getNewListSize() {
-            return newBuffers.size();
-        }
-
-        @Override public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
-            return oldBuffers.get(oldItemPosition).pointer == newBuffers.get(newItemPosition).pointer;
-        }
-
-        @Override public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
-            VisualBuffer o = oldBuffers.get(oldItemPosition);
-            VisualBuffer n = newBuffers.get(newItemPosition);
-            return o.printable.equals(n.printable) &&
-                    o.isOpen == n.isOpen &&
-                    o.highlights == n.highlights &&
-                    o.unreads == n.unreads;
-        }
+        filterLowerCase = s.toLowerCase()
+        filterUpperCase = s.toUpperCase()
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////// Diff
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    static private final Comparator<VisualBuffer> sortByHotCountAndNumberComparator = (left, right) -> {
-        int l, r;
-        if ((l = left.highlights) != (r = right.highlights)) return r - l;
-        if ((l = left.type == Buffer.PRIVATE ? left.unreads : 0) !=
-                (r = right.type == Buffer.PRIVATE ? right.unreads : 0)) return r - l;
-        return left.number - right.number;
-    };
+    class VisualBuffer constructor(
+        val printable: Spannable?,
+        val isOpen: Boolean,
+        val highlights: Int,
+        val unreads: Int,
+        val type: Int,
+        val number: Int,
+        val pointer: Long,
+    ) {
+        companion object {
+            fun fromBuffer(buffer: Buffer) = VisualBuffer(
+                    isOpen = buffer.isOpen,
+                    printable = buffer.printable,
+                    highlights = buffer.highlights,
+                    unreads = buffer.unreads,
+                    type = buffer.type,
+                    number = buffer.number,
+                    pointer = buffer.pointer,
+            )
+        }
+    }
 
-    static private final Comparator<VisualBuffer> sortByHotAndMessageCountComparator = (left, right) -> {
-        int l, r;
-        if ((l = left.highlights) != (r = right.highlights)) return r - l;
-        if ((l = left.type == Buffer.PRIVATE ? left.unreads : 0) !=
-                (r = right.type == Buffer.PRIVATE ? right.unreads : 0)) return r - l;
-        return right.unreads - left.unreads;
-    };
+    private class DiffCallback constructor(
+        private val oldBuffers: ArrayList<VisualBuffer>,
+        private val newBuffers: ArrayList<VisualBuffer>
+    ) : DiffUtil.Callback() {
+        override fun getOldListSize() = oldBuffers.size
+        override fun getNewListSize() = newBuffers.size
+        override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int)
+                =  oldBuffers[oldItemPosition].pointer == newBuffers[newItemPosition].pointer
+        override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+            val old = oldBuffers[oldItemPosition]
+            val new = newBuffers[newItemPosition]
+            return old.printable == new.printable
+                    && old.isOpen == new.isOpen
+                    && old.highlights == new.highlights
+                    && old.unreads == new.unreads
+        }
+    }
+
+    companion object {
+        @Root private val kitty: Kitty = Kitty.make()
+
+        var filterGlobal = ""
+
+        private val COLORS = arrayOf(
+                intArrayOf(R.color.bufferListOther, R.color.bufferListOtherHot),
+                intArrayOf(R.color.bufferListChannel, R.color.bufferListChannelHot),
+                intArrayOf(R.color.bufferListPrivate, R.color.bufferListPrivateHot)
+        )
+
+    }
+}
+
+
+private val sortByHotCountAndNumberComparator = Comparator<VisualBuffer> { left, right ->
+    val highlightDiff = right.highlights - left.highlights
+    if (highlightDiff != 0) return@Comparator highlightDiff
+
+    val pmLeft = if (left.type == Buffer.PRIVATE) left.unreads else 0
+    val pmRight = if (right.type == Buffer.PRIVATE) right.unreads else 0
+    val pmDiff = pmRight - pmLeft
+    if (pmDiff != 0) return@Comparator pmDiff
+
+    left.number - right.number
+}
+
+
+private val sortByHotAndMessageCountComparator = Comparator<VisualBuffer> { left, right ->
+    val highlightDiff = right.highlights - left.highlights
+    if (highlightDiff != 0) return@Comparator highlightDiff
+
+    val pmLeft = if (left.type == Buffer.PRIVATE) left.unreads else 0
+    val pmRight = if (right.type == Buffer.PRIVATE) right.unreads else 0
+    val pmDiff = pmRight - pmLeft
+    if (pmDiff != 0) return@Comparator pmDiff
+
+    left.unreads - right.unreads
 }

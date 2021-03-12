@@ -38,7 +38,7 @@ class ShareTextActivity : AppCompatActivity(), BufferListClickListener {
             return
         }
 
-        val adapter = BufferListAdapter().apply {
+        val adapter = BufferListAdapter(this).apply {
             onBuffersChanged()
 
             if (pendingItemCount == 0) {
