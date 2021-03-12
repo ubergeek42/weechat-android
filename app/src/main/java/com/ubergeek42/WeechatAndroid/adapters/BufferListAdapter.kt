@@ -54,6 +54,7 @@ class BufferListAdapter(
     private class Row @MainThread constructor(view: View) : ViewHolder(view), View.OnClickListener {
         private var pointer: Long = 0
 
+        private val uiContainer = view.findViewById<View>(R.id.bufferlist_item_container)
         private val uiHot = view.findViewById<TextView>(R.id.buffer_hot)
         private val uiWarm = view.findViewById<TextView>(R.id.buffer_warm)
         private val uiBuffer = view.findViewById<TextView>(R.id.buffer)
@@ -68,7 +69,7 @@ class BufferListAdapter(
             val highlights = buffer.highlights
 
             val important = if (highlights > 0 || unreads > 0 && buffer.type == Buffer.PRIVATE) 1 else 0
-            uiBuffer.setBackgroundResource(COLORS[buffer.type][important])
+            uiContainer.setBackgroundResource(COLORS[buffer.type][important])
             uiOpen.visibility = if (buffer.isOpen) View.VISIBLE else View.GONE
 
             if (highlights > 0) {

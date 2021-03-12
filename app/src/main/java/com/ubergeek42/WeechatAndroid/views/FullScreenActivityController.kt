@@ -6,13 +6,14 @@ import android.view.ViewGroup
 import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.RecyclerView
 import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.WeechatActivity
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.utils.WeaselMeasuringViewPager
 
 
-private val FULL_SCREEN_DRAWER_ENABLED = Build.VERSION.SDK_INT >= 27
+val FULL_SCREEN_DRAWER_ENABLED = Build.VERSION.SDK_INT >= 27
 
 
 fun onWeechatActivityCreated(activity: WeechatActivity) {
@@ -51,27 +52,42 @@ fun onBufferListFragmentStarted(bufferList: Fragment) {
     if (!FULL_SCREEN_DRAWER_ENABLED) return
 
     val bufferListView = bufferList.requireView()
-
     val navigationPadding = bufferListView.findViewById<View>(R.id.navigation_padding)
+    val layoutManager = bufferListView.findViewById<RecyclerView>(R.id.recycler)
+            .layoutManager as FullScreenDrawerLinearLayoutManager
 
-    navigationPadding.visibility = View.VISIBLE
     navigationPadding.setBackgroundColor(P.colorPrimaryDark)
 
-    if (P.showBufferFilter) {
-        val filterBar = bufferListView.findViewById<View>(R.id.filter_bar)
+    val filterBar = bufferListView.findViewById<View>(R.id.filter_bar)
 
-        bufferListView.setOnApplyWindowInsetsListener { _, insets ->
-            val systemTop = insets.systemWindowInsetTop
-            val systemBottom = insets.systemWindowInsetBottom
-
-            navigationPadding.updateLayoutParams<ViewGroup.MarginLayoutParams> { height = systemBottom }
-            filterBar.updateLayoutParams<ViewGroup.MarginLayoutParams> { bottomMargin = systemBottom }
-
-            // todo
-
-            insets
+    fun applyInsets() {
+        if (P.showBufferFilter) {
+            navigationPadding.visibility = View.VISIBLE
+            navigationPadding.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                height = SystemWindowInsets.bottom }
+            filterBar.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                bottomMargin = SystemWindowInsets.bottom }
+            layoutManager.setInsets(SystemWindowInsets.top, 0)
+        } else {
+            navigationPadding.visibility = View.GONE
+            layoutManager.setInsets(SystemWindowInsets.top, SystemWindowInsets.bottom)
         }
-    } else {
-        // todo
     }
+
+    bufferListView.setOnApplyWindowInsetsListener { _, insets ->
+        SystemWindowInsets.top = insets.systemWindowInsetTop
+        SystemWindowInsets.bottom = insets.systemWindowInsetBottom
+
+        applyInsets()
+
+        insets
+    }
+
+    applyInsets()
+}
+
+
+object SystemWindowInsets {
+    var top = 0
+    var bottom = 0
 }

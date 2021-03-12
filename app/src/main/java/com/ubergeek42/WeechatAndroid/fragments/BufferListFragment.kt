@@ -24,8 +24,11 @@ import android.view.View
 import androidx.annotation.AnyThread
 import androidx.annotation.MainThread
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.ubergeek42.WeechatAndroid.upload.main
 import com.ubergeek42.WeechatAndroid.utils.afterTextChanged
+import com.ubergeek42.WeechatAndroid.views.FULL_SCREEN_DRAWER_ENABLED
+import com.ubergeek42.WeechatAndroid.views.FullScreenDrawerLinearLayoutManager
 import com.ubergeek42.WeechatAndroid.views.onBufferListFragmentStarted
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
@@ -61,10 +64,18 @@ class BufferListFragment : Fragment(), BufferListEye {
                                                savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.bufferlist, container, false)
         uiRecycler = view.findViewById(R.id.recycler)
+
         uiFilter = view.findViewById(R.id.bufferlist_filter)
         uiFilterClear = view.findViewById(R.id.bufferlist_filter_clear)
         uiFilterBar = view.findViewById(R.id.filter_bar)
 
+        val layoutManager = if (FULL_SCREEN_DRAWER_ENABLED) {
+            FullScreenDrawerLinearLayoutManager(requireContext(), uiRecycler, adapter)
+        } else {
+            LinearLayoutManager(requireContext())
+        }
+
+        uiRecycler.layoutManager = layoutManager
         uiRecycler.adapter = adapter
 
         uiFilterClear.setOnClickListener {
