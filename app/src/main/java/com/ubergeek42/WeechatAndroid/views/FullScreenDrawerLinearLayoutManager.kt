@@ -7,8 +7,8 @@ import androidx.recyclerview.widget.RecyclerView
 
 class FullScreenDrawerLinearLayoutManager(
     context: Context,
-    var recyclerView : RecyclerView,
-    var adapter: RecyclerView.Adapter<*>,
+    private val recyclerView: RecyclerView,
+    private val adapter: RecyclerView.Adapter<*>,
 ) : LinearLayoutManager(context) {
 
     private var insetTop = 0
@@ -22,13 +22,31 @@ class FullScreenDrawerLinearLayoutManager(
         }
     }
 
+    private var normalChildHeight = 0
+
+    private inline val canFitAllChildrenOutsideInsets: Boolean get() {
+        val childrenHeight = normalChildHeight * adapter.itemCount
+        val heightSansInsets = height - insetTop - insetBottom
+        return heightSansInsets >= childrenHeight
+    }
+
     override fun measureChildWithMargins(child: View, widthUsed: Int, heightUsed: Int) {
-        when (getPosition(child)) {
+        val position = getPosition(child)
+
+        when (position) {
             0 -> child.setPadding(0, insetTop, 0, 0)
-            adapter.itemCount - 1 -> child.setPadding(0, 0, 0, insetBottom)
+            adapter.itemCount - 1 -> child.setPadding(0, 0, 0,
+                    if (canFitAllChildrenOutsideInsets) 0 else insetBottom)
             else -> child.setPadding(0, 0, 0, 0)
         }
 
         super.measureChildWithMargins(child, widthUsed, heightUsed)
+
+        if (position == 0) {
+            val childHeight = child.measuredHeight
+            if (childHeight != 0) {
+                normalChildHeight = childHeight - insetTop
+            }
+        }
     }
 }
