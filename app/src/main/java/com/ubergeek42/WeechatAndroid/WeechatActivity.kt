@@ -75,6 +75,7 @@ import com.ubergeek42.WeechatAndroid.utils.let
 import com.ubergeek42.WeechatAndroid.utils.u
 import com.ubergeek42.WeechatAndroid.utils.ulet
 import com.ubergeek42.WeechatAndroid.utils.wasCausedByEither
+import com.ubergeek42.WeechatAndroid.views.onWeechatActivityCreated
 import com.ubergeek42.cats.Cat
 import com.ubergeek42.cats.CatD
 import com.ubergeek42.cats.Kitty
@@ -191,6 +192,7 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
         P.applyThemeAfterActivityCreation(this)
         P.storeThemeOrColorSchemeColors(this)   // required for ThemeFix.fixIconAndColor()
         ThemeFix.fixIconAndColor(this)
+        onWeechatActivityCreated(this)
     }
 
     @MainThread @CatD(linger = true) fun connect() {
