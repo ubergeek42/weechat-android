@@ -1,68 +1,55 @@
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 
-package com.ubergeek42.WeechatAndroid.utils;
+package com.ubergeek42.WeechatAndroid.utils
 
-import android.content.Context;
+import android.content.Context
+import android.os.Looper
+import android.util.AttributeSet
+import android.view.View
+import android.view.animation.AlphaAnimation
+import androidx.annotation.UiThread
+import androidx.recyclerview.widget.RecyclerView
+import com.ubergeek42.WeechatAndroid.views.OnJumpedUpWhileScrollingListener
+import com.ubergeek42.WeechatAndroid.views.jumpThenSmoothScrollCentering
 
-import androidx.annotation.Nullable;
-import androidx.annotation.UiThread;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
-import android.os.Looper;
-import android.util.AttributeSet;
-import android.view.View;
-import android.view.animation.AlphaAnimation;
-import android.view.animation.Animation;
+private const val DELAY = 10L
+private const val DURATION = 300L
+private const val SCROLL_DELAY = 100L
 
-import com.ubergeek42.WeechatAndroid.views.OnJumpedUpWhileScrollingListener;
-import com.ubergeek42.WeechatAndroid.views.ViewUtilsKt;
 
-import static com.ubergeek42.WeechatAndroid.utils.Assert.assertThat;
-
-public class AnimatedRecyclerView extends RecyclerView implements OnJumpedUpWhileScrollingListener {
-
-    private final static int DELAY = 10;
-    private final static int DURATION = 300;
-    private final static int SCROLL_DELAY = 100;
+class AnimatedRecyclerView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+) : RecyclerView(context, attrs), OnJumpedUpWhileScrollingListener {
 
     // used to temporarily disable animator to avoid premature fade-in of views
     // note: setItemAnimator(null) can change the number of children
-    private ItemAnimator animator;
+    private val cachedItemAnimator: ItemAnimator? = itemAnimator
 
     // number of lines already in adapter — these don't need to be animated
     // value of -1 indicates that no animation is requested
-    private int linesAlreadyDisplayed = -1;
+    private var linesAlreadyDisplayed = -1
 
     // line to scroll to after animations complete
     // -1 indicates that no scroll has been suggested
-    private int scrollToPosition = -1;
+    private var scrollToPosition = -1
 
-    public AnimatedRecyclerView(Context context) {
-        this(context, null);
-    }
-
-    public AnimatedRecyclerView(Context context, AttributeSet attrs) {
-        this(context, attrs, 0);
-    }
-
-    public AnimatedRecyclerView(Context context, AttributeSet attrs, int defStyle) {
-        super(context, attrs, defStyle);
-        animator = getItemAnimator();
-        manager.setStackFromEnd(true);
-        setLayoutManager(manager);
-        setHasFixedSize(true);
-    }
-
-    final private LinearLayoutManager manager = new LinearLayoutManagerFix(getContext(), LinearLayoutManager.VERTICAL, false) {
+    private val manager = object : LinearLayoutManagerFix(getContext(), VERTICAL, false) {
         // there probably should be a simpler way of doing this, but so far this method
         // is the only one i've found that is called reliably on laying out children
-        @Override public void onLayoutCompleted(State state) {
-            super.onLayoutCompleted(state);
-            if (getChildCount() > 1) animateIfNeeded();
+        override fun onLayoutCompleted(state: State) {
+            super.onLayoutCompleted(state)
+            if (childCount > 1) animateIfNeeded()
         }
-    };
+    }
+
+    init {
+        manager.stackFromEnd = true
+        layoutManager = manager
+        setHasFixedSize(true)
+    }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -70,151 +57,163 @@ public class AnimatedRecyclerView extends RecyclerView implements OnJumpedUpWhil
 
     // this is called only when the number of items in adapter is > 1
     // this animates all children of the RecyclerView except the last `linesAlreadyDisplayed`
-    @UiThread private void animateIfNeeded() {
-        if (getAdapter() == null) return;
-        if (linesAlreadyDisplayed < 0)
-            return;
+    @UiThread private fun animateIfNeeded() {
+        if (linesAlreadyDisplayed < 0) return
 
-        if (getScrollState() != SCROLL_STATE_IDLE) {
-            onAnimationsCancelled.run();
-            return;
+        if (scrollState != SCROLL_STATE_IDLE) {
+            onAnimationsCancelled.run()
+            return
         }
 
-        boolean found = false;
-        int step = 0;
+        val adapterItemCount = (adapter ?: return).itemCount
 
-        int lastAnimatablePosition = getAdapter().getItemCount() - linesAlreadyDisplayed - 1;
-        ViewHolder lastAnimatableViewHolder = (lastAnimatablePosition > 0) ? findViewHolderForAdapterPosition(lastAnimatablePosition) : null;
-        linesAlreadyDisplayed = -1;
+        var found = false
+        var step = 0
+
+        val lastAnimatablePosition = adapterItemCount - linesAlreadyDisplayed - 1
+        val lastAnimatableViewHolder = if (lastAnimatablePosition > 0)
+                findViewHolderForAdapterPosition(lastAnimatablePosition) else null
+
+        linesAlreadyDisplayed = -1
 
         if (lastAnimatableViewHolder != null) {
-            setItemAnimator(null);
+            val lastAnimatableView = lastAnimatableViewHolder.itemView
 
-            View lastAnimatableView = lastAnimatableViewHolder.itemView;
-            for (int i = getChildCount(); i >= 0; i--) {
-                View v = getChildAt(i);
-                if (!found && v == lastAnimatableView) found = true;
-                if (found) animateView(v, step++);
+            itemAnimator = null
+            for (i in childCount downTo 0) {
+                val view = getChildAt(i)
+                if (!found && view === lastAnimatableView) found = true
+                if (found) view.animateAlpha(step++)
             }
         }
-        if (found) postDelayed(onAnimationsCancelled, (step - 1) * DELAY + DURATION);
-        else onAnimationsCancelled.run();
+
+        if (found) {
+            postDelayed(onAnimationsCancelled, (step - 1) * DELAY + DURATION)
+        } else {
+            onAnimationsCancelled.run()
+        }
     }
 
-    final private Runnable onAnimationsCancelled = new Runnable() {
-        @Override @UiThread public void run() {
-            if (getItemAnimator() == null) setItemAnimator(animator);
-            int position = scrollToPosition;
+    private val onAnimationsCancelled = Runnable {
+        if (itemAnimator == null) itemAnimator = cachedItemAnimator
+
+        scrollToPosition.let { position ->
             if (position != -1) {
-                postDelayed(() -> {
-                    smoothScrollToPositionFix(position);
-                    scrollToPosition = -1;
-                }, SCROLL_DELAY);
+                postDelayed({
+                    smoothScrollToPositionFix(position)
+                    scrollToPosition = -1
+                }, SCROLL_DELAY)
             }
         }
-    };
+    }
 
-    @UiThread public void requestAnimation() {
-        if (getAdapter() == null) return;
-        linesAlreadyDisplayed = getAdapter().getItemCount() - 1;
+    @UiThread fun requestAnimation() = ulet(adapter) { adapter ->
+        linesAlreadyDisplayed = adapter.itemCount - 1
     }
 
     // this is needed because awakenScrollbars is protected
-    @UiThread public void flashScrollbar() {
-        awakenScrollBars();
+    @UiThread fun flashScrollbar() {
+        awakenScrollBars()
     }
 
-    // use an external ObjectAnimator instead of view.animate() because
-    // the latter leaves some residue in the ViewPropertyAnimator attached to the view
-    @UiThread static private void animateView(View view, final int position) {
-        Animation alpha = new AlphaAnimation(0f, 1f);
-        alpha.setDuration(DURATION);
-        alpha.setStartOffset(position * DELAY);
-        view.startAnimation(alpha);
-    }
-
-    @Override public void setItemAnimator(@Nullable ItemAnimator animator) {
-        assertThat(Looper.myLooper()).isEqualTo(Looper.getMainLooper());
-        super.setItemAnimator(animator);
+    // todo remove this once #492 is resolved
+    override fun setItemAnimator(animator: ItemAnimator?) {
+        Assert.assertThat(Looper.myLooper()).isEqualTo(Looper.getMainLooper())
+        super.setItemAnimator(animator)
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// smooth scroll to hot item
+    ////////////////////////////////////////////////////////////////////// smooth scroll to hot item
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-    @UiThread public void smoothScrollToPositionAfterAnimation(final int position) {
-        if (linesAlreadyDisplayed < 0) smoothScrollToPositionFix(position);
-        else scrollToPosition = position;
+    @UiThread fun smoothScrollToPositionAfterAnimation(position: Int) {
+        if (linesAlreadyDisplayed < 0) {
+            smoothScrollToPositionFix(position)
+        } else {
+            scrollToPosition = position
+        }
     }
 
-    @UiThread private void smoothScrollToPositionFix(int position) {
-        if (getLayoutManager() == null) return;
-        ViewUtilsKt.jumpThenSmoothScrollCentering(this, position);
+    @UiThread private fun smoothScrollToPositionFix(position: Int) = ulet(layoutManager) {
+        jumpThenSmoothScrollCentering(position)
     }
 
+    var onJumpedUpWhileScrollingListener: OnJumpedUpWhileScrollingListener? = null
 
-    public void setOnJumpedUpWhileScrollingListener(OnJumpedUpWhileScrollingListener listener) {
-        onJumpedUpWhileScrollingListener = listener;
+    override fun onJumpedUpWhileScrolling() {
+        onJumpedUpWhileScrollingListener?.onJumpedUpWhileScrolling()
     }
 
-    private OnJumpedUpWhileScrollingListener onJumpedUpWhileScrollingListener = null;
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////// disabling animation for some updates
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @Override public void onJumpedUpWhileScrolling() {
-        if (onJumpedUpWhileScrollingListener != null) {
-            onJumpedUpWhileScrollingListener.onJumpedUpWhileScrolling();
+    @UiThread fun disableAnimationForNextUpdate() {
+        itemAnimator = null
+    }
+
+    @UiThread fun scheduleAnimationRestoring() {
+        if (itemAnimator == null) post {
+            if (itemAnimator == null) itemAnimator = cachedItemAnimator
+        }
+    }
+
+    // todo is this used?
+    override fun smoothScrollToPosition(position: Int) {
+        if (itemAnimator != null) {
+            super.smoothScrollToPosition(position)
+        } else {
+            super.scrollToPosition(position)
         }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// disabling animation for some updates
+    /////////////////////////////////////////////////////////////////////////// bottom/top detection
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @UiThread public void disableAnimationForNextUpdate() {
-        setItemAnimator(null);
+    var onBottom = true
+        private set
+
+    var onTop = false
+        private set
+
+    // todo is this useful?
+    override fun onScrolled(dx: Int, dy: Int) {
+        if (dy == 0 || adapter == null) return
+
+        val lastVisible = manager.findLastVisibleItemPosition() == adapter!!.itemCount - 1
+        val firstVisible = manager.findFirstVisibleItemPosition() == 0
+
+        if (dy < 0 && !lastVisible) {
+            onBottom = false
+        } else if (dy > 0 && lastVisible) {
+            onBottom = true
+        }
+
+        if (dy > 0 && !firstVisible) {
+            onTop = false
+        } else if (dy < 0 && firstVisible) {
+            onTop = true
+        }
     }
 
-    @UiThread public void scheduleAnimationRestoring() {
-        if (getItemAnimator() != null) return;
-        post(() -> {if (getItemAnimator() == null) setItemAnimator(animator);});
+    fun recheckTopBottom() {
+        if (adapter == null) return
+        val firstCompletelyVisible = manager.findFirstCompletelyVisibleItemPosition()
+        if (firstCompletelyVisible == NO_POSITION) return
+        val lastVisible = manager.findLastVisibleItemPosition()
+        onTop = firstCompletelyVisible == 0
+        onBottom = lastVisible == adapter!!.itemCount - 1
     }
+}
 
-    @Override public void smoothScrollToPosition(int position) {
-        if (getItemAnimator() != null) super.smoothScrollToPosition(position);
-        else super.scrollToPosition(position);
-    }
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// bottom/top detection
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    private boolean onBottom = true;
-    public boolean getOnBottom() {
-        return onBottom;
-    }
-
-    private boolean onTop = false;
-    public boolean getOnTop() {
-        return onTop;
-    }
-
-    @Override public void onScrolled(int dx, int dy) {
-        if (dy == 0) return;
-        if (getAdapter() == null) return;
-        boolean lastVisible = manager.findLastVisibleItemPosition() == getAdapter().getItemCount() - 1;
-        boolean firstVisible = manager.findFirstVisibleItemPosition() == 0;
-        if (dy < 0 && !lastVisible) onBottom = false;
-        else if (dy > 0 && lastVisible) onBottom = true;
-        if (dy > 0 && !firstVisible) onTop = false;
-        else if (dy < 0 && firstVisible) onTop = true;
-    }
-
-    public void recheckTopBottom() {
-        if (getAdapter() == null) return;
-        int firstCompletelyVisible = manager.findFirstCompletelyVisibleItemPosition();
-        if (firstCompletelyVisible == RecyclerView.NO_POSITION) return;
-        int lastVisible = manager.findLastVisibleItemPosition();
-        onTop = firstCompletelyVisible == 0;
-        onBottom = lastVisible == getAdapter().getItemCount() - 1;
+// use an external ObjectAnimator instead of view.animate() because
+// the latter leaves some residue in the ViewPropertyAnimator attached to the view
+@UiThread private fun View.animateAlpha(position: Int) {
+    AlphaAnimation(0f, 1f).run {
+        duration = DURATION
+        startOffset = (position * DELAY)
+        startAnimation(this)
     }
 }

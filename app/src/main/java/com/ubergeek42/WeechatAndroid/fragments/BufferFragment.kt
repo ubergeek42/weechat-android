@@ -77,6 +77,7 @@ import com.ubergeek42.WeechatAndroid.views.BackGestureAwareEditText
 import com.ubergeek42.WeechatAndroid.views.CircleView
 import com.ubergeek42.WeechatAndroid.views.CircularImageButton
 import com.ubergeek42.WeechatAndroid.views.OnBackGestureListener
+import com.ubergeek42.WeechatAndroid.views.OnJumpedUpWhileScrollingListener
 import com.ubergeek42.WeechatAndroid.views.jumpThenSmoothScroll
 import com.ubergeek42.WeechatAndroid.views.jumpThenSmoothScrollCentering
 import com.ubergeek42.WeechatAndroid.views.scrollToPositionWithOffsetFix
@@ -206,7 +207,7 @@ class BufferFragment : Fragment(), BufferEye {
                     }
                 }
             })
-            setOnJumpedUpWhileScrollingListener {
+            onJumpedUpWhileScrollingListener = OnJumpedUpWhileScrollingListener {
                 showHideFabWhenScrolled(-100000, onBottom = false)
             }
         }
