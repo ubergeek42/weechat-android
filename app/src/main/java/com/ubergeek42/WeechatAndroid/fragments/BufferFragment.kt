@@ -253,6 +253,11 @@ class BufferFragment : Fragment(), BufferEye {
             adjustSearchNumbers()
         }
 
+        fabScrollToBottom?.setOnLongClickListener {
+            uiLines?.jumpThenSmoothScroll(0)
+            true
+        }
+
         initSearchViews(v)
         uiLines?.post { applyRecyclerViewState() }
 
