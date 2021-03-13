@@ -53,6 +53,9 @@ class WeechatActivityFullScreenController(val activity: WeechatActivity) : Defau
         activity.lifecycle.addObserver(this)
     }
 
+    // only used to weed out changes we don't care about
+    private var oldSystemWindowInsets = SystemWindowInsets(-1, -1, -1, -1)
+
     private lateinit var navigationPadding: View
 
     override fun onCreate(owner: LifecycleOwner) {
@@ -77,7 +80,8 @@ class WeechatActivityFullScreenController(val activity: WeechatActivity) : Defau
                                                            insets.systemWindowInsetLeft,
                                                            insets.systemWindowInsetRight)
 
-            if (systemWindowInsets != newSystemWindowInsets) {
+            if (oldSystemWindowInsets != newSystemWindowInsets) {
+                oldSystemWindowInsets = newSystemWindowInsets
                 systemWindowInsets = newSystemWindowInsets
                 insetListeners.forEach { it.onInsetsChanged() }
             }
