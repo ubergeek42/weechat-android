@@ -18,6 +18,7 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.PorterDuff
 import android.graphics.Rect
+import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -76,6 +77,7 @@ import com.ubergeek42.WeechatAndroid.utils.u
 import com.ubergeek42.WeechatAndroid.utils.ulet
 import com.ubergeek42.WeechatAndroid.utils.wasCausedByEither
 import com.ubergeek42.WeechatAndroid.views.WeechatActivityFullScreenController
+import com.ubergeek42.WeechatAndroid.views.solidColor
 import com.ubergeek42.cats.Cat
 import com.ubergeek42.cats.CatD
 import com.ubergeek42.cats.Kitty
@@ -101,10 +103,15 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
 
     private var slidy = false
 
+    private lateinit var uiWeaselBackground: View
+    private lateinit var uiToolbarContainer: View
+
     private lateinit var uiDrawerLayout: DrawerLayout
     private lateinit var uiDrawer: View
     private lateinit var drawerToggle: ActionBarDrawerToggle
     private lateinit var uiKitty: ImageView
+
+    private lateinit var menuBackgroundDrawable: Drawable
 
     @JvmField var toolbarController: ToolbarController? = null
 
@@ -135,6 +142,9 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
         // fix status bar and navigation bar icon color on Oreo.
         // TODO remove this once the bug has been fixed
         ThemeFix.fixLightStatusAndNavigationBar(this)
+
+        uiWeaselBackground = findViewById(R.id.weasel_background)
+        uiToolbarContainer = findViewById(R.id.toolbar_container)
 
         uiPager = findViewById(R.id.main_viewpager)
         uiKitty = findViewById(R.id.kitty)
@@ -184,6 +194,8 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
 
         imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
 
+        menuBackgroundDrawable = ContextCompat.getDrawable(this, R.drawable.bg_popup_menu)!!
+
         if (P.isServiceAlive()) connect()
 
         // restore buffers if we have data in the static
@@ -218,9 +230,8 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
     // a dirty but quick & safe hack that sets background color of the popup menu
     override fun onCreateView(parent: View?, name: String, context: Context, attrs: AttributeSet): View? {
         if (name.endsWith(".menu.ListMenuItemView") && parent?.parent is FrameLayout) {
-            ContextCompat.getDrawable(context, R.drawable.bg_popup_menu)?.let {
-                it.setColorFilter(0xff000000.u or P.colorPrimary, PorterDuff.Mode.MULTIPLY)
-                (parent.parent as View).background = it
+            (parent.parent as View).background = menuBackgroundDrawable.apply {
+                setColorFilter(P.colorPrimary.solidColor, PorterDuff.Mode.MULTIPLY)
             }
         }
         return super.onCreateView(parent, name, context, attrs)
@@ -357,17 +368,17 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
     /////////////////////////////////////////////////////////////////////////// OnPageChangeListener
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @Cat("Page")override fun onPageScrollStateChanged(state: Int) {}
-    @Cat("Page") override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {}
-    @Cat("Page") override fun onPageSelected(position: Int) { onChange() }
+    override fun onPageScrollStateChanged(state: Int) {}
+    override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {}
+    override fun onPageSelected(position: Int) { onChange() }
 
     // this method gets called repeatedly on various pager changes; make sure to only do stuff
     // when an actual change takes place
     private var currentBufferPointer: Long = -1
-    @Cat("Page") override fun onChange() {
+    override fun onChange() {
         val pointer = pagerAdapter.currentBufferPointer
         if (currentBufferPointer == pointer) return
-        val needToChangeKittyVisibility = currentBufferPointer == -1L || currentBufferPointer == 0L || pointer == 0L
+        val needToChangeKittyVisibility = currentBufferPointer.isAnyOf(0, -1) || pointer == 0L
         currentBufferPointer = pointer
 
         updateMenuItems()
@@ -668,29 +679,24 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
 
     private fun applyColorSchemeToViews() {
         applyMainBackgroundColor()
-        findViewById<View>(R.id.toolbar_container).setBackgroundColor(P.colorPrimary)
+        uiToolbarContainer.setBackgroundColor(P.colorPrimary)
     }
 
     // to reduce overdraw, change background color instead of drawing over it
-    // todo extract view
     private fun applyMainBackgroundColor() {
-        val color = if (pagerAdapter.count == 0) {
+        uiWeaselBackground.setBackgroundColor(if (pagerAdapter.count == 0) {
             P.colorPrimary
         } else {
-            0xFF000000.u or ColorScheme.get().default_color[ColorScheme.OPT_BG]
-        }
-        findViewById<View>(R.id.weasel_background).setBackgroundColor(color)
+            ColorScheme.get().default_color[ColorScheme.OPT_BG].solidColor
+        })
     }
 
-    // todo extract preference
     @MainThread fun enableDisableExclusionRects() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q || !slidy) return
-        val preferences = PreferenceManager.getDefaultSharedPreferences(this)
-        val enable = preferences.getBoolean(Constants.PREF_USE_GESTURE_EXCLUSION_ZONE,
-                                            Constants.PREF_USE_GESTURE_EXCLUSION_ZONE_D)
+
         uiPager.post {
             val pagerHeight = uiPager.height
-            uiPager.systemGestureExclusionRects = if (enable) {
+            uiPager.systemGestureExclusionRects = if (P.useGestureExclusionZone) {
                 listOf(Rect(0, pagerHeight / 2, 200, pagerHeight))
             } else {
                 emptyList()

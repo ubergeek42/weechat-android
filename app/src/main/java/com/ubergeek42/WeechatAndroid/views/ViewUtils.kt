@@ -6,8 +6,12 @@ import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView
 import com.ubergeek42.WeechatAndroid.upload.f
 import com.ubergeek42.WeechatAndroid.upload.i
+import com.ubergeek42.WeechatAndroid.utils.u
 import kotlin.math.absoluteValue
 import kotlin.math.pow
+
+
+val Int.solidColor get() = this or 0xff000000.u
 
 
 // LinearLayoutManager does not respect setStackFromEnd
