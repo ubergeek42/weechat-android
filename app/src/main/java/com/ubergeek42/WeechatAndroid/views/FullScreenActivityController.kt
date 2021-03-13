@@ -141,6 +141,9 @@ class BufferListFragmentFullScreenController(val fragment: Fragment) : DefaultLi
         val layoutManager = bufferListView.findViewById<RecyclerView>(R.id.recycler)
                 .layoutManager as FullScreenDrawerLinearLayoutManager
 
+        // navigationPadding (the thing below filter) is only used because
+        // with relative layout one can't easily apply padding to elements other elements depend on
+        // todo remove this element and set padding on filterBar instead
         navigationPadding.setBackgroundColor(P.colorPrimaryDark)
 
         val filterBar = bufferListView.findViewById<View>(R.id.filter_bar)
@@ -152,6 +155,8 @@ class BufferListFragmentFullScreenController(val fragment: Fragment) : DefaultLi
                     height = systemWindowInsets.bottom }
                 filterBar.updateLayoutParams<ViewGroup.MarginLayoutParams> {
                     bottomMargin = systemWindowInsets.bottom }
+                filterBar.updatePadding(left = systemWindowInsets.left)
+
                 layoutManager.setInsets(systemWindowInsets.top,
                                         0,
                                         systemWindowInsets.left)

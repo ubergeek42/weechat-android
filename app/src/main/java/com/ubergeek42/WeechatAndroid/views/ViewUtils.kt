@@ -1,6 +1,12 @@
+@file:Suppress("NOTHING_TO_INLINE")
+
 package com.ubergeek42.WeechatAndroid.views
 
 import android.content.Context
+import android.view.View
+import android.view.ViewGroup
+import androidx.core.view.marginTop
+import androidx.core.view.updateLayoutParams
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView
@@ -12,6 +18,16 @@ import kotlin.math.pow
 
 
 val Int.solidColor get() = this or 0xff000000.u
+
+
+inline fun View.updateMargins(top: Int? = null, bottom: Int? = null, left: Int? = null, right: Int? = null) {
+    updateLayoutParams<ViewGroup.MarginLayoutParams> {
+        if (top != null) topMargin = top
+        if (bottom != null) bottomMargin = bottom
+        if (left != null) leftMargin = left
+        if (right != null) rightMargin = right
+    }
+}
 
 
 // LinearLayoutManager does not respect setStackFromEnd
