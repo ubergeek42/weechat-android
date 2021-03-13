@@ -116,13 +116,10 @@ class Buffer @WorkerThread internal constructor(
             BufferList.desyncBuffer(this)
             lines.invalidateSpannables()
             if (P.optimizeTraffic) {
-                // if traffic is optimized, the next time we open the buffer, it might have been updated
-                // this presents two problems. first, we will not be able to update if we think
-                // that we have all the lines needed. second, if we have lines and request lines again,
-                // it'd be cumbersome to find the place to put lines. like, for iteration #3,
-                // [[old lines] [#3] [#2] [#1]] unless #3 is inside old lines. hence, reset everything!
-                lines.clear()
-                nicks.clear()
+                // request lines & nicks on the next sync
+                // the previous comment here was stupid
+                lines.status = Lines.STATUS.INIT
+                nicks.status = Nicks.STATUS.INIT
                 hotlistUpdatesWhileSyncing = 0
             }
         }
