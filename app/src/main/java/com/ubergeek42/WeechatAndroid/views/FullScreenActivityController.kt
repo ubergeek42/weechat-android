@@ -18,6 +18,7 @@ import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.WeechatActivity
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.upload.f
+import com.ubergeek42.WeechatAndroid.upload.i
 import com.ubergeek42.WeechatAndroid.utils.ThemeFix
 import com.ubergeek42.WeechatAndroid.utils.WeaselMeasuringViewPager
 import kotlin.math.sign
@@ -32,6 +33,8 @@ val FULL_SCREEN_DRAWER_ENABLED = Build.VERSION.SDK_INT >= 26    // 8.0, Oreo
 object SystemWindowInsets {
     var top = 0
     var bottom = 0
+    var left = 0
+    var right = 0
 }
 
 
@@ -73,6 +76,8 @@ class WeechatActivityFullScreenController(val activity: WeechatActivity) : Defau
         rootView.setOnApplyWindowInsetsListener listener@{ _, insets ->
             SystemWindowInsets.top = insets.systemWindowInsetTop
             SystemWindowInsets.bottom = insets.systemWindowInsetBottom
+            SystemWindowInsets.left = insets.systemWindowInsetLeft
+            SystemWindowInsets.right = insets.systemWindowInsetRight
 
             insetListeners.forEach { it.onInsetsChanged() }
 
@@ -80,7 +85,9 @@ class WeechatActivityFullScreenController(val activity: WeechatActivity) : Defau
         }
 
         val weechatActivityInsetsListener = InsetListener {
-            toolbarContainer.updatePadding(top = SystemWindowInsets.top)
+            toolbarContainer.updatePadding(top = SystemWindowInsets.top,
+                                           left = SystemWindowInsets.left,
+                                           right = SystemWindowInsets.right)
             navigationPadding.updateLayoutParams<ViewGroup.MarginLayoutParams> {
                 height = SystemWindowInsets.bottom }
             viewPager.updateLayoutParams<ViewGroup.MarginLayoutParams> {
@@ -144,10 +151,15 @@ class BufferListFragmentFullScreenController(val fragment: Fragment) : DefaultLi
                     height = SystemWindowInsets.bottom }
                 filterBar.updateLayoutParams<ViewGroup.MarginLayoutParams> {
                     bottomMargin = SystemWindowInsets.bottom }
-                layoutManager.setInsets(SystemWindowInsets.top, 0)
+                layoutManager.setInsets(SystemWindowInsets.top,
+                                        0,
+                                        SystemWindowInsets.left)
             } else {
                 navigationPadding.visibility = View.GONE
-                layoutManager.setInsets(SystemWindowInsets.top, SystemWindowInsets.bottom)
+                layoutManager.setInsets(SystemWindowInsets.top,
+                                        SystemWindowInsets.bottom,
+                                        SystemWindowInsets.left)
+
             }
         }
 
@@ -168,11 +180,15 @@ class BufferFragmentFullScreenController(val fragment: Fragment) : DefaultLifecy
         fragment.lifecycle.addObserver(this)
     }
 
+    private var uiBottomBar: View? = null
     private var uiLines: RecyclerView? = null
+    private var uiFabScrollToBottom: View? = null
 
     override fun onStart(owner: LifecycleOwner) {
         if (!FULL_SCREEN_DRAWER_ENABLED) return
+        uiBottomBar = fragment.requireView().findViewById(R.id.bottom_bar)
         uiLines = fragment.requireView().findViewById(R.id.chatview_lines)
+        uiFabScrollToBottom = fragment.requireView().findViewById(R.id.fab_scroll_to_bottom)
         insetListeners.add(insetListener)
         insetListener.onInsetsChanged()
     }
@@ -180,16 +196,23 @@ class BufferFragmentFullScreenController(val fragment: Fragment) : DefaultLifecy
     override fun onStop(owner: LifecycleOwner) {
         if (!FULL_SCREEN_DRAWER_ENABLED) return
         insetListeners.remove(insetListener)
+        uiBottomBar = null
         uiLines = null
+        uiFabScrollToBottom = null
     }
 
-    private var uiLinesPaddingTop = 0
     private val insetListener = InsetListener {
-        val desiredPadding = if (P.autoHideActionbar) SystemWindowInsets.top else 0
+        val linesTopPadding = if (P.autoHideActionbar) SystemWindowInsets.top else 0
 
-        if (uiLinesPaddingTop != desiredPadding) {
-            uiLinesPaddingTop = desiredPadding
-            uiLines?.updatePadding(top = uiLinesPaddingTop)
+        uiLines?.updatePadding(top = linesTopPadding,
+                               left = SystemWindowInsets.left,
+                               right = SystemWindowInsets.right)
+
+        uiBottomBar?.updatePadding(left = SystemWindowInsets.left,
+                                   right = SystemWindowInsets.right)
+
+        uiFabScrollToBottom?.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+            rightMargin = SystemWindowInsets.right + (P._1dp * 12).i
         }
     }
 }

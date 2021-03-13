@@ -13,11 +13,13 @@ class FullScreenDrawerLinearLayoutManager(
 
     private var insetTop = 0
     private var insetBottom = 0
+    private var insetLeft = 0
 
-    fun setInsets(top: Int, bottom: Int) {
-        if (insetTop != top || insetBottom != bottom) {
+    fun setInsets(top: Int, bottom: Int, left: Int) {
+        if (insetTop != top || insetBottom != bottom || insetLeft != left) {
             insetTop = top
             insetBottom = bottom
+            insetLeft = left
             recyclerView.invalidate()
         }
     }
@@ -34,10 +36,10 @@ class FullScreenDrawerLinearLayoutManager(
         val position = getPosition(child)
 
         when (position) {
-            0 -> child.setPadding(0, insetTop, 0, 0)
-            adapter.itemCount - 1 -> child.setPadding(0, 0, 0,
+            0 -> child.setPadding(insetLeft, insetTop, 0, 0)
+            adapter.itemCount - 1 -> child.setPadding(insetLeft, 0, 0,
                     if (canFitAllChildrenOutsideInsets) 0 else insetBottom)
-            else -> child.setPadding(0, 0, 0, 0)
+            else -> child.setPadding(insetLeft, 0, 0, 0)
         }
 
         super.measureChildWithMargins(child, widthUsed, heightUsed)
