@@ -30,12 +30,14 @@ import kotlin.math.sign
 val FULL_SCREEN_DRAWER_ENABLED = Build.VERSION.SDK_INT >= 26    // 8.0, Oreo
 
 
-object SystemWindowInsets {
-    var top = 0
-    var bottom = 0
-    var left = 0
-    var right = 0
-}
+data class SystemWindowInsets(
+    val top: Int,
+    val bottom: Int,
+    val left: Int,
+    val right: Int,
+)
+
+var systemWindowInsets = SystemWindowInsets(0, 0, 0, 0)
 
 
 fun interface InsetListener {
@@ -74,24 +76,27 @@ class WeechatActivityFullScreenController(val activity: WeechatActivity) : Defau
                 View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
 
         rootView.setOnApplyWindowInsetsListener listener@{ _, insets ->
-            SystemWindowInsets.top = insets.systemWindowInsetTop
-            SystemWindowInsets.bottom = insets.systemWindowInsetBottom
-            SystemWindowInsets.left = insets.systemWindowInsetLeft
-            SystemWindowInsets.right = insets.systemWindowInsetRight
+            val newSystemWindowInsets = SystemWindowInsets(insets.systemWindowInsetTop,
+                                                           insets.systemWindowInsetBottom,
+                                                           insets.systemWindowInsetLeft,
+                                                           insets.systemWindowInsetRight)
 
-            insetListeners.forEach { it.onInsetsChanged() }
+            if (systemWindowInsets != newSystemWindowInsets) {
+                systemWindowInsets = newSystemWindowInsets
+                insetListeners.forEach { it.onInsetsChanged() }
+            }
 
             insets
         }
 
         val weechatActivityInsetsListener = InsetListener {
-            toolbarContainer.updatePadding(top = SystemWindowInsets.top,
-                                           left = SystemWindowInsets.left,
-                                           right = SystemWindowInsets.right)
+            toolbarContainer.updatePadding(top = systemWindowInsets.top,
+                                           left = systemWindowInsets.left,
+                                           right = systemWindowInsets.right)
             navigationPadding.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                height = SystemWindowInsets.bottom }
+                height = systemWindowInsets.bottom }
             viewPager.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                bottomMargin = SystemWindowInsets.bottom }
+                bottomMargin = systemWindowInsets.bottom }
         }
 
         insetListeners.add(weechatActivityInsetsListener)
@@ -148,17 +153,17 @@ class BufferListFragmentFullScreenController(val fragment: Fragment) : DefaultLi
             if (P.showBufferFilter) {
                 navigationPadding.visibility = View.VISIBLE
                 navigationPadding.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                    height = SystemWindowInsets.bottom }
+                    height = systemWindowInsets.bottom }
                 filterBar.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                    bottomMargin = SystemWindowInsets.bottom }
-                layoutManager.setInsets(SystemWindowInsets.top,
+                    bottomMargin = systemWindowInsets.bottom }
+                layoutManager.setInsets(systemWindowInsets.top,
                                         0,
-                                        SystemWindowInsets.left)
+                                        systemWindowInsets.left)
             } else {
                 navigationPadding.visibility = View.GONE
-                layoutManager.setInsets(SystemWindowInsets.top,
-                                        SystemWindowInsets.bottom,
-                                        SystemWindowInsets.left)
+                layoutManager.setInsets(systemWindowInsets.top,
+                                        systemWindowInsets.bottom,
+                                        systemWindowInsets.left)
 
             }
         }
@@ -202,17 +207,17 @@ class BufferFragmentFullScreenController(val fragment: Fragment) : DefaultLifecy
     }
 
     private val insetListener = InsetListener {
-        val linesTopPadding = if (P.autoHideActionbar) SystemWindowInsets.top else 0
+        val linesTopPadding = if (P.autoHideActionbar) systemWindowInsets.top else 0
 
         uiLines?.updatePadding(top = linesTopPadding,
-                               left = SystemWindowInsets.left,
-                               right = SystemWindowInsets.right)
+                               left = systemWindowInsets.left,
+                               right = systemWindowInsets.right)
 
-        uiBottomBar?.updatePadding(left = SystemWindowInsets.left,
-                                   right = SystemWindowInsets.right)
+        uiBottomBar?.updatePadding(left = systemWindowInsets.left,
+                                   right = systemWindowInsets.right)
 
         uiFabScrollToBottom?.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-            rightMargin = SystemWindowInsets.right + (P._1dp * 12).i
+            rightMargin = systemWindowInsets.right + (P._1dp * 12).i
         }
     }
 }
@@ -255,10 +260,6 @@ private class OldSystemAreaHeightExaminer(
         content.viewTreeObserver.addOnGlobalLayoutListener(globalLayoutListener)
     }
 
-    override fun onDestroy(owner: LifecycleOwner) {
-        content.viewTreeObserver.addOnGlobalLayoutListener(globalLayoutListener)
-    }
-
     // windowHeight is the height of the activity that includes the height of the status bar and the
     // navigation bar. if the activity is split, this height seems to be only including the system
     // bar that the activity is “touching”. this height doesn't include the keyboard height per se,
@@ -290,7 +291,7 @@ private class NewSystemAreaHeightExaminer(
     }
 
     private val insetListener = InsetListener {
-        observer?.onSystemAreaHeightChanged(SystemWindowInsets.bottom)
+        observer?.onSystemAreaHeightChanged(systemWindowInsets.bottom)
     }
 }
 
