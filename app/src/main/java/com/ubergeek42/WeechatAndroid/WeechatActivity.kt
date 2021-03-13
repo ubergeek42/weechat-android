@@ -76,6 +76,7 @@ import com.ubergeek42.WeechatAndroid.utils.u
 import com.ubergeek42.WeechatAndroid.utils.ulet
 import com.ubergeek42.WeechatAndroid.utils.wasCausedByEither
 import com.ubergeek42.WeechatAndroid.views.onWeechatActivityCreated
+import com.ubergeek42.WeechatAndroid.views.onWeechatActivityStarted
 import com.ubergeek42.cats.Cat
 import com.ubergeek42.cats.CatD
 import com.ubergeek42.cats.Kitty
@@ -233,6 +234,7 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
         started = true
         P.storeThemeOrColorSchemeColors(this)
         applyColorSchemeToViews()
+        onWeechatActivityStarted(this)
         super.onStart()
         uiMenu?.findItem(R.id.menu_dark_theme)?.isVisible = P.themeSwitchEnabled
         if (intent.hasExtra(Constants.EXTRA_BUFFER_POINTER)) openBufferFromIntent()
@@ -665,17 +667,9 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    // status bar can be colored since api 21 and have dark icons since api 23
-    // navigation bar can be colored since api 21 and can have dark icons since api 26 via
-    // SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR, which the theming engine seems to be setting
-    // automatically, and since api 27 via android:navigationBarColor
     private fun applyColorSchemeToViews() {
         applyMainBackgroundColor()
         findViewById<View>(R.id.toolbar_container).setBackgroundColor(P.colorPrimary)
-
-        val isDark = !ThemeFix.isColorLight(P.colorPrimaryDark)
-        if (isDark || Build.VERSION.SDK_INT >= 23) window.statusBarColor = P.colorPrimaryDark
-        if (isDark || Build.VERSION.SDK_INT >= 26) window.navigationBarColor = P.colorPrimaryDark
     }
 
     // to reduce overdraw, change background color instead of drawing over it

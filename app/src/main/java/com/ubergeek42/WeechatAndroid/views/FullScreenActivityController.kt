@@ -13,10 +13,14 @@ import androidx.recyclerview.widget.RecyclerView
 import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.WeechatActivity
 import com.ubergeek42.WeechatAndroid.service.P
+import com.ubergeek42.WeechatAndroid.utils.ThemeFix
 import com.ubergeek42.WeechatAndroid.utils.WeaselMeasuringViewPager
 
 
-val FULL_SCREEN_DRAWER_ENABLED = Build.VERSION.SDK_INT >= 27
+// this can technically work on earlier Android versions,
+// e.g. on api 24 (7.0) it works perfectly in dark mode,
+// but in light mode the status bar icons remain light
+val FULL_SCREEN_DRAWER_ENABLED = Build.VERSION.SDK_INT >= 26    // 8.0, Oreo
 
 
 object SystemWindowInsets {
@@ -31,6 +35,11 @@ fun interface InsetListener {
 
 
 private val insetListeners = mutableListOf<InsetListener>()
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////// activity
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 fun onWeechatActivityCreated(activity: WeechatActivity) {
@@ -70,6 +79,27 @@ fun onWeechatActivityCreated(activity: WeechatActivity) {
     insetListeners.add(weechatActivityInsetsListener)
 }
 
+// status bar can be colored since api 21 and have dark icons since api 23
+// navigation bar can be colored since api 21 and can have dark icons since api 26 via
+// SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR, which the theming engine seems to be setting
+// automatically, and since api 27 via android:navigationBarColor
+fun onWeechatActivityStarted(activity: WeechatActivity) {
+    if (FULL_SCREEN_DRAWER_ENABLED) return
+
+    val systemAreaBackgroundColorIsDark = !ThemeFix.isColorLight(P.colorPrimaryDark)
+    val statusBarIconCanBeDark = Build.VERSION.SDK_INT >= 23
+    val navigationBarIconsCanBeDark = Build.VERSION.SDK_INT >= 26
+
+    if (systemAreaBackgroundColorIsDark || statusBarIconCanBeDark)
+            activity.window.statusBarColor = P.colorPrimaryDark
+
+    if (systemAreaBackgroundColorIsDark || navigationBarIconsCanBeDark)
+            activity.window.navigationBarColor = P.colorPrimaryDark
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////// buffer list
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 fun onBufferListFragmentStarted(bufferList: Fragment) {
     if (!FULL_SCREEN_DRAWER_ENABLED) return
