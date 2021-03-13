@@ -29,6 +29,7 @@ dependencies {
     implementation("androidx.preference:preference-ktx:1.1.1")  // preference fragment & al
     implementation("androidx.legacy:legacy-preference-v14:1.0.0") // styling for the fragment
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.0")
+    implementation("androidx.lifecycle:lifecycle-common-java8:2.3.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.4.1")
 
     implementation("com.github.bumptech.glide:glide:4.12.0")

@@ -8,7 +8,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.RecyclerView
 import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.WeechatActivity
@@ -38,103 +40,117 @@ private val insetListeners = mutableListOf<InsetListener>()
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////// activity
+/////////////////////////////////////////////////////////////////////////////////////////// activity
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-fun onWeechatActivityCreated(activity: WeechatActivity) {
-    if (!FULL_SCREEN_DRAWER_ENABLED) return
-
-    val toolbarContainer = activity.findViewById<View>(R.id.toolbar_container)
-    val viewPager = activity.findViewById<WeaselMeasuringViewPager>(R.id.main_viewpager)
-    val navigationPadding = activity.findViewById<View>(R.id.navigation_padding)
-    val rootView = viewPager.rootView
-
-    navigationPadding.visibility = View.VISIBLE
-    navigationPadding.setBackgroundColor(P.colorPrimaryDark)
-
-    // todo use WindowCompat.setDecorFitsSystemWindows(window, false)
-    // todo needs api 30+? and/or androidx.core:core-ktx:1.5.0-beta02
-    rootView.systemUiVisibility = rootView.systemUiVisibility or
-            View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
-            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-
-    rootView.setOnApplyWindowInsetsListener listener@{ _, insets ->
-        SystemWindowInsets.top = insets.systemWindowInsetTop
-        SystemWindowInsets.bottom = insets.systemWindowInsetBottom
-
-        insetListeners.forEach { it.onInsetsChanged() }
-
-        insets
+class WeechatActivityFullScreenController(val activity: WeechatActivity) : DefaultLifecycleObserver {
+    fun observeLifecycle() {
+        activity.lifecycle.addObserver(this)
     }
 
-    val weechatActivityInsetsListener = InsetListener {
-        toolbarContainer.updatePadding(top = SystemWindowInsets.top)
-        navigationPadding.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-            height = SystemWindowInsets.bottom }
-        viewPager.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-            bottomMargin = SystemWindowInsets.bottom }
+    private lateinit var navigationPadding: View
+
+    override fun onCreate(owner: LifecycleOwner) {
+        if (!FULL_SCREEN_DRAWER_ENABLED) return
+
+        val toolbarContainer = activity.findViewById<View>(R.id.toolbar_container)
+        val viewPager = activity.findViewById<WeaselMeasuringViewPager>(R.id.main_viewpager)
+        val rootView = viewPager.rootView
+
+        navigationPadding = activity.findViewById(R.id.navigation_padding)
+        navigationPadding.visibility = View.VISIBLE
+
+        // todo use WindowCompat.setDecorFitsSystemWindows(window, false)
+        // todo needs api 30+? and/or androidx.core:core-ktx:1.5.0-beta02
+        rootView.systemUiVisibility = rootView.systemUiVisibility or
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
+                View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+
+        rootView.setOnApplyWindowInsetsListener listener@{ _, insets ->
+            SystemWindowInsets.top = insets.systemWindowInsetTop
+            SystemWindowInsets.bottom = insets.systemWindowInsetBottom
+
+            insetListeners.forEach { it.onInsetsChanged() }
+
+            insets
+        }
+
+        val weechatActivityInsetsListener = InsetListener {
+            toolbarContainer.updatePadding(top = SystemWindowInsets.top)
+            navigationPadding.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                height = SystemWindowInsets.bottom }
+            viewPager.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                bottomMargin = SystemWindowInsets.bottom }
+        }
+
+        insetListeners.add(weechatActivityInsetsListener)
     }
 
-    insetListeners.add(weechatActivityInsetsListener)
-}
+    // status bar can be colored since api 21 and have dark icons since api 23
+    // navigation bar can be colored since api 21 and can have dark icons since api 26 via
+    // SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR, which the theming engine seems to be setting
+    // automatically, and since api 27 via android:navigationBarColor
+    override fun onStart(owner: LifecycleOwner) {
+        if (FULL_SCREEN_DRAWER_ENABLED) {
+            navigationPadding.setBackgroundColor(P.colorPrimaryDark)
+        } else {
 
-// status bar can be colored since api 21 and have dark icons since api 23
-// navigation bar can be colored since api 21 and can have dark icons since api 26 via
-// SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR, which the theming engine seems to be setting
-// automatically, and since api 27 via android:navigationBarColor
-fun onWeechatActivityStarted(activity: WeechatActivity) {
-    if (FULL_SCREEN_DRAWER_ENABLED) return
+            val systemAreaBackgroundColorIsDark = !ThemeFix.isColorLight(P.colorPrimaryDark)
+            val statusBarIconCanBeDark = Build.VERSION.SDK_INT >= 23
+            val navigationBarIconsCanBeDark = Build.VERSION.SDK_INT >= 26
 
-    val systemAreaBackgroundColorIsDark = !ThemeFix.isColorLight(P.colorPrimaryDark)
-    val statusBarIconCanBeDark = Build.VERSION.SDK_INT >= 23
-    val navigationBarIconsCanBeDark = Build.VERSION.SDK_INT >= 26
+            if (systemAreaBackgroundColorIsDark || statusBarIconCanBeDark)
+                activity.window.statusBarColor = P.colorPrimaryDark
 
-    if (systemAreaBackgroundColorIsDark || statusBarIconCanBeDark)
-            activity.window.statusBarColor = P.colorPrimaryDark
-
-    if (systemAreaBackgroundColorIsDark || navigationBarIconsCanBeDark)
-            activity.window.navigationBarColor = P.colorPrimaryDark
+            if (systemAreaBackgroundColorIsDark || navigationBarIconsCanBeDark)
+                activity.window.navigationBarColor = P.colorPrimaryDark
+        }
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////// buffer list
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-fun onBufferListFragmentStarted(bufferList: Fragment) {
-    if (!FULL_SCREEN_DRAWER_ENABLED) return
-
-    val bufferListView = bufferList.requireView()
-    val navigationPadding = bufferListView.findViewById<View>(R.id.navigation_padding)
-    val layoutManager = bufferListView.findViewById<RecyclerView>(R.id.recycler)
-            .layoutManager as FullScreenDrawerLinearLayoutManager
-
-    navigationPadding.setBackgroundColor(P.colorPrimaryDark)
-
-    val filterBar = bufferListView.findViewById<View>(R.id.filter_bar)
-
-    fun applyInsets() {
-        if (P.showBufferFilter) {
-            navigationPadding.visibility = View.VISIBLE
-            navigationPadding.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                height = SystemWindowInsets.bottom }
-            filterBar.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                bottomMargin = SystemWindowInsets.bottom }
-            layoutManager.setInsets(SystemWindowInsets.top, 0)
-        } else {
-            navigationPadding.visibility = View.GONE
-            layoutManager.setInsets(SystemWindowInsets.top, SystemWindowInsets.bottom)
-        }
+class BufferListFragmentFullScreenController(val fragment: Fragment) : DefaultLifecycleObserver {
+    fun observeLifecycle() {
+        fragment.lifecycle.addObserver(this)
     }
 
-    insetListeners.add(InsetListener { applyInsets() })
+    override fun onStart(owner: LifecycleOwner) {
+        if (!FULL_SCREEN_DRAWER_ENABLED) return
 
-    applyInsets()
+        val bufferListView = fragment.requireView()
+        val navigationPadding = bufferListView.findViewById<View>(R.id.navigation_padding)
+        val layoutManager = bufferListView.findViewById<RecyclerView>(R.id.recycler)
+                .layoutManager as FullScreenDrawerLinearLayoutManager
+
+        navigationPadding.setBackgroundColor(P.colorPrimaryDark)
+
+        val filterBar = bufferListView.findViewById<View>(R.id.filter_bar)
+
+        fun applyInsets() {
+            if (P.showBufferFilter) {
+                navigationPadding.visibility = View.VISIBLE
+                navigationPadding.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                    height = SystemWindowInsets.bottom }
+                filterBar.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                    bottomMargin = SystemWindowInsets.bottom }
+                layoutManager.setInsets(SystemWindowInsets.top, 0)
+            } else {
+                navigationPadding.visibility = View.GONE
+                layoutManager.setInsets(SystemWindowInsets.top, SystemWindowInsets.bottom)
+            }
+        }
+
+        insetListeners.add(InsetListener { applyInsets() })
+
+        applyInsets()
+    }
 }
 
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////// height observer
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 

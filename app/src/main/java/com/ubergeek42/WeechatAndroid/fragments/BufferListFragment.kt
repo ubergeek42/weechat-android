@@ -27,9 +27,9 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.ubergeek42.WeechatAndroid.upload.main
 import com.ubergeek42.WeechatAndroid.utils.afterTextChanged
+import com.ubergeek42.WeechatAndroid.views.BufferListFragmentFullScreenController
 import com.ubergeek42.WeechatAndroid.views.FULL_SCREEN_DRAWER_ENABLED
 import com.ubergeek42.WeechatAndroid.views.FullScreenDrawerLinearLayoutManager
-import com.ubergeek42.WeechatAndroid.views.onBufferListFragmentStarted
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
 
@@ -45,6 +45,8 @@ class BufferListFragment : Fragment(), BufferListEye {
     private lateinit var uiFilterBar: RelativeLayout
     private lateinit var uiFilter: EditText
     private lateinit var uiFilterClear: ImageButton
+
+    init { BufferListFragmentFullScreenController(this).observeLifecycle() }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////// lifecycle
@@ -95,7 +97,6 @@ class BufferListFragment : Fragment(), BufferListEye {
         EventBus.getDefault().register(this)
         uiFilterBar.visibility = if (P.showBufferFilter) View.VISIBLE else View.GONE
         applyColorSchemeToViews()
-        onBufferListFragmentStarted(this)
     }
 
     @MainThread @Cat override fun onStop() {

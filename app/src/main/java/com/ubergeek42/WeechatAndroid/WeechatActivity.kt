@@ -75,8 +75,7 @@ import com.ubergeek42.WeechatAndroid.utils.let
 import com.ubergeek42.WeechatAndroid.utils.u
 import com.ubergeek42.WeechatAndroid.utils.ulet
 import com.ubergeek42.WeechatAndroid.utils.wasCausedByEither
-import com.ubergeek42.WeechatAndroid.views.onWeechatActivityCreated
-import com.ubergeek42.WeechatAndroid.views.onWeechatActivityStarted
+import com.ubergeek42.WeechatAndroid.views.WeechatActivityFullScreenController
 import com.ubergeek42.cats.Cat
 import com.ubergeek42.cats.CatD
 import com.ubergeek42.cats.Kitty
@@ -112,8 +111,10 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
     @get:MainThread var isPagerNoticeablyObscured = false
         private set
 
+    init { WeechatActivityFullScreenController(this).observeLifecycle() }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// life cycle
+    ///////////////////////////////////////////////////////////////////////////////////// life cycle
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @MainThread @CatD public override fun onCreate(savedInstanceState: Bundle?) {
@@ -193,7 +194,6 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
         P.applyThemeAfterActivityCreation(this)
         P.storeThemeOrColorSchemeColors(this)   // required for ThemeFix.fixIconAndColor()
         ThemeFix.fixIconAndColor(this)
-        onWeechatActivityCreated(this)
     }
 
     @MainThread @CatD(linger = true) fun connect() {
@@ -234,7 +234,6 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
         started = true
         P.storeThemeOrColorSchemeColors(this)
         applyColorSchemeToViews()
-        onWeechatActivityStarted(this)
         super.onStart()
         uiMenu?.findItem(R.id.menu_dark_theme)?.isVisible = P.themeSwitchEnabled
         if (intent.hasExtra(Constants.EXTRA_BUFFER_POINTER)) openBufferFromIntent()
