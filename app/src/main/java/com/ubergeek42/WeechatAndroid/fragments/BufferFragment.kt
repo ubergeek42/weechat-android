@@ -74,6 +74,7 @@ import com.ubergeek42.WeechatAndroid.utils.afterTextChanged
 import com.ubergeek42.WeechatAndroid.utils.indexOfOrElse
 import com.ubergeek42.WeechatAndroid.utils.ulet
 import com.ubergeek42.WeechatAndroid.views.BackGestureAwareEditText
+import com.ubergeek42.WeechatAndroid.views.BufferFragmentFullScreenController
 import com.ubergeek42.WeechatAndroid.views.CircleView
 import com.ubergeek42.WeechatAndroid.views.CircularImageButton
 import com.ubergeek42.WeechatAndroid.views.OnBackGestureListener
@@ -121,6 +122,8 @@ class BufferFragment : Fragment(), BufferEye {
     private var uiBottomBar: ViewGroup? = null
     private var connectivityIndicator: CircleView? = null
     private var fabScrollToBottom: CircularImageButton? = null
+
+    init { BufferFragmentFullScreenController(this).observeLifecycle() }
 
     companion object {
         @JvmStatic fun newInstance(pointer: Long) =

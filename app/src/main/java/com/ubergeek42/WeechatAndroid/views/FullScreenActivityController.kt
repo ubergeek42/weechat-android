@@ -149,6 +149,40 @@ class BufferListFragmentFullScreenController(val fragment: Fragment) : DefaultLi
     }
 }
 
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////// buffer fragment
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+class BufferFragmentFullScreenController(val fragment: Fragment) : DefaultLifecycleObserver {
+    fun observeLifecycle() {
+        fragment.lifecycle.addObserver(this)
+    }
+
+    private var uiLines: RecyclerView? = null
+
+    override fun onStart(owner: LifecycleOwner) {
+        if (!FULL_SCREEN_DRAWER_ENABLED) return
+        insetListeners.add(insetListener)
+        uiLines = fragment.requireView().findViewById(R.id.chatview_lines)
+    }
+
+    override fun onStop(owner: LifecycleOwner) {
+        if (!FULL_SCREEN_DRAWER_ENABLED) return
+        insetListeners.remove(insetListener)
+        uiLines = null
+    }
+
+    var uiLinesPaddingTop = 0
+    private val insetListener = InsetListener {
+        if (uiLinesPaddingTop != SystemWindowInsets.top) {
+            uiLinesPaddingTop = SystemWindowInsets.top
+            uiLines?.updatePadding(top = uiLinesPaddingTop)
+        }
+    }
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////// height observer
 ////////////////////////////////////////////////////////////////////////////////////////////////////

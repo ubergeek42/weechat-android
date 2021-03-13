@@ -49,6 +49,7 @@ class AnimatedRecyclerView @JvmOverloads constructor(
         manager.stackFromEnd = true
         layoutManager = manager
         setHasFixedSize(true)
+        clipToPadding = false
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
