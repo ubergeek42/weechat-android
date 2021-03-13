@@ -204,7 +204,7 @@ class BufferFragment : Fragment(), BufferEye {
                 override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                     if (dy != 0) {
                         if (focusedInViewPager) {
-                            weechatActivity?.toolbarController?.onScroll(dy, onTop, onBottom)
+                            weechatActivity?.toolbarController?.onChatLinesScrolled(dy, onTop, onBottom)
                         }
                         showHideFabWhenScrolled(dy, onBottom)
                     }

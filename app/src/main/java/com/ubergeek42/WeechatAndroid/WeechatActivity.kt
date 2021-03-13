@@ -69,13 +69,13 @@ import com.ubergeek42.WeechatAndroid.utils.Network
 import com.ubergeek42.WeechatAndroid.utils.SimpleTransitionDrawable
 import com.ubergeek42.WeechatAndroid.utils.ThemeFix
 import com.ubergeek42.WeechatAndroid.utils.Toaster
-import com.ubergeek42.WeechatAndroid.utils.ToolbarController
 import com.ubergeek42.WeechatAndroid.utils.findCause
 import com.ubergeek42.WeechatAndroid.utils.isAnyOf
 import com.ubergeek42.WeechatAndroid.utils.let
 import com.ubergeek42.WeechatAndroid.utils.u
 import com.ubergeek42.WeechatAndroid.utils.ulet
 import com.ubergeek42.WeechatAndroid.utils.wasCausedByEither
+import com.ubergeek42.WeechatAndroid.views.ToolbarController
 import com.ubergeek42.WeechatAndroid.views.WeechatActivityFullScreenController
 import com.ubergeek42.WeechatAndroid.views.solidColor
 import com.ubergeek42.cats.Cat
@@ -113,7 +113,7 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
 
     private lateinit var menuBackgroundDrawable: Drawable
 
-    @JvmField var toolbarController: ToolbarController? = null
+    val toolbarController = ToolbarController(this).apply { observeLifecycle() }
 
     @get:MainThread var isPagerNoticeablyObscured = false
         private set
@@ -190,8 +190,6 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
             supportActionBar?.setDisplayHomeAsUpEnabled(true)
         }
 
-        toolbarController = ToolbarController(this)
-
         imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
 
         menuBackgroundDrawable = ContextCompat.getDrawable(this, R.drawable.bg_popup_menu)!!
@@ -259,11 +257,6 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
         Network.get().unregister(this)
         CachePersist.save()
         UploadDatabase.save()
-    }
-
-    @MainThread @CatD override fun onDestroy() {
-        toolbarController?.detach()
-        super.onDestroy()
     }
 
     ///////////////////////////////////////////////////////// these two are necessary for the drawer
@@ -383,7 +376,7 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
 
         updateMenuItems()
         hideSoftwareKeyboard()
-        toolbarController?.onPageChangedOrSelected()
+        toolbarController.onPageChangedOrSelected()
         if (needToChangeKittyVisibility) {
             uiKitty.visibility = if (pagerAdapter.count == 0) View.VISIBLE else View.GONE
             applyMainBackgroundColor()
