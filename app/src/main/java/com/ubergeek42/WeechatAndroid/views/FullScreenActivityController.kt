@@ -106,6 +106,10 @@ class WeechatActivityFullScreenController(val activity: WeechatActivity) : Defau
                 activity.window.navigationBarColor = P.colorPrimaryDark
         }
     }
+
+    override fun onDestroy(owner: LifecycleOwner) {
+        insetListeners.clear()
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
