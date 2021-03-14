@@ -501,7 +501,7 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
     }
 
     @MainThread @Cat("Menu") private fun onHotlistSelected() {
-        val buffer = BufferList.getHotBuffer()
+        val buffer = BufferList.hotBuffer
         if (buffer != null) {
             openBuffer(buffer.pointer)
         } else {
@@ -634,10 +634,10 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
         intent.removeExtra(Constants.EXTRA_BUFFER_POINTER)
 
         if (pointer == Constants.NOTIFICATION_EXTRA_BUFFER_ANY) {
-            if (BufferList.getHotBufferCount() > 1) {
+            if (BufferList.hotBufferCount > 1) {
                 if (slidy) showDrawer()
             } else {
-                BufferList.getHotBuffer()?.let { openBuffer(it.pointer) }
+                BufferList.hotBuffer?.let { openBuffer(it.pointer) }
             }
         } else {
             var shareObject: ShareObject? = null
