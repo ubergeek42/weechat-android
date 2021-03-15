@@ -36,9 +36,9 @@ class Buffer @WorkerThread constructor(
         internal var updateType = false
         internal var updateNotifyLevel = false
 
-        var number: Int by updatable(::updateName)
+        var number: Int by updatable(::updateName, this@Buffer::number)
         var fullName: String by updatable(::updateName, this@Buffer::fullName)
-        var shortName: String? by updatable(::updateName, this@Buffer::fullName)
+        var shortName: String? by updatable(::updateName, this@Buffer::shortName)
         var title: String? by updatable(::updateTitle)
         var hidden: Boolean by updatable(::updateHidden)
         var type: BufferSpec.Type by updatable(::updateType)
@@ -50,6 +50,7 @@ class Buffer @WorkerThread constructor(
         updater.block()
 
         if (updater.updateName) {
+            number = updater.number
             fullName = updater.fullName
             shortName = updater.shortName ?: fullName
             processBufferNameSpannable()
