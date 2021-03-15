@@ -41,8 +41,8 @@ public class Lines {
     @NonNull STATUS status = STATUS.INIT;
     private long lastSeenLine = -1;
 
-    private final static Line HEADER = new Line(HEADER_POINTER, Line.Type.OTHER, 0, "", "", null, false, false, Line.DisplayAs.UNSPECIFIED, Line.Notify.LOW);
-    private final static Line MARKER = new Line(MARKER_POINTER, Line.Type.OTHER, 0, "", "", null, false, false, Line.DisplayAs.UNSPECIFIED, Line.Notify.LOW);
+    private final static Line HEADER = new Line(HEADER_POINTER, LineSpec.Type.Other, 0, "", "", null, false, false, LineSpec.DisplayAs.Unspecified, LineSpec.NotifyLevel.Low);
+    private final static Line MARKER = new Line(MARKER_POINTER, LineSpec.Type.Other, 0, "", "", null, false, false, LineSpec.DisplayAs.Unspecified, LineSpec.NotifyLevel.Low);
 
     private final ArrayDeque<Line> filtered = new ArrayDeque<>();
     private final ArrayDeque<Line> unfiltered = new ArrayDeque<>();

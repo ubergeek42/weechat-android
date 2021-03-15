@@ -138,7 +138,7 @@ public class Hotlist {
 
         HotMessage(Line line, HotBuffer hotBuffer) {
             this.hotBuffer = hotBuffer;
-            this.isAction = line.displayAs == Line.DisplayAs.ACTION;
+            this.isAction = line.displayAs == LineSpec.DisplayAs.Action;
             message = line.getMessageString();
             nick = (line.nick != null ? line.nick : line.getPrefixString());
             timestamp = line.timestamp;

@@ -10,7 +10,7 @@ public class Nick {
     final public String name;
     final public boolean away;
 
-    Nick(long pointer, String prefix, String name, boolean away) {
+    public Nick(long pointer, String prefix, String name, boolean away) {
         this.pointer = pointer;
         this.prefix = prefix;
         this.name = name;

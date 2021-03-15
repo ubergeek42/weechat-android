@@ -55,7 +55,7 @@ abstract class TabCompleter(val input: EditText) {
 }
 
 suspend fun queryWeechat(message: String) = suspendCancellableCoroutine<RelayObject> {
-    val handler = RelayMessageHandler { obj, _ -> it.resume(obj) }
+    val handler = BufferList.HdataHandler { obj, _ -> it.resume(obj) }
     val id = BufferList.addOneOffMessageHandler(handler)
     Events.SendMessageEvent.fire("($id) $message")
 }

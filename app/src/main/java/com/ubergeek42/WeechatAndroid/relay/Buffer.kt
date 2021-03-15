@@ -19,7 +19,7 @@ import com.ubergeek42.weechat.relay.protocol.Hashtable
 import com.ubergeek42.weechat.relay.protocol.RelayObject
 import java.util.*
 
-class Buffer @WorkerThread internal constructor(
+class Buffer @WorkerThread constructor(
         @JvmField val pointer: Long,
         @JvmField var number: Int,
         @JvmField var fullName: String,
@@ -45,7 +45,7 @@ class Buffer @WorkerThread internal constructor(
     private var bufferNickListEye: BufferNicklistEye? = null
 
     @JvmField var shortName: String = shortName ?: fullName
-    @JvmField var lastReadLineServer = BufferList.LAST_READ_LINE_MISSING
+    @JvmField var lastReadLineServer = LAST_READ_LINE_MISSING
     @JvmField var readUnreads = 0
     @JvmField var readHighlights = 0
 
@@ -57,8 +57,17 @@ class Buffer @WorkerThread internal constructor(
 
     @JvmField @Volatile var flagResetHotMessagesOnNewOwnLine = false
 
-    private val lines: Lines = Lines(this.shortName)
-    private val nicks: Nicks = Nicks(this.shortName)
+    // todo make val again
+    private var lines: Lines = Lines(this.shortName)
+    private var nicks: Nicks = Nicks(this.shortName)
+
+    // todo copy in a better way
+    fun copyOldDataFrom(buffer: Buffer) {
+        this.lines = buffer.lines
+        this.nicks = buffer.nicks
+        lines.status = Lines.STATUS.INIT
+        nicks.status = Nicks.STATUS.INIT
+    }
 
     @JvmField var isOpen = false
     @JvmField var isWatched = false
@@ -196,9 +205,9 @@ class Buffer @WorkerThread internal constructor(
     @WorkerThread fun addLineBottom(line: Line) {
         if (isOpen) line.ensureSpannable()
 
-        val notifyHighlight = line.notify == Line.Notify.HIGHLIGHT
-        val notifyPm = line.notify == Line.Notify.PRIVATE
-        val notifyPmOrMessage = line.notify == Line.Notify.MESSAGE || notifyPm
+        val notifyHighlight = line.notify == LineSpec.NotifyLevel.Highlight
+        val notifyPm = line.notify == LineSpec.NotifyLevel.Private
+        val notifyPmOrMessage = line.notify == LineSpec.NotifyLevel.Message || notifyPm
 
         synchronized(this) {
             lines.addLast(line)
@@ -224,11 +233,11 @@ class Buffer @WorkerThread internal constructor(
             // if current line's an event line and we've got a speaker, move nick to fist position
             // nick in question is supposed to be in the nicks already, for we only shuffle these
             // nicks when someone spoke, i.e. NOT when user joins.
-            if (nicksAreReady() && line.type == Line.Type.INCOMING_MESSAGE) {
+            if (nicksAreReady() && line.type == LineSpec.Type.IncomingMessage) {
                 nicks.bumpNickToTop(line.nick)
             }
 
-            if (flagResetHotMessagesOnNewOwnLine && line.type == Line.Type.OUTCOMING_MESSAGE) {
+            if (flagResetHotMessagesOnNewOwnLine && line.type == LineSpec.Type.OutgoingMessage) {
                 flagResetHotMessagesOnNewOwnLine = false
                 resetUnreadsAndHighlights()
             }
@@ -281,7 +290,7 @@ class Buffer @WorkerThread internal constructor(
         if (lastReadLine != lastReadLineServer) {
             lastSeenLine = lastReadLine
             lastReadLineServer = lastReadLine
-            if (lastReadLine != BufferList.LAST_READ_LINE_MISSING ||
+            if (lastReadLine != LAST_READ_LINE_MISSING ||
                     timeSinceLastHotlistUpdate > 10 * 60 * 1000) bufferHasBeenReadInWeechat = true
         }
 

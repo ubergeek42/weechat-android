@@ -34,6 +34,7 @@ import com.ubergeek42.WeechatAndroid.copypaste.CopyKt;
 import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferEye;
 import com.ubergeek42.WeechatAndroid.relay.Line;
+import com.ubergeek42.WeechatAndroid.relay.LineSpec;
 import com.ubergeek42.WeechatAndroid.relay.Lines;
 import com.ubergeek42.WeechatAndroid.search.Search;
 import com.ubergeek42.WeechatAndroid.service.P;
@@ -309,7 +310,7 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     private final static int HOT_LINE_LOST = -1;
     private final static int HOT_LINE_NOT_PRESENT = -3;
     private final static Predicate<Line> hotLinePredicate = l ->
-            EnumSet.of(Line.Notify.HIGHLIGHT, Line.Notify.PRIVATE).contains(l.notify);
+            EnumSet.of(LineSpec.NotifyLevel.Highlight, LineSpec.NotifyLevel.Private).contains(l.notify);
 
     @MainThread @Cat("Scrolling") public void scrollToHotLineIfNeeded() {
         final int idx = findHotLine();

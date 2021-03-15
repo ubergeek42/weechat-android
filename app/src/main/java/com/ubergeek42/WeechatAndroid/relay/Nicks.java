@@ -104,7 +104,7 @@ class Nicks {
 
         while (it.hasNext()) {
             Line line = it.next();
-            if (line.type != Line.Type.INCOMING_MESSAGE)
+            if (line.type != LineSpec.Type.IncomingMessage)
                 continue;
             String name = line.nick;
             if (name != null && !nameToPosition.containsKey(name))
