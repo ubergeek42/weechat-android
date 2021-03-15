@@ -147,7 +147,7 @@ class Buffer @WorkerThread constructor(
         this.bufferEye = bufferEye ?: detachedEye
         if (bufferEye != null) {
             if (lines.status == Lines.STATUS.INIT) requestMoreLines()
-            if (nicks.status == Nicks.STATUS.INIT) BufferList.requestNicklistForBufferByPointer(pointer)
+            if (nicks.status == Nicks.STATUS.INIT) BufferList.requestNicklistForBuffer(pointer)
             if (needsToBeNotifiedAboutGlobalPreferencesChanged) {
                 bufferEye.onGlobalPreferencesChanged(false)
                 needsToBeNotifiedAboutGlobalPreferencesChanged = false
@@ -163,7 +163,7 @@ class Buffer @WorkerThread constructor(
         if (lines.maxLines >= newSize) return
         if (lines.status == Lines.STATUS.EVERYTHING_FETCHED) return
         lines.onMoreLinesRequested(newSize)
-        BufferList.requestLinesForBufferByPointer(pointer, lines.maxLines)
+        BufferList.requestLinesForBuffer(pointer, lines.maxLines)
     }
 
     // tells buffer whether it is fully display on screen

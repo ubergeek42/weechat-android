@@ -53,3 +53,6 @@ inline fun Hdata.forEachExistingBuffer(block: (spec: BufferSpec, buffer: Buffer)
         BufferList.findByPointer(spec.pointer)?.let { buffer -> block(spec, buffer) }
     }
 }
+
+
+val Long.as0x get() = "0x" + java.lang.Long.toHexString(this)

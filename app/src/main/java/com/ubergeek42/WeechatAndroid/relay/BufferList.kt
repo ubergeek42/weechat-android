@@ -8,13 +8,11 @@ import androidx.annotation.MainThread
 import androidx.annotation.WorkerThread
 import com.ubergeek42.WeechatAndroid.service.Events.SendMessageEvent
 import com.ubergeek42.WeechatAndroid.service.P
-import com.ubergeek42.WeechatAndroid.service.RelayService
 import com.ubergeek42.WeechatAndroid.utils.Assert
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
 import com.ubergeek42.weechat.relay.protocol.Hdata
 import com.ubergeek42.weechat.relay.protocol.RelayObject
-import okhttp3.internal.toHexString
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
@@ -39,8 +37,7 @@ object BufferList {
             addMessageHandler(id, handler)
         }
 
-        SendMessageEvent.fire("(listbuffers) hdata buffer:gui_buffers(*) " +
-                "number,full_name,short_name,type,title,nicklist,local_variables,notify,hidden")
+        SendMessageEvent.fire(BufferSpec.listBuffersRequest)
         syncHotlist()
         SendMessageEvent.fire(if (P.optimizeTraffic) "sync * buffers,upgrade" else "sync")
     }
@@ -55,6 +52,7 @@ object BufferList {
         Assert.assertThat(handlers.put(id, handler)).isNull()
     }
 
+    private var counter = 0
     @AnyThread fun addOneOffMessageHandler(handler: HdataHandler): String {
         val wrappedHandler = object : HdataHandler {
             override fun handleMessage(obj: Hdata, id: String) {
@@ -79,8 +77,7 @@ object BufferList {
 
     // send synchronization data to weechat and return true. if not connected, return false
     @JvmStatic @AnyThread fun syncHotlist() {
-        SendMessageEvent.fire("(last_read_lines) hdata buffer:gui_buffers(*)/own_lines/last_read_line/data buffer\n" +
-                              "(hotlist) hdata hotlist:gui_hotlist(*) buffer,count")
+        SendMessageEvent.fire(LastReadLineSpec.request + "\n" + HotlistSpec.request)
     }
 
     @JvmStatic @AnyThread fun sortOpenBuffersByBuffers(pointers: ArrayList<Long>?) {
@@ -133,28 +130,22 @@ object BufferList {
     // todo simplify
     @AnyThread fun syncBuffer(buffer: Buffer, syncHotlist: Boolean) {
         if (!P.optimizeTraffic) return
-        SendMessageEvent.fire("sync 0x%x", buffer.pointer)
+        SendMessageEvent.fire("sync ${buffer.pointer.as0x}")
         if (syncHotlist) syncHotlist()
     }
 
     @AnyThread fun desyncBuffer(buffer: Buffer) {
         if (!P.optimizeTraffic) return
-        SendMessageEvent.fire("desync 0x%x", buffer.pointer)
+        SendMessageEvent.fire("desync ${buffer.pointer.as0x}")
     }
 
-    private var counter = 0
-    @MainThread fun requestLinesForBufferByPointer(pointer: Long, number: Int) {
+    @MainThread fun requestLinesForBuffer(pointer: Long, numberOfLines: Int) {
         val id = addOneOffMessageHandler(LineListingHandler(pointer))
-        SendMessageEvent.fire("(%s) hdata buffer:0x%x/own_lines/last_line(-%d)/data date," +
-                "displayed,prefix,message,highlight,notify,tags_array", id, pointer, number)
+        SendMessageEvent.fire(LineSpec.makeLastLinesRequest(id, pointer, numberOfLines))
     }
 
-    @MainThread fun requestNicklistForBufferByPointer(pointer: Long) {
-        SendMessageEvent.fire("(nicklist) nicklist 0x%x", pointer)
-    }
-
-    private fun requestRenumber() {
-        SendMessageEvent.fire("(renumber) hdata buffer:gui_buffers(*) number")
+    @MainThread fun requestNicklistForBuffer(pointer: Long) {
+        SendMessageEvent.fire(NickSpec.makeNicklistRequest(pointer))
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -163,7 +154,7 @@ object BufferList {
 
     @JvmStatic @AnyThread fun findByPointer(pointer: Long): Buffer? {
         val buffer = buffers.firstOrNull { it.pointer == pointer }
-        if (buffer == null) kitty.warn("did not find buffer pointer: ${pointer.toHexString()}")
+        if (buffer == null) kitty.warn("did not find buffer pointer: ${pointer.as0x}")
         return buffer
     }
 
@@ -273,7 +264,7 @@ object BufferList {
 
 
         add("_buffer_moved", "_buffer_merged") { _, _ ->
-            requestRenumber()
+            SendMessageEvent.fire(BufferSpec.renumberRequest)
         }
 
 

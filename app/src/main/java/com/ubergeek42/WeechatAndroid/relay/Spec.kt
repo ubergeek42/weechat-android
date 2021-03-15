@@ -48,6 +48,13 @@ inline class BufferSpec(val entry: HdataEntry) {
             localVariables,
             hidden,
             openWhileRunning)
+
+    companion object {
+        const val listBuffersRequest = "(listbuffers) hdata buffer:gui_buffers(*) " +
+                "number,full_name,short_name,type,title,nicklist,local_variables,notify,hidden"
+
+        const val renumberRequest = "(renumber) hdata buffer:gui_buffers(*) number"
+    }
 }
 
 
@@ -59,6 +66,11 @@ inline class BufferSpec(val entry: HdataEntry) {
 inline class LastReadLineSpec(val entry: HdataEntry) {
     inline val linePointer: Long get() = entry.pointerLong
     inline val bufferPointer: Long get() = entry.getPointerLong("buffer")
+
+    companion object {
+        const val request = "(last_read_lines) hdata " +
+                "buffer:gui_buffers(*)/own_lines/last_read_line/data buffer"
+    }
 }
 
 
@@ -71,6 +83,10 @@ class HotlistSpec(entry: HdataEntry) {
         val count = entry.getArray("count")
         unreads = count[1].asInt() + count[2].asInt()
         highlights = count.get(3).asInt()
+    }
+
+    companion object {
+        const val request = "(hotlist) hdata hotlist:gui_hotlist(*) buffer,count"
     }
 }
 
@@ -96,6 +112,11 @@ inline class LineSpec(val entry: HdataEntry) {
 
     inline val tags: Array<String>? get() = entry.getStringArrayOrNull("tags_array")
 
+    companion object {
+        fun makeLastLinesRequest(id: String, pointer: Long, numberOfLines: Int) =
+                "($id) hdata buffer:${pointer.as0x}/own_lines/last_line(-$numberOfLines)/data " +
+                "date,displayed,prefix,message,highlight,notify,tags_array"
+    }
 
     inline fun toLine(): Line {
         val tags = this.tags
@@ -272,6 +293,10 @@ inline class NickSpec(val entry: HdataEntry) {
         val away = color?.contains("weechat.color.nicklist_away") == true
 
         return Nick(pointer, prefix, name, away)
+    }
+
+    companion object {
+        fun makeNicklistRequest(pointer: Long) = "(nicklist) nicklist ${pointer.as0x}"
     }
 }
 
