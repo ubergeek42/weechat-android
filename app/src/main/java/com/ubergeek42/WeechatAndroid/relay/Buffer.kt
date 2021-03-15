@@ -3,7 +3,6 @@ package com.ubergeek42.WeechatAndroid.relay
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.Spanned
-import android.text.TextUtils
 import android.text.style.RelativeSizeSpan
 import android.text.style.SuperscriptSpan
 import androidx.annotation.AnyThread
@@ -12,11 +11,11 @@ import androidx.annotation.WorkerThread
 import com.ubergeek42.WeechatAndroid.service.Events
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.utils.Assert
+import com.ubergeek42.WeechatAndroid.utils.updatable
 import com.ubergeek42.cats.Cat
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
 import java.util.*
-import kotlin.properties.Delegates.observable
 
 class Buffer @WorkerThread constructor(
     @JvmField val pointer: Long,
@@ -31,19 +30,19 @@ class Buffer @WorkerThread constructor(
     private var notify: Notify = Notify.default
 
     inner class Updater {
-        var updateName = false
-        var updateTitle = false
-        var updateNotifyLevel = false
-        var updateHidden = false
-        var updateType = false
+        internal var updateName = false
+        internal var updateTitle = false
+        internal var updateHidden = false
+        internal var updateType = false
+        internal var updateNotifyLevel = false
 
-        var number: Int by observable(this@Buffer.number) { _, _, _ -> updateName = true }
-        var fullName: String by observable(this@Buffer.fullName) { _, _, _ -> updateName = true }
-        var shortName: String? by observable(this@Buffer.shortName) { _, _, _ -> updateName = true }
-        var title: String? by observable(this@Buffer.title) { _, _, _ -> updateTitle = true }
-        var hidden: Boolean by observable(this@Buffer.hidden) { _, _, _ -> updateHidden = true }
-        var type: BufferSpec.Type by observable(this@Buffer.type) { _, _, _ -> updateType = true }
-        var notify: Notify? by observable(this@Buffer.notify) { _, _, _ -> updateNotifyLevel = true }
+        var number: Int by updatable(::updateName)
+        var fullName: String by updatable(::updateName, this@Buffer::fullName)
+        var shortName: String? by updatable(::updateName, this@Buffer::fullName)
+        var title: String? by updatable(::updateTitle)
+        var hidden: Boolean by updatable(::updateHidden)
+        var type: BufferSpec.Type by updatable(::updateType)
+        var notify: Notify? by updatable(::updateNotifyLevel)
     }
 
     fun update(block: Updater.() -> Unit) {
