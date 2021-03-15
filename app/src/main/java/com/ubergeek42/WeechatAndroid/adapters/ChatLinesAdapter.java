@@ -282,7 +282,7 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         }
     }
 
-    @WorkerThread @Override public void onPropertiesChanged() {
+    @WorkerThread @Override public void onTitleChanged() {
         updateHeader();
     }
 

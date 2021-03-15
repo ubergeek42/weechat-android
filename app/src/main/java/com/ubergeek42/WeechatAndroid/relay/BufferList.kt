@@ -221,8 +221,7 @@ object BufferList {
                 val number = spec.number
 
                 if (buffer.number != number) {
-                    buffer.number = number
-                    buffer.onPropertiesChanged()
+                    buffer.update { this.number = number }
                 }
             }
 
@@ -233,9 +232,7 @@ object BufferList {
 
         add("_buffer_renamed") { obj, _ ->
             obj.forEachExistingBuffer { spec, buffer ->
-                buffer.fullName = spec.fullName
-                buffer.shortName = spec.shortName ?: buffer.fullName
-                buffer.onPropertiesChanged()
+                buffer.update { fullName = spec.fullName; shortName = spec.shortName }
             }
 
             notifyBuffersChanged()
@@ -244,8 +241,7 @@ object BufferList {
 
         add("_buffer_title_changed") { obj, _ ->
             obj.forEachExistingBuffer { spec, buffer ->
-                buffer.title = spec.title
-                buffer.onPropertiesChanged()
+                buffer.update { title = spec.title }
             }
 
             notifyBuffersChanged()
@@ -255,8 +251,7 @@ object BufferList {
         add("_buffer_localvar_added", "_buffer_localvar_changed", "_buffer_localvar_removed") {
                 obj, _ ->
             obj.forEachExistingBuffer { spec, buffer ->
-                buffer.localVars = spec.localVariables
-                buffer.onPropertiesChanged()
+                buffer.update { type = spec.type }
             }
 
             notifyBuffersChanged()
@@ -272,8 +267,7 @@ object BufferList {
             val hidden = id == "_buffer_hidden"
 
             obj.forEachExistingBuffer { _, buffer ->
-                buffer.hidden = hidden
-                buffer.onPropertiesChanged()
+                buffer.update { this.hidden = hidden  }
             }
 
             notifyBuffersChanged()

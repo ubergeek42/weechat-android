@@ -2,8 +2,11 @@
 
 package com.ubergeek42.WeechatAndroid.relay
 
+import com.ubergeek42.WeechatAndroid.R
+import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.weechat.relay.connection.Handshake
 import com.ubergeek42.weechat.relay.connection.find
+import com.ubergeek42.weechat.relay.protocol.Hashtable
 import com.ubergeek42.weechat.relay.protocol.HdataEntry
 
 
@@ -34,26 +37,66 @@ inline class BufferSpec(val entry: HdataEntry) {
     inline val shortName: String? get() = entry.getStringOrNull("short_name")
     inline val title: String? get() = entry.getStringOrNull("title")
     inline val notify: Notify? get() = Notify::value.find(entry.getIntOrNull("notify"))
-    inline val localVariables get() = entry.getHashtable("local_variables")
+    inline val type get() = Type.fromLocalVariables(entry.getHashtable("local_variables"))
     inline val hidden get() = entry.getIntOrNull("hidden") == 1
 
     // todo get rid of openWhileRunning
-    inline fun toBuffer(openWhileRunning: Boolean) = Buffer(
-            pointer,
-            number,
-            fullName,
-            shortName,
-            title,
-            (notify ?: Notify.default).value,
-            localVariables,
-            hidden,
-            openWhileRunning)
+    inline fun toBuffer(openWhileRunning: Boolean) = Buffer(pointer).apply {
+        update {
+            number = this@BufferSpec.number
+            fullName = this@BufferSpec.fullName
+            shortName = this@BufferSpec.shortName
+            title = this@BufferSpec.title
+            notify = this@BufferSpec.notify
+            hidden = this@BufferSpec.hidden
+            type = this@BufferSpec.type
+        }
+
+        if (P.isBufferOpen(pointer)) setOpen(open = true, syncHotlistOnOpen = false)
+
+        // saved data would be meaningless for a newly opened buffer
+        if (!openWhileRunning) P.restoreLastReadLine(this)
+
+        // when a buffer is open while the application is already connected, such as when someone
+        // pms us, we don't have lastReadLine yet and so the subsequent hotlist update will trigger
+        // a full update. in order to avoid that, if we are syncing, let's pretend that a hotlist
+        // update has happened at this point so that the next update is “synced”
+        if (openWhileRunning && !P.optimizeTraffic) hotlistUpdatesWhileSyncing++
+
+    }
 
     companion object {
         const val listBuffersRequest = "(listbuffers) hdata buffer:gui_buffers(*) " +
                 "number,full_name,short_name,type,title,nicklist,local_variables,notify,hidden"
 
         const val renumberRequest = "(renumber) hdata buffer:gui_buffers(*) number"
+    }
+
+    // HardHidden is a special thing. to hide buffer from relay only,
+    // do /buffer set localvar_set_relay hard-hide
+    // todo make this not a type?
+    enum class Type(val colorRes: Int, val hotColorRes: Int) {
+        Private(R.color.bufferListPrivate, R.color.bufferListPrivateHot),
+        Channel(R.color.bufferListChannel, R.color.bufferListChannelHot),
+        Other(R.color.bufferListOther, R.color.bufferListOtherHot),
+        HardHidden(R.color.bufferListOther, R.color.bufferListOtherHot);
+
+        companion object {
+            fun fromLocalVariables(localVariables: Hashtable): Type {
+                val relay = localVariables["relay"]
+
+                return if (relay != null && relay.asString().split(",").contains("hard-hide")) {
+                    HardHidden
+                } else {
+                    when(localVariables["type"]?.asString()) {
+                        null -> Other
+                        "private" -> Private
+                        "channel" -> Channel
+                        else -> Other
+                    }
+                }
+            }
+        }
     }
 }
 

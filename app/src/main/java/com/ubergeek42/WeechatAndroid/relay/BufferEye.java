@@ -15,7 +15,7 @@ public interface BufferEye {
     @WorkerThread void onLineAdded();
 
     // indicates changed title, local variables, number, etc
-    @WorkerThread void onPropertiesChanged();
+    @WorkerThread void onTitleChanged();
 
     // buffer was closed in weechat
     @WorkerThread void onBufferClosed();

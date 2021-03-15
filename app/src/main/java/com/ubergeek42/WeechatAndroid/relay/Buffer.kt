@@ -15,26 +15,66 @@ import com.ubergeek42.WeechatAndroid.utils.Assert
 import com.ubergeek42.cats.Cat
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
-import com.ubergeek42.weechat.relay.protocol.Hashtable
-import com.ubergeek42.weechat.relay.protocol.RelayObject
 import java.util.*
+import kotlin.properties.Delegates.observable
 
 class Buffer @WorkerThread constructor(
-        @JvmField val pointer: Long,
-        @JvmField var number: Int,
-        @JvmField var fullName: String,
-        shortName: String?,
-        @JvmField var title: String?,
-        private val notifyLevel: Int,
-        @JvmField var localVars: Hashtable,
-        @JvmField var hidden: Boolean,
-        openWhileRunning: Boolean
+    @JvmField val pointer: Long,
 ) {
+    @JvmField var number: Int = 0
+    @JvmField var fullName: String = ""
+    @JvmField var shortName: String = ""
+    @JvmField var title: String? = null
+    @JvmField var hidden: Boolean = false
+    @JvmField var type = BufferSpec.Type.Other
+
+    private var notify: Notify = Notify.default
+
+    inner class Updater {
+        var updateName = false
+        var updateTitle = false
+        var updateNotifyLevel = false
+        var updateHidden = false
+        var updateType = false
+
+        var number: Int by observable(this@Buffer.number) { _, _, _ -> updateName = true }
+        var fullName: String by observable(this@Buffer.fullName) { _, _, _ -> updateName = true }
+        var shortName: String? by observable(this@Buffer.shortName) { _, _, _ -> updateName = true }
+        var title: String? by observable(this@Buffer.title) { _, _, _ -> updateTitle = true }
+        var hidden: Boolean by observable(this@Buffer.hidden) { _, _, _ -> updateHidden = true }
+        var type: BufferSpec.Type by observable(this@Buffer.type) { _, _, _ -> updateType = true }
+        var notify: Notify? by observable(this@Buffer.notify) { _, _, _ -> updateNotifyLevel = true }
+    }
+
+    fun update(block: Updater.() -> Unit) {
+        val updater = Updater()
+        updater.block()
+
+        if (updater.updateName) {
+            fullName = updater.fullName
+            shortName = updater.shortName ?: fullName
+            processBufferNameSpannable()
+            Hotlist.adjustHotListForBuffer(this, false) // update buffer names in the notifications
+        }
+
+        if (updater.updateTitle) {
+            title = updater.title
+            processTitleLine()
+            bufferEye.onTitleChanged()
+        }
+
+        if (updater.updateNotifyLevel) notify = updater.notify ?: Notify.default
+        if (updater.updateHidden) hidden = updater.hidden
+        if (updater.updateType) type = updater.type
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
     // placed here for correct initialization
     private val detachedEye: BufferEye = object : BufferEye {
         override fun onLinesListed() {}
         override fun onLineAdded() {}
-        override fun onPropertiesChanged() {}
+        override fun onTitleChanged() {}
         override fun onBufferClosed() {}
         override fun onGlobalPreferencesChanged(numberChanged: Boolean) {
             needsToBeNotifiedAboutGlobalPreferencesChanged = true
@@ -44,7 +84,6 @@ class Buffer @WorkerThread constructor(
     private var bufferEye: BufferEye = detachedEye
     private var bufferNickListEye: BufferNicklistEye? = null
 
-    @JvmField var shortName: String = shortName ?: fullName
     @JvmField var lastReadLineServer = LAST_READ_LINE_MISSING
     @JvmField var readUnreads = 0
     @JvmField var readHighlights = 0
@@ -53,7 +92,7 @@ class Buffer @WorkerThread constructor(
 
     // number of hotlist updates while syncing this buffer. if >= 2, when the new update arrives, we
     // keep own unreads/highlights as they have been correct since the last update
-    private var hotlistUpdatesWhileSyncing = 0
+    var hotlistUpdatesWhileSyncing = 0
 
     @JvmField @Volatile var flagResetHotMessagesOnNewOwnLine = false
 
@@ -72,29 +111,13 @@ class Buffer @WorkerThread constructor(
     @JvmField var isOpen = false
     @JvmField var isWatched = false
 
-    @JvmField var type = OTHER
     @JvmField var unreads = 0
     @JvmField var highlights = 0
 
     @JvmField var printable: Spannable? = null  // printable buffer without title (for TextView)
     @JvmField var titleLine: Line? = null
 
-    init {
-        processBufferType()
-        processBufferTitle()
-
-        if (P.isBufferOpen(pointer)) setOpen(open = true, syncHotlistOnOpen = false)
-
-        // saved data would be meaningless for a newly opened buffer
-        if (!openWhileRunning) P.restoreLastReadLine(this)
-
-        // when a buffer is open while the application is already connected, such as when someone
-        // pms us, we don't have lastReadLine yet and so the subsequent hotlist update will trigger
-        // a full update. in order to avoid that, if we are syncing, let's pretend that a hotlist
-        // update has happened at this point so that the next update is “synced”
-        if (openWhileRunning && !P.optimizeTraffic) hotlistUpdatesWhileSyncing++
-        kitty.trace("→ Buffer(number=%s, fullName=%s) isOpen? %s", number, fullName, isOpen)
-    }
+    init { kitty.trace("→ Buffer(number=%s, fullName=%s) isOpen? %s", number, fullName, isOpen) }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////// LINES
@@ -186,7 +209,8 @@ class Buffer @WorkerThread constructor(
     }
 
     val hotCount: Int
-        @AnyThread @Synchronized get() = if (type == PRIVATE) unreads + highlights else highlights
+        @AnyThread @Synchronized get() = if (type == BufferSpec.Type.Private)
+                unreads + highlights else highlights
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////// stuff called by message handlers
@@ -214,8 +238,11 @@ class Buffer @WorkerThread constructor(
 
             // notify levels: 0 none 1 highlight 2 message 3 all
             // treat hidden lines and lines that are not supposed to generate a “notification” as read
-            if (isWatched || type == HARD_HIDDEN || (P.filterLines && !line.isVisible) ||
-                    notifyLevel == 0 || (notifyLevel == 1 && !notifyHighlight)) {
+            if (isWatched
+                    || type == BufferSpec.Type.HardHidden
+                    || (P.filterLines && !line.isVisible)
+                    || notify == Notify.NeverAddToHotlist
+                    || (notify == Notify.AddHighlightsOnly && !notifyHighlight)) {
                 if (notifyHighlight) { readHighlights++ }
                 else if (notifyPmOrMessage) { readUnreads++ }
             } else {
@@ -337,15 +364,6 @@ class Buffer @WorkerThread constructor(
         bufferEye.onLinesListed()
     }
 
-    @WorkerThread fun onPropertiesChanged() {
-        synchronized(this) {
-            processBufferType()
-            processBufferTitle()
-            Hotlist.adjustHotListForBuffer(this, false) // update buffer names in the notifications
-        }
-        bufferEye.onPropertiesChanged()
-    }
-
     @WorkerThread fun onBufferClosed() {
         synchronized(this) {
             unreads = 0
@@ -356,36 +374,6 @@ class Buffer @WorkerThread constructor(
     }
 
     ///////////////////////////////////////////////////////////////////////////////// private stuffs
-
-    // determine if the buffer is PRIVATE, CHANNEL, OTHER or HARD_HIDDEN
-    // hard-hidden channels do not show in any way. to hide a channel,
-    // do "/buffer set localvar_set_relay hard-hide"
-    @WorkerThread private fun processBufferType() {
-        val relay: RelayObject? = localVars["relay"]
-        type = if (relay != null && relay.asString().split(",").contains("hard-hide")) {
-            HARD_HIDDEN
-        } else {
-            val type: RelayObject? = localVars["type"]
-            when {
-                type == null -> OTHER
-                type.asString() == "private" -> PRIVATE
-                type.asString() == "channel" -> CHANNEL
-                else -> OTHER
-            }
-        }
-    }
-
-    @WorkerThread private fun processBufferTitle() {
-        val numberString = "$number "
-        val spannable = SpannableString(numberString + shortName)
-        spannable.setSpan(SUPER, 0, numberString.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-        spannable.setSpan(SMALL, 0, numberString.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-        printable = spannable
-
-        if (!TextUtils.isEmpty(title)) {
-            titleLine = TitleLine(title)
-        }
-    }
 
     // sets highlights/unreads to 0 and,
     // if something has actually changed, notifies whoever cares about it
@@ -451,15 +439,19 @@ class Buffer @WorkerThread constructor(
 
     private var needsToBeNotifiedAboutGlobalPreferencesChanged = false
 
-    companion object {
-        const val PRIVATE = 2
-        const val CHANNEL = 1
-        const val OTHER = 0
-        const val HARD_HIDDEN = -1
+    private fun processBufferNameSpannable() {
+        val numberString = "$number "
+        printable = SpannableString(numberString + shortName).apply {
+            setSpan(SUPER, 0, numberString.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            setSpan(SMALL, 0, numberString.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        }
+    }
+
+    private fun processTitleLine() {
+        titleLine = title.let { if (it.isNullOrEmpty()) null else TitleLine(title) }
     }
 }
 
 
 private val SUPER = SuperscriptSpan()
 private val SMALL = RelativeSizeSpan(0.6f)
-

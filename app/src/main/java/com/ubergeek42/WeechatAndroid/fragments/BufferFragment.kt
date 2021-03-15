@@ -520,8 +520,8 @@ class BufferFragment : Fragment(), BufferEye {
         }
     }
 
-    @WorkerThread override fun onPropertiesChanged() {
-        linesAdapter?.onPropertiesChanged()
+    @WorkerThread override fun onTitleChanged() {
+        linesAdapter?.onTitleChanged()
     }
 
     @AnyThread override fun onBufferClosed() {

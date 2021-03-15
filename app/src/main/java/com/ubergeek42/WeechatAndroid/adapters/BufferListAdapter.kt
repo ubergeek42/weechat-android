@@ -29,6 +29,7 @@ import com.ubergeek42.WeechatAndroid.adapters.BufferListAdapter.*
 import com.ubergeek42.WeechatAndroid.relay.Buffer
 import com.ubergeek42.WeechatAndroid.relay.BufferList
 import com.ubergeek42.WeechatAndroid.relay.BufferListEye
+import com.ubergeek42.WeechatAndroid.relay.BufferSpec
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.upload.main
 import com.ubergeek42.WeechatAndroid.utils.Utils
@@ -68,8 +69,8 @@ class BufferListAdapter(
             val unreads = buffer.unreads
             val highlights = buffer.highlights
 
-            val important = if (highlights > 0 || unreads > 0 && buffer.type == Buffer.PRIVATE) 1 else 0
-            uiContainer.setBackgroundResource(COLORS[buffer.type][important])
+            val important = highlights > 0 || unreads > 0 && buffer.type == BufferSpec.Type.Private
+            uiContainer.setBackgroundResource(if (important) buffer.type.hotColorRes else buffer.type.colorRes)
             uiOpen.visibility = if (buffer.isOpen) View.VISIBLE else View.GONE
 
             if (highlights > 0) {
@@ -125,14 +126,14 @@ class BufferListAdapter(
         // (waiting for main to release this) vs. main thread: onBuffersChanged() (locks this) ->
         // iteration on Buffers: (waiting for e to release BufferA). todo: resolve this gracefully
         for (buffer in BufferList.buffers) {
-            if (buffer.type == Buffer.HARD_HIDDEN) continue
+            if (buffer.type == BufferSpec.Type.HardHidden) continue
             if (!buffer.fullName.toLowerCase().contains(filterLowerCase)
                     && !buffer.fullName.toUpperCase().contains(filterUpperCase)) continue
             if (filterLowerCase.isEmpty()) {
                 if (P.hideHiddenBuffers && buffer.hidden
                         && buffer.highlights == 0
-                        && !(buffer.type == Buffer.PRIVATE && buffer.unreads != 0)) continue
-                if (P.filterBuffers && buffer.type == Buffer.OTHER
+                        && !(buffer.type == BufferSpec.Type.Private && buffer.unreads != 0)) continue
+                if (P.filterBuffers && buffer.type == BufferSpec.Type.Other
                         && buffer.highlights == 0 && buffer.unreads == 0) continue
             }
             newBuffers.add(VisualBuffer.fromBuffer(buffer))
@@ -171,7 +172,7 @@ class BufferListAdapter(
         val isOpen: Boolean,
         val highlights: Int,
         val unreads: Int,
-        val type: Int,
+        val type: BufferSpec.Type,
         val number: Int,
         val pointer: Long,
     ) {
@@ -210,13 +211,6 @@ class BufferListAdapter(
         @Root private val kitty: Kitty = Kitty.make()
 
         var filterGlobal = ""
-
-        private val COLORS = arrayOf(
-                intArrayOf(R.color.bufferListOther, R.color.bufferListOtherHot),
-                intArrayOf(R.color.bufferListChannel, R.color.bufferListChannelHot),
-                intArrayOf(R.color.bufferListPrivate, R.color.bufferListPrivateHot)
-        )
-
     }
 }
 
@@ -225,8 +219,8 @@ private val sortByHotCountAndNumberComparator = Comparator<VisualBuffer> { left,
     val highlightDiff = right.highlights - left.highlights
     if (highlightDiff != 0) return@Comparator highlightDiff
 
-    val pmLeft = if (left.type == Buffer.PRIVATE) left.unreads else 0
-    val pmRight = if (right.type == Buffer.PRIVATE) right.unreads else 0
+    val pmLeft = if (left.type == BufferSpec.Type.Private) left.unreads else 0
+    val pmRight = if (right.type == BufferSpec.Type.Private) right.unreads else 0
     val pmDiff = pmRight - pmLeft
     if (pmDiff != 0) return@Comparator pmDiff
 
@@ -238,8 +232,8 @@ private val sortByHotAndMessageCountComparator = Comparator<VisualBuffer> { left
     val highlightDiff = right.highlights - left.highlights
     if (highlightDiff != 0) return@Comparator highlightDiff
 
-    val pmLeft = if (left.type == Buffer.PRIVATE) left.unreads else 0
-    val pmRight = if (right.type == Buffer.PRIVATE) right.unreads else 0
+    val pmLeft = if (left.type == BufferSpec.Type.Private) left.unreads else 0
+    val pmRight = if (right.type == BufferSpec.Type.Private) right.unreads else 0
     val pmDiff = pmRight - pmLeft
     if (pmDiff != 0) return@Comparator pmDiff
 
