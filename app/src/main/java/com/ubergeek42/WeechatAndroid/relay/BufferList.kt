@@ -364,14 +364,11 @@ object BufferList {
                 }
             }
 
+            // before, onNicksListed() was only called on id == nicklist
             updates.forEach { (bufferPointer, nicks) ->
                 findByPointer(bufferPointer)?.let { buffer ->
-                    // todo make sensible
-                    buffer.removeAllNicks()
-                    nicks.forEach { buffer.addNick(it) }
-
-                    // sort nicknames when we receive them for the very first time
-                    if (id == "nicklist") buffer.onNicksListed()
+                    buffer.replaceAllNicks(nicks)
+                    buffer.onNicksListed()
                 }
             }
         }

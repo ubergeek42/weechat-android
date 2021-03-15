@@ -15,6 +15,7 @@ import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -67,8 +68,9 @@ class Nicks {
         }
     }
 
-    @AnyThread void clear() {
-        nicks.clear();
+    @WorkerThread void replaceNicks(Collection<Nick> nicks) {
+        this.nicks.clear();
+        this.nicks.addAll(nicks);
         status = STATUS.INIT;
     }
 

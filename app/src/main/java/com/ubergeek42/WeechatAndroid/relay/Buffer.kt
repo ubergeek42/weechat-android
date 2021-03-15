@@ -433,8 +433,8 @@ class Buffer @WorkerThread constructor(
         notifyNicklistChanged()
     }
 
-    @WorkerThread @Synchronized fun removeAllNicks() {
-        nicks.clear()
+    @WorkerThread @Synchronized fun replaceAllNicks(newNicks: Collection<Nick>) {
+        nicks.replaceNicks(newNicks)
     }
 
     @WorkerThread @Synchronized fun onNicksListed() {
