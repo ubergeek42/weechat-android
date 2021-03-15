@@ -31,6 +31,11 @@ public class SyncAlarmReceiver extends BroadcastReceiver {
     }
 
     @MainThread @Override public void onReceive(Context context, Intent intent) {
-        if (!BufferList.syncHotlist()) stop(context);
+        boolean authenticated = RelayService.staticState.contains(RelayService.STATE.AUTHENTICATED);
+        if (authenticated) {
+            BufferList.syncHotlist();
+        } else {
+            stop(context);
+        }
     }
 }

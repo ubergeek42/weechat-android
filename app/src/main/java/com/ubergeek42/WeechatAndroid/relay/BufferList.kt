@@ -26,7 +26,6 @@ const val LAST_READ_LINE_MISSING = -1L
 object BufferList {
     @Root private val kitty: Kitty = Kitty.make()
 
-    @Volatile var relay: RelayService? = null
     @Volatile private var buffersEye: BufferListEye? = null
 
     @JvmField var buffers = CopyOnWriteArrayList<Buffer>()
@@ -35,10 +34,7 @@ object BufferList {
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @JvmStatic @WorkerThread fun launch(relay: RelayService?) {
-        Assert.assertThat(BufferList.relay).isNull()
-        BufferList.relay = relay
-
+    @JvmStatic @WorkerThread fun onServiceAuthenticated() {
         defaultMessageHandlers.forEach { (id, handler) ->
             addMessageHandler(id, handler)
         }
@@ -49,8 +45,7 @@ object BufferList {
         SendMessageEvent.fire(if (P.optimizeTraffic) "sync * buffers,upgrade" else "sync")
     }
 
-    @JvmStatic @AnyThread fun stop() {
-        relay = null
+    @JvmStatic @AnyThread fun onServiceStopped() {
         handlers.clear()
     }
 
@@ -83,15 +78,9 @@ object BufferList {
     }
 
     // send synchronization data to weechat and return true. if not connected, return false
-    @JvmStatic @AnyThread fun syncHotlist(): Boolean {
-        val authenticated = relay?.state?.contains(RelayService.STATE.AUTHENTICATED) == true
-        return if (authenticated) {
-            SendMessageEvent.fire("(last_read_lines) hdata buffer:gui_buffers(*)/own_lines/last_read_line/data buffer\n" +
-                                  "(hotlist) hdata hotlist:gui_hotlist(*) buffer,count")
-            true
-        } else {
-            false
-        }
+    @JvmStatic @AnyThread fun syncHotlist() {
+        SendMessageEvent.fire("(last_read_lines) hdata buffer:gui_buffers(*)/own_lines/last_read_line/data buffer\n" +
+                              "(hotlist) hdata hotlist:gui_hotlist(*) buffer,count")
     }
 
     @JvmStatic @AnyThread fun sortOpenBuffersByBuffers(pointers: ArrayList<Long>?) {
