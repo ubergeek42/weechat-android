@@ -189,7 +189,7 @@ class BufferFragment : Fragment(), BufferEye {
             }
         }
 
-        linesAdapter = ChatLinesAdapter(uiLines).apply {
+        linesAdapter = ChatLinesAdapter(uiLines!!).apply {
             this@BufferFragment.buffer?.let {
                 buffer = it
                 loadLinesSilently()
@@ -863,7 +863,7 @@ class BufferFragment : Fragment(), BufferEye {
             matches = emptyMatches
             focusedMatch = 0
             uiLines?.removeItemDecoration(searchMatchDecoration)
-            linesAdapter?.setSearch(null)
+            linesAdapter?.search = null
         }
     }
 
@@ -872,9 +872,9 @@ class BufferFragment : Fragment(), BufferEye {
         try {
             buffer?.requestMoreLines(P.searchLineIncrement)
             val matcher = Search.Matcher.fromString(text, searchConfig)
-            linesAdapter?.setSearch(Search(matcher, searchListener))
+            linesAdapter?.search = Search(matcher, searchListener)
         } catch (e: PatternSyntaxException) {
-            linesAdapter?.setSearch(null)
+            linesAdapter?.search = null
             searchListener.onSearchResultsChanged(badRegexPatternMatches)
         }
     }

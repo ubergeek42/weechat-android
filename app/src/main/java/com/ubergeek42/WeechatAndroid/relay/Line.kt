@@ -30,7 +30,7 @@ open class Line constructor(
     @JvmField val isVisible: Boolean,
     @JvmField val isHighlighted: Boolean,
     @JvmField val displayAs: LineSpec.DisplayAs,
-    @JvmField val notify: LineSpec.NotifyLevel
+    @JvmField val notify: LineSpec.NotifyLevel  // todo rename notifyLevel
 ) {
     @AnyThread fun ensureSpannable() {
         if (_spannable != null) return

@@ -11,214 +11,186 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+package com.ubergeek42.WeechatAndroid.adapters
 
-package com.ubergeek42.WeechatAndroid.adapters;
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.Button
+import androidx.annotation.AnyThread
+import androidx.annotation.MainThread
+import androidx.annotation.WorkerThread
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerView.ViewHolder
+import com.ubergeek42.WeechatAndroid.R
+import com.ubergeek42.WeechatAndroid.R.layout
+import com.ubergeek42.WeechatAndroid.Weechat
+import com.ubergeek42.WeechatAndroid.copypaste.showCopyDialog
+import com.ubergeek42.WeechatAndroid.relay.Buffer
+import com.ubergeek42.WeechatAndroid.relay.BufferEye
+import com.ubergeek42.WeechatAndroid.relay.HEADER_POINTER
+import com.ubergeek42.WeechatAndroid.relay.Line
+import com.ubergeek42.WeechatAndroid.relay.LineSpec
+import com.ubergeek42.WeechatAndroid.relay.Lines
+import com.ubergeek42.WeechatAndroid.relay.MARKER_POINTER
+import com.ubergeek42.WeechatAndroid.search.Search
+import com.ubergeek42.WeechatAndroid.service.P
+import com.ubergeek42.WeechatAndroid.upload.i
+import com.ubergeek42.WeechatAndroid.upload.main
+import com.ubergeek42.WeechatAndroid.utils.AnimatedRecyclerView
+import com.ubergeek42.WeechatAndroid.utils.Toaster
+import com.ubergeek42.WeechatAndroid.utils.forEachReversedIndexed
+import com.ubergeek42.WeechatAndroid.utils.isAnyOf
+import com.ubergeek42.WeechatAndroid.utils.ulet
+import com.ubergeek42.WeechatAndroid.views.LineView
+import com.ubergeek42.WeechatAndroid.views.solidColor
+import com.ubergeek42.WeechatAndroid.views.updateMargins
+import com.ubergeek42.cats.Kitty
+import com.ubergeek42.cats.Root
+import com.ubergeek42.weechat.ColorScheme
+import java.util.*
 
-import androidx.annotation.AnyThread;
-import androidx.annotation.MainThread;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.WorkerThread;
-import androidx.recyclerview.widget.DiffUtil;
-import androidx.recyclerview.widget.RecyclerView;
+class ChatLinesAdapter @MainThread constructor(
+    private val uiLines: AnimatedRecyclerView
+) : RecyclerView.Adapter<ViewHolder>(), BufferEye {
+    @Root private val kitty: Kitty = Kitty.make("ChatLinesAdapter")
 
-import android.text.TextUtils;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Button;
+    private val inflater = LayoutInflater.from(uiLines.context)
 
-import com.ubergeek42.WeechatAndroid.R;
-import com.ubergeek42.WeechatAndroid.Weechat;
-import com.ubergeek42.WeechatAndroid.copypaste.CopyKt;
-import com.ubergeek42.WeechatAndroid.relay.Buffer;
-import com.ubergeek42.WeechatAndroid.relay.BufferEye;
-import com.ubergeek42.WeechatAndroid.relay.Line;
-import com.ubergeek42.WeechatAndroid.relay.LineSpec;
-import com.ubergeek42.WeechatAndroid.relay.Lines;
-import com.ubergeek42.WeechatAndroid.search.Search;
-import com.ubergeek42.WeechatAndroid.service.P;
-import com.ubergeek42.WeechatAndroid.utils.AnimatedRecyclerView;
-import com.ubergeek42.WeechatAndroid.utils.Utils;
-import com.ubergeek42.WeechatAndroid.views.LineView;
-import com.ubergeek42.cats.Cat;
-import com.ubergeek42.cats.Kitty;
-import com.ubergeek42.cats.Root;
-import com.ubergeek42.weechat.ColorScheme;
+    private var lines = ArrayList<Line>()
+    @Volatile private var _lines: List<Line> = ArrayList<Line>()
 
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.List;
+    init { setHasStableIds(true) }
 
-import static com.ubergeek42.WeechatAndroid.R.layout.more_button;
-import static com.ubergeek42.WeechatAndroid.R.layout.read_marker;
-
-import static com.ubergeek42.WeechatAndroid.relay.LinesKt.HEADER_POINTER;
-import static com.ubergeek42.WeechatAndroid.relay.LinesKt.MARKER_POINTER;
-import static com.ubergeek42.WeechatAndroid.utils.Toaster.ShortToast;
-import static com.ubergeek42.WeechatAndroid.utils.Utils.Predicate;
-import static com.ubergeek42.WeechatAndroid.utils.Assert.assertThat;
-
-
-public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements BufferEye {
-    final private @Root Kitty kitty = Kitty.make("ChatLinesAdapter");
-
-    private final AnimatedRecyclerView uiLines;
-    private @Nullable Buffer buffer;
-    private List<Line> lines = new ArrayList<>();
-    volatile private List<Line> _lines = new ArrayList<>();
-
-    @MainThread public ChatLinesAdapter(AnimatedRecyclerView animatedRecyclerView) {
-        this.uiLines = animatedRecyclerView;
-        setHasStableIds(true);
-    }
-
-    @MainThread public @Nullable Buffer getBuffer() {
-        return buffer;
-    }
-
-    @MainThread public synchronized void setBuffer(@Nullable Buffer buffer) {
-        if (this.buffer == buffer) return;
-        this.buffer = buffer;
-        kitty.setPrefix(buffer == null ? null : buffer.shortName);
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// row
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    private static class Row extends RecyclerView.ViewHolder {
-        final private LineView lineView;
-
-        @MainThread Row(View view, long bufferPointer) {
-            super(view);
-            lineView = (LineView) view;
-            lineView.setOnLongClickListener((View v) -> {
-                CopyKt.showCopyDialog(lineView, bufferPointer);
-                return true;
-            });
+    var buffer: Buffer? = null
+        @MainThread get
+        @MainThread @Synchronized set(value) {
+            if (field != value) {
+                field = value
+                kitty.setPrefix(value?.shortName)
+            }
         }
 
-        @MainThread void update(Line line) {
-            lineView.setTag(line);
-            lineView.setText(line);
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////// holders
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+    private class Row(view: LineView, bufferPointer: Long) : ViewHolder(view) {
+        private val lineView = view.apply {
+            setOnLongClickListener {
+                showCopyDialog(this, bufferPointer)
+                true
+            }
+        }
+
+        @MainThread fun update(line: Line) {
+            lineView.tag = line
+            lineView.setText(line)
         }
     }
 
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// read marker
-    ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private static class ReadMarkerRow extends RecyclerView.ViewHolder {
-        private View view;
 
-        @MainThread ReadMarkerRow(View view) {
-            super(view);
-            this.view = view;
-        }
-
-        @MainThread void update() {
-            view.setBackgroundColor(0xFF000000 | ColorScheme.get().chat_read_marker[0]);
+    private class ReadMarkerRow(private val view: View) : ViewHolder(view) {
+        @MainThread fun update() {
+            view.setBackgroundColor(ColorScheme.get().chat_read_marker[0].solidColor)
         }
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// header
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private static class Header extends RecyclerView.ViewHolder implements View.OnClickListener {
-        private LineView title;
-        private Button button;
-        private ChatLinesAdapter adapter;
-        private Lines.Status status = Lines.Status.CanFetchMore;
 
-        @MainThread Header(View header, ChatLinesAdapter adapter) {
-            super(header);
-            this.adapter = adapter;
-            title = header.findViewById(R.id.title);
-            title.setOnLongClickListener((View v) -> {
-                CopyKt.showCopyDialog(title, adapter.buffer.pointer);
-                return true;
-            });
-            button = header.findViewById(R.id.button_more);
-            button.setOnClickListener(this);
+    private class Header(header: View, private val adapter: ChatLinesAdapter) : ViewHolder(header) {
+        private val title: LineView = header.findViewById<LineView>(R.id.title).apply {
+            setOnLongClickListener {
+                showCopyDialog(this, adapter.buffer!!.pointer)
+                true
+            }
         }
 
-        @MainThread void update() {
-            if (adapter.buffer == null) return;
-            updateButton();
-            updateTitle();
+        private val button: Button = header.findViewById<Button>(R.id.button_more).apply {
+            setOnClickListener {
+                adapter.buffer?.let { buffer ->
+                    buffer.requestMoreLines()
+                    updateButton()
+                }
+            }
         }
 
-        @MainThread private void updateButton() {
-            if (adapter.buffer == null) return;
-            final Lines.Status s = adapter.buffer.getLinesStatus();
-            if (status == s) return;
-            status = s;
-            if (s == Lines.Status.EverythingFetched) {
-                button.setVisibility(View.GONE);
+        @MainThread fun update() {
+            updateButton()
+            updateTitle()
+        }
+
+        private var linesStatus = Lines.Status.CanFetchMore
+        @MainThread private fun updateButton() = ulet(adapter.buffer) { buffer: Buffer ->
+            val linesStatus = buffer.linesStatus
+            if (this.linesStatus !== linesStatus) {
+                this.linesStatus = linesStatus
+
+                if (linesStatus === Lines.Status.EverythingFetched) {
+                    button.visibility = View.GONE
+                } else {
+                    button.visibility = View.VISIBLE
+                    val canFetchMore = linesStatus === Lines.Status.CanFetchMore
+                    button.isEnabled = canFetchMore
+                    button.text = button.context.getString(if (canFetchMore)
+                        R.string.ui__button_fetch_more_lines else R.string.ui__button_fetching_lines)
+                }
+            }
+        }
+
+        @MainThread private fun updateTitle() = ulet(adapter.buffer) { buffer: Buffer ->
+            val titleLine = buffer.titleLine
+            if (titleLine == null || titleLine.spannable.isEmpty() || !buffer.linesAreReady()) {
+                title.visibility = View.GONE
             } else {
-                button.setVisibility(View.VISIBLE);
-                boolean more = s == Lines.Status.CanFetchMore;
-                button.setEnabled(more);
-                button.setText(button.getContext().getString(more ? R.string.ui__button_fetch_more_lines : R.string.ui__button_fetching_lines));
+                title.visibility = View.VISIBLE
+                title.updateMargins(bottom = if (button.visibility == View.GONE) P._4dp.i else 0)
+                title.setText(titleLine)
+                title.tag = titleLine
             }
         }
+    }
 
-        @MainThread private void updateTitle() {
-            if (adapter.buffer == null) return;
-            Line titleLine = adapter.buffer.titleLine;
-            if (titleLine == null || TextUtils.isEmpty(titleLine.getSpannable()) || !adapter.buffer.linesAreReady()) {
-                title.setVisibility(View.GONE);
-                return;
-            }
-            title.setVisibility(View.VISIBLE);
-            Utils.setBottomMargin(title, button.getVisibility() == View.GONE ? (int) P._4dp : 0);
-            title.setText(titleLine);
-            title.setTag(titleLine);
-        }
 
-        @MainThread @Override public void onClick(View v) {
-            if (adapter.buffer == null) return;
-            adapter.buffer.requestMoreLines();
-            updateButton();
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////// adapter
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+    @MainThread override fun getItemViewType(position: Int): Int {
+        return when (lines[position].pointer) {
+            HEADER_POINTER -> HEADER_TYPE
+            MARKER_POINTER -> MARKER_TYPE
+            else -> LINE_TYPE
         }
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// RecyclerView.Adapter methods
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    final private static int HEADER_TYPE = -1, LINE_TYPE = 0, MARKER_TYPE = 1;
-
-    @MainThread @Override public int getItemViewType(int position) {
-        long pointer = lines.get(position).pointer;
-        if (pointer == HEADER_POINTER) return HEADER_TYPE;
-        if (pointer == MARKER_POINTER) return MARKER_TYPE;
-        return LINE_TYPE;
+    @MainThread override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        return when (viewType) {
+            HEADER_TYPE -> Header(inflater.inflate(layout.more_button, parent, false), this)
+            MARKER_TYPE -> ReadMarkerRow(inflater.inflate(layout.read_marker, parent, false))
+            else -> Row(LineView(parent.context), buffer!!.pointer)
+        }
     }
 
-    @MainThread @Override public @NonNull RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        LayoutInflater i = LayoutInflater.from(parent.getContext());
-        if (viewType == HEADER_TYPE) return new Header(i.inflate(more_button, parent, false), this);
-        else if (viewType == MARKER_TYPE) return new ReadMarkerRow(i.inflate(read_marker, parent, false));
-        else return new Row(new LineView(parent.getContext()), buffer.pointer);
+    @MainThread override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        when (lines[position].pointer) {
+            HEADER_POINTER -> (holder as Header).update()
+            MARKER_POINTER -> (holder as ReadMarkerRow).update()
+            else -> (holder as Row).update(lines[position])
+        }
     }
 
-    @MainThread @Override public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-        long pointer = lines.get(position).pointer;
-        if (pointer == HEADER_POINTER) ((Header) holder).update();
-        else if (pointer == MARKER_POINTER) ((ReadMarkerRow) holder).update();
-        else ((Row) holder).update(lines.get(position));
-    }
+    @MainThread override fun getItemCount() = lines.size
 
-    @MainThread @Override public int getItemCount() {
-        return lines.size();
-    }
-
-    @MainThread @Override public long getItemId(int position) {
-        return lines.get(position).pointer;
-    }
+    @MainThread override fun getItemId(position: Int) = lines[position].pointer
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -228,160 +200,143 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     // this might be called by multiple threads in rapid succession
     // in case non-main thread calls this before the Runnable that sets `lines` is executed,
     // store the new list in `_lines` so that we can produce a proper diff
-    @AnyThread private synchronized void onLinesChanged() {
-        if (buffer == null) return;
-        final ArrayList<Line> newLines = buffer.getLinesCopy();
+    @AnyThread @Synchronized private fun onLinesChanged() = ulet(buffer) { buffer ->
+        val newLines = buffer.linesCopy
 
-        final boolean hack = _lines.size() == 1 && newLines.size() > 1;
+        val hack = _lines.size == 1 && newLines.size > 1
 
-        final DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new DiffCallback(_lines, newLines), false);
-        _lines = newLines;
+        val diffResult = DiffUtil.calculateDiff(DiffCallback(_lines, newLines), false)
+        _lines = newLines
 
-        Weechat.runOnMainThreadASAP(() -> {
-            lines = newLines;
-            diffResult.dispatchUpdatesTo(ChatLinesAdapter.this);
-            if (uiLines.getOnBottom()) {
-                if (hack) uiLines.scrollToPosition(getItemCount() - 1);
-                else uiLines.smoothScrollToPosition(getItemCount() - 1);
+        Weechat.runOnMainThreadASAP {
+            lines = newLines
+            diffResult.dispatchUpdatesTo(this@ChatLinesAdapter)
+
+            if (uiLines.onBottom) {
+                if (hack) {
+                    uiLines.scrollToPosition(itemCount - 1)
+                } else {
+                    uiLines.smoothScrollToPosition(itemCount - 1)
+                }
+            } else {
+                uiLines.flashScrollbar()
             }
-            else uiLines.flashScrollbar();
-            uiLines.scheduleAnimationRestoring();
-            if (search != null) search.onLinesChanged(newLines);
-        });
+
+            uiLines.scheduleAnimationRestoring()
+            search?.onLinesChanged(newLines)
+        }
     }
 
-    @AnyThread private void updateHeader() {
-        Weechat.runOnMainThread(() -> notifyItemChanged(0));
+    @AnyThread private fun updateHeader() {
+        Weechat.runOnMainThread { notifyItemChanged(0) }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// BufferEye
+    ////////////////////////////////////////////////////////////////////////////////////// BufferEye
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    // increasing `style` will make all ViewHolders update visual characteristics
-    @MainThread @Override public synchronized void onGlobalPreferencesChanged(boolean numberChanged) {
+    @MainThread @Synchronized override fun onGlobalPreferencesChanged(numberChanged: Boolean) {
         if (numberChanged && buffer != null) {
-            onLinesChanged();
+            onLinesChanged()
         } else {
-            notifyItemRangeChanged(0, _lines.size());
+            notifyItemRangeChanged(0, _lines.size)
         }
     }
 
-    @WorkerThread @Override public void onLinesListed() {
-        onLinesChanged();
-        updateHeader();
+    @WorkerThread override fun onLinesListed() {
+        onLinesChanged()
+        updateHeader()
     }
 
-    volatile Lines.Status cachedStatus = null;
-    @AnyThread @Override public void onLineAdded() {    // todo change to @WorkerThread
-        onLinesChanged();
-        Lines.Status status = buffer.getLinesStatus();
-        if (cachedStatus != status) {
-            cachedStatus = status;
-            updateHeader();
+    @Volatile var cachedStatus: Lines.Status? = null
+
+    @AnyThread override fun onLineAdded()  = ulet(buffer) { buffer ->
+        onLinesChanged()
+        val status = buffer.linesStatus
+        if (cachedStatus !== status) {
+            cachedStatus = status
+            updateHeader()
         }
     }
 
-    @WorkerThread @Override public void onTitleChanged() {
-        updateHeader();
+    @WorkerThread override fun onTitleChanged() {
+        updateHeader()
     }
 
-    @WorkerThread @Override public void onBufferClosed() {}
+    @WorkerThread override fun onBufferClosed() {}
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @MainThread public void loadLinesWithoutAnimation() {
-        if (buffer == null) return;
-        uiLines.disableAnimationForNextUpdate();
-        onLinesChanged();
+    @MainThread fun loadLinesWithoutAnimation() = ulet(buffer) {
+        uiLines.disableAnimationForNextUpdate()
+        onLinesChanged()
     }
 
-    @MainThread synchronized public void loadLinesSilently() {
-        if (buffer == null) return;
-        final ArrayList<Line> newLines = buffer.getLinesCopy();
-        _lines = newLines;
-        lines = newLines;
+    @MainThread @Synchronized fun loadLinesSilently() = ulet(buffer) { buffer ->
+        val newLines = buffer.linesCopy
+        _lines = newLines
+        lines = newLines
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////// find hot line
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    private final static int HOT_LINE_LOST = -1;
-    private final static int HOT_LINE_NOT_PRESENT = -3;
-    private final static Predicate<Line> hotLinePredicate = l ->
-            EnumSet.of(LineSpec.NotifyLevel.Highlight, LineSpec.NotifyLevel.Private).contains(l.notify);
-
-    @MainThread @Cat("Scrolling") public void scrollToHotLineIfNeeded() {
-        final int idx = findHotLine();
-        if (idx == HOT_LINE_NOT_PRESENT) return;
-        if (idx == HOT_LINE_LOST) ShortToast.show(R.string.error__etc__hot_line_lost);
-        // run scrolling slightly delayed so that stuff on current thread doesn't get in the way
-        else Weechat.runOnMainThread(() -> uiLines.smoothScrollToPositionAfterAnimation(idx), 100);
-    }
-
-    @MainThread @Cat(value="Scrolling", exit=true) private int findHotLine() {
-        assertThat(buffer).isNotNull();
-        assertThat(buffer.linesAreReady()).isTrue();
-        final List<Line> lines = _lines;
-
-        int skip = buffer.getHotCount();
-        if (skip == 0) return HOT_LINE_NOT_PRESENT;
-
-        for (int idx = lines.size() - 1; idx >= 0; idx--)
-            if (hotLinePredicate.test(lines.get(idx)) && --skip == 0) return idx;
-
-        return HOT_LINE_LOST;
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    private static class DiffCallback extends DiffUtil.Callback {
-        private List<Line> oldLines, newLines;
-
-        DiffCallback(List<Line> oldLines, List<Line> newLines) {
-            this.oldLines = oldLines;
-            this.newLines = newLines;
-        }
-
-        @Override public int getOldListSize() {
-            return oldLines.size();
-        }
-
-        @Override public int getNewListSize() {
-            return newLines.size();
-        }
-
-        @Override public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
-            return oldLines.get(oldItemPosition).pointer == newLines.get(newItemPosition).pointer;
-        }
-
-        @Override public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
-            return areItemsTheSame(oldItemPosition, newItemPosition);
+    // run scrolling slightly delayed so that stuff on current thread doesn't get in the way
+    @MainThread fun scrollToHotLineIfNeeded() {
+        when (val idx = findHotLine()) {
+            HOT_LINE_NOT_PRESENT -> return
+            HOT_LINE_LOST -> Toaster.ShortToast.show(R.string.error__etc__hot_line_lost)
+            else -> main(100) { uiLines.smoothScrollToPositionAfterAnimation(idx) }
         }
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////
+    private fun findHotLine(): Int {
+        var skip = buffer?.hotCount ?: 0
+        if (skip == 0) return HOT_LINE_NOT_PRESENT
 
-    private Search search = null;
-
-    @MainThread public void setSearch(Search search) {
-        this.search = search;
-        if (search != null) search.onLinesChanged(lines);
-    }
-
-    @MainThread public int findPositionByPointer(long pointer) {
-        int index = 0;
-        for (Line line: lines) {
-            if (line.pointer == pointer) {
-                return index;
+        lines.forEachReversedIndexed { index, line ->
+            if (line.notify.isAnyOf(LineSpec.NotifyLevel.Highlight,
+                                    LineSpec.NotifyLevel.Private)) {
+                if (--skip == 0) return index
             }
-            index++;
         }
-        return -1;
+
+        return HOT_LINE_LOST
     }
+
+    @MainThread fun findPositionByPointer(pointer: Long): Int {
+        lines.forEachIndexed { index, line ->
+            if (line.pointer == pointer) return index
+        }
+        return -1
+    }
+
+    var search: Search? = null
+        @MainThread set(value) {
+            field = value
+            value?.onLinesChanged(lines)
+        }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private class DiffCallback(
+        private val oldLines: List<Line>,
+        private val newLines: List<Line>
+    ) : DiffUtil.Callback() {
+        override fun getOldListSize() = oldLines.size
+        override fun getNewListSize() = newLines.size
+
+        override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+            return oldLines[oldItemPosition].pointer == newLines[newItemPosition].pointer
+        }
+
+        override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int) = true
+    }
+
 }
+
+
+private const val HEADER_TYPE = -1
+private const val LINE_TYPE = 0
+private const val MARKER_TYPE = 1
+
+
+private const val HOT_LINE_LOST = -1
+private const val HOT_LINE_NOT_PRESENT = -3

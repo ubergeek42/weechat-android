@@ -49,6 +49,14 @@ fun String.removeChars(badChars: CharSequence): CharSequence {
 }
 
 
+inline fun <E> List<E>.forEachReversedIndexed(block: (idx: Int, element: E) -> Unit) {
+    var index = size -1
+    while (index >= 0) {
+        block(index, this[index--])
+    }
+}
+
+
 inline fun EditText.afterTextChanged(crossinline after: (s: Editable) -> Unit) {
     val textWatcher = object : TextWatcher {
         override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
