@@ -909,7 +909,7 @@ class BufferFragment : Fragment(), BufferEye {
         searchResultCount?.text = if (matches === badRegexPatternMatches)
                 "err" else {
             val size = matches.size.toString()
-            val fetching = buffer?.linesStatus == Lines.STATUS.FETCHING
+            val fetching = buffer?.linesStatus == Lines.Status.Fetching
             if (fetching) "$size+" else size
         }
     }

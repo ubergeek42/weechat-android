@@ -52,9 +52,9 @@ import java.util.List;
 
 import static com.ubergeek42.WeechatAndroid.R.layout.more_button;
 import static com.ubergeek42.WeechatAndroid.R.layout.read_marker;
-import static com.ubergeek42.WeechatAndroid.relay.Lines.HEADER_POINTER;
-import static com.ubergeek42.WeechatAndroid.relay.Lines.MARKER_POINTER;
 
+import static com.ubergeek42.WeechatAndroid.relay.LinesKt.HEADER_POINTER;
+import static com.ubergeek42.WeechatAndroid.relay.LinesKt.MARKER_POINTER;
 import static com.ubergeek42.WeechatAndroid.utils.Toaster.ShortToast;
 import static com.ubergeek42.WeechatAndroid.utils.Utils.Predicate;
 import static com.ubergeek42.WeechatAndroid.utils.Assert.assertThat;
@@ -130,7 +130,7 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         private LineView title;
         private Button button;
         private ChatLinesAdapter adapter;
-        private Lines.STATUS status = Lines.STATUS.CAN_FETCH_MORE;
+        private Lines.Status status = Lines.Status.CanFetchMore;
 
         @MainThread Header(View header, ChatLinesAdapter adapter) {
             super(header);
@@ -152,14 +152,14 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 
         @MainThread private void updateButton() {
             if (adapter.buffer == null) return;
-            final Lines.STATUS s = adapter.buffer.getLinesStatus();
+            final Lines.Status s = adapter.buffer.getLinesStatus();
             if (status == s) return;
             status = s;
-            if (s == Lines.STATUS.EVERYTHING_FETCHED) {
+            if (s == Lines.Status.EverythingFetched) {
                 button.setVisibility(View.GONE);
             } else {
                 button.setVisibility(View.VISIBLE);
-                boolean more = s == Lines.STATUS.CAN_FETCH_MORE;
+                boolean more = s == Lines.Status.CanFetchMore;
                 button.setEnabled(more);
                 button.setText(button.getContext().getString(more ? R.string.ui__button_fetch_more_lines : R.string.ui__button_fetching_lines));
             }
@@ -272,10 +272,10 @@ public class ChatLinesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         updateHeader();
     }
 
-    volatile Lines.STATUS cachedStatus = null;
+    volatile Lines.Status cachedStatus = null;
     @AnyThread @Override public void onLineAdded() {    // todo change to @WorkerThread
         onLinesChanged();
-        Lines.STATUS status = buffer.getLinesStatus();
+        Lines.Status status = buffer.getLinesStatus();
         if (cachedStatus != status) {
             cachedStatus = status;
             updateHeader();

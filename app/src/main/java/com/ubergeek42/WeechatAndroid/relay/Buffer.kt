@@ -97,14 +97,14 @@ class Buffer @WorkerThread constructor(
     @JvmField @Volatile var flagResetHotMessagesOnNewOwnLine = false
 
     // todo make val again
-    private var lines: Lines = Lines(this.shortName)
+    private var lines: Lines = Lines()
     private var nicks: Nicks = Nicks(this.shortName)
 
     // todo copy in a better way
     fun copyOldDataFrom(buffer: Buffer) {
         this.lines = buffer.lines
         this.nicks = buffer.nicks
-        lines.status = Lines.STATUS.INIT
+        lines.status = Lines.Status.Init
         nicks.status = Nicks.STATUS.INIT
     }
 
@@ -126,11 +126,11 @@ class Buffer @WorkerThread constructor(
     // get a copy of lines, filtered or not according to global settings
     // contains read marker and header
     val linesCopy: ArrayList<Line>
-        @Synchronized @AnyThread get() = lines.copy
+        @Synchronized @AnyThread get() = lines.getCopy()
 
     @AnyThread fun linesAreReady() = lines.status.ready()
 
-    val linesStatus: Lines.STATUS
+    val linesStatus: Lines.Status
         @AnyThread get() = lines.status
 
     // sets buffer as open or closed
@@ -150,7 +150,7 @@ class Buffer @WorkerThread constructor(
             if (P.optimizeTraffic) {
                 // request lines & nicks on the next sync
                 // the previous comment here was stupid
-                lines.status = Lines.STATUS.INIT
+                lines.status = Lines.Status.Init
                 nicks.status = Nicks.STATUS.INIT
                 hotlistUpdatesWhileSyncing = 0
             }
@@ -169,7 +169,7 @@ class Buffer @WorkerThread constructor(
     @MainThread @Cat @Synchronized fun setBufferEye(bufferEye: BufferEye?) {
         this.bufferEye = bufferEye ?: detachedEye
         if (bufferEye != null) {
-            if (lines.status == Lines.STATUS.INIT) requestMoreLines()
+            if (lines.status == Lines.Status.Init) requestMoreLines()
             if (nicks.status == Nicks.STATUS.INIT) BufferList.requestNicklistForBuffer(pointer)
             if (needsToBeNotifiedAboutGlobalPreferencesChanged) {
                 bufferEye.onGlobalPreferencesChanged(false)
@@ -179,14 +179,14 @@ class Buffer @WorkerThread constructor(
     }
 
     @MainThread @Synchronized fun requestMoreLines() {
-        requestMoreLines(lines.maxLines + P.lineIncrement)
+        requestMoreLines(lines.maxUnfilteredSize + P.lineIncrement)
     }
 
     @MainThread @Synchronized fun requestMoreLines(newSize: Int) {
-        if (lines.maxLines >= newSize) return
-        if (lines.status == Lines.STATUS.EVERYTHING_FETCHED) return
+        if (lines.maxUnfilteredSize >= newSize) return
+        if (lines.status == Lines.Status.EverythingFetched) return
         lines.onMoreLinesRequested(newSize)
-        BufferList.requestLinesForBuffer(pointer, lines.maxLines)
+        BufferList.requestLinesForBuffer(pointer, lines.maxUnfilteredSize)
     }
 
     // tells buffer whether it is fully display on screen
@@ -204,7 +204,7 @@ class Buffer @WorkerThread constructor(
     @MainThread @Synchronized fun moveReadMarkerToEnd() {
         lines.moveReadMarkerToEnd()
         if (P.hotlistSync) Events.SendMessageEvent.fire(
-                "input 0x%1${"$"}x /buffer set hotlist -1" +
+                "input 0x%1${"$"}x /buffer set hotlist -1\n" +
                 "input 0x%1${"$"}x /input set_unread_current_buffer", pointer)
     }
 
