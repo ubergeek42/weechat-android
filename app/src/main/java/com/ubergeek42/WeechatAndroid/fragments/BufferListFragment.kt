@@ -116,13 +116,13 @@ class BufferListFragment : Fragment(), BufferListEye {
     ////////////////////////////////////////////////////////////////////////////////////// the juice
 
     @AnyThread private fun attachToBufferList() {
-        BufferList.setBufferListEye(this)
+        BufferList.bufferListEye = this
         applyFilter()
         onBuffersChanged()
     }
 
     @MainThread private fun detachFromBufferList() {
-        BufferList.setBufferListEye(null)
+        BufferList.bufferListEye = null
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

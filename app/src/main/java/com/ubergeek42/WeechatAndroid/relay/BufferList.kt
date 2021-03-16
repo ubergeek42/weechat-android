@@ -8,7 +8,6 @@ import androidx.annotation.MainThread
 import androidx.annotation.WorkerThread
 import com.ubergeek42.WeechatAndroid.service.Events.SendMessageEvent
 import com.ubergeek42.WeechatAndroid.service.P
-import com.ubergeek42.WeechatAndroid.utils.Assert
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
 import com.ubergeek42.weechat.relay.protocol.Hdata
@@ -22,20 +21,12 @@ const val LAST_READ_LINE_MISSING = -1L
 
 
 object BufferList {
-    @Root private val kitty: Kitty = Kitty.make()
+    @Root private val kitty = Kitty.make()
 
-    @Volatile private var buffersEye: BufferListEye? = null
-
-    @JvmField var buffers = CopyOnWriteArrayList<Buffer>()
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////// lifecycle
 
     @JvmStatic @WorkerThread fun onServiceAuthenticated() {
-        defaultMessageHandlers.forEach { (id, handler) ->
-            addMessageHandler(id, handler)
-        }
+        defaultMessageHandlers.forEach { (id, handler) -> addMessageHandler(id, handler) }
 
         SendMessageEvent.fire(BufferSpec.listBuffersRequest)
         syncHotlist()
@@ -46,27 +37,40 @@ object BufferList {
         handlers.clear()
     }
 
+    //////////////////////////////////////////////////////////////////////////////////////// buffers
+
+    @JvmField @Volatile var buffers = CopyOnWriteArrayList<Buffer>()
+
+    @JvmStatic @AnyThread fun findByPointer(pointer: Long): Buffer? {
+        return buffers.firstOrNull { it.pointer == pointer }.also {
+            it ?: kitty.warn("did not find buffer pointer: ${pointer.as0x}")
+        }
+    }
+
+    @JvmStatic @AnyThread private fun findByPointerNoWarn(pointer: Long): Buffer? {
+        return buffers.firstOrNull { it.pointer == pointer }
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////////// handlers
+
     private val handlers = ConcurrentHashMap<String, HdataHandler>()
+    private var handlerIdCounter = 0
 
     @AnyThread private fun addMessageHandler(id: String, handler: HdataHandler) {
-        Assert.assertThat(handlers.put(id, handler)).isNull()
+        handlers[id] = handler
     }
 
-    private var counter = 0
+    @AnyThread private fun removeMessageHandler(id: String) {
+        handlers.remove(id)
+    }
+
     @AnyThread fun addOneOffMessageHandler(handler: HdataHandler): String {
-        val wrappedHandler = object : HdataHandler {
-            override fun handleMessage(obj: Hdata, id: String) {
-                handler.handleMessage(obj, id)
-                removeMessageHandler(id, this)
-            }
+        val id = handlerIdCounter++.toString()
+        addMessageHandler(id) { obj, _ ->
+            removeMessageHandler(id)
+            handler.handleMessage(obj, id)
         }
-        val id = counter++.toString()
-        Assert.assertThat(handlers.put(id, wrappedHandler)).isNull()
         return id
-    }
-
-    @AnyThread fun removeMessageHandler(id: String, handler: HdataHandler) {
-        handlers.remove(id, handler)
     }
 
     @JvmStatic @WorkerThread fun handleMessage(obj: RelayObject?, id: String) {
@@ -75,10 +79,21 @@ object BufferList {
         }
     }
 
-    // send synchronization data to weechat and return true. if not connected, return false
-    @JvmStatic @AnyThread fun syncHotlist() {
-        SendMessageEvent.fire(LastReadLineSpec.request + "\n" + HotlistSpec.request)
+    //////////////////////////////////////////////////////////////////////////////////////////// eye
+
+    @Volatile var bufferListEye: BufferListEye? = null
+
+    @AnyThread fun notifyBuffersChanged() {
+        bufferListEye?.onBuffersChanged()
     }
+
+    // process all open buffers and, if specified, notify them of the change
+    // todo make sense of this
+    @JvmStatic @MainThread fun onGlobalPreferencesChanged(numberChanged: Boolean) {
+        buffers.filter { it.isOpen }.forEach { it.onGlobalPreferencesChanged(numberChanged) }
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////////////// misc
 
     @JvmStatic @AnyThread fun sortOpenBuffersByBuffers(pointers: ArrayList<Long>?) {
         val bufferToNumber = LongSparseArray<Int>()
@@ -86,43 +101,19 @@ object BufferList {
         pointers?.sortWith { l, r -> bufferToNumber[l, -1] - bufferToNumber[r, -1] }
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////// called by the Eye
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    // todo make val
     @JvmStatic @MainThread fun hasData() = buffers.size > 0
 
-    // todo make setter
-    @JvmStatic @AnyThread fun setBufferListEye(buffersEye: BufferListEye?) {
-        this.buffersEye = buffersEye
-    }
+    @MainThread fun getNextHotBuffer() = buffers.firstOrNull { it.hotCount > 0 }
+
+    val hotBufferCount: Int @MainThread get() = buffers.count { it.hotCount > 0 }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    // returns a "random" hot buffer or null
-    val hotBuffer: Buffer?
-        @MainThread get() = buffers.firstOrNull { it.hotCount > 0 }
-
-    val hotBufferCount: Int
-        @MainThread get() = buffers.count { it.hotCount > 0 }
-
-    //////////////////////////////////////////////////////////////// called on the Eye
-    ////////////////////////////////////////////////////////////////    from this and Buffer (local)
-    ////////////////////////////////////////////////////////////////    (also alert Buffer)
-
-    @AnyThread fun notifyBuffersChanged() {
-        buffersEye?.onBuffersChanged()
-    }
-
-    // process all open buffers and, if specified, notify them of the change
-    @JvmStatic @MainThread fun onGlobalPreferencesChanged(numberChanged: Boolean) {
-        buffers.filter { it.isOpen }.forEach { it.onGlobalPreferencesChanged(numberChanged) }
-    }
-
+    /////////////////////////////////////////////////////////////////////////////////////// requests
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////// called from Buffer & RelayService (local)
-    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    @JvmStatic @AnyThread fun syncHotlist() {
+        SendMessageEvent.fire(LastReadLineSpec.request + "\n" + HotlistSpec.request)
+    }
 
     // if optimizing traffic, sync hotlist to make sure the number of unread messages is correct
     // syncHotlist parameter is used to avoid synchronizing hotlist several times in a row when
@@ -149,28 +140,13 @@ object BufferList {
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////////////////////////////////// private stuffs
     ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    @JvmStatic @AnyThread fun findByPointer(pointer: Long): Buffer? {
-        val buffer = buffers.firstOrNull { it.pointer == pointer }
-        if (buffer == null) kitty.warn("did not find buffer pointer: ${pointer.as0x}")
-        return buffer
-    }
-
-    @JvmStatic @AnyThread fun findByPointerNoWarn(pointer: Long): Buffer? {
-        return buffers.firstOrNull { it.pointer == pointer }
-    }
-
+    /////////////////////////////////////////////////////////////////////// default message handlers
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////////////////// message handlers
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-
 
     private val defaultMessageHandlers = setupDefaultMessageHandlers()
+
 
     fun interface HdataHandler {
         fun handleMessage(obj: Hdata, id: String)
@@ -327,22 +303,6 @@ object BufferList {
         }
 
         ////////////////////////////////////////////////////////////////////////////////////////////
-        ////////////////////////////////////////////////////////////////////////////////////// lines
-        ////////////////////////////////////////////////////////////////////////////////////////////
-
-        add("_buffer_line_added") { obj, _ ->
-            obj.forEach { entry ->
-                val spec = LineSpec(entry)
-                findByPointer(spec.bufferPointer)?.let { buffer ->
-                    buffer.addLineBottom(spec.toLine())
-                    buffer.onLineAdded()
-                }
-            }
-        }
-
-        // see also LineListingHandler below
-
-        ////////////////////////////////////////////////////////////////////////////////////////////
         ////////////////////////////////////////////////////////////////////////////////////// nicks
         ////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -388,6 +348,20 @@ object BufferList {
             }
         }
 
+        ////////////////////////////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////////////////////////////// lines
+        ////////////////////////////////////////////////////////////////////////////////////////////
+
+        add("_buffer_line_added") { obj, _ ->
+            obj.forEach { entry ->
+                val spec = LineSpec(entry)
+                findByPointer(spec.bufferPointer)?.let { buffer ->
+                    buffer.addLineBottom(spec.toLine())
+                    buffer.onLineAdded()
+                }
+            }
+        }
+
         return handlers
     }
 
@@ -397,13 +371,11 @@ object BufferList {
                 val newLines = ArrayList<Line>(obj.count)
 
                 obj.forEachReversed { entry ->
-                    val spec = LineSpec(entry)
-                    newLines.add(spec.toLine())
+                    newLines.add(LineSpec(entry).toLine())
                 }
 
                 buffer.replaceLines(newLines)
                 buffer.onLinesListed()
-                // removeMessageHandler(this.id, this) // todo ???
             }
         }
     }

@@ -257,7 +257,6 @@ inline class LineSpec(val entry: HdataEntry) {
         Action,         // can be written as * nick message
     }
 
-    // todo see if this comment (& the others) makes sense
     // notify levels, as specified by the `notify_xxx` tags and the `notify_level` bit, is the best
     // thing that we can use to determine if we should issue notifications. the algorithm is a tad
     // complicated, however.
@@ -285,15 +284,15 @@ inline class LineSpec(val entry: HdataEntry) {
     // was added to hotlist and if it's private or highlight we know we should issue a notification.
 
     // see table at https://weechat.org/files/doc/stable/weechat_plugin_api.en.html#_hook_line
-    enum class NotifyLevel(val value: Int) {
-        Disabled(-1),
-        Low(0),
-        Message(1),
-        Private(2),
-        Highlight(3);
+    enum class NotifyLevel {
+        Disabled,
+        Low,
+        Message,
+        Private,
+        Highlight;
 
         companion object {
-            val default = Low   // todo is this right?
+            val default = Low
 
             fun fromByte(byte: Byte?): NotifyLevel? = when (byte) {
                 (-1).toByte() -> Disabled
@@ -322,14 +321,13 @@ inline class NickSpec(val entry: HdataEntry) {
     inline val bufferPointer: Long get() = entry.getPointerLong(0)
 
     inline val pointer: Long get() = entry.pointerLong
-    inline val prefix: String? get() = entry.getStringOrNull("prefix") // todo if (" " == prefix) prefix = ""
+    inline val prefix: String? get() = entry.getStringOrNull("prefix")
     inline val name: String get() = entry.getString("name")
     inline val color: String? get() = entry.getStringOrNull("color")
 
     inline val visible: Boolean get() = entry.getChar("visible") == 1.toChar()
     inline val group: Boolean get() = entry.getChar("group") == 1.toChar()
 
-    // todo group??
     inline fun toNick(): Nick {
         var prefix = this.prefix
         if (prefix == null || prefix == " ") prefix = ""
