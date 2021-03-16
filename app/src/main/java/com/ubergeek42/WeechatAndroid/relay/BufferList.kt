@@ -320,10 +320,7 @@ object BufferList {
 
             // before, onNicksListed() was only called on id == nicklist
             updates.forEach { (bufferPointer, nicks) ->
-                findByPointer(bufferPointer)?.let { buffer ->
-                    buffer.replaceAllNicks(nicks)
-                    buffer.onNicksListed()
-                }
+                findByPointer(bufferPointer)?.onNicksListed(nicks)
             }
         }
 
