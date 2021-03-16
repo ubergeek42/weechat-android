@@ -260,7 +260,7 @@ class Buffer @WorkerThread constructor(
             // if current line's an event line and we've got a speaker, move nick to fist position
             // nick in question is supposed to be in the nicks already, for we only shuffle these
             // nicks when someone spoke, i.e. NOT when user joins.
-            if (nicksAreReady() && line.type == LineSpec.Type.IncomingMessage) {
+            if (nicksAreReady() && line.type == LineSpec.Type.IncomingMessage && line.nick != null) {
                 nicks.bumpNickToTop(line.nick)
             }
 

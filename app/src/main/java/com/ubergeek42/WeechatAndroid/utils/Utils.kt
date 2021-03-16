@@ -17,14 +17,16 @@ val Int.u: Int get() = this
 val Long.u: Int get() = toInt()
 
 
-inline fun <E> MutableList<E>.removeFirst(predicate: (E) -> Boolean) {
+inline fun <E> MutableList<E>.removeFirst(predicate: (E) -> Boolean): E? {
     val iterator = this.iterator()
     while (iterator.hasNext()) {
-        if (predicate(iterator.next())) {
+        val element = iterator.next()
+        if (predicate(element)) {
             iterator.remove()
-            return
+            return element
         }
     }
+    return null
 }
 
 inline fun <E> MutableList<E>.replaceFirstWith(element: E, predicate: (E) -> Boolean) {

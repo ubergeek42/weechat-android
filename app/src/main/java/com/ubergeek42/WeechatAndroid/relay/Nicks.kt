@@ -59,17 +59,9 @@ internal class Nicks {
                 }
     }
 
-    fun bumpNickToTop(name: String?) {
-        if (name == null) return
-        val it = nicks.iterator()
-        while (it.hasNext()) {
-            val nick = it.next()
-            if (name == nick.name) {
-                it.remove()
-                nicks.addFirst(nick)
-                break
-            }
-        }
+    fun bumpNickToTop(name: String) {
+        val nick = nicks.removeFirst { it.name == name }
+        if (nick != null) nicks.addFirst(nick)
     }
 
     fun sortNicksByLines(it: Iterator<Line>) {
