@@ -26,6 +26,11 @@ internal class Nicks {
         }
     }
 
+    fun copyOldDataFrom(old: Nicks) {
+        this.nicks.clear()
+        this.nicks.addAll(old.nicks)
+    }
+
     fun addNick(nick: Nick) {
         nicks.add(nick)
     }

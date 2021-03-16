@@ -173,7 +173,7 @@ object BufferList {
                 buffers.add(buffer)
 
                 findByPointerNoWarn(buffer.pointer)?.let { existingBuffer ->
-                    // todo buffer.copyOldDataFrom(existingBuffer)
+                    buffer.copyOldDataFrom(existingBuffer)
                 }
             }
 

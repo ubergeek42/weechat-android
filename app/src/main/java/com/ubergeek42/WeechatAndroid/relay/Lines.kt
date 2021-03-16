@@ -44,6 +44,17 @@ class Lines {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
+    fun copyOldDataFrom(old: Lines) {
+        unfiltered.clear()
+        filtered.clear()
+        unfiltered.addAll(old.unfiltered)
+        filtered.addAll(old.filtered)
+        skipFiltered = old.skipFiltered
+        skipUnfiltered = old.skipUnfiltered
+        skipUnfilteredOffset = old.skipUnfilteredOffset
+        skipFilteredOffset = old.skipFilteredOffset
+    }
+
     // in very rare cases status might not be FETCHING here, particularly when closing buffers
     // while the app is connecting and has already requested lines
 
