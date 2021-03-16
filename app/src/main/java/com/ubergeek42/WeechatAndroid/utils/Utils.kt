@@ -17,6 +17,36 @@ val Int.u: Int get() = this
 val Long.u: Int get() = toInt()
 
 
+inline fun <E> MutableList<E>.removeFirst(predicate: (E) -> Boolean) {
+    val iterator = this.iterator()
+    while (iterator.hasNext()) {
+        if (predicate(iterator.next())) {
+            iterator.remove()
+            return
+        }
+    }
+}
+
+inline fun <E> MutableList<E>.replaceFirstWith(element: E, predicate: (E) -> Boolean) {
+    val iterator = this.listIterator()
+    while (iterator.hasNext()) {
+        if (predicate(iterator.next())) {
+            iterator.set(element)
+            return
+        }
+    }
+}
+
+
+fun String.removeChars(badChars: CharSequence): CharSequence {
+    return StringBuilder().also { builder ->
+        this.forEach { char ->
+            if (!badChars.contains(char)) builder.append(char)
+        }
+    }
+}
+
+
 inline fun EditText.afterTextChanged(crossinline after: (s: Editable) -> Unit) {
     val textWatcher = object : TextWatcher {
         override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}

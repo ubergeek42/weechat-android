@@ -98,14 +98,14 @@ class Buffer @WorkerThread constructor(
 
     // todo make val again
     private var lines: Lines = Lines()
-    private var nicks: Nicks = Nicks(this.shortName)
+    private var nicks: Nicks = Nicks()
 
     // todo copy in a better way
     fun copyOldDataFrom(buffer: Buffer) {
         this.lines = buffer.lines
         this.nicks = buffer.nicks
         lines.status = Lines.Status.Init
-        nicks.status = Nicks.STATUS.INIT
+        nicks.status = Nicks.Status.Init
     }
 
     @JvmField var isOpen = false
@@ -151,7 +151,7 @@ class Buffer @WorkerThread constructor(
                 // request lines & nicks on the next sync
                 // the previous comment here was stupid
                 lines.status = Lines.Status.Init
-                nicks.status = Nicks.STATUS.INIT
+                nicks.status = Nicks.Status.Init
                 hotlistUpdatesWhileSyncing = 0
             }
         }
@@ -170,7 +170,7 @@ class Buffer @WorkerThread constructor(
         this.bufferEye = bufferEye ?: detachedEye
         if (bufferEye != null) {
             if (lines.status == Lines.Status.Init) requestMoreLines()
-            if (nicks.status == Nicks.STATUS.INIT) BufferList.requestNicklistForBuffer(pointer)
+            if (nicks.status == Nicks.Status.Init) BufferList.requestNicklistForBuffer(pointer)
             if (needsToBeNotifiedAboutGlobalPreferencesChanged) {
                 bufferEye.onGlobalPreferencesChanged(false)
                 needsToBeNotifiedAboutGlobalPreferencesChanged = false
@@ -391,14 +391,14 @@ class Buffer @WorkerThread constructor(
     ////////////////////////////////////////////////////////////////////////////////////////// NICKS
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @AnyThread fun nicksAreReady() = nicks.status == Nicks.STATUS.READY
+    @AnyThread fun nicksAreReady() = nicks.status == Nicks.Status.Ready
 
-    @MainThread @Synchronized fun getMostRecentNicksMatching(prefix: String?, ignoreChars: String?): List<String> {
+    @MainThread @Synchronized fun getMostRecentNicksMatching(prefix: String, ignoreChars: String): List<String> {
         return nicks.getMostRecentNicksMatching(prefix, ignoreChars)
     }
 
     val nicksCopySortedByPrefixAndName: ArrayList<Nick>
-        @AnyThread @Synchronized get() = nicks.copySortedByPrefixAndName
+        @AnyThread @Synchronized get() = nicks.getCopySortedByPrefixAndName()
 
     @MainThread @Synchronized fun setBufferNicklistEye(bufferNickListEye: BufferNicklistEye?) {
         this.bufferNickListEye = bufferNickListEye
@@ -406,7 +406,7 @@ class Buffer @WorkerThread constructor(
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @WorkerThread @Synchronized fun addNick(nick: Nick?) {
+    @WorkerThread @Synchronized fun addNick(nick: Nick) {
         nicks.addNick(nick)
         notifyNicklistChanged()
     }
@@ -416,7 +416,7 @@ class Buffer @WorkerThread constructor(
         notifyNicklistChanged()
     }
 
-    @WorkerThread @Synchronized fun updateNick(nick: Nick?) {
+    @WorkerThread @Synchronized fun updateNick(nick: Nick) {
         nicks.updateNick(nick)
         notifyNicklistChanged()
     }

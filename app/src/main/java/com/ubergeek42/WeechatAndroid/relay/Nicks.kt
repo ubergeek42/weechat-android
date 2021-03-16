@@ -1,154 +1,118 @@
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
+package com.ubergeek42.WeechatAndroid.relay
 
-package com.ubergeek42.WeechatAndroid.relay;
-
-
-import androidx.annotation.AnyThread;
-import androidx.annotation.MainThread;
-import androidx.annotation.Nullable;
-import androidx.annotation.WorkerThread;
-import android.text.TextUtils;
-
-import com.ubergeek42.WeechatAndroid.tabcomplete.TabCompleter;
-import com.ubergeek42.cats.Kitty;
-import com.ubergeek42.cats.Root;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.ListIterator;
+import com.ubergeek42.WeechatAndroid.utils.removeChars
+import com.ubergeek42.WeechatAndroid.utils.removeFirst
+import com.ubergeek42.WeechatAndroid.utils.replaceFirstWith
+import java.util.*
 
 
 // this class is supposed to be synchronized by Buffer
-class Nicks {
-    @SuppressWarnings("FieldCanBeLocal")
-    final private @Root Kitty kitty = Kitty.make();
+internal class Nicks {
+    enum class Status {
+        Init,
+        Ready
+    }
 
-    public enum STATUS {INIT, READY}
-
-    STATUS status = STATUS.INIT;
+    var status = Status.Init
 
     // sorted in last-spoke-comes-first order
-    private final LinkedList<Nick> nicks = new LinkedList<>();
+    private val nicks = LinkedList<Nick>()
 
-    @WorkerThread Nicks(String name) {
-        kitty.setPrefix(name);
-    }
-
-    @AnyThread ArrayList<Nick> getCopySortedByPrefixAndName() {
-        ArrayList<Nick> out = new ArrayList<>(nicks);
-        Collections.sort(out, prefixAndNameComparator);
-        return out;
-    }
-
-    @WorkerThread void addNick(Nick nick) {
-        nicks.add(nick);
-    }
-
-    @WorkerThread void removeNick(long pointer) {
-        for (Iterator<Nick> it = nicks.iterator(); it.hasNext();) {
-            if (it.next().pointer == pointer) {
-                it.remove();
-                break;
-            }
+    fun getCopySortedByPrefixAndName(): ArrayList<Nick> {
+        return ArrayList(nicks).also {
+            Collections.sort(it, prefixAndNameComparator)
         }
     }
 
-    @WorkerThread void updateNick(Nick nick) {
-        for (ListIterator<Nick> it = nicks.listIterator(); it.hasNext();) {
-            if (it.next().pointer == nick.pointer) {
-                it.set(nick);
-                break;
-            }
-        }
+    fun addNick(nick: Nick) {
+        nicks.add(nick)
     }
 
-    @WorkerThread void replaceNicks(Collection<Nick> nicks) {
-        this.nicks.clear();
-        this.nicks.addAll(nicks);
-        status = STATUS.INIT;
+    fun removeNick(pointer: Long) {
+        nicks.removeFirst { it.pointer == pointer }
+    }
+
+    fun updateNick(nick: Nick) {
+        nicks.replaceFirstWith(nick) { it.pointer == nick.pointer }
+    }
+
+    fun replaceNicks(nicks: Collection<Nick>) {
+        this.nicks.clear()
+        this.nicks.addAll(nicks)
+        status = Status.Init
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @MainThread ArrayList<String> getMostRecentNicksMatching(String prefix, String ignoreChars) {
-        String lowerCasePrefix = prefix.toLowerCase();
-        ignoreChars = removeChars(ignoreChars, lowerCasePrefix);
+    fun getMostRecentNicksMatching(prefix: String, ignoreChars: String): List<String> {
+        val lowerCasePrefix = prefix.toLowerCase(Locale.ROOT)
+        val ignoreCharsSansPrefixChars = ignoreChars.removeChars(lowerCasePrefix)
 
-        ArrayList<String> out = new ArrayList<>(20);
-        for (Nick nick : nicks) {
-            String lowerCaseNick = nick.name.toLowerCase();
-            String lowerCaseNickWithoutIgnoreChars = removeChars(lowerCaseNick, ignoreChars);
-            if (lowerCaseNickWithoutIgnoreChars.startsWith(lowerCasePrefix)) out.add(nick.name);
-        }
-        return out;
+        return nicks
+                .map { it.name }
+                .filter { name ->
+                    val lowerCaseNick = name.toLowerCase(Locale.ROOT)
+                    val lowerCaseNickSansIgnoreChars = lowerCaseNick.removeChars(ignoreCharsSansPrefixChars)
+                    lowerCaseNickSansIgnoreChars.startsWith(lowerCasePrefix)
+                }
     }
 
-    @WorkerThread void bumpNickToTop(@Nullable String name) {
-        if (name == null) return;
-        for (Iterator<Nick> it = nicks.iterator(); it.hasNext();) {
-            Nick nick = it.next();
-            if (name.equals(nick.name)) {
-                it.remove();
-                nicks.addFirst(nick);
-                break;
+    fun bumpNickToTop(name: String?) {
+        if (name == null) return
+        val it = nicks.iterator()
+        while (it.hasNext()) {
+            val nick = it.next()
+            if (name == nick.name) {
+                it.remove()
+                nicks.addFirst(nick)
+                break
             }
         }
     }
 
-    @WorkerThread void sortNicksByLines(Iterator<Line> it) {
-        final HashMap<String, Integer> nameToPosition = new HashMap<>();
+    fun sortNicksByLines(it: Iterator<Line>) {
+        val nameToPosition = mutableMapOf<String, Int>()
 
-        while (it.hasNext()) {
-            Line line = it.next();
-            if (line.type != LineSpec.Type.IncomingMessage)
-                continue;
-            String name = line.nick;
-            if (name != null && !nameToPosition.containsKey(name))
-                nameToPosition.put(name, nameToPosition.size());
+        it.forEach { line ->
+            if (line.type === LineSpec.Type.IncomingMessage) {
+                val name = line.nick
+                if (name != null && !nameToPosition.containsKey(name)) {
+                    nameToPosition[name] = nameToPosition.size
+                }
+            }
         }
 
-        Collections.sort(nicks, (left, right) -> {
-            Integer l = nameToPosition.get(left.name);
-            Integer r = nameToPosition.get(right.name);
-            if (l == null) l = Integer.MAX_VALUE;
-            if (r == null) r = Integer.MAX_VALUE;
-            return l - r;
-        });
+        nicks.sortWith { left: Nick, right: Nick ->
+            val l = nameToPosition[left.name] ?: Int.MAX_VALUE
+            val r = nameToPosition[right.name] ?: Int.MAX_VALUE
+            l - r
+        }
 
         // sorting nicks means that all nicks have been fetched
-        status = STATUS.READY;
+        status = Status.Ready
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////
+}
 
-    private final static Comparator<Nick> prefixAndNameComparator = (n1, n2) -> {
-        int diff = prioritizePrefix(n1.prefix) - prioritizePrefix(n2.prefix);
-        return (diff != 0) ? diff : n1.name.compareToIgnoreCase(n2.name);
-    };
 
-    // lower values = higher priority
-    private static int prioritizePrefix(String p) {
-        if (TextUtils.isEmpty(p)) return 100;
-        switch(p.charAt(0)) {
-            case '~': return 1;  // Owners
-            case '&': return 2;  // Admins
-            case '@': return 3;  // Ops
-            case '%': return 4;  // Half-Ops
-            case '+': return 5;  // Voiced
-            default: return 100; // Other
-        }
-    }
+private val prefixAndNameComparator = Comparator { left: Nick, right: Nick ->
+    val diff = prioritizePrefix(left.prefix) - prioritizePrefix(right.prefix)
+    if (diff != 0) diff else left.name.compareTo(right.name, ignoreCase = true)
+}
 
-    private static String removeChars(String string, String chars) {
-        for(int i = 0; i < chars.length(); i++) {
-            string = string.replace(chars.substring(i, i + 1), "");
-        }
-        return string;
+// lower values = higher priority
+private fun prioritizePrefix(p: String): Int {
+    if (p.isEmpty()) return 100
+
+    return when (p[0]) {
+        '~' -> 1    // Owners
+        '&' -> 2    // Admins
+        '@' -> 3    // Ops
+        '%' -> 4    // Half-Ops
+        '+' -> 5    // Voiced
+        else -> 100 // Other
     }
 }
+
