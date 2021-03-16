@@ -77,10 +77,10 @@ class ChatLinesAdapter @MainThread constructor(
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-    private class Row(view: LineView, bufferPointer: Long) : ViewHolder(view) {
+    private inner class Row(view: LineView) : ViewHolder(view) {
         private val lineView = view.apply {
             setOnLongClickListener {
-                showCopyDialog(this, bufferPointer)
+                showCopyDialog(this, buffer?.pointer ?: -1L)
                 true
             }
         }
@@ -105,17 +105,17 @@ class ChatLinesAdapter @MainThread constructor(
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-    private class Header(header: View, private val adapter: ChatLinesAdapter) : ViewHolder(header) {
+    private inner class Header(header: View) : ViewHolder(header) {
         private val title: LineView = header.findViewById<LineView>(R.id.title).apply {
             setOnLongClickListener {
-                showCopyDialog(this, adapter.buffer!!.pointer)
+                showCopyDialog(this, buffer?.pointer ?: -1)
                 true
             }
         }
 
         private val button: Button = header.findViewById<Button>(R.id.button_more).apply {
             setOnClickListener {
-                adapter.buffer?.let { buffer ->
+                buffer?.let { buffer ->
                     buffer.requestMoreLines()
                     updateButton()
                 }
@@ -128,7 +128,7 @@ class ChatLinesAdapter @MainThread constructor(
         }
 
         private var linesStatus = Lines.Status.CanFetchMore
-        @MainThread private fun updateButton() = ulet(adapter.buffer) { buffer: Buffer ->
+        @MainThread private fun updateButton() = ulet(buffer) { buffer: Buffer ->
             val linesStatus = buffer.linesStatus
             if (this.linesStatus !== linesStatus) {
                 this.linesStatus = linesStatus
@@ -145,7 +145,7 @@ class ChatLinesAdapter @MainThread constructor(
             }
         }
 
-        @MainThread private fun updateTitle() = ulet(adapter.buffer) { buffer: Buffer ->
+        @MainThread private fun updateTitle() = ulet(buffer) { buffer: Buffer ->
             val titleLine = buffer.titleLine
             if (titleLine == null || titleLine.spannable.isEmpty() || !buffer.linesAreReady()) {
                 title.visibility = View.GONE
@@ -174,9 +174,9 @@ class ChatLinesAdapter @MainThread constructor(
 
     @MainThread override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         return when (viewType) {
-            HEADER_TYPE -> Header(inflater.inflate(layout.more_button, parent, false), this)
+            HEADER_TYPE -> Header(inflater.inflate(layout.more_button, parent, false))
             MARKER_TYPE -> ReadMarkerRow(inflater.inflate(layout.read_marker, parent, false))
-            else -> Row(LineView(parent.context), buffer!!.pointer)
+            else -> Row(LineView(parent.context))
         }
     }
 
