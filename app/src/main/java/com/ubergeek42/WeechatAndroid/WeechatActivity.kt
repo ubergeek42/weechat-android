@@ -189,6 +189,7 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
                     uiWeaselBackground.translationX = drawerWidth * offset * 0.8f
                 }
             }
+            drawerToggle.isDrawerSlideAnimationEnabled = false
             isPagerNoticeablyObscured = uiDrawerLayout.isDrawerVisible(uiDrawer)
             uiDrawerLayout.addDrawerListener(drawerToggle)
             supportActionBar?.setDisplayHomeAsUpEnabled(true)
