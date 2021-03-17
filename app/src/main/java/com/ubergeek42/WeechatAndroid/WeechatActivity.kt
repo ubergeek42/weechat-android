@@ -598,7 +598,7 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
     }
 
     @MainThread @Cat("Drawer") fun showDrawerIfPagerIsEmpty() {
-        if (!isPagerNoticeablyObscured && connectionState.isListed && pagerAdapter.count == 0) {
+        if (!isPagerNoticeablyObscured && pagerAdapter.count == 0) {
             showDrawer()
         }
     }
