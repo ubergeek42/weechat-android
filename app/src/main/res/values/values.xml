@@ -92,7 +92,7 @@
 
     <dimen name="dialog_item_padding_vertical">8dp</dimen>
     <dimen name="dialog_item_certificate_text_padding">12dp</dimen>
-    <dimen name="drawer_width">304dp</dimen>
+    <dimen name="drawer_width">280dp</dimen>
     <dimen name="chat_item_left_margin">0dp</dimen>
     <bool name="slidy">true</bool>
     <dimen name="dialog_padding">20dp</dimen>

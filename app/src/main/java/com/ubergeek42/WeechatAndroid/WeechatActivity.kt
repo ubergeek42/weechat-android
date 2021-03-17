@@ -75,6 +75,7 @@ import com.ubergeek42.WeechatAndroid.utils.let
 import com.ubergeek42.WeechatAndroid.utils.u
 import com.ubergeek42.WeechatAndroid.utils.ulet
 import com.ubergeek42.WeechatAndroid.utils.wasCausedByEither
+import com.ubergeek42.WeechatAndroid.views.DrawerToggleFix
 import com.ubergeek42.WeechatAndroid.views.ToolbarController
 import com.ubergeek42.WeechatAndroid.views.WeechatActivityFullScreenController
 import com.ubergeek42.WeechatAndroid.views.solidColor
@@ -178,11 +179,14 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
 
         if (slidy) {
             uiDrawerLayout = findViewById(R.id.drawer_layout)
-            drawerToggle = object : ActionBarDrawerToggle(this, uiDrawerLayout,
+            uiDrawerLayout.setScrimColor(0x30000000)
+            val drawerWidth = resources.getDimensionPixelSize(R.dimen.drawer_width)
+            drawerToggle = object : DrawerToggleFix(this, uiDrawerLayout,
                     R.string.ui__ActionBarDrawerToggle__open_drawer,
                     R.string.ui__ActionBarDrawerToggle__close_drawer) {
-                override fun onDrawerSlide(drawerView: View, slideOffset: Float) {
-                    drawerVisibilityChanged(slideOffset > 0)
+                override fun onDrawerSlide(offset: Float) {
+                    drawerVisibilityChanged(offset > 0)
+                    uiWeaselBackground.translationX = drawerWidth * offset * 0.8f
                 }
             }
             isPagerNoticeablyObscured = uiDrawerLayout.isDrawerVisible(uiDrawer)

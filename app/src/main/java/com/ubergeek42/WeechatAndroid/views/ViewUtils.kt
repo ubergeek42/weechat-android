@@ -2,11 +2,15 @@
 
 package com.ubergeek42.WeechatAndroid.views
 
+import android.app.Activity
 import android.content.Context
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.view.marginTop
+import androidx.annotation.StringRes
+import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.core.view.GravityCompat
 import androidx.core.view.updateLayoutParams
+import androidx.drawerlayout.widget.DrawerLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView
@@ -112,3 +116,44 @@ private const val DOWN = 1
 private const val UP = -1
 private const val JUMP_THRESHOLD = 30
 
+
+// this simply makes sure that onDrawerSlide(Float) is called for all changes,
+// including view restoration
+abstract class DrawerToggleFix(
+    activity: Activity,
+    private val drawerLayout: DrawerLayout,
+    @StringRes openDrawerContentDescRes: Int,
+    @StringRes closeDrawerContentDescRes: Int,
+) : ActionBarDrawerToggle(activity, drawerLayout, openDrawerContentDescRes, closeDrawerContentDescRes) {
+    private var lastOffset = -1f
+
+    abstract fun onDrawerSlide(offset: Float)
+
+    private fun onDrawerSlideInternal(offset: Float) {
+        if (lastOffset != offset) {
+            lastOffset = offset
+            onDrawerSlide(offset)
+        }
+    }
+
+    override fun onDrawerSlide(drawerView: View, slideOffset: Float) {
+        super.onDrawerSlide(drawerView, slideOffset)
+        onDrawerSlideInternal(slideOffset)
+    }
+
+    override fun onDrawerOpened(drawerView: View) {
+        super.onDrawerOpened(drawerView)
+        onDrawerSlideInternal(1f)
+    }
+
+    override fun onDrawerClosed(drawerView: View) {
+        super.onDrawerClosed(drawerView)
+        onDrawerSlideInternal(0f)
+    }
+
+    override fun syncState() {
+        super.syncState()
+        val open = drawerLayout.isDrawerOpen(GravityCompat.START)
+        onDrawerSlideInternal(if (open) 1f else 0f)
+    }
+}
