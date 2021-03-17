@@ -19,7 +19,7 @@ class Lines {
         fun ready() = this == CanFetchMore || this == EverythingFetched
     }
 
-    var status = Status.Init
+    @Volatile var status = Status.Init
 
     private val filtered = ArrayDeque<Line>()
     private val unfiltered = ArrayDeque<Line>()

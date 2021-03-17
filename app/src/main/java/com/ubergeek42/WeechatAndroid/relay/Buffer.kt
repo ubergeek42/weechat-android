@@ -441,7 +441,7 @@ class Buffer @WorkerThread constructor(
     }
 
     private fun processTitleLine() {
-        titleLine = title.let { if (it.isNullOrEmpty()) null else TitleLine(title) }
+        titleLine = title.let { if (it.isNullOrEmpty()) null else TitleLine(it) }
     }
 }
 

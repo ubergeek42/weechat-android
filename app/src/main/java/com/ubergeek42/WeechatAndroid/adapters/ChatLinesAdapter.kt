@@ -117,6 +117,9 @@ class ChatLinesAdapter @MainThread constructor(
             setOnClickListener {
                 buffer?.let { buffer ->
                     buffer.requestMoreLines()
+                    // instead of calling onLinesListed(), which works,
+                    // call the following shortcut to forgo change animation
+                    linesStatus = buffer.linesStatus
                     updateButton()
                 }
             }
@@ -127,32 +130,25 @@ class ChatLinesAdapter @MainThread constructor(
             updateTitle()
         }
 
-        private var linesStatus = Lines.Status.CanFetchMore
-        @MainThread private fun updateButton() = ulet(buffer) { buffer: Buffer ->
-            val linesStatus = buffer.linesStatus
-            if (this.linesStatus !== linesStatus) {
-                this.linesStatus = linesStatus
-
-                if (linesStatus === Lines.Status.EverythingFetched) {
-                    button.visibility = View.GONE
-                } else {
-                    button.visibility = View.VISIBLE
-                    val canFetchMore = linesStatus === Lines.Status.CanFetchMore
-                    button.isEnabled = canFetchMore
-                    button.text = button.context.getString(if (canFetchMore)
-                        R.string.ui__button_fetch_more_lines else R.string.ui__button_fetching_lines)
-                }
+        @MainThread private fun updateButton() {
+            if (linesStatus === Lines.Status.EverythingFetched) {
+                button.visibility = View.GONE
+            } else {
+                button.visibility = View.VISIBLE
+                val canFetchMore = linesStatus === Lines.Status.CanFetchMore
+                button.isEnabled = canFetchMore
+                button.text = button.context.getString(if (canFetchMore)
+                    R.string.ui__button_fetch_more_lines else R.string.ui__button_fetching_lines)
             }
         }
 
-        @MainThread private fun updateTitle() = ulet(buffer) { buffer: Buffer ->
-            val titleLine = buffer.titleLine
-            if (titleLine == null || titleLine.spannable.isEmpty() || !buffer.linesAreReady()) {
+        @MainThread private fun updateTitle() {
+            if (titleLine?.spannable.isNullOrEmpty()) {
                 title.visibility = View.GONE
             } else {
                 title.visibility = View.VISIBLE
                 title.updateMargins(bottom = if (button.visibility == View.GONE) P._4dp.i else 0)
-                title.setText(titleLine)
+                title.setText(titleLine!!)
                 title.tag = titleLine
             }
         }
@@ -227,10 +223,6 @@ class ChatLinesAdapter @MainThread constructor(
         }
     }
 
-    @AnyThread private fun updateHeader() {
-        Weechat.runOnMainThread { notifyItemChanged(0) }
-    }
-
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////// BufferEye
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -245,22 +237,14 @@ class ChatLinesAdapter @MainThread constructor(
 
     @WorkerThread override fun onLinesListed() {
         onLinesChanged()
-        updateHeader()
     }
 
-    @Volatile var cachedStatus: Lines.Status? = null
-
-    @AnyThread override fun onLineAdded()  = ulet(buffer) { buffer ->
+    @AnyThread override fun onLineAdded() {
         onLinesChanged()
-        val status = buffer.linesStatus
-        if (cachedStatus !== status) {
-            cachedStatus = status
-            updateHeader()
-        }
     }
 
     @WorkerThread override fun onTitleChanged() {
-        updateHeader()
+        onLinesChanged()
     }
 
     @WorkerThread override fun onBufferClosed() {}
@@ -316,7 +300,10 @@ class ChatLinesAdapter @MainThread constructor(
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private class DiffCallback(
+    @Volatile var linesStatus = Lines.Status.Init
+    @Volatile var titleLine: Line? = null
+
+    private inner class DiffCallback(
         private val oldLines: List<Line>,
         private val newLines: List<Line>
     ) : DiffUtil.Callback() {
@@ -327,9 +314,21 @@ class ChatLinesAdapter @MainThread constructor(
             return oldLines[oldItemPosition].pointer == newLines[newItemPosition].pointer
         }
 
-        override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int) = true
+        override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+            if (oldLines[oldItemPosition].pointer == HEADER_POINTER) {
+                buffer?.let { buffer ->
+                    val newLinesStatus = buffer.linesStatus
+                    val newTitleLine = buffer.titleLine
+                    if (linesStatus != newLinesStatus || titleLine != newTitleLine) {
+                        linesStatus = newLinesStatus
+                        titleLine = newTitleLine
+                        return false
+                    }
+                }
+            }
+            return true
+        }
     }
-
 }
 
 
