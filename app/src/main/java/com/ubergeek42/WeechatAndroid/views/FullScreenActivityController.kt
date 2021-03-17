@@ -65,7 +65,7 @@ class WeechatActivityFullScreenController(val activity: WeechatActivity) : Defau
         val viewPager = activity.findViewById<WeaselMeasuringViewPager>(R.id.main_viewpager)
         val rootView = viewPager.rootView
 
-        navigationPadding = activity.findViewById(R.id.navigation_padding)
+        navigationPadding = activity.findViewById(R.id.navigation_padding_right)
         navigationPadding.visibility = View.VISIBLE
 
         // todo use WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -141,7 +141,7 @@ class BufferListFragmentFullScreenController(val fragment: Fragment) : DefaultLi
         if (!FULL_SCREEN_DRAWER_ENABLED) return
 
         val bufferListView = fragment.requireView()
-        val navigationPadding = bufferListView.findViewById<View>(R.id.navigation_padding)
+        val navigationPadding = bufferListView.findViewById<View>(R.id.navigation_padding_left)
         val layoutManager = bufferListView.findViewById<RecyclerView>(R.id.recycler)
                 .layoutManager as FullScreenDrawerLinearLayoutManager
 

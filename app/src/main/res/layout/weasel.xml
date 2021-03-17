@@ -23,7 +23,7 @@
         android:layout_height="match_parent" />
 
     <!-- used to draw background on api 27+ -->
-    <View android:id="@+id/navigation_padding"
+    <View android:id="@+id/navigation_padding_right"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_gravity="bottom"

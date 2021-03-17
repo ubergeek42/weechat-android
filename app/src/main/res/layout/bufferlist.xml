@@ -5,7 +5,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto" >
 
     <View
-        android:id="@+id/navigation_padding"
+        android:id="@+id/navigation_padding_left"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_alignParentBottom="true"
