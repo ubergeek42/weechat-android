@@ -142,8 +142,11 @@ class ChatLinesAdapter @MainThread constructor(
             }
         }
 
+        // don't show the title when fetching lines and only the button is visible --
+        // it just doesn't look good when new lines arrive
         @MainThread private fun updateTitle() {
-            if (titleLine?.spannable.isNullOrEmpty()) {
+            if (titleLine?.spannable.isNullOrEmpty() ||
+                    (itemCount <= 1 && !linesStatus.ready())) {
                 title.visibility = View.GONE
             } else {
                 title.visibility = View.VISIBLE
