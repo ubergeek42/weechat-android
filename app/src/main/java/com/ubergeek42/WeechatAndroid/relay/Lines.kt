@@ -22,7 +22,10 @@ class Lines {
     @Volatile var status = Status.Init
         set(value) {
             field = value
-            if (value == Status.Init) maxUnfilteredSize = P.lineIncrement
+            if (value == Status.Init) {
+                maxUnfilteredSize = P.lineIncrement
+                oldNewSeparatorAddedAfterReset = false
+            }
         }
 
     private val filtered = ArrayDeque<Line>()
@@ -32,6 +35,12 @@ class Lines {
     private var skipFiltered = -1
     private var skipUnfilteredOffset = -1
     private var skipFilteredOffset = -1
+
+    // after reconnecting, in full sync mode, we are receiving and adding new lines to buffers.
+    // there can be inconsistencies; if some lines were added while we were offline,
+    // we can't display them, but can display what's on top and what's on bottom.
+    // to resolve this, add a separator between old and new lines
+    private var oldNewSeparatorAddedAfterReset = false
 
     var maxUnfilteredSize = P.lineIncrement
         private set
@@ -67,6 +76,11 @@ class Lines {
     }
 
     fun addLast(line: Line) {
+        if (status == Status.Init && unfiltered.size > 0 && !oldNewSeparatorAddedAfterReset) {
+            oldNewSeparatorAddedAfterReset = true
+            addLast(OLD_NEW_SEPARATOR)
+        }
+
         val unfilteredSize = unfiltered.size
         val maxUnfilteredSize = maxUnfilteredSize
         val shouldRemoveFirstLine = unfilteredSize == maxUnfilteredSize
@@ -82,6 +96,8 @@ class Lines {
 
         if (skipFiltered >= 0 && line.isVisible) skipFiltered++
         if (skipUnfiltered >= 0) skipUnfiltered++
+
+        if (status == Status.Init) return
 
         if (shouldRemoveFirstLine) {
             if (status != Status.CanFetchMore) {
@@ -185,6 +201,7 @@ class Lines {
 
 const val HEADER_POINTER = -123L
 const val MARKER_POINTER = -456L
+const val OLD_NEW_SEPARATOR_POINTER = -789L
 
 private val HEADER = Line(HEADER_POINTER,
         LineSpec.Type.Other,
@@ -208,6 +225,16 @@ private val MARKER = Line(MARKER_POINTER,
         LineSpec.DisplayAs.Unspecified,
         LineSpec.NotifyLevel.Low)
 
+private val OLD_NEW_SEPARATOR = Line(OLD_NEW_SEPARATOR_POINTER,
+        LineSpec.Type.Other,
+        timestamp = 0,
+        rawPrefix = "",
+        rawMessage = "• • •",
+        nick = null,
+        isVisible = true,
+        isHighlighted = false,
+        LineSpec.DisplayAs.Unspecified,
+        LineSpec.NotifyLevel.Low)
 
 //    private void setSkipsUsingHotlist(int h, int u, int o) {
 //        Iterator<Line> it = unfiltered.descendingIterator();
