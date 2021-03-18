@@ -20,6 +20,10 @@ class Lines {
     }
 
     @Volatile var status = Status.Init
+        set(value) {
+            field = value
+            if (value == Status.Init) maxUnfilteredSize = P.lineIncrement
+        }
 
     private val filtered = ArrayDeque<Line>()
     private val unfiltered = ArrayDeque<Line>()
