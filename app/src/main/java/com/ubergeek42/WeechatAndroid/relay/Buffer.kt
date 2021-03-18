@@ -96,12 +96,12 @@ class Buffer @WorkerThread constructor(
 
     @JvmField @Volatile var flagResetHotMessagesOnNewOwnLine = false
 
-    private val lines: Lines = Lines()
-    private val nicks: Nicks = Nicks()
+    private var lines: Lines = Lines()
+    private var nicks: Nicks = Nicks()
 
     fun copyOldDataFrom(buffer: Buffer) {
-        lines.copyOldDataFrom(buffer.lines)
-        nicks.copyOldDataFrom(buffer.nicks)
+        lines = buffer.lines.apply { status = Lines.Status.Init }
+        nicks = buffer.nicks.apply { status = Nicks.Status.Init }
     }
 
     @JvmField var isOpen = false
