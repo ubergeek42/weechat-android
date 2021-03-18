@@ -197,7 +197,7 @@ class ChatLinesAdapter @MainThread constructor(
     // in case non-main thread calls this before the Runnable that sets `lines` is executed,
     // store the new list in `_lines` so that we can produce a proper diff
     @AnyThread @Synchronized private fun onLinesChanged() = ulet(buffer) { buffer ->
-        val newLines = buffer.linesCopy
+        val newLines = buffer.getLinesCopy()
 
         val hack = _lines.size == 1 && newLines.size > 1
 
@@ -257,7 +257,7 @@ class ChatLinesAdapter @MainThread constructor(
     }
 
     @MainThread @Synchronized fun loadLinesSilently() = ulet(buffer) { buffer ->
-        val newLines = buffer.linesCopy
+        val newLines = buffer.getLinesCopy()
         _lines = newLines
         lines = newLines
     }

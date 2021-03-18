@@ -80,7 +80,7 @@ private class Copy(
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private fun buildBody(select: Select): Body? {
-        val lines = (BufferList.findByPointer(bufferPointer) ?: return null).linesCopy
+        val lines = (BufferList.findByPointer(bufferPointer) ?: return null).getLinesCopy()
         val lineTextGetter = select.textGetter
 
         val text = StringBuilder()

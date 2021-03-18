@@ -121,8 +121,7 @@ class Buffer @WorkerThread constructor(
 
     // get a copy of lines, filtered or not according to global settings
     // contains read marker and header
-    val linesCopy: ArrayList<Line>
-        @Synchronized @AnyThread get() = lines.getCopy()
+    @AnyThread @Synchronized fun getLinesCopy() = lines.getCopy()
 
     @AnyThread fun linesAreReady() = lines.status.ready()
 

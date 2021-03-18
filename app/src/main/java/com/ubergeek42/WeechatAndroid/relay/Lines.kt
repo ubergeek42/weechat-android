@@ -36,14 +36,16 @@ class Lines {
     var maxUnfilteredSize = P.lineIncrement
         private set
 
-    // todo optimize
+    // it might look like there's a room for optimization here,
+    // but these uses very optimized array operations underneath and
+    // getting this work faster is probably just not feasible or worth the effort
     fun getCopy(): ArrayList<Line> {
-        val lines = ArrayList(if (P.filterLines) filtered else unfiltered)
-        val skip = if (P.filterLines) skipFiltered else skipUnfiltered
-        val marker = if (skip >= 0 && lines.size > 0) lines.size - skip else -1
-        if (marker > 0) lines.add(marker, MARKER)
-        lines.add(0, HEADER)
-        return lines
+        return ArrayList(if (P.filterLines) filtered else unfiltered).apply {
+            add(0, HEADER)
+            val skip = if (P.filterLines) skipFiltered else skipUnfiltered
+            val marker = if (skip >= 0 && size > 0) size - skip else -1
+            if (marker > 0) add(marker, MARKER)
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
