@@ -368,8 +368,9 @@ class BufferFragment : Fragment(), BufferEye {
                 onBufferClosed()
                 return
             }
-            if (buffer != null) attachToBuffer() else kitty.warn("...buffer is null")   // this should only happen after OOM kill
         }
+
+        if (buffer != null) attachToBuffer() else kitty.warn("...buffer is null")   // this should only happen after OOM kill
 
         val connectivityChanged = this.connectedToRelay != connectedToRelay
         this.connectedToRelay = connectedToRelay
