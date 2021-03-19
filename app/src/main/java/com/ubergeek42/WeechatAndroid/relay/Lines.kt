@@ -24,7 +24,7 @@ class Lines {
             field = value
             if (value == Status.Init) {
                 maxUnfilteredSize = P.lineIncrement
-                squiggleAddedAfterReset = false
+                shouldAddSquiggleOnNewLastLine = false
             }
         }
 
@@ -39,11 +39,19 @@ class Lines {
     var maxUnfilteredSize = P.lineIncrement
         private set
 
-    // after reconnecting, in full sync mode, we are receiving and adding new lines to buffers.
+    // after reconnecting, in *full sync mode*, we are receiving and adding new lines to buffers.
     // there can be inconsistencies; if some lines were added while we were offline,
     // we can't display them, but can display what's on top and what's on bottom.
-    // to resolve this, add a squiggly separator between the old and the new lines
-    private var squiggleAddedAfterReset = false
+    // to resolve this, add a squiggly separator between the old and the new lines ...
+    private var shouldAddSquiggleOnNewLastLine = false
+
+    // ... but only add it if the buffer's last line pointer has changed.
+    // it would be nice if we can do this separately for visible & invisible lines;
+    // however, it doesn't seem to be possible to retrieve the pointer for last *visible* line
+    fun updateLastLineInfo(pointer: Long) {
+        val bufferReceivedLinesWhileNotSynced = pointer != unfiltered.lastOrNull()?.pointer
+        if (bufferReceivedLinesWhileNotSynced) shouldAddSquiggleOnNewLastLine = true
+    }
 
     // it might look like there's a room for optimization here,
     // but these uses very optimized array operations underneath and
@@ -73,9 +81,9 @@ class Lines {
     }
 
     fun addLast(line: Line) {
-        if (status == Status.Init && unfiltered.size > 0 && !squiggleAddedAfterReset) {
-            squiggleAddedAfterReset = true
-            addLast(SquiggleLine())
+        if (shouldAddSquiggleOnNewLastLine) {
+            shouldAddSquiggleOnNewLastLine = false
+            if (status == Status.Init && unfiltered.size > 0) addLast(SquiggleLine())
         }
 
         val unfilteredSize = unfiltered.size

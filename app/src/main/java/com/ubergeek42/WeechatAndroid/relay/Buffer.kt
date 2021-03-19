@@ -84,7 +84,7 @@ class Buffer @WorkerThread constructor(
     private var bufferEye: BufferEye = detachedEye
     private var bufferNickListEye: BufferNicklistEye? = null
 
-    @JvmField var lastReadLineServer = LAST_READ_LINE_MISSING
+    @JvmField var lastReadLineServer = LINE_MISSING
     @JvmField var readUnreads = 0
     @JvmField var readHighlights = 0
 
@@ -312,7 +312,7 @@ class Buffer @WorkerThread constructor(
         if (lastReadLine != lastReadLineServer) {
             lastSeenLine = lastReadLine
             lastReadLineServer = lastReadLine
-            if (lastReadLine != LAST_READ_LINE_MISSING ||
+            if (lastReadLine != LINE_MISSING ||
                     timeSinceLastHotlistUpdate > 10 * 60 * 1000) bufferHasBeenReadInWeechat = true
         }
 
@@ -338,6 +338,10 @@ class Buffer @WorkerThread constructor(
         Assert.assertThat(highlights + readHighlights).isEqualTo(newHighlights)
 
         return fullUpdate
+    }
+
+    fun updateLastLineInfo(pointer: Long) {
+        lines.updateLastLineInfo(pointer)
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

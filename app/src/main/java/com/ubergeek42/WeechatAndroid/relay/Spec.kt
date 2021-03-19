@@ -106,13 +106,16 @@ inline class BufferSpec(val entry: HdataEntry) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-inline class LastReadLineSpec(val entry: HdataEntry) {
+inline class LastLineSpec(val entry: HdataEntry) {
     inline val linePointer: Long get() = entry.pointerLong
     inline val bufferPointer: Long get() = entry.getPointerLong("buffer")
 
     companion object {
-        const val request = "(last_read_lines) hdata " +
+        const val lastReadLinesRequest = "(last_read_lines) hdata " +
                 "buffer:gui_buffers(*)/own_lines/last_read_line/data buffer"
+
+        const val lastLinesRequest = "(last_lines) hdata " +
+                "buffer:gui_buffers(*)/own_lines/last_line/data buffer"
     }
 }
 

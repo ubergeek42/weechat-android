@@ -17,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
 
 
-const val LAST_READ_LINE_MISSING = -1L
+const val LINE_MISSING = -1L
 
 
 object BufferList {
@@ -28,9 +28,18 @@ object BufferList {
     @JvmStatic @WorkerThread fun onServiceAuthenticated() {
         defaultMessageHandlers.forEach { (id, handler) -> addMessageHandler(id, handler) }
 
-        SendMessageEvent.fire(BufferSpec.listBuffersRequest)
-        syncHotlist()
-        SendMessageEvent.fire(if (P.optimizeTraffic) "sync * buffers,upgrade" else "sync")
+        SendMessageEvent.fire(if (P.optimizeTraffic) {
+            BufferSpec.listBuffersRequest + "\n" +
+                    LastLineSpec.lastReadLinesRequest + "\n" +
+                    HotlistSpec.request + "\n" +
+                    "sync * buffers,upgrade"
+        } else {
+            BufferSpec.listBuffersRequest + "\n" +
+                    LastLineSpec.lastLinesRequest + "\n" +      // see Lines.shouldAddSquiggleOnNewLastLine
+                    LastLineSpec.lastReadLinesRequest + "\n" +
+                    HotlistSpec.request + "\n" +
+                    "sync"
+        })
     }
 
     @JvmStatic @AnyThread fun onServiceStopped() {
@@ -112,7 +121,7 @@ object BufferList {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @JvmStatic @AnyThread fun syncHotlist() {
-        SendMessageEvent.fire(LastReadLineSpec.request + "\n" + HotlistSpec.request)
+        SendMessageEvent.fire(LastLineSpec.lastReadLinesRequest + "\n" + HotlistSpec.request)
     }
 
     // if optimizing traffic, sync hotlist to make sure the number of unread messages is correct
@@ -263,18 +272,23 @@ object BufferList {
         //////////////////////////////////////////////////////////////////////////////////// hotlist
         ////////////////////////////////////////////////////////////////////////////////////////////
 
-        var bufferToLrl = LongSparseArray<Long>()
-        var lastHotlistUpdateTime: Long = 0
+        var bufferToLastReadLine = LongSparseArray<Long>()
+        var lastHotlistUpdateTime = 0L
 
         add("last_read_lines") { obj, _ ->
-            val newBufferToLrl = LongSparseArray<Long>()
-
-            obj.forEach { entry ->
-                val spec = LastReadLineSpec(entry)
-                bufferToLrl.put(spec.bufferPointer, spec.linePointer)
+            bufferToLastReadLine = LongSparseArray<Long>().apply {
+                obj.forEach { entry ->
+                    val spec = LastLineSpec(entry)
+                    put(spec.bufferPointer, spec.linePointer)
+                }
             }
+        }
 
-            bufferToLrl = newBufferToLrl
+        add("last_lines") { obj, _ ->
+            obj.forEach { entry ->
+                val spec = LastLineSpec(entry)
+                findByPointer(spec.bufferPointer)?.updateLastLineInfo(spec.linePointer)
+            }
         }
 
         add("hotlist") { obj, _ ->
@@ -294,7 +308,7 @@ object BufferList {
                 val hotMessagesInvalid = buffer.updateHotlist(
                         newHighlights = spec?.highlights ?: 0,
                         newUnreads = spec?.unreads ?: 0,
-                        lastReadLine = bufferToLrl[buffer.pointer, LAST_READ_LINE_MISSING],
+                        lastReadLine = bufferToLastReadLine[buffer.pointer, LINE_MISSING],
                         timeSinceLastHotlistUpdate = timeSinceLastHotlistUpdate)
                 Hotlist.adjustHotListForBuffer(buffer, hotMessagesInvalid)
             }
@@ -306,7 +320,7 @@ object BufferList {
         ////////////////////////////////////////////////////////////////////////////////////// nicks
         ////////////////////////////////////////////////////////////////////////////////////////////
 
-        add("nicklist", "_nicklist") { obj, id ->
+        add("nicklist", "_nicklist") { obj, _ ->
             val updates = mutableMapOf<Long, MutableList<Nick>>()
 
             obj.forEach { entry ->
