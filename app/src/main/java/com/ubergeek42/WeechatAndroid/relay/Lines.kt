@@ -62,6 +62,7 @@ class Lines {
             val skip = if (P.filterLines) skipFiltered else skipUnfiltered
             val marker = if (skip >= 0 && size > 0) size - skip else -1
             if (marker > 0) add(marker, MarkerLine)
+            while (isNotEmpty() && last() is SquiggleLine) removeLast()
         }
     }
 
