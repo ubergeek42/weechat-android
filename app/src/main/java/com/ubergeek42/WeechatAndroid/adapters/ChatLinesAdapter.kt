@@ -13,10 +13,12 @@
 // limitations under the License.
 package com.ubergeek42.WeechatAndroid.adapters
 
+import android.graphics.PorterDuff
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.ImageView
 import androidx.annotation.AnyThread
 import androidx.annotation.MainThread
 import androidx.annotation.WorkerThread
@@ -29,11 +31,12 @@ import com.ubergeek42.WeechatAndroid.Weechat
 import com.ubergeek42.WeechatAndroid.copypaste.showCopyDialog
 import com.ubergeek42.WeechatAndroid.relay.Buffer
 import com.ubergeek42.WeechatAndroid.relay.BufferEye
-import com.ubergeek42.WeechatAndroid.relay.HEADER_POINTER
+import com.ubergeek42.WeechatAndroid.relay.HeaderLine
 import com.ubergeek42.WeechatAndroid.relay.Line
 import com.ubergeek42.WeechatAndroid.relay.LineSpec
 import com.ubergeek42.WeechatAndroid.relay.Lines
-import com.ubergeek42.WeechatAndroid.relay.MARKER_POINTER
+import com.ubergeek42.WeechatAndroid.relay.MarkerLine
+import com.ubergeek42.WeechatAndroid.relay.SquiggleLine
 import com.ubergeek42.WeechatAndroid.search.Search
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.upload.i
@@ -97,10 +100,18 @@ class ChatLinesAdapter @MainThread constructor(
 
     private class ReadMarkerRow(private val view: View) : ViewHolder(view) {
         @MainThread fun update() {
-            view.setBackgroundColor(ColorScheme.get().chat_read_marker[0].solidColor)
+            view.setBackgroundColor(readMarkerColor)
         }
     }
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+    private class SquiggleRow(private val view: ImageView) : ViewHolder(view) {
+        @MainThread fun update() {
+            view.setColorFilter(readMarkerColor, PorterDuff.Mode.SRC_IN)
+        }
+    }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -164,9 +175,10 @@ class ChatLinesAdapter @MainThread constructor(
 
 
     @MainThread override fun getItemViewType(position: Int): Int {
-        return when (lines[position].pointer) {
-            HEADER_POINTER -> HEADER_TYPE
-            MARKER_POINTER -> MARKER_TYPE
+        return when (lines[position]) {
+            is HeaderLine -> HEADER_TYPE
+            is MarkerLine -> MARKER_TYPE
+            is SquiggleLine -> SQUIGGLE_TYPE
             else -> LINE_TYPE
         }
     }
@@ -175,14 +187,16 @@ class ChatLinesAdapter @MainThread constructor(
         return when (viewType) {
             HEADER_TYPE -> Header(inflater.inflate(layout.more_button, parent, false))
             MARKER_TYPE -> ReadMarkerRow(inflater.inflate(layout.read_marker, parent, false))
+            SQUIGGLE_TYPE -> SquiggleRow(inflater.inflate(layout.squiggle, parent, false) as ImageView)
             else -> Row(LineView(parent.context))
         }
     }
 
     @MainThread override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        when (lines[position].pointer) {
-            HEADER_POINTER -> (holder as Header).update()
-            MARKER_POINTER -> (holder as ReadMarkerRow).update()
+        when (lines[position]) {
+            is HeaderLine -> (holder as Header).update()
+            is MarkerLine -> (holder as ReadMarkerRow).update()
+            is SquiggleLine -> (holder as SquiggleRow).update()
             else -> (holder as Row).update(lines[position])
         }
     }
@@ -318,7 +332,7 @@ class ChatLinesAdapter @MainThread constructor(
         }
 
         override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-            if (oldLines[oldItemPosition].pointer == HEADER_POINTER) {
+            if (oldLines[oldItemPosition] is HeaderLine) {
                 buffer?.let { buffer ->
                     val newLinesStatus = buffer.linesStatus
                     val newTitleLine = buffer.titleLine
@@ -338,7 +352,11 @@ class ChatLinesAdapter @MainThread constructor(
 private const val HEADER_TYPE = -1
 private const val LINE_TYPE = 0
 private const val MARKER_TYPE = 1
+private const val SQUIGGLE_TYPE = 2
 
 
 private const val HOT_LINE_LOST = -1
 private const val HOT_LINE_NOT_PRESENT = -3
+
+
+private val readMarkerColor get() = ColorScheme.get().chat_read_marker[0].solidColor

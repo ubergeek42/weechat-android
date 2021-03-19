@@ -24,7 +24,7 @@ class Lines {
             field = value
             if (value == Status.Init) {
                 maxUnfilteredSize = P.lineIncrement
-                oldNewSeparatorAddedAfterReset = false
+                squiggleAddedAfterReset = false
             }
         }
 
@@ -36,24 +36,24 @@ class Lines {
     private var skipUnfilteredOffset = -1
     private var skipFilteredOffset = -1
 
+    var maxUnfilteredSize = P.lineIncrement
+        private set
+
     // after reconnecting, in full sync mode, we are receiving and adding new lines to buffers.
     // there can be inconsistencies; if some lines were added while we were offline,
     // we can't display them, but can display what's on top and what's on bottom.
-    // to resolve this, add a separator between old and new lines
-    private var oldNewSeparatorAddedAfterReset = false
-
-    var maxUnfilteredSize = P.lineIncrement
-        private set
+    // to resolve this, add a squiggly separator between the old and the new lines
+    private var squiggleAddedAfterReset = false
 
     // it might look like there's a room for optimization here,
     // but these uses very optimized array operations underneath and
     // getting this work faster is probably just not feasible or worth the effort
     fun getCopy(): ArrayList<Line> {
         return ArrayList(if (P.filterLines) filtered else unfiltered).apply {
-            add(0, HEADER)
+            add(0, HeaderLine)
             val skip = if (P.filterLines) skipFiltered else skipUnfiltered
             val marker = if (skip >= 0 && size > 0) size - skip else -1
-            if (marker > 0) add(marker, MARKER)
+            if (marker > 0) add(marker, MarkerLine)
         }
     }
 
@@ -62,9 +62,6 @@ class Lines {
     // in very rare cases status might not be FETCHING here, particularly when closing buffers
     // while the app is connecting and has already requested lines
 
-    // todo this assumes that size of new lines > size of old lines, and also
-    // todo that maxUnfilteredSize <= size of new lines.
-    // todo determine if violating these assumptions can lead to problems
     fun replaceLines(lines: Collection<Line>) {
         if (status != Status.Fetching) return
         unfiltered.clear()
@@ -76,9 +73,9 @@ class Lines {
     }
 
     fun addLast(line: Line) {
-        if (status == Status.Init && unfiltered.size > 0 && !oldNewSeparatorAddedAfterReset) {
-            oldNewSeparatorAddedAfterReset = true
-            addLast(OLD_NEW_SEPARATOR)
+        if (status == Status.Init && unfiltered.size > 0 && !squiggleAddedAfterReset) {
+            squiggleAddedAfterReset = true
+            addLast(SquiggleLine())
         }
 
         val unfilteredSize = unfiltered.size
@@ -199,42 +196,21 @@ class Lines {
 }
 
 
-const val HEADER_POINTER = -123L
-const val MARKER_POINTER = -456L
-const val OLD_NEW_SEPARATOR_POINTER = -789L
+open class FakeLine : Line(
+        ++fakePointerCounter, LineSpec.Type.Other,
+        timestamp = 0, rawPrefix = "", rawMessage = "",
+        nick = null, isVisible = true, isHighlighted = false,
+        LineSpec.DisplayAs.Unspecified, LineSpec.NotifyLevel.Low)
 
-private val HEADER = Line(HEADER_POINTER,
-        LineSpec.Type.Other,
-        timestamp = 0,
-        rawPrefix = "",
-        rawMessage = "",
-        nick = null,
-        isVisible = false,
-        isHighlighted = false,
-        LineSpec.DisplayAs.Unspecified,
-        LineSpec.NotifyLevel.Low)
+object MarkerLine : FakeLine()              // can have only one per buffer
+object HeaderLine : FakeLine()              // can have only one per buffer
+class SquiggleLine : FakeLine()             // can have several of these
 
-private val MARKER = Line(MARKER_POINTER,
-        LineSpec.Type.Other,
-        timestamp = 0,
-        rawPrefix = "",
-        rawMessage = "",
-        nick = null,
-        isVisible = false,
-        isHighlighted = false,
-        LineSpec.DisplayAs.Unspecified,
-        LineSpec.NotifyLevel.Low)
 
-private val OLD_NEW_SEPARATOR = Line(OLD_NEW_SEPARATOR_POINTER,
-        LineSpec.Type.Other,
-        timestamp = 0,
-        rawPrefix = "",
-        rawMessage = "• • •",
-        nick = null,
-        isVisible = true,
-        isHighlighted = false,
-        LineSpec.DisplayAs.Unspecified,
-        LineSpec.NotifyLevel.Low)
+private const val MAX_C_POINTER_VALUE = 0x200000000000000   // 2⁵⁷
+
+private var fakePointerCounter = MAX_C_POINTER_VALUE
+
 
 //    private void setSkipsUsingHotlist(int h, int u, int o) {
 //        Iterator<Line> it = unfiltered.descendingIterator();

@@ -37,6 +37,8 @@ inline val Int.f inline get() = this.toFloat()
 inline val Int.d inline get() = this.toDouble()
 inline val Float.i inline get() = this.toInt()
 inline val Double.i inline get() = this.toInt()
+inline val Double.l inline get() = this.toLong()
+
 
 // for floating division of integers
 infix fun Long.fdiv(i: Long): Float = this / i.f
