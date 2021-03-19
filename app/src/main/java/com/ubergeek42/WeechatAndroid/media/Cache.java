@@ -136,6 +136,7 @@ public class Cache {
     final static int ERROR_UNACCEPTABLE_MEDIA_TYPE = -4;
     final static int ERROR_SSL_REQUIRED = -5;
     final static int ERROR_REDIRECT_TO_NULL_STRATEGY = -6;
+    final static int ERROR_MALFORMED_URL = -7;
 
     private final static int ERROR_TIMEOUT = -110;
     private final static int ERROR_INTERNET_UNREACHABLE = -101;
@@ -204,6 +205,7 @@ public class Cache {
             case ERROR_UNACCEPTABLE_MEDIA_TYPE:
             case ERROR_SSL_REQUIRED:
             case ERROR_REDIRECT_TO_NULL_STRATEGY:
+            case ERROR_MALFORMED_URL:
             case ERROR_UNKNOWN_HOST:
             case 400: // Bad Request
             case 401: // Unauthorized

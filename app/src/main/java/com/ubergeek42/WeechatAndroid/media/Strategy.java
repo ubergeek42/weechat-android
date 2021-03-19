@@ -46,7 +46,7 @@ abstract public class Strategy {
 
     public abstract class Url implements Key {
         // first request to be made. the response, if successful, will be passed to getNextRequest()
-        abstract @NonNull Request getFirstRequest();
+        abstract @NonNull Request getFirstRequest() throws IOException;
 
         // parses response and returns one of two things:
         // * a new Request that should be performed

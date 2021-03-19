@@ -6,6 +6,7 @@ import androidx.annotation.Nullable;
 import com.bumptech.glide.util.Preconditions;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -53,7 +54,7 @@ class StrategyRegex extends Strategy {
             return modifiedUrl;
         }
 
-        @NonNull @Override Request getFirstRequest() {
+        @NonNull @Override Request getFirstRequest() throws IOException {
             return RequestType.IMAGE.makeRequest(modifiedUrl).build();
         }
 

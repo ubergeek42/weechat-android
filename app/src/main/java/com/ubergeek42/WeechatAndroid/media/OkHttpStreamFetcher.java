@@ -75,7 +75,11 @@ public class OkHttpStreamFetcher implements DataFetcher<InputStream> {
 
     @Override @Cat public void loadData(@NonNull Priority priority, @NonNull DataCallback<? super InputStream> callback) {
         this.callback = callback;
-        fire(strategyUrl.getFirstRequest());
+        try {
+            fire(strategyUrl.getFirstRequest());
+        } catch (IOException e) {
+            callback.onLoadFailed(e);
+        }
     }
 
     private void fire(Request request) {
