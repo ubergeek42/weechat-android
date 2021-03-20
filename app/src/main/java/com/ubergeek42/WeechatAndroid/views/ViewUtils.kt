@@ -40,7 +40,7 @@ inline fun View.updateMargins(top: Int? = null, bottom: Int? = null, left: Int? 
 // see https://issuetracker.google.com/issues/148537196
 fun RecyclerView.scrollToPositionWithOffsetFix(position: Int, desiredInvisiblePixels: Int) {
     val linearLayoutManager = layoutManager as LinearLayoutManager
-    linearLayoutManager.scrollToPositionWithOffset(position, height - 1)
+    linearLayoutManager.scrollToPositionWithOffset(position, height - paddingTop - 1)
     post {
         val lastChild = getChildAt(childCount - 1) ?: return@post
         val currentInvisiblePixels = lastChild.bottom - height
