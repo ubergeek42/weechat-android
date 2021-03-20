@@ -17,7 +17,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.ubergeek42.WeechatAndroid.upload.f
 import com.ubergeek42.WeechatAndroid.upload.i
 import com.ubergeek42.WeechatAndroid.utils.u
-import com.ubergeek42.WeechatAndroid.utils.ulet
 import kotlin.math.absoluteValue
 import kotlin.math.pow
 
@@ -57,20 +56,6 @@ fun interface OnJumpedUpWhileScrollingListener {
     fun onJumpedUpWhileScrolling()
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-fun RecyclerView.smoothScrollToLastPositionSlowly() = ulet(adapter) { adapter ->
-    val scroller = SlowConstantDecelerationTimeSmoothScroller(context)
-    scroller.targetPosition = adapter.itemCount - 1
-    layoutManager?.startSmoothScroll(scroller)
-}
-
-
-private class SlowConstantDecelerationTimeSmoothScroller(context: Context)
-        : LinearSmoothScroller(context) {
-    override fun calculateTimeForDeceleration(dx: Int) = 200
-}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 

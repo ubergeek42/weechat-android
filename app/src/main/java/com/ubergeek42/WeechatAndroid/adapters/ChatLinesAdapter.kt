@@ -47,7 +47,6 @@ import com.ubergeek42.WeechatAndroid.utils.forEachReversedIndexed
 import com.ubergeek42.WeechatAndroid.utils.isAnyOf
 import com.ubergeek42.WeechatAndroid.utils.ulet
 import com.ubergeek42.WeechatAndroid.views.LineView
-import com.ubergeek42.WeechatAndroid.views.smoothScrollToLastPositionSlowly
 import com.ubergeek42.WeechatAndroid.views.solidColor
 import com.ubergeek42.WeechatAndroid.views.updateMargins
 import com.ubergeek42.cats.Kitty
@@ -217,9 +216,6 @@ class ChatLinesAdapter @MainThread constructor(
     @AnyThread @Synchronized private fun onLinesChanged() = ulet(buffer) { buffer ->
         val newLines = buffer.getLinesCopy()
 
-        val oneLineAdded = newLines.size > 1 &&
-                _lines.last().pointer == newLines[newLines.lastIndex - 1].pointer
-
         val diffResult = DiffUtil.calculateDiff(DiffCallback(_lines, newLines), false)
         _lines = newLines
 
@@ -228,11 +224,7 @@ class ChatLinesAdapter @MainThread constructor(
             diffResult.dispatchUpdatesTo(this@ChatLinesAdapter)
 
             if (uiLines.onBottom) {
-                if (oneLineAdded) {
-                    uiLines.smoothScrollToLastPositionSlowly()
-                } else {
-                    uiLines.scrollToPosition(itemCount - 1)
-                }
+                uiLines.scrollToPosition(itemCount - 1)
             } else {
                 uiLines.flashScrollbar()
             }
