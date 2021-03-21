@@ -50,6 +50,12 @@ class AnimatedRecyclerView @JvmOverloads constructor(
         layoutManager = manager
         setHasFixedSize(true)
         clipToPadding = false
+        itemAnimator?.apply {
+            addDuration = 125
+            moveDuration = 125
+            removeDuration = 125
+            changeDuration = 125
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
