@@ -28,18 +28,13 @@ object BufferList {
     @JvmStatic @WorkerThread fun onServiceAuthenticated() {
         defaultMessageHandlers.forEach { (id, handler) -> addMessageHandler(id, handler) }
 
-        SendMessageEvent.fire(if (P.optimizeTraffic) {
-            BufferSpec.listBuffersRequest + "\n" +
-                    LastLineSpec.lastReadLinesRequest + "\n" +
-                    HotlistSpec.request + "\n" +
-                    "sync * buffers,upgrade"
-        } else {
-            BufferSpec.listBuffersRequest + "\n" +
-                    LastLineSpec.lastLinesRequest + "\n" +      // see Lines.shouldAddSquiggleOnNewLastLine
-                    LastLineSpec.lastReadLinesRequest + "\n" +
-                    HotlistSpec.request + "\n" +
-                    "sync"
-        })
+        SendMessageEvent.fire(listOf(
+                BufferSpec.listBuffersRequest,
+                LastLineSpec.lastLinesRequest,      // see Lines.shouldAddSquiggleOnNewLastLine
+                LastLineSpec.lastReadLinesRequest,
+                HotlistSpec.request,
+                if (P.optimizeTraffic) "sync * buffers,upgrade" else "sync",
+        ).joinToString("\n"))
     }
 
     @JvmStatic @AnyThread fun onServiceStopped() {
