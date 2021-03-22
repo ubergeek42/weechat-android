@@ -216,12 +216,17 @@ class ChatLinesAdapter @MainThread constructor(
     @AnyThread @Synchronized private fun onLinesChanged() = ulet(buffer) { buffer ->
         val newLines = buffer.getLinesCopy()
 
+        val oneLineAdded = newLines.size > 1 && _lines.isNotEmpty() &&
+                _lines.last().pointer == newLines[newLines.lastIndex - 1].pointer
+
         val diffResult = DiffUtil.calculateDiff(DiffCallback(_lines, newLines), false)
         _lines = newLines
 
         Weechat.runOnMainThreadASAP {
             lines = newLines
             diffResult.dispatchUpdatesTo(this@ChatLinesAdapter)
+
+            uiLines.setRunsFasterAnimations(uiLines.onBottom && oneLineAdded)
 
             if (uiLines.onBottom) {
                 uiLines.scrollToPosition(itemCount - 1)
