@@ -36,12 +36,22 @@
 
     <!-- ############################## main activity ui elements ############################## -->
 
-    <string name="ui__button_tab">Tab</string>
-    <string name="ui__button_send">Send</string>
     <string name="ui__button_paperclip">Upload file</string>
+    <string name="ui__button_tab">Tab</string>
+    <string name="ui__button_upload_now">Upload</string>
+    <string name="ui__button_send">Send</string>
+
+    <string name="ui__button_search_cancel">Cancel search</string>
+    <string name="ui__button_search_up">Search up</string>
+    <string name="ui__button_search_down">Search down</string>
+    <string name="ui__button_search_overflow">More</string>
+
+    <string name="ui__fab_go_to_bottom">Go to bottom</string>
 
     <string name="ui__button_fetch_more_lines">Fetch more lines</string>
     <string name="ui__button_fetching_lines">Fetching lines…</string>
+
+    <string name="ui__input_search_hint"><i>search</i></string>
 
     <string name="ui__buffer_list_filter_placeholder"><i>filter</i></string>
 
@@ -49,8 +59,10 @@
     <string name="ui__ActionBarDrawerToggle__close_drawer">Close drawer</string>
 
     <!-- ####################################################################################### -->
-    <!-- ###################################### main menu ###################################### -->
+    <!-- ######################################### menu ######################################## -->
     <!-- ####################################################################################### -->
+
+    <string name="menu__search">Search</string>
 
     <string name="menu__nicklist">Users</string>
 
@@ -79,6 +91,21 @@
     <string name="menu__debug">Debug</string>
     <string name="menu__debug__sync_hotlist">Sync hotlist</string>
     <string name="menu__debug__die">Die</string>
+
+    <!-- ####################################################################################### -->
+
+    <string name="menu__search__source__prefix">Prefix</string>
+    <string name="menu__search__source__message">Message</string>
+    <string name="menu__search__source__prefix_and_message">Both</string>
+
+    <string name="menu__search__regex">Regex</string>
+    <string name="menu__search__case_sensitive">Case sensitive</string>
+
+    <!-- ####################################################################################### -->
+
+    <string name="menu__copy__with_timestamps">With timestamps</string>
+    <string name="menu__copy__without_timestamps">Without timestamps</string>
+    <string name="menu__copy__messages_only">Messages only</string>
 
     <!-- ####################################################################################### -->
     <!-- #################################### notifications #################################### -->
@@ -140,6 +167,7 @@
 
 
     <string name="dialog__copy__title">Copy</string>
+    <string name="dialog__copy__button_select_text">Select text</string>
 
     <string name="dialog__paste__title">Paste</string>
 

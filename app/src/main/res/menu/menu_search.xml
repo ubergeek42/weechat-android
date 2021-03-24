@@ -5,22 +5,22 @@
     <group android:id="@+id/menu_search_source"
         android:checkableBehavior="single" >
         <item android:id="@+id/menu_search_source_prefix"
-            android:title="Prefix" />
+            android:title="@string/menu__search__source__prefix" />
 
         <item android:id="@+id/menu_search_source_message"
-            android:title="Message" />
+            android:title="@string/menu__search__source__message" />
 
         <item android:id="@+id/menu_search_source_prefix_and_message"
-            android:title="Both" />
+            android:title="@string/menu__search__source__prefix_and_message" />
     </group>
 
     <group android:id="@+id/menu_search_options">
         <item android:id="@+id/menu_search_regex"
-            android:title="Regex"
+            android:title="@string/menu__search__regex"
             android:checkable="true" />
 
         <item android:id="@+id/menu_search_case_sensitive"
-            android:title="Case sensitive"
+            android:title="@string/menu__search__case_sensitive"
             android:checkable="true" />
     </group>
 </menu>

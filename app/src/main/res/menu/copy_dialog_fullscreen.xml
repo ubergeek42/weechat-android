@@ -4,14 +4,14 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/menu_select_with_timestamps"
-        android:title="With timestamps"
+        android:title="@string/menu__copy__with_timestamps"
         app:showAsAction="never" />
     <item
         android:id="@+id/menu_select_without_timestamps"
-        android:title="Without timestamps"
+        android:title="@string/menu__copy__without_timestamps"
         app:showAsAction="never" />
     <item
         android:id="@+id/menu_select_messages_only"
-        android:title="Messages only"
+        android:title="@string/menu__copy__messages_only"
         app:showAsAction="never" />
 </menu>

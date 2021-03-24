@@ -24,7 +24,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="?actionBarSize"
                 app:srcCompat="@drawable/ic_toolbar_upload_cancel"
-                android:contentDescription="Cancel search"
+                android:contentDescription="@string/ui__button_search_cancel"
                 android:layout_margin="0dp"
                 style="@style/ActionButton" />
 
@@ -37,14 +37,14 @@
                 android:inputType="text"
                 android:imeOptions="flagNoFullscreen|flagNoExtractUi|actionSearch"
                 android:background="@android:color/transparent"
-                android:hint="search" />
+                android:hint="@string/ui__input_search_hint" />
 
             <ImageButton
                 android:id="@+id/search_up"
                 android:layout_width="wrap_content"
                 android:layout_height="?actionBarSize"
                 app:srcCompat="@drawable/ic_toolbar_search_up"
-                android:contentDescription="Search up"
+                android:contentDescription="@string/ui__button_search_up"
                 android:layout_margin="0dp"
                 style="@style/ActionButton" />
 
@@ -95,7 +95,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="?actionBarSize"
                 app:srcCompat="@drawable/ic_toolbar_search_down"
-                android:contentDescription="Search down"
+                android:contentDescription="@string/ui__button_search_down"
                 android:layout_margin="0dp"
                 style="@style/ActionButton" />
 
@@ -103,7 +103,7 @@
                 android:id="@+id/search_overflow"
                 android:layout_width="wrap_content"
                 android:layout_height="?actionBarSize"
-                android:contentDescription="More"
+                android:contentDescription="@string/ui__button_search_overflow"
                 android:layout_margin="0dp"
                 style="@style/Widget.AppCompat.ActionButton.Overflow" />
         </LinearLayout>
@@ -188,7 +188,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="?actionBarSize"
                     app:srcCompat="@drawable/ic_toolbar_upload"
-                    android:contentDescription="Upload"
+                    android:contentDescription="@string/ui__button_upload_now"
                     android:layout_margin="0dp"
                     style="@style/ActionButton" />
             </FrameLayout>
@@ -230,7 +230,7 @@
 
         android:src="@drawable/ic_fab_go_to_bottom"
         android:scaleType="center"
-        android:contentDescription="Go to bottom"
+        android:contentDescription="@string/ui__fab_go_to_bottom"
 
         android:layout_margin="12dp"
         android:elevation="3dp"

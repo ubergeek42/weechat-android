@@ -15,7 +15,7 @@
     <item android:id="@+id/menu_search"
           app:showAsAction="always"
           android:icon="@drawable/ic_toolbar_magnifying_glass"
-          android:title="Search" />
+          android:title="@string/menu__search" />
     <item android:id="@+id/menu_nicklist"
           app:showAsAction="ifRoom"
           android:icon="@drawable/ic_toolbar_users"

@@ -12,7 +12,7 @@
         android:layout_alignParentTop="true"
         android:layout_marginRight="16dp"
 
-        android:contentDescription="Select text"
+        android:contentDescription="@string/dialog__copy__button_select_text"
         android:src="@drawable/ic_copy_toolbar_select_text"
         style="@style/ActionButton" />
 
