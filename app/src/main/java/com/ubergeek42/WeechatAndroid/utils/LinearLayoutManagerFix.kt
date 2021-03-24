@@ -5,6 +5,7 @@ package com.ubergeek42.WeechatAndroid.utils
 import android.content.Context
 import androidx.recyclerview.widget.LinearLayoutManager
 
+// todo remove this as it looks like this has been fixed
 internal open class LinearLayoutManagerFix(
     context: Context?,
     orientation: Int,

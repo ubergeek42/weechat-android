@@ -9,6 +9,7 @@ import android.util.AttributeSet
 import android.view.View
 import android.view.animation.AlphaAnimation
 import androidx.annotation.UiThread
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.ubergeek42.WeechatAndroid.views.OnJumpedUpWhileScrollingListener
 import com.ubergeek42.WeechatAndroid.views.jumpThenSmoothScrollCentering
@@ -36,7 +37,7 @@ class AnimatedRecyclerView @JvmOverloads constructor(
     // -1 indicates that no scroll has been suggested
     private var scrollToPosition = -1
 
-    private val manager = object : LinearLayoutManagerFix(getContext(), VERTICAL, false) {
+    private val manager = object : LinearLayoutManager(getContext(), VERTICAL, false) {
         // there probably should be a simpler way of doing this, but so far this method
         // is the only one i've found that is called reliably on laying out children
         override fun onLayoutCompleted(state: State) {
