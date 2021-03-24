@@ -1,6 +1,7 @@
 package com.ubergeek42.WeechatAndroid.search
 
 import com.ubergeek42.WeechatAndroid.relay.Line
+import com.ubergeek42.WeechatAndroid.relay.HeaderLine
 import com.ubergeek42.WeechatAndroid.search.Search.Matcher
 import com.ubergeek42.WeechatAndroid.upload.applicationContext
 import java.util.regex.PatternSyntaxException
@@ -16,9 +17,11 @@ class Search(
     private var lastMatches: MatchList? = null
 
     fun onLinesChanged(lines: List<Line>) {
-        val matches = lines.filter { matcher.matches(it) }
-                           .map { it.pointer }
-                           .toList()
+        val matches = lines
+                .filter { it::class == Line::class || it is HeaderLine }
+                .filter { matcher.matches(it) }
+                .map { it.pointer }
+                .toList()
 
         if (lastMatches != matches) {
             lastMatches = matches

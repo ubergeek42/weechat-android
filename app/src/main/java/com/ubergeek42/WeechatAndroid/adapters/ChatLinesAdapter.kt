@@ -31,12 +31,12 @@ import com.ubergeek42.WeechatAndroid.Weechat
 import com.ubergeek42.WeechatAndroid.copypaste.showCopyDialog
 import com.ubergeek42.WeechatAndroid.relay.Buffer
 import com.ubergeek42.WeechatAndroid.relay.BufferEye
-import com.ubergeek42.WeechatAndroid.relay.HeaderLine
 import com.ubergeek42.WeechatAndroid.relay.Line
 import com.ubergeek42.WeechatAndroid.relay.LineSpec
 import com.ubergeek42.WeechatAndroid.relay.Lines
 import com.ubergeek42.WeechatAndroid.relay.MarkerLine
 import com.ubergeek42.WeechatAndroid.relay.SquiggleLine
+import com.ubergeek42.WeechatAndroid.relay.HeaderLine
 import com.ubergeek42.WeechatAndroid.search.Search
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.upload.i
@@ -116,7 +116,7 @@ class ChatLinesAdapter @MainThread constructor(
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-    private inner class Header(header: View) : ViewHolder(header) {
+    private inner class HeaderRow(header: View) : ViewHolder(header) {
         private val title: LineView = header.findViewById<LineView>(R.id.title).apply {
             setOnLongClickListener {
                 showCopyDialog(this, buffer?.pointer ?: -1)
@@ -130,18 +130,17 @@ class ChatLinesAdapter @MainThread constructor(
                     buffer.requestMoreLines()
                     // instead of calling onLinesListed(), which works,
                     // call the following shortcut to forgo change animation
-                    linesStatus = buffer.linesStatus
-                    updateButton()
+                    updateButton(buffer.linesStatus)
                 }
             }
         }
 
-        @MainThread fun update() {
-            updateButton()
-            updateTitle()
+        @MainThread fun update(line: HeaderLine) {
+            updateButton(line.status)
+            updateTitle(line)
         }
 
-        @MainThread private fun updateButton() {
+        @MainThread private fun updateButton(linesStatus: Lines.Status) {
             if (linesStatus === Lines.Status.EverythingFetched) {
                 button.visibility = View.GONE
             } else {
@@ -155,15 +154,14 @@ class ChatLinesAdapter @MainThread constructor(
 
         // don't show the title when fetching lines and only the button is visible --
         // it just doesn't look good when new lines arrive
-        @MainThread private fun updateTitle() {
-            if (titleLine?.spannable.isNullOrEmpty() ||
-                    (itemCount <= 1 && !linesStatus.ready())) {
+        @MainThread private fun updateTitle(line: HeaderLine) {
+            if (line.spannable.isEmpty() || (itemCount <= 1 && !line.status.ready())) {
                 title.visibility = View.GONE
             } else {
                 title.visibility = View.VISIBLE
                 title.updateMargins(bottom = if (button.visibility == View.GONE) P._4dp.i else 0)
-                title.setText(titleLine!!)
-                title.tag = titleLine
+                title.setText(line)
+                title.tag = line
             }
         }
     }
@@ -185,7 +183,7 @@ class ChatLinesAdapter @MainThread constructor(
 
     @MainThread override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         return when (viewType) {
-            HEADER_TYPE -> Header(inflater.inflate(layout.more_button, parent, false))
+            HEADER_TYPE -> HeaderRow(inflater.inflate(layout.more_button, parent, false))
             MARKER_TYPE -> ReadMarkerRow(inflater.inflate(layout.read_marker, parent, false))
             SQUIGGLE_TYPE -> SquiggleRow(inflater.inflate(layout.squiggle, parent, false) as ImageView)
             else -> Row(LineView(parent.context))
@@ -193,11 +191,11 @@ class ChatLinesAdapter @MainThread constructor(
     }
 
     @MainThread override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        when (lines[position]) {
-            is HeaderLine -> (holder as Header).update()
+        when (val line = lines[position]) {
+            is HeaderLine -> (holder as HeaderRow).update(line)
             is MarkerLine -> (holder as ReadMarkerRow).update()
             is SquiggleLine -> (holder as SquiggleRow).update()
-            else -> (holder as Row).update(lines[position])
+            else -> (holder as Row).update(line)
         }
     }
 
@@ -316,9 +314,6 @@ class ChatLinesAdapter @MainThread constructor(
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @Volatile var linesStatus = Lines.Status.Init
-    @Volatile var titleLine: Line? = null
-
     private inner class DiffCallback(
         private val oldLines: List<Line>,
         private val newLines: List<Line>
@@ -331,16 +326,8 @@ class ChatLinesAdapter @MainThread constructor(
         }
 
         override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-            if (oldLines[oldItemPosition] is HeaderLine) {
-                buffer?.let { buffer ->
-                    val newLinesStatus = buffer.linesStatus
-                    val newTitleLine = buffer.titleLine
-                    if (linesStatus != newLinesStatus || titleLine != newTitleLine) {
-                        linesStatus = newLinesStatus
-                        titleLine = newTitleLine
-                        return false
-                    }
-                }
+            if (newItemPosition == 0) {
+                return oldLines[oldItemPosition] == newLines[newItemPosition]
             }
             return true
         }

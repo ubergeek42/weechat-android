@@ -23,7 +23,6 @@ class Buffer @WorkerThread constructor(
     @JvmField var number: Int = 0
     @JvmField var fullName: String = ""
     @JvmField var shortName: String = ""
-    @JvmField var title: String? = null
     @JvmField var hidden: Boolean = false
     @JvmField var type = BufferSpec.Type.Other
 
@@ -58,8 +57,7 @@ class Buffer @WorkerThread constructor(
         }
 
         if (updater.updateTitle) {
-            title = updater.title
-            processTitleLine()
+            lines.title = updater.title ?: ""
             bufferEye.onTitleChanged()
         }
 
@@ -111,7 +109,6 @@ class Buffer @WorkerThread constructor(
     @JvmField var highlights = 0
 
     @JvmField var printable: Spannable? = null  // printable buffer without title (for TextView)
-    @JvmField var titleLine: Line? = null
 
     init { kitty.trace("→ Buffer(number=%s, fullName=%s) isOpen? %s", number, fullName, isOpen) }
 
@@ -441,10 +438,6 @@ class Buffer @WorkerThread constructor(
             setSpan(SUPER, 0, numberString.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
             setSpan(SMALL, 0, numberString.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         }
-    }
-
-    private fun processTitleLine() {
-        titleLine = title.let { if (it.isNullOrEmpty()) null else TitleLine(it) }
     }
 }
 

@@ -2,9 +2,14 @@
 // you may not use this file except in compliance with the License.
 package com.ubergeek42.WeechatAndroid.relay
 
+import android.text.SpannableString
 import com.ubergeek42.WeechatAndroid.service.P
+import com.ubergeek42.WeechatAndroid.utils.Linkify
 import com.ubergeek42.WeechatAndroid.utils.Utils
+import com.ubergeek42.WeechatAndroid.utils.invalidatableLazy
+import com.ubergeek42.weechat.Color
 import java.util.*
+import kotlin.properties.Delegates.observable
 
 // this class is supposed to be synchronized by Buffer
 class Lines {
@@ -22,6 +27,7 @@ class Lines {
     @Volatile var status = Status.Init
         set(value) {
             field = value
+            headerLineDelegate.invalidate()
             if (value == Status.Init) {
                 maxUnfilteredSize = P.lineIncrement
                 shouldAddSquiggleOnNewLine = false
@@ -68,7 +74,7 @@ class Lines {
     // getting this work faster is probably just not feasible or worth the effort
     fun getCopy(): ArrayList<Line> {
         return ArrayList(if (P.filterLines) filtered else unfiltered).apply {
-            add(0, HeaderLine)
+            add(0, headerLine)
             val skip = if (P.filterLines) skipFiltered else skipUnfiltered
             val marker = if (skip >= 0 && size > 0) size - skip else -1
             if (marker > 0) add(marker, MarkerLine)
@@ -224,24 +230,49 @@ class Lines {
         skipFiltered = -1
         skipUnfiltered = -1
     }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    var title: String by observable("") { _, _, _ -> headerLineDelegate.invalidate() }
+
+    private var headerLineDelegate = invalidatableLazy { HeaderLine.make(title, status) }
+    private val headerLine by headerLineDelegate
 }
 
 
-open class FakeLine : Line(
-        ++fakePointerCounter, LineSpec.Type.Other,
+private const val MAX_C_POINTER_VALUE = 0x200000000000000       // 2⁵⁷
+private var fakePointerCounter = MAX_C_POINTER_VALUE
+private val TITLE_LINE_POINTER = ++fakePointerCounter
+
+
+open class FakeLine(pointer: Long) : Line(
+        pointer, LineSpec.Type.Other,
         timestamp = 0, rawPrefix = "", rawMessage = "",
         nick = null, isVisible = false, isHighlighted = false,
         LineSpec.DisplayAs.Unspecified, LineSpec.NotifyLevel.Low)
 
-object MarkerLine : FakeLine()              // can have only one per buffer
-object HeaderLine : FakeLine()              // can have only one per buffer
-class SquiggleLine : FakeLine()             // can have several of these
+
+object MarkerLine : FakeLine(++fakePointerCounter)              // can have only one per buffer
+class SquiggleLine : FakeLine(++fakePointerCounter)             // can have several of these
 
 
-private const val MAX_C_POINTER_VALUE = 0x200000000000000   // 2⁵⁷
+class HeaderLine(
+    override val messageString : String,
+    override val spannable: SpannableString,
+    val status: Lines.Status,
+) : FakeLine(TITLE_LINE_POINTER) {
+    override fun equals(other: Any?) = other is HeaderLine &&
+            messageString == other.messageString && status == other.status
+    override fun hashCode() = 31 * messageString.hashCode() + status.hashCode()
 
-private var fakePointerCounter = MAX_C_POINTER_VALUE
-
+    companion object {
+        fun make(data: String, status: Lines.Status): HeaderLine {
+            val title = Color.stripEverything(data)
+            val spannable = SpannableString(title).also { Linkify.linkify(it) }
+            return HeaderLine(title, spannable, status)
+        }
+    }
+}
 
 //    private void setSkipsUsingHotlist(int h, int u, int o) {
 //        Iterator<Line> it = unfiltered.descendingIterator();
