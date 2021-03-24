@@ -1,4 +1,4 @@
-@file:Suppress("EXPERIMENTAL_FEATURE_WARNING", "NOTHING_TO_INLINE")
+@file:Suppress("EXPERIMENTAL_FEATURE_WARNING", "MemberVisibilityCanBePrivate")
 
 package com.ubergeek42.WeechatAndroid.relay
 
@@ -8,6 +8,7 @@ import com.ubergeek42.weechat.relay.connection.Handshake
 import com.ubergeek42.weechat.relay.connection.find
 import com.ubergeek42.weechat.relay.protocol.Hashtable
 import com.ubergeek42.weechat.relay.protocol.HdataEntry
+import kotlin.jvm.JvmInline
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -29,8 +30,7 @@ enum class Notify(val value: Int) {
 }
 
 
-// use @JvmInline value class ... instead
-inline class BufferSpec(val entry: HdataEntry) {
+@JvmInline value class BufferSpec(val entry: HdataEntry) {
     inline val pointer: Long get() = entry.pointerLong
     inline val number: Int get() = entry.getInt("number")
     inline val fullName: String get() = entry.getString("full_name")
@@ -41,7 +41,7 @@ inline class BufferSpec(val entry: HdataEntry) {
     inline val hidden get() = entry.getIntOrNull("hidden") == 1
 
     // todo get rid of openWhileRunning
-    inline fun toBuffer(openWhileRunning: Boolean) = Buffer(pointer).apply {
+    fun toBuffer(openWhileRunning: Boolean) = Buffer(pointer).apply {
         update {
             number = this@BufferSpec.number
             fullName = this@BufferSpec.fullName
@@ -106,7 +106,7 @@ inline class BufferSpec(val entry: HdataEntry) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-inline class LastLinesSpec(val entry: HdataEntry) {
+@JvmInline value class LastLinesSpec(val entry: HdataEntry) {
     inline val bufferPointer: Long get() = entry.getPointerLong("buffer")
     inline val linePointer: Long get() = entry.pointerLong
     inline val visible: Boolean get() = entry.getChar("displayed") == 1.toChar()
@@ -118,7 +118,7 @@ inline class LastLinesSpec(val entry: HdataEntry) {
 }
 
 
-inline class LastReadLineSpec(val entry: HdataEntry) {
+@JvmInline value class LastReadLineSpec(val entry: HdataEntry) {
     inline val bufferPointer: Long get() = entry.getPointerLong("buffer")
     inline val linePointer: Long get() = entry.pointerLong
 
@@ -151,7 +151,7 @@ class HotlistSpec(entry: HdataEntry) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-inline class LineSpec(val entry: HdataEntry) {
+@JvmInline value class LineSpec(val entry: HdataEntry) {
     inline val bufferPointer: Long get() = entry.getPointerLong("buffer")
 
     inline val pointer: Long get() = entry.pointerLong
@@ -173,7 +173,7 @@ inline class LineSpec(val entry: HdataEntry) {
                 "date,displayed,prefix,message,highlight,notify,tags_array"
     }
 
-    inline fun toLine(): Line {
+    fun toLine(): Line {
         val tags = this.tags
         val highlight = this.highlight
         val notifyLevelByte = this.notifyLevel
@@ -329,7 +329,7 @@ internal const val REMOVE = '-'
 internal const val UPDATE = '*'
 
 
-inline class NickSpec(val entry: HdataEntry) {
+@JvmInline value class NickSpec(val entry: HdataEntry) {
     inline val bufferPointer: Long get() = entry.getPointerLong(0)
 
     inline val pointer: Long get() = entry.pointerLong
@@ -340,7 +340,7 @@ inline class NickSpec(val entry: HdataEntry) {
     inline val visible: Boolean get() = entry.getChar("visible") == 1.toChar()
     inline val group: Boolean get() = entry.getChar("group") == 1.toChar()
 
-    inline fun toNick(): Nick {
+    fun toNick(): Nick {
         var prefix = this.prefix
         if (prefix == null || prefix == " ") prefix = ""
         val away = color?.contains("weechat.color.nicklist_away") == true
@@ -354,6 +354,6 @@ inline class NickSpec(val entry: HdataEntry) {
 }
 
 
-inline class NickDiffSpec(val entry: HdataEntry) {
+@JvmInline value class NickDiffSpec(val entry: HdataEntry) {
     inline val command: Char get() = entry.getChar("_diff")
 }
