@@ -9,7 +9,7 @@ import org.aspectj.tools.ajc.Main
 plugins {
     id("com.android.application")
     kotlin("android")
-    kotlin("kapt") //version "1.4.10"
+    kotlin("kapt")
 }
 
 dependencies {
@@ -17,7 +17,7 @@ dependencies {
     implementation(project(":relay"))
 
     implementation("androidx.core:core-ktx:1.3.2")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.4.31")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.4.32")
 
     // these two are required for logging within the relay module. todo remove?
     implementation("org.slf4j:slf4j-api:1.7.30")
@@ -43,7 +43,7 @@ dependencies {
 
     implementation("org.yaml:snakeyaml:1.28:android")
 
-    implementation("commons-codec:commons-codec:1.14")
+    implementation("commons-codec:commons-codec:1.15")
     implementation("org.bouncycastle:bcpkix-jdk15on:1.68")
 
     // needed for thread-safe date formatting as SimpleDateFormat isn"t thread-safe
