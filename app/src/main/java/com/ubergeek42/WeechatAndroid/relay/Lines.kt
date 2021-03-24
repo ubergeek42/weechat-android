@@ -24,7 +24,8 @@ class Lines {
             field = value
             if (value == Status.Init) {
                 maxUnfilteredSize = P.lineIncrement
-                shouldAddSquiggleOnNewLastLine = false
+                shouldAddSquiggleOnNewLine = false
+                shouldAddSquiggleOnNewVisibleLine = false
             }
         }
 
@@ -43,14 +44,23 @@ class Lines {
     // there can be inconsistencies; if some lines were added while we were offline,
     // we can't display them, but can display what's on top and what's on bottom.
     // to resolve this, add a squiggly separator between the old and the new lines ...
-    private var shouldAddSquiggleOnNewLastLine = false
+    private var shouldAddSquiggleOnNewLine = false
+    private var shouldAddSquiggleOnNewVisibleLine = false
+
 
     // ... but only add it if the buffer's last line pointer has changed.
-    // it would be nice if we can do this separately for visible & invisible lines;
-    // however, it doesn't seem to be possible to retrieve the pointer for last *visible* line
-    fun updateLastLineInfo(pointer: Long) {
-        val bufferReceivedLinesWhileNotSynced = pointer != unfiltered.lastOrNull()?.pointer
-        if (bufferReceivedLinesWhileNotSynced) shouldAddSquiggleOnNewLastLine = true
+    // do it separately for visible and invisible lines; note, however,
+    // that the list of lines is likely incomplete, and the pointer to the last line may be invalid
+
+    // also note that some lines might have changed visibility due to e.g. smart_filter;
+    // but keeping them hidden would not create an inconsistency due to their nature
+    fun updateLastLineInfo(lastPointerServer: Long?, lastVisiblePointerServer: Long?) {
+        val lastPointer = unfiltered.lastOrNull()?.pointer
+        val lastVisiblePointer = filtered.lastOrNull()?.pointer
+
+        if (lastPointerServer != lastPointer) shouldAddSquiggleOnNewLine = true
+        if (shouldAddSquiggleOnNewLine && lastVisiblePointerServer != lastVisiblePointer)
+                    shouldAddSquiggleOnNewVisibleLine = true
     }
 
     // it might look like there's a room for optimization here,
@@ -82,9 +92,21 @@ class Lines {
     }
 
     fun addLast(line: Line) {
-        if (shouldAddSquiggleOnNewLastLine) {
-            shouldAddSquiggleOnNewLastLine = false
-            if (status == Status.Init && unfiltered.size > 0) addLast(SquiggleLine())
+        if (shouldAddSquiggleOnNewLine) {
+            shouldAddSquiggleOnNewLine = false
+            if (status == Status.Init && unfiltered.size > 0) addLast(SquiggleLine())   // invisible
+        }
+
+        if (shouldAddSquiggleOnNewVisibleLine && line.isVisible) {
+            shouldAddSquiggleOnNewVisibleLine = false
+            if (status == Status.Init && filtered.size > 0) {
+                // “unhide” the squiggly line added above. as it's hidden,
+                // the size of visible lines is surely less than maximum
+                unfiltered.reversed().firstOrNull { it is SquiggleLine }?.let {
+                    filtered.addLast(it)
+                    if (skipFiltered >= 0) skipFiltered++
+                }
+            }
         }
 
         val unfilteredSize = unfiltered.size
@@ -208,7 +230,7 @@ class Lines {
 open class FakeLine : Line(
         ++fakePointerCounter, LineSpec.Type.Other,
         timestamp = 0, rawPrefix = "", rawMessage = "",
-        nick = null, isVisible = true, isHighlighted = false,
+        nick = null, isVisible = false, isHighlighted = false,
         LineSpec.DisplayAs.Unspecified, LineSpec.NotifyLevel.Low)
 
 object MarkerLine : FakeLine()              // can have only one per buffer

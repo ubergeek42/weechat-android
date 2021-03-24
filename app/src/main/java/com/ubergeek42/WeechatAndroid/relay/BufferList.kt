@@ -12,7 +12,6 @@ import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
 import com.ubergeek42.weechat.relay.protocol.Hdata
 import com.ubergeek42.weechat.relay.protocol.RelayObject
-import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
 
@@ -30,8 +29,8 @@ object BufferList {
 
         SendMessageEvent.fire(listOf(
                 BufferSpec.listBuffersRequest,
-                LastLineSpec.lastLinesRequest,      // see Lines.shouldAddSquiggleOnNewLastLine
-                LastLineSpec.lastReadLinesRequest,
+                LastLinesSpec.request,          // see Lines.shouldAddSquiggleOnNewLastLine
+                LastReadLineSpec.request,
                 HotlistSpec.request,
                 if (P.optimizeTraffic) "sync * buffers,upgrade" else "sync",
         ).joinToString("\n"))
@@ -116,7 +115,7 @@ object BufferList {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @JvmStatic @AnyThread fun syncHotlist() {
-        SendMessageEvent.fire(LastLineSpec.lastReadLinesRequest + "\n" + HotlistSpec.request)
+        SendMessageEvent.fire(LastReadLineSpec.request + "\n" + HotlistSpec.request)
     }
 
     // if optimizing traffic, sync hotlist to make sure the number of unread messages is correct
@@ -273,16 +272,28 @@ object BufferList {
         add("last_read_lines") { obj, _ ->
             bufferToLastReadLine = LongSparseArray<Long>().apply {
                 obj.forEach { entry ->
-                    val spec = LastLineSpec(entry)
+                    val spec = LastReadLineSpec(entry)
                     put(spec.bufferPointer, spec.linePointer)
                 }
             }
         }
 
         add("last_lines") { obj, _ ->
-            obj.forEach { entry ->
-                val spec = LastLineSpec(entry)
-                findByPointer(spec.bufferPointer)?.updateLastLineInfo(spec.linePointer)
+            class PointerPair(var lastPointer: Long? = null, var lastVisiblePointer: Long? = null)
+
+            val bufferToPointers = mutableMapOf<Long, PointerPair>()
+
+            obj.forEach { entry ->      // last lines com first
+                val spec = LastLinesSpec(entry)
+                val pair = bufferToPointers.getOrPut(spec.bufferPointer) { PointerPair() }
+                val linePointer = spec.linePointer
+                if (pair.lastPointer == null) pair.lastPointer = linePointer
+                if (pair.lastVisiblePointer == null && spec.visible) pair.lastVisiblePointer = linePointer
+            }
+
+            bufferToPointers.forEach { (bufferPointer, pair) ->
+                findByPointer(bufferPointer)?.updateLastLineInfo(
+                        pair.lastPointer, pair.lastVisiblePointer)
             }
         }
 
@@ -386,3 +397,9 @@ object BufferList {
         }
     }
 }
+
+
+//data class LastLine(
+//    val pointer: Long,
+//    val visible: Boolean,
+//)

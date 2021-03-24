@@ -340,8 +340,8 @@ class Buffer @WorkerThread constructor(
         return fullUpdate
     }
 
-    fun updateLastLineInfo(pointer: Long) {
-        lines.updateLastLineInfo(pointer)
+    fun updateLastLineInfo(lastPointer: Long?, lastVisiblePointer: Long?) {
+        lines.updateLastLineInfo(lastPointer, lastVisiblePointer)
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
