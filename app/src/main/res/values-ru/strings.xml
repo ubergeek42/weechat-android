@@ -464,17 +464,17 @@
 
     <string name="pref__connection__connect_on_boot">Подключаться при загрузке системы</string>
 
-    <string name="pref__connection__only_sync_open_buffers">
+    <string name="pref__connection__synchronization__only_sync_open_buffers">
         Оптимизировать трафик</string>
-    <string name="pref__connection__only_sync_open_buffers_summary">
+    <string name="pref__connection__synchronization__only_sync_open_buffers_summary">
         Не запрашивать строки буферов, которые не открыты.
         Может значительно уменьшить трафик и расход батареи,
         но синхронизация важных сообщений будет происходить лишь раз в 5 минут.
         Требует WeeChat версии 1.1 и выше, вступает в силу после переподключения.</string>
 
-    <string name="pref__connection__sync_read_status">
+    <string name="pref__connection__synchronization__sync_read_status">
         Синхронизировать прочитанные буферы</string>
-    <string name="pref__connection__sync_read_status_summary">
+    <string name="pref__connection__synchronization__sync_read_status_summary">
         Помечать буферы как прочитанные в WeeChat. Требует версии WeeChat 1.0 или выше.</string>
 
     <!-- ############################## connection: ping settings ############################## -->

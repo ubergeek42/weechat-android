@@ -459,16 +459,16 @@
 
     <string name="pref__connection__connect_on_boot">Connexion au démarrage du système</string>
 
-    <string name="pref__connection__only_sync_open_buffers">
+    <string name="pref__connection__synchronization__only_sync_open_buffers">
         Synchroniser uniquement les tampons ouverts</string>
-    <string name="pref__connection__only_sync_open_buffers_summary">
+    <string name="pref__connection__synchronization__only_sync_open_buffers_summary">
         Peut réduire significativement le trafic réseau et l’utilisation de la batterie,
         mais le chargement des messages notables ne se fera que toutes les 5 minutes.
         Nécessite WeeChat 1.1 ou ultérieur.</string>
 
-    <string name="pref__connection__sync_read_status">
+    <string name="pref__connection__synchronization__sync_read_status">
         Synchroniser l’état lu des tampons</string>
-    <string name="pref__connection__sync_read_status_summary">
+    <string name="pref__connection__synchronization__sync_read_status_summary">
         Marque les tampons comme lus dans WeeChat quand vous lisez dans cette app.
         Nécessite WeeChat 1.0 ou ultérieur.</string>
 

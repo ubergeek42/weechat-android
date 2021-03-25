@@ -467,17 +467,17 @@
     <string name="pref__connection__connect_on_boot">
         Beim Systemstart eine Verbindung herstellen</string>
 
-    <string name="pref__connection__only_sync_open_buffers">
+    <string name="pref__connection__synchronization__only_sync_open_buffers">
         Synchronisierung von geöffneten Buffern</string>
-    <string name="pref__connection__only_sync_open_buffers_summary">
+    <string name="pref__connection__synchronization__only_sync_open_buffers_summary">
         Kann den Datenverkehr und den Batterieverbrauch erheblich reduzieren,
         Hotlist-Updates werden jedoch nur alle 5 Minuten durchgeführt.
         Benötigt WeeChat 1.1 oder neuer.
         Einstellung wird erst nach einer erneuten Verbindung wirksam.</string>
 
-    <string name="pref__connection__sync_read_status">
+    <string name="pref__connection__synchronization__sync_read_status">
         Lesestatus des Buffer synchronisieren</string>
-    <string name="pref__connection__sync_read_status_summary">
+    <string name="pref__connection__synchronization__sync_read_status_summary">
         Markiert Buffer in WeeChat als gelesen, wenn Sie sie in dieser App gelesen wurden.
         Benötigt WeeChat 1.0 oder neuer.</string>
 

@@ -451,6 +451,8 @@
 
     <string name="pref__connection__relay_password">Relay password</string>
 
+    <!-- ############################ connection: relay: handshake ############################# -->
+
     <string name="pref__connection__handshake_group">Handshake settings</string>
 
     <string name="pref__connection__handshake">Handshake</string>
@@ -475,36 +477,48 @@
         <a href="https://github.com/ubergeek42/weechat-android/wiki/FAQ#what-does-the-handshake-option-do">Learn more</a>
     ]]></string>
 
-    <!-- ############################## connection: miscellaneous ############################## -->
+    <!-- ######################### connection: relay: synchronization ########################## -->
 
-    <string name="pref__connection__misc_group">Miscellaneous</string>
+    <string name="pref__connection__synchronization_group">Synchronization settings</string>
 
-    <string name="pref__connection__number_of_lines_to_load">
-        Number of lines to load</string>
-    <string name="pref__connection__number_of_lines_to_load_summary">
-        The number of lines to be loaded when opening a buffer
-        or pressing the “Load more lines” button.
-        Note that due to filtering the number of lines actually shown
-        might be less than the number of loaded lines.
-        Also note that due to WeeChat’s limitations
-        the app has to re-fetch all lines every times it requests more lines. (%s)</string>
-
-    <string name="pref__connection__reconnect_on_connection_loss">Reconnect on connection loss</string>
-
-    <string name="pref__connection__connect_on_boot">Connect on system boot</string>
-
-    <string name="pref__connection__only_sync_open_buffers">
+    <string name="pref__connection__synchronization__only_sync_open_buffers">
         Only sync open buffers</string>
-    <string name="pref__connection__only_sync_open_buffers_summary">
+    <string name="pref__connection__synchronization__only_sync_open_buffers_summary">
         Can significantly reduce traffic and battery usage,
         but hotlist updates will only happen once 5 minutes.
         Requires WeeChat 1.1 or newer. Takes effect after re-connection.</string>
 
-    <string name="pref__connection__sync_read_status">
+    <string name="pref__connection__synchronization__sync_read_status">
         Sync buffer read status</string>
-    <string name="pref__connection__sync_read_status_summary">
+    <string name="pref__connection__synchronization__sync_read_status_summary">
         Mark buffers as read in WeeChat when you read them in this app.
         Requires WeeChat 1.0 or newer.</string>
+
+    <string name="pref__connection__synchronization__line_increment">
+        Number of lines to fetch</string>
+    <string name="pref__connection__synchronization__line_increment_summary">
+        The number of lines requested when opening a buffer
+        or when you press the “Load more lines” button (%s)</string>
+
+    <string name="pref__connection__synchronization__line_number_to_request_when_starting_search">
+        Number of lines to fetch for search</string>
+    <string name="pref__connection__synchronization__line_number_to_request_when_starting_search_summary">
+        When starting a new search, unless already fetched,
+        the app will request up to this many lines from WeeChat (%s)</string>
+
+    <string name="pref__connection__synchronization_help">
+        Note that due to filtering the number of lines actually shown
+        might be less than the number of loaded lines.
+        Also note that due to WeeChat’s limitations
+        the app has to re-fetch all lines every times it requests more lines.</string>
+
+    <!-- ############################## connection: miscellaneous ############################## -->
+
+    <string name="pref__connection__misc_group">Miscellaneous</string>
+
+    <string name="pref__connection__reconnect_on_connection_loss">Reconnect on connection loss</string>
+
+    <string name="pref__connection__connect_on_boot">Connect on system boot</string>
 
     <!-- ############################## connection: ping settings ############################## -->
 
