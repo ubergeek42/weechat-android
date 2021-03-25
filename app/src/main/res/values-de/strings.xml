@@ -471,15 +471,12 @@
         Synchronisierung von geöffneten Buffern</string>
     <string name="pref__connection__synchronization__only_sync_open_buffers_summary">
         Kann den Datenverkehr und den Batterieverbrauch erheblich reduzieren,
-        Hotlist-Updates werden jedoch nur alle 5 Minuten durchgeführt.
-        Benötigt WeeChat 1.1 oder neuer.
-        Einstellung wird erst nach einer erneuten Verbindung wirksam.</string>
+        Hotlist-Updates werden jedoch nur alle 5 Minuten durchgeführt</string>
 
     <string name="pref__connection__synchronization__sync_read_status">
         Lesestatus des Buffer synchronisieren</string>
     <string name="pref__connection__synchronization__sync_read_status_summary">
-        Markiert Buffer in WeeChat als gelesen, wenn Sie sie in dieser App gelesen wurden.
-        Benötigt WeeChat 1.0 oder neuer.</string>
+        Markiert Buffer in WeeChat als gelesen, wenn Sie sie in dieser App gelesen wurden</string>
 
     <!-- ############################## connection: ping settings ############################## -->
 

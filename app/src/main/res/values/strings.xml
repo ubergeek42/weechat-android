@@ -485,14 +485,12 @@
         Only sync open buffers</string>
     <string name="pref__connection__synchronization__only_sync_open_buffers_summary">
         Can significantly reduce traffic and battery usage,
-        but hotlist updates will only happen once 5 minutes.
-        Requires WeeChat 1.1 or newer. Takes effect after re-connection.</string>
+        but hotlist updates will only happen once 5 minutes</string>
 
     <string name="pref__connection__synchronization__sync_read_status">
         Sync buffer read status</string>
     <string name="pref__connection__synchronization__sync_read_status_summary">
-        Mark buffers as read in WeeChat when you read them in this app.
-        Requires WeeChat 1.0 or newer.</string>
+        Mark buffers as read in WeeChat when you read them in this app</string>
 
     <string name="pref__connection__synchronization__line_increment">
         Number of lines to fetch</string>
@@ -507,6 +505,7 @@
         the app will request up to this many lines from WeeChat (%s)</string>
 
     <string name="pref__connection__synchronization_help">
+        These settings take effect after reconnection.
         Note that due to filtering the number of lines actually shown
         might be less than the number of loaded lines.
         Also note that due to WeeChat’s limitations

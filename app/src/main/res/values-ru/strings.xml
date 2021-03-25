@@ -485,13 +485,12 @@
     <string name="pref__connection__synchronization__only_sync_open_buffers_summary">
         Не запрашивать строки буферов, которые не открыты.
         Может значительно уменьшить трафик и расход батареи,
-        но синхронизация важных сообщений будет происходить лишь раз в 5 минут.
-        Требует WeeChat версии 1.1 и выше, вступает в силу после переподключения.</string>
+        но синхронизация важных сообщений будет происходить лишь раз в 5 минут.</string>
 
     <string name="pref__connection__synchronization__sync_read_status">
         Синхронизировать прочитанное</string>
     <string name="pref__connection__synchronization__sync_read_status_summary">
-        Помечать буферы как прочитанные в WeeChat. Требует версии WeeChat 1.0 или выше.</string>
+        Помечать буферы как прочитанные в WeeChat</string>
 
     <string name="pref__connection__synchronization__line_increment">
         Количество загружаемых строк</string>
@@ -506,6 +505,7 @@
         приложение запросит у сервера заданное здесь количество строк (%s)</string>
 
     <string name="pref__connection__synchronization_help">
+        Данные настройки вступают в силу после переподключения.
         Количество отображаемых строк может быть меньше загруженного числа,
         если включена фильтрация.
         Ввиду ограничений протокола приложение каждый раз запрашивает все строки.</string>
