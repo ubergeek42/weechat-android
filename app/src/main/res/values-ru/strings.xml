@@ -32,12 +32,22 @@
 
     <!-- ############################## main activity ui elements ############################## -->
 
-    <string name="ui__button_tab">Tab</string>
-    <string name="ui__button_send">Отправить</string>
     <string name="ui__button_paperclip">Загрузить</string>
+    <string name="ui__button_tab">Tab</string>
+    <string name="ui__button_upload_now">Начать загрузку</string>
+    <string name="ui__button_send">Отправить</string>
+
+    <string name="ui__button_search_cancel">Отменить поиск</string>
+    <string name="ui__button_search_up">Искать вверх</string>
+    <string name="ui__button_search_down">Искать вниз</string>
+    <string name="ui__button_search_overflow">Ещё</string>
+
+    <string name="ui__fab_go_to_bottom">Вниз</string>
 
     <string name="ui__button_fetch_more_lines">Загрузить больше строк</string>
     <string name="ui__button_fetching_lines">Загрузка…</string>
+
+    <string name="ui__input_search_hint"><i>поиск</i></string>
 
     <string name="ui__buffer_list_filter_placeholder"><i>фильтр</i></string>
 
@@ -45,8 +55,10 @@
     <string name="ui__ActionBarDrawerToggle__close_drawer">Закрыть список буферов</string>
 
     <!-- ####################################################################################### -->
-    <!-- ###################################### main menu ###################################### -->
+    <!-- ######################################### menu ######################################## -->
     <!-- ####################################################################################### -->
+
+    <string name="menu__search">Поиск</string>
 
     <string name="menu__nicklist">Пользователи</string>
 
@@ -75,6 +87,21 @@
     <string name="menu__debug">Отладка</string>
     <string name="menu__debug__sync_hotlist">Синхронизация</string>
     <string name="menu__debug__die">Умереть</string>
+
+    <!-- ####################################################################################### -->
+
+    <string name="menu__search__source__prefix">Префикс</string>
+    <string name="menu__search__source__message">Сообщение</string>
+    <string name="menu__search__source__prefix_and_message">Оба</string>
+
+    <string name="menu__search__regex">Регулярное выражение</string>
+    <string name="menu__search__case_sensitive">Учитывать регистр</string>
+
+    <!-- ####################################################################################### -->
+
+    <string name="menu__copy__with_timestamps">С временными метками</string>
+    <string name="menu__copy__without_timestamps">Без временных меток</string>
+    <string name="menu__copy__messages_only">Только сообщения</string>
 
     <!-- ####################################################################################### -->
     <!-- #################################### notifications #################################### -->
@@ -139,6 +166,7 @@
     <string name="dialog__nicklist__user_away">%s (отсутствует)</string>
 
     <string name="dialog__copy__title">Копировать</string>
+    <string name="dialog__copy__button_select_text">Выделить текст</string>
 
     <string name="dialog__paste__title">Вставить</string>
 
@@ -422,6 +450,8 @@
 
     <string name="pref__connection__relay_password">Пароль релея</string>
 
+    <!-- ############################ connection: relay: handshake ############################# -->
+
     <string name="pref__connection__handshake_group">Настройки рукопожатия</string>
 
     <string name="pref__connection__handshake">Рукопожатие</string>
@@ -446,23 +476,9 @@
         <a href="https://github.com/ubergeek42/weechat-android/wiki/FAQ#what-does-the-handshake-option-do">Узнать&nbsp;больше</a>
     ]]></string>
 
-    <!-- ############################## connection: miscellaneous ############################## -->
+    <!-- ######################### connection: relay: synchronization ########################## -->
 
-    <string name="pref__connection__misc_group">Всякая всячина</string>
-
-    <string name="pref__connection__number_of_lines_to_load">
-        Количество загружаемых строк</string>
-    <string name="pref__connection__number_of_lines_to_load_summary">
-        Количество строк, загружаемых при открытии буфера
-        или нажатии на кнопку «Загрузить больше строк».
-        Количество отображаемых строк может быть меньше загруженного числа,
-        если включена фильтрация.
-        Ввиду ограничений протокола приложение каждый раз запрашивает все строки. (%s)</string>
-
-    <string name="pref__connection__reconnect_on_connection_loss">
-        Восстанавливать соединение при обрыве</string>
-
-    <string name="pref__connection__connect_on_boot">Подключаться при загрузке системы</string>
+    <string name="pref__connection__synchronization_group">Настройки синхронизации</string>
 
     <string name="pref__connection__synchronization__only_sync_open_buffers">
         Оптимизировать трафик</string>
@@ -473,9 +489,35 @@
         Требует WeeChat версии 1.1 и выше, вступает в силу после переподключения.</string>
 
     <string name="pref__connection__synchronization__sync_read_status">
-        Синхронизировать прочитанные буферы</string>
+        Синхронизировать прочитанное</string>
     <string name="pref__connection__synchronization__sync_read_status_summary">
         Помечать буферы как прочитанные в WeeChat. Требует версии WeeChat 1.0 или выше.</string>
+
+    <string name="pref__connection__synchronization__line_increment">
+        Количество загружаемых строк</string>
+    <string name="pref__connection__synchronization__line_increment_summary">
+        Количество строк, загружаемых при открытии буфера
+        или нажатии на кнопку «Загрузить больше строк» (%s)</string>
+
+    <string name="pref__connection__synchronization__line_number_to_request_when_starting_search">
+        Количество строк, загружаемых для поиска</string>
+    <string name="pref__connection__synchronization__line_number_to_request_when_starting_search_summary">
+        Начиная новый поиск, если необходимо,
+        приложение запросит у сервера заданное здесь количество строк (%s)</string>
+
+    <string name="pref__connection__synchronization_help">
+        Количество отображаемых строк может быть меньше загруженного числа,
+        если включена фильтрация.
+        Ввиду ограничений протокола приложение каждый раз запрашивает все строки.</string>
+
+    <!-- ############################## connection: miscellaneous ############################## -->
+
+    <string name="pref__connection__misc_group">Всякая всячина</string>
+
+    <string name="pref__connection__reconnect_on_connection_loss">
+        Восстанавливать соединение при обрыве</string>
+
+    <string name="pref__connection__connect_on_boot">Подключаться при загрузке системы</string>
 
     <!-- ############################## connection: ping settings ############################## -->
 
