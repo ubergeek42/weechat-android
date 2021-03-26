@@ -34,13 +34,23 @@
 
     <!-- ############################## main activity ui elements ############################## -->
 
-    <string name="ui__button_tab">Tab</string>
-    <string name="ui__button_send">Senden</string>
     <string name="ui__button_paperclip">Datei hochladen</string>
+    <string name="ui__button_tab">Tab</string>
+    <string name="ui__button_upload_now">Hochladen</string>
+    <string name="ui__button_send">Senden</string>
+
+    <string name="ui__button_search_cancel">Suche abbrechen</string>
+    <string name="ui__button_search_up">Nach oben suchen</string>
+    <string name="ui__button_search_down">Nach unten suchen</string>
+    <string name="ui__button_search_overflow">Mehr</string>
+
+    <string name="ui__fab_go_to_bottom">Gehe nach unten</string>
 
     <string name="ui__button_fetch_more_lines">Weitere Zeilen anfordern</string>
     <string name="ui__button_fetching_lines">Zeilen werden geholt…</string>
-    
+
+    <string name="ui__input_search_hint"><i>Suchen</i></string>
+
     <string name="ui__buffer_list_filter_placeholder"><i>Filter</i></string>
 
     <string name="ui__ActionBarDrawerToggle__open_drawer">Schublade öffnen</string>
@@ -49,6 +59,8 @@
     <!-- ####################################################################################### -->
     <!-- ###################################### main menu ###################################### -->
     <!-- ####################################################################################### -->
+
+    <string name="menu__search">Suche</string>
 
     <string name="menu__nicklist">Benutzernamen</string>
     
@@ -77,7 +89,22 @@
     <string name="menu__debug">Debug</string>
     <string name="menu__debug__sync_hotlist">Sync Hotlist</string>
     <string name="menu__debug__die">Sterbe</string>
-    
+
+    <!-- ####################################################################################### -->
+
+    <string name="menu__search__source__prefix">Präfix</string>
+    <string name="menu__search__source__message">Nachricht</string>
+    <string name="menu__search__source__prefix_and_message">Beide</string>
+
+    <string name="menu__search__regex">Regex</string>
+    <string name="menu__search__case_sensitive">Groß-und Kleinschreibung</string>
+
+    <!-- ####################################################################################### -->
+
+    <string name="menu__copy__with_timestamps">Mit Zeitstempel</string>
+    <string name="menu__copy__without_timestamps">Ohne Zeitstempel</string>
+    <string name="menu__copy__messages_only">Nur Nachrichten</string>
+
     <!-- ####################################################################################### -->
     <!-- #################################### notifications #################################### -->
     <!-- ####################################################################################### -->
@@ -136,6 +163,7 @@
     <string name="dialog__nicklist__user_away">%s (abwesend)</string>
 
     <string name="dialog__copy__title">Kopieren</string>
+    <string name="dialog__copy__button_select_text">Text auswählen</string>
 
     <string name="dialog__paste__title">Einfügen</string>
 
@@ -420,6 +448,8 @@
 
     <string name="pref__connection__relay_password">Relay-Passwort</string>
 
+    <!-- ############################ connection: relay: handshake ############################# -->
+
     <string name="pref__connection__handshake_group">Handshake Einstellungen</string>
 
     <string name="pref__connection__handshake">Handshake</string>
@@ -447,25 +477,9 @@
         <a href="https://github.com/ubergeek42/weechat-android/wiki/FAQ#what-does-the-handshake-option-do">Mehr&nbsp;erfahren</a>
     ]]></string>
 
-    <!-- ############################## connection: miscellaneous ############################## -->
+    <!-- ######################### connection: relay: synchronization ########################## -->
 
-    <string name="pref__connection__misc_group">Sonstiges</string>
-
-    <string name="pref__connection__number_of_lines_to_load">
-        Anzahl der anzufordernden Zeilen</string>
-    <string name="pref__connection__number_of_lines_to_load_summary">
-        Die Anzahl der Zeilen, die beim Öffnen eines Buffers
-        oder beim Drücken der Schaltfläche „Weitere Zeilen anfordern“ geladen werden sollen.
-        Beachten Sie, dass aufgrund der Filterung die Anzahl der tatsächlich angezeigten Zeilen
-        möglicherweise geringer ist als die Anzahl der geladenen Zeilen.
-        Beachten Sie auch, dass die App aufgrund der Einschränkungen von WeeChat jedes Mal,
-        wenn mehr Zeilen angefordert werden, alle Zeilen erneut abrufen muss. (%s)</string>
-
-    <string name="pref__connection__reconnect_on_connection_loss">
-        Bei Verbindungsverlust erneut verbinden</string>
-
-    <string name="pref__connection__connect_on_boot">
-        Beim Systemstart eine Verbindung herstellen</string>
+    <string name="pref__connection__synchronization_group">Synchronisationseinstellungen</string>
 
     <string name="pref__connection__synchronization__only_sync_open_buffers">
         Synchronisierung von geöffneten Buffern</string>
@@ -477,6 +491,35 @@
         Lesestatus des Buffer synchronisieren</string>
     <string name="pref__connection__synchronization__sync_read_status_summary">
         Markiert Buffer in WeeChat als gelesen, wenn Sie sie in dieser App gelesen wurden</string>
+
+    <string name="pref__connection__synchronization__line_increment">
+        Anzahl der abzurufenden Zeilen</string>
+    <string name="pref__connection__synchronization__line_increment_summary">
+        Die Anzahl der Zeilen, die beim Öffnen eines Buffers oder beim
+        Drücken der Schaltfläche "Weitere Zeilen laden" angefordert werden (%s)</string>
+
+    <string name="pref__connection__synchronization__line_number_to_request_when_starting_search">
+        Anzahl der Zeilen, die für die Suche abgerufen werden sollen</string>
+    <string name="pref__connection__synchronization__line_number_to_request_when_starting_search_summary">
+        Wenn eine neue Suche gestartet wird, fordert die App, sofern diese noch nicht
+        abgerufen wurden, die entsprechende Anzahl an Zeilen, von WeeChat an (%s)</string>
+
+    <string name="pref__connection__synchronization_help">
+        Diese Einstellungen werden erst nach dem erneuten Verbinden wirksam.
+        Beachten Sie, dass aufgrund der Filterung die Anzahl der tatsächlich angezeigten Zeilen
+        möglicherweise abweicht, gegenüber der Anzahl der geladenen Zeilen.
+        Beachten Sie außerdem, dass die App aufgrund der Einschränkungen von WeeChat
+        jedes Mal, wenn mehr Zeilen angefordert werden, alle Zeilen erneut abrufen muss.</string>
+
+    <!-- ############################## connection: miscellaneous ############################## -->
+
+    <string name="pref__connection__misc_group">Sonstiges</string>
+
+    <string name="pref__connection__reconnect_on_connection_loss">
+        Bei Verbindungsverlust erneut verbinden</string>
+
+    <string name="pref__connection__connect_on_boot">
+        Beim Systemstart eine Verbindung herstellen</string>
 
     <!-- ############################## connection: ping settings ############################## -->
 
