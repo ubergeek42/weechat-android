@@ -33,12 +33,22 @@
 
     <!-- ############################## main activity ui elements ############################## -->
 
-    <string name="ui__button_tab">Tab</string>
-    <string name="ui__button_send">Envoyer</string>
     <string name="ui__button_paperclip">Téléverser un fichier</string>
+    <string name="ui__button_tab">Tab</string>
+    <string name="ui__button_upload_now">Transférer</string>
+    <string name="ui__button_send">Envoyer</string>
+
+    <string name="ui__button_search_cancel">Annuler la recherche</string>
+    <string name="ui__button_search_up">Occurrence précédente</string>
+    <string name="ui__button_search_down">Occurrence suivante</string>
+    <string name="ui__button_search_overflow">Plus</string>
+
+    <string name="ui__fab_go_to_bottom">Aller à la fin</string>
 
     <string name="ui__button_fetch_more_lines">Récupérer plus de lignes</string>
     <string name="ui__button_fetching_lines">Récupération…</string>
+
+    <string name="ui__input_search_hint"><i>rechercher</i></string>
 
     <string name="ui__buffer_list_filter_placeholder"><i>filtre</i></string>
 
@@ -48,6 +58,8 @@
     <!-- ####################################################################################### -->
     <!-- ###################################### main menu ###################################### -->
     <!-- ####################################################################################### -->
+
+    <string name="menu__search">Rechercher</string>
 
     <string name="menu__nicklist">Pseudos</string>
 
@@ -76,6 +88,21 @@
     <string name="menu__debug">Debug</string>
     <string name="menu__debug__sync_hotlist">Sync. les notables</string>
     <string name="menu__debug__die">Quitter</string>
+
+    <!-- ####################################################################################### -->
+
+    <string name="menu__search__source__prefix">Préfixe</string>
+    <string name="menu__search__source__message">Message</string>
+    <string name="menu__search__source__prefix_and_message">Les deux</string>
+
+    <string name="menu__search__regex">Regex</string>
+    <string name="menu__search__case_sensitive">Sensible à la casse</string>
+
+    <!-- ####################################################################################### -->
+
+    <string name="menu__copy__with_timestamps">Avec l’horodatage</string>
+    <string name="menu__copy__without_timestamps">Sans l’horodatage</string>
+    <string name="menu__copy__messages_only">Messages uniquement</string>
 
     <!-- ####################################################################################### -->
     <!-- #################################### notifications #################################### -->
@@ -134,6 +161,7 @@
     <string name="dialog__nicklist__user_away">%s (absent)</string>
 
     <string name="dialog__copy__title">Copier</string>
+    <string name="dialog__copy__button_select_text">Sélectionner le texte</string>
 
     <string name="dialog__paste__title">Coller</string>
 
@@ -416,6 +444,8 @@
 
     <string name="pref__connection__relay_password">Mot de passe du relai</string>
 
+    <!-- ############################ connection: relay: handshake ############################# -->
+
     <string name="pref__connection__handshake_group">Paramètres de négociation</string>
 
     <string name="pref__connection__handshake">Négociation</string>
@@ -442,22 +472,9 @@
         <a href="https://github.com/ubergeek42/weechat-android/wiki/FAQ#what-does-the-handshake-option-do">En&nbsp;savoir&nbsp;plus</a>
     ]]></string>
 
-    <!-- ############################## connection: miscellaneous ############################## -->
+    <!-- ######################### connection: relay: synchronization ########################## -->
 
-    <string name="pref__connection__misc_group">Divers</string>
-
-    <string name="pref__connection__number_of_lines_to_load">
-        Nombre de lignes à charger</string>
-    <string name="pref__connection__number_of_lines_to_load_summary">
-        Le nombre de lignes à charger lors de l’ouverture
-        d’un tampon ou via le bouton «&#8239;Récupérer plus de lignes&#8239;».
-        Notez qu’à cause du filtrage, le nombre de lignes affichées
-        peut être inférieur au nombre de lignes chargées.
-        Notez que l’application doit recharger l’intégralité des lignes à chaque fois. (%s)</string>
-
-    <string name="pref__connection__reconnect_on_connection_loss">Reconnexion sur connexion rompue</string>
-
-    <string name="pref__connection__connect_on_boot">Connexion au démarrage du système</string>
+    <string name="pref__connection__synchronization_group">Paramètres de synchronisation</string>
 
     <string name="pref__connection__synchronization__only_sync_open_buffers">
         Synchroniser uniquement les tampons ouverts</string>
@@ -469,6 +486,33 @@
         Synchroniser l’état lu des tampons</string>
     <string name="pref__connection__synchronization__sync_read_status_summary">
         Marque les tampons comme lus dans WeeChat quand vous lisez dans cette app</string>
+
+    <string name="pref__connection__synchronization__line_increment">
+        Nombre de lignes à récupérer</string>
+    <string name="pref__connection__synchronization__line_increment_summary">
+        Le nombre de lignes récupérées lors de l’ouverture d’un tampon
+        ou lorsque vous appuyez sur le bouton «&#8239;Charger plus de lignes&#8239;» (%s)</string>
+
+    <string name="pref__connection__synchronization__line_number_to_request_when_starting_search">
+        Nombre de lignes à récupérer pour la recherche</string>
+    <string name="pref__connection__synchronization__line_number_to_request_when_starting_search_summary">
+        Lors d’une nouvelle recherche, sauf si déjà récupérées,
+        l’application récupérera de WeeChat jusqu’à ce nombre de lignes (%s)</string>
+
+    <string name="pref__connection__synchronization_help">
+        Ces paramètres prennent effet après reconnexion.
+        Notez qu’en raison du filtrage, il peut y avoir moins de lignes affichées
+        que de lignes récupérées.
+        Notez également qu’en raison des limitations de WeeChat,
+        l’application doit récupérer toutes les (anciennes) lignes chaque fois qu’elle demande de nouvelles lignes.</string>
+
+    <!-- ############################## connection: miscellaneous ############################## -->
+
+    <string name="pref__connection__misc_group">Divers</string>
+
+    <string name="pref__connection__reconnect_on_connection_loss">Reconnexion sur connexion rompue</string>
+
+    <string name="pref__connection__connect_on_boot">Connexion au démarrage du système</string>
 
     <!-- ############################## connection: ping settings ############################## -->
 
