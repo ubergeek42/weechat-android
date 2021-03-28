@@ -388,7 +388,7 @@ class BufferFragment : Fragment(), BufferEye {
     @MainThread @Cat private fun attachToBuffer() = ulet(buffer) { buffer ->
         buffer.setBufferEye(this)
         if (buffer.linesAreReady()) linesAdapter?.buffer = buffer
-        linesAdapter?.loadLinesWithoutAnimation()
+        linesAdapter?.loadLines()
         attachedToBuffer = true
         onVisibilityStateChanged(ChangedState.BufferAttachment)
     }
@@ -511,7 +511,6 @@ class BufferFragment : Fragment(), BufferEye {
     }
 
     @WorkerThread override fun onLinesListed() {
-        uiLines?.requestAnimation()
         linesAdapter?.buffer = buffer
         linesAdapter?.onLinesListed()
         Weechat.runOnMainThread {

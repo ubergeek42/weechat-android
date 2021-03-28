@@ -42,6 +42,7 @@ import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.upload.i
 import com.ubergeek42.WeechatAndroid.upload.main
 import com.ubergeek42.WeechatAndroid.utils.AnimatedRecyclerView
+import com.ubergeek42.WeechatAndroid.utils.Animation
 import com.ubergeek42.WeechatAndroid.utils.Toaster
 import com.ubergeek42.WeechatAndroid.utils.forEachReversedIndexed
 import com.ubergeek42.WeechatAndroid.utils.isAnyOf
@@ -211,11 +212,8 @@ class ChatLinesAdapter @MainThread constructor(
     // this might be called by multiple threads in rapid succession
     // in case non-main thread calls this before the Runnable that sets `lines` is executed,
     // store the new list in `_lines` so that we can produce a proper diff
-    @AnyThread @Synchronized private fun onLinesChanged() = ulet(buffer) { buffer ->
+    @AnyThread @Synchronized private fun onLinesChanged(animation: Animation) = ulet(buffer) { buffer ->
         val newLines = buffer.getLinesCopy()
-
-        val oneLineAdded = newLines.size > 1 && _lines.isNotEmpty() &&
-                _lines.last().pointer == newLines[newLines.lastIndex - 1].pointer
 
         val diffResult = DiffUtil.calculateDiff(DiffCallback(_lines, newLines), false)
         _lines = newLines
@@ -224,7 +222,7 @@ class ChatLinesAdapter @MainThread constructor(
             lines = newLines
             diffResult.dispatchUpdatesTo(this@ChatLinesAdapter)
 
-            uiLines.setRunsFasterAnimations(uiLines.onBottom && oneLineAdded)
+            uiLines.setAnimation(animation)
 
             if (uiLines.onBottom) {
                 uiLines.scrollToPosition(itemCount - 1)
@@ -232,7 +230,6 @@ class ChatLinesAdapter @MainThread constructor(
                 uiLines.flashScrollbar()
             }
 
-            uiLines.scheduleAnimationRestoring()
             search?.onLinesChanged(newLines)
         }
     }
@@ -243,31 +240,30 @@ class ChatLinesAdapter @MainThread constructor(
 
     @MainThread @Synchronized override fun onGlobalPreferencesChanged(numberChanged: Boolean) {
         if (numberChanged && buffer != null) {
-            onLinesChanged()
+            onLinesChanged(Animation.Default)
         } else {
             notifyItemRangeChanged(0, _lines.size)
         }
     }
 
     @WorkerThread override fun onLinesListed() {
-        onLinesChanged()
+        onLinesChanged(Animation.NewLinesFetched)
     }
 
     @AnyThread override fun onLineAdded() {
-        onLinesChanged()
+        onLinesChanged(Animation.LastLineAdded)
     }
 
     @WorkerThread override fun onTitleChanged() {
-        onLinesChanged()
+        onLinesChanged(Animation.Default)
     }
 
     @WorkerThread override fun onBufferClosed() {}
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @MainThread fun loadLinesWithoutAnimation() = ulet(buffer) {
-        uiLines.disableAnimationForNextUpdate()
-        onLinesChanged()
+    @MainThread fun loadLines() {
+        onLinesChanged(Animation.Default)
     }
 
     @MainThread @Synchronized fun loadLinesSilently() = ulet(buffer) { buffer ->
