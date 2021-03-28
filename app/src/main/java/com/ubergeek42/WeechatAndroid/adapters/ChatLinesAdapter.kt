@@ -41,8 +41,8 @@ import com.ubergeek42.WeechatAndroid.search.Search
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.upload.i
 import com.ubergeek42.WeechatAndroid.upload.main
-import com.ubergeek42.WeechatAndroid.utils.AnimatedRecyclerView
-import com.ubergeek42.WeechatAndroid.utils.Animation
+import com.ubergeek42.WeechatAndroid.views.AnimatedRecyclerView
+import com.ubergeek42.WeechatAndroid.views.Animation
 import com.ubergeek42.WeechatAndroid.utils.Toaster
 import com.ubergeek42.WeechatAndroid.utils.forEachReversedIndexed
 import com.ubergeek42.WeechatAndroid.utils.isAnyOf

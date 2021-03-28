@@ -1,19 +1,13 @@
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 
-package com.ubergeek42.WeechatAndroid.utils
+package com.ubergeek42.WeechatAndroid.views
 
 import android.content.Context
 import android.util.AttributeSet
 import androidx.annotation.UiThread
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.ubergeek42.WeechatAndroid.views.CustomAdditionItemAnimator
-import com.ubergeek42.WeechatAndroid.views.DefaultAnimationProvider
-import com.ubergeek42.WeechatAndroid.views.FlickeringAnimationProvider
-import com.ubergeek42.WeechatAndroid.views.OnJumpedUpWhileScrollingListener
-import com.ubergeek42.WeechatAndroid.views.SlidingFromBottomAnimationProvider
-import com.ubergeek42.WeechatAndroid.views.jumpThenSmoothScrollCentering
 
 
 enum class Animation {

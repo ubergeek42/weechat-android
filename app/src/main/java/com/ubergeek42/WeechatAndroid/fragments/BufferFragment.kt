@@ -65,7 +65,7 @@ import com.ubergeek42.WeechatAndroid.upload.getShareObjectFromIntent
 import com.ubergeek42.WeechatAndroid.upload.i
 import com.ubergeek42.WeechatAndroid.upload.suppress
 import com.ubergeek42.WeechatAndroid.upload.validateUploadConfig
-import com.ubergeek42.WeechatAndroid.utils.AnimatedRecyclerView
+import com.ubergeek42.WeechatAndroid.views.AnimatedRecyclerView
 import com.ubergeek42.WeechatAndroid.utils.Assert.assertThat
 import com.ubergeek42.WeechatAndroid.utils.FriendlyExceptions
 import com.ubergeek42.WeechatAndroid.utils.Toaster

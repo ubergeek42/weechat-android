@@ -203,7 +203,7 @@
             android:layout_marginBottom="@dimen/connectivity_indicator_bottom_margin" />
     </FrameLayout>
 
-    <com.ubergeek42.WeechatAndroid.utils.AnimatedRecyclerView
+    <com.ubergeek42.WeechatAndroid.views.AnimatedRecyclerView
         android:id="@+id/chatview_lines"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
