@@ -242,6 +242,7 @@ class ChatLinesAdapter @MainThread constructor(
         if (numberChanged && buffer != null) {
             onLinesChanged(Animation.Default)
         } else {
+            uiLines.setAnimation(Animation.Default)
             notifyItemRangeChanged(0, _lines.size)
         }
     }

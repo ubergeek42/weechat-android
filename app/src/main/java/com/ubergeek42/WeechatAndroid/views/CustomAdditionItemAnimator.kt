@@ -29,30 +29,22 @@ class CustomAdditionItemAnimator : DefaultItemAnimator() {
     override fun animateChange(oldHolder: RecyclerView.ViewHolder,
                                newHolder: RecyclerView.ViewHolder,
                                fromX: Int, fromY: Int, toX: Int, toY: Int): Boolean {
-        if (animationProvider is NullAnimationProvider) return false
-
         hasPendingChanges = true
         return super.animateChange(oldHolder, newHolder, fromX, fromY, toX, toY)
     }
 
     override fun animateMove(holder: RecyclerView.ViewHolder,
                              fromX: Int, fromY: Int, toX: Int, toY: Int): Boolean {
-        if (animationProvider is NullAnimationProvider) return false
-
         hasPendingMoves = true
         return super.animateMove(holder, fromX, fromY, toX, toY)
     }
 
     override fun animateRemove(holder: RecyclerView.ViewHolder): Boolean {
-        if (animationProvider is NullAnimationProvider) return false
-
         hasPendingRemoves = true
         return super.animateRemove(holder)
     }
 
     override fun animateAdd(holder: RecyclerView.ViewHolder): Boolean {
-        if (animationProvider is NullAnimationProvider) return false
-
         return if (animationProvider is DefaultAnimationProvider) {
             super.animateAdd(holder)
         } else {
@@ -142,9 +134,6 @@ interface AnimationProvider {
     fun fixupViewOnAnimationCancel(view: View) {}
     fun setupAnimation(animator: ViewPropertyAnimator, otherAnimationsDelay: Long) {}
 }
-
-
-object NullAnimationProvider : AnimationProvider
 
 
 object DefaultAnimationProvider : AnimationProvider {

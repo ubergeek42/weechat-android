@@ -36,8 +36,11 @@ class AnimatedRecyclerView @JvmOverloads constructor(
     }
 
     fun setAnimation(animation: Animation) {
+        val itemAnimator = if (animation == Animation.None) null else animator
+        if (this.itemAnimator != itemAnimator) this.itemAnimator = itemAnimator
+
         animator.animationProvider = when(animation) {
-            Animation.None -> NullAnimationProvider
+            Animation.None -> return
             Animation.Default -> DefaultAnimationProvider
             Animation.LastLineAdded -> SlidingFromBottomAnimationProvider
             Animation.NewLinesFetched -> FlickeringAnimationProvider
