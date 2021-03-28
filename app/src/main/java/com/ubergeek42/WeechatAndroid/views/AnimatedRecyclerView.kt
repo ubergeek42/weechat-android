@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 
 
 enum class Animation {
+    None,
     Default,
     LastLineAdded,
     NewLinesFetched,
@@ -36,6 +37,7 @@ class AnimatedRecyclerView @JvmOverloads constructor(
 
     fun setAnimation(animation: Animation) {
         animator.animationProvider = when(animation) {
+            Animation.None -> NullAnimationProvider
             Animation.Default -> DefaultAnimationProvider
             Animation.LastLineAdded -> SlidingFromBottomAnimationProvider
             Animation.NewLinesFetched -> FlickeringAnimationProvider

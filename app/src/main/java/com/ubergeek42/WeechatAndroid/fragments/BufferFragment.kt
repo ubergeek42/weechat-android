@@ -388,7 +388,7 @@ class BufferFragment : Fragment(), BufferEye {
     @MainThread @Cat private fun attachToBuffer() = ulet(buffer) { buffer ->
         buffer.setBufferEye(this)
         if (buffer.linesAreReady()) linesAdapter?.buffer = buffer
-        linesAdapter?.loadLines()
+        linesAdapter?.loadLinesWithoutAnimation()
         attachedToBuffer = true
         onVisibilityStateChanged(ChangedState.BufferAttachment)
     }

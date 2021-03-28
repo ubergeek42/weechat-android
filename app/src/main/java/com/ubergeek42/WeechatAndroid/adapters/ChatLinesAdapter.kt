@@ -262,8 +262,8 @@ class ChatLinesAdapter @MainThread constructor(
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @MainThread fun loadLines() {
-        onLinesChanged(Animation.Default)
+    @MainThread fun loadLinesWithoutAnimation() {
+        onLinesChanged(Animation.None)
     }
 
     @MainThread @Synchronized fun loadLinesSilently() = ulet(buffer) { buffer ->

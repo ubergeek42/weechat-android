@@ -8,9 +8,9 @@ import android.view.View
 import android.view.ViewPropertyAnimator
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.RecyclerView
-import com.ubergeek42.cats.Cat
 import kotlin.math.sin
 import kotlin.random.Random
+
 
 class CustomAdditionItemAnimator : DefaultItemAnimator() {
     var animationProvider: AnimationProvider = DefaultAnimationProvider
@@ -29,22 +29,30 @@ class CustomAdditionItemAnimator : DefaultItemAnimator() {
     override fun animateChange(oldHolder: RecyclerView.ViewHolder,
                                newHolder: RecyclerView.ViewHolder,
                                fromX: Int, fromY: Int, toX: Int, toY: Int): Boolean {
+        if (animationProvider is NullAnimationProvider) return false
+
         hasPendingChanges = true
         return super.animateChange(oldHolder, newHolder, fromX, fromY, toX, toY)
     }
 
     override fun animateMove(holder: RecyclerView.ViewHolder,
                              fromX: Int, fromY: Int, toX: Int, toY: Int): Boolean {
+        if (animationProvider is NullAnimationProvider) return false
+
         hasPendingMoves = true
         return super.animateMove(holder, fromX, fromY, toX, toY)
     }
 
     override fun animateRemove(holder: RecyclerView.ViewHolder): Boolean {
+        if (animationProvider is NullAnimationProvider) return false
+
         hasPendingRemoves = true
         return super.animateRemove(holder)
     }
 
-    @Cat override fun animateAdd(holder: RecyclerView.ViewHolder): Boolean {
+    override fun animateAdd(holder: RecyclerView.ViewHolder): Boolean {
+        if (animationProvider is NullAnimationProvider) return false
+
         return if (animationProvider is DefaultAnimationProvider) {
             super.animateAdd(holder)
         } else {
@@ -55,7 +63,7 @@ class CustomAdditionItemAnimator : DefaultItemAnimator() {
         }
     }
 
-    @Cat override fun runPendingAnimations() {
+    override fun runPendingAnimations() {
         super.runPendingAnimations()
 
         val removeDuration = if (hasPendingRemoves) removeDuration else 0
@@ -73,7 +81,7 @@ class CustomAdditionItemAnimator : DefaultItemAnimator() {
         hasPendingRemoves = false
     }
 
-    @Cat private fun animateAddImpl(holder: RecyclerView.ViewHolder, otherAnimationDelay: Long) {
+    private fun animateAddImpl(holder: RecyclerView.ViewHolder, otherAnimationDelay: Long) {
         runningAdditions.add(holder)
         val view = holder.itemView
         val animator = view.animate()
@@ -129,21 +137,20 @@ class CustomAdditionItemAnimator : DefaultItemAnimator() {
 
 
 interface AnimationProvider {
-    fun setupItemAnimator(itemAnimator: DefaultItemAnimator)
-    fun setupViewBeforeAnimation(view: View)
-    fun fixupViewOnAnimationCancel(view: View)
-    fun setupAnimation(animator: ViewPropertyAnimator, otherAnimationsDelay: Long)
+    fun setupItemAnimator(itemAnimator: DefaultItemAnimator) {}
+    fun setupViewBeforeAnimation(view: View) {}
+    fun fixupViewOnAnimationCancel(view: View) {}
+    fun setupAnimation(animator: ViewPropertyAnimator, otherAnimationsDelay: Long) {}
 }
+
+
+object NullAnimationProvider : AnimationProvider
 
 
 object DefaultAnimationProvider : AnimationProvider {
     override fun setupItemAnimator(itemAnimator: DefaultItemAnimator) {
         itemAnimator.moveDuration = LONG
     }
-
-    override fun setupViewBeforeAnimation(view: View) {}
-    override fun fixupViewOnAnimationCancel(view: View) {}
-    override fun setupAnimation(animator: ViewPropertyAnimator, otherAnimationsDelay: Long) {}
 }
 
 
@@ -174,19 +181,19 @@ object FlickeringAnimationProvider : AnimationProvider {
 // using default interpolator and the same duration that is used to move other items up
 // the duration is shorter here; it looks more smooth this way
 object SlidingFromBottomAnimationProvider : AnimationProvider {
-    @Cat override fun setupItemAnimator(itemAnimator: DefaultItemAnimator) {
+    override fun setupItemAnimator(itemAnimator: DefaultItemAnimator) {
         itemAnimator.moveDuration = SHORT
     }
 
-    @Cat override fun setupViewBeforeAnimation(view: View) {
+    override fun setupViewBeforeAnimation(view: View) {
         view.translationY = view.height.toFloat()
     }
 
-    @Cat override fun fixupViewOnAnimationCancel(view: View) {
+    override fun fixupViewOnAnimationCancel(view: View) {
         view.translationY = 0f
     }
 
-    @Cat override fun setupAnimation(animator: ViewPropertyAnimator, otherAnimationsDelay: Long) {
+    override fun setupAnimation(animator: ViewPropertyAnimator, otherAnimationsDelay: Long) {
         animator.translationY(0f)
         animator.duration = SHORT
         animator.startDelay = 0
