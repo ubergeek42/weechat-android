@@ -78,6 +78,7 @@ class CustomAdditionItemAnimator : DefaultItemAnimator() {
         val view = holder.itemView
         val animator = view.animate()
 
+        val animationProvider = this.animationProvider
         animationProvider.setupAnimation(animator, otherAnimationDelay)
 
         animator.setListener(object : AnimatorListenerAdapter() {
