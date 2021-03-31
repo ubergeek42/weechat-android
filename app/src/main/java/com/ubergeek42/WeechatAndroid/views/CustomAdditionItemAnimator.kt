@@ -28,9 +28,7 @@ class CustomAdditionItemAnimator : DefaultItemAnimator() {
     private val pendingMoves = mutableListOf<VH>()
     private val pendingAdditions = mutableListOf<VH>()
 
-    private val runningMoves = mutableListOf<VH>()
-    private val runningMovesToNowhere = mutableListOf<VH>()
-    private val runningAdditions = mutableListOf<VH>()
+    private val runningAnimations = mutableListOf<VH>()
 
     private var hasPendingChanges = false
     private var hasPendingRemoves = false
@@ -110,85 +108,64 @@ class CustomAdditionItemAnimator : DefaultItemAnimator() {
     }
 
     private fun animateMoveToNowhere(holder: VH) {
-        runningMovesToNowhere.add(holder)
-        val view = holder.itemView
-        val animator = view.animate()
-
-        animator.alpha(0f)
-        animator.translationY(view.translationY - P._1dp * 30)
-        animator.duration = removeDuration
-
-        animator.setListener(object : AnimatorListenerAdapter() {
-            override fun onAnimationCancel(animation: Animator) {
-                view.translationY = 0f
-                view.alpha = 1f
-            }
-
-            override fun onAnimationEnd(animation: Animator) {
-                view.translationY = 0f
-                view.alpha = 1f
-                runningMovesToNowhere.remove(holder)
-                animator.cancel()
-                animator.reset()
-                dispatchMoveFinished(holder)
-                dispatchFinishedWhenDone()
-            }
-        }).start()
+        holder.startAnimation(setup = {
+            alpha(0f)
+            translationY(holder.itemView.translationY - P._1dp * 30)
+            duration = removeDuration
+        }, onCancel = {
+            translationY = 0f
+            alpha = 1f
+        }, callCancelOnEnd = true)
     }
 
     private fun animateMoveImpl(holder: VH, removeAnimationDelay: Long) {
-        runningMoves.add(holder)
-        val view = holder.itemView
-        val animator = view.animate()
-
-        animator.translationY(0f)
-        animator.duration = moveDuration
-        animator.startDelay = removeAnimationDelay
-
-        animator.setListener(object : AnimatorListenerAdapter() {
-            override fun onAnimationCancel(animation: Animator) {
-                view.translationY = 0f
-            }
-
-            override fun onAnimationEnd(animation: Animator) {
-                runningMoves.remove(holder)
-                animator.cancel()
-                animator.reset()
-                dispatchMoveFinished(holder)
-                dispatchFinishedWhenDone()
-            }
-        }).start()
+        holder.startAnimation(setup = {
+            translationY(0f)
+            duration = moveDuration
+            startDelay = removeAnimationDelay
+        }, onCancel = {
+            translationY = 0f
+        })
     }
 
     private fun animateAddImpl(holder: VH, otherAnimationDelay: Long) {
-        runningAdditions.add(holder)
-        val view = holder.itemView
-        val animator = view.animate()
-
         val animationProvider = this.animationProvider
-        animationProvider.setupAnimation(animator, otherAnimationDelay)
+        holder.startAnimation(setup = {
+            animationProvider.setupAnimation(this, otherAnimationDelay)
+        }, onCancel = {
+            animationProvider.fixupViewOnAnimationCancel(this)
+        })
+    }
+
+    private inline fun VH.startAnimation(setup: ViewPropertyAnimator.() -> Unit,
+                                         crossinline onCancel: View.() -> Unit,
+                                         callCancelOnEnd: Boolean = false) {
+        val animator = itemView.animate()
+
+        runningAnimations.add(this)
+        animator.setup()
 
         animator.setListener(object : AnimatorListenerAdapter() {
             override fun onAnimationCancel(animation: Animator) {
-                animationProvider.fixupViewOnAnimationCancel(view)
+                itemView.onCancel()
             }
 
             override fun onAnimationEnd(animation: Animator) {
-                runningAdditions.remove(holder)
-                animator.cancel()
+                if (callCancelOnEnd) itemView.onCancel()
+                runningAnimations.remove(this@startAnimation)
                 animator.reset()
-                dispatchAddFinished(holder)
+                dispatchAnimationFinished(this@startAnimation)
                 dispatchFinishedWhenDone()
             }
-        }).start()
+        })
+
+        animator.start()
     }
 
     override fun isRunning() = super.isRunning() ||
             pendingAdditions.isNotEmpty() ||
-            runningAdditions.isNotEmpty() ||
             pendingMoves.isNotEmpty() ||
-            runningMoves.isNotEmpty() ||
-            runningMovesToNowhere.isNotEmpty()
+            runningAnimations.isNotEmpty()
 
     private fun dispatchFinishedWhenDone() {
         if (!isRunning) dispatchAnimationsFinished()
@@ -198,16 +175,17 @@ class CustomAdditionItemAnimator : DefaultItemAnimator() {
         (pendingAdditions + pendingMoves).forEach { holder ->
             holder.itemView.translationY = 0f
             holder.itemView.alpha = 1f
-            dispatchAddFinished(holder)
+            dispatchAnimationFinished(holder)
         }
 
-        (runningAdditions + runningMoves + runningMovesToNowhere).forEach { holder ->
+        runningAnimations.toList().forEach { holder ->
             holder.itemView.animate().cancel()
-            dispatchAddFinished(holder)
+            dispatchAnimationFinished(holder)
         }
 
         pendingAdditions.clear()
-        runningAdditions.clear()
+        pendingMoves.clear()
+        runningAnimations.clear()
 
         super.endAnimations()
     }
@@ -293,6 +271,7 @@ private val defaultInterpolator = ValueAnimator().interpolator
 
 
 private fun ViewPropertyAnimator.reset() {
+    cancel()
     startDelay = 0
     interpolator = defaultInterpolator
 }
@@ -322,5 +301,5 @@ private fun separateViewHoldersIntoConsecutiveTopDisappearingAndTheRest(source: 
 }
 
 
-inline private val View.topIncludingMargin get() = top - marginTop
-inline private val View.bottomIncludingMargin get() = bottom + marginBottom
+private inline val View.topIncludingMargin get() = top - marginTop
+private inline val View.bottomIncludingMargin get() = bottom + marginBottom
