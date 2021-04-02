@@ -221,9 +221,9 @@ class Buffer @WorkerThread constructor(
     @WorkerThread fun addLineBottom(line: Line) {
         if (isOpen) line.ensureSpannable()
 
-        val notifyHighlight = line.notify == LineSpec.NotifyLevel.Highlight
-        val notifyPm = line.notify == LineSpec.NotifyLevel.Private
-        val notifyPmOrMessage = line.notify == LineSpec.NotifyLevel.Message || notifyPm
+        val notifyHighlight = line.notifyLevel == LineSpec.NotifyLevel.Highlight
+        val notifyPm = line.notifyLevel == LineSpec.NotifyLevel.Private
+        val notifyPmOrMessage = line.notifyLevel == LineSpec.NotifyLevel.Message || notifyPm
 
         synchronized(this) {
             lines.addLast(line)

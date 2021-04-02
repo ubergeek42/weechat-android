@@ -287,8 +287,8 @@ class ChatLinesAdapter @MainThread constructor(
         if (skip == 0) return HOT_LINE_NOT_PRESENT
 
         lines.forEachReversedIndexed { index, line ->
-            if (line.notify.isAnyOf(LineSpec.NotifyLevel.Highlight,
-                                    LineSpec.NotifyLevel.Private)) {
+            if (line.notifyLevel.isAnyOf(LineSpec.NotifyLevel.Highlight,
+                                         LineSpec.NotifyLevel.Private)) {
                 if (--skip == 0) return index
             }
         }
