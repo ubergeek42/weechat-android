@@ -982,6 +982,8 @@ class BufferFragment : Fragment(), BufferEye {
             parent.forEach { child ->
                 if (parent.getChildItemId(child) == focusedMatch) {
                     parent.getDecoratedBoundsWithMargins(child, rect)
+                    rect.top += child.translationY.i
+                    rect.bottom += child.translationY.i
                     canvas.drawRect(rect, paint)
                 }
             }
