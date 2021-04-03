@@ -54,10 +54,10 @@ class AnimatedRecyclerView @JvmOverloads constructor(
         awakenScrollBars()
     }
 
+    // itemAnimator may be null. also see documentation for isRunning()
     @UiThread fun smoothScrollToPositionAfterAnimation(position: Int) {
-        itemAnimator?.isRunning {
-            jumpThenSmoothScrollCentering(position)
-        }
+        itemAnimator?.isRunning { jumpThenSmoothScrollCentering(position) }
+                ?: jumpThenSmoothScrollCentering(position)
     }
 
     var onJumpedUpWhileScrollingListener: OnJumpedUpWhileScrollingListener? = null
