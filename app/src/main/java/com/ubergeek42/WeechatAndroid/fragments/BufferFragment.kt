@@ -361,8 +361,9 @@ class BufferFragment : Fragment(), BufferEye {
     @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
     @MainThread @Cat fun onEvent(event: StateChangedEvent) {
         val connectedToRelay = event.state.contains(RelayService.STATE.LISTED)
+        val oldBuffer = buffer
 
-        if (buffer == null || connectedToRelay) {
+        if (oldBuffer == null || connectedToRelay) {
             buffer = BufferList.findByPointer(pointer)
             if (connectedToRelay && buffer == null) {
                 onBufferClosed()
@@ -370,7 +371,7 @@ class BufferFragment : Fragment(), BufferEye {
             }
         }
 
-        if (buffer != null) attachToBuffer() else kitty.warn("...buffer is null")   // this should only happen after OOM kill
+        if (buffer != null && (oldBuffer != buffer || !attachedToBuffer)) attachToBuffer()
 
         val connectivityChanged = this.connectedToRelay != connectedToRelay
         this.connectedToRelay = connectedToRelay

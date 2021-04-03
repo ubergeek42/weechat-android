@@ -52,6 +52,7 @@ class Buffer @WorkerThread constructor(
             number = updater.number
             fullName = updater.fullName
             shortName = updater.shortName ?: fullName
+            kitty.setPrefix(shortName)
             processBufferNameSpannable()
             Hotlist.adjustHotListForBuffer(this, false) // update buffer names in the notifications
         }
@@ -86,7 +87,7 @@ class Buffer @WorkerThread constructor(
     @JvmField var readUnreads = 0
     @JvmField var readHighlights = 0
 
-    @Root private val kitty: Kitty = Kitty.make("Buffer").apply { setPrefix(this@Buffer.shortName) }
+    @Root private val kitty: Kitty = Kitty.make("Buffer")
 
     // number of hotlist updates while syncing this buffer. if >= 2, when the new update arrives, we
     // keep own unreads/highlights as they have been correct since the last update
