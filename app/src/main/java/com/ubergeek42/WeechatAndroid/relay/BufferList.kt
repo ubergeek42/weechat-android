@@ -331,9 +331,9 @@ object BufferList {
 
             obj.forEach { entry ->
                 val spec = NickSpec(entry)
+                val nicks = updates.getOrPut(spec.bufferPointer) { mutableListOf() }
 
                 if (spec.visible && !spec.group) {
-                    val nicks = updates.getOrPut(spec.bufferPointer) { mutableListOf() }
                     nicks.add(spec.toNick())
                 }
             }
