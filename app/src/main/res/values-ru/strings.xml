@@ -28,6 +28,7 @@
         Некоторые важные сообщения были утеряны из-за наплыва новых строк</string>
     <string name="error__etc__no_hot_buffers">Важных сообщений нет</string>
     <string name="error__etc__not_connected">Нет соединения</string>
+    <string name="error__etc__cannot_share_to_empty_buffer_list">Список буферов пуст</string>
     <string name="error__etc__activity_not_found_for_url">Не найдена Activity для Intent-а %s</string>
 
     <!-- ############################## main activity ui elements ############################## -->

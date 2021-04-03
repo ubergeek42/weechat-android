@@ -44,7 +44,7 @@ class ShareTextActivity : AppCompatActivity(), BufferListClickListener {
             if (pendingItemCount == 0) {
                 val canShowBuffers = P.showBufferFilter && BufferList.buffers.isNotEmpty()
                 if (!canShowBuffers) {
-                    Toaster.ErrorToast.show("Buffer list empty")    // todo extract string
+                    Toaster.ErrorToast.show(R.string.error__etc__cannot_share_to_empty_buffer_list)
                     finish()
                     return
                 }

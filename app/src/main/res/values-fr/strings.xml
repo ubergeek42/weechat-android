@@ -29,6 +29,7 @@
         Des messages notables ont été perdus à cause des lignes plus récentes</string>
     <string name="error__etc__no_hot_buffers">Il n’y a pas de tampon notable</string>
     <string name="error__etc__not_connected">Non connecté</string>
+    <string name="error__etc__cannot_share_to_empty_buffer_list">Aucun tampon disponible pour partager</string>
     <string name="error__etc__activity_not_found_for_url">Activité introuvable pour “l’intent” %s</string>
 
     <!-- ############################## main activity ui elements ############################## -->

@@ -30,6 +30,7 @@
         Aufgrund neuer Nachrichten wurden alte Nachrichten verloren</string>
     <string name="error__etc__no_hot_buffers">Derzeit keine Buffer mit neuen heißen Nachrichten</string>
     <string name="error__etc__not_connected">Nicht verbunden</string>
+    <string name="error__etc__cannot_share_to_empty_buffer_list">Bufferliste leer</string>
     <string name="error__etc__activity_not_found_for_url">Keine Aktivität gefunden für %s</string>
 
     <!-- ############################## main activity ui elements ############################## -->

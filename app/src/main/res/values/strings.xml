@@ -32,6 +32,7 @@
     <string name="error__etc__hot_line_lost">Buffer lost some hot messages because of new lines</string>
     <string name="error__etc__no_hot_buffers">There are no hot buffers for now</string>
     <string name="error__etc__not_connected">Not connected</string>
+    <string name="error__etc__cannot_share_to_empty_buffer_list">Buffer list empty</string>
     <string name="error__etc__activity_not_found_for_url">Activity not found for intent %s</string>
 
     <!-- ############################## main activity ui elements ############################## -->
