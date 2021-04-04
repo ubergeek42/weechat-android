@@ -15,10 +15,15 @@ import android.view.MenuItem
 import android.widget.EditText
 import com.ubergeek42.WeechatAndroid.views.solidColor
 import com.ubergeek42.weechat.relay.connection.find
+import java.lang.StringBuilder
 import java.util.*
 
 
 private var menuIdSource = 2123
+
+
+// regular UnderlineSpan is used for suggestions, so we can't make use of it
+private class UnderlineSpan2 : UnderlineSpan()
 
 
 private enum class StyleMenuItem(
@@ -29,13 +34,43 @@ private enum class StyleMenuItem(
 
     Bold("B", StyleSpan(Typeface.BOLD)),
     Italic("I", StyleSpan(Typeface.ITALIC)),
-    Underline("U", UnderlineSpan()),
+    Underline("U", UnderlineSpan2()),
     Color("Color"),
     Reset("Reset"),
 
-    Red("Red", ForegroundColorSpan(0xff0000.solidColor)),
+    White(MircColor.White.displayName, ForegroundColorSpan(MircColor.White.color.solidColor)),
+    Black(MircColor.Black.displayName, ForegroundColorSpan(MircColor.Black.color.solidColor)),
+    Navy(MircColor.Navy.displayName, ForegroundColorSpan(MircColor.Navy.color.solidColor)),
+    Green(MircColor.Green.displayName, ForegroundColorSpan(MircColor.Green.color.solidColor)),
+    Red(MircColor.Red.displayName, ForegroundColorSpan(MircColor.Red.color.solidColor)),
+    Maroon(MircColor.Maroon.displayName, ForegroundColorSpan(MircColor.Maroon.color.solidColor)),
+    Purple(MircColor.Purple.displayName, ForegroundColorSpan(MircColor.Purple.color.solidColor)),
+    Orange(MircColor.Orange.displayName, ForegroundColorSpan(MircColor.Orange.color.solidColor)),
+    Yellow(MircColor.Yellow.displayName, ForegroundColorSpan(MircColor.Yellow.color.solidColor)),
+    LightGreen(MircColor.LightGreen.displayName, ForegroundColorSpan(MircColor.LightGreen.color.solidColor)),
+    Teal(MircColor.Teal.displayName, ForegroundColorSpan(MircColor.Teal.color.solidColor)),
+    Cyan(MircColor.Cyan.displayName, ForegroundColorSpan(MircColor.Cyan.color.solidColor)),
+    RoyalBlue(MircColor.RoyalBlue.displayName, ForegroundColorSpan(MircColor.RoyalBlue.color.solidColor)),
+    Magenta(MircColor.Magenta.displayName, ForegroundColorSpan(MircColor.Magenta.color.solidColor)),
+    Gray(MircColor.Gray.displayName, ForegroundColorSpan(MircColor.Gray.color.solidColor)),
+    LightGray(MircColor.LightGray.displayName, ForegroundColorSpan(MircColor.LightGray.color.solidColor)),
 
-    BackgroundBlue("Blue", BackgroundColorSpan(0x0000ff.solidColor));
+    BackgroundWhite(MircColor.White.displayName, BackgroundColorSpan(MircColor.White.color.solidColor)),
+    BackgroundBlack(MircColor.Black.displayName, BackgroundColorSpan(MircColor.Black.color.solidColor)),
+    BackgroundNavy(MircColor.Navy.displayName, BackgroundColorSpan(MircColor.Navy.color.solidColor)),
+    BackgroundGreen(MircColor.Green.displayName, BackgroundColorSpan(MircColor.Green.color.solidColor)),
+    BackgroundRed(MircColor.Red.displayName, BackgroundColorSpan(MircColor.Red.color.solidColor)),
+    BackgroundMaroon(MircColor.Maroon.displayName, BackgroundColorSpan(MircColor.Maroon.color.solidColor)),
+    BackgroundPurple(MircColor.Purple.displayName, BackgroundColorSpan(MircColor.Purple.color.solidColor)),
+    BackgroundOrange(MircColor.Orange.displayName, BackgroundColorSpan(MircColor.Orange.color.solidColor)),
+    BackgroundYellow(MircColor.Yellow.displayName, BackgroundColorSpan(MircColor.Yellow.color.solidColor)),
+    BackgroundLightGreen(MircColor.LightGreen.displayName, BackgroundColorSpan(MircColor.LightGreen.color.solidColor)),
+    BackgroundTeal(MircColor.Teal.displayName, BackgroundColorSpan(MircColor.Teal.color.solidColor)),
+    BackgroundCyan(MircColor.Cyan.displayName, BackgroundColorSpan(MircColor.Cyan.color.solidColor)),
+    BackgroundRoyalBlue(MircColor.RoyalBlue.displayName, BackgroundColorSpan(MircColor.RoyalBlue.color.solidColor)),
+    BackgroundMagenta(MircColor.Magenta.displayName, BackgroundColorSpan(MircColor.Magenta.color.solidColor)),
+    BackgroundGray(MircColor.Gray.displayName, BackgroundColorSpan(MircColor.Gray.color.solidColor)),
+    BackgroundLightGray(MircColor.LightGray.displayName, BackgroundColorSpan(MircColor.LightGray.color.solidColor));
 
     val id = menuIdSource++
 
@@ -63,7 +98,11 @@ class CharacterStyleMenuCallback(private val editText: EditText) : ActionMode.Ca
                 menu.add(StyleMenuItem.Bold, StyleMenuItem.Italic, StyleMenuItem.Underline,
                          StyleMenuItem.Color, StyleMenuItem.Reset)
             } else if (it == StyleMenuItem.Color) {
-                menu.add(StyleMenuItem.Red, StyleMenuItem.BackgroundBlue)
+                StyleMenuItem.values().forEach { item ->
+                    if (item.span is ForegroundColorSpan || item.span is BackgroundColorSpan) {
+                        menu.add(item)
+                    }
+                }
             }
             return true
         }
@@ -104,7 +143,7 @@ private fun Menu.add(vararg items: StyleMenuItem) {
 
 private fun CharacterStyle.copy(): CharacterStyle {
     return when (this) {
-        is UnderlineSpan -> UnderlineSpan()
+        is UnderlineSpan2 -> UnderlineSpan2()
         is StyleSpan -> StyleSpan(this.style)
         is ForegroundColorSpan -> ForegroundColorSpan(this.foregroundColor)
         is BackgroundColorSpan -> BackgroundColorSpan(this.backgroundColor)
@@ -204,3 +243,108 @@ private inline fun <reified T : CharacterStyle> Editable.forEachSpan(regionStart
         }
     }
 }
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+enum class MircColor(val code: String, val color: Int, val displayName: String) {
+    White("00", 0xffffff, "White"),
+    Black("01", 0x000000, "Black"),
+    Navy("02", 0x00007f, "Navy"),
+    Green("03", 0x009300, "Green"),
+    Red("04", 0xff0000, "Red"),
+    Maroon("05", 0x7f0000, "Maroon"),
+    Purple("06", 0x9c009c, "Purple"),
+    Orange("07", 0xfc7f00, "Orange"),
+    Yellow("08", 0xffff00, "Yellow"),
+    LightGreen("09", 0x00fc00, "Light Green"),
+    Teal("10", 0x009393, "Teal"),
+    Cyan("11", 0x00ffff, "Cyan"),
+    RoyalBlue("12", 0x0000fc, "Royal blue"),
+    Magenta("13", 0xff00ff, "Magenta"),
+    Gray("14", 0x7f7f7f, "Gray"),
+    LightGray("15", 0xd2d2d2, "Light Gray");
+
+    companion object {
+        fun byColor(color: Int) = MircColor::color.find(color and 0xffffff)
+    }
+}
+
+
+
+private class MircCodedStringComposer(private val editable: Editable) {
+    private sealed class SpanInfo(val span: CharacterStyle, val edge: Int) {
+        class Start(span: CharacterStyle, start: Int) : SpanInfo(span, start)
+        class End(span: CharacterStyle, end: Int) : SpanInfo(span, end)
+    }
+
+    private var currentForegroundColorCode: String? = null
+    private var currentBackgroundColorCode: String? = null
+
+    private fun CharacterStyle.toMircCode(spanOpening: Boolean): CharSequence {
+        return when (this) {
+            is UnderlineSpan2 -> "\u001f"
+            is StyleSpan -> {
+                when (style) {
+                    Typeface.BOLD -> "\u0002"
+                    Typeface.ITALIC -> "\u001d"
+                    Typeface.BOLD_ITALIC -> "\u0002\u001d"
+                    else -> ""
+                }
+            }
+            is ForegroundColorSpan -> {
+                if (spanOpening) {
+                    val color = MircColor.byColor(this.foregroundColor)
+                    if (color == null) "" else "\u0003${color.code}"
+                } else {
+                    if (currentBackgroundColorCode == null) "\u0003" else "\u0003\u0003,$currentBackgroundColorCode"
+                }
+            }
+            is BackgroundColorSpan -> {
+                if (spanOpening) {
+                    val color = MircColor.byColor(this.backgroundColor)
+                    if (color == null) "" else "\u0003,${color.code}"
+                } else {
+                    if (currentForegroundColorCode == null) "\u0003" else "\u0003\u0003$currentForegroundColorCode"
+                }
+            }
+            else -> ""
+        }
+    }
+
+    fun compose(): String {
+        val string = editable.toString()
+        val spans = mutableListOf<SpanInfo>()
+
+        editable.forEachSpan(0, editable.length, CharacterStyleMatcher { true }) { span, start, end ->
+            spans.add(SpanInfo.Start(span, start))
+            spans.add(SpanInfo.End(span, end))
+        }
+
+        // lower edges before higher, ends before starts
+        spans.sortBy { it.edge * 2 + if (it is SpanInfo.Start) 1 else 0 }
+
+        val out = StringBuilder()
+
+        for (index in 0..editable.length) {
+            spans.filter { it.edge == index }.forEach {
+                val spanOpening = it is SpanInfo.Start
+
+                out.append(it.span.toMircCode(spanOpening = spanOpening))
+
+                if (it.span is ForegroundColorSpan) currentForegroundColorCode =
+                        if (spanOpening) MircColor.byColor(it.span.foregroundColor)?.code else null
+                if (it.span is BackgroundColorSpan) currentBackgroundColorCode =
+                        if (spanOpening) MircColor.byColor(it.span.backgroundColor)?.code else null
+            }
+            if (index < editable.length) out.append(string[index])
+        }
+
+        return out.toString()
+    }
+}
+
+fun Editable.toMircCodedString() = MircCodedStringComposer(this).compose()

@@ -546,7 +546,7 @@ class BufferFragment : Fragment(), BufferEye {
         } else {
             assertThat(buffer).isEqualTo(linesAdapter?.buffer)
             if (connectedToRelayAndSynced) {
-                SendMessageEvent.fireInput(buffer, input.text.toString())
+                SendMessageEvent.fireInput(buffer, input.text?.toMircCodedString())
                 input.setText("")   // this will reset tab completion
             } else {
                 Toaster.ErrorToast.show(R.string.error__etc__not_connected)
