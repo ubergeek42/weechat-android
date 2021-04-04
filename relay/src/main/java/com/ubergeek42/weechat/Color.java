@@ -368,6 +368,7 @@ public class Color {
                         case 0x1C:              // clear colors
                             finalizeSpan(Span.FGCOLOR);
                             finalizeSpan(Span.BGCOLOR);
+                            index++;
                             break;
                         case '@':               // /color stuff. shouldn't happen, but just in case consume
                             setColor(Span.FGCOLOR);
