@@ -227,6 +227,8 @@ class BufferFragment : Fragment(), BufferEye {
                     false
                 }
             }
+
+            customSelectionActionModeCallback = CharacterStyleMenuCallback(this)
         }
 
         ui.scrollToBottomFab.setOnClickListener {
