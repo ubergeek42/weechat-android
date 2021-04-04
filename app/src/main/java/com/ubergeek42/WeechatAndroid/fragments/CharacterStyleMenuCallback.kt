@@ -157,12 +157,27 @@ private fun interface CharacterStyleMatcher<T : CharacterStyle> {
 }
 
 
-private fun <T: CharacterStyle> T.getMatcher(): CharacterStyleMatcher<T> {
+private fun <T: CharacterStyle> T.getMatcher(strictColorMatching: Boolean): CharacterStyleMatcher<T> {
     return if (this is StyleSpan) {
         val style = this.style
         CharacterStyleMatcher { other -> other is StyleSpan && other.style and style != 0 }
     } else {
-        CharacterStyleMatcher { other -> other::class.isInstance(this) }
+        if (strictColorMatching) {
+            CharacterStyleMatcher { other ->
+                return@CharacterStyleMatcher when {
+                    !other::class.isInstance(this) -> false
+                    this is ForegroundColorSpan &&
+                            this.foregroundColor != (other as ForegroundColorSpan).foregroundColor
+                                    -> false
+                    this is BackgroundColorSpan &&
+                            this.backgroundColor != (other as BackgroundColorSpan).backgroundColor
+                                    -> false
+                    else -> true
+                }
+            }
+        } else {
+            CharacterStyleMatcher { other -> other::class.isInstance(this) }
+        }
     }
 }
 
@@ -195,22 +210,20 @@ private fun Editable.setSpanEx(span: CharacterStyle, start: Int, end: Int) {
 }
 
 
-@Suppress("IfThenToElvis")
 private fun EditText.applySelectionStyle(span: CharacterStyle?) {
     val text = this.text!!
     val selectionStart = this.selectionStart
     val selectionEnd = this.selectionEnd
 
-    val matcher = if (span != null) span.getMatcher() else CharacterStyleMatcher { true }
-
     var addSpan = false
     if (span != null) {
         val selectionSize = selectionEnd - selectionStart
-        val selectionStyledCharacterCount = text.getStyledCharacterCount(selectionStart, selectionEnd, matcher)
-        val selectionUnstyledCharacterCount = selectionSize - selectionStyledCharacterCount
-        addSpan = selectionUnstyledCharacterCount > selectionStyledCharacterCount
+        val selectionStyledCharacterCount = text.getStyledCharacterCount(selectionStart, selectionEnd,
+                span.getMatcher(strictColorMatching = true))
+        addSpan = selectionStyledCharacterCount != selectionSize
     }
 
+    val matcher = span?.getMatcher(strictColorMatching = false) ?: CharacterStyleMatcher { true }
     text.clearSpans(selectionStart, selectionEnd, matcher)
     if (addSpan) text.setSpan(span!!.copy(), selectionStart, selectionEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
 
@@ -225,7 +238,7 @@ private inline fun <reified T : CharacterStyle> Editable.getStyledCharacterCount
     forEachSpan(regionStart, regionEnd, matcher) { _, start, end ->
         val spanInRegionStart = start.coerceAtLeast(regionStart)
         val spanInRegionEnd = end.coerceAtMost(regionEnd)
-        styledBits.set(spanInRegionStart - regionStart, spanInRegionEnd - regionStart + 1, true)
+        styledBits.set(spanInRegionStart - regionStart, spanInRegionEnd - regionStart, true)
     }
 
     return styledBits.cardinality()
