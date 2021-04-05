@@ -15,6 +15,7 @@ import org.greenrobot.eventbus.EventBus;
 import java.util.EnumSet;
 import java.util.Locale;
 
+import static com.ubergeek42.WeechatAndroid.fragments.CharacterStyleMenuCallbackKt.toMircCodedString;
 import static com.ubergeek42.WeechatAndroid.utils.Assert.assertThat;
 
 
@@ -64,11 +65,14 @@ public class Events {
             fire(String.format(Locale.ROOT, message, args));
         }
 
-        public static void fireInput(@NonNull Buffer buffer, @Nullable String input) {
+        public static void fireInput(@NonNull Buffer buffer, @Nullable CharSequence input) {
+            if (input == null) return;
             if (TextUtils.isEmpty(input)) return;
+
             P.addSentMessage(input);
-            //noinspection ConstantConditions -- linter doesn't see the call to isEmpty
-            for (String line : input.split("\n"))
+            input = toMircCodedString(input);
+
+            for (String line : input.toString().split("\n"))
                 if (!TextUtils.isEmpty(line))
                     fire("input 0x%x %s", buffer.pointer, line);
         }

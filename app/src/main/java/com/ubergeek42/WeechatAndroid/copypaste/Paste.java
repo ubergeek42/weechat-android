@@ -22,11 +22,11 @@ import java.util.List;
 
 public class Paste {
     static class PasteItem {
-        final String text;
+        final CharSequence text;
         final boolean isPaste;
         final @Nullable Strategy.Url strategyUrl;
 
-        PasteItem(String text, boolean isPaste) {
+        PasteItem(CharSequence text, boolean isPaste) {
             this.text = text;
             this.isPaste = isPaste;
 
@@ -45,8 +45,8 @@ public class Paste {
         boolean hasClipboard = !TextUtils.isEmpty(clipboard);
 
         List<PasteItem> list = new ArrayList<>(P.sentMessages.size());
-        for (String message : P.sentMessages) {
-            if (!message.trim().equals(clipboard))
+        for (CharSequence message : P.sentMessages) {
+            if (!message.toString().trim().equals(clipboard))
                 list.add(new PasteItem(message, false));
         }
 

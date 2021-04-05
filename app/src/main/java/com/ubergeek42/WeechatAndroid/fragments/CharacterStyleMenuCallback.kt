@@ -245,7 +245,7 @@ private inline fun <reified T : CharacterStyle> Editable.getStyledCharacterCount
 }
 
 
-private inline fun <reified T : CharacterStyle> Editable.forEachSpan(regionStart: Int, regionEnd: Int,
+private inline fun <reified T : CharacterStyle> Spannable.forEachSpan(regionStart: Int, regionEnd: Int,
                                                              matcher: CharacterStyleMatcher<T>,
                                                              block: (T, Int, Int) -> Unit) {
     getSpans(regionStart, regionEnd, T::class.java).forEach { span ->
@@ -288,7 +288,7 @@ enum class MircColor(val code: String, val color: Int, val displayName: String) 
 
 
 
-private class MircCodedStringComposer(private val editable: Editable) {
+private class MircCodedStringComposer(private val spannable: Spannable) {
     private sealed class SpanInfo(val span: CharacterStyle, val edge: Int) {
         class Start(span: CharacterStyle, start: Int) : SpanInfo(span, start)
         class End(span: CharacterStyle, end: Int) : SpanInfo(span, end)
@@ -329,10 +329,10 @@ private class MircCodedStringComposer(private val editable: Editable) {
     }
 
     fun compose(): String {
-        val string = editable.toString()
+        val string = spannable.toString()
         val spans = mutableListOf<SpanInfo>()
 
-        editable.forEachSpan(0, editable.length, CharacterStyleMatcher { true }) { span, start, end ->
+        spannable.forEachSpan(0, spannable.length, CharacterStyleMatcher { true }) { span, start, end ->
             spans.add(SpanInfo.Start(span, start))
             spans.add(SpanInfo.End(span, end))
         }
@@ -342,7 +342,7 @@ private class MircCodedStringComposer(private val editable: Editable) {
 
         val out = StringBuilder()
 
-        for (index in 0..editable.length) {
+        for (index in 0..spannable.length) {
             spans.filter { it.edge == index }.forEach {
                 val spanOpening = it is SpanInfo.Start
 
@@ -353,11 +353,17 @@ private class MircCodedStringComposer(private val editable: Editable) {
                 if (it.span is BackgroundColorSpan) currentBackgroundColorCode =
                         if (spanOpening) MircColor.byColor(it.span.backgroundColor)?.code else null
             }
-            if (index < editable.length) out.append(string[index])
+            if (index < spannable.length) out.append(string[index])
         }
 
         return out.toString()
     }
 }
 
-fun Editable.toMircCodedString() = MircCodedStringComposer(this).compose()
+fun CharSequence.toMircCodedString(): CharSequence {
+    return if (this is Spannable) {
+        MircCodedStringComposer(this).compose()
+    } else {
+        this
+    }
+}

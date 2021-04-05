@@ -445,11 +445,13 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
 
     // protocol must be changed each time anything that uses the following function changes
     // needed to make sure nothing crashes if we cannot restore the data
-    private static final int PROTOCOL_ID = 18;
+    private static final int PROTOCOL_ID = 19;
 
     @AnyThread @Cat public static void saveStuff() {
         for (Buffer buffer : BufferList.buffers) saveLastReadLine(buffer);
-        String data = Utils.serialize(new Object[]{openBuffers, bufferToLastReadLine, sentMessages});
+        LinkedList<CharSequence> sentMessagesAsStrings = new LinkedList<>();
+        for (CharSequence message : sentMessages) sentMessagesAsStrings.add(message.toString());
+        String data = Utils.serialize(new Object[]{openBuffers, bufferToLastReadLine, sentMessagesAsStrings});
         p.edit().putString(PREF_DATA, data).putInt(PREF_PROTOCOL_ID, PROTOCOL_ID).apply();
     }
 
@@ -461,7 +463,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         Object[] array = (Object[]) o;
         if (array[0] instanceof LinkedHashSet) openBuffers = (LinkedHashSet<Long>) array[0];
         if (array[1] instanceof LinkedHashMap) bufferToLastReadLine = (LinkedHashMap<Long, BufferHotData>) array[1];
-        if (array[2] instanceof LinkedList) sentMessages = (LinkedList<String>) array[2];
+        if (array[2] instanceof LinkedList) sentMessages = (LinkedList<CharSequence>) array[2];
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -521,12 +523,16 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     //////////////////////////////////////////////////////////////////////////////////////////////// saving messages
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public static LinkedList<String> sentMessages = new LinkedList<>();
+    public static LinkedList<CharSequence> sentMessages = new LinkedList<>();
 
-    static void addSentMessage(String line) {
-        for (Iterator<String> it = sentMessages.iterator(); it.hasNext();) {
-            String s = it.next();
-            if (line.equals(s)) it.remove();
+    // CharSequences are not compared directly as apparently SpannableStringBuilder's equals()
+    // method is broken. comparing strings can lead to same strings with different formatting
+    // being discarded, but this behavior is probably acceptable if not desirable
+    // and in any case of little impact on the whole
+    static void addSentMessage(CharSequence line) {
+        for (Iterator<CharSequence> it = sentMessages.iterator(); it.hasNext();) {
+            CharSequence s = it.next();
+            if (line.toString().equals(s.toString())) it.remove();
         }
         sentMessages.add(Utils.cut(line, 2000));
         if (sentMessages.size() > 40)

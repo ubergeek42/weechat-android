@@ -9,8 +9,8 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.text.Editable;
-import android.text.TextUtils;
+import android.text.Spannable;
+import android.text.SpannableStringBuilder;
 import android.text.TextWatcher;
 import android.util.Base64;
 import android.view.View;
@@ -32,7 +32,6 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.nio.CharBuffer;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -83,9 +82,16 @@ public class Utils {
     }
 
     // cut string at 100 characters
-    public static @NonNull String cut(@NonNull String text, int at) {
-        return (text.length() > at) ?
-                text.substring(0, Math.min(text.length(), at)) + "…" : text;
+    public static @NonNull CharSequence cut(@NonNull CharSequence text, int at) {
+        if (text.length() > at) {
+            if (text instanceof Spannable) {
+                return new SpannableStringBuilder().append(text, 0, at).append('…');
+            } else {
+                return new StringBuilder().append(text, 0, at).append('…');
+            }
+        } else {
+            return text;
+        }
     }
 
     public static boolean isAllDigits(@Nullable String s) {
