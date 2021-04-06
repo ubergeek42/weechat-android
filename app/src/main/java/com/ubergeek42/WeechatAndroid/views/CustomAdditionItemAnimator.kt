@@ -84,21 +84,22 @@ class CustomAdditionItemAnimator : DefaultItemAnimator() {
                 pendingConsecutiveTopDisappearingMoves.isNotEmpty()
         val hasPendingMoves = pendingRegularMoves.isNotEmpty()
 
-        val removeDuration = if (hasPendingRemoves) removeDuration else 0
-        val changeDuration = if (hasPendingChanges) changeDuration else 0
-        val moveDuration = if (hasPendingMoves) moveDuration else 0
-        val additionAnimationDelay = removeDuration + maxOf(moveDuration, changeDuration)
+        val animationDurations = AnimationDurations(
+            if (hasPendingRemoves) removeDuration else 0,
+            if (hasPendingChanges) changeDuration else 0,
+            if (hasPendingMoves) moveDuration else 0,
+        )
 
         pendingConsecutiveTopDisappearingMoves.forEach { holder ->
             animateMoveToNowhere(holder)
         }
 
         pendingRegularMoves.forEach { holder ->
-            animateMoveImpl(holder, removeDuration)
+            animateMoveImpl(holder, animationDurations)
         }
 
         pendingAdditions.forEach { holder ->
-            animateAddImpl(holder, additionAnimationDelay)
+            animateAddImpl(holder, animationDurations)
         }
 
         pendingMoves.clear()
@@ -118,20 +119,20 @@ class CustomAdditionItemAnimator : DefaultItemAnimator() {
         }, callCancelOnEnd = true)
     }
 
-    private fun animateMoveImpl(holder: VH, removeAnimationDelay: Long) {
+    private fun animateMoveImpl(holder: VH, animationDurations: AnimationDurations) {
         holder.startAnimation(setup = {
             translationY(0f)
             duration = moveDuration
-            startDelay = removeAnimationDelay
+            startDelay = animationDurations.removeDuration
         }, onCancel = {
             translationY = 0f
         })
     }
 
-    private fun animateAddImpl(holder: VH, otherAnimationDelay: Long) {
+    private fun animateAddImpl(holder: VH, animationDurations: AnimationDurations) {
         val animationProvider = this.animationProvider
         holder.startAnimation(setup = {
-            animationProvider.setupAnimation(this, otherAnimationDelay)
+            animationProvider.setupAddAnimation(this, animationDurations)
         }, onCancel = {
             animationProvider.fixupViewOnAnimationCancel(this)
         })
@@ -201,7 +202,7 @@ interface AnimationProvider {
     fun setupItemAnimator(itemAnimator: DefaultItemAnimator) {}
     fun setupViewBeforeAnimation(view: View) {}
     fun fixupViewOnAnimationCancel(view: View) {}
-    fun setupAnimation(animator: ViewPropertyAnimator, otherAnimationsDelay: Long) {}
+    fun setupAddAnimation(animator: ViewPropertyAnimator, animationDurations: AnimationDurations) {}
 }
 
 
@@ -225,10 +226,12 @@ object FlickeringAnimationProvider : AnimationProvider {
         view.alpha = 1f
     }
 
-    override fun setupAnimation(animator: ViewPropertyAnimator, otherAnimationsDelay: Long) {
+    override fun setupAddAnimation(animator: ViewPropertyAnimator, animationDurations: AnimationDurations) {
         animator.alpha(1f)
         animator.interpolator = FlickeringInterpolator
         animator.duration = LONG
+        val otherAnimationsDelay = animationDurations.removeDuration +
+                maxOf(animationDurations.changeDuration, animationDurations.moveDuration)
         animator.startDelay = otherAnimationsDelay + Random.nextLong(LONG / 6)
     }
 }
@@ -251,10 +254,10 @@ object SlidingFromBottomAnimationProvider : AnimationProvider {
         view.translationY = 0f
     }
 
-    override fun setupAnimation(animator: ViewPropertyAnimator, otherAnimationsDelay: Long) {
+    override fun setupAddAnimation(animator: ViewPropertyAnimator, animationDurations: AnimationDurations) {
         animator.translationY(0f)
         animator.duration = SHORT
-        animator.startDelay = 0
+        animator.startDelay = animationDurations.removeDuration
     }
 }
 
@@ -303,3 +306,10 @@ private fun separateViewHoldersIntoConsecutiveTopDisappearingAndTheRest(source: 
 
 private inline val View.topIncludingMargin get() = top - marginTop
 private inline val View.bottomIncludingMargin get() = bottom + marginBottom
+
+
+class AnimationDurations(
+    val removeDuration: Long,
+    val changeDuration: Long,
+    val moveDuration: Long,
+)
