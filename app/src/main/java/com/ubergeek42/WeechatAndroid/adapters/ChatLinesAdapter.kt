@@ -55,6 +55,7 @@ import com.ubergeek42.cats.Root
 import com.ubergeek42.weechat.ColorScheme
 import java.util.*
 
+
 class ChatLinesAdapter @MainThread constructor(
     private val uiLines: AnimatedRecyclerView
 ) : RecyclerView.Adapter<ViewHolder>(), BufferEye {
@@ -63,7 +64,6 @@ class ChatLinesAdapter @MainThread constructor(
     private val inflater = LayoutInflater.from(uiLines.context)
 
     private var lines = ArrayList<Line>()
-    @Volatile private var _lines: List<Line> = ArrayList<Line>()
 
     init { setHasStableIds(true) }
 
@@ -208,18 +208,21 @@ class ChatLinesAdapter @MainThread constructor(
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    // get new lines, perform a simple diff and dispatch change notifications to RecyclerView
-    // this might be called by multiple threads in rapid succession
-    // in case non-main thread calls this before the Runnable that sets `lines` is executed,
-    // store the new list in `_lines` so that we can produce a proper diff
-    @AnyThread @Synchronized private fun onLinesChanged(animation: Animation) = ulet(buffer) { buffer ->
-        val newLines = buffer.getLinesCopy()
+    private val updateLock = Object()
+    private var updateStep = 0
 
-        val diffResult = DiffUtil.calculateDiff(DiffCallback(_lines, newLines), false)
-        _lines = newLines
+    @AnyThread @Synchronized private fun onLinesChanged(animation: Animation) = ulet(buffer) { buffer ->
+        val thisUpdateStep = synchronized (updateLock) { ++updateStep }
+
+        val newLines = buffer.getLinesCopy()
+        val diffResult = DiffUtil.calculateDiff(DiffCallback(lines, newLines), false)
 
         Weechat.runOnMainThreadASAP {
-            lines = newLines
+            synchronized (updateLock) {
+                if (thisUpdateStep != updateStep) return@runOnMainThreadASAP
+                lines = newLines
+            }
+
             diffResult.dispatchUpdatesTo(this@ChatLinesAdapter)
 
             uiLines.setAnimation(animation)
@@ -234,6 +237,7 @@ class ChatLinesAdapter @MainThread constructor(
         }
     }
 
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////// BufferEye
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -243,7 +247,7 @@ class ChatLinesAdapter @MainThread constructor(
             onLinesChanged(Animation.Default)
         } else {
             uiLines.setAnimation(Animation.Default)
-            notifyItemRangeChanged(0, _lines.size)
+            notifyItemRangeChanged(0, lines.size)
         }
     }
 
@@ -269,7 +273,6 @@ class ChatLinesAdapter @MainThread constructor(
 
     @MainThread @Synchronized fun loadLinesSilently() = ulet(buffer) { buffer ->
         val newLines = buffer.getLinesCopy()
-        _lines = newLines
         lines = newLines
     }
 
