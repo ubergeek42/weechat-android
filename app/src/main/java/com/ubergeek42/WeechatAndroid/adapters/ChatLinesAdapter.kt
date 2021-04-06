@@ -327,7 +327,7 @@ class ChatLinesAdapter @MainThread constructor(
 
         override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
             if (newItemPosition == 0) {
-                return oldLines[oldItemPosition] == newLines[newItemPosition]
+                return oldLines[oldItemPosition] === newLines[newItemPosition]
             }
             return true
         }

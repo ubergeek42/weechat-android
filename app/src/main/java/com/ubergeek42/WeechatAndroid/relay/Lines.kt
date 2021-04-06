@@ -261,10 +261,6 @@ class HeaderLine(
     override val spannable: SpannableString,
     val status: Lines.Status,
 ) : FakeLine(TITLE_LINE_POINTER) {
-    override fun equals(other: Any?) = other is HeaderLine &&
-            messageString == other.messageString && status == other.status
-    override fun hashCode() = 31 * messageString.hashCode() + status.hashCode()
-
     companion object {
         fun make(data: String, status: Lines.Status): HeaderLine {
             val title = Color.stripEverything(data)
