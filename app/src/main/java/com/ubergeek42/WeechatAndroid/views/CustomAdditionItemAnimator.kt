@@ -10,9 +10,18 @@ import androidx.core.view.marginBottom
 import androidx.core.view.marginTop
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.RecyclerView
+import com.ubergeek42.WeechatAndroid.BuildConfig
 import com.ubergeek42.WeechatAndroid.service.P
 import kotlin.math.sin
 import kotlin.random.Random
+
+
+private val DEBUG = BuildConfig.DEBUG
+
+private const val SHORT_ANIMATION_DURATION = 120L  // ms
+private const val LONG_ANIMATION_DURATION = 250L   // ms
+
+private val MOVE_TO_NOWHERE_TRANSLATION = P._1dp * 30
 
 
 private typealias VH = RecyclerView.ViewHolder
@@ -91,7 +100,7 @@ class CustomAdditionItemAnimator : DefaultItemAnimator() {
         )
 
         pendingConsecutiveTopDisappearingMoves.forEach { holder ->
-            animateMoveToNowhere(holder)
+            animateMoveToNowhere(holder)    // uses removeDuration
         }
 
         pendingRegularMoves.forEach { holder ->
@@ -109,58 +118,49 @@ class CustomAdditionItemAnimator : DefaultItemAnimator() {
     }
 
     private fun animateMoveToNowhere(holder: VH) {
-        holder.startAnimation(setup = {
+        holder.startAnimation {
             alpha(0f)
-            translationY(holder.itemView.translationY - P._1dp * 30)
+            translationY(holder.itemView.translationY - MOVE_TO_NOWHERE_TRANSLATION)
             duration = removeDuration
-        }, onCancel = {
-            translationY = 0f
-            alpha = 1f
-        }, callCancelOnEnd = true)
+        }
     }
 
     private fun animateMoveImpl(holder: VH, animationDurations: AnimationDurations) {
-        holder.startAnimation(setup = {
+        holder.startAnimation {
             translationY(0f)
             duration = moveDuration
             startDelay = animationDurations.removeDuration
-        }, onCancel = {
-            translationY = 0f
-        })
+        }
     }
 
     private fun animateAddImpl(holder: VH, animationDurations: AnimationDurations) {
         val animationProvider = this.animationProvider
-        holder.startAnimation(setup = {
+        holder.startAnimation {
             animationProvider.setupAddAnimation(this, animationDurations)
-        }, onCancel = {
-            animationProvider.fixupViewOnAnimationCancel(this)
-        })
+        }
     }
 
-    private inline fun VH.startAnimation(setup: ViewPropertyAnimator.() -> Unit,
-                                         crossinline onCancel: View.() -> Unit,
-                                         callCancelOnEnd: Boolean = false) {
-        val animator = itemView.animate()
-
+    private inline fun VH.startAnimation(setup: ViewPropertyAnimator.() -> Unit) {
         runningAnimations.add(this)
-        animator.setup()
 
-        animator.setListener(object : AnimatorListenerAdapter() {
-            override fun onAnimationCancel(animation: Animator) {
-                itemView.onCancel()
-            }
+        itemView.animate().run {
+            setListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationCancel(animation: Animator) {
+                    itemView.resetAnimatedProperties()
+                }
 
-            override fun onAnimationEnd(animation: Animator) {
-                if (callCancelOnEnd) itemView.onCancel()
-                runningAnimations.remove(this@startAnimation)
-                animator.reset()
-                dispatchAnimationFinished(this@startAnimation)
-                dispatchFinishedWhenDone()
-            }
-        })
+                override fun onAnimationEnd(animation: Animator) {
+                    reset()
+                    itemView.resetAnimatedProperties()
+                    runningAnimations.remove(this@startAnimation)
+                    dispatchAnimationFinished(this@startAnimation)
+                    if (!isRunning) dispatchAnimationsFinished()
+                }
+            })
 
-        animator.start()
+            setup()
+            start()
+        }
     }
 
     override fun isRunning() = super.isRunning() ||
@@ -168,14 +168,26 @@ class CustomAdditionItemAnimator : DefaultItemAnimator() {
             pendingMoves.isNotEmpty() ||
             runningAnimations.isNotEmpty()
 
-    private fun dispatchFinishedWhenDone() {
-        if (!isRunning) dispatchAnimationsFinished()
+    override fun endAnimation(holder: RecyclerView.ViewHolder) {
+        super.endAnimation(holder)    // this calls animation cancel
+
+        val removedFromPendingAdditions = pendingAdditions.remove(holder)
+        val removedFromPendingMoves = pendingMoves.remove(holder)
+
+        if (removedFromPendingAdditions || removedFromPendingMoves) {
+            holder.itemView.resetAnimatedProperties()
+            dispatchAnimationFinished(holder)
+        }
+
+        if (DEBUG) {
+            require(!runningAnimations.contains(holder))
+            require(!(removedFromPendingMoves && removedFromPendingAdditions))
+        }
     }
 
     override fun endAnimations() {
         (pendingAdditions + pendingMoves).forEach { holder ->
-            holder.itemView.translationY = 0f
-            holder.itemView.alpha = 1f
+            holder.itemView.resetAnimatedProperties()
             dispatchAnimationFinished(holder)
         }
 
@@ -186,9 +198,10 @@ class CustomAdditionItemAnimator : DefaultItemAnimator() {
 
         pendingAdditions.clear()
         pendingMoves.clear()
-        runningAnimations.clear()
 
-        super.endAnimations()
+        if (DEBUG) require(runningAnimations.isEmpty())
+
+        super.endAnimations()   // calls dispatchAnimationsFinished()
     }
 }
 
@@ -201,38 +214,33 @@ class CustomAdditionItemAnimator : DefaultItemAnimator() {
 interface AnimationProvider {
     fun setupItemAnimator(itemAnimator: DefaultItemAnimator) {}
     fun setupViewBeforeAnimation(view: View) {}
-    fun fixupViewOnAnimationCancel(view: View) {}
     fun setupAddAnimation(animator: ViewPropertyAnimator, animationDurations: AnimationDurations) {}
 }
 
 
 object DefaultAnimationProvider : AnimationProvider {
     override fun setupItemAnimator(itemAnimator: DefaultItemAnimator) {
-        itemAnimator.moveDuration = LONG
+        itemAnimator.moveDuration = LONG_ANIMATION_DURATION
     }
 }
 
 
 object FlickeringAnimationProvider : AnimationProvider {
     override fun setupItemAnimator(itemAnimator: DefaultItemAnimator) {
-        itemAnimator.moveDuration = LONG
+        itemAnimator.moveDuration = LONG_ANIMATION_DURATION
     }
 
     override fun setupViewBeforeAnimation(view: View) {
         view.alpha = 0f
     }
 
-    override fun fixupViewOnAnimationCancel(view: View) {
-        view.alpha = 1f
-    }
-
     override fun setupAddAnimation(animator: ViewPropertyAnimator, animationDurations: AnimationDurations) {
         animator.alpha(1f)
         animator.interpolator = FlickeringInterpolator
-        animator.duration = LONG
+        animator.duration = LONG_ANIMATION_DURATION
         val otherAnimationsDelay = animationDurations.removeDuration +
                 maxOf(animationDurations.changeDuration, animationDurations.moveDuration)
-        animator.startDelay = otherAnimationsDelay + Random.nextLong(LONG / 6)
+        animator.startDelay = otherAnimationsDelay + Random.nextLong(LONG_ANIMATION_DURATION / 6)
     }
 }
 
@@ -243,20 +251,16 @@ object FlickeringAnimationProvider : AnimationProvider {
 // the duration is shorter here; it looks more smooth this way
 object SlidingFromBottomAnimationProvider : AnimationProvider {
     override fun setupItemAnimator(itemAnimator: DefaultItemAnimator) {
-        itemAnimator.moveDuration = SHORT
+        itemAnimator.moveDuration = SHORT_ANIMATION_DURATION
     }
 
     override fun setupViewBeforeAnimation(view: View) {
         view.translationY = view.height.toFloat()
     }
 
-    override fun fixupViewOnAnimationCancel(view: View) {
-        view.translationY = 0f
-    }
-
     override fun setupAddAnimation(animator: ViewPropertyAnimator, animationDurations: AnimationDurations) {
         animator.translationY(0f)
-        animator.duration = SHORT
+        animator.duration = SHORT_ANIMATION_DURATION
         animator.startDelay = animationDurations.removeDuration
     }
 }
@@ -279,9 +283,10 @@ private fun ViewPropertyAnimator.reset() {
     interpolator = defaultInterpolator
 }
 
-
-private const val SHORT = 120L  // ms
-private const val LONG = 250L   // ms
+private fun View.resetAnimatedProperties() {
+    translationY = 0f
+    alpha = 1f
+}
 
 
 private fun separateViewHoldersIntoConsecutiveTopDisappearingAndTheRest(source: Collection<VH>):
