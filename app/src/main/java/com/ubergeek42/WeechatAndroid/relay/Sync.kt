@@ -11,15 +11,20 @@ import com.ubergeek42.WeechatAndroid.service.Events
 import com.ubergeek42.WeechatAndroid.upload.applicationContext
 
 
-private const val DESYNC_THRESHOLD_BUFFER = 10 * 1000L  // 10 seconds
-private const val DESYNC_THRESHOLD_GLOBAL = 5 * 1000L   // 5 seconds
-private const val DESYNC_THRESHOLD_ADDITION = 1000L     // 1 second
-
-
-class Sync {
+class Sync(
+    private val desyncDelayBuffer: Long,
+    private val desyncDelayOpenBuffer: Long,
+    private val desyncDelayGlobal: Long,
+    internal val relaySyncAlarmAdditionalDelay: Long,
+) {
     companion object {
         var instance: Sync? = null
-        @JvmStatic fun get() = instance ?: Sync().also { instance = it }
+        @JvmStatic fun get() = instance ?: Sync(
+                desyncDelayBuffer = 10 * 1000L,
+                desyncDelayOpenBuffer = 20 * 1000L,
+                desyncDelayGlobal = 5 * 1000L,
+                relaySyncAlarmAdditionalDelay = 1 * 1000L,
+        ).also { instance = it }
     }
 
     enum class Flag {
@@ -27,7 +32,7 @@ class Sync {
         Charging,
     }
 
-    data class Info(
+    private data class Info(
         val open: Boolean,
         val watched: Boolean,
         val lastTouchedAt: Long,
@@ -52,18 +57,24 @@ class Sync {
     private fun shouldSync() =
             globalFlags.contains(Flag.ActivityOpen) ||
             globalFlags.contains(Flag.Charging) ||
-            globalLastTouchedAt + DESYNC_THRESHOLD_GLOBAL > System.currentTimeMillis()
+            globalLastTouchedAt + desyncDelayGlobal > System.currentTimeMillis()
 
     private fun Info.shouldScheduleDesync() = !watched
 
-    private fun Info.shouldSync() = watched ||
-            lastTouchedAt + DESYNC_THRESHOLD_BUFFER > System.currentTimeMillis()
+    private fun Info.shouldSync() = this@Sync.shouldSync() ||
+            watched ||
+            getCheckTime() > System.currentTimeMillis()
+
+    private fun Info.getCheckTime() = lastTouchedAt +
+            if (open) desyncDelayOpenBuffer else desyncDelayBuffer
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @Synchronized fun addGlobalFlag(flag: Flag) {
         globalFlags = globalFlags + flag
         onGlobalFlagsChanged()
+
+        if (!shouldScheduleDesync()) RelaySyncAlarm.unschedule()
     }
 
     @Synchronized fun removeGlobalFlag(flag: Flag) {
@@ -74,7 +85,7 @@ class Sync {
         globalFlags = globalFlags - flag
         onGlobalFlagsChanged()
 
-        if (shouldScheduleDesync()) RelaySyncAlarm.tick()
+        if (shouldScheduleDesync()) RelaySyncAlarm.schedule(desyncDelayGlobal)
     }
 
     @Synchronized fun setOpen(pointer: Long, open: Boolean) {
@@ -89,11 +100,13 @@ class Sync {
         updateInfo(pointer) { info -> info.copy(lastTouchedAt = System.currentTimeMillis()) }
     }
 
-    private fun updateInfo(pointer: Long, block: (Info) -> Info) {
-        val oldInfo = pointerToInfo[pointer] ?: Info.default
-        val newInfo = block(oldInfo)
-        onInfoChanged(pointer, newInfo)
-        pointerToInfo = pointerToInfo.toMutableMap().also { it[pointer] = newInfo }
+    fun onSyncAlarm() {
+        val timeDelta = recheckAll()
+        if (timeDelta == Long.MAX_VALUE) {
+            RelaySyncAlarm.unschedule()
+        } else {
+            RelaySyncAlarm.schedule(timeDelta + relaySyncAlarmAdditionalDelay)
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -103,6 +116,13 @@ class Sync {
         if (syncedGlobally != shouldSyncGlobally) {
             if (shouldSyncGlobally) sync() else desync()
         }
+    }
+
+    private fun updateInfo(pointer: Long, block: (Info) -> Info) {
+        val oldInfo = pointerToInfo[pointer] ?: Info.default
+        val newInfo = block(oldInfo)
+        onInfoChanged(pointer, newInfo)
+        pointerToInfo = pointerToInfo.toMutableMap().also { it[pointer] = newInfo }
     }
 
     private fun onInfoChanged(pointer: Long, maybeNewInfo: Info? = null) {
@@ -116,14 +136,14 @@ class Sync {
     }
 
     // todo postpone individual buffer desyncs until after global desync
-    @Synchronized fun recheckAll(): Long {
+    @Synchronized private fun recheckAll(): Long {
         val now = System.currentTimeMillis()
         var minimalCheckAt = Long.MAX_VALUE
 
         onGlobalFlagsChanged()
 
         if (shouldScheduleDesync()) {
-            val checkAt = globalLastTouchedAt + DESYNC_THRESHOLD_GLOBAL
+            val checkAt = globalLastTouchedAt + desyncDelayGlobal
             if (checkAt > now) minimalCheckAt = checkAt
         }
 
@@ -131,7 +151,7 @@ class Sync {
             onInfoChanged(pointer, info)
 
             if (info.shouldScheduleDesync()) {
-                val checkAt = info.lastTouchedAt + DESYNC_THRESHOLD_BUFFER
+                val checkAt = info.getCheckTime()
                 if (checkAt > now) minimalCheckAt = minOf(checkAt, minimalCheckAt)
             }
         }
@@ -177,38 +197,31 @@ class Sync {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-private val alarmManager = applicationContext.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
 // todo use a variant of set with OnAlarmListener @ api 24+
 class RelaySyncAlarm : BroadcastReceiver() {
     companion object {
+        private val alarmManager = applicationContext.
+                getSystemService(Context.ALARM_SERVICE) as AlarmManager
+
         private val pendingIntent = PendingIntent.getBroadcast(
                 applicationContext, 13,
                 Intent(applicationContext, RelaySyncAlarm::class.java),
                 PendingIntent.FLAG_CANCEL_CURRENT)
 
-        private fun schedule(timeDelta: Long) {
+        fun schedule(timeDelta: Long) {
             require(timeDelta >= 0)
             alarmManager.set(ELAPSED_REALTIME_WAKEUP,
-                    SystemClock.elapsedRealtime() + timeDelta + DESYNC_THRESHOLD_ADDITION,
+                    SystemClock.elapsedRealtime() + timeDelta,
                     pendingIntent)
         }
 
-        private fun unschedule() {
+        fun unschedule() {
             alarmManager.cancel(pendingIntent)
-        }
-
-        fun tick() {
-            val timeDelta = Sync.get().recheckAll()
-            if (timeDelta == Long.MAX_VALUE) {
-                unschedule()
-            } else {
-                schedule(timeDelta)
-            }
         }
     }
 
     override fun onReceive(context: Context, intent: Intent) {
-        tick()
+        Sync.get().onSyncAlarm()
     }
 }
