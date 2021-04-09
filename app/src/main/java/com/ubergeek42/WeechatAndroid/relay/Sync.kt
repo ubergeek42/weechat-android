@@ -6,6 +6,8 @@ import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
+import android.os.BatteryManager
 import android.os.SystemClock
 import com.ubergeek42.WeechatAndroid.service.Events
 import com.ubergeek42.WeechatAndroid.upload.applicationContext
@@ -15,13 +17,17 @@ class Sync(
     private val desyncDelayBuffer: Long,
     private val desyncDelayOpenBuffer: Long,
     private val desyncDelayGlobal: Long,
-    internal val relaySyncAlarmAdditionalDelay: Long,
+    private val relaySyncAlarmAdditionalDelay: Long,
 ) {
+    fun start() { PowerBroadcastReceiver.register() }
+    fun stop() { PowerBroadcastReceiver.unregister() }
+
     companion object {
         var instance: Sync? = null
+
         @JvmStatic fun get() = instance ?: Sync(
-                desyncDelayBuffer = 10 * 1000L,
-                desyncDelayOpenBuffer = 20 * 1000L,
+                desyncDelayBuffer = 30 * 1000L,
+                desyncDelayOpenBuffer = 60 * 1000L,
                 desyncDelayGlobal = 5 * 1000L,
                 relaySyncAlarmAdditionalDelay = 1 * 1000L,
         ).also { instance = it }
@@ -57,13 +63,15 @@ class Sync(
     private fun shouldSync() =
             globalFlags.contains(Flag.ActivityOpen) ||
             globalFlags.contains(Flag.Charging) ||
-            globalLastTouchedAt + desyncDelayGlobal > System.currentTimeMillis()
+                    getGlobalCheckTime() > System.currentTimeMillis()
 
     private fun Info.shouldScheduleDesync() = !watched
 
     private fun Info.shouldSync() = this@Sync.shouldSync() ||
             watched ||
             getCheckTime() > System.currentTimeMillis()
+
+    private fun getGlobalCheckTime() = globalLastTouchedAt + desyncDelayGlobal
 
     private fun Info.getCheckTime() = lastTouchedAt +
             if (open) desyncDelayOpenBuffer else desyncDelayBuffer
@@ -78,14 +86,21 @@ class Sync(
     }
 
     @Synchronized fun removeGlobalFlag(flag: Flag) {
-        if (flag == Flag.ActivityOpen) {
-            globalLastTouchedAt = System.currentTimeMillis()
-        }
+        val now = System.currentTimeMillis()
+
+        if (flag == Flag.ActivityOpen) globalLastTouchedAt = now
 
         globalFlags = globalFlags - flag
         onGlobalFlagsChanged()
 
-        if (shouldScheduleDesync()) RelaySyncAlarm.schedule(desyncDelayGlobal)
+        if (shouldScheduleDesync()) {
+            val checkAt = getGlobalCheckTime()
+            if (checkAt > now) {
+                RelaySyncAlarm.schedule(checkAt - now)
+            } else {
+                onSyncAlarm()
+            }
+        }
     }
 
     @Synchronized fun setOpen(pointer: Long, open: Boolean) {
@@ -98,6 +113,10 @@ class Sync(
 
     @Synchronized fun touch(pointer: Long) {
         updateInfo(pointer) { info -> info.copy(lastTouchedAt = System.currentTimeMillis()) }
+    }
+
+    @Synchronized fun onPowerConnectionChanged(hasPower: Boolean) {
+        if (hasPower) addGlobalFlag(Flag.Charging) else removeGlobalFlag(Flag.Charging)
     }
 
     fun onSyncAlarm() {
@@ -143,7 +162,7 @@ class Sync(
         onGlobalFlagsChanged()
 
         if (shouldScheduleDesync()) {
-            val checkAt = globalLastTouchedAt + desyncDelayGlobal
+            val checkAt = getGlobalCheckTime()
             if (checkAt > now) minimalCheckAt = checkAt
         }
 
@@ -223,5 +242,42 @@ class RelaySyncAlarm : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         Sync.get().onSyncAlarm()
+    }
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+object PowerBroadcastReceiver : BroadcastReceiver() {
+    fun register() {
+        val intentFilter = IntentFilter().apply {
+            addAction(Intent.ACTION_POWER_CONNECTED)
+            addAction(Intent.ACTION_POWER_DISCONNECTED)
+        }
+        applicationContext.registerReceiver(this, intentFilter)
+
+        val batteryStatus: Intent? = applicationContext.
+                registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+        batteryStatus?.let {
+            val status = it.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
+            val isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
+                             status == BatteryManager.BATTERY_STATUS_FULL
+            Sync.get().onPowerConnectionChanged(isCharging)
+        }
+    }
+
+    fun unregister() {
+        applicationContext.unregisterReceiver(this)
+    }
+
+    override fun onReceive(context: Context?, intent: Intent) {
+        if (intent.action == Intent.ACTION_POWER_CONNECTED) {
+            Sync.get().onPowerConnectionChanged(true)
+        } else if (intent.action == Intent.ACTION_POWER_DISCONNECTED){
+            Sync.get().onPowerConnectionChanged(false)
+        }
     }
 }
