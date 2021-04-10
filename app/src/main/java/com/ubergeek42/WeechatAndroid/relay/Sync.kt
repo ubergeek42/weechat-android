@@ -11,6 +11,10 @@ import android.os.BatteryManager
 import android.os.SystemClock
 import com.ubergeek42.WeechatAndroid.service.Events
 import com.ubergeek42.WeechatAndroid.upload.applicationContext
+import com.ubergeek42.cats.Cat
+import com.ubergeek42.cats.CatD
+import com.ubergeek42.cats.Kitty
+import com.ubergeek42.cats.Root
 
 
 class Sync(
@@ -19,16 +23,27 @@ class Sync(
     private val desyncDelayGlobal: Long,
     private val relaySyncAlarmAdditionalDelay: Long,
 ) {
-    fun start() { PowerBroadcastReceiver.register() }
-    fun stop() { PowerBroadcastReceiver.unregister() }
+    private var started = false
+
+    @Cat fun start() {
+        started = true
+        PowerBroadcastReceiver.register()
+        recheckEverything()
+    }
+    @Cat fun stop() {
+        started = false
+        PowerBroadcastReceiver.unregister()
+    }
 
     companion object {
+        @Root private val kitty: Kitty = Kitty.make("Sync")
+
         var instance: Sync? = null
 
         @JvmStatic fun get() = instance ?: Sync(
-                desyncDelayBuffer = 10 * 30 * 1000L,
-                desyncDelayOpenBuffer = 10 * 60 * 1000L,
-                desyncDelayGlobal = 10 * 5 * 1000L,
+                desyncDelayBuffer = 60 * 1000L,
+                desyncDelayOpenBuffer = 30 * 1000L,
+                desyncDelayGlobal = 10 * 1000L,
                 relaySyncAlarmAdditionalDelay = 1 * 1000L,
         ).also { instance = it }
     }
@@ -39,14 +54,11 @@ class Sync(
     }
 
     private data class Info(
+        val pointer: Long,
         val open: Boolean,
         val watched: Boolean,
         val lastTouchedAt: Long,
-    ) {
-        companion object {
-            val default = Info(open = false, watched = false, 0)
-        }
-    }
+    )
 
     private var globalFlags = setOf<Flag>()
     private var globalLastTouchedAt = 0L
@@ -56,48 +68,38 @@ class Sync(
     private var syncedPointers = setOf<Long>()
     private var syncedGlobally = false
 
-    private fun getGlobalCheckTime() = globalLastTouchedAt + desyncDelayGlobal
+    private fun getGlobalDesyncTime() = globalLastTouchedAt + desyncDelayGlobal
 
     private fun shouldScheduleGlobalDesync() =
             !globalFlags.contains(Flag.ActivityOpen) &&
-            !globalFlags.contains(Flag.Charging)
+            !globalFlags.contains(Flag.Charging) &&
+            syncedGlobally
 
     private fun shouldKeepGloballySyncing() =
             globalFlags.contains(Flag.ActivityOpen) ||
             globalFlags.contains(Flag.Charging) ||
-                    getGlobalCheckTime() > System.currentTimeMillis()
+                    getGlobalDesyncTime() > System.currentTimeMillis()
 
-    private fun Info.getCheckTime() = lastTouchedAt +
+    private fun Info.getDesyncTime() = lastTouchedAt +
             if (open) desyncDelayOpenBuffer else desyncDelayBuffer
 
-    private fun Info.shouldScheduleDesync() = !watched
+    private fun Info.shouldScheduleDesync() = !watched &&
+            syncedPointers.contains(pointer)
 
-    private fun Info.shouldSync() = watched
-
-    private fun Info.shouldKeepSyncing() = shouldKeepGloballySyncing() ||
-            getCheckTime() > System.currentTimeMillis()
+    private fun Info.shouldKeepSyncing() = getDesyncTime() > System.currentTimeMillis()
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @Synchronized fun addGlobalFlag(flag: Flag) {
         globalFlags = globalFlags + flag
-        onGlobalFlagsChanged()
-
-        if (!shouldScheduleGlobalDesync()) RelaySyncAlarm.unschedule()
+        recheckEverything()
     }
 
     @Synchronized fun removeGlobalFlag(flag: Flag) {
-        val now = System.currentTimeMillis()
-
-        if (flag == Flag.ActivityOpen) globalLastTouchedAt = now
+        if (flag == Flag.ActivityOpen) globalLastTouchedAt = System.currentTimeMillis()
 
         globalFlags = globalFlags - flag
-        onGlobalFlagsChanged()
-
-        if (shouldScheduleGlobalDesync()) {
-            val checkAt = getGlobalCheckTime()
-            if (checkAt > now) RelaySyncAlarm.schedule(checkAt - now) else onSyncAlarm()
-        }
+        recheckEverything()
     }
 
     @Synchronized fun setOpen(pointer: Long, open: Boolean) {
@@ -116,66 +118,62 @@ class Sync(
         if (hasPower) addGlobalFlag(Flag.Charging) else removeGlobalFlag(Flag.Charging)
     }
 
-    fun onSyncAlarm() {
-        val timeDelta = recheckAll()
-        if (timeDelta == Long.MAX_VALUE) {
-            RelaySyncAlarm.unschedule()
-        } else {
-            RelaySyncAlarm.schedule(timeDelta + relaySyncAlarmAdditionalDelay)
+    @Cat @Synchronized fun recheckEverything() {
+        if (!started) return
+        if (!shouldKeepGloballySyncing()) syncDesyncIndividualBuffersIfNeeded()
+        globalSyncDesyncIfNeeded()
+        scheduleUnscheduleDesyncIfNeeded()
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private fun updateInfo(pointer: Long, block: (Info) -> Info) {
+        val info = pointerToInfo[pointer] ?: Info(pointer, open = false, watched = false, lastTouchedAt = 0)
+        pointerToInfo = pointerToInfo.toMutableMap().also { it[pointer] = block(info) }
+    }
+
+    private fun globalSyncDesyncIfNeeded() {
+        val shouldSync = shouldKeepGloballySyncing()
+        if (syncedGlobally != shouldSync) {
+            if (shouldSync) sync() else desync()
+        }
+    }
+
+    private fun syncDesyncIndividualBuffersIfNeeded() {
+        pointerToInfo.forEach { (pointer, info) ->
+            val shouldSync = info.shouldKeepSyncing()
+            val synced = syncedPointers.contains(pointer)
+            if (synced != shouldSync) {
+                if (shouldSync) sync(pointer) else desync(pointer)
+            }
+        }
+    }
+
+    private fun scheduleUnscheduleDesyncIfNeeded() {
+        val now = System.currentTimeMillis()
+        var finalDesyncTime = Long.MAX_VALUE
+
+        if (shouldScheduleGlobalDesync()) {
+            finalDesyncTime = getGlobalDesyncTime()
+        } else if (!syncedGlobally) {
+            pointerToInfo.forEach { (_, info) ->
+                if (info.shouldScheduleDesync()) {
+                    val desyncTime = info.getDesyncTime()
+                    if (desyncTime < finalDesyncTime) finalDesyncTime = desyncTime
+                }
+            }
+        }
+
+        when {
+            finalDesyncTime == Long.MAX_VALUE -> RelaySyncAlarm.unscheduleIfNeeded()
+            finalDesyncTime <= now -> recheckEverything()
+            else -> RelaySyncAlarm.schedule(finalDesyncTime - now + relaySyncAlarmAdditionalDelay)
         }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private fun onGlobalFlagsChanged() {
-        val shouldSyncGlobally = shouldKeepGloballySyncing()
-        if (syncedGlobally != shouldSyncGlobally) {
-            if (shouldSyncGlobally) sync() else desync()
-        }
-    }
-
-    private fun updateInfo(pointer: Long, block: (Info) -> Info) {
-        val oldInfo = pointerToInfo[pointer] ?: Info.default
-        val newInfo = block(oldInfo)
-        onInfoChanged(pointer, newInfo)
-        pointerToInfo = pointerToInfo.toMutableMap().also { it[pointer] = newInfo }
-    }
-
-    private fun onInfoChanged(pointer: Long, maybeNewInfo: Info? = null) {
-        val newInfo = maybeNewInfo ?: pointerToInfo[pointer] ?: Info.default
-        val syncedBefore = syncedPointers.contains(pointer)
-
-        if (syncedBefore) {
-            if (!newInfo.shouldKeepSyncing()) desync(pointer)
-        } else {
-            if (newInfo.shouldSync()) sync(pointer)
-        }
-    }
-
-    @Synchronized private fun recheckAll(): Long {
-        val now = System.currentTimeMillis()
-        var minimalCheckAt = Long.MAX_VALUE
-
-        onGlobalFlagsChanged()
-
-        if (shouldScheduleGlobalDesync()) {
-            val checkAt = getGlobalCheckTime()
-            if (checkAt > now) minimalCheckAt = checkAt
-        }
-
-        pointerToInfo.forEach { (pointer, info) ->
-            onInfoChanged(pointer, info)
-
-            if (info.shouldScheduleDesync()) {
-                val checkAt = info.getCheckTime()
-                if (checkAt > now) minimalCheckAt = minOf(checkAt, minimalCheckAt)
-            }
-        }
-
-        return if (minimalCheckAt == Long.MAX_VALUE) Long.MAX_VALUE else minimalCheckAt - now
-    }
-
-    private fun sync() {
+    @CatD fun sync() {
         if (syncedGlobally) return
         syncedGlobally = true
         Events.SendMessageEvent.fire(listOf(
@@ -186,7 +184,7 @@ class Sync(
         ).joinToString("\n"))
     }
 
-    private fun desync() {
+    @CatD private fun desync() {
         if (!syncedGlobally) return
         syncedGlobally = false
         Events.SendMessageEvent.fire("desync\nsync * buffers")
@@ -195,14 +193,15 @@ class Sync(
         }
     }
 
-    private fun sync(pointer: Long) {
+    @CatD private fun sync(pointer: Long) {
         syncedPointers = syncedPointers + pointer
         Events.SendMessageEvent.fire("sync ${pointer.as0x}")
         BufferList.syncHotlist()
     }
 
-    private fun desync(pointer: Long) {
+    @CatD(linger = true) private fun desync(pointer: Long) {
         syncedPointers = syncedPointers - pointer
+        kitty.debug("%s remain", syncedPointers.size)
         Events.SendMessageEvent.fire("desync ${pointer.as0x}")
         if (!syncedGlobally) BufferList.findByPointer(pointer)?.onDesynchronized()
     }
@@ -217,6 +216,10 @@ class Sync(
 // todo use a variant of set with OnAlarmListener @ api 24+
 class RelaySyncAlarm : BroadcastReceiver() {
     companion object {
+        // this field becomes static on `RelaySyncAlarm` so it doesn't get picked up
+        // the resulting is that the tag is `Companion`. todo make this work
+        @Root private val kitty: Kitty = Kitty.make("Sync.RelaySyncAlarm")
+
         private val alarmManager = applicationContext.
                 getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
@@ -225,20 +228,31 @@ class RelaySyncAlarm : BroadcastReceiver() {
                 Intent(applicationContext, RelaySyncAlarm::class.java),
                 PendingIntent.FLAG_CANCEL_CURRENT)
 
-        fun schedule(timeDelta: Long) {
+        private var scheduled = false
+
+        @Cat @JvmStatic fun schedule(timeDelta: Long) {
             require(timeDelta >= 0)
             alarmManager.set(ELAPSED_REALTIME_WAKEUP,
                     SystemClock.elapsedRealtime() + timeDelta,
                     pendingIntent)
+            scheduled = true
         }
 
-        fun unschedule() {
+        @Cat @JvmStatic private fun unschedule() {
             alarmManager.cancel(pendingIntent)
+        }
+
+        fun unscheduleIfNeeded() {
+            if (scheduled) {
+                unschedule()
+                scheduled = false
+            }
         }
     }
 
     override fun onReceive(context: Context, intent: Intent) {
-        Sync.get().onSyncAlarm()
+        Sync.get().recheckEverything()
+        scheduled = false
     }
 }
 
@@ -249,6 +263,8 @@ class RelaySyncAlarm : BroadcastReceiver() {
 
 
 object PowerBroadcastReceiver : BroadcastReceiver() {
+    @Root private val kitty: Kitty = Kitty.make("Sync.PowerBroadcastReceiver")
+
     fun register() {
         val intentFilter = IntentFilter().apply {
             addAction(Intent.ACTION_POWER_CONNECTED)
@@ -262,7 +278,7 @@ object PowerBroadcastReceiver : BroadcastReceiver() {
             val status = it.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
             val isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
                              status == BatteryManager.BATTERY_STATUS_FULL
-            Sync.get().onPowerConnectionChanged(isCharging)
+            dispatchPowerConnectionChanged(isCharging)
         }
     }
 
@@ -270,11 +286,15 @@ object PowerBroadcastReceiver : BroadcastReceiver() {
         applicationContext.unregisterReceiver(this)
     }
 
+    @Cat fun dispatchPowerConnectionChanged(isCharging: Boolean) {
+        Sync.get().onPowerConnectionChanged(isCharging)
+    }
+
     override fun onReceive(context: Context?, intent: Intent) {
         if (intent.action == Intent.ACTION_POWER_CONNECTED) {
-            Sync.get().onPowerConnectionChanged(true)
+            dispatchPowerConnectionChanged(true)
         } else if (intent.action == Intent.ACTION_POWER_DISCONNECTED){
-            Sync.get().onPowerConnectionChanged(false)
+            dispatchPowerConnectionChanged(false)
         }
     }
 }
