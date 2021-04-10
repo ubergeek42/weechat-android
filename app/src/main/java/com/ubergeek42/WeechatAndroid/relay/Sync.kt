@@ -17,12 +17,23 @@ import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
 
 
+var syncManager = Sync(
+        desyncDelayBuffer = 60 * 1000L,
+        desyncDelayOpenBuffer = 30 * 1000L,
+        desyncDelayGlobal = 10 * 1000L,
+        relaySyncAlarmAdditionalDelay = 1 * 1000L)
+
+
 class Sync(
     private val desyncDelayBuffer: Long,
     private val desyncDelayOpenBuffer: Long,
     private val desyncDelayGlobal: Long,
     private val relaySyncAlarmAdditionalDelay: Long,
 ) {
+    companion object {
+        @Root private val kitty: Kitty = Kitty.make("Sync")
+    }
+
     private var started = false
 
     @Cat fun start() {
@@ -30,22 +41,14 @@ class Sync(
         PowerBroadcastReceiver.register()
         recheckEverything()
     }
+
     @Cat fun stop() {
-        started = false
         PowerBroadcastReceiver.unregister()
-    }
+        RelaySyncAlarm.unscheduleIfScheduled()
 
-    companion object {
-        @Root private val kitty: Kitty = Kitty.make("Sync")
-
-        var instance: Sync? = null
-
-        @JvmStatic fun get() = instance ?: Sync(
-                desyncDelayBuffer = 60 * 1000L,
-                desyncDelayOpenBuffer = 30 * 1000L,
-                desyncDelayGlobal = 10 * 1000L,
-                relaySyncAlarmAdditionalDelay = 1 * 1000L,
-        ).also { instance = it }
+        syncedGlobally = false
+        syncedPointers = setOf()
+        started = false
     }
 
     enum class Flag {
@@ -114,10 +117,6 @@ class Sync(
         updateInfo(pointer) { info -> info.copy(lastTouchedAt = System.currentTimeMillis()) }
     }
 
-    @Synchronized fun onPowerConnectionChanged(hasPower: Boolean) {
-        if (hasPower) addGlobalFlag(Flag.Charging) else removeGlobalFlag(Flag.Charging)
-    }
-
     @Cat @Synchronized fun recheckEverything() {
         if (!started) return
         if (!shouldKeepGloballySyncing()) syncDesyncIndividualBuffersIfNeeded()
@@ -165,7 +164,7 @@ class Sync(
         }
 
         when {
-            finalDesyncTime == Long.MAX_VALUE -> RelaySyncAlarm.unscheduleIfNeeded()
+            finalDesyncTime == Long.MAX_VALUE -> RelaySyncAlarm.unscheduleIfScheduled()
             finalDesyncTime <= now -> recheckEverything()
             else -> RelaySyncAlarm.schedule(finalDesyncTime - now + relaySyncAlarmAdditionalDelay)
         }
@@ -242,7 +241,7 @@ class RelaySyncAlarm : BroadcastReceiver() {
             alarmManager.cancel(pendingIntent)
         }
 
-        fun unscheduleIfNeeded() {
+        fun unscheduleIfScheduled() {
             if (scheduled) {
                 unschedule()
                 scheduled = false
@@ -251,7 +250,7 @@ class RelaySyncAlarm : BroadcastReceiver() {
     }
 
     override fun onReceive(context: Context, intent: Intent) {
-        Sync.get().recheckEverything()
+        syncManager.recheckEverything()
         scheduled = false
     }
 }
@@ -287,7 +286,11 @@ object PowerBroadcastReceiver : BroadcastReceiver() {
     }
 
     @Cat fun dispatchPowerConnectionChanged(isCharging: Boolean) {
-        Sync.get().onPowerConnectionChanged(isCharging)
+        if (isCharging) {
+            syncManager.addGlobalFlag(Sync.Flag.Charging)
+        } else {
+            syncManager.removeGlobalFlag(Sync.Flag.Charging)
+        }
     }
 
     override fun onReceive(context: Context?, intent: Intent) {
