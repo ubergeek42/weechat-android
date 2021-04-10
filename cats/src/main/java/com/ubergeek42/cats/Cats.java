@@ -63,9 +63,18 @@ public class Cats {
         // when constructor is called, non-static fields are not initialized until after
         // the constructor calls its super(). in this case, and also when no kitty has been made,
         // return a default static kitty
-        kitty = Kitty.make(point.getSignature().getDeclaringType().getSimpleName());
+        kitty = Kitty.make(getClassName(cls));
         setKitty(cls, kitty);
         return kitty;
+    }
+
+    private static String getClassName(@NonNull Class cls) {
+        String name = cls.getSimpleName();
+        while (true) {
+            cls = cls.getEnclosingClass();
+            if (cls == null) return name;
+            name = cls.getSimpleName() + "." + name;
+        }
     }
 
     @SuppressWarnings("WeakerAccess")
@@ -75,6 +84,7 @@ public class Cats {
 
     static void setKitty(@NonNull Object o, @NonNull Kitty kitty) {
         kitties.put(o, kitty);
+        //System.out.println("::: setting kitty for: " + o);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
