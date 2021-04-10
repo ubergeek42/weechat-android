@@ -10,6 +10,7 @@ import android.content.IntentFilter
 import android.os.BatteryManager
 import android.os.SystemClock
 import com.ubergeek42.WeechatAndroid.service.Events
+import com.ubergeek42.WeechatAndroid.service.RelayService
 import com.ubergeek42.WeechatAndroid.upload.applicationContext
 import com.ubergeek42.cats.Cat
 import com.ubergeek42.cats.CatD
@@ -43,9 +44,11 @@ class Sync(
                 "sync * buffers")
         started = true
         recheckEverything()
+        HotlistSyncAlarm.schedule()
     }
 
     @Cat fun stop() {
+        HotlistSyncAlarm.unschedule()
         PowerBroadcastReceiver.unregister()
         RelaySyncAlarm.unscheduleIfScheduled()
 
@@ -95,6 +98,20 @@ class Sync(
     private fun Info.shouldKeepSyncing() = getDesyncTime() > System.currentTimeMillis()
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    @Synchronized fun getDesiredHotlistSyncInterval(): Long {
+        return when {
+            globalFlags.contains(Flag.ActivityOpen) -> 30.s_to_ms
+            syncedGlobally -> 5.m_to_ms
+            syncedPointers.isEmpty() -> 10.m_to_ms
+            else -> 30.m_to_ms
+        }
+    }
+
+    fun getDesiredPingInterval() = getDesiredHotlistSyncInterval()
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
 
     @Synchronized fun addGlobalFlag(flag: Flag) {
         globalFlags = globalFlags + flag
@@ -215,16 +232,15 @@ class Sync(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
+private val alarmManager = applicationContext.
+        getSystemService(Context.ALARM_SERVICE) as AlarmManager
+
+// note: `val kitty` on a Companion object actually becomes a static on the enclosing class
+// as a result, Companion methods annotated with @Cat don't pick it up.
+
 // todo use a variant of set with OnAlarmListener @ api 24+
 class RelaySyncAlarm : BroadcastReceiver() {
     companion object {
-        // this field becomes static on `RelaySyncAlarm` so it doesn't get picked up
-        // the resulting is that the tag is `Companion`. todo make this work
-        @Root private val kitty: Kitty = Kitty.make("Sync.RelaySyncAlarm")
-
-        private val alarmManager = applicationContext.
-                getSystemService(Context.ALARM_SERVICE) as AlarmManager
-
         private val pendingIntent = PendingIntent.getBroadcast(
                 applicationContext, 13,
                 Intent(applicationContext, RelaySyncAlarm::class.java),
@@ -258,6 +274,43 @@ class RelaySyncAlarm : BroadcastReceiver() {
     }
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+class HotlistSyncAlarm : BroadcastReceiver() {
+    companion object {
+        private val pendingIntent = PendingIntent.getBroadcast(
+                applicationContext, 0,
+                Intent(applicationContext, HotlistSyncAlarm::class.java),
+                PendingIntent.FLAG_CANCEL_CURRENT)
+
+        @Cat private fun schedule(timeDelta: Long) {
+            require(timeDelta >= 0)
+            alarmManager.set(ELAPSED_REALTIME_WAKEUP,
+                    SystemClock.elapsedRealtime() + timeDelta,
+                    pendingIntent)
+        }
+
+        @Cat fun unschedule() {
+            alarmManager.cancel(pendingIntent)
+        }
+
+        fun schedule() {
+            schedule(syncManager.getDesiredHotlistSyncInterval())
+        }
+    }
+
+    override fun onReceive(context: Context, intent: Intent) {
+        val authenticated = RelayService.staticState.contains(RelayService.STATE.AUTHENTICATED)
+        if (authenticated) {
+            BufferList.syncHotlist()
+            schedule()
+        } else {
+            unschedule()
+        }
+    }
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -304,3 +357,7 @@ object PowerBroadcastReceiver : BroadcastReceiver() {
         }
     }
 }
+
+
+private inline val Int.s_to_ms get() = this * 1000L
+private inline val Int.m_to_ms get() = this * 60L * 1000L

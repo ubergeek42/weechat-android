@@ -152,7 +152,7 @@
             </intent-filter>
         </receiver>
         <receiver android:name=".relay.RelaySyncAlarm" />
-        <receiver android:name=".service.SyncAlarmReceiver" />
+        <receiver android:name=".relay.HotlistSyncAlarm" />
         <receiver android:name=".notifications.InlineReplyReceiver" />
         <receiver android:name=".notifications.NotificationDismissedReceiver" />
         <receiver android:name=".notifications.BubbleDismissedReceiver" />
