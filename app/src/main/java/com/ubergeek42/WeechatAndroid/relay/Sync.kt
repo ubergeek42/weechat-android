@@ -26,9 +26,9 @@ class Sync(
         var instance: Sync? = null
 
         @JvmStatic fun get() = instance ?: Sync(
-                desyncDelayBuffer = 30 * 1000L,
-                desyncDelayOpenBuffer = 60 * 1000L,
-                desyncDelayGlobal = 5 * 1000L,
+                desyncDelayBuffer = 10 * 30 * 1000L,
+                desyncDelayOpenBuffer = 10 * 60 * 1000L,
+                desyncDelayGlobal = 10 * 5 * 1000L,
                 relaySyncAlarmAdditionalDelay = 1 * 1000L,
         ).also { instance = it }
     }
@@ -56,25 +56,26 @@ class Sync(
     private var syncedPointers = setOf<Long>()
     private var syncedGlobally = false
 
-    private fun shouldScheduleDesync() =
+    private fun getGlobalCheckTime() = globalLastTouchedAt + desyncDelayGlobal
+
+    private fun shouldScheduleGlobalDesync() =
             !globalFlags.contains(Flag.ActivityOpen) &&
             !globalFlags.contains(Flag.Charging)
 
-    private fun shouldSync() =
+    private fun shouldKeepGloballySyncing() =
             globalFlags.contains(Flag.ActivityOpen) ||
             globalFlags.contains(Flag.Charging) ||
                     getGlobalCheckTime() > System.currentTimeMillis()
 
-    private fun Info.shouldScheduleDesync() = !watched
-
-    private fun Info.shouldSync() = this@Sync.shouldSync() ||
-            watched ||
-            getCheckTime() > System.currentTimeMillis()
-
-    private fun getGlobalCheckTime() = globalLastTouchedAt + desyncDelayGlobal
-
     private fun Info.getCheckTime() = lastTouchedAt +
             if (open) desyncDelayOpenBuffer else desyncDelayBuffer
+
+    private fun Info.shouldScheduleDesync() = !watched
+
+    private fun Info.shouldSync() = watched
+
+    private fun Info.shouldKeepSyncing() = shouldKeepGloballySyncing() ||
+            getCheckTime() > System.currentTimeMillis()
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -82,7 +83,7 @@ class Sync(
         globalFlags = globalFlags + flag
         onGlobalFlagsChanged()
 
-        if (!shouldScheduleDesync()) RelaySyncAlarm.unschedule()
+        if (!shouldScheduleGlobalDesync()) RelaySyncAlarm.unschedule()
     }
 
     @Synchronized fun removeGlobalFlag(flag: Flag) {
@@ -93,13 +94,9 @@ class Sync(
         globalFlags = globalFlags - flag
         onGlobalFlagsChanged()
 
-        if (shouldScheduleDesync()) {
+        if (shouldScheduleGlobalDesync()) {
             val checkAt = getGlobalCheckTime()
-            if (checkAt > now) {
-                RelaySyncAlarm.schedule(checkAt - now)
-            } else {
-                onSyncAlarm()
-            }
+            if (checkAt > now) RelaySyncAlarm.schedule(checkAt - now) else onSyncAlarm()
         }
     }
 
@@ -131,7 +128,7 @@ class Sync(
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private fun onGlobalFlagsChanged() {
-        val shouldSyncGlobally = shouldSync()
+        val shouldSyncGlobally = shouldKeepGloballySyncing()
         if (syncedGlobally != shouldSyncGlobally) {
             if (shouldSyncGlobally) sync() else desync()
         }
@@ -147,21 +144,21 @@ class Sync(
     private fun onInfoChanged(pointer: Long, maybeNewInfo: Info? = null) {
         val newInfo = maybeNewInfo ?: pointerToInfo[pointer] ?: Info.default
         val syncedBefore = syncedPointers.contains(pointer)
-        val shouldSync = newInfo.shouldSync()
 
-        if (syncedBefore != shouldSync) {
-            if (shouldSync) sync(pointer) else desync(pointer)
+        if (syncedBefore) {
+            if (!newInfo.shouldKeepSyncing()) desync(pointer)
+        } else {
+            if (newInfo.shouldSync()) sync(pointer)
         }
     }
 
-    // todo postpone individual buffer desyncs until after global desync
     @Synchronized private fun recheckAll(): Long {
         val now = System.currentTimeMillis()
         var minimalCheckAt = Long.MAX_VALUE
 
         onGlobalFlagsChanged()
 
-        if (shouldScheduleDesync()) {
+        if (shouldScheduleGlobalDesync()) {
             val checkAt = getGlobalCheckTime()
             if (checkAt > now) minimalCheckAt = checkAt
         }
