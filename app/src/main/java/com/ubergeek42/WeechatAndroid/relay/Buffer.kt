@@ -126,11 +126,10 @@ class Buffer @WorkerThread constructor(
     // sets buffer as open or closed
     // an open buffer is such that:
     //     has processed lines and processes lines as they come by
-    //     is synced
     //     is marked as "open" in the buffer list fragment or wherever
-    @Synchronized fun addOpenKey(key: String, syncHotlistOnOpen: Boolean) {
+    @Synchronized fun addOpenKey(key: String) {
         if (openKeys.add(key) == Keys.Change.BecameNotEmpty) {
-            BufferList.syncBuffer(this, syncHotlistOnOpen)
+            syncManager.setOpen(pointer, true)
             lines.ensureSpannables()
             BufferList.notifyBuffersChanged()
         }
@@ -138,17 +137,16 @@ class Buffer @WorkerThread constructor(
 
     @Synchronized fun removeOpenKey(key: String) {
         if (openKeys.remove(key) == Keys.Change.BecameEmpty) {
-            BufferList.desyncBuffer(this)
+            syncManager.setOpen(pointer, false)
             lines.invalidateSpannables()
-            if (P.optimizeTraffic) {
-                // request lines & nicks on the next sync
-                // the previous comment here was stupid
-                lines.status = Lines.Status.Init
-                nicks.status = Nicks.Status.Init
-                hotlistUpdatesWhileSyncing = 0
-            }
             BufferList.notifyBuffersChanged()
         }
+    }
+
+    fun onDesynchronized() {
+        lines.status = Lines.Status.Init
+        nicks.status = Nicks.Status.Init
+        hotlistUpdatesWhileSyncing = 0
     }
 
     // add buffer eye, i.e. something that watches buffer events
@@ -185,11 +183,15 @@ class Buffer @WorkerThread constructor(
     @Synchronized fun addWatchedKey(key: String) {
         watchedKeys.add(key)
         resetUnreadsAndHighlights()
+        syncManager.setWatched(pointer, true)
+        syncManager.touch(pointer)
     }
 
     @Synchronized fun removeWatchedKey(key: String) {
         if (watchedKeys.remove(key) == Keys.Change.BecameEmpty) {
             lines.rememberCurrentSkipsOffset()
+            syncManager.setWatched(pointer, false)
+            syncManager.touch(pointer)
         }
     }
 

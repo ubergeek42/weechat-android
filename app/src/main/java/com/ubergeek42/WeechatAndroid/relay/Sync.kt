@@ -37,8 +37,11 @@ class Sync(
     private var started = false
 
     @Cat fun start() {
-        started = true
         PowerBroadcastReceiver.register()
+        Events.SendMessageEvent.fire(
+                BufferSpec.listBuffersRequest + "\n" +
+                "sync * buffers")
+        started = true
         recheckEverything()
     }
 
@@ -195,7 +198,7 @@ class Sync(
     @CatD private fun sync(pointer: Long) {
         syncedPointers = syncedPointers + pointer
         Events.SendMessageEvent.fire("sync ${pointer.as0x}")
-        BufferList.syncHotlist()
+        BufferList.syncHotlist()    // todo optimize
     }
 
     @CatD(linger = true) private fun desync(pointer: Long) {

@@ -595,7 +595,7 @@ private fun NotificationCompat.Builder.setNotificationText(text: CharSequence): 
 
 fun notifyBubbleActivityCreated(pointer: Long) {
     bubblesThatShouldBeKept = bubblesThatShouldBeKept + pointer
-    BufferList.findByPointer(pointer)?.addOpenKey("bubble-activity", true)
+    BufferList.findByPointer(pointer)?.addOpenKey("bubble-activity")
 }
 
 

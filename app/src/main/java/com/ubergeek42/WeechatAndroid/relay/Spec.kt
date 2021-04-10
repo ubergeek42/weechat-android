@@ -52,7 +52,7 @@ enum class Notify(val value: Int) {
             type = this@BufferSpec.type
         }
 
-        if (P.isBufferOpen(pointer)) addOpenKey("main-activity", syncHotlistOnOpen = false)
+        if (P.isBufferOpen(pointer)) addOpenKey("main-activity")
 
         // saved data would be meaningless for a newly opened buffer
         if (!openWhileRunning) P.restoreLastReadLine(this)

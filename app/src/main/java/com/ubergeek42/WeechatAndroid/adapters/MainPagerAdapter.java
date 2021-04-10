@@ -54,7 +54,7 @@ public class MainPagerAdapter extends PagerAdapter {
     @MainThread @CatD public void openBuffer(final long pointer) {
         if (pointers.contains(pointer)) return;
         Buffer buffer = BufferList.findByPointer(pointer);
-        if (buffer != null) buffer.addOpenKey("main-activity", true);
+        if (buffer != null) buffer.addOpenKey("main-activity");
         pointers.add(pointer);
         sortOpenBuffers();
         notifyDataSetChanged();
