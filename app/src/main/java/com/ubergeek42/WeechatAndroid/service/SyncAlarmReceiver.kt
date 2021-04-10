@@ -1,41 +1,46 @@
-package com.ubergeek42.WeechatAndroid.service;
+package com.ubergeek42.WeechatAndroid.service
 
-import android.app.AlarmManager;
-import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.os.SystemClock;
-import androidx.annotation.AnyThread;
-import androidx.annotation.MainThread;
-import androidx.annotation.WorkerThread;
+import android.app.AlarmManager
+import android.app.PendingIntent
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.os.SystemClock
+import androidx.annotation.AnyThread
+import androidx.annotation.MainThread
+import androidx.annotation.WorkerThread
+import com.ubergeek42.WeechatAndroid.relay.BufferList.syncHotlist
+import com.ubergeek42.WeechatAndroid.upload.applicationContext
 
-import com.ubergeek42.WeechatAndroid.relay.BufferList;
-
-
-public class SyncAlarmReceiver extends BroadcastReceiver {
-    final private static int SYNC_EVERY_MS = 60 * 5 * 1000; // 5 minutes
-
-    @WorkerThread public static void start(Context context) {
-        AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        if (am == null) return;
-        Intent intent = new Intent(context, SyncAlarmReceiver.class);
-        PendingIntent pi = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
-        am.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + SYNC_EVERY_MS, SYNC_EVERY_MS, pi);
-    }
-
-    @AnyThread public static void stop(Context context) {
-        AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        PendingIntent pe = PendingIntent.getBroadcast(context, 0, new Intent(context, SyncAlarmReceiver.class), 0);
-        if (am != null && pe != null) am.cancel(pe);
-    }
-
-    @MainThread @Override public void onReceive(Context context, Intent intent) {
-        boolean authenticated = RelayService.staticState.contains(RelayService.STATE.AUTHENTICATED);
+class SyncAlarmReceiver : BroadcastReceiver() {
+    @MainThread override fun onReceive(context: Context, intent: Intent) {
+        val authenticated = RelayService.staticState.contains(RelayService.STATE.AUTHENTICATED)
         if (authenticated) {
-            BufferList.syncHotlist();
+            syncHotlist()
         } else {
-            stop(context);
+            unregister()
+        }
+    }
+
+    companion object {
+        private const val SYNC_EVERY_MS = 5 * 60 * 1000 // 5 minutes
+
+        private val alarmManager = applicationContext
+                .getSystemService(Context.ALARM_SERVICE) as AlarmManager
+
+        private val pendingIntent = PendingIntent.getBroadcast(
+                applicationContext, 0,
+                Intent(applicationContext, SyncAlarmReceiver::class.java),
+                PendingIntent.FLAG_CANCEL_CURRENT)
+
+        @JvmStatic @WorkerThread fun register() {
+            alarmManager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                    SystemClock.elapsedRealtime() + SYNC_EVERY_MS, SYNC_EVERY_MS.toLong(),
+                    pendingIntent)
+        }
+
+        @JvmStatic @AnyThread fun unregister() {
+            alarmManager.cancel(pendingIntent)
         }
     }
 }
