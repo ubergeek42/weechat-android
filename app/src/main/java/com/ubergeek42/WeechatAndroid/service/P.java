@@ -224,8 +224,9 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     static boolean reconnect;
     static public boolean pinRequired;
 
-    static boolean pingEnabled;
-    static long pingIdleTime, pingTimeout;
+    public static boolean pingEnabled;
+    static long pingIdleTime;
+    public static long pingTimeout;
     public static int lineIncrement;
     public static int searchLineIncrement;
 

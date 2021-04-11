@@ -153,6 +153,7 @@
         </receiver>
         <receiver android:name=".relay.BufferSyncAlarm" />
         <receiver android:name=".relay.HotlistSyncAlarm" />
+        <receiver android:name=".relay.PingAlarm" />
         <receiver android:name=".notifications.InlineReplyReceiver" />
         <receiver android:name=".notifications.NotificationDismissedReceiver" />
         <receiver android:name=".notifications.BubbleDismissedReceiver" />

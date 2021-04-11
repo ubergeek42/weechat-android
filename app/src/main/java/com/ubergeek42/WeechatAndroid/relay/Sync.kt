@@ -10,8 +10,10 @@ import android.content.IntentFilter
 import android.os.BatteryManager
 import android.os.SystemClock
 import com.ubergeek42.WeechatAndroid.service.Events
+import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.service.RelayService
 import com.ubergeek42.WeechatAndroid.upload.applicationContext
+import com.ubergeek42.cats.BuildConfig
 import com.ubergeek42.cats.Cat
 import com.ubergeek42.cats.CatD
 import com.ubergeek42.cats.Kitty
@@ -27,32 +29,34 @@ var syncManager = Sync(
 
 
 class Sync(
-    private val desyncDelayBuffer: Long,
-    private val desyncDelayOpenBuffer: Long,
-    private val desyncDelayGlobal: Long,
-    private val relaySyncAlarmAdditionalDelay: Long,
+        private val desyncDelayBuffer: Long,
+        private val desyncDelayOpenBuffer: Long,
+        private val desyncDelayGlobal: Long,
+        private val relaySyncAlarmAdditionalDelay: Long,
 ) {
     companion object {
         @Root private val kitty: Kitty = Kitty.make("Sync")
     }
 
-    private var started = false
+    internal var service: RelayService? = null
 
-    @Cat fun start() {
+    @Cat fun start(service: RelayService) {
+        PingAlarm.init()
         PowerBroadcastReceiver.register()
         fireMessages(BufferSpec.listBuffersRequest, "sync * buffers")
-        started = true
+        this.service = service
         recheckEverything()
     }
 
     @Cat fun stop() {
-        HotlistSyncAlarm.unschedule()
+        PingAlarm.unscheduleIfScheduled()
+        HotlistSyncAlarm.unscheduleIfScheduled()
         PowerBroadcastReceiver.unregister()
         BufferSyncAlarm.unscheduleIfScheduled()
 
         syncedGlobally = false
         syncedPointers = setOf()
-        started = false
+        service = null
     }
 
     enum class Flag {
@@ -61,10 +65,10 @@ class Sync(
     }
 
     private data class Info(
-        val pointer: Long,
-        val open: Boolean,
-        val watched: Boolean,
-        val lastTouchedAt: Long,
+            val pointer: Long,
+            val open: Boolean,
+            val watched: Boolean,
+            val lastTouchedAt: Long,
     )
 
     private var globalFlags = setOf<Flag>()
@@ -106,7 +110,7 @@ class Sync(
         }
     }
 
-    fun getDesiredPingInterval() = getDesiredHotlistSyncInterval()
+    fun getDesiredPingIdleInterval() = getDesiredHotlistSyncInterval()
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -136,11 +140,12 @@ class Sync(
     }
 
     @Cat @Synchronized fun recheckEverything() {
-        if (!started) return
+        if (service == null) return
         if (!shouldKeepGloballySyncing()) syncDesyncIndividualBuffersIfNeeded()
         globalSyncDesyncIfNeeded()
         scheduleUnscheduleDesyncIfNeeded()
         HotlistSyncAlarm.reschedule()
+        PingAlarm.reschedule()
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -275,6 +280,68 @@ class HotlistSyncAlarm : BroadcastReceiver() {
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////// ping
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+class PingAlarm : BroadcastReceiver() {
+    companion object : BroadcastCompanion(PingAlarm::class) {
+        enum class State {
+            Idling,
+            WaitingForPong,
+        }
+
+        private var state = State.Idling
+        private var pingIdleInterval = 1000L
+        private var pongWaitingInterval = 100L
+        @Volatile private var lastMessageReceivedAt = 0L
+
+        fun init() {
+            state = State.Idling
+            lastMessageReceivedAt = now()
+            pongWaitingInterval = P.pingTimeout
+        }
+
+        @Cat fun reschedule() {
+            if (P.pingEnabled && state == State.Idling) {
+                pingIdleInterval = syncManager.getDesiredPingIdleInterval()
+                val timeSinceLastMessage = now() - lastMessageReceivedAt
+                var nextInterval = pingIdleInterval - timeSinceLastMessage
+                if (nextInterval <= 0) nextInterval = 1.s_to_ms
+                scheduleIfNotAlreadyScheduledSooner(nextInterval)
+            }
+        }
+
+        @JvmStatic fun onMessage() {
+            lastMessageReceivedAt = now()
+        }
+    }
+
+    @Cat override fun onReceive(context: Context, intent: Intent) {
+        if (state == State.Idling) {
+            val lastIdleCheckAt = lastScheduledSyncAt - pingIdleInterval
+            if (lastMessageReceivedAt < lastIdleCheckAt) {
+                state = State.WaitingForPong
+                scheduleExact(pongWaitingInterval)
+                fireMessages("ping")
+                return
+            }
+        } else {
+            val lastPongRequestedAt = lastScheduledSyncAt - pongWaitingInterval
+            if (lastMessageReceivedAt < lastPongRequestedAt) {
+                kitty.info("no pong received in time, disconnecting")
+                syncManager.service?.interrupt()
+                return
+            }
+        }
+
+        state = State.Idling
+        reschedule()
+    }
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////// power broadcast
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -341,7 +408,7 @@ private inline val Int.m_to_ms get() = this * 60L * 1000L
 // todo: for alarms, use a variant of set with OnAlarmListener @ api 24+
 
 open class BroadcastCompanion(cls: KClass<*>) {
-    @Root private val kitty: Kitty = Kitty.make(cls.simpleName)
+    @Root val kitty: Kitty = Kitty.make(cls.simpleName)
 
     private val pendingIntent = PendingIntent.getBroadcast(
             applicationContext, 0,
@@ -349,12 +416,19 @@ open class BroadcastCompanion(cls: KClass<*>) {
             PendingIntent.FLAG_CANCEL_CURRENT)
 
     var scheduled = false
-    private var nextSyncAt = 0L
+    protected var lastScheduledSyncAt = 0L
 
     @Cat open fun schedule(timeDelta: Long) {
-        require(timeDelta >= 0)
-        nextSyncAt = SystemClock.elapsedRealtime() + timeDelta
-        alarmManager.set(ELAPSED_REALTIME_WAKEUP, nextSyncAt, pendingIntent)
+        if (BuildConfig.DEBUG) require(timeDelta >= 0)
+        lastScheduledSyncAt = now() + timeDelta
+        alarmManager.set(ELAPSED_REALTIME_WAKEUP, lastScheduledSyncAt, pendingIntent)
+        scheduled = true
+    }
+
+    @Cat open fun scheduleExact(timeDelta: Long) {
+        if (BuildConfig.DEBUG) require(timeDelta >= 0)
+        lastScheduledSyncAt = now() + timeDelta
+        alarmManager.setExact(ELAPSED_REALTIME_WAKEUP, lastScheduledSyncAt, pendingIntent)
         scheduled = true
     }
 
@@ -372,8 +446,11 @@ open class BroadcastCompanion(cls: KClass<*>) {
     }
 
     fun scheduleIfNotAlreadyScheduledSooner(timeDelta: Long) {
-        if (!scheduled || SystemClock.elapsedRealtime() + timeDelta < nextSyncAt) {
+        val now = now()
+        if (!scheduled || lastScheduledSyncAt < now || now < lastScheduledSyncAt - timeDelta) {
             schedule(timeDelta)
         }
     }
+
+    fun now() = SystemClock.elapsedRealtime()
 }

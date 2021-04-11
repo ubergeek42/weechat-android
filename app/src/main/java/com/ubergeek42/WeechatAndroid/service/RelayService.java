@@ -32,6 +32,7 @@ import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.Weechat;
 import com.ubergeek42.WeechatAndroid.notifications.NotificatorKt;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
+import com.ubergeek42.WeechatAndroid.relay.PingAlarm;
 import com.ubergeek42.WeechatAndroid.utils.Network;
 import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.CatD;
@@ -67,7 +68,6 @@ public class RelayService extends Service implements IObserver {
     private static int iteration = -1;
 
     volatile public RelayConnection connection;
-    private PingActionReceiver ping;
     private Handler doge;               // thread "doge" used for connecting/disconnecting
 
     // action is one of ACTION_START or ACTION_STOP
@@ -103,7 +103,6 @@ public class RelayService extends Service implements IObserver {
             if (P.reconnect && state.contains(STATE.STARTED)) _start();
         });
 
-        ping = new PingActionReceiver(this);
         EventBus.getDefault().register(this);
     }
 
@@ -206,9 +205,9 @@ public class RelayService extends Service implements IObserver {
         P.setServiceAlive(false);
     }
 
-    // called by ↑ and PingActionReceiver
+    // called by ↑ and PingAlarm
     // close whatever connection we have in a thread, may result in a call to onStateChanged
-    @AnyThread @Cat synchronized void interrupt() {
+    @AnyThread @Cat synchronized public void interrupt() {
         doge.removeCallbacksAndMessages(null);
         doge.post(() -> {
             doge.removeCallbacksAndMessages(null);
@@ -295,14 +294,12 @@ public class RelayService extends Service implements IObserver {
 
     @WorkerThread @Cat private void hello() {
         NotificatorKt.addOrRemoveActionForCurrentNotifications(true);
-        ping.scheduleFirstPing();
-        BufferList.onServiceAuthenticated();
+        BufferList.onServiceAuthenticated(this);
     }
 
     //sync so that goodbye() never happens while state=auth but hello didn't run yet
     @AnyThread @Cat private void goodbye() {
         BufferList.onServiceStopped();
-        ping.unschedulePing();
         P.saveStuff();
         NotificatorKt.addOrRemoveActionForCurrentNotifications(false);
     }
@@ -332,7 +329,7 @@ public class RelayService extends Service implements IObserver {
     @WorkerThread @Override public void onMessage(RelayMessage message) {
         kitty.trace("→ onMessage(%s)", message.getID());
         if (state.contains(STATE.STOPPED)) return;
-        ping.onMessage();
+        PingAlarm.onMessage();
         RelayObject[] objects = message.getObjects() == null ? NULL : message.getObjects();
         String id = message.getID();
         for (RelayObject object : objects)
