@@ -117,24 +117,6 @@ object BufferList {
     /////////////////////////////////////////////////////////////////////////////////////// requests
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @JvmStatic @AnyThread fun syncHotlist() {
-        SendMessageEvent.fire(LastReadLineSpec.request + "\n" + HotlistSpec.request)
-    }
-
-    // if optimizing traffic, sync hotlist to make sure the number of unread messages is correct
-    // syncHotlist parameter is used to avoid synchronizing hotlist several times in a row when
-    // restoring open buffers.
-    // todo simplify
-    @AnyThread fun syncBuffer(buffer: Buffer, syncHotlist: Boolean) {
-        if (!P.optimizeTraffic) return
-        SendMessageEvent.fire("sync ${buffer.pointer.as0x}")
-        if (syncHotlist) syncHotlist()
-    }
-
-    @AnyThread fun desyncBuffer(buffer: Buffer) {
-        if (!P.optimizeTraffic) return
-        SendMessageEvent.fire("desync ${buffer.pointer.as0x}")
-    }
 
     @MainThread fun requestLinesForBuffer(pointer: Long, numberOfLines: Int) {
         val id = addOneOffMessageHandler(LineListingHandler(pointer))

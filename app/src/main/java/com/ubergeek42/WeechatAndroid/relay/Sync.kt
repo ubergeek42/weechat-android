@@ -40,10 +40,9 @@ class Sync(
 
     @Cat fun start() {
         PowerBroadcastReceiver.register()
-        Events.SendMessageEvent.fire(BufferSpec.listBuffersRequest + "\n" + "sync * buffers")
+        fireMessages(BufferSpec.listBuffersRequest, "sync * buffers")
         started = true
         recheckEverything()
-        HotlistSyncAlarm.schedule()
     }
 
     @Cat fun stop() {
@@ -102,7 +101,7 @@ class Sync(
         return when {
             globalFlags.contains(Flag.ActivityOpen) -> 30.s_to_ms
             syncedGlobally -> 5.m_to_ms
-            syncedPointers.isEmpty() -> 10.m_to_ms
+            syncedPointers.isNotEmpty() -> 10.m_to_ms
             else -> 30.m_to_ms
         }
     }
@@ -141,6 +140,7 @@ class Sync(
         if (!shouldKeepGloballySyncing()) syncDesyncIndividualBuffersIfNeeded()
         globalSyncDesyncIfNeeded()
         scheduleUnscheduleDesyncIfNeeded()
+        HotlistSyncAlarm.reschedule()
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -194,18 +194,14 @@ class Sync(
     @CatD fun sync() {
         if (syncedGlobally) return
         syncedGlobally = true
-        Events.SendMessageEvent.fire(listOf(
-                LastLinesSpec.request,
-                LastReadLineSpec.request,
-                HotlistSpec.request,
-                "sync"
-        ).joinToString("\n"))
+        fireMessages(LastLinesSpec.request, LastReadLineSpec.request, HotlistSpec.request, "sync")
+        HotlistSyncAlarm.reschedule()
     }
 
     @CatD private fun desync() {
         if (!syncedGlobally) return
         syncedGlobally = false
-        Events.SendMessageEvent.fire("desync\nsync * buffers")
+        fireMessages("desync", "sync * buffers")
         BufferList.buffers.forEach {
             if (!syncedPointers.contains(it.pointer)) it.onDesynchronized()
         }
@@ -213,14 +209,18 @@ class Sync(
 
     @CatD private fun sync(pointer: Long) {
         syncedPointers = syncedPointers + pointer
-        Events.SendMessageEvent.fire("sync ${pointer.as0x}")
-        BufferList.syncHotlist()    // todo optimize
+        if (syncedGlobally) {
+            fireMessages("sync ${pointer.as0x}")
+        } else {
+            fireMessages("sync ${pointer.as0x}", LastReadLineSpec.request, HotlistSpec.request)
+            HotlistSyncAlarm.reschedule()
+        }
     }
 
     @CatD(linger = true) private fun desync(pointer: Long) {
         syncedPointers = syncedPointers - pointer
         kitty.debug("%s remain", syncedPointers.size)
-        Events.SendMessageEvent.fire("desync ${pointer.as0x}")
+        fireMessages("desync ${pointer.as0x}")
         if (!syncedGlobally) BufferList.findByPointer(pointer)?.onDesynchronized()
     }
 }
@@ -238,7 +238,7 @@ private val alarmManager = applicationContext.
 class BufferSyncAlarm : BroadcastReceiver() {
     companion object : BroadcastCompanion(BufferSyncAlarm::class)
 
-    override fun onReceive(context: Context, intent: Intent) {
+    @Cat override fun onReceive(context: Context, intent: Intent) {
         scheduled = false
         syncManager.recheckEverything()
     }
@@ -249,18 +249,24 @@ class BufferSyncAlarm : BroadcastReceiver() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
+@Cat fun syncHotlist() {
+    fireMessages(LastReadLineSpec.request, HotlistSpec.request)
+    HotlistSyncAlarm.reschedule()
+}
+
+
 class HotlistSyncAlarm : BroadcastReceiver() {
     companion object : BroadcastCompanion(HotlistSyncAlarm::class) {
-        fun schedule() {
-            schedule(syncManager.getDesiredHotlistSyncInterval())
+        fun reschedule() {
+            scheduleIfNotAlreadyScheduledSooner(syncManager.getDesiredHotlistSyncInterval())
         }
     }
 
     override fun onReceive(context: Context, intent: Intent) {
+        scheduled = false
         val authenticated = RelayService.staticState.contains(RelayService.STATE.AUTHENTICATED)
         if (authenticated) {
-            BufferList.syncHotlist()
-            schedule()
+            syncHotlist()
         } else {
             unschedule()
         }
@@ -320,6 +326,11 @@ object PowerBroadcastReceiver : BroadcastReceiver() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
+private fun fireMessages(vararg lines: CharSequence) {
+    Events.SendMessageEvent.fire(lines.joinToString("\n"))
+}
+
+
 private inline val Int.s_to_ms get() = this * 1000L
 private inline val Int.m_to_ms get() = this * 60L * 1000L
 
@@ -338,11 +349,12 @@ open class BroadcastCompanion(cls: KClass<*>) {
             PendingIntent.FLAG_CANCEL_CURRENT)
 
     var scheduled = false
+    private var nextSyncAt = 0L
 
     @Cat open fun schedule(timeDelta: Long) {
         require(timeDelta >= 0)
-        val deadline = SystemClock.elapsedRealtime() + timeDelta
-        alarmManager.set(ELAPSED_REALTIME_WAKEUP, deadline, pendingIntent)
+        nextSyncAt = SystemClock.elapsedRealtime() + timeDelta
+        alarmManager.set(ELAPSED_REALTIME_WAKEUP, nextSyncAt, pendingIntent)
         scheduled = true
     }
 
@@ -356,6 +368,12 @@ open class BroadcastCompanion(cls: KClass<*>) {
         if (scheduled) {
             scheduled = false
             unschedule()
+        }
+    }
+
+    fun scheduleIfNotAlreadyScheduledSooner(timeDelta: Long) {
+        if (!scheduled || SystemClock.elapsedRealtime() + timeDelta < nextSyncAt) {
+            schedule(timeDelta)
         }
     }
 }

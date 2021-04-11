@@ -52,6 +52,7 @@ import com.ubergeek42.WeechatAndroid.fragments.BufferFragmentContainer
 import com.ubergeek42.WeechatAndroid.media.CachePersist
 import com.ubergeek42.WeechatAndroid.notifications.shortcuts
 import com.ubergeek42.WeechatAndroid.relay.Sync
+import com.ubergeek42.WeechatAndroid.relay.syncHotlist
 import com.ubergeek42.WeechatAndroid.relay.syncManager
 import com.ubergeek42.WeechatAndroid.service.Events.ExceptionEvent
 import com.ubergeek42.WeechatAndroid.service.Events.StateChangedEvent
@@ -499,7 +500,7 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener,
                     chooseFiles(fragment, target)
                 }
             }
-            R.id.sync_hotlist -> BufferList.syncHotlist()
+            R.id.sync_hotlist -> syncHotlist()
             R.id.remove_shortcuts -> shortcuts.removeAllShortcuts()
             R.id.die -> exitProcess(0)
         }
