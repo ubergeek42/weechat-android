@@ -16,6 +16,7 @@ import com.ubergeek42.cats.Cat
 import com.ubergeek42.cats.CatD
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
+import kotlin.reflect.KClass
 
 
 var syncManager = Sync(
@@ -39,9 +40,7 @@ class Sync(
 
     @Cat fun start() {
         PowerBroadcastReceiver.register()
-        Events.SendMessageEvent.fire(
-                BufferSpec.listBuffersRequest + "\n" +
-                "sync * buffers")
+        Events.SendMessageEvent.fire(BufferSpec.listBuffersRequest + "\n" + "sync * buffers")
         started = true
         recheckEverything()
         HotlistSyncAlarm.schedule()
@@ -50,7 +49,7 @@ class Sync(
     @Cat fun stop() {
         HotlistSyncAlarm.unschedule()
         PowerBroadcastReceiver.unregister()
-        RelaySyncAlarm.unscheduleIfScheduled()
+        BufferSyncAlarm.unscheduleIfScheduled()
 
         syncedGlobally = false
         syncedPointers = setOf()
@@ -184,9 +183,9 @@ class Sync(
         }
 
         when {
-            finalDesyncTime == Long.MAX_VALUE -> RelaySyncAlarm.unscheduleIfScheduled()
+            finalDesyncTime == Long.MAX_VALUE -> BufferSyncAlarm.unscheduleIfScheduled()
             finalDesyncTime <= now -> recheckEverything()
-            else -> RelaySyncAlarm.schedule(finalDesyncTime - now + relaySyncAlarmAdditionalDelay)
+            else -> BufferSyncAlarm.schedule(finalDesyncTime - now + relaySyncAlarmAdditionalDelay)
         }
     }
 
@@ -228,74 +227,30 @@ class Sync(
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////// buffer sync
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 private val alarmManager = applicationContext.
         getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-// note: `val kitty` on a Companion object actually becomes a static on the enclosing class
-// as a result, Companion methods annotated with @Cat don't pick it up.
 
-// todo use a variant of set with OnAlarmListener @ api 24+
-class RelaySyncAlarm : BroadcastReceiver() {
-    companion object {
-        private val pendingIntent = PendingIntent.getBroadcast(
-                applicationContext, 13,
-                Intent(applicationContext, RelaySyncAlarm::class.java),
-                PendingIntent.FLAG_CANCEL_CURRENT)
-
-        private var scheduled = false
-
-        @Cat @JvmStatic fun schedule(timeDelta: Long) {
-            require(timeDelta >= 0)
-            alarmManager.set(ELAPSED_REALTIME_WAKEUP,
-                    SystemClock.elapsedRealtime() + timeDelta,
-                    pendingIntent)
-            scheduled = true
-        }
-
-        @Cat @JvmStatic private fun unschedule() {
-            alarmManager.cancel(pendingIntent)
-        }
-
-        fun unscheduleIfScheduled() {
-            if (scheduled) {
-                unschedule()
-                scheduled = false
-            }
-        }
-    }
+class BufferSyncAlarm : BroadcastReceiver() {
+    companion object : BroadcastCompanion(BufferSyncAlarm::class)
 
     override fun onReceive(context: Context, intent: Intent) {
-        syncManager.recheckEverything()
         scheduled = false
+        syncManager.recheckEverything()
     }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////// hotlist sync
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 class HotlistSyncAlarm : BroadcastReceiver() {
-    companion object {
-        private val pendingIntent = PendingIntent.getBroadcast(
-                applicationContext, 0,
-                Intent(applicationContext, HotlistSyncAlarm::class.java),
-                PendingIntent.FLAG_CANCEL_CURRENT)
-
-        @Cat private fun schedule(timeDelta: Long) {
-            require(timeDelta >= 0)
-            alarmManager.set(ELAPSED_REALTIME_WAKEUP,
-                    SystemClock.elapsedRealtime() + timeDelta,
-                    pendingIntent)
-        }
-
-        @Cat fun unschedule() {
-            alarmManager.cancel(pendingIntent)
-        }
-
+    companion object : BroadcastCompanion(HotlistSyncAlarm::class) {
         fun schedule() {
             schedule(syncManager.getDesiredHotlistSyncInterval())
         }
@@ -312,8 +267,9 @@ class HotlistSyncAlarm : BroadcastReceiver() {
     }
 }
 
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////// power broadcast
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -359,5 +315,47 @@ object PowerBroadcastReceiver : BroadcastReceiver() {
 }
 
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////// helpers
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 private inline val Int.s_to_ms get() = this * 1000L
 private inline val Int.m_to_ms get() = this * 60L * 1000L
+
+
+// note: `val kitty` on a Companion object actually becomes a static on the enclosing class
+// as a result, Companion methods annotated with @Cat don't pick it up.
+
+// todo: for alarms, use a variant of set with OnAlarmListener @ api 24+
+
+open class BroadcastCompanion(cls: KClass<*>) {
+    @Root private val kitty: Kitty = Kitty.make(cls.simpleName)
+
+    private val pendingIntent = PendingIntent.getBroadcast(
+            applicationContext, 0,
+            Intent(applicationContext, cls.java),
+            PendingIntent.FLAG_CANCEL_CURRENT)
+
+    var scheduled = false
+
+    @Cat open fun schedule(timeDelta: Long) {
+        require(timeDelta >= 0)
+        val deadline = SystemClock.elapsedRealtime() + timeDelta
+        alarmManager.set(ELAPSED_REALTIME_WAKEUP, deadline, pendingIntent)
+        scheduled = true
+    }
+
+    @Cat open fun unschedule() {
+        alarmManager.cancel(pendingIntent)
+        scheduled = false
+    }
+
+    // it's best if onReceive sets scheduled to false
+    open fun unscheduleIfScheduled() {
+        if (scheduled) {
+            scheduled = false
+            unschedule()
+        }
+    }
+}

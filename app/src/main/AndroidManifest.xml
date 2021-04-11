@@ -151,7 +151,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </receiver>
-        <receiver android:name=".relay.RelaySyncAlarm" />
+        <receiver android:name=".relay.BufferSyncAlarm" />
         <receiver android:name=".relay.HotlistSyncAlarm" />
         <receiver android:name=".notifications.InlineReplyReceiver" />
         <receiver android:name=".notifications.NotificationDismissedReceiver" />
