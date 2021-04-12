@@ -13,7 +13,6 @@ import com.ubergeek42.WeechatAndroid.service.Events
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.service.RelayService
 import com.ubergeek42.WeechatAndroid.upload.applicationContext
-import com.ubergeek42.cats.BuildConfig
 import com.ubergeek42.cats.Cat
 import com.ubergeek42.cats.CatD
 import com.ubergeek42.cats.Kitty
@@ -22,17 +21,17 @@ import kotlin.reflect.KClass
 
 
 var syncManager = Sync(
-        desyncDelayBuffer = 60.s_to_ms,
-        desyncDelayOpenBuffer = 30.s_to_ms,
-        desyncDelayGlobal = 10.s_to_ms,
-        bufferSyncAlarmAdditionalDelay = 1.s_to_ms)
+        desyncDelayBuffer = 20.m_to_ms,
+        desyncDelayOpenBuffer = 30.m_to_ms,
+        desyncDelayGlobal = 10.m_to_ms,
+        bufferSyncAlarmAdditionalDelay = 30.s_to_ms)
 
 
 class Sync(
-        private val desyncDelayBuffer: Long,
-        private val desyncDelayOpenBuffer: Long,
-        private val desyncDelayGlobal: Long,
-        private val bufferSyncAlarmAdditionalDelay: Long,
+    private val desyncDelayBuffer: Long,
+    private val desyncDelayOpenBuffer: Long,
+    private val desyncDelayGlobal: Long,
+    private val bufferSyncAlarmAdditionalDelay: Long,
 ) {
     companion object {
         @Root private val kitty: Kitty = Kitty.make("Sync")
@@ -64,10 +63,10 @@ class Sync(
     }
 
     private data class Info(
-            val pointer: Long,
-            val open: Boolean,
-            val watched: Boolean,
-            val lastTouchedAt: Long,
+        val pointer: Long,
+        val open: Boolean,
+        val watched: Boolean,
+        val lastTouchedAt: Long,
     )
 
     private var globalFlags = setOf<Flag>()
@@ -80,10 +79,9 @@ class Sync(
 
     private fun getGlobalDesyncTime() = globalLastTouchedAt + desyncDelayGlobal
 
-    private fun shouldScheduleGlobalDesync() =
+    private fun shouldScheduleGlobalDesync() = syncedGlobally &&
             !globalFlags.contains(Flag.ActivityOpen) &&
-            !globalFlags.contains(Flag.Charging) &&
-            syncedGlobally
+            !globalFlags.contains(Flag.Charging)
 
     private fun shouldKeepGloballySyncing() =
             globalFlags.contains(Flag.ActivityOpen) ||
@@ -104,13 +102,18 @@ class Sync(
         return when {
             globalFlags.contains(Flag.ActivityOpen) -> 30.s_to_ms
             syncedGlobally -> 1.m_to_ms
-            syncedPointers.isNotEmpty() -> 2.m_to_ms
-            else -> 3.m_to_ms
+            syncedPointers.isNotEmpty() -> 3.m_to_ms
+            else -> {
+                val globalDesyncTime = getGlobalDesyncTime()
+                val maxBufferDesyncTime = pointerToInfo.maxOfOrNull { it.value.getDesyncTime() } ?: 0L
+                val desyncedAt = maxOf(globalDesyncTime, maxBufferDesyncTime)
+                val desyncedAgo = System.currentTimeMillis() - desyncedAt
+                desyncedAgo.coerceAndRescale(0..2.h_to_ms, 3.m_to_ms..15.m_to_ms)
+            }
         }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-
 
     @Synchronized fun addGlobalFlag(flag: Flag) {
         globalFlags = globalFlags + flag
@@ -118,7 +121,7 @@ class Sync(
     }
 
     @Synchronized fun removeGlobalFlag(flag: Flag) {
-        if (flag == Flag.ActivityOpen) globalLastTouchedAt = System.currentTimeMillis()
+        if (flag == Flag.ActivityOpen) globalLastTouchedAt = System.currentTimeMillis()     // todo now?
 
         globalFlags = globalFlags - flag
         recheckEverything()
@@ -196,7 +199,7 @@ class Sync(
         if (syncedGlobally) return
         syncedGlobally = true
         fireMessages(LastLinesSpec.request, LastReadLineSpec.request, HotlistSpec.request, "sync")
-        HotlistSyncAlarm.reschedule()
+        HotlistSyncAlarm.rescheduleAfterHotlistSync()
     }
 
     @CatD private fun desync() {
@@ -214,7 +217,7 @@ class Sync(
             fireMessages("sync ${pointer.as0x}")
         } else {
             fireMessages("sync ${pointer.as0x}", LastReadLineSpec.request, HotlistSpec.request)
-            HotlistSyncAlarm.reschedule()
+            HotlistSyncAlarm.rescheduleAfterHotlistSync()
         }
     }
 
@@ -248,20 +251,26 @@ class BufferSyncAlarm : BroadcastReceiver() {
 
 class HotlistSyncAlarm : BroadcastReceiver() {
     companion object : BroadcastCompanion(HotlistSyncAlarm::class) {
+        private var lastHotlistSyncRequestedAt = now()
+
+        fun rescheduleAfterHotlistSync() {
+            lastHotlistSyncRequestedAt = now()
+            reschedule()
+        }
+
         fun reschedule() {
-            scheduleIfNotAlreadyScheduledSooner(syncManager.getDesiredHotlistSyncInterval())
+            val timeInterval = syncManager.getDesiredHotlistSyncInterval()
+            schedule(lastHotlistSyncRequestedAt - now() + timeInterval)
         }
     }
 
-    override fun onReceive(context: Context, intent: Intent) {
+    @Cat override fun onReceive(context: Context, intent: Intent) {
         scheduled = false
 
-        if (!RelayService.staticState.contains(RelayService.STATE.AUTHENTICATED)) {
-            unschedule()
-        } else {
-            PingAlarm.onHotlistSync(lastAlarmScheduledAt)
+        if (RelayService.staticState.contains(RelayService.STATE.AUTHENTICATED)) {
+            PingAlarm.onHotlistSync(lastHotlistSyncRequestedAt)
             fireMessages(LastReadLineSpec.request, HotlistSpec.request)
-            reschedule()
+            rescheduleAfterHotlistSync()
         }
     }
 }
@@ -280,8 +289,8 @@ class PingAlarm : BroadcastReceiver() {
             lastMessageReceivedAt = now()
         }
 
-        fun onHotlistSync(lastHotlistSyncScheduledAt: Long) {
-            if (lastMessageReceivedAt < lastHotlistSyncScheduledAt) {
+        fun onHotlistSync(lastHotlistSyncRequestedAt: Long) {
+            if (lastMessageReceivedAt < lastHotlistSyncRequestedAt) {
                 schedule(P.pingTimeout, exact = true)
                 fireMessages("ping")
             }
@@ -290,7 +299,7 @@ class PingAlarm : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         scheduled = false
-        if (lastMessageReceivedAt < lastAlarmScheduledAt) {
+        if (lastMessageReceivedAt < lastAlarmRequestedAt) {
             kitty.info("no pong received in time, disconnecting")
             syncManager.service?.interrupt()
         }
@@ -304,7 +313,7 @@ class PingAlarm : BroadcastReceiver() {
 
 
 object PowerBroadcastReceiver : BroadcastReceiver() {
-    @Root private val kitty: Kitty = Kitty.make("Sync.PowerBroadcastReceiver")
+    @Root private val kitty = Kitty.make("Sync.PowerBroadcastReceiver") as Kitty
 
     fun register() {
         val intentFilter = IntentFilter().apply {
@@ -355,8 +364,16 @@ private fun fireMessages(vararg lines: CharSequence) {
 }
 
 
-private inline val Int.s_to_ms get() = this * 1000L
-private inline val Int.m_to_ms get() = this * 60L * 1000L
+private const val MS_IN_S = 1000L
+private inline val Int.s_to_ms get() = this * MS_IN_S
+private inline val Int.m_to_ms get() = this * 60L * MS_IN_S
+private inline val Int.h_to_ms get() = this * 60L * 60L * MS_IN_S
+
+
+fun Long.coerceAndRescale(from: LongRange, to: LongRange): Long {
+    val input = this.coerceIn(from)
+    return to.first + (input - from.first) * (to.last - to.first) / (from.last - from.first)
+}
 
 
 // note: `val kitty` on a Companion object actually becomes a static on the enclosing class
@@ -377,31 +394,19 @@ open class BroadcastCompanion(cls: KClass<*>) {
             PendingIntent.FLAG_CANCEL_CURRENT)
 
     protected var scheduled = false
-
-    protected var lastAlarmScheduledAt = 0L
-    private var lastAlarmScheduledToRunAt = 0L
+    protected var lastAlarmRequestedAt = 0L
 
     @Cat fun schedule(timeInterval: Long, exact: Boolean = false) {
-        if (BuildConfig.DEBUG) require(timeInterval >= 0)
-
-        lastAlarmScheduledAt = now()
-        lastAlarmScheduledToRunAt = lastAlarmScheduledAt + timeInterval
+        val now = now()
+        lastAlarmRequestedAt = now
 
         if (exact) {
-            alarmManager.setExact(ELAPSED_REALTIME_WAKEUP, lastAlarmScheduledToRunAt, pendingIntent)
+            alarmManager.setExact(ELAPSED_REALTIME_WAKEUP, now + timeInterval, pendingIntent)
         } else {
-            alarmManager.set(ELAPSED_REALTIME_WAKEUP, lastAlarmScheduledToRunAt, pendingIntent)
+            alarmManager.set(ELAPSED_REALTIME_WAKEUP, now + timeInterval, pendingIntent)
         }
 
         scheduled = true
-    }
-
-    fun scheduleIfNotAlreadyScheduledSooner(timeDelta: Long) {
-        val now = now()
-        if (!scheduled || lastAlarmScheduledToRunAt < now ||
-                now < lastAlarmScheduledToRunAt - timeDelta) {
-            schedule(timeDelta)
-        }
     }
 
     @Cat fun unschedule() {
