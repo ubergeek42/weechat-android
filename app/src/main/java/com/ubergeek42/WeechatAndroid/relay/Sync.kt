@@ -24,7 +24,14 @@ var syncManager = Sync(
         desyncDelayBuffer = 20.m_to_ms,
         desyncDelayOpenBuffer = 30.m_to_ms,
         desyncDelayGlobal = 10.m_to_ms,
-        bufferSyncAlarmAdditionalDelay = 30.s_to_ms)
+        bufferSyncAlarmAdditionalDelay = 30.s_to_ms,
+
+        syncIntervalWhenActivityOpen = 30.s_to_ms,
+        syncIntervalWhenSyncedGlobally = 1.m_to_ms,
+        syncIntervalWhenNotSyncedGloballyButSomeBuffersAreStillSynced = 3.m_to_ms,
+        minSyncIntervalWhenIdle = 3.m_to_ms,
+        maxSyncIntervalWhenIdle = 15.m_to_ms,
+        idleSyncIntervalGradualReductionTimeInterval = 2.h_to_ms)
 
 
 class Sync(
@@ -32,6 +39,13 @@ class Sync(
     private val desyncDelayOpenBuffer: Long,
     private val desyncDelayGlobal: Long,
     private val bufferSyncAlarmAdditionalDelay: Long,
+
+    private val syncIntervalWhenActivityOpen: Long,
+    private val syncIntervalWhenSyncedGlobally: Long,
+    private val syncIntervalWhenNotSyncedGloballyButSomeBuffersAreStillSynced: Long,
+    private val minSyncIntervalWhenIdle: Long,
+    private val maxSyncIntervalWhenIdle: Long,
+    private val idleSyncIntervalGradualReductionTimeInterval: Long,
 ) {
     companion object {
         @Root private val kitty: Kitty = Kitty.make("Sync")
@@ -99,16 +113,12 @@ class Sync(
 
     @Synchronized fun getDesiredHotlistSyncInterval(): Long {
         return when {
-            globalFlags.contains(Flag.ActivityOpen) -> 30.s_to_ms
-            syncedGlobally -> 1.m_to_ms
-            syncedPointers.isNotEmpty() -> 3.m_to_ms
-            else -> {
-                val globalDesyncTime = getGlobalDesyncTime()
-                val maxBufferDesyncTime = pointerToInfo.maxOfOrNull { it.value.getDesyncTime() } ?: 0L
-                val desyncedAt = maxOf(globalDesyncTime, maxBufferDesyncTime)
-                val desyncedAgo = now() - desyncedAt
-                desyncedAgo.coerceAndRescale(0..2.h_to_ms, 3.m_to_ms..15.m_to_ms)
-            }
+            globalFlags.contains(Flag.ActivityOpen) -> syncIntervalWhenActivityOpen
+            syncedGlobally -> syncIntervalWhenSyncedGlobally
+            syncedPointers.isNotEmpty() -> syncIntervalWhenNotSyncedGloballyButSomeBuffersAreStillSynced
+            else -> getTimeSinceLastTotalDesync().coerceAndRescale(
+                    0..idleSyncIntervalGradualReductionTimeInterval,
+                    minSyncIntervalWhenIdle..maxSyncIntervalWhenIdle)
         }
     }
 
@@ -190,6 +200,12 @@ class Sync(
         } else {
             BufferSyncAlarm.schedule(finalDesyncTime - now + bufferSyncAlarmAdditionalDelay)
         }
+    }
+
+    private fun getTimeSinceLastTotalDesync(): Long {
+        val globalDesyncTime = getGlobalDesyncTime()
+        val maxBufferDesyncTime = pointerToInfo.maxOfOrNull { it.value.getDesyncTime() } ?: 0L
+        return now() - maxOf(globalDesyncTime, maxBufferDesyncTime)
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
