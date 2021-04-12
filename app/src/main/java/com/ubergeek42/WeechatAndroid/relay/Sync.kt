@@ -47,10 +47,10 @@ class Sync(
     }
 
     @Cat fun stop() {
-        PingAlarm.unscheduleIfScheduled()
-        HotlistSyncAlarm.unscheduleIfScheduled()
+        PingAlarm.unschedule()
+        HotlistSyncAlarm.unschedule()
         PowerBroadcastReceiver.unregister()
-        BufferSyncAlarm.unscheduleIfScheduled()
+        BufferSyncAlarm.unschedule()
 
         syncedGlobally = false
         syncedPointers = setOf()
@@ -80,21 +80,20 @@ class Sync(
     private fun getGlobalDesyncTime() = globalLastTouchedAt + desyncDelayGlobal
 
     private fun shouldScheduleGlobalDesync() = syncedGlobally &&
-            !globalFlags.contains(Flag.ActivityOpen) &&
-            !globalFlags.contains(Flag.Charging)
+                                               !globalFlags.contains(Flag.ActivityOpen) &&
+                                               !globalFlags.contains(Flag.Charging)
 
-    private fun shouldKeepGloballySyncing() =
-            globalFlags.contains(Flag.ActivityOpen) ||
-            globalFlags.contains(Flag.Charging) ||
-                    getGlobalDesyncTime() > System.currentTimeMillis()
+    private fun shouldKeepGloballySyncing() = globalFlags.contains(Flag.ActivityOpen) ||
+                                              globalFlags.contains(Flag.Charging) ||
+                                              getGlobalDesyncTime() > now()
 
     private fun Info.getDesyncTime() = lastTouchedAt +
-            if (open) desyncDelayOpenBuffer else desyncDelayBuffer
+                                       if (open) desyncDelayOpenBuffer else desyncDelayBuffer
 
     private fun Info.shouldScheduleDesync() = !watched &&
-            syncedPointers.contains(pointer)
+                                              syncedPointers.contains(pointer)
 
-    private fun Info.shouldKeepSyncing() = getDesyncTime() > System.currentTimeMillis()
+    private fun Info.shouldKeepSyncing() = getDesyncTime() > now()
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -107,7 +106,7 @@ class Sync(
                 val globalDesyncTime = getGlobalDesyncTime()
                 val maxBufferDesyncTime = pointerToInfo.maxOfOrNull { it.value.getDesyncTime() } ?: 0L
                 val desyncedAt = maxOf(globalDesyncTime, maxBufferDesyncTime)
-                val desyncedAgo = System.currentTimeMillis() - desyncedAt
+                val desyncedAgo = now() - desyncedAt
                 desyncedAgo.coerceAndRescale(0..2.h_to_ms, 3.m_to_ms..15.m_to_ms)
             }
         }
@@ -121,7 +120,7 @@ class Sync(
     }
 
     @Synchronized fun removeGlobalFlag(flag: Flag) {
-        if (flag == Flag.ActivityOpen) globalLastTouchedAt = System.currentTimeMillis()     // todo now?
+        if (flag == Flag.ActivityOpen) globalLastTouchedAt = now()
 
         globalFlags = globalFlags - flag
         recheckEverything()
@@ -136,7 +135,7 @@ class Sync(
     }
 
     @Synchronized fun touch(pointer: Long) {
-        updateInfo(pointer) { info -> info.copy(lastTouchedAt = System.currentTimeMillis()) }
+        updateInfo(pointer) { info -> info.copy(lastTouchedAt = now()) }
     }
 
     @Cat @Synchronized fun recheckEverything() {
@@ -172,7 +171,7 @@ class Sync(
     }
 
     private fun scheduleUnscheduleDesyncIfNeeded() {
-        val now = System.currentTimeMillis()
+        val now = now()
         var finalDesyncTime = Long.MAX_VALUE
 
         if (shouldScheduleGlobalDesync()) {
@@ -186,10 +185,10 @@ class Sync(
             }
         }
 
-        when {
-            finalDesyncTime == Long.MAX_VALUE -> BufferSyncAlarm.unscheduleIfScheduled()
-            finalDesyncTime <= now -> recheckEverything()
-            else -> BufferSyncAlarm.schedule(finalDesyncTime - now + bufferSyncAlarmAdditionalDelay)
+        if (finalDesyncTime == Long.MAX_VALUE) {
+            BufferSyncAlarm.unschedule()
+        } else {
+            BufferSyncAlarm.schedule(finalDesyncTime - now + bufferSyncAlarmAdditionalDelay)
         }
     }
 
@@ -359,6 +358,9 @@ object PowerBroadcastReceiver : BroadcastReceiver() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
+private fun now() = SystemClock.elapsedRealtime()
+
+
 private fun fireMessages(vararg lines: CharSequence) {
     Events.SendMessageEvent.fire(lines.joinToString("\n"))
 }
@@ -370,7 +372,7 @@ private inline val Int.m_to_ms get() = this * 60L * MS_IN_S
 private inline val Int.h_to_ms get() = this * 60L * 60L * MS_IN_S
 
 
-fun Long.coerceAndRescale(from: LongRange, to: LongRange): Long {
+private fun Long.coerceAndRescale(from: LongRange, to: LongRange): Long {
     val input = this.coerceIn(from)
     return to.first + (input - from.first) * (to.last - to.first) / (from.last - from.first)
 }
@@ -383,6 +385,22 @@ fun Long.coerceAndRescale(from: LongRange, to: LongRange): Long {
 
 private val alarmManager = applicationContext.
         getSystemService(Context.ALARM_SERVICE) as AlarmManager
+
+private fun setElapsedRealtimeAlarm(pendingIntent: PendingIntent, triggerAt: Long, exact: Boolean) {
+    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+        if (exact) {
+            alarmManager.setExactAndAllowWhileIdle(ELAPSED_REALTIME_WAKEUP, triggerAt, pendingIntent)
+        } else {
+            alarmManager.setAndAllowWhileIdle(ELAPSED_REALTIME_WAKEUP, triggerAt, pendingIntent)
+        }
+    } else {
+        if (exact) {
+            alarmManager.setExact(ELAPSED_REALTIME_WAKEUP, triggerAt, pendingIntent)
+        } else {
+            alarmManager.set(ELAPSED_REALTIME_WAKEUP, triggerAt, pendingIntent)
+        }
+    }
+}
 
 
 open class BroadcastCompanion(cls: KClass<*>) {
@@ -399,27 +417,15 @@ open class BroadcastCompanion(cls: KClass<*>) {
     @Cat fun schedule(timeInterval: Long, exact: Boolean = false) {
         val now = now()
         lastAlarmRequestedAt = now
-
-        if (exact) {
-            alarmManager.setExact(ELAPSED_REALTIME_WAKEUP, now + timeInterval, pendingIntent)
-        } else {
-            alarmManager.set(ELAPSED_REALTIME_WAKEUP, now + timeInterval, pendingIntent)
-        }
-
         scheduled = true
+        setElapsedRealtimeAlarm(pendingIntent, now + timeInterval, exact)
     }
 
-    @Cat fun unschedule() {
-        alarmManager.cancel(pendingIntent)
-        scheduled = false
-    }
-
-    open fun unscheduleIfScheduled() {
+    @Cat(linger = true) fun unschedule() {
         if (scheduled) {
+            kitty.trace("canceling alarm")
             scheduled = false
-            unschedule()
+            alarmManager.cancel(pendingIntent)
         }
     }
-
-    fun now() = SystemClock.elapsedRealtime()
 }
