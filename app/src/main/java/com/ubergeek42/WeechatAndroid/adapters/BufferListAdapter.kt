@@ -237,5 +237,5 @@ private val sortByHotAndMessageCountComparator = Comparator<VisualBuffer> { left
     val pmDiff = pmRight - pmLeft
     if (pmDiff != 0) return@Comparator pmDiff
 
-    left.unreads - right.unreads
+    right.unreads - left.unreads
 }
