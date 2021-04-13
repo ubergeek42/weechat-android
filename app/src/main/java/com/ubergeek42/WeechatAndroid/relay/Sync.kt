@@ -127,6 +127,8 @@ class Sync(
     @Synchronized fun addGlobalFlag(flag: Flag) {
         globalFlags = globalFlags + flag
         recheckEverything()
+
+        if (flag == Flag.ActivityOpen && service != null) PingAlarm.ping()
     }
 
     @Synchronized fun removeGlobalFlag(flag: Flag) {
@@ -305,10 +307,12 @@ class PingAlarm : BroadcastReceiver() {
         }
 
         fun onHotlistSync(lastHotlistSyncRequestedAt: Long) {
-            if (lastMessageReceivedAt < lastHotlistSyncRequestedAt) {
-                schedule(P.pingTimeout, exact = true)
-                fireMessages("ping")
-            }
+            if (lastMessageReceivedAt < lastHotlistSyncRequestedAt) ping()
+        }
+
+        fun ping() {
+            schedule(P.pingTimeout, exact = true)
+            fireMessages("ping")
         }
     }
 
