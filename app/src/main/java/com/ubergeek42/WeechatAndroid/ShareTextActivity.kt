@@ -39,7 +39,7 @@ class ShareTextActivity : AppCompatActivity(), BufferListClickListener {
         }
 
         val adapter = BufferListAdapter(this).apply {
-            onBuffersChanged()
+            val pendingItemCount = onBuffersChanged()
 
             if (pendingItemCount == 0) {
                 val canShowBuffers = P.showBufferFilter && BufferList.buffers.isNotEmpty()

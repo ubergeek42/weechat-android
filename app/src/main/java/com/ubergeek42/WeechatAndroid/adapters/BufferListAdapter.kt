@@ -28,7 +28,6 @@ import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.adapters.BufferListAdapter.*
 import com.ubergeek42.WeechatAndroid.relay.Buffer
 import com.ubergeek42.WeechatAndroid.relay.BufferList
-import com.ubergeek42.WeechatAndroid.relay.BufferListEye
 import com.ubergeek42.WeechatAndroid.relay.BufferSpec
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.upload.main
@@ -40,13 +39,15 @@ import java.util.*
 
 class BufferListAdapter(
     val context: Context
-) : RecyclerView.Adapter<ViewHolder>(), BufferListEye {
+) : RecyclerView.Adapter<ViewHolder>() {
     private val inflater = LayoutInflater.from(context)
 
     private var buffers = ArrayList<VisualBuffer>()
 
     private var filterLowerCase = ""
     private var filterUpperCase = ""
+
+    init { setHasStableIds(true) }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////// VH
@@ -93,9 +94,6 @@ class BufferListAdapter(
         }
     }
 
-    // very special; see usage
-    val pendingItemCount get() = _buffers.size
-
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////// adapter methods
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -116,9 +114,12 @@ class BufferListAdapter(
     ////////////////////////////////////////////////////////////////////////////////// BufferListEye
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private var _buffers = ArrayList<VisualBuffer>()
+    private val updateLock = Any()
+    private var updateStep = 0
 
-    @AnyThread @Synchronized override fun onBuffersChanged() {
+    @AnyThread @Synchronized fun onBuffersChanged(): Int {
+        val thisUpdateStep = synchronized (updateLock) { ++updateStep }
+
         val newBuffers = ArrayList<VisualBuffer>()
 
         // this method must not call any synchronized methods of Buffer as this could result in a
@@ -145,15 +146,18 @@ class BufferListAdapter(
             Collections.sort(newBuffers, sortByHotCountAndNumberComparator)
         }
 
-        // store new buffers in _buffers for the sole purpose of doing a diff against, since
-        // this method might be called again before buffers is assigned
-        val diffResult = DiffUtil.calculateDiff(DiffCallback(_buffers, newBuffers), false)
-        _buffers = newBuffers
+        val diffResult = DiffUtil.calculateDiff(DiffCallback(buffers, newBuffers), false)
 
         main {
-            buffers = newBuffers
+            synchronized (updateLock) {
+                if (thisUpdateStep != updateStep) return@main
+                buffers = newBuffers
+            }
+
             diffResult.dispatchUpdatesTo(this@BufferListAdapter)
         }
+
+        return newBuffers.size
     }
 
     @AnyThread @Synchronized fun setFilter(s: String, global: Boolean) {
