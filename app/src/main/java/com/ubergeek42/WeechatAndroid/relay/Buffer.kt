@@ -187,9 +187,9 @@ class Buffer @WorkerThread constructor(
     // lines must be ready!
     // affects the way buffer advertises highlights/unreads count and notifications */
     @MainThread @Cat @Synchronized fun setWatched(watched: Boolean) {
-        Assert.assertThat(linesAreReady()).isTrue()
-        Assert.assertThat(isWatched).isNotEqualTo(watched)
-        Assert.assertThat(isOpen).isTrue()
+        //Assert.assertThat(linesAreReady()).isTrue()           -- lines can become un-ready now?
+        //Assert.assertThat(isOpen).isTrue()                    -- MPA.closeBuffer() *posts* buffer.setOpen()!
+        //Assert.assertThat(isWatched).isNotEqualTo(watched)    -- this is just unnecessary
         isWatched = watched
         if (watched) resetUnreadsAndHighlights() else lines.rememberCurrentSkipsOffset()
     }
