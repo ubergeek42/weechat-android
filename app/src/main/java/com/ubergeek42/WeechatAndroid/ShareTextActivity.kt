@@ -3,14 +3,12 @@ package com.ubergeek42.WeechatAndroid
 import android.app.Dialog
 import android.content.Intent
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
-import android.widget.EditText
-import android.widget.ImageButton
-import android.widget.RelativeLayout
 import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.RecyclerView
 import com.ubergeek42.WeechatAndroid.adapters.BufferListAdapter
 import com.ubergeek42.WeechatAndroid.adapters.BufferListClickListener
+import com.ubergeek42.WeechatAndroid.databinding.BufferlistShareBinding
 import com.ubergeek42.WeechatAndroid.relay.BufferList
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.upload.preloadThumbnailsForIntent
@@ -53,35 +51,33 @@ class ShareTextActivity : AppCompatActivity(), BufferListClickListener {
 
         preloadThumbnailsForIntent(intent)
 
+        val ui = BufferlistShareBinding.inflate(LayoutInflater.from(this))
+
         val dialog = Dialog(this, R.style.AlertDialogTheme).apply {
-            setContentView(R.layout.bufferlist_share)
+            setContentView(ui.root)
             setCanceledOnTouchOutside(true)
             setCancelable(true)
             setOnDismissListener { finish() }
         }
 
-        val uiRecyclerView = dialog.findViewById<RecyclerView>(R.id.recycler)
-        val uiFilterBar = dialog.findViewById<RelativeLayout>(R.id.filter_bar)
-        val uiFilter = dialog.findViewById<EditText>(R.id.bufferlist_filter)
-        val uiFilterClear = dialog.findViewById<ImageButton>(R.id.bufferlist_filter_clear)
+        ui.bufferList.adapter = adapter
 
-        uiRecyclerView.adapter = adapter
-        uiFilterClear.setOnClickListener { uiFilter.text = null }
+        ui.filterClear.setOnClickListener { ui.filterInput.text = null }
 
-        uiFilter.afterTextChanged {
-            uiFilterClear.visibility = if (it.isEmpty()) View.INVISIBLE else View.VISIBLE
+        ui.filterInput.afterTextChanged {
+            ui.filterClear.visibility = if (it.isEmpty()) View.INVISIBLE else View.VISIBLE
             adapter.setFilter(it.toString(), false)
             adapter.onBuffersChanged()
         }
 
-        uiFilter.setText(BufferListAdapter.filterGlobal)
+        ui.filterInput.setText(BufferListAdapter.filterGlobal)
 
         if (!P.showBufferFilter) {
-            uiFilterBar.visibility = View.GONE
-            uiRecyclerView.setPadding(0, 0, 0, 0)
+            ui.filterBar.visibility = View.GONE
+            ui.bufferList.setPadding(0, 0, 0, 0)
         }
 
-        applyColorSchemeToViews(uiFilterBar, uiRecyclerView)
+        applyColorSchemeToViews(ui.filterBar, ui.bufferList)
 
         this.dialog = dialog
         dialog.show()

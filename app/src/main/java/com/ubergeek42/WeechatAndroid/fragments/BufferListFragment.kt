@@ -4,15 +4,10 @@ import android.content.Context
 import com.ubergeek42.WeechatAndroid.relay.BufferListEye
 import com.ubergeek42.WeechatAndroid.WeechatActivity
 import com.ubergeek42.WeechatAndroid.adapters.BufferListAdapter
-import androidx.recyclerview.widget.RecyclerView
-import android.widget.RelativeLayout
-import android.widget.EditText
-import android.widget.ImageButton
 import com.ubergeek42.cats.Cat
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import com.ubergeek42.WeechatAndroid.R
 import org.greenrobot.eventbus.EventBus
 import com.ubergeek42.WeechatAndroid.service.P
 import org.greenrobot.eventbus.Subscribe
@@ -25,6 +20,7 @@ import androidx.annotation.AnyThread
 import androidx.annotation.MainThread
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.ubergeek42.WeechatAndroid.databinding.BufferlistBinding
 import com.ubergeek42.WeechatAndroid.upload.main
 import com.ubergeek42.WeechatAndroid.utils.afterTextChanged
 import com.ubergeek42.WeechatAndroid.views.BufferListFragmentFullScreenController
@@ -41,9 +37,7 @@ class BufferListFragment : Fragment(), BufferListEye {
     private lateinit var weechatActivity: WeechatActivity
     private lateinit var adapter: BufferListAdapter
 
-    private lateinit var uiRecycler: RecyclerView
-    private lateinit var uiFilter: EditText
-    private lateinit var uiFilterClear: ImageButton
+    lateinit var ui: BufferlistBinding
 
     init { BufferListFragmentFullScreenController(this).observeLifecycle() }
 
@@ -62,38 +56,34 @@ class BufferListFragment : Fragment(), BufferListEye {
     }
 
     @MainThread @Cat override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                                               savedInstanceState: Bundle?): View? {
-        val view = inflater.inflate(R.layout.bufferlist, container, false)
-        uiRecycler = view.findViewById(R.id.recycler)
-
-        uiFilter = view.findViewById(R.id.bufferlist_filter)
-        uiFilterClear = view.findViewById(R.id.bufferlist_filter_clear)
+                                               savedInstanceState: Bundle?): View {
+        ui = BufferlistBinding.inflate(inflater)
 
         val layoutManager = if (FULL_SCREEN_DRAWER_ENABLED) {
-            FullScreenDrawerLinearLayoutManager(requireContext(), uiRecycler, adapter)
+            FullScreenDrawerLinearLayoutManager(requireContext(), ui.bufferList, adapter)
         } else {
             LinearLayoutManager(requireContext())
         }
 
-        uiRecycler.layoutManager = layoutManager
-        uiRecycler.adapter = adapter
+        ui.bufferList.layoutManager = layoutManager
+        ui.bufferList.adapter = adapter
 
-        uiFilterClear.setOnClickListener {
-            uiFilter.text = null
+        ui.filterClear.setOnClickListener {
+            ui.filterInput.text = null
         }
 
-        uiFilter.afterTextChanged {
+        ui.filterInput.afterTextChanged {
             applyFilter()
             adapter.onBuffersChanged()
         }
 
-        return view
+        return ui.root
     }
 
     @MainThread @Cat override fun onStart() {
         super.onStart()
         EventBus.getDefault().register(this)
-        uiFilter.visibility = if (P.showBufferFilter) View.VISIBLE else View.GONE
+        ui.filterInput.visibility = if (P.showBufferFilter) View.VISIBLE else View.GONE
         applyColorSchemeToViews()
     }
 
@@ -140,7 +130,7 @@ class BufferListFragment : Fragment(), BufferListEye {
         main {
             if (this.hotCount != hotCount) {
                 this.hotCount = hotCount
-                if (hotCount > 0) uiRecycler.smoothScrollToPosition(0)
+                if (hotCount > 0) ui.bufferList.smoothScrollToPosition(0)
             }
             weechatActivity.updateHotCount(hotCount)
             weechatActivity.onBuffersChanged()
@@ -152,10 +142,10 @@ class BufferListFragment : Fragment(), BufferListEye {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @AnyThread private fun applyFilter() {
-        val text = uiFilter.text.toString()
+        val text = ui.filterInput.text.toString()
         adapter.setFilter(text, true)
         main {
-            uiFilterClear.visibility = if (text.isEmpty()) View.INVISIBLE else View.VISIBLE
+            ui.filterClear.visibility = if (text.isEmpty()) View.INVISIBLE else View.VISIBLE
         }
     }
 

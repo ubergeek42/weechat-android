@@ -5,7 +5,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto" >
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recycler"
+        android:id="@+id/buffer_list"
 
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -16,7 +16,7 @@
         android:scrollbars="vertical" />
 
     <EditText
-        android:id="@+id/bufferlist_filter"
+        android:id="@+id/filter_input"
 
         android:layout_width="match_parent"
         android:layout_height="?actionBarSize"
@@ -31,7 +31,7 @@
         android:inputType="text" />
 
     <ImageButton
-        android:id="@+id/bufferlist_filter_clear"
+        android:id="@+id/filter_clear"
 
         android:layout_gravity="right|bottom"
         android:layout_width="wrap_content"

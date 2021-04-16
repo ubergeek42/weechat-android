@@ -16,6 +16,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.RecyclerView
 import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.WeechatActivity
+import com.ubergeek42.WeechatAndroid.fragments.BufferListFragment
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.upload.i
 import com.ubergeek42.WeechatAndroid.utils.ThemeFix
@@ -134,34 +135,20 @@ class WeechatActivityFullScreenController(val activity: WeechatActivity) : Defau
 //////////////////////////////////////////////////////////////////////////////////////// buffer list
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class BufferListFragmentFullScreenController(val fragment: Fragment) : DefaultLifecycleObserver {
+class BufferListFragmentFullScreenController(val fragment: BufferListFragment) : DefaultLifecycleObserver {
     fun observeLifecycle() {
         fragment.lifecycle.addObserver(this)
     }
 
-    private var layoutManager: FullScreenDrawerLinearLayoutManager? = null
-    private var recyclerView: RecyclerView? = null
-    private var filterInput: View? = null
-    private var filterClear: View? = null
-
     private var filterBarHeight = 0
 
     override fun onStart(owner: LifecycleOwner) {
-        val rootView = fragment.requireView()
-        recyclerView = rootView.findViewById(R.id.recycler)
-        filterInput = rootView.findViewById(R.id.bufferlist_filter)
-        filterClear = rootView.findViewById(R.id.bufferlist_filter_clear)
-        filterBarHeight = fragment.requireContext().getActionBarHeight()
+        if (filterBarHeight == 0) filterBarHeight = fragment.requireContext().getActionBarHeight()
 
         if (!FULL_SCREEN_DRAWER_ENABLED) {
-            if (P.showBufferFilter) {
-                recyclerView?.updateMargins(bottom = filterBarHeight)
-            } else {
-                recyclerView?.updateMargins(bottom = 0)
-            }
+            fragment.ui.bufferList.updateMargins(
+                    bottom = if (P.showBufferFilter) filterBarHeight else 0)
         } else {
-            layoutManager = recyclerView?.layoutManager as FullScreenDrawerLinearLayoutManager
-
             insetListeners.add(insetListener)
             insetListener.onInsetsChanged()
         }
@@ -169,26 +156,26 @@ class BufferListFragmentFullScreenController(val fragment: Fragment) : DefaultLi
 
     override fun onStop(owner: LifecycleOwner) {
         insetListeners.remove(insetListener)
-        layoutManager = null
-        recyclerView = null
-        filterInput = null
-        filterClear = null
+        filterBarHeight = 0
     }
 
     private val insetListener = InsetListener {
+        val ui = fragment.ui
+        val layoutManager = ui.bufferList.layoutManager as? FullScreenDrawerLinearLayoutManager
+
         if (P.showBufferFilter) {
-            recyclerView?.updateMargins(bottom = filterBarHeight + systemWindowInsets.bottom)
+            ui.bufferList.updateMargins(bottom = filterBarHeight + systemWindowInsets.bottom)
 
-            filterInput?.updateMargins(bottom = systemWindowInsets.bottom)
-            filterInput?.updatePadding(left = systemWindowInsets.left)
+            ui.filterInput.updateMargins(bottom = systemWindowInsets.bottom)
+            ui.filterInput.updatePadding(left = systemWindowInsets.left)
 
-            filterClear?.updateMargins(bottom = systemWindowInsets.bottom)
+            ui.filterClear.updateMargins(bottom = systemWindowInsets.bottom)
 
             layoutManager?.setInsets(systemWindowInsets.top,
                                      0,
                                      systemWindowInsets.left)
         } else {
-            recyclerView?.updateMargins(bottom = 0)
+            ui.filterClear.updateMargins(bottom = 0)
 
             layoutManager?.setInsets(systemWindowInsets.top,
                                      systemWindowInsets.bottom,

@@ -16,7 +16,7 @@ when the filter is not displayed -->
 
     <androidx.recyclerview.widget.RecyclerView
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        android:id="@+id/recycler"
+        android:id="@+id/buffer_list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:dividerHeight="0dp"
@@ -34,7 +34,7 @@ when the filter is not displayed -->
         android:layout_gravity="bottom">
 
         <EditText
-            android:id="@+id/bufferlist_filter"
+            android:id="@+id/filter_input"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/ui__buffer_list_filter_placeholder"
@@ -46,7 +46,7 @@ when the filter is not displayed -->
             android:selectAllOnFocus="true" />
 
         <ImageButton
-            android:id="@+id/bufferlist_filter_clear"
+            android:id="@+id/filter_clear"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"

@@ -178,7 +178,7 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
         slidy = resources.getBoolean(R.bool.slidy)
 
         if (slidy) {
-            uiDrawerLayout = findViewById(R.id.drawer_layout)
+            uiDrawerLayout = findViewById(R.id.main_screen_layout)
             uiDrawerLayout.setScrimColor(0x30000000)
             val drawerWidth = resources.getDimensionPixelSize(R.dimen.drawer_width)
             drawerToggle = object : DrawerToggleFix(this, uiDrawerLayout,
