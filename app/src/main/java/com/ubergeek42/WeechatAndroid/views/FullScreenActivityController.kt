@@ -1,6 +1,8 @@
 package com.ubergeek42.WeechatAndroid.views
 
+import android.content.Context
 import android.os.Build
+import android.util.TypedValue
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
@@ -137,45 +139,61 @@ class BufferListFragmentFullScreenController(val fragment: Fragment) : DefaultLi
         fragment.lifecycle.addObserver(this)
     }
 
+    private var layoutManager: FullScreenDrawerLinearLayoutManager? = null
+    private var recyclerView: RecyclerView? = null
+    private var filterInput: View? = null
+    private var filterClear: View? = null
+
+    private var filterBarHeight = 0
+
     override fun onStart(owner: LifecycleOwner) {
-        if (!FULL_SCREEN_DRAWER_ENABLED) return
+        val rootView = fragment.requireView()
+        recyclerView = rootView.findViewById(R.id.recycler)
+        filterInput = rootView.findViewById(R.id.bufferlist_filter)
+        filterClear = rootView.findViewById(R.id.bufferlist_filter_clear)
+        filterBarHeight = fragment.requireContext().getActionBarHeight()
 
-        val bufferListView = fragment.requireView()
-        val navigationPadding = bufferListView.findViewById<View>(R.id.navigation_padding_left)
-        val layoutManager = bufferListView.findViewById<RecyclerView>(R.id.recycler)
-                .layoutManager as FullScreenDrawerLinearLayoutManager
-
-        // navigationPadding (the thing below filter) is only used because
-        // with relative layout one can't easily apply padding to elements other elements depend on
-        // todo remove this element and set padding on filterBar instead
-        navigationPadding.setBackgroundColor(P.colorPrimaryDark)
-
-        val filterBar = bufferListView.findViewById<View>(R.id.filter_bar)
-
-        fun applyInsets() {
+        if (!FULL_SCREEN_DRAWER_ENABLED) {
             if (P.showBufferFilter) {
-                navigationPadding.visibility = View.VISIBLE
-                navigationPadding.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                    height = systemWindowInsets.bottom }
-                filterBar.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                    bottomMargin = systemWindowInsets.bottom }
-                filterBar.updatePadding(left = systemWindowInsets.left)
-
-                layoutManager.setInsets(systemWindowInsets.top,
-                                        0,
-                                        systemWindowInsets.left)
+                recyclerView?.updateMargins(bottom = filterBarHeight)
             } else {
-                navigationPadding.visibility = View.GONE
-                layoutManager.setInsets(systemWindowInsets.top,
-                                        systemWindowInsets.bottom,
-                                        systemWindowInsets.left)
-
+                recyclerView?.updateMargins(bottom = 0)
             }
+        } else {
+            layoutManager = recyclerView?.layoutManager as FullScreenDrawerLinearLayoutManager
+
+            insetListeners.add(insetListener)
+            insetListener.onInsetsChanged()
         }
+    }
 
-        insetListeners.add(InsetListener { applyInsets() })
+    override fun onStop(owner: LifecycleOwner) {
+        insetListeners.remove(insetListener)
+        layoutManager = null
+        recyclerView = null
+        filterInput = null
+        filterClear = null
+    }
 
-        applyInsets()
+    private val insetListener = InsetListener {
+        if (P.showBufferFilter) {
+            recyclerView?.updateMargins(bottom = filterBarHeight + systemWindowInsets.bottom)
+
+            filterInput?.updateMargins(bottom = systemWindowInsets.bottom)
+            filterInput?.updatePadding(left = systemWindowInsets.left)
+
+            filterClear?.updateMargins(bottom = systemWindowInsets.bottom)
+
+            layoutManager?.setInsets(systemWindowInsets.top,
+                                     0,
+                                     systemWindowInsets.left)
+        } else {
+            recyclerView?.updateMargins(bottom = 0)
+
+            layoutManager?.setInsets(systemWindowInsets.top,
+                                     systemWindowInsets.bottom,
+                                     systemWindowInsets.left)
+        }
     }
 }
 
@@ -297,5 +315,15 @@ private class NewSystemAreaHeightExaminer(
 
     private val insetListener = InsetListener {
         observer?.onSystemAreaHeightChanged(systemWindowInsets.bottom)
+    }
+}
+
+
+fun Context.getActionBarHeight(): Int {
+    val typedValue = TypedValue()
+    return if (theme.resolveAttribute(android.R.attr.actionBarSize, typedValue, true)) {
+        TypedValue.complexToDimensionPixelSize(typedValue.data, resources.displayMetrics);
+    } else {
+        0
     }
 }

@@ -42,7 +42,6 @@ class BufferListFragment : Fragment(), BufferListEye {
     private lateinit var adapter: BufferListAdapter
 
     private lateinit var uiRecycler: RecyclerView
-    private lateinit var uiFilterBar: RelativeLayout
     private lateinit var uiFilter: EditText
     private lateinit var uiFilterClear: ImageButton
 
@@ -69,7 +68,6 @@ class BufferListFragment : Fragment(), BufferListEye {
 
         uiFilter = view.findViewById(R.id.bufferlist_filter)
         uiFilterClear = view.findViewById(R.id.bufferlist_filter_clear)
-        uiFilterBar = view.findViewById(R.id.filter_bar)
 
         val layoutManager = if (FULL_SCREEN_DRAWER_ENABLED) {
             FullScreenDrawerLinearLayoutManager(requireContext(), uiRecycler, adapter)
@@ -95,7 +93,7 @@ class BufferListFragment : Fragment(), BufferListEye {
     @MainThread @Cat override fun onStart() {
         super.onStart()
         EventBus.getDefault().register(this)
-        uiFilterBar.visibility = if (P.showBufferFilter) View.VISIBLE else View.GONE
+        uiFilter.visibility = if (P.showBufferFilter) View.VISIBLE else View.GONE
         applyColorSchemeToViews()
     }
 
@@ -163,8 +161,7 @@ class BufferListFragment : Fragment(), BufferListEye {
 
 
     private fun applyColorSchemeToViews() {
-        uiFilterBar.setBackgroundColor(P.colorPrimary)
-        uiRecycler.setBackgroundColor(P.colorPrimary)
+        requireView().setBackgroundColor(P.colorPrimary)
     }
 
     override fun toString() = "BL"

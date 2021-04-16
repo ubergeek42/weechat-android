@@ -1,64 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto" >
 
-    <View
-        android:id="@+id/navigation_padding_left"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_alignParentBottom="true"
-        android:visibility="gone" />
-
-    <RelativeLayout
-        android:id="@+id/filter_bar"
-        android:layout_width="wrap_content"
-        android:layout_height="?actionBarSize"
-        android:background="@color/primary"
-        android:layout_alignParentBottom="true" >
-
-        <EditText
-            android:id="@+id/bufferlist_filter"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="@string/ui__buffer_list_filter_placeholder"
-            android:singleLine="true"
-            android:layout_centerVertical="true"
-            android:background="@android:color/transparent"
-            android:layout_marginLeft="12dp"
-            android:layout_marginRight="12dp"
-            android:selectAllOnFocus="true" />
-
-        <ImageButton
-            android:id="@+id/bufferlist_filter_clear"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentTop="true"
-            android:layout_alignParentBottom="true"
-            android:layout_centerVertical="true"
-            android:scaleType="fitCenter"
-            app:srcCompat="@drawable/ic_cancel"
-            android:visibility="invisible"
-            android:paddingLeft="12dp"
-            android:paddingRight="12dp"
-            android:background="?attr/actionBarItemBackground" />
-    </RelativeLayout>
-
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignWithParentIfMissing="true"
-        android:layout_above="@+id/filter_bar"
+
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+
         android:dividerHeight="0dp"
         android:divider="@null"
-        android:background="@color/primary"
         android:fadingEdge="none"
         android:scrollbars="vertical" />
 
-</RelativeLayout>
+    <EditText
+        android:id="@+id/bufferlist_filter"
+
+        android:layout_width="match_parent"
+        android:layout_height="?actionBarSize"
+        android:layout_gravity="bottom"
+
+        android:hint="@string/ui__buffer_list_filter_placeholder"
+        android:singleLine="true"
+        android:background="@android:color/transparent"
+        android:layout_marginLeft="12dp"
+        android:layout_marginRight="12dp"
+        android:selectAllOnFocus="true"
+        android:inputType="text" />
+
+    <ImageButton
+        android:id="@+id/bufferlist_filter_clear"
+
+        android:layout_gravity="right|bottom"
+        android:layout_width="wrap_content"
+        android:layout_height="?actionBarSize"
+
+        android:scaleType="fitCenter"
+        app:srcCompat="@drawable/ic_cancel"
+        android:visibility="invisible"
+        android:paddingLeft="12dp"
+        android:paddingRight="12dp"
+        android:background="?attr/actionBarItemBackground" />
+</FrameLayout>
