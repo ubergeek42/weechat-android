@@ -193,7 +193,9 @@ public class MainPagerAdapter extends PagerAdapter {
             return;
         transaction.commitAllowingStateLoss();
         transaction = null;
-        handler.postAtFrontOfQueue(manager::executePendingTransactions);
+        handler.postAtFrontOfQueue(() -> {
+            if (!manager.isDestroyed()) manager.executePendingTransactions();
+        });
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
