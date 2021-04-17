@@ -104,6 +104,7 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
     private var slidy = false
 
     lateinit var ui: WeaselBinding
+    lateinit var uiWeasel: View
     private lateinit var uiDrawerLayout: DrawerLayout
     private lateinit var uiDrawer: View
     private lateinit var drawerToggle: ActionBarDrawerToggle
@@ -133,6 +134,7 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
         setContentView(R.layout.main_screen)
         ui = WeaselBinding.bind(findViewById(android.R.id.content))
         uiDrawer = findViewById(R.id.bufferlist_fragment)
+        uiWeasel = findViewById(R.id.weasel)    // ui.weasel for some reason returns a wrong view
 
         setSupportActionBar(ui.toolbar)
 
@@ -178,7 +180,7 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
                     R.string.ui__ActionBarDrawerToggle__close_drawer) {
                 override fun onDrawerSlide(offset: Float) {
                     drawerVisibilityChanged(offset > 0)
-                    ui.weaselBackground.translationX = drawerWidth * offset * 0.8f
+                    uiWeasel.translationX = drawerWidth * offset * 0.8f
                 }
             }
             drawerToggle.isDrawerSlideAnimationEnabled = false
@@ -674,7 +676,7 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
 
     // to reduce overdraw, change background color instead of drawing over it
     private fun applyMainBackgroundColor() {
-        ui.weaselBackground.setBackgroundColor(if (pagerAdapter.count == 0) {
+        uiWeasel.setBackgroundColor(if (pagerAdapter.count == 0) {
             P.colorPrimary
         } else {
             ColorScheme.get().default_color[ColorScheme.OPT_BG].solidColor
