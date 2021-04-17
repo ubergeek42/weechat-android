@@ -26,6 +26,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.adapters.BufferListAdapter.*
+import com.ubergeek42.WeechatAndroid.databinding.BufferlistItemBinding
 import com.ubergeek42.WeechatAndroid.relay.Buffer
 import com.ubergeek42.WeechatAndroid.relay.BufferList
 import com.ubergeek42.WeechatAndroid.relay.BufferSpec
@@ -56,37 +57,31 @@ class BufferListAdapter(
     private class Row @MainThread constructor(view: View) : ViewHolder(view), View.OnClickListener {
         private var pointer: Long = 0
 
-        private val uiContainer = view.findViewById<View>(R.id.bufferlist_item_container)
-        private val uiHot = view.findViewById<TextView>(R.id.buffer_hot)
-        private val uiWarm = view.findViewById<TextView>(R.id.buffer_warm)
-        private val uiBuffer = view.findViewById<TextView>(R.id.buffer)
-        private val uiOpen = view.findViewById<View>(R.id.open)
+        private val ui = BufferlistItemBinding.bind(view)
 
         init { view.setOnClickListener(this) }
 
         @MainThread fun update(buffer: VisualBuffer) {
             pointer = buffer.pointer
-            uiBuffer.text = buffer.printable
             val unreads = buffer.unreads
             val highlights = buffer.highlights
 
             val important = highlights > 0 || unreads > 0 && buffer.type == BufferSpec.Type.Private
-            uiContainer.setBackgroundResource(if (important) buffer.type.hotColorRes else buffer.type.colorRes)
-            uiOpen.visibility = if (buffer.isOpen) View.VISIBLE else View.GONE
+            ui.container.setBackgroundResource(if (important) buffer.type.hotColorRes else buffer.type.colorRes)
+            ui.openIndicator.visibility = if (buffer.isOpen) View.VISIBLE else View.GONE
+            ui.buffer.text = buffer.printable
 
-            if (highlights > 0) {
-                uiHot.text = highlights.toString()
-                uiHot.visibility = View.VISIBLE
-            } else {
-                uiHot.visibility = View.INVISIBLE
+            fun TextView.applyNumber(number: Int) {
+                if (number > 0) {
+                    text = number.toString()
+                    visibility = View.VISIBLE
+                } else {
+                    visibility = View.INVISIBLE
+                }
             }
 
-            if (unreads > 0) {
-                uiWarm.text = unreads.toString()
-                uiWarm.visibility = View.VISIBLE
-            } else {
-                uiWarm.visibility = View.GONE
-            }
+            ui.hotNumber.applyNumber(highlights)
+            ui.warmNumber.applyNumber(unreads)
         }
 
         @MainThread override fun onClick(v: View) {

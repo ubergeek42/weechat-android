@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/bufferlist_item_container"
+    android:id="@+id/container"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:foreground="?android:attr/selectableItemBackground"
@@ -20,7 +20,7 @@
     <!-- WHY CAN'T I USE android:layout_alignParentBottom=true?!?!
      this doesn't make any sense whatsoever my ass -->
     <View
-        android:id="@+id/open"
+        android:id="@+id/open_indicator"
         android:layout_width="2dp"
         android:layout_height="match_parent"
         android:layout_alignParentTop="true"
@@ -31,7 +31,7 @@
 
 
     <TextView
-        android:id="@+id/buffer_warm"
+        android:id="@+id/warm_number"
         android:layout_marginTop="10dp"
         android:layout_marginRight="10dp"
         android:layout_marginLeft="0dp"
@@ -48,14 +48,14 @@
     />
 
     <TextView
-        android:id="@+id/buffer_hot"
+        android:id="@+id/hot_number"
         android:layout_marginTop="10dp"
         android:layout_marginBottom="10dp"
         android:layout_marginRight="10dp"
         android:background="@drawable/bg_bufferlist_item_hot"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_toLeftOf="@id/buffer_warm"
+        android:layout_toLeftOf="@id/warm_number"
         android:paddingLeft="4dp"
         android:paddingRight="4dp"
         android:text="@null"
