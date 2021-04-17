@@ -2,11 +2,13 @@
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main_screen_layout"
+    android:id="@+id/main_screen_non_drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@null"
-    android:orientation="horizontal" >
+    android:orientation="horizontal"
+
+    tools:viewBindingIgnore="true" >
 
     <!-- drawer -->
     <fragment
