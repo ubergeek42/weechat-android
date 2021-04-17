@@ -572,7 +572,7 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
     }
 
     val isChatInputOrSearchInputFocused: Boolean
-        @MainThread get() = currentFocus?.id.isAnyOf(R.id.chatview_input, R.id.search_input)
+        @MainThread get() = currentFocus?.id.isAnyOf(R.id.chat_input, R.id.search_input)
 
     // this gets called on *every* change to the whole buffer list including hotlist changes
     // todo only sort open buffers on major buffer list changes

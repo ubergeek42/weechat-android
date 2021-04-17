@@ -20,9 +20,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
-import android.widget.ImageButton
 import android.widget.PopupMenu
-import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.annotation.AnyThread
 import androidx.annotation.MainThread
@@ -38,6 +36,7 @@ import com.ubergeek42.WeechatAndroid.Weechat
 import com.ubergeek42.WeechatAndroid.WeechatActivity
 import com.ubergeek42.WeechatAndroid.adapters.ChatLinesAdapter
 import com.ubergeek42.WeechatAndroid.copypaste.Paste
+import com.ubergeek42.WeechatAndroid.databinding.ChatviewMainBinding
 import com.ubergeek42.WeechatAndroid.relay.Buffer
 import com.ubergeek42.WeechatAndroid.relay.BufferEye
 import com.ubergeek42.WeechatAndroid.relay.BufferList
@@ -51,7 +50,6 @@ import com.ubergeek42.WeechatAndroid.service.RelayService
 import com.ubergeek42.WeechatAndroid.tabcomplete.TabCompleter
 import com.ubergeek42.WeechatAndroid.upload.Config
 import com.ubergeek42.WeechatAndroid.upload.InsertAt
-import com.ubergeek42.WeechatAndroid.upload.MediaAcceptingEditText
 import com.ubergeek42.WeechatAndroid.upload.MediaAcceptingEditText.HasLayoutListener
 import com.ubergeek42.WeechatAndroid.upload.ShareObject
 import com.ubergeek42.WeechatAndroid.upload.Suri
@@ -65,7 +63,6 @@ import com.ubergeek42.WeechatAndroid.upload.getShareObjectFromIntent
 import com.ubergeek42.WeechatAndroid.upload.i
 import com.ubergeek42.WeechatAndroid.upload.suppress
 import com.ubergeek42.WeechatAndroid.upload.validateUploadConfig
-import com.ubergeek42.WeechatAndroid.views.AnimatedRecyclerView
 import com.ubergeek42.WeechatAndroid.utils.Assert.assertThat
 import com.ubergeek42.WeechatAndroid.utils.FriendlyExceptions
 import com.ubergeek42.WeechatAndroid.utils.Toaster
@@ -73,10 +70,7 @@ import com.ubergeek42.WeechatAndroid.utils.Utils
 import com.ubergeek42.WeechatAndroid.utils.afterTextChanged
 import com.ubergeek42.WeechatAndroid.utils.indexOfOrElse
 import com.ubergeek42.WeechatAndroid.utils.ulet
-import com.ubergeek42.WeechatAndroid.views.BackGestureAwareEditText
 import com.ubergeek42.WeechatAndroid.views.BufferFragmentFullScreenController
-import com.ubergeek42.WeechatAndroid.views.CircleView
-import com.ubergeek42.WeechatAndroid.views.CircularImageButton
 import com.ubergeek42.WeechatAndroid.views.OnBackGestureListener
 import com.ubergeek42.WeechatAndroid.views.OnJumpedUpWhileScrollingListener
 import com.ubergeek42.WeechatAndroid.views.jumpThenSmoothScroll
@@ -109,19 +103,7 @@ class BufferFragment : Fragment(), BufferEye {
     // todo make lateinit soon
     private var linesAdapter: ChatLinesAdapter? = null
 
-    private var uiLines: AnimatedRecyclerView? = null
-    private var uiInput: MediaAcceptingEditText? = null
-    private var uiPaperclip: ImageButton? = null
-    private var uiSend: ImageButton? = null
-    private var uiTab: ImageButton? = null
-
-    private var uploadLayout: ViewGroup? = null
-    private var uploadProgressBar: ProgressBar? = null
-    private var uploadButton: ImageButton? = null
-
-    private var uiBottomBar: ViewGroup? = null
-    private var connectivityIndicator: CircleView? = null
-    private var fabScrollToBottom: CircularImageButton? = null
+    var ui: ChatviewMainBinding? = null
 
     init { BufferFragmentFullScreenController(this).observeLifecycle() }
 
@@ -162,41 +144,26 @@ class BufferFragment : Fragment(), BufferEye {
         }
     }
 
-    @MainThread @Cat override fun onCreateView(
-            inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
-    ): View? {
-        val v = inflater.inflate(R.layout.chatview_main, container, false)
+    @MainThread @Cat override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
+                                               savedInstanceState: Bundle?): View {
+        val ui = ChatviewMainBinding.inflate(inflater).also { this.ui = it }
 
-        uiLines = v.findViewById(R.id.chatview_lines)
-        uiInput = v.findViewById(R.id.chatview_input)
-        uiPaperclip = v.findViewById(R.id.chatview_paperclip)
-        uiSend = v.findViewById(R.id.chatview_send)
-        uiTab = v.findViewById(R.id.chatview_tab)
-
-        uploadLayout = v.findViewById(R.id.upload_layout)
-        uploadProgressBar = v.findViewById(R.id.upload_progress_bar)
-        uploadButton = v.findViewById(R.id.upload_button)
-
-        uiBottomBar = v.findViewById(R.id.bottom_bar)
-        connectivityIndicator = v.findViewById(R.id.connectivity_indicator)
-        fabScrollToBottom = v.findViewById(R.id.fab_scroll_to_bottom)
-
-        uploadButton?.setOnClickListener {
+        ui.uploadButton.setOnClickListener {
             if (lastUploadStatus == UploadStatus.UPLOADING) {
                 uploadManager?.filterUploads(emptyList())
             } else {
-                startUploads(uiInput?.getNotReadySuris())
+                startUploads(ui.chatInput.getNotReadySuris())
             }
         }
 
-        linesAdapter = ChatLinesAdapter(uiLines!!).apply {
+        linesAdapter = ChatLinesAdapter(ui.chatLines).apply {
             this@BufferFragment.buffer?.let {
                 buffer = it
                 loadLinesSilently()
             }
         }
 
-        uiLines?.run {
+        ui.chatLines.run {
             adapter = linesAdapter
             isFocusable = false
             isFocusableInTouchMode = false
@@ -215,7 +182,7 @@ class BufferFragment : Fragment(), BufferEye {
             }
         }
 
-        uiPaperclip?.run {
+        ui.paperclipButton.run {
             setOnClickListener { chooseFiles(this@BufferFragment, Config.paperclipAction1) }
             setOnLongClickListener {
                 Config.paperclipAction2?.let { action2 ->
@@ -225,12 +192,12 @@ class BufferFragment : Fragment(), BufferEye {
             }
         }
 
-        uiSend?.setOnClickListener { sendMessageOrStartUpload() }
-        uiTab?.setOnClickListener { tryTabComplete() }
+        ui.sendButton.setOnClickListener { sendMessageOrStartUpload() }
+        ui.tabButton.setOnClickListener { tryTabComplete() }
 
-        uiInput?.run {
+        ui.chatInput.run {
             setOnKeyListener(uiInputHardwareKeyPressListener)
-            setOnLongClickListener { Paste.showPasteDialog(uiInput) }
+            setOnLongClickListener { Paste.showPasteDialog(ui.chatInput) }
             afterTextChanged {
                 cancelTabCompletionOnInputTextChange()
                 fixupUploadsOnInputTextChange()
@@ -246,50 +213,38 @@ class BufferFragment : Fragment(), BufferEye {
             }
         }
 
-        fabScrollToBottom?.setOnClickListener {
-            uiLines?.jumpThenSmoothScroll(linesAdapter!!.itemCount - 1)
+        ui.scrollToBottomFab.setOnClickListener {
+            ui.chatLines.jumpThenSmoothScroll(linesAdapter!!.itemCount - 1)
             focusedMatch = 0
             enableDisableSearchButtons()
             adjustSearchNumbers()
         }
 
-        fabScrollToBottom?.setOnLongClickListener {
-            uiLines?.jumpThenSmoothScroll(0)
+        ui.scrollToBottomFab.setOnLongClickListener {
+            ui.chatLines.jumpThenSmoothScroll(0)
             true
         }
 
-        initSearchViews(v)
-        uiLines?.post { applyRecyclerViewState() }
+        initSearchViews()
+        ui.chatLines.post { applyRecyclerViewState() }
 
         connectedToRelay = true     // assume true, this will get corrected later
-        return v
+        return ui.root
     }
 
     @MainThread @Cat override fun onDestroyView() {
         super.onDestroyView()
-        uiLines = null
-        uiInput = null
-        uiSend = null
-        uiTab = null
-        uiPaperclip = null
-        uploadLayout = null
-        uploadButton = null
-        uploadProgressBar = null
+        ui = null
         linesAdapter = null
-        uiBottomBar = null
-        connectivityIndicator = null
-        fabScrollToBottom = null
-
-        destroySearchViews()
     }
 
-    @MainThread @Cat override fun onResume() {
+    @MainThread @Cat override fun onResume() = ulet(ui) { ui ->
         super.onResume()
-        uiTab?.visibility = if (P.showTab) View.VISIBLE else View.GONE
+        ui.tabButton.visibility = if (P.showTab) View.VISIBLE else View.GONE
         EventBus.getDefault().register(this)
         applyColorSchemeToViews()
         adjustConnectivityIndications(false)
-        uiInput?.textifyReadySuris()   // this will fix any uploads that were finished while we were absent
+        ui.chatInput.textifyReadySuris()   // this will fix any uploads that were finished while we were absent
         fixupUploadsOnInputTextChange()             // this will set appropriate upload ui state
         showHidePaperclip()
         showHideFabAfterRecyclerViewRestored()
@@ -405,16 +360,16 @@ class BufferFragment : Fragment(), BufferEye {
     ///////////////////////////////////////////////////////////////////////////////////////////// ui
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @MainThread private fun adjustConnectivityIndications(animate: Boolean)
-            = ulet(connectivityIndicator) { indicator ->
+    @MainThread private fun adjustConnectivityIndications(animate: Boolean) = ulet(ui) { ui ->
         val state = when {
             connectedToRelayAndSynced -> ConnectivityState.OnlineAndSynced
             connectedToRelay -> ConnectivityState.OnlineAndSyncing
             else -> ConnectivityState.Offline
         }
 
-        uiSend?.isEnabled = state.sendEnabled
+        ui.sendButton.isEnabled = state.sendEnabled
 
+        val indicator = ui.connectivityIndicator
         indicator.setColor(state.badgeColor)
 
         val indicatorVisibility = if (state.displayBadge) View.VISIBLE else View.GONE
@@ -425,9 +380,9 @@ class BufferFragment : Fragment(), BufferEye {
         }
     }
 
-    private fun applyColorSchemeToViews() {
-        fabScrollToBottom?.setBackgroundColor(P.colorPrimary)
-        uiBottomBar?.setBackgroundColor(P.colorPrimary)
+    private fun applyColorSchemeToViews() = ulet(ui) { ui ->
+        ui.scrollToBottomFab.setBackgroundColor(P.colorPrimary)
+        ui.bottomBar.setBackgroundColor(P.colorPrimary)
         searchMatchDecorationPaint.color = ColorScheme.get().searchMatchBackground
     }
 
@@ -437,7 +392,7 @@ class BufferFragment : Fragment(), BufferEye {
         set(show) {
             if (field != show) {
                 field = show
-                fabScrollToBottom?.run { if (show) show() else hide() }
+                ui?.scrollToBottomFab?.run { if (show) show() else hide() }
             }
         }
 
@@ -453,7 +408,7 @@ class BufferFragment : Fragment(), BufferEye {
     }
 
     private fun showHideFabAfterRecyclerViewRestored() {
-        fabShowing = uiLines?.onBottom == false
+        fabShowing = ui?.chatLines?.onBottom == false
     }
 
     //////////////////////////////////////////////////////////////////////////// recycler view state
@@ -476,7 +431,7 @@ class BufferFragment : Fragment(), BufferEye {
                 savedInstanceState.getInt(KEY_INVISIBLE_PIXELS))
     }
 
-    private fun recordRecyclerViewState() = ulet(uiLines) { lines ->
+    private fun recordRecyclerViewState() = ulet(ui?.chatLines) { lines ->
         recyclerViewState = if (lines.onBottom) {
             null
         } else {
@@ -487,7 +442,7 @@ class BufferFragment : Fragment(), BufferEye {
         }
     }
 
-    private fun applyRecyclerViewState() = ulet(recyclerViewState, uiLines, linesAdapter) {
+    private fun applyRecyclerViewState() = ulet(recyclerViewState, ui?.chatLines, linesAdapter) {
             state, lines, adapter ->
         val position = adapter.findPositionByPointer(state.lastChildPointer)
         if (position == -1) return
@@ -562,7 +517,7 @@ class BufferFragment : Fragment(), BufferEye {
 
     private val connectedToRelayAndSynced get() = connectedToRelay && buffer?.linesAreReady() == true
 
-    @MainThread private fun sendMessageOrStartUpload() = ulet(buffer, uiInput) { buffer, input ->
+    @MainThread private fun sendMessageOrStartUpload() = ulet(buffer, ui?.chatInput) { buffer, input ->
         val suris = input.getNotReadySuris()
         if (suris.isNotEmpty()) {
             startUploads(suris)
@@ -583,7 +538,7 @@ class BufferFragment : Fragment(), BufferEye {
 
     private var completer: TabCompleter? = null
 
-    @MainThread private fun tryTabComplete() = ulet(buffer, uiInput) { buffer, input ->
+    @MainThread private fun tryTabComplete() = ulet(buffer, ui?.chatInput) { buffer, input ->
         if (completer == null) completer = TabCompleter.obtain(lifecycle, buffer, input)
         completer?.next()
     }
@@ -594,9 +549,9 @@ class BufferFragment : Fragment(), BufferEye {
         if (cancelled == true) completer = null
     }
 
-    @MainThread fun setShareObject(shareObject: ShareObject) {
-        shareObject.insert(uiInput!!, InsertAt.END)
-        if (isSearchEnabled) searchInput?.post { searchEnableDisable(enable = false) }
+    @MainThread fun setShareObject(shareObject: ShareObject) = ulet(ui) { ui ->
+        shareObject.insert(ui.chatInput, InsertAt.END)
+        if (isSearchEnabled) ui.searchInput.post { searchEnableDisable(enable = false) }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -610,29 +565,29 @@ class BufferFragment : Fragment(), BufferEye {
     private var uploadManager: UploadManager? = null
     private var lastUploadStatus: UploadStatus? = null
 
-    @CatD @MainThread fun setUploadStatus(uploadStatus: UploadStatus) {
+    @CatD @MainThread fun setUploadStatus(uploadStatus: UploadStatus) = ulet(ui) { ui ->
         if (uploadStatus == lastUploadStatus) return
         lastUploadStatus = uploadStatus
 
         when (uploadStatus) {
             UploadStatus.NOTHING_TO_UPLOAD -> {
-                if (P.showSend) uiSend?.visibility = View.VISIBLE
-                uploadLayout?.visibility = View.GONE
+                if (P.showSend) ui.sendButton.visibility = View.VISIBLE
+                ui.uploadLayout.visibility = View.GONE
             }
             UploadStatus.HAS_THINGS_TO_UPLOAD, UploadStatus.UPLOADING -> {
-                uiSend?.visibility = View.GONE
-                uploadLayout?.visibility = View.VISIBLE
+                ui.sendButton.visibility = View.GONE
+                ui.uploadLayout.visibility = View.VISIBLE
                 setUploadProgress(-1f)
                 val uploadIcon = if (uploadStatus == UploadStatus.HAS_THINGS_TO_UPLOAD)
                     R.drawable.ic_toolbar_upload else R.drawable.ic_toolbar_upload_cancel
-                uploadButton?.setImageResource(uploadIcon)
+                ui.uploadButton.setImageResource(uploadIcon)
             }
         }
     }
 
     // show indeterminate progress in the end, when waiting for the server to produce a response
     @CatD @MainThread fun setUploadProgress(ratio: Float) {
-        uploadProgressBar?.apply {
+        ui?.uploadProgressBar?.apply {
             if (ratio < 0) {
                 visibility = View.INVISIBLE
                 isIndeterminate = false     // this will reset the thing
@@ -655,7 +610,7 @@ class BufferFragment : Fragment(), BufferEye {
     }
 
     private fun fixupUploadsOnInputTextChange() {
-        val suris = uiInput!!.getNotReadySuris()
+        val suris = ui?.chatInput?.getNotReadySuris() ?: return
         if (lastUploadStatus == UploadStatus.UPLOADING) {
             uploadManager?.filterUploads(suris)
         }
@@ -676,7 +631,7 @@ class BufferFragment : Fragment(), BufferEye {
         }
 
         override fun onUploadDone(suri: Suri) {
-            uiInput?.textifyReadySuris()
+            ui?.chatInput?.textifyReadySuris()
         }
 
         override fun onUploadFailure(suri: Suri, e: Exception) {
@@ -686,24 +641,27 @@ class BufferFragment : Fragment(), BufferEye {
             }
         }
 
-        override fun onFinished() {
-            setUploadStatus(if (uiInput!!.getNotReadySuris().isNotEmpty())
+        override fun onFinished() = ulet(ui) { ui ->
+            setUploadStatus(if (ui.chatInput.getNotReadySuris().isNotEmpty())
                 UploadStatus.HAS_THINGS_TO_UPLOAD else UploadStatus.NOTHING_TO_UPLOAD)
         }
     }
 
-    @Cat override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+    @Cat override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) = ulet(ui) { ui ->
         if (resultCode == Activity.RESULT_OK) {
             suppress<Exception>(showToast = true) {
-                getShareObjectFromIntent(requestCode, data)?.insert(uiInput!!, InsertAt.CURRENT_POSITION)
+                getShareObjectFromIntent(requestCode, data)
+                        ?.insert(ui.chatInput, InsertAt.CURRENT_POSITION)
             }
         }
     }
 
-    fun shouldShowUploadMenus() = P.showPaperclip && uiPaperclip?.visibility == View.GONE
+    fun shouldShowUploadMenus() = P.showPaperclip && ui?.paperclipButton?.visibility == View.GONE
 
-    @MainThread fun showHidePaperclip(): Unit = ulet(weechatActivity, uiPaperclip, uiInput) {
-            activity, paperclip, input ->
+    @MainThread fun showHidePaperclip(): Unit = ulet(weechatActivity, ui) { activity, ui ->
+        val paperclip = ui.paperclipButton
+        val input = ui.chatInput
+
         if (!P.showPaperclip) {
             if (paperclip.visibility != View.GONE) paperclip.visibility = View.GONE
             return
@@ -726,8 +684,8 @@ class BufferFragment : Fragment(), BufferEye {
         // if the send button is off, adding a ShareSpan can reveal it (well, upload button),
         // but it's not a problem as it can only appear on text addition and disappear on deletion*
         var widgetWidth = P.weaselWidth - P._4dp - actionButtonWidth
-        if (uiTab?.visibility != View.GONE) widgetWidth -= actionButtonWidth
-        if (uiSend?.visibility != View.GONE) widgetWidth -= actionButtonWidth
+        if (ui.tabButton.visibility != View.GONE) widgetWidth -= actionButtonWidth
+        if (ui.sendButton.visibility != View.GONE) widgetWidth -= actionButtonWidth
 
         val shouldShowPaperclip = textWidth / widgetWidth < 0.8f
         if (shouldShowPaperclip == (paperclip.visibility == View.VISIBLE)) return
@@ -758,16 +716,6 @@ class BufferFragment : Fragment(), BufferEye {
     ///////////////////////////////////////////////////////////////////////////////////////// search
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private var searchBar: View? = null
-    private var inputBar: View? = null
-
-    private var searchInput: BackGestureAwareEditText? = null
-    private var searchResultNo: TextView? = null
-    private var searchResultCount: TextView? = null
-    private var searchUp: ImageButton? = null
-    private var searchDown: ImageButton? = null
-    private var searchOverflow: ImageButton? = null
-
     private fun saveSearchState(outState: Bundle) {
         outState.putBoolean(KEY_SEARCHING, isSearchEnabled)
         outState.putLong(KEY_LAST_FOCUSED_MATCH, focusedMatch)
@@ -787,20 +735,10 @@ class BufferFragment : Fragment(), BufferEye {
         )
     }
 
-    private fun initSearchViews(root: View) {
-        searchBar = root.findViewById(R.id.search_bar)
-        inputBar = root.findViewById(R.id.input_bar)
+    private fun initSearchViews() = ulet(ui) { ui ->
+        ui.searchCancelButton.setOnClickListener { searchEnableDisable(enable = false) }
 
-        val searchCancel = root.findViewById<ImageButton>(R.id.search_cancel)
-        searchInput = root.findViewById(R.id.search_input)
-        searchResultNo = root.findViewById(R.id.search_result_no)
-        searchResultCount = root.findViewById(R.id.search_result_count)
-        searchUp = root.findViewById(R.id.search_up)
-        searchDown = root.findViewById(R.id.search_down)
-        searchOverflow = root.findViewById(R.id.search_overflow)
-        searchCancel.setOnClickListener { searchEnableDisable(enable = false) }
-
-        searchInput?.run {
+        ui.searchInput.run {
             // check lifecycle, so that this is not triggered by restoring state
             afterTextChanged {
                 if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) triggerNewSearch()
@@ -808,12 +746,12 @@ class BufferFragment : Fragment(), BufferEye {
 
             // not consuming event — letting the keyboard close
             setOnEditorActionListener { _: TextView?, actionId: Int, _: KeyEvent? ->
-                if (actionId == EditorInfo.IME_ACTION_SEARCH) searchUp?.performClick()
+                if (actionId == EditorInfo.IME_ACTION_SEARCH) ui.searchUpButton.performClick()
                 false
             }
 
             onBackGestureListener = OnBackGestureListener {
-                return@OnBackGestureListener if (searchBar?.visibility == View.VISIBLE) {
+                return@OnBackGestureListener if (ui.searchBar.visibility == View.VISIBLE) {
                     searchEnableDisable(enable = false)
                     true
                 } else {
@@ -822,54 +760,43 @@ class BufferFragment : Fragment(), BufferEye {
             }
         }
 
-        searchUp?.setOnClickListener(searchButtonClickListener)
-        searchUp?.setOnLongClickListener(searchButtonLongClickListener)
-        searchDown?.setOnClickListener(searchButtonClickListener)
-        searchDown?.setOnLongClickListener(searchButtonLongClickListener)
-        searchOverflow?.setOnClickListener { createPopupMenu().show() }
+        ui.searchUpButton.setOnClickListener(searchButtonClickListener)
+        ui.searchUpButton.setOnLongClickListener(searchButtonLongClickListener)
+        ui.searchDownButton.setOnClickListener(searchButtonClickListener)
+        ui.searchDownButton.setOnLongClickListener(searchButtonLongClickListener)
+        ui.searchMenuButton.setOnClickListener { createPopupMenu().show() }
 
         // todo figure out why views are recreated while the instance is retained
         // post to searchInput so that this is run after search input has been restored
         if (isSearchEnabled) {
-            searchInput?.post { searchEnableDisable(enable = true, newSearch = false) }
+            ui.searchInput.post { searchEnableDisable(enable = true, newSearch = false) }
         }
     }
 
-    private fun destroySearchViews() {
-        searchBar = null
-        inputBar = null
-        searchInput = null
-        searchResultNo = null
-        searchResultCount = null
-        searchUp = null
-        searchDown = null
-        searchOverflow = null
-    }
-
-    @MainThread @Cat fun searchEnableDisable(enable: Boolean, newSearch: Boolean = false) {
-        searchBar?.visibility = if (enable) View.VISIBLE else View.GONE
-        inputBar?.visibility = if (enable) View.GONE else View.VISIBLE
+    @MainThread @Cat fun searchEnableDisable(enable: Boolean, newSearch: Boolean = false) = ulet(ui) { ui ->
+        ui.searchBar.visibility = if (enable) View.VISIBLE else View.GONE
+        ui.inputBar.visibility = if (enable) View.GONE else View.VISIBLE
 
         if (enable) {
-            searchInput?.requestFocus()
-            uiLines?.addItemDecoration(searchMatchDecoration)
+            ui.searchInput.requestFocus()
+            ui.chatLines.addItemDecoration(searchMatchDecoration)
             triggerNewSearch()
             if (newSearch) {
-                weechatActivity?.imm?.showSoftInput(searchInput, InputMethodManager.SHOW_IMPLICIT)
-                searchInput?.selectAll()
+                weechatActivity?.imm?.showSoftInput(ui.searchInput, InputMethodManager.SHOW_IMPLICIT)
+                ui.searchInput.selectAll()
             }
         } else {
-            uiInput?.requestFocus()
+            ui.chatInput.requestFocus()
             weechatActivity?.hideSoftwareKeyboard()
             matches = emptyMatches
             focusedMatch = 0
-            uiLines?.removeItemDecoration(searchMatchDecoration)
+            ui.chatLines.removeItemDecoration(searchMatchDecoration)
             linesAdapter?.search = null
         }
     }
 
-    private fun triggerNewSearch() {
-        val text = searchInput?.text.toString()
+    private fun triggerNewSearch() = ulet(ui) { ui ->
+        val text = ui.searchInput.text.toString()
         try {
             buffer?.requestMoreLines(P.searchLineIncrement)
             val matcher = Search.Matcher.fromString(text, searchConfig)
@@ -891,23 +818,23 @@ class BufferFragment : Fragment(), BufferEye {
         adjustSearchNumbers()
     }
 
-    private fun enableDisableSearchButtons() {
+    private fun enableDisableSearchButtons() = ulet(ui) { ui ->
         val hasMatches = matches.isNotEmpty()
         val matchIndex = matches.indexOfOrElse(focusedMatch, matches::size)
-        searchUp?.isEnabled = hasMatches && matchIndex > 0
-        searchDown?.isEnabled = hasMatches && matchIndex < matches.lastIndex
+        ui.searchUpButton.isEnabled = hasMatches && matchIndex > 0
+        ui.searchDownButton.isEnabled = hasMatches && matchIndex < matches.lastIndex
     }
 
     // we could be detecting the way the + is shown in different ways.
     // but a + that depends on true availability of lines isn't very useful if we are not
     // requesting the entirety of lines available.
     // so we only show it to indicate that we are fetching lines.
-    private fun adjustSearchNumbers() {
+    private fun adjustSearchNumbers() = ulet(ui) { ui ->
         if (!isSearchEnabled) return
         val matchIndex = matches.indexOf(focusedMatch)
-        searchResultNo?.text = if (matchIndex == -1)
+        ui.searchResultNo.text = if (matchIndex == -1)
                 "-" else (matches.size - matchIndex).toString()
-        searchResultCount?.text = if (matches === badRegexPatternMatches)
+        ui.searchResultCount.text = if (matches === badRegexPatternMatches)
                 "err" else {
             val size = matches.size.toString()
             val fetching = buffer?.linesStatus == Lines.Status.Fetching
@@ -918,7 +845,7 @@ class BufferFragment : Fragment(), BufferEye {
     private var searchConfig = SearchConfig.default
 
     private fun createPopupMenu(): PopupMenu {
-        val popupMenu = PopupMenu(context, searchOverflow)
+        val popupMenu = PopupMenu(context, ui!!.searchMenuButton)
         popupMenu.inflate(R.menu.menu_search)
         MenuCompat.setGroupDividerEnabled(popupMenu.menu, true)
         popupMenu.setOnMenuItemClickListener { item: MenuItem ->
@@ -951,22 +878,22 @@ class BufferFragment : Fragment(), BufferEye {
 
     private var searchButtonClickListener = View.OnClickListener { view: View ->
         val index = matches.indexOfOrElse(focusedMatch, matches::size)
-        val change = if (view.id == R.id.search_up) -1 else +1
+        val change = if (view.id == R.id.search_up_button) -1 else +1
         scrollToSearchIndex(index + change)
     }
 
     private var searchButtonLongClickListener = View.OnLongClickListener { view: View ->
-        scrollToSearchIndex(if (view.id == R.id.search_up) 0 else matches.lastIndex)
+        scrollToSearchIndex(if (view.id == R.id.search_up_button) 0 else matches.lastIndex)
         true
     }
 
-    private fun scrollToSearchIndex(index: Int) {
+    private fun scrollToSearchIndex(index: Int) = ulet(ui) { ui ->
         matches.getOrNull(index)?.let {
             focusedMatch = it
             linesAdapter?.findPositionByPointer(it)?.let { position ->
-                if (position != -1) uiLines?.jumpThenSmoothScrollCentering(position)
+                if (position != -1) ui.chatLines.jumpThenSmoothScrollCentering(position)
             }
-            uiLines?.invalidate()   // trigger redecoration
+            ui.chatLines.invalidate()   // trigger redecoration
             enableDisableSearchButtons()
             adjustSearchNumbers()
         }
@@ -997,7 +924,7 @@ private val actionButtonWidth = 48 * P._1dp         // as set in ActionButton st
 
 private val paperclipTransition = Fade().apply {
     duration = 200
-    addTarget(R.id.chatview_paperclip)
+    addTarget(R.id.paperclip_button)
 }
 
 private val connectivityIndicatorTransition = Fade().apply {

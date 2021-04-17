@@ -9,13 +9,12 @@ import android.view.ViewTreeObserver
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
-import androidx.recyclerview.widget.RecyclerView
 import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.WeechatActivity
+import com.ubergeek42.WeechatAndroid.fragments.BufferFragment
 import com.ubergeek42.WeechatAndroid.fragments.BufferListFragment
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.upload.i
@@ -190,20 +189,13 @@ class BufferListFragmentFullScreenController(val fragment: BufferListFragment) :
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-class BufferFragmentFullScreenController(val fragment: Fragment) : DefaultLifecycleObserver {
+class BufferFragmentFullScreenController(val fragment: BufferFragment) : DefaultLifecycleObserver {
     fun observeLifecycle() {
         fragment.lifecycle.addObserver(this)
     }
 
-    private var uiBottomBar: View? = null
-    private var uiLines: RecyclerView? = null
-    private var uiFabScrollToBottom: View? = null
-
     override fun onStart(owner: LifecycleOwner) {
         if (!FULL_SCREEN_DRAWER_ENABLED) return
-        uiBottomBar = fragment.requireView().findViewById(R.id.bottom_bar)
-        uiLines = fragment.requireView().findViewById(R.id.chatview_lines)
-        uiFabScrollToBottom = fragment.requireView().findViewById(R.id.fab_scroll_to_bottom)
         insetListeners.add(insetListener)
         insetListener.onInsetsChanged()
     }
@@ -211,24 +203,22 @@ class BufferFragmentFullScreenController(val fragment: Fragment) : DefaultLifecy
     override fun onStop(owner: LifecycleOwner) {
         if (!FULL_SCREEN_DRAWER_ENABLED) return
         insetListeners.remove(insetListener)
-        uiBottomBar = null
-        uiLines = null
-        uiFabScrollToBottom = null
     }
 
     private val insetListener = InsetListener {
+        val ui = fragment.ui ?: return@InsetListener
+
         val linesTopPadding = if (P.autoHideActionbar) systemWindowInsets.top else 0
+        val fabRightMargin = systemWindowInsets.right + (P._1dp * 12).i
 
-        uiLines?.updatePadding(top = linesTopPadding,
-                               left = systemWindowInsets.left,
-                               right = systemWindowInsets.right)
-
-        uiBottomBar?.updatePadding(left = systemWindowInsets.left,
+        ui.chatLines.updatePadding(top = linesTopPadding,
+                                   left = systemWindowInsets.left,
                                    right = systemWindowInsets.right)
 
-        uiFabScrollToBottom?.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-            rightMargin = systemWindowInsets.right + (P._1dp * 12).i
-        }
+        ui.bottomBar.updatePadding(left = systemWindowInsets.left,
+                                   right = systemWindowInsets.right)
+
+        ui.scrollToBottomFab.updateMargins(right = fabRightMargin)
     }
 }
 
@@ -309,7 +299,7 @@ private class NewSystemAreaHeightExaminer(
 fun Context.getActionBarHeight(): Int {
     val typedValue = TypedValue()
     return if (theme.resolveAttribute(android.R.attr.actionBarSize, typedValue, true)) {
-        TypedValue.complexToDimensionPixelSize(typedValue.data, resources.displayMetrics);
+        TypedValue.complexToDimensionPixelSize(typedValue.data, resources.displayMetrics)
     } else {
         0
     }

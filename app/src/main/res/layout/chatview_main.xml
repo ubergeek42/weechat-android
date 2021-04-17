@@ -2,7 +2,6 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/chatview_layout"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:orientation="vertical">
@@ -20,7 +19,7 @@
             android:visibility="gone" >
 
             <ImageButton
-                android:id="@+id/search_cancel"
+                android:id="@+id/search_cancel_button"
                 android:layout_width="wrap_content"
                 android:layout_height="?actionBarSize"
                 app:srcCompat="@drawable/ic_toolbar_upload_cancel"
@@ -40,7 +39,7 @@
                 android:hint="@string/ui__input_search_hint" />
 
             <ImageButton
-                android:id="@+id/search_up"
+                android:id="@+id/search_up_button"
                 android:layout_width="wrap_content"
                 android:layout_height="?actionBarSize"
                 app:srcCompat="@drawable/ic_toolbar_search_up"
@@ -91,7 +90,7 @@
             </FrameLayout>
 
             <ImageButton
-                android:id="@+id/search_down"
+                android:id="@+id/search_down_button"
                 android:layout_width="wrap_content"
                 android:layout_height="?actionBarSize"
                 app:srcCompat="@drawable/ic_toolbar_search_down"
@@ -100,7 +99,7 @@
                 style="@style/ActionButton" />
 
             <ImageButton
-                android:id="@+id/search_overflow"
+                android:id="@+id/search_menu_button"
                 android:layout_width="wrap_content"
                 android:layout_height="?actionBarSize"
                 android:contentDescription="@string/ui__button_search_overflow"
@@ -116,7 +115,7 @@
             android:paddingRight="4dp">
 
             <com.ubergeek42.WeechatAndroid.upload.MediaAcceptingEditText
-                android:id="@+id/chatview_input"
+                android:id="@+id/chat_input"
                 android:layout_weight="1.0"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -134,7 +133,7 @@
             </com.ubergeek42.WeechatAndroid.upload.MediaAcceptingEditText>
 
             <ImageButton
-                android:id="@+id/chatview_paperclip"
+                android:id="@+id/paperclip_button"
                 android:layout_width="wrap_content"
                 android:layout_height="?actionBarSize"
                 app:srcCompat="@drawable/ic_toolbar_paperclip"
@@ -144,7 +143,7 @@
                 style="@style/ActionButton" />
 
             <ImageButton
-                android:id="@+id/chatview_tab"
+                android:id="@+id/tab_button"
                 android:layout_width="wrap_content"
                 android:layout_height="?actionBarSize"
                 app:srcCompat="@drawable/ic_toolbar_tab"
@@ -154,7 +153,7 @@
                 style="@style/ActionButton" />
 
             <ImageButton
-                android:id="@+id/chatview_send"
+                android:id="@+id/send_button"
                 android:layout_width="wrap_content"
                 android:layout_height="?actionBarSize"
                 app:srcCompat="@drawable/ic_toolbar_send"
@@ -204,7 +203,7 @@
     </FrameLayout>
 
     <com.ubergeek42.WeechatAndroid.views.AnimatedRecyclerView
-        android:id="@+id/chatview_lines"
+        android:id="@+id/chat_lines"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:paddingBottom="2dp"
@@ -222,7 +221,7 @@
     <!-- tools:targetApi suppresses warning for the shadow color options.
      these only make the shadow less pronounced and are of little importance -->
     <com.ubergeek42.WeechatAndroid.views.CircularImageButton
-        android:id="@+id/fab_scroll_to_bottom"
+        android:id="@+id/scroll_to_bottom_fab"
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:layout_alignParentRight="true"
