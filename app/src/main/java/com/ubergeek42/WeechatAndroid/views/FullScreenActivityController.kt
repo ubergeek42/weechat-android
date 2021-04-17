@@ -4,22 +4,18 @@ import android.content.Context
 import android.os.Build
 import android.util.TypedValue
 import android.view.View
-import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
-import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.WeechatActivity
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragment
 import com.ubergeek42.WeechatAndroid.fragments.BufferListFragment
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.upload.i
 import com.ubergeek42.WeechatAndroid.utils.ThemeFix
-import com.ubergeek42.WeechatAndroid.utils.WeaselMeasuringViewPager
 
 
 // this can technically work on earlier Android versions,
@@ -58,17 +54,12 @@ class WeechatActivityFullScreenController(val activity: WeechatActivity) : Defau
     // only used to weed out changes we don't care about
     private var oldSystemWindowInsets = SystemWindowInsets(-1, -1, -1, -1)
 
-    private lateinit var navigationPadding: View
-
     override fun onCreate(owner: LifecycleOwner) {
         if (!FULL_SCREEN_DRAWER_ENABLED) return
 
-        val toolbarContainer = activity.findViewById<View>(R.id.toolbar_container)
-        val viewPager = activity.findViewById<WeaselMeasuringViewPager>(R.id.main_viewpager)
-        val rootView = viewPager.rootView
+        val rootView = activity.ui.pager.rootView
 
-        navigationPadding = activity.findViewById(R.id.navigation_padding_right)
-        navigationPadding.visibility = View.VISIBLE
+        activity.ui.navigationPadding.visibility = View.VISIBLE
 
         // todo use WindowCompat.setDecorFitsSystemWindows(window, false)
         // todo needs api 30+? and/or androidx.core:core-ktx:1.5.0-beta02
@@ -92,13 +83,11 @@ class WeechatActivityFullScreenController(val activity: WeechatActivity) : Defau
         }
 
         val weechatActivityInsetsListener = InsetListener {
-            toolbarContainer.updatePadding(top = systemWindowInsets.top,
-                                           left = systemWindowInsets.left,
-                                           right = systemWindowInsets.right)
-            navigationPadding.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                height = systemWindowInsets.bottom }
-            viewPager.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                bottomMargin = systemWindowInsets.bottom }
+            activity.ui.toolbarContainer.updatePadding(top = systemWindowInsets.top,
+                                                       left = systemWindowInsets.left,
+                                                       right = systemWindowInsets.right)
+            activity.ui.navigationPadding.updateDimensions(height = systemWindowInsets.bottom)
+            activity.ui.pager.updateMargins(bottom = systemWindowInsets.bottom)
         }
 
         insetListeners.add(weechatActivityInsetsListener)
@@ -110,9 +99,8 @@ class WeechatActivityFullScreenController(val activity: WeechatActivity) : Defau
     // automatically, and since api 27 via android:navigationBarColor
     override fun onStart(owner: LifecycleOwner) {
         if (FULL_SCREEN_DRAWER_ENABLED) {
-            navigationPadding.setBackgroundColor(P.colorPrimaryDark)
+            activity.ui.navigationPadding.setBackgroundColor(P.colorPrimaryDark)
         } else {
-
             val systemAreaBackgroundColorIsDark = !ThemeFix.isColorLight(P.colorPrimaryDark)
             val statusBarIconCanBeDark = Build.VERSION.SDK_INT >= 23
             val navigationBarIconsCanBeDark = Build.VERSION.SDK_INT >= 26
@@ -294,6 +282,11 @@ private class NewSystemAreaHeightExaminer(
         observer?.onSystemAreaHeightChanged(systemWindowInsets.bottom)
     }
 }
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 fun Context.getActionBarHeight(): Int {

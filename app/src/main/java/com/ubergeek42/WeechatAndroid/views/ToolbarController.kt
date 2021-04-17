@@ -1,13 +1,9 @@
 package com.ubergeek42.WeechatAndroid.views
 
-import android.view.View
-import android.view.ViewGroup
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
-import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
-import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.WeechatActivity
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.upload.f
@@ -20,15 +16,6 @@ class ToolbarController(val activity: WeechatActivity) : DefaultLifecycleObserve
         SystemAreaHeightExaminer.obtain(activity).also { it.observer = this }.observeLifecycle()
     }
 
-    private lateinit var toolbarContainer: View
-    private lateinit var uiPager: View
-
-    override fun onCreate(owner: LifecycleOwner) {
-        super.onCreate(owner)
-        toolbarContainer = activity.findViewById(R.id.toolbar_container)
-        uiPager = activity.findViewById(R.id.main_viewpager)
-    }
-
     override fun onStart(owner: LifecycleOwner) {
         super.onStart(owner)
         autoHideEnabled = P.autoHideActionbar
@@ -38,10 +25,10 @@ class ToolbarController(val activity: WeechatActivity) : DefaultLifecycleObserve
         set(enabled) {
             if (field != enabled) {
                 field = enabled
-                toolbarContainer.post {
-                    uiPager.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                        topMargin = if (enabled) 0 else toolbarContainer.height
-                    }
+                activity.ui.toolbarContainer.post {
+                    activity.ui.pager.updateMargins(
+                        top = if (enabled) 0 else activity.ui.toolbarContainer.height
+                    )
                 }
             }
         }
@@ -54,7 +41,7 @@ class ToolbarController(val activity: WeechatActivity) : DefaultLifecycleObserve
     private fun show() {
         if (!toolbarShown) {
             toolbarShown = true
-            toolbarContainer.animate()
+            activity.ui.toolbarContainer.animate()
                     .translationY(0f)
                     .setInterpolator(DecelerateInterpolator())
                     .start()
@@ -66,8 +53,8 @@ class ToolbarController(val activity: WeechatActivity) : DefaultLifecycleObserve
 
         if (toolbarShown) {
             toolbarShown = false
-            toolbarContainer.animate()
-                    .translationY(-toolbarContainer.bottom.f)
+            activity.ui.toolbarContainer.animate()
+                    .translationY(-activity.ui.toolbarContainer.bottom.f)
                     .setInterpolator(AccelerateInterpolator())
                     .start()
         }

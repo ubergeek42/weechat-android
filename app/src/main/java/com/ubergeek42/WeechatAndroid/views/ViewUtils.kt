@@ -33,6 +33,13 @@ inline fun View.updateMargins(top: Int? = null, bottom: Int? = null, left: Int? 
     }
 }
 
+inline fun View.updateDimensions(width: Int? = null, height: Int? = null) {
+    updateLayoutParams<ViewGroup.MarginLayoutParams> {
+        if (width != null) this.width = width
+        if (height != null) this.height = height
+    }
+}
+
 
 // LinearLayoutManager does not respect setStackFromEnd
 // while performing scrollToPositionWithOffset. this is a workaround for this bug.

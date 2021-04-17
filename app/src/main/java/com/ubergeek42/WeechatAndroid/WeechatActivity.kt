@@ -40,10 +40,10 @@ import androidx.core.content.ContextCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.DialogFragment
 import androidx.preference.PreferenceManager
-import androidx.viewpager.widget.ViewPager
 import com.ubergeek42.WeechatAndroid.CutePagerTitleStrip.CutePageChangeListener
 import com.ubergeek42.WeechatAndroid.adapters.BufferListClickListener
 import com.ubergeek42.WeechatAndroid.adapters.MainPagerAdapter
+import com.ubergeek42.WeechatAndroid.databinding.WeaselBinding
 import com.ubergeek42.WeechatAndroid.dialogs.CertificateDialog
 import com.ubergeek42.WeechatAndroid.dialogs.NicklistDialog
 import com.ubergeek42.WeechatAndroid.dialogs.ScrollableDialog
@@ -98,26 +98,22 @@ import kotlin.system.exitProcess
 class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListClickListener {
     private var uiMenu: Menu? = null
 
-    private lateinit var uiPager: ViewPager
     private lateinit var pagerAdapter: MainPagerAdapter
     lateinit var imm: InputMethodManager
 
     private var slidy = false
 
-    private lateinit var uiWeaselBackground: View
-    private lateinit var uiToolbarContainer: View
-
+    lateinit var ui: WeaselBinding
     private lateinit var uiDrawerLayout: DrawerLayout
     private lateinit var uiDrawer: View
     private lateinit var drawerToggle: ActionBarDrawerToggle
-    private lateinit var uiKitty: ImageView
 
     private lateinit var menuBackgroundDrawable: Drawable
 
-    val toolbarController = ToolbarController(this).apply { observeLifecycle() }
-
     @get:MainThread var isPagerNoticeablyObscured = false
         private set
+
+    val toolbarController = ToolbarController(this).apply { observeLifecycle() }
 
     init { WeechatActivityFullScreenController(this).observeLifecycle() }
 
@@ -135,7 +131,10 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
         }
 
         setContentView(R.layout.main_screen)
-        setSupportActionBar(findViewById(R.id.toolbar))
+        ui = WeaselBinding.bind(findViewById(android.R.id.content))
+        uiDrawer = findViewById(R.id.bufferlist_fragment)
+
+        setSupportActionBar(ui.toolbar)
 
         // remove window color so that we get low overdraw
         window.setBackgroundDrawableResource(android.R.color.transparent)
@@ -144,18 +143,11 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
         // TODO remove this once the bug has been fixed
         ThemeFix.fixLightStatusAndNavigationBar(this)
 
-        uiWeaselBackground = findViewById(R.id.weasel_background)
-        uiToolbarContainer = findViewById(R.id.toolbar_container)
+        pagerAdapter = MainPagerAdapter(supportFragmentManager, ui.pager)
+        ui.pager.adapter = pagerAdapter
 
-        uiPager = findViewById(R.id.main_viewpager)
-        uiKitty = findViewById(R.id.kitty)
-        uiDrawer = findViewById(R.id.bufferlist_fragment)
-
-        pagerAdapter = MainPagerAdapter(supportFragmentManager, uiPager)
-        uiPager.adapter = pagerAdapter
-
-        findViewById<CutePagerTitleStrip>(R.id.cute_pager_title_strip).run {
-            setViewPager(uiPager)
+        ui.cutePagerTitleStrip.run {
+            setViewPager(ui.pager)
             setOnPageChangeListener(this@WeechatActivity)
         }
 
@@ -168,8 +160,8 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
 
         // this is the text view behind the uiPager
         // it says stuff like 'connecting', 'disconnected' et al
-        uiKitty.setImageDrawable(SimpleTransitionDrawable())
-        uiKitty.setOnClickListener {
+        ui.kitty.setImageDrawable(SimpleTransitionDrawable())
+        ui.kitty.setOnClickListener {
             if (connectionState.isStarted) disconnect() else connect()
         }
 
@@ -186,7 +178,7 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
                     R.string.ui__ActionBarDrawerToggle__close_drawer) {
                 override fun onDrawerSlide(offset: Float) {
                     drawerVisibilityChanged(offset > 0)
-                    uiWeaselBackground.translationX = drawerWidth * offset * 0.8f
+                    ui.weaselBackground.translationX = drawerWidth * offset * 0.8f
                 }
             }
             drawerToggle.isDrawerSlideAnimationEnabled = false
@@ -383,7 +375,7 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
         hideSoftwareKeyboard()
         toolbarController.onPageChangedOrSelected()
         if (needToChangeKittyVisibility) {
-            uiKitty.visibility = if (pagerAdapter.count == 0) View.VISIBLE else View.GONE
+            ui.kitty.visibility = if (pagerAdapter.count == 0) View.VISIBLE else View.GONE
             applyMainBackgroundColor()
         }
     }
@@ -558,7 +550,7 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
     }
 
     @MainThread fun hideSoftwareKeyboard() {
-        imm.hideSoftInputFromWindow(uiPager.windowToken, 0)
+        imm.hideSoftInputFromWindow(ui.pager.windowToken, 0)
     }
 
     @MainThread override fun onBackPressed() {
@@ -613,7 +605,7 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
     @MainThread @Cat private fun setKittyImage(resourceId: Int) {
         if (kittyImageResourceId == resourceId) return
         kittyImageResourceId = resourceId
-        val drawable = uiKitty.drawable as SimpleTransitionDrawable
+        val drawable = ui.kitty.drawable as SimpleTransitionDrawable
         drawable.setTarget(AppCompatResources.getDrawable(this, resourceId))
         drawable.startTransition(350)
     }
@@ -677,12 +669,12 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
 
     private fun applyColorSchemeToViews() {
         applyMainBackgroundColor()
-        uiToolbarContainer.setBackgroundColor(P.colorPrimary)
+        ui.toolbarContainer.setBackgroundColor(P.colorPrimary)
     }
 
     // to reduce overdraw, change background color instead of drawing over it
     private fun applyMainBackgroundColor() {
-        uiWeaselBackground.setBackgroundColor(if (pagerAdapter.count == 0) {
+        ui.weaselBackground.setBackgroundColor(if (pagerAdapter.count == 0) {
             P.colorPrimary
         } else {
             ColorScheme.get().default_color[ColorScheme.OPT_BG].solidColor
@@ -692,9 +684,9 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
     @MainThread fun enableDisableExclusionRects() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q || !slidy) return
 
-        uiPager.post {
-            val pagerHeight = uiPager.height
-            uiPager.systemGestureExclusionRects = if (P.useGestureExclusionZone) {
+        ui.pager.post {
+            val pagerHeight = ui.pager.height
+            ui.pager.systemGestureExclusionRects = if (P.useGestureExclusionZone) {
                 listOf(Rect(0, pagerHeight / 2, 200, pagerHeight))
             } else {
                 emptyList()
