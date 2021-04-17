@@ -20,7 +20,7 @@
         android:gravity="center">
 
         <TextView
-            android:id="@+id/versionStr"
+            android:id="@+id/version_string"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/etc__application_name"
@@ -32,7 +32,7 @@
             android:text="@string/pref__about__created_by" />
 
         <TextView
-            android:id="@+id/versionID"
+            android:id="@+id/build_id"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/pref__about__unknown_version_id" />
