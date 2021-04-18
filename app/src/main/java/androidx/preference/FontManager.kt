@@ -7,6 +7,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.graphics.Typeface
+import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.upload.Suri
 import com.ubergeek42.WeechatAndroid.upload.resolver
 import com.ubergeek42.WeechatAndroid.upload.suppress
@@ -74,7 +75,8 @@ internal object FontManager {
         }
 
         if (imported.isNotEmpty()) {
-            Toaster.SuccessToast.show("Imported: " + imported.joinToString(", "))
+            Toaster.SuccessToast.show(context.getString(R.string.pref__FontPreference__imported,
+                                                        imported.joinToString(", ")))
         }
     }
 }

@@ -35,7 +35,7 @@ class ThemePreference(context: Context?, attrs: AttributeSet?) : DialogPreferenc
                 ThemeInfo.fromPath(path).name
             } catch (e: Exception) {
                 Toaster.ErrorToast.show(e)
-                "Error"
+                context.getString(R.string.pref__ThemePreference__error)
             }
         }
     }
@@ -60,7 +60,7 @@ class ThemePreference(context: Context?, attrs: AttributeSet?) : DialogPreferenc
             val currentIndex = themes.indexOfFirst { it.path == currentPath }   // -1 is ok
 
             builder.setSingleChoiceItems(themeNames, currentIndex, this)
-            builder.setPositiveButton("Import") { _, _ ->
+            builder.setPositiveButton(getString(R.string.pref__ThemePreference__import_button)) { _, _ ->
                 ThemeManager.requestThemeImport(requireActivity())
                 dismiss()
             }

@@ -621,12 +621,6 @@
 
     <string name="pref__look_n_feel__font">
         Zeichensatz für Buffer</string>
-    <string name="pref__FontPreference__summary">
-        Nicht-Monospace-Schriftarten funktionieren nicht gut mit der Präfix-Ausrichtung.
-        Suchpfad:%1$s
-        \n
-        \nAktueller Zeichensatz:
-        \n&nbsp;&nbsp;&nbsp;&nbsp;%2$s</string>
     <string name="pref__FontPreference__default">Standard</string>
 
     <!-- ####################################################################################### -->
@@ -649,16 +643,6 @@
     <string name="pref__theme__color_scheme_dark">Dunkles Farbschema</string>
     <string name="pref__ThemeManager__error_loading_color_scheme">Fehler beim Laden des Farbschema %s</string>
     <string name="pref__ThemePreference__not_set">Nicht gesetzt</string>
-
-    <string name="pref__ThemePreferenceHelp__summary"><![CDATA[
-        Sie können benutzerdefinierte Farbschemata für diese Applikation erstellen.
-        Verwenden Sie beliebige Farben für die UI-Elemente,
-        passen Sie die Farben für Highlights und Lesezeichen an
-        und ändern Sie die WeeChat Farbpalette!
-        <a href="https://github.com/ubergeek42/weechat-android/wiki/Custom-Color-Schemes">Lerne mehr</a>
-        <br>
-        <br>Kopieren Sie Ihr benutzerdefiniertes Farbschema in einen dieser Ordner:%1$s
-    ]]></string>
 
     <string name="pref__theme__dim_down_non_human_lines">
         Abdunkeln von Zeilen die automatisch erstellt wurden</string>

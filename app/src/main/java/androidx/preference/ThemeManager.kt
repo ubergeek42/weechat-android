@@ -3,6 +3,7 @@ package androidx.preference
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.upload.Suri
 import com.ubergeek42.WeechatAndroid.upload.applicationContext
@@ -86,7 +87,8 @@ object ThemeManager {
             }
         }
 
-        Toaster.SuccessToast.show("Imported: " + imported.joinToString(", "))
+        Toaster.SuccessToast.show(context.getString(R.string.pref__ThemePreference__imported,
+                                                    imported.joinToString(", ")))
     }
 }
 

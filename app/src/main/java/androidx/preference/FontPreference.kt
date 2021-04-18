@@ -59,7 +59,7 @@ class FontPreference(context: Context?, attrs: AttributeSet?) : DialogPreference
             val currentIndex = fonts.indexOfFirst { it.path == currentPath }  // -1 is ok
 
             builder.setSingleChoiceItems(FontAdapter(), currentIndex, this)
-            builder.setPositiveButton("Import") { _, _ ->
+            builder.setPositiveButton(getString(R.string.pref__FontPreference__import_button)) { _, _ ->
                 FontManager.requestFontImport(requireActivity())
                 dismiss()
             }
