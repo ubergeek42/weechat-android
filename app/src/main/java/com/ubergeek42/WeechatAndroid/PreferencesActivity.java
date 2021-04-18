@@ -1,8 +1,6 @@
 package com.ubergeek42.WeechatAndroid;
 
-import android.Manifest;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -13,21 +11,18 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.preference.CheckBoxPreference;
 import androidx.preference.DialogFragmentGetter;
 import androidx.preference.DialogPreference;
 import androidx.preference.FilePreference;
-import androidx.preference.FontPreference;
-import androidx.preference.FontPreferenceHelp;
+import androidx.preference.FontManager;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceGroup;
 import androidx.preference.PreferenceScreen;
 import androidx.preference.RingtonePreferenceFix;
-import androidx.preference.ThemePreference;
 import androidx.preference.ThemePreferenceHelp;
 
 import com.ubergeek42.WeechatAndroid.media.Config;
@@ -41,7 +36,7 @@ import java.util.Set;
 
 import okhttp3.HttpUrl;
 
-import static androidx.preference.FontPreferenceHelpKt.IMPORT_FONTS_REQUEST_CODE;
+import static androidx.preference.FontManagerKt.IMPORT_FONTS_REQUEST_CODE;
 import static androidx.preference.ThemePreferenceHelpKt.IMPORT_THEMES_REQUEST_CODE;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
 import static com.ubergeek42.WeechatAndroid.utils.Toaster.ErrorToast;
@@ -107,7 +102,7 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
 
         if (resultCode == RESULT_OK) {
             if (requestCode == IMPORT_FONTS_REQUEST_CODE) {
-                FontPreferenceHelp.onActivityResult(this, data);
+                FontManager.importFontsFromResultIntent(this, data);
             } else if (requestCode == IMPORT_THEMES_REQUEST_CODE) {
                 ThemePreferenceHelp.onActivityResult(this, data);
             }
