@@ -1,98 +1,80 @@
-package androidx.preference;
+package androidx.preference
 
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.res.TypedArray;
-import android.text.TextUtils;
-import android.util.AttributeSet;
+import android.content.Context
+import android.content.DialogInterface
+import android.content.res.TypedArray
+import android.text.TextUtils
+import android.util.AttributeSet
+import androidx.appcompat.app.AlertDialog
+import androidx.fragment.app.DialogFragment
+import androidx.preference.ThemeManager.ThemeInfo
+import androidx.preference.ThemeManager.enumerateThemes
+import androidx.preference.ThemePreferenceHelp.Companion.getThemeName
+import com.ubergeek42.WeechatAndroid.R
+import com.ubergeek42.WeechatAndroid.utils.Toaster
+import java.util.*
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
-import androidx.fragment.app.DialogFragment;
-
-import com.ubergeek42.WeechatAndroid.R;
-import com.ubergeek42.WeechatAndroid.utils.Toaster;
-
-import java.util.Collections;
-import java.util.LinkedList;
-
-public class ThemePreference extends DialogPreference implements DialogFragmentGetter {
-
+class ThemePreference(context: Context?, attrs: AttributeSet?) : DialogPreference(context, attrs), DialogFragmentGetter {
     ////////////////////////////////////////////////////////////////////////////////////////////////
+    private var defaultValue: String? = null
+    private val themePath: String?
+        private get() = sharedPreferences.getString(key, defaultValue)
 
-    private String defaultValue;
-
-    public ThemePreference(Context context, AttributeSet attrs) {
-        super(context, attrs);
+    private fun setThemePath(path: String) {
+        sharedPreferences.edit().putString(key, path).apply()
+        notifyChanged()
     }
 
-    private @Nullable String getThemePath() {
-        return getSharedPreferences().getString(getKey(), defaultValue);
+    override fun onGetDefaultValue(a: TypedArray, index: Int): Any {
+        return a.getString(index).also { defaultValue = it }!!
     }
 
-    private void setThemePath(String path) {
-        getSharedPreferences().edit().putString(getKey(), path).apply();
-        notifyChanged();
-    }
-
-
-    @Override protected Object onGetDefaultValue(TypedArray a, int index) {
-        return defaultValue = a.getString(index);
-    }
-
-    @Override public CharSequence getSummary() {
-        String path = getThemePath();
-        if (TextUtils.isEmpty(path)) {
-            return getContext().getString(R.string.pref__ThemePreference__not_set);
+    override fun getSummary(): CharSequence {
+        val path = themePath
+        return if (TextUtils.isEmpty(path)) {
+            context.getString(R.string.pref__ThemePreference__not_set)
         } else {
             try {
-                //noinspection ConstantConditions
-                return ThemePreferenceHelp.getThemeName(getContext(), path);
-            } catch (Exception e) {
-                Toaster.ErrorToast.show(e);
-                return "Error";
+                getThemeName(context, path!!)
+            } catch (e: Exception) {
+                Toaster.ErrorToast.show(e)
+                "Error"
             }
         }
     }
 
-    @NonNull @Override public DialogFragment getDialogFragment() {
-        return new ThemePreferenceFragment();
+    override fun getDialogFragment(): DialogFragment {
+        return ThemePreferenceFragment()
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    public static class ThemePreferenceFragment extends PreferenceDialogFragmentCompat implements DialogInterface.OnClickListener {
-
-        private LinkedList<ThemeManager.ThemeInfo> themes;
-
-        protected void onPrepareDialogBuilder(AlertDialog.Builder builder) {
-            super.onPrepareDialogBuilder(builder);
-
-            themes = ThemeManager.enumerateThemes(requireContext());
-            Collections.sort(themes);
+    class ThemePreferenceFragment : PreferenceDialogFragmentCompat(), DialogInterface.OnClickListener {
+        private var themes: LinkedList<ThemeInfo>? = null
+        override fun onPrepareDialogBuilder(builder: AlertDialog.Builder) {
+            super.onPrepareDialogBuilder(builder)
+            themes = enumerateThemes(requireContext())
+            Collections.sort(themes)
 
             // find index of the current theme, and while we are at it
             // create a CharSequence[] copy of the theme name list
-            CharSequence[] list = new CharSequence[themes.size()];
-            String currentPath = ((ThemePreference) getPreference()).getThemePath();
-            int idx = 0, checked_item = 0;
-            for (ThemeManager.ThemeInfo theme : themes) {
-                if (theme.path.equals(currentPath)) checked_item = idx;
-                list[idx] = theme.name;
-                idx++;
+            val list = arrayOfNulls<CharSequence>(themes!!.size)
+            val currentPath = (preference as ThemePreference).themePath
+            var idx = 0
+            var checked_item = 0
+            for (theme in themes!!) {
+                if (theme.path == currentPath) checked_item = idx
+                list[idx] = theme.name
+                idx++
             }
-
-            builder.setSingleChoiceItems(list, checked_item, this);
-            builder.setPositiveButton(null, null);
+            builder.setSingleChoiceItems(list, checked_item, this)
+            builder.setPositiveButton(null, null)
         }
 
-        public void onClick(DialogInterface dialog, int which) {
-            if (which >= 0)
-                ((ThemePreference) getPreference()).setThemePath(themes.get(which).path);
-            dialog.dismiss();
+        override fun onClick(dialog: DialogInterface, which: Int) {
+            if (which >= 0) (preference as ThemePreference).setThemePath(themes!![which].path)
+            dialog.dismiss()
         }
 
-        @Override public void onDialogClosed(boolean b) {}
+        override fun onDialogClosed(b: Boolean) {}
     }
 }
