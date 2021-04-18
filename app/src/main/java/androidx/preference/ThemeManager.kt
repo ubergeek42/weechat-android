@@ -1,11 +1,19 @@
 package androidx.preference
 
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import com.ubergeek42.WeechatAndroid.service.P
+import com.ubergeek42.WeechatAndroid.upload.Suri
 import com.ubergeek42.WeechatAndroid.upload.applicationContext
+import com.ubergeek42.WeechatAndroid.upload.resolver
 import com.ubergeek42.WeechatAndroid.upload.suppress
 import com.ubergeek42.WeechatAndroid.utils.Constants
+import com.ubergeek42.WeechatAndroid.utils.Toaster
+import com.ubergeek42.WeechatAndroid.utils.getUris
+import com.ubergeek42.WeechatAndroid.utils.saveUriToFile
 import com.ubergeek42.weechat.ColorScheme
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import java.io.File
 import java.io.FileInputStream
 import java.util.*
@@ -49,6 +57,37 @@ object ThemeManager {
     }
 
     fun enumerateThemes(context: Context) = context.getAssetThemes() + context.getExternalThemes()
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    fun requestThemeImport(activity: Activity) {
+        activity.startActivityForResult(importThemesIntent, IMPORT_THEMES_REQUEST_CODE, null)
+    }
+
+    @JvmStatic fun importThemesFromResultIntent(context: Context, intent: Intent?) {
+        val imported = sequence {
+            intent?.getUris()?.forEach { uri ->
+                suppress<Exception>(showToast = true) {
+                    val mediaType = resolver.getType(uri)?.toMediaTypeOrNull()
+                    val fileName = Suri.makeFileNameWithExtension(uri, mediaType)
+                    val folder = context.getExternalFilesDir(CUSTOM_THEMES_DIRECTORY)
+                    val file = File(folder, fileName)
+
+                    val themeName = try {
+                        context.saveUriToFile(uri, file)
+                        ThemeInfo.fromPath(file.path).name
+                    } catch (e: Exception) {
+                        file.delete()
+                        throw e
+                    }
+
+                    yield(themeName)
+                }
+            }
+        }
+
+        Toaster.SuccessToast.show("Imported: " + imported.joinToString(", "))
+    }
 }
 
 
@@ -70,4 +109,18 @@ class ThemeInfo(
             return ThemeInfo(name, path, properties)
         }
     }
+}
+
+
+const val CUSTOM_THEMES_DIRECTORY = "themes"
+const val IMPORT_THEMES_REQUEST_CODE = 1235
+
+
+// neither text/plain nor text/x-java-properties pick properties
+private val importThemesIntent = Intent(Intent.ACTION_GET_CONTENT).apply {
+    type = "*/*"
+    flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or
+            Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION
+    addCategory(Intent.CATEGORY_OPENABLE)
+    putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
 }

@@ -7,7 +7,6 @@ import android.util.AttributeSet
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import androidx.preference.ThemeManager.enumerateThemes
-import androidx.preference.ThemePreferenceHelp.Companion.getThemeName
 import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.utils.Toaster
 
@@ -33,7 +32,7 @@ class ThemePreference(context: Context?, attrs: AttributeSet?) : DialogPreferenc
             context.getString(R.string.pref__ThemePreference__not_set)
         } else {
             try {
-                getThemeName(context, path)
+                ThemeInfo.fromPath(path).name
             } catch (e: Exception) {
                 Toaster.ErrorToast.show(e)
                 "Error"
@@ -61,7 +60,10 @@ class ThemePreference(context: Context?, attrs: AttributeSet?) : DialogPreferenc
             val currentIndex = themes.indexOfFirst { it.path == currentPath }   // -1 is ok
 
             builder.setSingleChoiceItems(themeNames, currentIndex, this)
-            builder.setPositiveButton(null, null)
+            builder.setPositiveButton("Import") { _, _ ->
+                ThemeManager.requestThemeImport(requireActivity())
+                dismiss()
+            }
         }
 
         override fun onClick(dialog: DialogInterface, which: Int) {

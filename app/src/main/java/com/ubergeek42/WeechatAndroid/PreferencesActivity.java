@@ -23,7 +23,7 @@ import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceGroup;
 import androidx.preference.PreferenceScreen;
 import androidx.preference.RingtonePreferenceFix;
-import androidx.preference.ThemePreferenceHelp;
+import androidx.preference.ThemeManager;
 
 import com.ubergeek42.WeechatAndroid.media.Config;
 import com.ubergeek42.WeechatAndroid.service.P;
@@ -37,7 +37,7 @@ import java.util.Set;
 import okhttp3.HttpUrl;
 
 import static androidx.preference.FontManagerKt.IMPORT_FONTS_REQUEST_CODE;
-import static androidx.preference.ThemePreferenceHelpKt.IMPORT_THEMES_REQUEST_CODE;
+import static androidx.preference.ThemeManagerKt.IMPORT_THEMES_REQUEST_CODE;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
 import static com.ubergeek42.WeechatAndroid.utils.Toaster.ErrorToast;
 
@@ -104,7 +104,7 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
             if (requestCode == IMPORT_FONTS_REQUEST_CODE) {
                 FontManager.importFontsFromResultIntent(this, data);
             } else if (requestCode == IMPORT_THEMES_REQUEST_CODE) {
-                ThemePreferenceHelp.onActivityResult(this, data);
+                ThemeManager.importThemesFromResultIntent(this, data);
             }
         }
     }
