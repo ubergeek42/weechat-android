@@ -12,6 +12,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 
 import com.ubergeek42.WeechatAndroid.R;
+import com.ubergeek42.WeechatAndroid.utils.Toaster;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -41,7 +42,18 @@ public class ThemePreference extends DialogPreference implements DialogFragmentG
     }
 
     @Override public CharSequence getSummary() {
-        return TextUtils.isEmpty(getThemePath()) ? getContext().getString(R.string.pref__ThemePreference__not_set) : getThemePath();
+        String path = getThemePath();
+        if (TextUtils.isEmpty(path)) {
+            return getContext().getString(R.string.pref__ThemePreference__not_set);
+        } else {
+            try {
+                //noinspection ConstantConditions
+                return ThemePreferenceHelp.getThemeName(getContext(), path);
+            } catch (Exception e) {
+                Toaster.ErrorToast.show(e);
+                return "Error";
+            }
+        }
     }
 
     @NonNull @Override public DialogFragment getDialogFragment() {
