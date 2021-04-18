@@ -5,41 +5,41 @@ package androidx.preference
 
 import android.content.Context
 import android.graphics.Typeface
+import com.ubergeek42.WeechatAndroid.upload.suppress
 import java.io.File
 import java.util.*
 
 internal object FontManager {
     fun getFontSearchDirectories(context: Context): List<String> {
-        val out: MutableList<String> = ArrayList(listOf("/system/fonts"))
-        val appSpecificFontFolder = context.getExternalFilesDir(CUSTOM_FONTS_DIRECTORY)
-        if (appSpecificFontFolder != null) out.add(appSpecificFontFolder.toString())
-        return out
+        val internalFontFolder = context.getExternalFilesDir(CUSTOM_FONTS_DIRECTORY)
+        return if (internalFontFolder != null) {
+            listOf("/system/fonts", internalFontFolder.toString())
+        } else {
+            listOf("/system/fonts")
+        }
     }
 
-    fun enumerateFonts(context: Context): LinkedList<FontInfo> {
-        val fonts = LinkedList<FontInfo>()
-        for (directory in getFontSearchDirectories(context)) {
-            val dir = File(directory)
-            if (!dir.exists()) continue
-            val files = dir.listFiles() ?: continue
-            for (file in files) {
-                val fileName = file.name.toLowerCase()
-                if (fileName.endsWith(".ttf") || fileName.endsWith(".otf")) {
-                    try {
+    fun enumerateFonts(context: Context): List<FontInfo> {
+        val fonts = mutableListOf<FontInfo>()
+
+        getFontSearchDirectories(context).forEach { directoryName ->
+            val directory = File(directoryName)
+            if (directory.exists()) {
+                directory.listFiles()?.forEach { file ->
+                    suppress<Exception>(showToast = true) {
                         val typeface = Typeface.createFromFile(file.absolutePath)
                         fonts.add(FontInfo(file.name, file.absolutePath, typeface))
-                    } catch (r: RuntimeException) {
-                        // Invalid font
                     }
                 }
             }
         }
+
         return fonts
     }
-
-    class FontInfo internal constructor(var name: String, var path: String, var typeface: Typeface) : Comparable<FontInfo> {
-        override fun compareTo(another: FontInfo): Int {
-            return name.compareTo(another.name)
-        }
-    }
 }
+
+internal class FontInfo (
+    var name: String,
+    var path: String,
+    var typeface: Typeface
+)

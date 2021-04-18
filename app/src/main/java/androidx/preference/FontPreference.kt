@@ -13,33 +13,26 @@ import android.widget.CheckedTextView
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
-import androidx.preference.DialogFragmentGetter
-import androidx.preference.FontPreference.FontPreferenceFragment
-import androidx.preference.PreferenceDialogFragmentCompat
-import androidx.preference.FontPreference
-import androidx.preference.FontPreference.FontPreferenceFragment.FontAdapter
-import androidx.preference.PreferenceViewHolder
 import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.utils.Constants
 import java.io.File
-import java.util.*
 
-class FontPreference  ////////////////////////////////////////////////////////////////////////////////////////////////
-(context: Context?, attrs: AttributeSet?) : DialogPreference(context, attrs), DialogFragmentGetter {
+
+class FontPreference(context: Context?, attrs: AttributeSet?) : DialogPreference(context, attrs), DialogFragmentGetter {
     private var fontPath: String
-        private get() {
-            var path = sharedPreferences.getString(key, Constants.PREF_BUFFER_FONT_D)
-            if ("" != path) path = File(path).name
-            return path!!
-        }
-        private set(path) {
+        get() = sharedPreferences.getString(key, Constants.PREF_BUFFER_FONT_D) ?: ""
+        set(path) {
             sharedPreferences.edit().putString(key, path).apply()
             notifyChanged()
         }
 
     override fun getSummary(): CharSequence {
         val path = fontPath
-        return if ("" == path) context.getString(R.string.pref__FontPreference__default) else path
+        return if (path.isEmpty()) {
+            context.getString(R.string.pref__FontPreference__default)
+        } else {
+            File(path).name
+        }
     }
 
     override fun getDialogFragment(): DialogFragment {
@@ -47,66 +40,54 @@ class FontPreference  //////////////////////////////////////////////////////////
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
+
     class FontPreferenceFragment : PreferenceDialogFragmentCompat(), DialogInterface.OnClickListener {
-        private var fonts: LinkedList<FontManager.FontInfo>? = null
-        private var inflater: LayoutInflater? = null
+        private lateinit var fonts: List<FontInfo>
+        private lateinit var inflater: LayoutInflater
+
+        @OptIn(ExperimentalStdlibApi::class)
         override fun onPrepareDialogBuilder(builder: AlertDialog.Builder) {
             super.onPrepareDialogBuilder(builder)
-            inflater = requireContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
-            fonts = FontManager.enumerateFonts(requireContext())
-            Collections.sort(fonts)
+            inflater = LayoutInflater.from(context)
 
-            // add a "fake" default monospace font
-            fonts!!.addFirst(FontManager.FontInfo(getString(R.string.pref__FontPreference__default), "", Typeface.MONOSPACE))
+            val fakeDefaultFontName = getString(R.string.pref__FontPreference__default)
+            val fakeDefaultFont = FontInfo(fakeDefaultFontName, "", Typeface.MONOSPACE)
+            val managerFonts = FontManager.enumerateFonts(requireContext())
+            fonts = listOf(fakeDefaultFont) + managerFonts.sortedBy { it.name.lowercase() }
 
-            // get index of currently selected font
             val currentPath = (preference as FontPreference).fontPath
-            var idx = 0
-            var checked_item = 0
-            for (font in fonts!!) {
-                if (font.path == currentPath) {
-                    checked_item = idx
-                    break
-                }
-                idx++
-            }
-            builder.setSingleChoiceItems(FontAdapter(), checked_item, this)
+            val currentIndex = fonts.indexOfFirst { it.path == currentPath }  // -1 is ok
+
+            builder.setSingleChoiceItems(FontAdapter(), currentIndex, this)
             builder.setPositiveButton(null, null)
         }
 
         override fun onClick(dialog: DialogInterface, which: Int) {
-            if (which >= 0) (preference as FontPreference).fontPath = fonts!![which].path
+            if (which >= 0) (preference as FontPreference).fontPath = fonts[which].path
             dialog.dismiss()
         }
 
         override fun onDialogClosed(b: Boolean) {}
 
         ////////////////////////////////////////////////////////////////////////////////////////////
-        inner class FontAdapter : BaseAdapter() {
-            override fun getCount(): Int {
-                return fonts!!.size
-            }
 
-            override fun getItem(position: Int): Any {
-                return fonts!![position]
-            }
+        private inner class FontAdapter : BaseAdapter() {
+            override fun getCount() = fonts.size
+            override fun getItem(position: Int) = fonts[position]
+            override fun getItemId(position: Int) = position.toLong()
 
-            override fun getItemId(position: Int): Long {
-                return position.toLong()
-            }
+            override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+                val view = convertView ?: inflater.inflate(androidx.appcompat.R.layout.select_dialog_singlechoice_material, parent, false)
+                val textView = view.findViewById<CheckedTextView>(android.R.id.text1)
 
-            override fun getView(position: Int, view: View, parent: ViewGroup): View {
-                var view = view
-                if (view == null) {
-                    view = inflater!!.inflate(androidx.appcompat.R.layout.select_dialog_singlechoice_material, parent, false)
-                    val tv = view.findViewById<CheckedTextView>(android.R.id.text1)
-                    tv.ellipsize = TextUtils.TruncateAt.END
-                    tv.setSingleLine()
+                val fontInfo = getItem(position)
+                textView.apply {
+                    ellipsize = TextUtils.TruncateAt.END
+                    setSingleLine()
+                    typeface = fontInfo.typeface
+                    text = fontInfo.name
                 }
-                val font = getItem(position) as FontManager.FontInfo
-                val tv = view.findViewById<CheckedTextView>(android.R.id.text1)
-                tv.typeface = font.typeface
-                tv.text = font.name
+
                 return view
             }
         }
