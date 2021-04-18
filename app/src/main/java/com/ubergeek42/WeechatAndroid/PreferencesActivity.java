@@ -124,22 +124,9 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
         private Preference sshGroup = null;
         private Preference wsPath = null;
 
-        private Preference resumePreference;
-
         // don't check permissions if preference is null, instead use resumePreference
         @Override public void onDisplayPreferenceDialog(Preference preference) {
             final DialogFragment f;
-
-            if (preference == null) {
-                preference = resumePreference;
-            } else if (preference instanceof FontPreference || preference instanceof ThemePreference) {
-                boolean granted = ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
-                if (!granted) {
-                    requestPermissions(new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE}, 0);
-                    resumePreference = preference;
-                    return;
-                }
-            }
 
             int code = -1;
             if (preference instanceof FilePreference) {

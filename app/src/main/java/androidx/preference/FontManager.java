@@ -6,21 +6,21 @@ package androidx.preference;
 
 import android.content.Context;
 import android.graphics.Typeface;
-import android.os.Environment;
 
 import androidx.annotation.NonNull;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import static androidx.preference.FontPreferenceHelpKt.CUSTOM_FONTS_DIRECTORY;
+
 class FontManager {
     static List<String> getFontSearchDirectories(Context context) {
-        List<String> out = new ArrayList<>(Arrays.asList("/system/fonts",
-                Environment.getExternalStorageDirectory().toString() + "/weechat"));
-        File appSpecificFontFolder = context.getExternalFilesDir("fonts");
+        List<String> out = new ArrayList<>(Collections.singletonList("/system/fonts"));
+        File appSpecificFontFolder = context.getExternalFilesDir(CUSTOM_FONTS_DIRECTORY);
         if (appSpecificFontFolder != null)
             out.add(appSpecificFontFolder.toString());
         return out;

@@ -22,6 +22,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 
+import static androidx.preference.ThemePreferenceHelpKt.CUSTOM_THEMES_DIRECTORY;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_COLOR_SCHEME_DAY;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_COLOR_SCHEME_DAY_D;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_COLOR_SCHEME_NIGHT;
@@ -33,9 +34,8 @@ public class ThemeManager {
     final private static @Root Kitty kitty = Kitty.make();
 
     static List<String> getThemeSearchDirectories(Context context) {
-        List<String> out = new ArrayList<>(Collections.singletonList(
-                Environment.getExternalStorageDirectory().toString() + "/weechat"));
-        File appSpecificFontFolder = context.getExternalFilesDir("themes");
+        List<String> out = new ArrayList<>();
+        File appSpecificFontFolder = context.getExternalFilesDir(CUSTOM_THEMES_DIRECTORY);
         if (appSpecificFontFolder != null)
             out.add(appSpecificFontFolder.toString());
         return out;

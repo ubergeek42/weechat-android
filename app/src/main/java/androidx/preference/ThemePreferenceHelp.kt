@@ -13,7 +13,6 @@ import com.ubergeek42.WeechatAndroid.utils.Toaster
 import com.ubergeek42.WeechatAndroid.utils.getUris
 import com.ubergeek42.WeechatAndroid.utils.replaceLinksWithCustomActions
 import com.ubergeek42.WeechatAndroid.utils.saveUriToFile
-import com.ubergeek42.weechat.ColorScheme
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import java.io.File
 import java.io.FileInputStream
