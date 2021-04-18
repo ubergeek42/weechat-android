@@ -271,6 +271,10 @@
         <FontPreference
             android:key="buffer_font"
             android:title="@string/pref__look_n_feel__font" />
+        <FontPreferenceHelp
+            android:key="buffer_font_help"
+            android:selectable="false"
+            android:persistent="false" />
     </PreferenceScreen>
 
     <!-- theme -->

@@ -21,6 +21,7 @@ import androidx.preference.DialogFragmentGetter;
 import androidx.preference.DialogPreference;
 import androidx.preference.FilePreference;
 import androidx.preference.FontPreference;
+import androidx.preference.FontPreferenceHelp;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceGroup;
@@ -39,6 +40,7 @@ import java.util.Set;
 
 import okhttp3.HttpUrl;
 
+import static androidx.preference.FontPreferenceHelpKt.IMPORT_FONTS_REQUEST_CODE;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
 import static com.ubergeek42.WeechatAndroid.utils.Toaster.ErrorToast;
 
@@ -96,6 +98,16 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (resultCode == RESULT_OK) {
+            if (requestCode == IMPORT_FONTS_REQUEST_CODE) {
+                FontPreferenceHelp.onActivityResult(this, data);
+            }
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

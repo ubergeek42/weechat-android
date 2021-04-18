@@ -19,6 +19,7 @@ import androidx.fragment.app.DialogFragment;
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.utils.Constants;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.LinkedList;
 
@@ -30,9 +31,11 @@ public class FontPreference extends DialogPreference implements DialogFragmentGe
         super(context, attrs);
     }
 
+    @SuppressWarnings("ConstantConditions")
     private  @NonNull String getFontPath() {
-        //noinspection ConstantConditions
-        return getSharedPreferences().getString(getKey(), Constants.PREF_BUFFER_FONT_D);
+        String path = getSharedPreferences().getString(getKey(), Constants.PREF_BUFFER_FONT_D);
+        if (!"".equals(path)) path = new File(path).getName();
+        return path;
     }
 
     private void setFontPath(@NonNull String path) {
@@ -41,12 +44,10 @@ public class FontPreference extends DialogPreference implements DialogFragmentGe
     }
 
     @Override public CharSequence getSummary() {
-        StringBuilder sb = new StringBuilder();
-        for (String p: FontManager.getFontSearchDirectories(getContext()))
-            sb.append("\n    ").append(p);
-        return getContext().getString(R.string.pref__FontPreference__summary,
-                sb.toString(),
-                "".equals(getFontPath()) ? getContext().getString(R.string.pref__FontPreference__default) : getFontPath());
+        String path = getFontPath();
+        return "".equals(path) ?
+                getContext().getString(R.string.pref__FontPreference__default) :
+                path;
     }
 
     @NonNull @Override public DialogFragment getDialogFragment() {

@@ -2,11 +2,23 @@
 
 package com.ubergeek42.WeechatAndroid.utils
 
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.text.Editable
+import android.text.Spannable
 import android.text.TextWatcher
+import android.text.style.ClickableSpan
+import android.text.style.URLSpan
+import android.view.View
 import android.view.animation.Animation
 import android.widget.EditText
 import com.bumptech.glide.load.engine.GlideException
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
@@ -44,6 +56,26 @@ fun String.removeChars(badChars: CharSequence): CharSequence {
     return StringBuilder().also { builder ->
         this.forEach { char ->
             if (!badChars.contains(char)) builder.append(char)
+        }
+    }
+}
+
+
+fun Spannable.replaceLinksWithCustomActions(actions: Map<String, () -> Unit>) {
+    class CustomClickableSpan(val action: () -> Unit) : ClickableSpan() {
+        override fun onClick(widget: View) {
+            action()
+        }
+    }
+
+    val spans = this.getSpans(0, length, URLSpan::class.java)
+    spans.forEach {
+        actions[it.url]?.let { action ->
+            setSpan(CustomClickableSpan(action),
+                    getSpanStart(it),
+                    getSpanEnd(it),
+                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+            removeSpan(it)
         }
     }
 }
@@ -198,4 +230,36 @@ inline fun <A, B, C, D, R> let(a: A?, b: B?, c: C?, d: D?, block: (A, B, C, D) -
     } else {
         null
     }
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////// uri utils
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+fun Context.saveUriToFile(uri: Uri, file: File) {
+    file.setWritable(true)
+    val inputStream = contentResolver.openInputStream(uri)
+            ?: throw IOException("Could not open input stream for $uri")
+    val outputStream = FileOutputStream(file)
+    inputStream.writeTo(outputStream)
+}
+
+fun InputStream.writeTo(output: OutputStream) {
+    val buffer = ByteArray(1024 * 16)
+    var readLength: Int
+
+    while (true) {
+        readLength = read(buffer)
+        if (readLength == -1) return
+        output.write(buffer, 0, readLength)
+    }
+}
+
+fun Intent.getUris(): List<Uri> {
+    clipData?.let { clipData ->
+        return (0 until clipData.itemCount).map { clipData.getItemAt(it).uri }
+    }
+
+    return data?.let { listOf(it) } ?: listOf()
 }
