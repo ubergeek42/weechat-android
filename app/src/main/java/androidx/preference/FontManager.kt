@@ -1,68 +1,45 @@
 // Copyright (C) 2011 George Yunaev @ Ulduzsoft
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
+package androidx.preference
 
-package androidx.preference;
+import android.content.Context
+import android.graphics.Typeface
+import java.io.File
+import java.util.*
 
-import android.content.Context;
-import android.graphics.Typeface;
-
-import androidx.annotation.NonNull;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-
-import static androidx.preference.FontPreferenceHelpKt.CUSTOM_FONTS_DIRECTORY;
-
-class FontManager {
-    static List<String> getFontSearchDirectories(Context context) {
-        List<String> out = new ArrayList<>(Collections.singletonList("/system/fonts"));
-        File appSpecificFontFolder = context.getExternalFilesDir(CUSTOM_FONTS_DIRECTORY);
-        if (appSpecificFontFolder != null)
-            out.add(appSpecificFontFolder.toString());
-        return out;
+internal object FontManager {
+    fun getFontSearchDirectories(context: Context): List<String> {
+        val out: MutableList<String> = ArrayList(listOf("/system/fonts"))
+        val appSpecificFontFolder = context.getExternalFilesDir(CUSTOM_FONTS_DIRECTORY)
+        if (appSpecificFontFolder != null) out.add(appSpecificFontFolder.toString())
+        return out
     }
 
-    static @NonNull LinkedList<FontInfo> enumerateFonts(Context context) {
-        LinkedList<FontInfo> fonts = new LinkedList<>();
-
-        for (String directory : getFontSearchDirectories(context)) {
-            File dir = new File(directory);
-            if (!dir.exists()) continue;
-            File[] files = dir.listFiles();
-            if (files == null) continue;
-
-            for (File file : files) {
-                String fileName = file.getName().toLowerCase();
+    fun enumerateFonts(context: Context): LinkedList<FontInfo> {
+        val fonts = LinkedList<FontInfo>()
+        for (directory in getFontSearchDirectories(context)) {
+            val dir = File(directory)
+            if (!dir.exists()) continue
+            val files = dir.listFiles() ?: continue
+            for (file in files) {
+                val fileName = file.name.toLowerCase()
                 if (fileName.endsWith(".ttf") || fileName.endsWith(".otf")) {
                     try {
-                        Typeface typeface = Typeface.createFromFile(file.getAbsolutePath());
-                        fonts.add(new FontInfo(file.getName(), file.getAbsolutePath(), typeface));
-                    } catch (RuntimeException r) {
+                        val typeface = Typeface.createFromFile(file.absolutePath)
+                        fonts.add(FontInfo(file.name, file.absolutePath, typeface))
+                    } catch (r: RuntimeException) {
                         // Invalid font
                     }
                 }
             }
         }
-        return fonts;
+        return fonts
     }
 
-    static public class FontInfo implements Comparable<FontInfo> {
-        FontInfo(@NonNull String name, @NonNull String path, @NonNull Typeface typeface) {
-            this.name = name;
-            this.path = path;
-            this.typeface = typeface;
-        }
-
-        public @NonNull String name;
-        public @NonNull String path;
-        public @NonNull Typeface typeface;
-
-        @Override public int compareTo(@NonNull FontInfo another) {
-            return this.name.compareTo(another.name);
+    class FontInfo internal constructor(var name: String, var path: String, var typeface: Typeface) : Comparable<FontInfo> {
+        override fun compareTo(another: FontInfo): Int {
+            return name.compareTo(another.name)
         }
     }
 }
