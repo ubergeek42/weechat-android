@@ -15,7 +15,7 @@ dependencies {
 }
 
 android {
-    compileSdkVersion(29)
+    compileSdkVersion(30)
     buildToolsVersion("29.0.2")
 
     compileOptions {
@@ -35,7 +35,7 @@ android {
     }
 
     defaultConfig {
-        targetSdkVersion(29)
+        targetSdkVersion(30)
         minSdkVersion(16)
     }
 }
