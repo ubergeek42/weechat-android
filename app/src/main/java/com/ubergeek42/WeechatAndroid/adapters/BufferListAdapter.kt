@@ -76,7 +76,7 @@ class BufferListAdapter(
                     text = number.toString()
                     visibility = View.VISIBLE
                 } else {
-                    visibility = View.INVISIBLE
+                    visibility = View.GONE
                 }
             }
 
