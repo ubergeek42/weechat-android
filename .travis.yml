@@ -5,7 +5,7 @@ language: android
 
 before_script:
   - 'export PATH="$HOME/.local/bin:$PATH"'
-  - pyenv install --list
+  - curl https://pyenv.run | bash
   - pyenv install --skip-existing 3.6.13 && pyenv global 3.6.13
   - python3 -m pip install --upgrade pip
   - python3 -m pip install --user google-api-python-client oauth2client httplib2 pyOpenSSL
