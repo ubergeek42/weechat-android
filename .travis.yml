@@ -3,6 +3,13 @@ dist: focal
 virt: lxd
 language: android
 
+addons:
+  apt:
+    sources:
+      - sourceline: ppa:maarten-fonville/android-studio
+    packages:
+      - android-studio-4.2
+
 before_script:
   - 'export PATH="$HOME/.local/bin:$PATH"'
   - curl https://pyenv.run | bash
