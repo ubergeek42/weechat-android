@@ -162,7 +162,7 @@ class BufferListFragmentFullScreenController(val fragment: BufferListFragment) :
                                      0,
                                      systemWindowInsets.left)
         } else {
-            ui.filterClear.updateMargins(bottom = 0)
+            ui.bufferList.updateMargins(bottom = 0)
 
             layoutManager?.setInsets(systemWindowInsets.top,
                                      systemWindowInsets.bottom,
