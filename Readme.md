@@ -9,10 +9,8 @@ you will need to look elsewhere.
 [<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" alt="Get it on F-Droid" height="60">](https://f-droid.org/packages/com.ubergeek42.WeechatAndroid) 
 [<img src="https://play.google.com/intl/en_gb/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" height="60">](https://play.google.com/store/apps/details?id=com.ubergeek42.WeechatAndroid.dev)
 
-Please refer to the [quick start guide](https://github.com/ubergeek42/weechat-android/wiki/Quickstart-Guide) 
-for details. Make sure to check out our [FAQ](https://github.com/ubergeek42/weechat-android/wiki/FAQ).
-If you have problems connecting to WeeChat via SSL, note that while we support unsigned certificates,
-we are still verifying the hostname. This requires [additional care on Android](https://github.com/ubergeek42/weechat-android/wiki/Using-SSL-with-WeeChat).
+Follow our [Quickstart guide](https://github.com/ubergeek42/weechat-android/wiki/Quickstart-Guide) 
+to get up and running, and don't forget to read the [FAQ](https://github.com/ubergeek42/weechat-android/wiki/FAQ)!
 
 <a href="metadata/en-US/images/phoneScreenshots/screenshot-1.png"><img src="metadata/en-US/images/phoneScreenshots/screenshot-1.png" height="500px"></a>
 <a href="metadata/en-US/images/phoneScreenshots/screenshot-2.png"><img src="metadata/en-US/images/phoneScreenshots/screenshot-2.png" height="500px"></a>
@@ -23,21 +21,29 @@ we are still verifying the hostname. This requires [additional care on Android](
 
 ### Bug reports and contributing
 
-Please report any bugs or feature requests here on GitHub. You can also find us on #weechat-android 
-on freenode. When reporting an issue, please include build ID that you can find in Settings → About 
+Report any bugs or feature requests here on GitHub. You can also find us on #weechat-android 
+on freenode. When reporting an issue, make sure to include build ID that you can find in Settings → About 
 (looks something like “v0.13-123-g1234567”).
 
-It is easy to start contributing to Weechat-Android! Fork the repo, install Android Studio, choose
-“Check out from Version Control”, and you should be good to go. Pull requests are welcome—but please
-check with us on IRC before starting a substantial rewrite! For additional information, see:
- 
- * [Introduction to Android Studio](https://developer.android.com/studio/intro)
- * [WeeChat user’s guide](https://weechat.org/files/doc/devel/weechat_user.en.html)
- * [WeeChat developer’s guide](https://weechat.org/files/doc/devel/weechat_dev.en.html) 
- * [WeeChat Relay protocol](https://weechat.org/files/doc/devel/weechat_relay_protocol.en.html) 
- * [WeeChat plugin API reference](https://weechat.org/files/doc/devel/weechat_plugin_api.en.html) 
- 
+If you want to contribute, check out our 
+[Getting started with the code](https://github.com/ubergeek42/weechat-android/wiki/Getting-started-with-the-code)
+guide. It also includes instructions for building from command line. 
+Pull requests are welcome—but please check with us on IRC before starting a substantial rewrite!
+
 ### Changelog
+
+##### v1.6
+* Added search functionality
+* Added a floating “go to bottom” button
+* Added a connectivity indicator
+* Copy dialog can now select text and copy several messages at once
+* Interface is no longer locked up while disconnected
+* Chat lines are no longer thrown away when not synchronizing
+* Chat scroll position is now remembered on rotation
+* App is now drawn behind system bars on supported devices
+* Added new chat line change animations
+* Local tab completer is no longer used when completing command-like text
+* A lot of internal changes and bug fixes
 
 ##### v1.5.1
 * Fixed a crash when the password has never been set

@@ -1,0 +1,11 @@
+* Added search functionality
+* Added a floating “go to bottom” button
+* Added a connectivity indicator
+* Copy dialog can now select text and copy several messages at once
+* Interface is no longer locked up while disconnected
+* Chat lines are no longer thrown away when not synchronizing
+* Chat scroll position is now remembered on rotation
+* App is now drawn behind system bars on supported devices
+* Added new chat line change animations
+* Local tab completer is no longer used when completing command-like text
+* A lot of internal changes and bug fixes
