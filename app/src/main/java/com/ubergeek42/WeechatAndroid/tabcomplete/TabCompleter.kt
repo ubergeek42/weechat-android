@@ -8,7 +8,6 @@ import com.ubergeek42.WeechatAndroid.service.Events
 import com.ubergeek42.WeechatAndroid.upload.suppress
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
-import com.ubergeek42.weechat.relay.RelayMessageHandler
 import com.ubergeek42.weechat.relay.connection.Handshake
 import com.ubergeek42.weechat.relay.protocol.RelayObject
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -38,24 +37,29 @@ abstract class TabCompleter(val input: EditText) {
     companion object {
         @Root private val kitty = Kitty.make()
 
-        @JvmStatic
         fun obtain(lifecycle: Lifecycle, buffer: Buffer, input: EditText): TabCompleter {
             val localCompleter = LocalTabCompleter(buffer, input)
 
-            return if (canDoOnlineCompletions() && localCompleter.lacksCompletions()) {
+            return if (canDoOnlineCompletions() && (
+                            localCompleter.lacksCompletions() ||
+                            probablyCompletingCommand(input))) {
                 OnlineTabCompleter(lifecycle, buffer, input)
             } else {
                 localCompleter
             }
         }
 
-        @JvmStatic
         private fun canDoOnlineCompletions() = Handshake.weechatVersion >= 0x2090000
+
+        private fun probablyCompletingCommand(input: EditText): Boolean {
+            val textToTheLeftOfCursor = input.text.subSequence(0, input.selectionEnd)
+            return reProbableCommand.containsMatchIn(textToTheLeftOfCursor)
+        }
     }
 }
 
 suspend fun queryWeechat(message: String) = suspendCancellableCoroutine<RelayObject> {
-    val handler = RelayMessageHandler { obj, _ -> it.resume(obj) }
+    val handler = BufferList.HdataHandler { obj, _ -> it.resume(obj) }
     val id = BufferList.addOneOffMessageHandler(handler)
     Events.SendMessageEvent.fire("($id) $message")
 }
@@ -81,3 +85,6 @@ fun replacements(completions: List<String>, start: Int, baseWord: String, suffix
         }
     }.iterator()
 }
+
+
+private val reProbableCommand = """(^|\s)/($|\w+(\s|$))""".toRegex()

@@ -12,6 +12,7 @@ import com.bumptech.glide.load.resource.bitmap.CenterCrop;
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.bumptech.glide.request.RequestOptions;
 import com.ubergeek42.WeechatAndroid.relay.Line;
+import com.ubergeek42.WeechatAndroid.relay.LineSpec;
 import com.ubergeek42.WeechatAndroid.utils.DefaultHashMap;
 import com.ubergeek42.WeechatAndroid.utils.Network;
 import com.ubergeek42.cats.Cat;
@@ -68,7 +69,7 @@ public class Engine {
     }
 
     public static boolean isEnabledForLine(Line line) {
-        if (line.type == Line.Type.OTHER)
+        if (line.type == LineSpec.Type.Other)
             return false;
         if (lineFilters != null) {
             for (LineFilter filter : lineFilters)

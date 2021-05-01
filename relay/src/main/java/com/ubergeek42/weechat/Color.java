@@ -157,6 +157,7 @@ public class Color {
 
     // working vars of parseColor()
     private String msg;                                         // text currently being parsed by parseColors
+    private int msgLength;
     private int index;                                          // parsing position in this
     private Span[] spans = new Span[6];                         // list of currently open spans
 
@@ -175,12 +176,17 @@ public class Color {
     }
 
     private char getChar() {
-        if (index >= msg.length()) return ' ';
+        if (index >= msgLength) return ' ';
         return msg.charAt(index++);
     }
 
+    private void consumeChar() {
+        if (index >= msgLength) return;
+        index++;
+    }
+
     private char peekChar() {
-        if (index >= msg.length()) return ' ';
+        if (index >= msgLength) return ' ';
         return msg.charAt(index);
     }
 
@@ -247,7 +253,7 @@ public class Color {
     private void setColor(int type) {
         int color;
         boolean extended = (peekChar() == '@');
-        if (extended) getChar();
+        if (extended) consumeChar();
         if (type == Span.FGCOLOR) maybeSetAttributes();
         int which = type == Span.FGCOLOR ? 0 : 1;
         color = (extended) ? getColorExtended(which) : getColor(which);
@@ -290,7 +296,7 @@ public class Color {
             int type = getAttribute(peekChar());
             if (type < -1) return;                   // next char is not an attribute
             if (type > -1) addSpan(type);            // next char is an attribute
-            getChar();                               // consume if an attribute or “|”
+            consumeChar();                           // consume if an attribute or “|”
         }
     }
 
@@ -299,7 +305,7 @@ public class Color {
         int type = getAttribute(peekChar());
         if (type < -1) return;
         if (type > -1) addSpan(type);
-        getChar();
+        consumeChar();
     }
 
     // remove 1 attribute
@@ -307,7 +313,7 @@ public class Color {
         int type = getAttribute(peekChar());
         if (type < -1) return;
         if (type > -1) finalizeSpan(type);
-        getChar();
+        consumeChar();
     }
 
     // returns >= 0 if we've got useful attribute
@@ -336,6 +342,7 @@ public class Color {
         if (DEBUG) logger.debug("parseColors({})", msg);
 
         this.msg = msg;
+        this.msgLength = msg.length();
         index = 0;
         out = new StringBuffer();
         spanList.clear();
@@ -366,17 +373,17 @@ public class Color {
                             setColor(Span.FGCOLOR);
                             break;
                         case 'b':               // bars stuff. consume two chars
-                            getChar();
+                            index++;
                         case 'E':               // emphasise? consume one char
-                            getChar();
+                            index++;
                             break;
                         case 'F':               // foreground
                         case '*':               // foreground followed by ',' or '~' followed by background
-                            getChar();
+                            index++;
                             setColor(Span.FGCOLOR);
                             if (c == 'F' || (peekChar() != ',' && peekChar() != '~')) break;
                         case 'B':               // background (same as fg but w/o optional attributes)
-                            getChar();
+                            index++;
                             setColor(Span.BGCOLOR);
                             break;
                         default:

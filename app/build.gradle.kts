@@ -9,8 +9,7 @@ import org.aspectj.tools.ajc.Main
 plugins {
     id("com.android.application")
     kotlin("android")
-    kotlin("kapt") //version "1.4.10"
-    id("kotlin-android-extensions")
+    kotlin("kapt")
 }
 
 dependencies {
@@ -18,7 +17,7 @@ dependencies {
     implementation(project(":relay"))
 
     implementation("androidx.core:core-ktx:1.3.2")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.4.10")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.4.32")
 
     // these two are required for logging within the relay module. todo remove?
     implementation("org.slf4j:slf4j-api:1.7.30")
@@ -29,32 +28,33 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.2.0")
     implementation("androidx.preference:preference-ktx:1.1.1")  // preference fragment & al
     implementation("androidx.legacy:legacy-preference-v14:1.0.0") // styling for the fragment
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.2.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.0")
+    implementation("androidx.lifecycle:lifecycle-common-java8:2.3.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.4.1")
 
-    implementation("com.github.bumptech.glide:glide:4.11.0")
-    kapt("com.github.bumptech.glide:compiler:4.11.0")
+    implementation("com.github.bumptech.glide:glide:4.12.0")
+    kapt("com.github.bumptech.glide:compiler:4.12.0")
     implementation("com.squareup.okhttp3:okhttp:4.9.0")
 
-    val roomVersion = "2.2.5"
+    val roomVersion = "2.2.6"
     implementation("androidx.room:room-runtime:$roomVersion")
     annotationProcessor("androidx.room:room-compiler:$roomVersion")
     kapt("androidx.room:room-compiler:$roomVersion")
 
-    implementation("org.yaml:snakeyaml:1.27:android")
+    implementation("org.yaml:snakeyaml:1.28:android")
 
     implementation("commons-codec:commons-codec:1.15")
-    implementation("org.bouncycastle:bcpkix-jdk15on:1.64")
+    implementation("org.bouncycastle:bcpkix-jdk15on:1.68")
 
     // needed for thread-safe date formatting as SimpleDateFormat isn"t thread-safe
     // the alternatives, including apache commons and threetenabp, seem to be much slower
     // todo perhaps replace with core library desugaring, if it"s fast
-    implementation("net.danlew:android.joda:2.10.6")
+    implementation("net.danlew:android.joda:2.10.9.1")
 
     implementation("org.greenrobot:eventbus:3.2.0")
 
     debugImplementation("org.aspectj:aspectjrt:1.9.6")
-    debugImplementation("com.squareup.leakcanary:leakcanary-android:2.5")
+    debugImplementation("com.squareup.leakcanary:leakcanary-android:2.6")
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.7.1")
@@ -86,7 +86,10 @@ android {
         }
 
         kotlinOptions {
-            freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
+            freeCompilerArgs = listOf(
+                    "-Xopt-in=kotlin.RequiresOptIn",
+                    "-language-version", "1.5",
+                    "-api-version", "1.5")
             jvmTarget = "1.8"
         }
     }
@@ -135,6 +138,10 @@ android {
             sourceCompatibility = JavaVersion.VERSION_1_8
             targetCompatibility = JavaVersion.VERSION_1_8
         }
+    }
+
+    buildFeatures {
+        viewBinding = true
     }
 }
 

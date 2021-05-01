@@ -260,6 +260,7 @@ public class RelayService extends Service implements IObserver {
         LISTED,
     }
 
+    public static EnumSet<STATE> staticState = EnumSet.of(STATE.STOPPED);  // probably don't use this
     public EnumSet<STATE> state = EnumSet.of(STATE.STOPPED);
 
     @WorkerThread @Override synchronized public void onStateChanged(RelayConnection.STATE s) {
@@ -287,20 +288,21 @@ public class RelayService extends Service implements IObserver {
 
     private void changeState(EnumSet<STATE> state) {
         this.state = state;
+        this.staticState = state;
         EventBus.getDefault().postSticky(new StateChangedEvent(state));
     }
 
     @WorkerThread @Cat private void hello() {
         Hotlist.redraw(true);
         ping.scheduleFirstPing();
-        BufferList.launch(this);
+        BufferList.onServiceAuthenticated();
         SyncAlarmReceiver.start(this);
     }
 
     //sync so that goodbye() never happens while state=auth but hello didn't run yet
     @AnyThread @Cat private void goodbye() {
         SyncAlarmReceiver.stop(this);
-        BufferList.stop();
+        BufferList.onServiceStopped();
         ping.unschedulePing();
         P.saveStuff();
         Hotlist.redraw(false);

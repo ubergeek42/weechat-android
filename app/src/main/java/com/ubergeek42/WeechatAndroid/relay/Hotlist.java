@@ -35,7 +35,6 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static android.text.TextUtils.isEmpty;
-import static com.ubergeek42.WeechatAndroid.relay.Buffer.PRIVATE;
 import static com.ubergeek42.WeechatAndroid.service.Notificator.KEY_TEXT_REPLY;
 import static com.ubergeek42.WeechatAndroid.utils.Toaster.ErrorToast;
 
@@ -60,7 +59,7 @@ public class Hotlist {
         public long lastMessageTimestamp = System.currentTimeMillis();
 
         HotBuffer(Buffer buffer) {
-            isPrivate = buffer.type == PRIVATE;
+            isPrivate = buffer.type == BufferSpec.Type.Private;
             pointer = buffer.pointer;
             shortName = buffer.shortName;
         }
@@ -138,9 +137,9 @@ public class Hotlist {
 
         HotMessage(Line line, HotBuffer hotBuffer) {
             this.hotBuffer = hotBuffer;
-            this.isAction = line.displayAs == Line.DisplayAs.ACTION;
+            this.isAction = line.displayAs == LineSpec.DisplayAs.Action;
             message = line.getMessageString();
-            nick = (line.getNick() != null ? line.getNick() : line.getPrefixString());
+            nick = (line.nick != null ? line.nick : line.getPrefixString());
             timestamp = line.timestamp;
             if (this.isAction) {
                 SpannableString sb = new SpannableString(message);

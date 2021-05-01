@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="connectivity_indicator_bottom_margin">26dp</dimen>
+</resources>

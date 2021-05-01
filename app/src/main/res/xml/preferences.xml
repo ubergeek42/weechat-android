@@ -121,17 +121,42 @@
                     android:persistent="false"
                     android:selectable="false" />
             </PreferenceScreen>
+
+            <PreferenceScreen
+                android:key="connection_synchronization_settings"
+                android:title="@string/pref__connection__synchronization_group">
+                <CheckBoxPreference
+                    android:key="optimize_traffic"
+                    android:title="@string/pref__connection__synchronization__only_sync_open_buffers"
+                    android:summary="@string/pref__connection__synchronization__only_sync_open_buffers_summary"
+                    android:defaultValue="false" />
+                <CheckBoxPreference
+                    android:key="hotlist_sync"
+                    android:title="@string/pref__connection__synchronization__sync_read_status"
+                    android:summary="@string/pref__connection__synchronization__sync_read_status_summary"
+                    android:defaultValue="false" />
+                <EditTextPreferenceFix
+                    android:key="line_increment"
+                    android:title="@string/pref__connection__synchronization__line_increment"
+                    android:summary="@string/pref__connection__synchronization__line_increment_summary"
+                    android:defaultValue="300"
+                    android:inputType="number" />
+                <EditTextPreferenceFix
+                    android:key="line_number_to_request_when_starting_search"
+                    android:title="@string/pref__connection__synchronization__line_number_to_request_when_starting_search"
+                    android:summary="@string/pref__connection__synchronization__line_number_to_request_when_starting_search_summary"
+                    android:defaultValue="4097"
+                    android:inputType="number" />
+                <HelpPreference
+                    android:summary="@string/pref__connection__synchronization_help"
+                    android:persistent="false"
+                    android:selectable="false" />
+            </PreferenceScreen>
         </PreferenceCategory>
 
         <PreferenceCategory
             android:key="connection_misc_group"
             android:title="@string/pref__connection__misc_group">
-            <EditTextPreferenceFix
-                android:key="line_increment"
-                android:title="@string/pref__connection__number_of_lines_to_load"
-                android:summary="@string/pref__connection__number_of_lines_to_load_summary"
-                android:defaultValue="300"
-                android:inputType="number" />
             <CheckBoxPreference
                 android:key="reconnect"
                 android:title="@string/pref__connection__reconnect_on_connection_loss"
@@ -139,16 +164,6 @@
             <CheckBoxPreference
                 android:key="boot_connect"
                 android:title="@string/pref__connection__connect_on_boot" />
-            <CheckBoxPreference
-                android:key="optimize_traffic"
-                android:title="@string/pref__connection__only_sync_open_buffers"
-                android:summary="@string/pref__connection__only_sync_open_buffers_summary"
-                android:defaultValue="false" />
-            <CheckBoxPreference
-                android:key="hotlist_sync"
-                android:title="@string/pref__connection__sync_read_status"
-                android:summary="@string/pref__connection__sync_read_status_summary"
-                android:defaultValue="false" />
 
             <PreferenceScreen
                 android:key="ping_group"

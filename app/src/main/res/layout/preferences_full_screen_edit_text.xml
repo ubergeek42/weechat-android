@@ -18,7 +18,7 @@
         android:layout_marginTop="?attr/actionBarSize"
         android:paddingVertical="8dp"
         android:paddingHorizontal="16dp"
-        android:inputType="textMultiLine|textFilter|textNoSuggestions"
+        android:inputType="textLongMessage|textMultiLine|textFilter|textNoSuggestions"
         android:text="@null"
         android:gravity="top"
         android:textAppearance="?android:attr/textAppearanceSmall"

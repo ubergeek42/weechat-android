@@ -115,6 +115,19 @@ class Exceptions {
         }
     }
 
+    static class MalformedUrlException extends CodeException {
+        final String url;
+
+        MalformedUrlException(String url) {
+            super(Cache.ERROR_MALFORMED_URL);
+            this.url = url;
+        }
+
+        @Override @Nullable public String getMessage() {
+            return "Malformed URL: " + url;
+        }
+    }
+
     private static String ensureText(String string) {
         return TextUtils.isEmpty(string) ? "<empty>" : string;
     }

@@ -17,7 +17,7 @@ class LineFilter {
     }
 
     boolean filters(Line line) {
-        return (nicks == null || nicks.contains(line.getNick())) &&
+        return (nicks == null || nicks.contains(line.nick)) &&
                 (pattern == null || pattern.matcher(line.getMessageString()).find());
     }
 }

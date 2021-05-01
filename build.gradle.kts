@@ -26,10 +26,10 @@ buildscript {
     }
 
     dependencies {
-        classpath("com.android.tools.build:gradle:4.1.0")
+        classpath("com.android.tools.build:gradle:4.1.2")
         classpath("org.aspectj:aspectjtools:1.9.6")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.4.10")
-        classpath("org.jetbrains.kotlin:kotlin-serialization:1.4.10")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.4.32")
+        classpath("org.jetbrains.kotlin:kotlin-serialization:1.4.32")
     }
 }
 

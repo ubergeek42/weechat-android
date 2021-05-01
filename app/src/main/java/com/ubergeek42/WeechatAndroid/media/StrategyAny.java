@@ -69,7 +69,7 @@ class StrategyAny extends Strategy {
             return modifiedUrl;
         }
 
-        @NonNull @Override Request getFirstRequest() {
+        @NonNull @Override Request getFirstRequest() throws IOException {
             return RequestType.HTML_OR_IMAGE.makeRequest(modifiedUrl).build();
         }
 

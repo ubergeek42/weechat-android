@@ -19,7 +19,7 @@ object Linkify {
     // in this case, prepend "http://" to the url
     @JvmStatic
     fun linkify(spannable: Spannable) {
-        URL.findAll(spannable).forEach { match ->
+        findUrls(spannable)?.forEach { match ->
             val url = match.value.let { if (it.startsWith("www.")) "http://$it" else it }
             spannable.setSpan(URLSpan2(url),
                     match.range.first, match.range.last + 1,
@@ -35,7 +35,7 @@ object Linkify {
 
         val offset = spannable.length - message.length
 
-        URL.findAll(filteredMessage).forEach { match ->
+        findUrls(filteredMessage)?.forEach { match ->
             val url = match.value.let { if (it.startsWith("www.")) "http://$it" else it }
             spannable.setSpan(URLSpan2(url),
                     match.range.first + offset, match.range.last + offset + 1,
@@ -63,6 +63,15 @@ private class URLSpan2(url: String) : URLSpan(url) {
         } catch (e: ActivityNotFoundException) {
             Toaster.ErrorToast.show(R.string.error__etc__activity_not_found_for_url, url)
         }
+    }
+}
+
+
+private fun findUrls(input: CharSequence): Sequence<MatchResult>? {
+    return if (input.contains("://") || input.contains("www", ignoreCase = true)) {
+        URL.findAll(input)
+    } else {
+        null
     }
 }
 

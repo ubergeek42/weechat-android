@@ -15,10 +15,10 @@ dependencies {
     // todo update to >=2.2.15 once released and remove jitpack repo
     api("com.github.connectbot:sshlib:8ddc2cfa5c099d44b4982cf7d028b2833ba43c5f")
 
-    implementation("com.neovisionaries:nv-websocket-client:2.10")
+    implementation("com.neovisionaries:nv-websocket-client:2.14")
 
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.4.10")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.0.0")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.4.32")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.1.0")
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
 }

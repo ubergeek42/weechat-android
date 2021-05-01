@@ -1,0 +1,4 @@
+<vector android:height="32dp" android:viewportHeight="64"
+    android:viewportWidth="64" android:width="32dp" xmlns:android="http://schemas.android.com/apk/res/android">
+    <path android:fillColor="?attr/toolbarIconColor" android:pathData="M21.31,35.22c1.29,1.17 5.06,-0.8 8.69,-3.44v7.97a1,1 0,0 0,1 1h2a1,1 0,0 0,1 -1v-7.97c3.63,2.64 7.36,4.57 8.69,3.44C44,34.08 34.34,23.25 32,23.25s-11.97,10.8 -10.69,11.97z"/>
+</vector>

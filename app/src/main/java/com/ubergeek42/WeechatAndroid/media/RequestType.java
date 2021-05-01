@@ -30,9 +30,13 @@ enum RequestType {
         return getAcceptHeader().contains(typeWithoutParams);
     }
 
-    Request.Builder makeRequest(String url) {
-        return new Request.Builder()
-                .url(url)
-                .header("Accept", getAcceptHeader());
+    Request.Builder makeRequest(String url) throws Exceptions.MalformedUrlException {
+        Request.Builder builder = new Request.Builder().header("Accept", getAcceptHeader());
+        try {
+            builder.url(url);
+        } catch (IllegalArgumentException e) {
+            throw new Exceptions.MalformedUrlException(url);
+        }
+        return builder;
     }
 }

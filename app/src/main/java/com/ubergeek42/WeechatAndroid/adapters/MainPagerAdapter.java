@@ -57,8 +57,8 @@ public class MainPagerAdapter extends PagerAdapter {
         Buffer buffer = BufferList.findByPointer(pointer);
         if (buffer != null) buffer.setOpen(true, true);
         pointers.add(pointer);
-        notifyDataSetChanged();
         sortOpenBuffers();
+        notifyDataSetChanged();
         P.setBufferOpen(pointer, true);
     }
 
@@ -193,7 +193,9 @@ public class MainPagerAdapter extends PagerAdapter {
             return;
         transaction.commitAllowingStateLoss();
         transaction = null;
-        handler.postAtFrontOfQueue(manager::executePendingTransactions);
+        handler.postAtFrontOfQueue(() -> {
+            if (!manager.isDestroyed()) manager.executePendingTransactions();
+        });
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
