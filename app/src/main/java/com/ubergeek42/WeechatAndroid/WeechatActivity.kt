@@ -139,7 +139,7 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
         setSupportActionBar(ui.toolbar)
 
         // remove window color so that we get low overdraw
-        window.setBackgroundDrawableResource(android.R.color.transparent)
+        window.decorView.background = null
 
         // fix status bar and navigation bar icon color on Oreo.
         // TODO remove this once the bug has been fixed
