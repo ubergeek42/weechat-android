@@ -18,6 +18,7 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.PorterDuff
 import android.graphics.Rect
+import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Build
@@ -137,9 +138,6 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
         uiWeasel = findViewById(R.id.weasel)    // ui.weasel for some reason returns a wrong view
 
         setSupportActionBar(ui.toolbar)
-
-        // remove window color so that we get low overdraw
-        window.decorView.background = null
 
         // fix status bar and navigation bar icon color on Oreo.
         // TODO remove this once the bug has been fixed
@@ -669,7 +667,11 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
+    // set window background color that is used by system when we can't draw
+    // but don't draw it ourselves so that we get low overdraw
     private fun applyColorSchemeToViews() {
+        window.setBackgroundDrawable(ColorDrawable(P.colorPrimary.solidColor))
+        window.decorView.background = null
         applyMainBackgroundColor()
         ui.toolbarContainer.setBackgroundColor(P.colorPrimary)
     }
