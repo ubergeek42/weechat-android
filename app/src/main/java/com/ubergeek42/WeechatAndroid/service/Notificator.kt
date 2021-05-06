@@ -27,6 +27,8 @@ import com.ubergeek42.WeechatAndroid.utils.Constants
 import com.ubergeek42.WeechatAndroid.utils.Utils
 import com.ubergeek42.WeechatAndroid.utils.isAnyOf
 
+import kotlin.apply
+import kotlin.apply as apply2
 
 private const val ID_MAIN = 42
 private const val ID_HOT = 43
@@ -112,8 +114,6 @@ private val disconnectActionPendingIntent = PendingIntent.getService(
 
 
 @AnyThread fun showMainNotification(relay: RelayService, content: String) {
-    val authenticated = relay.state.contains(RelayService.STATE.AUTHENTICATED)
-
     val builder = NotificationCompat.Builder(
             applicationContext, CHANNEL_CONNECTION_STATUS)
         .setContentIntent(connectionStatusTapPendingIntent)
@@ -123,7 +123,7 @@ private val disconnectActionPendingIntent = PendingIntent.getService(
         .setPriority(Notification.PRIORITY_MIN)
         .setNotificationText(content)
 
-    val textResource = if (authenticated)
+    val textResource = if (relay.state.contains(RelayService.STATE.AUTHENTICATED))
             R.string.menu__connection_state__disconnect else
             R.string.menu__connection_state__stop_connecting
 
@@ -196,6 +196,7 @@ class HotNotification(
         }
 
         manager.notify(ID_HOT, makeSummaryNotification())
+
         if (CAN_MAKE_BUNDLED_NOTIFICATIONS && hotBuffer.hotCount > 0) {
             manager.notify(Utils.pointerToString(hotBuffer.pointer), ID_HOT, makeBufferNotification())
             onNotificationFired(hotBuffer.pointer)
@@ -227,20 +228,20 @@ class HotNotification(
             builder.setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_CHILDREN)
             builder.setSubText(nMessagesInNBuffers)
         } else {
-            NotificationCompat.MessagingStyle(myself).also {
-                it.conversationTitle = nMessagesInNBuffers
-                it.isGroupConversation = true // needed to display the title
+            NotificationCompat.MessagingStyle(myself).apply2 {
+                conversationTitle = nMessagesInNBuffers
+                isGroupConversation = true // needed to display the title
 
-                it.maybeAddMissingMessageLine(totalHotCount - allMessages.size, null)
+                maybeAddMissingMessageLine(totalHotCount - allMessages.size, null)
 
                 allMessages.forEach { message ->
-                    it.addMessage(
+                    addMessage(
                         message.message, message.timestamp,
                         message.getNickForFullList(), message.image
                     )
                 }
 
-                builder.setStyle(it)
+                builder.setStyle(this@apply2)
             }
 
             if (reason == NotifyReason.HOT_SYNC) builder.makeNoise()
@@ -272,24 +273,24 @@ class HotNotification(
             builder.addAction(makeActionForBufferPointer(Utils.pointerToString(hotBuffer.pointer)))
         }
 
-        NotificationCompat.MessagingStyle(myself).also {
+        NotificationCompat.MessagingStyle(myself).apply2 {
             // this is ugly on android p, but i see no other way to show the number of messages
-            it.conversationTitle = if (hotBuffer.hotCount < 2)
+            conversationTitle = if (hotBuffer.hotCount < 2)
                     hotBuffer.shortName else "${hotBuffer.shortName} (${hotBuffer.hotCount})"
 
             // before pie, display private buffers as non-private
-            it.isGroupConversation = !hotBuffer.isPrivate || Build.VERSION.SDK_INT < 28
+            isGroupConversation = !hotBuffer.isPrivate || Build.VERSION.SDK_INT < 28
 
-            it.maybeAddMissingMessageLine(hotBuffer.hotCount - hotBuffer.messages.size, null)
+            maybeAddMissingMessageLine(hotBuffer.hotCount - hotBuffer.messages.size, null)
 
             hotBuffer.messages.forEach { message ->
-                it.addMessage(
+                addMessage(
                     message.message, message.timestamp,
                     message.getNickForBuffer(), message.image
                 )
             }
 
-            builder.setStyle(it)
+            builder.setStyle(this@apply2)
         }
 
         if (reason == NotifyReason.HOT_SYNC) builder.makeNoise()
