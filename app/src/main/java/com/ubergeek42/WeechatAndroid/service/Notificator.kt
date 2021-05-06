@@ -34,11 +34,11 @@ import java.util.HashSet
 import kotlin.jvm.Synchronized
 
 
-private const val NOTIFICATION_MAIN_ID = 42
-private const val NOTIFICATION_HOT_ID = 43
-private const val NOTIFICATION_CHANNEL_CONNECTION_STATUS = "connection status"
-private const val NOTIFICATION_CHANNEL_HOTLIST = "notification"
-private const val NOTIFICATION_CHANNEL_HOTLIST_ASYNC = "notification async"
+private const val ID_MAIN = 42
+private const val ID_HOT = 43
+private const val CHANNEL_CONNECTION_STATUS = "connection status"
+private const val CHANNEL_HOTLIST = "notification"
+private const val CHANNEL_HOTLIST_ASYNC = "notification async"
 private const val GROUP_KEY = "hot messages"
 
 // displayed in place of user name in private notifications, when we can get away with it
@@ -63,7 +63,7 @@ fun initializeNotificator(context: Context) {
     // > notification about your app running in the background.
     // the user can manually hide the icon by setting the importance to low
     NotificationChannel(
-        NOTIFICATION_CHANNEL_CONNECTION_STATUS,
+        CHANNEL_CONNECTION_STATUS,
         applicationContext.getString(R.string.notifications__channel__connection_status),
         NotificationManager.IMPORTANCE_MIN
     ).apply {
@@ -72,7 +72,7 @@ fun initializeNotificator(context: Context) {
     }
 
     NotificationChannel(
-        NOTIFICATION_CHANNEL_HOTLIST,
+        CHANNEL_HOTLIST,
         applicationContext.getString(R.string.notifications__channel__hotlist),
         NotificationManager.IMPORTANCE_HIGH
     ).apply {
@@ -83,7 +83,7 @@ fun initializeNotificator(context: Context) {
     // channel for updating the notifications *silently*
     // it seems that you have to use IMPORTANCE_DEFAULT, else the notification light won't work
     NotificationChannel(
-        NOTIFICATION_CHANNEL_HOTLIST_ASYNC,
+        CHANNEL_HOTLIST_ASYNC,
         applicationContext.getString(R.string.notifications__channel__hotlist_async),
         NotificationManager.IMPORTANCE_DEFAULT
     ).apply {
@@ -100,42 +100,58 @@ fun initializeNotificator(context: Context) {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-object Notificator {
-    @JvmStatic @AnyThread @Cat fun showMain(relay: RelayService, content: String) {
-        val contentIntent = PendingIntent.getActivity(
-            applicationContext, 0,
-            Intent(applicationContext, WeechatActivity::class.java), PendingIntent.FLAG_CANCEL_CURRENT
-        )
-        val authenticated = relay.state.contains(RelayService.STATE.AUTHENTICATED)
-        val builder = NotificationCompat.Builder(
-            applicationContext, NOTIFICATION_CHANNEL_CONNECTION_STATUS
-        )
-        builder.setContentIntent(contentIntent)
-            .setSmallIcon(R.drawable.ic_notification_main)
-            .setCategory(NotificationCompat.CATEGORY_SERVICE)
-            .setWhen(System.currentTimeMillis()).priority = Notification.PRIORITY_MIN
-        setNotificationTitleAndText(builder, content)
-        if (P.notificationTicker) builder.setTicker(content)
-        val disconnectText =
-            applicationContext.getString(if (authenticated)
-                    R.string.menu__connection_state__disconnect else
-                    R.string.menu__connection_state__stop_connecting)
-        builder.addAction(
-            android.R.drawable.ic_menu_close_clear_cancel, disconnectText,
-            PendingIntent.getService(
-                applicationContext, 0,
-                Intent(RelayService.ACTION_STOP, null, applicationContext, RelayService::class.java),
-                0
-            )
-        )
-        val notification = builder.build()
-        notification.flags = notification.flags or Notification.FLAG_ONGOING_EVENT
-        relay.startForeground(NOTIFICATION_MAIN_ID, notification)
-    }
+private val connectionStatusTapIntent = PendingIntent.getActivity(
+    applicationContext,
+    0,
+    Intent(applicationContext, WeechatActivity::class.java),
+    PendingIntent.FLAG_CANCEL_CURRENT
+)
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+private val connectionStatusActionIntent = PendingIntent.getService(
+    applicationContext,
+    0,
+    Intent(RelayService.ACTION_STOP, null, applicationContext, RelayService::class.java),
+    0
+)
+
+
+@AnyThread fun showMainNotification(relay: RelayService, content: String) {
+    val authenticated = relay.state.contains(RelayService.STATE.AUTHENTICATED)
+
+    val builder = NotificationCompat.Builder(
+            applicationContext, CHANNEL_CONNECTION_STATUS)
+        .setContentIntent(connectionStatusTapIntent)
+        .setSmallIcon(R.drawable.ic_notification_main)
+        .setCategory(NotificationCompat.CATEGORY_SERVICE)
+        .setWhen(System.currentTimeMillis())
+        .setPriority(Notification.PRIORITY_MIN)
+        .setNotificationText(content)
+
+    if (P.notificationTicker) builder.setTicker(content)
+
+    val textResource = if (authenticated)
+            R.string.menu__connection_state__disconnect else
+            R.string.menu__connection_state__stop_connecting
+
+    builder.addAction(
+        android.R.drawable.ic_menu_close_clear_cancel,
+        applicationContext.getString(textResource),
+        connectionStatusActionIntent
+    )
+
+    val notification = builder.build()
+    notification.flags = notification.flags or Notification.FLAG_ONGOING_EVENT
+    relay.startForeground(ID_MAIN, notification)
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+object Notificator {
     private const val BUFFER = 0
     private const val LINE = 1
 
@@ -169,15 +185,15 @@ object Notificator {
             // TODO this doesn't cancel notifications that have remote input and have ben replied to
             // TODO on android p. not sure what to do about this--find a workaround or leave as is?
             // TODO https://issuetracker.google.com/issues/112319501
-            manager.cancel(Utils.pointerToString(pointer), NOTIFICATION_HOT_ID)
+            manager.cancel(Utils.pointerToString(pointer), ID_HOT)
             val dismissResult = onNotificationDismissed(pointer)
             if (dismissResult == DismissResult.ALL_NOTIFICATIONS_REMOVED || dismissResult == DismissResult.NO_CHANGE) return
         }
 
         val syncHotMessage = reason == NotifyReason.HOT_SYNC
         val channel = if (syncHotMessage)
-                NOTIFICATION_CHANNEL_HOTLIST else
-                NOTIFICATION_CHANNEL_HOTLIST_ASYNC
+                CHANNEL_HOTLIST else
+                CHANNEL_HOTLIST_ASYNC
 
         ////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -213,7 +229,7 @@ object Notificator {
             if (syncHotMessage) makeNoise(summary, res, allMessages)
         }
 
-        manager.notify(NOTIFICATION_HOT_ID, summary.build())
+        manager.notify(ID_HOT, summary.build())
 
         if (hotCount == 0) return
         if (!canMakeBundledNotifications) return
@@ -251,7 +267,7 @@ object Notificator {
         builder.setStyle(style)
 
         if (syncHotMessage) makeNoise(builder, res, messages)
-        manager.notify(Utils.pointerToString(pointer), NOTIFICATION_HOT_ID, builder.build())
+        manager.notify(Utils.pointerToString(pointer), ID_HOT, builder.build())
         onNotificationFired(pointer)
     }
 
@@ -409,7 +425,7 @@ object Notificator {
     @AnyThread @Synchronized private fun onNotificationDismissed(pointer: Long): DismissResult {
         val removed = notifications.remove(pointer)
         if (notifications.isEmpty()) {
-            manager.cancel(NOTIFICATION_HOT_ID)
+            manager.cancel(ID_HOT)
             return DismissResult.ALL_NOTIFICATIONS_REMOVED
         }
         return if (removed) DismissResult.ONE_NOTIFICATION_REMOVED else DismissResult.NO_CHANGE
@@ -425,4 +441,18 @@ object Notificator {
             onNotificationDismissed(Utils.pointerFromString(strPointer))
         }
     }
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+private fun NotificationCompat.Builder.setNotificationText(text: CharSequence): NotificationCompat.Builder {
+    if (Build.VERSION.SDK_INT > 23) {
+        setContentTitle(text)
+    } else {
+        setContentTitle(applicationContext.getString(R.string.etc__application_name))
+        setContentText(text)
+    }
+    return this
 }
