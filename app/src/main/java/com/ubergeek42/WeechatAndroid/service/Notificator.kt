@@ -195,11 +195,21 @@ class HotNotification(
                 return
         }
 
-        manager.notify(ID_HOT, makeSummaryNotification())
+        val shouldMakeNoise = reason == NotifyReason.HOT_SYNC
 
-        if (CAN_MAKE_BUNDLED_NOTIFICATIONS && hotBuffer.hotCount > 0) {
-            manager.notify(Utils.pointerToString(hotBuffer.pointer), ID_HOT, makeBufferNotification())
-            onNotificationFired(hotBuffer.pointer)
+        if (!CAN_MAKE_BUNDLED_NOTIFICATIONS) {
+            manager.notify(ID_HOT,
+                makeSummaryNotification().apply { if (shouldMakeNoise) makeNoise() }.build())
+        } else {
+            manager.notify(ID_HOT,
+                makeSummaryNotification().build())
+
+            if (hotBuffer.hotCount > 0) {
+                manager.notify(Utils.pointerToString(hotBuffer.pointer), ID_HOT,
+                    makeBufferNotification().apply { if (shouldMakeNoise) makeNoise() }.build())
+
+                onNotificationFired(hotBuffer.pointer)
+            }
         }
     }
 
@@ -208,7 +218,7 @@ class HotNotification(
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private fun makeSummaryNotification(): Notification {
+    private fun makeSummaryNotification(): NotificationCompat.Builder {
         val nMessagesInNBuffers = applicationResources.getQuantityString(
             R.plurals.notifications__hot_summary__messages, totalHotCount, totalHotCount
         ) + applicationResources.getQuantityString(
@@ -243,14 +253,12 @@ class HotNotification(
 
                 builder.setStyle(this@apply2)
             }
-
-            if (reason == NotifyReason.HOT_SYNC) builder.makeNoise()
         }
 
-        return builder.build()
+        return builder
     }
 
-    private fun makeBufferNotification(): Notification {
+    private fun makeBufferNotification(): NotificationCompat.Builder {
         val nNewMessagesInBuffer = applicationResources.getQuantityString(
             R.plurals.notifications__hot__text,
             hotBuffer.hotCount,
@@ -293,9 +301,7 @@ class HotNotification(
             builder.setStyle(this@apply2)
         }
 
-        if (reason == NotifyReason.HOT_SYNC) builder.makeNoise()
-
-        return builder.build()
+        return builder
     }
 }
 
