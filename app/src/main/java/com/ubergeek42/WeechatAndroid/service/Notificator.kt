@@ -11,7 +11,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
-import androidx.annotation.MainThread
 import androidx.annotation.AnyThread
 import androidx.core.app.NotificationCompat
 import androidx.core.app.Person
@@ -186,11 +185,12 @@ class HotNotification(
 
         // when redrawing notifications in order to remove the reply button, make sure we don't
         // add back notifications that were dismissed. synchronize `notifications.contains`
-        if (reason == NotifyReason.REDRAW && !isNotificationDisplayedFor(hotBuffer.pointer)) return
+        if (reason == NotifyReason.REDRAW && !DisplayedNotifications.contains(hotBuffer.pointer))
+            return
 
         if (hotBuffer.hotCount == 0) {
             manager.cancel(Utils.pointerToString(hotBuffer.pointer), ID_HOT)
-            val dismissResult = onNotificationDismissed(hotBuffer.pointer)
+            val dismissResult = DisplayedNotifications.remove(hotBuffer.pointer)
             if (dismissResult.isAnyOf(DismissResult.ALL_NOTIFICATIONS_REMOVED, DismissResult.NO_CHANGE))
                 return
         }
@@ -208,7 +208,7 @@ class HotNotification(
                 manager.notify(Utils.pointerToString(hotBuffer.pointer), ID_HOT,
                     makeBufferNotification().apply { if (shouldMakeNoise) makeNoise() }.build())
 
-                onNotificationFired(hotBuffer.pointer)
+                DisplayedNotifications.add(hotBuffer.pointer)
             }
         }
     }
@@ -446,42 +446,41 @@ private enum class DismissResult {
 }
 
 
-private val displayedNotificationsLock = Any()
-private val displayedNotifications = mutableSetOf<Long>()
+private object DisplayedNotifications {
+    private val notifications = mutableSetOf<Long>()
 
-
-@AnyThread private fun onNotificationFired(pointer: Long) {
-    synchronized(displayedNotificationsLock) {
-        displayedNotifications.add(pointer)
+    fun add(pointer: Long) {
+        synchronized(notifications) {
+            notifications.add(pointer)
+        }
     }
-}
 
-@AnyThread private fun onNotificationDismissed(pointer: Long): DismissResult {
-    synchronized(displayedNotificationsLock) {
-        val removed = displayedNotifications.remove(pointer)
+    fun remove(pointer: Long): DismissResult {
+        synchronized(notifications) {
+            val removed = notifications.remove(pointer)
 
-        return when {
-            displayedNotifications.isEmpty() -> {
-                manager.cancel(ID_HOT)
-                DismissResult.ALL_NOTIFICATIONS_REMOVED
+            return when {
+                notifications.isEmpty() -> {
+                    manager.cancel(ID_HOT)
+                    DismissResult.ALL_NOTIFICATIONS_REMOVED
+                }
+                removed -> DismissResult.ONE_NOTIFICATION_REMOVED
+                else -> DismissResult.NO_CHANGE
             }
-            removed -> DismissResult.ONE_NOTIFICATION_REMOVED
-            else -> DismissResult.NO_CHANGE
+        }
+    }
+
+    fun contains(pointer: Long): Boolean {
+        synchronized(notifications) {
+            return notifications.contains(pointer)
         }
     }
 }
 
 
-@AnyThread private fun isNotificationDisplayedFor(pointer: Long): Boolean {
-    synchronized(displayedNotificationsLock) {
-        return displayedNotifications.contains(pointer)
-    }
-}
-
-
 class NotificationDismissedReceiver : BroadcastReceiver() {
-    @MainThread override fun onReceive(context: Context, intent: Intent) {
+    override fun onReceive(context: Context, intent: Intent) {
         val strPointer = intent.action
-        onNotificationDismissed(Utils.pointerFromString(strPointer))
+        DisplayedNotifications.remove(Utils.pointerFromString(strPointer))
     }
 }
