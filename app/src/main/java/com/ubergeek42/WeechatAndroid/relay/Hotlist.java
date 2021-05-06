@@ -17,11 +17,11 @@ import androidx.core.app.RemoteInput;
 import android.text.SpannableString;
 import android.text.style.StyleSpan;
 
-import com.ubergeek42.WeechatAndroid.Weechat;
 import com.ubergeek42.WeechatAndroid.media.ContentUriFetcher;
 import com.ubergeek42.WeechatAndroid.media.Engine;
 import com.ubergeek42.WeechatAndroid.service.Events;
-import com.ubergeek42.WeechatAndroid.service.Notificator;
+import com.ubergeek42.WeechatAndroid.service.HotNotification;
+import com.ubergeek42.WeechatAndroid.service.NotificatorKt;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.Kitty;
@@ -35,7 +35,6 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static android.text.TextUtils.isEmpty;
-import static com.ubergeek42.WeechatAndroid.service.Notificator.KEY_TEXT_REPLY;
 import static com.ubergeek42.WeechatAndroid.utils.Toaster.ErrorToast;
 
 
@@ -223,7 +222,7 @@ public class Hotlist {
 
         // older messages come first
         Collections.sort(allMessages, (m1, m2) -> Long.compare(m1.timestamp, m2.timestamp));
-        Notificator.showHot(connected, totalHotCount.get(), hotBufferCount, allMessages, buffer, reason, lastMessageTimestamp);
+        new HotNotification(connected, totalHotCount.get(), hotBufferCount, allMessages, buffer, reason, lastMessageTimestamp).show();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -250,7 +249,7 @@ public class Hotlist {
 
     private static @Nullable CharSequence getMessageText(Intent intent) {
         Bundle remoteInput = RemoteInput.getResultsFromIntent(intent);
-        if (remoteInput != null) return remoteInput.getCharSequence(KEY_TEXT_REPLY);
+        if (remoteInput != null) return remoteInput.getCharSequence(NotificatorKt.KEY_TEXT_REPLY);
         return null;
     }
 }
