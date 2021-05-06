@@ -46,49 +46,52 @@ private val ZERO_WIDTH_SPACE: CharSequence = "\u200B"
 
 // this text is somewhat displayed on android p when replying to notification
 // represents “Me” in the “Me: my message” part of NotificationCompat.MessagingStyle
-private var MYSELF = Person.Builder().setName("Me").build()
+private var myself = Person.Builder().setName("Me").build()
 
 
 private var manager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
 
-fun initializeNotificator(c: Context) {
+fun initializeNotificator(context: Context) {
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
 
+    myself = Person.Builder().setName(context.getString(R.string.notifications__MessagingStyle__me))
+        .build()
+
     // why not IMPORTANCE_MIN? it should not be used with startForeground. the docs say,
-    // If you do this, as of Android version O, the system will show a higher-priority
-    // notification about your app running in the background.
+    // > If you do this, as of Android version O, the system will show a higher-priority
+    // > notification about your app running in the background.
     // the user can manually hide the icon by setting the importance to low
-    val statusNotificationChannel = NotificationChannel(
+    NotificationChannel(
         NOTIFICATION_CHANNEL_CONNECTION_STATUS,
         applicationContext.getString(R.string.notifications__channel__connection_status),
         NotificationManager.IMPORTANCE_MIN
-    )
-    statusNotificationChannel.setShowBadge(false)
-    manager.createNotificationChannel(statusNotificationChannel)
+    ).apply {
+        setShowBadge(false)
+        manager.createNotificationChannel(this)
+    }
 
-    val hotlistNotificationChannel = NotificationChannel(
+    NotificationChannel(
         NOTIFICATION_CHANNEL_HOTLIST,
         applicationContext.getString(R.string.notifications__channel__hotlist),
         NotificationManager.IMPORTANCE_HIGH
-    )
-    hotlistNotificationChannel.enableLights(true)
-    manager.createNotificationChannel(statusNotificationChannel)
+    ).apply {
+        enableLights(true)
+        manager.createNotificationChannel(this)
+    }
 
     // channel for updating the notifications *silently*
     // it seems that you have to use IMPORTANCE_DEFAULT, else the notification light won't work
-    val asyncHotlistNotificationChannel = NotificationChannel(
+    NotificationChannel(
         NOTIFICATION_CHANNEL_HOTLIST_ASYNC,
         applicationContext.getString(R.string.notifications__channel__hotlist_async),
         NotificationManager.IMPORTANCE_DEFAULT
-    )
-    asyncHotlistNotificationChannel.setSound(null, null)
-    asyncHotlistNotificationChannel.enableVibration(false)
-    asyncHotlistNotificationChannel.enableLights(true)
-    manager.createNotificationChannel(asyncHotlistNotificationChannel)
-
-    MYSELF = Person.Builder().setName(c.getString(R.string.notifications__MessagingStyle__me))
-        .build()
+    ).apply {
+        setSound(null, null)
+        enableVibration(false)
+        enableLights(true)
+        manager.createNotificationChannel(this)
+    }
 }
 
 
@@ -200,7 +203,7 @@ object Notificator {
             summary.setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_CHILDREN)
             summary.setSubText(nMessagesInNBuffers)
         } else {
-            val style = NotificationCompat.MessagingStyle(MYSELF)
+            val style = NotificationCompat.MessagingStyle(myself)
             style.conversationTitle = nMessagesInNBuffers
             style.isGroupConversation = true // needed to display the title
             addMissingMessageLine(totalHotCount - allMessages.size, res, style, null)
@@ -234,7 +237,7 @@ object Notificator {
             getAction(applicationContext, Utils.pointerToString(pointer))
         )
 
-        val style = NotificationCompat.MessagingStyle(MYSELF)
+        val style = NotificationCompat.MessagingStyle(myself)
 
         // this is ugly on android p, but i see no other way to show the number of messages
         style.conversationTitle = if (hotCount < 2) shortName else "$shortName ($hotCount)"
