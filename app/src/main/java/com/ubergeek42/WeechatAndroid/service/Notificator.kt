@@ -15,6 +15,7 @@ import androidx.annotation.AnyThread
 import androidx.core.app.NotificationCompat
 import androidx.core.app.Person
 import androidx.core.app.RemoteInput
+import androidx.core.content.LocusIdCompat
 import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.WeechatActivity
 import com.ubergeek42.WeechatAndroid.relay.Hotlist.HotMessage
@@ -275,6 +276,8 @@ class HotNotification(
             .setGroup(GROUP_KEY)
             .setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_CHILDREN)
             .setNotificationText(nNewMessagesInBuffer)
+            .setShortcutId(hotBuffer.fullName)
+            .setLocusId(LocusIdCompat(hotBuffer.fullName))
 
         // messages hold the latest messages, don't show the reply button if user can't see any
         if (connected && hotBuffer.messages.isNotEmpty()) {

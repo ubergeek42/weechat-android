@@ -57,6 +57,7 @@ import com.ubergeek42.WeechatAndroid.service.Events.StateChangedEvent
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.service.RelayService
 import com.ubergeek42.WeechatAndroid.service.SSLHandler
+import com.ubergeek42.WeechatAndroid.service.shortcuts
 import com.ubergeek42.WeechatAndroid.upload.Config
 import com.ubergeek42.WeechatAndroid.upload.ShareObject
 import com.ubergeek42.WeechatAndroid.upload.TextShareObject
@@ -525,6 +526,7 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
 
     @MainThread override fun onBufferClick(pointer: Long) {
         openBuffer(pointer)
+        shortcuts.reportBufferFocused(pointer)
     }
 
     @MainThread @Cat("Buffers") fun openBuffer(pointer: Long, shareObject: ShareObject? = null) {
@@ -634,7 +636,10 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
             if (BufferList.hotBufferCount > 1) {
                 if (slidy) showDrawer()
             } else {
-                BufferList.getNextHotBuffer()?.let { openBuffer(it.pointer) }
+                BufferList.getNextHotBuffer()?.let {
+                    openBuffer(it.pointer)
+                    if (pointer != 0L) shortcuts.reportBufferFocused(pointer)
+                }
             }
         } else {
             var shareObject: ShareObject? = null
@@ -662,6 +667,7 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
             }
 
             openBuffer(pointer, shareObject)
+            if (pointer != 0L) shortcuts.reportBufferFocused(pointer)
         }
     }
 

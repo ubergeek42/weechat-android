@@ -53,6 +53,7 @@ public class Hotlist {
         public final boolean isPrivate;
         public final long pointer;
         public String shortName;
+        public final String fullName;
         public final ArrayList<HotMessage> messages = new ArrayList<>();
         public int hotCount = 0;
         public long lastMessageTimestamp = System.currentTimeMillis();
@@ -61,6 +62,7 @@ public class Hotlist {
             isPrivate = buffer.type == BufferSpec.Type.Private;
             pointer = buffer.pointer;
             shortName = buffer.shortName;
+            fullName = buffer.fullName;
         }
 
         // if hot count has changed — either:
