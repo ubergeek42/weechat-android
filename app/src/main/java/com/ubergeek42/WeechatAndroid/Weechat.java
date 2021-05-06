@@ -9,7 +9,7 @@ import android.os.Handler;
 
 import com.ubergeek42.WeechatAndroid.media.CachePersist;
 import com.ubergeek42.WeechatAndroid.service.Events;
-import com.ubergeek42.WeechatAndroid.service.Notificator;
+import com.ubergeek42.WeechatAndroid.service.NotificatorKt;
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.service.RelayService.STATE;
 import com.ubergeek42.WeechatAndroid.upload.UploadDatabase;
@@ -36,7 +36,7 @@ public class Weechat extends Application {
         P.init(getApplicationContext());
         P.restoreStuff();
         UploadDatabase.restore();   // wants cache max age from P
-        Notificator.init(this);
+        NotificatorKt.initializeNotificator(this);
         EventBus.builder().logNoSubscriberMessages(false).eventInheritance(false).installDefaultEventBus();
         EventBus.getDefault().postSticky(new Events.StateChangedEvent(EnumSet.of(STATE.STOPPED)));
     }
