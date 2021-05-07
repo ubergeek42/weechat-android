@@ -26,7 +26,6 @@ import com.ubergeek42.WeechatAndroid.relay.Hotlist.InlineReplyReceiver
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.service.RelayService
 import com.ubergeek42.WeechatAndroid.upload.applicationContext
-import com.ubergeek42.WeechatAndroid.upload.dp_to_px
 import com.ubergeek42.WeechatAndroid.utils.Constants
 import com.ubergeek42.WeechatAndroid.utils.Utils
 import com.ubergeek42.WeechatAndroid.utils.isAnyOf
@@ -503,8 +502,7 @@ private object Users {
 
     fun getUser(nick: String): Person {
         return users.getOrPut(nick) {
-            val maxIconSide = 48.dp_to_px   // todo use proper numbers
-            val iconBitmap = generateIcon(maxIconSide, maxIconSide, nick, nick)
+            val iconBitmap = generateIcon(text = nick, colorKey = nick)
             val icon = IconCompat.createWithBitmap(iconBitmap)
             Person.Builder().setName(nick).setIcon(icon).build()
         }

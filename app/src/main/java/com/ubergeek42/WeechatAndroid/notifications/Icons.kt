@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Typeface
+import com.ubergeek42.WeechatAndroid.upload.dp_to_px
 import com.ubergeek42.WeechatAndroid.upload.f
 
 
@@ -34,6 +35,7 @@ private fun String.djb2Remainder(divisor: Int): Int {
 }
 
 
+@Suppress("SameParameterValue")
 private fun generateIcon(width: Int, height: Int, text: String, colors: Colors): Bitmap {
     val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
     val canvas = Canvas(bitmap)
@@ -72,17 +74,23 @@ private fun generateIcon(width: Int, height: Int, text: String, colors: Colors):
 }
 
 
-fun generateIcon(width: Int, height: Int, shortName: String, fullName: String): Bitmap {
-    val text = when {
-        shortName.isBlank() -> "?"
-        shortName.startsWith("##") -> shortName.subSequence(1, if (shortName.length >= 3) 3 else 2)
-        shortName.length >= 2 -> shortName.subSequence(0, 2)
-        else -> shortName.subSequence(0, 1)
+fun generateIcon(text: String, colorKey: String): Bitmap {
+    val cutText = when {
+        text.isBlank() -> "?"
+        text.startsWith("##") -> text.subSequence(1, if (text.length >= 3) 3 else 2)
+        text.length >= 2 -> text.subSequence(0, 2)
+        else -> text.subSequence(0, 1)
     }
 
-    val colorIndex = fullName.djb2Remainder(colorPairs.size)
-    return generateIcon(width, height, text.toString(), colorPairs[colorIndex])
+    val colorIndex = colorKey.djb2Remainder(colorPairs.size)
+
+    return generateIcon(generatedIconSide,
+                        generatedIconSide,
+                        cutText.toString(),
+                        colorPairs[colorIndex])
 }
 
 
+// todo use better dimensions? is there sense in using shortcutManager.iconMaxWidth etc?
+private val generatedIconSide = 48.dp_to_px
 private val defaultBoldTypeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)

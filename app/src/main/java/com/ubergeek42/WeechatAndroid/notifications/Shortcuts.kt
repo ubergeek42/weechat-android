@@ -12,7 +12,6 @@ import com.ubergeek42.WeechatAndroid.WeechatActivity
 import com.ubergeek42.WeechatAndroid.relay.Buffer
 import com.ubergeek42.WeechatAndroid.relay.BufferList
 import com.ubergeek42.WeechatAndroid.upload.applicationContext
-import com.ubergeek42.WeechatAndroid.upload.dp_to_px
 import com.ubergeek42.WeechatAndroid.utils.Constants
 import com.ubergeek42.WeechatAndroid.utils.Utils
 
@@ -34,10 +33,8 @@ class Shortcuts(val context: Context): ShortcutReporter {
     private val shortcutManager = context.getSystemService(ShortcutManager::class.java)!!
 
     private fun makeShortcutForBuffer(buffer: Buffer): ShortcutInfo {
-        val iconBitmap = generateIcon(48.dp_to_px /* shortcutManager.iconMaxWidth */,
-                                      48.dp_to_px /* shortcutManager.iconMaxHeight */,
-                                      buffer.shortName,
-                                      buffer.fullName)
+        val iconBitmap = generateIcon(text = buffer.shortName, colorKey = buffer.fullName)
+        val icon = Icon.createWithBitmap(iconBitmap)
 
         val intent = Intent(applicationContext, WeechatActivity::class.java).apply {
             putExtra(Constants.EXTRA_BUFFER_POINTER, buffer.pointer)
@@ -47,7 +44,7 @@ class Shortcuts(val context: Context): ShortcutReporter {
         return ShortcutInfo.Builder(context, buffer.fullName)
             .setShortLabel(buffer.shortName)
             .setLongLabel(buffer.shortName)
-            .setIcon(Icon.createWithBitmap(iconBitmap))
+            .setIcon(icon)
             .setIntent(intent)
             .setLongLived(true)
             .setLocusId(LocusId(buffer.fullName))
