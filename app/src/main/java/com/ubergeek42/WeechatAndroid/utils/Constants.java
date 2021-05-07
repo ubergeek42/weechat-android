@@ -208,7 +208,7 @@ public class Constants {
 
     // uploading
     final public static String PREF_UPLOAD_GROUP = "upload_group";
-    final public static String PREF_UPLOAD_ACCEPT = "upload_accept";
+    final public static String PREF_UPLOAD_ACCEPT = "upload_accept_shared";
     final public static String PREF_UPLOAD_ACCEPT_TEXT_ONLY = "text_only";
     final public static String PREF_UPLOAD_ACCEPT_TEXT_AND_MEDIA = "text_and_media";
     final public static String PREF_UPLOAD_ACCEPT_EVERYTHING = "everything";
