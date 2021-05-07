@@ -37,7 +37,7 @@ class Shortcuts(val context: Context): ShortcutReporter {
         val icon = Icon.createWithBitmap(iconBitmap)
 
         val intent = Intent(applicationContext, WeechatActivity::class.java).apply {
-            putExtra(Constants.EXTRA_BUFFER_POINTER, buffer.pointer)
+            putExtra(Constants.EXTRA_BUFFER_FULL_NAME, buffer.fullName)
             action = Utils.pointerToString(buffer.pointer)
         }
 
@@ -51,16 +51,18 @@ class Shortcuts(val context: Context): ShortcutReporter {
             .build()
     }
 
-    private val pushedShortcuts = mutableSetOf<Long>()
+    private val pushedShortcuts = mutableSetOf<String>()
 
     override fun reportBufferFocused(pointer: Long) {
-        val buffer = BufferList.findByPointer(pointer)
-        if (buffer != null) {
-            if (pointer !in pushedShortcuts) {
+        BufferList.findByPointer(pointer)?.let { buffer ->
+            val key = buffer.fullName
+
+            if (key !in pushedShortcuts) {
                 shortcutManager.pushDynamicShortcut(makeShortcutForBuffer(buffer))
-                pushedShortcuts.add(pointer)
+                pushedShortcuts.add(key)
             }
-            shortcutManager.reportShortcutUsed(buffer.fullName)
+
+            shortcutManager.reportShortcutUsed(key)
         }
     }
 }

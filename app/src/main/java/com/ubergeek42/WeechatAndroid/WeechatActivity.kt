@@ -243,7 +243,8 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
         applyColorSchemeToViews()
         super.onStart()
         uiMenu?.findItem(R.id.menu_dark_theme)?.isVisible = P.themeSwitchEnabled
-        if (intent.hasExtra(Constants.EXTRA_BUFFER_POINTER)) openBufferFromIntent()
+        if (intent.hasExtra(Constants.EXTRA_BUFFER_POINTER) ||
+                intent.hasExtra(Constants.EXTRA_BUFFER_FULL_NAME)) openBufferFromIntent()
         enableDisableExclusionRects()
     }
 
@@ -619,7 +620,8 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
     // we may get intent while we are connected to the service and when we are not
     @MainThread @Cat("Intent") override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        if (intent.hasExtra(Constants.EXTRA_BUFFER_POINTER)) {
+        if (intent.hasExtra(Constants.EXTRA_BUFFER_POINTER) ||
+                intent.hasExtra(Constants.EXTRA_BUFFER_FULL_NAME)) {
             setIntent(intent)
             if (started) openBufferFromIntent()
         }
@@ -628,9 +630,22 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
     // when this is called, EXTRA_BUFFER_POINTER must be set
     @MainThread @Cat("Intent") private fun openBufferFromIntent() {
         val intent = intent
-        val pointer = intent.getLongExtra(Constants.EXTRA_BUFFER_POINTER,
+        var pointer = intent.getLongExtra(Constants.EXTRA_BUFFER_POINTER,
                                           Constants.NOTIFICATION_EXTRA_BUFFER_ANY)
         intent.removeExtra(Constants.EXTRA_BUFFER_POINTER)
+
+        if (pointer == Constants.NOTIFICATION_EXTRA_BUFFER_ANY) {
+            val fullName = intent.getStringExtra(Constants.EXTRA_BUFFER_FULL_NAME)
+            if (fullName != null) {
+                val buffer = BufferList.findByFullName(fullName)
+                if (buffer == null) {
+                    Toaster.ErrorToast.show("Couldn’t find buffer $fullName")
+                    return
+                } else {
+                    pointer = buffer.pointer
+                }
+            }
+        }
 
         if (pointer == Constants.NOTIFICATION_EXTRA_BUFFER_ANY) {
             if (BufferList.hotBufferCount > 1) {

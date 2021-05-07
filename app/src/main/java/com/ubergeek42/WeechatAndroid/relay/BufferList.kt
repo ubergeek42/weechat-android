@@ -50,6 +50,12 @@ object BufferList {
         }
     }
 
+    @JvmStatic @AnyThread fun findByFullName(fullName: String): Buffer? {
+        return buffers.firstOrNull { it.fullName == fullName }.also {
+            it ?: kitty.warn("did not find buffer pointer: $fullName")
+        }
+    }
+
     @JvmStatic @AnyThread private fun findByPointerNoWarn(pointer: Long): Buffer? {
         return buffers.firstOrNull { it.pointer == pointer }
     }

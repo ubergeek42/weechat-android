@@ -149,6 +149,7 @@ public class Constants {
     final static public String PREF_NOTIFICATION_TICKER = "notification_ticker"; final public static boolean PREF_NOTIFICATION_TICKER_D = true;
 
     public final static String EXTRA_BUFFER_POINTER = "com.ubergeek42.BUFFER_POINTER";
+    public final static String EXTRA_BUFFER_FULL_NAME = "com.ubergeek42.BUFFER_FULL_NAME";
     public final static long NOTIFICATION_EXTRA_BUFFER_ANY = 0;
 
     // night mode
