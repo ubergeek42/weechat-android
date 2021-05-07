@@ -16,7 +16,6 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.Person
 import androidx.core.app.RemoteInput
 import androidx.core.content.LocusIdCompat
-import androidx.core.graphics.drawable.IconCompat
 import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.WeechatActivity
 import com.ubergeek42.WeechatAndroid.relay.Hotlist.HotMessage
@@ -329,7 +328,7 @@ fun NotificationCompat.MessagingStyle.addMessage(
     nick: CharSequence,
     image: Uri?
 ) {
-    val person = Users.getUser(nick.toString())
+    val person = getPerson(nick.toString(), nick.toString())
 
     addMessage(NotificationCompat.MessagingStyle.Message(message, timestamp, person))
 
@@ -488,23 +487,5 @@ class NotificationDismissedReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val strPointer = intent.action
         DisplayedNotifications.remove(Utils.pointerFromString(strPointer))
-    }
-}
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-private object Users {
-    private val users = mutableMapOf<String, Person>()
-
-    fun getUser(nick: String): Person {
-        return users.getOrPut(nick) {
-            val iconBitmap = generateIcon(text = nick, colorKey = nick)
-            val icon = IconCompat.createWithBitmap(iconBitmap)
-            Person.Builder().setName(nick).setIcon(icon).build()
-        }
     }
 }
