@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.pm.ShortcutManagerCompat.EXTRA_SHORTCUT_ID
 import com.ubergeek42.WeechatAndroid.adapters.BufferListAdapter
 import com.ubergeek42.WeechatAndroid.adapters.BufferListClickListener
 import com.ubergeek42.WeechatAndroid.databinding.BufferlistShareBinding
@@ -26,15 +27,26 @@ class ShareTextActivity : AppCompatActivity(), BufferListClickListener {
         P.applyThemeAfterActivityCreation(this)
         P.storeThemeOrColorSchemeColors(this)   // required for ThemeFix.fixIconAndColor()
         ThemeFix.fixIconAndColor(this)
+
+        intent?.let { intent ->
+            if (intent.action.isNotAnyOf(Intent.ACTION_SEND, Intent.ACTION_SEND_MULTIPLE)) {
+                finish()
+                return
+            }
+
+            intent.extras?.let { extras ->
+                extras.getString(EXTRA_SHORTCUT_ID)?.let { fullName ->
+                    BufferList.findByFullName(fullName)?.let { buffer ->
+                        val pointer = buffer.pointer
+                        onBufferClick(pointer)
+                    }
+                }
+            }
+        }
     }
 
     override fun onStart() {
         super.onStart()
-
-        if (intent.action.isNotAnyOf(Intent.ACTION_SEND, Intent.ACTION_SEND_MULTIPLE)) {
-            finish()
-            return
-        }
 
         val adapter = BufferListAdapter(this).apply {
             val pendingItemCount = onBuffersChanged()
