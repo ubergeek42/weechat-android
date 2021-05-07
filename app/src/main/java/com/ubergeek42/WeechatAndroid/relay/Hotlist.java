@@ -19,9 +19,9 @@ import android.text.style.StyleSpan;
 
 import com.ubergeek42.WeechatAndroid.media.ContentUriFetcher;
 import com.ubergeek42.WeechatAndroid.media.Engine;
+import com.ubergeek42.WeechatAndroid.notifications.HotNotification;
+import com.ubergeek42.WeechatAndroid.notifications.NotificatorKt;
 import com.ubergeek42.WeechatAndroid.service.Events;
-import com.ubergeek42.WeechatAndroid.service.HotNotification;
-import com.ubergeek42.WeechatAndroid.service.NotificatorKt;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.Kitty;

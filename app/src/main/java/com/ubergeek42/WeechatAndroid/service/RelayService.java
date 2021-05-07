@@ -53,10 +53,10 @@ import org.greenrobot.eventbus.Subscribe;
 import java.nio.channels.UnresolvedAddressException;
 import java.util.EnumSet;
 
+import static com.ubergeek42.WeechatAndroid.notifications.NotificatorKt.showMainNotification;
 import static com.ubergeek42.WeechatAndroid.service.Events.ExceptionEvent;
 import static com.ubergeek42.WeechatAndroid.service.Events.SendMessageEvent;
 import static com.ubergeek42.WeechatAndroid.service.Events.StateChangedEvent;
-import static com.ubergeek42.WeechatAndroid.service.NotificatorKt.showMainNotification;
 import static com.ubergeek42.WeechatAndroid.utils.Assert.assertThat;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
 

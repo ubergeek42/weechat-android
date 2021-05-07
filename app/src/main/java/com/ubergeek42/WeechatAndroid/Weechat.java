@@ -9,7 +9,7 @@ import android.os.Handler;
 
 import com.ubergeek42.WeechatAndroid.media.CachePersist;
 import com.ubergeek42.WeechatAndroid.service.Events;
-import com.ubergeek42.WeechatAndroid.service.NotificatorKt;
+import com.ubergeek42.WeechatAndroid.notifications.NotificatorKt;
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.service.RelayService.STATE;
 import com.ubergeek42.WeechatAndroid.upload.UploadDatabase;

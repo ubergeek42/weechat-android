@@ -141,11 +141,11 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     public static float textSize, letterWidth;
     public static TextPaint textPaint;
 
-    static boolean notificationEnable;
-    static boolean notificationTicker;  // unused
-    static boolean notificationLight;
-    static boolean notificationVibrate;
-    static String notificationSound;
+    public static boolean notificationEnable;
+    public static boolean notificationTicker;  // unused
+    public static boolean notificationLight;
+    public static boolean notificationVibrate;
+    public static String notificationSound;
 
     public static boolean showSend, showTab, showPaperclip, hotlistSync, volumeBtnSize;
 
