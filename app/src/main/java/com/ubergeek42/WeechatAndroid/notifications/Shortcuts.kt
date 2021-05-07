@@ -20,15 +20,19 @@ import com.ubergeek42.WeechatAndroid.utils.Constants.PREF_UPLOAD_ACCEPT_TEXT_ONL
 import com.ubergeek42.WeechatAndroid.utils.Utils
 
 
-fun interface ShortcutReporter {
+interface ShortcutReporter {
     fun reportBufferFocused(pointer: Long)
+    fun makeSureShortcutExists(pointer: Long)
 }
 
 
 val shortcuts: ShortcutReporter = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                                       Shortcuts(applicationContext)
                                   } else {
-                                      ShortcutReporter { /* no op */ }
+                                      object : ShortcutReporter {
+                                          override fun reportBufferFocused(pointer: Long) {}
+                                          override fun makeSureShortcutExists(pointer: Long) {}
+                                      }
                                   }
 
 
@@ -60,6 +64,7 @@ class Shortcuts(val context: Context): ShortcutReporter {
             .setLongLived(true)
             .setLocusId(LocusIdCompat(buffer.fullName))
             .setCategories(setOf(category))
+            .setIsConversation()
 
         if (buffer.type == BufferSpec.Type.Private) {
             val person = getPerson(key = buffer.fullName, nick = buffer.shortName)
@@ -81,6 +86,17 @@ class Shortcuts(val context: Context): ShortcutReporter {
             }
 
             shortcutManager.reportShortcutUsed(key)
+        }
+    }
+
+    override fun makeSureShortcutExists(pointer: Long) {
+        BufferList.findByPointer(pointer)?.let { buffer ->
+            val key = buffer.fullName
+
+            if (key !in pushedShortcuts) {
+                shortcutManager.pushDynamicShortcut(makeShortcutForBuffer(buffer).toShortcutInfo())
+                pushedShortcuts.add(key)
+            }
         }
     }
 }

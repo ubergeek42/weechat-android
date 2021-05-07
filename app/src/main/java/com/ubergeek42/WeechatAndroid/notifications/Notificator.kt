@@ -269,6 +269,8 @@ class HotNotification(
             hotBuffer.shortName
         )
 
+        shortcuts.makeSureShortcutExists(hotBuffer.pointer)
+
         val builder = NotificationCompat.Builder(applicationContext, notificationChannel)
             .setContentIntent(makePendingIntentForBuffer(hotBuffer.pointer))
             .setSmallIcon(R.drawable.ic_notification_hot)
