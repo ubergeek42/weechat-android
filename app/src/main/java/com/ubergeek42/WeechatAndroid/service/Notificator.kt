@@ -16,6 +16,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.Person
 import androidx.core.app.RemoteInput
 import androidx.core.content.LocusIdCompat
+import androidx.core.graphics.drawable.IconCompat
 import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.WeechatActivity
 import com.ubergeek42.WeechatAndroid.relay.Hotlist.HotMessage
@@ -23,6 +24,7 @@ import com.ubergeek42.WeechatAndroid.relay.Hotlist.HotBuffer
 import com.ubergeek42.WeechatAndroid.relay.Hotlist.NotifyReason
 import com.ubergeek42.WeechatAndroid.relay.Hotlist.InlineReplyReceiver
 import com.ubergeek42.WeechatAndroid.upload.applicationContext
+import com.ubergeek42.WeechatAndroid.upload.dp_to_px
 import com.ubergeek42.WeechatAndroid.utils.Constants
 import com.ubergeek42.WeechatAndroid.utils.Utils
 import com.ubergeek42.WeechatAndroid.utils.isAnyOf
@@ -326,7 +328,7 @@ fun NotificationCompat.MessagingStyle.addMessage(
     nick: CharSequence,
     image: Uri?
 ) {
-    val person = Person.Builder().setName(nick).build()
+    val person = Users.getUser(nick.toString())
 
     addMessage(NotificationCompat.MessagingStyle.Message(message, timestamp, person))
 
@@ -485,5 +487,24 @@ class NotificationDismissedReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val strPointer = intent.action
         DisplayedNotifications.remove(Utils.pointerFromString(strPointer))
+    }
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+private object Users {
+    private val users = mutableMapOf<String, Person>()
+
+    fun getUser(nick: String): Person {
+        return users.getOrPut(nick) {
+            val maxIconSide = 48.dp_to_px   // todo use proper numbers
+            val iconBitmap = generateIcon(maxIconSide, maxIconSide, nick, nick)
+            val icon = IconCompat.createWithBitmap(iconBitmap)
+            Person.Builder().setName(nick).setIcon(icon).build()
+        }
     }
 }

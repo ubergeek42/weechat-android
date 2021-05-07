@@ -8,7 +8,6 @@ import android.content.pm.ShortcutManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
-import android.graphics.Rect
 import android.graphics.Typeface
 import android.graphics.drawable.Icon
 import android.os.Build
@@ -40,8 +39,8 @@ class Shortcuts(val context: Context): ShortcutReporter {
     private val shortcutManager = context.getSystemService(ShortcutManager::class.java)!!
 
     private fun makeShortcutForBuffer(buffer: Buffer): ShortcutInfo {
-        val iconBitmap = generateIcon(shortcutManager.iconMaxWidth,
-                                      shortcutManager.iconMaxHeight,
+        val iconBitmap = generateIcon(48.dp_to_px /* shortcutManager.iconMaxWidth */,
+                                      48.dp_to_px /* shortcutManager.iconMaxHeight */,
                                       buffer.shortName,
                                       buffer.fullName)
 
@@ -113,36 +112,36 @@ fun String.djb2Remainder(divisor: Int): Int {
 fun generateIcon(width: Int, height: Int, text: String, colors: Colors): Bitmap {
     val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
     val canvas = Canvas(bitmap)
-
     val paint = Paint()
 
     val x = width.f / 2
     val y = height.f / 2
 
     paint.apply {
+        flags = Paint.ANTI_ALIAS_FLAG
         color = colors.background
     }
 
-    canvas.drawCircle(x, y, x, paint)
+    canvas.drawCircle(x, y, minOf(x, y), paint)
 
     paint.apply {
-        textSize = 48.dp_to_px.toFloat()
+        textSize = height / 2f
         color = colors.foreground
-        typeface = defaultBoldTypeface;
+        typeface = defaultBoldTypeface
     }
 
-    val (textWidth, textHeight) = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-        val textBounds = Rect()
-        paint.getTextBounds(text, 0, text.length, textBounds)
-        textBounds.width().f to textBounds.height().f
-    } else {
-        val fontMetrics = paint.fontMetrics
-        val lineHeight = fontMetrics.descent - fontMetrics.ascent
-        val textWidth = paint.measureText(text)
-        textWidth to lineHeight
-    }
+    val fontMetrics = paint.fontMetrics
+    val ascent = fontMetrics.ascent
+    val descent = fontMetrics.descent
 
-    canvas.drawText(text, (width - textWidth) / 2, (height + textHeight) / 2, paint)
+    val textWidth = paint.measureText(text)
+
+    canvas.drawText(
+        text,
+        (width - textWidth) / 2f,
+        (height + (descent - ascent)) / 2f - descent,
+        paint
+    )
 
     return bitmap
 }
@@ -157,7 +156,5 @@ fun generateIcon(width: Int, height: Int, shortName: String, fullName: String): 
     }
 
     val colorIndex = fullName.djb2Remainder(colorPairs.size)
-    //val (foregroundColor, backgroundColor) = colorPairs[colorIndex]
-    //println("idx = $colorIndex, ${foregroundColor.toHexString()} : ${backgroundColor.toHexString()} [$fullName -> ${fullName.hashCode()}]")
     return generateIcon(width, height, text.toString(), colorPairs[colorIndex])
 }
