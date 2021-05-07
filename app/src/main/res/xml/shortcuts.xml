@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <share-target android:targetClass="com.ubergeek42.WeechatAndroid.ShareActivityText">
+        <data android:mimeType="text/plain" />
+        <category android:name="com.ubergeek42.WeechatAndroid.category.BUFFER_TARGET_TEXT" />
+    </share-target>
+    <share-target android:targetClass="com.ubergeek42.WeechatAndroid.ShareActivityMedia">
+        <data android:mimeType="image/*" />
+        <data android:mimeType="video/*" />
+        <category android:name="com.ubergeek42.WeechatAndroid.category.BUFFER_TARGET_MEDIA" />
+    </share-target>
+    <share-target android:targetClass="com.ubergeek42.WeechatAndroid.ShareActivityEverything">
+        <data android:mimeType="*/*" />
+        <category android:name="com.ubergeek42.WeechatAndroid.category.BUFFER_TARGET_EVERYTHING" />
+    </share-target>
+</shortcuts>

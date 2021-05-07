@@ -36,8 +36,10 @@
         android:theme="@style/Weechat"
         android:requestLegacyExternalStorage="true"
         android:windowSoftInputMode="adjustResize">
+
         <service android:name=".service.RelayService" />
         <service android:name=".upload.UploadService" />
+
         <activity
             android:name=".WeechatActivity"
             android:launchMode="singleTask"
@@ -46,6 +48,9 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <meta-data android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
         </activity>
 
 
@@ -113,6 +118,7 @@
                 <data android:mimeType="*/*" />
             </intent-filter>
         </activity-alias>
+
 
         <activity android:name=".PreferencesActivity" />
         <activity android:name=".WeechatAboutActivity">

@@ -9,6 +9,7 @@ import com.ubergeek42.WeechatAndroid.utils.Constants.*
 
 
 object Config {
+    var uploadAcceptShared = PREF_UPLOAD_ACCEPT_D
     var uploadUri = PREF_UPLOAD_URI_D
     var uploadFormFieldName = PREF_UPLOAD_FORM_FIELD_NAME
     var httpUriGetter = HttpUriGetter.simple
@@ -43,7 +44,9 @@ fun initPreferences() {
 fun onSharedPreferenceChanged(p: SharedPreferences, key: String) {
     when (key) {
         PREF_UPLOAD_ACCEPT -> {
-            val (text, media, everything) = when (p.getString(key, PREF_UPLOAD_ACCEPT_D)) {
+            val uploadAcceptShared = p.getString(key, PREF_UPLOAD_ACCEPT_D)!!
+            Config.uploadAcceptShared = uploadAcceptShared
+            val (text, media, everything) = when (uploadAcceptShared) {
                 PREF_UPLOAD_ACCEPT_TEXT_ONLY -> true to false to false
                 PREF_UPLOAD_ACCEPT_TEXT_AND_MEDIA -> false to true to false
                 PREF_UPLOAD_ACCEPT_EVERYTHING -> false to false to true

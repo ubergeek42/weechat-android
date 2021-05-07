@@ -12,8 +12,11 @@ import com.ubergeek42.WeechatAndroid.WeechatActivity
 import com.ubergeek42.WeechatAndroid.relay.Buffer
 import com.ubergeek42.WeechatAndroid.relay.BufferList
 import com.ubergeek42.WeechatAndroid.relay.BufferSpec
+import com.ubergeek42.WeechatAndroid.upload.Config
 import com.ubergeek42.WeechatAndroid.upload.applicationContext
 import com.ubergeek42.WeechatAndroid.utils.Constants
+import com.ubergeek42.WeechatAndroid.utils.Constants.PREF_UPLOAD_ACCEPT_TEXT_AND_MEDIA
+import com.ubergeek42.WeechatAndroid.utils.Constants.PREF_UPLOAD_ACCEPT_TEXT_ONLY
 import com.ubergeek42.WeechatAndroid.utils.Utils
 
 
@@ -42,6 +45,13 @@ class Shortcuts(val context: Context): ShortcutReporter {
             action = Utils.pointerToString(buffer.pointer)
         }
 
+        val category = when (Config.uploadAcceptShared) {
+            PREF_UPLOAD_ACCEPT_TEXT_ONLY -> "com.ubergeek42.WeechatAndroid.category.BUFFER_TARGET_TEXT"
+            PREF_UPLOAD_ACCEPT_TEXT_AND_MEDIA -> "com.ubergeek42.WeechatAndroid.category.BUFFER_TARGET_MEDIA"
+            else -> "com.ubergeek42.WeechatAndroid.category.BUFFER_TARGET_EVERYTHING"
+        }
+
+        println("category -> $category")
         val builder = ShortcutInfoCompat.Builder(context, buffer.fullName)
             .setShortLabel(buffer.shortName)
             .setLongLabel(buffer.shortName)
@@ -49,6 +59,7 @@ class Shortcuts(val context: Context): ShortcutReporter {
             .setIntent(intent)
             .setLongLived(true)
             .setLocusId(LocusIdCompat(buffer.fullName))
+            .setCategories(setOf(category))
 
         if (buffer.type == BufferSpec.Type.Private) {
             val person = getPerson(key = buffer.fullName, nick = buffer.shortName)
