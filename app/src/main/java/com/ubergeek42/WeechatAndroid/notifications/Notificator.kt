@@ -269,7 +269,7 @@ class HotNotification(
             hotBuffer.shortName
         )
 
-        shortcuts.makeSureShortcutExists(hotBuffer.pointer)
+        shortcuts.ensureShortcutExists(hotBuffer.fullName)
 
         val builder = NotificationCompat.Builder(applicationContext, notificationChannel)
             .setContentIntent(makePendingIntentForBuffer(hotBuffer.pointer))

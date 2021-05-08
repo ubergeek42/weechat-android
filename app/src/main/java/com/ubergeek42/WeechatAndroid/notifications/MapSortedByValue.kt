@@ -29,7 +29,8 @@ inline fun <K, V : Comparable<V>> mapSortedByValue(
 
     return object: PrimitiveMap<K, V> {
         override fun get(key: K): V? {
-            return map[key as PrimitiveMap.Entry<*, *>]?.value
+            @Suppress("UNCHECKED_CAST")
+            return (map as Map<K, PrimitiveMap.Entry<K, V>>)[key]?.value
         }
 
         override fun put(key: K, value: V) {
