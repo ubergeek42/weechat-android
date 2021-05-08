@@ -10,7 +10,6 @@ import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.graphics.drawable.IconCompat
 import com.ubergeek42.WeechatAndroid.WeechatActivity
 import com.ubergeek42.WeechatAndroid.relay.Buffer
-import com.ubergeek42.WeechatAndroid.relay.BufferList
 import com.ubergeek42.WeechatAndroid.relay.BufferSpec
 import com.ubergeek42.WeechatAndroid.upload.Config
 import com.ubergeek42.WeechatAndroid.upload.applicationContext
@@ -19,25 +18,25 @@ import com.ubergeek42.WeechatAndroid.utils.Constants.PREF_UPLOAD_ACCEPT_TEXT_AND
 import com.ubergeek42.WeechatAndroid.utils.Constants.PREF_UPLOAD_ACCEPT_TEXT_ONLY
 import com.ubergeek42.WeechatAndroid.utils.Utils
 
-
-interface ShortcutReporter {
-    fun reportBufferFocused(pointer: Long)
-    fun makeSureShortcutExists(pointer: Long)
+interface Shortcuts {
+    fun ensureShortcutExists(key: String)
+    fun reportBufferWasSharedTo(statistics: StatisticsImpl)
+    fun reportBufferWasManuallyFocused(statistics: StatisticsImpl)
 }
 
-
-val shortcuts: ShortcutReporter = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                                      Shortcuts(applicationContext)
-                                  } else {
-                                      object : ShortcutReporter {
-                                          override fun reportBufferFocused(pointer: Long) {}
-                                          override fun makeSureShortcutExists(pointer: Long) {}
-                                      }
-                                  }
+val shortcuts = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    ShortcutsImpl(applicationContext)
+                } else {
+                    object : Shortcuts {
+                        override fun reportBufferWasSharedTo(statistics: StatisticsImpl) {}
+                        override fun reportBufferWasManuallyFocused(statistics: StatisticsImpl) {}
+                        override fun ensureShortcutExists(key: String) {}
+                    }
+                }
 
 
 @RequiresApi(30)
-class Shortcuts(val context: Context): ShortcutReporter {
+class ShortcutsImpl(val context: Context): Shortcuts {
     private val shortcutManager = context.getSystemService(ShortcutManager::class.java)!!
 
     private fun makeShortcutForBuffer(buffer: Buffer): ShortcutInfoCompat {
@@ -55,7 +54,6 @@ class Shortcuts(val context: Context): ShortcutReporter {
             else -> "com.ubergeek42.WeechatAndroid.category.BUFFER_TARGET_EVERYTHING"
         }
 
-        println("category -> $category")
         val builder = ShortcutInfoCompat.Builder(context, buffer.fullName)
             .setShortLabel(buffer.shortName)
             .setLongLabel(buffer.shortName)
@@ -74,29 +72,15 @@ class Shortcuts(val context: Context): ShortcutReporter {
         return builder.build()
     }
 
-    private val pushedShortcuts = mutableSetOf<String>()
-
-    override fun reportBufferFocused(pointer: Long) {
-        BufferList.findByPointer(pointer)?.let { buffer ->
-            val key = buffer.fullName
-
-            if (key !in pushedShortcuts) {
-                shortcutManager.pushDynamicShortcut(makeShortcutForBuffer(buffer).toShortcutInfo())
-                pushedShortcuts.add(key)
-            }
-
-            shortcutManager.reportShortcutUsed(key)
-        }
+    override fun reportBufferWasSharedTo(statistics: StatisticsImpl) {
+        TODO("Not yet implemented")
     }
 
-    override fun makeSureShortcutExists(pointer: Long) {
-        BufferList.findByPointer(pointer)?.let { buffer ->
-            val key = buffer.fullName
+    override fun reportBufferWasManuallyFocused(statistics: StatisticsImpl) {
+        TODO("Not yet implemented")
+    }
 
-            if (key !in pushedShortcuts) {
-                shortcutManager.pushDynamicShortcut(makeShortcutForBuffer(buffer).toShortcutInfo())
-                pushedShortcuts.add(key)
-            }
-        }
+    override fun ensureShortcutExists(key: String) {
+        TODO("Not yet implemented")
     }
 }
