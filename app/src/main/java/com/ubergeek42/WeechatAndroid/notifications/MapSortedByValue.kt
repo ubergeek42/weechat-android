@@ -2,6 +2,7 @@ package com.ubergeek42.WeechatAndroid.notifications
 
 import java.util.*
 import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 
 
 interface PrimitiveMap<K, V : Comparable<V>> {
@@ -12,36 +13,31 @@ interface PrimitiveMap<K, V : Comparable<V>> {
     data class Entry<K, V : Comparable<V>>(
         val key: K,
         val value: V
-    ) {
-        override fun equals(other: Any?) = (other is Entry<*, *> && other.key == key) ||
-                                           other == key
-        override fun hashCode() = key.hashCode()
-    }
+    )
 }
 
 
 inline fun <K, V : Comparable<V>> mapSortedByValue(
     crossinline selector: (V) -> Comparable<*>
 ): PrimitiveMap<K, V> {
-    val map = TreeMap<PrimitiveMap.Entry<K, V>, PrimitiveMap.Entry<K, V>>(
-        compareBy { selector(it.value) }
-    )
+    val keyToEntry = HashMap<K, PrimitiveMap.Entry<K, V>>()
+    val sortedSet = sortedSetOf<PrimitiveMap.Entry<K, V>>(compareBy { selector(it.value) })
 
     return object: PrimitiveMap<K, V> {
         override fun get(key: K): V? {
-            @Suppress("UNCHECKED_CAST")
-            return (map as Map<K, PrimitiveMap.Entry<K, V>>)[key]?.value
+            return keyToEntry[key]?.value
         }
 
         override fun put(key: K, value: V) {
-            val record = PrimitiveMap.Entry(key, value)
-            map.remove(record)
-            map[record] = record
+            keyToEntry[key]?.let { sortedSet.remove(it) }
+            val entry = PrimitiveMap.Entry(key, value)
+            keyToEntry[key] = entry
+            sortedSet.add(entry)
         }
 
         override fun getSomeKeys(upTo: Int): List<K> {
             val result = ArrayList<K>(upTo)
-            map.values.forEachIndexed { index, value ->
+            sortedSet.forEachIndexed { index, value ->
                 if (index < upTo) {
                     result.add(value.key)
                 } else {
