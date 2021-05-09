@@ -184,18 +184,18 @@ class HotNotification(
                 return
         }
 
-        val shouldMakeNoise = reason == NotifyReason.HOT_SYNC
+        val makeNoise = reason == NotifyReason.HOT_SYNC
 
         if (!CAN_MAKE_BUNDLED_NOTIFICATIONS) {
             manager.notify(ID_HOT,
-                makeSummaryNotification().apply { if (shouldMakeNoise) makeNoise() }.build())
+                makeSummaryNotification().setMakeNoise(makeNoise).build())
         } else {
             manager.notify(ID_HOT,
-                makeSummaryNotification().build())
+                makeSummaryNotification().setMakeNoise(false).build())
 
             if (hotBuffer.hotCount > 0) {
                 manager.notify(Utils.pointerToString(hotBuffer.pointer), ID_HOT,
-                    makeBufferNotification().apply { if (shouldMakeNoise) makeNoise() }.build())
+                    makeBufferNotification().setMakeNoise(makeNoise).build())
 
                 DisplayedNotifications.add(hotBuffer.pointer)
             }
@@ -215,9 +215,11 @@ class HotNotification(
             .setContentIntent(makePendingIntentForBuffer(Constants.NOTIFICATION_EXTRA_BUFFER_ANY))
             .setSmallIcon(R.drawable.ic_notification_hot)
             .setCategory(NotificationCompat.CATEGORY_MESSAGE)
-            .setWhen(lastMessageTimestamp)
             .setGroup(GROUP_KEY)
+            .setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_CHILDREN)
             .setGroupSummary(true)
+
+            .setWhen(lastMessageTimestamp)
             .setNotificationText(nMessagesInNBuffers)
 
         if (CAN_MAKE_BUNDLED_NOTIFICATIONS) {
@@ -257,15 +259,16 @@ class HotNotification(
 
         val builder = NotificationCompat.Builder(applicationContext, CHANNEL_HOTLIST)
             .setContentIntent(makePendingIntentForBuffer(hotBuffer.pointer))
-            .setSmallIcon(R.drawable.ic_notification_hot)
             .setDeleteIntent(makePendingIntentForDismissedNotificationForBuffer(hotBuffer.pointer))
+            .setSmallIcon(R.drawable.ic_notification_hot)
             .setCategory(NotificationCompat.CATEGORY_MESSAGE)
-            .setWhen(hotBuffer.lastMessageTimestamp)
             .setGroup(GROUP_KEY)
             .setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_CHILDREN)
-            .setNotificationText(nNewMessagesInBuffer)
             .setShortcutId(hotBuffer.fullName)
             .setLocusId(LocusIdCompat(hotBuffer.fullName))
+
+            .setWhen(hotBuffer.lastMessageTimestamp)
+            .setNotificationText(nNewMessagesInBuffer)
 
         // messages hold the latest messages, don't show the reply button if user can't see any
         if (connected && hotBuffer.messages.isNotEmpty()) {
@@ -370,13 +373,23 @@ fun NotificationCompat.MessagingStyle.maybeAddMissingMessageLine(
 }
 
 
-fun NotificationCompat.Builder.makeNoise() {
-    var flags = 0
-    if (P.notificationLight) flags = flags or Notification.DEFAULT_LIGHTS
-    if (P.notificationVibrate) flags = flags or Notification.DEFAULT_VIBRATE
-    setDefaults(flags)
-    priority = Notification.PRIORITY_HIGH
-    if (!P.notificationSound.isNullOrBlank()) setSound(Uri.parse(P.notificationSound))
+fun NotificationCompat.Builder.setMakeNoise(makeNoise: Boolean): NotificationCompat.Builder {
+    setOnlyAlertOnce(!makeNoise)
+
+    if (makeNoise && Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+        var flags = 0
+        if (P.notificationLight) flags = flags or Notification.DEFAULT_LIGHTS
+        if (P.notificationVibrate) flags = flags or Notification.DEFAULT_VIBRATE
+        setDefaults(flags)
+
+        P.notificationSound?.let{
+            setSound(Uri.parse(it))
+        }
+
+        priority = Notification.PRIORITY_HIGH
+    }
+
+    return this
 }
 
 
