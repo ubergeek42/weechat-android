@@ -50,7 +50,7 @@ public class Hotlist {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     public static class HotBuffer {
-        public final boolean isPrivate;
+        public boolean isPrivate;
         public final long pointer;
         public String shortName;
         public final String fullName;
@@ -92,6 +92,7 @@ public class Hotlist {
                     if (toRemove >= 0) messages.subList(0, toRemove).clear();
                 }
             }
+            isPrivate = buffer.type == BufferSpec.Type.Private;
             if (updatingHotCount) setHotCount(newHotCount);
             if (updatingShortName) shortName = buffer.shortName;
             notifyHotlistChanged(this, NotifyReason.HOT_ASYNC);
@@ -100,6 +101,7 @@ public class Hotlist {
         void onNewHotLine(Buffer buffer, Line line) {
             setHotCount(hotCount + 1);
             shortName = buffer.shortName;
+            isPrivate = buffer.type == BufferSpec.Type.Private;
             HotMessage message = new HotMessage(line, this);
             messages.add(message);
             notifyHotlistChanged(this, NotifyReason.HOT_SYNC);
