@@ -10,6 +10,7 @@ import androidx.core.content.pm.ShortcutManagerCompat.EXTRA_SHORTCUT_ID
 import com.ubergeek42.WeechatAndroid.adapters.BufferListAdapter
 import com.ubergeek42.WeechatAndroid.adapters.BufferListClickListener
 import com.ubergeek42.WeechatAndroid.databinding.BufferlistShareBinding
+import com.ubergeek42.WeechatAndroid.notifications.statistics
 import com.ubergeek42.WeechatAndroid.relay.BufferList
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.upload.preloadThumbnailsForIntent
@@ -111,6 +112,10 @@ class ShareTextActivity : AppCompatActivity(), BufferListClickListener {
         intent.putExtra(Constants.EXTRA_BUFFER_POINTER, pointer)
         startActivity(intent)
         finish()
+
+        BufferList.findByPointer(pointer)?.let { buffer ->
+            statistics.reportBufferWasSharedTo(buffer.fullName)
+        }
     }
 
     private fun applyColorSchemeToViews(vararg primaryBackgroundColorViews: View) {

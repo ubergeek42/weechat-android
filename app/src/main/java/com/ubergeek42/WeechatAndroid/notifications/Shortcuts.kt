@@ -43,7 +43,8 @@ val shortcuts = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
 @RequiresApi(30)
 private class ShortcutsImpl(val context: Context): Shortcuts {
     private val shortcutManager = context.getSystemService(ShortcutManager::class.java)!!
-    val limit = shortcutManager.maxShortcutCountPerActivity
+    val launcherShortcutLimit = shortcutManager.maxShortcutCountPerActivity
+    val directShareShortcutLimit = minOf(launcherShortcutLimit, 2)
 
     private fun makeShortcutForBuffer(buffer: Buffer, rank: Int?, shareTarget: Boolean): ShortcutInfoCompat {
         val iconBitmap = generateIcon(text = buffer.shortName, colorKey = buffer.fullName)
@@ -92,7 +93,7 @@ private class ShortcutsImpl(val context: Context): Shortcuts {
     var launcherShortcuts = shortcuts
         .entries
         .sortedBy { it.value.rank }
-        .take(limit)
+        .take(launcherShortcutLimit)
         .map { it.key }
 
     var directShareShortcuts = shortcuts
@@ -122,12 +123,20 @@ private class ShortcutsImpl(val context: Context): Shortcuts {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     override fun reportBufferWasSharedTo(focusedKey: String, statistics: StatisticsImpl) {
-
+        val old = directShareShortcuts
+        val new = statistics.getMostFrequentlySharedToBuffers(directShareShortcutLimit)
+        directShareShortcuts = new
+        if (old != new) {
+            (old - new).forEach { key -> updateShortcut(key, shareTarget = false) }
+            (new - old).forEach { key -> updateShortcut(key, shareTarget = true) }
+            shortcuts = fetchShortcuts()
+        }
+        shortcutManager.reportShortcutUsed(focusedKey)
     }
 
     override fun reportBufferWasManuallyFocused(focusedKey: String, statistics: StatisticsImpl) {
         val old = launcherShortcuts
-        val new = statistics.getMostFrequentlyManuallyFocusedBuffers(limit)
+        val new = statistics.getMostFrequentlyManuallyFocusedBuffers(launcherShortcutLimit)
         launcherShortcuts = new
         if (old != new) {
             val oldSansNew = old - new
@@ -153,4 +162,3 @@ private class ShortcutsImpl(val context: Context): Shortcuts {
 }
 
 // todo thread
-// todo no set()
