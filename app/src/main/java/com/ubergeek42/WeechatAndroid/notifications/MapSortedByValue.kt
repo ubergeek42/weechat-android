@@ -17,11 +17,13 @@ interface PrimitiveMap<K, V : Comparable<V>> {
 }
 
 
-inline fun <K, V : Comparable<V>> mapSortedByValue(
+inline fun <K : Comparable<K>, V : Comparable<V>> mapSortedByValue(
     crossinline selector: (V) -> Comparable<*>
 ): PrimitiveMap<K, V> {
     val keyToEntry = HashMap<K, PrimitiveMap.Entry<K, V>>()
-    val sortedSet = sortedSetOf<PrimitiveMap.Entry<K, V>>(compareBy { selector(it.value) })
+    val sortedSet = sortedSetOf(
+        compareBy<PrimitiveMap.Entry<K, V>> { selector(it.value) }.thenBy { it.key }
+    )
 
     return object: PrimitiveMap<K, V> {
         override fun get(key: K): V? {
