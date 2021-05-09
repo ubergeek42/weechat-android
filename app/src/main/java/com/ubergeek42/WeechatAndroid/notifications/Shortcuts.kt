@@ -79,8 +79,7 @@ private class ShortcutsImpl(val context: Context): Shortcuts {
         }
 
         if (buffer.type == BufferSpec.Type.Private) {
-            val person = getPerson(key = buffer.fullName, nick = buffer.shortName)
-            builder.setPerson(person)
+            builder.setPerson(getPersonByPrivateBuffer(buffer))
         }
 
         return builder.build()

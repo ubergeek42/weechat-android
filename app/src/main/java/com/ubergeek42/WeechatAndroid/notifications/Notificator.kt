@@ -245,12 +245,13 @@ class HotNotification(
                 conversationTitle = nMessagesInNBuffers
                 isGroupConversation = true // needed to display the title
 
-                maybeAddMissingMessageLine(totalHotCount - allMessages.size, null)
+                maybeAddMissingMessageLine(totalHotCount - allMessages.size, null, null)
 
                 allMessages.forEach { message ->
                     addMessage(
+                        Person.Builder().setName(message.getNickForFullList()).build(),
                         message.message, message.timestamp,
-                        message.getNickForFullList(), message.image
+                        message.image
                     )
                 }
 
@@ -296,13 +297,19 @@ class HotNotification(
             // before pie, display private buffers as non-private
             isGroupConversation = !hotBuffer.isPrivate || Build.VERSION.SDK_INT < 28
 
-            maybeAddMissingMessageLine(hotBuffer.hotCount - hotBuffer.messages.size, null)
+            val staticPerson = if (hotBuffer.isPrivate) getPersonByPrivateBuffer(hotBuffer) else null
+
+            maybeAddMissingMessageLine(hotBuffer.hotCount - hotBuffer.messages.size, hotBuffer, staticPerson)
 
             hotBuffer.messages.forEach { message ->
-                addMessage(
-                    message.message, message.timestamp,
-                    message.getNickForBuffer(), message.image
-                )
+                val person = if (staticPerson != null) {
+                    staticPerson
+                } else {
+                    val nick = message.getNickForBuffer().toString()
+                    getPerson(key = nick, colorKey = nick, nick = nick, missing = false)
+                }
+
+                addMessage(person, message.message, message.timestamp, message.image)
             }
 
             builder.setStyle(this@apply2)
@@ -325,13 +332,11 @@ class HotNotification(
 // visible, so it's safe enough to duplicate the text as well
 // todo perhaps check if the image referenced by the url actually exists?
 fun NotificationCompat.MessagingStyle.addMessage(
+    person: Person,
     message: CharSequence,
     timestamp: Long,
-    nick: CharSequence,
-    image: Uri?
+    image: Uri?,
 ) {
-    val person = getPerson(nick.toString(), nick.toString())
-
     addMessage(NotificationCompat.MessagingStyle.Message(message, timestamp, person))
 
     if (image != null) {
@@ -348,18 +353,25 @@ fun NotificationCompat.MessagingStyle.addMessage(
 // of the first line we have to avoid awkward nick changes (current (missing) -> old -> current)
 fun NotificationCompat.MessagingStyle.maybeAddMissingMessageLine(
     missingMessages: Int,
-    hotBuffer: HotBuffer?
+    hotBuffer: HotBuffer?,
+    staticPerson: Person?,
 ) {
     if (missingMessages == 0) return
 
-    val nick = when {
-        Build.VERSION.SDK_INT < 28 -> ZERO_WIDTH_SPACE
-        hotBuffer != null && hotBuffer.isPrivate ->
-            if (hotBuffer.messages.isEmpty()) hotBuffer.shortName else hotBuffer.messages[0].nick
-        else ->
-            applicationResources.getQuantityString(
+    val person = when {
+        Build.VERSION.SDK_INT < 28 -> Person.Builder().setName(ZERO_WIDTH_SPACE).build()
+        staticPerson != null -> staticPerson
+        else -> {
+            val nick = applicationResources.getQuantityString(
                 R.plurals.notifications__MessagingStyle__missing_users,
                 if (missingMessages == 1) 1 else 2)
+            if (hotBuffer == null) {
+                Person.Builder().setName(nick).build()
+            } else {
+                getPerson(key = hotBuffer.fullName, colorKey = hotBuffer.fullName,
+                          nick = nick, missing = true)
+            }
+        }
     }
 
     val message = if (missingMessages == 1) {
@@ -371,7 +383,7 @@ fun NotificationCompat.MessagingStyle.maybeAddMissingMessageLine(
         )
     }
 
-    addMessage(message, 0, nick, null)
+    addMessage(person, message, 0, null)
 }
 
 
