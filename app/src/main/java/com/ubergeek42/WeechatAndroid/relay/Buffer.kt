@@ -44,7 +44,7 @@ class Buffer @WorkerThread constructor(
         var notify: Notify? by updatable(::updateNotifyLevel)
     }
 
-    fun update(block: Updater.() -> Unit) {
+    fun update(silently: Boolean = false, block: Updater.() -> Unit) {
         val updater = Updater()
         updater.block()
 
@@ -54,7 +54,7 @@ class Buffer @WorkerThread constructor(
             shortName = updater.shortName ?: fullName
             kitty.setPrefix(shortName)
             processBufferNameSpannable()
-            Hotlist.adjustHotListForBuffer(this, false) // update buffer names in the notifications
+            if (!silently) Hotlist.adjustHotListForBuffer(this, false) // update buffer names in the notifications
         }
 
         if (updater.updateTitle) {

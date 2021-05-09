@@ -42,7 +42,7 @@ enum class Notify(val value: Int) {
 
     // todo get rid of openWhileRunning
     fun toBuffer(openWhileRunning: Boolean) = Buffer(pointer).apply {
-        update {
+        update(silently = true) {
             number = this@BufferSpec.number
             fullName = this@BufferSpec.fullName
             shortName = this@BufferSpec.shortName
