@@ -112,7 +112,6 @@
 
     <string name="notifications__channel__connection_status">Verbindungsstatus</string>
     <string name="notifications__channel__hotlist">Neue Nachrichten</string>
-    <string name="notifications__channel__hotlist_async">Neue Nachrichten (async)</string>
 
     <string name="notifications__main__waiting_for_network">Warte auf Netzwerk</string>
     <string name="notifications__main__will_connect_in_n_seconds">In %d Sekunden verbinden…</string>

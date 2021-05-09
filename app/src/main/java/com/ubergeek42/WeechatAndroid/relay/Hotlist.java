@@ -109,7 +109,7 @@ public class Hotlist {
             if (Engine.isEnabledAtAll() && Engine.isEnabledForLocation(Engine.Location.NOTIFICATION) && Engine.isEnabledForLine(line)) {
                 ContentUriFetcher.loadFirstUrlFromText(message.message, (Uri imageUri) -> {
                     message.image = imageUri;
-                    notifyHotlistChanged(this, NotifyReason.HOT_ASYNC);
+                    notifyHotlistChanged(this, NotifyReason.REDRAW);
                 });
             }
         }
@@ -118,7 +118,7 @@ public class Hotlist {
             if (hotCount == 0) return;
             setHotCount(0);
             messages.clear();
-            notifyHotlistChanged(this, NotifyReason.HOT_ASYNC);
+            notifyHotlistChanged(this, NotifyReason.REDRAW);
         }
 
         private void setHotCount(int newHotCount) {
@@ -208,7 +208,7 @@ public class Hotlist {
         return hotBuffer;
     }
 
-    public enum NotifyReason {HOT_SYNC, HOT_ASYNC, REDRAW}
+    public enum NotifyReason { HOT_SYNC, HOT_ASYNC, REDRAW }
     private static void notifyHotlistChanged(HotBuffer buffer, NotifyReason reason) {
         ArrayList<HotMessage> allMessages = new ArrayList<>();
         int hotBufferCount = 0;

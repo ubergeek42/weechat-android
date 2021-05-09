@@ -114,7 +114,6 @@
 
     <string name="notifications__channel__connection_status">Connection Status</string>
     <string name="notifications__channel__hotlist">Hotlist</string>
-    <string name="notifications__channel__hotlist_async">Hotlist (async)</string>
 
     <string name="notifications__main__waiting_for_network">Waiting for network</string>
     <string name="notifications__main__will_connect_in_n_seconds">Will connect in %d seconds…</string>

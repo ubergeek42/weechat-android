@@ -111,7 +111,6 @@
 
     <string name="notifications__channel__connection_status">État de la connexion</string>
     <string name="notifications__channel__hotlist">Notables</string>
-    <string name="notifications__channel__hotlist_async">Notables (asynchrone)</string>
 
     <string name="notifications__main__waiting_for_network">Attente de connectivité réseau</string>
     <string name="notifications__main__will_connect_in_n_seconds">Connexion dans %d secondes…</string>

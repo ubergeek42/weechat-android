@@ -36,7 +36,6 @@ private const val ID_MAIN = 42
 private const val ID_HOT = 43
 private const val CHANNEL_CONNECTION_STATUS = "connection status"
 private const val CHANNEL_HOTLIST = "notification"
-private const val CHANNEL_HOTLIST_ASYNC = "notification async"
 private const val GROUP_KEY = "hot messages"
 const val KEY_TEXT_REPLY = "key_text_reply"
 
@@ -75,19 +74,6 @@ fun initializeNotificator(context: Context) {
         applicationContext.getString(R.string.notifications__channel__hotlist),
         NotificationManager.IMPORTANCE_HIGH
     ).apply {
-        enableLights(true)
-        manager.createNotificationChannel(this)
-    }
-
-    // channel for updating the notifications *silently*
-    // it seems that you have to use IMPORTANCE_DEFAULT, else the notification light won't work
-    NotificationChannel(
-        CHANNEL_HOTLIST_ASYNC,
-        applicationContext.getString(R.string.notifications__channel__hotlist_async),
-        NotificationManager.IMPORTANCE_DEFAULT
-    ).apply {
-        setSound(null, null)
-        enableVibration(false)
         enableLights(true)
         manager.createNotificationChannel(this)
     }
@@ -216,9 +202,6 @@ class HotNotification(
         }
     }
 
-    private val notificationChannel = if (reason == NotifyReason.HOT_SYNC)
-        CHANNEL_HOTLIST else CHANNEL_HOTLIST_ASYNC
-
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private fun makeSummaryNotification(): NotificationCompat.Builder {
@@ -228,7 +211,7 @@ class HotNotification(
             R.plurals.notifications__hot_summary__in_buffers, hotBufferCount, hotBufferCount
         )
 
-        val builder = NotificationCompat.Builder(applicationContext, notificationChannel)
+        val builder = NotificationCompat.Builder(applicationContext, CHANNEL_HOTLIST)
             .setContentIntent(makePendingIntentForBuffer(Constants.NOTIFICATION_EXTRA_BUFFER_ANY))
             .setSmallIcon(R.drawable.ic_notification_hot)
             .setCategory(NotificationCompat.CATEGORY_MESSAGE)
@@ -272,7 +255,7 @@ class HotNotification(
 
         shortcuts.ensureShortcutExists(hotBuffer.fullName)
 
-        val builder = NotificationCompat.Builder(applicationContext, notificationChannel)
+        val builder = NotificationCompat.Builder(applicationContext, CHANNEL_HOTLIST)
             .setContentIntent(makePendingIntentForBuffer(hotBuffer.pointer))
             .setSmallIcon(R.drawable.ic_notification_hot)
             .setDeleteIntent(makePendingIntentForDismissedNotificationForBuffer(hotBuffer.pointer))

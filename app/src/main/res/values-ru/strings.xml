@@ -110,7 +110,6 @@
 
     <string name="notifications__channel__connection_status">Статус соединения</string>
     <string name="notifications__channel__hotlist">Новое сообщение</string>
-    <string name="notifications__channel__hotlist_async">Новое сообщение (асинхронно)</string>
 
     <string name="notifications__main__waiting_for_network">Ожидаю доступ в сеть</string>
     <string name="notifications__main__will_connect_in_n_seconds">Попробую снова через %d секунд…</string>
