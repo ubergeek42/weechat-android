@@ -31,13 +31,13 @@ class StatisticsImpl(val context: Context) : Statistics {
     override fun reportBufferWasManuallyFocused(key: String) {
         val count = bufferToManuallyFocusedCount.get(key) ?: 0
         bufferToManuallyFocusedCount.put(key, count + 1)
-        shortcuts.reportBufferWasManuallyFocused(this)
+        shortcuts.reportBufferWasManuallyFocused(key, this)
     }
 
     override fun reportBufferWasSharedTo(key: String) {
         val count = bufferToSharedToCount.get(key) ?: 0
         bufferToSharedToCount.put(key, count + 1)
-        shortcuts.reportBufferWasSharedTo(this)
+        shortcuts.reportBufferWasSharedTo(key, this)
 
     }
 

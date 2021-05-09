@@ -23,8 +23,8 @@ import com.ubergeek42.WeechatAndroid.utils.Utils
 
 
 interface Shortcuts {
-    fun reportBufferWasManuallyFocused(statistics: StatisticsImpl)
-    fun reportBufferWasSharedTo(statistics: StatisticsImpl)
+    fun reportBufferWasManuallyFocused(focusedKey: String, statistics: StatisticsImpl)
+    fun reportBufferWasSharedTo(focusedKey: String, statistics: StatisticsImpl)
     fun ensureShortcutExists(key: String)
 }
 
@@ -33,8 +33,8 @@ val shortcuts = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                     ShortcutsImpl(applicationContext)
                 } else {
                     object : Shortcuts {
-                        override fun reportBufferWasManuallyFocused(statistics: StatisticsImpl) {}
-                        override fun reportBufferWasSharedTo(statistics: StatisticsImpl) {}
+                        override fun reportBufferWasManuallyFocused(focusedKey: String, statistics: StatisticsImpl) {}
+                        override fun reportBufferWasSharedTo(focusedKey: String, statistics: StatisticsImpl) {}
                         override fun ensureShortcutExists(key: String) {}
                     }
                 }
@@ -94,12 +94,10 @@ private class ShortcutsImpl(val context: Context): Shortcuts {
         .sortedBy { it.value.rank }
         .take(limit)
         .map { it.key }
-        .toSet()
 
     var directShareShortcuts = shortcuts
         .filter { it.value.categories?.isNotEmpty() == true }
         .map { it.key }
-        .toSet()
 
     @SuppressLint("WrongConstant")
     fun fetchShortcuts() =
@@ -108,48 +106,45 @@ private class ShortcutsImpl(val context: Context): Shortcuts {
                 .toMap()
 
     fun updateShortcut(key: String, rank: Int? = null, shareTarget: Boolean? = null) {
-        if (key !in shortcuts) {
-            BufferList.findByFullName(key)?.let { buffer ->
-                val shortcut = makeShortcutForBuffer(buffer, rank, shareTarget ?: false)
-                shortcutManager.pushDynamicShortcut(shortcut.toShortcutInfo())
-            }
-        } else {
-            BufferList.findByFullName(key)?.let { buffer ->
+        BufferList.findByFullName(key)?.let { buffer ->
+            val shortcut = if (key !in shortcuts) {
+                makeShortcutForBuffer(buffer, rank, shareTarget ?: false)
+            } else {
                 val shortcutInfo = shortcuts[key]!!
-                val shortcut = makeShortcutForBuffer(buffer, shortcutInfo.rank, shortcutInfo.categories?.isNotEmpty() == true)
-                shortcutManager.pushDynamicShortcut(shortcut.toShortcutInfo())
+                makeShortcutForBuffer(buffer,
+                    rank ?: shortcutInfo.rank,
+                    shareTarget ?: shortcutInfo.categories?.isNotEmpty() == true)
             }
+            shortcutManager.pushDynamicShortcut(shortcut.toShortcutInfo())
         }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    override fun reportBufferWasSharedTo(statistics: StatisticsImpl) {
-        val old = directShareShortcuts
-        val new = statistics.getMostFrequentlySharedToBuffers(limit).toSet()
-        directShareShortcuts = new
-        if (old != new) {
-            (old - new).forEach { key -> updateShortcut(key, shareTarget = false) }
-            (new - old).forEach { key -> updateShortcut(key, shareTarget = true) }
-            shortcuts = fetchShortcuts()
-        }
+    override fun reportBufferWasSharedTo(focusedKey: String, statistics: StatisticsImpl) {
+
     }
 
-    override fun reportBufferWasManuallyFocused(statistics: StatisticsImpl) {
+    override fun reportBufferWasManuallyFocused(focusedKey: String, statistics: StatisticsImpl) {
         val old = launcherShortcuts
-        val new = statistics.getMostFrequentlyManuallyFocusedBuffers(limit).toSet()
+        val new = statistics.getMostFrequentlyManuallyFocusedBuffers(limit)
         launcherShortcuts = new
         if (old != new) {
-            (old - new).forEach { key -> updateShortcut(key, rank = 1000) }
-            (new - old).forEach { key -> updateShortcut(key, rank = 0) }
+            val oldSansNew = old - new
+            val oldSansOldSansNew = old - oldSansNew
+            oldSansNew.forEach { key -> updateShortcut(key, rank = 10000) }
+            if (new != oldSansOldSansNew) {
+                new.forEachIndexed { index, key -> updateShortcut(key, rank = index) }
+            }
             shortcuts = fetchShortcuts()
         }
+        shortcutManager.reportShortcutUsed(focusedKey)
     }
 
     override fun ensureShortcutExists(key: String) {
         if (key !in shortcuts) {
             BufferList.findByFullName(key)?.let { buffer ->
-                val shortcut = makeShortcutForBuffer(buffer, rank = 1000, shareTarget = false)
+                val shortcut = makeShortcutForBuffer(buffer, rank = 10000, shareTarget = false)
                 shortcutManager.pushDynamicShortcut(shortcut.toShortcutInfo())
                 shortcuts = fetchShortcuts()
             }
