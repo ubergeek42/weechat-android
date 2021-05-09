@@ -15,6 +15,7 @@ package com.ubergeek42.WeechatAndroid
 
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ShortcutManager
 import android.content.res.Configuration
 import android.graphics.PorterDuff
 import android.graphics.Rect
@@ -494,6 +495,13 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
                 }
             }
             R.id.sync_hotlist -> BufferList.syncHotlist()
+            R.id.remove_shortcuts -> {
+                if (Build.VERSION.SDK_INT >= 30) {
+                    val shortcutManager = getSystemService(ShortcutManager::class.java)!!
+                    shortcutManager.removeAllDynamicShortcuts()
+                    shortcutManager.removeLongLivedShortcuts(shortcutManager.getShortcuts(0xffffff).map { it.id })
+                }
+            }
             R.id.die -> exitProcess(0)
         }
         return true
@@ -634,6 +642,7 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
         val intent = intent
         var pointer = intent.getLongExtra(Constants.EXTRA_BUFFER_POINTER,
                                           Constants.NOTIFICATION_EXTRA_BUFFER_ANY)
+
         intent.removeExtra(Constants.EXTRA_BUFFER_POINTER)
 
         if (pointer == Constants.NOTIFICATION_EXTRA_BUFFER_ANY) {
@@ -642,12 +651,15 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
                 val buffer = BufferList.findByFullName(fullName)
                 if (buffer == null) {
                     Toaster.ErrorToast.show("Couldn’t find buffer $fullName")
+                    intent.removeExtra(Constants.EXTRA_BUFFER_FULL_NAME)
                     return
                 } else {
                     pointer = buffer.pointer
                 }
             }
         }
+
+        intent.removeExtra(Constants.EXTRA_BUFFER_FULL_NAME)
 
         if (pointer == Constants.NOTIFICATION_EXTRA_BUFFER_ANY) {
             if (BufferList.hotBufferCount > 1) {
