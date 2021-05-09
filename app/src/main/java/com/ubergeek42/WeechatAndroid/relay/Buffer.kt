@@ -8,6 +8,7 @@ import android.text.style.SuperscriptSpan
 import androidx.annotation.AnyThread
 import androidx.annotation.MainThread
 import androidx.annotation.WorkerThread
+import com.ubergeek42.WeechatAndroid.notifications.shortcuts
 import com.ubergeek42.WeechatAndroid.service.Events
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.utils.Assert
@@ -29,15 +30,16 @@ class Buffer @WorkerThread constructor(
     private var notify: Notify = Notify.default
 
     inner class Updater {
-        internal var updateName = false
+        internal var updateNameOrNumber = false
+        internal var updateShortName = false
         internal var updateTitle = false
         internal var updateHidden = false
         internal var updateType = false
         internal var updateNotifyLevel = false
 
-        var number: Int by updatable(::updateName, this@Buffer::number)
-        var fullName: String by updatable(::updateName, this@Buffer::fullName)
-        var shortName: String? by updatable(::updateName, this@Buffer::shortName)
+        var number: Int by updatable(::updateNameOrNumber, this@Buffer::number)
+        var fullName: String by updatable(::updateNameOrNumber, this@Buffer::fullName)
+        var shortName: String? by updatable(::updateShortName, this@Buffer::shortName)
         var title: String? by updatable(::updateTitle)
         var hidden: Boolean by updatable(::updateHidden)
         var type: BufferSpec.Type by updatable(::updateType)
@@ -48,13 +50,17 @@ class Buffer @WorkerThread constructor(
         val updater = Updater()
         updater.block()
 
-        if (updater.updateName) {
+        if (updater.updateNameOrNumber || updater.updateShortName) {
             number = updater.number
             fullName = updater.fullName
             shortName = updater.shortName ?: fullName
             kitty.setPrefix(shortName)
             processBufferNameSpannable()
-            if (!silently) Hotlist.adjustHotListForBuffer(this, false) // update buffer names in the notifications
+        }
+
+        if (updater.updateShortName) {
+            shortcuts.updateShortcutNameIfNeeded(this@Buffer)
+            if (!silently) Hotlist.adjustHotListForBuffer(this, false)
         }
 
         if (updater.updateTitle) {

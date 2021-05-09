@@ -6,7 +6,14 @@ import com.ubergeek42.WeechatAndroid.relay.Buffer
 import com.ubergeek42.WeechatAndroid.relay.Hotlist
 
 
-private val persons = mutableMapOf<String, Person>()
+data class CachedPerson(
+    val colorKey: String,
+    val nick: String,
+    val person: Person,
+)
+
+
+private val cachedPersons = mutableMapOf<String, CachedPerson>()
 
 
 fun getPerson(key: String,
@@ -15,17 +22,25 @@ fun getPerson(key: String,
               missing: Boolean
 ): Person {
     val storageKey = if (missing) "missing_$key" else key
-    val iconText = if (missing) "?" else nick
 
-    return persons.getOrPut(storageKey) {
+    val cachedPerson = cachedPersons[storageKey]
+
+    return if (cachedPerson != null && cachedPerson.colorKey == colorKey && cachedPerson.nick == nick) {
+         cachedPerson.person
+    } else {
+        val iconText = if (missing) "?" else nick
         val iconBitmap = generateIcon(text = iconText, colorKey = colorKey)
         val icon = IconCompat.createWithBitmap(iconBitmap)
 
-        Person.Builder()
+        val person = Person.Builder()
             .setKey(storageKey)
             .setName(nick)
             .setIcon(icon)
             .build()
+
+        cachedPersons[storageKey] = CachedPerson(colorKey = colorKey, nick = nick, person = person)
+
+        return person
     }
 }
 

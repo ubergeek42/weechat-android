@@ -26,6 +26,7 @@ interface Shortcuts {
     fun reportBufferWasManuallyFocused(focusedKey: String, statistics: StatisticsImpl)
     fun reportBufferWasSharedTo(focusedKey: String, statistics: StatisticsImpl)
     fun ensureShortcutExists(key: String)
+    fun updateShortcutNameIfNeeded(buffer: Buffer)
 }
 
 
@@ -36,6 +37,7 @@ val shortcuts = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                         override fun reportBufferWasManuallyFocused(focusedKey: String, statistics: StatisticsImpl) {}
                         override fun reportBufferWasSharedTo(focusedKey: String, statistics: StatisticsImpl) {}
                         override fun ensureShortcutExists(key: String) {}
+                        override fun updateShortcutNameIfNeeded(buffer: Buffer) {}
                     }
                 }
 
@@ -154,6 +156,15 @@ private class ShortcutsImpl(val context: Context): Shortcuts {
             BufferList.findByFullName(key)?.let { buffer ->
                 val shortcut = makeShortcutForBuffer(buffer, rank = 10000, shareTarget = false)
                 shortcutManager.pushDynamicShortcut(shortcut.toShortcutInfo())
+                shortcuts = fetchShortcuts()
+            }
+        }
+    }
+
+    override fun updateShortcutNameIfNeeded(buffer: Buffer) {
+        shortcuts[buffer.fullName]?.let {
+            if (it.shortLabel != buffer.shortName) {
+                updateShortcut(buffer.fullName)
                 shortcuts = fetchShortcuts()
             }
         }
