@@ -29,6 +29,8 @@ private val COLLECT_STATISTICS = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
 interface Statistics {
     fun reportBufferWasSharedTo(key: String)
     fun reportBufferWasManuallyFocused(key: String)
+    fun save()
+    fun restore()
 }
 
 
@@ -38,6 +40,8 @@ val statistics = if (COLLECT_STATISTICS) {
                      object : Statistics {
                          override fun reportBufferWasSharedTo(key: String) {}
                          override fun reportBufferWasManuallyFocused(key: String) {}
+                         override fun save() {}
+                         override fun restore() {}
                      }
                  }
 
@@ -45,6 +49,8 @@ val statistics = if (COLLECT_STATISTICS) {
 
 @RequiresApi(Build.VERSION_CODES.M)
 class StatisticsImpl(val context: Context) : Statistics {
+    private val database = ShortcutStatisticsDatabase()
+
     private val bufferToManuallyFocusedCount = mapSortedByValue<String, Int> { count -> -count }
     private val bufferToSharedToCount = mapSortedByValue<String, Int> { count -> -count }
 
@@ -53,12 +59,15 @@ class StatisticsImpl(val context: Context) : Statistics {
         sharedTo.forEach { (key, value) -> bufferToSharedToCount.put(key, value) }
     }
 
+    override fun save() { database.save() }
+    override fun restore() { database.restore() }
+
     override fun reportBufferWasManuallyFocused(key: String) {
         handler.post {
             val count = bufferToManuallyFocusedCount.get(key) ?: 0
             bufferToManuallyFocusedCount.put(key, count + 1)
             shortcuts.reportBufferWasManuallyFocused(key, this)
-            ShortcutStatisticsDatabase.recordBufferWasManuallyFocused(key)
+            database.recordBufferWasManuallyFocused(key)
         }
     }
 
@@ -67,7 +76,7 @@ class StatisticsImpl(val context: Context) : Statistics {
             val count = bufferToSharedToCount.get(key) ?: 0
             bufferToSharedToCount.put(key, count + 1)
             shortcuts.reportBufferWasSharedTo(key, this)
-            ShortcutStatisticsDatabase.recordBufferWasSharedTo(key)
+            database.recordBufferWasSharedTo(key)
         }
     }
 
@@ -84,6 +93,11 @@ class StatisticsImpl(val context: Context) : Statistics {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+private const val DATABASE_NAME = "shortcut-statistics"
+private const val KEEP_MANUALLY_FOCUSED_EVENTS = 100
+private const val KEEP_MANUALLY_SHARED_TO_EVENTS = 50
 
 
 @Entity(tableName = "manually_focused_events")
@@ -103,11 +117,8 @@ data class SharedToEvent(
 data class BufferToCount(val key: String, val count: Int)
 
 
-object ShortcutStatisticsDatabase {
-    private const val DATABASE_NAME = "shortcut-statistics"
-    private const val KEEP_MANUALLY_FOCUSED_EVENTS = 100
-    private const val KEEP_MANUALLY_SHARED_TO_EVENTS = 50
-
+@RequiresApi(Build.VERSION_CODES.M)
+private class ShortcutStatisticsDatabase {
     @Dao
     interface Events {
         @Query("SELECT `key`, COUNT(*) AS `count` FROM manually_focused_events GROUP BY `key`")
@@ -156,8 +167,6 @@ object ShortcutStatisticsDatabase {
     }
 
     fun save() {
-        if (!COLLECT_STATISTICS) return
-
         val focusedSize = manuallyFocusedEventsInsertCache.size
         val sharedToSize = sharedToEventsInsertCache.size
         if (focusedSize > 0 || sharedToSize > 0) {
@@ -179,9 +188,7 @@ object ShortcutStatisticsDatabase {
         }
     }
 
-    @JvmStatic fun restore() {
-        if (!COLLECT_STATISTICS) return
-
+    fun restore() {
         handler.post {
             val deletedFocused = events.deleteFromManuallyFocusedEventsLeaving(KEEP_MANUALLY_FOCUSED_EVENTS)
             val focused = events.getBufferToManuallyFocusedCount()

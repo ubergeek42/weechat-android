@@ -8,7 +8,7 @@ import android.content.Context;
 import android.os.Handler;
 
 import com.ubergeek42.WeechatAndroid.media.CachePersist;
-import com.ubergeek42.WeechatAndroid.notifications.ShortcutStatisticsDatabase;
+import com.ubergeek42.WeechatAndroid.notifications.StatisticsKt;
 import com.ubergeek42.WeechatAndroid.service.Events;
 import com.ubergeek42.WeechatAndroid.notifications.NotificatorKt;
 import com.ubergeek42.WeechatAndroid.service.P;
@@ -34,7 +34,7 @@ public class Weechat extends Application {
         JodaTimeAndroid.init(applicationContext);
         Cats.setup(applicationContext);
         CachePersist.restore();
-        ShortcutStatisticsDatabase.restore();
+        StatisticsKt.getStatistics().restore();
         P.init(getApplicationContext());
         P.restoreStuff();
         UploadDatabase.restore();   // wants cache max age from P
