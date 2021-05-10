@@ -6,17 +6,16 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Typeface
 import android.net.Uri
-import android.provider.MediaStore
 import androidx.core.content.FileProvider
 import androidx.core.graphics.drawable.IconCompat
 import com.ubergeek42.WeechatAndroid.media.ContentUriFetcher
 import com.ubergeek42.WeechatAndroid.upload.applicationContext
 import com.ubergeek42.WeechatAndroid.upload.dp_to_px
-import com.ubergeek42.WeechatAndroid.upload.resolver
 import com.ubergeek42.WeechatAndroid.upload.suppress
 import com.ubergeek42.WeechatAndroid.utils.Toaster
 import com.ubergeek42.WeechatAndroid.views.solidColor
 import org.apache.commons.codec.binary.Hex
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
@@ -105,7 +104,7 @@ private fun generateIconBitmap(
 }
 
 
-fun obtainIcon(text: String, colorKey: String): IconCompat {
+fun obtainIcon(text: String, colorKey: String, supportsUri: Boolean): IconCompat {
     val cutText = when {
         text.isBlank() -> "?"
         text.startsWith("##") -> text.subSequence(1, if (text.length >= 3) 3 else 2)
@@ -113,23 +112,30 @@ fun obtainIcon(text: String, colorKey: String): IconCompat {
         else -> text.subSequence(0, 1)
     }.toString()
 
-    val key = DiscIconCache.Key(cutText, colorKey)
-    val cachedIcon = DiscIconCache.get(key)
-
-    return if (cachedIcon != null) {
-        cachedIcon
+    if (supportsUri) {
+        val key = DiscIconCache.Key(cutText, colorKey)
+        val cachedIcon = DiscIconCache.get(key)
+        if (cachedIcon != null) return cachedIcon
     } else {
-        val colorIndex = colorKey.djb2Remainder(colorPairs.size)
-        val bitmap = generateIconBitmap(ICON_SIDE_LENGTH,
-                                        ICON_SIDE_LENGTH,
-                                        cutText,
-                                        ICON_TEXT_SIZE,
-                                        colorPairs[colorIndex])
-
-        DiscIconCache.store(key, bitmap)
-        IconCompat.createWithAdaptiveBitmap(bitmap)
+        val key = MemoryIconCache.Key(cutText, colorKey)
+        val cachedIcon = MemoryIconCache.get(key)
+        if (cachedIcon != null) return cachedIcon
     }
 
+    val colorIndex = colorKey.djb2Remainder(colorPairs.size)
+    val bitmap = generateIconBitmap(ICON_SIDE_LENGTH,
+        ICON_SIDE_LENGTH,
+        cutText,
+        ICON_TEXT_SIZE,
+        colorPairs[colorIndex])
+
+    if (supportsUri) {
+        DiscIconCache.store(DiscIconCache.Key(cutText, colorKey), bitmap)
+    } else {
+        MemoryIconCache.store(MemoryIconCache.Key(cutText, colorKey), bitmap)
+    }
+
+    return IconCompat.createWithAdaptiveBitmap(bitmap)
 }
 
 
@@ -144,6 +150,23 @@ private val defaultBoldTypeface = Typeface.create(Typeface.DEFAULT, Typeface.BOL
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+object MemoryIconCache {
+    data class Key(private val text: String, private val colorKey: String)
+
+    private val keyToIcon = ConcurrentHashMap<Key, IconCompat>()
+
+    fun store(key: Key, bitmap: Bitmap) {
+        statisticsHandler.post {
+            val stream = ByteArrayOutputStream()
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
+            keyToIcon[key] = IconCompat.createWithData(stream.toByteArray(), 0, stream.size())
+        }
+    }
+
+    fun get(key: Key) = keyToIcon[key]
+}
 
 
 object DiscIconCache {
