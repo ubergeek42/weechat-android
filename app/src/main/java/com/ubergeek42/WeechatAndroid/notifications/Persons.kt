@@ -29,8 +29,7 @@ fun getPerson(key: String,
          cachedPerson.person
     } else {
         val iconText = if (missing) "?" else nick
-        val iconBitmap = generateIcon(text = iconText, colorKey = colorKey)
-        val icon = IconCompat.createWithAdaptiveBitmap(iconBitmap)
+        val icon = obtainIcon(text = iconText, colorKey = colorKey)
 
         val person = Person.Builder()
             .setKey(storageKey)
@@ -38,7 +37,10 @@ fun getPerson(key: String,
             .setIcon(icon)
             .build()
 
-        cachedPersons[storageKey] = CachedPerson(colorKey = colorKey, nick = nick, person = person)
+        if (icon.type == IconCompat.TYPE_URI_ADAPTIVE_BITMAP) {
+            cachedPersons[storageKey] =
+                CachedPerson(colorKey = colorKey, nick = nick, person = person)
+        }
 
         return person
     }

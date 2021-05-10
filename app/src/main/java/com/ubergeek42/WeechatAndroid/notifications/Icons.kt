@@ -1,11 +1,25 @@
 package com.ubergeek42.WeechatAndroid.notifications
 
+import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Typeface
+import android.net.Uri
+import android.provider.MediaStore
+import androidx.core.content.FileProvider
+import androidx.core.graphics.drawable.IconCompat
+import com.ubergeek42.WeechatAndroid.media.ContentUriFetcher
+import com.ubergeek42.WeechatAndroid.upload.applicationContext
 import com.ubergeek42.WeechatAndroid.upload.dp_to_px
+import com.ubergeek42.WeechatAndroid.upload.resolver
+import com.ubergeek42.WeechatAndroid.upload.suppress
+import com.ubergeek42.WeechatAndroid.utils.Toaster
 import com.ubergeek42.WeechatAndroid.views.solidColor
+import org.apache.commons.codec.binary.Hex
+import java.io.File
+import java.io.IOException
+import java.util.concurrent.ConcurrentHashMap
 
 
 private data class Colors(val background: Int, val foreground: Int)
@@ -91,21 +105,31 @@ private fun generateIconBitmap(
 }
 
 
-fun generateIcon(text: String, colorKey: String): Bitmap {
+fun obtainIcon(text: String, colorKey: String): IconCompat {
     val cutText = when {
         text.isBlank() -> "?"
         text.startsWith("##") -> text.subSequence(1, if (text.length >= 3) 3 else 2)
         text.length >= 2 -> text.subSequence(0, 2)
         else -> text.subSequence(0, 1)
+    }.toString()
+
+    val key = DiscIconCache.Key(cutText, colorKey)
+    val cachedIcon = DiscIconCache.get(key)
+
+    return if (cachedIcon != null) {
+        cachedIcon
+    } else {
+        val colorIndex = colorKey.djb2Remainder(colorPairs.size)
+        val bitmap = generateIconBitmap(ICON_SIDE_LENGTH,
+                                        ICON_SIDE_LENGTH,
+                                        cutText,
+                                        ICON_TEXT_SIZE,
+                                        colorPairs[colorIndex])
+
+        DiscIconCache.store(key, bitmap)
+        IconCompat.createWithAdaptiveBitmap(bitmap)
     }
 
-    val colorIndex = colorKey.djb2Remainder(colorPairs.size)
-
-    return generateIconBitmap(ICON_SIDE_LENGTH,
-                        ICON_SIDE_LENGTH,
-                        cutText.toString(),
-                        ICON_TEXT_SIZE,
-                        colorPairs[colorIndex])
 }
 
 
@@ -115,3 +139,90 @@ private val ICON_VIEWPORT_SIDE_LENGTH = 72.dp_to_px
 private val ICON_TEXT_SIZE = ICON_VIEWPORT_SIDE_LENGTH / 2f
 
 private val defaultBoldTypeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+object DiscIconCache {
+    private const val DIRECTORY_NAME = "icons"
+
+    private val directory = File(applicationContext.cacheDir, DIRECTORY_NAME).apply { mkdirs() }
+
+    @SuppressLint("UsableSpace")
+    private val enabled = try {
+                              directory.usableSpace > 100 * 1000 * 1000   // 100 MB
+                          } catch (e: Exception) {
+                              Toaster.ErrorToast.show(e)
+                              false
+                          }
+
+    data class Key(private val text: String, private val colorKey: String) {
+        fun toFileName() = String(Hex.encodeHex("$text$separator$colorKey".toByteArray()))
+
+        companion object {
+            const val separator = " :: "
+
+            fun fromFile(file: File): Key? {
+                return try {
+                    val (text, colorKey) = String(Hex.decodeHex(file.name))
+                            .split(separator, limit = 2)
+                    Key(text, colorKey)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    null
+                }
+            }
+        }
+    }
+
+    private val keyToUri = ConcurrentHashMap<Key, Uri>()
+
+    fun initialize() {
+        if (!enabled) return
+
+        statisticsHandler.post {
+            directory.listFiles()?.forEach { file ->
+                Key.fromFile(file)?.let { key ->
+                    keyToUri[key] = file.toContentUri()
+                }
+            }
+        }
+    }
+
+    fun store(key: Key, bitmap: Bitmap) {
+        if (!enabled) return
+
+        statisticsHandler.post {
+            suppress<IOException>(showToast = true) {
+                val file = File(directory, key.toFileName())
+
+                File(directory, key.toFileName()).outputStream().use { outputStream ->
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+                }
+
+                keyToUri[key] = file.toContentUri()
+            }
+        }
+    }
+
+    fun get(key: Key): IconCompat? {
+        return keyToUri[key]?.let { uri ->
+            IconCompat.createWithAdaptiveBitmapContentUri(uri)
+        }
+    }
+
+    private fun File.toContentUri(): Uri {
+        return try {
+            FileProvider.getUriForFile(
+                applicationContext,
+                applicationContext.packageName + ContentUriFetcher.FILE_PROVIDER_SUFFIX,
+                this)
+        } catch (e: Exception) {
+            // todo
+            throw e
+        }
+    }
+}
