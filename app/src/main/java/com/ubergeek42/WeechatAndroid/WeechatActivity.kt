@@ -51,6 +51,7 @@ import com.ubergeek42.WeechatAndroid.dialogs.NicklistDialog
 import com.ubergeek42.WeechatAndroid.dialogs.ScrollableDialog
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragment
 import com.ubergeek42.WeechatAndroid.media.CachePersist
+import com.ubergeek42.WeechatAndroid.notifications.ShortcutStatisticsDatabase
 import com.ubergeek42.WeechatAndroid.relay.BufferList
 import com.ubergeek42.WeechatAndroid.relay.Hotlist
 import com.ubergeek42.WeechatAndroid.service.Events.ExceptionEvent
@@ -257,6 +258,7 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
         Network.get().unregister(this)
         CachePersist.save()
         UploadDatabase.save()
+        ShortcutStatisticsDatabase.save()
     }
 
     ///////////////////////////////////////////////////////// these two are necessary for the drawer
