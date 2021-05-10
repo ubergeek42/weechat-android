@@ -5,23 +5,36 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Typeface
 import com.ubergeek42.WeechatAndroid.upload.dp_to_px
-import com.ubergeek42.WeechatAndroid.upload.f
+import com.ubergeek42.WeechatAndroid.views.solidColor
 
 
-private data class Colors(val foreground: Int, val background: Int)
+private data class Colors(val background: Int, val foreground: Int)
 
 
 private val colorPairs: List<Colors> = sequence {
-    listOf(
-        0xffcbce91 to 0xffea738d,
-        0xff101820 to 0xfffee715,
-        0xffa07855 to 0xffd4b996,
-        0xff2d2926 to 0xffe94b3c,
-        0xffdaa03d to 0xff616247,
-    ).forEach { (left, right) ->
-        yield(Colors(left.toInt(), right.toInt()))
-        yield(Colors(right.toInt(), left.toInt()))
+    suspend fun SequenceScope<Colors>.one(a: Int, b: Int) {
+        yield(Colors(a.solidColor, b.solidColor))
     }
+
+    suspend fun SequenceScope<Colors>.two(a: Int, b: Int) {
+        one(a, b)
+        one(b, a)
+    }
+
+    two(0xa07855, 0xd4b996)
+    two(0x3d3936, 0xe94b3c)
+    two(0x2c5f2d, 0x97bc62)
+    two(0xdaa03d, 0x616247)
+    two(0xdf6589, 0x3c1053)
+    two(0x0063b2, 0x9cc3d5)
+    two(0x606060, 0xd6ed17)
+    two(0x5f4b8b, 0xe69a8d)
+    two(0x101820, 0xfee715)
+    two(0x00203f, 0xadefd1)
+
+    one(0x5b84b1, 0xfc766a)
+    one(0x9e1030, 0xdd4132)
+    one(0xffe77a, 0x2c5f2d)
 }.toList()
 
 
