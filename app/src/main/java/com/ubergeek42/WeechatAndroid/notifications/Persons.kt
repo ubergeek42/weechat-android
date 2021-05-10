@@ -30,7 +30,7 @@ fun getPerson(key: String,
     } else {
         val iconText = if (missing) "?" else nick
         val iconBitmap = generateIcon(text = iconText, colorKey = colorKey)
-        val icon = IconCompat.createWithBitmap(iconBitmap)
+        val icon = IconCompat.createWithAdaptiveBitmap(iconBitmap)
 
         val person = Person.Builder()
             .setKey(storageKey)

@@ -49,23 +49,27 @@ private fun String.djb2Remainder(divisor: Int): Int {
 
 
 @Suppress("SameParameterValue")
-private fun generateIcon(width: Int, height: Int, text: String, colors: Colors): Bitmap {
+private fun generateIconBitmap(
+    width: Int,
+    height: Int,
+    text: String,
+    textSize: Float,
+    colors: Colors
+): Bitmap {
     val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
     val canvas = Canvas(bitmap)
     val paint = Paint()
 
-    val x = width.f / 2
-    val y = height.f / 2
-
     paint.apply {
+        paint.style = Paint.Style.FILL
         flags = Paint.ANTI_ALIAS_FLAG
         color = colors.background
     }
 
-    canvas.drawCircle(x, y, minOf(x, y), paint)
+    canvas.drawPaint(paint)
 
     paint.apply {
-        textSize = height / 2f
+        this.textSize = textSize
         color = colors.foreground
         typeface = defaultBoldTypeface
     }
@@ -97,13 +101,17 @@ fun generateIcon(text: String, colorKey: String): Bitmap {
 
     val colorIndex = colorKey.djb2Remainder(colorPairs.size)
 
-    return generateIcon(generatedIconSide,
-                        generatedIconSide,
+    return generateIconBitmap(ICON_SIDE_LENGTH,
+                        ICON_SIDE_LENGTH,
                         cutText.toString(),
+                        ICON_TEXT_SIZE,
                         colorPairs[colorIndex])
 }
 
 
-// todo use better dimensions? is there sense in using shortcutManager.iconMaxWidth etc?
-private val generatedIconSide = 48.dp_to_px
+// see IconCompat createWithAdaptiveBitmap & AdaptiveIconDrawable
+private val ICON_SIDE_LENGTH = 108.dp_to_px
+private val ICON_VIEWPORT_SIDE_LENGTH = 72.dp_to_px
+private val ICON_TEXT_SIZE = ICON_VIEWPORT_SIDE_LENGTH / 2f
+
 private val defaultBoldTypeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)

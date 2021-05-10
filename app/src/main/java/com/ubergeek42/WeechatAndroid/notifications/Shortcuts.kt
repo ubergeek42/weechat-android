@@ -50,7 +50,7 @@ private class ShortcutsImpl(val context: Context): Shortcuts {
 
     private fun makeShortcutForBuffer(buffer: Buffer, rank: Int?, shareTarget: Boolean): ShortcutInfoCompat {
         val iconBitmap = generateIcon(text = buffer.shortName, colorKey = buffer.fullName)
-        val icon = IconCompat.createWithBitmap(iconBitmap)
+        val icon = IconCompat.createWithAdaptiveBitmap(iconBitmap)
 
         val intent = Intent(applicationContext, WeechatActivity::class.java).apply {
             putExtra(Constants.EXTRA_BUFFER_FULL_NAME, buffer.fullName)
