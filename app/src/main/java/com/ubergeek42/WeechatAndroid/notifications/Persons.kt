@@ -26,10 +26,10 @@ fun getPerson(key: String,
     val cachedPerson = cachedPersons[storageKey]
 
     return if (cachedPerson != null && cachedPerson.colorKey == colorKey && cachedPerson.nick == nick) {
-         cachedPerson.person
+        cachedPerson.person
     } else {
         val iconText = if (missing) "?" else nick
-        val icon = obtainIcon(text = iconText, colorKey = colorKey, supportsUri = true)
+        val icon = obtainIcon(text = iconText, colorKey = colorKey)
 
         val person = Person.Builder()
             .setKey(storageKey)
@@ -37,7 +37,7 @@ fun getPerson(key: String,
             .setIcon(icon)
             .build()
 
-        if (icon.type == IconCompat.TYPE_URI_ADAPTIVE_BITMAP) {
+        if (icon.type == IconCompat.TYPE_DATA) {
             cachedPersons[storageKey] =
                 CachedPerson(colorKey = colorKey, nick = nick, person = person)
         }

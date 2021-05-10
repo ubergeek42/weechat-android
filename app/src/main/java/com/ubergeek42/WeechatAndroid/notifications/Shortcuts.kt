@@ -9,7 +9,6 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.core.content.LocusIdCompat
 import androidx.core.content.pm.ShortcutInfoCompat
-import androidx.core.graphics.drawable.IconCompat
 import com.ubergeek42.WeechatAndroid.WeechatActivity
 import com.ubergeek42.WeechatAndroid.relay.Buffer
 import com.ubergeek42.WeechatAndroid.relay.BufferList
@@ -49,7 +48,7 @@ private class ShortcutsImpl(val context: Context): Shortcuts {
     val directShareShortcutLimit = minOf(launcherShortcutLimit, 2)
 
     private fun makeShortcutForBuffer(buffer: Buffer, rank: Int?, shareTarget: Boolean): ShortcutInfoCompat {
-        val icon = obtainIcon(text = buffer.shortName, colorKey = buffer.fullName, supportsUri = false)
+        val icon = obtainIcon(text = buffer.shortName, colorKey = buffer.fullName)
 
         val intent = Intent(applicationContext, WeechatActivity::class.java).apply {
             putExtra(Constants.EXTRA_BUFFER_FULL_NAME, buffer.fullName)
