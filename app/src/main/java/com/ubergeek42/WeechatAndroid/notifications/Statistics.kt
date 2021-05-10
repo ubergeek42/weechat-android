@@ -2,6 +2,8 @@ package com.ubergeek42.WeechatAndroid.notifications
 
 import android.content.Context
 import android.os.Build
+import android.os.Handler
+import android.os.HandlerThread
 import androidx.annotation.RequiresApi
 import androidx.room.ColumnInfo
 import androidx.room.Dao
@@ -16,7 +18,6 @@ import androidx.room.RoomDatabase
 import com.ubergeek42.WeechatAndroid.upload.applicationContext
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
-import kotlin.concurrent.thread
 
 
 private val COLLECT_STATISTICS = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
@@ -53,17 +54,21 @@ class StatisticsImpl(val context: Context) : Statistics {
     }
 
     override fun reportBufferWasManuallyFocused(key: String) {
-        val count = bufferToManuallyFocusedCount.get(key) ?: 0
-        bufferToManuallyFocusedCount.put(key, count + 1)
-        shortcuts.reportBufferWasManuallyFocused(key, this)
-        ShortcutStatisticsDatabase.recordBufferWasManuallyFocused(key)
+        handler.post {
+            val count = bufferToManuallyFocusedCount.get(key) ?: 0
+            bufferToManuallyFocusedCount.put(key, count + 1)
+            shortcuts.reportBufferWasManuallyFocused(key, this)
+            ShortcutStatisticsDatabase.recordBufferWasManuallyFocused(key)
+        }
     }
 
     override fun reportBufferWasSharedTo(key: String) {
-        val count = bufferToSharedToCount.get(key) ?: 0
-        bufferToSharedToCount.put(key, count + 1)
-        shortcuts.reportBufferWasSharedTo(key, this)
-        ShortcutStatisticsDatabase.recordBufferWasSharedTo(key)
+        handler.post {
+            val count = bufferToSharedToCount.get(key) ?: 0
+            bufferToSharedToCount.put(key, count + 1)
+            shortcuts.reportBufferWasSharedTo(key, this)
+            ShortcutStatisticsDatabase.recordBufferWasSharedTo(key)
+        }
     }
 
     fun getMostFrequentlyManuallyFocusedBuffers(upTo: Int): List<String> {
@@ -156,7 +161,7 @@ object ShortcutStatisticsDatabase {
         val focusedSize = manuallyFocusedEventsInsertCache.size
         val sharedToSize = sharedToEventsInsertCache.size
         if (focusedSize > 0 || sharedToSize > 0) {
-            thread {
+            handler.post {
                 if (focusedSize > 0) {
                     kitty.trace("saving %s manually focused events", focusedSize)
                     events.insertAllManuallyFocusedEvents(manuallyFocusedEventsInsertCache
@@ -177,18 +182,21 @@ object ShortcutStatisticsDatabase {
     @JvmStatic fun restore() {
         if (!COLLECT_STATISTICS) return
 
-        thread {
+        handler.post {
             val deletedFocused = events.deleteFromManuallyFocusedEventsLeaving(KEEP_MANUALLY_FOCUSED_EVENTS)
             val focused = events.getBufferToManuallyFocusedCount()
-            kitty.trace("restoring from %s manually focused buffer records; deleted %s events",
+            kitty.trace("restoring %s manually focused buffer records; deleted %s events",
                     focused.size, deletedFocused)
 
             val deletedSharedTo = events.deleteFromSharedToEventsLeaving(KEEP_MANUALLY_SHARED_TO_EVENTS)
             val sharedTo = events.getBufferToSharedToCount()
-            kitty.trace("restoring from %s shared to buffer records; deleted %s events",
+            kitty.trace("restoring %s shared to buffer records; deleted %s events",
                 sharedTo.size, deletedSharedTo)
 
             (statistics as StatisticsImpl).initialize(focused, sharedTo)
         }
     }
 }
+
+
+val handler = Handler(HandlerThread("statistics").apply { start() }.looper)
