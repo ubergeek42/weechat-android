@@ -94,7 +94,7 @@ private fun generateIconBitmap(
 }
 
 
-fun obtainIcon(text: String, colorKey: String): IconCompat {
+fun obtainIcon(text: String, colorKey: String, allowDataIcons: Boolean): IconCompat {
     val cutText = when {
         text.isBlank() -> "?"
         text.startsWith("##") -> text.subSequence(1, if (text.length >= 3) 3 else 2)
@@ -103,8 +103,11 @@ fun obtainIcon(text: String, colorKey: String): IconCompat {
     }.toString()
 
     val key = MemoryIconCache.Key(cutText, colorKey)
-    MemoryIconCache.retrieve(key)?.let { cachedIcon ->
-        return cachedIcon
+
+    if (allowDataIcons) {
+        MemoryIconCache.retrieve(key)?.let { cachedIcon ->
+            return cachedIcon
+        }
     }
 
     val colorIndex = colorKey.djb2Remainder(colorPairs.size)

@@ -48,7 +48,11 @@ private class ShortcutsImpl(val context: Context): Shortcuts {
     val directShareShortcutLimit = minOf(launcherShortcutLimit, 2)
 
     private fun makeShortcutForBuffer(buffer: Buffer, rank: Int?, shareTarget: Boolean): ShortcutInfoCompat {
-        val icon = obtainIcon(text = buffer.shortName, colorKey = buffer.fullName)
+        // pushDynamicShortcut doesn't support data type icons, throwing
+        // IllegalArgumentException: Unsupported icon type: only the bitmap and resource types are supported
+        val icon = obtainIcon(text = buffer.shortName,
+                              colorKey = buffer.fullName,
+                              allowDataIcons = false)
 
         val intent = Intent(applicationContext, WeechatActivity::class.java).apply {
             putExtra(Constants.EXTRA_BUFFER_FULL_NAME, buffer.fullName)
