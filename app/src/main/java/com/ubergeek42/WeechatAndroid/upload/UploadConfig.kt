@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import androidx.preference.PreferenceManager
 import com.ubergeek42.WeechatAndroid.BuildConfig
+import com.ubergeek42.WeechatAndroid.notifications.shortcuts
 import com.ubergeek42.WeechatAndroid.utils.Constants.*
 
 
@@ -62,6 +63,7 @@ fun onSharedPreferenceChanged(p: SharedPreferences, key: String) {
         PREF_UPLOAD_NO_OF_DIRECT_SHARE_TARGETS -> {
             val stringValue = p.getString(key, PREF_UPLOAD_NO_OF_DIRECT_SHARE_TARGETS_D)!!
             Config.noOfDirectShareTargets = stringValue.toInt()
+            shortcuts.updateDirectShareCount()
         }
 
         PREF_UPLOAD_URI -> {

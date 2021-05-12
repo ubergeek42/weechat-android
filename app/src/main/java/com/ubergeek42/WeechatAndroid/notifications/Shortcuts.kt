@@ -26,6 +26,7 @@ interface Shortcuts {
     fun reportBufferWasSharedTo(focusedKey: String, statistics: StatisticsImpl)
     fun ensureShortcutExists(key: String)
     fun updateShortcutNameIfNeeded(buffer: Buffer)
+    fun updateDirectShareCount()
 }
 
 
@@ -37,6 +38,7 @@ val shortcuts = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                         override fun reportBufferWasSharedTo(focusedKey: String, statistics: StatisticsImpl) {}
                         override fun ensureShortcutExists(key: String) {}
                         override fun updateShortcutNameIfNeeded(buffer: Buffer) {}
+                        override fun updateDirectShareCount() {}
                     }
                 }
 
@@ -45,7 +47,8 @@ val shortcuts = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
 private class ShortcutsImpl(val context: Context): Shortcuts {
     private val shortcutManager = context.getSystemService(ShortcutManager::class.java)!!
     val launcherShortcutLimit = shortcutManager.maxShortcutCountPerActivity
-    val directShareShortcutLimit = minOf(launcherShortcutLimit, 2)
+
+    val directShareShortcutLimit get() = minOf(launcherShortcutLimit, Config.noOfDirectShareTargets)
 
     private fun makeShortcutForBuffer(buffer: Buffer, rank: Int?, shareTarget: Boolean): ShortcutInfoCompat {
         // pushDynamicShortcut doesn't support data type icons, throwing
@@ -125,7 +128,7 @@ private class ShortcutsImpl(val context: Context): Shortcuts {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    override fun reportBufferWasSharedTo(focusedKey: String, statistics: StatisticsImpl) {
+    fun updateDirectShareShortcuts(statistics: StatisticsImpl) {
         val old = directShareShortcuts
         val new = statistics.getMostFrequentlySharedToBuffers(directShareShortcutLimit)
         directShareShortcuts = new
@@ -134,6 +137,10 @@ private class ShortcutsImpl(val context: Context): Shortcuts {
             (new - old).forEach { key -> updateShortcut(key, shareTarget = true) }
             shortcuts = fetchShortcuts()
         }
+    }
+
+    override fun reportBufferWasSharedTo(focusedKey: String, statistics: StatisticsImpl) {
+        updateDirectShareShortcuts(statistics)
         shortcutManager.reportShortcutUsed(focusedKey)
     }
 
@@ -171,6 +178,8 @@ private class ShortcutsImpl(val context: Context): Shortcuts {
             }
         }
     }
-}
 
-// todo thread
+    override fun updateDirectShareCount() {
+        (statistics as? StatisticsImpl)?.let { updateDirectShareShortcuts(it) }
+    }
+}
