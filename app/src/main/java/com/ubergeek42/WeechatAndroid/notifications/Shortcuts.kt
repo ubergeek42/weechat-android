@@ -46,7 +46,14 @@ val shortcuts = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
 @RequiresApi(30)
 private class ShortcutsImpl(val context: Context): Shortcuts {
     private val shortcutManager = context.getSystemService(ShortcutManager::class.java)!!
-    val launcherShortcutLimit = shortcutManager.maxShortcutCountPerActivity
+
+    // maxShortcutCountPerActivity returns 15 on my device,
+    // while the launcher only shows 4 shortcuts.
+    // having many shortcuts means we have to reorder them frequently;
+    // to avoid that, limit the number to the maximum number from the documentation
+    // note that this doesn't limit the *total* number of shortcuts;
+    // a launcher can still show more than 5, but these would be in launcher's preferred order
+    val launcherShortcutLimit = minOf(shortcutManager.maxShortcutCountPerActivity, 5)
 
     val directShareShortcutLimit get() = minOf(launcherShortcutLimit, Config.noOfDirectShareTargets)
 
