@@ -17,8 +17,8 @@ dependencies {
 
     implementation("com.neovisionaries:nv-websocket-client:2.14")
 
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.4.32")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.1.0")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.5.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.2.0")
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
 }

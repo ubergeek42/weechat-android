@@ -17,26 +17,26 @@ dependencies {
     implementation(project(":relay"))
 
     implementation("androidx.core:core-ktx:1.5.0-rc02")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.4.32")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.0")
 
     // these two are required for logging within the relay module. todo remove?
     implementation("org.slf4j:slf4j-api:1.7.30")
     implementation("com.noveogroup.android:android-logger:1.3.6")
 
     implementation("androidx.legacy:legacy-support-v4:1.0.0")
-    implementation("androidx.annotation:annotation:1.1.0") // For @Nullable/@NonNull
+    implementation("androidx.annotation:annotation:1.2.0") // For @Nullable/@NonNull
     implementation("androidx.appcompat:appcompat:1.2.0")
     implementation("androidx.preference:preference-ktx:1.1.1")  // preference fragment & al
     implementation("androidx.legacy:legacy-preference-v14:1.0.0") // styling for the fragment
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.0")
-    implementation("androidx.lifecycle:lifecycle-common-java8:2.3.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")
+    implementation("androidx.lifecycle:lifecycle-common-java8:2.3.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.4.1")
 
     implementation("com.github.bumptech.glide:glide:4.12.0")
     kapt("com.github.bumptech.glide:compiler:4.12.0")
-    implementation("com.squareup.okhttp3:okhttp:4.9.0")
+    implementation("com.squareup.okhttp3:okhttp:4.9.1")
 
-    val roomVersion = "2.2.6"
+    val roomVersion = "2.3.0"
     implementation("androidx.room:room-runtime:$roomVersion")
     annotationProcessor("androidx.room:room-compiler:$roomVersion")
     kapt("androidx.room:room-compiler:$roomVersion")
@@ -54,7 +54,7 @@ dependencies {
     implementation("org.greenrobot:eventbus:3.2.0")
 
     debugImplementation("org.aspectj:aspectjrt:1.9.6")
-    debugImplementation("com.squareup.leakcanary:leakcanary-android:2.6")
+    debugImplementation("com.squareup.leakcanary:leakcanary-android:2.7")
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.7.1")
