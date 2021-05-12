@@ -277,7 +277,12 @@ class TransformCats : Transform() {
 
             source.jarInputs.forEach { jar ->
                 classPath.add(jar.file)
-                if (jar.name == ":cats") aspectPath.add(jar.file)
+                // this used to read `if (jar.name == ":cats") ...`,
+                // but with android gradle plugin 4.2.0 jar names contain garbage
+                // this is a very simple but a bit fragile workaround. todo improve
+                if (jar.file.directoriesInsideRootProject().contains("cats")) {
+                    aspectPath.add(jar.file)
+                }
             }
 
         }
@@ -289,3 +294,12 @@ class TransformCats : Transform() {
 android.registerTransform(TransformCats())
 
 val Iterable<File>.asArgument get() = joinToString(File.pathSeparator)
+
+fun File.directoriesInsideRootProject() = sequence {
+    var file = this@directoriesInsideRootProject
+    while (true) {
+        yield(file.name)
+        file = file.parentFile ?: break
+        if (file == rootProject.projectDir) break
+    }
+}
