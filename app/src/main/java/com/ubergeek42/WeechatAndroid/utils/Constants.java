@@ -214,6 +214,10 @@ public class Constants {
     final public static String PREF_UPLOAD_ACCEPT_EVERYTHING = "everything";
     final public static String PREF_UPLOAD_ACCEPT_D = PREF_UPLOAD_ACCEPT_EVERYTHING;
 
+    final public static String PREF_UPLOAD_NO_OF_DIRECT_SHARE_TARGETS = "upload_no_of_direct_share_targets";    // "0" ... "4"
+    final public static String PREF_UPLOAD_NO_OF_DIRECT_SHARE_TARGETS_D = "2";
+
+
     final public static String PREF_UPLOAD_URI = "upload_uri";
     final public static String PREF_UPLOAD_URI_D = "";
     final public static String PREF_UPLOAD_FORM_FIELD_NAME = "upload_form_field_name";

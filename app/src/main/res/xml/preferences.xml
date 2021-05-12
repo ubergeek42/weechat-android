@@ -488,6 +488,13 @@
             android:entryValues="@array/pref__upload__accept_shared_values"
             android:entries="@array/pref__upload__accept_shared_names"
             android:defaultValue="everything" />
+        <ListPreference
+            android:key="upload_no_of_direct_share_targets"
+            android:title="Direct share"
+            android:summary="%s"
+            android:entryValues="@array/pref__upload__no_of_direct_share_targets"
+            android:entries="@array/pref__upload__no_of_direct_share_targets_names"
+            android:defaultValue="2" />
         <EditTextPreferenceFix
             android:key="upload_uri"
             android:title="@string/pref__upload__upload_uri"

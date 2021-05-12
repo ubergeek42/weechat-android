@@ -10,6 +10,7 @@ import com.ubergeek42.WeechatAndroid.utils.Constants.*
 
 object Config {
     var uploadAcceptShared = PREF_UPLOAD_ACCEPT_D
+    var noOfDirectShareTargets = 2
     var uploadUri = PREF_UPLOAD_URI_D
     var uploadFormFieldName = PREF_UPLOAD_FORM_FIELD_NAME
     var httpUriGetter = HttpUriGetter.simple
@@ -24,6 +25,7 @@ fun initPreferences() {
     val p = PreferenceManager.getDefaultSharedPreferences(applicationContext)
     for (key in listOf(
             PREF_UPLOAD_ACCEPT,
+            PREF_UPLOAD_NO_OF_DIRECT_SHARE_TARGETS,
             PREF_UPLOAD_URI,
             PREF_UPLOAD_FORM_FIELD_NAME,
             PREF_UPLOAD_REGEX,
@@ -55,6 +57,11 @@ fun onSharedPreferenceChanged(p: SharedPreferences, key: String) {
             enableDisableComponent(ShareActivityAliases.TEXT_ONLY.alias, text)
             enableDisableComponent(ShareActivityAliases.TEXT_AND_MEDIA.alias, media)
             enableDisableComponent(ShareActivityAliases.EVERYTHING.alias, everything)
+        }
+
+        PREF_UPLOAD_NO_OF_DIRECT_SHARE_TARGETS -> {
+            val stringValue = p.getString(key, PREF_UPLOAD_NO_OF_DIRECT_SHARE_TARGETS_D)!!
+            Config.noOfDirectShareTargets = stringValue.toInt()
         }
 
         PREF_UPLOAD_URI -> {

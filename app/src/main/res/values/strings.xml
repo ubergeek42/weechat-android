@@ -939,6 +939,15 @@ strategies:
         <item>Everything</item>
     </string-array>
 
+    <string name="pref__upload__no_of_direct_share_targets">Direct share</string>
+    <string-array name="pref__upload__no_of_direct_share_targets_names">
+        <item>Disabled</item>
+        <item>Up to one buffer</item>
+        <item>Up to two buffers</item>
+        <item>Up to three buffers</item>
+        <item>Up to four buffers</item>
+    </string-array>
+
     <string name="pref__upload__upload_uri">Upload URL</string>
 
     <string name="pref__upload__file_field">File field</string>
