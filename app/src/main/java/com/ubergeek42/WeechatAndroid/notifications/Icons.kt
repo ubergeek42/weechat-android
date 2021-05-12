@@ -14,9 +14,9 @@ import com.ubergeek42.WeechatAndroid.upload.dp_to_px
 import com.ubergeek42.WeechatAndroid.upload.suppress
 import com.ubergeek42.WeechatAndroid.utils.Toaster
 import com.ubergeek42.WeechatAndroid.views.solidColor
+import org.apache.commons.codec.DecoderException
 import org.apache.commons.codec.binary.Hex
 import java.io.File
-import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
 
 
@@ -145,7 +145,7 @@ private val defaultBoldTypeface = Typeface.create(Typeface.DEFAULT, Typeface.BOL
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////// cache
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -165,20 +165,16 @@ object DiskIconCache {
                               false
                           }
 
-    data class Key(private val text: String, private val colorKey: String) {
-        fun toFileName() = String(Hex.encodeHex("$text$separator$colorKey".toByteArray()))
+    data class Key(val text: String, val colorKey: String) {
+        fun toFileName() = "$text$SEPARATOR$colorKey".encodeToSafeString()
 
         companion object {
-            const val separator = " :: "
+            const val SEPARATOR = " :: "
 
-            fun fromFileName(fileName: String): Key? {
-                return try {
-                    val (text, colorKey) = String(Hex.decodeHex(fileName)).split(separator, limit = 2)
-                    Key(text, colorKey)
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    null
-                }
+            @Throws(DecoderException::class, IndexOutOfBoundsException::class)
+            fun fromFileName(fileName: String): Key {
+                val (text, colorKey) = fileName.decodeFromSafeString().split(SEPARATOR, limit = 2)
+                return Key(text, colorKey)
             }
         }
     }
@@ -190,25 +186,27 @@ object DiskIconCache {
 
         statisticsHandler.post {
             directory.listFiles()?.forEach { file ->
-                Key.fromFileName(file.name)?.let { key ->
-                    keyToIcon[key] = IconCompat.createWithAdaptiveBitmapContentUri(file.toContentUri())
+                suppress<Exception>(showToast = true) {
+                    Key.fromFileName(file.name).let { key ->
+                        keyToIcon[key] = IconCompat.createWithAdaptiveBitmapContentUri(file.toContentUri())
+                    }
                 }
             }
         }
     }
 
-    // store currently generated icon in cache,
-    // but schedule replacing it with a much lighter compressed icon
+    // store currently generated memory-heavy icon in cache,
+    // but schedule replacing it with a much lighter version of itself
     fun store(key: Key, bitmap: Bitmap, provisionalIcon: IconCompat) {
         if (!enabled) return
 
         keyToIcon[key] = provisionalIcon
 
         statisticsHandler.post {
-            suppress<IOException>(showToast = true) {
+            suppress<Exception>(showToast = true) {
                 val file = File(directory, key.toFileName())
 
-                File(directory, key.toFileName()).outputStream().use { outputStream ->
+                file.outputStream().use { outputStream ->
                     bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
                 }
 
@@ -220,15 +218,13 @@ object DiskIconCache {
     fun retrieve(key: Key) = keyToIcon[key]
 
     private fun File.toContentUri(): Uri {
-        return try {
-            FileProvider.getUriForFile(
-                applicationContext,
-                applicationContext.packageName + ContentUriFetcher.FILE_PROVIDER_SUFFIX,
-                this)
-        } catch (e: Exception) {
-            // this should not be happening ever
-            e.printStackTrace()
-            Uri.fromFile(this)
-        }
+        return FileProvider.getUriForFile(applicationContext, AUTHORITY, this)
     }
 }
+
+
+private val AUTHORITY = applicationContext.packageName + ContentUriFetcher.FILE_PROVIDER_SUFFIX
+
+
+fun String.encodeToSafeString(): String = String(Hex.encodeHex(this.toByteArray()))
+fun String.decodeFromSafeString(): String = String(Hex.decodeHex(this.toCharArray()))
