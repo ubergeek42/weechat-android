@@ -1,13 +1,22 @@
 package com.ubergeek42.WeechatAndroid.notifications
 
+import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Typeface
+import android.net.Uri
+import androidx.core.content.FileProvider
 import androidx.core.graphics.drawable.IconCompat
+import com.ubergeek42.WeechatAndroid.media.ContentUriFetcher
+import com.ubergeek42.WeechatAndroid.upload.applicationContext
 import com.ubergeek42.WeechatAndroid.upload.dp_to_px
+import com.ubergeek42.WeechatAndroid.upload.suppress
+import com.ubergeek42.WeechatAndroid.utils.Toaster
 import com.ubergeek42.WeechatAndroid.views.solidColor
-import java.io.ByteArrayOutputStream
+import org.apache.commons.codec.binary.Hex
+import java.io.File
+import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
 
 
@@ -98,7 +107,7 @@ private fun generateIconBitmap(
 }
 
 
-fun obtainIcon(text: String, colorKey: String, allowDataIcons: Boolean): IconCompat {
+fun obtainIcon(text: String, colorKey: String, allowUriIcons: Boolean): IconCompat {
     val cutText = when {
         text.isBlank() -> "?"
         text.startsWith("##") -> text.subSequence(1, if (text.length >= 3) 3 else 2)
@@ -106,10 +115,10 @@ fun obtainIcon(text: String, colorKey: String, allowDataIcons: Boolean): IconCom
         else -> text.subSequence(0, 1)
     }.toString()
 
-    val key = MemoryIconCache.Key(cutText, colorKey)
+    val key = DiskIconCache.Key(cutText, colorKey)
 
-    if (allowDataIcons) {
-        MemoryIconCache.retrieve(key)?.let { cachedIcon ->
+    if (allowUriIcons) {
+        DiskIconCache.retrieve(key)?.let { cachedIcon ->
             return cachedIcon
         }
     }
@@ -122,7 +131,7 @@ fun obtainIcon(text: String, colorKey: String, allowDataIcons: Boolean): IconCom
         colorPairs[colorIndex])
 
     val icon = IconCompat.createWithAdaptiveBitmap(bitmap)
-    MemoryIconCache.store(key, bitmap, icon)
+    DiskIconCache.store(key, bitmap, icon)
     return icon
 }
 
@@ -140,22 +149,86 @@ private val defaultBoldTypeface = Typeface.create(Typeface.DEFAULT, Typeface.BOL
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-private object MemoryIconCache {
-    data class Key(private val text: String, private val colorKey: String)
+object DiskIconCache {
+    private const val DIRECTORY_NAME = "icons"
 
-    val keyToIcon = ConcurrentHashMap<Key, IconCompat>()
+    private val directory = File(applicationContext.cacheDir, DIRECTORY_NAME).apply { mkdirs() }
+
+    // don't use disk cache unless at least 100 MB is free;
+    // the app will survive it, but if some icons get removed while we are running
+    // the system will be displaying black space instead of icon
+    @SuppressLint("UsableSpace")
+    private val enabled = try {
+                              directory.usableSpace > 100 * 1000 * 1000   // 100 MB
+                          } catch (e: Exception) {
+                              Toaster.ErrorToast.show(e)
+                              false
+                          }
+
+    data class Key(private val text: String, private val colorKey: String) {
+        fun toFileName() = String(Hex.encodeHex("$text$separator$colorKey".toByteArray()))
+
+        companion object {
+            const val separator = " :: "
+
+            fun fromFileName(fileName: String): Key? {
+                return try {
+                    val (text, colorKey) = String(Hex.decodeHex(fileName)).split(separator, limit = 2)
+                    Key(text, colorKey)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    null
+                }
+            }
+        }
+    }
+
+    private val keyToIcon = ConcurrentHashMap<Key, IconCompat>()
+
+    @JvmStatic fun initialize() {
+        if (!enabled) return
+
+        statisticsHandler.post {
+            directory.listFiles()?.forEach { file ->
+                Key.fromFileName(file.name)?.let { key ->
+                    keyToIcon[key] = IconCompat.createWithAdaptiveBitmapContentUri(file.toContentUri())
+                }
+            }
+        }
+    }
 
     // store currently generated icon in cache,
     // but schedule replacing it with a much lighter compressed icon
     fun store(key: Key, bitmap: Bitmap, provisionalIcon: IconCompat) {
+        if (!enabled) return
+
         keyToIcon[key] = provisionalIcon
 
         statisticsHandler.post {
-            val stream = ByteArrayOutputStream()
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
-            keyToIcon[key] = IconCompat.createWithData(stream.toByteArray(), 0, stream.size())
+            suppress<IOException>(showToast = true) {
+                val file = File(directory, key.toFileName())
+
+                File(directory, key.toFileName()).outputStream().use { outputStream ->
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+                }
+
+                keyToIcon[key] = IconCompat.createWithAdaptiveBitmapContentUri(file.toContentUri())
+            }
         }
     }
 
     fun retrieve(key: Key) = keyToIcon[key]
+
+    private fun File.toContentUri(): Uri {
+        return try {
+            FileProvider.getUriForFile(
+                applicationContext,
+                applicationContext.packageName + ContentUriFetcher.FILE_PROVIDER_SUFFIX,
+                this)
+        } catch (e: Exception) {
+            // this should not be happening ever
+            e.printStackTrace()
+            Uri.fromFile(this)
+        }
+    }
 }
