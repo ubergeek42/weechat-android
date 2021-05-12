@@ -66,7 +66,6 @@ tasks.withType<JavaCompile> {
 
 android {
     compileSdkVersion(30)
-    buildToolsVersion("29.0.2")
 
     defaultConfig {
         versionCode = 1_06_00
