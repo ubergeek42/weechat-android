@@ -58,12 +58,12 @@ class Search(
                             { string -> string.contains(text) }
                         } else {
                             val locale = applicationContext.resources.configuration.locale;
-                            val textUpper = text.toUpperCase(locale)
-                            val textLower = text.toLowerCase(locale);
+                            val textUpper = text.uppercase(locale)
+                            val textLower = text.lowercase(locale);
 
                             { string ->
-                                string.toUpperCase(locale).contains(textUpper) ||
-                                        string.toLowerCase(locale).contains(textLower)
+                                string.uppercase(locale).contains(textUpper) ||
+                                        string.lowercase(locale).contains(textLower)
                             }
                         }
                     }

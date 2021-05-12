@@ -47,13 +47,13 @@ internal class Nicks {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     fun getMostRecentNicksMatching(prefix: String, ignoreChars: String): List<String> {
-        val lowerCasePrefix = prefix.toLowerCase(Locale.ROOT)
+        val lowerCasePrefix = prefix.lowercase(Locale.ROOT)
         val ignoreCharsSansPrefixChars = ignoreChars.removeChars(lowerCasePrefix)
 
         return nicks
                 .map { it.name }
                 .filter { name ->
-                    val lowerCaseNick = name.toLowerCase(Locale.ROOT)
+                    val lowerCaseNick = name.lowercase(Locale.ROOT)
                     val lowerCaseNickSansIgnoreChars = lowerCaseNick.removeChars(ignoreCharsSansPrefixChars)
                     lowerCaseNickSansIgnoreChars.startsWith(lowerCasePrefix)
                 }

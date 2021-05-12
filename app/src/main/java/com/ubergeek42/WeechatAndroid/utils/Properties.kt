@@ -1,3 +1,5 @@
+@file:Suppress("NOTHING_TO_INLINE")
+
 package com.ubergeek42.WeechatAndroid.utils
 
 import kotlin.properties.ReadOnlyProperty

@@ -58,7 +58,7 @@ private val colorPairs: List<Colors> = sequence {
 private fun String.djb2Remainder(divisor: Int): Int {
     var hash = 0U
     forEach { char ->
-        hash = char.toInt().toUInt() + ((hash shl 5) - hash)
+        hash = char.code.toUInt() + ((hash shl 5) - hash)
     }
     return (hash % divisor.toUInt()).toInt()
 }
