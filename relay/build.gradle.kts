@@ -12,8 +12,7 @@ dependencies {
 
     // "api" because we are calling `SSHConnection.getKnownHosts` from the app
     // and it returns something from inside sshlib
-    // todo update to >=2.2.15 once released and remove jitpack repo
-    api("com.github.connectbot:sshlib:8ddc2cfa5c099d44b4982cf7d028b2833ba43c5f")
+    api("com.github.connectbot:sshlib:2.2.19")
 
     implementation("com.neovisionaries:nv-websocket-client:2.14")
 
