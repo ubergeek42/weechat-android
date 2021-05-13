@@ -2,7 +2,6 @@
 // you may not use this file except in compliance with the License.
 package com.ubergeek42.WeechatAndroid.relay
 
-import android.annotation.SuppressLint
 import android.graphics.Typeface
 import android.net.Uri
 import android.text.SpannableString
@@ -10,18 +9,16 @@ import android.text.style.StyleSpan
 import com.ubergeek42.WeechatAndroid.media.ContentUriFetcher
 import com.ubergeek42.WeechatAndroid.media.Engine
 import com.ubergeek42.WeechatAndroid.notifications.HotNotification
-import com.ubergeek42.WeechatAndroid.relay.BufferList.findByPointer
 import com.ubergeek42.cats.Cat
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
-import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 
 
 @Root private val kitty = Kitty.make("Hotlist") as Kitty
 
 
-val totalHotCount = AtomicInteger(0)
+private val totalHotCount = AtomicInteger(0)
 
 
 enum class NotifyReason {
@@ -61,6 +58,7 @@ class HotlistMessage(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////// buffer
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 class HotlistBuffer (
     val fullName: String,
@@ -157,78 +155,84 @@ class HotlistBuffer (
 }
 
 
-object Hotlist {
-    @SuppressLint("UseSparseArrays")
-    private val hotList = HashMap<Long, HotlistBuffer>()
-    private val totalHotCount = AtomicInteger(0)
+////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////// public methods
+////////////////////////////////////////////////////////////////////////////////////////////////
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////////////////////////////////// public methods
-    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+object Hotlist {
+    private val hotlistBuffers = mutableMapOf<String, HotlistBuffer>()
+    private val hotlistBuffersLock = Any()
 
     // the only purpose of this is to show/hide the action button when connecting/disconnecting
     var connected = false
 
-    @JvmStatic @Cat @Synchronized fun redraw(connected: Boolean) {
-        if (Hotlist.connected == connected) return
-        Hotlist.connected = connected
-        for (buffer in hotList.values) notifyHotlistChanged(buffer, NotifyReason.Redraw)
-    }
+    val hotMessageCount get() = totalHotCount.get()
 
-    @Cat @Synchronized fun onNewHotLine(buffer: Buffer, line: Line) {
-        getHotBuffer(buffer).onNewHotLine(buffer, line)
-    }
-
-    @Synchronized fun adjustHotListForBuffer(buffer: Buffer, invalidateMessages: Boolean) {
-        getHotBuffer(buffer).updateHotCount(buffer, invalidateMessages)
-    }
-
-    @Cat @Synchronized fun makeSureHotlistDoesNotContainInvalidBuffers() {
-        val it: MutableIterator<Map.Entry<Long, HotlistBuffer>> = hotList.entries.iterator()
-        while (it.hasNext()) {
-            val entry = it.next()
-            if (findByPointer(entry.key) == null) {
-                entry.value.clear()
-                it.remove()
+    @JvmStatic @Cat fun redrawHotlistOnConnectionStatusChange(connected: Boolean) {
+        if (this.connected != connected) {
+            synchronized(hotlistBuffersLock) {
+                this.connected = connected
+                hotlistBuffers.values.forEach { notifyHotlistChanged(it, NotifyReason.Redraw) }
             }
         }
     }
 
-    val hotCount get() = totalHotCount.get()
+    @Cat fun onNewHotLine(buffer: Buffer, line: Line) {
+        synchronized(hotlistBuffersLock) {
+            getHotBuffer(buffer).onNewHotLine(buffer, line)
+        }
+    }
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////
+    fun adjustHotListForBuffer(buffer: Buffer, invalidateMessages: Boolean) {
+        synchronized(hotlistBuffersLock) {
+            getHotBuffer(buffer).updateHotCount(buffer, invalidateMessages)
+        }
+    }
+
+    @Cat fun makeSureHotlistDoesNotContainInvalidBuffers() {
+        synchronized(hotlistBuffersLock) {
+            val it = hotlistBuffers.entries.iterator()
+            while (it.hasNext()) {
+                val entry = it.next()
+                if (BufferList.findByFullName(entry.key) == null) {
+                    entry.value.clear()
+                    it.remove()
+                }
+            }
+        }
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     // creates hot buffer if not present. note that buffers that lose hot messages aren't removed!
-    // todo ???
     private fun getHotBuffer(buffer: Buffer): HotlistBuffer {
-        return hotList.getOrPut(buffer.pointer) { HotlistBuffer.fromBuffer(buffer) }
+        return hotlistBuffers.getOrPut(buffer.fullName) { HotlistBuffer.fromBuffer(buffer) }
     }
 
     fun notifyHotlistChanged(buffer: HotlistBuffer, reason: NotifyReason) {
-        val allMessages = ArrayList<HotlistMessage>()
+        val allMessages = mutableListOf<HotlistMessage>()
         var hotBufferCount = 0
         var lastMessageTimestamp: Long = 0
 
         synchronized(Hotlist::class.java) {
-            for (b in hotList.values) {
-                if (b.hotCount == 0) continue
-                hotBufferCount++
-                allMessages.addAll(b.messages)
-                if (b.lastMessageTimestamp > lastMessageTimestamp) lastMessageTimestamp =
-                    b.lastMessageTimestamp
+            hotlistBuffers.values.forEach {
+                if (it.hotCount > 0) {
+                    hotBufferCount++
+                    allMessages.addAll(it.messages)
+                    if (it.lastMessageTimestamp > lastMessageTimestamp) {
+                        lastMessageTimestamp = it.lastMessageTimestamp
+                    }
+                }
             }
         }
 
         // older messages come first
-        allMessages.sortWith { m1: HotlistMessage, m2: HotlistMessage ->
-            m1.timestamp.compareTo(m2.timestamp)
-        }
+        allMessages.sortWith { left, right -> left.timestamp.compareTo(right.timestamp) }
 
         HotNotification(
             connected,
-            totalHotCount.get(),
+            hotMessageCount,
             hotBufferCount,
             allMessages,
             buffer,

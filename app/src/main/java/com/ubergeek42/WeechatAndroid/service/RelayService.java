@@ -294,7 +294,7 @@ public class RelayService extends Service implements IObserver {
     }
 
     @WorkerThread @Cat private void hello() {
-        Hotlist.redraw(true);
+        Hotlist.redrawHotlistOnConnectionStatusChange(true);
         ping.scheduleFirstPing();
         BufferList.onServiceAuthenticated();
         SyncAlarmReceiver.start(this);
@@ -306,7 +306,7 @@ public class RelayService extends Service implements IObserver {
         BufferList.onServiceStopped();
         ping.unschedulePing();
         P.saveStuff();
-        Hotlist.redraw(false);
+        Hotlist.redrawHotlistOnConnectionStatusChange(false);
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
