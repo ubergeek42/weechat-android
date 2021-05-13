@@ -26,7 +26,6 @@ import com.ubergeek42.WeechatAndroid.service.RelayService
 import com.ubergeek42.WeechatAndroid.upload.applicationContext
 import com.ubergeek42.WeechatAndroid.utils.Constants
 import com.ubergeek42.WeechatAndroid.utils.Toaster
-import com.ubergeek42.WeechatAndroid.utils.isAnyOf
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
 
@@ -166,154 +165,144 @@ fun makePendingIntentForDismissedNotificationForBuffer(fullName: String): Pendin
 }
 
 
-class HotNotification(
-    private val connected: Boolean,
-    private val totalHotCount: Int,
-    private val hotBufferCount: Int,
-    private val allMessages: List<HotlistMessage>,
-    private val hotBuffer: HotlistBuffer,
-    private val reason: NotifyReason,
-    private val lastMessageTimestamp: Long,
-) {
-    // display a notification with a hot message. clicking on it will open the buffer & scroll up
-    // to the hot line, if needed. mind that SOMETIMES hotCount will be larger than hotList, because
-    // it's filled from hotlist data and hotList only contains lines that arrived in real time. so
-    // we add (message not available) if there are NO lines to display and add "..." if there are
-    // some lines to display, but not all
-    fun show() {
-        if (!P.notificationEnable) return
+fun showHotNotification(hotBuffer: HotlistBuffer, allHotBuffers: List<HotlistBuffer>, makeNoise: Boolean) {
+    if (!P.notificationEnable) return
 
-        // when redrawing notifications in order to remove the reply button, make sure we don't
-        // add back notifications that were dismissed. synchronize `notifications.contains`
-        if (reason == NotifyReason.Redraw && !DisplayedNotifications.contains(hotBuffer.fullName))
-            return
+    val notificationsToRemoveIds = DisplayedNotifications.getIds() - allHotBuffers.map { it.fullName }
+    val toRemoveAllNotifications = notificationsToRemoveIds.isNotEmpty() && allHotBuffers.isEmpty()
 
-        if (hotBuffer.hotCount == 0) {
-            manager.cancel(hotBuffer.fullName, ID_HOT)
-            val dismissResult = DisplayedNotifications.remove(hotBuffer.fullName)
-            if (dismissResult.isAnyOf(DismissResult.ALL_NOTIFICATIONS_REMOVED, DismissResult.NO_CHANGE))
-                return
-        }
+    notificationsToRemoveIds.forEach { manager.cancel(it, ID_HOT) }
+    if (toRemoveAllNotifications) manager.cancel(ID_HOT)
 
-        val makeNoise = reason == NotifyReason.HotSync
-
+    if (allHotBuffers.isNotEmpty()) {
         if (!CAN_MAKE_BUNDLED_NOTIFICATIONS) {
             manager.notify(ID_HOT,
-                makeSummaryNotification().setMakeNoise(makeNoise).build())
+                makeSummaryNotification(allHotBuffers).setMakeNoise(makeNoise).build())
         } else {
             manager.notify(ID_HOT,
-                makeSummaryNotification().setMakeNoise(false).build())
+                makeSummaryNotification(allHotBuffers).setMakeNoise(false).build())
 
-            if (hotBuffer.hotCount > 0) {
+            if (hotBuffer in allHotBuffers) {
                 manager.notify(hotBuffer.fullName, ID_HOT,
-                    makeBufferNotification().setMakeNoise(makeNoise).build())
-
-                DisplayedNotifications.add(hotBuffer.fullName)
+                    makeBufferNotification(hotBuffer, true).setMakeNoise(makeNoise).build())
+                displayedNotifications = displayedNotifications + hotBuffer.fullName
             }
         }
     }
+}
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private fun makeSummaryNotification(): NotificationCompat.Builder {
-        val nMessagesInNBuffers = applicationResources.getQuantityString(
-            R.plurals.notifications__hot_summary__messages, totalHotCount, totalHotCount
-        ) + applicationResources.getQuantityString(
-            R.plurals.notifications__hot_summary__in_buffers, hotBufferCount, hotBufferCount
-        )
-
-        val builder = NotificationCompat.Builder(applicationContext, CHANNEL_HOTLIST)
-            .setContentIntent(makePendingIntentForBuffer(null))
-            .setSmallIcon(R.drawable.ic_notification_hot)
-            .setCategory(NotificationCompat.CATEGORY_MESSAGE)
-            .setGroup(GROUP_KEY)
-            .setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_CHILDREN)
-            .setGroupSummary(true)
-
-            .setWhen(lastMessageTimestamp)
-            .setNotificationText(nMessagesInNBuffers)
-
-        if (CAN_MAKE_BUNDLED_NOTIFICATIONS) {
-            builder.setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_CHILDREN)
-            builder.setSubText(nMessagesInNBuffers)
-        } else {
-            NotificationCompat.MessagingStyle(myself).apply2 {
-                conversationTitle = nMessagesInNBuffers
-                isGroupConversation = true // needed to display the title
-
-                maybeAddMissingMessageLine(totalHotCount - allMessages.size, null, null)
-
-                allMessages.forEach { message ->
-                    addMessage(
-                        Person.Builder().setName(message.getNickForFullList()).build(),
-                        message.message, message.timestamp,
-                        message.image
-                    )
-                }
-
-                builder.setStyle(this@apply2)
-            }
-        }
-
-        return builder
+fun addOrRemoveActionForCurrentNotifications(allHotBuffers: List<HotlistBuffer>, addReplyAction: Boolean) {
+    allHotBuffers.filter { DisplayedNotifications.contains(it.fullName) }.forEach { hotBuffer ->
+        manager.notify(hotBuffer.fullName, ID_HOT,
+            makeBufferNotification(hotBuffer, addReplyAction).setMakeNoise(false).build())
     }
+}
 
-    private fun makeBufferNotification(): NotificationCompat.Builder {
-        val nNewMessagesInBuffer = applicationResources.getQuantityString(
-            R.plurals.notifications__hot__text,
-            hotBuffer.hotCount,
-            hotBuffer.hotCount,
-            hotBuffer.shortName
-        )
 
-        shortcuts.ensureShortcutExists(hotBuffer.fullName)
+private fun makeSummaryNotification(hotBuffers: List<HotlistBuffer>): NotificationCompat.Builder {
+    val hotBufferCount = hotBuffers.size
+    val totalHotCount = hotBuffers.sumOf { it.hotCount }
+    val lastMessageTimestamp = hotBuffers.maxOf { it.lastMessageTimestamp }
 
-        val builder = NotificationCompat.Builder(applicationContext, CHANNEL_HOTLIST)
-            .setContentIntent(makePendingIntentForBuffer(hotBuffer.fullName))
-            .setDeleteIntent(makePendingIntentForDismissedNotificationForBuffer(hotBuffer.fullName))
-            .setSmallIcon(R.drawable.ic_notification_hot)
-            .setCategory(NotificationCompat.CATEGORY_MESSAGE)
-            .setGroup(GROUP_KEY)
-            .setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_CHILDREN)
-            .setShortcutId(hotBuffer.fullName)
-            .setLocusId(LocusIdCompat(hotBuffer.fullName))
+    val nMessagesInNBuffers = applicationResources.getQuantityString(
+        R.plurals.notifications__hot_summary__messages, totalHotCount, totalHotCount
+    ) + applicationResources.getQuantityString(
+        R.plurals.notifications__hot_summary__in_buffers, hotBufferCount, hotBufferCount
+    )
 
-            .setWhen(hotBuffer.lastMessageTimestamp)
-            .setNotificationText(nNewMessagesInBuffer)
+    val builder = NotificationCompat.Builder(applicationContext, CHANNEL_HOTLIST)
+        .setContentIntent(makePendingIntentForBuffer(null))
+        .setSmallIcon(R.drawable.ic_notification_hot)
+        .setCategory(NotificationCompat.CATEGORY_MESSAGE)
+        .setGroup(GROUP_KEY)
+        .setGroupSummary(true)
 
-        // messages hold the latest messages, don't show the reply button if user can't see any
-        if (connected && hotBuffer.messages.isNotEmpty()) {
-            builder.addAction(makeActionForBufferPointer(hotBuffer.fullName))
-        }
+        .setWhen(lastMessageTimestamp)
+        .setNotificationText(nMessagesInNBuffers)
+
+    if (CAN_MAKE_BUNDLED_NOTIFICATIONS) {
+        builder.setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_CHILDREN)
+        builder.setSubText(nMessagesInNBuffers)
+    } else {
+        val allMessages = hotBuffers.flatMap { it.messages }.sortedBy { it.timestamp }
 
         NotificationCompat.MessagingStyle(myself).apply2 {
-            // this is ugly on android p, but i see no other way to show the number of messages
-            conversationTitle = if (hotBuffer.hotCount < 2)
-                    hotBuffer.shortName else "${hotBuffer.shortName} (${hotBuffer.hotCount})"
+            conversationTitle = nMessagesInNBuffers
+            isGroupConversation = true // needed to display the title
 
-            // before pie, display private buffers as non-private
-            isGroupConversation = !hotBuffer.isPrivate || Build.VERSION.SDK_INT < 28
+            maybeAddMissingMessageLine(totalHotCount - allMessages.size, null, null)
 
-            val staticPerson = if (hotBuffer.isPrivate) getPersonByPrivateBuffer(hotBuffer) else null
-
-            maybeAddMissingMessageLine(hotBuffer.hotCount - hotBuffer.messages.size, hotBuffer, staticPerson)
-
-            hotBuffer.messages.forEach { message ->
-                val person = if (staticPerson != null) {
-                    staticPerson
-                } else {
-                    val nick = message.getNickForBuffer().toString()
-                    getPerson(key = nick, colorKey = nick, nick = nick, missing = false)
-                }
-
-                addMessage(person, message.message, message.timestamp, message.image)
+            allMessages.forEach { message ->
+                addMessage(
+                    Person.Builder().setName(message.getNickForFullList()).build(),
+                    message.message, message.timestamp,
+                    message.image
+                )
             }
 
             builder.setStyle(this@apply2)
         }
-
-        return builder
     }
+
+    return builder
+}
+
+private fun makeBufferNotification(hotBuffer: HotlistBuffer, addReplyAction: Boolean): NotificationCompat.Builder {
+    val nNewMessagesInBuffer = applicationResources.getQuantityString(
+        R.plurals.notifications__hot__text,
+        hotBuffer.hotCount,
+        hotBuffer.hotCount,
+        hotBuffer.shortName
+    )
+
+    shortcuts.ensureShortcutExists(hotBuffer.fullName)
+
+    val builder = NotificationCompat.Builder(applicationContext, CHANNEL_HOTLIST)
+        .setContentIntent(makePendingIntentForBuffer(hotBuffer.fullName))
+        .setDeleteIntent(makePendingIntentForDismissedNotificationForBuffer(hotBuffer.fullName))
+        .setSmallIcon(R.drawable.ic_notification_hot)
+        .setCategory(NotificationCompat.CATEGORY_MESSAGE)
+        .setGroup(GROUP_KEY)
+        .setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_CHILDREN)
+        .setShortcutId(hotBuffer.fullName)
+        .setLocusId(LocusIdCompat(hotBuffer.fullName))
+
+        .setWhen(hotBuffer.lastMessageTimestamp)
+        .setNotificationText(nNewMessagesInBuffer)
+
+    // messages hold the latest messages, don't show the reply button if user can't see any
+    if (addReplyAction && hotBuffer.messages.isNotEmpty()) {
+        builder.addAction(makeActionForBufferPointer(hotBuffer.fullName))
+    }
+
+    NotificationCompat.MessagingStyle(myself).apply2 {
+        // this is ugly on android p, but i see no other way to show the number of messages
+        conversationTitle = if (hotBuffer.hotCount < 2)
+            hotBuffer.shortName else "${hotBuffer.shortName} (${hotBuffer.hotCount})"
+
+        // before pie, display private buffers as non-private
+        isGroupConversation = !hotBuffer.isPrivate || Build.VERSION.SDK_INT < 28
+
+        val staticPerson = if (hotBuffer.isPrivate) getPersonByPrivateBuffer(hotBuffer) else null
+
+        maybeAddMissingMessageLine(hotBuffer.hotCount - hotBuffer.messages.size, hotBuffer, staticPerson)
+
+        hotBuffer.messages.forEach { message ->
+            val person = if (staticPerson != null) {
+                staticPerson
+            } else {
+                val nick = message.getNickForBuffer().toString()
+                getPerson(key = nick, colorKey = nick, nick = nick, missing = false)
+            }
+
+            addMessage(person, message.message, message.timestamp, message.image)
+        }
+
+        builder.setStyle(this@apply2)
+    }
+
+    return builder
 }
 
 
@@ -475,24 +464,21 @@ private enum class DismissResult {
 private object DisplayedNotifications {
     private val notifications = mutableSetOf<String>()
 
+    fun isEmpty() = synchronized(notifications) {
+        notifications.isEmpty()
+    }
+
+    fun getIds() = synchronized(notifications) { notifications.toSet() }
+
     fun add(fullName: String) {
         synchronized(notifications) {
             notifications.add(fullName)
         }
     }
 
-    fun remove(fullName: String): DismissResult {
+    fun remove(fullName: String) {
         synchronized(notifications) {
-            val removed = notifications.remove(fullName)
-
-            return when {
-                notifications.isEmpty() -> {
-                    manager.cancel(ID_HOT)
-                    DismissResult.ALL_NOTIFICATIONS_REMOVED
-                }
-                removed -> DismissResult.ONE_NOTIFICATION_REMOVED
-                else -> DismissResult.NO_CHANGE
-            }
+            notifications.remove(fullName)
         }
     }
 

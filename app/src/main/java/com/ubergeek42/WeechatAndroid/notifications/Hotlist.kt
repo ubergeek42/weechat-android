@@ -64,7 +64,7 @@ class HotlistMessage(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-class HotlistBuffer (
+data class HotlistBuffer (
     val fullName: String,
     var shortName: String,
     var isPrivate: Boolean,
@@ -215,34 +215,15 @@ object Hotlist {
     }
 
     fun notifyHotlistChanged(buffer: HotlistBuffer, reason: NotifyReason) {
-        val allMessages = mutableListOf<HotlistMessage>()
-        var hotBufferCount = 0
-        var lastMessageTimestamp: Long = 0
-
-        synchronized(Hotlist::class.java) {
-            hotlistBuffers.values.forEach {
-                if (it.hotCount > 0) {
-                    hotBufferCount++
-                    allMessages.addAll(it.messages)
-                    if (it.lastMessageTimestamp > lastMessageTimestamp) {
-                        lastMessageTimestamp = it.lastMessageTimestamp
-                    }
-                }
-            }
+        val allBuffers = synchronized(hotlistBuffersLock) {
+            hotlistBuffers.values.mapNotNull { if (it.hotCount > 0) it.copy() else null }
         }
 
-        // older messages come first
-        allMessages.sortWith { left, right -> left.timestamp.compareTo(right.timestamp) }
-
-        HotNotification(
-            connected,
-            hotMessageCount,
-            hotBufferCount,
-            allMessages,
-            buffer,
-            reason,
-            lastMessageTimestamp
-        ).show()
+        when (reason) {
+            NotifyReason.HotSync -> showHotNotification(buffer, allBuffers, true)
+            NotifyReason.HotAsync -> showHotNotification(buffer, allBuffers, false)
+            NotifyReason.Redraw -> addOrRemoveActionForCurrentNotifications(allBuffers, connected)
+        }
     }
 }
 
