@@ -3,24 +3,14 @@
 package com.ubergeek42.WeechatAndroid.relay
 
 import android.annotation.SuppressLint
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
 import android.graphics.Typeface
 import android.net.Uri
 import android.text.SpannableString
-import android.text.TextUtils
 import android.text.style.StyleSpan
-import androidx.annotation.MainThread
-import androidx.core.app.RemoteInput
 import com.ubergeek42.WeechatAndroid.media.ContentUriFetcher
 import com.ubergeek42.WeechatAndroid.media.Engine
 import com.ubergeek42.WeechatAndroid.notifications.HotNotification
-import com.ubergeek42.WeechatAndroid.notifications.KEY_TEXT_REPLY
 import com.ubergeek42.WeechatAndroid.relay.BufferList.findByPointer
-import com.ubergeek42.WeechatAndroid.service.Events
-import com.ubergeek42.WeechatAndroid.utils.Toaster
-import com.ubergeek42.WeechatAndroid.utils.Utils
 import com.ubergeek42.cats.Cat
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
@@ -177,7 +167,7 @@ object Hotlist {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     // the only purpose of this is to show/hide the action button when connecting/disconnecting
-    private var connected = false
+    var connected = false
 
     @JvmStatic @Cat @Synchronized fun redraw(connected: Boolean) {
         if (Hotlist.connected == connected) return
@@ -245,32 +235,6 @@ object Hotlist {
             reason,
             lastMessageTimestamp
         ).show()
-    }
-
-    private fun getMessageText(intent: Intent): CharSequence? {
-        val remoteInput = RemoteInput.getResultsFromIntent(intent)
-        return remoteInput?.getCharSequence(KEY_TEXT_REPLY)
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////// remote input receiver
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    class InlineReplyReceiver : BroadcastReceiver() {
-        @MainThread override fun onReceive(context: Context, intent: Intent) {
-            val strPointer = intent.action
-            val pointer = Utils.pointerFromString(intent.action)
-            val input = getMessageText(intent)
-            val buffer = findByPointer(pointer)
-            if (TextUtils.isEmpty(input) || buffer == null || !connected) {
-                kitty.error("error while receiving remote input: pointer=%s, input=%s, " +
-                            "buffer=%s, connected=%s", strPointer, input, buffer, connected)
-                Toaster.ErrorToast.show("Error while receiving remote input")
-                return
-            }
-            Events.SendMessageEvent.fireInput(buffer, input.toString())
-            buffer.flagResetHotMessagesOnNewOwnLine = true
-        }
     }
 }
 

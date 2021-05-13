@@ -12,31 +12,41 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import androidx.annotation.AnyThread
+import androidx.annotation.MainThread
 import androidx.core.app.NotificationCompat
 import androidx.core.app.Person
 import androidx.core.app.RemoteInput
 import androidx.core.content.LocusIdCompat
 import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.WeechatActivity
-import com.ubergeek42.WeechatAndroid.relay.Hotlist.InlineReplyReceiver
+import com.ubergeek42.WeechatAndroid.relay.BufferList
+import com.ubergeek42.WeechatAndroid.relay.Hotlist
 import com.ubergeek42.WeechatAndroid.relay.HotlistBuffer
 import com.ubergeek42.WeechatAndroid.relay.HotlistMessage
 import com.ubergeek42.WeechatAndroid.relay.NotifyReason
+import com.ubergeek42.WeechatAndroid.service.Events
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.service.RelayService
 import com.ubergeek42.WeechatAndroid.upload.applicationContext
 import com.ubergeek42.WeechatAndroid.utils.Constants
+import com.ubergeek42.WeechatAndroid.utils.Toaster
 import com.ubergeek42.WeechatAndroid.utils.isAnyOf
+import com.ubergeek42.cats.Kitty
+import com.ubergeek42.cats.Root
 
 import kotlin.apply
 import kotlin.apply as apply2
+
+
+@Root private val kitty = Kitty.make("Notificator") as Kitty
+
 
 private const val ID_MAIN = 42
 private const val ID_HOT = 43
 private const val CHANNEL_CONNECTION_STATUS = "connection status"
 private const val CHANNEL_HOTLIST = "notification"
 private const val GROUP_KEY = "hot messages"
-const val KEY_TEXT_REPLY = "key_text_reply"
+private const val KEY_TEXT_REPLY = "key_text_reply"
 
 
 // displayed in place of user name in private notifications, when we can get away with it
@@ -502,4 +512,33 @@ class NotificationDismissedReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         DisplayedNotifications.remove(intent.action ?: "")
     }
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+class InlineReplyReceiver : BroadcastReceiver() {
+    @MainThread override fun onReceive(context: Context, intent: Intent) {
+        val fullName = intent.action ?: ""
+        val input = intent.getInlineReplyText()
+        val buffer = BufferList.findByFullName(fullName)
+
+        if (input.isNullOrEmpty() || buffer == null || !Hotlist.connected) {
+            kitty.error("error while receiving remote input: fullName=%s, input=%s, " +
+                        "buffer=%s, connected=%s", fullName, input, buffer, Hotlist.connected)
+            Toaster.ErrorToast.show("Error while receiving remote input")
+        } else {
+            Events.SendMessageEvent.fireInput(buffer, input.toString())
+            buffer.flagResetHotMessagesOnNewOwnLine = true
+        }
+    }
+}
+
+
+private fun Intent.getInlineReplyText(): CharSequence? {
+    val remoteInput = RemoteInput.getResultsFromIntent(this)
+    return remoteInput?.getCharSequence(KEY_TEXT_REPLY)
 }
