@@ -28,6 +28,30 @@ import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 
 
+class HotlistMessage(
+    val hotBuffer: Hotlist.HotBuffer,
+    val timestamp: Long,
+    val nick: CharSequence,
+    val message: CharSequence,
+    val isAction: Boolean,
+    var image: Uri? = null,
+) {
+    companion object {
+        fun fromLine(line: Line, hotBuffer: Hotlist.HotBuffer): HotlistMessage {
+            val isAction = line.displayAs === LineSpec.DisplayAs.Action
+            val message = line.messageString.let { if (isAction) it.toItalicizedSpannable() else it }
+            val nick = line.nick ?: line.prefixString
+
+            return HotlistMessage(hotBuffer = hotBuffer,
+                                  timestamp = line.timestamp,
+                                  nick = nick,
+                                  message = message,
+                                  isAction = isAction)
+        }
+    }
+}
+
+
 object Hotlist {
     @Root private val kitty = Kitty.make() as Kitty
 
@@ -84,7 +108,7 @@ object Hotlist {
     }
 
     private fun notifyHotlistChanged(buffer: HotBuffer, reason: NotifyReason) {
-        val allMessages = ArrayList<HotMessage>()
+        val allMessages = ArrayList<HotlistMessage>()
         var hotBufferCount = 0
         var lastMessageTimestamp: Long = 0
 
@@ -99,7 +123,7 @@ object Hotlist {
         }
 
         // older messages come first
-        allMessages.sortWith { m1: HotMessage, m2: HotMessage ->
+        allMessages.sortWith { m1: HotlistMessage, m2: HotlistMessage ->
             m1.timestamp.compareTo(m2.timestamp)
         }
 
@@ -128,7 +152,7 @@ object Hotlist {
         val pointer: Long
         var shortName: String
         val fullName: String
-        val messages = ArrayList<HotMessage>()
+        val messages = ArrayList<HotlistMessage>()
         @JvmField var hotCount = 0
         var lastMessageTimestamp = System.currentTimeMillis()
 
@@ -176,7 +200,7 @@ object Hotlist {
             setHotCount(hotCount + 1)
             shortName = buffer.shortName
             isPrivate = buffer.type === BufferSpec.Type.Private
-            val message = HotMessage(line, this)
+            val message = HotlistMessage.fromLine(line, this)
             messages.add(message)
             notifyHotlistChanged(this, NotifyReason.HOT_SYNC)
 
@@ -204,32 +228,7 @@ object Hotlist {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    class HotMessage internal constructor(line: Line, val hotBuffer: HotBuffer) {
-        var message: CharSequence
-        val nick: CharSequence?
-        val timestamp: Long
-        val isAction: Boolean = line.displayAs === LineSpec.DisplayAs.Action
-        var image: Uri? = null
 
-        init {
-            message = line.messageString
-            nick = line.nick ?: line.prefixString
-            timestamp = line.timestamp
-            if (isAction) {
-                val sb = SpannableString(message)
-                sb.setSpan(StyleSpan(Typeface.ITALIC), 0, message.length, 0)
-                message = sb
-            }
-        }
-
-        // show the weechat-style message
-        fun forTicker(): CharSequence {
-            val n = StringBuilder()
-            if (!hotBuffer.isPrivate) n.append(hotBuffer.shortName).append(" ")
-            return if (isAction) n.append("*").append(message) else n.append("<").append(nick)
-                .append("> ").append(message)
-        }
-    }
 
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -251,5 +250,12 @@ object Hotlist {
             Events.SendMessageEvent.fireInput(buffer, input.toString())
             buffer.flagResetHotMessagesOnNewOwnLine = true
         }
+    }
+}
+
+
+fun CharSequence.toItalicizedSpannable(): CharSequence {
+    return SpannableString(this).also {
+        it.setSpan(StyleSpan(Typeface.ITALIC), 0, length, 0)
     }
 }

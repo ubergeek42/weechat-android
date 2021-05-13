@@ -18,10 +18,10 @@ import androidx.core.app.RemoteInput
 import androidx.core.content.LocusIdCompat
 import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.WeechatActivity
-import com.ubergeek42.WeechatAndroid.relay.Hotlist.HotMessage
 import com.ubergeek42.WeechatAndroid.relay.Hotlist.HotBuffer
 import com.ubergeek42.WeechatAndroid.relay.Hotlist.NotifyReason
 import com.ubergeek42.WeechatAndroid.relay.Hotlist.InlineReplyReceiver
+import com.ubergeek42.WeechatAndroid.relay.HotlistMessage
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.service.RelayService
 import com.ubergeek42.WeechatAndroid.upload.applicationContext
@@ -159,7 +159,7 @@ class HotNotification(
     private val connected: Boolean,
     private val totalHotCount: Int,
     private val hotBufferCount: Int,
-    private val allMessages: List<HotMessage>,
+    private val allMessages: List<HotlistMessage>,
     private val hotBuffer: HotBuffer,
     private val reason: NotifyReason,
     private val lastMessageTimestamp: Long,
@@ -393,7 +393,7 @@ fun NotificationCompat.Builder.setMakeNoise(makeNoise: Boolean): NotificationCom
 }
 
 
-fun HotMessage.getNickForFullList(): CharSequence {
+fun HotlistMessage.getNickForFullList(): CharSequence {
     return when {
         isAction && hotBuffer.isPrivate -> ZERO_WIDTH_SPACE
         !isAction && !hotBuffer.isPrivate -> "${hotBuffer.shortName}: $nick"
@@ -407,7 +407,7 @@ fun HotMessage.getNickForFullList(): CharSequence {
 // buffer name, actually) will be displayed as conversation title
 // it is possible to have “nick (3)” as a nickname, but icon shade depends on the nickname, and
 // you can't get away with making a Person's with different names but the same key
-private fun HotMessage.getNickForBuffer(): CharSequence {
+private fun HotlistMessage.getNickForBuffer(): CharSequence {
     return when {
         Build.VERSION.SDK_INT >= 28 -> nick
         hotBuffer.isPrivate || isAction -> ZERO_WIDTH_SPACE
