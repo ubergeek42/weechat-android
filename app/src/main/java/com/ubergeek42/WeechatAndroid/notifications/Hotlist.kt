@@ -76,6 +76,17 @@ data class HotlistBuffer(
         }
     }
 
+    // if hot count has changed — either:
+    //  * the buffer was closed or read (hot count == 0)
+    //  * (hotlist) brought us new numbers (See Buffer.updateHotlist()). that would happen if:
+    //      * the buffer was read in weechat (new number is lower or higher (only if not
+    //        syncing). if we kept syncing (invalidateMessages == false), new number is going to
+    //        be lower and the messages will still be valid, so we can simply truncate them. if
+    //        we weren't syncing, invalidateMessages will be true.
+    //      * the buffer wasn't read in weechat, and the new number is higher. while the
+    //        messages are valid, the list now looks something like this:
+    //            ? ? ? <message> <message> ?
+    //        instead of displaying it like this, let's clear it for the sake of simplicity
     fun updateByBuffer(buffer: Buffer, invalidateMessages: Boolean) {
         val newHotCount = buffer.hotCount
         val newShortName = buffer.shortName
@@ -84,9 +95,6 @@ data class HotlistBuffer(
         val updateShortName = shortName != newShortName
 
         if (updateHotCount || updateShortName || (invalidateMessages && messages.isNotEmpty())) {
-            //kitty.info("updateHotCount(%s): %s -> %s (invalidate=%s)",
-            //            buffer, hotCount, newHotCount, invalidateMessages)
-
             val messages = when {
                 invalidateMessages -> emptyList()
                 newHotCount > hotCount -> emptyList()
