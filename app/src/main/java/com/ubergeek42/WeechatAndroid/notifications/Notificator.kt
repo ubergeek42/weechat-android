@@ -11,6 +11,8 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
+import android.os.Handler
+import android.os.HandlerThread
 import androidx.annotation.AnyThread
 import androidx.annotation.MainThread
 import androidx.core.app.NotificationCompat
@@ -144,7 +146,7 @@ private val applicationResources = applicationContext.resources
 // are treated as separate intents
 // todo simplify logic for ANY
 // todo make intent unique in a different way
-fun makePendingIntentForBuffer(fullName: String?): PendingIntent {
+private fun makePendingIntentForBuffer(fullName: String?): PendingIntent {
     val intent = Intent(applicationContext, WeechatActivity::class.java).apply {
         if (fullName == null) {
             putExtra(Constants.EXTRA_BUFFER_POINTER, Constants.NOTIFICATION_EXTRA_BUFFER_ANY)
@@ -157,7 +159,7 @@ fun makePendingIntentForBuffer(fullName: String?): PendingIntent {
 }
 
 
-fun makePendingIntentForDismissedNotificationForBuffer(fullName: String): PendingIntent {
+private fun makePendingIntentForDismissedNotificationForBuffer(fullName: String): PendingIntent {
     val intent = Intent(applicationContext, NotificationDismissedReceiver::class.java).apply {
         action = fullName
     }
@@ -165,7 +167,7 @@ fun makePendingIntentForDismissedNotificationForBuffer(fullName: String): Pendin
 }
 
 
-fun showHotNotification(hotBuffer: HotlistBuffer, allHotBuffers: List<HotlistBuffer>, makeNoise: Boolean) {
+fun showHotNotification(hotBuffer: HotlistBuffer, allHotBuffers: Collection<HotlistBuffer>, makeNoise: Boolean) {
     if (!P.notificationEnable) return
 
     val notificationsToRemoveIds = DisplayedNotifications.getIds() - allHotBuffers.map { it.fullName }
@@ -192,15 +194,19 @@ fun showHotNotification(hotBuffer: HotlistBuffer, allHotBuffers: List<HotlistBuf
 }
 
 
-fun addOrRemoveActionForCurrentNotifications(allHotBuffers: List<HotlistBuffer>, addReplyAction: Boolean) {
-    allHotBuffers.filter { DisplayedNotifications.contains(it.fullName) }.forEach { hotBuffer ->
-        manager.notify(hotBuffer.fullName, ID_HOT,
-            makeBufferNotification(hotBuffer, addReplyAction).setMakeNoise(false).build())
+fun addOrRemoveActionForCurrentNotifications(addReplyAction: Boolean) {
+    notificationHandler.post {
+        hotlistBuffers.values
+                .filter { DisplayedNotifications.contains(it.fullName) }
+                .forEach { hotBuffer ->
+            manager.notify(hotBuffer.fullName, ID_HOT,
+                makeBufferNotification(hotBuffer, addReplyAction).setMakeNoise(false).build())
+        }
     }
 }
 
 
-private fun makeSummaryNotification(hotBuffers: List<HotlistBuffer>): NotificationCompat.Builder {
+private fun makeSummaryNotification(hotBuffers: Collection<HotlistBuffer>): NotificationCompat.Builder {
     val hotBufferCount = hotBuffers.size
     val totalHotCount = hotBuffers.sumOf { it.hotCount }
     val lastMessageTimestamp = hotBuffers.maxOf { it.lastMessageTimestamp }
@@ -508,9 +514,9 @@ class InlineReplyReceiver : BroadcastReceiver() {
         val input = intent.getInlineReplyText()
         val buffer = BufferList.findByFullName(fullName)
 
-        if (input.isNullOrEmpty() || buffer == null || !Hotlist.connected) {
-            kitty.error("error while receiving remote input: fullName=%s, input=%s, " +
-                        "buffer=%s, connected=%s", fullName, input, buffer, Hotlist.connected)
+        if (input.isNullOrEmpty() || buffer == null) {
+            kitty.error("error while receiving remote input: fullName=%s, input=%s, buffer=%s",
+                        fullName, input, buffer)
             Toaster.ErrorToast.show("Error while receiving remote input")
         } else {
             Events.SendMessageEvent.fireInput(buffer, input.toString())
@@ -524,3 +530,6 @@ private fun Intent.getInlineReplyText(): CharSequence? {
     val remoteInput = RemoteInput.getResultsFromIntent(this)
     return remoteInput?.getCharSequence(KEY_TEXT_REPLY)
 }
+
+
+val notificationHandler = Handler(HandlerThread("notifications").apply { start() }.looper)

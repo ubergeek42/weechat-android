@@ -238,7 +238,7 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
         Network.get().register(this, null)  // no callback, simply make sure that network info is correct while we are showing
         EventBus.getDefault().register(this)
         connectionState = EventBus.getDefault().getStickyEvent(StateChangedEvent::class.java).state
-        updateHotCount(Hotlist.hotMessageCount)
+        updateHotCount(Hotlist.totalHotMessageCount)
         started = true
         P.storeThemeOrColorSchemeColors(this)
         applyColorSchemeToViews()

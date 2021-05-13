@@ -30,7 +30,7 @@ import androidx.annotation.WorkerThread;
 
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.Weechat;
-import com.ubergeek42.WeechatAndroid.notifications.Hotlist;
+import com.ubergeek42.WeechatAndroid.notifications.NotificatorKt;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.WeechatAndroid.utils.Network;
 import com.ubergeek42.cats.Cat;
@@ -294,7 +294,7 @@ public class RelayService extends Service implements IObserver {
     }
 
     @WorkerThread @Cat private void hello() {
-        Hotlist.redrawHotlistOnConnectionStatusChange(true);
+        NotificatorKt.addOrRemoveActionForCurrentNotifications(true);
         ping.scheduleFirstPing();
         BufferList.onServiceAuthenticated();
         SyncAlarmReceiver.start(this);
@@ -306,7 +306,7 @@ public class RelayService extends Service implements IObserver {
         BufferList.onServiceStopped();
         ping.unschedulePing();
         P.saveStuff();
-        Hotlist.redrawHotlistOnConnectionStatusChange(false);
+        NotificatorKt.addOrRemoveActionForCurrentNotifications(false);
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////
 

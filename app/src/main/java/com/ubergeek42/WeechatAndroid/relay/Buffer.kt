@@ -248,11 +248,11 @@ class Buffer @WorkerThread constructor(
             } else {
                 if (notifyHighlight) {
                     highlights++
-                    Hotlist.onNewHotLine(this, line)
+                    Hotlist.reportNewHotLine(this, line)
                     BufferList.notifyBuffersChanged()
                 } else if (notifyPmOrMessage) {
                     unreads++
-                    if (notifyPm) Hotlist.onNewHotLine(this, line)
+                    if (notifyPm) Hotlist.reportNewHotLine(this, line)
                     BufferList.notifyBuffersChanged()
                 }
             }
