@@ -28,8 +28,24 @@ import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 
 
+@Root private val kitty = Kitty.make("Hotlist") as Kitty
+
+
+val totalHotCount = AtomicInteger(0)
+
+
+enum class NotifyReason {
+    HotSync, HotAsync, Redraw
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////// message
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 class HotlistMessage(
-    val hotBuffer: Hotlist.HotBuffer,
+    val hotBuffer: HotlistBuffer,
     val timestamp: Long,
     val nick: CharSequence,
     val message: CharSequence,
@@ -37,7 +53,7 @@ class HotlistMessage(
     var image: Uri? = null,
 ) {
     companion object {
-        fun fromLine(line: Line, hotBuffer: Hotlist.HotBuffer): HotlistMessage {
+        fun fromLine(line: Line, hotBuffer: HotlistBuffer): HotlistMessage {
             val isAction = line.displayAs === LineSpec.DisplayAs.Action
             val message = line.messageString.let { if (isAction) it.toItalicizedSpannable() else it }
             val nick = line.nick ?: line.prefixString
@@ -52,11 +68,108 @@ class HotlistMessage(
 }
 
 
-object Hotlist {
-    @Root private val kitty = Kitty.make() as Kitty
+////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////// buffer
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
+class HotlistBuffer (
+    val fullName: String,
+    var shortName: String,
+    var isPrivate: Boolean,
+) {
+    var messages = mutableListOf<HotlistMessage>()
+    var lastMessageTimestamp = System.currentTimeMillis()  // todo
+
+    var hotCount: Int = 0
+        set(value) {
+            lastMessageTimestamp = System.currentTimeMillis()
+            totalHotCount.addAndGet(value - field)
+            field = value
+        }
+
+    companion object {
+        fun fromBuffer(buffer: Buffer): HotlistBuffer {
+            return HotlistBuffer(
+                fullName = buffer.fullName,
+                shortName = buffer.shortName,
+                isPrivate = buffer.type === BufferSpec.Type.Private
+            )
+        }
+    }
+
+    // if hot count has changed — either:
+    //  * the buffer was closed or read (hot count == 0)
+    //  * (hotlist) brought us new numbers (See Buffer.updateHotlist()). that would happen if:
+    //      * the buffer was read in weechat (new number is lower or higher (only if not
+    //        syncing). if we kept syncing (invalidateMessages == false), new number is going to
+    //        be lower and the messages will still be valid, so we can simply truncate them. if
+    //        we weren't syncing, invalidateMessages will be true.
+    //      * the buffer wasn't read in weechat, and the new number is higher. while the
+    //        messages are valid, the list now looks something like this:
+    //            ? ? ? <message> <message> ?
+    //        instead of displaying it like this, let's clear it for the sake of simplicity
+    fun updateHotCount(buffer: Buffer, invalidateMessages: Boolean) {
+        val newHotCount = buffer.hotCount
+        val newShortName = buffer.shortName
+        val updateHotCount = hotCount != newHotCount
+        val updateShortName = shortName != newShortName
+
+        if (updateHotCount || updateShortName || (invalidateMessages && messages.size > 0)) {
+            kitty.info(
+                "updateHotCount(%s): %s -> %s (invalidate=%s)",
+                buffer, hotCount, newHotCount, invalidateMessages
+            )
+
+            if (invalidateMessages) {
+                messages.clear()
+            } else if (updateHotCount) {
+                if (newHotCount > hotCount) {
+                    messages.clear()
+                } else {
+                    val toRemove = messages.size - newHotCount
+                    if (toRemove >= 0) messages.subList(0, toRemove).clear()
+                }
+            }
+
+            isPrivate = buffer.type === BufferSpec.Type.Private
+            shortName = newShortName
+            if (updateHotCount) hotCount = newHotCount
+
+            Hotlist.notifyHotlistChanged(this, NotifyReason.HotAsync)
+        }
+    }
+
+    fun onNewHotLine(buffer: Buffer, line: Line) {
+        hotCount++
+        shortName = buffer.shortName
+        isPrivate = buffer.type === BufferSpec.Type.Private
+        val message = HotlistMessage.fromLine(line, this)
+        messages.add(message)
+
+        Hotlist.notifyHotlistChanged(this, NotifyReason.HotSync)
+
+        if (Engine.isEnabledAtAll() && Engine.isEnabledForLocation(Engine.Location.NOTIFICATION) &&
+                Engine.isEnabledForLine(line)) {
+            ContentUriFetcher.loadFirstUrlFromText(message.message) { imageUri: Uri ->
+                message.image = imageUri
+                Hotlist.notifyHotlistChanged(this, NotifyReason.Redraw)
+            }
+        }
+    }
+
+    fun clear() {
+        if (hotCount != 0) {
+            hotCount = 0
+            messages.clear()
+            Hotlist.notifyHotlistChanged(this, NotifyReason.Redraw)
+        }
+    }
+}
+
+
+object Hotlist {
     @SuppressLint("UseSparseArrays")
-    private val hotList = HashMap<Long, HotBuffer>()
+    private val hotList = HashMap<Long, HotlistBuffer>()
     private val totalHotCount = AtomicInteger(0)
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -69,7 +182,7 @@ object Hotlist {
     @JvmStatic @Cat @Synchronized fun redraw(connected: Boolean) {
         if (Hotlist.connected == connected) return
         Hotlist.connected = connected
-        for (buffer in hotList.values) notifyHotlistChanged(buffer, NotifyReason.REDRAW)
+        for (buffer in hotList.values) notifyHotlistChanged(buffer, NotifyReason.Redraw)
     }
 
     @Cat @Synchronized fun onNewHotLine(buffer: Buffer, line: Line) {
@@ -81,7 +194,7 @@ object Hotlist {
     }
 
     @Cat @Synchronized fun makeSureHotlistDoesNotContainInvalidBuffers() {
-        val it: MutableIterator<Map.Entry<Long, HotBuffer>> = hotList.entries.iterator()
+        val it: MutableIterator<Map.Entry<Long, HotlistBuffer>> = hotList.entries.iterator()
         while (it.hasNext()) {
             val entry = it.next()
             if (findByPointer(entry.key) == null) {
@@ -99,15 +212,11 @@ object Hotlist {
 
     // creates hot buffer if not present. note that buffers that lose hot messages aren't removed!
     // todo ???
-    private fun getHotBuffer(buffer: Buffer): HotBuffer {
-        return hotList.getOrPut(buffer.pointer) { HotBuffer(buffer) }
+    private fun getHotBuffer(buffer: Buffer): HotlistBuffer {
+        return hotList.getOrPut(buffer.pointer) { HotlistBuffer.fromBuffer(buffer) }
     }
 
-    enum class NotifyReason {
-        HOT_SYNC, HOT_ASYNC, REDRAW
-    }
-
-    private fun notifyHotlistChanged(buffer: HotBuffer, reason: NotifyReason) {
+    fun notifyHotlistChanged(buffer: HotlistBuffer, reason: NotifyReason) {
         val allMessages = ArrayList<HotlistMessage>()
         var hotBufferCount = 0
         var lastMessageTimestamp: Long = 0
@@ -142,94 +251,6 @@ object Hotlist {
         val remoteInput = RemoteInput.getResultsFromIntent(intent)
         return remoteInput?.getCharSequence(KEY_TEXT_REPLY)
     }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////// classes
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    class HotBuffer internal constructor(buffer: Buffer) {
-        var isPrivate: Boolean
-        val pointer: Long
-        var shortName: String
-        val fullName: String
-        val messages = ArrayList<HotlistMessage>()
-        @JvmField var hotCount = 0
-        var lastMessageTimestamp = System.currentTimeMillis()
-
-        init {
-            isPrivate = buffer.type === BufferSpec.Type.Private
-            pointer = buffer.pointer
-            shortName = buffer.shortName
-            fullName = buffer.fullName
-        }
-
-        // if hot count has changed — either:
-        //  * the buffer was closed or read (hot count == 0)
-        //  * (hotlist) brought us new numbers (See Buffer.updateHotlist()). that would happen if:
-        //      * the buffer was read in weechat (new number is lower or higher (only if not
-        //        syncing). if we kept syncing (invalidateMessages == false), new number is going to
-        //        be lower and the messages will still be valid, so we can simply truncate them. if
-        //        we weren't syncing, invalidateMessages will be true.
-        //      * the buffer wasn't read in weechat, and the new number is higher. while the
-        //        messages are valid, the list now looks something like this:
-        //            ? ? ? <message> <message> ?
-        //        instead of displaying it like this, let's clear it for the sake of simplicity
-        fun updateHotCount(buffer: Buffer, invalidateMessages: Boolean) {
-            val newHotCount = buffer.hotCount
-            val updatingHotCount = hotCount != newHotCount
-            val updatingShortName = shortName != buffer.shortName
-            if (!updatingHotCount && !updatingShortName && !(invalidateMessages && messages.size > 0)) return
-            kitty.info("updateHotCount(%s): %s -> %s (invalidate=%s)", buffer, hotCount, newHotCount, invalidateMessages)
-            if (invalidateMessages) {
-                messages.clear()
-            } else if (updatingHotCount) {
-                if (newHotCount > hotCount) {
-                    messages.clear()
-                } else {
-                    val toRemove = messages.size - newHotCount
-                    if (toRemove >= 0) messages.subList(0, toRemove).clear()
-                }
-            }
-            isPrivate = buffer.type === BufferSpec.Type.Private
-            if (updatingHotCount) setHotCount(newHotCount)
-            if (updatingShortName) shortName = buffer.shortName
-            notifyHotlistChanged(this, NotifyReason.HOT_ASYNC)
-        }
-
-        fun onNewHotLine(buffer: Buffer, line: Line) {
-            setHotCount(hotCount + 1)
-            shortName = buffer.shortName
-            isPrivate = buffer.type === BufferSpec.Type.Private
-            val message = HotlistMessage.fromLine(line, this)
-            messages.add(message)
-            notifyHotlistChanged(this, NotifyReason.HOT_SYNC)
-
-            if (Engine.isEnabledAtAll() && Engine.isEnabledForLocation(Engine.Location.NOTIFICATION) && Engine.isEnabledForLine(line)) {
-                ContentUriFetcher.loadFirstUrlFromText(message.message) { imageUri: Uri? ->
-                    message.image = imageUri
-                    notifyHotlistChanged(this, NotifyReason.REDRAW)
-                }
-            }
-        }
-
-        fun clear() {
-            if (hotCount == 0) return
-            setHotCount(0)
-            messages.clear()
-            notifyHotlistChanged(this, NotifyReason.REDRAW)
-        }
-
-        private fun setHotCount(newHotCount: Int) {
-            lastMessageTimestamp = System.currentTimeMillis()
-            totalHotCount.addAndGet(newHotCount - hotCount)
-            hotCount = newHotCount
-        }
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////// remote input receiver

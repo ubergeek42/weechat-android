@@ -4,6 +4,7 @@ import androidx.core.app.Person
 import androidx.core.graphics.drawable.IconCompat
 import com.ubergeek42.WeechatAndroid.relay.Buffer
 import com.ubergeek42.WeechatAndroid.relay.Hotlist
+import com.ubergeek42.WeechatAndroid.relay.HotlistBuffer
 
 
 data class CachedPerson(
@@ -57,7 +58,7 @@ fun getPersonByPrivateBuffer(buffer: Buffer): Person {
 }
 
 
-fun getPersonByPrivateBuffer(buffer: Hotlist.HotBuffer): Person {
+fun getPersonByPrivateBuffer(buffer: HotlistBuffer): Person {
     return getPerson(
         key = buffer.fullName,
         colorKey = buffer.fullName,

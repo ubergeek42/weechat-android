@@ -18,15 +18,14 @@ import androidx.core.app.RemoteInput
 import androidx.core.content.LocusIdCompat
 import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.WeechatActivity
-import com.ubergeek42.WeechatAndroid.relay.Hotlist.HotBuffer
-import com.ubergeek42.WeechatAndroid.relay.Hotlist.NotifyReason
 import com.ubergeek42.WeechatAndroid.relay.Hotlist.InlineReplyReceiver
+import com.ubergeek42.WeechatAndroid.relay.HotlistBuffer
 import com.ubergeek42.WeechatAndroid.relay.HotlistMessage
+import com.ubergeek42.WeechatAndroid.relay.NotifyReason
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.service.RelayService
 import com.ubergeek42.WeechatAndroid.upload.applicationContext
 import com.ubergeek42.WeechatAndroid.utils.Constants
-import com.ubergeek42.WeechatAndroid.utils.Utils
 import com.ubergeek42.WeechatAndroid.utils.isAnyOf
 
 import kotlin.apply
@@ -138,18 +137,24 @@ private val applicationResources = applicationContext.resources
 
 // setting action in this way is not quite a proper way, but this ensures that all intents
 // are treated as separate intents
-fun makePendingIntentForBuffer(pointer: Long): PendingIntent {
+// todo simplify logic for ANY
+// todo make intent unique in a different way
+fun makePendingIntentForBuffer(fullName: String?): PendingIntent {
     val intent = Intent(applicationContext, WeechatActivity::class.java).apply {
-        putExtra(Constants.EXTRA_BUFFER_POINTER, pointer)
-        action = Utils.pointerToString(pointer)
+        if (fullName == null) {
+            putExtra(Constants.EXTRA_BUFFER_POINTER, Constants.NOTIFICATION_EXTRA_BUFFER_ANY)
+        } else {
+            putExtra(Constants.EXTRA_BUFFER_FULL_NAME, fullName)
+        }
+        action = fullName
     }
     return PendingIntent.getActivity(applicationContext, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT)
 }
 
 
-fun makePendingIntentForDismissedNotificationForBuffer(pointer: Long): PendingIntent {
+fun makePendingIntentForDismissedNotificationForBuffer(fullName: String): PendingIntent {
     val intent = Intent(applicationContext, NotificationDismissedReceiver::class.java).apply {
-        action = Utils.pointerToString(pointer)
+        action = fullName
     }
     return PendingIntent.getBroadcast(applicationContext, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT)
 }
@@ -160,7 +165,7 @@ class HotNotification(
     private val totalHotCount: Int,
     private val hotBufferCount: Int,
     private val allMessages: List<HotlistMessage>,
-    private val hotBuffer: HotBuffer,
+    private val hotBuffer: HotlistBuffer,
     private val reason: NotifyReason,
     private val lastMessageTimestamp: Long,
 ) {
@@ -174,17 +179,17 @@ class HotNotification(
 
         // when redrawing notifications in order to remove the reply button, make sure we don't
         // add back notifications that were dismissed. synchronize `notifications.contains`
-        if (reason == NotifyReason.REDRAW && !DisplayedNotifications.contains(hotBuffer.pointer))
+        if (reason == NotifyReason.Redraw && !DisplayedNotifications.contains(hotBuffer.fullName))
             return
 
         if (hotBuffer.hotCount == 0) {
-            manager.cancel(Utils.pointerToString(hotBuffer.pointer), ID_HOT)
-            val dismissResult = DisplayedNotifications.remove(hotBuffer.pointer)
+            manager.cancel(hotBuffer.fullName, ID_HOT)
+            val dismissResult = DisplayedNotifications.remove(hotBuffer.fullName)
             if (dismissResult.isAnyOf(DismissResult.ALL_NOTIFICATIONS_REMOVED, DismissResult.NO_CHANGE))
                 return
         }
 
-        val makeNoise = reason == NotifyReason.HOT_SYNC
+        val makeNoise = reason == NotifyReason.HotSync
 
         if (!CAN_MAKE_BUNDLED_NOTIFICATIONS) {
             manager.notify(ID_HOT,
@@ -194,10 +199,10 @@ class HotNotification(
                 makeSummaryNotification().setMakeNoise(false).build())
 
             if (hotBuffer.hotCount > 0) {
-                manager.notify(Utils.pointerToString(hotBuffer.pointer), ID_HOT,
+                manager.notify(hotBuffer.fullName, ID_HOT,
                     makeBufferNotification().setMakeNoise(makeNoise).build())
 
-                DisplayedNotifications.add(hotBuffer.pointer)
+                DisplayedNotifications.add(hotBuffer.fullName)
             }
         }
     }
@@ -212,7 +217,7 @@ class HotNotification(
         )
 
         val builder = NotificationCompat.Builder(applicationContext, CHANNEL_HOTLIST)
-            .setContentIntent(makePendingIntentForBuffer(Constants.NOTIFICATION_EXTRA_BUFFER_ANY))
+            .setContentIntent(makePendingIntentForBuffer(null))
             .setSmallIcon(R.drawable.ic_notification_hot)
             .setCategory(NotificationCompat.CATEGORY_MESSAGE)
             .setGroup(GROUP_KEY)
@@ -258,8 +263,8 @@ class HotNotification(
         shortcuts.ensureShortcutExists(hotBuffer.fullName)
 
         val builder = NotificationCompat.Builder(applicationContext, CHANNEL_HOTLIST)
-            .setContentIntent(makePendingIntentForBuffer(hotBuffer.pointer))
-            .setDeleteIntent(makePendingIntentForDismissedNotificationForBuffer(hotBuffer.pointer))
+            .setContentIntent(makePendingIntentForBuffer(hotBuffer.fullName))
+            .setDeleteIntent(makePendingIntentForDismissedNotificationForBuffer(hotBuffer.fullName))
             .setSmallIcon(R.drawable.ic_notification_hot)
             .setCategory(NotificationCompat.CATEGORY_MESSAGE)
             .setGroup(GROUP_KEY)
@@ -272,7 +277,7 @@ class HotNotification(
 
         // messages hold the latest messages, don't show the reply button if user can't see any
         if (connected && hotBuffer.messages.isNotEmpty()) {
-            builder.addAction(makeActionForBufferPointer(Utils.pointerToString(hotBuffer.pointer)))
+            builder.addAction(makeActionForBufferPointer(hotBuffer.fullName))
         }
 
         NotificationCompat.MessagingStyle(myself).apply2 {
@@ -339,7 +344,7 @@ fun NotificationCompat.MessagingStyle.addMessage(
 // of the first line we have to avoid awkward nick changes (current (missing) -> old -> current)
 fun NotificationCompat.MessagingStyle.maybeAddMissingMessageLine(
     missingMessages: Int,
-    hotBuffer: HotBuffer?,
+    hotBuffer: HotlistBuffer?,
     staticPerson: Person?,
 ) {
     if (missingMessages == 0) return
@@ -462,17 +467,17 @@ private enum class DismissResult {
 
 
 private object DisplayedNotifications {
-    private val notifications = mutableSetOf<Long>()
+    private val notifications = mutableSetOf<String>()
 
-    fun add(pointer: Long) {
+    fun add(fullName: String) {
         synchronized(notifications) {
-            notifications.add(pointer)
+            notifications.add(fullName)
         }
     }
 
-    fun remove(pointer: Long): DismissResult {
+    fun remove(fullName: String): DismissResult {
         synchronized(notifications) {
-            val removed = notifications.remove(pointer)
+            val removed = notifications.remove(fullName)
 
             return when {
                 notifications.isEmpty() -> {
@@ -485,9 +490,9 @@ private object DisplayedNotifications {
         }
     }
 
-    fun contains(pointer: Long): Boolean {
+    fun contains(fullName: String): Boolean {
         synchronized(notifications) {
-            return notifications.contains(pointer)
+            return notifications.contains(fullName)
         }
     }
 }
@@ -495,7 +500,6 @@ private object DisplayedNotifications {
 
 class NotificationDismissedReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        val strPointer = intent.action
-        DisplayedNotifications.remove(Utils.pointerFromString(strPointer))
+        DisplayedNotifications.remove(intent.action ?: "")
     }
 }
