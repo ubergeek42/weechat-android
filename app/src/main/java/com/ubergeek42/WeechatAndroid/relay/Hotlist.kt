@@ -1,68 +1,142 @@
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
+package com.ubergeek42.WeechatAndroid.relay
 
-package com.ubergeek42.WeechatAndroid.relay;
-
-import android.annotation.SuppressLint;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.graphics.Typeface;
-import android.net.Uri;
-import android.os.Bundle;
-import androidx.annotation.MainThread;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.core.app.RemoteInput;
-import android.text.SpannableString;
-import android.text.style.StyleSpan;
-
-import com.ubergeek42.WeechatAndroid.media.ContentUriFetcher;
-import com.ubergeek42.WeechatAndroid.media.Engine;
-import com.ubergeek42.WeechatAndroid.notifications.HotNotification;
-import com.ubergeek42.WeechatAndroid.notifications.NotificatorKt;
-import com.ubergeek42.WeechatAndroid.service.Events;
-import com.ubergeek42.WeechatAndroid.utils.Utils;
-import com.ubergeek42.cats.Cat;
-import com.ubergeek42.cats.Kitty;
-import com.ubergeek42.cats.Root;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import static android.text.TextUtils.isEmpty;
-import static com.ubergeek42.WeechatAndroid.utils.Toaster.ErrorToast;
+import android.annotation.SuppressLint
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.graphics.Typeface
+import android.net.Uri
+import android.text.SpannableString
+import android.text.TextUtils
+import android.text.style.StyleSpan
+import androidx.annotation.MainThread
+import androidx.core.app.RemoteInput
+import com.ubergeek42.WeechatAndroid.media.ContentUriFetcher
+import com.ubergeek42.WeechatAndroid.media.Engine
+import com.ubergeek42.WeechatAndroid.notifications.HotNotification
+import com.ubergeek42.WeechatAndroid.notifications.KEY_TEXT_REPLY
+import com.ubergeek42.WeechatAndroid.relay.BufferList.findByPointer
+import com.ubergeek42.WeechatAndroid.service.Events
+import com.ubergeek42.WeechatAndroid.utils.Toaster
+import com.ubergeek42.WeechatAndroid.utils.Utils
+import com.ubergeek42.cats.Cat
+import com.ubergeek42.cats.Kitty
+import com.ubergeek42.cats.Root
+import java.util.*
+import java.util.concurrent.atomic.AtomicInteger
 
 
-public class Hotlist {
-    final private static @Root Kitty kitty = Kitty.make();
+object Hotlist {
+    @Root private val kitty = Kitty.make() as Kitty
 
     @SuppressLint("UseSparseArrays")
-    final private static HashMap<Long, HotBuffer> hotList = new HashMap<>();
-    private static AtomicInteger totalHotCount = new AtomicInteger(0);
+    private val hotList = HashMap<Long, HotBuffer>()
+    private val totalHotCount = AtomicInteger(0)
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////// public methods
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    // the only purpose of this is to show/hide the action button when connecting/disconnecting
+    private var connected = false
+
+    @JvmStatic @Cat @Synchronized fun redraw(connected: Boolean) {
+        if (Hotlist.connected == connected) return
+        Hotlist.connected = connected
+        for (buffer in hotList.values) notifyHotlistChanged(buffer, NotifyReason.REDRAW)
+    }
+
+    @Cat @Synchronized fun onNewHotLine(buffer: Buffer, line: Line) {
+        getHotBuffer(buffer).onNewHotLine(buffer, line)
+    }
+
+    @Synchronized fun adjustHotListForBuffer(buffer: Buffer, invalidateMessages: Boolean) {
+        getHotBuffer(buffer).updateHotCount(buffer, invalidateMessages)
+    }
+
+    @Cat @Synchronized fun makeSureHotlistDoesNotContainInvalidBuffers() {
+        val it: MutableIterator<Map.Entry<Long, HotBuffer>> = hotList.entries.iterator()
+        while (it.hasNext()) {
+            val entry = it.next()
+            if (findByPointer(entry.key) == null) {
+                entry.value.clear()
+                it.remove()
+            }
+        }
+    }
+
+    val hotCount get() = totalHotCount.get()
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    // creates hot buffer if not present. note that buffers that lose hot messages aren't removed!
+    // todo ???
+    private fun getHotBuffer(buffer: Buffer): HotBuffer {
+        return hotList.getOrPut(buffer.pointer) { HotBuffer(buffer) }
+    }
+
+    enum class NotifyReason {
+        HOT_SYNC, HOT_ASYNC, REDRAW
+    }
+
+    private fun notifyHotlistChanged(buffer: HotBuffer, reason: NotifyReason) {
+        val allMessages = ArrayList<HotMessage>()
+        var hotBufferCount = 0
+        var lastMessageTimestamp: Long = 0
+
+        synchronized(Hotlist::class.java) {
+            for (b in hotList.values) {
+                if (b.hotCount == 0) continue
+                hotBufferCount++
+                allMessages.addAll(b.messages)
+                if (b.lastMessageTimestamp > lastMessageTimestamp) lastMessageTimestamp =
+                    b.lastMessageTimestamp
+            }
+        }
+
+        // older messages come first
+        allMessages.sortWith { m1: HotMessage, m2: HotMessage ->
+            m1.timestamp.compareTo(m2.timestamp)
+        }
+
+        HotNotification(
+            connected,
+            totalHotCount.get(),
+            hotBufferCount,
+            allMessages,
+            buffer,
+            reason,
+            lastMessageTimestamp
+        ).show()
+    }
+
+    private fun getMessageText(intent: Intent): CharSequence? {
+        val remoteInput = RemoteInput.getResultsFromIntent(intent)
+        return remoteInput?.getCharSequence(KEY_TEXT_REPLY)
+    }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////// classes
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public static class HotBuffer {
-        public boolean isPrivate;
-        public final long pointer;
-        public String shortName;
-        public final String fullName;
-        public final ArrayList<HotMessage> messages = new ArrayList<>();
-        public int hotCount = 0;
-        public long lastMessageTimestamp = System.currentTimeMillis();
+    class HotBuffer internal constructor(buffer: Buffer) {
+        var isPrivate: Boolean
+        val pointer: Long
+        var shortName: String
+        val fullName: String
+        val messages = ArrayList<HotMessage>()
+        @JvmField var hotCount = 0
+        var lastMessageTimestamp = System.currentTimeMillis()
 
-        HotBuffer(Buffer buffer) {
-            isPrivate = buffer.type == BufferSpec.Type.Private;
-            pointer = buffer.pointer;
-            shortName = buffer.shortName;
-            fullName = buffer.fullName;
+        init {
+            isPrivate = buffer.type === BufferSpec.Type.Private
+            pointer = buffer.pointer
+            shortName = buffer.shortName
+            fullName = buffer.fullName
         }
 
         // if hot count has changed — either:
@@ -76,184 +150,106 @@ public class Hotlist {
         //        messages are valid, the list now looks something like this:
         //            ? ? ? <message> <message> ?
         //        instead of displaying it like this, let's clear it for the sake of simplicity
-        void updateHotCount(Buffer buffer, boolean invalidateMessages) {
-            int newHotCount = buffer.getHotCount();
-            boolean updatingHotCount = hotCount != newHotCount;
-            boolean updatingShortName = !shortName.equals(buffer.shortName);
-            if (!updatingHotCount && !updatingShortName && !(invalidateMessages && messages.size() > 0)) return;
-            kitty.info("updateHotCount(%s): %s -> %s (invalidate=%s)", buffer, hotCount, newHotCount, invalidateMessages);
+        fun updateHotCount(buffer: Buffer, invalidateMessages: Boolean) {
+            val newHotCount = buffer.hotCount
+            val updatingHotCount = hotCount != newHotCount
+            val updatingShortName = shortName != buffer.shortName
+            if (!updatingHotCount && !updatingShortName && !(invalidateMessages && messages.size > 0)) return
+            kitty.info("updateHotCount(%s): %s -> %s (invalidate=%s)", buffer, hotCount, newHotCount, invalidateMessages)
             if (invalidateMessages) {
-                messages.clear();
+                messages.clear()
             } else if (updatingHotCount) {
                 if (newHotCount > hotCount) {
-                    messages.clear();
+                    messages.clear()
                 } else {
-                    int toRemove = messages.size() - newHotCount;
-                    if (toRemove >= 0) messages.subList(0, toRemove).clear();
+                    val toRemove = messages.size - newHotCount
+                    if (toRemove >= 0) messages.subList(0, toRemove).clear()
                 }
             }
-            isPrivate = buffer.type == BufferSpec.Type.Private;
-            if (updatingHotCount) setHotCount(newHotCount);
-            if (updatingShortName) shortName = buffer.shortName;
-            notifyHotlistChanged(this, NotifyReason.HOT_ASYNC);
+            isPrivate = buffer.type === BufferSpec.Type.Private
+            if (updatingHotCount) setHotCount(newHotCount)
+            if (updatingShortName) shortName = buffer.shortName
+            notifyHotlistChanged(this, NotifyReason.HOT_ASYNC)
         }
 
-        void onNewHotLine(Buffer buffer, Line line) {
-            setHotCount(hotCount + 1);
-            shortName = buffer.shortName;
-            isPrivate = buffer.type == BufferSpec.Type.Private;
-            HotMessage message = new HotMessage(line, this);
-            messages.add(message);
-            notifyHotlistChanged(this, NotifyReason.HOT_SYNC);
+        fun onNewHotLine(buffer: Buffer, line: Line) {
+            setHotCount(hotCount + 1)
+            shortName = buffer.shortName
+            isPrivate = buffer.type === BufferSpec.Type.Private
+            val message = HotMessage(line, this)
+            messages.add(message)
+            notifyHotlistChanged(this, NotifyReason.HOT_SYNC)
 
             if (Engine.isEnabledAtAll() && Engine.isEnabledForLocation(Engine.Location.NOTIFICATION) && Engine.isEnabledForLine(line)) {
-                ContentUriFetcher.loadFirstUrlFromText(message.message, (Uri imageUri) -> {
-                    message.image = imageUri;
-                    notifyHotlistChanged(this, NotifyReason.REDRAW);
-                });
+                ContentUriFetcher.loadFirstUrlFromText(message.message) { imageUri: Uri? ->
+                    message.image = imageUri
+                    notifyHotlistChanged(this, NotifyReason.REDRAW)
+                }
             }
         }
 
-        void clear() {
-            if (hotCount == 0) return;
-            setHotCount(0);
-            messages.clear();
-            notifyHotlistChanged(this, NotifyReason.REDRAW);
+        fun clear() {
+            if (hotCount == 0) return
+            setHotCount(0)
+            messages.clear()
+            notifyHotlistChanged(this, NotifyReason.REDRAW)
         }
 
-        private void setHotCount(int newHotCount) {
-            lastMessageTimestamp = System.currentTimeMillis();
-            totalHotCount.addAndGet(newHotCount - hotCount);
-            hotCount = newHotCount;
+        private fun setHotCount(newHotCount: Int) {
+            lastMessageTimestamp = System.currentTimeMillis()
+            totalHotCount.addAndGet(newHotCount - hotCount)
+            hotCount = newHotCount
         }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public static class HotMessage {
-        public CharSequence message;
-        public final CharSequence nick;
-        public final long timestamp;
-        public final HotBuffer hotBuffer;
-        public final boolean isAction;
-        public Uri image = null;
+    class HotMessage internal constructor(line: Line, val hotBuffer: HotBuffer) {
+        var message: CharSequence
+        val nick: CharSequence?
+        val timestamp: Long
+        val isAction: Boolean = line.displayAs === LineSpec.DisplayAs.Action
+        var image: Uri? = null
 
-        HotMessage(Line line, HotBuffer hotBuffer) {
-            this.hotBuffer = hotBuffer;
-            this.isAction = line.displayAs == LineSpec.DisplayAs.Action;
-            message = line.getMessageString();
-            nick = (line.nick != null ? line.nick : line.getPrefixString());
-            timestamp = line.timestamp;
-            if (this.isAction) {
-                SpannableString sb = new SpannableString(message);
-                sb.setSpan(new StyleSpan(Typeface.ITALIC), 0, message.length(), 0);
-                message = sb;
+        init {
+            message = line.messageString
+            nick = line.nick ?: line.prefixString
+            timestamp = line.timestamp
+            if (isAction) {
+                val sb = SpannableString(message)
+                sb.setSpan(StyleSpan(Typeface.ITALIC), 0, message.length, 0)
+                message = sb
             }
         }
 
         // show the weechat-style message
-        public CharSequence forTicker() {
-            StringBuilder n = new StringBuilder();
-            if (!hotBuffer.isPrivate) n.append(hotBuffer.shortName).append(" ");
-            if (isAction) return n.append("*").append(message);
-            return n.append("<").append(nick).append("> ").append(message);
+        fun forTicker(): CharSequence {
+            val n = StringBuilder()
+            if (!hotBuffer.isPrivate) n.append(hotBuffer.shortName).append(" ")
+            return if (isAction) n.append("*").append(message) else n.append("<").append(nick)
+                .append("> ").append(message)
         }
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////////////////////////////////// public methods
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    // the only purpose of this is to show/hide the action button when connecting/disconnecting
-    private static boolean connected = false;
-    @Cat synchronized public static void redraw(boolean connected) {
-        if (Hotlist.connected == connected) return;
-        Hotlist.connected = connected;
-        for (HotBuffer buffer : hotList.values()) notifyHotlistChanged(buffer, NotifyReason.REDRAW);
-    }
-
-    @Cat synchronized static void onNewHotLine(@NonNull Buffer buffer, @NonNull Line line) {
-        getHotBuffer(buffer).onNewHotLine(buffer, line);
-    }
-
-    synchronized static void adjustHotListForBuffer(final @NonNull Buffer buffer, boolean invalidateMessages) {
-        getHotBuffer(buffer).updateHotCount(buffer, invalidateMessages);
-    }
-
-    @Cat synchronized static void makeSureHotlistDoesNotContainInvalidBuffers() {
-        for(Iterator<Map.Entry<Long, HotBuffer>> it = hotList.entrySet().iterator(); it.hasNext();) {
-            Map.Entry<Long, HotBuffer> entry = it.next();
-            if (BufferList.findByPointer(entry.getKey()) == null) {
-                entry.getValue().clear();
-                it.remove();
-            }
-        }
-    }
-
-    public static int getHotCount() {
-        return totalHotCount.get();
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    // creates hot buffer if not present. note that buffers that lose hot messages aren't removed!
-    private static @NonNull HotBuffer getHotBuffer(Buffer buffer) {
-        HotBuffer hotBuffer = hotList.get(buffer.pointer);
-        if (hotBuffer == null) {
-            hotBuffer = new HotBuffer(buffer);
-            hotList.put(buffer.pointer, hotBuffer);
-        }
-        return hotBuffer;
-    }
-
-    public enum NotifyReason { HOT_SYNC, HOT_ASYNC, REDRAW }
-    private static void notifyHotlistChanged(HotBuffer buffer, NotifyReason reason) {
-        ArrayList<HotMessage> allMessages = new ArrayList<>();
-        int hotBufferCount = 0;
-        long lastMessageTimestamp = 0;
-
-        synchronized (Hotlist.class) {
-            for (HotBuffer b : hotList.values()) {
-                if (b.hotCount == 0) continue;
-                hotBufferCount++;
-                allMessages.addAll(b.messages);
-                if (b.lastMessageTimestamp > lastMessageTimestamp)
-                    lastMessageTimestamp = b.lastMessageTimestamp;
-            }
-        }
-
-        // older messages come first
-        Collections.sort(allMessages, (m1, m2) -> Long.compare(m1.timestamp, m2.timestamp));
-        new HotNotification(connected, totalHotCount.get(), hotBufferCount, allMessages, buffer, reason, lastMessageTimestamp).show();
-    }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////// remote input receiver
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public static class InlineReplyReceiver extends BroadcastReceiver {
-        @MainThread @Override public void onReceive(Context context, Intent intent) {
-            final String strPointer = intent.getAction();
-            final long pointer = Utils.pointerFromString(intent.getAction());
-            final CharSequence input = getMessageText(intent);
-            final Buffer buffer = BufferList.findByPointer(pointer);
-            if (isEmpty(input) || buffer == null || !connected) {
+    class InlineReplyReceiver : BroadcastReceiver() {
+        @MainThread override fun onReceive(context: Context, intent: Intent) {
+            val strPointer = intent.action
+            val pointer = Utils.pointerFromString(intent.action)
+            val input = getMessageText(intent)
+            val buffer = findByPointer(pointer)
+            if (TextUtils.isEmpty(input) || buffer == null || !connected) {
                 kitty.error("error while receiving remote input: pointer=%s, input=%s, " +
-                        "buffer=%s, connected=%s", strPointer, input, buffer, connected);
-                ErrorToast.show("Error while receiving remote input");
-                return;
+                            "buffer=%s, connected=%s", strPointer, input, buffer, connected)
+                Toaster.ErrorToast.show("Error while receiving remote input")
+                return
             }
-            //noinspection ConstantConditions   -- linter error
-            Events.SendMessageEvent.fireInput(buffer, input.toString());
-            buffer.flagResetHotMessagesOnNewOwnLine = true;
+            Events.SendMessageEvent.fireInput(buffer, input.toString())
+            buffer.flagResetHotMessagesOnNewOwnLine = true
         }
-    }
-
-    private static @Nullable CharSequence getMessageText(Intent intent) {
-        Bundle remoteInput = RemoteInput.getResultsFromIntent(intent);
-        if (remoteInput != null) return remoteInput.getCharSequence(NotificatorKt.KEY_TEXT_REPLY);
-        return null;
     }
 }

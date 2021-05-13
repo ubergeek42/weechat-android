@@ -126,7 +126,7 @@ class BufferListFragment : Fragment(), BufferListEye {
     @AnyThread @Cat override fun onBuffersChanged() {
         adapter.onBuffersChanged()
 
-        val hotCount = Hotlist.getHotCount()
+        val hotCount = Hotlist.hotCount
         main {
             if (this.hotCount != hotCount) {
                 this.hotCount = hotCount
