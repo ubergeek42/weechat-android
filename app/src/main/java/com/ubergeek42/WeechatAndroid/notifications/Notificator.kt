@@ -20,10 +20,6 @@ import androidx.core.content.LocusIdCompat
 import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.WeechatActivity
 import com.ubergeek42.WeechatAndroid.relay.BufferList
-import com.ubergeek42.WeechatAndroid.relay.Hotlist
-import com.ubergeek42.WeechatAndroid.relay.HotlistBuffer
-import com.ubergeek42.WeechatAndroid.relay.HotlistMessage
-import com.ubergeek42.WeechatAndroid.relay.NotifyReason
 import com.ubergeek42.WeechatAndroid.service.Events
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.service.RelayService

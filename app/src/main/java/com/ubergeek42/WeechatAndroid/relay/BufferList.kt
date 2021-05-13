@@ -6,6 +6,7 @@ import android.util.LongSparseArray
 import androidx.annotation.AnyThread
 import androidx.annotation.MainThread
 import androidx.annotation.WorkerThread
+import com.ubergeek42.WeechatAndroid.notifications.Hotlist
 import com.ubergeek42.WeechatAndroid.service.Events.SendMessageEvent
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.cats.Kitty

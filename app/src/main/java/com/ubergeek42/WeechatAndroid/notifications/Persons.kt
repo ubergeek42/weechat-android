@@ -3,8 +3,6 @@ package com.ubergeek42.WeechatAndroid.notifications
 import androidx.core.app.Person
 import androidx.core.graphics.drawable.IconCompat
 import com.ubergeek42.WeechatAndroid.relay.Buffer
-import com.ubergeek42.WeechatAndroid.relay.Hotlist
-import com.ubergeek42.WeechatAndroid.relay.HotlistBuffer
 
 
 data class CachedPerson(

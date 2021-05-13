@@ -14,7 +14,7 @@ import org.greenrobot.eventbus.Subscribe
 import com.ubergeek42.WeechatAndroid.service.Events.StateChangedEvent
 import com.ubergeek42.WeechatAndroid.service.RelayService
 import com.ubergeek42.WeechatAndroid.relay.BufferList
-import com.ubergeek42.WeechatAndroid.relay.Hotlist
+import com.ubergeek42.WeechatAndroid.notifications.Hotlist
 import android.view.View
 import androidx.annotation.AnyThread
 import androidx.annotation.MainThread

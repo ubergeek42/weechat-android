@@ -1,6 +1,6 @@
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
-package com.ubergeek42.WeechatAndroid.relay
+package com.ubergeek42.WeechatAndroid.notifications
 
 import android.graphics.Typeface
 import android.net.Uri
@@ -8,7 +8,11 @@ import android.text.SpannableString
 import android.text.style.StyleSpan
 import com.ubergeek42.WeechatAndroid.media.ContentUriFetcher
 import com.ubergeek42.WeechatAndroid.media.Engine
-import com.ubergeek42.WeechatAndroid.notifications.HotNotification
+import com.ubergeek42.WeechatAndroid.relay.Buffer
+import com.ubergeek42.WeechatAndroid.relay.BufferList
+import com.ubergeek42.WeechatAndroid.relay.BufferSpec
+import com.ubergeek42.WeechatAndroid.relay.Line
+import com.ubergeek42.WeechatAndroid.relay.LineSpec
 import com.ubergeek42.cats.Cat
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root

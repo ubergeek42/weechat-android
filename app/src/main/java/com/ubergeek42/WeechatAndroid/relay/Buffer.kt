@@ -8,6 +8,7 @@ import android.text.style.SuperscriptSpan
 import androidx.annotation.AnyThread
 import androidx.annotation.MainThread
 import androidx.annotation.WorkerThread
+import com.ubergeek42.WeechatAndroid.notifications.Hotlist
 import com.ubergeek42.WeechatAndroid.notifications.shortcuts
 import com.ubergeek42.WeechatAndroid.service.Events
 import com.ubergeek42.WeechatAndroid.service.P

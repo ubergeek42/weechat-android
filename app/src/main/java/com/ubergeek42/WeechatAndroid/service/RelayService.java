@@ -30,8 +30,8 @@ import androidx.annotation.WorkerThread;
 
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.Weechat;
+import com.ubergeek42.WeechatAndroid.notifications.Hotlist;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
-import com.ubergeek42.WeechatAndroid.relay.Hotlist;
 import com.ubergeek42.WeechatAndroid.utils.Network;
 import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.CatD;

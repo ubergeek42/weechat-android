@@ -51,14 +51,14 @@ import com.ubergeek42.WeechatAndroid.dialogs.NicklistDialog
 import com.ubergeek42.WeechatAndroid.dialogs.ScrollableDialog
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragment
 import com.ubergeek42.WeechatAndroid.media.CachePersist
-import com.ubergeek42.WeechatAndroid.relay.BufferList
-import com.ubergeek42.WeechatAndroid.relay.Hotlist
+import com.ubergeek42.WeechatAndroid.notifications.Hotlist
 import com.ubergeek42.WeechatAndroid.service.Events.ExceptionEvent
 import com.ubergeek42.WeechatAndroid.service.Events.StateChangedEvent
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.service.RelayService
 import com.ubergeek42.WeechatAndroid.service.SSLHandler
 import com.ubergeek42.WeechatAndroid.notifications.statistics
+import com.ubergeek42.WeechatAndroid.relay.BufferList
 import com.ubergeek42.WeechatAndroid.upload.Config
 import com.ubergeek42.WeechatAndroid.upload.ShareObject
 import com.ubergeek42.WeechatAndroid.upload.TextShareObject
