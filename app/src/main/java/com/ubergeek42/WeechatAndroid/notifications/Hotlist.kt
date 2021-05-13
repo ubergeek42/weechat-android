@@ -158,8 +158,6 @@ private fun HotlistBuffer.pushUpdate(makeNoise: Boolean = false) {
 
 
 object Hotlist {
-    val totalHotMessageCount get() = hotlistBuffers.values.sumOf { it.hotCount }
-
     fun reportNewHotLine(buffer: Buffer, line: Line) {
         notificationHandler.post {
             getHotBuffer(buffer).updateOnHotLine(buffer, line)

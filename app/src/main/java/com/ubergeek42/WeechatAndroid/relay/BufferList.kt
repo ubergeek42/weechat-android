@@ -61,6 +61,8 @@ object BufferList {
         return buffers.firstOrNull { it.pointer == pointer }
     }
 
+    val totalHotMessageCount get() = buffers.sumOf { it.hotCount }
+
     /////////////////////////////////////////////////////////////////////////////////////// handlers
 
     private val handlers = ConcurrentHashMap<String, HdataHandler>()

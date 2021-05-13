@@ -213,8 +213,7 @@ class Buffer @WorkerThread constructor(
     }
 
     val hotCount: Int
-        @AnyThread @Synchronized get() = if (type == BufferSpec.Type.Private)
-                unreads + highlights else highlights
+        get() = if (type == BufferSpec.Type.Private) unreads + highlights else highlights
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////// stuff called by message handlers
