@@ -170,7 +170,7 @@ private fun makePendingIntentForDismissedNotificationForBuffer(fullName: String)
 fun showHotNotification(hotBuffer: HotlistBuffer, allHotBuffers: Collection<HotlistBuffer>, makeNoise: Boolean) {
     if (!P.notificationEnable) return
 
-    val notificationsToRemoveIds = DisplayedNotifications.getIds() - allHotBuffers.map { it.fullName }
+    val notificationsToRemoveIds = displayedNotifications - allHotBuffers.map { it.fullName }
     val toRemoveAllNotifications = notificationsToRemoveIds.isNotEmpty() && allHotBuffers.isEmpty()
 
     notificationsToRemoveIds.forEach { manager.cancel(it, ID_HOT) }
@@ -183,12 +183,9 @@ fun showHotNotification(hotBuffer: HotlistBuffer, allHotBuffers: Collection<Hotl
         } else {
             manager.notify(ID_HOT,
                 makeSummaryNotification(allHotBuffers).setMakeNoise(false).build())
-
-            if (hotBuffer in allHotBuffers) {
-                manager.notify(hotBuffer.fullName, ID_HOT,
-                    makeBufferNotification(hotBuffer, true).setMakeNoise(makeNoise).build())
-                displayedNotifications = displayedNotifications + hotBuffer.fullName
-            }
+            manager.notify(hotBuffer.fullName, ID_HOT,
+                makeBufferNotification(hotBuffer, true).setMakeNoise(makeNoise).build())
+            displayedNotifications = displayedNotifications + hotBuffer.fullName
         }
     }
 }
@@ -197,7 +194,7 @@ fun showHotNotification(hotBuffer: HotlistBuffer, allHotBuffers: Collection<Hotl
 fun addOrRemoveActionForCurrentNotifications(addReplyAction: Boolean) {
     notificationHandler.post {
         hotlistBuffers.values
-                .filter { DisplayedNotifications.contains(it.fullName) }
+                .filter { displayedNotifications.contains(it.fullName) }
                 .forEach { hotBuffer ->
             manager.notify(hotBuffer.fullName, ID_HOT,
                 makeBufferNotification(hotBuffer, addReplyAction).setMakeNoise(false).build())
@@ -458,47 +455,14 @@ private fun NotificationCompat.Builder.setNotificationText(text: CharSequence): 
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-private enum class DismissResult {
-    NO_CHANGE, ONE_NOTIFICATION_REMOVED, ALL_NOTIFICATIONS_REMOVED
-}
-
-
-private object DisplayedNotifications {
-    private val notifications = mutableSetOf<String>()
-
-    fun isEmpty() = synchronized(notifications) {
-        notifications.isEmpty()
-    }
-
-    fun getIds() = synchronized(notifications) { notifications.toSet() }
-
-    fun add(fullName: String) {
-        synchronized(notifications) {
-            notifications.add(fullName)
-        }
-    }
-
-    fun remove(fullName: String) {
-        synchronized(notifications) {
-            notifications.remove(fullName)
-        }
-    }
-
-    fun contains(fullName: String): Boolean {
-        synchronized(notifications) {
-            return notifications.contains(fullName)
-        }
-    }
-}
+private var displayedNotifications = setOf<String>()
 
 
 class NotificationDismissedReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        DisplayedNotifications.remove(intent.action ?: "")
+        displayedNotifications = displayedNotifications - (intent.action ?: "")
     }
 }
 
