@@ -167,11 +167,16 @@ private fun makePendingIntentForDismissedNotificationForBuffer(fullName: String)
 fun showHotNotification(hotBuffer: HotlistBuffer, allHotBuffers: Collection<HotlistBuffer>, makeNoise: Boolean) {
     if (!P.notificationEnable) return
 
-    val notificationsToRemoveIds = displayedNotifications - allHotBuffers.map { it.fullName }
-    val toRemoveAllNotifications = notificationsToRemoveIds.isNotEmpty() && allHotBuffers.isEmpty()
+    val publishingNewNotification = hotBuffer in allHotBuffers
+    val notificationsToRemove = displayedNotifications - allHotBuffers.map { it.fullName }
+    val noNotificationsRemainAfterRemove = displayedNotifications == notificationsToRemove
 
-    notificationsToRemoveIds.forEach { manager.cancel(it, ID_HOT) }
-    if (toRemoveAllNotifications) manager.cancel(ID_HOT)
+    notificationsToRemove.forEach { manager.cancel(it, ID_HOT) }
+
+    if (noNotificationsRemainAfterRemove && !publishingNewNotification) {
+        manager.cancel(ID_HOT)
+        return
+    }
 
     if (allHotBuffers.isNotEmpty()) {
         if (!CAN_MAKE_BUNDLED_NOTIFICATIONS) {
@@ -180,9 +185,12 @@ fun showHotNotification(hotBuffer: HotlistBuffer, allHotBuffers: Collection<Hotl
         } else {
             manager.notify(ID_HOT,
                 makeSummaryNotification(allHotBuffers).setMakeNoise(false).build())
-            manager.notify(hotBuffer.fullName, ID_HOT,
-                makeBufferNotification(hotBuffer, true).setMakeNoise(makeNoise).build())
-            displayedNotifications = displayedNotifications + hotBuffer.fullName
+
+            if (publishingNewNotification) {
+                manager.notify(hotBuffer.fullName, ID_HOT,
+                    makeBufferNotification(hotBuffer, true).setMakeNoise(makeNoise).build())
+                displayedNotifications = displayedNotifications + hotBuffer.fullName
+            }
         }
     }
 }
