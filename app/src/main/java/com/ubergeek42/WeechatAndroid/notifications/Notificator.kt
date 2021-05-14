@@ -164,33 +164,49 @@ private fun makePendingIntentForDismissedNotificationForBuffer(fullName: String)
 }
 
 
+val pendingIntentForDismissedSummaryNotification =
+        makePendingIntentForDismissedNotificationForBuffer("")
+
+
 fun showHotNotification(hotBuffer: HotlistBuffer, allHotBuffers: Collection<HotlistBuffer>, makeNoise: Boolean) {
     if (!P.notificationEnable) return
 
     val publishingNewNotification = hotBuffer in allHotBuffers
+
+    // on api < 24, if the user dismissed *the* notification,
+    // make sure we don't add it back if the user only reads a hot buffer
+    if (!CAN_MAKE_BUNDLED_NOTIFICATIONS && !summaryNotificationDisplayed
+            && !publishingNewNotification) return
+
     val notificationsToRemove = displayedNotifications - allHotBuffers.map { it.fullName }
     val noNotificationsRemainAfterRemove = displayedNotifications == notificationsToRemove
 
     notificationsToRemove.forEach { manager.cancel(it, ID_HOT) }
 
-    if (noNotificationsRemainAfterRemove && !publishingNewNotification) {
+    // on api >= 24, make sure to not add back the summary
+    // if the user manually dismissed some (which does not clear them from hotlist)
+    // and we have removed the remaining ones above
+    val shouldCancelSummaryAndReturn = if (CAN_MAKE_BUNDLED_NOTIFICATIONS) {
+        noNotificationsRemainAfterRemove && !publishingNewNotification
+    } else {
+        allHotBuffers.isEmpty()
+    }
+
+    if (shouldCancelSummaryAndReturn) {
         manager.cancel(ID_HOT)
         return
     }
 
-    if (allHotBuffers.isNotEmpty()) {
-        if (!CAN_MAKE_BUNDLED_NOTIFICATIONS) {
-            manager.notify(ID_HOT,
-                makeSummaryNotification(allHotBuffers).setMakeNoise(makeNoise).build())
-        } else {
-            manager.notify(ID_HOT,
-                makeSummaryNotification(allHotBuffers).setMakeNoise(false).build())
+    if (!CAN_MAKE_BUNDLED_NOTIFICATIONS) {
+        manager.notify(ID_HOT, makeSummaryNotification(allHotBuffers).setMakeNoise(makeNoise).build())
+            summaryNotificationDisplayed = true
+    } else {
+        manager.notify(ID_HOT, makeSummaryNotification(allHotBuffers).setMakeNoise(false).build())
 
-            if (publishingNewNotification) {
-                manager.notify(hotBuffer.fullName, ID_HOT,
-                    makeBufferNotification(hotBuffer, true).setMakeNoise(makeNoise).build())
-                displayedNotifications = displayedNotifications + hotBuffer.fullName
-            }
+        if (publishingNewNotification) {
+            manager.notify(hotBuffer.fullName, ID_HOT,
+                makeBufferNotification(hotBuffer, true).setMakeNoise(makeNoise).build())
+            displayedNotifications = displayedNotifications + hotBuffer.fullName
         }
     }
 }
@@ -233,6 +249,8 @@ private fun makeSummaryNotification(hotBuffers: Collection<HotlistBuffer>): Noti
         builder.setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_CHILDREN)
         builder.setSubText(nMessagesInNBuffers)
     } else {
+        builder.setDeleteIntent(pendingIntentForDismissedSummaryNotification)
+
         val allMessages = hotBuffers.flatMap { it.messages }.sortedBy { it.timestamp }
 
         NotificationCompat.MessagingStyle(myself).apply2 {
@@ -438,12 +456,22 @@ private fun NotificationCompat.Builder.setNotificationText(text: CharSequence): 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
+// we only look at summary notification on older devices
+// that do not display bundled notifications
+private var summaryNotificationDisplayed = false
+
 private var displayedNotifications = setOf<String>()
 
 
 class NotificationDismissedReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        displayedNotifications = displayedNotifications - (intent.action ?: "")
+        val fullName = intent.action ?: ""
+
+        if (fullName == "") {
+            summaryNotificationDisplayed = false
+        } else {
+            displayedNotifications = displayedNotifications - fullName
+        }
     }
 }
 
