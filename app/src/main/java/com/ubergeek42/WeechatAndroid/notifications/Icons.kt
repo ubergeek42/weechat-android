@@ -6,6 +6,7 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Typeface
 import android.net.Uri
+import android.os.Build
 import androidx.core.content.FileProvider
 import androidx.core.graphics.drawable.IconCompat
 import com.ubergeek42.WeechatAndroid.media.ContentUriFetcher
@@ -18,6 +19,20 @@ import org.apache.commons.codec.DecoderException
 import org.apache.commons.codec.binary.Hex
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
+
+
+// Icon.createWithAdaptiveBitmapContentUri() is an API level 30 method;
+// on earlier API, the compat library will simply read the icon from Uri
+// and reconstruct by calling Icon.createWithAdaptiveBitmap(BitmapFactory.decodeStream(...)).
+//
+// reading this Uri requires context which compat library doesn't provide;
+// thus using Uri Icons leads to a crash on api 29-:
+//     java.lang.IllegalArgumentException: Context is required to resolve the file uri of the icon: content://...
+//        at androidx.core.graphics.drawable.IconCompat.toIcon(IconCompat.java:572)
+//        at androidx.core.graphics.drawable.IconCompat.toIcon(IconCompat.java:529)
+//        at androidx.core.app.Person.toAndroidPerson(Person.java:177)
+//        at androidx.core.app.NotificationCompat$MessagingStyle$Message.toAndroidMessage(NotificationCompat.java:4002)
+private val URI_NOTIFICATIONS_HAVE_BENEFIT = Build.VERSION.SDK_INT >= 30
 
 
 private data class Colors(val background: Int, val foreground: Int)
@@ -115,24 +130,27 @@ fun obtainIcon(text: String, colorKey: String, allowUriIcons: Boolean): IconComp
         else -> text.subSequence(0, 1)
     }.toString()
 
-    val key = DiskIconCache.Key(cutText, colorKey)
-
-    if (allowUriIcons) {
-        DiskIconCache.retrieve(key)?.let { cachedIcon ->
-            return cachedIcon
-        }
+    fun makeBitmap(): Bitmap {
+        val colorIndex = colorKey.djb2Remainder(colorPairs.size)
+        return generateIconBitmap(ICON_SIDE_LENGTH,
+                                  ICON_SIDE_LENGTH,
+                                  cutText,
+                                  ICON_TEXT_SIZE,
+                                  colorPairs[colorIndex])
     }
 
-    val colorIndex = colorKey.djb2Remainder(colorPairs.size)
-    val bitmap = generateIconBitmap(ICON_SIDE_LENGTH,
-        ICON_SIDE_LENGTH,
-        cutText,
-        ICON_TEXT_SIZE,
-        colorPairs[colorIndex])
+    return if (URI_NOTIFICATIONS_HAVE_BENEFIT && allowUriIcons) {
+        val key = DiskIconCache.Key(cutText, colorKey)
 
-    val icon = IconCompat.createWithAdaptiveBitmap(bitmap)
-    DiskIconCache.store(key, bitmap, icon)
-    return icon
+        DiskIconCache.retrieve(key)?.let { return it }
+
+        val bitmap = makeBitmap()
+        val icon = IconCompat.createWithAdaptiveBitmap(bitmap)
+        DiskIconCache.store(key, bitmap, icon)
+         icon
+    } else {
+        IconCompat.createWithAdaptiveBitmap(makeBitmap())
+    }
 }
 
 
