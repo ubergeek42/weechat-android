@@ -46,9 +46,6 @@ private const val GROUP_KEY = "hot messages"
 private const val KEY_TEXT_REPLY = "key_text_reply"
 
 
-// displayed in place of user name in private notifications, when we can get away with it
-private val ZERO_WIDTH_SPACE: CharSequence = "\u200B"
-
 // this text is somewhat displayed on android p when replying to notification
 // represents “Me” in the “Me: my message” part of NotificationCompat.MessagingStyle
 private var myself = Person.Builder().setName("Me").build()
@@ -237,8 +234,12 @@ private fun makeSummaryNotification(hotBuffers: Collection<HotlistBuffer>): Noti
             maybeAddMissingMessageLine(totalHotCount - allMessages.size, null, null)
 
             allMessages.forEach { message ->
+                val nick = message.hotBuffer.run {
+                    if (isPrivate) message.nick else "${shortName}: ${message.nick}"
+                }
+
                 addMessage(
-                    Person.Builder().setName(message.getNickForFullList()).build(),
+                    Person.Builder().setName(nick).build(),
                     message.message, message.timestamp,
                     message.image
                 )
@@ -281,12 +282,8 @@ private fun makeBufferNotification(hotBuffer: HotlistBuffer, addReplyAction: Boo
     }
 
     NotificationCompat.MessagingStyle(myself).apply2 {
-        // this is ugly on android p, but i see no other way to show the number of messages
-        conversationTitle = if (hotBuffer.hotCount < 2)
-            hotBuffer.shortName else "${hotBuffer.shortName} (${hotBuffer.hotCount})"
-
-        // before pie, display private buffers as non-private
-        isGroupConversation = !hotBuffer.isPrivate || Build.VERSION.SDK_INT < 28
+        conversationTitle = hotBuffer.shortName
+        isGroupConversation = !hotBuffer.isPrivate
 
         val staticPerson = if (hotBuffer.isPrivate) getPersonByPrivateBuffer(hotBuffer) else null
 
@@ -296,7 +293,7 @@ private fun makeBufferNotification(hotBuffer: HotlistBuffer, addReplyAction: Boo
             val person = if (staticPerson != null) {
                 staticPerson
             } else {
-                val nick = message.getNickForBuffer().toString()
+                val nick = message.nick.toString()
                 getPerson(key = nick, colorKey = nick, nick = nick, missing = false)
             }
 
@@ -348,19 +345,17 @@ fun NotificationCompat.MessagingStyle.maybeAddMissingMessageLine(
 ) {
     if (missingMessages == 0) return
 
-    val person = when {
-        Build.VERSION.SDK_INT < 28 -> Person.Builder().setName(ZERO_WIDTH_SPACE).build()
-        staticPerson != null -> staticPerson
-        else -> {
-            val nick = applicationResources.getQuantityString(
-                R.plurals.notifications__MessagingStyle__missing_users,
-                if (missingMessages == 1) 1 else 2)
-            if (hotBuffer == null) {
-                Person.Builder().setName(nick).build()
-            } else {
-                getPerson(key = hotBuffer.fullName, colorKey = hotBuffer.fullName,
-                          nick = nick, missing = true)
-            }
+    val person = if (staticPerson != null) {
+        staticPerson
+    } else {
+        val nick = applicationResources.getQuantityString(
+            R.plurals.notifications__MessagingStyle__missing_users,
+            if (missingMessages == 1) 1 else 2)
+        if (hotBuffer == null) {
+            Person.Builder().setName(nick).build()
+        } else {
+            getPerson(key = hotBuffer.fullName, colorKey = hotBuffer.fullName,
+                      nick = nick, missing = true)
         }
     }
 
@@ -394,29 +389,6 @@ fun NotificationCompat.Builder.setMakeNoise(makeNoise: Boolean): NotificationCom
     }
 
     return this
-}
-
-
-fun HotlistMessage.getNickForFullList(): CharSequence {
-    return when {
-        isAction && hotBuffer.isPrivate -> ZERO_WIDTH_SPACE
-        !isAction && !hotBuffer.isPrivate -> "${hotBuffer.shortName}: $nick"
-        else -> "${hotBuffer.shortName}:"
-    }
-}
-
-
-// for android p, use the regular nick, as messages from the same user are displayed without
-// repeating the name. on previous versions of android, use a fake name; the real name (short
-// buffer name, actually) will be displayed as conversation title
-// it is possible to have “nick (3)” as a nickname, but icon shade depends on the nickname, and
-// you can't get away with making a Person's with different names but the same key
-private fun HotlistMessage.getNickForBuffer(): CharSequence {
-    return when {
-        Build.VERSION.SDK_INT >= 28 -> nick
-        hotBuffer.isPrivate || isAction -> ZERO_WIDTH_SPACE
-        else -> nick
-    }
 }
 
 
