@@ -21,7 +21,7 @@ import com.ubergeek42.WeechatAndroid.utils.Constants.PREF_UPLOAD_ACCEPT_TEXT_ONL
 import com.ubergeek42.WeechatAndroid.utils.Utils
 
 
-private val USE_SHORTCUTS = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
+private val USE_SHORTCUTS = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1
 
 
 interface Shortcuts {

@@ -20,7 +20,7 @@ import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
 
 
-private val COLLECT_STATISTICS = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
+private val COLLECT_STATISTICS = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1
 
 
 @Root private val kitty: Kitty = Kitty.make()
