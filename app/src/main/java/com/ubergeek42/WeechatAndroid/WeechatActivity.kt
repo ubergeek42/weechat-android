@@ -39,6 +39,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.widget.TooltipCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.DialogFragment
 import androidx.preference.PreferenceManager
@@ -51,7 +52,7 @@ import com.ubergeek42.WeechatAndroid.dialogs.NicklistDialog
 import com.ubergeek42.WeechatAndroid.dialogs.ScrollableDialog
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragment
 import com.ubergeek42.WeechatAndroid.media.CachePersist
-import com.ubergeek42.WeechatAndroid.notifications.Hotlist
+import com.ubergeek42.WeechatAndroid.notifications.shortcuts
 import com.ubergeek42.WeechatAndroid.service.Events.ExceptionEvent
 import com.ubergeek42.WeechatAndroid.service.Events.StateChangedEvent
 import com.ubergeek42.WeechatAndroid.service.P
@@ -496,13 +497,7 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
                 }
             }
             R.id.sync_hotlist -> BufferList.syncHotlist()
-            R.id.remove_shortcuts -> {
-                if (Build.VERSION.SDK_INT >= 30) {
-                    val shortcutManager = getSystemService(ShortcutManager::class.java)!!
-                    shortcutManager.removeAllDynamicShortcuts()
-                    shortcutManager.removeLongLivedShortcuts(shortcutManager.getShortcuts(0xffffff).map { it.id })
-                }
-            }
+            R.id.remove_shortcuts -> shortcuts.removeAllShortcuts()
             R.id.die -> exitProcess(0)
         }
         return true

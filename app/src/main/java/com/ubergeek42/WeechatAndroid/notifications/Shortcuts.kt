@@ -3,12 +3,12 @@ package com.ubergeek42.WeechatAndroid.notifications
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
-import android.content.pm.ShortcutInfo
 import android.content.pm.ShortcutManager
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.core.content.LocusIdCompat
 import androidx.core.content.pm.ShortcutInfoCompat
+import androidx.core.content.pm.ShortcutManagerCompat
 import com.ubergeek42.WeechatAndroid.WeechatActivity
 import com.ubergeek42.WeechatAndroid.relay.Buffer
 import com.ubergeek42.WeechatAndroid.relay.BufferList
@@ -21,16 +21,20 @@ import com.ubergeek42.WeechatAndroid.utils.Constants.PREF_UPLOAD_ACCEPT_TEXT_ONL
 import com.ubergeek42.WeechatAndroid.utils.Utils
 
 
+private val USE_SHORTCUTS = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
+
+
 interface Shortcuts {
     fun reportBufferWasManuallyFocused(focusedKey: String, statistics: StatisticsImpl)
     fun reportBufferWasSharedTo(focusedKey: String, statistics: StatisticsImpl)
     fun ensureShortcutExists(key: String)
     fun updateShortcutNameIfNeeded(buffer: Buffer)
     fun updateDirectShareCount()
+    fun removeAllShortcuts()
 }
 
 
-val shortcuts = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+val shortcuts = if (USE_SHORTCUTS) {
                     ShortcutsImpl(applicationContext)
                 } else {
                     object : Shortcuts {
@@ -39,11 +43,12 @@ val shortcuts = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                         override fun ensureShortcutExists(key: String) {}
                         override fun updateShortcutNameIfNeeded(buffer: Buffer) {}
                         override fun updateDirectShareCount() {}
+                        override fun removeAllShortcuts() {}
                     }
                 }
 
 
-@RequiresApi(30)
+@RequiresApi(Build.VERSION_CODES.N_MR1)
 private class ShortcutsImpl(val context: Context): Shortcuts {
     private val shortcutManager = context.getSystemService(ShortcutManager::class.java)!!
 
@@ -103,7 +108,7 @@ private class ShortcutsImpl(val context: Context): Shortcuts {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    var shortcuts: Map<String, ShortcutInfo> = fetchShortcuts()
+    var shortcuts: Map<String, ShortcutInfoCompat> = fetchShortcuts()
 
     var launcherShortcuts = shortcuts
         .entries
@@ -117,7 +122,7 @@ private class ShortcutsImpl(val context: Context): Shortcuts {
 
     @SuppressLint("WrongConstant")
     fun fetchShortcuts() =
-            shortcutManager.getShortcuts(0xffffff)
+            ShortcutManagerCompat.getShortcuts(applicationContext, 0xffffff)
                 .map { it.id to it }
                 .toMap()
 
@@ -131,7 +136,7 @@ private class ShortcutsImpl(val context: Context): Shortcuts {
                     rank ?: shortcutInfo.rank,
                     shareTarget ?: shortcutInfo.categories?.isNotEmpty() == true)
             }
-            shortcutManager.pushDynamicShortcut(shortcut.toShortcutInfo())
+            ShortcutManagerCompat.pushDynamicShortcut(applicationContext, shortcut)
         }
     }
 
@@ -173,7 +178,7 @@ private class ShortcutsImpl(val context: Context): Shortcuts {
         if (key !in shortcuts) {
             BufferList.findByFullName(key)?.let { buffer ->
                 val shortcut = makeShortcutForBuffer(buffer, rank = 10000, shareTarget = false)
-                shortcutManager.pushDynamicShortcut(shortcut.toShortcutInfo())
+                ShortcutManagerCompat.pushDynamicShortcut(applicationContext, shortcut)
                 shortcuts = fetchShortcuts()
             }
         }
@@ -190,5 +195,12 @@ private class ShortcutsImpl(val context: Context): Shortcuts {
 
     override fun updateDirectShareCount() {
         (statistics as? StatisticsImpl)?.let { updateDirectShareShortcuts(it) }
+    }
+
+    @SuppressLint("WrongConstant")
+    override fun removeAllShortcuts() {
+        ShortcutManagerCompat.removeAllDynamicShortcuts(applicationContext)
+        val allShortcuts = ShortcutManagerCompat.getShortcuts(applicationContext, 0xffffff)
+        ShortcutManagerCompat.removeLongLivedShortcuts(applicationContext, allShortcuts.map { it.id })
     }
 }

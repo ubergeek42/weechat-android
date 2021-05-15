@@ -16,13 +16,13 @@ dependencies {
     implementation(project(":cats"))
     implementation(project(":relay"))
 
-    implementation("androidx.core:core-ktx:1.5.0-rc02")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.0")
 
     // these two are required for logging within the relay module. todo remove?
     implementation("org.slf4j:slf4j-api:1.7.30")
     implementation("com.noveogroup.android:android-logger:1.3.6")
 
+    implementation("androidx.core:core-ktx:1.5.0-rc02")
     implementation("androidx.legacy:legacy-support-v4:1.0.0")
     implementation("androidx.annotation:annotation:1.2.0") // For @Nullable/@NonNull
     implementation("androidx.appcompat:appcompat:1.2.0")
@@ -30,6 +30,8 @@ dependencies {
     implementation("androidx.legacy:legacy-preference-v14:1.0.0") // styling for the fragment
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")
     implementation("androidx.lifecycle:lifecycle-common-java8:2.3.1")
+    implementation("androidx.sharetarget:sharetarget:1.1.0")
+
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.4.1")
 
     implementation("com.github.bumptech.glide:glide:4.12.0")
