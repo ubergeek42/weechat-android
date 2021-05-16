@@ -36,7 +36,7 @@ fun getPerson(key: String,
             .setIcon(icon)
             .build()
 
-        if (icon.type == IconCompat.TYPE_DATA) {
+        if (icon.type == IconCompat.TYPE_URI_ADAPTIVE_BITMAP) {
             cachedPersons[storageKey] =
                 CachedPerson(colorKey = colorKey, nick = nick, person = person)
         }
