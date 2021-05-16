@@ -28,7 +28,7 @@ fun getPerson(key: String,
         cachedPerson.person
     } else {
         val iconText = if (missing) "?" else nick
-        val icon = obtainIcon(text = iconText, colorKey = colorKey, allowUriIcons = true)
+        val icon = obtainAdaptiveIcon(text = iconText, colorKey = colorKey, allowUriIcons = true)
 
         val person = Person.Builder()
             .setKey(storageKey)

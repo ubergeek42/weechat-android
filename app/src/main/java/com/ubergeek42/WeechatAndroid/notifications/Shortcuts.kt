@@ -67,9 +67,9 @@ private class ShortcutsImpl(val context: Context): Shortcuts {
         // IllegalArgumentException: Unsupported icon type: only the bitmap and resource types are supported
         // it also doesn't do URIs as these require passing permissions to the launcher,
         // which we can't do with icons
-        val icon = obtainIcon(text = buffer.shortName,
-                              colorKey = buffer.fullName,
-                              allowUriIcons = false)
+        val icon = obtainAdaptiveIcon(text = buffer.shortName,
+                                      colorKey = buffer.fullName,
+                                      allowUriIcons = false)
 
         val intent = Intent(applicationContext, WeechatActivity::class.java).apply {
             putExtra(Constants.EXTRA_BUFFER_FULL_NAME, buffer.fullName)

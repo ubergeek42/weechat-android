@@ -302,6 +302,10 @@ private fun makeBufferNotification(hotBuffer: HotlistBuffer, addReplyAction: Boo
         .setWhen(hotBuffer.lastMessageTimestamp)
         .setNotificationText(nNewMessagesInBuffer)
 
+    if (Build.VERSION.SDK_INT in 28..29 && !hotBuffer.isPrivate) {
+        builder.setLargeIcon(obtainLegacyRoundIconBitmap(hotBuffer.shortName, hotBuffer.fullName))
+    }
+
     // messages hold the latest messages, don't show the reply button if user can't see any
     if (addReplyAction && hotBuffer.messages.isNotEmpty()) {
         builder.addAction(makeActionForBufferPointer(hotBuffer.fullName))
