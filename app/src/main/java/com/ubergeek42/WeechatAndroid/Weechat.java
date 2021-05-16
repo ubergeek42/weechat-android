@@ -45,6 +45,23 @@ public class Weechat extends Application {
         EventBus.getDefault().postSticky(new Events.StateChangedEvent(EnumSet.of(STATE.STOPPED)));
     }
 
+
+    @Override public void onTrimMemory(int level) {
+        super.onTrimMemory(level);
+        switch (level) {
+            case TRIM_MEMORY_COMPLETE:
+            case TRIM_MEMORY_MODERATE:
+            case TRIM_MEMORY_BACKGROUND:
+            case TRIM_MEMORY_RUNNING_CRITICAL:
+            case TRIM_MEMORY_RUNNING_LOW:
+            case TRIM_MEMORY_RUNNING_MODERATE:
+                IconsKt.clearMemoryIconCache();
+                break;
+            case TRIM_MEMORY_UI_HIDDEN:
+                break;
+        }
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////// main thread
     ////////////////////////////////////////////////////////////////////////////////////////////////

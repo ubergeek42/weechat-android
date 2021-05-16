@@ -161,7 +161,7 @@ fun obtainLegacyRoundIconBitmap(text: String, colorKey: String): Bitmap {
         text = text.getIconCharacters()
     )
 
-    return makeBitmap(key)
+    return memoryIconBitmapCache.getOrPut(key) { makeBitmap(key) }
 }
 
 
@@ -180,15 +180,28 @@ fun obtainAdaptiveIcon(text: String, colorKey: String, allowUriIcons: Boolean): 
         val bitmap = makeBitmap(key)
         val icon = IconCompat.createWithAdaptiveBitmap(bitmap)
         DiskIconCache.store(key, bitmap, icon)
-         icon
+        icon
     } else {
-        IconCompat.createWithAdaptiveBitmap(makeBitmap(key))
+        memoryIconCache.getOrPut(key) { IconCompat.createWithAdaptiveBitmap(makeBitmap(key)) }
     }
 }
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////// cache
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+private val memoryIconBitmapCache = ConcurrentHashMap<Icon.Key, Bitmap>()
+private val memoryIconCache = ConcurrentHashMap<Icon.Key, IconCompat>()
+
+
+fun clearMemoryIconCache() {
+    memoryIconBitmapCache.clear()
+    memoryIconCache.clear()
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -237,7 +250,7 @@ private object DiskIconCache {
 
         statisticsHandler.post {
             directory.listFiles()?.forEach { file ->
-                suppress<Exception>(showToast = true) {
+                suppress<Exception> {
                     val key = file.name.toIconKey()
                     keyToIcon[key] = IconCompat.createWithAdaptiveBitmapContentUri(file.toContentUri())
                 }
