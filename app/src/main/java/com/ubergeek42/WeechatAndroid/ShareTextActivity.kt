@@ -14,6 +14,7 @@ import com.ubergeek42.WeechatAndroid.notifications.statistics
 import com.ubergeek42.WeechatAndroid.relay.BufferList
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.upload.preloadThumbnailsForIntent
+import com.ubergeek42.WeechatAndroid.upload.suppress
 import com.ubergeek42.WeechatAndroid.utils.Constants
 import com.ubergeek42.WeechatAndroid.utils.ThemeFix
 import com.ubergeek42.WeechatAndroid.utils.Toaster
@@ -110,7 +111,14 @@ class ShareTextActivity : AppCompatActivity(), BufferListClickListener {
     override fun onBufferClick(pointer: Long) {
         intent.setClass(applicationContext, WeechatActivity::class.java)
         intent.putExtra(Constants.EXTRA_BUFFER_POINTER, pointer)
-        startActivity(intent)
+
+        // this can lead to a crash if we lack URI permissions
+        // normally this doesn't happen, but firefox manages to send something malformed
+        // when using direct share. see https://github.com/mozilla-mobile/fenix/issues/19171
+        suppress<Exception>(showToast = true) {
+            startActivity(intent)
+        }
+
         finish()
 
         BufferList.findByPointer(pointer)?.let { buffer ->
