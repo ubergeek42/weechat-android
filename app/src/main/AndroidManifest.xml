@@ -52,6 +52,12 @@
                 android:resource="@xml/shortcuts" />
         </activity>
 
+        <activity
+            android:name=".BubbleActivity"
+            android:allowEmbedded="true"
+            android:resizeableActivity="true"
+            tools:targetApi="r" />
+
 
         <!-- sharing -->
         <activity android:name=".ShareTextActivity"

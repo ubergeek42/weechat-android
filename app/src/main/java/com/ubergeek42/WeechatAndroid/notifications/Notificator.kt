@@ -19,6 +19,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.Person
 import androidx.core.app.RemoteInput
 import androidx.core.content.LocusIdCompat
+import com.ubergeek42.WeechatAndroid.BubbleActivity
 import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.WeechatActivity
 import com.ubergeek42.WeechatAndroid.relay.BufferList
@@ -153,6 +154,15 @@ private fun makePendingIntentForBuffer(fullName: String?): PendingIntent {
         action = fullName
     }
     return PendingIntent.getActivity(applicationContext, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+}
+
+
+private fun makePendingBubbleIntentForBuffer(fullName: String): PendingIntent {
+    val intent = Intent(applicationContext, BubbleActivity::class.java).apply {
+        putExtra(Constants.EXTRA_BUFFER_FULL_NAME, fullName)
+        action = fullName
+    }
+    return PendingIntent.getActivity(applicationContext, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
 }
 
 
@@ -304,6 +314,14 @@ private fun makeBufferNotification(hotBuffer: HotlistBuffer, addReplyAction: Boo
 
     if (Build.VERSION.SDK_INT in 28..29 && !hotBuffer.isPrivate) {
         builder.setLargeIcon(obtainLegacyRoundIconBitmap(hotBuffer.shortName, hotBuffer.fullName))
+    }
+
+    if (Build.VERSION.SDK_INT >= 30) {
+        val icon = obtainAdaptiveIcon(hotBuffer.shortName, hotBuffer.fullName, allowUriIcons = true)
+        builder.bubbleMetadata = NotificationCompat.BubbleMetadata
+                .Builder(makePendingBubbleIntentForBuffer(hotBuffer.fullName), icon)
+                .setDesiredHeight(600 /* dp */)
+                .build()
     }
 
     // messages hold the latest messages, don't show the reply button if user can't see any
