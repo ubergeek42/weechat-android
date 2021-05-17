@@ -4,16 +4,20 @@ package com.ubergeek42.WeechatAndroid.views
 
 import android.app.Activity
 import android.content.Context
+import android.content.Context.INPUT_METHOD_SERVICE
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
 import androidx.annotation.StringRes
 import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.view.GravityCompat
 import androidx.core.view.updateLayoutParams
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView
+import com.ubergeek42.WeechatAndroid.upload.applicationContext
 import com.ubergeek42.WeechatAndroid.upload.f
 import com.ubergeek42.WeechatAndroid.upload.i
 import com.ubergeek42.WeechatAndroid.utils.u
@@ -172,4 +176,20 @@ abstract class DrawerToggleFix(
         val open = drawerLayout.isDrawerOpen(GravityCompat.START)
         onDrawerSlideInternal(if (open) 1f else 0f)
     }
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////// keyboard
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+private val imm = applicationContext.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+
+fun View.showSoftwareKeyboard() {
+    imm.showSoftInput(this, InputMethodManager.SHOW_IMPLICIT)
+}
+
+fun View.hideSoftwareKeyboard() {
+    imm.hideSoftInputFromWindow(this.windowToken, 0)
 }

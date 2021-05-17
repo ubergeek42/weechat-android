@@ -15,7 +15,6 @@ package com.ubergeek42.WeechatAndroid
 
 import android.content.Context
 import android.content.Intent
-import android.content.pm.ShortcutManager
 import android.content.res.Configuration
 import android.graphics.PorterDuff
 import android.graphics.Rect
@@ -28,7 +27,6 @@ import android.util.AttributeSet
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.view.inputmethod.InputMethodManager
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
@@ -39,7 +37,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.widget.TooltipCompat
 import androidx.core.content.ContextCompat
-import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.DialogFragment
 import androidx.preference.PreferenceManager
@@ -51,6 +48,7 @@ import com.ubergeek42.WeechatAndroid.dialogs.CertificateDialog
 import com.ubergeek42.WeechatAndroid.dialogs.NicklistDialog
 import com.ubergeek42.WeechatAndroid.dialogs.ScrollableDialog
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragment
+import com.ubergeek42.WeechatAndroid.fragments.BufferFragmentContainer
 import com.ubergeek42.WeechatAndroid.media.CachePersist
 import com.ubergeek42.WeechatAndroid.notifications.shortcuts
 import com.ubergeek42.WeechatAndroid.service.Events.ExceptionEvent
@@ -82,6 +80,7 @@ import com.ubergeek42.WeechatAndroid.utils.wasCausedByEither
 import com.ubergeek42.WeechatAndroid.views.DrawerToggleFix
 import com.ubergeek42.WeechatAndroid.views.ToolbarController
 import com.ubergeek42.WeechatAndroid.views.WeechatActivityFullScreenController
+import com.ubergeek42.WeechatAndroid.views.hideSoftwareKeyboard
 import com.ubergeek42.WeechatAndroid.views.solidColor
 import com.ubergeek42.cats.Cat
 import com.ubergeek42.cats.CatD
@@ -99,11 +98,12 @@ import java.util.*
 import javax.net.ssl.SSLPeerUnverifiedException
 import kotlin.system.exitProcess
 
-class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListClickListener {
+
+class WeechatActivity : AppCompatActivity(), CutePageChangeListener,
+        BufferListClickListener, BufferFragmentContainer {
     private var uiMenu: Menu? = null
 
     private lateinit var pagerAdapter: MainPagerAdapter
-    lateinit var imm: InputMethodManager
 
     private var slidy = false
 
@@ -115,10 +115,10 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
 
     private lateinit var menuBackgroundDrawable: Drawable
 
-    @get:MainThread var isPagerNoticeablyObscured = false
+    @get:MainThread override var isPagerNoticeablyObscured = false
         private set
 
-    val toolbarController = ToolbarController(this).apply { observeLifecycle() }
+    private val toolbarController = ToolbarController(this).apply { observeLifecycle() }
 
     init { WeechatActivityFullScreenController(this).observeLifecycle() }
 
@@ -189,8 +189,6 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
             uiDrawerLayout.addDrawerListener(drawerToggle)
             supportActionBar?.setDisplayHomeAsUpEnabled(true)
         }
-
-        imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
 
         menuBackgroundDrawable = ContextCompat.getDrawable(this, R.drawable.bg_popup_menu)!!
 
@@ -377,7 +375,7 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
         currentBufferPointer = pointer
 
         updateMenuItems()
-        hideSoftwareKeyboard()
+        ui.pager.hideSoftwareKeyboard()
         toolbarController.onPageChangedOrSelected()
         if (needToChangeKittyVisibility) {
             ui.kitty.visibility = if (pagerAdapter.count == 0) View.VISIBLE else View.GONE
@@ -404,7 +402,7 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
     }
 
     // hide or show nicklist/close menu item according to buffer
-    @MainThread fun updateMenuItems() = ulet(uiMenu) { menu ->
+    @MainThread override fun updateMenuItems() = ulet(uiMenu) { menu ->
         val bufferVisible = pagerAdapter.count > 0
 
         menu.run {
@@ -553,13 +551,13 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
         }
     }
 
-    @MainThread @Cat("Buffers") fun closeBuffer(pointer: Long) {
+    @MainThread @Cat("Buffers") override fun closeBuffer(pointer: Long) {
         pagerAdapter.closeBuffer(pointer)
         if (slidy) showDrawerIfPagerIsEmpty()
     }
 
-    @MainThread fun hideSoftwareKeyboard() {
-        imm.hideSoftInputFromWindow(ui.pager.windowToken, 0)
+    override fun onChatLinesScrolled(dy: Int, onTop: Boolean, onBottom: Boolean) {
+        toolbarController.onChatLinesScrolled(dy, onTop, onBottom)
     }
 
     @MainThread override fun onBackPressed() {
@@ -588,7 +586,7 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
     @MainThread fun drawerVisibilityChanged(showing: Boolean) {
         if (isPagerNoticeablyObscured == showing) return
         isPagerNoticeablyObscured = showing
-        hideSoftwareKeyboard()
+        ui.pager.hideSoftwareKeyboard()
         pagerAdapter.currentBufferFragment?.onVisibilityStateChanged(BufferFragment.ChangedState.FullVisibility)
     }
 

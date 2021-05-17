@@ -73,9 +73,11 @@ import com.ubergeek42.WeechatAndroid.utils.ulet
 import com.ubergeek42.WeechatAndroid.views.BufferFragmentFullScreenController
 import com.ubergeek42.WeechatAndroid.views.OnBackGestureListener
 import com.ubergeek42.WeechatAndroid.views.OnJumpedUpWhileScrollingListener
+import com.ubergeek42.WeechatAndroid.views.hideSoftwareKeyboard
 import com.ubergeek42.WeechatAndroid.views.jumpThenSmoothScroll
 import com.ubergeek42.WeechatAndroid.views.jumpThenSmoothScrollCentering
 import com.ubergeek42.WeechatAndroid.views.scrollToPositionWithOffsetFix
+import com.ubergeek42.WeechatAndroid.views.showSoftwareKeyboard
 import com.ubergeek42.cats.Cat
 import com.ubergeek42.cats.CatD
 import com.ubergeek42.cats.Kitty
@@ -91,12 +93,20 @@ import java.util.regex.PatternSyntaxException
 private const val POINTER_KEY = "pointer"
 
 
+interface BufferFragmentContainer {
+    fun closeBuffer(pointer: Long)
+    fun onChatLinesScrolled(dy: Int, onTop: Boolean, onBottom: Boolean)
+    val isPagerNoticeablyObscured: Boolean
+    fun updateMenuItems()
+}
+
+
 class BufferFragment : Fragment(), BufferEye {
     @Root private val kitty: Kitty = Kitty.make("BF")
 
     private var pointer: Long = 0
 
-    private var weechatActivity: WeechatActivity? = null
+    private var weechatActivity: BufferFragmentContainer? = null
     private var buffer: Buffer? = null
     private var attachedToBuffer = false
 
@@ -132,7 +142,7 @@ class BufferFragment : Fragment(), BufferEye {
 
     @MainThread @Cat override fun onAttach(context: Context) {
         super.onAttach(context)
-        weechatActivity = context as WeechatActivity
+        weechatActivity = context as BufferFragmentContainer
     }
 
     @MainThread @Cat override fun onCreate(savedInstanceState: Bundle?) {
@@ -171,7 +181,7 @@ class BufferFragment : Fragment(), BufferEye {
                 override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                     if (dy != 0) {
                         if (focusedInViewPager) {
-                            weechatActivity?.toolbarController?.onChatLinesScrolled(dy, onTop, onBottom)
+                            weechatActivity?.onChatLinesScrolled(dy, onTop, onBottom)
                         }
                         showHideFabWhenScrolled(dy, onBottom)
                     }
@@ -782,12 +792,12 @@ class BufferFragment : Fragment(), BufferEye {
             ui.chatLines.addItemDecoration(searchMatchDecoration)
             triggerNewSearch()
             if (newSearch) {
-                weechatActivity?.imm?.showSoftInput(ui.searchInput, InputMethodManager.SHOW_IMPLICIT)
+                ui.searchInput.showSoftwareKeyboard()
                 ui.searchInput.selectAll()
             }
         } else {
             ui.chatInput.requestFocus()
-            weechatActivity?.hideSoftwareKeyboard()
+            ui.chatInput.hideSoftwareKeyboard()
             matches = emptyMatches
             focusedMatch = 0
             ui.chatLines.removeItemDecoration(searchMatchDecoration)
