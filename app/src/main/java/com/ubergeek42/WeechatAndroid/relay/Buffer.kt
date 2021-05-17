@@ -198,11 +198,7 @@ class Buffer @WorkerThread constructor(
         //Assert.assertThat(isOpen).isTrue()                    -- MPA.closeBuffer() *posts* buffer.setOpen()!
         //Assert.assertThat(isWatched).isNotEqualTo(watched)    -- this is just unnecessary
         isWatched = watched
-        if (watched) {
-            resetUnreadsAndHighlights(adjustHotlist = true)
-        } else {
-            lines.rememberCurrentSkipsOffset()
-        }
+        if (watched) resetUnreadsAndHighlights() else lines.rememberCurrentSkipsOffset()
     }
 
     @MainThread @Synchronized fun moveReadMarkerToEnd() {
@@ -269,7 +265,7 @@ class Buffer @WorkerThread constructor(
 
             if (flagResetHotMessagesOnNewOwnLine && line.type == LineSpec.Type.OutgoingMessage) {
                 flagResetHotMessagesOnNewOwnLine = false
-                resetUnreadsAndHighlights(adjustHotlist = false)
+                resetUnreadsAndHighlights()
             }
         }
     }
@@ -384,13 +380,13 @@ class Buffer @WorkerThread constructor(
 
     // sets highlights/unreads to 0 and,
     // if something has actually changed, notifies whoever cares about it
-    @AnyThread @Synchronized private fun resetUnreadsAndHighlights(adjustHotlist: Boolean) {
+    @AnyThread @Synchronized private fun resetUnreadsAndHighlights() {
         if (unreads == 0 && highlights == 0) return
         readUnreads += unreads
         readHighlights += highlights
         highlights = 0
         unreads = 0
-        if (adjustHotlist) Hotlist.adjustHotListForBuffer(this, true)
+        Hotlist.adjustHotListForBuffer(this, true)
         BufferList.notifyBuffersChanged()
     }
 
