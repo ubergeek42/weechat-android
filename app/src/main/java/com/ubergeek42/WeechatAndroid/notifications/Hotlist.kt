@@ -59,10 +59,12 @@ data class HotlistBuffer(
    val shortName: String,
    val isPrivate: Boolean,
 
-   val hotCount: Int,
-   val messages: List<HotlistMessage>,
-   val lastMessageTimestamp: Long,
+   val hotCount: Int,                       // as per WeeChat's hotlist
+   val messages: List<HotlistMessage>,      // messages we've seen. might be less than above
 ) {
+    // timestamp of the last seen message, or 0 if we don't have this information
+    val lastMessageTimestamp get() = messages.lastOrNull()?.timestamp ?: 0
+
     companion object {
         fun fromBuffer(buffer: Buffer): HotlistBuffer {
             return HotlistBuffer(
@@ -71,7 +73,6 @@ data class HotlistBuffer(
                 isPrivate = buffer.type === BufferSpec.Type.Private,
                 hotCount = 0,
                 messages = emptyList(),
-                lastMessageTimestamp = 0 //System.currentTimeMillis()
             )
         }
     }
@@ -104,7 +105,7 @@ data class HotlistBuffer(
 
             copy(
                 shortName = newShortName,
-                isPrivate = buffer.type === BufferSpec.Type.Private,
+                isPrivate = buffer.type == BufferSpec.Type.Private,
                 hotCount = newHotCount,
                 messages = messages,
             ).pushUpdate(makeNoise = false)
@@ -116,7 +117,7 @@ data class HotlistBuffer(
 
         copy(
             hotCount = hotCount + 1,
-            messages = messages + message
+            messages = messages + message,
         ).pushUpdate(makeNoise = true)
 
         if (Engine.isEnabledAtAll() && Engine.isEnabledForLocation(Engine.Location.NOTIFICATION) &&
