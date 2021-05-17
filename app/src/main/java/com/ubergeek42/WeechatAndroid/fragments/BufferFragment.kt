@@ -19,7 +19,6 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
-import android.view.inputmethod.InputMethodManager
 import android.widget.PopupMenu
 import android.widget.TextView
 import androidx.annotation.AnyThread
@@ -33,7 +32,6 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ItemDecoration
 import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.Weechat
-import com.ubergeek42.WeechatAndroid.WeechatActivity
 import com.ubergeek42.WeechatAndroid.adapters.ChatLinesAdapter
 import com.ubergeek42.WeechatAndroid.copypaste.Paste
 import com.ubergeek42.WeechatAndroid.databinding.ChatviewMainBinding
@@ -106,7 +104,7 @@ class BufferFragment : Fragment(), BufferEye {
 
     private var pointer: Long = 0
 
-    private var weechatActivity: BufferFragmentContainer? = null
+    private var container: BufferFragmentContainer? = null
     private var buffer: Buffer? = null
     private var attachedToBuffer = false
 
@@ -142,7 +140,7 @@ class BufferFragment : Fragment(), BufferEye {
 
     @MainThread @Cat override fun onAttach(context: Context) {
         super.onAttach(context)
-        weechatActivity = context as BufferFragmentContainer
+        container = context as BufferFragmentContainer
     }
 
     @MainThread @Cat override fun onCreate(savedInstanceState: Bundle?) {
@@ -181,7 +179,7 @@ class BufferFragment : Fragment(), BufferEye {
                 override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                     if (dy != 0) {
                         if (focusedInViewPager) {
-                            weechatActivity?.onChatLinesScrolled(dy, onTop, onBottom)
+                            this@BufferFragment.container?.onChatLinesScrolled(dy, onTop, onBottom)
                         }
                         showHideFabWhenScrolled(dy, onBottom)
                     }
@@ -271,7 +269,7 @@ class BufferFragment : Fragment(), BufferEye {
     }
 
     @MainThread @Cat override fun onDetach() {
-        weechatActivity = null
+        container = null
         super.onDetach()
     }
 
@@ -287,11 +285,11 @@ class BufferFragment : Fragment(), BufferEye {
 
     enum class ChangedState { BufferAttachment, PagerFocus, FullVisibility, LinesListed }
     @MainThread @Cat(linger = true) fun onVisibilityStateChanged(changedState: ChangedState)
-            = ulet(weechatActivity, buffer) { activity, buffer ->
+            = ulet(container, buffer) { container, buffer ->
         if (!buffer.linesAreReady()) return
         kitty.trace("proceeding!")
 
-        val watched = attachedToBuffer && focusedInViewPager && !activity.isPagerNoticeablyObscured
+        val watched = attachedToBuffer && focusedInViewPager && !container.isPagerNoticeablyObscured
         if (buffer.isWatched != watched) {
             if (watched) linesAdapter?.scrollToHotLineIfNeeded()
             buffer.setWatched(watched)
@@ -491,7 +489,7 @@ class BufferFragment : Fragment(), BufferEye {
     }
 
     @AnyThread override fun onBufferClosed() {
-        Weechat.runOnMainThreadASAP { weechatActivity?.closeBuffer(pointer) }
+        Weechat.runOnMainThreadASAP { container?.closeBuffer(pointer) }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -668,7 +666,7 @@ class BufferFragment : Fragment(), BufferEye {
 
     fun shouldShowUploadMenus() = P.showPaperclip && ui?.paperclipButton?.visibility == View.GONE
 
-    @MainThread fun showHidePaperclip(): Unit = ulet(weechatActivity, ui) { activity, ui ->
+    @MainThread fun showHidePaperclip(): Unit = ulet(container, ui) { container, ui ->
         val paperclip = ui.paperclipButton
         val input = ui.chatInput
 
@@ -705,7 +703,7 @@ class BufferFragment : Fragment(), BufferEye {
         if (alreadyDrawn) TransitionManager.beginDelayedTransition(layout, paperclipTransition)
 
         paperclip.visibility = if (shouldShowPaperclip) View.VISIBLE else View.GONE
-        activity.updateMenuItems()
+        container.updateMenuItems()
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
