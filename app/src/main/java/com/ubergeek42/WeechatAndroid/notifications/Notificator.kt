@@ -357,6 +357,7 @@ fun NotificationCompat.MessagingStyle.addMessage(
     addMessage(NotificationCompat.MessagingStyle.Message(message, timestamp, person))
 
     if (image != null) {
+        image.grantReadPermissionToSystem()
         addMessage(NotificationCompat.MessagingStyle.Message(message, timestamp, person)
                 .setData("image/", image))
     }

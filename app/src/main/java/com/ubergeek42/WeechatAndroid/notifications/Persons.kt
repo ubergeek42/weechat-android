@@ -1,8 +1,11 @@
 package com.ubergeek42.WeechatAndroid.notifications
 
+import android.content.Intent
+import android.net.Uri
 import androidx.core.app.Person
 import androidx.core.graphics.drawable.IconCompat
 import com.ubergeek42.WeechatAndroid.relay.Buffer
+import com.ubergeek42.WeechatAndroid.upload.applicationContext
 
 
 data class CachedPerson(
@@ -38,7 +41,8 @@ fun getPerson(key: String,
 
         if (icon.type == IconCompat.TYPE_URI_ADAPTIVE_BITMAP) {
             cachedPersons[storageKey] =
-                CachedPerson(colorKey = colorKey, nick = nick, person = person)
+                    CachedPerson(colorKey = colorKey, nick = nick, person = person)
+            icon.uri.grantReadPermissionToSystem()
         }
 
         return person
@@ -63,4 +67,10 @@ fun getPersonByPrivateBuffer(buffer: HotlistBuffer): Person {
         nick = buffer.shortName,
         missing = false
     )
+}
+
+
+fun Uri.grantReadPermissionToSystem() {
+    applicationContext.grantUriPermission("com.android.systemui", this,
+            Intent.FLAG_GRANT_READ_URI_PERMISSION)
 }
