@@ -196,3 +196,11 @@ private fun CharSequence.toItalicizedSpannable(): CharSequence {
         it.setSpan(StyleSpan(Typeface.ITALIC), 0, length, 0)
     }
 }
+
+
+// this is only used to push a suppressed bubble notification
+// todo check if making a fake notification would be sufficient
+fun getHotBuffer(fullName: String): HotlistBuffer? {
+    hotlistBuffers[fullName]?.let { return it }
+    return BufferList.findByFullName(fullName)?.let { HotlistBuffer.fromBuffer(it) }
+}

@@ -32,6 +32,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ItemDecoration
 import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.Weechat
+import com.ubergeek42.WeechatAndroid.WeechatActivity
 import com.ubergeek42.WeechatAndroid.adapters.ChatLinesAdapter
 import com.ubergeek42.WeechatAndroid.copypaste.Paste
 import com.ubergeek42.WeechatAndroid.databinding.ChatviewMainBinding
@@ -289,10 +290,12 @@ class BufferFragment : Fragment(), BufferEye {
         if (!buffer.linesAreReady()) return
         kitty.trace("proceeding!")
 
+        val watchedKey = if (container is WeechatActivity) "main-activity" else "bubble-activity"
         val watched = attachedToBuffer && focusedInViewPager && !container.isPagerNoticeablyObscured
-        if (buffer.isWatched != watched) {
+
+        if (buffer.isWatchedByKey(watchedKey) != watched) {
             if (watched) linesAdapter?.scrollToHotLineIfNeeded()
-            buffer.setWatched(watched)
+            if (watched) buffer.addWatchedKey(watchedKey) else buffer.removeWatchedKey(watchedKey)
         }
 
         if (changedState == ChangedState.PagerFocus && !focusedInViewPager ||                                   // swiping left/right or
@@ -350,7 +353,7 @@ class BufferFragment : Fragment(), BufferEye {
     // if they're not, the adapter will be using the old buffer, if any, until onLinesListed is run.
     // todo make sure that this behaves fine on slow connections
     @MainThread @Cat private fun attachToBuffer() = ulet(buffer) { buffer ->
-        buffer.setBufferEye(this)
+        buffer.addBufferEye(this)
         if (buffer.linesAreReady()) linesAdapter?.buffer = buffer
         linesAdapter?.loadLinesWithoutAnimation()
         attachedToBuffer = true
@@ -361,7 +364,7 @@ class BufferFragment : Fragment(), BufferEye {
     @MainThread @Cat private fun detachFromBuffer() {
         attachedToBuffer = false
         onVisibilityStateChanged(ChangedState.BufferAttachment)
-        buffer?.setBufferEye(null)
+        buffer?.removeBufferEye(this)
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

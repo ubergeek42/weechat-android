@@ -7,6 +7,7 @@ import android.widget.FrameLayout
 import androidx.appcompat.app.AppCompatActivity
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragment
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragmentContainer
+import com.ubergeek42.WeechatAndroid.notifications.displayedBubbles
 import com.ubergeek42.WeechatAndroid.relay.BufferList
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.utils.Constants
@@ -25,26 +26,34 @@ private val FRAME_LAYOUT_ID = View.generateViewId()
 
 
 class BubbleActivity : AppCompatActivity(), BufferFragmentContainer {
+    private var fullName = ""
+
+    private var bufferFragment: BufferFragment? = null
+
     @Cat override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val frameLayout = FrameLayout(this).apply { id = FRAME_LAYOUT_ID }
-        setContentView(frameLayout, matchParentLayoutParams)
+        FrameLayout(this).apply {
+            id = FRAME_LAYOUT_ID
+            setContentView(this, matchParentLayoutParams)
+        }
 
-        val fullName = intent?.getStringExtra(Constants.EXTRA_BUFFER_FULL_NAME) ?: ""
-        val buffer = BufferList.findByFullName(fullName)
+        fullName = intent?.getStringExtra(Constants.EXTRA_BUFFER_FULL_NAME) ?: ""
 
-        if (buffer != null) {
+        BufferList.findByFullName(fullName)?.let { buffer ->
+            displayedBubbles = displayedBubbles + fullName
+
             val tag = "bubble:$fullName"
-            val added = supportFragmentManager.findFragmentByTag(tag) != null
+            val alreadyAddedFragment = supportFragmentManager.findFragmentByTag(tag)
 
-            if (!added) {
-                val fragment = supportFragmentManager.findFragmentByTag(tag)
-                        ?: BufferFragment.newInstance(buffer.pointer)
-
-                supportFragmentManager.beginTransaction()
-                        .add(FRAME_LAYOUT_ID, fragment, tag)
-                        .commit()
+            bufferFragment = if (alreadyAddedFragment == null) {
+                BufferFragment.newInstance(buffer.pointer).also {
+                    supportFragmentManager.beginTransaction()
+                            .add(FRAME_LAYOUT_ID, it, tag)
+                            .commit()
+                }
+            } else {
+                alreadyAddedFragment as BufferFragment
             }
         }
 
@@ -52,13 +61,30 @@ class BubbleActivity : AppCompatActivity(), BufferFragmentContainer {
         P.storeThemeOrColorSchemeColors(this)
     }
 
+    override fun onResume() {
+        super.onResume()
+        bufferFragment?.userVisibleHint = true
+    }
+
+    override fun onPause() {
+        bufferFragment?.userVisibleHint = false
+        super.onPause()
+    }
+
     @Cat override fun onStart() {
         super.onStart()
         applyColorSchemeToViews()
+        BufferList.findByFullName(fullName)?.addOpenKey("bubble-activity", true)
     }
 
     @Cat override fun onStop() {
+        BufferList.findByFullName(fullName)?.removeOpenKey("bubble-activity")
         super.onStop()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        displayedBubbles = displayedBubbles - fullName
     }
 
     @Cat private fun applyColorSchemeToViews() {

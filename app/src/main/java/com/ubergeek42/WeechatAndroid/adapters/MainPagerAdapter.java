@@ -54,7 +54,7 @@ public class MainPagerAdapter extends PagerAdapter {
     @MainThread @CatD public void openBuffer(final long pointer) {
         if (pointers.contains(pointer)) return;
         Buffer buffer = BufferList.findByPointer(pointer);
-        if (buffer != null) buffer.setOpen(true, true);
+        if (buffer != null) buffer.addOpenKey("main-activity", true);
         pointers.add(pointer);
         sortOpenBuffers();
         notifyDataSetChanged();
@@ -65,7 +65,7 @@ public class MainPagerAdapter extends PagerAdapter {
         if (!pointers.remove(pointer)) return;
         notifyDataSetChanged();
         Buffer buffer = BufferList.findByPointer(pointer);
-        if (buffer != null) Weechat.runOnMainThread(() -> buffer.setOpen(false, false)); // make sure isOpen is called after
+        if (buffer != null) Weechat.runOnMainThread(() -> buffer.removeOpenKey("main-activity")); // make sure isOpen is called after
         P.setBufferOpen(pointer, false);
     }
 

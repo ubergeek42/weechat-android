@@ -5,7 +5,7 @@
     WA/*
     ChatLinesAdapter/Scrolling
     BLF
-    Notificator
+    #Notificator
 
 # service
     RelayService

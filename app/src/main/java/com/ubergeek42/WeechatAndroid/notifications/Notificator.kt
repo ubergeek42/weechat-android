@@ -29,6 +29,7 @@ import com.ubergeek42.WeechatAndroid.service.RelayService
 import com.ubergeek42.WeechatAndroid.upload.applicationContext
 import com.ubergeek42.WeechatAndroid.utils.Constants
 import com.ubergeek42.WeechatAndroid.utils.Toaster
+import com.ubergeek42.cats.Cat
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
 
@@ -166,6 +167,14 @@ private fun makePendingBubbleIntentForBuffer(fullName: String): PendingIntent {
 }
 
 
+private fun makePendingIntentForDismissedBubbleForBuffer(fullName: String): PendingIntent {
+    val intent = Intent(applicationContext, BubbleDismissedReceiver::class.java).apply {
+        action = fullName
+    }
+    return PendingIntent.getBroadcast(applicationContext, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+}
+
+
 private fun makePendingIntentForDismissedNotificationForBuffer(fullName: String): PendingIntent {
     val intent = Intent(applicationContext, NotificationDismissedReceiver::class.java).apply {
         action = fullName
@@ -178,7 +187,10 @@ val pendingIntentForDismissedSummaryNotification =
         makePendingIntentForDismissedNotificationForBuffer("")
 
 
-fun showHotNotification(hotBuffer: HotlistBuffer, allHotBuffers: Collection<HotlistBuffer>, makeNoise: Boolean) {
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+@Cat fun showHotNotification(hotBuffer: HotlistBuffer, allHotBuffers: Collection<HotlistBuffer>, makeNoise: Boolean) {
     if (!P.notificationEnable) return
 
     val publishingNewNotification = hotBuffer in allHotBuffers
@@ -188,14 +200,33 @@ fun showHotNotification(hotBuffer: HotlistBuffer, allHotBuffers: Collection<Hotl
     if (!CAN_MAKE_BUNDLED_NOTIFICATIONS && !summaryNotificationDisplayed
             && !publishingNewNotification) return
 
-    val notificationsToRemove = displayedNotifications - allHotBuffers.map { it.fullName }
-    val noNotificationsRemainAfterRemove = displayedNotifications == notificationsToRemove
+    val unwantedNotifications = displayedNotifications - allHotBuffers.map { it.fullName }
+    val bubbledNotificationsToCancel = displayedBubbles intersect unwantedNotifications
+    val notificationsToCancel = unwantedNotifications - bubbledNotificationsToCancel
+    val noNotificationsRemainAfterRemove =
+            (displayedNotifications == notificationsToCancel) && displayedBubbles.isEmpty()
 
-    notificationsToRemove.forEach { manager.cancel(it, ID_HOT) }
+    notificationsToCancel.forEach { fullName ->
+        kitty.trace("canceling buffer notification for %s", fullName)
+        manager.cancel(fullName, ID_HOT)
+    }
 
-    // on api >= 24, make sure to not add back the summary
-    // if the user manually dismissed some (which does not clear them from hotlist)
-    // and we have removed the remaining ones above
+    // instead of canceling bubbling notification, suppress them
+    // see https://developer.android.com/guide/topics/ui/bubbles#best_practices
+    bubbledNotificationsToCancel.forEach { fullName ->
+        getHotBuffer(fullName)?.let {
+            kitty.trace("republishing suppressed notification for bubble %s", fullName)
+            val notification = makeBufferNotification(it, true)
+                    .addBubbleMetadata(it, suppressNotification = true)
+                    .setMakeNoise(false)
+                    .build()
+            manager.notify(fullName, ID_HOT, notification)
+            displayedNotifications = displayedNotifications - fullName
+        }
+    }
+
+    // make sure to not add back the summary if the user manually dismissed some
+    // (which does not clear them from hotlist) and we have removed the remaining ones above
     val shouldCancelSummaryAndReturn = if (CAN_MAKE_BUNDLED_NOTIFICATIONS) {
         noNotificationsRemainAfterRemove && !publishingNewNotification
     } else {
@@ -203,19 +234,27 @@ fun showHotNotification(hotBuffer: HotlistBuffer, allHotBuffers: Collection<Hotl
     }
 
     if (shouldCancelSummaryAndReturn) {
+        kitty.trace("canceling summary notification")
         manager.cancel(ID_HOT)
         return
     }
 
     if (!CAN_MAKE_BUNDLED_NOTIFICATIONS) {
-        manager.notify(ID_HOT, makeSummaryNotification(allHotBuffers).setMakeNoise(makeNoise).build())
-            summaryNotificationDisplayed = true
+        val summary = makeSummaryNotification(allHotBuffers).setMakeNoise(makeNoise).build()
+        manager.notify(ID_HOT, summary)
+        summaryNotificationDisplayed = true
     } else {
-        manager.notify(ID_HOT, makeSummaryNotification(allHotBuffers).setMakeNoise(false).build())
+        kitty.trace("publishing summary notification")
+        val summary = makeSummaryNotification(allHotBuffers).setMakeNoise(false).build()
+        manager.notify(ID_HOT, summary)
 
         if (publishingNewNotification) {
-            manager.notify(hotBuffer.fullName, ID_HOT,
-                makeBufferNotification(hotBuffer, true).setMakeNoise(makeNoise).build())
+            kitty.trace("publishing buffer notification for %s", hotBuffer.fullName)
+            val notification = makeBufferNotification(hotBuffer, true)
+                    .addBubbleMetadata(hotBuffer, false)
+                    .setMakeNoise(makeNoise)
+                    .build()
+            manager.notify(hotBuffer.fullName, ID_HOT, notification)
             displayedNotifications = displayedNotifications + hotBuffer.fullName
         }
     }
@@ -227,8 +266,12 @@ fun addOrRemoveActionForCurrentNotifications(addReplyAction: Boolean) {
         hotlistBuffers.values
                 .filter { displayedNotifications.contains(it.fullName) }
                 .forEach { hotBuffer ->
-            manager.notify(hotBuffer.fullName, ID_HOT,
-                makeBufferNotification(hotBuffer, addReplyAction).setMakeNoise(false).build())
+            kitty.trace("%s action for buffer notification %s", if (addReplyAction) "adding" else "removing", hotBuffer.fullName)
+            val notification = makeBufferNotification(hotBuffer, addReplyAction)
+                    .addBubbleMetadata(hotBuffer, suppressNotification = false)
+                    .setMakeNoise(false)
+                    .build()
+            manager.notify(hotBuffer.fullName, ID_HOT, notification)
         }
     }
 }
@@ -237,7 +280,7 @@ fun addOrRemoveActionForCurrentNotifications(addReplyAction: Boolean) {
 private fun makeSummaryNotification(hotBuffers: Collection<HotlistBuffer>): NotificationCompat.Builder {
     val hotBufferCount = hotBuffers.size
     val totalHotCount = hotBuffers.sumOf { it.hotCount }
-    val lastMessageTimestamp = hotBuffers.maxOf { it.lastMessageTimestamp }
+    val lastMessageTimestamp = if (hotBuffers.isEmpty()) 0 else hotBuffers.maxOf { it.lastMessageTimestamp }
 
     val nMessagesInNBuffers = applicationResources.getQuantityString(
         R.plurals.notifications__hot_summary__messages, totalHotCount, totalHotCount
@@ -316,14 +359,6 @@ private fun makeBufferNotification(hotBuffer: HotlistBuffer, addReplyAction: Boo
         builder.setLargeIcon(obtainLegacyRoundIconBitmap(hotBuffer.shortName, hotBuffer.fullName))
     }
 
-    if (Build.VERSION.SDK_INT >= 30) {
-        val icon = obtainAdaptiveIcon(hotBuffer.shortName, hotBuffer.fullName, allowUriIcons = true)
-        builder.bubbleMetadata = NotificationCompat.BubbleMetadata
-                .Builder(makePendingBubbleIntentForBuffer(hotBuffer.fullName), icon)
-                .setDesiredHeight(600 /* dp */)
-                .build()
-    }
-
     // messages hold the latest messages, don't show the reply button if user can't see any
     if (addReplyAction && hotBuffer.messages.isNotEmpty()) {
         builder.addAction(makeActionForBufferPointer(hotBuffer.fullName))
@@ -352,6 +387,22 @@ private fun makeBufferNotification(hotBuffer: HotlistBuffer, addReplyAction: Boo
     }
 
     return builder
+}
+
+
+private fun NotificationCompat.Builder.addBubbleMetadata(
+    hotBuffer: HotlistBuffer,
+    suppressNotification: Boolean
+) = this.apply {
+    if (Build.VERSION.SDK_INT >= 30) {
+        val icon = obtainAdaptiveIcon(hotBuffer.shortName, hotBuffer.fullName, allowUriIcons = true)
+        bubbleMetadata = NotificationCompat.BubbleMetadata
+            .Builder(makePendingBubbleIntentForBuffer(hotBuffer.fullName), icon)
+            .setDesiredHeight(600 /* dp */)
+            .setDeleteIntent(makePendingIntentForDismissedBubbleForBuffer(hotBuffer.fullName))
+            .setSuppressNotification(suppressNotification)
+            .build()
+    }
 }
 
 
@@ -495,6 +546,17 @@ class NotificationDismissedReceiver : BroadcastReceiver() {
         } else {
             displayedNotifications = displayedNotifications - fullName
         }
+    }
+}
+
+
+var displayedBubbles = setOf<String>()
+
+
+class BubbleDismissedReceiver : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
+        val fullName = intent.action ?: ""
+        displayedBubbles = displayedBubbles - fullName
     }
 }
 
