@@ -22,6 +22,7 @@ import androidx.core.content.LocusIdCompat
 import com.ubergeek42.WeechatAndroid.BubbleActivity
 import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.WeechatActivity
+import com.ubergeek42.WeechatAndroid.notifyPersistingBubbleDestroyed
 import com.ubergeek42.WeechatAndroid.relay.BufferList
 import com.ubergeek42.WeechatAndroid.service.Events
 import com.ubergeek42.WeechatAndroid.service.P
@@ -556,7 +557,7 @@ var displayedBubbles = setOf<String>()
 class BubbleDismissedReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val fullName = intent.action ?: ""
-        displayedBubbles = displayedBubbles - fullName
+        notifyPersistingBubbleDestroyed(fullName)
     }
 }
 

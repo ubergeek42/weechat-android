@@ -41,8 +41,6 @@ class BubbleActivity : AppCompatActivity(), BufferFragmentContainer {
         fullName = intent?.getStringExtra(Constants.EXTRA_BUFFER_FULL_NAME) ?: ""
 
         BufferList.findByFullName(fullName)?.let { buffer ->
-            displayedBubbles = displayedBubbles + fullName
-
             val tag = "bubble:$fullName"
             val alreadyAddedFragment = supportFragmentManager.findFragmentByTag(tag)
 
@@ -55,6 +53,8 @@ class BubbleActivity : AppCompatActivity(), BufferFragmentContainer {
             } else {
                 alreadyAddedFragment as BufferFragment
             }
+
+            notifyPersistingBubbleCreated(fullName)
         }
 
         P.applyThemeAfterActivityCreation(this)
@@ -74,17 +74,19 @@ class BubbleActivity : AppCompatActivity(), BufferFragmentContainer {
     @Cat override fun onStart() {
         super.onStart()
         applyColorSchemeToViews()
-        BufferList.findByFullName(fullName)?.addOpenKey("bubble-activity", true)
     }
 
     @Cat override fun onStop() {
-        BufferList.findByFullName(fullName)?.removeOpenKey("bubble-activity")
         super.onStop()
     }
 
+    // this is a poor man's way to see if the bubble was destroyed by pressing
+    // on the hide bubble icon in the corner of a notification.
+    // it's probably dangerous as this should be called on theme change!
+    // todo find a better way to detect this
     override fun onDestroy() {
         super.onDestroy()
-        displayedBubbles = displayedBubbles - fullName
+        notifyPersistingBubbleDestroyed(fullName)
     }
 
     @Cat private fun applyColorSchemeToViews() {
@@ -101,4 +103,16 @@ class BubbleActivity : AppCompatActivity(), BufferFragmentContainer {
     override fun closeBuffer(pointer: Long) {
         finish()
     }
+}
+
+
+fun notifyPersistingBubbleCreated(fullName: String) {
+    displayedBubbles = displayedBubbles + fullName
+    BufferList.findByFullName(fullName)?.addOpenKey("bubble-activity", true)
+}
+
+
+fun notifyPersistingBubbleDestroyed(fullName: String) {
+    displayedBubbles = displayedBubbles - fullName
+    BufferList.findByFullName(fullName)?.removeOpenKey("bubble-activity")
 }
