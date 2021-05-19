@@ -2,6 +2,7 @@
 // you may not use this file except in compliance with the License.
 package com.ubergeek42.WeechatAndroid.notifications
 
+import android.app.Activity
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -143,18 +144,9 @@ private val applicationResources = applicationContext.resources
 
 
 // setting action in this way is not quite a proper way, but this ensures that all intents
-// are treated as separate intents
-private fun makePendingIntentForBuffer(fullName: String): PendingIntent {
-    val intent = Intent(applicationContext, WeechatActivity::class.java).apply {
-        putExtra(Constants.EXTRA_BUFFER_FULL_NAME, fullName)
-        action = fullName
-    }
-    return PendingIntent.getActivity(applicationContext, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT)
-}
-
-
-private fun makePendingBubbleIntentForBuffer(fullName: String): PendingIntent {
-    val intent = Intent(applicationContext, BubbleActivity::class.java).apply {
+// are treated as separate intents. on API 29, `identifier` can be used instead
+private inline fun <reified T : Activity> makeActivityIntent(fullName: String): PendingIntent {
+    val intent = Intent(applicationContext, T::class.java).apply {
         putExtra(Constants.EXTRA_BUFFER_FULL_NAME, fullName)
         action = fullName
     }
@@ -162,24 +154,14 @@ private fun makePendingBubbleIntentForBuffer(fullName: String): PendingIntent {
 }
 
 
-private fun makePendingIntentForDismissedBubbleForBuffer(fullName: String): PendingIntent {
-    val intent = Intent(applicationContext, BubbleDismissedReceiver::class.java).apply {
-        action = fullName
-    }
-    return PendingIntent.getBroadcast(applicationContext, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+private inline fun <reified T : BroadcastReceiver> makeBroadcastIntent(fullName: String): PendingIntent {
+    val intent = Intent(applicationContext, T::class.java).apply { action = fullName }
+    return PendingIntent.getBroadcast(applicationContext, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
 }
 
 
-private fun makePendingIntentForDismissedNotificationForBuffer(fullName: String): PendingIntent {
-    val intent = Intent(applicationContext, NotificationDismissedReceiver::class.java).apply {
-        action = fullName
-    }
-    return PendingIntent.getBroadcast(applicationContext, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT)
-}
-
-
-val pendingIntentForDismissedSummaryNotification =
-        makePendingIntentForDismissedNotificationForBuffer("")
+private val summaryNotificationIntent = makeActivityIntent<WeechatActivity>(Constants.EXTRA_BUFFER_FULL_NAME_ANY)
+private val summaryNotificationDismissIntent = makeBroadcastIntent<NotificationDismissedReceiver>("")
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -285,7 +267,7 @@ private fun makeSummaryNotification(hotBuffers: Collection<HotlistBuffer>): Noti
     )
 
     val builder = NotificationCompat.Builder(applicationContext, CHANNEL_HOTLIST)
-        .setContentIntent(makePendingIntentForBuffer(Constants.EXTRA_BUFFER_FULL_NAME_ANY))
+        .setContentIntent(summaryNotificationIntent)
         .setSmallIcon(R.drawable.ic_notification_hot)
         .setCategory(NotificationCompat.CATEGORY_MESSAGE)
         .setGroup(GROUP_KEY)
@@ -298,7 +280,7 @@ private fun makeSummaryNotification(hotBuffers: Collection<HotlistBuffer>): Noti
         builder.setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_CHILDREN)
         builder.setSubText(nMessagesInNBuffers)
     } else {
-        builder.setDeleteIntent(pendingIntentForDismissedSummaryNotification)
+        builder.setDeleteIntent(summaryNotificationDismissIntent)
 
         val allMessages = hotBuffers.flatMap { it.messages }.sortedBy { it.timestamp }
 
@@ -339,8 +321,8 @@ private fun makeBufferNotification(hotBuffer: HotlistBuffer, addReplyAction: Boo
     shortcuts.ensureShortcutExists(hotBuffer.fullName)
 
     val builder = NotificationCompat.Builder(applicationContext, CHANNEL_HOTLIST)
-        .setContentIntent(makePendingIntentForBuffer(hotBuffer.fullName))
-        .setDeleteIntent(makePendingIntentForDismissedNotificationForBuffer(hotBuffer.fullName))
+        .setContentIntent(makeActivityIntent<WeechatActivity>(hotBuffer.fullName))
+        .setDeleteIntent(makeBroadcastIntent<NotificationDismissedReceiver>(hotBuffer.fullName))
         .setSmallIcon(R.drawable.ic_notification_hot)
         .setCategory(NotificationCompat.CATEGORY_MESSAGE)
         .setGroup(GROUP_KEY)
@@ -408,8 +390,8 @@ private fun NotificationCompat.Builder.addBubbleMetadata(
     if (Build.VERSION.SDK_INT >= 30) {
         val icon = obtainAdaptiveIcon(hotBuffer.shortName, hotBuffer.fullName, allowUriIcons = true)
         bubbleMetadata = NotificationCompat.BubbleMetadata
-            .Builder(makePendingBubbleIntentForBuffer(hotBuffer.fullName), icon)
-            .setDeleteIntent(makePendingIntentForDismissedBubbleForBuffer(hotBuffer.fullName))
+            .Builder(makeActivityIntent<BubbleActivity>(hotBuffer.fullName), icon)
+            .setDeleteIntent(makeBroadcastIntent<BubbleDismissedReceiver>(hotBuffer.fullName))
             .setDesiredHeight(600 /* dp */)
             .setSuppressNotification(suppressNotification)
             .build()
@@ -551,6 +533,7 @@ private var displayedNotifications = setOf<String>()
 class NotificationDismissedReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val fullName = intent.action ?: ""
+        kitty.trace("notification dismissed: %s", fullName)
 
         if (fullName == "") {
             summaryNotificationDisplayed = false
@@ -567,6 +550,7 @@ var displayedBubbles = setOf<String>()
 class BubbleDismissedReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val fullName = intent.action ?: ""
+        kitty.trace("bubble dismissed: %s", fullName)
         notifyPersistingBubbleDestroyed(fullName)
     }
 }
