@@ -210,6 +210,7 @@ val pendingIntentForDismissedSummaryNotification =
     notificationsToCancel.forEach { fullName ->
         kitty.trace("canceling buffer notification for %s", fullName)
         manager.cancel(fullName, ID_HOT)
+        displayedNotifications = displayedNotifications - fullName
     }
 
     // instead of canceling bubbling notification, suppress them
@@ -217,7 +218,7 @@ val pendingIntentForDismissedSummaryNotification =
     bubbledNotificationsToCancel.forEach { fullName ->
         getHotBuffer(fullName)?.let {
             kitty.trace("republishing suppressed notification for bubble %s", fullName)
-            val notification = makeBufferNotification(it, true)
+            val notification = makeEmptyBufferNotification(fullName)
                     .addBubbleMetadata(it, suppressNotification = true)
                     .setMakeNoise(false)
                     .build()
@@ -391,6 +392,21 @@ private fun makeBufferNotification(hotBuffer: HotlistBuffer, addReplyAction: Boo
 }
 
 
+// same as above, but lacking content, for publishing suppressed notifications with bubble metadata
+private fun makeEmptyBufferNotification(fullName: String): NotificationCompat.Builder {
+    shortcuts.ensureShortcutExists(fullName)
+
+    return NotificationCompat.Builder(applicationContext, CHANNEL_HOTLIST)
+            .setSmallIcon(R.drawable.ic_notification_hot)
+            .setCategory(NotificationCompat.CATEGORY_MESSAGE)
+            .setGroup(GROUP_KEY)
+            .setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_CHILDREN)
+            .setShortcutId(fullName)
+            .setLocusId(LocusIdCompat(fullName))
+            .setStyle(NotificationCompat.MessagingStyle(myself))
+}
+
+
 private fun NotificationCompat.Builder.addBubbleMetadata(
     hotBuffer: HotlistBuffer,
     suppressNotification: Boolean
@@ -399,8 +415,8 @@ private fun NotificationCompat.Builder.addBubbleMetadata(
         val icon = obtainAdaptiveIcon(hotBuffer.shortName, hotBuffer.fullName, allowUriIcons = true)
         bubbleMetadata = NotificationCompat.BubbleMetadata
             .Builder(makePendingBubbleIntentForBuffer(hotBuffer.fullName), icon)
-            .setDesiredHeight(600 /* dp */)
             .setDeleteIntent(makePendingIntentForDismissedBubbleForBuffer(hotBuffer.fullName))
+            .setDesiredHeight(600 /* dp */)
             .setSuppressNotification(suppressNotification)
             .build()
     }
