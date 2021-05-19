@@ -144,15 +144,9 @@ private val applicationResources = applicationContext.resources
 
 // setting action in this way is not quite a proper way, but this ensures that all intents
 // are treated as separate intents
-// todo simplify logic for ANY
-// todo make intent unique in a different way
-private fun makePendingIntentForBuffer(fullName: String?): PendingIntent {
+private fun makePendingIntentForBuffer(fullName: String): PendingIntent {
     val intent = Intent(applicationContext, WeechatActivity::class.java).apply {
-        if (fullName == null) {
-            putExtra(Constants.EXTRA_BUFFER_POINTER, Constants.NOTIFICATION_EXTRA_BUFFER_ANY)
-        } else {
-            putExtra(Constants.EXTRA_BUFFER_FULL_NAME, fullName)
-        }
+        putExtra(Constants.EXTRA_BUFFER_FULL_NAME, fullName)
         action = fullName
     }
     return PendingIntent.getActivity(applicationContext, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT)
@@ -291,7 +285,7 @@ private fun makeSummaryNotification(hotBuffers: Collection<HotlistBuffer>): Noti
     )
 
     val builder = NotificationCompat.Builder(applicationContext, CHANNEL_HOTLIST)
-        .setContentIntent(makePendingIntentForBuffer(null))
+        .setContentIntent(makePendingIntentForBuffer(Constants.EXTRA_BUFFER_FULL_NAME_ANY))
         .setSmallIcon(R.drawable.ic_notification_hot)
         .setCategory(NotificationCompat.CATEGORY_MESSAGE)
         .setGroup(GROUP_KEY)

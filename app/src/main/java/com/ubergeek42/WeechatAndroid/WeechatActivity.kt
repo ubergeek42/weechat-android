@@ -635,13 +635,13 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener,
     @MainThread @Cat("Intent") private fun openBufferFromIntent() {
         val intent = intent
         var pointer = intent.getLongExtra(Constants.EXTRA_BUFFER_POINTER,
-                                          Constants.NOTIFICATION_EXTRA_BUFFER_ANY)
+                                          Constants.EXTRA_BUFFER_POINTER_ANY)
 
         intent.removeExtra(Constants.EXTRA_BUFFER_POINTER)
 
-        if (pointer == Constants.NOTIFICATION_EXTRA_BUFFER_ANY) {
+        if (pointer == Constants.EXTRA_BUFFER_POINTER_ANY) {
             val fullName = intent.getStringExtra(Constants.EXTRA_BUFFER_FULL_NAME)
-            if (fullName != null) {
+            if (fullName != null && fullName != Constants.EXTRA_BUFFER_FULL_NAME_ANY) {
                 val buffer = BufferList.findByFullName(fullName)
                 if (buffer == null) {
                     Toaster.ErrorToast.show("Couldn’t find buffer $fullName")
@@ -655,7 +655,7 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener,
 
         intent.removeExtra(Constants.EXTRA_BUFFER_FULL_NAME)
 
-        if (pointer == Constants.NOTIFICATION_EXTRA_BUFFER_ANY) {
+        if (pointer == Constants.EXTRA_BUFFER_POINTER_ANY) {
             if (BufferList.hotBufferCount > 1) {
                 if (slidy) showDrawer()
             } else {

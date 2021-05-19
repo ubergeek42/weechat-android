@@ -150,7 +150,8 @@ public class Constants {
 
     public final static String EXTRA_BUFFER_POINTER = "com.ubergeek42.BUFFER_POINTER";
     public final static String EXTRA_BUFFER_FULL_NAME = "com.ubergeek42.BUFFER_FULL_NAME";
-    public final static long NOTIFICATION_EXTRA_BUFFER_ANY = 0;
+    public final static long EXTRA_BUFFER_POINTER_ANY = 0;
+    public final static String EXTRA_BUFFER_FULL_NAME_ANY = "";
 
     // night mode
     final static public String PREF_THEME_GROUP = "theme_group";
