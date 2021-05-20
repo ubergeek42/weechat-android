@@ -16,6 +16,7 @@ import android.os.Handler
 import android.os.HandlerThread
 import androidx.annotation.AnyThread
 import androidx.annotation.MainThread
+import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.Person
 import androidx.core.app.RemoteInput
@@ -23,7 +24,6 @@ import androidx.core.content.LocusIdCompat
 import com.ubergeek42.WeechatAndroid.BubbleActivity
 import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.WeechatActivity
-import com.ubergeek42.WeechatAndroid.notifyPersistingBubbleDestroyed
 import com.ubergeek42.WeechatAndroid.relay.BufferList
 import com.ubergeek42.WeechatAndroid.service.Events
 import com.ubergeek42.WeechatAndroid.service.P
@@ -177,11 +177,14 @@ private val summaryNotificationDismissIntent = makeBroadcastIntent<NotificationD
     if (!CAN_MAKE_BUNDLED_NOTIFICATIONS && !summaryNotificationDisplayed
             && !publishingNewNotification) return
 
+    //
+    if (Build.VERSION.SDK_INT >= 30) fixupBubblesThatShouldBeKept()
+
     val unwantedNotifications = displayedNotifications - allHotBuffers.map { it.fullName }
-    val bubbledNotificationsToCancel = displayedBubbles intersect unwantedNotifications
+    val bubbledNotificationsToCancel = bubblesThatShouldBeKept intersect unwantedNotifications
     val notificationsToCancel = unwantedNotifications - bubbledNotificationsToCancel
     val noNotificationsRemainAfterRemove =
-            (displayedNotifications == notificationsToCancel) && displayedBubbles.isEmpty()
+            (displayedNotifications == notificationsToCancel) && bubblesThatShouldBeKept.isEmpty()
 
     notificationsToCancel.forEach { fullName ->
         kitty.trace("canceling buffer notification for %s", fullName)
@@ -523,6 +526,44 @@ private fun NotificationCompat.Builder.setNotificationText(text: CharSequence): 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
+fun notifyBubbleActivityCreated(fullName: String) {
+    bubblesThatShouldBeKept = bubblesThatShouldBeKept + fullName
+    BufferList.findByFullName(fullName)?.addOpenKey("bubble-activity", true)
+}
+
+
+// user dragged the bubble icon to the (x) area on the bottom of the screen.
+// this does NOT prevent further bubbles from appearing!
+fun notifyBubbleDismissed(fullName: String) {
+    bubblesThatShouldBeKept = bubblesThatShouldBeKept - fullName
+    BufferList.findByFullName(fullName)?.removeOpenKey("bubble-activity")
+}
+
+
+// user can opt out of bubbles for specific conversations, e.g. by pressing ⇱ notification button.
+// if a bubble is displayed, this removes it, BUT dismiss listener is not called.
+// so let's verify that the bubbles we are trying to keep are valid
+//
+// this prevents the following scenario:
+//   * get a highlight in a buffer, expand bubble ⇲, close it
+//   * get another highlight, but this time remove bubble without opening by pressing ⇱
+//   * visit buffer in main app. the app tries to publish a suppressed empty notification,
+//     but as the bubble is disabled it doesn't get suppressed
+@RequiresApi(Build.VERSION_CODES.R)
+fun fixupBubblesThatShouldBeKept() {
+    fun canBubble(fullName: String) = manager.getNotificationChannel(CHANNEL_HOTLIST, fullName)
+            ?.canBubble() == true
+    bubblesThatShouldBeKept.forEach { fullName ->
+        if (!canBubble(fullName)) {
+            kitty.trace("bubble has become invalid: %s", fullName)
+            notifyBubbleDismissed(fullName)
+        }
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 // we only look at summary notification on older devices
 // that do not display bundled notifications
 private var summaryNotificationDisplayed = false
@@ -544,14 +585,14 @@ class NotificationDismissedReceiver : BroadcastReceiver() {
 }
 
 
-var displayedBubbles = setOf<String>()
+var bubblesThatShouldBeKept = setOf<String>()
 
 
 class BubbleDismissedReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val fullName = intent.action ?: ""
         kitty.trace("bubble dismissed: %s", fullName)
-        notifyPersistingBubbleDestroyed(fullName)
+        notifyBubbleDismissed(fullName)
     }
 }
 

@@ -7,7 +7,7 @@ import android.widget.FrameLayout
 import androidx.appcompat.app.AppCompatActivity
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragment
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragmentContainer
-import com.ubergeek42.WeechatAndroid.notifications.displayedBubbles
+import com.ubergeek42.WeechatAndroid.notifications.notifyBubbleActivityCreated
 import com.ubergeek42.WeechatAndroid.relay.BufferList
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.utils.Constants
@@ -54,7 +54,7 @@ class BubbleActivity : AppCompatActivity(), BufferFragmentContainer {
                 alreadyAddedFragment as BufferFragment
             }
 
-            notifyPersistingBubbleCreated(fullName)
+            notifyBubbleActivityCreated(fullName)
         }
 
         P.applyThemeAfterActivityCreation(this)
@@ -80,15 +80,6 @@ class BubbleActivity : AppCompatActivity(), BufferFragmentContainer {
         super.onStop()
     }
 
-    // this is a poor man's way to see if the bubble was destroyed by pressing
-    // on the hide bubble icon in the corner of a notification.
-    // it's probably dangerous as this should be called on theme change!
-    // todo find a better way to detect this
-    override fun onDestroy() {
-        super.onDestroy()
-        notifyPersistingBubbleDestroyed(fullName)
-    }
-
     @Cat private fun applyColorSchemeToViews() {
         val chatBackgroundColor = ColorScheme.get().default_color[ColorScheme.OPT_BG].solidColor
         window.setBackgroundDrawable(ColorDrawable(chatBackgroundColor))
@@ -103,16 +94,4 @@ class BubbleActivity : AppCompatActivity(), BufferFragmentContainer {
     override fun closeBuffer(pointer: Long) {
         finish()
     }
-}
-
-
-fun notifyPersistingBubbleCreated(fullName: String) {
-    displayedBubbles = displayedBubbles + fullName
-    BufferList.findByFullName(fullName)?.addOpenKey("bubble-activity", true)
-}
-
-
-fun notifyPersistingBubbleDestroyed(fullName: String) {
-    displayedBubbles = displayedBubbles - fullName
-    BufferList.findByFullName(fullName)?.removeOpenKey("bubble-activity")
 }
