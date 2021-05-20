@@ -258,6 +258,7 @@ class BufferFragment : Fragment(), BufferEye {
         showHidePaperclip()
         showHideFabAfterRecyclerViewRestored()
         uploadManager?.observer = uploadObserver   // this will resume ui for any uploads that are still running
+        restorePendingInputFromParallelFragment()
     }
 
     @MainThread @Cat override fun onPause() {
@@ -267,6 +268,7 @@ class BufferFragment : Fragment(), BufferEye {
         detachFromBuffer()
         recordRecyclerViewState()
         EventBus.getDefault().unregister(this)
+        setPendingInputForParallelFragments()
     }
 
     @MainThread @Cat override fun onDetach() {
@@ -928,6 +930,23 @@ class BufferFragment : Fragment(), BufferEye {
             }
         }
     }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private fun setPendingInputForParallelFragments() = ulet(buffer, ui) { buffer, ui ->
+        ui.chatInput.text?.let {
+            pendingInputs[buffer.fullName] = it
+        }
+    }
+
+    private fun restorePendingInputFromParallelFragment() = ulet(buffer, ui?.chatInput) { buffer, chatInput ->
+        pendingInputs[buffer.fullName]?.let { pendingInput ->
+            if (chatInput.text != pendingInput) {
+                chatInput.setText(pendingInput)
+                chatInput.setSelection(pendingInput.length)
+            }
+        }
+    }
 }
 
 
@@ -970,3 +989,6 @@ private enum class ConnectivityState(
 
 
 private val FAB_SHOW_THRESHOLD = P._200dp * 7
+
+
+val pendingInputs = mutableMapOf<String, CharSequence>()
