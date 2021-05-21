@@ -7,7 +7,11 @@ import android.content.Intent
 import android.net.Uri
 import android.text.Editable
 import android.text.Spannable
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.TextUtils
 import android.text.TextWatcher
+import android.text.style.CharacterStyle
 import android.text.style.ClickableSpan
 import android.text.style.URLSpan
 import android.view.View
@@ -262,4 +266,14 @@ fun Intent.getUris(): List<Uri> {
     }
 
     return data?.let { listOf(it) } ?: listOf()
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////// span utils
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+fun Spanned.makeCopyWithoutUselessSpans(): Spanned {
+    return SpannableString(this.toString()).also {
+        TextUtils.copySpansFrom(this, 0, length, CharacterStyle::class.java, it, 0)
+    }
 }

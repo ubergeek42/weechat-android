@@ -67,6 +67,7 @@ import com.ubergeek42.WeechatAndroid.utils.FriendlyExceptions
 import com.ubergeek42.WeechatAndroid.utils.Toaster
 import com.ubergeek42.WeechatAndroid.utils.Utils
 import com.ubergeek42.WeechatAndroid.utils.afterTextChanged
+import com.ubergeek42.WeechatAndroid.utils.makeCopyWithoutUselessSpans
 import com.ubergeek42.WeechatAndroid.utils.indexOfOrElse
 import com.ubergeek42.WeechatAndroid.utils.ulet
 import com.ubergeek42.WeechatAndroid.views.BufferFragmentFullScreenController
@@ -563,6 +564,7 @@ class BufferFragment : Fragment(), BufferEye {
     }
 
     @MainThread fun setShareObject(shareObject: ShareObject) = ulet(ui) { ui ->
+        restorePendingInputFromParallelFragment()
         shareObject.insert(ui.chatInput, InsertAt.END)
         if (isSearchEnabled) ui.searchInput.post { searchEnableDisable(enable = false) }
     }
@@ -935,7 +937,7 @@ class BufferFragment : Fragment(), BufferEye {
 
     private fun setPendingInputForParallelFragments() = ulet(buffer, ui) { buffer, ui ->
         ui.chatInput.text?.let {
-            pendingInputs[buffer.fullName] = it
+            pendingInputs[buffer.fullName] = it.makeCopyWithoutUselessSpans()
         }
     }
 
@@ -944,6 +946,7 @@ class BufferFragment : Fragment(), BufferEye {
             if (chatInput.text != pendingInput) {
                 chatInput.setText(pendingInput)
                 chatInput.setSelection(pendingInput.length)
+                pendingInputs.remove(buffer.fullName)
             }
         }
     }
@@ -991,4 +994,4 @@ private enum class ConnectivityState(
 private val FAB_SHOW_THRESHOLD = P._200dp * 7
 
 
-val pendingInputs = mutableMapOf<String, CharSequence>()
+private val pendingInputs = mutableMapOf<String, CharSequence>()
