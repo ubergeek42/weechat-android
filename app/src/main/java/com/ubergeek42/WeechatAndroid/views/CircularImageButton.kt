@@ -51,6 +51,18 @@ class CircularImageButton @JvmOverloads constructor(
         canvas?.drawPaint(backgroundPaint)
         super.onDraw(canvas)
     }
+
+    private val showAnimation = ScaleAnimation(
+        0f, 1f, 0f, 1f,
+        Animation.RELATIVE_TO_SELF, 0.5f,
+        Animation.RELATIVE_TO_SELF, 0.5f)
+            .apply { duration = animationDuration }
+
+    private val hideAnimation = ScaleAnimation(
+        1f, .5f, 1f, 0.5f,
+        Animation.RELATIVE_TO_SELF, 0.5f,
+        Animation.RELATIVE_TO_SELF, 0.5f)
+            .apply { duration = animationDuration }
 }
 
 
@@ -63,17 +75,3 @@ private val pillOutlineProvider = object : ViewOutlineProvider() {
 
 private val animationDuration = applicationContext
         .resources.getInteger(android.R.integer.config_shortAnimTime).toLong()
-
-private val showAnimation = ScaleAnimation(
-        0f, 1f, 0f, 1f,
-        Animation.RELATIVE_TO_SELF, 0.5f,
-        Animation.RELATIVE_TO_SELF, 0.5f)
-        .apply { duration = animationDuration }
-
-private val hideAnimation = ScaleAnimation(
-        1f, .5f, 1f, 0.5f,
-        Animation.RELATIVE_TO_SELF, 0.5f,
-        Animation.RELATIVE_TO_SELF, 0.5f)
-        .apply { duration = animationDuration }
-
-
