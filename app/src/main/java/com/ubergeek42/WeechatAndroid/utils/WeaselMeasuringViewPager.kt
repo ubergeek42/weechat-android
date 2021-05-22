@@ -12,7 +12,9 @@ class WeaselMeasuringViewPager : ViewPagerFix {
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
         measuredWidth.let {
-            if (it > 0) P.weaselWidth = it - windowInsets.left - windowInsets.right
+            if (it > 0) weaselWidth = it - windowInsets.left - windowInsets.right
         }
     }
+
+    var weaselWidth = 0
 }

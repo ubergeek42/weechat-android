@@ -73,6 +73,7 @@ import com.ubergeek42.WeechatAndroid.utils.ulet
 import com.ubergeek42.WeechatAndroid.views.BufferFragmentFullScreenController
 import com.ubergeek42.WeechatAndroid.views.OnBackGestureListener
 import com.ubergeek42.WeechatAndroid.views.OnJumpedUpWhileScrollingListener
+import com.ubergeek42.WeechatAndroid.views.calculateApproximateWeaselWidth
 import com.ubergeek42.WeechatAndroid.views.hideSoftwareKeyboard
 import com.ubergeek42.WeechatAndroid.views.jumpThenSmoothScroll
 import com.ubergeek42.WeechatAndroid.views.jumpThenSmoothScrollCentering
@@ -694,11 +695,15 @@ class BufferFragment : Fragment(), BufferEye {
             return
         }
 
+        val weaselWidth = ui.chatLines.width.let {
+            if (it > 0) it else activity?.calculateApproximateWeaselWidth() ?: 1000
+        }
+
         // for the purpose of the subsequent calculation we pretend that paperclip is shown,
         // else ratio can jump backwards on character entry, revealing the button again.
         // if the send button is off, adding a ShareSpan can reveal it (well, upload button),
         // but it's not a problem as it can only appear on text addition and disappear on deletion*
-        var widgetWidth = P.weaselWidth - P._4dp - actionButtonWidth
+        var widgetWidth = weaselWidth - P._4dp - actionButtonWidth
         if (ui.tabButton.visibility != View.GONE) widgetWidth -= actionButtonWidth
         if (ui.sendButton.visibility != View.GONE) widgetWidth -= actionButtonWidth
 

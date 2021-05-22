@@ -31,6 +31,7 @@ import com.ubergeek42.WeechatAndroid.upload.HttpUriGetter;
 import com.ubergeek42.WeechatAndroid.upload.RequestBodyModifier;
 import com.ubergeek42.WeechatAndroid.upload.RequestModifier;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
+import com.ubergeek42.WeechatAndroid.views.ViewUtilsKt;
 
 import java.util.Set;
 
@@ -252,7 +253,7 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
                 } else if (PREF_MEDIA_PREVIEW_THUMBNAIL_WIDTH.equals(key)) {
                     float thumbnailWidth = P._1dp * Float.parseFloat((String) o);
                     if (thumbnailWidth <= 0) throw new IllegalArgumentException("Thumbnail width must be > 0");
-                    if (thumbnailWidth > (P.weaselWidth * 0.9)) throw new IllegalArgumentException("Thumbnail width must be less than screen width");
+                    if (thumbnailWidth > (ViewUtilsKt.calculateApproximateWeaselWidth(requireActivity()) * 0.9)) throw new IllegalArgumentException("Thumbnail width must be less than screen width");
                 } else if (PREF_MEDIA_PREVIEW_THUMBNAIL_MAX_HEIGHT.equals(key)) {
                     float thumbnailMaxHeight = P._1dp * Float.parseFloat((String) o);
                     if (thumbnailMaxHeight <= 0) throw new IllegalArgumentException("Thumbnail max height must be > 0");

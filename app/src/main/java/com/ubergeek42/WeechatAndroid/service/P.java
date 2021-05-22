@@ -78,28 +78,8 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         new MigratePreferences(context).migrate();
         loadUIPreferences();
         p.registerOnSharedPreferenceChangeListener(instance);
-        calculateWeaselWidth();
         Config.initPreferences();
         UploadConfigKt.initPreferences();
-    }
-
-    // sets the width of weasel (effectively the recycler view) for LineView. this is a workaround
-    // necessary in order to circumvent a bug (?) in ViewPager: sometimes, when measuring views, the
-    // RecyclerView will have a width of 0 (esp. when paging through buffers fast) and hence
-    // LineView will receive a suggested maximum width of 0 in its onMeasure().
-    //      note: other views in RecyclerView don't seem to have this problem. they either receive
-    //      correct values or somehow recover from width 0. the difference seems to lie in the fact
-    //      that they are inflated, and not created programmatically.
-    // this method is called from onStart() instead of onCreate() as onCreate() is called when the
-    // activities get recreated due to theme/battery state change. for some reason, the activities
-    // get recreated even though the user is using another app; if it happens in the wrong screen
-    // orientation, the value is wrong.
-    // todo: switch to ViewPager2 and get rid of this nonsense
-    public static @Cat void calculateWeaselWidth() {
-        int windowWidth = context.getResources().getDisplayMetrics().widthPixels;
-        boolean slidy = context.getResources().getBoolean(R.bool.slidy);
-        P.weaselWidth = slidy ? windowWidth :
-                windowWidth - context.getResources().getDimensionPixelSize(R.dimen.drawer_width);
     }
 
     // set colorPrimary and colorPrimaryDark according to color scheme or app theme
@@ -137,7 +117,6 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     public static @Nullable DateTimeFormatter dateFormat;
     public static int align;
 
-    public static int weaselWidth = 1080;
     public static float textSize, letterWidth;
     public static TextPaint textPaint;
 
