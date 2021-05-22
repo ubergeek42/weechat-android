@@ -209,7 +209,8 @@ class BufferFragmentFullScreenController(val fragment: BufferFragment) : Default
     private val insetListener = InsetListener {
         val ui = fragment.ui ?: return@InsetListener
 
-        val linesTopPadding = if (P.autoHideActionbar) windowInsets.top else 0
+        val linesTopPadding = if (fragment.activity is WeechatActivity && P.autoHideActionbar)
+                windowInsets.top else 0
         val fabRightMargin = windowInsets.right + (P._1dp * 12).i
 
         ui.chatLines.updatePadding(top = linesTopPadding,
