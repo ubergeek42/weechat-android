@@ -82,6 +82,7 @@ fun initializeNotificator(context: Context) {
         NotificationManager.IMPORTANCE_HIGH
     ).apply {
         enableLights(true)
+        vibrationPattern = longArrayOf(50L, 50L, 50L, 50L)
         manager.createNotificationChannel(this)
     }
 }
