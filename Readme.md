@@ -22,7 +22,7 @@ to get up and running, and don't forget to read the [FAQ](https://github.com/ube
 ### Bug reports and contributing
 
 Report any bugs or feature requests here on GitHub. You can also find us on #weechat-android 
-on freenode. When reporting an issue, make sure to include build ID that you can find in Settings → About 
+on irc.libera.chat. When reporting an issue, make sure to include build ID that you can find in Settings → About 
 (looks something like “v0.13-123-g1234567”).
 
 If you want to contribute, check out our 
