@@ -27,7 +27,7 @@ jobs:
       - run: ./releases/travis_build.sh
         env:
           DEVKEYPASSWORD: ${{secrets.DEVKEYPASSWORD}}
-          DEVSTOREFILE: /home/travis/build/ubergeek42/weechat-android/releases/android.jks
+          DEVSTOREFILE: /home/runner/work/weechat-android/weechat-android/releases/android.jks
           DEVSTOREPASSWORD: ${{secrets.DEVSTOREPASSWORD}}
           encrypted_6a3fa2e8cfe5_iv: ${{secrets.encrypted_6a3fa2e8cfe5_iv}}
           encrypted_6a3fa2e8cfe5_key: ${{secrets.encrypted_6a3fa2e8cfe5_key}}
