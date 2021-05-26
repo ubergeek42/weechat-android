@@ -22,11 +22,11 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
-      - run: echo "$HOME/.local/bin" >> $GITHUB_PATH
-      - run: pyenv install --list
-      - run: pyenv install --skip-existing 3.6.2 && pyenv global 3.6.2
-      - run: python3 -m pip install --upgrade pip
-      - run: python3 -m pip install --user google-api-python-client oauth2client httplib2 pyOpenSSL
+      - uses: gabrielfalcao/pyenv-action@v7
+        with:
+          default: "3.6.2"
+      - run: pip install --upgrade pip
+      - run: pip install --user google-api-python-client oauth2client httplib2 pyOpenSSL
 
       - run: ./gradlew test
 
