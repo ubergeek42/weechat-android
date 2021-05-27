@@ -30,6 +30,8 @@ jobs:
       - run: pip install --upgrade pip
       - run: pip install --user google-api-python-client oauth2client httplib2 pyOpenSSL
 
+      - run: sed -i "s/versionCode.*/versionCode = $(git rev-list HEAD --first-parent --count)/" app/build.gradle.kts
+
       - run: ./gradlew test
 
       - run: ./releases/travis_build.sh
