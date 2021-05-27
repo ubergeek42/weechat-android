@@ -19,6 +19,7 @@ if [ -z "$DEVKEYPASSWORD" ]; then
     DEV="0"
 fi
 
+echo "well here we go!"
 if [ "$DEV" == "1" ]; then
     ./gradlew clean :app:assembleDev \
         -PdevStorefile="$DEVSTOREFILE" \
