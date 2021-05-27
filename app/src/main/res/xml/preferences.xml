@@ -490,7 +490,7 @@
             android:defaultValue="everything" />
         <ListPreference
             android:key="upload_no_of_direct_share_targets"
-            android:title="Direct share"
+            android:title="@string/pref__upload__no_of_direct_share_targets"
             android:summary="%s"
             android:entryValues="@array/pref__upload__no_of_direct_share_targets"
             android:entries="@array/pref__upload__no_of_direct_share_targets_names"

@@ -610,6 +610,13 @@
     <string name="pref__look_n_feel__font">
         Police des tampons</string>
     <string name="pref__FontPreference__default">Par défaut</string>
+    <string name="pref__FontPreference__import_button">Importer</string>
+    <string name="pref__FontPreference__imported">Importée&#8239;: %s</string>
+
+    <string name="pref__FontPreferenceHelp__summary">
+        Les polices non-monospaces peuvent poser des problèmes d’alignement.
+        Importez des polices via la boîte de dialogue
+        ou déposez-les dans l’un de ces dossiers&#8239;:%1$s</string>
 
     <!-- ####################################################################################### -->
     <!-- ######################################## theme ######################################## -->
@@ -631,6 +638,20 @@
     <string name="pref__theme__color_scheme_dark">Thèmes avec des couleurs sombres</string>
     <string name="pref__ThemeManager__error_loading_color_scheme">Erreur lors du chargement du thème %s</string>
     <string name="pref__ThemePreference__not_set">Non défini</string>
+    <string name="pref__ThemePreference__error">Erreur</string>
+    <string name="pref__ThemePreference__import_button">Importer</string>
+    <string name="pref__ThemePreference__imported">Importé&#8239;: %s</string>
+
+    <string name="pref__ThemePreferenceHelp__summary"><![CDATA[
+        Vous pouvez créer des thèmes personnalisés pour cette application.
+        Choisissez vos propres couleurs pour les éléments de l’interface,
+        la mise en valeur des messages notables,
+        le marqueur de lecture et la palette de WeeChat&#8239;!
+        <a href="https://github.com/ubergeek42/weechat-android/wiki/Custom-Color-Schemes">En savoir plus (en anglais)</a>
+        <br>
+        <br>Importez vos palettes de couleurs via la boîte de dialogue
+        ou déposez-les dans le dossier&#8239;:%1$s
+    ]]></string>
 
     <string name="pref__theme__dim_down_non_human_lines">
         Atténuer les lignes hors discussion</string>
@@ -796,6 +817,15 @@
         <item>Texte seulement</item>
         <item>Texte, images et vidéos</item>
         <item>Tout</item>
+    </string-array>
+
+    <string name="pref__upload__no_of_direct_share_targets">Partage rapide</string>
+    <string-array name="pref__upload__no_of_direct_share_targets_names">
+        <item>Désactivé</item>
+        <item>Max. 1 tampon</item>
+        <item>Max. 2 tampons</item>
+        <item>Max. 3 tampons</item>
+        <item>Max. 4 tampons</item>
     </string-array>
 
     <string name="pref__upload__upload_uri">URL de téléversement</string>
