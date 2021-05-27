@@ -4,8 +4,10 @@ name: CI
 
 # Controls when the action will run. 
 on:
-  # Triggers the workflow on push to any branch
+  # Triggers the workflow on push or pull request to any branch
   push:
+
+  pull_request:
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -45,9 +47,14 @@ jobs:
           S3_ACCESS_KEY: ${{secrets.S3_ACCESS_KEY}}
           S3_BUCKET: weechat-android.ubergeek42.com
           S3_SECRET_KEY: ${{secrets.S3_SECRET_KEY}}
+        if: github.event_name != 'pull_request'
 
-#      - run: ./releases/publish_playstore_v3.py
+#      - run: openssl aes-256-cbc -K $encrypted_6a3fa2e8cfe5_key -iv $encrypted_6a3fa2e8cfe5_iv -in releases/google-play-key.p12.enc -out releases/google-play-key.p12 -d
 #        env:
 #          encrypted_6a3fa2e8cfe5_iv: ${{secrets.encrypted_6a3fa2e8cfe5_iv}}
 #          encrypted_6a3fa2e8cfe5_key: ${{secrets.encrypted_6a3fa2e8cfe5_key}}
+#        if: github.event_name != 'pull_request'
+#      - run: ./releases/publish_playstore_v3.py
+#        env:
 #          GOOGLEPLAY_ACCT_EMAIL: ${{secrets.GOOGLEPLAY_ACCT_EMAIL}}
+#        if: github.event_name != 'pull_request'
