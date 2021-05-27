@@ -168,17 +168,18 @@ private val summaryNotificationDismissIntent = makeBroadcastIntent<NotificationD
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-@Cat fun showHotNotification(hotBuffer: HotlistBuffer, allHotBuffers: Collection<HotlistBuffer>, makeNoise: Boolean) {
+@Cat fun showHotNotification(hotBuffer: HotlistBuffer, allHotBuffers: Collection<HotlistBuffer>, isNewMessage: Boolean) {
     if (!P.notificationEnable) return
 
-    val publishingNewNotification = hotBuffer in allHotBuffers
+    val updatingDismissedNotification = !isNewMessage && hotBuffer.fullName !in displayedNotifications
+    val publishingNewNotification = hotBuffer in allHotBuffers && !updatingDismissedNotification
 
     // on api < 24, if the user dismissed *the* notification,
     // make sure we don't add it back if the user only reads a hot buffer
     if (!CAN_MAKE_BUNDLED_NOTIFICATIONS && !summaryNotificationDisplayed
             && !publishingNewNotification) return
 
-    //
+    // todo
     if (Build.VERSION.SDK_INT >= 30) fixupBubblesThatShouldBeKept()
 
     val unwantedNotifications = displayedNotifications - allHotBuffers.map { it.fullName }
@@ -222,7 +223,7 @@ private val summaryNotificationDismissIntent = makeBroadcastIntent<NotificationD
     }
 
     if (!CAN_MAKE_BUNDLED_NOTIFICATIONS) {
-        val summary = makeSummaryNotification(allHotBuffers).setMakeNoise(makeNoise).build()
+        val summary = makeSummaryNotification(allHotBuffers).setMakeNoise(isNewMessage).build()
         manager.notify(ID_HOT, summary)
         summaryNotificationDisplayed = true
     } else {
@@ -234,7 +235,7 @@ private val summaryNotificationDismissIntent = makeBroadcastIntent<NotificationD
             kitty.trace("publishing buffer notification for %s", hotBuffer.fullName)
             val notification = makeBufferNotification(hotBuffer, true)
                     .addBubbleMetadata(hotBuffer, false)
-                    .setMakeNoise(makeNoise)
+                    .setMakeNoise(isNewMessage)
                     .build()
             manager.notify(hotBuffer.fullName, ID_HOT, notification)
             displayedNotifications = displayedNotifications + hotBuffer.fullName

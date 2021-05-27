@@ -108,7 +108,7 @@ data class HotlistBuffer(
                 isPrivate = buffer.type == BufferSpec.Type.Private,
                 hotCount = newHotCount,
                 messages = messages,
-            ).pushUpdate(makeNoise = false)
+            ).pushUpdate()
         }
     }
 
@@ -118,7 +118,7 @@ data class HotlistBuffer(
         copy(
             hotCount = hotCount + 1,
             messages = messages + message,
-        ).pushUpdate(makeNoise = true)
+        ).pushUpdate(newMessage = true)
 
         if (Engine.isEnabledAtAll() && Engine.isEnabledForLocation(Engine.Location.NOTIFICATION) &&
             Engine.isEnabledForLine(line)) {
@@ -146,10 +146,10 @@ data class HotlistBuffer(
 internal var hotlistBuffers = mapOf<String, HotlistBuffer>()
 
 
-private fun HotlistBuffer.pushUpdate(makeNoise: Boolean = false) {
+private fun HotlistBuffer.pushUpdate(newMessage: Boolean = false) {
     hotlistBuffers = (hotlistBuffers + (this.fullName to this))
         .filter { it.value.hotCount > 0 }
-        .also { showHotNotification(this, it.values, makeNoise) }
+        .also { showHotNotification(this, it.values, newMessage) }
 }
 
 
