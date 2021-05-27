@@ -37,11 +37,15 @@ jobs:
           DEVKEYPASSWORD: ${{secrets.DEVKEYPASSWORD}}
           DEVSTOREFILE: /home/runner/work/weechat-android/weechat-android/releases/android.jks
           DEVSTOREPASSWORD: ${{secrets.DEVSTOREPASSWORD}}
-          encrypted_6a3fa2e8cfe5_iv: ${{secrets.encrypted_6a3fa2e8cfe5_iv}}
-          encrypted_6a3fa2e8cfe5_key: ${{secrets.encrypted_6a3fa2e8cfe5_key}}
-          encrypted_b71541c3ad56_iv: ${{secrets.encrypted_b71541c3ad56_iv}}
-          encrypted_b71541c3ad56_key: ${{secrets.encrypted_b71541c3ad56_key}}
-          GOOGLEPLAY_ACCT_EMAIL: ${{secrets.GOOGLEPLAY_ACCT_EMAIL}}
+
+      - run: ./releases/publish_s3.sh
+        env:
           S3_ACCESS_KEY: ${{secrets.S3_ACCESS_KEY}}
           S3_BUCKET: weechat-android.ubergeek42.com
           S3_SECRET_KEY: ${{secrets.S3_SECRET_KEY}}
+
+#      - run: ./releases/publish_playstore_v3.py
+#        env:
+#          encrypted_6a3fa2e8cfe5_iv: ${{secrets.encrypted_6a3fa2e8cfe5_iv}}
+#          encrypted_6a3fa2e8cfe5_key: ${{secrets.encrypted_6a3fa2e8cfe5_key}}
+#          GOOGLEPLAY_ACCT_EMAIL: ${{secrets.GOOGLEPLAY_ACCT_EMAIL}}
