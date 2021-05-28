@@ -51,8 +51,8 @@ jobs:
         env:
           encrypted_6a3fa2e8cfe5_iv: ${{secrets.encrypted_6a3fa2e8cfe5_iv}}
           encrypted_6a3fa2e8cfe5_key: ${{secrets.encrypted_6a3fa2e8cfe5_key}}
-        if: github.event_name != 'pull_request'
+        if: ${{ github.event_name != 'pull_request' && env.encrypted_6a3fa2e8cfe5_iv && env.encrypted_6a3fa2e8cfe5_key }}
       - run: ./releases/publish_playstore_v3.py
         env:
           GOOGLEPLAY_ACCT_EMAIL: ${{secrets.GOOGLEPLAY_ACCT_EMAIL}}
-        if: github.event_name != 'pull_request'
+        if: ${{ github.event_name != 'pull_request' && env.secrets.GOOGLEPLAY_ACCT_EMAIL && hashFiles('release/google-play-key.p12') != '' }}
