@@ -149,7 +149,13 @@ internal var hotlistBuffers = mapOf<String, HotlistBuffer>()
 private fun HotlistBuffer.pushUpdate(newMessage: Boolean = false) {
     hotlistBuffers = (hotlistBuffers + (this.fullName to this))
         .filter { it.value.hotCount > 0 }
-        .also { showHotNotification(this, it.values, newMessage) }
+        .also {
+            when {
+                newMessage -> showHotNotification(it.values, this)
+                this.hotCount > 0 -> updateHotNotification(this, it.values)
+                else -> filterNotifications(it.values)
+            }
+        }
 }
 
 

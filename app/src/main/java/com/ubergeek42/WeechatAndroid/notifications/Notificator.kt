@@ -168,25 +168,19 @@ private val summaryNotificationDismissIntent = makeBroadcastIntent<NotificationD
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-@Cat fun showHotNotification(hotBuffer: HotlistBuffer, allHotBuffers: Collection<HotlistBuffer>, isNewMessage: Boolean) {
-    if (!P.notificationEnable) return
-
-    val updatingDismissedNotification = !isNewMessage && hotBuffer.fullName !in displayedNotifications
-    val publishingNewNotification = hotBuffer in allHotBuffers && !updatingDismissedNotification
-
-    // on api < 24, if the user dismissed *the* notification,
-    // make sure we don't add it back if the user only reads a hot buffer
-    if (!CAN_MAKE_BUNDLED_NOTIFICATIONS && !summaryNotificationDisplayed
-            && !publishingNewNotification) return
-
-    // todo
+private fun filterNotificationsInternal(hotlistBuffers: Collection<HotlistBuffer>) {
     if (Build.VERSION.SDK_INT >= 30) fixupBubblesThatShouldBeKept()
 
-    val unwantedNotifications = displayedNotifications - allHotBuffers.map { it.fullName }
+    val unwantedNotifications = displayedNotifications - hotlistBuffers.map { it.fullName }
     val bubbledNotificationsToCancel = bubblesThatShouldBeKept intersect unwantedNotifications
     val notificationsToCancel = unwantedNotifications - bubbledNotificationsToCancel
     val noNotificationsRemainAfterRemove =
             (displayedNotifications == notificationsToCancel) && bubblesThatShouldBeKept.isEmpty()
+    val shouldCancelSummary = if (CAN_MAKE_BUNDLED_NOTIFICATIONS) {
+                                  noNotificationsRemainAfterRemove
+                              } else {
+                                  hotlistBuffers.isEmpty()
+                              }
 
     notificationsToCancel.forEach { fullName ->
         kitty.trace("canceling buffer notification for %s", fullName)
@@ -208,40 +202,73 @@ private val summaryNotificationDismissIntent = makeBroadcastIntent<NotificationD
         }
     }
 
-    // make sure to not add back the summary if the user manually dismissed some
-    // (which does not clear them from hotlist) and we have removed the remaining ones above
-    val shouldCancelSummaryAndReturn = if (CAN_MAKE_BUNDLED_NOTIFICATIONS) {
-        noNotificationsRemainAfterRemove && !publishingNewNotification
-    } else {
-        allHotBuffers.isEmpty()
-    }
-
-    if (shouldCancelSummaryAndReturn) {
+    if (shouldCancelSummary) {
         kitty.trace("canceling summary notification")
         manager.cancel(ID_HOT)
-        return
-    }
-
-    if (!CAN_MAKE_BUNDLED_NOTIFICATIONS) {
-        val summary = makeSummaryNotification(allHotBuffers).setMakeNoise(isNewMessage).build()
-        manager.notify(ID_HOT, summary)
-        summaryNotificationDisplayed = true
-    } else {
-        kitty.trace("publishing summary notification")
-        val summary = makeSummaryNotification(allHotBuffers).setMakeNoise(false).build()
-        manager.notify(ID_HOT, summary)
-
-        if (publishingNewNotification) {
-            kitty.trace("publishing buffer notification for %s", hotBuffer.fullName)
-            val notification = makeBufferNotification(hotBuffer, true)
-                    .addBubbleMetadata(hotBuffer, false)
-                    .setMakeNoise(isNewMessage)
-                    .build()
-            manager.notify(hotBuffer.fullName, ID_HOT, notification)
-            displayedNotifications = displayedNotifications + hotBuffer.fullName
-        }
     }
 }
+
+
+private fun pushSummaryNotification(hotlistBuffers: Collection<HotlistBuffer>, makeNoise: Boolean) {
+    kitty.trace("publishing summary notification")
+    val summaryNotification = makeSummaryNotification(hotlistBuffers)
+            .setMakeNoise(makeNoise)
+            .build()
+    manager.notify(ID_HOT, summaryNotification)
+    summaryNotificationDisplayed = true
+}
+
+
+private fun pushBufferNotification(hotBuffer: HotlistBuffer, makeNoise: Boolean) {
+    kitty.trace("publishing buffer notification for %s", hotBuffer.fullName)
+    val bufferNotification = makeBufferNotification(hotBuffer, true)
+            .addBubbleMetadata(hotBuffer, false)
+            .setMakeNoise(makeNoise)
+            .build()
+    manager.notify(hotBuffer.fullName, ID_HOT, bufferNotification)
+    displayedNotifications = displayedNotifications + hotBuffer.fullName
+}
+
+
+private fun pushSummaryAndBufferNotifications(hotlistBuffers: Collection<HotlistBuffer>,
+                                              hotBuffer: HotlistBuffer, makeNoise: Boolean) {
+    if (!CAN_MAKE_BUNDLED_NOTIFICATIONS) {
+        pushSummaryNotification(hotlistBuffers, makeNoise)
+    } else {
+        pushSummaryNotification(hotlistBuffers, false)
+        pushBufferNotification(hotBuffer, makeNoise)
+    }
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+@Cat fun filterNotifications(hotlistBuffers: Collection<HotlistBuffer>) {
+    if (!P.notificationEnable) return
+    filterNotificationsInternal(hotlistBuffers)
+}
+
+
+@Cat fun updateHotNotification(hotBuffer: HotlistBuffer, hotlistBuffers: Collection<HotlistBuffer>) {
+    if (!P.notificationEnable) return
+
+    // don't add back notifications that were dismissed by user
+    if (CAN_MAKE_BUNDLED_NOTIFICATIONS && hotBuffer.fullName !in displayedNotifications) return
+    if (!CAN_MAKE_BUNDLED_NOTIFICATIONS && !summaryNotificationDisplayed) return
+
+    filterNotificationsInternal(hotlistBuffers)
+    pushSummaryAndBufferNotifications(hotlistBuffers, hotBuffer, makeNoise = false)
+}
+
+
+@Cat fun showHotNotification(hotlistBuffers: Collection<HotlistBuffer>, hotBuffer: HotlistBuffer) {
+    if (!P.notificationEnable) return
+    pushSummaryAndBufferNotifications(hotlistBuffers, hotBuffer, makeNoise = true)
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 fun addOrRemoveActionForCurrentNotifications(addReplyAction: Boolean) {
@@ -562,6 +589,7 @@ fun fixupBubblesThatShouldBeKept() {
         }
     }
 }
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
