@@ -1,0 +1,58 @@
+name: CI
+
+# Controls when the action will run. 
+on:
+  # Triggers the workflow on push or pull request to any branch
+  push:
+
+  pull_request:
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - uses: gabrielfalcao/pyenv-action@v7
+        with:
+          default: "3.6.2"
+      - run: pip install --upgrade pip
+      - run: pip install --user google-api-python-client oauth2client httplib2 pyOpenSSL
+
+      - run: sed -i "s/versionCode.*/versionCode = $(git rev-list HEAD --first-parent --count)/" app/build.gradle.kts
+
+      - run: ./gradlew test
+
+      - run: ./releases/travis_build.sh
+        env:
+          DEVKEYPASSWORD: ${{secrets.DEVKEYPASSWORD}}
+          DEVSTOREFILE: /home/runner/work/weechat-android/weechat-android/releases/android.jks
+          DEVSTOREPASSWORD: ${{secrets.DEVSTOREPASSWORD}}
+
+      - run: ./releases/publish_s3.sh
+        env:
+          S3_ACCESS_KEY: ${{secrets.S3_ACCESS_KEY}}
+          S3_BUCKET: weechat-android.ubergeek42.com
+          S3_SECRET_KEY: ${{secrets.S3_SECRET_KEY}}
+        if: github.event_name != 'pull_request'
+
+      - run: openssl aes-256-cbc -K $encrypted_6a3fa2e8cfe5_key -iv $encrypted_6a3fa2e8cfe5_iv -in releases/google-play-key.p12.enc -out releases/google-play-key.p12 -d
+        env:
+          encrypted_6a3fa2e8cfe5_iv: ${{secrets.encrypted_6a3fa2e8cfe5_iv}}
+          encrypted_6a3fa2e8cfe5_key: ${{secrets.encrypted_6a3fa2e8cfe5_key}}
+        if: github.event_name != 'pull_request'
+      - run: ./releases/publish_playstore_v3.py
+        env:
+          GOOGLEPLAY_ACCT_EMAIL: ${{secrets.GOOGLEPLAY_ACCT_EMAIL}}
+        if: github.event_name != 'pull_request'
