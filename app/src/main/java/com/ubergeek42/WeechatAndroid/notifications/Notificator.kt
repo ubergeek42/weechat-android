@@ -253,9 +253,31 @@ private fun pushSummaryAndBufferNotifications(hotlistBuffers: Collection<Hotlist
 @Cat fun updateHotNotification(hotBuffer: HotlistBuffer, hotlistBuffers: Collection<HotlistBuffer>) {
     if (!P.notificationEnable) return
 
-    // don't add back notifications that were dismissed by user
-    if (CAN_MAKE_BUNDLED_NOTIFICATIONS && hotBuffer.fullName !in displayedNotifications) return
-    if (!CAN_MAKE_BUNDLED_NOTIFICATIONS && !summaryNotificationDisplayed) return
+    val notificationHasBeenDismissedByUser = if (CAN_MAKE_BUNDLED_NOTIFICATIONS) {
+                                                 hotBuffer.fullName !in displayedNotifications
+                                             } else {
+                                                 !summaryNotificationDisplayed
+                                             }
+
+    // when user dismisses the notification by swiping it away, and it is accompanied by a bubble,
+    // the system doesn't fire notification's delete intent. also, the notification remains
+    // in the list of active notification retrieved by manager.getActiveNotifications()
+    val notificationMightHaveBeenDismissedByUser = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                                                       willBubble(hotBuffer.fullName)
+                                                   } else {
+                                                       false
+                                                   }
+
+    if (notificationHasBeenDismissedByUser) {
+        kitty.trace("not updating notification for %s as it is not displaying", hotBuffer.fullName)
+        return
+    }
+
+    if (notificationMightHaveBeenDismissedByUser) {
+        kitty.trace("not updating notification for %s as it is bubbling " +
+                    "and might have been dismissed by user", hotBuffer.fullName)
+        return
+    }
 
     filterNotificationsInternal(hotlistBuffers)
     pushSummaryAndBufferNotifications(hotlistBuffers, hotBuffer, makeNoise = false)
@@ -569,6 +591,17 @@ fun notifyBubbleDismissed(fullName: String) {
 }
 
 
+// returns whether a notification associated with this shortcut will display a bubble
+// if posted with bubble metadata. this can be changed by user by pressing ⇱/⇲ buttons,
+// or by going to app's notifications preferences. dismissing the bubble by dragging it
+// to the (x) area on the bottom of the screen doesn't change this, and if the app
+// publishes another notification after that it will recreate a bubble
+@RequiresApi(Build.VERSION_CODES.R)
+private fun willBubble(fullName: String): Boolean {
+    return manager.getNotificationChannel(CHANNEL_HOTLIST, fullName)?.canBubble() == true
+}
+
+
 // user can opt out of bubbles for specific conversations, e.g. by pressing ⇱ notification button.
 // if a bubble is displayed, this removes it, BUT dismiss listener is not called.
 // so let's verify that the bubbles we are trying to keep are valid
@@ -580,10 +613,8 @@ fun notifyBubbleDismissed(fullName: String) {
 //     but as the bubble is disabled it doesn't get suppressed
 @RequiresApi(Build.VERSION_CODES.R)
 fun fixupBubblesThatShouldBeKept() {
-    fun canBubble(fullName: String) = manager.getNotificationChannel(CHANNEL_HOTLIST, fullName)
-            ?.canBubble() == true
     bubblesThatShouldBeKept.forEach { fullName ->
-        if (!canBubble(fullName)) {
+        if (!willBubble(fullName)) {
             kitty.trace("bubble has become invalid: %s", fullName)
             notifyBubbleDismissed(fullName)
         }
