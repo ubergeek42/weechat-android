@@ -1,5 +1,3 @@
-# This is a basic workflow to help you get started with Actions
-
 name: CI
 
 # Controls when the action will run. 
@@ -49,12 +47,12 @@ jobs:
           S3_SECRET_KEY: ${{secrets.S3_SECRET_KEY}}
         if: github.event_name != 'pull_request'
 
-#      - run: openssl aes-256-cbc -K $encrypted_6a3fa2e8cfe5_key -iv $encrypted_6a3fa2e8cfe5_iv -in releases/google-play-key.p12.enc -out releases/google-play-key.p12 -d
-#        env:
-#          encrypted_6a3fa2e8cfe5_iv: ${{secrets.encrypted_6a3fa2e8cfe5_iv}}
-#          encrypted_6a3fa2e8cfe5_key: ${{secrets.encrypted_6a3fa2e8cfe5_key}}
-#        if: github.event_name != 'pull_request'
-#      - run: ./releases/publish_playstore_v3.py
-#        env:
-#          GOOGLEPLAY_ACCT_EMAIL: ${{secrets.GOOGLEPLAY_ACCT_EMAIL}}
-#        if: github.event_name != 'pull_request'
+      - run: openssl aes-256-cbc -K $encrypted_6a3fa2e8cfe5_key -iv $encrypted_6a3fa2e8cfe5_iv -in releases/google-play-key.p12.enc -out releases/google-play-key.p12 -d
+        env:
+          encrypted_6a3fa2e8cfe5_iv: ${{secrets.encrypted_6a3fa2e8cfe5_iv}}
+          encrypted_6a3fa2e8cfe5_key: ${{secrets.encrypted_6a3fa2e8cfe5_key}}
+        if: github.event_name != 'pull_request'
+      - run: ./releases/publish_playstore_v3.py
+        env:
+          GOOGLEPLAY_ACCT_EMAIL: ${{secrets.GOOGLEPLAY_ACCT_EMAIL}}
+        if: github.event_name != 'pull_request'

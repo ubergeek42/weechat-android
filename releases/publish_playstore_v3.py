@@ -75,11 +75,8 @@ def upload():
 
 
 if __name__ == '__main__':
-    if os.environ.get('TRAVIS_BRANCH', 'undefined') != 'master':
+    if os.environ.get('GITHUB_REF', 'undefined') != 'refs/heads/master':
         raise Exception("Won't publish play store app for any branch except master")
-
-    if os.environ.get('TRAVIS_PULL_REQUEST', None) != "false":
-        raise Exception("Won't publish play store app for pull requests")
 
     re_version = re.compile(r"^v\d+(\.\d+)*$")
     output = subprocess.check_output(["git", "tag", "--points-at", "HEAD"]).decode("utf-8")
