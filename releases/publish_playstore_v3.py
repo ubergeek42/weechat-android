@@ -8,6 +8,7 @@
 
 import os
 import re
+import sys
 import httplib2
 import subprocess
 import googleapiclient.discovery
@@ -76,11 +77,13 @@ def upload():
 
 if __name__ == '__main__':
     if os.environ.get('GITHUB_REF', 'undefined') != 'refs/heads/master':
-        raise Exception("Won't publish play store app for any branch except master")
+        print("Won't publish play store app for any branch except master", file=sys.stderr)
+        sys.exit()
 
     re_version = re.compile(r"^v\d+(\.\d+)*$")
     output = subprocess.check_output(["git", "tag", "--points-at", "HEAD"]).decode("utf-8")
     if not any(re_version.match(line) for line in output.splitlines()):
-        raise Exception("No version tags point to HEAD")
+        print("No version tags point to HEAD", file=sys.stderr)
+        sys.exit()
 
     upload()
