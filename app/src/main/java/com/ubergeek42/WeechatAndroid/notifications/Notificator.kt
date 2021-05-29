@@ -165,7 +165,7 @@ private val summaryNotificationIntent = makeActivityIntent<WeechatActivity>(Cons
 private val summaryNotificationDismissIntent = makeBroadcastIntent<NotificationDismissedReceiver>("")
 
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////// notify & cancel
 
 
 private fun filterNotificationsInternal(hotlistBuffers: Collection<HotlistBuffer>) {
@@ -219,10 +219,10 @@ private fun pushSummaryNotification(hotlistBuffers: Collection<HotlistBuffer>, m
 }
 
 
-private fun pushBufferNotification(hotBuffer: HotlistBuffer, makeNoise: Boolean) {
+private fun pushBufferNotification(hotBuffer: HotlistBuffer, makeNoise: Boolean, addReplyAction: Boolean) {
     kitty.trace("publishing buffer notification for %s", hotBuffer.fullName)
-    val bufferNotification = makeBufferNotification(hotBuffer, true)
-            .addBubbleMetadata(hotBuffer, false)
+    val bufferNotification = makeBufferNotification(hotBuffer, addReplyAction)
+            .addBubbleMetadata(hotBuffer, suppressNotification = false)
             .setMakeNoise(makeNoise)
             .build()
     manager.notify(hotBuffer.fullName, ID_HOT, bufferNotification)
@@ -236,11 +236,47 @@ private fun pushSummaryAndBufferNotifications(hotlistBuffers: Collection<Hotlist
         pushSummaryNotification(hotlistBuffers, makeNoise)
     } else {
         pushSummaryNotification(hotlistBuffers, false)
-        pushBufferNotification(hotBuffer, makeNoise)
+        pushBufferNotification(hotBuffer, makeNoise, addReplyAction = true)
     }
 }
 
 
+//////////////////////////////////////////////////////////////////////////////////// user dismissals
+
+
+private fun notificationHasBeenDismissedByUser(fullName: String) =
+        if (CAN_MAKE_BUNDLED_NOTIFICATIONS) {
+            fullName !in displayedNotifications
+        } else {
+            !summaryNotificationDisplayed
+        }
+
+
+// when user dismisses the notification by swiping it away, and it is accompanied by a bubble,
+// the system doesn't fire notification's delete intent. also, the notification remains
+// in the list of active notification retrieved by manager.getActiveNotifications()
+private fun notificationMightHaveBeenDismissedByUser(fullName: String) =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) willBubble(fullName) else false
+
+
+private fun ifNotificationStillDisplayed(fullName: String, action: () -> Unit) {
+    if (notificationHasBeenDismissedByUser(fullName)) {
+        kitty.trace("not updating notification for %s as it is not displaying", fullName)
+        return
+    }
+
+    if (notificationMightHaveBeenDismissedByUser(fullName)) {
+        kitty.trace("not updating notification for %s as it is bubbling " +
+                    "and might have been dismissed by user", fullName)
+        return
+    }
+
+    action()
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -252,35 +288,10 @@ private fun pushSummaryAndBufferNotifications(hotlistBuffers: Collection<Hotlist
 
 @Cat fun updateHotNotification(hotBuffer: HotlistBuffer, hotlistBuffers: Collection<HotlistBuffer>) {
     if (!P.notificationEnable) return
-
-    val notificationHasBeenDismissedByUser = if (CAN_MAKE_BUNDLED_NOTIFICATIONS) {
-                                                 hotBuffer.fullName !in displayedNotifications
-                                             } else {
-                                                 !summaryNotificationDisplayed
-                                             }
-
-    // when user dismisses the notification by swiping it away, and it is accompanied by a bubble,
-    // the system doesn't fire notification's delete intent. also, the notification remains
-    // in the list of active notification retrieved by manager.getActiveNotifications()
-    val notificationMightHaveBeenDismissedByUser = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                                                       willBubble(hotBuffer.fullName)
-                                                   } else {
-                                                       false
-                                                   }
-
-    if (notificationHasBeenDismissedByUser) {
-        kitty.trace("not updating notification for %s as it is not displaying", hotBuffer.fullName)
-        return
+    ifNotificationStillDisplayed(hotBuffer.fullName) {
+        filterNotificationsInternal(hotlistBuffers)
+        pushSummaryAndBufferNotifications(hotlistBuffers, hotBuffer, makeNoise = false)
     }
-
-    if (notificationMightHaveBeenDismissedByUser) {
-        kitty.trace("not updating notification for %s as it is bubbling " +
-                    "and might have been dismissed by user", hotBuffer.fullName)
-        return
-    }
-
-    filterNotificationsInternal(hotlistBuffers)
-    pushSummaryAndBufferNotifications(hotlistBuffers, hotBuffer, makeNoise = false)
 }
 
 
@@ -290,23 +301,18 @@ private fun pushSummaryAndBufferNotifications(hotlistBuffers: Collection<Hotlist
 }
 
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-fun addOrRemoveActionForCurrentNotifications(addReplyAction: Boolean) {
-    notificationHandler.post {
-        hotlistBuffers.values
-                .filter { displayedNotifications.contains(it.fullName) }
-                .forEach { hotBuffer ->
-            kitty.trace("%s action for buffer notification %s", if (addReplyAction) "adding" else "removing", hotBuffer.fullName)
-            val notification = makeBufferNotification(hotBuffer, addReplyAction)
-                    .addBubbleMetadata(hotBuffer, suppressNotification = false)
-                    .setMakeNoise(false)
-                    .build()
-            manager.notify(hotBuffer.fullName, ID_HOT, notification)
+@Cat fun addOrRemoveActionForCurrentNotifications(addReplyAction: Boolean) = notificationHandler.post {
+    hotlistBuffers.values.forEach { hotBuffer ->
+        ifNotificationStillDisplayed(hotBuffer.fullName) {
+            pushBufferNotification(hotBuffer, makeNoise = false, addReplyAction)
         }
     }
 }
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 private fun makeSummaryNotification(hotBuffers: Collection<HotlistBuffer>): NotificationCompat.Builder {
@@ -464,7 +470,7 @@ private fun NotificationCompat.Builder.addBubbleMetadata(
 // a part of a notification group with a summary. in this state only the last message is
 // visible, so it's safe enough to duplicate the text as well
 // todo perhaps check if the image referenced by the url actually exists?
-fun NotificationCompat.MessagingStyle.addMessage(
+private fun NotificationCompat.MessagingStyle.addMessage(
     person: Person,
     message: CharSequence,
     timestamp: Long,
@@ -485,7 +491,7 @@ fun NotificationCompat.MessagingStyle.addMessage(
 // the big icon is generated from it. this is ugly but ¯\_(ツ)_/¯
 // in case when we have any lines at all in a private buffer, set the nick to the nick
 // of the first line we have to avoid awkward nick changes (current (missing) -> old -> current)
-fun NotificationCompat.MessagingStyle.maybeAddMissingMessageLine(
+private fun NotificationCompat.MessagingStyle.maybeAddMissingMessageLine(
     missingMessages: Int,
     hotBuffer: HotlistBuffer?,
     staticPerson: Person?,
@@ -519,7 +525,7 @@ fun NotificationCompat.MessagingStyle.maybeAddMissingMessageLine(
 }
 
 
-fun NotificationCompat.Builder.setMakeNoise(makeNoise: Boolean): NotificationCompat.Builder {
+private fun NotificationCompat.Builder.setMakeNoise(makeNoise: Boolean): NotificationCompat.Builder {
     setOnlyAlertOnce(!makeNoise)
 
     if (makeNoise && Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
@@ -612,7 +618,7 @@ private fun willBubble(fullName: String): Boolean {
 //   * visit buffer in main app. the app tries to publish a suppressed empty notification,
 //     but as the bubble is disabled it doesn't get suppressed
 @RequiresApi(Build.VERSION_CODES.R)
-fun fixupBubblesThatShouldBeKept() {
+private fun fixupBubblesThatShouldBeKept() {
     bubblesThatShouldBeKept.forEach { fullName ->
         if (!willBubble(fullName)) {
             kitty.trace("bubble has become invalid: %s", fullName)
@@ -646,7 +652,7 @@ class NotificationDismissedReceiver : BroadcastReceiver() {
 }
 
 
-var bubblesThatShouldBeKept = setOf<String>()
+private var bubblesThatShouldBeKept = setOf<String>()
 
 
 class BubbleDismissedReceiver : BroadcastReceiver() {
