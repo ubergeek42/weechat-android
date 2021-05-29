@@ -55,4 +55,4 @@ jobs:
       - run: ./releases/publish_playstore_v3.py
         env:
           GOOGLEPLAY_ACCT_EMAIL: ${{secrets.GOOGLEPLAY_ACCT_EMAIL}}
-        if: ${{ github.event_name != 'pull_request' && env.secrets.GOOGLEPLAY_ACCT_EMAIL && hashFiles('release/google-play-key.p12') != '' }}
+        if: ${{ github.event_name != 'pull_request' && env.GOOGLEPLAY_ACCT_EMAIL && hashFiles('releases/google-play-key.p12') != '' }}
