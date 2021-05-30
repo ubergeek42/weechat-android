@@ -301,6 +301,12 @@ private fun ifNotificationStillDisplayed(fullName: String, action: () -> Unit) {
 }
 
 
+@Cat fun showHotAsyncNotification(hotlistBuffers: Collection<HotlistBuffer>, hotBuffer: HotlistBuffer) {
+    if (!P.notificationEnable) return
+    pushSummaryAndBufferNotifications(hotlistBuffers, hotBuffer, makeNoise = false)
+}
+
+
 @Cat fun addOrRemoveActionForCurrentNotifications(addReplyAction: Boolean) = notificationHandler.post {
     hotlistBuffers.values.forEach { hotBuffer ->
         ifNotificationStillDisplayed(hotBuffer.fullName) {

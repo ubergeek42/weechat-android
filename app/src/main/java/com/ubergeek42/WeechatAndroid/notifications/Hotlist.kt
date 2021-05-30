@@ -108,7 +108,7 @@ data class HotlistBuffer(
                 isPrivate = buffer.type == BufferSpec.Type.Private,
                 hotCount = newHotCount,
                 messages = messages,
-            ).pushUpdate()
+            ).pushUpdate(newMessageAsync = newHotCount > hotCount)
         }
     }
 
@@ -146,12 +146,16 @@ data class HotlistBuffer(
 internal var hotlistBuffers = mapOf<String, HotlistBuffer>()
 
 
-private fun HotlistBuffer.pushUpdate(newMessage: Boolean = false) {
+private fun HotlistBuffer.pushUpdate(
+    newMessage: Boolean = false,
+    newMessageAsync: Boolean = false
+) {
     hotlistBuffers = (hotlistBuffers + (this.fullName to this))
         .filter { it.value.hotCount > 0 }
         .also {
             when {
                 newMessage -> showHotNotification(it.values, this)
+                newMessageAsync -> showHotAsyncNotification(it.values, this)
                 this.hotCount > 0 -> updateHotNotification(this, it.values)
                 else -> filterNotifications(it.values)
             }
