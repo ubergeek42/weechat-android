@@ -9,6 +9,7 @@ import android.text.Layout
 import android.text.Spannable
 import android.text.StaticLayout
 import com.ubergeek42.WeechatAndroid.service.P
+import com.ubergeek42.WeechatAndroid.upload.f
 import com.ubergeek42.WeechatAndroid.upload.i
 import com.ubergeek42.WeechatAndroid.utils.invalidatableLazy
 
@@ -39,6 +40,9 @@ internal class AlphaLayout private constructor(
     fun draw(canvas: Canvas) = layout.draw(canvas)
     fun getLineForVertical(vertical: Int) = layout.getLineForVertical(vertical)
     fun getOffsetForHorizontal(line: Int, horiz: Float) = layout.getOffsetForHorizontal(line, horiz)
+
+    fun getHorizontalTextCoordinatesForLine(line: Int)
+            = layout.getParagraphLeft(line).f..layout.getLineMax(line)
 
     companion object {
         private val ALIGNMENT = Layout.Alignment.ALIGN_NORMAL

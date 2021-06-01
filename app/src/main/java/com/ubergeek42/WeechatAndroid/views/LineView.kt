@@ -343,18 +343,20 @@ class LineView @JvmOverloads constructor(
                 override fun onSingleTapUp(event: MotionEvent): Boolean {
                     val currentLayout = this@LineView.currentLayout
                     val line = currentLayout.getLineForVertical(event.y.i)
-                    val offset = currentLayout.getOffsetForHorizontal(line, event.x)
-                    val links = text.getSpans(offset, offset, ClickableSpan::class.java)
 
-                    return if (links.isNotEmpty()) {
-                        links.first().onClick(this@LineView)
-                        true
-                    } else {
-                        false
+                    if (event.x in currentLayout.getHorizontalTextCoordinatesForLine(line)) {
+                        val offset = currentLayout.getOffsetForHorizontal(line, event.x)
+                        val links = text.getSpans(offset, offset, ClickableSpan::class.java)
+
+                        if (links.isNotEmpty()) {
+                            links.first().onClick(this@LineView)
+                            return true
+                        }
                     }
+
+                    return false
                 }
             })
-
 }
 
 
