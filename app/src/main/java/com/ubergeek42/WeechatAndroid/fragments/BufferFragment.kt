@@ -598,7 +598,7 @@ class BufferFragment : Fragment(), BufferEye {
 
         when (uploadStatus) {
             UploadStatus.NOTHING_TO_UPLOAD -> {
-                if (P.showSend) ui.sendButton.visibility = View.VISIBLE
+                ui.sendButton.visibility = if (P.showSend) View.VISIBLE else View.GONE
                 ui.uploadLayout.visibility = View.GONE
             }
             UploadStatus.HAS_THINGS_TO_UPLOAD, UploadStatus.UPLOADING -> {
