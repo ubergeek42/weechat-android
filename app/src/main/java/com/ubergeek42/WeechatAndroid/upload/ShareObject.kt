@@ -118,19 +118,32 @@ val NO_BITMAP: Bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ALPHA_8)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-@MainThread private fun EditText.insertAddingSpacesAsNeeded(insertAt: InsertAt, word: CharSequence) {
+@MainThread fun EditText.insertAddingSpacesAsNeeded(insertAt: InsertAt, word: CharSequence) {
     val pos = if (insertAt == InsertAt.CURRENT_POSITION) selectionEnd else text.length
-    val shouldPrependSpace = pos > 0 && text[pos - 1] != ' '
-    val shouldAppendSpace = pos < text.length && text[pos + 1] != ' '
+
+    val wordStartsWithSpace = word.firstOrNull() == ' '
+    val wordEndsWithSpace = word.lastOrNull() == ' '
+    val    spaceBeforeInsertLocation = pos > 0 && text[pos - 1] == ' '
+    val nonSpaceBeforeInsertLocation = pos > 0 && text[pos - 1] != ' '
+    val    spaceAfterInsertLocation = pos < text.length && text[pos] == ' '
+    val nonSpaceAfterInsertLocation = pos < text.length && text[pos] != ' '
+
+    val shouldPrependSpace = nonSpaceBeforeInsertLocation && !wordStartsWithSpace
+    val shouldAppendSpace = nonSpaceAfterInsertLocation && !wordEndsWithSpace
+    val shouldCollapseSpacesBefore = spaceBeforeInsertLocation && wordStartsWithSpace
+    val shouldCollapseSpacesAfter = spaceAfterInsertLocation && wordEndsWithSpace
 
     val wordWithSurroundingSpaces = SpannableStringBuilder()
     if (shouldPrependSpace) wordWithSurroundingSpaces.append(' ')
     wordWithSurroundingSpaces.append(word)
     if (shouldAppendSpace) wordWithSurroundingSpaces.append(' ')
 
-    text.insert(pos, wordWithSurroundingSpaces)
-}
+    val replaceFrom = if (shouldCollapseSpacesBefore) pos - 1 else pos
+    val replaceTo = if (shouldCollapseSpacesAfter) pos + 1 else pos
+    text.replace(replaceFrom, replaceTo, wordWithSurroundingSpaces)
 
+    if (pos < replaceTo) setSelection(replaceFrom + wordWithSurroundingSpaces.length)
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 

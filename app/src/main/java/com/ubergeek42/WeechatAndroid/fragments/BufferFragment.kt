@@ -39,6 +39,7 @@ import com.ubergeek42.WeechatAndroid.databinding.ChatviewMainBinding
 import com.ubergeek42.WeechatAndroid.relay.Buffer
 import com.ubergeek42.WeechatAndroid.relay.BufferEye
 import com.ubergeek42.WeechatAndroid.relay.BufferList
+import com.ubergeek42.WeechatAndroid.relay.Line
 import com.ubergeek42.WeechatAndroid.relay.Lines
 import com.ubergeek42.WeechatAndroid.search.Search
 import com.ubergeek42.WeechatAndroid.search.SearchConfig
@@ -60,6 +61,7 @@ import com.ubergeek42.WeechatAndroid.upload.WRITE_PERMISSION_REQUEST_FOR_CAMERA
 import com.ubergeek42.WeechatAndroid.upload.chooseFiles
 import com.ubergeek42.WeechatAndroid.upload.getShareObjectFromIntent
 import com.ubergeek42.WeechatAndroid.upload.i
+import com.ubergeek42.WeechatAndroid.upload.insertAddingSpacesAsNeeded
 import com.ubergeek42.WeechatAndroid.upload.suppress
 import com.ubergeek42.WeechatAndroid.upload.validateUploadConfig
 import com.ubergeek42.WeechatAndroid.utils.Assert.assertThat
@@ -172,6 +174,8 @@ class BufferFragment : Fragment(), BufferEye {
                 buffer = it
                 loadLinesSilently()
             }
+
+            onLineDoubleTappedListener = { line -> insertNickFromLine(line) }
         }
 
         ui.chatLines.run {
@@ -562,6 +566,13 @@ class BufferFragment : Fragment(), BufferEye {
     @MainThread private fun cancelTabCompletionOnInputTextChange() {
         val cancelled = completer?.cancel()
         if (cancelled == true) completer = null
+    }
+
+    private fun insertNickFromLine(line: Line) = ulet(ui, line.nick) { ui, nick ->
+        if (nick.isNotBlank()) {
+            val textToInsert = if (ui.chatInput.selectionStart == 0) "$nick: " else nick
+            ui.chatInput.insertAddingSpacesAsNeeded(InsertAt.CURRENT_POSITION, textToInsert)
+        }
     }
 
     @MainThread fun setShareObject(shareObject: ShareObject) = ulet(ui) { ui ->

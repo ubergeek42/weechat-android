@@ -339,6 +339,11 @@ class LineView @JvmOverloads constructor(
                     performLongClick()
                 }
 
+                override fun onDoubleTap(event: MotionEvent): Boolean {
+                    onDoubleTapListener?.invoke()
+                    return true
+                }
+
                 // see android.text.method.LinkMovementMethod.onTouchEvent
                 override fun onSingleTapUp(event: MotionEvent): Boolean {
                     val currentLayout = this@LineView.currentLayout
@@ -357,6 +362,8 @@ class LineView @JvmOverloads constructor(
                     return false
                 }
             })
+
+    var onDoubleTapListener: (() -> Unit)? = null
 }
 
 

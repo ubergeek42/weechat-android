@@ -76,6 +76,8 @@ class ChatLinesAdapter @MainThread constructor(
             }
         }
 
+    var onLineDoubleTappedListener: ((Line) -> Unit)? = null
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////// holders
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -86,6 +88,10 @@ class ChatLinesAdapter @MainThread constructor(
             setOnLongClickListener {
                 showCopyDialog(this, buffer?.pointer ?: -1L)
                 true
+            }
+
+            onDoubleTapListener = {
+                (tag as? Line)?.let { line -> onLineDoubleTappedListener?.invoke(line) }
             }
         }
 
