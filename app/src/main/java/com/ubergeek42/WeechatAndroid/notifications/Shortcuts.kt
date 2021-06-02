@@ -108,23 +108,25 @@ private class ShortcutsImpl(val context: Context): Shortcuts {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    var shortcuts: Map<String, ShortcutInfoCompat> = fetchShortcuts()
-
-    var launcherShortcuts = shortcuts
-        .entries
-        .sortedBy { it.value.rank }
-        .take(launcherShortcutLimit)
-        .map { it.key }
-
-    var directShareShortcuts = shortcuts
-        .filter { it.value.categories?.isNotEmpty() == true }
-        .map { it.key }
-
     @SuppressLint("WrongConstant")
     fun fetchShortcuts() =
-            ShortcutManagerCompat.getShortcuts(applicationContext, 0xffffff)
+        ShortcutManagerCompat.getShortcuts(applicationContext, 0xffffff)
                 .map { it.id to it }
                 .toMap()
+
+    fun Map<String, ShortcutInfoCompat>.getLauncherShortcutKeys() =
+            entries
+            .sortedBy { it.value.rank }
+            .take(launcherShortcutLimit)
+            .map { it.key }
+
+    fun Map<String, ShortcutInfoCompat>.getDirectShareShortcutKeys() =
+            filter { it.value.categories?.isNotEmpty() == true }
+            .map { it.key }
+
+    var shortcuts = fetchShortcuts()
+    var launcherShortcuts = shortcuts.getLauncherShortcutKeys()
+    var directShareShortcuts = shortcuts.getDirectShareShortcutKeys()
 
     fun updateShortcut(key: String, rank: Int? = null, shareTarget: Boolean? = null) {
         BufferList.findByFullName(key)?.let { buffer ->
@@ -145,11 +147,11 @@ private class ShortcutsImpl(val context: Context): Shortcuts {
     fun updateDirectShareShortcuts(statistics: StatisticsImpl) {
         val old = directShareShortcuts
         val new = statistics.getMostFrequentlySharedToBuffers(directShareShortcutLimit)
-        directShareShortcuts = new
         if (old != new) {
             (old - new).forEach { key -> updateShortcut(key, shareTarget = false) }
             (new - old).forEach { key -> updateShortcut(key, shareTarget = true) }
             shortcuts = fetchShortcuts()
+            directShareShortcuts = shortcuts.getDirectShareShortcutKeys()
         }
     }
 
