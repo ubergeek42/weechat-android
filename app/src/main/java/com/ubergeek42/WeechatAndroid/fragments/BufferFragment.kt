@@ -259,12 +259,12 @@ class BufferFragment : Fragment(), BufferEye {
         EventBus.getDefault().register(this)
         applyColorSchemeToViews()
         adjustConnectivityIndications(false)
+        restorePendingInputFromParallelFragment()
         ui.chatInput.textifyReadySuris()   // this will fix any uploads that were finished while we were absent
         fixupUploadsOnInputTextChange()             // this will set appropriate upload ui state
         showHidePaperclip()
         showHideFabAfterRecyclerViewRestored()
         uploadManager?.observer = uploadObserver   // this will resume ui for any uploads that are still running
-        restorePendingInputFromParallelFragment()
     }
 
     @MainThread @Cat override fun onPause() {
