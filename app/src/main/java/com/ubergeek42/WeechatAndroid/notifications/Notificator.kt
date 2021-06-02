@@ -168,7 +168,7 @@ private val summaryNotificationDismissIntent = makeBroadcastIntent<NotificationD
 //////////////////////////////////////////////////////////////////////////////////// notify & cancel
 
 
-private fun filterNotificationsInternal(hotlistBuffers: Collection<HotlistBuffer>) {
+private fun cancelOrSuppressUnwantedNotifications(hotlistBuffers: Collection<HotlistBuffer>) {
     if (Build.VERSION.SDK_INT >= 30) fixupBubblesThatShouldBeKept()
 
     val unwantedNotifications = displayedNotifications - hotlistBuffers.map { it.fullName }
@@ -205,6 +205,7 @@ private fun filterNotificationsInternal(hotlistBuffers: Collection<HotlistBuffer
     if (shouldCancelSummary) {
         kitty.trace("canceling summary notification")
         manager.cancel(ID_HOT)
+        summaryNotificationDisplayed = false
     }
 }
 
@@ -282,14 +283,15 @@ private fun ifNotificationStillDisplayed(fullName: String, action: () -> Unit) {
 
 @Cat fun filterNotifications(hotlistBuffers: Collection<HotlistBuffer>) {
     if (!P.notificationEnable) return
-    filterNotificationsInternal(hotlistBuffers)
+    cancelOrSuppressUnwantedNotifications(hotlistBuffers)
+    if (summaryNotificationDisplayed) pushSummaryNotification(hotlistBuffers, false)
 }
 
 
 @Cat fun updateHotNotification(hotBuffer: HotlistBuffer, hotlistBuffers: Collection<HotlistBuffer>) {
     if (!P.notificationEnable) return
     ifNotificationStillDisplayed(hotBuffer.fullName) {
-        filterNotificationsInternal(hotlistBuffers)
+        cancelOrSuppressUnwantedNotifications(hotlistBuffers)
         pushSummaryAndBufferNotifications(hotlistBuffers, hotBuffer, makeNoise = false)
     }
 }
