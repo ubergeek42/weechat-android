@@ -59,6 +59,7 @@ import com.ubergeek42.WeechatAndroid.service.SSLHandler
 import com.ubergeek42.WeechatAndroid.notifications.statistics
 import com.ubergeek42.WeechatAndroid.relay.BufferList
 import com.ubergeek42.WeechatAndroid.upload.Config
+import com.ubergeek42.WeechatAndroid.upload.InsertAt
 import com.ubergeek42.WeechatAndroid.upload.ShareObject
 import com.ubergeek42.WeechatAndroid.upload.TextShareObject
 import com.ubergeek42.WeechatAndroid.upload.UploadDatabase
@@ -543,10 +544,10 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener,
         if (shareObject != null) {
             val fragment = pagerAdapter.currentBufferFragment
             if (fragment != null && fragment.view != null) {
-                fragment.setShareObject(shareObject)
+                fragment.setShareObject(shareObject, InsertAt.END)
             } else {
                 // let fragment be created first, if it's not ready
-                main { pagerAdapter.currentBufferFragment?.setShareObject(shareObject)}
+                main { pagerAdapter.currentBufferFragment?.setShareObject(shareObject, InsertAt.END) }
             }
         }
     }

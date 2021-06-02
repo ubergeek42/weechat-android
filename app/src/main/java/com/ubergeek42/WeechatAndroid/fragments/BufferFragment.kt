@@ -69,6 +69,7 @@ import com.ubergeek42.WeechatAndroid.utils.FriendlyExceptions
 import com.ubergeek42.WeechatAndroid.utils.Toaster
 import com.ubergeek42.WeechatAndroid.utils.Utils
 import com.ubergeek42.WeechatAndroid.utils.afterTextChanged
+import com.ubergeek42.WeechatAndroid.utils.equalsIgnoringUselessSpans
 import com.ubergeek42.WeechatAndroid.utils.makeCopyWithoutUselessSpans
 import com.ubergeek42.WeechatAndroid.utils.indexOfOrElse
 import com.ubergeek42.WeechatAndroid.utils.ulet
@@ -575,9 +576,9 @@ class BufferFragment : Fragment(), BufferEye {
         }
     }
 
-    @MainThread fun setShareObject(shareObject: ShareObject) = ulet(ui) { ui ->
+    @MainThread fun setShareObject(shareObject: ShareObject, insertAt: InsertAt) = ulet(ui) { ui ->
         restorePendingInputFromParallelFragment()
-        shareObject.insert(ui.chatInput, InsertAt.END)
+        shareObject.insert(ui.chatInput, insertAt)
         if (isSearchEnabled) ui.searchInput.post { searchEnableDisable(enable = false) }
     }
 
@@ -677,8 +678,9 @@ class BufferFragment : Fragment(), BufferEye {
     @Cat override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) = ulet(ui) { ui ->
         if (resultCode == Activity.RESULT_OK) {
             suppress<Exception>(showToast = true) {
-                getShareObjectFromIntent(requestCode, data)
-                        ?.insert(ui.chatInput, InsertAt.CURRENT_POSITION)
+                getShareObjectFromIntent(requestCode, data)?.let {
+                    setShareObject(it, InsertAt.CURRENT_POSITION)
+                }
             }
         }
     }
@@ -959,11 +961,11 @@ class BufferFragment : Fragment(), BufferEye {
 
     private fun restorePendingInputFromParallelFragment() = ulet(buffer, ui?.chatInput) { buffer, chatInput ->
         pendingInputs[buffer.fullName]?.let { pendingInput ->
-            if (chatInput.text != pendingInput) {
+            if (chatInput.text?.equalsIgnoringUselessSpans(pendingInput) == false) {
                 chatInput.setText(pendingInput)
                 chatInput.setSelection(pendingInput.length)
-                pendingInputs.remove(buffer.fullName)
             }
+            pendingInputs.remove(buffer.fullName)
         }
     }
 }

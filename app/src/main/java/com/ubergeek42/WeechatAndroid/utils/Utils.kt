@@ -277,3 +277,25 @@ fun Spanned.makeCopyWithoutUselessSpans(): Spanned {
         TextUtils.copySpansFrom(this, 0, length, CharacterStyle::class.java, it, 0)
     }
 }
+
+fun CharSequence.equalsIgnoringUselessSpans(other: CharSequence): Boolean {
+    if (this is Spanned && other is Spanned) {
+        if (this.toString() != other.toString()) return false
+
+        val thisSpans = this.getSpans(0, length, CharacterStyle::class.java)
+        val otherSpans = this.getSpans(0, length, CharacterStyle::class.java)
+        if (thisSpans.size != otherSpans.size) return false
+
+        val spans = thisSpans.toSet() + otherSpans.toSet()
+        if (spans.size != thisSpans.size) return false
+
+        spans.forEach { span ->
+            if (this.getSpanStart(span) != other.getSpanStart(span)) return false
+            if (this.getSpanEnd(span) != other.getSpanEnd(span)) return false
+        }
+
+        return true
+    }
+
+    return this == other
+}
