@@ -726,11 +726,6 @@
 
     <string name="pref__notifications__light">Benachrichtigungslicht</string>
 
-    <string name="pref__notifications__ticker">
-        Benachrichtigungsticker</string>
-    <string name="pref__notifications__ticker_summary">
-        Verbindungsänderungen im Ticker anzeigen (funktioniert nicht unter Lollipop)</string>
-
     <!-- ####################################################################################### -->
     <!-- #################################### media preview #################################### -->
     <!-- ####################################################################################### -->

@@ -736,11 +736,6 @@
 
     <string name="pref__notifications__light">Notification light</string>
 
-    <string name="pref__notifications__ticker">
-        Notifications ticker</string>
-    <string name="pref__notifications__ticker_summary">
-        Display connection changes as ticker (does not work on Lollipop)</string> <!-- todo -->
-
     <!-- ####################################################################################### -->
     <!-- #################################### media preview #################################### -->
     <!-- ####################################################################################### -->

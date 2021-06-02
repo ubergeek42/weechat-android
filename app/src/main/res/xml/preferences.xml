@@ -382,12 +382,6 @@
             android:title="@string/pref__notifications__light"
             android:defaultValue="false"
             android:dependency="notification_enable" />
-        <CheckBoxPreference
-            android:key="notification_ticker"
-            android:title="@string/pref__notifications__ticker"
-            android:summary="@string/pref__notifications__ticker_summary"
-            android:defaultValue="true"
-            android:dependency="notification_enable" />
     </PreferenceScreen>
 
     <!-- media preview -->

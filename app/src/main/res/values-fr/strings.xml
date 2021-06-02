@@ -714,12 +714,6 @@
 
     <string name="pref__notifications__light">Allumer la LED</string>
 
-    <string name="pref__notifications__ticker">
-        Notifier dans le “ticker”</string>
-    <string name="pref__notifications__ticker_summary">
-        Affiche les changements de connectivité dans la barre de notifications
-        (ne fonctionne pas sur Lollipop)</string>
-
     <!-- ####################################################################################### -->
     <!-- #################################### media preview #################################### -->
     <!-- ####################################################################################### -->

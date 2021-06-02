@@ -121,7 +121,6 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     public static TextPaint textPaint;
 
     public static boolean notificationEnable;
-    public static boolean notificationTicker;  // unused
     public static boolean notificationLight;
     public static boolean notificationVibrate;
     public static String notificationSound;
@@ -162,7 +161,6 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         // notifications
         notificationEnable = p.getBoolean(PREF_NOTIFICATION_ENABLE, PREF_NOTIFICATION_ENABLE_D);
         notificationSound = p.getString(PREF_NOTIFICATION_SOUND, PREF_NOTIFICATION_SOUND_D);
-        notificationTicker = p.getBoolean(PREF_NOTIFICATION_TICKER, PREF_NOTIFICATION_TICKER_D);
         notificationLight = p.getBoolean(PREF_NOTIFICATION_LIGHT, PREF_NOTIFICATION_LIGHT_D);
         notificationVibrate = p.getBoolean(PREF_NOTIFICATION_VIBRATE, PREF_NOTIFICATION_VIBRATE_D);
 
@@ -368,7 +366,6 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
             // notifications
             case PREF_NOTIFICATION_ENABLE: notificationEnable = p.getBoolean(key, PREF_NOTIFICATION_ENABLE_D); break;
             case PREF_NOTIFICATION_SOUND: notificationSound = p.getString(key, PREF_NOTIFICATION_SOUND_D); break;
-            case PREF_NOTIFICATION_TICKER: notificationTicker = p.getBoolean(key, PREF_NOTIFICATION_TICKER_D); break;
             case PREF_NOTIFICATION_LIGHT: notificationLight = p.getBoolean(key, PREF_NOTIFICATION_LIGHT_D); break;
             case PREF_NOTIFICATION_VIBRATE: notificationVibrate = p.getBoolean(key, PREF_NOTIFICATION_VIBRATE_D); break;
 
