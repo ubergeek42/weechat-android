@@ -19,9 +19,14 @@ import com.ubergeek42.WeechatAndroid.utils.Constants
 import com.ubergeek42.WeechatAndroid.utils.Constants.PREF_UPLOAD_ACCEPT_TEXT_AND_MEDIA
 import com.ubergeek42.WeechatAndroid.utils.Constants.PREF_UPLOAD_ACCEPT_TEXT_ONLY
 import com.ubergeek42.WeechatAndroid.utils.Utils
+import com.ubergeek42.cats.Kitty
+import com.ubergeek42.cats.Root
 
 
 private val USE_SHORTCUTS = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1
+
+
+@Root private val kitty: Kitty = Kitty.make("Shortcuts")
 
 
 interface Shortcuts {
@@ -109,13 +114,12 @@ private class ShortcutsImpl(val context: Context): Shortcuts {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @SuppressLint("WrongConstant")
-    fun fetchShortcuts() =
-        ShortcutManagerCompat.getShortcuts(applicationContext, 0xffffff)
-                .map { it.id to it }
-                .toMap()
+    fun fetchShortcuts() = ShortcutManagerCompat
+            .getShortcuts(applicationContext, 0xffffff)
+            .map { it.id to it }
+            .toMap()
 
-    fun Map<String, ShortcutInfoCompat>.getLauncherShortcutKeys() =
-            entries
+    fun Map<String, ShortcutInfoCompat>.getLauncherShortcutKeys() = entries
             .sortedBy { it.value.rank }
             .take(launcherShortcutLimit)
             .map { it.key }
@@ -145,9 +149,10 @@ private class ShortcutsImpl(val context: Context): Shortcuts {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     fun updateDirectShareShortcuts(statistics: StatisticsImpl) {
-        val old = directShareShortcuts
-        val new = statistics.getMostFrequentlySharedToBuffers(directShareShortcutLimit)
+        val old = directShareShortcuts.toSet()
+        val new = statistics.getMostFrequentlySharedToBuffers(directShareShortcutLimit).toSet()
         if (old != new) {
+            kitty.trace("updating direct share shortcuts: %s → %s", old, new)
             (old - new).forEach { key -> updateShortcut(key, shareTarget = false) }
             (new - old).forEach { key -> updateShortcut(key, shareTarget = true) }
             shortcuts = fetchShortcuts()
@@ -163,8 +168,8 @@ private class ShortcutsImpl(val context: Context): Shortcuts {
     override fun reportBufferWasManuallyFocused(focusedKey: String, statistics: StatisticsImpl) {
         val old = launcherShortcuts
         val new = statistics.getMostFrequentlyManuallyFocusedBuffers(launcherShortcutLimit)
-        launcherShortcuts = new
         if (old != new) {
+            kitty.trace("updating launcher shortcuts: %s → %s", old, new)
             val oldSansNew = old - new
             val oldSansOldSansNew = old - oldSansNew
             oldSansNew.forEach { key -> updateShortcut(key, rank = 10000) }
@@ -172,6 +177,7 @@ private class ShortcutsImpl(val context: Context): Shortcuts {
                 new.forEachIndexed { index, key -> updateShortcut(key, rank = index) }
             }
             shortcuts = fetchShortcuts()
+            launcherShortcuts = new     // getLauncherShortcutKeys() might yield more items than this
         }
         shortcutManager.reportShortcutUsed(focusedKey)
     }
@@ -196,6 +202,7 @@ private class ShortcutsImpl(val context: Context): Shortcuts {
     }
 
     override fun updateDirectShareCount() {
+        if (BufferList.buffers.isEmpty()) return    // we need a buffer object to make a shortcut
         (statistics as? StatisticsImpl)?.let { updateDirectShareShortcuts(it) }
     }
 
