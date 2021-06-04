@@ -1,8 +1,5 @@
 #!/bin/bash
-BRANCH=$(git rev-parse --abbrev-ref HEAD)
-if [ ! -z "$TRAVIS_BRANCH" ]; then
-    BRANCH="$TRAVIS_BRANCH"
-fi
+BRANCH=${GITHUB_REF##*/}
 
 HASH=$(git log --pretty=format:'%h' -n 1)
 APK="weechat-$BRANCH-$HASH.apk"

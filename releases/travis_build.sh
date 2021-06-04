@@ -20,7 +20,7 @@ if [ -z "$DEVKEYPASSWORD" ]; then
 fi
 
 if [ "$DEV" == "1" ]; then
-    ./gradlew clean :app:assembleDev \
+    ./gradlew --no-daemon clean :app:assembleDev \
         -PdevStorefile="$DEVSTOREFILE" \
         -PdevStorePassword="$DEVSTOREPASSWORD" \
         -PdevKeyAlias="$DEVKEYALIAS" \

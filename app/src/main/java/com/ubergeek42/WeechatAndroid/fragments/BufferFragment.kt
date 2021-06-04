@@ -675,7 +675,7 @@ class BufferFragment : Fragment(), BufferEye {
         }
     }
 
-    @Cat override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) = ulet(ui) { ui ->
+    @Cat override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (resultCode == Activity.RESULT_OK) {
             suppress<Exception>(showToast = true) {
                 getShareObjectFromIntent(requestCode, data)?.let {
