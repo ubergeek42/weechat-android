@@ -129,11 +129,12 @@ data class HotlistBuffer(
         if (Engine.isEnabledAtAll() && Engine.isEnabledForLocation(Engine.Location.NOTIFICATION) &&
             Engine.isEnabledForLine(line)) {
             ContentUriFetcher.loadFirstUrlFromText(message.message) { imageUri: Uri ->
-                // todo notif thread?
-                val hotBuffer = getHotBuffer(buffer)
-                if (hotBuffer.messages.lastOrNull() === message) {
-                    message.image = imageUri
-                    hotBuffer.pushUpdate()
+                notificationHandler.post {
+                    val hotBuffer = getHotBuffer(buffer)
+                    if (hotBuffer.messages.lastOrNull() === message) {
+                        message.image = imageUri
+                        hotBuffer.pushUpdate()
+                    }
                 }
             }
         }
