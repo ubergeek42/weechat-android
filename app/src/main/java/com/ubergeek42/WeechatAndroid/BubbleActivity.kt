@@ -9,6 +9,7 @@ import com.ubergeek42.WeechatAndroid.fragments.BufferFragment
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragmentContainer
 import com.ubergeek42.WeechatAndroid.notifications.notifyBubbleActivityCreated
 import com.ubergeek42.WeechatAndroid.relay.BufferList
+import com.ubergeek42.WeechatAndroid.relay.as0x
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.utils.Constants
 import com.ubergeek42.WeechatAndroid.views.solidColor
@@ -26,8 +27,6 @@ private val FRAME_LAYOUT_ID = View.generateViewId()
 
 
 class BubbleActivity : AppCompatActivity(), BufferFragmentContainer {
-    private var fullName = ""
-
     private var bufferFragment: BufferFragment? = null
 
     @Cat override fun onCreate(savedInstanceState: Bundle?) {
@@ -38,10 +37,10 @@ class BubbleActivity : AppCompatActivity(), BufferFragmentContainer {
             setContentView(this, matchParentLayoutParams)
         }
 
-        fullName = intent?.getStringExtra(Constants.EXTRA_BUFFER_FULL_NAME) ?: ""
+        val pointer = intent?.getLongExtra(Constants.EXTRA_BUFFER_POINTER, -1) as Long
 
-        BufferList.findByFullName(fullName)?.let { buffer ->
-            val tag = "bubble:$fullName"
+        BufferList.findByPointer(pointer)?.let { buffer ->
+            val tag = "bubble:${pointer.as0x}"
             val alreadyAddedFragment = supportFragmentManager.findFragmentByTag(tag)
 
             bufferFragment = if (alreadyAddedFragment == null) {
@@ -54,7 +53,7 @@ class BubbleActivity : AppCompatActivity(), BufferFragmentContainer {
                 alreadyAddedFragment as BufferFragment
             }
 
-            notifyBubbleActivityCreated(fullName)
+            notifyBubbleActivityCreated(pointer)
         }
 
         P.applyThemeAfterActivityCreation(this)

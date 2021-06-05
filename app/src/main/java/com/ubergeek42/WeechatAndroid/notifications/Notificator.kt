@@ -25,6 +25,8 @@ import com.ubergeek42.WeechatAndroid.BubbleActivity
 import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.WeechatActivity
 import com.ubergeek42.WeechatAndroid.relay.BufferList
+import com.ubergeek42.WeechatAndroid.relay.as0x
+import com.ubergeek42.WeechatAndroid.relay.from0xOrNull
 import com.ubergeek42.WeechatAndroid.service.Events
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.service.RelayService
@@ -146,23 +148,23 @@ private val applicationResources = applicationContext.resources
 
 // setting action in this way is not quite a proper way, but this ensures that all intents
 // are treated as separate intents. on API 29, `identifier` can be used instead
-private inline fun <reified T : Activity> makeActivityIntent(fullName: String): PendingIntent {
+private inline fun <reified T : Activity> makeActivityIntent(pointer: Long): PendingIntent {
     val intent = Intent(applicationContext, T::class.java).apply {
-        putExtra(Constants.EXTRA_BUFFER_FULL_NAME, fullName)
-        action = fullName
+        putExtra(Constants.EXTRA_BUFFER_POINTER, pointer)
+        action = pointer.as0x
     }
     return PendingIntent.getActivity(applicationContext, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
 }
 
 
-private inline fun <reified T : BroadcastReceiver> makeBroadcastIntent(fullName: String): PendingIntent {
-    val intent = Intent(applicationContext, T::class.java).apply { action = fullName }
+private inline fun <reified T : BroadcastReceiver> makeBroadcastIntent(pointer: Long): PendingIntent {
+    val intent = Intent(applicationContext, T::class.java).apply { action = pointer.as0x }
     return PendingIntent.getBroadcast(applicationContext, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
 }
 
 
-private val summaryNotificationIntent = makeActivityIntent<WeechatActivity>(Constants.EXTRA_BUFFER_FULL_NAME_ANY)
-private val summaryNotificationDismissIntent = makeBroadcastIntent<NotificationDismissedReceiver>("")
+private val summaryNotificationIntent = makeActivityIntent<WeechatActivity>(Constants.EXTRA_BUFFER_POINTER_ANY)
+private val summaryNotificationDismissIntent = makeBroadcastIntent<NotificationDismissedReceiver>(0)
 
 
 //////////////////////////////////////////////////////////////////////////////////// notify & cancel
@@ -171,7 +173,7 @@ private val summaryNotificationDismissIntent = makeBroadcastIntent<NotificationD
 private fun cancelOrSuppressUnwantedNotifications(hotlistBuffers: Collection<HotlistBuffer>) {
     if (Build.VERSION.SDK_INT >= 30) fixupBubblesThatShouldBeKept()
 
-    val unwantedNotifications = displayedNotifications - hotlistBuffers.map { it.fullName }
+    val unwantedNotifications = displayedNotifications - hotlistBuffers.map { it.pointer }
     val bubbledNotificationsToCancel = bubblesThatShouldBeKept intersect unwantedNotifications
     val notificationsToCancel = unwantedNotifications - bubbledNotificationsToCancel
     val noNotificationsRemainAfterRemove =
@@ -182,23 +184,23 @@ private fun cancelOrSuppressUnwantedNotifications(hotlistBuffers: Collection<Hot
                                   hotlistBuffers.isEmpty()
                               }
 
-    notificationsToCancel.forEach { fullName ->
-        kitty.trace("canceling buffer notification for %s", fullName)
-        manager.cancel(fullName, ID_HOT)
-        displayedNotifications = displayedNotifications - fullName
+    notificationsToCancel.forEach { pointer ->
+        kitty.trace("canceling buffer notification for %s", pointer)
+        manager.cancel(pointer.as0x, ID_HOT)
+        displayedNotifications = displayedNotifications - pointer
     }
 
     // instead of canceling bubbling notification, suppress them
     // see https://developer.android.com/guide/topics/ui/bubbles#best_practices
-    bubbledNotificationsToCancel.forEach { fullName ->
-        getHotBuffer(fullName)?.let {
-            kitty.trace("republishing suppressed notification for bubble %s", fullName)
-            val notification = makeEmptyBufferNotification(fullName)
+    bubbledNotificationsToCancel.forEach { pointer ->
+        getHotBuffer(pointer)?.let {
+            kitty.trace("republishing suppressed notification for bubble %s", pointer)
+            val notification = makeEmptyBufferNotification(it.fullName)
                     .addBubbleMetadata(it, suppressNotification = true)
                     .setMakeNoise(false)
                     .build()
-            manager.notify(fullName, ID_HOT, notification)
-            displayedNotifications = displayedNotifications - fullName
+            manager.notify(pointer.as0x, ID_HOT, notification)
+            displayedNotifications = displayedNotifications - pointer
         }
     }
 
@@ -221,13 +223,13 @@ private fun pushSummaryNotification(hotlistBuffers: Collection<HotlistBuffer>, m
 
 
 private fun pushBufferNotification(hotBuffer: HotlistBuffer, makeNoise: Boolean, addReplyAction: Boolean) {
-    kitty.trace("publishing buffer notification for %s", hotBuffer.fullName)
+    kitty.trace("publishing buffer notification for %s", hotBuffer.pointer)
     val bufferNotification = makeBufferNotification(hotBuffer, addReplyAction)
             .addBubbleMetadata(hotBuffer, suppressNotification = false)
             .setMakeNoise(makeNoise)
             .build()
-    manager.notify(hotBuffer.fullName, ID_HOT, bufferNotification)
-    displayedNotifications = displayedNotifications + hotBuffer.fullName
+    manager.notify(hotBuffer.pointer.as0x, ID_HOT, bufferNotification)
+    displayedNotifications = displayedNotifications + hotBuffer.pointer
 }
 
 
@@ -245,9 +247,9 @@ private fun pushSummaryAndBufferNotifications(hotlistBuffers: Collection<Hotlist
 //////////////////////////////////////////////////////////////////////////////////// user dismissals
 
 
-private fun notificationHasBeenDismissedByUser(fullName: String) =
+private fun notificationHasBeenDismissedByUser(pointer: Long) =
         if (CAN_MAKE_BUNDLED_NOTIFICATIONS) {
-            fullName !in displayedNotifications
+            pointer !in displayedNotifications
         } else {
             !summaryNotificationDisplayed
         }
@@ -260,15 +262,15 @@ private fun notificationMightHaveBeenDismissedByUser(fullName: String) =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) willBubble(fullName) else false
 
 
-private fun ifNotificationStillDisplayed(fullName: String, action: () -> Unit) {
-    if (notificationHasBeenDismissedByUser(fullName)) {
-        kitty.trace("not updating notification for %s as it is not displaying", fullName)
+private fun ifNotificationStillDisplayed(hotBuffer: HotlistBuffer, action: () -> Unit) {
+    if (notificationHasBeenDismissedByUser(hotBuffer.pointer)) {
+        kitty.trace("not updating notification for %s as it is not displaying", hotBuffer.pointer)
         return
     }
 
-    if (notificationMightHaveBeenDismissedByUser(fullName)) {
+    if (notificationMightHaveBeenDismissedByUser(hotBuffer.fullName)) {
         kitty.trace("not updating notification for %s as it is bubbling " +
-                    "and might have been dismissed by user", fullName)
+                    "and might have been dismissed by user", hotBuffer.fullName)
         return
     }
 
@@ -290,7 +292,7 @@ private fun ifNotificationStillDisplayed(fullName: String, action: () -> Unit) {
 
 @Cat fun updateHotNotification(hotBuffer: HotlistBuffer, hotlistBuffers: Collection<HotlistBuffer>) {
     if (!P.notificationEnable) return
-    ifNotificationStillDisplayed(hotBuffer.fullName) {
+    ifNotificationStillDisplayed(hotBuffer) {
         cancelOrSuppressUnwantedNotifications(hotlistBuffers)
         pushSummaryAndBufferNotifications(hotlistBuffers, hotBuffer, makeNoise = false)
     }
@@ -311,7 +313,7 @@ private fun ifNotificationStillDisplayed(fullName: String, action: () -> Unit) {
 
 @Cat fun addOrRemoveActionForCurrentNotifications(addReplyAction: Boolean) = notificationHandler.post {
     hotlistBuffers.values.forEach { hotBuffer ->
-        ifNotificationStillDisplayed(hotBuffer.fullName) {
+        ifNotificationStillDisplayed(hotBuffer) {
             pushBufferNotification(hotBuffer, makeNoise = false, addReplyAction)
         }
     }
@@ -389,8 +391,8 @@ private fun makeBufferNotification(hotBuffer: HotlistBuffer, addReplyAction: Boo
     shortcuts.ensureShortcutExists(hotBuffer.fullName)
 
     val builder = NotificationCompat.Builder(applicationContext, CHANNEL_HOTLIST)
-        .setContentIntent(makeActivityIntent<WeechatActivity>(hotBuffer.fullName))
-        .setDeleteIntent(makeBroadcastIntent<NotificationDismissedReceiver>(hotBuffer.fullName))
+        .setContentIntent(makeActivityIntent<WeechatActivity>(hotBuffer.pointer))
+        .setDeleteIntent(makeBroadcastIntent<NotificationDismissedReceiver>(hotBuffer.pointer))
         .setSmallIcon(R.drawable.ic_notification_hot)
         .setCategory(NotificationCompat.CATEGORY_MESSAGE)
         .setGroup(GROUP_KEY)
@@ -407,7 +409,7 @@ private fun makeBufferNotification(hotBuffer: HotlistBuffer, addReplyAction: Boo
 
     // messages hold the latest messages, don't show the reply button if user can't see any
     if (addReplyAction && hotBuffer.messages.isNotEmpty()) {
-        builder.addAction(makeActionForBufferPointer(hotBuffer.fullName))
+        builder.addAction(makeActionForBufferPointer(hotBuffer.pointer))
     }
 
     NotificationCompat.MessagingStyle(myself).apply2 {
@@ -458,8 +460,8 @@ private fun NotificationCompat.Builder.addBubbleMetadata(
     if (Build.VERSION.SDK_INT >= 30) {
         val icon = obtainAdaptiveIcon(hotBuffer.shortName, hotBuffer.fullName, allowUriIcons = true)
         bubbleMetadata = NotificationCompat.BubbleMetadata
-            .Builder(makeActivityIntent<BubbleActivity>(hotBuffer.fullName), icon)
-            .setDeleteIntent(makeBroadcastIntent<BubbleDismissedReceiver>(hotBuffer.fullName))
+            .Builder(makeActivityIntent<BubbleActivity>(hotBuffer.pointer), icon)
+            .setDeleteIntent(makeBroadcastIntent<BubbleDismissedReceiver>(hotBuffer.pointer))
             .setDesiredHeight(600 /* dp */)
             .setSuppressNotification(suppressNotification)
             .build()
@@ -556,7 +558,7 @@ private fun NotificationCompat.Builder.setMakeNoise(makeNoise: Boolean): Notific
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-private fun makeActionForBufferPointer(strPointer: String): NotificationCompat.Action {
+private fun makeActionForBufferPointer(pointer: Long): NotificationCompat.Action {
     val replyLabel = applicationResources.getString(R.string.notifications__RemoteInput__label)
     val remoteInput = RemoteInput.Builder(KEY_TEXT_REPLY)
         .setLabel(replyLabel)
@@ -565,7 +567,7 @@ private fun makeActionForBufferPointer(strPointer: String): NotificationCompat.A
     val replyPendingIntent = PendingIntent.getBroadcast(
         applicationContext,
         1,
-        Intent(applicationContext, InlineReplyReceiver::class.java).apply { action = strPointer },
+        Intent(applicationContext, InlineReplyReceiver::class.java).apply { action = pointer.as0x },
         PendingIntent.FLAG_UPDATE_CURRENT
     )
 
@@ -591,17 +593,17 @@ private fun NotificationCompat.Builder.setNotificationText(text: CharSequence): 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-fun notifyBubbleActivityCreated(fullName: String) {
-    bubblesThatShouldBeKept = bubblesThatShouldBeKept + fullName
-    BufferList.findByFullName(fullName)?.addOpenKey("bubble-activity", true)
+fun notifyBubbleActivityCreated(pointer: Long) {
+    bubblesThatShouldBeKept = bubblesThatShouldBeKept + pointer
+    BufferList.findByPointer(pointer)?.addOpenKey("bubble-activity", true)
 }
 
 
 // user dragged the bubble icon to the (x) area on the bottom of the screen.
 // this does NOT prevent further bubbles from appearing!
-fun notifyBubbleDismissed(fullName: String) {
-    bubblesThatShouldBeKept = bubblesThatShouldBeKept - fullName
-    BufferList.findByFullName(fullName)?.removeOpenKey("bubble-activity")
+fun notifyBubbleDismissed(pointer: Long) {
+    bubblesThatShouldBeKept = bubblesThatShouldBeKept - pointer
+    BufferList.findByPointer(pointer)?.removeOpenKey("bubble-activity")
 }
 
 
@@ -627,10 +629,12 @@ private fun willBubble(fullName: String): Boolean {
 //     but as the bubble is disabled it doesn't get suppressed
 @RequiresApi(Build.VERSION_CODES.R)
 private fun fixupBubblesThatShouldBeKept() {
-    bubblesThatShouldBeKept.forEach { fullName ->
-        if (!willBubble(fullName)) {
-            kitty.trace("bubble has become invalid: %s", fullName)
-            notifyBubbleDismissed(fullName)
+    bubblesThatShouldBeKept.forEach { pointer ->
+        val fullName = getHotBuffer(pointer)?.fullName
+        val willBubble = fullName != null && willBubble(fullName)
+        if (!willBubble) {
+            kitty.trace("bubble has become invalid: %s", fullName ?: pointer)
+            notifyBubbleDismissed(pointer)
         }
     }
 }
@@ -643,31 +647,31 @@ private fun fixupBubblesThatShouldBeKept() {
 // that do not display bundled notifications
 private var summaryNotificationDisplayed = false
 
-private var displayedNotifications = setOf<String>()
+private var displayedNotifications = setOf<Long>()
 
 
 class NotificationDismissedReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        val fullName = intent.action ?: ""
-        kitty.trace("notification dismissed: %s", fullName)
+        val pointer = intent.action?.from0xOrNull ?: -1
+        kitty.trace("notification dismissed: %s", pointer)
 
-        if (fullName == "") {
+        if (pointer == 0L) {
             summaryNotificationDisplayed = false
         } else {
-            displayedNotifications = displayedNotifications - fullName
+            displayedNotifications = displayedNotifications - pointer
         }
     }
 }
 
 
-private var bubblesThatShouldBeKept = setOf<String>()
+private var bubblesThatShouldBeKept = setOf<Long>()
 
 
 class BubbleDismissedReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        val fullName = intent.action ?: ""
-        kitty.trace("bubble dismissed: %s", fullName)
-        notifyBubbleDismissed(fullName)
+        val pointer = intent.action?.from0xOrNull ?: -1
+        kitty.trace("bubble dismissed: %s", pointer)
+        notifyBubbleDismissed(pointer)
     }
 }
 
@@ -679,13 +683,13 @@ class BubbleDismissedReceiver : BroadcastReceiver() {
 
 class InlineReplyReceiver : BroadcastReceiver() {
     @MainThread override fun onReceive(context: Context, intent: Intent) {
-        val fullName = intent.action ?: ""
+        val pointer = intent.action?.from0xOrNull ?: -1
         val input = intent.getInlineReplyText()
-        val buffer = BufferList.findByFullName(fullName)
+        val buffer = BufferList.findByPointer(pointer)
 
         if (input.isNullOrEmpty() || buffer == null) {
-            kitty.error("error while receiving remote input: fullName=%s, input=%s, buffer=%s",
-                        fullName, input, buffer)
+            kitty.error("error while receiving remote input: pointer=%s, input=%s, buffer=%s",
+                        pointer, input, buffer)
             Toaster.ErrorToast.show("Error while receiving remote input")
         } else {
             Events.SendMessageEvent.fireInput(buffer, input.toString())

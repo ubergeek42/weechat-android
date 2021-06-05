@@ -55,12 +55,13 @@ class HotlistMessage(
 
 
 data class HotlistBuffer(
-   val fullName: String,
-   val shortName: String,
-   val isPrivate: Boolean,
+    val pointer: Long,
+    val fullName: String,
+    val shortName: String,
+    val isPrivate: Boolean,
 
-   val hotCount: Int,                       // as per WeeChat's hotlist
-   val messages: List<HotlistMessage>,      // messages we've seen. might be less than above
+    val hotCount: Int,                      // as per WeeChat's hotlist
+    val messages: List<HotlistMessage>,     // messages we've seen. might be less than above
 ) {
     // timestamp of the last seen message, or 0 if we don't have this information
     val lastMessageTimestamp get() = messages.lastOrNull()?.timestamp ?: 0
@@ -68,6 +69,7 @@ data class HotlistBuffer(
     companion object {
         fun fromBuffer(buffer: Buffer): HotlistBuffer {
             return HotlistBuffer(
+                pointer = buffer.pointer,
                 fullName = buffer.fullName,
                 shortName = buffer.shortName,
                 isPrivate = buffer.type === BufferSpec.Type.Private,
@@ -90,12 +92,15 @@ data class HotlistBuffer(
     //        instead of displaying it like this, let's clear it for the sake of simplicity
     fun updateByBuffer(buffer: Buffer, invalidateMessages: Boolean) {
         val newHotCount = buffer.hotCount
+        val newFullName = buffer.fullName
         val newShortName = buffer.shortName
 
         val updateHotCount = hotCount != newHotCount
+        val updateFullName = fullName != newFullName
         val updateShortName = shortName != newShortName
 
-        if (updateHotCount || updateShortName || (invalidateMessages && messages.isNotEmpty())) {
+        if (updateHotCount || updateFullName || updateShortName ||
+                (invalidateMessages && messages.isNotEmpty())) {
             val messages = when {
                 invalidateMessages -> emptyList()
                 newHotCount > hotCount -> emptyList()
@@ -104,6 +109,7 @@ data class HotlistBuffer(
             }
 
             copy(
+                fullName = newFullName,
                 shortName = newShortName,
                 isPrivate = buffer.type == BufferSpec.Type.Private,
                 hotCount = newHotCount,
@@ -123,6 +129,7 @@ data class HotlistBuffer(
         if (Engine.isEnabledAtAll() && Engine.isEnabledForLocation(Engine.Location.NOTIFICATION) &&
             Engine.isEnabledForLine(line)) {
             ContentUriFetcher.loadFirstUrlFromText(message.message) { imageUri: Uri ->
+                // todo notif thread?
                 val hotBuffer = getHotBuffer(buffer)
                 if (hotBuffer.messages.lastOrNull() === message) {
                     message.image = imageUri
@@ -143,14 +150,14 @@ data class HotlistBuffer(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-internal var hotlistBuffers = mapOf<String, HotlistBuffer>()
+internal var hotlistBuffers = mapOf<Long, HotlistBuffer>()
 
 
 private fun HotlistBuffer.pushUpdate(
     newMessage: Boolean = false,
     newMessageAsync: Boolean = false
 ) {
-    hotlistBuffers = (hotlistBuffers + (this.fullName to this))
+    hotlistBuffers = (hotlistBuffers + (this.pointer to this))
         .filter { it.value.hotCount > 0 }
         .also {
             when {
@@ -197,7 +204,7 @@ object Hotlist {
 
 
 private fun getHotBuffer(buffer: Buffer): HotlistBuffer {
-    return hotlistBuffers[buffer.fullName] ?: HotlistBuffer.fromBuffer(buffer)
+    return hotlistBuffers[buffer.pointer] ?: HotlistBuffer.fromBuffer(buffer)
 }
 
 
@@ -210,7 +217,7 @@ private fun CharSequence.toItalicizedSpannable(): CharSequence {
 
 // this is only used to push a suppressed bubble notification
 // todo check if making a fake notification would be sufficient
-fun getHotBuffer(fullName: String): HotlistBuffer? {
-    hotlistBuffers[fullName]?.let { return it }
-    return BufferList.findByFullName(fullName)?.let { HotlistBuffer.fromBuffer(it) }
+fun getHotBuffer(pointer: Long): HotlistBuffer? {
+    hotlistBuffers[pointer]?.let { return it }
+    return BufferList.findByPointer(pointer)?.let { HotlistBuffer.fromBuffer(it) }
 }
