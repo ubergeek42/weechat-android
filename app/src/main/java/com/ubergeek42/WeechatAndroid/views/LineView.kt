@@ -78,7 +78,7 @@ class LineView @JvmOverloads constructor(
         animatedValue = 0f
         animator?.cancel()
         animator = null
-        target?.let { glide?.clear(it) }    // will call the listener!
+        glide?.clear(target)    // will call the listener!
         target = null
     }
 
@@ -139,6 +139,8 @@ class LineView @JvmOverloads constructor(
     private var lastRequestedUrl: Strategy.Url? = null
     private fun requestThumbnail(url: Strategy.Url) {
         lastRequestedUrl = url
+
+        glide?.clear(target)
 
         target = (glide ?: return)
                 .asBitmap()
@@ -210,7 +212,12 @@ class LineView @JvmOverloads constructor(
                 .coerceAtLeast(1)
     }
 
-    private var wideLayoutWidth: Int = 1000
+    private var wideLayoutWidth: Int = 0
+        get() {
+            if (field == 0) field = (context as? Activity)?.calculateApproximateWeaselWidth() ?: 1000
+            return field
+        }
+
     private val narrowLayoutWidth get() = wideLayoutWidth - Config.thumbnailAreaWidth
 
     private var oldViewWidth = wideLayoutWidth
