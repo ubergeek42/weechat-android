@@ -10,6 +10,11 @@ import com.ubergeek42.WeechatAndroid.utils.invalidatableLazy
 import com.ubergeek42.WeechatAndroid.utils.removeConsecutiveElementsLeavingFirst
 import com.ubergeek42.WeechatAndroid.utils.replaceFirstWith
 import com.ubergeek42.weechat.Color
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 import kotlin.properties.Delegates.observable
 
 // this class is supposed to be synchronized by Buffer
@@ -48,6 +53,13 @@ class Lines {
     // As lines may disappear due to new lines,
     // true value does not necessarily guarantee that lines have squiggles.
     private var mayHaveSquiggleLines = false
+
+    private var dateOfLastUnfilteredLine: LocalDate? = null
+    private var dateOfLastFilteredLine: LocalDate? = null
+
+    private var lastOldDate: LocalDate? = null
+    private lateinit var lastNewDate: LocalDate
+    private lateinit var lastDateLine: Line
 
     // After reconnecting, we start receiving new lines.
     // However, we can't just add these lines to the existing lines,
@@ -114,6 +126,9 @@ class Lines {
         if (status != Status.Fetching) return
         unfiltered.clear()
         filtered.clear()
+        dateOfLastUnfilteredLine = null
+        dateOfLastFilteredLine = null
+
         for (line in lines) {
             addLast(line)
         }
@@ -127,7 +142,47 @@ class Lines {
         setSkipsUsingPointer()
     }
 
+    private fun makeDateChangeLine(oldDate: LocalDate?, newDate: LocalDate) : Line {
+        val tstamp = newDate.atStartOfDay(ZoneId.systemDefault()).toEpochSecond() * 1000
+        var msg = newDate.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM))
+        if (oldDate != null && oldDate.plusDays(1) != newDate) {
+            msg += " (" +
+                   oldDate.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)) +
+                   ")"
+        }
+        msg += " --"
+
+        return Line(++fakePointerCounter, LineSpec.Type.Other, tstamp, "--", msg,
+                    nick = null, isVisible = true, isHighlighted = false,
+                    LineSpec.DisplayAs.Unspecified, LineSpec.NotifyLevel.Low)
+    }
+
+    private fun obtainDateChangeLine(oldDate: LocalDate?, newDate: LocalDate) : Line {
+        if (oldDate == null || lastOldDate != oldDate || lastNewDate != newDate) {
+            lastDateLine = makeDateChangeLine(oldDate, newDate)
+            lastOldDate = oldDate
+            lastNewDate = newDate
+        }
+        return lastDateLine
+    }
+
     fun addLast(line: Line) {
+        val newDate = Instant.ofEpochSecond(line.timestamp / 1000)
+                      .atZone(ZoneId.systemDefault())
+                      .toLocalDate()
+
+        if (dateOfLastUnfilteredLine != newDate) {
+            unfiltered.addLast(obtainDateChangeLine(dateOfLastUnfilteredLine, newDate))
+            dateOfLastUnfilteredLine = newDate
+            skipUnfiltered++
+        }
+
+        if (line.isVisible && dateOfLastFilteredLine != newDate) {
+            filtered.addLast(obtainDateChangeLine(dateOfLastFilteredLine, newDate))
+            dateOfLastFilteredLine = newDate
+            skipFiltered++
+        }
+
         val unfilteredSize = unfiltered.size
         val maxUnfilteredSize = maxUnfilteredSize
         val shouldRemoveFirstLine = unfilteredSize == maxUnfilteredSize
