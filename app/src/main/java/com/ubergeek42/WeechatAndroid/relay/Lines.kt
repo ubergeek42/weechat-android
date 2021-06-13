@@ -91,9 +91,8 @@ class Lines {
         if (status != Status.Fetching) return
         unfiltered.clear()
         filtered.clear()
-        unfiltered.addAll(lines)
         for (line in lines) {
-            if (line.isVisible) filtered.add(line)
+            addLast(line)
         }
     }
 
