@@ -97,7 +97,7 @@ class Lines {
         if (lastPointer != null && lastPointerServer != lastPointer) {
             val squiggleIsVisible = lastVisiblePointerServer != lastVisiblePointer
             val squiggleLine = SquiggleLine(isVisible = squiggleIsVisible)
-            addLast(squiggleLine)
+            addLast(squiggleLine, false)
             mayHaveSquiggleLines = true
         }
     }
@@ -125,7 +125,7 @@ class Lines {
     // in very rare cases status might not be FETCHING here, particularly when closing buffers
     // while the app is connecting and has already requested lines
 
-    fun replaceLines(lines: Collection<Line>) {
+    fun replaceLines(lines: Collection<Line>, displayDayChange: Boolean) {
         if (status != Status.Fetching) return
         unfiltered.clear()
         filtered.clear()
@@ -133,7 +133,7 @@ class Lines {
         dateOfLastFilteredLine = null
 
         for (line in lines) {
-            addLast(line)
+            addLast(line, displayDayChange)
         }
         mayHaveSquiggleLines = false
     }
@@ -169,21 +169,23 @@ class Lines {
         return lastDateLine
     }
 
-    fun addLast(line: Line) {
-        val newDate = Instant.ofEpochSecond(line.timestamp / 1000)
-                      .atZone(ZoneId.systemDefault())
-                      .toLocalDate()
+    fun addLast(line: Line, displayDayChange: Boolean) {
+        if(displayDayChange) {
+                val newDate = Instant.ofEpochSecond(line.timestamp / 1000)
+                              .atZone(ZoneId.systemDefault())
+                              .toLocalDate()
 
-        if (dateOfLastUnfilteredLine != newDate) {
-            unfiltered.addLast(obtainDateChangeLine(dateOfLastUnfilteredLine, newDate))
-            dateOfLastUnfilteredLine = newDate
-            skipUnfiltered++
-        }
+                if (dateOfLastUnfilteredLine != newDate) {
+                    unfiltered.addLast(obtainDateChangeLine(dateOfLastUnfilteredLine, newDate))
+                    dateOfLastUnfilteredLine = newDate
+                    skipUnfiltered++
+                }
 
-        if (line.isVisible && dateOfLastFilteredLine != newDate) {
-            filtered.addLast(obtainDateChangeLine(dateOfLastFilteredLine, newDate))
-            dateOfLastFilteredLine = newDate
-            skipFiltered++
+                if (line.isVisible && dateOfLastFilteredLine != newDate) {
+                    filtered.addLast(obtainDateChangeLine(dateOfLastFilteredLine, newDate))
+                    dateOfLastFilteredLine = newDate
+                    skipFiltered++
+                }
         }
 
         val unfilteredSize = unfiltered.size
