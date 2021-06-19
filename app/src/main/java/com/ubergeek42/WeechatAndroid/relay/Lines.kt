@@ -99,7 +99,7 @@ class Lines {
     // in very rare cases status might not be FETCHING here, particularly when closing buffers
     // while the app is connecting and has already requested lines
 
-    fun replaceLines(lines: Collection<Line>) {
+    fun replaceLines(lines: Collection<Line>, displayDayChange: Boolean) {
         if (status != Status.Fetching) return
         unfiltered.clear()
         filtered.clear()
@@ -107,7 +107,7 @@ class Lines {
         dateOfLastFilteredLine = null
 
         for (line in lines) {
-            addLast(line)
+            addLast(line, displayDayChange)
         }
     }
 
@@ -135,26 +135,29 @@ class Lines {
         return lastDateLine
     }
 
-    fun addLast(line: Line) {
-        val newDate = Instant.ofEpochSecond(line.timestamp / 1000)
-                      .atZone(ZoneId.systemDefault())
-                      .toLocalDate()
+    fun addLast(line: Line, displayDayChange: Boolean) {
+        if(displayDayChange) {
+                val newDate = Instant.ofEpochSecond(line.timestamp / 1000)
+                              .atZone(ZoneId.systemDefault())
+                              .toLocalDate()
 
-        if (dateOfLastUnfilteredLine != newDate) {
-            unfiltered.addLast(obtainDateChangeLine(dateOfLastUnfilteredLine, newDate))
-            dateOfLastUnfilteredLine = newDate
-            skipUnfiltered++
-        }
+                if (dateOfLastUnfilteredLine != newDate) {
+                    unfiltered.addLast(obtainDateChangeLine(dateOfLastUnfilteredLine, newDate))
+                    dateOfLastUnfilteredLine = newDate
+                    skipUnfiltered++
+                }
 
-        if (line.isVisible && dateOfLastFilteredLine != newDate) {
-            filtered.addLast(obtainDateChangeLine(dateOfLastFilteredLine, newDate))
-            dateOfLastFilteredLine = newDate
-            skipFiltered++
+                if (line.isVisible && dateOfLastFilteredLine != newDate) {
+                    filtered.addLast(obtainDateChangeLine(dateOfLastFilteredLine, newDate))
+                    dateOfLastFilteredLine = newDate
+                    skipFiltered++
+                }
         }
 
         if (shouldAddSquiggleOnNewLine) {
             shouldAddSquiggleOnNewLine = false
-            if (status == Status.Init && unfiltered.size > 0) addLast(SquiggleLine())   // invisible
+            if (status == Status.Init && unfiltered.size > 0)
+                addLast(SquiggleLine(), false)   // invisible
         }
 
         if (shouldAddSquiggleOnNewVisibleLine && line.isVisible) {

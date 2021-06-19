@@ -25,6 +25,7 @@ class Buffer @WorkerThread constructor(
     @JvmField var shortName: String = ""
     @JvmField var hidden: Boolean = false
     @JvmField var type = BufferSpec.Type.Other
+    @JvmField var displayDayChange: Boolean = false
 
     private var notify: Notify = Notify.default
 
@@ -34,6 +35,7 @@ class Buffer @WorkerThread constructor(
         internal var updateHidden = false
         internal var updateType = false
         internal var updateNotifyLevel = false
+        internal var updateDayChange = false
 
         var number: Int by updatable(::updateName, this@Buffer::number)
         var fullName: String by updatable(::updateName, this@Buffer::fullName)
@@ -42,6 +44,7 @@ class Buffer @WorkerThread constructor(
         var hidden: Boolean by updatable(::updateHidden)
         var type: BufferSpec.Type by updatable(::updateType)
         var notify: Notify? by updatable(::updateNotifyLevel)
+        var displayDayChange: Boolean by updatable(::updateDayChange)
     }
 
     fun update(block: Updater.() -> Unit) {
@@ -65,6 +68,7 @@ class Buffer @WorkerThread constructor(
         if (updater.updateNotifyLevel) notify = updater.notify ?: Notify.default
         if (updater.updateHidden) hidden = updater.hidden
         if (updater.updateType) type = updater.type
+        if (updater.updateDayChange) displayDayChange = updater.displayDayChange
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -215,7 +219,7 @@ class Buffer @WorkerThread constructor(
         }
 
         synchronized(this) {
-            lines.replaceLines(newLines)
+            lines.replaceLines(newLines, displayDayChange)
         }
    }
 
@@ -227,7 +231,7 @@ class Buffer @WorkerThread constructor(
         val notifyPmOrMessage = line.notifyLevel == LineSpec.NotifyLevel.Message || notifyPm
 
         synchronized(this) {
-            lines.addLast(line)
+            lines.addLast(line, displayDayChange)
 
             // notify levels: 0 none 1 highlight 2 message 3 all
             // treat hidden lines and lines that are not supposed to generate a “notification” as read
