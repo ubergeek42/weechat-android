@@ -18,9 +18,8 @@ import android.view.View
 import androidx.annotation.AnyThread
 import androidx.annotation.MainThread
 import androidx.fragment.app.Fragment
-import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.SuppressedLinearLayoutManager
 import com.ubergeek42.WeechatAndroid.databinding.BufferlistBinding
-import com.ubergeek42.WeechatAndroid.notifications.Hotlist
 import com.ubergeek42.WeechatAndroid.upload.main
 import com.ubergeek42.WeechatAndroid.utils.afterTextChanged
 import com.ubergeek42.WeechatAndroid.views.BufferListFragmentFullScreenController
@@ -62,7 +61,7 @@ class BufferListFragment : Fragment(), BufferListEye {
         val layoutManager = if (FULL_SCREEN_DRAWER_ENABLED) {
             FullScreenDrawerLinearLayoutManager(requireContext(), ui.bufferList, adapter)
         } else {
-            LinearLayoutManager(requireContext())
+            SuppressedLinearLayoutManager(requireContext())
         }
 
         ui.bufferList.layoutManager = layoutManager

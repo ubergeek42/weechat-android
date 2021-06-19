@@ -2,14 +2,14 @@ package com.ubergeek42.WeechatAndroid.views
 
 import android.content.Context
 import android.view.View
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.SuppressedLinearLayoutManager
 
-class FullScreenDrawerLinearLayoutManager(
+internal class FullScreenDrawerLinearLayoutManager(
     context: Context,
     private val recyclerView: RecyclerView,
     private val adapter: RecyclerView.Adapter<*>,
-) : LinearLayoutManager(context) {
+) : SuppressedLinearLayoutManager(context) {
 
     private var insetTop = 0
     private var insetBottom = 0
