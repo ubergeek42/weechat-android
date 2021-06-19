@@ -141,7 +141,7 @@ class BufferListAdapter(
             Collections.sort(newBuffers, sortByHotCountAndNumberComparator)
         }
 
-        val diffResult = DiffUtil.calculateDiff(DiffCallback(buffers, newBuffers))
+        val diffResult = DiffUtil.calculateDiff(DiffCallback(buffers, newBuffers), false)
 
         main {
             synchronized (updateLock) {
