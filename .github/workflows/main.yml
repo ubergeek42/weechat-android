@@ -110,7 +110,7 @@ jobs:
   notify_to_irc:
     name: Notify on IRC
     runs-on: ubuntu-latest
-    if: always()
+    if: github.repository == 'ubergeek42/weechat-android'
     needs: [run-tests, build-dev-release, publish-to-s3, publish-to-play-store]
     steps:
       - name: Prepare strings
