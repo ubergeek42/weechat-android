@@ -51,7 +51,7 @@ class Suri private constructor(
             return uri.lastPathSegment
         }
 
-        private fun makeFileNameWithExtension(uri: Uri, mediaType: MediaType?): String {
+        fun makeFileNameWithExtension(uri: Uri, mediaType: MediaType?): String {
             val fileName = getFileName(uri)
             fileName?.let { if ("." in it) return it }
 

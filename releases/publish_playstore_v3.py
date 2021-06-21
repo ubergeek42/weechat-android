@@ -76,14 +76,18 @@ def upload():
 
 
 if __name__ == '__main__':
-    if os.environ.get('GITHUB_REF', 'undefined') != 'refs/heads/master':
-        print("Won't publish play store app for any branch except master", file=sys.stderr)
-        sys.exit()
+    github_ref = os.environ.get('GITHUB_REF', 'undefined')
+    github_sha = os.environ.get('GITHUB_SHA', 'undefined')
 
-    re_version = re.compile(r"^v\d+(\.\d+)*$")
-    output = subprocess.check_output(["git", "tag", "--points-at", "HEAD"]).decode("utf-8")
-    if not any(re_version.match(line) for line in output.splitlines()):
-        print("No version tags point to HEAD", file=sys.stderr)
-        sys.exit()
+    git_master_sha = subprocess \
+            .check_output(["git", "rev-parse", "refs/remotes/origin/master"]) \
+            .decode("utf-8") \
+            .strip()
+
+    if not re.match(r"^refs/tags/v\d+(\.\d+)*$", github_ref):
+        sys.exit(f"Not a valid version ref: {github_ref}")
+
+    if github_sha != git_master_sha:
+        sys.exit(f"Master branch ({git_master_sha}) doesn't point to this commit ({github_sha})")
 
     upload()

@@ -4,8 +4,10 @@ package com.ubergeek42.WeechatAndroid.views
 
 import android.app.Activity
 import android.content.Context
+import android.content.Context.INPUT_METHOD_SERVICE
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
 import androidx.annotation.StringRes
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.core.view.GravityCompat
@@ -14,6 +16,10 @@ import androidx.drawerlayout.widget.DrawerLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView
+import com.ubergeek42.WeechatAndroid.R
+import com.ubergeek42.WeechatAndroid.WeechatActivity
+import com.ubergeek42.WeechatAndroid.upload.applicationContext
+import com.ubergeek42.WeechatAndroid.upload.dp_to_px
 import com.ubergeek42.WeechatAndroid.upload.f
 import com.ubergeek42.WeechatAndroid.upload.i
 import com.ubergeek42.WeechatAndroid.utils.u
@@ -172,4 +178,55 @@ abstract class DrawerToggleFix(
         val open = drawerLayout.isDrawerOpen(GravityCompat.START)
         onDrawerSlideInternal(if (open) 1f else 0f)
     }
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////// keyboard
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+private val imm = applicationContext.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+
+fun View.showSoftwareKeyboard() {
+    imm.showSoftInput(this, InputMethodManager.SHOW_IMPLICIT)
+}
+
+fun View.hideSoftwareKeyboard() {
+    imm.hideSoftInputFromWindow(this.windowToken, 0)
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+// historical note from the old comment:
+// > this method is called from onStart() instead of onCreate() as onCreate() is called when the
+// > activities get recreated due to theme/battery state change. for some reason, the activities
+// > get recreated even though the user is using another app; if it happens in the wrong screen
+// > orientation, the value is wrong.
+
+// gets width of weasel (effectively the recycler view) for LineView. this is a workaround
+// necessary in order to circumvent a bug (?) in ViewPager: sometimes, when measuring views, the
+// RecyclerView will have a width of 0 (esp. when paging through buffers fast) and hence
+// LineView will receive a suggested maximum width of 0 in its onMeasure().
+//      note: other views in RecyclerView don't seem to have this problem. they either receive
+//      correct values or somehow recover from width 0. the difference seems to lie in the fact
+//      that they are inflated, and not created programmatically.
+// todo: switch to ViewPager2 and get rid of this nonsense
+fun Activity.calculateApproximateWeaselWidth(): Int {
+    if (this is WeechatActivity) {
+        ui.pager.weaselWidth.let { if (it > 0) return it }
+    }
+
+    val windowWidthIsh = window.decorView.width.let {
+        if (it > 0) it else resources.displayMetrics.widthPixels
+    }
+
+    if (this is WeechatActivity) {
+        val drawerAlwaysVisible = !resources.getBoolean(R.bool.slidy)
+        if (drawerAlwaysVisible) return windowWidthIsh - 280.dp_to_px
+    }
+
+    return windowWidthIsh
 }

@@ -123,8 +123,8 @@ class BufferListAdapter(
         // iteration on Buffers: (waiting for e to release BufferA). todo: resolve this gracefully
         for (buffer in BufferList.buffers) {
             if (buffer.type == BufferSpec.Type.HardHidden) continue
-            if (!buffer.fullName.toLowerCase().contains(filterLowerCase)
-                    && !buffer.fullName.toUpperCase().contains(filterUpperCase)) continue
+            if (!buffer.fullName.lowercase().contains(filterLowerCase)
+                    && !buffer.fullName.uppercase().contains(filterUpperCase)) continue
             if (filterLowerCase.isEmpty()) {
                 if (P.hideHiddenBuffers && buffer.hidden
                         && buffer.highlights == 0
@@ -141,7 +141,7 @@ class BufferListAdapter(
             Collections.sort(newBuffers, sortByHotCountAndNumberComparator)
         }
 
-        val diffResult = DiffUtil.calculateDiff(DiffCallback(buffers, newBuffers))
+        val diffResult = DiffUtil.calculateDiff(DiffCallback(buffers, newBuffers), false)
 
         main {
             synchronized (updateLock) {
@@ -158,8 +158,8 @@ class BufferListAdapter(
     @AnyThread @Synchronized fun setFilter(s: String, global: Boolean) {
         if (global) filterGlobal = s
 
-        filterLowerCase = s.toLowerCase()
-        filterUpperCase = s.toUpperCase()
+        filterLowerCase = s.lowercase()
+        filterUpperCase = s.uppercase()
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

@@ -14,12 +14,11 @@ import org.greenrobot.eventbus.Subscribe
 import com.ubergeek42.WeechatAndroid.service.Events.StateChangedEvent
 import com.ubergeek42.WeechatAndroid.service.RelayService
 import com.ubergeek42.WeechatAndroid.relay.BufferList
-import com.ubergeek42.WeechatAndroid.relay.Hotlist
 import android.view.View
 import androidx.annotation.AnyThread
 import androidx.annotation.MainThread
 import androidx.fragment.app.Fragment
-import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.SuppressedLinearLayoutManager
 import com.ubergeek42.WeechatAndroid.databinding.BufferlistBinding
 import com.ubergeek42.WeechatAndroid.upload.main
 import com.ubergeek42.WeechatAndroid.utils.afterTextChanged
@@ -62,7 +61,7 @@ class BufferListFragment : Fragment(), BufferListEye {
         val layoutManager = if (FULL_SCREEN_DRAWER_ENABLED) {
             FullScreenDrawerLinearLayoutManager(requireContext(), ui.bufferList, adapter)
         } else {
-            LinearLayoutManager(requireContext())
+            SuppressedLinearLayoutManager(requireContext())
         }
 
         ui.bufferList.layoutManager = layoutManager
@@ -126,7 +125,7 @@ class BufferListFragment : Fragment(), BufferListEye {
     @AnyThread @Cat override fun onBuffersChanged() {
         adapter.onBuffersChanged()
 
-        val hotCount = Hotlist.getHotCount()
+        val hotCount = BufferList.totalHotMessageCount
         main {
             if (this.hotCount != hotCount) {
                 this.hotCount = hotCount

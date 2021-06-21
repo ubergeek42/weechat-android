@@ -6,6 +6,7 @@ import com.ubergeek42.weechat.relay.protocol.Hashtable
 import com.ubergeek42.weechat.relay.protocol.Hdata
 import com.ubergeek42.weechat.relay.protocol.HdataEntry
 import com.ubergeek42.weechat.relay.protocol.RelayObject
+import java.lang.NumberFormatException
 import com.ubergeek42.weechat.relay.protocol.Array as WeeArray
 
 inline fun HdataEntry.getInt(id: String): Int = getItem(id).asInt()
@@ -56,3 +57,7 @@ inline fun Hdata.forEachExistingBuffer(block: (spec: BufferSpec, buffer: Buffer)
 
 
 val Long.as0x get() = "0x" + java.lang.Long.toHexString(this)
+
+val String.from0x: Long get() = java.lang.Long.decode(this)
+
+val String.from0xOrNull get() = try { from0x } catch (e: NumberFormatException) { null }

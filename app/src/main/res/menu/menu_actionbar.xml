@@ -59,6 +59,8 @@
         <menu>
             <item android:id="@+id/sync_hotlist"
                 android:title="@string/menu__debug__sync_hotlist" />
+            <item android:id="@+id/remove_shortcuts"
+                android:title="Remove shortcuts" />
             <item android:id="@+id/die"
                 android:title="@string/menu__debug__die" />
         </menu>

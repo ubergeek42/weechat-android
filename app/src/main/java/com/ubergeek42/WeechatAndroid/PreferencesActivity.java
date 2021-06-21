@@ -1,8 +1,6 @@
 package com.ubergeek42.WeechatAndroid;
 
-import android.Manifest;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -13,20 +11,19 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.preference.CheckBoxPreference;
 import androidx.preference.DialogFragmentGetter;
 import androidx.preference.DialogPreference;
 import androidx.preference.FilePreference;
-import androidx.preference.FontPreference;
+import androidx.preference.FontManager;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceGroup;
 import androidx.preference.PreferenceScreen;
 import androidx.preference.RingtonePreferenceFix;
-import androidx.preference.ThemePreference;
+import androidx.preference.ThemeManager;
 
 import com.ubergeek42.WeechatAndroid.media.Config;
 import com.ubergeek42.WeechatAndroid.service.P;
@@ -34,11 +31,14 @@ import com.ubergeek42.WeechatAndroid.upload.HttpUriGetter;
 import com.ubergeek42.WeechatAndroid.upload.RequestBodyModifier;
 import com.ubergeek42.WeechatAndroid.upload.RequestModifier;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
+import com.ubergeek42.WeechatAndroid.views.ViewUtilsKt;
 
 import java.util.Set;
 
 import okhttp3.HttpUrl;
 
+import static androidx.preference.FontManagerKt.IMPORT_FONTS_REQUEST_CODE;
+import static androidx.preference.ThemeManagerKt.IMPORT_THEMES_REQUEST_CODE;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
 import static com.ubergeek42.WeechatAndroid.utils.Toaster.ErrorToast;
 
@@ -98,6 +98,18 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
         return super.onOptionsItemSelected(item);
     }
 
+    @Override protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (resultCode == RESULT_OK) {
+            if (requestCode == IMPORT_FONTS_REQUEST_CODE) {
+                FontManager.importFontsFromResultIntent(this, data);
+            } else if (requestCode == IMPORT_THEMES_REQUEST_CODE) {
+                ThemeManager.importThemesFromResultIntent(this, data);
+            }
+        }
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     public static class PreferencesFragment extends PreferenceFragmentCompat implements DialogPreference.TargetFragment, Preference.OnPreferenceChangeListener {
@@ -108,22 +120,9 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
         private Preference sshGroup = null;
         private Preference wsPath = null;
 
-        private Preference resumePreference;
-
         // don't check permissions if preference is null, instead use resumePreference
         @Override public void onDisplayPreferenceDialog(Preference preference) {
             final DialogFragment f;
-
-            if (preference == null) {
-                preference = resumePreference;
-            } else if (preference instanceof FontPreference || preference instanceof ThemePreference) {
-                boolean granted = ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
-                if (!granted) {
-                    requestPermissions(new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE}, 0);
-                    resumePreference = preference;
-                    return;
-                }
-            }
 
             int code = -1;
             if (preference instanceof FilePreference) {
@@ -254,7 +253,7 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
                 } else if (PREF_MEDIA_PREVIEW_THUMBNAIL_WIDTH.equals(key)) {
                     float thumbnailWidth = P._1dp * Float.parseFloat((String) o);
                     if (thumbnailWidth <= 0) throw new IllegalArgumentException("Thumbnail width must be > 0");
-                    if (thumbnailWidth > (P.weaselWidth * 0.9)) throw new IllegalArgumentException("Thumbnail width must be less than screen width");
+                    if (thumbnailWidth > (ViewUtilsKt.calculateApproximateWeaselWidth(requireActivity()) * 0.9)) throw new IllegalArgumentException("Thumbnail width must be less than screen width");
                 } else if (PREF_MEDIA_PREVIEW_THUMBNAIL_MAX_HEIGHT.equals(key)) {
                     float thumbnailMaxHeight = P._1dp * Float.parseFloat((String) o);
                     if (thumbnailMaxHeight <= 0) throw new IllegalArgumentException("Thumbnail max height must be > 0");

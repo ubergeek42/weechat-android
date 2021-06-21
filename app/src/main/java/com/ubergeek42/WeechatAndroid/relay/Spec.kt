@@ -42,7 +42,7 @@ enum class Notify(val value: Int) {
 
     // todo get rid of openWhileRunning
     fun toBuffer(openWhileRunning: Boolean) = Buffer(pointer).apply {
-        update {
+        update(silently = true) {
             number = this@BufferSpec.number
             fullName = this@BufferSpec.fullName
             shortName = this@BufferSpec.shortName
@@ -52,7 +52,7 @@ enum class Notify(val value: Int) {
             type = this@BufferSpec.type
         }
 
-        if (P.isBufferOpen(pointer)) setOpen(open = true, syncHotlistOnOpen = false)
+        if (P.isBufferOpen(pointer)) addOpenKey("main-activity", syncHotlistOnOpen = false)
 
         // saved data would be meaningless for a newly opened buffer
         if (!openWhileRunning) P.restoreLastReadLine(this)

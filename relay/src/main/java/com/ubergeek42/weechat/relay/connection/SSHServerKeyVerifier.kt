@@ -174,7 +174,7 @@ enum class KeyType(val displayName: String, vararg algorithms: String) {
         listener?.onChange()
     }
 
-    val numberOfRecords get() = knownHosts.values.sumBy { it.size }
+    val numberOfRecords get() = knownHosts.values.sumOf { it.size }
 
     fun encodeToString() = json.encodeToString(this)
 

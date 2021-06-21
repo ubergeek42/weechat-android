@@ -6,12 +6,15 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.pm.ShortcutManagerCompat.EXTRA_SHORTCUT_ID
 import com.ubergeek42.WeechatAndroid.adapters.BufferListAdapter
 import com.ubergeek42.WeechatAndroid.adapters.BufferListClickListener
 import com.ubergeek42.WeechatAndroid.databinding.BufferlistShareBinding
+import com.ubergeek42.WeechatAndroid.notifications.statistics
 import com.ubergeek42.WeechatAndroid.relay.BufferList
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.upload.preloadThumbnailsForIntent
+import com.ubergeek42.WeechatAndroid.upload.suppress
 import com.ubergeek42.WeechatAndroid.utils.Constants
 import com.ubergeek42.WeechatAndroid.utils.ThemeFix
 import com.ubergeek42.WeechatAndroid.utils.Toaster
@@ -26,15 +29,26 @@ class ShareTextActivity : AppCompatActivity(), BufferListClickListener {
         P.applyThemeAfterActivityCreation(this)
         P.storeThemeOrColorSchemeColors(this)   // required for ThemeFix.fixIconAndColor()
         ThemeFix.fixIconAndColor(this)
+
+        intent?.let { intent ->
+            if (intent.action.isNotAnyOf(Intent.ACTION_SEND, Intent.ACTION_SEND_MULTIPLE)) {
+                finish()
+                return
+            }
+
+            intent.extras?.let { extras ->
+                extras.getString(EXTRA_SHORTCUT_ID)?.let { fullName ->
+                    BufferList.findByFullName(fullName)?.let { buffer ->
+                        val pointer = buffer.pointer
+                        onBufferClick(pointer)
+                    }
+                }
+            }
+        }
     }
 
     override fun onStart() {
         super.onStart()
-
-        if (intent.action.isNotAnyOf(Intent.ACTION_SEND, Intent.ACTION_SEND_MULTIPLE)) {
-            finish()
-            return
-        }
 
         val adapter = BufferListAdapter(this).apply {
             val pendingItemCount = onBuffersChanged()
@@ -97,8 +111,19 @@ class ShareTextActivity : AppCompatActivity(), BufferListClickListener {
     override fun onBufferClick(pointer: Long) {
         intent.setClass(applicationContext, WeechatActivity::class.java)
         intent.putExtra(Constants.EXTRA_BUFFER_POINTER, pointer)
-        startActivity(intent)
+
+        // this can lead to a crash if we lack URI permissions
+        // normally this doesn't happen, but firefox manages to send something malformed
+        // when using direct share. see https://github.com/mozilla-mobile/fenix/issues/19171
+        suppress<Exception>(showToast = true) {
+            startActivity(intent)
+        }
+
         finish()
+
+        BufferList.findByPointer(pointer)?.let { buffer ->
+            statistics.reportBufferWasSharedTo(buffer.fullName)
+        }
     }
 
     private fun applyColorSchemeToViews(vararg primaryBackgroundColorViews: View) {

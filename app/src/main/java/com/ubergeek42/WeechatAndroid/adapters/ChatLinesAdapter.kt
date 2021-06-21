@@ -76,6 +76,8 @@ class ChatLinesAdapter @MainThread constructor(
             }
         }
 
+    var onLineDoubleTappedListener: ((Line) -> Unit)? = null
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////// holders
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -86,6 +88,10 @@ class ChatLinesAdapter @MainThread constructor(
             setOnLongClickListener {
                 showCopyDialog(this, buffer?.pointer ?: -1L)
                 true
+            }
+
+            onDoubleTapListener = {
+                (tag as? Line)?.let { line -> onLineDoubleTappedListener?.invoke(line) }
             }
         }
 
@@ -210,17 +216,21 @@ class ChatLinesAdapter @MainThread constructor(
 
     private val updateLock = Object()
     private var updateStep = 0
+    private var style = 0
 
     @AnyThread @Synchronized private fun onLinesChanged(animation: Animation) = ulet(buffer) { buffer ->
         val thisUpdateStep = synchronized (updateLock) { ++updateStep }
 
         val newLines = buffer.getLinesCopy()
-        val diffResult = DiffUtil.calculateDiff(DiffCallback(lines, newLines), false)
+        val newStyle = buffer.style     // todo synchronization?
+
+        val diffResult = DiffUtil.calculateDiff(DiffCallback(lines, newLines, style == newStyle), false)
 
         Weechat.runOnMainThreadASAP {
             synchronized (updateLock) {
                 if (thisUpdateStep != updateStep) return@runOnMainThreadASAP
                 lines = newLines
+                style = newStyle
             }
 
             diffResult.dispatchUpdatesTo(this@ChatLinesAdapter)
@@ -243,12 +253,7 @@ class ChatLinesAdapter @MainThread constructor(
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @MainThread @Synchronized override fun onGlobalPreferencesChanged(numberChanged: Boolean) {
-        if (numberChanged && buffer != null) {
-            onLinesChanged(Animation.Default)
-        } else {
-            uiLines.setAnimation(Animation.Default)
-            notifyItemRangeChanged(0, lines.size)
-        }
+        onLinesChanged(Animation.Default)
     }
 
     @WorkerThread override fun onLinesListed() {
@@ -316,7 +321,8 @@ class ChatLinesAdapter @MainThread constructor(
 
     private inner class DiffCallback(
         private val oldLines: List<Line>,
-        private val newLines: List<Line>
+        private val newLines: List<Line>,
+        private val sameStyle: Boolean,
     ) : DiffUtil.Callback() {
         override fun getOldListSize() = oldLines.size
         override fun getNewListSize() = newLines.size
@@ -329,7 +335,7 @@ class ChatLinesAdapter @MainThread constructor(
             if (newItemPosition == 0) {
                 return oldLines[oldItemPosition] === newLines[newItemPosition]
             }
-            return true
+            return sameStyle
         }
     }
 }

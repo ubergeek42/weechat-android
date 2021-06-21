@@ -70,6 +70,14 @@
         <item>basic</item>
     </string-array>
 
+    <string-array name="pref__upload__no_of_direct_share_targets">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+    </string-array>
+
     <string-array name="pref__buttons__paperclip__action_1_values">
         <item>content_images</item>
         <item>content_media</item>

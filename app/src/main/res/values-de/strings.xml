@@ -112,7 +112,6 @@
 
     <string name="notifications__channel__connection_status">Verbindungsstatus</string>
     <string name="notifications__channel__hotlist">Neue Nachrichten</string>
-    <string name="notifications__channel__hotlist_async">Neue Nachrichten (async)</string>
 
     <string name="notifications__main__waiting_for_network">Warte auf Netzwerk</string>
     <string name="notifications__main__will_connect_in_n_seconds">In %d Sekunden verbinden…</string>
@@ -621,13 +620,14 @@
 
     <string name="pref__look_n_feel__font">
         Zeichensatz für Buffer</string>
-    <string name="pref__FontPreference__summary">
-        Nicht-Monospace-Schriftarten funktionieren nicht gut mit der Präfix-Ausrichtung.
-        Suchpfad:%1$s
-        \n
-        \nAktueller Zeichensatz:
-        \n&nbsp;&nbsp;&nbsp;&nbsp;%2$s</string>
     <string name="pref__FontPreference__default">Standard</string>
+    <string name="pref__FontPreference__import_button">Importieren</string>
+    <string name="pref__FontPreference__imported">Importiert: %s</string>
+
+    <string name="pref__FontPreferenceHelp__summary">
+        Nicht-Monospace-Schriftarten funktionieren nicht gut mit der Ausrichtung.
+        Importieren Sie Schriftarten aus dem Dialogfeld,
+        oder kopieren Sie diese an einen der folgenden Orte:%1$s</string>
 
     <!-- ####################################################################################### -->
     <!-- ######################################## theme ######################################## -->
@@ -649,15 +649,19 @@
     <string name="pref__theme__color_scheme_dark">Dunkles Farbschema</string>
     <string name="pref__ThemeManager__error_loading_color_scheme">Fehler beim Laden des Farbschema %s</string>
     <string name="pref__ThemePreference__not_set">Nicht gesetzt</string>
+    <string name="pref__ThemePreference__error">Fehler</string>
+    <string name="pref__ThemePreference__import_button">Importieren</string>
+    <string name="pref__ThemePreference__imported">Importiert: %s</string>
 
     <string name="pref__ThemePreferenceHelp__summary"><![CDATA[
-        Sie können benutzerdefinierte Farbschemata für diese Applikation erstellen.
-        Verwenden Sie beliebige Farben für die UI-Elemente,
-        passen Sie die Farben für Highlights und Lesezeichen an
-        und ändern Sie die WeeChat Farbpalette!
-        <a href="https://github.com/ubergeek42/weechat-android/wiki/Custom-Color-Schemes">Lerne mehr</a>
+        Sie können benutzerdefinierte Farbschemata für diese Anwendung erstellen.
+        Verwenden Sie beliebige Farben für UI-Elemente,
+        Anpassen der Highlight-Farbe und des Lesezeichens,
+        Ändern Sie die WeeChat-Farbpalette!
+        <a href="https://github.com/ubergeek42/weechat-android/wiki/Custom-Color-Schemes">Erfahren Sie mehr</a>
         <br>
-        <br>Kopieren Sie Ihr benutzerdefiniertes Farbschema in einen dieser Ordner:%1$s
+        <br>Importieren Sie Farbschemata aus den Dialogen
+        oder kopieren Sie diese an einen der folgenden Orte:%1$s
     ]]></string>
 
     <string name="pref__theme__dim_down_non_human_lines">
@@ -721,11 +725,6 @@
     <string name="pref__notifications__vibration">Vibration</string>
 
     <string name="pref__notifications__light">Benachrichtigungslicht</string>
-
-    <string name="pref__notifications__ticker">
-        Benachrichtigungsticker</string>
-    <string name="pref__notifications__ticker_summary">
-        Verbindungsänderungen im Ticker anzeigen (funktioniert nicht unter Lollipop)</string>
 
     <!-- ####################################################################################### -->
     <!-- #################################### media preview #################################### -->
@@ -825,6 +824,15 @@
         <item>Nur Text</item>
         <item>Text, Bilder und Videos</item>
         <item>Alles</item>
+    </string-array>
+
+    <string name="pref__upload__no_of_direct_share_targets">Direkte Freigabe</string>
+    <string-array name="pref__upload__no_of_direct_share_targets_names">
+        <item>Deaktiviert</item>
+        <item>Bis zu einem Buffer</item>
+        <item>Bis zu zwei Buffern</item>
+        <item>Bis zu drei Buffern</item>
+        <item>Bis zu vier Buffern</item>
     </string-array>
 
     <string name="pref__upload__upload_uri">Upload-URL</string>

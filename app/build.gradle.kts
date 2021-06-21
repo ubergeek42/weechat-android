@@ -16,27 +16,29 @@ dependencies {
     implementation(project(":cats"))
     implementation(project(":relay"))
 
-    implementation("androidx.core:core-ktx:1.3.2")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.4.32")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.0")
 
     // these two are required for logging within the relay module. todo remove?
     implementation("org.slf4j:slf4j-api:1.7.30")
     implementation("com.noveogroup.android:android-logger:1.3.6")
 
+    implementation("androidx.core:core-ktx:1.5.0-rc02")
     implementation("androidx.legacy:legacy-support-v4:1.0.0")
-    implementation("androidx.annotation:annotation:1.1.0") // For @Nullable/@NonNull
+    implementation("androidx.annotation:annotation:1.2.0") // For @Nullable/@NonNull
     implementation("androidx.appcompat:appcompat:1.2.0")
     implementation("androidx.preference:preference-ktx:1.1.1")  // preference fragment & al
     implementation("androidx.legacy:legacy-preference-v14:1.0.0") // styling for the fragment
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.0")
-    implementation("androidx.lifecycle:lifecycle-common-java8:2.3.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")
+    implementation("androidx.lifecycle:lifecycle-common-java8:2.3.1")
+    implementation("androidx.sharetarget:sharetarget:1.1.0")
+
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.4.1")
 
     implementation("com.github.bumptech.glide:glide:4.12.0")
     kapt("com.github.bumptech.glide:compiler:4.12.0")
-    implementation("com.squareup.okhttp3:okhttp:4.9.0")
+    implementation("com.squareup.okhttp3:okhttp:4.9.1")
 
-    val roomVersion = "2.2.6"
+    val roomVersion = "2.3.0"
     implementation("androidx.room:room-runtime:$roomVersion")
     annotationProcessor("androidx.room:room-compiler:$roomVersion")
     kapt("androidx.room:room-compiler:$roomVersion")
@@ -54,7 +56,7 @@ dependencies {
     implementation("org.greenrobot:eventbus:3.2.0")
 
     debugImplementation("org.aspectj:aspectjrt:1.9.6")
-    debugImplementation("com.squareup.leakcanary:leakcanary-android:2.6")
+    debugImplementation("com.squareup.leakcanary:leakcanary-android:2.7")
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.7.1")
@@ -65,15 +67,14 @@ tasks.withType<JavaCompile> {
 }
 
 android {
-    compileSdkVersion(29)
-    buildToolsVersion("29.0.2")
+    compileSdkVersion(30)
 
     defaultConfig {
         versionCode = 1_06_00
         versionName = "1.6"
 
         minSdkVersion(21)
-        targetSdkVersion(29)
+        targetSdkVersion(30)
         buildConfigField("String", "VERSION_BANNER", "\"" + versionBanner() + "\"")
 
         vectorDrawables.useSupportLibrary = true
@@ -277,7 +278,12 @@ class TransformCats : Transform() {
 
             source.jarInputs.forEach { jar ->
                 classPath.add(jar.file)
-                if (jar.name == ":cats") aspectPath.add(jar.file)
+                // this used to read `if (jar.name == ":cats") ...`,
+                // but with android gradle plugin 4.2.0 jar names contain garbage
+                // this is a very simple but a bit fragile workaround. todo improve
+                if (jar.file.directoriesInsideRootProject().contains("cats")) {
+                    aspectPath.add(jar.file)
+                }
             }
 
         }
@@ -289,3 +295,12 @@ class TransformCats : Transform() {
 android.registerTransform(TransformCats())
 
 val Iterable<File>.asArgument get() = joinToString(File.pathSeparator)
+
+fun File.directoriesInsideRootProject() = sequence {
+    var file = this@directoriesInsideRootProject
+    while (true) {
+        yield(file.name)
+        file = file.parentFile ?: break
+        if (file == rootProject.projectDir) break
+    }
+}

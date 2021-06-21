@@ -146,10 +146,11 @@ public class Constants {
     final static public String PREF_NOTIFICATION_SOUND = "notification_sound"; final public static String PREF_NOTIFICATION_SOUND_D = "content://settings/system/notification_sound";
     final static public String PREF_NOTIFICATION_VIBRATE = "notification_vibrate"; final public static boolean PREF_NOTIFICATION_VIBRATE_D = false;
     final static public String PREF_NOTIFICATION_LIGHT = "notification_light"; final public static boolean PREF_NOTIFICATION_LIGHT_D = false;
-    final static public String PREF_NOTIFICATION_TICKER = "notification_ticker"; final public static boolean PREF_NOTIFICATION_TICKER_D = true;
 
     public final static String EXTRA_BUFFER_POINTER = "com.ubergeek42.BUFFER_POINTER";
-    public final static long NOTIFICATION_EXTRA_BUFFER_ANY = 0;
+    public final static String EXTRA_BUFFER_FULL_NAME = "com.ubergeek42.BUFFER_FULL_NAME";
+    public final static long EXTRA_BUFFER_POINTER_ANY = 0;
+    public final static String EXTRA_BUFFER_FULL_NAME_ANY = "";
 
     // night mode
     final static public String PREF_THEME_GROUP = "theme_group";
@@ -207,11 +208,15 @@ public class Constants {
 
     // uploading
     final public static String PREF_UPLOAD_GROUP = "upload_group";
-    final public static String PREF_UPLOAD_ACCEPT = "upload_accept";
+    final public static String PREF_UPLOAD_ACCEPT = "upload_accept_shared";
     final public static String PREF_UPLOAD_ACCEPT_TEXT_ONLY = "text_only";
     final public static String PREF_UPLOAD_ACCEPT_TEXT_AND_MEDIA = "text_and_media";
     final public static String PREF_UPLOAD_ACCEPT_EVERYTHING = "everything";
     final public static String PREF_UPLOAD_ACCEPT_D = PREF_UPLOAD_ACCEPT_EVERYTHING;
+
+    final public static String PREF_UPLOAD_NO_OF_DIRECT_SHARE_TARGETS = "upload_no_of_direct_share_targets";    // "0" ... "4"
+    final public static String PREF_UPLOAD_NO_OF_DIRECT_SHARE_TARGETS_D = "2";
+
 
     final public static String PREF_UPLOAD_URI = "upload_uri";
     final public static String PREF_UPLOAD_URI_D = "";

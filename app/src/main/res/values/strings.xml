@@ -114,7 +114,6 @@
 
     <string name="notifications__channel__connection_status">Connection Status</string>
     <string name="notifications__channel__hotlist">Hotlist</string>
-    <string name="notifications__channel__hotlist_async">Hotlist (async)</string>
 
     <string name="notifications__main__waiting_for_network">Waiting for network</string>
     <string name="notifications__main__will_connect_in_n_seconds">Will connect in %d seconds…</string>
@@ -615,13 +614,14 @@
 
     <string name="pref__look_n_feel__font">
         Buffer font</string>
-    <string name="pref__FontPreference__summary">
-        Non-monospace fonts will not work well with alignment.
-        Search path:%1$s
-        \n
-        \nCurrent font:
-        \n&nbsp;&nbsp;&nbsp;&nbsp;%2$s</string>
     <string name="pref__FontPreference__default">Default</string>
+    <string name="pref__FontPreference__import_button">Import</string>
+    <string name="pref__FontPreference__imported">Imported: %s</string>
+
+    <string name="pref__FontPreferenceHelp__summary">
+        Non-monospace fonts will not work well with alignment.
+        Import fonts from the dialog,
+        or put them into one of the following locations:%1$s</string>
 
     <!-- ####################################################################################### -->
     <!-- ######################################## theme ######################################## -->
@@ -643,6 +643,9 @@
     <string name="pref__theme__color_scheme_dark">Dark color scheme</string>
     <string name="pref__ThemeManager__error_loading_color_scheme">Error loading color scheme %s</string> <!-- todo -->
     <string name="pref__ThemePreference__not_set">Not set</string>
+    <string name="pref__ThemePreference__error">Error</string>
+    <string name="pref__ThemePreference__import_button">Import</string>
+    <string name="pref__ThemePreference__imported">Imported: %s</string>
 
     <string name="pref__ThemePreferenceHelp__summary"><![CDATA[
         You can create custom color schemes for this application.
@@ -651,7 +654,8 @@
         change the WeeChat color palette!
         <a href="https://github.com/ubergeek42/weechat-android/wiki/Custom-Color-Schemes">Learn more</a>
         <br>
-        <br>Put your custom color scheme in any of these folders:%1$s
+        <br>Import color schemes from the dialogs
+        or put them into the following location:%1$s
     ]]></string>
 
     <string name="pref__theme__dim_down_non_human_lines">
@@ -731,11 +735,6 @@
     <string name="pref__notifications__vibration">Vibration</string>
 
     <string name="pref__notifications__light">Notification light</string>
-
-    <string name="pref__notifications__ticker">
-        Notifications ticker</string>
-    <string name="pref__notifications__ticker_summary">
-        Display connection changes as ticker (does not work on Lollipop)</string> <!-- todo -->
 
     <!-- ####################################################################################### -->
     <!-- #################################### media preview #################################### -->
@@ -933,6 +932,15 @@ strategies:
         <item>Text only</item>
         <item>Text, images and videos</item>
         <item>Everything</item>
+    </string-array>
+
+    <string name="pref__upload__no_of_direct_share_targets">Direct share</string>
+    <string-array name="pref__upload__no_of_direct_share_targets_names">
+        <item>Disabled</item>
+        <item>Up to one buffer</item>
+        <item>Up to two buffers</item>
+        <item>Up to three buffers</item>
+        <item>Up to four buffers</item>
     </string-array>
 
     <string name="pref__upload__upload_uri">Upload URL</string>

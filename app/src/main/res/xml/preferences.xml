@@ -271,6 +271,10 @@
         <FontPreference
             android:key="buffer_font"
             android:title="@string/pref__look_n_feel__font" />
+        <FontPreferenceHelp
+            android:key="buffer_font_help"
+            android:selectable="false"
+            android:persistent="false" />
     </PreferenceScreen>
 
     <!-- theme -->
@@ -378,12 +382,6 @@
             android:title="@string/pref__notifications__light"
             android:defaultValue="false"
             android:dependency="notification_enable" />
-        <CheckBoxPreference
-            android:key="notification_ticker"
-            android:title="@string/pref__notifications__ticker"
-            android:summary="@string/pref__notifications__ticker_summary"
-            android:defaultValue="true"
-            android:dependency="notification_enable" />
     </PreferenceScreen>
 
     <!-- media preview -->
@@ -484,6 +482,13 @@
             android:entryValues="@array/pref__upload__accept_shared_values"
             android:entries="@array/pref__upload__accept_shared_names"
             android:defaultValue="everything" />
+        <ListPreference
+            android:key="upload_no_of_direct_share_targets"
+            android:title="@string/pref__upload__no_of_direct_share_targets"
+            android:summary="%s"
+            android:entryValues="@array/pref__upload__no_of_direct_share_targets"
+            android:entries="@array/pref__upload__no_of_direct_share_targets_names"
+            android:defaultValue="2" />
         <EditTextPreferenceFix
             android:key="upload_uri"
             android:title="@string/pref__upload__upload_uri"

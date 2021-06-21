@@ -18,6 +18,7 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.PorterDuff
 import android.graphics.Rect
+import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Build
@@ -26,7 +27,6 @@ import android.util.AttributeSet
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.view.inputmethod.InputMethodManager
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
@@ -48,15 +48,18 @@ import com.ubergeek42.WeechatAndroid.dialogs.CertificateDialog
 import com.ubergeek42.WeechatAndroid.dialogs.NicklistDialog
 import com.ubergeek42.WeechatAndroid.dialogs.ScrollableDialog
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragment
+import com.ubergeek42.WeechatAndroid.fragments.BufferFragmentContainer
 import com.ubergeek42.WeechatAndroid.media.CachePersist
-import com.ubergeek42.WeechatAndroid.relay.BufferList
-import com.ubergeek42.WeechatAndroid.relay.Hotlist
+import com.ubergeek42.WeechatAndroid.notifications.shortcuts
 import com.ubergeek42.WeechatAndroid.service.Events.ExceptionEvent
 import com.ubergeek42.WeechatAndroid.service.Events.StateChangedEvent
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.service.RelayService
 import com.ubergeek42.WeechatAndroid.service.SSLHandler
+import com.ubergeek42.WeechatAndroid.notifications.statistics
+import com.ubergeek42.WeechatAndroid.relay.BufferList
 import com.ubergeek42.WeechatAndroid.upload.Config
+import com.ubergeek42.WeechatAndroid.upload.InsertAt
 import com.ubergeek42.WeechatAndroid.upload.ShareObject
 import com.ubergeek42.WeechatAndroid.upload.TextShareObject
 import com.ubergeek42.WeechatAndroid.upload.UploadDatabase
@@ -78,6 +81,7 @@ import com.ubergeek42.WeechatAndroid.utils.wasCausedByEither
 import com.ubergeek42.WeechatAndroid.views.DrawerToggleFix
 import com.ubergeek42.WeechatAndroid.views.ToolbarController
 import com.ubergeek42.WeechatAndroid.views.WeechatActivityFullScreenController
+import com.ubergeek42.WeechatAndroid.views.hideSoftwareKeyboard
 import com.ubergeek42.WeechatAndroid.views.solidColor
 import com.ubergeek42.cats.Cat
 import com.ubergeek42.cats.CatD
@@ -95,11 +99,12 @@ import java.util.*
 import javax.net.ssl.SSLPeerUnverifiedException
 import kotlin.system.exitProcess
 
-class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListClickListener {
+
+class WeechatActivity : AppCompatActivity(), CutePageChangeListener,
+        BufferListClickListener, BufferFragmentContainer {
     private var uiMenu: Menu? = null
 
     private lateinit var pagerAdapter: MainPagerAdapter
-    lateinit var imm: InputMethodManager
 
     private var slidy = false
 
@@ -111,10 +116,10 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
 
     private lateinit var menuBackgroundDrawable: Drawable
 
-    @get:MainThread var isPagerNoticeablyObscured = false
+    @get:MainThread override var isPagerNoticeablyObscured = false
         private set
 
-    val toolbarController = ToolbarController(this).apply { observeLifecycle() }
+    private val toolbarController = ToolbarController(this).apply { observeLifecycle() }
 
     init { WeechatActivityFullScreenController(this).observeLifecycle() }
 
@@ -137,9 +142,6 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
         uiWeasel = findViewById(R.id.weasel)    // ui.weasel for some reason returns a wrong view
 
         setSupportActionBar(ui.toolbar)
-
-        // remove window color so that we get low overdraw
-        window.setBackgroundDrawableResource(android.R.color.transparent)
 
         // fix status bar and navigation bar icon color on Oreo.
         // TODO remove this once the bug has been fixed
@@ -189,8 +191,6 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
             supportActionBar?.setDisplayHomeAsUpEnabled(true)
         }
 
-        imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-
         menuBackgroundDrawable = ContextCompat.getDrawable(this, R.drawable.bg_popup_menu)!!
 
         if (P.isServiceAlive()) connect()
@@ -238,13 +238,14 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
         Network.get().register(this, null)  // no callback, simply make sure that network info is correct while we are showing
         EventBus.getDefault().register(this)
         connectionState = EventBus.getDefault().getStickyEvent(StateChangedEvent::class.java).state
-        updateHotCount(Hotlist.getHotCount())
+        updateHotCount(BufferList.totalHotMessageCount)
         started = true
         P.storeThemeOrColorSchemeColors(this)
         applyColorSchemeToViews()
         super.onStart()
         uiMenu?.findItem(R.id.menu_dark_theme)?.isVisible = P.themeSwitchEnabled
-        if (intent.hasExtra(Constants.EXTRA_BUFFER_POINTER)) openBufferFromIntent()
+        if (intent.hasExtra(Constants.EXTRA_BUFFER_POINTER) ||
+                intent.hasExtra(Constants.EXTRA_BUFFER_FULL_NAME)) openBufferFromIntent()
         enableDisableExclusionRects()
     }
 
@@ -256,6 +257,7 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
         Network.get().unregister(this)
         CachePersist.save()
         UploadDatabase.save()
+        statistics.save()
     }
 
     ///////////////////////////////////////////////////////// these two are necessary for the drawer
@@ -374,7 +376,7 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
         currentBufferPointer = pointer
 
         updateMenuItems()
-        hideSoftwareKeyboard()
+        ui.pager.hideSoftwareKeyboard()
         toolbarController.onPageChangedOrSelected()
         if (needToChangeKittyVisibility) {
             ui.kitty.visibility = if (pagerAdapter.count == 0) View.VISIBLE else View.GONE
@@ -401,7 +403,7 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
     }
 
     // hide or show nicklist/close menu item according to buffer
-    @MainThread fun updateMenuItems() = ulet(uiMenu) { menu ->
+    @MainThread override fun updateMenuItems() = ulet(uiMenu) { menu ->
         val bufferVisible = pagerAdapter.count > 0
 
         menu.run {
@@ -494,6 +496,7 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
                 }
             }
             R.id.sync_hotlist -> BufferList.syncHotlist()
+            R.id.remove_shortcuts -> shortcuts.removeAllShortcuts()
             R.id.die -> exitProcess(0)
         }
         return true
@@ -527,6 +530,9 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
 
     @MainThread override fun onBufferClick(pointer: Long) {
         openBuffer(pointer)
+        BufferList.findByPointer(pointer)?.let { buffer ->
+            statistics.reportBufferWasManuallyFocused(buffer.fullName)
+        }
     }
 
     @MainThread @Cat("Buffers") fun openBuffer(pointer: Long, shareObject: ShareObject? = null) {
@@ -538,21 +544,21 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
         if (shareObject != null) {
             val fragment = pagerAdapter.currentBufferFragment
             if (fragment != null && fragment.view != null) {
-                fragment.setShareObject(shareObject)
+                fragment.setShareObject(shareObject, InsertAt.END)
             } else {
                 // let fragment be created first, if it's not ready
-                main { pagerAdapter.currentBufferFragment?.setShareObject(shareObject)}
+                main { pagerAdapter.currentBufferFragment?.setShareObject(shareObject, InsertAt.END) }
             }
         }
     }
 
-    @MainThread @Cat("Buffers") fun closeBuffer(pointer: Long) {
+    @MainThread @Cat("Buffers") override fun closeBuffer(pointer: Long) {
         pagerAdapter.closeBuffer(pointer)
         if (slidy) showDrawerIfPagerIsEmpty()
     }
 
-    @MainThread fun hideSoftwareKeyboard() {
-        imm.hideSoftInputFromWindow(ui.pager.windowToken, 0)
+    override fun onChatLinesScrolled(dy: Int, onTop: Boolean, onBottom: Boolean) {
+        toolbarController.onChatLinesScrolled(dy, onTop, onBottom)
     }
 
     @MainThread override fun onBackPressed() {
@@ -581,7 +587,7 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
     @MainThread fun drawerVisibilityChanged(showing: Boolean) {
         if (isPagerNoticeablyObscured == showing) return
         isPagerNoticeablyObscured = showing
-        hideSoftwareKeyboard()
+        ui.pager.hideSoftwareKeyboard()
         pagerAdapter.currentBufferFragment?.onVisibilityStateChanged(BufferFragment.ChangedState.FullVisibility)
     }
 
@@ -619,7 +625,8 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
     // we may get intent while we are connected to the service and when we are not
     @MainThread @Cat("Intent") override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        if (intent.hasExtra(Constants.EXTRA_BUFFER_POINTER)) {
+        if (intent.hasExtra(Constants.EXTRA_BUFFER_POINTER) ||
+                intent.hasExtra(Constants.EXTRA_BUFFER_FULL_NAME)) {
             setIntent(intent)
             if (started) openBufferFromIntent()
         }
@@ -628,15 +635,35 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
     // when this is called, EXTRA_BUFFER_POINTER must be set
     @MainThread @Cat("Intent") private fun openBufferFromIntent() {
         val intent = intent
-        val pointer = intent.getLongExtra(Constants.EXTRA_BUFFER_POINTER,
-                                          Constants.NOTIFICATION_EXTRA_BUFFER_ANY)
+        var pointer = intent.getLongExtra(Constants.EXTRA_BUFFER_POINTER,
+                                          Constants.EXTRA_BUFFER_POINTER_ANY)
+
         intent.removeExtra(Constants.EXTRA_BUFFER_POINTER)
 
-        if (pointer == Constants.NOTIFICATION_EXTRA_BUFFER_ANY) {
+        if (pointer == Constants.EXTRA_BUFFER_POINTER_ANY) {
+            val fullName = intent.getStringExtra(Constants.EXTRA_BUFFER_FULL_NAME)
+            if (fullName != null && fullName != Constants.EXTRA_BUFFER_FULL_NAME_ANY) {
+                val buffer = BufferList.findByFullName(fullName)
+                if (buffer == null) {
+                    Toaster.ErrorToast.show("Couldn’t find buffer $fullName")
+                    intent.removeExtra(Constants.EXTRA_BUFFER_FULL_NAME)
+                    return
+                } else {
+                    pointer = buffer.pointer
+                }
+            }
+        }
+
+        intent.removeExtra(Constants.EXTRA_BUFFER_FULL_NAME)
+
+        if (pointer == Constants.EXTRA_BUFFER_POINTER_ANY) {
             if (BufferList.hotBufferCount > 1) {
                 if (slidy) showDrawer()
             } else {
-                BufferList.getNextHotBuffer()?.let { openBuffer(it.pointer) }
+                BufferList.getNextHotBuffer()?.let {
+                    openBuffer(it.pointer)
+                    if (pointer != 0L) statistics.reportBufferWasManuallyFocused(it.fullName)
+                }
             }
         } else {
             var shareObject: ShareObject? = null
@@ -664,12 +691,21 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener, BufferListC
             }
 
             openBuffer(pointer, shareObject)
+            if (pointer != 0L) {
+                BufferList.findByPointer(pointer)?.let { buffer ->
+                    statistics.reportBufferWasManuallyFocused(buffer.fullName)
+                }
+            }
         }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
+    // set window background color that is used by system when we can't draw
+    // but don't draw it ourselves so that we get low overdraw
     private fun applyColorSchemeToViews() {
+        window.setBackgroundDrawable(ColorDrawable(P.colorPrimary.solidColor))
+        window.decorView.background = null
         applyMainBackgroundColor()
         ui.toolbarContainer.setBackgroundColor(P.colorPrimary)
     }

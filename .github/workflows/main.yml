@@ -1,58 +1,136 @@
 name: CI
 
-# Controls when the action will run. 
-on:
-  # Triggers the workflow on push or pull request to any branch
-  push:
+on: [push, pull_request, workflow_dispatch]
 
-  pull_request:
-
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
+  run-tests:
+    name: Run tests
     runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v2
         with:
           fetch-depth: 0
 
-      - uses: gabrielfalcao/pyenv-action@v7
+      - name: Run tests
+        run: ./gradlew --no-daemon test
+
+  build-dev-release:
+    name: Build release apk
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
         with:
-          default: "3.6.2"
-      - run: pip install --upgrade pip
-      - run: pip install --user google-api-python-client oauth2client httplib2 pyOpenSSL
+          fetch-depth: 0
 
-      - run: sed -i "s/versionCode.*/versionCode = $(git rev-list HEAD --first-parent --count)/" app/build.gradle.kts
+      - name: Set version code based on git commit count
+        run: |
+          versionCode=$(git rev-list HEAD --first-parent --count)
+          sed -i "s/versionCode.*/versionCode = $versionCode/" app/build.gradle.kts
+          echo Using version code: $versionCode
 
-      - run: ./gradlew test
-
-      - run: ./releases/travis_build.sh
+      - name: Build dev release
+        run: ./releases/travis_build.sh
         env:
+          JAVA_OPTS: -XX:MaxMetaspaceSize=512m
           DEVKEYPASSWORD: ${{secrets.DEVKEYPASSWORD}}
-          DEVSTOREFILE: /home/runner/work/weechat-android/weechat-android/releases/android.jks
           DEVSTOREPASSWORD: ${{secrets.DEVSTOREPASSWORD}}
+          DEVSTOREFILE: /home/runner/work/weechat-android/weechat-android/releases/android.jks
 
-      - run: ./releases/publish_s3.sh
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: build-outputs
+          path: app/build/outputs/
+          if-no-files-found: error
+
+  publish-to-s3:
+    name: Publish to S3
+    runs-on: ubuntu-latest
+    if: |
+      !contains(github.event.head_commit.message, 'no-publish') &&
+      contains('push workflow_dispatch', github.event_name) &&
+      github.repository == 'ubergeek42/weechat-android'
+    needs: [run-tests, build-dev-release]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: build-outputs
+          path: app/build/outputs/
+
+      - name: Publish build to S3
+        run: ./releases/publish_s3.sh
         env:
           S3_ACCESS_KEY: ${{secrets.S3_ACCESS_KEY}}
-          S3_BUCKET: weechat-android.ubergeek42.com
           S3_SECRET_KEY: ${{secrets.S3_SECRET_KEY}}
-        if: github.event_name != 'pull_request'
+          S3_BUCKET: weechat-android.ubergeek42.com
 
-      - run: openssl aes-256-cbc -K $encrypted_6a3fa2e8cfe5_key -iv $encrypted_6a3fa2e8cfe5_iv -in releases/google-play-key.p12.enc -out releases/google-play-key.p12 -d
+  publish-to-play-store:
+    name: Publish to Play Store
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: publish-to-s3
+    steps:
+      - name: Prepare environment
+        run: |
+          pip install --upgrade pip
+          pip install --user google-api-python-client oauth2client httplib2 pyOpenSSL
+
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: build-outputs
+          path: app/build/outputs/
+
+      - name: Decrypt Play Store key
+        run: >-
+          openssl aes-256-cbc -K $encrypted_6a3fa2e8cfe5_key
+                              -iv $encrypted_6a3fa2e8cfe5_iv
+                              -in releases/google-play-key.p12.enc
+                              -out releases/google-play-key.p12 -d
         env:
-          encrypted_6a3fa2e8cfe5_iv: ${{secrets.encrypted_6a3fa2e8cfe5_iv}}
           encrypted_6a3fa2e8cfe5_key: ${{secrets.encrypted_6a3fa2e8cfe5_key}}
-        if: ${{ github.event_name != 'pull_request' && env.encrypted_6a3fa2e8cfe5_iv && env.encrypted_6a3fa2e8cfe5_key }}
-      - run: ./releases/publish_playstore_v3.py
+          encrypted_6a3fa2e8cfe5_iv: ${{secrets.encrypted_6a3fa2e8cfe5_iv}}
+
+      - name: Publish to Play Store
+        run: ./releases/publish_playstore_v3.py
         env:
           GOOGLEPLAY_ACCT_EMAIL: ${{secrets.GOOGLEPLAY_ACCT_EMAIL}}
-        if: ${{ github.event_name != 'pull_request' && env.GOOGLEPLAY_ACCT_EMAIL && hashFiles('releases/google-play-key.p12') != '' }}
+
+  notify_to_irc:
+    name: Notify on IRC
+    runs-on: ubuntu-latest
+    if: github.repository == 'ubergeek42/weechat-android'
+    needs: [run-tests, build-dev-release, publish-to-s3, publish-to-play-store]
+    steps:
+      - name: Prepare strings
+        id: prepare
+        run: |
+          status="tests ${{needs.run-tests.result}}, build ${{needs.build-dev-release.result}}, "
+          status+="s3 ${{needs.publish-to-s3.result}}, play store ${{needs.publish-to-play-store.result}}"
+          status="${status//success/✔️}"
+          status="${status//failure/$'\x03'04❌$'\x0f'}"
+          status="${status//cancelled/✖️}"
+          status="${status//skipped/➖}"
+          echo ::set-output name=status::"$status"
+          echo ::set-output name=sha7::"${GITHUB_SHA::7}"
+          echo ::set-output name=short-ref::"${GITHUB_REF##*/}"
+
+      - name: Notify on IRC
+        uses: Gottox/irc-message-action@main
+        with:
+          nickname: wa-github
+          channel: '#weechat-android'
+          message: |-
+            #${{github.run_number}} (${{steps.prepare.outputs.sha7}} @ ${{steps.prepare.outputs.short-ref}} by ${{github.actor}}): ${{steps.prepare.outputs.status}}
+            Message: ${{github.event.head_commit.message}}

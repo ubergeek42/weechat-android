@@ -110,7 +110,6 @@
 
     <string name="notifications__channel__connection_status">Статус соединения</string>
     <string name="notifications__channel__hotlist">Новое сообщение</string>
-    <string name="notifications__channel__hotlist_async">Новое сообщение (асинхронно)</string>
 
     <string name="notifications__main__waiting_for_network">Ожидаю доступ в сеть</string>
     <string name="notifications__main__will_connect_in_n_seconds">Попробую снова через %d секунд…</string>
@@ -617,13 +616,14 @@
 
     <string name="pref__look_n_feel__font">
         Шрифт буфера</string>
-    <string name="pref__FontPreference__summary">
-        Пропорциональные шрифты лучше не смешивать с выравниванием.
-        Пути поиска:%1$s
-        \n
-        \nТекущий шрифт:
-        \n&nbsp;&nbsp;&nbsp;&nbsp;%2$s</string>
     <string name="pref__FontPreference__default">По умолчанию</string>
+    <string name="pref__FontPreference__import_button">Импортировать</string>
+    <string name="pref__FontPreference__imported">Импортировано: %s</string>
+
+    <string name="pref__FontPreferenceHelp__summary">
+        Пропорциональные шрифты лучше не смешивать с выравниванием.
+        Импортируйте шрифты через диалог выбора
+        или поместите их в одну из этих папок:%1$s</string>
 
     <!-- ####################################################################################### -->
     <!-- ######################################## theme ######################################## -->
@@ -645,15 +645,20 @@
     <string name="pref__theme__color_scheme_dark">Тёмная тема</string>
     <string name="pref__ThemeManager__error_loading_color_scheme">Ошибка при загрузке темы %s</string>
     <string name="pref__ThemePreference__not_set">Не установлена</string>
+    <string name="pref__ThemePreference__error">Ошибка</string>
+    <string name="pref__ThemePreference__import_button">Импортировать</string>
+    <string name="pref__ThemePreference__imported">Импортировано: %s</string>
 
     <string name="pref__ThemePreferenceHelp__summary"><![CDATA[
-         Вы можете создать свои цветовые схемы для этого приложения.
-         Поменяйте цвета интерфейса приложения,
-         цвета своих и помеченных сообщений,
-         измените цветовую палитру WeeChat!
-         <a href="https://github.com/ubergeek42/weechat-android/wiki/Custom-Color-Schemes">Больше информации</a>
-         <br>
-         <br>Поместите свои цветовые схемы в одну из этих папок:%1$s]]></string>
+        Вы можете создать свои цветовые схемы для этого приложения.
+        Поменяйте цвета интерфейса приложения,
+        цвета своих и горячих сообщений,
+        измените цветовую палитру WeeChat!
+        <a href="https://github.com/ubergeek42/weechat-android/wiki/Custom-Color-Schemes">Больше информации</a>
+        <br>
+        <br>Импортируйте темы через диалоги выбора
+        или поместите их в эту папку:%1$s
+    ]]></string>
 
     <string name="pref__theme__dim_down_non_human_lines">
         Цвет технических строк</string>
@@ -715,11 +720,6 @@
     <string name="pref__notifications__vibration">Вибрация</string>
 
     <string name="pref__notifications__light">LED-индикатор</string>
-
-    <string name="pref__notifications__ticker">
-        Использовать «тикер»</string>
-    <string name="pref__notifications__ticker_summary">
-        Отображать сообщения в панели статуса (только на KitKat)</string>
 
     <!-- ####################################################################################### -->
     <!-- #################################### media preview #################################### -->
@@ -818,6 +818,15 @@
         <item>Только текст</item>
         <item>Текст, изображения и видео</item>
         <item>Всё</item>
+    </string-array>
+
+    <string name="pref__upload__no_of_direct_share_targets">Делиться напрямую</string>
+    <string-array name="pref__upload__no_of_direct_share_targets_names">
+        <item>Отключено</item>
+        <item>С одним буфером</item>
+        <item>С двумя буферами</item>
+        <item>С тремя буферами</item>
+        <item>С четырьмя буферами</item>
     </string-array>
 
     <string name="pref__upload__upload_uri">URL загрузки</string>

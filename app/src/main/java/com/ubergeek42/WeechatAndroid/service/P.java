@@ -78,28 +78,8 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         new MigratePreferences(context).migrate();
         loadUIPreferences();
         p.registerOnSharedPreferenceChangeListener(instance);
-        calculateWeaselWidth();
         Config.initPreferences();
         UploadConfigKt.initPreferences();
-    }
-
-    // sets the width of weasel (effectively the recycler view) for LineView. this is a workaround
-    // necessary in order to circumvent a bug (?) in ViewPager: sometimes, when measuring views, the
-    // RecyclerView will have a width of 0 (esp. when paging through buffers fast) and hence
-    // LineView will receive a suggested maximum width of 0 in its onMeasure().
-    //      note: other views in RecyclerView don't seem to have this problem. they either receive
-    //      correct values or somehow recover from width 0. the difference seems to lie in the fact
-    //      that they are inflated, and not created programmatically.
-    // this method is called from onStart() instead of onCreate() as onCreate() is called when the
-    // activities get recreated due to theme/battery state change. for some reason, the activities
-    // get recreated even though the user is using another app; if it happens in the wrong screen
-    // orientation, the value is wrong.
-    // todo: switch to ViewPager2 and get rid of this nonsense
-    public static @Cat void calculateWeaselWidth() {
-        int windowWidth = context.getResources().getDisplayMetrics().widthPixels;
-        boolean slidy = context.getResources().getBoolean(R.bool.slidy);
-        P.weaselWidth = slidy ? windowWidth :
-                windowWidth - context.getResources().getDimensionPixelSize(R.dimen.drawer_width);
     }
 
     // set colorPrimary and colorPrimaryDark according to color scheme or app theme
@@ -137,15 +117,13 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     public static @Nullable DateTimeFormatter dateFormat;
     public static int align;
 
-    public static int weaselWidth = 1080;
     public static float textSize, letterWidth;
     public static TextPaint textPaint;
 
-    static boolean notificationEnable;
-    static boolean notificationTicker;
-    static boolean notificationLight;
-    static boolean notificationVibrate;
-    static String notificationSound;
+    public static boolean notificationEnable;
+    public static boolean notificationLight;
+    public static boolean notificationVibrate;
+    public static String notificationSound;
 
     public static boolean showSend, showTab, showPaperclip, hotlistSync, volumeBtnSize;
 
@@ -183,7 +161,6 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         // notifications
         notificationEnable = p.getBoolean(PREF_NOTIFICATION_ENABLE, PREF_NOTIFICATION_ENABLE_D);
         notificationSound = p.getString(PREF_NOTIFICATION_SOUND, PREF_NOTIFICATION_SOUND_D);
-        notificationTicker = p.getBoolean(PREF_NOTIFICATION_TICKER, PREF_NOTIFICATION_TICKER_D);
         notificationLight = p.getBoolean(PREF_NOTIFICATION_LIGHT, PREF_NOTIFICATION_LIGHT_D);
         notificationVibrate = p.getBoolean(PREF_NOTIFICATION_VIBRATE, PREF_NOTIFICATION_VIBRATE_D);
 
@@ -389,7 +366,6 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
             // notifications
             case PREF_NOTIFICATION_ENABLE: notificationEnable = p.getBoolean(key, PREF_NOTIFICATION_ENABLE_D); break;
             case PREF_NOTIFICATION_SOUND: notificationSound = p.getString(key, PREF_NOTIFICATION_SOUND_D); break;
-            case PREF_NOTIFICATION_TICKER: notificationTicker = p.getBoolean(key, PREF_NOTIFICATION_TICKER_D); break;
             case PREF_NOTIFICATION_LIGHT: notificationLight = p.getBoolean(key, PREF_NOTIFICATION_LIGHT_D); break;
             case PREF_NOTIFICATION_VIBRATE: notificationVibrate = p.getBoolean(key, PREF_NOTIFICATION_VIBRATE_D); break;
 

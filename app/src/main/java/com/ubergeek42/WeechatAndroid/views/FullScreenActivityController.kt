@@ -5,6 +5,7 @@ import android.os.Build
 import android.util.TypedValue
 import android.view.View
 import android.view.ViewTreeObserver
+import android.view.WindowInsets
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.updatePadding
 import androidx.lifecycle.DefaultLifecycleObserver
@@ -24,17 +25,17 @@ import com.ubergeek42.WeechatAndroid.utils.ThemeFix
 val FULL_SCREEN_DRAWER_ENABLED = Build.VERSION.SDK_INT >= 26    // 8.0, Oreo
 
 
-data class SystemWindowInsets(
+data class Insets(
     val top: Int,
     val bottom: Int,
     val left: Int,
     val right: Int,
 )
 
-var systemWindowInsets = SystemWindowInsets(0, 0, 0, 0)
+var windowInsets = Insets(0, 0, 0, 0)
 
 
-fun interface InsetListener {
+private fun interface InsetListener {
     fun onInsetsChanged()
 }
 
@@ -52,7 +53,7 @@ class WeechatActivityFullScreenController(val activity: WeechatActivity) : Defau
     }
 
     // only used to weed out changes we don't care about
-    private var oldSystemWindowInsets = SystemWindowInsets(-1, -1, -1, -1)
+    private var oldWindowInsets = Insets(-1, -1, -1, -1)
 
     override fun onCreate(owner: LifecycleOwner) {
         if (!FULL_SCREEN_DRAWER_ENABLED) return
@@ -67,27 +68,39 @@ class WeechatActivityFullScreenController(val activity: WeechatActivity) : Defau
                 View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
                 View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
 
-        rootView.setOnApplyWindowInsetsListener listener@{ _, insets ->
-            val newSystemWindowInsets = SystemWindowInsets(insets.systemWindowInsetTop,
-                                                           insets.systemWindowInsetBottom,
-                                                           insets.systemWindowInsetLeft,
-                                                           insets.systemWindowInsetRight)
+        rootView.setOnApplyWindowInsetsListener listener@{ _, libraryInsets ->
+            val newWindowInsets = if (Build.VERSION.SDK_INT >= 30) {
+                val libraryWindowInsets = libraryInsets.getInsets(
+                        WindowInsets.Type.systemBars() or
+                        WindowInsets.Type.navigationBars() or
+                        WindowInsets.Type.ime())
+                Insets(libraryWindowInsets.top,
+                       libraryWindowInsets.bottom,
+                       libraryWindowInsets.left,
+                       libraryWindowInsets.right)
+            } else {
+                @Suppress("DEPRECATION")
+                Insets(libraryInsets.systemWindowInsetTop,
+                       libraryInsets.systemWindowInsetBottom,
+                       libraryInsets.systemWindowInsetLeft,
+                       libraryInsets.systemWindowInsetRight)
+            }
 
-            if (oldSystemWindowInsets != newSystemWindowInsets) {
-                oldSystemWindowInsets = newSystemWindowInsets
-                systemWindowInsets = newSystemWindowInsets
+            if (oldWindowInsets != newWindowInsets) {
+                oldWindowInsets = newWindowInsets
+                windowInsets = newWindowInsets
                 insetListeners.forEach { it.onInsetsChanged() }
             }
 
-            insets
+            libraryInsets
         }
 
         val weechatActivityInsetsListener = InsetListener {
-            activity.ui.toolbarContainer.updatePadding(top = systemWindowInsets.top,
-                                                       left = systemWindowInsets.left,
-                                                       right = systemWindowInsets.right)
-            activity.ui.navigationPadding.updateDimensions(height = systemWindowInsets.bottom)
-            activity.ui.pager.updateMargins(bottom = systemWindowInsets.bottom)
+            activity.ui.toolbarContainer.updatePadding(top = windowInsets.top,
+                                                       left = windowInsets.left,
+                                                       right = windowInsets.right)
+            activity.ui.navigationPadding.updateDimensions(height = windowInsets.bottom)
+            activity.ui.pager.updateMargins(bottom = windowInsets.bottom)
         }
 
         insetListeners.add(weechatActivityInsetsListener)
@@ -151,22 +164,22 @@ class BufferListFragmentFullScreenController(val fragment: BufferListFragment) :
         val layoutManager = ui.bufferList.layoutManager as? FullScreenDrawerLinearLayoutManager
 
         if (P.showBufferFilter) {
-            ui.bufferList.updateMargins(bottom = filterBarHeight + systemWindowInsets.bottom)
+            ui.bufferList.updateMargins(bottom = filterBarHeight + windowInsets.bottom)
 
-            ui.filterInput.updateMargins(bottom = systemWindowInsets.bottom)
-            ui.filterInput.updatePadding(left = systemWindowInsets.left)
+            ui.filterInput.updateMargins(bottom = windowInsets.bottom)
+            ui.filterInput.updatePadding(left = windowInsets.left)
 
-            ui.filterClear.updateMargins(bottom = systemWindowInsets.bottom)
+            ui.filterClear.updateMargins(bottom = windowInsets.bottom)
 
-            layoutManager?.setInsets(systemWindowInsets.top,
+            layoutManager?.setInsets(windowInsets.top,
                                      0,
-                                     systemWindowInsets.left)
+                                     windowInsets.left)
         } else {
             ui.bufferList.updateMargins(bottom = 0)
 
-            layoutManager?.setInsets(systemWindowInsets.top,
-                                     systemWindowInsets.bottom,
-                                     systemWindowInsets.left)
+            layoutManager?.setInsets(windowInsets.top,
+                                     windowInsets.bottom,
+                                     windowInsets.left)
         }
     }
 }
@@ -196,15 +209,16 @@ class BufferFragmentFullScreenController(val fragment: BufferFragment) : Default
     private val insetListener = InsetListener {
         val ui = fragment.ui ?: return@InsetListener
 
-        val linesTopPadding = if (P.autoHideActionbar) systemWindowInsets.top else 0
-        val fabRightMargin = systemWindowInsets.right + (P._1dp * 12).i
+        val linesTopPadding = if (fragment.activity is WeechatActivity && P.autoHideActionbar)
+                windowInsets.top else 0
+        val fabRightMargin = windowInsets.right + (P._1dp * 12).i
 
         ui.chatLines.updatePadding(top = linesTopPadding,
-                                   left = systemWindowInsets.left,
-                                   right = systemWindowInsets.right)
+                                   left = windowInsets.left,
+                                   right = windowInsets.right)
 
-        ui.bottomBar.updatePadding(left = systemWindowInsets.left,
-                                   right = systemWindowInsets.right)
+        ui.bottomBar.updatePadding(left = windowInsets.left,
+                                   right = windowInsets.right)
 
         ui.scrollToBottomFab.updateMargins(right = fabRightMargin)
     }
@@ -279,7 +293,7 @@ private class NewSystemAreaHeightExaminer(
     }
 
     private val insetListener = InsetListener {
-        observer?.onSystemAreaHeightChanged(systemWindowInsets.bottom)
+        observer?.onSystemAreaHeightChanged(windowInsets.bottom)
     }
 }
 

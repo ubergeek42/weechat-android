@@ -2,6 +2,7 @@ package com.ubergeek42.WeechatAndroid.views
 
 import android.animation.ValueAnimator
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -28,7 +29,6 @@ import com.ubergeek42.WeechatAndroid.media.Engine
 import com.ubergeek42.WeechatAndroid.media.Strategy
 import com.ubergeek42.WeechatAndroid.media.WAGlideModule
 import com.ubergeek42.WeechatAndroid.relay.Line
-import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.upload.f
 import com.ubergeek42.WeechatAndroid.upload.i
 import com.ubergeek42.WeechatAndroid.upload.main
@@ -49,7 +49,6 @@ private enum class State(
     AnimatingToTextOnly(false, true, false),        // image (without image) → text. runs when the image fails to load
     AnimatingOnlyImage(true, false, true),          // narrow layout; animating only the image
 }
-
 
 class LineView @JvmOverloads constructor(
     context: Context,
@@ -79,7 +78,7 @@ class LineView @JvmOverloads constructor(
         animatedValue = 0f
         animator?.cancel()
         animator = null
-        target?.let { glide?.clear(it) }    // will call the listener!
+        glide?.clear(target)    // will call the listener!
         target = null
     }
 
@@ -140,6 +139,8 @@ class LineView @JvmOverloads constructor(
     private var lastRequestedUrl: Strategy.Url? = null
     private fun requestThumbnail(url: Strategy.Url) {
         lastRequestedUrl = url
+
+        glide?.clear(target)
 
         target = (glide ?: return)
                 .asBitmap()
@@ -211,9 +212,25 @@ class LineView @JvmOverloads constructor(
                 .coerceAtLeast(1)
     }
 
+    private var wideLayoutWidth: Int = 0
+        get() {
+            if (field == 0) field = (context as? Activity)?.calculateApproximateWeaselWidth() ?: 1000
+            return field
+        }
+
+    private val narrowLayoutWidth get() = wideLayoutWidth - Config.thumbnailAreaWidth
+
     private var oldViewWidth = wideLayoutWidth
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val viewWidth = wideLayoutWidth
+        val parentWidth = MeasureSpec.getSize(widthMeasureSpec)
+        val viewWidth = if (parentWidth > 0) {
+            parentWidth
+        } else {
+            (context as? Activity)?.calculateApproximateWeaselWidth() ?: 1000
+        }
+
+        wideLayoutWidth = viewWidth
+
         if (oldViewWidth != viewWidth) {
             oldViewWidth = viewWidth
             wideLayoutDelegate.invalidate()
@@ -329,22 +346,31 @@ class LineView @JvmOverloads constructor(
                     performLongClick()
                 }
 
+                override fun onDoubleTap(event: MotionEvent): Boolean {
+                    onDoubleTapListener?.invoke()
+                    return true
+                }
+
                 // see android.text.method.LinkMovementMethod.onTouchEvent
                 override fun onSingleTapUp(event: MotionEvent): Boolean {
                     val currentLayout = this@LineView.currentLayout
                     val line = currentLayout.getLineForVertical(event.y.i)
-                    val offset = currentLayout.getOffsetForHorizontal(line, event.x)
-                    val links = text.getSpans(offset, offset, ClickableSpan::class.java)
 
-                    return if (links.isNotEmpty()) {
-                        links.first().onClick(this@LineView)
-                        true
-                    } else {
-                        false
+                    if (event.x in currentLayout.getHorizontalTextCoordinatesForLine(line)) {
+                        val offset = currentLayout.getOffsetForHorizontal(line, event.x)
+                        val links = text.getSpans(offset, offset, ClickableSpan::class.java)
+
+                        if (links.isNotEmpty()) {
+                            links.first().onClick(this@LineView)
+                            return true
+                        }
                     }
+
+                    return false
                 }
             })
 
+    var onDoubleTapListener: (() -> Unit)? = null
 }
 
 
@@ -356,8 +382,6 @@ const val HAVE_NOT_DRAWN = -1L
 
 private val NoText = SpannableString("error")   // just so that we don't need to say !!
 
-private inline val wideLayoutWidth get() = P.weaselWidth
-private inline val narrowLayoutWidth get() = P.weaselWidth - Config.thumbnailAreaWidth
 
 fun View.getSafeGlide() = if (WAGlideModule.isContextValidForGlide(context)) {
                                Glide.with(context)

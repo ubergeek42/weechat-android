@@ -19,7 +19,6 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
-import android.view.inputmethod.InputMethodManager
 import android.widget.PopupMenu
 import android.widget.TextView
 import androidx.annotation.AnyThread
@@ -40,6 +39,7 @@ import com.ubergeek42.WeechatAndroid.databinding.ChatviewMainBinding
 import com.ubergeek42.WeechatAndroid.relay.Buffer
 import com.ubergeek42.WeechatAndroid.relay.BufferEye
 import com.ubergeek42.WeechatAndroid.relay.BufferList
+import com.ubergeek42.WeechatAndroid.relay.Line
 import com.ubergeek42.WeechatAndroid.relay.Lines
 import com.ubergeek42.WeechatAndroid.search.Search
 import com.ubergeek42.WeechatAndroid.search.SearchConfig
@@ -61,6 +61,7 @@ import com.ubergeek42.WeechatAndroid.upload.WRITE_PERMISSION_REQUEST_FOR_CAMERA
 import com.ubergeek42.WeechatAndroid.upload.chooseFiles
 import com.ubergeek42.WeechatAndroid.upload.getShareObjectFromIntent
 import com.ubergeek42.WeechatAndroid.upload.i
+import com.ubergeek42.WeechatAndroid.upload.insertAddingSpacesAsNeeded
 import com.ubergeek42.WeechatAndroid.upload.suppress
 import com.ubergeek42.WeechatAndroid.upload.validateUploadConfig
 import com.ubergeek42.WeechatAndroid.utils.Assert.assertThat
@@ -68,14 +69,19 @@ import com.ubergeek42.WeechatAndroid.utils.FriendlyExceptions
 import com.ubergeek42.WeechatAndroid.utils.Toaster
 import com.ubergeek42.WeechatAndroid.utils.Utils
 import com.ubergeek42.WeechatAndroid.utils.afterTextChanged
+import com.ubergeek42.WeechatAndroid.utils.equalsIgnoringUselessSpans
+import com.ubergeek42.WeechatAndroid.utils.makeCopyWithoutUselessSpans
 import com.ubergeek42.WeechatAndroid.utils.indexOfOrElse
 import com.ubergeek42.WeechatAndroid.utils.ulet
 import com.ubergeek42.WeechatAndroid.views.BufferFragmentFullScreenController
 import com.ubergeek42.WeechatAndroid.views.OnBackGestureListener
 import com.ubergeek42.WeechatAndroid.views.OnJumpedUpWhileScrollingListener
+import com.ubergeek42.WeechatAndroid.views.calculateApproximateWeaselWidth
+import com.ubergeek42.WeechatAndroid.views.hideSoftwareKeyboard
 import com.ubergeek42.WeechatAndroid.views.jumpThenSmoothScroll
 import com.ubergeek42.WeechatAndroid.views.jumpThenSmoothScrollCentering
 import com.ubergeek42.WeechatAndroid.views.scrollToPositionWithOffsetFix
+import com.ubergeek42.WeechatAndroid.views.showSoftwareKeyboard
 import com.ubergeek42.cats.Cat
 import com.ubergeek42.cats.CatD
 import com.ubergeek42.cats.Kitty
@@ -91,12 +97,20 @@ import java.util.regex.PatternSyntaxException
 private const val POINTER_KEY = "pointer"
 
 
+interface BufferFragmentContainer {
+    fun closeBuffer(pointer: Long)
+    fun onChatLinesScrolled(dy: Int, onTop: Boolean, onBottom: Boolean)
+    val isPagerNoticeablyObscured: Boolean
+    fun updateMenuItems()
+}
+
+
 class BufferFragment : Fragment(), BufferEye {
     @Root private val kitty: Kitty = Kitty.make("BF")
 
     private var pointer: Long = 0
 
-    private var weechatActivity: WeechatActivity? = null
+    private var container: BufferFragmentContainer? = null
     private var buffer: Buffer? = null
     private var attachedToBuffer = false
 
@@ -132,7 +146,7 @@ class BufferFragment : Fragment(), BufferEye {
 
     @MainThread @Cat override fun onAttach(context: Context) {
         super.onAttach(context)
-        weechatActivity = context as WeechatActivity
+        container = context as BufferFragmentContainer
     }
 
     @MainThread @Cat override fun onCreate(savedInstanceState: Bundle?) {
@@ -161,6 +175,8 @@ class BufferFragment : Fragment(), BufferEye {
                 buffer = it
                 loadLinesSilently()
             }
+
+            onLineDoubleTappedListener = { line -> insertNickFromLine(line) }
         }
 
         ui.chatLines.run {
@@ -171,7 +187,7 @@ class BufferFragment : Fragment(), BufferEye {
                 override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                     if (dy != 0) {
                         if (focusedInViewPager) {
-                            weechatActivity?.toolbarController?.onChatLinesScrolled(dy, onTop, onBottom)
+                            this@BufferFragment.container?.onChatLinesScrolled(dy, onTop, onBottom)
                         }
                         showHideFabWhenScrolled(dy, onBottom)
                     }
@@ -244,6 +260,7 @@ class BufferFragment : Fragment(), BufferEye {
         EventBus.getDefault().register(this)
         applyColorSchemeToViews()
         adjustConnectivityIndications(false)
+        restorePendingInputFromParallelFragment()
         ui.chatInput.textifyReadySuris()   // this will fix any uploads that were finished while we were absent
         fixupUploadsOnInputTextChange()             // this will set appropriate upload ui state
         showHidePaperclip()
@@ -258,10 +275,11 @@ class BufferFragment : Fragment(), BufferEye {
         detachFromBuffer()
         recordRecyclerViewState()
         EventBus.getDefault().unregister(this)
+        setPendingInputForParallelFragments()
     }
 
     @MainThread @Cat override fun onDetach() {
-        weechatActivity = null
+        container = null
         super.onDetach()
     }
 
@@ -277,14 +295,16 @@ class BufferFragment : Fragment(), BufferEye {
 
     enum class ChangedState { BufferAttachment, PagerFocus, FullVisibility, LinesListed }
     @MainThread @Cat(linger = true) fun onVisibilityStateChanged(changedState: ChangedState)
-            = ulet(weechatActivity, buffer) { activity, buffer ->
+            = ulet(container, buffer) { container, buffer ->
         if (!buffer.linesAreReady()) return
         kitty.trace("proceeding!")
 
-        val watched = attachedToBuffer && focusedInViewPager && !activity.isPagerNoticeablyObscured
-        if (buffer.isWatched != watched) {
+        val watchedKey = if (container is WeechatActivity) "main-activity" else "bubble-activity"
+        val watched = attachedToBuffer && focusedInViewPager && !container.isPagerNoticeablyObscured
+
+        if (buffer.isWatchedByKey(watchedKey) != watched) {
             if (watched) linesAdapter?.scrollToHotLineIfNeeded()
-            buffer.setWatched(watched)
+            if (watched) buffer.addWatchedKey(watchedKey) else buffer.removeWatchedKey(watchedKey)
         }
 
         if (changedState == ChangedState.PagerFocus && !focusedInViewPager ||                                   // swiping left/right or
@@ -342,7 +362,7 @@ class BufferFragment : Fragment(), BufferEye {
     // if they're not, the adapter will be using the old buffer, if any, until onLinesListed is run.
     // todo make sure that this behaves fine on slow connections
     @MainThread @Cat private fun attachToBuffer() = ulet(buffer) { buffer ->
-        buffer.setBufferEye(this)
+        buffer.addBufferEye(this)
         if (buffer.linesAreReady()) linesAdapter?.buffer = buffer
         linesAdapter?.loadLinesWithoutAnimation()
         attachedToBuffer = true
@@ -353,7 +373,7 @@ class BufferFragment : Fragment(), BufferEye {
     @MainThread @Cat private fun detachFromBuffer() {
         attachedToBuffer = false
         onVisibilityStateChanged(ChangedState.BufferAttachment)
-        buffer?.setBufferEye(null)
+        buffer?.removeBufferEye(this)
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -481,7 +501,7 @@ class BufferFragment : Fragment(), BufferEye {
     }
 
     @AnyThread override fun onBufferClosed() {
-        Weechat.runOnMainThreadASAP { weechatActivity?.closeBuffer(pointer) }
+        Weechat.runOnMainThreadASAP { container?.closeBuffer(pointer) }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -549,8 +569,16 @@ class BufferFragment : Fragment(), BufferEye {
         if (cancelled == true) completer = null
     }
 
-    @MainThread fun setShareObject(shareObject: ShareObject) = ulet(ui) { ui ->
-        shareObject.insert(ui.chatInput, InsertAt.END)
+    private fun insertNickFromLine(line: Line) = ulet(ui, line.nick) { ui, nick ->
+        if (nick.isNotBlank()) {
+            val textToInsert = if (ui.chatInput.selectionStart == 0) "$nick: " else nick
+            ui.chatInput.insertAddingSpacesAsNeeded(InsertAt.CURRENT_POSITION, textToInsert)
+        }
+    }
+
+    @MainThread fun setShareObject(shareObject: ShareObject, insertAt: InsertAt) = ulet(ui) { ui ->
+        restorePendingInputFromParallelFragment()
+        shareObject.insert(ui.chatInput, insertAt)
         if (isSearchEnabled) ui.searchInput.post { searchEnableDisable(enable = false) }
     }
 
@@ -571,7 +599,7 @@ class BufferFragment : Fragment(), BufferEye {
 
         when (uploadStatus) {
             UploadStatus.NOTHING_TO_UPLOAD -> {
-                if (P.showSend) ui.sendButton.visibility = View.VISIBLE
+                ui.sendButton.visibility = if (P.showSend) View.VISIBLE else View.GONE
                 ui.uploadLayout.visibility = View.GONE
             }
             UploadStatus.HAS_THINGS_TO_UPLOAD, UploadStatus.UPLOADING -> {
@@ -647,18 +675,19 @@ class BufferFragment : Fragment(), BufferEye {
         }
     }
 
-    @Cat override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) = ulet(ui) { ui ->
+    @Cat override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (resultCode == Activity.RESULT_OK) {
             suppress<Exception>(showToast = true) {
-                getShareObjectFromIntent(requestCode, data)
-                        ?.insert(ui.chatInput, InsertAt.CURRENT_POSITION)
+                getShareObjectFromIntent(requestCode, data)?.let {
+                    setShareObject(it, InsertAt.CURRENT_POSITION)
+                }
             }
         }
     }
 
     fun shouldShowUploadMenus() = P.showPaperclip && ui?.paperclipButton?.visibility == View.GONE
 
-    @MainThread fun showHidePaperclip(): Unit = ulet(weechatActivity, ui) { activity, ui ->
+    @MainThread fun showHidePaperclip(): Unit = ulet(container, ui) { container, ui ->
         val paperclip = ui.paperclipButton
         val input = ui.chatInput
 
@@ -679,11 +708,15 @@ class BufferFragment : Fragment(), BufferEye {
             return
         }
 
+        val weaselWidth = ui.chatLines.width.let {
+            if (it > 0) it else activity?.calculateApproximateWeaselWidth() ?: 1000
+        }
+
         // for the purpose of the subsequent calculation we pretend that paperclip is shown,
         // else ratio can jump backwards on character entry, revealing the button again.
         // if the send button is off, adding a ShareSpan can reveal it (well, upload button),
         // but it's not a problem as it can only appear on text addition and disappear on deletion*
-        var widgetWidth = P.weaselWidth - P._4dp - actionButtonWidth
+        var widgetWidth = weaselWidth - P._4dp - actionButtonWidth
         if (ui.tabButton.visibility != View.GONE) widgetWidth -= actionButtonWidth
         if (ui.sendButton.visibility != View.GONE) widgetWidth -= actionButtonWidth
 
@@ -695,7 +728,7 @@ class BufferFragment : Fragment(), BufferEye {
         if (alreadyDrawn) TransitionManager.beginDelayedTransition(layout, paperclipTransition)
 
         paperclip.visibility = if (shouldShowPaperclip) View.VISIBLE else View.GONE
-        activity.updateMenuItems()
+        container.updateMenuItems()
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
@@ -782,12 +815,12 @@ class BufferFragment : Fragment(), BufferEye {
             ui.chatLines.addItemDecoration(searchMatchDecoration)
             triggerNewSearch()
             if (newSearch) {
-                weechatActivity?.imm?.showSoftInput(ui.searchInput, InputMethodManager.SHOW_IMPLICIT)
+                ui.searchInput.showSoftwareKeyboard()
                 ui.searchInput.selectAll()
             }
         } else {
             ui.chatInput.requestFocus()
-            weechatActivity?.hideSoftwareKeyboard()
+            ui.chatInput.hideSoftwareKeyboard()
             matches = emptyMatches
             focusedMatch = 0
             ui.chatLines.removeItemDecoration(searchMatchDecoration)
@@ -917,6 +950,24 @@ class BufferFragment : Fragment(), BufferEye {
             }
         }
     }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private fun setPendingInputForParallelFragments() = ulet(buffer, ui) { buffer, ui ->
+        ui.chatInput.text?.let {
+            pendingInputs[buffer.fullName] = it.makeCopyWithoutUselessSpans()
+        }
+    }
+
+    private fun restorePendingInputFromParallelFragment() = ulet(buffer, ui?.chatInput) { buffer, chatInput ->
+        pendingInputs[buffer.fullName]?.let { pendingInput ->
+            if (chatInput.text?.equalsIgnoringUselessSpans(pendingInput) == false) {
+                chatInput.setText(pendingInput)
+                chatInput.setSelection(pendingInput.length)
+            }
+            pendingInputs.remove(buffer.fullName)
+        }
+    }
 }
 
 
@@ -959,3 +1010,6 @@ private enum class ConnectivityState(
 
 
 private val FAB_SHOW_THRESHOLD = P._200dp * 7
+
+
+private val pendingInputs = mutableMapOf<String, CharSequence>()

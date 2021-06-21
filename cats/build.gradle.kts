@@ -8,15 +8,14 @@ plugins {
 
 dependencies {
     implementation("org.aspectj:aspectjrt:1.9.6")
-    implementation("androidx.annotation:annotation:1.1.0")
+    implementation("androidx.annotation:annotation:1.2.0")
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
-    testImplementation("org.mockito:mockito-core:3.8.0")
+    testImplementation("org.mockito:mockito-core:3.10.0")
 }
 
 android {
-    compileSdkVersion(29)
-    buildToolsVersion("29.0.2")
+    compileSdkVersion(30)
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -35,7 +34,7 @@ android {
     }
 
     defaultConfig {
-        targetSdkVersion(29)
+        targetSdkVersion(30)
         minSdkVersion(16)
     }
 }

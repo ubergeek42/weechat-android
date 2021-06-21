@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Weechat" parent="WeechatBase">
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+        <item name="android:navigationBarColor">#0000</item>
+        <item name="android:statusBarColor">#0000</item>
+    </style>
+</resources>

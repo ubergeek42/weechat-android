@@ -30,8 +30,8 @@ import androidx.annotation.WorkerThread;
 
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.Weechat;
+import com.ubergeek42.WeechatAndroid.notifications.NotificatorKt;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
-import com.ubergeek42.WeechatAndroid.relay.Hotlist;
 import com.ubergeek42.WeechatAndroid.utils.Network;
 import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.CatD;
@@ -53,6 +53,7 @@ import org.greenrobot.eventbus.Subscribe;
 import java.nio.channels.UnresolvedAddressException;
 import java.util.EnumSet;
 
+import static com.ubergeek42.WeechatAndroid.notifications.NotificatorKt.showMainNotification;
 import static com.ubergeek42.WeechatAndroid.service.Events.ExceptionEvent;
 import static com.ubergeek42.WeechatAndroid.service.Events.SendMessageEvent;
 import static com.ubergeek42.WeechatAndroid.service.Events.StateChangedEvent;
@@ -177,7 +178,7 @@ public class RelayService extends Service implements IObserver {
             }
 
             @WorkerThread void connectNow() {
-                Notificator.showMain(RelayService.this, connectingNow);
+                showMainNotification(RelayService.this, connectingNow);
                 switch (connect()) {
                     case LATER: break;
                     case IMPOSSIBLE: if (!P.connectionSurelyPossibleWithCurrentPreferences) {stop(); break;}
@@ -188,7 +189,7 @@ public class RelayService extends Service implements IObserver {
             @WorkerThread void waitABit() {
                 long delay = DELAYS[reconnects < DELAYS.length ? reconnects : DELAYS.length - 1];
                 String message = String.format(willConnectSoon, delay);
-                Notificator.showMain(RelayService.this, message);
+                showMainNotification(RelayService.this, message);
                 reconnects++;
                 doge.postDelayed(this, delay * 1000);
             }
@@ -224,7 +225,7 @@ public class RelayService extends Service implements IObserver {
             connection.disconnect();
 
         if (!Network.get().hasProperty(Network.Property.CONNECTED)) {
-            Notificator.showMain(this, getString(R.string.notifications__main__waiting_for_network));
+            showMainNotification(this, getString(R.string.notifications__main__waiting_for_network));
             return TRY.LATER;
         }
 
@@ -271,7 +272,7 @@ public class RelayService extends Service implements IObserver {
                 return;
             case AUTHENTICATED:
                 changeState(EnumSet.of(STATE.STARTED, STATE.AUTHENTICATED));
-                Notificator.showMain(this, getString(R.string.notifications__main__connected_to, P.printableHost));
+                showMainNotification(this, getString(R.string.notifications__main__connected_to, P.printableHost));
                 hello();
                 break;
             case BUFFERS_LISTED:
@@ -293,7 +294,7 @@ public class RelayService extends Service implements IObserver {
     }
 
     @WorkerThread @Cat private void hello() {
-        Hotlist.redraw(true);
+        NotificatorKt.addOrRemoveActionForCurrentNotifications(true);
         ping.scheduleFirstPing();
         BufferList.onServiceAuthenticated();
         SyncAlarmReceiver.start(this);
@@ -305,7 +306,7 @@ public class RelayService extends Service implements IObserver {
         BufferList.onServiceStopped();
         ping.unschedulePing();
         P.saveStuff();
-        Hotlist.redraw(false);
+        NotificatorKt.addOrRemoveActionForCurrentNotifications(false);
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////
 

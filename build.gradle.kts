@@ -2,7 +2,6 @@ subprojects {
     repositories {
         mavenCentral()
         google()
-        jcenter()
         maven { url = uri("https://jitpack.io") }
     }
 }
@@ -21,15 +20,21 @@ repositories {
 
 buildscript {
     repositories {
+        mavenCentral()
         google()
-        jcenter()
+        maven { url = uri("https://storage.googleapis.com/r8-releases/raw") }
     }
 
     dependencies {
-        classpath("com.android.tools.build:gradle:4.1.2")
+        // this is and the r8 repo above are needed to fix a bug in agp 4.2.0/1
+        // see https://issuetracker.google.com/issues/187265955
+        // todo remove when the issue has been resolved
+        classpath("com.android.tools:r8:2.2.67")
+
+        classpath("com.android.tools.build:gradle:4.2.1")
         classpath("org.aspectj:aspectjtools:1.9.6")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.4.32")
-        classpath("org.jetbrains.kotlin:kotlin-serialization:1.4.32")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.0")
+        classpath("org.jetbrains.kotlin:kotlin-serialization:1.5.0")
     }
 }
 
