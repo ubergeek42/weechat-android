@@ -79,7 +79,7 @@ jobs:
       - name: Prepare environment
         run: |
           pip install --upgrade pip
-          pip install --user google-api-python-client oauth2client httplib2 pyOpenSSL
+          pip install --user --upgrade google-api-python-client oauth2client httplib2 pyOpenSSL
 
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -94,13 +94,11 @@ jobs:
 
       - name: Decrypt Play Store key
         run: >-
-          openssl aes-256-cbc -K $encrypted_6a3fa2e8cfe5_key
-                              -iv $encrypted_6a3fa2e8cfe5_iv
-                              -in releases/google-play-key.p12.enc
-                              -out releases/google-play-key.p12 -d
-        env:
-          encrypted_6a3fa2e8cfe5_key: ${{secrets.encrypted_6a3fa2e8cfe5_key}}
-          encrypted_6a3fa2e8cfe5_iv: ${{secrets.encrypted_6a3fa2e8cfe5_iv}}
+          openssl aes-256-cbc
+          -K ${{secrets.encrypted_6a3fa2e8cfe5_key}}
+          -iv ${{secrets.encrypted_6a3fa2e8cfe5_iv}}
+          -in releases/google-play-key.p12.enc
+          -out releases/google-play-key.p12 -d
 
       - name: Publish to Play Store
         run: ./releases/publish_playstore_v3.py
@@ -110,7 +108,7 @@ jobs:
   notify_to_irc:
     name: Notify on IRC
     runs-on: ubuntu-latest
-    if: github.repository == 'ubergeek42/weechat-android'
+    if: ${{always() && github.repository == 'ubergeek42/weechat-android'}}
     needs: [run-tests, build-dev-release, publish-to-s3, publish-to-play-store]
     steps:
       - name: Prepare strings
