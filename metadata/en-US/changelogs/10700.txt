@@ -1,0 +1,3 @@
+* Removed storage access permission on Android 9+
+* Added launcher and direct share shortcuts
+* Added support for Bubbles on Android 11

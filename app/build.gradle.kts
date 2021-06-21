@@ -70,8 +70,8 @@ android {
     compileSdkVersion(30)
 
     defaultConfig {
-        versionCode = 1_06_00
-        versionName = "1.6"
+        versionCode = 1_07_00
+        versionName = "1.7"
 
         minSdkVersion(21)
         targetSdkVersion(30)
