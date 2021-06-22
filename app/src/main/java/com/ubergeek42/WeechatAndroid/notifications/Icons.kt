@@ -248,7 +248,7 @@ private object DiskIconCache {
     fun initialize() {
         if (!enabled) return
 
-        statisticsHandler.post {
+        notificationHandler.post {
             directory.listFiles()?.forEach { file ->
                 suppress<Exception> {
                     val key = file.name.toIconKey()
@@ -265,7 +265,7 @@ private object DiskIconCache {
 
         keyToIcon[key] = provisionalIcon
 
-        statisticsHandler.post {
+        notificationHandler.post {
             suppress<Exception>(showToast = true) {
                 val file = File(directory, key.toFileName())
 

@@ -2,8 +2,6 @@ package com.ubergeek42.WeechatAndroid.notifications
 
 import android.content.Context
 import android.os.Build
-import android.os.Handler
-import android.os.HandlerThread
 import androidx.annotation.RequiresApi
 import androidx.room.ColumnInfo
 import androidx.room.Dao
@@ -63,7 +61,7 @@ class StatisticsImpl(val context: Context) : Statistics {
     override fun restore() { database.restore() }
 
     override fun reportBufferWasManuallyFocused(key: String) {
-        statisticsHandler.post {
+        notificationHandler.post {
             val count = bufferToManuallyFocusedCount.get(key) ?: 0
             bufferToManuallyFocusedCount.put(key, count + 1)
             shortcuts.reportBufferWasManuallyFocused(key, this)
@@ -72,7 +70,7 @@ class StatisticsImpl(val context: Context) : Statistics {
     }
 
     override fun reportBufferWasSharedTo(key: String) {
-        statisticsHandler.post {
+        notificationHandler.post {
             val count = bufferToSharedToCount.get(key) ?: 0
             bufferToSharedToCount.put(key, count + 1)
             shortcuts.reportBufferWasSharedTo(key, this)
@@ -170,7 +168,7 @@ private class ShortcutStatisticsDatabase {
         val focusedSize = manuallyFocusedEventsInsertCache.size
         val sharedToSize = sharedToEventsInsertCache.size
         if (focusedSize > 0 || sharedToSize > 0) {
-            statisticsHandler.post {
+            notificationHandler.post {
                 if (focusedSize > 0) {
                     kitty.trace("saving %s manually focused events", focusedSize)
                     events.insertAllManuallyFocusedEvents(manuallyFocusedEventsInsertCache
@@ -189,7 +187,7 @@ private class ShortcutStatisticsDatabase {
     }
 
     fun restore() {
-        statisticsHandler.post {
+        notificationHandler.post {
             val deletedFocused = events.deleteFromManuallyFocusedEventsLeaving(KEEP_MANUALLY_FOCUSED_EVENTS)
             val focused = events.getBufferToManuallyFocusedCount()
             kitty.trace("restoring %s manually focused buffer records; deleted %s events",
@@ -204,6 +202,3 @@ private class ShortcutStatisticsDatabase {
         }
     }
 }
-
-
-val statisticsHandler = Handler(HandlerThread("statistics").apply { start() }.looper)
