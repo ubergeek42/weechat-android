@@ -24,6 +24,10 @@ jobs:
         with:
           fetch-depth: 0
 
+      # https://github.com/actions/checkout/issues/290
+      - name: Fetch tag annotations
+        run: git fetch --tags --force
+
       - name: Set version code based on git commit count
         run: |
           versionCode=$(git rev-list HEAD --first-parent --count)
