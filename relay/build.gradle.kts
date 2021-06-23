@@ -7,7 +7,7 @@ plugins {
 }
 
 dependencies {
-    implementation("org.slf4j:slf4j-api:1.7.30")
+    implementation("org.slf4j:slf4j-api:1.7.31")
     implementation("commons-codec:commons-codec:1.15")
 
     // "api" because we are calling `SSHConnection.getKnownHosts` from the app
@@ -16,10 +16,10 @@ dependencies {
 
     implementation("com.neovisionaries:nv-websocket-client:2.14")
 
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.5.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.2.0")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.5.10")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.2.1")
 
-    testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.7.2")
 }
 
 tasks.withType<JavaCompile> {

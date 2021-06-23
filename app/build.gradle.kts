@@ -16,23 +16,23 @@ dependencies {
     implementation(project(":cats"))
     implementation(project(":relay"))
 
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.0")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.10")
 
     // these two are required for logging within the relay module. todo remove?
-    implementation("org.slf4j:slf4j-api:1.7.30")
+    implementation("org.slf4j:slf4j-api:1.7.31")
     implementation("com.noveogroup.android:android-logger:1.3.6")
 
-    implementation("androidx.core:core-ktx:1.5.0-rc02")
+    implementation("androidx.core:core-ktx:1.6.0-rc01")
     implementation("androidx.legacy:legacy-support-v4:1.0.0")
     implementation("androidx.annotation:annotation:1.2.0") // For @Nullable/@NonNull
-    implementation("androidx.appcompat:appcompat:1.2.0")
+    implementation("androidx.appcompat:appcompat:1.3.0")
     implementation("androidx.preference:preference-ktx:1.1.1")  // preference fragment & al
     implementation("androidx.legacy:legacy-preference-v14:1.0.0") // styling for the fragment
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")
     implementation("androidx.lifecycle:lifecycle-common-java8:2.3.1")
     implementation("androidx.sharetarget:sharetarget:1.1.0")
 
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.4.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.0")
 
     implementation("com.github.bumptech.glide:glide:4.12.0")
     kapt("com.github.bumptech.glide:compiler:4.12.0")
@@ -46,7 +46,7 @@ dependencies {
     implementation("org.yaml:snakeyaml:1.28:android")
 
     implementation("commons-codec:commons-codec:1.15")
-    implementation("org.bouncycastle:bcpkix-jdk15on:1.68")
+    implementation("org.bouncycastle:bcpkix-jdk15on:1.69")
 
     // needed for thread-safe date formatting as SimpleDateFormat isn"t thread-safe
     // the alternatives, including apache commons and threetenabp, seem to be much slower
@@ -55,11 +55,11 @@ dependencies {
 
     implementation("org.greenrobot:eventbus:3.2.0")
 
-    debugImplementation("org.aspectj:aspectjrt:1.9.6")
+    debugImplementation("org.aspectj:aspectjrt:1.9.7.M3")
     debugImplementation("com.squareup.leakcanary:leakcanary-android:2.7")
 
-    testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
-    testImplementation("org.junit.jupiter:junit-jupiter-params:5.7.1")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.7.2")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.7.2")
 }
 
 tasks.withType<JavaCompile> {
@@ -214,7 +214,7 @@ fun weave(classPath: Iterable<File>, aspectPath: Iterable<File>, input: Iterable
 val weaving: Configuration by configurations.creating
 
 dependencies {
-    weaving("org.aspectj:aspectjtools:1.9.6")
+    weaving("org.aspectj:aspectjtools:1.9.7.M3")
 }
 
 // historical note: the problem with weaving Kotlin and Java in-place is that:

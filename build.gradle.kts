@@ -32,9 +32,9 @@ buildscript {
         classpath("com.android.tools:r8:2.2.67")
 
         classpath("com.android.tools.build:gradle:4.2.1")
-        classpath("org.aspectj:aspectjtools:1.9.6")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.0")
-        classpath("org.jetbrains.kotlin:kotlin-serialization:1.5.0")
+        classpath("org.aspectj:aspectjtools:1.9.7.M3")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.10")
+        classpath("org.jetbrains.kotlin:kotlin-serialization:1.5.10")
     }
 }
 
