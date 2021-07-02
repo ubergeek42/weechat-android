@@ -607,17 +607,6 @@ fun notifyBubbleDismissed(pointer: Long) {
 }
 
 
-// returns whether a notification associated with this shortcut will display a bubble
-// if posted with bubble metadata. this can be changed by user by pressing ⇱/⇲ buttons,
-// or by going to app's notifications preferences. dismissing the bubble by dragging it
-// to the (x) area on the bottom of the screen doesn't change this, and if the app
-// publishes another notification after that it will recreate a bubble
-@RequiresApi(Build.VERSION_CODES.R)
-private fun willBubble(fullName: String): Boolean {
-    return manager.getNotificationChannel(CHANNEL_HOTLIST, fullName)?.canBubble() == true
-}
-
-
 // user can opt out of bubbles for specific conversations, e.g. by pressing ⇱ notification button.
 // if a bubble is displayed, this removes it, BUT dismiss listener is not called.
 // so let's verify that the bubbles we are trying to keep are valid
@@ -706,3 +695,103 @@ private fun Intent.getInlineReplyText(): CharSequence? {
 
 
 val notificationHandler = Handler(HandlerThread("notifications").apply { start() }.looper)
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////// willBubble
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+// the following tables shows when bubbles are shown, as well as some problematic cases
+// where it's impossible to tell, from the API, if a bubble is shown or not
+
+// |----------------------------|-------------------|--------------------|--------------------|
+// |                            | Bubble            | Don't bubble       |                    |
+// |                            | this conversation | this conversation  | Default            |
+// |                            | canBubble()==true | canBubble()==false | canBubble()==false |
+// |                            | mAllowBubbles==1  | mAllowBubbles==0   | mAllowBubbles==-1  |
+// |----------------------------|-------------------|--------------------|--------------------|
+// | All conversations          |                   |                    |                    |
+// | can bubble                 |       bubble      |         *          |       bubble       |
+// | areBubblesAllowed()==true  |                   |                    |         *          |
+// |----------------------------|-------------------|--------------------|--------------------|
+// | Selected conversations     |                   |                    |                    |
+// | can bubble                 |       bubble      |                    |                    |
+// | areBubblesAllowed()==false |         †         |                    |                    |
+// |----------------------------|-------------------|--------------------|--------------------|
+// | Nothing can bubble         |                   |                    |                    |
+// | areBubblesAllowed()==false |         †         |                    |                    |
+// |----------------------------|-------------------|--------------------|--------------------|
+
+// see https://stackoverflow.com/questions/68226137/
+// see https://issuetracker.google.com/issues/192590347
+
+
+private enum class ConversationBubblingSetting {
+    CanBubble,
+    CanNotBubble,
+    Default
+}
+
+
+private enum class PackageBubblingSetting {
+    AllConversationsCanBubble,
+    SelectedConversationsCanBubble,
+    NothingCanBubble
+}
+
+
+// mAllowBubbles is a private field not accessible by API,
+// nor directly nor via hidden method getAllowBubbles().
+// see the table above for the values it can take
+@RequiresApi(Build.VERSION_CODES.R)
+private fun NotificationChannel.getBubblingSetting(): ConversationBubblingSetting {
+    return when {
+        canBubble() -> ConversationBubblingSetting.CanBubble
+        "mAllowBubbles=0" in this.toString() -> ConversationBubblingSetting.CanNotBubble
+        else -> ConversationBubblingSetting.Default
+    }
+}
+
+
+// we can't actually detect when the setting is set to NothingCanBubble,
+// so let's pretend that user never uses it.
+// it is only problematic if the user follows this very unlikely scenario:
+//   * enables bubbles for some SPECIFIC notifications
+//   * changes the setting from “Selected conversations can bubble” to “Nothing can bubble”
+@RequiresApi(Build.VERSION_CODES.R)
+private fun getPackageBubblingSetting(): PackageBubblingSetting {
+    return when (manager.areBubblesAllowed()) {
+        true -> PackageBubblingSetting.AllConversationsCanBubble
+        false -> PackageBubblingSetting.SelectedConversationsCanBubble
+    }
+}
+
+
+@RequiresApi(Build.VERSION_CODES.R)
+private fun willBubble(fullName: String): Boolean {
+    val conversationChannel = manager.getNotificationChannel(CHANNEL_HOTLIST, fullName)
+
+    val packageBubblingSetting = getPackageBubblingSetting()
+    val conversationBubblingSetting = conversationChannel?.getBubblingSetting()
+            ?: ConversationBubblingSetting.Default
+
+    return when(packageBubblingSetting) {
+        PackageBubblingSetting.AllConversationsCanBubble -> {
+            when (conversationBubblingSetting) {
+                ConversationBubblingSetting.CanNotBubble -> false
+                else -> true
+            }
+        }
+
+        PackageBubblingSetting.SelectedConversationsCanBubble -> {
+            when (conversationBubblingSetting) {
+                ConversationBubblingSetting.CanBubble -> true
+                else -> false
+            }
+        }
+
+        // we can't actually detect this!
+        PackageBubblingSetting.NothingCanBubble -> false
+    }
+}
