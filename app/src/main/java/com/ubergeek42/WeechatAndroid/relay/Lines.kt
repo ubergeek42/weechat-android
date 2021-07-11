@@ -152,7 +152,11 @@ class Lines {
         }
         msg += " --"
 
-        return Line(++fakePointerCounter, LineSpec.Type.Other, tstamp, "--", msg,
+        var datePointer = MAX_C_POINTER_VALUE shl 2 + newDate.year shl 32 + newDate.dayOfYear shl 20
+        if (oldDate != null) {
+            datePointer += oldDate.year shl 16 + oldDate.dayOfYear
+        }
+        return Line(datePointer, LineSpec.Type.Other, tstamp, "--", msg,
                     nick = null, isVisible = true, isHighlighted = false,
                     LineSpec.DisplayAs.Unspecified, LineSpec.NotifyLevel.Low)
     }
