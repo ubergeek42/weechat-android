@@ -759,6 +759,7 @@ private fun NotificationChannel.getBubblingSetting(): ConversationBubblingSettin
 // it is only problematic if the user follows this very unlikely scenario:
 //   * enables bubbles for some SPECIFIC notifications
 //   * changes the setting from “Selected conversations can bubble” to “Nothing can bubble”
+// update: todo make use of the new API NotificationManager#getBubblePreference()
 @RequiresApi(Build.VERSION_CODES.R)
 private fun getPackageBubblingSetting(): PackageBubblingSetting {
     return when (manager.areBubblesAllowed()) {
