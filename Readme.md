@@ -32,6 +32,9 @@ Pull requests are welcome—but please check with us on IRC before starting a su
 
 ### Changelog
 
+##### v1.7.1
+* Fixed an issue of disappearing bubbles
+
 ##### v1.7
 * Removed storage access permission on Android 9+
 * Added launcher and direct share shortcuts
