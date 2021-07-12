@@ -118,6 +118,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     public static int align;
 
     public static float textSize, letterWidth;
+    public static Typeface typeface;
     public static TextPaint textPaint;
 
     public static boolean notificationEnable;
@@ -406,7 +407,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         textSize = Float.parseFloat(getString(PREF_TEXT_SIZE, PREF_TEXT_SIZE_D));
         String bufferFont = p.getString(PREF_BUFFER_FONT, PREF_BUFFER_FONT_D);
 
-        Typeface typeface = Typeface.MONOSPACE;
+        typeface = Typeface.MONOSPACE;
         try {typeface = Typeface.createFromFile(bufferFont);} catch (Exception ignored) {}
 
         textPaint = new TextPaint();
