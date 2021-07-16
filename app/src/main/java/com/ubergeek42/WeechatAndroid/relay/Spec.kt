@@ -39,6 +39,7 @@ enum class Notify(val value: Int) {
     inline val notify: Notify? get() = Notify::value.find(entry.getIntOrNull("notify"))
     inline val type get() = Type.fromLocalVariables(entry.getHashtable("local_variables"))
     inline val hidden get() = entry.getIntOrNull("hidden") == 1
+    inline val displayDayChange get() = entry.getIntOrNull("day_change") == 1
 
     // todo get rid of openWhileRunning
     fun toBuffer(openWhileRunning: Boolean) = Buffer(pointer).apply {
@@ -50,6 +51,7 @@ enum class Notify(val value: Int) {
             notify = this@BufferSpec.notify
             hidden = this@BufferSpec.hidden
             type = this@BufferSpec.type
+            displayDayChange = this@BufferSpec.displayDayChange
         }
 
         if (P.isBufferOpen(pointer)) addOpenKey("main-activity", syncHotlistOnOpen = false)
@@ -67,7 +69,7 @@ enum class Notify(val value: Int) {
 
     companion object {
         const val listBuffersRequest = "(listbuffers) hdata buffer:gui_buffers(*) " +
-                "number,full_name,short_name,type,title,nicklist,local_variables,notify,hidden"
+                "number,full_name,short_name,type,title,nicklist,local_variables,notify,hidden,day_change"
 
         const val renumberRequest = "(renumber) hdata buffer:gui_buffers(*) number"
     }

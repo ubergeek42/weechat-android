@@ -8,6 +8,11 @@ import com.ubergeek42.WeechatAndroid.utils.Linkify
 import com.ubergeek42.WeechatAndroid.utils.Utils
 import com.ubergeek42.WeechatAndroid.utils.invalidatableLazy
 import com.ubergeek42.weechat.Color
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 import java.util.*
 import kotlin.properties.Delegates.observable
 
@@ -45,6 +50,13 @@ class Lines {
 
     var maxUnfilteredSize = P.lineIncrement
         private set
+
+    private var dateOfLastUnfilteredLine: LocalDate? = null
+    private var dateOfLastFilteredLine: LocalDate? = null
+
+    private var lastOldDate: LocalDate? = null
+    private lateinit var lastNewDate: LocalDate
+    private lateinit var lastDateLine: Line
 
     // after reconnecting, in *full sync mode*, we are receiving and adding new lines to buffers.
     // there can be inconsistencies; if some lines were added while we were offline,
@@ -87,20 +99,70 @@ class Lines {
     // in very rare cases status might not be FETCHING here, particularly when closing buffers
     // while the app is connecting and has already requested lines
 
-    fun replaceLines(lines: Collection<Line>) {
+    fun replaceLines(lines: Collection<Line>, displayDayChange: Boolean) {
         if (status != Status.Fetching) return
         unfiltered.clear()
         filtered.clear()
-        unfiltered.addAll(lines)
+        dateOfLastUnfilteredLine = null
+        dateOfLastFilteredLine = null
+
         for (line in lines) {
-            if (line.isVisible) filtered.add(line)
+            addLast(line, displayDayChange)
         }
     }
 
-    fun addLast(line: Line) {
+    private fun makeDateChangeLine(oldDate: LocalDate?, newDate: LocalDate) : Line {
+        val tstamp = newDate.atStartOfDay(ZoneId.systemDefault()).toEpochSecond() * 1000
+        var msg = newDate.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM))
+        if (oldDate != null && oldDate.plusDays(1) != newDate) {
+            msg += " (" +
+                   oldDate.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)) +
+                   ")"
+        }
+        msg += " --"
+
+        var datePointer = MAX_C_POINTER_VALUE shl 2 + newDate.getYear() shl 32
+                          + newDate.getDayOfYear() shl 20
+        if (oldDate != null) {
+            datePointer += oldDate.getYear() shl 16 + oldDate.getDayOfYear()
+        }
+        return Line(datePointer, LineSpec.Type.Other, tstamp, "--", msg,
+                    nick = null, isVisible = true, isHighlighted = false,
+                    LineSpec.DisplayAs.Unspecified, LineSpec.NotifyLevel.Low)
+    }
+
+    private fun obtainDateChangeLine(oldDate: LocalDate?, newDate: LocalDate) : Line {
+        if (oldDate == null || lastOldDate != oldDate || lastNewDate != newDate) {
+            lastDateLine = makeDateChangeLine(oldDate, newDate)
+            lastOldDate = oldDate
+            lastNewDate = newDate
+        }
+        return lastDateLine
+    }
+
+    fun addLast(line: Line, displayDayChange: Boolean) {
+        if(displayDayChange) {
+                val newDate = Instant.ofEpochSecond(line.timestamp / 1000)
+                              .atZone(ZoneId.systemDefault())
+                              .toLocalDate()
+
+                if (dateOfLastUnfilteredLine != newDate) {
+                    unfiltered.addLast(obtainDateChangeLine(dateOfLastUnfilteredLine, newDate))
+                    dateOfLastUnfilteredLine = newDate
+                    skipUnfiltered++
+                }
+
+                if (line.isVisible && dateOfLastFilteredLine != newDate) {
+                    filtered.addLast(obtainDateChangeLine(dateOfLastFilteredLine, newDate))
+                    dateOfLastFilteredLine = newDate
+                    skipFiltered++
+                }
+        }
+
         if (shouldAddSquiggleOnNewLine) {
             shouldAddSquiggleOnNewLine = false
-            if (status == Status.Init && unfiltered.size > 0) addLast(SquiggleLine())   // invisible
+            if (status == Status.Init && unfiltered.size > 0)
+                addLast(SquiggleLine(), false)   // invisible
         }
 
         if (shouldAddSquiggleOnNewVisibleLine && line.isVisible) {
