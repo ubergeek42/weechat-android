@@ -93,6 +93,8 @@ public class EditTextPreferenceFix extends EditTextPreference implements DialogF
             if (parent != null)
                 ((ViewGroup) parent).removeView(this.mEditText);
 
+            mEditText.requestFocusFromTouch();
+
             // set text and put cursor on the end
             String value = getEditTextPreference().getText();
             if (value != null) {
