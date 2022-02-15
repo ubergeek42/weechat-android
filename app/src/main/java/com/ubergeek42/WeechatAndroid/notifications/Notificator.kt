@@ -99,7 +99,7 @@ private val connectionStatusTapPendingIntent = PendingIntent.getActivity(
     applicationContext,
     0,
     Intent(applicationContext, WeechatActivity::class.java),
-    PendingIntent.FLAG_CANCEL_CURRENT
+    PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_MUTABLE
 )
 
 
@@ -107,7 +107,7 @@ private val disconnectActionPendingIntent = PendingIntent.getService(
     applicationContext,
     0,
     Intent(RelayService.ACTION_STOP, null, applicationContext, RelayService::class.java),
-    0
+    PendingIntent.FLAG_MUTABLE
 )
 
 
@@ -153,13 +153,15 @@ private inline fun <reified T : Activity> makeActivityIntent(pointer: Long): Pen
         putExtra(Constants.EXTRA_BUFFER_POINTER, pointer)
         action = pointer.as0x
     }
-    return PendingIntent.getActivity(applicationContext, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+    return PendingIntent.getActivity(applicationContext, 0, intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE)
 }
 
 
 private inline fun <reified T : BroadcastReceiver> makeBroadcastIntent(pointer: Long): PendingIntent {
     val intent = Intent(applicationContext, T::class.java).apply { action = pointer.as0x }
-    return PendingIntent.getBroadcast(applicationContext, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+    return PendingIntent.getBroadcast(applicationContext, 0, intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE)
 }
 
 
@@ -568,7 +570,7 @@ private fun makeActionForBufferPointer(pointer: Long): NotificationCompat.Action
         applicationContext,
         1,
         Intent(applicationContext, InlineReplyReceiver::class.java).apply { action = pointer.as0x },
-        PendingIntent.FLAG_UPDATE_CURRENT
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
     )
 
     return NotificationCompat.Action.Builder(

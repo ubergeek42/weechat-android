@@ -20,13 +20,15 @@ public class SyncAlarmReceiver extends BroadcastReceiver {
         AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         if (am == null) return;
         Intent intent = new Intent(context, SyncAlarmReceiver.class);
-        PendingIntent pi = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
+        PendingIntent pi = PendingIntent.getBroadcast(context, 0, intent,
+                PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_MUTABLE);
         am.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + SYNC_EVERY_MS, SYNC_EVERY_MS, pi);
     }
 
     @AnyThread public static void stop(Context context) {
         AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        PendingIntent pe = PendingIntent.getBroadcast(context, 0, new Intent(context, SyncAlarmReceiver.class), 0);
+        PendingIntent pe = PendingIntent.getBroadcast(context, 0, new Intent(context, SyncAlarmReceiver.class),
+                PendingIntent.FLAG_MUTABLE);
         if (am != null && pe != null) am.cancel(pe);
     }
 
