@@ -30,7 +30,7 @@ dependencies {
     implementation("androidx.legacy:legacy-preference-v14:1.0.0") // styling for the fragment
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")
     implementation("androidx.lifecycle:lifecycle-common-java8:2.3.1")
-    implementation("androidx.sharetarget:sharetarget:1.1.0")
+    implementation("androidx.sharetarget:sharetarget:1.2.0-rc01")
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.0")
 
@@ -67,14 +67,14 @@ tasks.withType<JavaCompile> {
 }
 
 android {
-    compileSdkVersion(30)
+    compileSdkVersion(31)
 
     defaultConfig {
         versionCode = 1_07_01
         versionName = "1.7.1"
 
         minSdkVersion(21)
-        targetSdkVersion(30)
+        targetSdkVersion(31)
         buildConfigField("String", "VERSION_BANNER", "\"" + versionBanner() + "\"")
 
         vectorDrawables.useSupportLibrary = true
