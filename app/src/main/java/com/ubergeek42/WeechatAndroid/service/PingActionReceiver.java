@@ -89,7 +89,8 @@ public class PingActionReceiver extends BroadcastReceiver {
     @AnyThread public void unschedulePing() {
         if (!P.pingEnabled) return;
         Intent intent = new Intent(PING_ACTION);
-        PendingIntent pi = PendingIntent.getBroadcast(bone, 0, intent, PendingIntent.FLAG_NO_CREATE);
+        PendingIntent pi = PendingIntent.getBroadcast(bone, 0, intent,
+                PendingIntent.FLAG_NO_CREATE | PendingIntent.FLAG_MUTABLE);
         if (pi != null) alarmManager.cancel(pi);
         try {
             bone.unregisterReceiver(this);
@@ -111,7 +112,8 @@ public class PingActionReceiver extends BroadcastReceiver {
     @AnyThread private void schedulePing(long triggerAt, @NonNull Bundle extras) {
         Intent intent = new Intent(PING_ACTION);
         intent.putExtras(extras);
-        PendingIntent alarmIntent = PendingIntent.getBroadcast(bone, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
+        PendingIntent alarmIntent = PendingIntent.getBroadcast(bone, 0, intent,
+                PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_MUTABLE);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             alarmManager.setExact(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAt, alarmIntent);

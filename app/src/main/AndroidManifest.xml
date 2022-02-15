@@ -20,6 +20,7 @@
     <uses-permission android:name="${applicationId}.permission.PING_ACTION"/>
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
 
     <!--
         this can be used to create persistent dialogs for rare errors for debug purposes
@@ -42,7 +43,8 @@
         <activity
             android:name=".WeechatActivity"
             android:launchMode="singleTask"
-            android:windowSoftInputMode="stateHidden">
+            android:windowSoftInputMode="stateHidden"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -69,7 +71,8 @@
         <!-- text only -->
         <activity-alias
             android:targetActivity=".ShareTextActivity"
-            android:name=".ShareActivityText">
+            android:name=".ShareActivityText"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -84,7 +87,8 @@
         <!-- text, images and videos -->
         <activity-alias
             android:targetActivity=".ShareTextActivity"
-            android:name=".ShareActivityMedia">
+            android:name=".ShareActivityMedia"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -119,7 +123,8 @@
         <!-- everything -->
         <activity-alias
             android:targetActivity=".ShareTextActivity"
-            android:name=".ShareActivityEverything">
+            android:name=".ShareActivityEverything"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -138,14 +143,16 @@
 
 
         <activity android:name=".PreferencesActivity" />
-        <activity android:name=".WeechatAboutActivity">
+        <activity android:name=".WeechatAboutActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
         <receiver android:enabled="true" android:name=".service.BootUpReceiver"
-            android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
+            android:permission="android.permission.RECEIVE_BOOT_COMPLETED"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <category android:name="android.intent.category.DEFAULT" />

@@ -8,6 +8,7 @@ import android.os.Build
 import android.text.Layout
 import android.text.Spannable
 import android.text.StaticLayout
+import androidx.emoji2.text.EmojiCompat
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.upload.f
 import com.ubergeek42.WeechatAndroid.upload.i
@@ -34,7 +35,7 @@ internal class AlphaLayout private constructor(
     fun usesCurrentPaint() = layout.paint === P.textPaint
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    
+
     val paint: Paint get() = layout.paint
     val height: Int get() = layout.height
     fun draw(canvas: Canvas) = layout.draw(canvas)
@@ -56,14 +57,15 @@ internal class AlphaLayout private constructor(
         @Suppress("DEPRECATION")
         @JvmStatic
         fun make(spannable: Spannable, anyWidth: Int): AlphaLayout {
+            val text = EmojiCompat.get().process(spannable) ?: spannable
             val width = if (anyWidth > 0) anyWidth else 100
             val layout = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                StaticLayout.Builder.obtain(spannable, 0, spannable.length, P.textPaint, width)
+                StaticLayout.Builder.obtain(text, 0, text.length, P.textPaint, width)
                         .setBreakStrategy(Layout.BREAK_STRATEGY_HIGH_QUALITY)
                         .setHyphenationFrequency(Layout.HYPHENATION_FREQUENCY_NORMAL)
                         .build()
             } else {
-                StaticLayout(spannable, P.textPaint, width,
+                StaticLayout(text, P.textPaint, width,
                         ALIGNMENT, SPACING_MULTIPLIER, SPACING_ADDITION, INCLUDE_PADDING)
             }
             return AlphaLayout(layout)
