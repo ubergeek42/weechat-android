@@ -34,6 +34,14 @@ enum RequestType {
         Request.Builder builder = new Request.Builder().header("Accept", getAcceptHeader());
         try {
             builder.url(url);
+
+            // While using an invalid URL such as `http://...` will throw IllegalArgumentException,
+            // OkHttp will happily accept a similarly invalid url `http://…`, normalizing it to `http://...`.
+            // Using such an URL crashes the dispatcher. So we check if the host contains empty labels.
+            // TODO remove when fixed in OkHttp; see https://github.com/square/okhttp/issues/7301
+            if (builder.getUrl$okhttp().host().contains("..")) {
+                throw new IllegalArgumentException();
+            }
         } catch (IllegalArgumentException e) {
             throw new Exceptions.MalformedUrlException(url);
         }
