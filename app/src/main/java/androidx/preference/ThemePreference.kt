@@ -11,7 +11,7 @@ import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.utils.Toaster
 
 
-class ThemePreference(context: Context?, attrs: AttributeSet?) : DialogPreference(context, attrs), DialogFragmentGetter {
+class ThemePreference(context: Context, attrs: AttributeSet?) : DialogPreference(context, attrs), DialogFragmentGetter {
     private lateinit var defaultValue: String
 
     override fun onGetDefaultValue(a: TypedArray, index: Int): Any {
@@ -20,9 +20,9 @@ class ThemePreference(context: Context?, attrs: AttributeSet?) : DialogPreferenc
     }
 
     private var themePath: String
-        get() = sharedPreferences.getString(key, defaultValue) ?: ""
+        get() = sharedPreferences!!.getString(key, defaultValue) ?: ""
         set(path) {
-            sharedPreferences.edit().putString(key, path).apply()
+            sharedPreferences!!.edit().putString(key, path).apply()
             notifyChanged()
         }
 

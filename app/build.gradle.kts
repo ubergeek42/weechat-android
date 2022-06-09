@@ -16,51 +16,51 @@ dependencies {
     implementation(project(":cats"))
     implementation(project(":relay"))
 
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.10")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.7.0")
 
     // these two are required for logging within the relay module. todo remove?
-    implementation("org.slf4j:slf4j-api:1.7.31")
+    implementation("org.slf4j:slf4j-api:1.7.36")
     implementation("com.noveogroup.android:android-logger:1.3.6")
 
-    implementation("androidx.core:core-ktx:1.6.0-rc01")
+    implementation("androidx.core:core-ktx:1.8.0")
     implementation("androidx.legacy:legacy-support-v4:1.0.0")
-    implementation("androidx.annotation:annotation:1.2.0") // For @Nullable/@NonNull
-    implementation("androidx.appcompat:appcompat:1.4.1")
-    implementation("androidx.emoji2:emoji2:1.0.1")
-    implementation("androidx.preference:preference-ktx:1.1.1")  // preference fragment & al
+    implementation("androidx.annotation:annotation:1.3.0") // For @Nullable/@NonNull
+    implementation("androidx.appcompat:appcompat:1.4.2")
+    implementation("androidx.emoji2:emoji2:1.1.0")
+    implementation("androidx.preference:preference-ktx:1.2.0")  // preference fragment & al
     implementation("androidx.legacy:legacy-preference-v14:1.0.0") // styling for the fragment
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")
-    implementation("androidx.lifecycle:lifecycle-common-java8:2.3.1")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.4.1")
+    implementation("androidx.lifecycle:lifecycle-common-java8:2.4.1")
     implementation("androidx.sharetarget:sharetarget:1.2.0-rc01")
 
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.2")
 
-    implementation("com.github.bumptech.glide:glide:4.12.0")
-    kapt("com.github.bumptech.glide:compiler:4.12.0")
-    implementation("com.squareup.okhttp3:okhttp:4.9.1")
+    implementation("com.github.bumptech.glide:glide:4.13.2")
+    kapt("com.github.bumptech.glide:compiler:4.13.2")
+    implementation("com.squareup.okhttp3:okhttp:4.9.3")
 
-    val roomVersion = "2.3.0"
+    val roomVersion = "2.4.2"
     implementation("androidx.room:room-runtime:$roomVersion")
     annotationProcessor("androidx.room:room-compiler:$roomVersion")
     kapt("androidx.room:room-compiler:$roomVersion")
 
-    implementation("org.yaml:snakeyaml:1.28:android")
+    implementation("org.yaml:snakeyaml:1.30")
 
     implementation("commons-codec:commons-codec:1.15")
-    implementation("org.bouncycastle:bcpkix-jdk15on:1.69")
+    implementation("org.bouncycastle:bcpkix-jdk15on:1.70")
 
     // needed for thread-safe date formatting as SimpleDateFormat isn"t thread-safe
     // the alternatives, including apache commons and threetenabp, seem to be much slower
     // todo perhaps replace with core library desugaring, if it"s fast
-    implementation("net.danlew:android.joda:2.10.9.1")
+    implementation("net.danlew:android.joda:2.10.14")
 
-    implementation("org.greenrobot:eventbus:3.2.0")
+    implementation("org.greenrobot:eventbus:3.3.1")
 
-    debugImplementation("org.aspectj:aspectjrt:1.9.7.M3")
-    debugImplementation("com.squareup.leakcanary:leakcanary-android:2.7")
+    debugImplementation("org.aspectj:aspectjrt:1.9.9.1")
+    debugImplementation("com.squareup.leakcanary:leakcanary-android:2.9.1")
 
-    testImplementation("org.junit.jupiter:junit-jupiter:5.7.2")
-    testImplementation("org.junit.jupiter:junit-jupiter-params:5.7.2")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.8.2")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.8.2")
 }
 
 tasks.withType<JavaCompile> {
@@ -90,8 +90,8 @@ android {
         kotlinOptions {
             freeCompilerArgs = listOf(
                     "-Xopt-in=kotlin.RequiresOptIn",
-                    "-language-version", "1.5",
-                    "-api-version", "1.5")
+                    "-language-version", "1.7",
+                    "-api-version", "1.7")
             jvmTarget = "1.8"
         }
     }
@@ -103,7 +103,7 @@ android {
                 storePassword = project.properties["devStorePassword"] as String
                 keyAlias = project.properties["devKeyAlias"] as String
                 keyPassword = project.properties["devKeyPassword"] as String
-            } catch (e: TypeCastException) {
+            } catch (e: Exception) {
                 project.logger.warn("WARNING: Set the values devStorefile, devStorePassword, " +
                         "devKeyAlias, and devKeyPassword " +
                         "in ~/.gradle/gradle.properties to sign the release.")
@@ -215,7 +215,7 @@ fun weave(classPath: Iterable<File>, aspectPath: Iterable<File>, input: Iterable
 val weaving: Configuration by configurations.creating
 
 dependencies {
-    weaving("org.aspectj:aspectjtools:1.9.7.M3")
+    weaving("org.aspectj:aspectjtools:1.9.9.1")
 }
 
 // historical note: the problem with weaving Kotlin and Java in-place is that:
@@ -227,7 +227,7 @@ dependencies {
 // a transformation is a poorly advertised feature that works on merged code, and also has its own
 // inputs and outputs, so this fixes all of our problems...
 
-class TransformCats : Transform() {
+    class TransformCats : Transform() {
     override fun getName(): String = TransformCats::class.simpleName!!
 
     override fun getInputTypes() = setOf(QualifiedContent.DefaultContentType.CLASSES)

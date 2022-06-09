@@ -7,7 +7,7 @@ import androidx.appcompat.app.AlertDialog
 
 
 @Suppress("LeakingThis")
-abstract class ClearPreference(context: Context?, attrs: AttributeSet?)
+abstract class ClearPreference(context: Context, attrs: AttributeSet?)
         : DialogPreference(context, attrs), DialogFragmentGetter {
 
     abstract val message: Int

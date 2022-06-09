@@ -18,11 +18,11 @@ import com.ubergeek42.WeechatAndroid.utils.Constants
 import java.io.File
 
 
-class FontPreference(context: Context?, attrs: AttributeSet?) : DialogPreference(context, attrs), DialogFragmentGetter {
+class FontPreference(context: Context, attrs: AttributeSet?) : DialogPreference(context, attrs), DialogFragmentGetter {
     private var fontPath: String
-        get() = sharedPreferences.getString(key, Constants.PREF_BUFFER_FONT_D) ?: ""
+        get() = sharedPreferences!!.getString(key, Constants.PREF_BUFFER_FONT_D) ?: ""
         set(path) {
-            sharedPreferences.edit().putString(key, path).apply()
+            sharedPreferences!!.edit().putString(key, path).apply()
             notifyChanged()
         }
 
