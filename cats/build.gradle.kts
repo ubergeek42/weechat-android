@@ -15,7 +15,7 @@ dependencies {
 }
 
 android {
-    compileSdkVersion(31)
+    compileSdk = 31
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -34,8 +34,8 @@ android {
     }
 
     defaultConfig {
-        targetSdkVersion(31)
-        minSdkVersion(16)
+        targetSdk = 31
+        minSdk = 16
     }
 }
 

@@ -68,14 +68,14 @@ tasks.withType<JavaCompile> {
 }
 
 android {
-    compileSdkVersion(31)
+    compileSdk = 31
 
     defaultConfig {
         versionCode = 1_07_01
         versionName = "1.7.1"
 
-        minSdkVersion(21)
-        targetSdkVersion(31)
+        minSdk = 21
+        targetSdk = 31
         buildConfigField("String", "VERSION_BANNER", "\"" + versionBanner() + "\"")
 
         vectorDrawables.useSupportLibrary = true
@@ -125,7 +125,7 @@ android {
             // kotlinx-coroutines-core debug-only artifact
             // see https://github.com/Kotlin/kotlinx.coroutines#avoiding-including-the-debug-infrastructure-in-the-resulting-apk
             packagingOptions {
-                exclude("DebugProbesKt.bin")
+                resources.excludes += "DebugProbesKt.bin"
             }
         }
 
