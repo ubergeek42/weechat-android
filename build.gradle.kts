@@ -1,3 +1,5 @@
+import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
+
 subprojects {
     repositories {
         mavenCentral()
@@ -70,5 +72,27 @@ subprojects {
                 }
             })
         }
+    }
+}
+
+
+// The below is a plugin that checks for dependency updates.
+// To get a plain text report, run:
+//   $ ./gradlew dependencyUpdates
+// See https://github.com/ben-manes/gradle-versions-plugin
+plugins {
+    id("com.github.ben-manes.versions") version "0.42.0"
+}
+
+fun isNonStable(version: String): Boolean {
+    val stableKeyword = listOf("RELEASE", "FINAL", "GA").any { version.toUpperCase().contains(it) }
+    val regex = "^[0-9,.v-]+(-r)?$".toRegex()
+    val isStable = stableKeyword || regex.matches(version)
+    return isStable.not()
+}
+
+tasks.named<DependencyUpdatesTask>("dependencyUpdates").configure {
+    rejectVersionIf {
+        isNonStable(candidate.version) && !isNonStable(currentVersion)
     }
 }
