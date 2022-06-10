@@ -24,15 +24,9 @@ buildscript {
     repositories {
         mavenCentral()
         google()
-        maven { url = uri("https://storage.googleapis.com/r8-releases/raw") }
     }
 
     dependencies {
-        // this is and the r8 repo above are needed to fix a bug in agp 4.2.0/1
-        // see https://issuetracker.google.com/issues/187265955
-        // todo remove when the issue has been resolved
-        classpath("com.android.tools:r8:3.3.28")
-
         classpath("com.android.tools.build:gradle:7.2.1")
         classpath("org.aspectj:aspectjtools:1.9.9.1")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.7.0")
