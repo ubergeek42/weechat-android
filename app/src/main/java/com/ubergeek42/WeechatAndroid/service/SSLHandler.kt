@@ -1,341 +1,333 @@
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
+package com.ubergeek42.WeechatAndroid.service
 
-package com.ubergeek42.WeechatAndroid.service;
+import com.ubergeek42.WeechatAndroid.service.SSLHandler
+import com.ubergeek42.WeechatAndroid.dialogs.CertificateDialog
+import com.ubergeek42.WeechatAndroid.Weechat
+import android.net.SSLCertificateSocketFactory
+import com.ubergeek42.WeechatAndroid.service.SSLHandler.UserTrustManager
+import kotlin.Throws
+import com.ubergeek42.WeechatAndroid.service.P
+import com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils
+import com.ubergeek42.WeechatAndroid.utils.ThrowingKeyManagerWrapper
+import com.ubergeek42.cats.Kitty
+import android.annotation.SuppressLint
+import android.content.Context
+import android.os.Build
+import androidx.annotation.CheckResult
+import com.ubergeek42.WeechatAndroid.utils.Utils
+import com.ubergeek42.cats.Root
+import java.io.ByteArrayInputStream
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileNotFoundException
+import java.io.FileOutputStream
+import java.io.IOException
+import java.lang.Exception
+import java.security.KeyStore
+import java.security.KeyStoreException
+import java.security.NoSuchAlgorithmException
+import java.security.UnrecoverableKeyException
+import java.security.cert.CertificateException
+import java.security.cert.X509Certificate
+import java.util.*
+import java.util.regex.Pattern
+import javax.net.ssl.HostnameVerifier
+import javax.net.ssl.HttpsURLConnection
+import javax.net.ssl.KeyManager
+import javax.net.ssl.KeyManagerFactory
+import javax.net.ssl.SSLPeerUnverifiedException
+import javax.net.ssl.SSLSession
+import javax.net.ssl.SSLSocketFactory
+import javax.net.ssl.TrustManager
+import javax.net.ssl.TrustManagerFactory
+import javax.net.ssl.X509TrustManager
 
-import android.annotation.SuppressLint;
-import android.content.Context;
-import android.net.SSLCertificateSocketFactory;
-import android.os.Build;
+class SSLHandler private constructor(private val keystoreFile: File) {
+    private var sslKeystore: KeyStore? = null
 
-import androidx.annotation.CheckResult;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
-import com.ubergeek42.WeechatAndroid.Weechat;
-import com.ubergeek42.WeechatAndroid.dialogs.CertificateDialog;
-import com.ubergeek42.WeechatAndroid.utils.ThrowingKeyManagerWrapper;
-import com.ubergeek42.WeechatAndroid.utils.Utils;
-import com.ubergeek42.cats.Kitty;
-import com.ubergeek42.cats.Root;
-
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLPeerUnverifiedException;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.SSLSocket;
-import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
-import javax.net.ssl.X509TrustManager;
-
-import static com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils.deleteAndroidKeyStoreEntriesWithPrefix;
-import static com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils.getAndroidKeyStore;
-import static com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils.putKeyEntriesIntoAndroidKeyStoreWithPrefix;
-
-public class SSLHandler {
-    final private static @Root Kitty kitty = Kitty.make();
-
-    private static final String KEYSTORE_PASSWORD = "weechat-android";
-    // best-effort RDN regex, matches CN="foo,bar",OU=... and CN=foobar,OU=...
-    private static final Pattern RDN_PATTERN = Pattern.compile("CN\\s*=\\s*((?:\"[^\"]*\")|(?:[^\",]*))");
-
-    private File keystoreFile;
-    private KeyStore sslKeystore;
-
-    private SSLHandler(File keystoreFile) {
-        this.keystoreFile = keystoreFile;
-        loadKeystore();
-    }
-
-    private static @Nullable SSLHandler sslHandler = null;
-
-    public static @NonNull SSLHandler getInstance(@NonNull Context context) {
-        if (sslHandler == null) {
-            File f = new File(context.getDir("sslDir", Context.MODE_PRIVATE), "keystore.jks");
-            sslHandler = new SSLHandler(f);
-        }
-        return sslHandler;
-    }
+    class Result internal constructor(val exception: Exception?,
+                                      val certificateChain: Array<X509Certificate>?)
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
+    val userCertificateCount: Int
+        get() = try {
+            sslKeystore!!.size()
+        } catch (e: KeyStoreException) {
+            kitty.error("getUserCertificateCount()", e)
+            0
+        }
 
-    @SuppressLint("SSLCertificateSocketFactoryGetInsecure")
-    public static Result checkHostnameAndValidity(@NonNull String host, int port) {
-        X509Certificate[] certificatesChain = null;
+    fun trustCertificate(cert: X509Certificate) {
         try {
-            SSLSocketFactory factory = SSLCertificateSocketFactory.getInsecure(0, null);
-            try (SSLSocket ssl = (SSLSocket) factory.createSocket(host, port)) {
-                ssl.startHandshake();
-                SSLSession session = ssl.getSession();
-                certificatesChain = (X509Certificate[]) session.getPeerCertificates();
-                certificatesChain = appendIssuer(certificatesChain);
-                for (X509Certificate certificate : certificatesChain)
-                    certificate.checkValidity();
-                if (!getHostnameVerifier().verify(host, session))
-                    throw new SSLPeerUnverifiedException("Cannot verify hostname: " + host);
-            }
-        } catch (CertificateException | IOException e) {
-            return new Result(e, certificatesChain);
+            val x = KeyStore.TrustedCertificateEntry(cert)
+            sslKeystore!!.setEntry(cert.subjectDN.name, x, null)
+            kitty.debug("""
+    Trusting:
+    ${CertificateDialog.buildCertificateDescription(Weechat.applicationContext, cert)}
+    """.trimIndent())
+        } catch (e: KeyStoreException) {
+            kitty.error("trustCertificate()", e)
         }
-        return new Result(null, certificatesChain);
+        saveKeystore()
     }
 
-    public static class Result {
-        public final @Nullable Exception exception;
-        public final @Nullable X509Certificate[] certificateChain;
-
-        Result(@Nullable Exception exception, @Nullable X509Certificate[] certificateChain) {
-            this.exception = exception;
-            this.certificateChain = certificateChain;
+    val sSLSocketFactory: SSLSocketFactory
+        get() {
+            val sslSocketFactory =
+                SSLCertificateSocketFactory.getDefault(0, null) as SSLCertificateSocketFactory
+            sslSocketFactory.setKeyManagers(keyManagers)
+            sslSocketFactory.setTrustManagers(UserTrustManager.build(sslKeystore))
+            return sslSocketFactory
         }
-    }
 
-    // servers can omit sending root CAs. this retrieves the root CA from the system store
-    // and adds it to the chain. see https://stackoverflow.com/a/42168597/1449683
-    public static X509Certificate[] appendIssuer(X509Certificate[] certificates) {
-        X509TrustManager systemManager = UserTrustManager.buildTrustManger(null);
-        if (systemManager == null) return certificates;
-        X509Certificate rightmost = certificates[certificates.length - 1];
-        for (X509Certificate issuer : systemManager.getAcceptedIssuers()) {
-            try {
-                rightmost.verify(issuer.getPublicKey());
-                certificates = Arrays.copyOf(certificates, certificates.length + 1);
-                certificates[certificates.length - 1] = issuer;
-                return certificates;
-            } catch (Exception ignored) {}
-        }
-        return certificates;
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    final private static int SAN_DNSNAME = 2;
-    final private static int SAN_IPADDRESS = 7;
-
-    // fall back to parsing CN only if SAN extension is not present. Android P no longer does this.
-    // https://developer.android.com/about/versions/pie/android-9.0-changes-all#certificate-common-name
-    public static Set<String> getCertificateHosts(X509Certificate certificate) throws Exception {
-        final Set<String> hosts = new HashSet<>();
-
-        Collection<List<?>> san = certificate.getSubjectAlternativeNames();
-
-        if (san == null) {
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
-                Matcher matcher = RDN_PATTERN.matcher(certificate.getSubjectDN().getName());
-                if (matcher.find())
-                    hosts.add(matcher.group(1));
-            }
-        } else {
-            for (List<?> pair : san) {
-                if (Utils.isAnyOf((Integer) pair.get(0), SAN_DNSNAME, SAN_IPADDRESS))
-                    hosts.add(pair.get(1).toString());
-            }
-        }
-        return hosts;
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    public int getUserCertificateCount() {
-        try {
-            return sslKeystore.size();
-        } catch (KeyStoreException e) {
-            kitty.error("getUserCertificateCount()", e);
-            return 0;
-        }
-    }
-
-    public void trustCertificate(@NonNull X509Certificate cert) {
-        try {
-            KeyStore.TrustedCertificateEntry x = new KeyStore.TrustedCertificateEntry(cert);
-            sslKeystore.setEntry(cert.getSubjectDN().getName(), x, null);
-            kitty.debug("Trusting:\n" + CertificateDialog.buildCertificateDescription(Weechat.applicationContext, cert));
-        } catch (KeyStoreException e) {
-            kitty.error("trustCertificate()", e);
-        }
-        saveKeystore();
-    }
-
-    SSLSocketFactory getSSLSocketFactory() {
-        SSLCertificateSocketFactory sslSocketFactory = (SSLCertificateSocketFactory) SSLCertificateSocketFactory.getDefault(0, null);
-        sslSocketFactory.setKeyManagers(getKeyManagers());
-        sslSocketFactory.setTrustManagers(UserTrustManager.build(sslKeystore));
-        return sslSocketFactory;
-    }
-
-    static public boolean isChainTrustedBySystem(X509Certificate[] certificates) {
-        X509TrustManager systemManager = UserTrustManager.buildTrustManger(null);
-        if (systemManager == null) return false;
-        try {
-            systemManager.checkServerTrusted(certificates, "GENERIC");
-            return true;
-        } catch (CertificateException e) {
-            return false;
-        }
-    }
-
-    // see android.net.SSLCertificateSocketFactory#verifyHostname
-    static HostnameVerifier getHostnameVerifier() {
-        return HttpsURLConnection.getDefaultHostnameVerifier();
-    }
-
-    @CheckResult public boolean removeKeystore() {
+    @CheckResult fun removeKeystore(): Boolean {
         if (keystoreFile.delete()) {
-            sslHandler = null;
-            return true;
+            sslHandler = null
+            return true
         }
-        return false;
+        return false
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-
     // Load our keystore for storing SSL certificates
-    private void loadKeystore() {
+    private fun loadKeystore() {
         try {
-            sslKeystore = KeyStore.getInstance("BKS");
-            sslKeystore.load(new FileInputStream(keystoreFile), KEYSTORE_PASSWORD.toCharArray());
-        } catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException e) {
-            if (e instanceof FileNotFoundException) createKeystore();
-            else kitty.error("loadKeystore()", e);
+            sslKeystore = KeyStore.getInstance("BKS")
+            sslKeystore.load(FileInputStream(keystoreFile), KEYSTORE_PASSWORD.toCharArray())
+        } catch (e: KeyStoreException) {
+            if (e is FileNotFoundException) createKeystore() else kitty.error("loadKeystore()", e)
+        } catch (e: NoSuchAlgorithmException) {
+            if (e is FileNotFoundException) createKeystore() else kitty.error("loadKeystore()", e)
+        } catch (e: CertificateException) {
+            if (e is FileNotFoundException) createKeystore() else kitty.error("loadKeystore()", e)
+        } catch (e: IOException) {
+            if (e is FileNotFoundException) createKeystore() else kitty.error("loadKeystore()", e)
         }
     }
 
-    private void createKeystore() {
+    private fun createKeystore() {
         try {
-            sslKeystore.load(null, null);
-        } catch (Exception e) {
-            kitty.error("createKeystore()", e);
+            sslKeystore!!.load(null, null)
+        } catch (e: Exception) {
+            kitty.error("createKeystore()", e)
         }
-        saveKeystore();
+        saveKeystore()
     }
 
-    private void saveKeystore() {
+    private fun saveKeystore() {
         try {
-            sslKeystore.store(new FileOutputStream(keystoreFile), KEYSTORE_PASSWORD.toCharArray());
-        } catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException e) {
-            kitty.error("saveKeystore()", e);
+            sslKeystore!!.store(FileOutputStream(keystoreFile), KEYSTORE_PASSWORD.toCharArray())
+        } catch (e: KeyStoreException) {
+            kitty.error("saveKeystore()", e)
+        } catch (e: NoSuchAlgorithmException) {
+            kitty.error("saveKeystore()", e)
+        } catch (e: CertificateException) {
+            kitty.error("saveKeystore()", e)
+        } catch (e: IOException) {
+            kitty.error("saveKeystore()", e)
         }
     }
 
-    private static class UserTrustManager implements X509TrustManager {
-        static final X509TrustManager systemTrustManager = buildTrustManger(null);
-        private final X509TrustManager userTrustManager;
-
-        private static TrustManager[] build(KeyStore sslKeystore) {
-            return new TrustManager[] { new UserTrustManager(sslKeystore) };
-        }
-
-        static X509TrustManager buildTrustManger(@Nullable KeyStore store) {
+    private class UserTrustManager private constructor(userKeyStore: KeyStore?) : X509TrustManager {
+        private val userTrustManager: X509TrustManager?
+        @Throws(CertificateException::class)
+        override fun checkClientTrusted(x509Certificates: Array<X509Certificate>, s: String) {
             try {
-                TrustManagerFactory tmf =
-                    TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-                tmf.init(store);
-                return (X509TrustManager) tmf.getTrustManagers()[0];
-            } catch (NoSuchAlgorithmException | KeyStoreException e) {
-                return null;
+                systemTrustManager!!.checkClientTrusted(x509Certificates, s)
+                kitty.debug("Client is trusted by system")
+            } catch (e: CertificateException) {
+                kitty.debug("Client is NOT trusted by system, trying user")
+                userTrustManager!!.checkClientTrusted(x509Certificates, s)
+                kitty.debug("Client is trusted by user")
             }
         }
 
-        private UserTrustManager(KeyStore userKeyStore) {
-            this.userTrustManager = buildTrustManger(userKeyStore);
-        }
-
-        @Override
-        public void checkClientTrusted(X509Certificate[] x509Certificates, String s)
-            throws CertificateException {
+        @Throws(CertificateException::class)
+        override fun checkServerTrusted(x509Certificates: Array<X509Certificate>, s: String) {
             try {
-                systemTrustManager.checkClientTrusted(x509Certificates, s);
-                kitty.debug("Client is trusted by system");
-            } catch (CertificateException e) {
-                kitty.debug("Client is NOT trusted by system, trying user");
-                userTrustManager.checkClientTrusted(x509Certificates, s);
-                kitty.debug("Client is trusted by user");
+                userTrustManager!!.checkServerTrusted(x509Certificates, s)
+                kitty.debug("Server is trusted by user")
+            } catch (e: CertificateException) {
+                kitty.debug("Server is NOT trusted by user; pin " + if (P.pinRequired) "REQUIRED -- failing" else "not required -- trying system")
+                if (P.pinRequired) throw e
+                systemTrustManager!!.checkServerTrusted(x509Certificates, s)
+                kitty.debug("Server is trusted by system")
             }
         }
 
-        @Override
-        public void checkServerTrusted(X509Certificate[] x509Certificates, String s)
-                throws CertificateException {
-            try {
-                userTrustManager.checkServerTrusted(x509Certificates, s);
-                kitty.debug("Server is trusted by user");
-            } catch (CertificateException e) {
-                kitty.debug("Server is NOT trusted by user; pin " + (P.pinRequired ?
-                        "REQUIRED -- failing" : "not required -- trying system"));
-                if (P.pinRequired) throw e;
+        override fun getAcceptedIssuers(): Array<X509Certificate> {
+            val system = systemTrustManager!!.acceptedIssuers
+            val user = userTrustManager!!.acceptedIssuers
+            val result = Arrays.copyOf(system, system.size + user.size)
+            System.arraycopy(user, 0, result, system.size, user.size)
+            return result
+        }
 
-                systemTrustManager.checkServerTrusted(x509Certificates, s);
-                kitty.debug("Server is trusted by system");
+        companion object {
+            val systemTrustManager = buildTrustManger(null)
+            fun build(sslKeystore: KeyStore?): Array<TrustManager> {
+                return arrayOf(UserTrustManager(sslKeystore))
+            }
+
+            fun buildTrustManger(store: KeyStore?): X509TrustManager? {
+                return try {
+                    val tmf =
+                        TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
+                    tmf.init(store)
+                    tmf.trustManagers[0] as X509TrustManager
+                } catch (e: NoSuchAlgorithmException) {
+                    null
+                } catch (e: KeyStoreException) {
+                    null
+                }
             }
         }
 
-        @Override
-        public X509Certificate[] getAcceptedIssuers() {
-            X509Certificate[] system = systemTrustManager.getAcceptedIssuers();
-            X509Certificate[] user = userTrustManager.getAcceptedIssuers();
-            X509Certificate[] result = Arrays.copyOf(system, system.length + user.length);
-            System.arraycopy(user, 0, result, system.length, user.length);
-            return result;
+        init {
+            userTrustManager = buildTrustManger(userKeyStore)
         }
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    public final static String KEYSTORE_ALIAS_PREFIX = "tls-client-cert-0.";
-    private @Nullable KeyManager[] cachedKeyManagers = null;
-
-    public void setClientCertificate(@Nullable byte[] bytes, String password) throws
-            KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException,
-            UnrecoverableKeyException {
-        cachedKeyManagers = null;
-
-        KeyStore pkcs12Keystore = KeyStore.getInstance("PKCS12");
-        pkcs12Keystore.load(bytes == null ? null :
-                new ByteArrayInputStream(bytes), password.toCharArray());
-
-        deleteAndroidKeyStoreEntriesWithPrefix(KEYSTORE_ALIAS_PREFIX);
-        putKeyEntriesIntoAndroidKeyStoreWithPrefix(pkcs12Keystore, password, KEYSTORE_ALIAS_PREFIX);
+    private var cachedKeyManagers: Array<KeyManager>? = null
+    @Throws(KeyStoreException::class,
+            CertificateException::class,
+            NoSuchAlgorithmException::class,
+            IOException::class,
+            UnrecoverableKeyException::class) fun setClientCertificate(bytes: ByteArray?,
+                                                                       password: String) {
+        cachedKeyManagers = null
+        val pkcs12Keystore = KeyStore.getInstance("PKCS12")
+        pkcs12Keystore.load(if (bytes == null) null else ByteArrayInputStream(bytes),
+                            password.toCharArray())
+        AndroidKeyStoreUtils.deleteAndroidKeyStoreEntriesWithPrefix(KEYSTORE_ALIAS_PREFIX)
+        AndroidKeyStoreUtils.putKeyEntriesIntoAndroidKeyStoreWithPrefix(pkcs12Keystore,
+                                                                        password,
+                                                                        KEYSTORE_ALIAS_PREFIX)
     }
 
-    private @Nullable KeyManager[] getKeyManagers() {
-        if (cachedKeyManagers == null) {
-            try {
-                KeyStore androidKeystore = getAndroidKeyStore();
-                KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("X509");
-                keyManagerFactory.init(androidKeystore, null);
-                cachedKeyManagers = keyManagerFactory.getKeyManagers();
+    // this makes managers throw an exception if appropriate certificates can't be found
+    private val keyManagers: Array<KeyManager>?
+        private get() {
+            if (cachedKeyManagers == null) {
+                try {
+                    val androidKeystore = AndroidKeyStoreUtils.getAndroidKeyStore()
+                    val keyManagerFactory = KeyManagerFactory.getInstance("X509")
+                    keyManagerFactory.init(androidKeystore, null)
+                    cachedKeyManagers = keyManagerFactory.keyManagers
 
-                // this makes managers throw an exception if appropriate certificates can't be found
-                ThrowingKeyManagerWrapper.wrapKeyManagers(cachedKeyManagers);
-            } catch (Exception e) {
-                kitty.error("getKeyManagers()", e);
+                    // this makes managers throw an exception if appropriate certificates can't be found
+                    ThrowingKeyManagerWrapper.wrapKeyManagers(cachedKeyManagers)
+                } catch (e: Exception) {
+                    kitty.error("getKeyManagers()", e)
+                }
+            }
+            return cachedKeyManagers
+        }
+
+    companion object {
+        @Root
+        private val kitty: Kitty = Kitty.make()
+        private const val KEYSTORE_PASSWORD = "weechat-android"
+
+        // best-effort RDN regex, matches CN="foo,bar",OU=... and CN=foobar,OU=...
+        private val RDN_PATTERN = Pattern.compile("CN\\s*=\\s*((?:\"[^\"]*\")|(?:[^\",]*))")
+        private var sslHandler: SSLHandler? = null
+        @JvmStatic fun getInstance(context: Context): SSLHandler {
+            if (sslHandler == null) {
+                val f = File(context.getDir("sslDir", Context.MODE_PRIVATE), "keystore.jks")
+                sslHandler = SSLHandler(f)
+            }
+            return sslHandler!!
+        }
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////
+        @SuppressLint("SSLCertificateSocketFactoryGetInsecure")
+        fun checkHostnameAndValidity(host: String, port: Int): Result {
+            var certificatesChain: Array<X509Certificate>? = null
+            try {
+                val factory = SSLCertificateSocketFactory.getInsecure(0, null)
+                factory.createSocket(host, port) as javax.net.ssl.SSLSocket?. use { ssl ->
+                    ssl.startHandshake()
+                    val session: SSLSession = ssl.getSession()
+                    certificatesChain = session.peerCertificates as Array<X509Certificate>
+                    certificatesChain = appendIssuer(certificatesChain)
+                    for (certificate in certificatesChain!!) certificate.checkValidity()
+                    if (!hostnameVerifier.verify(host, session)) throw SSLPeerUnverifiedException(
+                        "Cannot verify hostname: $host")
+                }
+            } catch (e: CertificateException) {
+                return Result(e, certificatesChain)
+            } catch (e: IOException) {
+                return Result(e, certificatesChain)
+            }
+            return Result(null, certificatesChain)
+        }
+
+        // servers can omit sending root CAs. this retrieves the root CA from the system store
+        // and adds it to the chain. see https://stackoverflow.com/a/42168597/1449683
+        fun appendIssuer(certificates: Array<X509Certificate>?): Array<X509Certificate>? {
+            var certificates = certificates
+            val systemManager = UserTrustManager.buildTrustManger(null) ?: return certificates
+            val rightmost = certificates!![certificates.size - 1]
+            for (issuer in systemManager.acceptedIssuers) {
+                try {
+                    rightmost.verify(issuer.publicKey)
+                    certificates = Arrays.copyOf(certificates, certificates!!.size + 1)
+                    certificates[certificates.size - 1] = issuer
+                    return certificates
+                } catch (ignored: Exception) {
+                }
+            }
+            return certificates
+        }
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////
+        private const val SAN_DNSNAME = 2
+        private const val SAN_IPADDRESS = 7
+
+        // fall back to parsing CN only if SAN extension is not present. Android P no longer does this.
+        // https://developer.android.com/about/versions/pie/android-9.0-changes-all#certificate-common-name
+        @JvmStatic @Throws(Exception::class)
+        fun getCertificateHosts(certificate: X509Certificate): Set<String> {
+            val hosts: MutableSet<String> = HashSet()
+            val san = certificate.subjectAlternativeNames
+            if (san == null) {
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+                    val matcher = RDN_PATTERN.matcher(certificate.subjectDN.name)
+                    if (matcher.find()) hosts.add(matcher.group(1))
+                }
+            } else {
+                for (pair in san) {
+                    if (Utils.isAnyOf((pair[0] as Int?)!!, SAN_DNSNAME, SAN_IPADDRESS)) hosts.add(
+                        pair[1].toString())
+                }
+            }
+            return hosts
+        }
+
+        @JvmStatic fun isChainTrustedBySystem(certificates: Array<X509Certificate?>?): Boolean {
+            val systemManager = UserTrustManager.buildTrustManger(null) ?: return false
+            return try {
+                systemManager.checkServerTrusted(certificates, "GENERIC")
+                true
+            } catch (e: CertificateException) {
+                false
             }
         }
-        return cachedKeyManagers;
+
+        // see android.net.SSLCertificateSocketFactory#verifyHostname
+        @JvmStatic val hostnameVerifier: HostnameVerifier
+            get() = HttpsURLConnection.getDefaultHostnameVerifier()
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////////////////////////////////////////
+        const val KEYSTORE_ALIAS_PREFIX = "tls-client-cert-0."
+    }
+
+    init {
+        loadKeystore()
     }
 }
