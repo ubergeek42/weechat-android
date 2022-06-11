@@ -21,7 +21,7 @@ public class CertPickerPreference extends PasswordedFilePickerPreference impleme
 
     @Override protected String saveData(@Nullable byte[] bytes, @NonNull String password) throws Exception {
         Context context = getContext();
-        SSLHandler.getInstance(getContext()).setClientCertificate(bytes, password);
+        SSLHandlerKt.setClientCertificate(bytes, password);
         persistString(bytes != null ? "ok" : null);
         notifyChanged();
         if (bytes == null) {

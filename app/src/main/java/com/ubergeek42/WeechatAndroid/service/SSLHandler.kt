@@ -39,6 +39,9 @@ import javax.net.ssl.TrustManagerFactory
 import javax.net.ssl.X509TrustManager
 
 
+@Root private val kitty: Kitty = Kitty.make()
+
+
 private const val SAN_DNSNAME = 2
 private const val SAN_IPADDRESS = 7
 
@@ -118,49 +121,9 @@ class SSLHandler private constructor(private val keystoreFile: File) {
         return sslSocketFactory
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-    private var cachedKeyManagers: Array<KeyManager>? = null
-
-    @Throws(KeyStoreException::class,
-            CertificateException::class,
-            NoSuchAlgorithmException::class,
-            IOException::class,
-            UnrecoverableKeyException::class)
-    fun setClientCertificate(bytes: ByteArray?, password: String) {
-        cachedKeyManagers = null
-        val pkcs12Keystore = KeyStore.getInstance("PKCS12")
-        pkcs12Keystore.load(if (bytes == null) null else ByteArrayInputStream(bytes), password.toCharArray())
-        deleteAndroidKeyStoreEntriesWithPrefix(KEYSTORE_ALIAS_PREFIX)
-        putKeyEntriesIntoAndroidKeyStoreWithPrefix(pkcs12Keystore, password, KEYSTORE_ALIAS_PREFIX)
-    }
-
-    // this makes managers throw an exception if appropriate certificates can't be found
-    private fun getKeyManagers(): Array<KeyManager>? {
-        return if (cachedKeyManagers != null) {
-            cachedKeyManagers
-        } else {
-            try {
-                val keyManagerFactory = KeyManagerFactory.getInstance("X509")
-                keyManagerFactory.init(AndroidKeyStoreUtils.getAndroidKeyStore(), null)
-                val keyManagers = keyManagerFactory.keyManagers
-
-                // this makes managers throw an exception if appropriate certificates can't be found
-                ThrowingKeyManagerWrapper.wrapKeyManagers(keyManagers)
-
-                cachedKeyManagers = keyManagers
-                keyManagers
-            } catch (e: Exception) {
-                kitty.error("getKeyManagers()", e)
-                null
-            }
-        }
-    }
 
     companion object {
-        @Root private val kitty: Kitty = Kitty.make()
-
         private var sslHandler: SSLHandler? = null
 
         @JvmStatic fun getInstance(context: Context): SSLHandler {
@@ -173,6 +136,51 @@ class SSLHandler private constructor(private val keystoreFile: File) {
     }
 }
 
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////// client cert
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+private var cachedKeyManagers: Array<KeyManager>? = null
+
+
+@Throws(KeyStoreException::class,
+        CertificateException::class,
+        NoSuchAlgorithmException::class,
+        IOException::class,
+        UnrecoverableKeyException::class)
+fun setClientCertificate(bytes: ByteArray?, password: String) {
+    val pkcs12Keystore = KeyStore.getInstance("PKCS12")
+    pkcs12Keystore.load(if (bytes == null) null else ByteArrayInputStream(bytes), password.toCharArray())
+    deleteAndroidKeyStoreEntriesWithPrefix(KEYSTORE_ALIAS_PREFIX)
+    putKeyEntriesIntoAndroidKeyStoreWithPrefix(pkcs12Keystore, password, KEYSTORE_ALIAS_PREFIX)
+    cachedKeyManagers = null
+}
+
+
+private fun getKeyManagers(): Array<KeyManager>? {
+    return if (cachedKeyManagers != null) {
+        cachedKeyManagers
+    } else {
+        try {
+            val keyManagerFactory = KeyManagerFactory.getInstance("X509")
+            keyManagerFactory.init(AndroidKeyStoreUtils.getAndroidKeyStore(), null)
+            val keyManagers = keyManagerFactory.keyManagers
+
+            // this makes managers throw an exception if appropriate certificates can't be found
+            ThrowingKeyManagerWrapper.wrapKeyManagers(keyManagers)
+
+            cachedKeyManagers = keyManagers
+            keyManagers
+        } catch (e: Exception) {
+            kitty.error("getKeyManagers()", e)
+            null
+        }
+    }
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -180,8 +188,6 @@ class SSLHandler private constructor(private val keystoreFile: File) {
 
 @SuppressLint("CustomX509TrustManager")
 private class SystemThenUserTrustManager(userKeyStore: KeyStore?) : X509TrustManager {
-    companion object { @Root private val kitty: Kitty = Kitty.make() }
-
     private val userTrustManager = buildTrustManger(userKeyStore)
 
     @Throws(CertificateException::class)
