@@ -13,7 +13,7 @@ class ClearCertPreference(context: Context, attrs: AttributeSet) : ClearPreferen
     override val positiveButton = R.string.pref__ClearCertPreference__button_clear
 
     override fun update() {
-        val count = SSLHandler.getInstance(context).userCertificateCount
+        val count = SSLHandler.getInstance(context).getUserCertificateCount()
         isEnabled = count > 0
         summary = when (count) {
             0 -> context.getString(R.string.pref__ClearCertPreference__0_entries)

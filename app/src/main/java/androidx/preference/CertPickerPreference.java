@@ -8,6 +8,7 @@ import androidx.annotation.Nullable;
 
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.service.SSLHandler;
+import com.ubergeek42.WeechatAndroid.service.SSLHandlerKt;
 import com.ubergeek42.WeechatAndroid.utils.TinyMap;
 
 import static com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils.InsideSecurityHardware;
@@ -31,6 +32,6 @@ public class CertPickerPreference extends PasswordedFilePickerPreference impleme
                 InsideSecurityHardware.YES, R.string.pref__CertPickerPreference__success_stored_inside_security_hardware_yes,
                 InsideSecurityHardware.NO, R.string.pref__CertPickerPreference__success_stored_inside_security_hardware_no,
                 InsideSecurityHardware.CANT_TELL, R.string.pref__CertPickerPreference__success_stored_inside_security_hardware_yes_cant_tell
-        ).get(areAllInsideSecurityHardware(SSLHandler.KEYSTORE_ALIAS_PREFIX)));
+        ).get(areAllInsideSecurityHardware(SSLHandlerKt.KEYSTORE_ALIAS_PREFIX)));
     }
 }
