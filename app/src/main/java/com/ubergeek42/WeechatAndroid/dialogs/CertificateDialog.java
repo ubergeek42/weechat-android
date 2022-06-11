@@ -25,6 +25,7 @@ import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.WeechatActivity;
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.service.SSLHandler;
+import com.ubergeek42.WeechatAndroid.service.SSLHandlerKt;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
@@ -190,7 +191,7 @@ public class CertificateDialog extends DialogFragment {
     public static CertificateDialog buildUntrustedOrNotPinnedCertificateDialog(
             Context context, X509Certificate[] certificateChain) {
         int title, text, positive;
-        if (SSLHandler.isChainTrustedBySystem(certificateChain)) {
+        if (SSLHandlerKt.isChainTrustedBySystem(certificateChain)) {
             title = R.string.dialog__certificate__not_pinned__title;
             text = R.string.dialog__certificate__not_pinned__text;
             positive = R.string.dialog__certificate__not_pinned__pin_selected;
@@ -241,7 +242,7 @@ public class CertificateDialog extends DialogFragment {
             Context context, X509Certificate[] certificateChain) {
         CharSequence text;
         try {
-            Set<String> certificateHosts = SSLHandler.getCertificateHosts(certificateChain[0]);
+            Set<String> certificateHosts = SSLHandlerKt.getCertificateHosts(certificateChain[0]);
             StringBuilder sb = new StringBuilder();
             for (String certificateHost : certificateHosts)
                 sb.append(context.getString(

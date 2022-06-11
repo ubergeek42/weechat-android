@@ -234,9 +234,9 @@ public class RelayService extends Service implements IObserver {
             switch (P.connectionType) {
                 case PREF_TYPE_SSH: conn = new SSHConnection(P.host, P.port, P.sshHost, P.sshPort, P.sshUser,
                         P.sshAuthenticationMethod, P.sshPassword, P.sshSerializedKey, P.sshServerKeyVerifier); break;
-                case PREF_TYPE_SSL: conn = new SimpleConnection(P.host, P.port, P.sslSocketFactory, SSLHandler.getHostnameVerifier()); break;
+                case PREF_TYPE_SSL: conn = new SimpleConnection(P.host, P.port, P.sslSocketFactory, SSLHandlerKt.getHostnameVerifier()); break;
                 case PREF_TYPE_WEBSOCKET: conn = new WebSocketConnection(P.host, P.port, P.wsPath, null, null); break;
-                case PREF_TYPE_WEBSOCKET_SSL: conn = new WebSocketConnection(P.host, P.port, P.wsPath, P.sslSocketFactory, SSLHandler.getHostnameVerifier()); break;
+                case PREF_TYPE_WEBSOCKET_SSL: conn = new WebSocketConnection(P.host, P.port, P.wsPath, P.sslSocketFactory, SSLHandlerKt.getHostnameVerifier()); break;
                 default: conn = new SimpleConnection(P.host, P.port, null, null); break;
             }
         } catch (Exception e) {
@@ -289,7 +289,7 @@ public class RelayService extends Service implements IObserver {
 
     private void changeState(EnumSet<STATE> state) {
         this.state = state;
-        this.staticState = state;
+        staticState = state;
         EventBus.getDefault().postSticky(new StateChangedEvent(state));
     }
 

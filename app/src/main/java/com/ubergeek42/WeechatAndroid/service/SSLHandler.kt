@@ -91,11 +91,6 @@ class SSLHandler private constructor(private val keystoreFile: File) {
         }
     }
 
-    class Result(
-        val exception: Exception?,
-        val certificateChain: Array<X509Certificate>?
-    )
-
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     fun getUserCertificateCount() = try {
@@ -175,86 +170,6 @@ class SSLHandler private constructor(private val keystoreFile: File) {
             }
             return sslHandler!!
         }
-
-        ////////////////////////////////////////////////////////////////////////////////////////////////
-
-        @SuppressLint("SSLCertificateSocketFactoryGetInsecure")
-        fun checkHostnameAndValidity(host: String, port: Int): Result {
-            var certificatesChain: Array<X509Certificate>? = null
-
-            try {
-                val factory = SSLCertificateSocketFactory.getInsecure(0, null)
-                (factory.createSocket(host, port) as javax.net.ssl.SSLSocket).use { sslSocket ->
-                    sslSocket.startHandshake()
-                    val session = sslSocket.session
-                    certificatesChain = session.peerCertificates as Array<X509Certificate>
-                    certificatesChain = appendIssuer(certificatesChain as Array<X509Certificate>)
-
-                    for (certificate in certificatesChain!!) certificate.checkValidity()
-
-                    if (!hostnameVerifier.verify(host, session)) {
-                        throw SSLPeerUnverifiedException("Cannot verify hostname: $host")
-                    }
-                }
-            } catch (e: CertificateException) {
-                return Result(e, certificatesChain)
-            } catch (e: IOException) {
-                return Result(e, certificatesChain)
-            }
-            return Result(null, certificatesChain)
-        }
-
-        // servers can omit sending root CAs. this retrieves the root CA from the system store
-        // and adds it to the chain. see https://stackoverflow.com/a/42168597/1449683
-        private fun appendIssuer(certificateChain: Array<X509Certificate>): Array<X509Certificate> {
-            val rightmostCertificate = certificateChain[certificateChain.size - 1]
-
-            systemTrustManager.acceptedIssuers.forEach { issuer ->
-                try {
-                    rightmostCertificate.verify(issuer.publicKey)
-                    return certificateChain + arrayOf(issuer)
-                } catch (ignored: Exception) {}
-            }
-
-            return certificateChain
-        }
-
-        ////////////////////////////////////////////////////////////////////////////////////////////////
-
-        // fall back to parsing CN only if SAN extension is not present. Android P no longer does this.
-        // https://developer.android.com/about/versions/pie/android-9.0-changes-all#certificate-common-name
-        @JvmStatic @Throws(Exception::class)
-        fun getCertificateHosts(certificate: X509Certificate): Set<String> {
-            val subjectAlternativeNames = certificate.subjectAlternativeNames
-
-            if (subjectAlternativeNames != null) {
-                return subjectAlternativeNames
-                        .filter { pair -> (pair[0] as? Int).isAnyOf(SAN_DNSNAME, SAN_IPADDRESS) }
-                        .map { pair -> pair[1].toString() }
-                        .toSet()
-            }
-
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
-                RDN_PATTERN.find(certificate.subjectDN.name)?.also { matchResult ->
-                    return setOf(matchResult.groupValues[1])
-                }
-            }
-
-            return emptySet()
-        }
-
-        @JvmStatic fun isChainTrustedBySystem(certificates: Array<X509Certificate?>?): Boolean {
-            return try {
-                systemTrustManager.checkServerTrusted(certificates, "GENERIC")
-                true
-            } catch (e: CertificateException) {
-                false
-            }
-        }
-
-        // see android.net.SSLCertificateSocketFactory#verifyHostname
-        @JvmStatic val hostnameVerifier: HostnameVerifier
-            get() = HttpsURLConnection.getDefaultHostnameVerifier()
     }
 }
 
@@ -265,7 +180,7 @@ class SSLHandler private constructor(private val keystoreFile: File) {
 
 @SuppressLint("CustomX509TrustManager")
 private class SystemThenUserTrustManager(userKeyStore: KeyStore?) : X509TrustManager {
-    @Root private val kitty: Kitty = Kitty.make()
+    companion object { @Root private val kitty: Kitty = Kitty.make() }
 
     private val userTrustManager = buildTrustManger(userKeyStore)
 
@@ -303,6 +218,94 @@ private class SystemThenUserTrustManager(userKeyStore: KeyStore?) : X509TrustMan
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+class CheckHostnameAndValidityResult(
+    val exception: Exception?,
+    val certificateChain: Array<X509Certificate>?
+)
+
+
+@SuppressLint("SSLCertificateSocketFactoryGetInsecure")
+fun checkHostnameAndValidity(host: String, port: Int): CheckHostnameAndValidityResult {
+    var certificatesChain: Array<X509Certificate>? = null
+
+    try {
+        val factory = SSLCertificateSocketFactory.getInsecure(0, null)
+        (factory.createSocket(host, port) as javax.net.ssl.SSLSocket).use { sslSocket ->
+            sslSocket.startHandshake()
+            val session = sslSocket.session
+            certificatesChain = session.peerCertificates as Array<X509Certificate>
+            certificatesChain = appendIssuer(certificatesChain as Array<X509Certificate>)
+
+            for (certificate in certificatesChain!!) certificate.checkValidity()
+
+            if (!hostnameVerifier.verify(host, session)) {
+                throw SSLPeerUnverifiedException("Cannot verify hostname: $host")
+            }
+        }
+    } catch (e: CertificateException) {
+        return CheckHostnameAndValidityResult(e, certificatesChain)
+    } catch (e: IOException) {
+        return CheckHostnameAndValidityResult(e, certificatesChain)
+    }
+    return CheckHostnameAndValidityResult(null, certificatesChain)
+}
+
+
+// servers can omit sending root CAs. this retrieves the root CA from the system store
+// and adds it to the chain. see https://stackoverflow.com/a/42168597/1449683
+private fun appendIssuer(certificateChain: Array<X509Certificate>): Array<X509Certificate> {
+    val rightmostCertificate = certificateChain[certificateChain.size - 1]
+
+    systemTrustManager.acceptedIssuers.forEach { issuer ->
+        try {
+            rightmostCertificate.verify(issuer.publicKey)
+            return certificateChain + arrayOf(issuer)
+        } catch (ignored: Exception) {}
+    }
+
+    return certificateChain
+}
+
+
+
+// fall back to parsing CN only if SAN extension is not present. Android P no longer does this.
+// https://developer.android.com/about/versions/pie/android-9.0-changes-all#certificate-common-name
+@Throws(Exception::class)
+fun getCertificateHosts(certificate: X509Certificate): Set<String> {
+    val subjectAlternativeNames = certificate.subjectAlternativeNames
+
+    if (subjectAlternativeNames != null) {
+        return subjectAlternativeNames
+                .filter { pair -> (pair[0] as? Int).isAnyOf(SAN_DNSNAME, SAN_IPADDRESS) }
+                .map { pair -> pair[1].toString() }
+                .toSet()
+    }
+
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+        RDN_PATTERN.find(certificate.subjectDN.name)?.also { matchResult ->
+            return setOf(matchResult.groupValues[1])
+        }
+    }
+
+    return emptySet()
+}
+
+
+fun isChainTrustedBySystem(certificates: Array<X509Certificate?>?): Boolean {
+    return try {
+        systemTrustManager.checkServerTrusted(certificates, "GENERIC")
+        true
+    } catch (e: CertificateException) {
+        false
+    }
+}
+
+
+// see android.net.SSLCertificateSocketFactory#verifyHostname
+val hostnameVerifier: HostnameVerifier
+    get() = HttpsURLConnection.getDefaultHostnameVerifier()
 
 
 // Kotlin refactor change: throw instead of returning null!

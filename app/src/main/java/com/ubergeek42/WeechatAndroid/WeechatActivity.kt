@@ -51,13 +51,13 @@ import com.ubergeek42.WeechatAndroid.fragments.BufferFragment
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragmentContainer
 import com.ubergeek42.WeechatAndroid.media.CachePersist
 import com.ubergeek42.WeechatAndroid.notifications.shortcuts
+import com.ubergeek42.WeechatAndroid.notifications.statistics
+import com.ubergeek42.WeechatAndroid.relay.BufferList
 import com.ubergeek42.WeechatAndroid.service.Events.ExceptionEvent
 import com.ubergeek42.WeechatAndroid.service.Events.StateChangedEvent
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.service.RelayService
-import com.ubergeek42.WeechatAndroid.service.SSLHandler
-import com.ubergeek42.WeechatAndroid.notifications.statistics
-import com.ubergeek42.WeechatAndroid.relay.BufferList
+import com.ubergeek42.WeechatAndroid.service.checkHostnameAndValidity
 import com.ubergeek42.WeechatAndroid.upload.Config
 import com.ubergeek42.WeechatAndroid.upload.InsertAt
 import com.ubergeek42.WeechatAndroid.upload.ShareObject
@@ -319,7 +319,7 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener,
         var fragmentMaker: (() -> DialogFragment)? = null
 
         if (event.e.wasCausedByEither<SSLPeerUnverifiedException, CertificateException>()) {
-            val hostValidityCheckResult = SSLHandler.checkHostnameAndValidity(P.host, P.port)
+            val hostValidityCheckResult = checkHostnameAndValidity(P.host, P.port)
             val certificateChain = hostValidityCheckResult.certificateChain
             if (!certificateChain.isNullOrEmpty()) {
                 fragmentMaker = when (hostValidityCheckResult.exception) {
