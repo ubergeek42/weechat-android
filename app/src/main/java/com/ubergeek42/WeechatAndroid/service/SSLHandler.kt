@@ -35,7 +35,6 @@ import javax.net.ssl.KeyManager
 import javax.net.ssl.KeyManagerFactory
 import javax.net.ssl.SSLPeerUnverifiedException
 import javax.net.ssl.SSLSocketFactory
-import javax.net.ssl.TrustManager
 import javax.net.ssl.TrustManagerFactory
 import javax.net.ssl.X509TrustManager
 
@@ -120,64 +119,12 @@ class SSLHandler private constructor(private val keystoreFile: File) {
     fun getSSLSocketFactory(): SSLSocketFactory {
         val sslSocketFactory = SSLCertificateSocketFactory.getDefault(0, null) as SSLCertificateSocketFactory
         sslSocketFactory.setKeyManagers(getKeyManagers())
-        sslSocketFactory.setTrustManagers(UserTrustManager.build(sslKeystore))
+        sslSocketFactory.setTrustManagers(arrayOf(SystemThenUserTrustManager(sslKeystore)))
         return sslSocketFactory
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private class UserTrustManager private constructor(userKeyStore: KeyStore?) : X509TrustManager {
-        private val userTrustManager = buildTrustManger(userKeyStore)
-
-        @Throws(CertificateException::class)
-        override fun checkClientTrusted(x509Certificates: Array<X509Certificate>, s: String) {
-            try {
-                systemTrustManager.checkClientTrusted(x509Certificates, s)
-                kitty.debug("Client is trusted by system")
-            } catch (e: CertificateException) {
-                kitty.debug("Client is NOT trusted by system, trying user")
-                userTrustManager.checkClientTrusted(x509Certificates, s)
-                kitty.debug("Client is trusted by user")
-            }
-        }
-
-        @Throws(CertificateException::class)
-        override fun checkServerTrusted(x509Certificates: Array<X509Certificate>, s: String) {
-            try {
-                userTrustManager.checkServerTrusted(x509Certificates, s)
-                kitty.debug("Server is trusted by user")
-            } catch (e: CertificateException) {
-                kitty.debug("Server is NOT trusted by user; pin " + if (P.pinRequired) "REQUIRED -- failing" else "not required -- trying system")
-                if (P.pinRequired) throw e
-                systemTrustManager.checkServerTrusted(x509Certificates, s)
-                kitty.debug("Server is trusted by system")
-            }
-        }
-
-        override fun getAcceptedIssuers(): Array<X509Certificate> {
-            return  systemTrustManager.acceptedIssuers + userTrustManager.acceptedIssuers
-        }
-
-        companion object {
-            val systemTrustManager = buildTrustManger(null)
-
-            fun build(sslKeystore: KeyStore?): Array<TrustManager> {
-                return arrayOf(UserTrustManager(sslKeystore))
-            }
-
-            // Kotlin refactor change: throw instead of returning null!
-            @Throws(NoSuchAlgorithmException::class, KeyStoreException::class)
-            fun buildTrustManger(store: KeyStore?): X509TrustManager {
-                return TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
-                        .also { it.init(store) }
-                        .trustManagers[0] as X509TrustManager
-            }
-        }
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private var cachedKeyManagers: Array<KeyManager>? = null
 
@@ -260,10 +207,9 @@ class SSLHandler private constructor(private val keystoreFile: File) {
         // servers can omit sending root CAs. this retrieves the root CA from the system store
         // and adds it to the chain. see https://stackoverflow.com/a/42168597/1449683
         private fun appendIssuer(certificateChain: Array<X509Certificate>): Array<X509Certificate> {
-            val systemManager = UserTrustManager.buildTrustManger(null)
             val rightmostCertificate = certificateChain[certificateChain.size - 1]
 
-            systemManager.acceptedIssuers.forEach { issuer ->
+            systemTrustManager.acceptedIssuers.forEach { issuer ->
                 try {
                     rightmostCertificate.verify(issuer.publicKey)
                     return certificateChain + arrayOf(issuer)
@@ -299,8 +245,7 @@ class SSLHandler private constructor(private val keystoreFile: File) {
 
         @JvmStatic fun isChainTrustedBySystem(certificates: Array<X509Certificate?>?): Boolean {
             return try {
-                val systemManager = UserTrustManager.buildTrustManger(null)
-                systemManager.checkServerTrusted(certificates, "GENERIC")
+                systemTrustManager.checkServerTrusted(certificates, "GENERIC")
                 true
             } catch (e: CertificateException) {
                 false
@@ -312,3 +257,61 @@ class SSLHandler private constructor(private val keystoreFile: File) {
             get() = HttpsURLConnection.getDefaultHostnameVerifier()
     }
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+@SuppressLint("CustomX509TrustManager")
+private class SystemThenUserTrustManager(userKeyStore: KeyStore?) : X509TrustManager {
+    @Root private val kitty: Kitty = Kitty.make()
+
+    private val userTrustManager = buildTrustManger(userKeyStore)
+
+    @Throws(CertificateException::class)
+    override fun checkClientTrusted(x509Certificates: Array<X509Certificate>, s: String) {
+        try {
+            systemTrustManager.checkClientTrusted(x509Certificates, s)
+            kitty.debug("Client is trusted by system")
+        } catch (e: CertificateException) {
+            kitty.debug("Client is NOT trusted by system, trying user")
+            userTrustManager.checkClientTrusted(x509Certificates, s)
+            kitty.debug("Client is trusted by user")
+        }
+    }
+
+    @Throws(CertificateException::class)
+    override fun checkServerTrusted(x509Certificates: Array<X509Certificate>, s: String) {
+        try {
+            userTrustManager.checkServerTrusted(x509Certificates, s)
+            kitty.debug("Server is trusted by user")
+        } catch (e: CertificateException) {
+            kitty.debug("Server is NOT trusted by user; pin " + if (P.pinRequired) "REQUIRED -- failing" else "not required -- trying system")
+            if (P.pinRequired) throw e
+            systemTrustManager.checkServerTrusted(x509Certificates, s)
+            kitty.debug("Server is trusted by system")
+        }
+    }
+
+    override fun getAcceptedIssuers(): Array<X509Certificate> {
+        return systemTrustManager.acceptedIssuers + userTrustManager.acceptedIssuers
+    }
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+// Kotlin refactor change: throw instead of returning null!
+@Throws(NoSuchAlgorithmException::class, KeyStoreException::class)
+fun buildTrustManger(store: KeyStore?): X509TrustManager {
+    return TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
+            .also { it.init(store) }
+            .trustManagers[0] as X509TrustManager
+}
+
+
+val systemTrustManager = buildTrustManger(null)
