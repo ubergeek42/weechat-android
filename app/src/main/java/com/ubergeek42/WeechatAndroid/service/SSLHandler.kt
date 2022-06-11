@@ -10,6 +10,7 @@ import android.os.Build
 import androidx.annotation.CheckResult
 import com.ubergeek42.WeechatAndroid.dialogs.CertificateDialog
 import com.ubergeek42.WeechatAndroid.upload.applicationContext
+import com.ubergeek42.WeechatAndroid.upload.suppress
 import com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils
 import com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils.deleteAndroidKeyStoreEntriesWithPrefix
 import com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils.putKeyEntriesIntoAndroidKeyStoreWithPrefix
@@ -53,41 +54,31 @@ private const val KEYSTORE_PASSWORD = "weechat-android"
 private val RDN_PATTERN = "CN\\s*=\\s*(\"[^\"]*\"|[^\",]*)".toRegex()
 
 
-class SSLHandler private constructor(private val keystoreFile: File) {
-    private var sslKeystore = KeyStore.getInstance("BKS").also { loadKeystore() }
+class SSLHandler private constructor(private val userKeystoreFile: File) {
+    private var userKeystore = KeyStore.getInstance("BKS")
 
-    private fun loadKeystore() {
-        try {
-            sslKeystore.load(FileInputStream(keystoreFile), KEYSTORE_PASSWORD.toCharArray())
-        } catch (e: Exception) {
-            if (e is FileNotFoundException) {
-                createKeystore()
-            } else {
-                kitty.error("loadKeystore()", e)
+    init { loadUserKeystore() }
+
+    private fun loadUserKeystore() {
+        suppress<Exception> {
+            try {
+                userKeystore.load(FileInputStream(userKeystoreFile), KEYSTORE_PASSWORD.toCharArray())
+            } catch(_: FileNotFoundException) {
+                userKeystore.load(null, null)
+                saveUserKeystore()
             }
         }
     }
 
-    private fun createKeystore() {
-        try {
-            sslKeystore.load(null, null)
-        } catch (e: Exception) {
-            kitty.error("createKeystore()", e)
-        }
-        saveKeystore()
-    }
-
-    private fun saveKeystore() {
-        try {
-            sslKeystore.store(FileOutputStream(keystoreFile), KEYSTORE_PASSWORD.toCharArray())
-        } catch (e: Exception) {
-            kitty.error("saveKeystore()", e)
+    private fun saveUserKeystore() {
+        suppress<Exception> {
+            userKeystore.store(FileOutputStream(userKeystoreFile), KEYSTORE_PASSWORD.toCharArray())
         }
     }
 
-    @CheckResult fun removeKeystore(): Boolean {
-        return if (keystoreFile.delete()) {
-            sslHandler = null
+    @CheckResult fun removeUserKeystore(): Boolean {
+        return if (userKeystoreFile.delete()) {
+            cachedSslHandler = null
             true
         } else {
             false
@@ -97,41 +88,35 @@ class SSLHandler private constructor(private val keystoreFile: File) {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     fun getUserCertificateCount() = try {
-        sslKeystore.size()
+        userKeystore.size()
     } catch (e: KeyStoreException) {
         kitty.error("getUserCertificateCount()", e)
         0
     }
 
     fun trustCertificate(cert: X509Certificate) {
-        try {
-            sslKeystore.setEntry(cert.subjectDN.name, KeyStore.TrustedCertificateEntry(cert), null)
+        suppress<KeyStoreException> {
+            userKeystore.setEntry(cert.subjectDN.name, KeyStore.TrustedCertificateEntry(cert), null)
             val description = CertificateDialog.buildCertificateDescription(applicationContext, cert)
             kitty.debug("Trusting:\n$description")
-        } catch (e: KeyStoreException) {
-            kitty.error("trustCertificate()", e)
         }
-        saveKeystore()
+        saveUserKeystore()
     }
 
     fun getSSLSocketFactory(): SSLSocketFactory {
         val sslSocketFactory = SSLCertificateSocketFactory.getDefault(0, null) as SSLCertificateSocketFactory
         sslSocketFactory.setKeyManagers(getKeyManagers())
-        sslSocketFactory.setTrustManagers(arrayOf(SystemThenUserTrustManager(sslKeystore)))
+        sslSocketFactory.setTrustManagers(arrayOf(SystemThenUserTrustManager(userKeystore)))
         return sslSocketFactory
     }
 
-
-
     companion object {
-        private var sslHandler: SSLHandler? = null
+        private var cachedSslHandler: SSLHandler? = null
 
         @JvmStatic fun getInstance(context: Context): SSLHandler {
-            if (sslHandler == null) {
-                val file = File(context.getDir("sslDir", Context.MODE_PRIVATE), "keystore.jks")
-                sslHandler = SSLHandler(file)
-            }
-            return sslHandler!!
+            cachedSslHandler?.let { return it }
+            val userKeystoreFile = File(context.getDir("sslDir", Context.MODE_PRIVATE), "keystore.jks")
+            return SSLHandler(userKeystoreFile).also { cachedSslHandler = it }
         }
     }
 }
