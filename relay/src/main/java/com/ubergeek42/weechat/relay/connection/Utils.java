@@ -32,17 +32,19 @@ public class Utils {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    static void verifyHostname(HostnameVerifier verifier, Socket socket, String hostname) throws SSLPeerUnverifiedException {
-        if (verifier == null) {
-            if (socket instanceof SSLSocket)
-                throw new IllegalArgumentException("SSLSockets must be verified");
-            return;
-        }
-        if (!(socket instanceof SSLSocket))
-            throw new IllegalArgumentException("Socket must be an SSLSocket");
-        SSLSession session = ((SSLSocket) socket).getSession();
-        if (!verifier.verify(hostname, session))
+    // WARNING: If the handshake was not performed, `getSession()` will perform it, but
+    // it does *not* throw any exceptions! As per the doc,
+    //   > If an error occurs during the initial handshake, this method returns an invalid
+    //   > session object which reports an invalid cipher suite of "SSL_NULL_WITH_NULL_NULL".
+    // While the subsequent call to `verifier.verify()` will not be able to verify the host,
+    // the only indication of an error that we get is the false result of the call.
+    //
+    // So, before calling this method, make sure that the handshake has been performed already!
+    static void verifyHostname(HostnameVerifier verifier, SSLSocket socket, String hostname)
+            throws SSLPeerUnverifiedException {
+        if (!verifier.verify(hostname, socket.getSession())) {
             throw new SSLPeerUnverifiedException("Cannot verify hostname: " + hostname);
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

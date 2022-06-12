@@ -11,6 +11,7 @@ import java.io.PipedInputStream
 import java.io.PipedOutputStream
 import java.net.URI
 import javax.net.ssl.HostnameVerifier
+import javax.net.ssl.SSLSocket
 import javax.net.ssl.SSLSocketFactory
 
 
@@ -76,7 +77,11 @@ class WebSocketConnection(
         val inputStream = PipedInputStream()
         pipedOutputStream.connect(inputStream)
         webSocket.connect()
-        Utils.verifyHostname(verifier, webSocket.socket, hostname)
+
+        if (verifier != null) {
+            Utils.verifyHostname(verifier, webSocket.socket as SSLSocket, hostname)
+        }
+
         return IConnection.Streams(inputStream, null)
     }
 
