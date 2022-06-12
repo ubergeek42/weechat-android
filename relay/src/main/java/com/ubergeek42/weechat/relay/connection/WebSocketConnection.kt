@@ -1,93 +1,99 @@
-package com.ubergeek42.weechat.relay.connection;
+package com.ubergeek42.weechat.relay.connection
 
-import com.neovisionaries.ws.client.WebSocket;
-import com.neovisionaries.ws.client.WebSocketAdapter;
-import com.neovisionaries.ws.client.WebSocketException;
-import com.neovisionaries.ws.client.WebSocketFactory;
-import com.neovisionaries.ws.client.WebSocketFrame;
+import com.neovisionaries.ws.client.WebSocket
+import com.ubergeek42.weechat.relay.connection.IConnection
+import kotlin.Throws
+import com.neovisionaries.ws.client.WebSocketException
+import com.neovisionaries.ws.client.WebSocketAdapter
+import com.ubergeek42.weechat.relay.connection.WebSocketConnection
+import com.neovisionaries.ws.client.WebSocketFrame
+import com.neovisionaries.ws.client.WebSocketFactory
+import com.ubergeek42.weechat.relay.connection.RelayConnection
+import org.slf4j.LoggerFactory
+import java.io.IOException
+import java.io.PipedInputStream
+import java.io.PipedOutputStream
+import java.lang.Exception
+import java.net.URI
+import javax.net.ssl.HostnameVerifier
+import javax.net.ssl.SSLSocketFactory
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.List;
-import java.util.Map;
-
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLSocketFactory;
-
-import static com.ubergeek42.weechat.relay.connection.RelayConnection.CONNECTION_TIMEOUT;
-
-public class WebSocketConnection implements IConnection {
-    final private static Logger logger = LoggerFactory.getLogger("WebSocketConnection");
-
-    final private HostnameVerifier verifier;
-    final private String hostname;
-    final private WebSocket webSocket;
-    final private PipedOutputStream pipedOutputStream;
-
-    public WebSocketConnection(String hostname, int port, String path, SSLSocketFactory sslSocketFactory,
-                               HostnameVerifier verifier) throws URISyntaxException, IOException {
-        URI uri = new URI(sslSocketFactory == null ? "ws" : "wss", null, hostname, port, "/" + path, null, null);
-        this.verifier = verifier;
-        this.hostname = hostname;
-        webSocket = new WebSocketFactory()
-                .setSSLSocketFactory(sslSocketFactory)
-                .setVerifyHostname(false)
-                .setConnectionTimeout(CONNECTION_TIMEOUT)
-                .createSocket(uri);
-        webSocket.addListener(new Listener());
-        pipedOutputStream = new PipedOutputStream();
+class WebSocketConnection(
+    hostname: String, port: Int, path: String, sslSocketFactory: SSLSocketFactory?,
+    verifier: HostnameVerifier
+) : IConnection {
+    private val verifier: HostnameVerifier
+    private val hostname: String
+    private val webSocket: WebSocket
+    private val pipedOutputStream: PipedOutputStream
+    @Throws(IOException::class, WebSocketException::class)
+    override fun connect(): IConnection.Streams {
+        val inputStream = PipedInputStream()
+        pipedOutputStream.connect(inputStream)
+        webSocket.connect()
+        Utils.verifyHostname(verifier, webSocket.socket, hostname)
+        return IConnection.Streams(inputStream, null)
     }
 
-
-    @Override public Streams connect() throws IOException, WebSocketException {
-        PipedInputStream inputStream = new PipedInputStream();
-        pipedOutputStream.connect(inputStream);
-
-        webSocket.connect();
-        Utils.verifyHostname(verifier, webSocket.getSocket(), hostname);
-
-        return new Streams(inputStream, null);
+    @Throws(IOException::class) override fun disconnect() {
+        webSocket.disconnect()
+        pipedOutputStream.close()
     }
 
-    @Override public void disconnect() throws IOException {
-            webSocket.disconnect();
-            pipedOutputStream.close();
-    }
-
-    void sendMessage(String string) {
-        webSocket.sendText(string);
+    fun sendMessage(string: String?) {
+        webSocket.sendText(string)
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    private class Listener extends WebSocketAdapter {
-        @Override public void onConnected(WebSocket websocket, Map<String, List<String>> headers) {
-            logger.trace("onConnected()");
+    private inner class Listener : WebSocketAdapter() {
+        override fun onConnected(websocket: WebSocket, headers: Map<String, List<String>>) {
+            logger.trace("onConnected()")
         }
 
-        @Override public void onConnectError(WebSocket websocket, WebSocketException exception) {
-            logger.error("onConnectError({})", exception);
+        override fun onConnectError(websocket: WebSocket, exception: WebSocketException) {
+            logger.error("onConnectError({})", exception)
         }
 
-        @Override public void onDisconnected(WebSocket websocket, WebSocketFrame serverCloseFrame, WebSocketFrame clientCloseFrame, boolean closedByServer) throws IOException {
-            logger.trace("onDisconnected(closedByServer={})", closedByServer);
-            pipedOutputStream.close();
+        @Throws(IOException::class) override fun onDisconnected(websocket: WebSocket,
+                                                                serverCloseFrame: WebSocketFrame,
+                                                                clientCloseFrame: WebSocketFrame,
+                                                                closedByServer: Boolean) {
+            logger.trace("onDisconnected(closedByServer={})", closedByServer)
+            pipedOutputStream.close()
         }
 
-        @Override public void onBinaryMessage(WebSocket websocket, byte[] binary) throws Exception {
-            logger.trace("onBinaryMessage(size={})", binary.length);
-            pipedOutputStream.write(binary);
-            pipedOutputStream.flush();        // much faster with this
+        @Throws(Exception::class) override fun onBinaryMessage(websocket: WebSocket,
+                                                               binary: ByteArray) {
+            logger.trace("onBinaryMessage(size={})", binary.size)
+            pipedOutputStream.write(binary)
+            pipedOutputStream.flush() // much faster with this
         }
 
-        @Override public void onError(WebSocket websocket, WebSocketException cause){
-            logger.error("onError()", cause);
+        override fun onError(websocket: WebSocket, cause: WebSocketException) {
+            logger.error("onError()", cause)
         }
+    }
+
+    companion object {
+        private val logger = LoggerFactory.getLogger("WebSocketConnection")
+    }
+
+    init {
+        val uri = URI(if (sslSocketFactory == null) "ws" else "wss",
+                      null,
+                      hostname,
+                      port,
+                      "/$path",
+                      null,
+                      null)
+        this.verifier = verifier
+        this.hostname = hostname
+        webSocket = WebSocketFactory()
+                .setSSLSocketFactory(sslSocketFactory)
+                .setVerifyHostname(false)
+                .setConnectionTimeout(RelayConnection.CONNECTION_TIMEOUT)
+                .createSocket(uri)
+        webSocket.addListener(Listener())
+        pipedOutputStream = PipedOutputStream()
     }
 }
