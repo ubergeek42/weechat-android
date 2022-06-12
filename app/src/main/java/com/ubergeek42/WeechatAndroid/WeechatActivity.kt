@@ -44,7 +44,10 @@ import com.ubergeek42.WeechatAndroid.CutePagerTitleStrip.CutePageChangeListener
 import com.ubergeek42.WeechatAndroid.adapters.BufferListClickListener
 import com.ubergeek42.WeechatAndroid.adapters.MainPagerAdapter
 import com.ubergeek42.WeechatAndroid.databinding.WeaselBinding
-import com.ubergeek42.WeechatAndroid.dialogs.CertificateDialog
+import com.ubergeek42.WeechatAndroid.dialogs.CertificateDialog.buildExpiredCertificateDialog
+import com.ubergeek42.WeechatAndroid.dialogs.CertificateDialog.buildInvalidHostnameCertificateDialog
+import com.ubergeek42.WeechatAndroid.dialogs.CertificateDialog.buildNotYetValidCertificateDialog
+import com.ubergeek42.WeechatAndroid.dialogs.CertificateDialog.buildUntrustedOrNotPinnedCertificateDialog
 import com.ubergeek42.WeechatAndroid.dialogs.NicklistDialog
 import com.ubergeek42.WeechatAndroid.dialogs.ScrollableDialog
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragment
@@ -57,7 +60,7 @@ import com.ubergeek42.WeechatAndroid.service.Events.ExceptionEvent
 import com.ubergeek42.WeechatAndroid.service.Events.StateChangedEvent
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.service.RelayService
-import com.ubergeek42.WeechatAndroid.service.checkHostnameAndValidity
+import com.ubergeek42.WeechatAndroid.service.getCertificateChain
 import com.ubergeek42.WeechatAndroid.upload.Config
 import com.ubergeek42.WeechatAndroid.upload.InsertAt
 import com.ubergeek42.WeechatAndroid.upload.ShareObject
@@ -77,6 +80,7 @@ import com.ubergeek42.WeechatAndroid.utils.isAnyOf
 import com.ubergeek42.WeechatAndroid.utils.let
 import com.ubergeek42.WeechatAndroid.utils.u
 import com.ubergeek42.WeechatAndroid.utils.ulet
+import com.ubergeek42.WeechatAndroid.utils.wasCausedBy
 import com.ubergeek42.WeechatAndroid.utils.wasCausedByEither
 import com.ubergeek42.WeechatAndroid.views.DrawerToggleFix
 import com.ubergeek42.WeechatAndroid.views.ToolbarController
@@ -92,6 +96,7 @@ import com.ubergeek42.weechat.relay.connection.SSHServerKeyVerifier
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
+import java.security.cert.CertPathValidatorException
 import java.security.cert.CertificateException
 import java.security.cert.CertificateExpiredException
 import java.security.cert.CertificateNotYetValidException
@@ -319,18 +324,21 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener,
         var fragmentMaker: (() -> DialogFragment)? = null
 
         if (event.e.wasCausedByEither<SSLPeerUnverifiedException, CertificateException>()) {
-            val hostValidityCheckResult = checkHostnameAndValidity(P.host, P.port)
-            val certificateChain = hostValidityCheckResult.certificateChain
+            val certificateChain = getCertificateChain(P.host, P.port)
             if (!certificateChain.isNullOrEmpty()) {
-                fragmentMaker = when (hostValidityCheckResult.exception) {
-                    is CertificateExpiredException -> {{ CertificateDialog
-                            .buildExpiredCertificateDialog(this, certificateChain) }}
-                    is CertificateNotYetValidException -> {{ CertificateDialog
-                            .buildNotYetValidCertificateDialog(this, certificateChain) }}
-                    is SSLPeerUnverifiedException -> {{ CertificateDialog
-                            .buildInvalidHostnameCertificateDialog(this, certificateChain) }}
-                    null -> {{ CertificateDialog
-                            .buildUntrustedOrNotPinnedCertificateDialog(this, certificateChain) }}
+                fragmentMaker = when {
+                    event.e.wasCausedBy<CertificateExpiredException>() -> {
+                        { buildExpiredCertificateDialog(this, certificateChain) }
+                    }
+                    event.e.wasCausedBy<CertificateNotYetValidException>() -> {
+                        { buildNotYetValidCertificateDialog(this, certificateChain) }
+                    }
+                    event.e.wasCausedBy<SSLPeerUnverifiedException>() -> {
+                        { buildInvalidHostnameCertificateDialog(this, certificateChain) }
+                    }
+                    event.e.wasCausedBy<CertPathValidatorException>() -> {
+                        { buildUntrustedOrNotPinnedCertificateDialog(this, certificateChain) }
+                    }
                     else -> null
                 }
             }

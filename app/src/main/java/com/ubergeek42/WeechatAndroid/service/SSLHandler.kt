@@ -6,6 +6,7 @@ package com.ubergeek42.WeechatAndroid.service
 import android.annotation.SuppressLint
 import android.content.Context
 import android.net.SSLCertificateSocketFactory
+import android.net.http.X509TrustManagerExtensions
 import android.os.Build
 import androidx.annotation.CheckResult
 import com.ubergeek42.WeechatAndroid.dialogs.CertificateDialog
@@ -34,7 +35,6 @@ import javax.net.ssl.HostnameVerifier
 import javax.net.ssl.HttpsURLConnection
 import javax.net.ssl.KeyManager
 import javax.net.ssl.KeyManagerFactory
-import javax.net.ssl.SSLPeerUnverifiedException
 import javax.net.ssl.SSLSocketFactory
 import javax.net.ssl.TrustManagerFactory
 import javax.net.ssl.X509TrustManager
@@ -211,54 +211,32 @@ private class SystemThenUserTrustManager(userKeyStore: KeyStore?) : X509TrustMan
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-class CheckHostnameAndValidityResult(
-    val exception: Exception?,
-    val certificateChain: Array<X509Certificate>?
-)
+// Given peer certificate chain, there might be several paths to different trust anchors.
+// The leaf certificate might be a trust anchor; a shorter path to a trust anchor might not include
+// all the certificates in the given chain; some of the certificates might be out of order.
+// X509TrustManagerExtensions.checkServerTrusted will produce a cleaned-up chain
+// that includes trust anchor, but of course it will only work if the chain can be verified.
+// Otherwise, return server certificates as is, or null if the handshake fails.
+@SuppressLint("SSLCertificateSocketFactoryGetInsecure") @Suppress("UNCHECKED_CAST")
+fun getCertificateChain(host: String, port: Int): Array<X509Certificate>? {
+    val insecureSslFactory = SSLCertificateSocketFactory.getInsecure(0, null)
+    val socket = insecureSslFactory.createSocket(host, port) as javax.net.ssl.SSLSocket
 
-
-@SuppressLint("SSLCertificateSocketFactoryGetInsecure")
-fun checkHostnameAndValidity(host: String, port: Int): CheckHostnameAndValidityResult {
-    var certificatesChain: Array<X509Certificate>? = null
-
-    try {
-        val factory = SSLCertificateSocketFactory.getInsecure(0, null)
-        (factory.createSocket(host, port) as javax.net.ssl.SSLSocket).use { sslSocket ->
-            sslSocket.startHandshake()
-            val session = sslSocket.session
-            certificatesChain = session.peerCertificates as Array<X509Certificate>
-            certificatesChain = appendIssuer(certificatesChain as Array<X509Certificate>)
-
-            for (certificate in certificatesChain!!) certificate.checkValidity()
-
-            if (!hostnameVerifier.verify(host, session)) {
-                throw SSLPeerUnverifiedException("Cannot verify hostname: $host")
-            }
-        }
-    } catch (e: CertificateException) {
-        return CheckHostnameAndValidityResult(e, certificatesChain)
-    } catch (e: IOException) {
-        return CheckHostnameAndValidityResult(e, certificatesChain)
-    }
-    return CheckHostnameAndValidityResult(null, certificatesChain)
-}
-
-
-// servers can omit sending root CAs. this retrieves the root CA from the system store
-// and adds it to the chain. see https://stackoverflow.com/a/42168597/1449683
-private fun appendIssuer(certificateChain: Array<X509Certificate>): Array<X509Certificate> {
-    val rightmostCertificate = certificateChain[certificateChain.size - 1]
-
-    systemTrustManager.acceptedIssuers.forEach { issuer ->
-        try {
-            rightmostCertificate.verify(issuer.publicKey)
-            return certificateChain + arrayOf(issuer)
-        } catch (ignored: Exception) {}
+    val peerCertificateChain = try {
+        socket.startHandshake()
+        socket.session.peerCertificates as Array<X509Certificate>
+    } catch (e: Exception) {
+        return null
     }
 
-    return certificateChain
+    return try {
+        X509TrustManagerExtensions(systemTrustManager).checkServerTrusted(
+            peerCertificateChain, "GENERIC", host
+        ).toTypedArray()
+    } catch (e: Exception) {
+        peerCertificateChain
+    }
 }
-
 
 
 // fall back to parsing CN only if SAN extension is not present. Android P no longer does this.
