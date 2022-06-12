@@ -1,37 +1,30 @@
-package com.ubergeek42.weechat.relay.connection;
+package com.ubergeek42.weechat.relay.connection
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.Socket;
+import com.ubergeek42.weechat.relay.connection.IConnection
+import kotlin.Throws
+import com.ubergeek42.weechat.relay.connection.RelayConnection
+import java.io.IOException
+import java.net.InetSocketAddress
+import java.net.Socket
+import javax.net.ssl.HostnameVerifier
+import javax.net.ssl.SSLSocketFactory
 
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLSocketFactory;
-
-import static com.ubergeek42.weechat.relay.connection.RelayConnection.CONNECTION_TIMEOUT;
-
-public class SimpleConnection implements IConnection {
-
-    final private String hostname;
-    final private int port;
-    final private HostnameVerifier verifier;
-
-    final private Socket socket;
-
-    public SimpleConnection(String hostname, int port, SSLSocketFactory sslSocketFactory,
-                            HostnameVerifier verifier) throws IOException {
-        this.hostname = hostname;
-        this.port = port;
-        this.verifier = verifier;
-        socket = sslSocketFactory == null ? new Socket() : sslSocketFactory.createSocket();
+class SimpleConnection(
+    private val hostname: String, private val port: Int, sslSocketFactory: SSLSocketFactory?,
+    private val verifier: HostnameVerifier
+) : IConnection {
+    private val socket: Socket
+    @Throws(IOException::class) override fun connect(): IConnection.Streams {
+        socket.connect(InetSocketAddress(hostname, port), RelayConnection.CONNECTION_TIMEOUT)
+        Utils.verifyHostname(verifier, socket, hostname)
+        return IConnection.Streams(socket.getInputStream(), socket.getOutputStream())
     }
 
-    @Override public Streams connect() throws IOException {
-        socket.connect(new InetSocketAddress(hostname, port), CONNECTION_TIMEOUT);
-        Utils.verifyHostname(verifier, socket, hostname);
-        return new Streams(socket.getInputStream(), socket.getOutputStream());
+    @Throws(IOException::class) override fun disconnect() {
+        socket.close()
     }
 
-    @Override public void disconnect() throws IOException {
-        socket.close();
+    init {
+        socket = if (sslSocketFactory == null) Socket() else sslSocketFactory.createSocket()
     }
 }
