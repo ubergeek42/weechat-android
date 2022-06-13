@@ -131,6 +131,7 @@ android {
 
         create("dev") {
             initWith(getByName("release"))
+            matchingFallbacks += listOf("release")
             applicationIdSuffix = ".dev"
             versionNameSuffix = "-dev"
             signingConfig = signingConfigs.getByName("dev")
