@@ -38,7 +38,8 @@ internal class LinkifyTest {
             "http://ser\$ver.com",
             "http://ser_ver.com",
             "http://www.abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijkl/",
-            "h[://a.com/"
+            "h[://a.com/",
+            "http://…",
         )
 
 
@@ -63,6 +64,10 @@ internal class LinkifyTest {
 
             " http://url.com " to "http://url.com",
             "http://url.com." to "http://url.com",
+            "http://url.com”" to "http://url.com",
+            "http://url.com…" to "http://url.com",
+            "http://url.com/foo”" to "http://url.com/foo",
+            "http://url.com/foo…" to "http://url.com/foo",
             "  https://url\u0001" to "https://url",
             "\u0003www.url.com" to "www.url.com",
             "http://url.co\u00a0m/," to "http://url.co",

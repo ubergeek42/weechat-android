@@ -93,8 +93,8 @@ private val URL = run {
     val purePunycodeChar = """[a-z0-9]"""   // not mixed with ascii
     val badCharRange = """\x00-\x20\x7f-\xa0\ufff0-\uffff\s"""
     val goodChar = """[^$badCharRange]"""
-    val goodHostChar = """[^\x00-\x2f\x3a-\x40\x5b-\x60\x7b-\xa0\ufff0-\uffff]"""
-    val goodTldChar = """[^\x00-\x40\x5b-\x60\x7b-\xa0\ufff0-\uffff]"""
+    val goodHostChar = """[^\x00-\x2f\x3a-\x40\x5b-\x60\x7b-\xa0\ufff0-\uffff…]"""
+    val goodTldChar = """[^\x00-\x40\x5b-\x60\x7b-\xa0\ufff0-\uffff…]"""
 
     val ipv4Segment = """(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)"""
     val ipv4 = """(?:$ipv4Segment\.){3} $ipv4Segment"""
@@ -119,7 +119,7 @@ private val URL = run {
     // domain name includes non-standard single-letter top level domains and signle label domains;
     // also, the fqdn dot, but only if followed by url-ish things: / or :123
     val hostSegment = """$goodHostChar+(?:-+$goodHostChar+)*"""
-    val tld = """(?:$goodTldChar{1,63}|xn--$purePunycodeChar+)"""
+    val tld = """(?:$goodTldChar{1,63}?|xn--$purePunycodeChar+)"""
     val domainName = """(?:$hostSegment\.)*$tld (?:\.(?=/|:\d))?"""
     val optionalUserInfo = """(?:[^$badCharRange@]*@)?"""
 
@@ -158,7 +158,7 @@ private val URL = run {
     # url must be directly followed by:
     (?=
         # some possible punctuation
-        [\]>,.)!?:'"”@]*
+        [\]>,.…)!?:'"”’@]*
         
         # and the end of string, or a space or another non-url character
         (?:$|[$badCharRange])
