@@ -8,7 +8,6 @@ import android.os.Build
 import android.text.Layout
 import android.text.Spannable
 import android.text.StaticLayout
-import androidx.emoji2.text.EmojiCompat
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.upload.f
 import com.ubergeek42.WeechatAndroid.upload.i
@@ -56,8 +55,7 @@ internal class AlphaLayout private constructor(
         @SuppressLint("WrongConstant")
         @Suppress("DEPRECATION")
         @JvmStatic
-        fun make(spannable: Spannable, anyWidth: Int): AlphaLayout {
-            val text = EmojiCompat.get().process(spannable) ?: spannable
+        fun make(text: Spannable, anyWidth: Int): AlphaLayout {
             val width = if (anyWidth > 0) anyWidth else 100
             val layout = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 StaticLayout.Builder.obtain(text, 0, text.length, P.textPaint, width)

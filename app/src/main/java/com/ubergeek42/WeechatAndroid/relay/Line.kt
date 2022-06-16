@@ -15,6 +15,8 @@ import androidx.annotation.AnyThread
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.upload.i
 import com.ubergeek42.WeechatAndroid.utils.Linkify.linkify
+import com.ubergeek42.WeechatAndroid.utils.SHOULD_EMOJIFY
+import com.ubergeek42.WeechatAndroid.utils.emojify
 import com.ubergeek42.weechat.Color
 import com.ubergeek42.weechat.ColorScheme
 import java.lang.Long.toHexString
@@ -61,6 +63,8 @@ open class Line constructor(
         }
 
         linkify(spannable, color.messageString)
+
+        if (SHOULD_EMOJIFY) emojify(spannable)
 
         _prefixString = color.prefixString
         _messageString = color.messageString
