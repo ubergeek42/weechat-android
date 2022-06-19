@@ -66,7 +66,7 @@ public class CachePersist {
         abstract AttemptsDao attemptsDao();
     }
 
-    private static AttemptDatabase database;
+    private static volatile AttemptDatabase database;
     private static AttemptDatabase getDatabase() {
         if (database == null) {
             synchronized (LOCK) {
