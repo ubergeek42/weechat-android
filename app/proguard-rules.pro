@@ -2,6 +2,16 @@
 # looks like we aren't getting warnings anymore
 #-ignorewarnings
 
+# These rules are (hopefully) temporary needed to use R8 in full mode;
+# these solve crashes such as:
+#   java.lang.RuntimeException: cannot find implementation for
+#       com.ubergeek42.WeechatAndroid.media.CachePersist$AttemptDatabase.
+#       CachePersist$AttemptDatabase_Impl does not exist
+# Probable issue: https://issuetracker.google.com/issues/218578949
+-keep class com.ubergeek42.WeechatAndroid.media.CachePersist
+-keep class com.ubergeek42.WeechatAndroid.notifications.ShortcutStatisticsDatabase
+-keep class com.ubergeek42.WeechatAndroid.upload.UploadDatabase
+
 # see http://stackoverflow.com/questions/5701126/compile-with-proguard-gives-exception-local-variable-type-mismatch
 -dontobfuscate
 -optimizations !code/allocation/variable
