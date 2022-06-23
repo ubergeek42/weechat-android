@@ -60,6 +60,7 @@
 }
 -keep class org.apache.commons.codec.digest.* { *; }
 -keep class org.apache.commons.codec.binary.* { *; }
+-keep class org.apache.commons.codec.*Exception { *; }
 
 # glide
 -keep public class * extends com.bumptech.glide.module.AppGlideModule
