@@ -24,15 +24,17 @@ buildscript {
     repositories {
         mavenCentral()
         google()
+        maven { url = uri("https://storage.googleapis.com/r8-releases/raw") }
     }
 
     dependencies {
-        // This pins R8 to the last stable version before 3.1.7-dev, which has an issue;
+        // R8 below 3.1.79, 3.2.70, and 3.3.62, has an issue;
         // it tries to convert some Enums to ints but kind of stops halfway.
+        // This pin, and the above R8 repo are needed because at the moment this version
+        // is not available in maven central. TODO remove when it is
         // https://github.com/ubergeek42/weechat-android/pull/537
         // https://issuetracker.google.com/issues/236618700
-        // TODO unpin when the issue is resolved
-        classpath("com.android.tools:r8:3.0.73")
+        classpath("com.android.tools:r8:3.3.62")
 
         classpath("com.android.tools.build:gradle:7.2.1")
         classpath("org.aspectj:aspectjtools:1.9.9.1")
