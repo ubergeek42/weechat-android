@@ -125,3 +125,24 @@
 -keep class javax.crypto.spec.GCMParameterSpec { *; }
 -keep class org.bouncycastle.openssl.jcajce.PEMUtilities** { *; }
 -keep class org.bouncycastle.jcajce.provider.symmetric.util.IvAlgorithmParameters { *; }
+
+# Remove missing classes warnings due to missing OkHttp proguard rules.
+# Should be safe to remove after updating to OkHttp 5.x.
+# https://github.com/square/okhttp/issues/6258
+-dontwarn org.bouncycastle.jsse.BCSSLParameters
+-dontwarn org.bouncycastle.jsse.BCSSLSocket
+-dontwarn org.bouncycastle.jsse.provider.BouncyCastleJsseProvider
+-dontwarn org.conscrypt.Conscrypt$Version
+-dontwarn org.conscrypt.Conscrypt
+-dontwarn org.conscrypt.ConscryptHostnameVerifier
+-dontwarn org.openjsse.javax.net.ssl.SSLParameters
+-dontwarn org.openjsse.javax.net.ssl.SSLSocket
+-dontwarn org.openjsse.net.ssl.OpenJSSE
+
+# Remove missing classes warnings due to SnakeYAML. Mozilla uses these too.
+# https://github.com/mozilla-mobile/focus-android/blob/main/app/proguard-rules.pro
+-dontwarn java.beans.BeanInfo
+-dontwarn java.beans.FeatureDescriptor
+-dontwarn java.beans.IntrospectionException
+-dontwarn java.beans.Introspector
+-dontwarn java.beans.PropertyDescriptor
