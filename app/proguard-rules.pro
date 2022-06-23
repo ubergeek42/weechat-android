@@ -16,8 +16,6 @@
 -dontobfuscate
 -optimizations !code/allocation/variable
 
--dontskipnonpubliclibraryclasses
--forceprocessing
 -optimizationpasses 5
 
 # support library stuff
