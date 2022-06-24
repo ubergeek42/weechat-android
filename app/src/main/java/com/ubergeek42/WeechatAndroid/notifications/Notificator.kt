@@ -6,6 +6,8 @@ import android.app.Activity
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.NotificationManager.BUBBLE_PREFERENCE_ALL
+import android.app.NotificationManager.BUBBLE_PREFERENCE_SELECTED
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -716,13 +718,16 @@ val notificationHandler = Handler(HandlerThread("notifications").apply { start()
 // | All conversations          |                   |                    |                    |
 // | can bubble                 |       bubble      |         *          |       bubble       |
 // | areBubblesAllowed()==true  |                   |                    |         *          |
+// | BUBBLE_PREFERENCE_ALL      |                   |                    |                    |
 // |----------------------------|-------------------|--------------------|--------------------|
 // | Selected conversations     |                   |                    |                    |
 // | can bubble                 |       bubble      |                    |                    |
 // | areBubblesAllowed()==false |         †         |                    |                    |
+// | BUBBLE_PREFERENCE_SELECTED |                   |                    |                    |
 // |----------------------------|-------------------|--------------------|--------------------|
 // | Nothing can bubble         |                   |                    |                    |
 // | areBubblesAllowed()==false |         †         |                    |                    |
+// | BUBBLE_PREFERENCE_NONE     |                   |                    |                    |
 // |----------------------------|-------------------|--------------------|--------------------|
 
 // see https://stackoverflow.com/questions/68226137/
@@ -756,17 +761,25 @@ private fun NotificationChannel.getBubblingSetting(): ConversationBubblingSettin
 }
 
 
-// we can't actually detect when the setting is set to NothingCanBubble,
-// so let's pretend that user never uses it.
-// it is only problematic if the user follows this very unlikely scenario:
-//   * enables bubbles for some SPECIFIC notifications
-//   * changes the setting from “Selected conversations can bubble” to “Nothing can bubble”
-// update: todo make use of the new API NotificationManager#getBubblePreference()
 @RequiresApi(Build.VERSION_CODES.R)
 private fun getPackageBubblingSetting(): PackageBubblingSetting {
-    return when (manager.areBubblesAllowed()) {
-        true -> PackageBubblingSetting.AllConversationsCanBubble
-        false -> PackageBubblingSetting.SelectedConversationsCanBubble
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        when (manager.bubblePreference) {
+            BUBBLE_PREFERENCE_ALL -> PackageBubblingSetting.AllConversationsCanBubble
+            BUBBLE_PREFERENCE_SELECTED -> PackageBubblingSetting.SelectedConversationsCanBubble
+            else -> PackageBubblingSetting.NothingCanBubble
+        }
+    } else {
+        // Below S, we can't actually detect when the setting is set to NothingCanBubble,
+        // so let's pretend that user never uses it.
+        // It is only problematic if the user follows this very unlikely scenario:
+        //   * Enables bubbles for some SPECIFIC notifications
+        //   * Changes the setting from “Selected conversations can bubble” to “Nothing can bubble”
+        @Suppress("DEPRECATION")
+        when (manager.areBubblesAllowed()) {
+            true -> PackageBubblingSetting.AllConversationsCanBubble
+            false -> PackageBubblingSetting.SelectedConversationsCanBubble
+        }
     }
 }
 
@@ -794,7 +807,7 @@ private fun willBubble(fullName: String): Boolean {
             }
         }
 
-        // we can't actually detect this!
+        // We can only detect this on Android S+
         PackageBubblingSetting.NothingCanBubble -> false
     }
 }
