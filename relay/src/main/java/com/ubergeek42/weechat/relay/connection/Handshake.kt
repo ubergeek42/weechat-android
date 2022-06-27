@@ -3,7 +3,8 @@ package com.ubergeek42.weechat.relay.connection
 import com.ubergeek42.weechat.relay.RelayMessage
 import com.ubergeek42.weechat.relay.protocol.Hashtable
 import com.ubergeek42.weechat.relay.protocol.Info
-import org.apache.commons.codec.binary.Hex
+import com.ubergeek42.weechat.fromHexStringToByteArray
+import com.ubergeek42.weechat.toHexStringLowercase
 import org.slf4j.LoggerFactory
 import java.security.MessageDigest
 import javax.crypto.SecretKeyFactory
@@ -98,11 +99,11 @@ class ModernHandshake(
                 }
                 Algorithm.Sha256, Algorithm.Sha512 -> {
                     val (salt, hash) = hashSha(algorithm.shaSize, serverNonce, password)
-                    "password_hash=${algorithm.string}:${salt.asHex}:${hash.asHex}"
+                    "password_hash=${algorithm.string}:${salt.toHexStringLowercase()}:${hash.toHexStringLowercase()}"
                 }
                 Algorithm.Pbkdf2Sha256, Algorithm.Pbkdf2Sha512 -> {
                     val (salt, hash) = hashPbkdf2(algorithm.shaSize, serverNonce, iterations, password)
-                    "password_hash=${algorithm.string}:${salt.asHex}:${iterations}:${hash.asHex}"
+                    "password_hash=${algorithm.string}:${salt.toHexStringLowercase()}:${iterations}:${hash.toHexStringLowercase()}"
                 }
             }
 
@@ -176,7 +177,7 @@ private fun RelayMessage.asHandshakeResponse(): HandshakeResponse {
         passwordHashAlgorithm = o.get("password_hash_algo").asString().run(Algorithm::fromString),
         passwordHashIterations = o.get("password_hash_iterations").asString().toInt(),
         totp = o.get("totp").asString().run(Totp::fromString),
-        serverNonce = o.get("nonce").asString().fromHex,
+        serverNonce = o.get("nonce").asString().fromHexStringToByteArray(),
         compression = o.get("compression").asString().run(Compression::fromString)
     )
 }
@@ -214,8 +215,6 @@ fun generateClientNonce(length: Int = 16) = Random.nextBytes(length)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 private inline val String.withCommasEscaped: String get() = replace(",", "\\,")
-private inline val ByteArray.asHex: String get() = String(Hex.encodeHex(this))
-private inline val String.fromHex: ByteArray get() = Hex.decodeHex(this.toCharArray())
 
 inline fun <reified T : Enum<T>, V> ((T) -> V).find(value: V): T? {
     return enumValues<T>().firstOrNull { this(it) == value }

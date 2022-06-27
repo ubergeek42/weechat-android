@@ -29,8 +29,7 @@ import com.ubergeek42.WeechatAndroid.service.SSLHandlerKt;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
-
-import org.apache.commons.codec.binary.Hex;
+import com.ubergeek42.weechat.HexUtilsKt;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -172,7 +171,7 @@ public class CertificateDialog extends DialogFragment {
         String fingerprint;
         try {
             byte[] hash = MessageDigest.getInstance("SHA-256").digest(certificate.getEncoded());
-            fingerprint = new String(Hex.encodeHex(hash));
+            fingerprint = HexUtilsKt.toHexStringLowercase(hash);
         } catch (CertificateEncodingException | NoSuchAlgorithmException e) {
             fingerprint = context.getString(R.string.dialog__certificate__unknown_fingerprint);
         }

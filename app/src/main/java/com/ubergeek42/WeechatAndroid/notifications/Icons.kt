@@ -15,8 +15,8 @@ import com.ubergeek42.WeechatAndroid.upload.dp_to_px
 import com.ubergeek42.WeechatAndroid.upload.suppress
 import com.ubergeek42.WeechatAndroid.utils.Toaster
 import com.ubergeek42.WeechatAndroid.views.solidColor
-import org.apache.commons.codec.DecoderException
-import org.apache.commons.codec.binary.Hex
+import com.ubergeek42.weechat.fromHexStringToByteArray
+import com.ubergeek42.weechat.toHexStringLowercase
 import java.io.File
 import java.lang.IllegalArgumentException
 import java.util.concurrent.ConcurrentHashMap
@@ -212,7 +212,7 @@ private fun Icon.Key.toFileName(): String {
 
 
 @Throws(IllegalArgumentException::class, NumberFormatException::class,
-        DecoderException::class, IndexOutOfBoundsException::class)
+        IndexOutOfBoundsException::class)
 private fun String.toIconKey(): Icon.Key {
     val (shape, background, foreground, sideLength, textSize, text) = this
         .decodeFromSafeString()
@@ -311,8 +311,8 @@ private val defaultBoldTypeface = Typeface.create(Typeface.DEFAULT, Typeface.BOL
 private val AUTHORITY = applicationContext.packageName + ContentUriFetcher.FILE_PROVIDER_SUFFIX
 
 
-private fun String.encodeToSafeString(): String = String(Hex.encodeHex(this.toByteArray()))
-private fun String.decodeFromSafeString(): String = String(Hex.decodeHex(this.toCharArray()))
+private fun String.encodeToSafeString(): String = this.toByteArray().toHexStringLowercase()
+private fun String.decodeFromSafeString(): String = this.fromHexStringToByteArray().toString()
 
 
 private operator fun <E> List<E>.component6() = this[5]

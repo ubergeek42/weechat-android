@@ -8,7 +8,6 @@ plugins {
 
 dependencies {
     implementation("org.slf4j:slf4j-api:1.7.36")
-    implementation("commons-codec:commons-codec:1.15")
 
     // "api" because we are calling `SSHConnection.getKnownHosts` from the app
     // and it returns something from inside sshlib
