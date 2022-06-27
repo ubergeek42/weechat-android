@@ -4,8 +4,8 @@ import com.ubergeek42.weechat.relay.RelayMessage
 import com.ubergeek42.weechat.relay.protocol.Hashtable
 import com.ubergeek42.weechat.relay.protocol.Info
 import org.apache.commons.codec.binary.Hex
-import org.apache.commons.codec.digest.DigestUtils
 import org.slf4j.LoggerFactory
+import java.security.MessageDigest
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
 import kotlin.random.Random
@@ -195,7 +195,7 @@ data class HashResult(val salt: ByteArray, val hash: ByteArray)
 
 private fun hashSha(shaSize: Int, serverNonce: ByteArray, password: String): HashResult {
     val salt = serverNonce + generateClientNonce()
-    val hash = DigestUtils.getDigest("SHA-$shaSize").digest(salt + password.encodeToByteArray())
+    val hash = MessageDigest.getInstance("SHA-$shaSize").digest(salt + password.encodeToByteArray())
     return HashResult(salt, hash)
 }
 

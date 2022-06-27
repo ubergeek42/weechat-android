@@ -31,8 +31,9 @@ import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
 
 import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.codec.digest.DigestUtils;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.text.DateFormat;
@@ -170,8 +171,9 @@ public class CertificateDialog extends DialogFragment {
     public static CharSequence buildCertificateDescription(Context context, X509Certificate certificate) {
         String fingerprint;
         try {
-            fingerprint = new String(Hex.encodeHex(DigestUtils.sha256(certificate.getEncoded())));
-        } catch (CertificateEncodingException e) {
+            byte[] hash = MessageDigest.getInstance("SHA-256").digest(certificate.getEncoded());
+            fingerprint = new String(Hex.encodeHex(hash));
+        } catch (CertificateEncodingException | NoSuchAlgorithmException e) {
             fingerprint = context.getString(R.string.dialog__certificate__unknown_fingerprint);
         }
 
