@@ -88,7 +88,6 @@ android {
 
         kotlinOptions {
             freeCompilerArgs = listOf(
-                    "-Xopt-in=kotlin.RequiresOptIn",
                     "-language-version", "1.7",
                     "-api-version", "1.7")
             jvmTarget = "11"
