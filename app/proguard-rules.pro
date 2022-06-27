@@ -1,7 +1,3 @@
-# warnings prevent build from continuing
-# looks like we aren't getting warnings anymore
-#-ignorewarnings
-
 # These rules are (hopefully) temporary needed to use R8 in full mode;
 # these solve crashes such as:
 #   java.lang.RuntimeException: cannot find implementation for
@@ -37,12 +33,6 @@
 -dontwarn org.slf4j.impl.StaticMarkerBinder
 -dontwarn org.slf4j.impl.StaticLoggerBinder
 
-# junit stuff
--assumenosideeffects class org.junit.Assert {
-  public static *** assert*(...);
-}
--dontwarn java.lang.management.*
-
 -assumenosideeffects class com.ubergeek42.WeechatAndroid.utils.Assert {
     assertThat(...);
 }
@@ -51,16 +41,9 @@
     *ontain*(...);
 }
 
-# prevents warnings such as "library class android.test.AndroidTestCase extends or implements program class junit.framework.TestCase"
-# maybe should be done differently?
--dontwarn android.test.**
-
 -keepclassmembers class ** {
     public void onEvent*(**);
 }
--keep class org.apache.commons.codec.digest.* { *; }
--keep class org.apache.commons.codec.binary.* { *; }
--keep class org.apache.commons.codec.*Exception { *; }
 
 # glide
 -keep public class * extends com.bumptech.glide.module.AppGlideModule
@@ -147,3 +130,32 @@
 -dontwarn java.beans.IntrospectionException
 -dontwarn java.beans.Introspector
 -dontwarn java.beans.PropertyDescriptor
+
+
+# ~*~*~*~ Historical rules, left here for lamenting and general amusement ~*~*~*~
+
+# Looks like we aren't getting warnings anymore!
+# # Warnings prevent build from continuing
+# -ignorewarnings
+
+# Did we use JUnit in production or something?
+# # JUnit stuff
+# -assumenosideeffects class org.junit.Assert {
+#   public static *** assert*(...);
+# }
+# -dontwarn java.lang.management.*
+#
+# # Prevents warnings such as
+# #   library class android.test.AndroidTestCase extends or implements program class junit.framework.TestCase
+# # Maybe should be done differently?
+# -dontwarn android.test.**
+
+# We used to depend on commons-codec for hex and sha-256 things.
+# This package is problematic because it is supplied by the system, and
+# on earlier versions of Android it doesn't come with methods that we want to use.
+# This lead to all sorts of problems, particularly with ProGuard and R8,
+# and would often result in various crashes in production builds on earlier platforms.
+# Perhaps it's best to just not use it.
+# -keep class org.apache.commons.codec.digest.* { *; }
+# -keep class org.apache.commons.codec.binary.* { *; }
+# -keep class org.apache.commons.codec.*Exception { *; }
