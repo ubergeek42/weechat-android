@@ -37,7 +37,6 @@ jobs:
       - name: Build dev release
         run: ./releases/travis_build.sh
         env:
-          JAVA_OPTS: -XX:MaxMetaspaceSize=512m
           DEVKEYPASSWORD: ${{secrets.DEVKEYPASSWORD}}
           DEVSTOREPASSWORD: ${{secrets.DEVSTOREPASSWORD}}
           DEVSTOREFILE: /home/runner/work/weechat-android/weechat-android/releases/android.jks
