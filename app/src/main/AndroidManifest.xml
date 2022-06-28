@@ -35,6 +35,7 @@
         android:icon="@mipmap/ic_launcher_kitty"
         android:label="@string/etc__application_name"
         android:theme="@style/Weechat"
+        android:usesCleartextTraffic="true"
         android:requestLegacyExternalStorage="true"
         android:windowSoftInputMode="adjustResize">
 
