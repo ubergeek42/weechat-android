@@ -5,22 +5,21 @@ import com.neovisionaries.ws.client.WebSocketAdapter
 import com.neovisionaries.ws.client.WebSocketException
 import com.neovisionaries.ws.client.WebSocketFactory
 import com.neovisionaries.ws.client.WebSocketFrame
+import com.ubergeek42.weechat.SslAxolotl
+import com.ubergeek42.weechat.wrapExceptions
 import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.io.PipedInputStream
 import java.io.PipedOutputStream
 import java.net.URI
-import javax.net.ssl.HostnameVerifier
 import javax.net.ssl.SSLSocket
-import javax.net.ssl.SSLSocketFactory
 
 
 class WebSocketConnection(
     private val hostname: String,
     port: Int,
     path: String,
-    sslSocketFactory: SSLSocketFactory?,
-    private val verifier: HostnameVerifier?,
+    private val sslAxolotl: SslAxolotl?,
 ) : IConnection {
     private val webSocket: WebSocket
     private val pipedOutputStream = PipedOutputStream()
@@ -53,7 +52,7 @@ class WebSocketConnection(
     // See https://developer.android.com/reference/javax/net/ssl/SSLSocket#getSession()
     init {
         val uri = URI(
-            if (sslSocketFactory == null) "ws" else "wss",  // scheme
+            if (sslAxolotl == null) "ws" else "wss",  // scheme
             null,       // userInfo
             hostname,   // host
             port,       // port
@@ -63,7 +62,7 @@ class WebSocketConnection(
         )
 
         webSocket = WebSocketFactory()
-                .setSSLSocketFactory(sslSocketFactory)
+                .setSSLSocketFactory(sslAxolotl?.sslSocketFactory)
                 .setVerifyHostname(false)
                 .setConnectionTimeout(RelayConnection.CONNECTION_TIMEOUT)
                 .createSocket(uri)
@@ -76,10 +75,15 @@ class WebSocketConnection(
     override fun connect(): IConnection.Streams {
         val inputStream = PipedInputStream()
         pipedOutputStream.connect(inputStream)
-        webSocket.connect()
 
-        if (verifier != null) {
-            Utils.verifyHostname(verifier, webSocket.socket as SSLSocket, hostname)
+        if (sslAxolotl == null) {
+            webSocket.connect()
+        } else {
+            sslAxolotl.wrapExceptions {
+                webSocket.connect()
+                Utils.verifyHostname(sslAxolotl.hostnameVerifier,
+                                     webSocket.socket as SSLSocket, hostname)
+            }
         }
 
         return IConnection.Streams(inputStream, null)

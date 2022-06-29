@@ -60,7 +60,7 @@ import com.ubergeek42.WeechatAndroid.service.Events.ExceptionEvent
 import com.ubergeek42.WeechatAndroid.service.Events.StateChangedEvent
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.service.RelayService
-import com.ubergeek42.WeechatAndroid.service.getCertificateChain
+import com.ubergeek42.WeechatAndroid.service.getSystemTrustedCertificateChain
 import com.ubergeek42.WeechatAndroid.upload.Config
 import com.ubergeek42.WeechatAndroid.upload.InsertAt
 import com.ubergeek42.WeechatAndroid.upload.ShareObject
@@ -92,6 +92,7 @@ import com.ubergeek42.cats.CatD
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
 import com.ubergeek42.weechat.ColorScheme
+import com.ubergeek42.weechat.SslAxolotl
 import com.ubergeek42.weechat.relay.connection.SSHServerKeyVerifier
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
@@ -324,20 +325,40 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener,
         var fragmentMaker: (() -> DialogFragment)? = null
 
         if (event.e.wasCausedByEither<SSLPeerUnverifiedException, CertificateException>()) {
-            val certificateChain = getCertificateChain(P.host, P.port)
-            if (!certificateChain.isNullOrEmpty()) {
+            val exceptionWrapper = event.e.findCause<SslAxolotl.ExceptionWrapper>()
+            val lastServerOfferedCertificateChain = exceptionWrapper?.lastServerOfferedCertificateChain
+            val lastAuthType = exceptionWrapper?.lastAuthType
+
+            val (certificateChainTrustedBySystem, certificateChainForDisplay) =
+                if (lastServerOfferedCertificateChain != null && lastAuthType != null) {
+                    try {
+                        true to getSystemTrustedCertificateChain(
+                                lastServerOfferedCertificateChain, lastAuthType, P.host)
+                    } catch (e: Exception) {
+                        false to lastServerOfferedCertificateChain
+                    }
+                } else {
+                    false to null
+                }
+
+            if (!certificateChainForDisplay.isNullOrEmpty()) {
                 fragmentMaker = when {
                     event.e.wasCausedBy<CertificateExpiredException>() -> {
-                        { buildExpiredCertificateDialog(this, certificateChain) }
+                        { buildExpiredCertificateDialog(this,
+                                certificateChainForDisplay) }
                     }
                     event.e.wasCausedBy<CertificateNotYetValidException>() -> {
-                        { buildNotYetValidCertificateDialog(this, certificateChain) }
+                        { buildNotYetValidCertificateDialog(this,
+                                certificateChainForDisplay) }
                     }
                     event.e.wasCausedBy<SSLPeerUnverifiedException>() -> {
-                        { buildInvalidHostnameCertificateDialog(this, certificateChain) }
+                        { buildInvalidHostnameCertificateDialog(this,
+                                certificateChainForDisplay) }
                     }
                     event.e.wasCausedBy<CertPathValidatorException>() -> {
-                        { buildUntrustedOrNotPinnedCertificateDialog(this, certificateChain) }
+                        { buildUntrustedOrNotPinnedCertificateDialog(this,
+                                certificateChainForDisplay,
+                                certificateChainTrustedBySystem) }
                     }
                     else -> null
                 }

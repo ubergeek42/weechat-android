@@ -5,7 +5,6 @@ package com.ubergeek42.WeechatAndroid.service
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.net.SSLCertificateSocketFactory
 import android.net.http.X509TrustManagerExtensions
 import android.os.Build
 import androidx.annotation.CheckResult
@@ -19,6 +18,8 @@ import com.ubergeek42.WeechatAndroid.utils.ThrowingKeyManagerWrapper
 import com.ubergeek42.WeechatAndroid.utils.isAnyOf
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
+import com.ubergeek42.weechat.RememberingTrustManager
+import com.ubergeek42.weechat.SslAxolotl
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.FileInputStream
@@ -35,7 +36,7 @@ import javax.net.ssl.HostnameVerifier
 import javax.net.ssl.HttpsURLConnection
 import javax.net.ssl.KeyManager
 import javax.net.ssl.KeyManagerFactory
-import javax.net.ssl.SSLSocketFactory
+import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManagerFactory
 import javax.net.ssl.X509TrustManager
 
@@ -103,11 +104,14 @@ class SSLHandler private constructor(private val userKeystoreFile: File) {
         saveUserKeystore()
     }
 
-    fun getSSLSocketFactory(): SSLSocketFactory {
-        val sslSocketFactory = SSLCertificateSocketFactory.getDefault(0, null) as SSLCertificateSocketFactory
-        sslSocketFactory.setKeyManagers(getKeyManagers())
-        sslSocketFactory.setTrustManagers(arrayOf(SystemThenUserTrustManager(userKeystore)))
-        return sslSocketFactory
+    // todo optimize making userTrustManager?
+    fun makeSslAxolotl(): SslAxolotl {
+        val keyManagers = getKeyManagers()
+        val customTrustManager = CustomTrustManager(userKeystore)
+        val trustManagers = arrayOf(customTrustManager)
+        val sslContext = SSLContext.getInstance("TLS")
+        sslContext.init(keyManagers, trustManagers, null)
+        return SslAxolotl(sslContext.socketFactory, customTrustManager, hostnameVerifier)
     }
 
     companion object {
@@ -172,8 +176,13 @@ private fun getKeyManagers(): Array<KeyManager>? {
 
 
 @SuppressLint("CustomX509TrustManager")
-private class SystemThenUserTrustManager(userKeyStore: KeyStore?) : X509TrustManager {
+private class CustomTrustManager(userKeyStore: KeyStore?)
+        : X509TrustManager, RememberingTrustManager {
     private val userTrustManager = buildTrustManger(userKeyStore)
+
+    override var lastServerOfferedCertificateChain: Array<X509Certificate>? = null
+    override var lastAuthType: String? = null
+
 
     @Throws(CertificateException::class)
     override fun checkClientTrusted(x509Certificates: Array<X509Certificate>, s: String) {
@@ -188,14 +197,18 @@ private class SystemThenUserTrustManager(userKeyStore: KeyStore?) : X509TrustMan
     }
 
     @Throws(CertificateException::class)
-    override fun checkServerTrusted(x509Certificates: Array<X509Certificate>, s: String) {
+    override fun checkServerTrusted(x509Certificates: Array<X509Certificate>, authType: String) {
+        this.lastServerOfferedCertificateChain = x509Certificates
+        this.lastAuthType = authType
+
         try {
-            userTrustManager.checkServerTrusted(x509Certificates, s)
+            userTrustManager.checkServerTrusted(x509Certificates, authType)
             kitty.debug("Server is trusted by user")
         } catch (e: CertificateException) {
-            kitty.debug("Server is NOT trusted by user; pin " + if (P.pinRequired) "REQUIRED -- failing" else "not required -- trying system")
+            kitty.debug("Server is NOT trusted by user (authType: $authType); pin "
+                    + if (P.pinRequired) "REQUIRED -- failing" else "not required -- trying system")
             if (P.pinRequired) throw e
-            systemTrustManager.checkServerTrusted(x509Certificates, s)
+            systemTrustManager.checkServerTrusted(x509Certificates, authType)
             kitty.debug("Server is trusted by system")
         }
     }
@@ -214,28 +227,17 @@ private class SystemThenUserTrustManager(userKeyStore: KeyStore?) : X509TrustMan
 // Given peer certificate chain, there might be several paths to different trust anchors.
 // The leaf certificate might be a trust anchor; a shorter path to a trust anchor might not include
 // all the certificates in the given chain; some of the certificates might be out of order.
-// X509TrustManagerExtensions.checkServerTrusted will produce a cleaned-up chain
-// that includes trust anchor, but of course it will only work if the chain can be verified.
-// Otherwise, return server certificates as is, or null if the handshake fails.
-@SuppressLint("SSLCertificateSocketFactoryGetInsecure") @Suppress("UNCHECKED_CAST")
-fun getCertificateChain(host: String, port: Int): Array<X509Certificate>? {
-    val insecureSslFactory = SSLCertificateSocketFactory.getInsecure(0, null)
-    val socket = insecureSslFactory.createSocket(host, port) as javax.net.ssl.SSLSocket
-
-    val peerCertificateChain = try {
-        socket.startHandshake()
-        socket.session.peerCertificates as Array<X509Certificate>
-    } catch (e: Exception) {
-        return null
-    }
-
-    return try {
-        X509TrustManagerExtensions(systemTrustManager).checkServerTrusted(
-            peerCertificateChain, "GENERIC", host
-        ).toTypedArray()
-    } catch (e: Exception) {
-        peerCertificateChain
-    }
+// This will produce a cleaned-up chain that includes trust anchor,
+// or throw if the chain is not trusted by system.
+@Throws(CertificateException::class)
+fun getSystemTrustedCertificateChain(
+    serverOfferedCertificateChain: Array<X509Certificate>,
+    serverOfferedAuthType: String,
+    serverHost: String
+): Array<X509Certificate> {
+    return X509TrustManagerExtensions(systemTrustManager).checkServerTrusted(
+        serverOfferedCertificateChain, serverOfferedAuthType, serverHost
+    ).toTypedArray()
 }
 
 
@@ -262,16 +264,6 @@ fun getCertificateHosts(certificate: X509Certificate): Set<String> {
 }
 
 
-fun isChainTrustedBySystem(certificates: Array<X509Certificate?>?): Boolean {
-    return try {
-        systemTrustManager.checkServerTrusted(certificates, "GENERIC")
-        true
-    } catch (e: CertificateException) {
-        false
-    }
-}
-
-
 // see android.net.SSLCertificateSocketFactory#verifyHostname
 val hostnameVerifier: HostnameVerifier
     get() = HttpsURLConnection.getDefaultHostnameVerifier()
@@ -287,3 +279,46 @@ fun buildTrustManger(store: KeyStore?): X509TrustManager {
 
 
 val systemTrustManager = buildTrustManger(null)
+
+
+// Historical methods, for shits (no giggles)
+
+// One of the issue with these two is that using GENERIC auth type is wrong
+// and may produce a different result compared to the actual TrustManager check
+
+// // Given peer certificate chain, there might be several paths to different trust anchors.
+// // The leaf certificate might be a trust anchor; a shorter path to a trust anchor might not include
+// // all the certificates in the given chain; some of the certificates might be out of order.
+// // X509TrustManagerExtensions.checkServerTrusted will produce a cleaned-up chain
+// // that includes trust anchor, but of course it will only work if the chain can be verified.
+// // Otherwise, return server certificates as is, or null if the handshake fails.
+// @SuppressLint("SSLCertificateSocketFactoryGetInsecure") @Suppress("UNCHECKED_CAST")
+// fun getCertificateChain(host: String, port: Int): Array<X509Certificate>? {
+//     val insecureSslFactory = SSLCertificateSocketFactory.getInsecure(0, null)
+//     val socket = insecureSslFactory.createSocket(host, port) as javax.net.ssl.SSLSocket
+//
+//     val peerCertificateChain = try {
+//         socket.startHandshake()
+//         socket.session.peerCertificates as Array<X509Certificate>
+//     } catch (e: Exception) {
+//         return null
+//     }
+//
+//     return try {
+//         X509TrustManagerExtensions(systemTrustManager).checkServerTrusted(
+//             peerCertificateChain, "GENERIC", host
+//         ).toTypedArray()
+//     } catch (e: Exception) {
+//         peerCertificateChain
+//     }
+// }
+
+
+// fun isChainTrustedBySystem(certificates: Array<X509Certificate?>?): Boolean {
+//     return try {
+//         systemTrustManager.checkServerTrusted(certificates, "GENERIC")
+//         true
+//     } catch (e: CertificateException) {
+//         false
+//     }
+// }

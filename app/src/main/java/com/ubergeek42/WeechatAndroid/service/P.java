@@ -54,8 +54,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 
-import javax.net.ssl.SSLSocketFactory;
-
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
 
 
@@ -220,7 +218,6 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     static public int port;
     static public HandshakeMethod handshakeMethod;
     static int sshPort;
-    static SSLSocketFactory sslSocketFactory;
     static boolean reconnect;
     static public boolean pinRequired;
 
@@ -263,12 +260,6 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         pingEnabled = p.getBoolean(PREF_PING_ENABLED, PREF_PING_ENABLED_D);
         pingIdleTime = Integer.parseInt(getString(PREF_PING_IDLE, PREF_PING_IDLE_D)) * 1000;
         pingTimeout = Integer.parseInt(getString(PREF_PING_TIMEOUT, PREF_PING_TIMEOUT_D)) * 1000;
-
-        if (Utils.isAnyOf(connectionType, PREF_TYPE_SSL, PREF_TYPE_WEBSOCKET_SSL)) {
-            sslSocketFactory = SSLHandler.getInstance(context).getSSLSocketFactory();
-        } else {
-            sslSocketFactory = null;
-        }
 
         printableHost = connectionType.equals(PREF_TYPE_SSH) ? sshHost + "/" + host : host;
         connectionSurelyPossibleWithCurrentPreferences = false;     // and don't call me Shirley

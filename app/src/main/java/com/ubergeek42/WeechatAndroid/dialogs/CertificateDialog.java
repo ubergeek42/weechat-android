@@ -190,9 +190,10 @@ public class CertificateDialog extends DialogFragment {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     public static CertificateDialog buildUntrustedOrNotPinnedCertificateDialog(
-            Context context, X509Certificate[] certificateChain) {
+            Context context, X509Certificate[] certificateChain,
+            boolean certificateNotPinnedDialog) {
         int title, text, positive;
-        if (SSLHandlerKt.isChainTrustedBySystem(certificateChain)) {
+        if (certificateNotPinnedDialog) {
             title = R.string.dialog__certificate__not_pinned__title;
             text = R.string.dialog__certificate__not_pinned__text;
             positive = R.string.dialog__certificate__not_pinned__pin_selected;
