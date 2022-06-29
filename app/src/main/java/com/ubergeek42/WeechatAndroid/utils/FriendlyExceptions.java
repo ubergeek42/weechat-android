@@ -59,7 +59,7 @@ public class FriendlyExceptions {
                         R.string.error__connection__ssl__client_certificate__certificate_mismatch :
                         R.string.error__connection__ssl__client_certificate__not_set,
                 join(", ", Arrays.asList(e.keyType)),
-                join(", ", Arrays.asList(e.issuers)));
+                e.issuers == null? "*" : join(", ", Arrays.asList(e.issuers)));
         return new Result(message, true);
     }
 

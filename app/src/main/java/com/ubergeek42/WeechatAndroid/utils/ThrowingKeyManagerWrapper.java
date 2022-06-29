@@ -1,5 +1,8 @@
 package com.ubergeek42.WeechatAndroid.utils;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import java.net.Socket;
 import java.security.Principal;
 import java.security.PrivateKey;
@@ -58,10 +61,10 @@ public class ThrowingKeyManagerWrapper extends X509ExtendedKeyManager {
     }
 
     public static class ClientCertificateMismatchException extends RuntimeException {
-        final public String[] keyType;
-        final public Principal[] issuers;
+        final public @NonNull String[] keyType;
+        final public @Nullable Principal[] issuers;
 
-        public ClientCertificateMismatchException(String[] keyType, Principal[] issuers) {
+        public ClientCertificateMismatchException(@NonNull String[] keyType, @Nullable Principal[] issuers) {
             this.keyType = keyType;
             this.issuers = issuers;
         }
