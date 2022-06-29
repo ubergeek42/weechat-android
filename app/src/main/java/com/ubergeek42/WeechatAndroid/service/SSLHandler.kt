@@ -56,9 +56,9 @@ private val RDN_PATTERN = "CN\\s*=\\s*(\"[^\"]*\"|[^\",]*)".toRegex()
 
 
 class SSLHandler private constructor(private val userKeystoreFile: File) {
-    private var userKeystore = KeyStore.getInstance("BKS")
-
+    private val userKeystore = KeyStore.getInstance("BKS")
     init { loadUserKeystore() }
+    private var userTrustManager = buildTrustManger(userKeystore)
 
     private fun loadUserKeystore() {
         suppress<Exception> {
@@ -97,20 +97,18 @@ class SSLHandler private constructor(private val userKeystoreFile: File) {
 
     fun trustCertificate(cert: X509Certificate) {
         suppress<KeyStoreException> {
-            userKeystore.setEntry(cert.subjectDN.name, KeyStore.TrustedCertificateEntry(cert), null)
             val description = CertificateDialog.buildCertificateDescription(applicationContext, cert)
             kitty.debug("Trusting:\n$description")
+            userKeystore.setEntry(cert.subjectDN.name, KeyStore.TrustedCertificateEntry(cert), null)
+            userTrustManager = buildTrustManger(userKeystore)
         }
         saveUserKeystore()
     }
 
-    // todo optimize making userTrustManager?
     fun makeSslAxolotl(): SslAxolotl {
-        val keyManagers = getKeyManagers()
-        val customTrustManager = CustomTrustManager(userKeystore)
-        val trustManagers = arrayOf(customTrustManager)
         val sslContext = SSLContext.getInstance("TLS")
-        sslContext.init(keyManagers, trustManagers, null)
+        val customTrustManager = CustomTrustManager(userTrustManager)
+        sslContext.init(getKeyManagers(), arrayOf(customTrustManager), null)
         return SslAxolotl(sslContext.socketFactory, customTrustManager, hostnameVerifier)
     }
 
@@ -176,13 +174,10 @@ private fun getKeyManagers(): Array<KeyManager>? {
 
 
 @SuppressLint("CustomX509TrustManager")
-private class CustomTrustManager(userKeyStore: KeyStore?)
+private class CustomTrustManager(val userTrustManager: X509TrustManager)
         : X509TrustManager, RememberingTrustManager {
-    private val userTrustManager = buildTrustManger(userKeyStore)
-
     override var lastServerOfferedCertificateChain: Array<X509Certificate>? = null
     override var lastAuthType: String? = null
-
 
     @Throws(CertificateException::class)
     override fun checkClientTrusted(x509Certificates: Array<X509Certificate>, s: String) {
