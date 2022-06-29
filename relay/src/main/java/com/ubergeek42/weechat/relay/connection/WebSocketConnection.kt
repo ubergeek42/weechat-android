@@ -65,6 +65,7 @@ class WebSocketConnection(
                 .setSSLSocketFactory(sslAxolotl?.sslSocketFactory)
                 .setVerifyHostname(false)
                 .setConnectionTimeout(RelayConnection.CONNECTION_TIMEOUT)
+                .setServerName(hostname)  // for SNI
                 .createSocket(uri)
 
         webSocket.addListener(Listener())

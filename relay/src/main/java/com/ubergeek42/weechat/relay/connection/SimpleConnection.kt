@@ -14,22 +14,29 @@ class SimpleConnection(
     private val port: Int,
     private val sslAxolotl: SslAxolotl?,
 ) : IConnection {
-    private val socket = if (sslAxolotl == null) {
-                             Socket()
-                         } else {
-                             sslAxolotl.sslSocketFactory.createSocket()
-                         }
+    private val socket = Socket()
 
+    // Do NOT call the argument-less `sslSocketFactory.sslSocketFactory()`,
+    // for on Android 6 it creates a socket that does not play well with SNI
+    // and won't connect to websites that require it, e.g. badssl.com.
+    @Suppress("IfThenToElvis")
     @Throws(IOException::class)
     override fun connect(): IConnection.Streams {
         socket.connect(InetSocketAddress(hostname, port), RelayConnection.CONNECTION_TIMEOUT)
 
-        sslAxolotl?.wrapExceptions {
-            (socket as SSLSocket).startHandshake()
-            Utils.verifyHostname(sslAxolotl.hostnameVerifier, socket, hostname)
+        val finalSocket = if (sslAxolotl == null) {
+            socket
+        } else {
+            sslAxolotl.wrapExceptions {
+                val sslSocket = sslAxolotl.sslSocketFactory
+                        .createSocket(socket, hostname, port, true) as SSLSocket
+                sslSocket.startHandshake()
+                Utils.verifyHostname(sslAxolotl.hostnameVerifier, sslSocket, hostname)
+                sslSocket
+            }
         }
 
-        return IConnection.Streams(socket.getInputStream(), socket.getOutputStream())
+        return IConnection.Streams(finalSocket.getInputStream(), finalSocket.getOutputStream())
     }
 
     @Throws(IOException::class)

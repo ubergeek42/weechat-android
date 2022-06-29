@@ -24,9 +24,9 @@ class SslAxolotl(
 }
 
 
-fun SslAxolotl.wrapExceptions(block: () -> Unit) {
+fun <T> SslAxolotl.wrapExceptions(block: () -> T): T {
     try {
-        block()
+        return block()
     } catch (exception: Exception) {
         throw SslAxolotl.ExceptionWrapper(
             rememberingTrustManager.lastServerOfferedCertificateChain,
