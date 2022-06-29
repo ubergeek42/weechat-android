@@ -26,6 +26,7 @@ import java.io.FileInputStream
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.io.IOException
+import java.lang.UnsupportedOperationException
 import java.security.KeyStore
 import java.security.KeyStoreException
 import java.security.NoSuchAlgorithmException
@@ -179,22 +180,14 @@ private class CustomTrustManager(val userTrustManager: X509TrustManager)
     override var lastServerOfferedCertificateChain: Array<X509Certificate>? = null
     override var lastAuthType: String? = null
 
-    @Throws(CertificateException::class)
-    override fun checkClientTrusted(x509Certificates: Array<X509Certificate>, s: String) {
-        try {
-            systemTrustManager.checkClientTrusted(x509Certificates, s)
-            kitty.debug("Client is trusted by system")
-        } catch (e: CertificateException) {
-            kitty.debug("Client is NOT trusted by system, trying user")
-            userTrustManager.checkClientTrusted(x509Certificates, s)
-            kitty.debug("Client is trusted by user")
-        }
+    override fun checkClientTrusted(x509Certificates: Array<X509Certificate>, authType: String) {
+        throw UnsupportedOperationException()
     }
 
     @Throws(CertificateException::class)
     override fun checkServerTrusted(x509Certificates: Array<X509Certificate>, authType: String) {
-        this.lastServerOfferedCertificateChain = x509Certificates
-        this.lastAuthType = authType
+        lastServerOfferedCertificateChain = x509Certificates
+        lastAuthType = authType
 
         try {
             userTrustManager.checkServerTrusted(x509Certificates, authType)
