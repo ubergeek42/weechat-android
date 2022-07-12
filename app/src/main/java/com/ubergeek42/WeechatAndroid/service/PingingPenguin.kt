@@ -37,7 +37,7 @@ private var staticPingingPenguin: PingingPenguin? = null  // Oh well
 class PingingPenguin(val relayService: RelayService) {
     @WorkerThread fun startPinging() {
         staticPingingPenguin = this
-        schedulePingAt(now() + P.pingIdleTime)
+        scheduleTick(Tick.Regular(), lastMessageReceivedAt + P.pingIdleTime)
     }
 
     @AnyThread fun stopPinging() {
@@ -45,43 +45,47 @@ class PingingPenguin(val relayService: RelayService) {
         unschedulePings()
     }
 
-    @Volatile private var lastMessageReceivedAt = 0L
-    private var sentPing = false
+    @Volatile private var lastMessageReceivedAt: Long = 0
+    @Volatile private var lastTick: Tick = Tick.Regular()
 
     @WorkerThread fun onMessage() {
         lastMessageReceivedAt = now()
     }
 
-    @MainThread fun onTimesUp() {
+    @MainThread fun onTick() {
         if (!relayService.state.contains(RelayService.STATE.AUTHENTICATED)) return
 
-        if (now() - lastMessageReceivedAt > P.pingIdleTime) {
-            if (sentPing) {
-                kitty.info("no message received, disconnecting")
-                relayService.interrupt()
-            } else {
-                kitty.debug("last message too old, sending ping")
-                Events.SendMessageEvent.fire("ping")
-                sentPing = true
-                schedulePingAt(now() + P.pingTimeout)
-            }
+        if (lastMessageReceivedAt > lastTick.scheduledAt) {
+            scheduleTick(Tick.Regular(), lastMessageReceivedAt + P.pingIdleTime)
+        } else if (lastTick is Tick.Regular) {
+            kitty.info("Last message was received too long ago, sending a ping")
+            Events.SendMessageEvent.fire("ping")
+            scheduleTick(Tick.LastMessageTooOld(), now() + P.pingTimeout)
         } else {
-            sentPing = false
-            schedulePingAt(lastMessageReceivedAt + P.pingIdleTime)
+            kitty.info("No messages received since ping was sent, disconnecting")
+            relayService.interrupt()
         }
     }
+
+    private fun scheduleTick(tick: Tick, at: Long) {
+        lastTick = tick
+        alarmManager?.setExact(AlarmManager.ELAPSED_REALTIME_WAKEUP, at, pendingPingIntent)
+    }
+}
+
+
+private sealed class Tick {
+    val scheduledAt = now()
+
+    class Regular : Tick()
+    class LastMessageTooOld : Tick()
 }
 
 
 class PingBroadcastReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        staticPingingPenguin?.onTimesUp()
+        staticPingingPenguin?.onTick()
     }
-}
-
-
-private fun schedulePingAt(at: Long) {
-    alarmManager?.setExact(AlarmManager.ELAPSED_REALTIME_WAKEUP, at, pendingPingIntent)
 }
 
 
