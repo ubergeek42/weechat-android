@@ -19,106 +19,85 @@ import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
-import android.os.Build
-import android.os.Bundle
 import android.os.SystemClock
 import androidx.annotation.AnyThread
 import androidx.annotation.MainThread
-import androidx.annotation.NonNull
 import androidx.annotation.WorkerThread
-
-import com.ubergeek42.WeechatAndroid.BuildConfig
-import com.ubergeek42.cats.Cat
+import com.ubergeek42.WeechatAndroid.upload.applicationContext
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
 
-import static com.ubergeek42.WeechatAndroid.service.RelayService.STATE.AUTHENTICATED
+
+@Root private val kitty: Kitty = Kitty.make()
 
 
-class PingActionReceiver extends BroadcastReceiver {
-    final private static @Root Kitty kitty = Kitty.make()
+private var staticPingingPenguin: PingingPenguin? = null  // Oh well
 
-    private volatile long lastMessageReceivedAt = 0
-    private final RelayService bone
-    private final AlarmManager alarmManager
-    private static final String PING_ACTION = BuildConfig.APPLICATION_ID + ".PING_ACTION"
-    private static final String PING_ACTION_PERMISSION = BuildConfig.APPLICATION_ID + ".permission.PING_ACTION"
-    private static final IntentFilter FILTER = new IntentFilter(PING_ACTION)
 
-    public PingActionReceiver(RelayService bone) {
-        super()
-        this.bone = bone
-        this.alarmManager = (AlarmManager) bone.getSystemService(Context.ALARM_SERVICE)
+class PingingPenguin(val relayService: RelayService) {
+    @WorkerThread fun startPinging() {
+        staticPingingPenguin = this
+        schedulePingAt(now() + P.pingIdleTime)
     }
 
-    @MainThread @Override @Cat(linger=true) public void onReceive(Context context, Intent intent) {
-        kitty.trace("sent ping? %s", intent.getBooleanExtra("sentPing", false))
+    @AnyThread fun stopPinging() {
+        staticPingingPenguin = null
+        unschedulePings()
+    }
 
-        if (!bone.state.contains(AUTHENTICATED))
-            return
+    @Volatile private var lastMessageReceivedAt = 0L
+    private var sentPing = false
 
-        long triggerAt
-        Bundle extras = new Bundle()
+    @WorkerThread fun onMessage() {
+        lastMessageReceivedAt = now()
+    }
 
-        if (SystemClock.elapsedRealtime() - lastMessageReceivedAt > P.pingIdleTime) {
-            if (!intent.getBooleanExtra("sentPing", false)) {
+    @MainThread fun onTimesUp() {
+        if (!relayService.state.contains(RelayService.STATE.AUTHENTICATED)) return
+
+        if (now() - lastMessageReceivedAt > P.pingIdleTime) {
+            if (sentPing) {
+                kitty.info("no message received, disconnecting")
+                relayService.interrupt()
+            } else {
                 kitty.debug("last message too old, sending ping")
                 Events.SendMessageEvent.fire("ping")
-                triggerAt = SystemClock.elapsedRealtime() + P.pingTimeout
-                extras.putBoolean("sentPing", true)
-            } else {
-                kitty.info("no message received, disconnecting")
-                bone.interrupt()
-                return
+                sentPing = true
+                schedulePingAt(now() + P.pingTimeout)
             }
         } else {
-            triggerAt = lastMessageReceivedAt + P.pingIdleTime
-        }
-
-        schedulePing(triggerAt, extras)
-    }
-
-    @WorkerThread public void scheduleFirstPing {
-        if (!P.pingEnabled) return
-        bone.registerReceiver(this, FILTER, PING_ACTION_PERMISSION, null)
-        long triggerAt = SystemClock.elapsedRealtime() + P.pingTimeout
-        schedulePing(triggerAt, new Bundle())
-    }
-
-    @AnyThread public void unschedulePing {
-        if (!P.pingEnabled) return
-        Intent intent = new Intent(PING_ACTION)
-        PendingIntent pi = PendingIntent.getBroadcast(bone, 0, intent,
-                PendingIntent.FLAG_NO_CREATE | PendingIntent.FLAG_MUTABLE)
-        if (pi != null) alarmManager.cancel(pi)
-        try {
-            bone.unregisterReceiver(this)
-        } catch (IllegalArgumentException e) {
-            // there's a rare crash in developer console that happens here
-            // not sure what causes it, as it doesn't seem to be possible for
-            // unschedulePing() to be run twice or without scheduleFirstPing() having ran first
-            // todo find the cause of this and fix more properly
-            // todo look for other crashes that the underlying issue might cause
-            // https://github.com/ubergeek42/weechat-android/issues/482
-            // https://android.googlesource.com/platform/frameworks/base/+/master/core/java/android/app/LoadedApk.java#1451
-        }
-    }
-
-    @WorkerThread public void onMessage {
-        lastMessageReceivedAt = SystemClock.elapsedRealtime()
-    }
-
-    @AnyThread private void schedulePing(long triggerAt, @NonNull Bundle extras) {
-        Intent intent = new Intent(PING_ACTION)
-        intent.putExtras(extras)
-        PendingIntent alarmIntent = PendingIntent.getBroadcast(bone, 0, intent,
-                PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_MUTABLE)
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            alarmManager.setExact(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAt, alarmIntent)
-        } else {
-            alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAt, alarmIntent)
+            sentPing = false
+            schedulePingAt(lastMessageReceivedAt + P.pingIdleTime)
         }
     }
 }
+
+
+class PingBroadcastReceiver : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
+        staticPingingPenguin?.onTimesUp()
+    }
+}
+
+
+private fun schedulePingAt(at: Long) {
+    alarmManager?.setExact(AlarmManager.ELAPSED_REALTIME_WAKEUP, at, pendingPingIntent)
+}
+
+
+private fun unschedulePings() {
+    PendingIntent.getBroadcast(applicationContext, 0, pingIntent,
+                               PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE)
+            ?.let { alarmManager?.cancel(it) }
+}
+
+
+private fun now() = SystemClock.elapsedRealtime()
+
+private val pingIntent = Intent(applicationContext, PingBroadcastReceiver::class.java)
+
+private val pendingPingIntent = PendingIntent.getBroadcast(applicationContext, 0, pingIntent,
+        PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+
+private val alarmManager = applicationContext
+        .getSystemService(Context.ALARM_SERVICE) as AlarmManager?
