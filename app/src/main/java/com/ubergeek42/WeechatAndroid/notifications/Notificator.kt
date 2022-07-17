@@ -156,14 +156,14 @@ private inline fun <reified T : Activity> makeActivityIntent(pointer: Long): Pen
         action = pointer.as0x
     }
     return PendingIntent.getActivity(applicationContext, 0, intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE) // Must be mutable!
 }
 
 
 private inline fun <reified T : BroadcastReceiver> makeBroadcastIntent(pointer: Long): PendingIntent {
     val intent = Intent(applicationContext, T::class.java).apply { action = pointer.as0x }
     return PendingIntent.getBroadcast(applicationContext, 0, intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE) // Must be mutable!
 }
 
 
