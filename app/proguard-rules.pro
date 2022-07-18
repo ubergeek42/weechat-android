@@ -23,6 +23,7 @@
 # neede for ssh
 -keep public class com.trilead.ssh2.compression.**
 -keep public class com.trilead.ssh2.crypto.**
+-keep class com.trilead.ssh2.crypto.keys.Ed25519*Key { *; }
 
 # strip debug and trace (verbose) logging
 -assumenosideeffects class org.slf4j.Logger {
