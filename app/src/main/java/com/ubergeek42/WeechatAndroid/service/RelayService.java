@@ -67,7 +67,7 @@ public class RelayService extends Service implements IObserver {
     private static int iteration = -1;
 
     volatile public RelayConnection connection;
-    private PingActionReceiver ping;
+    private PingingPenguin pingingPenguin;
     private Handler doge;               // thread "doge" used for connecting/disconnecting
 
     // action is one of ACTION_START or ACTION_STOP
@@ -103,7 +103,7 @@ public class RelayService extends Service implements IObserver {
             if (P.reconnect && state.contains(STATE.STARTED)) _start();
         });
 
-        ping = new PingActionReceiver(this);
+        pingingPenguin = new PingingPenguin(this);
         EventBus.getDefault().register(this);
     }
 
@@ -206,7 +206,7 @@ public class RelayService extends Service implements IObserver {
         P.setServiceAlive(false);
     }
 
-    // called by ↑ and PingActionReceiver
+    // called by ↑ and PingingPenguin
     // close whatever connection we have in a thread, may result in a call to onStateChanged
     @AnyThread @Cat synchronized void interrupt() {
         doge.removeCallbacksAndMessages(null);
@@ -306,7 +306,7 @@ public class RelayService extends Service implements IObserver {
 
     @WorkerThread @Cat private void hello() {
         NotificatorKt.addOrRemoveActionForCurrentNotifications(true);
-        ping.scheduleFirstPing();
+        if (P.pingEnabled) pingingPenguin.startPinging();
         BufferList.onServiceAuthenticated();
         SyncAlarmReceiver.start(this);
     }
@@ -315,7 +315,7 @@ public class RelayService extends Service implements IObserver {
     @AnyThread @Cat private void goodbye() {
         SyncAlarmReceiver.stop(this);
         BufferList.onServiceStopped();
-        ping.unschedulePing();
+        if (P.pingEnabled) pingingPenguin.stopPinging();
         P.saveStuff();
         NotificatorKt.addOrRemoveActionForCurrentNotifications(false);
     }
@@ -345,7 +345,7 @@ public class RelayService extends Service implements IObserver {
     @WorkerThread @Override public void onMessage(RelayMessage message) {
         kitty.trace("→ onMessage(%s)", message.getID());
         if (state.contains(STATE.STOPPED)) return;
-        ping.onMessage();
+        pingingPenguin.onMessage();
         RelayObject[] objects = message.getObjects() == null ? NULL : message.getObjects();
         String id = message.getID();
         for (RelayObject object : objects)
