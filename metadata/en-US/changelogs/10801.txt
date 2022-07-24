@@ -1,0 +1,3 @@
+* Fixed an issue with ED25519 keys during upgrade
+* Update Android Gradle Plugin to fix build on F-Droid
+* Rework ping logic to comply with Google Play requirements

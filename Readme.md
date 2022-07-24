@@ -32,6 +32,11 @@ Pull requests are welcome—but please check with us on IRC before starting a su
 
 ### Changelog
 
+##### v1.8.1
+* Fixed an issue with ED25519 keys during upgrade
+* Update Android Gradle Plugin to fix build on F-Droid
+* Rework ping logic to comply with Google Play requirements
+
 ##### v1.8
 * Render the latest emoji on older systems
 * Certificate dialog now shows trusted chain if available
