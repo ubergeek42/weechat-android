@@ -34,7 +34,7 @@ class NicklistDialog : ListDialog(),
             this.buffer = buffer
             this.title = buffer.shortName
             this.adapter = NicklistAdapter(requireContext()) {
-                Events.SendMessageEvent.fire("input 0x%x /query %s", buffer.pointer, it.name)
+                Events.SendMessageEvent.fire("input 0x%x /query -noswitch %s", buffer.pointer, it.name)
                 dismiss()
             }
         }
