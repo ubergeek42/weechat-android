@@ -8,11 +8,13 @@ import com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils
 import com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils.InsideSecurityHardware
 import com.ubergeek42.WeechatAndroid.utils.Constants
 import com.ubergeek42.WeechatAndroid.utils.Utils
+import com.ubergeek42.WeechatAndroid.utils.edDsaKeyPairToSshLibEd25519KeyPair
 import com.ubergeek42.WeechatAndroid.utils.makeKeyPair
 import com.ubergeek42.WeechatAndroid.utils.toReader
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
 import com.ubergeek42.weechat.relay.connection.SSHConnection
+import org.bouncycastle.jcajce.interfaces.EdDSAKey
 import java.io.IOException
 import java.nio.charset.StandardCharsets
 import java.security.GeneralSecurityException
@@ -26,13 +28,21 @@ import java.security.KeyPair
 class PrivateKeyPickerPreference(context: Context?, attrs: AttributeSet?) :
         PasswordedFilePickerPreference(context, attrs) {
 
+    // First, try decoding the key pair using our SSH library.
+    // If that fails due to unsupported key formats, try decoding the key pair using BC.
+    //
+    // Then, check if we have a pair of EdDSAKey. It is a valid key pair,
+    // but since sshlib is not friendly with BC, it can't use it.
+    // Assume it's a pair of Ed25519 keys, and covert it to sshlib format.
+    //
+    // Finally, try putting the key inside security hardware, serializing it if that fails.
     @Throws(Exception::class)
     override fun saveData(bytes: ByteArray?, passphrase: String): String {
         var valueToStore: String?
         var successMessage: String
 
         if (bytes != null) {
-            val keyPair: KeyPair = try {
+            var keyPair: KeyPair = try {
                 SSHConnection.makeKeyPair(bytes, passphrase)
             } catch (sshlibException: Exception) {
                 try {
@@ -41,6 +51,10 @@ class PrivateKeyPickerPreference(context: Context?, attrs: AttributeSet?) :
                     val wasOpenSshKey = String(bytes, StandardCharsets.UTF_8).contains("OPENSSH")
                     throw if (wasOpenSshKey) sshlibException else bouncyCastleException
                 }
+            }
+
+            if (keyPair.private is EdDSAKey) {
+                keyPair = keyPair.edDsaKeyPairToSshLibEd25519KeyPair()
             }
 
             val algorithmName = keyPair.private.algorithm
