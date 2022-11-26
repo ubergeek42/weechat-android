@@ -78,6 +78,12 @@
         <item>4</item>
     </string-array>
 
+    <string-array name="pref__buttons__volume__values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+
     <string-array name="pref__buttons__paperclip__action_1_values">
         <item>content_images</item>
         <item>content_media</item>

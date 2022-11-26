@@ -691,12 +691,9 @@
         Quand le bouton «&#8239;trombone&#8239;» devient invisible pour laisser de la place au champ de saisie,
         il reste possible de joindre des fichiers via le menu déroulant.</string>
 
-    <string name="pref__buttons__volume_buttons_change_text_size">
-        Taille du texte via le volume</string>
-    <string name="pref__buttons__volume_buttons_change_text_size_summary">
-        Si coché, les boutons du volume audio changent la taille du texte
-        lorsque Weechat-Android est au premier plan</string>
-
+    <string name="pref_buttons_volume__actions__none">Ne rien faire</string>
+    <string name="pref_buttons_volume__actions__text_size">Changer la taille du texte</string>
+    <string name="pref_buttons_volume__actions__history">Naviguer dans les messages envoyés</string>
     <!-- ####################################################################################### -->
     <!-- #################################### notifications #################################### -->
     <!-- ####################################################################################### -->
