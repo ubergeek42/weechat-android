@@ -2,6 +2,7 @@
 
 package com.ubergeek42.WeechatAndroid.utils
 
+import org.bouncycastle.asn1.ASN1OctetString
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo
 import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters
@@ -100,10 +101,11 @@ private fun PrivateKey.toPem(): String {
 }
 
 
-private fun genEd25519publicKey(privateKey: EdDSAKey, keyInfo: PrivateKeyInfo): PublicKey {
-    val privateKeyParameters = Ed25519PrivateKeyParameters(privateKey.encoded, 0)
+private fun genEd25519publicKey(privateKey: EdDSAKey, privateKeyInfo: PrivateKeyInfo): PublicKey {
+    val privateKeyRaw = ASN1OctetString.getInstance(privateKeyInfo.parsePrivateKey()).octets
+    val privateKeyParameters = Ed25519PrivateKeyParameters(privateKeyRaw)
     val publicKeyParameters = privateKeyParameters.generatePublicKey()
-    val spi = SubjectPublicKeyInfo(keyInfo.privateKeyAlgorithm, publicKeyParameters.encoded)
+    val spi = SubjectPublicKeyInfo(privateKeyInfo.privateKeyAlgorithm, publicKeyParameters.encoded)
     val factory = KeyFactory.getInstance(privateKey.algorithm, bouncyCastleProvider)
     return factory.generatePublic(X509EncodedKeySpec(spi.encoded))
 }
