@@ -4,6 +4,7 @@ import android.os.Build;
 
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.Weechat;
+import com.ubergeek42.WeechatAndroid.service.P;
 
 import java.util.Set;
 
@@ -123,8 +124,8 @@ public class Constants {
     final public static boolean PREF_SHOW_SEND_D = true;
     public final static String PREF_SHOW_TAB = "tabbtn_show";
     final public static boolean PREF_SHOW_TAB_D = true;
-    public final static String PREF_VOLUME_BTN_SIZE = "volumebtn_size";
-    final public static boolean PREF_VOLUME_BTN_SIZE_D = true;
+    public final static String PREF_VOLUME_ROLE = "buttons__volume";
+    final public static String PREF_VOLUME_ROLE_D = String.valueOf(P.VolumeRole.TEXT_SIZE.ordinal());
 
     final public static String PREF_SHOW_PAPERCLIP = "buttons__show_paperclip";
     final public static boolean PREF_SHOW_PAPERCLIP_D = true;
@@ -256,5 +257,6 @@ public class Constants {
         final static public String PREF_SSH_KEY = "ssh_key"; final public static String PREF_SSH_KEY_D = null;
         final static public String PREF_SSH_KEY_PASSPHRASE = "ssh_key_passphrase"; final public static String PREF_SSH_KEY_PASSPHRASE_D = null;
         final static public String PREF_SSH_KNOWN_HOSTS = "ssh_known_hosts"; final public static String PREF_SSH_KNOWN_HOSTS_D = "";
+        final static public String PREF_VOLUME_BTN_SIZE = "volumebtn_size"; final public static boolean PREF_VOLUME_BTN_SIZE_D = true;
     }
 }

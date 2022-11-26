@@ -350,11 +350,13 @@
             android:persistent="false"
             android:selectable="false"
             android:dependency="buttons__show_paperclip" />
-        <CheckBoxPreference
-            android:key="volumebtn_size"
-            android:title="@string/pref__buttons__volume_buttons_change_text_size"
-            android:summary="@string/pref__buttons__volume_buttons_change_text_size_summary"
-            android:defaultValue="true" />
+        <ListPreference
+            android:key="buttons__volume"
+            android:title="@string/pref__buttons__volume__title"
+            android:entries="@array/pref__buttons__volume__entries"
+            android:entryValues="@array/pref__buttons__volume__values"
+            android:defaultValue="1"
+            app:useSimpleSummaryProvider="true" />
     </PreferenceScreen>
 
     <!-- notifications -->

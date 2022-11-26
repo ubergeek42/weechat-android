@@ -1,14 +1,15 @@
 package com.ubergeek42.WeechatAndroid.utils
 
 import android.content.Context
+import androidx.core.content.edit
 import androidx.preference.PreferenceManager
 import androidx.preference.PrivateKeyPickerPreference
+import com.ubergeek42.WeechatAndroid.service.P.VolumeRole
 import com.ubergeek42.WeechatAndroid.upload.applicationContext
 import com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils.InsideSecurityHardware
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
 import com.ubergeek42.weechat.relay.connection.SSHConnection
-import java.util.*
 
 
 class MigratePreferences(val context: Context) {
@@ -175,6 +176,14 @@ class MigratePreferences(val context: Context) {
                 showInfo("The app no longer requests external storage permission. " +
                          "If you are using custom fonts or themes, " +
                          "you may have to import them in settings.")
+            }
+        }
+
+        add(5, 6) {
+            val volumeChangesSize = preferences.getBoolean(Constants.Deprecated.PREF_VOLUME_BTN_SIZE, Constants.Deprecated.PREF_VOLUME_BTN_SIZE_D)
+            preferences.edit {
+                this.remove(Constants.Deprecated.PREF_VOLUME_BTN_SIZE)
+                this.putString(Constants.PREF_VOLUME_ROLE, (if (volumeChangesSize) VolumeRole.TEXT_SIZE else VolumeRole.NONE).ordinal.toString(10))
             }
         }
     }

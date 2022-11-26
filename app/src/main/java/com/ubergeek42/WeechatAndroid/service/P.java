@@ -123,7 +123,10 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     public static boolean notificationVibrate;
     public static String notificationSound;
 
-    public static boolean showSend, showTab, showPaperclip, hotlistSync, volumeBtnSize;
+    public static boolean showSend, showTab, showPaperclip, hotlistSync;
+
+    public enum VolumeRole {NONE, TEXT_SIZE, SEND_HISTORY};
+    public static VolumeRole volumeRole;
 
     public static boolean showBufferFilter;
 
@@ -167,7 +170,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         showTab = p.getBoolean(PREF_SHOW_TAB, PREF_SHOW_TAB_D);
         showPaperclip = p.getBoolean(PREF_SHOW_PAPERCLIP, PREF_SHOW_PAPERCLIP_D);
         hotlistSync = p.getBoolean(PREF_HOTLIST_SYNC, PREF_HOTLIST_SYNC_D);
-        volumeBtnSize = p.getBoolean(PREF_VOLUME_BTN_SIZE, PREF_VOLUME_BTN_SIZE_D);
+        volumeRole = VolumeRole.values()[Integer.parseInt(p.getString(PREF_VOLUME_ROLE, PREF_VOLUME_ROLE_D))];
 
         // buffer list filter
         showBufferFilter = p.getBoolean(PREF_SHOW_BUFFER_FILTER, PREF_SHOW_BUFFER_FILTER_D);
@@ -365,7 +368,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
             case PREF_SHOW_TAB: showTab = p.getBoolean(key, PREF_SHOW_TAB_D); break;
             case PREF_SHOW_PAPERCLIP: showPaperclip = p.getBoolean(key, PREF_SHOW_PAPERCLIP_D); break;
             case PREF_HOTLIST_SYNC: hotlistSync = p.getBoolean(key, PREF_HOTLIST_SYNC_D); break;
-            case PREF_VOLUME_BTN_SIZE: volumeBtnSize = p.getBoolean(key, PREF_VOLUME_BTN_SIZE_D); break;
+            case PREF_VOLUME_ROLE: volumeRole = VolumeRole.values()[Integer.parseInt(p.getString(PREF_VOLUME_ROLE, PREF_VOLUME_ROLE_D))]; break;
 
             // buffer list fragment
             case PREF_SHOW_BUFFER_FILTER: showBufferFilter = p.getBoolean(key, PREF_SHOW_BUFFER_FILTER_D); break;

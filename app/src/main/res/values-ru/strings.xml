@@ -699,10 +699,9 @@
         Когда кнопка «Скрепка» скрыта, чтобы оставить больше места для поля ввода,
         выбирать файлы можно через меню.</string>
 
-    <string name="pref__buttons__volume_buttons_change_text_size">
-        Кнопки громкости меняют размер текста</string>
-    <string name="pref__buttons__volume_buttons_change_text_size_summary">
-        Если настройка включена, кнопки громкости будут менять размер текста вместо громкости</string>
+    <string name="pref_buttons_volume__actions__none">Ничего не делать</string>
+    <string name="pref_buttons_volume__actions__text_size">Кнопки громкости меняют размер текста</string>
+    <string name="pref_buttons_volume__actions__history">Навигация по истории отправлений</string>
 
     <!-- ####################################################################################### -->
     <!-- #################################### notifications #################################### -->

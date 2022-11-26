@@ -703,11 +703,9 @@
         wenn der Büroklammer-Taste versteckt wurde,
         um mehr Platz für das Eingabefeld zu schaffen.</string>
 
-    <string name="pref__buttons__volume_buttons_change_text_size">
-        Lautstärketasten ändern die Textgröße</string>
-    <string name="pref__buttons__volume_buttons_change_text_size_summary">
-        Wenn diese Option aktiviert ist,
-        ändern die Lautstärketasten die Textgröße, anstelle der Lautstärke</string>
+    <string name="pref_buttons_volume__actions__none">Nichts tun</string>
+    <string name="pref_buttons_volume__actions__text_size">Lautstärketasten ändern die Textgröße</string>
+    <string name="pref_buttons_volume__actions__history">Navigieren im Sendeverlauf</string>
 
     <!-- ####################################################################################### -->
     <!-- #################################### notifications #################################### -->

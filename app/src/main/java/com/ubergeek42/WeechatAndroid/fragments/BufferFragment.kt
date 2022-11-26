@@ -64,15 +64,8 @@ import com.ubergeek42.WeechatAndroid.upload.i
 import com.ubergeek42.WeechatAndroid.upload.insertAddingSpacesAsNeeded
 import com.ubergeek42.WeechatAndroid.upload.suppress
 import com.ubergeek42.WeechatAndroid.upload.validateUploadConfig
+import com.ubergeek42.WeechatAndroid.utils.*
 import com.ubergeek42.WeechatAndroid.utils.Assert.assertThat
-import com.ubergeek42.WeechatAndroid.utils.FriendlyExceptions
-import com.ubergeek42.WeechatAndroid.utils.Toaster
-import com.ubergeek42.WeechatAndroid.utils.Utils
-import com.ubergeek42.WeechatAndroid.utils.afterTextChanged
-import com.ubergeek42.WeechatAndroid.utils.equalsIgnoringUselessSpans
-import com.ubergeek42.WeechatAndroid.utils.makeCopyWithoutUselessSpans
-import com.ubergeek42.WeechatAndroid.utils.indexOfOrElse
-import com.ubergeek42.WeechatAndroid.utils.ulet
 import com.ubergeek42.WeechatAndroid.views.BufferFragmentFullScreenController
 import com.ubergeek42.WeechatAndroid.views.OnBackGestureListener
 import com.ubergeek42.WeechatAndroid.views.OnJumpedUpWhileScrollingListener
@@ -155,6 +148,7 @@ class BufferFragment : Fragment(), BufferEye {
         savedInstanceState?.let {
             restoreRecyclerViewState(it)
             restoreSearchState(it)
+            restoreHistoryState(it)
         }
     }
 
@@ -287,6 +281,7 @@ class BufferFragment : Fragment(), BufferEye {
         super.onSaveInstanceState(outState)
         saveRecyclerViewState(outState)
         saveSearchState(outState)
+        saveHistoryState(outState)
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -521,11 +516,21 @@ class BufferFragment : Fragment(), BufferEye {
                 return@OnKeyListener true
             }
             KeyEvent.KEYCODE_VOLUME_DOWN, KeyEvent.KEYCODE_VOLUME_UP -> {
-                if (P.volumeBtnSize) {
-                    val change = if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) 1f else -1f
-                    val textSize = (P.textSize + change).coerceIn(5f, 30f)
-                    P.setTextSizeColorAndLetterWidth(textSize)
-                    return@OnKeyListener true
+                val up = keyCode == KeyEvent.KEYCODE_VOLUME_UP
+                when (P.volumeRole) {
+                    P.VolumeRole.TEXT_SIZE -> {
+                        val change = if (up) 1f else -1f
+                        val textSize = (P.textSize + change).coerceIn(5f, 30f)
+                        P.setTextSizeColorAndLetterWidth(textSize)
+                        return@OnKeyListener true
+                    }
+                    P.VolumeRole.SEND_HISTORY -> {
+                        ulet(ui?.chatInput) {
+                            history.navigateOffset(it, if (up) 1 else -1)
+                        }
+                        return@OnKeyListener true
+                    }
+                    else -> {}
                 }
             }
         }
@@ -952,6 +957,20 @@ class BufferFragment : Fragment(), BufferEye {
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////// history
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private val history = History()
+
+    private fun saveHistoryState(outState: Bundle) {
+        outState.putBundle(KEY_HISTORY, history.save())
+    }
+
+    private fun restoreHistoryState(savedInstanceState: Bundle) {
+        savedInstanceState.getBundle(KEY_HISTORY)?.let { history.restore(it) }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private fun setPendingInputForParallelFragments() = ulet(buffer, ui) { buffer, ui ->
         ui.chatInput.text?.let {
@@ -994,7 +1013,7 @@ private const val KEY_LAST_FOCUSED_MATCH = "lastFocusedMatch"
 private const val KEY_REGEX = "regex"
 private const val KEY_CASE_SENSITIVE = "caseSensitive"
 private const val KEY_SOURCE = "source"
-
+private const val KEY_HISTORY = "history"
 
 private enum class ConnectivityState(
     val displayBadge: Boolean,
