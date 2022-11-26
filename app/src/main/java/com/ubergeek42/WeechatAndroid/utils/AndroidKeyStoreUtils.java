@@ -3,6 +3,7 @@ package com.ubergeek42.WeechatAndroid.utils;
 import android.os.Build;
 import android.security.keystore.KeyInfo;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
 import org.bouncycastle.asn1.x500.X500Name;
@@ -115,7 +116,7 @@ public class AndroidKeyStoreUtils {
         CANT_TELL
     }
 
-    public static InsideSecurityHardware isInsideSecurityHardware(PrivateKey privateKey)
+    public static @NonNull InsideSecurityHardware isInsideSecurityHardware(PrivateKey privateKey)
             throws NoSuchProviderException, NoSuchAlgorithmException, InvalidKeySpecException {
         if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.M)
             return InsideSecurityHardware.CANT_TELL;
@@ -124,7 +125,7 @@ public class AndroidKeyStoreUtils {
         return keyInfo.isInsideSecureHardware() ? InsideSecurityHardware.YES : InsideSecurityHardware.NO;
     }
 
-    public static InsideSecurityHardware isInsideSecurityHardware(String androidKeyStoreKeyAlias)
+    public static @NonNull InsideSecurityHardware isInsideSecurityHardware(String androidKeyStoreKeyAlias)
             throws NoSuchProviderException, NoSuchAlgorithmException, InvalidKeySpecException,
             CertificateException, IOException, UnrecoverableKeyException, KeyStoreException {
         PrivateKey privateKey = (PrivateKey) getAndroidKeyStore().getKey(androidKeyStoreKeyAlias, null);
