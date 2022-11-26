@@ -1,96 +1,99 @@
-package androidx.preference;
+package androidx.preference
 
-import android.content.Context;
-import android.util.AttributeSet;
+import android.content.Context
+import android.util.AttributeSet
+import com.ubergeek42.WeechatAndroid.R
+import com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils
+import com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils.InsideSecurityHardware
+import com.ubergeek42.WeechatAndroid.utils.Constants
+import com.ubergeek42.WeechatAndroid.utils.TinyMap
+import com.ubergeek42.WeechatAndroid.utils.Utils
+import com.ubergeek42.WeechatAndroid.utils.makeKeyPair
+import com.ubergeek42.WeechatAndroid.utils.toReader
+import com.ubergeek42.cats.Kitty
+import com.ubergeek42.cats.Root
+import com.ubergeek42.weechat.relay.connection.SSHConnection
+import java.io.IOException
+import java.nio.charset.StandardCharsets
+import java.security.GeneralSecurityException
+import java.security.KeyPair
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
-import com.ubergeek42.WeechatAndroid.R;
-import com.ubergeek42.WeechatAndroid.utils.TinyMap;
-import com.ubergeek42.WeechatAndroid.utils.Utils;
-import com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtilsKt;
-import com.ubergeek42.cats.Kitty;
-import com.ubergeek42.cats.Root;
-import com.ubergeek42.weechat.relay.connection.SSHConnection;
-
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.security.GeneralSecurityException;
-import java.security.KeyPair;
-
-import static com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils.deleteAndroidKeyStoreEntry;
-import static com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils.isInsideSecurityHardware;
-import static com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils.putKeyPairIntoAndroidKeyStore;
-import static com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils.InsideSecurityHardware;
-import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSH_KEY_FILE;
-
-public class PrivateKeyPickerPreference extends PasswordedFilePickerPreference {
-    final private static @Root Kitty kitty = Kitty.make();
-    final public static String STORED_IN_KEYSTORE = "woo hoo the key is stored in keystore!";
-
-    public PrivateKeyPickerPreference(Context context, AttributeSet attrs) {
-        super(context, attrs);
-    }
-
-    @Override protected String saveData(@Nullable byte[] bytes, @NonNull String passphrase) throws Exception {
-        Context context = getContext();
-        String key, message;
-
+class PrivateKeyPickerPreference(context: Context?, attrs: AttributeSet?) :
+        PasswordedFilePickerPreference(context, attrs) {
+    @Throws(Exception::class) override fun saveData(bytes: ByteArray?,
+                                                    passphrase: String): String {
+        val context = context
+        var key: String?
+        var message: String
         if (bytes != null) {
-            KeyPair keyPair;
-            try {
-                keyPair = SSHConnection.makeKeyPair(bytes, passphrase);
-            } catch (Exception sshlibException) {
+            val keyPair: KeyPair
+            keyPair = try {
+                SSHConnection.makeKeyPair(bytes, passphrase)
+            } catch (sshlibException: Exception) {
                 try {
-                    keyPair = AndroidKeyStoreUtilsKt.makeKeyPair(
-                            AndroidKeyStoreUtilsKt.toReader(bytes), passphrase.toCharArray());
-                } catch (Exception bouncyCastleException) {
-                    throw new String(bytes, StandardCharsets.UTF_8).contains("OPENSSH") ?
-                            sshlibException : bouncyCastleException;
+                    makeKeyPair(
+                        bytes.toReader(), passphrase.toCharArray())
+                } catch (bouncyCastleException: Exception) {
+                    throw if (String(bytes,
+                                     StandardCharsets.UTF_8).contains("OPENSSH")
+                    ) sshlibException else bouncyCastleException
                 }
             }
-
-            String algorithm = keyPair.getPrivate().getAlgorithm();
-
+            val algorithm = keyPair.private.algorithm
             try {
-                putKeyPairIntoAndroidKeyStore(keyPair, SSHConnection.KEYSTORE_ALIAS);
-                key = STORED_IN_KEYSTORE;
-                message = getInsideSecurityHardwareString(algorithm);
-            } catch (Exception e) {
-                kitty.warn("Error while putting %s key into AndroidKeyStore", algorithm, e);
-                key = Utils.serialize(keyPair);
-                message = context.getString(R.string.pref__PrivateKeyPickerPreference__success_stored_outside_key_store, algorithm, e.getMessage());
+                AndroidKeyStoreUtils.putKeyPairIntoAndroidKeyStore(keyPair,
+                                                                   SSHConnection.KEYSTORE_ALIAS)
+                key = STORED_IN_KEYSTORE
+                message = getInsideSecurityHardwareString(algorithm)
+            } catch (e: Exception) {
+                kitty.warn("Error while putting %s key into AndroidKeyStore",
+                           algorithm,
+                           e)
+                key = Utils.serialize(keyPair)
+                message =
+                    context.getString(R.string.pref__PrivateKeyPickerPreference__success_stored_outside_key_store,
+                                      algorithm,
+                                      e.message)
             }
         } else {
-            key = null;
-            message = context.getString(R.string.pref__PrivateKeyPickerPreference__success_key_forgotten);
+            key = null
+            message =
+                context.getString(R.string.pref__PrivateKeyPickerPreference__success_key_forgotten)
             try {
-                deleteAndroidKeyStoreEntry(SSHConnection.KEYSTORE_ALIAS);
-            } catch (Exception e) {
-                kitty.warn("Error while deleting key from AndroidKeyStore", e);
+                AndroidKeyStoreUtils.deleteAndroidKeyStoreEntry(SSHConnection.KEYSTORE_ALIAS)
+            } catch (e: Exception) {
+                kitty.warn("Error while deleting key from AndroidKeyStore", e)
             }
         }
-
-        getSharedPreferences().edit()
-                .putString(PREF_SSH_KEY_FILE, key)
-                .apply();
-        notifyChanged();
-        return message;
+        sharedPreferences!!.edit()
+                .putString(Constants.PREF_SSH_KEY_FILE, key)
+                .apply()
+        notifyChanged()
+        return message
     }
 
-    public static @Nullable byte[] getData(String data) {
-        return STORED_IN_KEYSTORE.equals(data) ?
-                SSHConnection.STORED_IN_KEYSTORE_MARKER : FilePreference.getData(data);
+    @Throws(GeneralSecurityException::class, IOException::class)
+    fun getInsideSecurityHardwareString(algorithm: String?): String {
+        val inside =
+            AndroidKeyStoreUtils.isInsideSecurityHardware(SSHConnection.KEYSTORE_ALIAS)
+        val resId = TinyMap.of(
+            InsideSecurityHardware.YES,
+            R.string.pref__PrivateKeyPickerPreference__success_stored_inside_security_hardware_yes,
+            InsideSecurityHardware.NO,
+            R.string.pref__PrivateKeyPickerPreference__success_stored_inside_security_hardware_cant_tell,
+            InsideSecurityHardware.CANT_TELL,
+            R.string.pref__PrivateKeyPickerPreference__success_stored_inside_security_hardware_cant_tell
+        )[inside]
+        return context.getString(resId, algorithm)
     }
 
-    public String getInsideSecurityHardwareString(String algorithm) throws GeneralSecurityException, IOException {
-        InsideSecurityHardware inside = isInsideSecurityHardware(SSHConnection.KEYSTORE_ALIAS);
-        int resId = TinyMap.of(
-                InsideSecurityHardware.YES, R.string.pref__PrivateKeyPickerPreference__success_stored_inside_security_hardware_yes,
-                InsideSecurityHardware.NO, R.string.pref__PrivateKeyPickerPreference__success_stored_inside_security_hardware_cant_tell,
-                InsideSecurityHardware.CANT_TELL, R.string.pref__PrivateKeyPickerPreference__success_stored_inside_security_hardware_cant_tell
-        ).get(inside);
-        return getContext().getString(resId, algorithm);
+    companion object {
+        @Root
+        private val kitty: Kitty = Kitty.make()
+        const val STORED_IN_KEYSTORE = "woo hoo the key is stored in keystore!"
+        @JvmStatic fun getData(data: String): ByteArray? {
+            return if (STORED_IN_KEYSTORE == data) SSHConnection.STORED_IN_KEYSTORE_MARKER else FilePreference.getData(
+                data)
+        }
     }
 }
