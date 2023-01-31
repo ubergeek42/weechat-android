@@ -32,6 +32,7 @@ import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.WeechatAndroid.upload.UploadConfigKt;
 import com.ubergeek42.WeechatAndroid.utils.Constants;
+import com.ubergeek42.WeechatAndroid.utils.History;
 import com.ubergeek42.WeechatAndroid.utils.MigratePreferences;
 import com.ubergeek42.WeechatAndroid.utils.ThemeFix;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
@@ -125,7 +126,25 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
 
     public static boolean showSend, showTab, showPaperclip, hotlistSync;
 
-    public enum VolumeRole {NONE, TEXT_SIZE, SEND_HISTORY};
+    public enum VolumeRole {
+        DoNothing("none"),
+        ChangeTextSize("change_text_size"),
+        NavigateInputHistory("navigate_input_history");
+
+        public final String value;
+
+        VolumeRole(String value) {
+            this.value = value;
+        }
+
+        static VolumeRole fromString(String value) {
+            for (VolumeRole role : VolumeRole.values()) {
+                if (role.value.equals(value)) return role;
+            }
+            // Should never be reached.
+            return VolumeRole.ChangeTextSize;
+        }
+    }
     public static VolumeRole volumeRole;
 
     public static boolean showBufferFilter;
@@ -170,7 +189,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         showTab = p.getBoolean(PREF_SHOW_TAB, PREF_SHOW_TAB_D);
         showPaperclip = p.getBoolean(PREF_SHOW_PAPERCLIP, PREF_SHOW_PAPERCLIP_D);
         hotlistSync = p.getBoolean(PREF_HOTLIST_SYNC, PREF_HOTLIST_SYNC_D);
-        volumeRole = VolumeRole.values()[Integer.parseInt(p.getString(PREF_VOLUME_ROLE, PREF_VOLUME_ROLE_D))];
+        volumeRole = VolumeRole.fromString(p.getString(PREF_VOLUME_ROLE, PREF_VOLUME_ROLE_D));
 
         // buffer list filter
         showBufferFilter = p.getBoolean(PREF_SHOW_BUFFER_FILTER, PREF_SHOW_BUFFER_FILTER_D);
@@ -368,7 +387,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
             case PREF_SHOW_TAB: showTab = p.getBoolean(key, PREF_SHOW_TAB_D); break;
             case PREF_SHOW_PAPERCLIP: showPaperclip = p.getBoolean(key, PREF_SHOW_PAPERCLIP_D); break;
             case PREF_HOTLIST_SYNC: hotlistSync = p.getBoolean(key, PREF_HOTLIST_SYNC_D); break;
-            case PREF_VOLUME_ROLE: volumeRole = VolumeRole.values()[Integer.parseInt(p.getString(PREF_VOLUME_ROLE, PREF_VOLUME_ROLE_D))]; break;
+            case PREF_VOLUME_ROLE: volumeRole = VolumeRole.fromString(p.getString(PREF_VOLUME_ROLE, PREF_VOLUME_ROLE_D)); break;
 
             // buffer list fragment
             case PREF_SHOW_BUFFER_FILTER: showBufferFilter = p.getBoolean(key, PREF_SHOW_BUFFER_FILTER_D); break;
@@ -439,11 +458,11 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
 
     // protocol must be changed each time anything that uses the following function changes
     // needed to make sure nothing crashes if we cannot restore the data
-    private static final int PROTOCOL_ID = 18;
+    private static final int PROTOCOL_ID = 19;
 
     @AnyThread @Cat public static void saveStuff() {
         for (Buffer buffer : BufferList.buffers) saveLastReadLine(buffer);
-        String data = Utils.serialize(new Object[]{openBuffers, bufferToLastReadLine, sentMessages});
+        String data = Utils.serialize(new Object[]{openBuffers, bufferToLastReadLine, sentMessages, history});
         p.edit().putString(PREF_DATA, data).putInt(PREF_PROTOCOL_ID, PROTOCOL_ID).apply();
     }
 
@@ -456,6 +475,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         if (array[0] instanceof LinkedHashSet) openBuffers = (LinkedHashSet<Long>) array[0];
         if (array[1] instanceof LinkedHashMap) bufferToLastReadLine = (LinkedHashMap<Long, BufferHotData>) array[1];
         if (array[2] instanceof LinkedList) sentMessages = (LinkedList<String>) array[2];
+        if (array[3] instanceof History) history = (History) array[3];
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -526,6 +546,12 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         if (sentMessages.size() > 40)
             sentMessages.pop();
     }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////// input history
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    public static History history = new History();
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 

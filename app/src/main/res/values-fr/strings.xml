@@ -691,9 +691,11 @@
         Quand le bouton «&#8239;trombone&#8239;» devient invisible pour laisser de la place au champ de saisie,
         il reste possible de joindre des fichiers via le menu déroulant.</string>
 
-    <string name="pref_buttons_volume__actions__none">Ne rien faire</string>
-    <string name="pref_buttons_volume__actions__text_size">Changer la taille du texte</string>
-    <string name="pref_buttons_volume__actions__history">Naviguer dans les messages envoyés</string>
+    <string name="pref__buttons__volume__title">Les boutons de volume</string>
+    <string name="pref__buttons__volume__actions__none">Ne font rien de spécial</string>
+    <string name="pref__buttons__volume__actions__change_text_size">Changent la taille du texte</string>
+    <string name="pref__buttons__volume__actions__navigate_input_history">Naviguent dans l’historique de saisie</string>
+
     <!-- ####################################################################################### -->
     <!-- #################################### notifications #################################### -->
     <!-- ####################################################################################### -->
