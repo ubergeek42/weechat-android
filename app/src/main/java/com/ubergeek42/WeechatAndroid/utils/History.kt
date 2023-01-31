@@ -2,6 +2,8 @@ package com.ubergeek42.WeechatAndroid.utils
 
 import android.os.Parcel
 import android.widget.EditText
+import androidx.core.text.getSpans
+import com.ubergeek42.WeechatAndroid.upload.ShareSpan
 
 class History : java.io.Serializable {
     companion object {
@@ -12,10 +14,37 @@ class History : java.io.Serializable {
         private const val MAX_HISTORY_LENGTH = 40
     }
 
+    class SpanSpec(var span: ShareSpan, var start: Int, var end: Int, var flags: Int) :
+        java.io.Serializable {
+        private fun readObject(inp: java.io.ObjectInputStream) {
+            val p = Parcel.obtain()
+            val bytes = inp.readObject() as Array<Byte>
+            p.unmarshall(bytes.toByteArray(), 0, bytes.size)
+            // This fails :(
+            this.span = p.readParcelable(ShareSpan::class.java.classLoader)!!
+            p.recycle()
+            this.start = inp.readInt()
+            this.end = inp.readInt()
+            this.flags = inp.readInt()
+        }
+
+        private fun writeObject(out: java.io.ObjectOutputStream) {
+            val p = Parcel.obtain()
+            p.writeParcelable(span, 0)
+            val bytes = p.marshall().toTypedArray()
+            p.recycle()
+            out.writeObject(bytes)
+            out.writeInt(start)
+            out.writeInt(end)
+            out.writeInt(flags)
+        }
+    }
+
     class Message : java.io.Serializable {
         lateinit var content: String
         var selectionStart: Int = 0
         var selectionEnd: Int = 0
+        var shareSpans: List<SpanSpec> = listOf()
 
         constructor(editText: EditText) {
             updateFromEdit(editText)
@@ -33,11 +62,22 @@ class History : java.io.Serializable {
             // Input length might be shorter because of the text ellipsis from above.
             selectionStart = minOf(content.length, editText.selectionStart)
             selectionEnd = minOf(content.length, editText.selectionEnd)
+            shareSpans = editText.text.getSpans<ShareSpan>().asIterable().map {
+                SpanSpec(
+                    it,
+                    editText.text.getSpanStart(it),
+                    editText.text.getSpanEnd(it),
+                    editText.text.getSpanFlags(it)
+                )
+            }.toList()
         }
 
         fun applyToEdit(editText: EditText) {
             editText.setText(content)
             editText.setSelection(selectionStart, selectionEnd)
+            for (span in shareSpans) {
+                editText.text.setSpan(span.span, span.start, span.end, span.flags)
+            }
         }
     }
 

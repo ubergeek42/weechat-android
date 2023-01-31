@@ -1,6 +1,8 @@
 package com.ubergeek42.WeechatAndroid.upload
 
 import android.net.Uri
+import android.os.Parcel
+import android.os.Parcelable
 import android.provider.OpenableColumns
 import android.webkit.MimeTypeMap
 import okhttp3.MediaType
@@ -13,14 +15,20 @@ import java.io.InputStream
 // Suri stands for “share uri” which i hated for no solid reason
 // it's also how Suri alpacas are called, and they are gorgeous; i've wanted to touch one for years
 class Suri private constructor(
-    val uri: Uri,
-    val mediaType: MediaType?,
-    val fileName: String,
-    val fileSize: Long
-) {
+    var uri: Uri, var mediaType: MediaType?, var fileName: String, var fileSize: Long
+) : java.io.Serializable, Parcelable {
     var httpUri: String? = null
 
     val ready get() = httpUri != null
+
+    constructor(parcel: Parcel) : this(
+        parcel.readParcelable(Uri::class.java.classLoader)!!,
+        parcel.readString()!!.toMediaTypeOrNull(),
+        parcel.readString()!!,
+        parcel.readLong()
+    ) {
+        httpUri = parcel.readString()
+    }
 
     @Throws(FileNotFoundException::class, IOException::class, SecurityException::class)
     fun getInputStream(): InputStream {
@@ -28,6 +36,17 @@ class Suri private constructor(
     }
 
     companion object {
+        @JvmField
+        val CREATOR = object : Parcelable.Creator<Suri> {
+            override fun createFromParcel(parcel: Parcel): Suri {
+                return Suri(parcel)
+            }
+
+            override fun newArray(size: Int): Array<Suri?> {
+                return arrayOfNulls(size)
+            }
+        }
+
         @Throws(FileNotFoundException::class, IOException::class, SecurityException::class)
         fun fromUri(uri: Uri): Suri {
             val mediaType = resolver.getType(uri)?.toMediaTypeOrNull()
@@ -60,5 +79,16 @@ class Suri private constructor(
                 "bin" else MimeTypeMap.getSingleton().getExtensionFromMimeType(mediaType.toString())
             return "$base.$extension"
         }
+    }
+
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeParcelable(uri, flags)
+        parcel.writeString(fileName)
+        parcel.writeLong(fileSize)
+        parcel.writeString(httpUri)
+    }
+
+    override fun describeContents(): Int {
+        return 0
     }
 }
