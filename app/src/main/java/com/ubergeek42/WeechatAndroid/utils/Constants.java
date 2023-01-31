@@ -125,7 +125,7 @@ public class Constants {
     public final static String PREF_SHOW_TAB = "tabbtn_show";
     final public static boolean PREF_SHOW_TAB_D = true;
     public final static String PREF_VOLUME_ROLE = "buttons__volume";
-    final public static String PREF_VOLUME_ROLE_D = String.valueOf(P.VolumeRole.TEXT_SIZE.ordinal());
+    final public static String PREF_VOLUME_ROLE_D = P.VolumeRole.ChangeTextSize.value;
 
     final public static String PREF_SHOW_PAPERCLIP = "buttons__show_paperclip";
     final public static boolean PREF_SHOW_PAPERCLIP_D = true;

@@ -148,7 +148,6 @@ class BufferFragment : Fragment(), BufferEye {
         savedInstanceState?.let {
             restoreRecyclerViewState(it)
             restoreSearchState(it)
-            restoreHistoryState(it)
         }
     }
 
@@ -281,7 +280,6 @@ class BufferFragment : Fragment(), BufferEye {
         super.onSaveInstanceState(outState)
         saveRecyclerViewState(outState)
         saveSearchState(outState)
-        saveHistoryState(outState)
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -518,15 +516,15 @@ class BufferFragment : Fragment(), BufferEye {
             KeyEvent.KEYCODE_VOLUME_DOWN, KeyEvent.KEYCODE_VOLUME_UP -> {
                 val up = keyCode == KeyEvent.KEYCODE_VOLUME_UP
                 when (P.volumeRole) {
-                    P.VolumeRole.TEXT_SIZE -> {
+                    P.VolumeRole.ChangeTextSize -> {
                         val change = if (up) 1f else -1f
                         val textSize = (P.textSize + change).coerceIn(5f, 30f)
                         P.setTextSizeColorAndLetterWidth(textSize)
                         return@OnKeyListener true
                     }
-                    P.VolumeRole.SEND_HISTORY -> {
-                        ulet(ui?.chatInput) {
-                            history.navigateOffset(it, if (up) 1 else -1)
+                    P.VolumeRole.NavigateInputHistory -> {
+                        ui?.chatInput?.let {
+                            P.history.navigate(it, if (up) History.Direction.Older else History.Direction.Newer)
                         }
                         return@OnKeyListener true
                     }
@@ -550,6 +548,7 @@ class BufferFragment : Fragment(), BufferEye {
             assertThat(buffer).isEqualTo(linesAdapter?.buffer)
             if (connectedToRelayAndSynced) {
                 SendMessageEvent.fireInput(buffer, input.text.toString())
+                P.history.reset(input)
                 input.setText("")   // this will reset tab completion
             } else {
                 Toaster.ErrorToast.show(R.string.error__etc__not_connected)
@@ -954,20 +953,6 @@ class BufferFragment : Fragment(), BufferEye {
                 }
             }
         }
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////// history
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    private val history = History()
-
-    private fun saveHistoryState(outState: Bundle) {
-        outState.putBundle(KEY_HISTORY, history.save())
-    }
-
-    private fun restoreHistoryState(savedInstanceState: Bundle) {
-        savedInstanceState.getBundle(KEY_HISTORY)?.let { history.restore(it) }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

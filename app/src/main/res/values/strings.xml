@@ -35,6 +35,11 @@
     <string name="error__etc__cannot_share_to_empty_buffer_list">Buffer list empty</string>
     <string name="error__etc__activity_not_found_for_url">Activity not found for intent %s</string>
 
+    <plurals name="error__history_with_sharespans">
+        <item quantity="one">Remove or upload the image to navigate</item>
+        <item quantity="other">Remove or upload the images to navigate</item>
+    </plurals>
+
     <!-- ############################## main activity ui elements ############################## -->
 
     <string name="ui__button_paperclip">Upload file</string>
@@ -714,16 +719,16 @@
         When the paperclip button gets hidden to provide more space for the input field,
         you can still attach files via overflow menu.</string>
 
-    <string name="pref__buttons__volume__title">Volume button role</string>
+    <string name="pref__buttons__volume__title">Volume buttons</string>
     <string-array name="pref__buttons__volume__entries">
-        <item>@string/pref_buttons_volume__actions__none</item>
-        <item>@string/pref_buttons_volume__actions__text_size</item>
-        <item>@string/pref_buttons_volume__actions__history</item>
+        <item>@string/pref__buttons__volume__actions__none</item>
+        <item>@string/pref__buttons__volume__actions__change_text_size</item>
+        <item>@string/pref__buttons__volume__actions__navigate_input_history</item>
     </string-array>
 
-    <string name="pref_buttons_volume__actions__none">Do nothing</string>
-    <string name="pref_buttons_volume__actions__text_size">Change text size</string>
-    <string name="pref_buttons_volume__actions__history">Navigate sent history</string>
+    <string name="pref__buttons__volume__actions__none">No special action</string>
+    <string name="pref__buttons__volume__actions__change_text_size">Change text size</string>
+    <string name="pref__buttons__volume__actions__navigate_input_history">Navigate input history</string>
 
     <!-- ####################################################################################### -->
     <!-- #################################### notifications #################################### -->

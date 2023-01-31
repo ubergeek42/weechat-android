@@ -183,7 +183,10 @@ class MigratePreferences(val context: Context) {
             val volumeChangesSize = preferences.getBoolean(Constants.Deprecated.PREF_VOLUME_BTN_SIZE, Constants.Deprecated.PREF_VOLUME_BTN_SIZE_D)
             preferences.edit {
                 this.remove(Constants.Deprecated.PREF_VOLUME_BTN_SIZE)
-                this.putString(Constants.PREF_VOLUME_ROLE, (if (volumeChangesSize) VolumeRole.TEXT_SIZE else VolumeRole.NONE).ordinal.toString(10))
+                this.putString(
+                    Constants.PREF_VOLUME_ROLE,
+                    (if (volumeChangesSize) VolumeRole.ChangeTextSize else VolumeRole.DoNothing).value
+                )
             }
         }
     }

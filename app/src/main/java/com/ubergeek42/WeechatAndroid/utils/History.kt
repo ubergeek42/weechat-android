@@ -1,54 +1,111 @@
 package com.ubergeek42.WeechatAndroid.utils
 
-import android.os.Bundle
-import android.text.Editable
+import android.os.Parcel
 import android.widget.EditText
-import androidx.core.os.bundleOf
-import com.ubergeek42.WeechatAndroid.service.P
+import androidx.core.text.getSpans
+import com.ubergeek42.WeechatAndroid.R
+import com.ubergeek42.WeechatAndroid.upload.ShareSpan
 
-class History {
-    private var index = -1
-    private var userInput: Editable? = null
-    private var selectionStart: Int? = null
-    private var selectionEnd: Int? = null
+class History : java.io.Serializable {
+    companion object {
+        // Sentinel index representing the most recent end of the message history.
+        private const val END = -1
 
-    fun navigateOffset(editText: EditText, offset: Int) {
-        if (index == -1) {
-            userInput = editText.text
-            selectionStart = editText.selectionStart
-            selectionEnd = editText.selectionEnd
+        private const val MAX_MESSAGE_LENGTH = 2000
+        private const val MAX_HISTORY_LENGTH = 40
+    }
+
+    class Message : java.io.Serializable {
+        lateinit var content: String
+        var selectionStart: Int = 0
+        var selectionEnd: Int = 0
+
+        constructor(editText: EditText) {
+            updateFromEdit(editText)
         }
-        val newIndex = index + offset
-        messageAt(newIndex)?.let {
-            editText.text = it
-            editText.post {
-                if (newIndex == -1) {
-                    // Restore user selection.
-                    editText.setSelection(selectionStart ?: 0, selectionEnd ?: editText.length())
-                } else {
-                    // Go to end for sent messages.
-                    editText.setSelection(editText.length())
-                }
+
+        constructor(source: Parcel) {
+            content = source.readString() ?: ""
+            selectionStart = source.readInt()
+            selectionStart = source.readInt()
+        }
+
+
+        fun updateFromEdit(editText: EditText) {
+            content = Utils.cut(editText.text.toString(), MAX_MESSAGE_LENGTH)
+            // Input length might be shorter because of the text ellipsis from above.
+            selectionStart = minOf(content.length, editText.selectionStart)
+            selectionEnd = minOf(content.length, editText.selectionEnd)
+        }
+
+        fun applyToEdit(editText: EditText) {
+            editText.setText(content)
+            editText.setSelection(selectionStart, selectionEnd)
+        }
+    }
+
+    private var messages: MutableList<Message> = mutableListOf()
+    private var index = END
+
+    enum class Direction { Older, Newer }
+
+    // Save message iff it is not empty and not equal to the most recent message.
+    // Will remove the oldest message if the message size goes above the maximum history size.
+    private fun maybeSaveMessage(editText: EditText): Boolean {
+        val message = Message(editText)
+        val content = message.content
+        if (content.trim().isNotEmpty()) {
+            val last = messages.getOrNull(0)?.content
+            if (last?.equalsIgnoringUselessSpans(content) != true) {
+                messages.add(0, message)
+                if (messages.size > MAX_HISTORY_LENGTH) messages.removeLast()
+                return true
             }
-            index = newIndex
         }
+        return false
     }
 
-    fun save(): Bundle = bundleOf(
-        Pair("index", index),
-        Pair("userInput", userInput),
-        Pair("selStart", selectionStart),
-        Pair("selEnd", selectionEnd),
-    )
+    private fun shareSpanCount(editText: EditText): Int = editText.text.getSpans<ShareSpan>().size
 
-    fun restore(bundle: Bundle) {
-        index = bundle.getInt("index", -1)
-        userInput = bundle.get("userInput") as Editable?
-        selectionStart = bundle.getInt("selStart", -1).let { if (it == -1) null else it }
-        selectionEnd = bundle.getInt("selEnd", -1).let { if (it == -1) null else it }
+    fun navigate(editText: EditText, direction: Direction) {
+        val spc = shareSpanCount(editText)
+        if (spc > 0) {
+            // The editText contains non-uploaded ShareSpans that would be lost by navigating away.
+            // Bail out early to prevent data loss.
+            Toaster.ErrorToast.show(
+                editText.context.resources.getQuantityText(
+                    R.plurals.error__history_with_sharespans,
+                    spc
+                ).toString()
+            )
+            return
+        }
+        var newIndex = when (direction) {
+            Direction.Older -> index + 1
+            Direction.Newer -> index - 1
+        }
+        if (index == END) {
+            // Not in history yet. Push current edit to history.
+            val wasInserted = maybeSaveMessage(editText)
+            // Special case when saving from end and going older: since we've just inserted, we need
+            // to skip over the message that was just saved.
+            if (wasInserted && direction == Direction.Older) newIndex += 1
+        } else {
+            // In history already. Save changes before navigating away.
+            messages[index].updateFromEdit(editText)
+        }
+        if (newIndex < END) newIndex = END
+        if (newIndex >= messages.size) newIndex = messages.size - 1
+        if (newIndex == END) {
+            if (editText.text.isNotEmpty()) editText.setText("")
+        } else if (newIndex != index) {
+            messages[newIndex].applyToEdit(editText)
+        }
+        index = newIndex
     }
 
-    private fun messageAt(index: Int): Editable? =
-        if (index == -1) userInput else P.sentMessages.getOrNull(P.sentMessages.size - 1 - index)
-            ?.let { Editable.Factory.getInstance().newEditable(it) }
+    fun reset(editText: EditText) {
+        maybeSaveMessage(editText)
+        index = END
+    }
 }
