@@ -355,7 +355,7 @@
             android:title="@string/pref__buttons__volume__title"
             android:entries="@array/pref__buttons__volume__entries"
             android:entryValues="@array/pref__buttons__volume__values"
-            android:defaultValue="1"
+            android:defaultValue="change_text_size"
             app:useSimpleSummaryProvider="true" />
     </PreferenceScreen>
 

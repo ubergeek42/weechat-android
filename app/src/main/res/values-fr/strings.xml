@@ -32,6 +32,12 @@
     <string name="error__etc__cannot_share_to_empty_buffer_list">Aucun tampon disponible pour partager</string>
     <string name="error__etc__activity_not_found_for_url">Activité introuvable pour “l’intent” %s</string>
 
+    <plurals name="error__history_with_sharespans">
+        <item quantity="one" tools:ignore="ImpliedQuantity">Supprimez ou uploadez l’image pour naviguer</item>
+        <item quantity="other">Supprimez ou uploadez les images pour naviguer</item>
+        <item quantity="many">Supprimez ou uploadez les images pour naviguer</item>
+    </plurals>
+
     <!-- ############################## main activity ui elements ############################## -->
 
     <string name="ui__button_paperclip">Téléverser un fichier</string>
@@ -691,9 +697,11 @@
         Quand le bouton «&#8239;trombone&#8239;» devient invisible pour laisser de la place au champ de saisie,
         il reste possible de joindre des fichiers via le menu déroulant.</string>
 
-    <string name="pref_buttons_volume__actions__none">Ne rien faire</string>
-    <string name="pref_buttons_volume__actions__text_size">Changer la taille du texte</string>
-    <string name="pref_buttons_volume__actions__history">Naviguer dans les messages envoyés</string>
+    <string name="pref__buttons__volume__title">Les boutons de volume</string>
+    <string name="pref__buttons__volume__actions__none">Ne font rien de spécial</string>
+    <string name="pref__buttons__volume__actions__change_text_size">Changent la taille du texte</string>
+    <string name="pref__buttons__volume__actions__navigate_input_history">Naviguent dans l’historique de saisie</string>
+
     <!-- ####################################################################################### -->
     <!-- #################################### notifications #################################### -->
     <!-- ####################################################################################### -->

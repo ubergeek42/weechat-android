@@ -79,9 +79,9 @@
     </string-array>
 
     <string-array name="pref__buttons__volume__values">
-        <item>0</item>
-        <item>1</item>
-        <item>2</item>
+        <item>none</item>
+        <item>change_text_size</item>
+        <item>navigate_input_history</item>
     </string-array>
 
     <string-array name="pref__buttons__paperclip__action_1_values">
