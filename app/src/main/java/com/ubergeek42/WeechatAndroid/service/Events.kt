@@ -22,10 +22,6 @@ class Events {
                 EventBus.getDefault().post(SendMessageEvent(message))
             }
 
-            fun fire(message: String, vararg args: Any) {
-                fire(String.format(Locale.ROOT, message, *args))
-            }
-
             fun fireInput(buffer: Buffer, input: String?) {
                 if (input.isNullOrEmpty()) return
 

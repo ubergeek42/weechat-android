@@ -180,12 +180,12 @@ public class Utils {
     }
 
     public static String pointerToString(long pointer) {
-        return Long.toHexString(pointer);
+        return Long.toUnsignedString(pointer, 16);
     }
 
     public static long pointerFromString(String strPointer) {
         try {
-            return Long.parseLong(strPointer, 16);
+            return Long.parseUnsignedLong(strPointer, 16);
         } catch (NumberFormatException ignored) {
             return 0;
         }

@@ -56,8 +56,8 @@ inline fun Hdata.forEachExistingBuffer(block: (spec: BufferSpec, buffer: Buffer)
 }
 
 
-val Long.as0x get() = "0x" + java.lang.Long.toHexString(this)
+val Long.as0x get() = "0x" + java.lang.Long.toUnsignedString(this, 16)
 
-val String.from0x: Long get() = java.lang.Long.decode(this)
+val String.from0x: Long get() = java.lang.Long.parseUnsignedLong(this.substring(2), 16)
 
 val String.from0xOrNull get() = try { from0x } catch (e: NumberFormatException) { null }
