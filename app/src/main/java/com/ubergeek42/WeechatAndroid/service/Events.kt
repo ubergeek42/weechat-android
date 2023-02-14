@@ -1,34 +1,21 @@
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
+
 package com.ubergeek42.WeechatAndroid.service
 
-import android.text.TextUtils
 import com.ubergeek42.WeechatAndroid.relay.Buffer
+import com.ubergeek42.WeechatAndroid.relay.as0x
 import com.ubergeek42.WeechatAndroid.utils.Assert
 import org.greenrobot.eventbus.EventBus
 import java.util.EnumSet
 import java.util.Locale
 
 class Events {
-    class StateChangedEvent(val state: EnumSet<RelayService.STATE>) {
-        override fun toString(): String {
-            return "StateChangedEvent(state=$state)"
-        }
-    }
+    data class StateChangedEvent(@JvmField val state: EnumSet<RelayService.STATE>)
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    class ExceptionEvent internal constructor(val e: Exception) {
-        override fun toString(): String {
-            return "ExceptionEvent(e=$e)"
-        }
-    }
+    data class ExceptionEvent(@JvmField val e: Exception)
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    class SendMessageEvent private constructor(val message: String) {
-        override fun toString(): String {
-            return "SendMessageEvent(message=$message)"
-        }
-
+    data class SendMessageEvent(@JvmField val message: String) {
         companion object {
             fun fire(message: String) {
                 Assert.assertThat(message.endsWith("\n")).isFalse()
@@ -40,13 +27,13 @@ class Events {
             }
 
             fun fireInput(buffer: Buffer, input: String?) {
-                if (TextUtils.isEmpty(input)) return
+                if (input.isNullOrEmpty()) return
+
                 P.addSentMessage(input)
-                for (line in input!!.split("\n".toRegex())
-                        .dropLastWhile { it.isEmpty() }
-                        .toTypedArray()) if (!TextUtils.isEmpty(line)) fire("input 0x%x %s",
-                                                                            buffer.pointer,
-                                                                            line)
+
+                input.lineSequence().filter(String::isNotEmpty).forEach { line ->
+                    fire("input ${buffer.pointer.as0x} $line")
+                }
             }
         }
     }
