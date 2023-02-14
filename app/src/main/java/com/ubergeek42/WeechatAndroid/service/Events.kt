@@ -1,80 +1,53 @@
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
+package com.ubergeek42.WeechatAndroid.service
 
-package com.ubergeek42.WeechatAndroid.service;
+import android.text.TextUtils
+import com.ubergeek42.WeechatAndroid.relay.Buffer
+import com.ubergeek42.WeechatAndroid.utils.Assert
+import org.greenrobot.eventbus.EventBus
+import java.util.EnumSet
+import java.util.Locale
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import android.text.TextUtils;
-
-import com.ubergeek42.WeechatAndroid.relay.Buffer;
-import com.ubergeek42.WeechatAndroid.service.RelayService.STATE;
-
-import org.greenrobot.eventbus.EventBus;
-
-import java.util.EnumSet;
-import java.util.Locale;
-
-import static com.ubergeek42.WeechatAndroid.utils.Assert.assertThat;
-
-
-public class Events {
-
-    public static class StateChangedEvent {
-        final public EnumSet<STATE> state;
-
-        public StateChangedEvent(EnumSet<STATE> state) {
-            this.state = state;
-        }
-
-        @Override public @NonNull String toString() {
-            return "StateChangedEvent(state=" + state + ")";
+class Events {
+    class StateChangedEvent(val state: EnumSet<RelayService.STATE>) {
+        override fun toString(): String {
+            return "StateChangedEvent(state=$state)"
         }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    public static class ExceptionEvent {
-        final public Exception e;
-
-        ExceptionEvent(Exception e) {
-            this.e = e;
-        }
-
-        @Override public @NonNull String toString() {
-            return "ExceptionEvent(e=" + e + ")";
+    class ExceptionEvent internal constructor(val e: Exception) {
+        override fun toString(): String {
+            return "ExceptionEvent(e=$e)"
         }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    public static class SendMessageEvent {
-        final public String message;
-
-        private SendMessageEvent(String message) {
-            this.message = message;
+    class SendMessageEvent private constructor(val message: String) {
+        override fun toString(): String {
+            return "SendMessageEvent(message=$message)"
         }
 
-        public static void fire(@NonNull String message) {
-            assertThat(message.endsWith("\n")).isFalse();
-            EventBus.getDefault().post(new SendMessageEvent(message));
-        }
+        companion object {
+            fun fire(message: String) {
+                Assert.assertThat(message.endsWith("\n")).isFalse()
+                EventBus.getDefault().post(SendMessageEvent(message))
+            }
 
-        public static void fire(@NonNull String message, @NonNull Object... args) {
-            fire(String.format(Locale.ROOT, message, args));
-        }
+            fun fire(message: String, vararg args: Any) {
+                fire(String.format(Locale.ROOT, message, *args))
+            }
 
-        public static void fireInput(@NonNull Buffer buffer, @Nullable String input) {
-            if (TextUtils.isEmpty(input)) return;
-            P.addSentMessage(input);
-            //noinspection ConstantConditions -- linter doesn't see the call to isEmpty
-            for (String line : input.split("\n"))
-                if (!TextUtils.isEmpty(line))
-                    fire("input 0x%x %s", buffer.pointer, line);
-        }
-
-        @Override public @NonNull String toString() {
-            return "SendMessageEvent(message=" + message + ")";
+            fun fireInput(buffer: Buffer, input: String?) {
+                if (TextUtils.isEmpty(input)) return
+                P.addSentMessage(input)
+                for (line in input!!.split("\n".toRegex())
+                        .dropLastWhile { it.isEmpty() }
+                        .toTypedArray()) if (!TextUtils.isEmpty(line)) fire("input 0x%x %s",
+                                                                            buffer.pointer,
+                                                                            line)
+            }
         }
     }
 }
