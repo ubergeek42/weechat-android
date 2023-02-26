@@ -5,7 +5,7 @@ import android.util.AttributeSet
 import androidx.core.content.edit
 import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils
-import com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils.InsideSecurityHardware
+import com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils.InsideSecureHardware
 import com.ubergeek42.WeechatAndroid.utils.Constants
 import com.ubergeek42.WeechatAndroid.utils.Utils
 import com.ubergeek42.WeechatAndroid.utils.edDsaKeyPairToSshLibEd25519KeyPair
@@ -33,9 +33,9 @@ class PrivateKeyPickerPreference(context: Context?, attrs: AttributeSet?) :
     //
     // Then, check if we have a pair of EdDSAKey. It is a valid key pair,
     // but since sshlib is not friendly with BC, it can't use it.
-    // Assume it's a pair of Ed25519 keys, and covert it to sshlib format.
+    // Assume it's a pair of Ed25519 keys, and convert it to sshlib format.
     //
-    // Finally, try putting the key inside security hardware, serializing it if that fails.
+    // Finally, try putting the key inside secure hardware, serializing it if that fails.
     @Throws(Exception::class)
     override fun saveData(bytes: ByteArray?, passphrase: String): String {
         var valueToStore: String?
@@ -93,12 +93,12 @@ class PrivateKeyPickerPreference(context: Context?, attrs: AttributeSet?) :
                 .isInsideSecurityHardware(SSHConnection.KEYSTORE_ALIAS)
 
         val stringId = when (insideSecurityHardware) {
-            InsideSecurityHardware.YES ->
-                R.string.pref__PrivateKeyPickerPreference__success_stored_inside_security_hardware_yes
-            InsideSecurityHardware.NO ->
-                R.string.pref__PrivateKeyPickerPreference__success_stored_inside_security_hardware_no
-            InsideSecurityHardware.CANT_TELL ->
-                R.string.pref__PrivateKeyPickerPreference__success_stored_inside_security_hardware_cant_tell
+            InsideSecureHardware.YES ->
+                R.string.pref__PrivateKeyPickerPreference__success_stored_inside_secure_hardware_yes
+            InsideSecureHardware.NO ->
+                R.string.pref__PrivateKeyPickerPreference__success_stored_inside_secure_hardware_no
+            InsideSecureHardware.CANT_TELL ->
+                R.string.pref__PrivateKeyPickerPreference__success_stored_inside_secure_hardware_cant_tell
         }
 
         return context.getString(stringId, algorithm)

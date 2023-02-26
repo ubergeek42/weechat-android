@@ -2,4 +2,4 @@
 * Implemented SSL certificate pinning
 * Support for client SSL certificates
 * Added support for Ed25519 keys thanks to sshlib
-* When possible, RSA, EC, DSA keys are stored inside security hardware
+* When possible, RSA, EC, DSA keys are stored inside secure hardware

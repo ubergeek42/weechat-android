@@ -369,11 +369,11 @@
         Certificat client</string>
     <string name="pref__connection__ssl__client_certificate_summary">
         Fichier PKCS #12 contenant clés privées et certificat client</string>
-    <string name="pref__CertPickerPreference__success_stored_inside_security_hardware_yes">
+    <string name="pref__CertPickerPreference__success_stored_inside_secure_hardware_yes">
         Le certificat a été sauvegardée dans le stockage sécurisé matériel</string>
-    <string name="pref__CertPickerPreference__success_stored_inside_security_hardware_no">
+    <string name="pref__CertPickerPreference__success_stored_inside_secure_hardware_no">
         Le certificat a été sauvegardé dans le porte-clé logiciel</string>
-    <string name="pref__CertPickerPreference__success_stored_inside_security_hardware_yes_cant_tell">
+    <string name="pref__CertPickerPreference__success_stored_inside_secure_hardware_cant_tell">
         Le certificat a été sauvegardé dans le porte-clé</string>
     <string name="pref__CertPickerPreference__success_certificate_forgotten">
         Certificat supprimé</string>
@@ -405,11 +405,11 @@
 
     <string name="pref__connection__ssh__key">Clé privée</string>
     <string name="pref__connection__ssh__key_summary">Clé Ed25519, ECDSA, RSA ou DSA</string>
-    <string name="pref__PrivateKeyPickerPreference__success_stored_inside_security_hardware_yes">
+    <string name="pref__PrivateKeyPickerPreference__success_stored_inside_secure_hardware_yes">
         La clé %s a été sauvegardée dans un stockage sécurisé matériel</string>
-    <string name="pref__PrivateKeyPickerPreference__success_stored_inside_security_hardware_no">
+    <string name="pref__PrivateKeyPickerPreference__success_stored_inside_secure_hardware_no">
         La clé %s a été sauvegardée dans le porte-clé logiciel</string>
-    <string name="pref__PrivateKeyPickerPreference__success_stored_inside_security_hardware_cant_tell">
+    <string name="pref__PrivateKeyPickerPreference__success_stored_inside_secure_hardware_cant_tell">
         La clé %s a été sauvegardée dans le porte-clé</string>
     <string name="pref__PrivateKeyPickerPreference__success_stored_outside_key_store">
         La clé %1$s a été sauvegardée dans l’app.

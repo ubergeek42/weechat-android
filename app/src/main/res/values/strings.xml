@@ -376,11 +376,11 @@
         Client certificate</string>
     <string name="pref__connection__ssl__client_certificate_summary">
         PKCS #12 file containing private key and client certificate</string>
-    <string name="pref__CertPickerPreference__success_stored_inside_security_hardware_yes">
-        Certificate was stored inside security hardware</string>
-    <string name="pref__CertPickerPreference__success_stored_inside_security_hardware_no">
+    <string name="pref__CertPickerPreference__success_stored_inside_secure_hardware_yes">
+        Certificate was stored inside secure hardware</string>
+    <string name="pref__CertPickerPreference__success_stored_inside_secure_hardware_no">
         Certificate was stored inside software key store</string>
-    <string name="pref__CertPickerPreference__success_stored_inside_security_hardware_yes_cant_tell">
+    <string name="pref__CertPickerPreference__success_stored_inside_secure_hardware_cant_tell">
         Certificate was stored inside key store</string>
     <string name="pref__CertPickerPreference__success_certificate_forgotten">
         Certificate forgotten</string>
@@ -412,11 +412,11 @@
 
     <string name="pref__connection__ssh__key">Private key</string>
     <string name="pref__connection__ssh__key_summary">Ed25519, ECDSA, RSA or DSA key</string>
-    <string name="pref__PrivateKeyPickerPreference__success_stored_inside_security_hardware_yes">
-        %s key was stored inside security hardware</string>
-    <string name="pref__PrivateKeyPickerPreference__success_stored_inside_security_hardware_no">
+    <string name="pref__PrivateKeyPickerPreference__success_stored_inside_secure_hardware_yes">
+        %s key was stored inside secure hardware</string>
+    <string name="pref__PrivateKeyPickerPreference__success_stored_inside_secure_hardware_no">
         %s key was stored inside software key store</string>
-    <string name="pref__PrivateKeyPickerPreference__success_stored_inside_security_hardware_cant_tell">
+    <string name="pref__PrivateKeyPickerPreference__success_stored_inside_secure_hardware_cant_tell">
         %s key was stored inside key store</string>
     <string name="pref__PrivateKeyPickerPreference__success_stored_outside_key_store">
         %1$s key was stored inside the app.

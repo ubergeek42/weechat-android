@@ -372,11 +372,11 @@
         Клиентский сертификат</string>
     <string name="pref__connection__ssl__client_certificate_summary">
         Закрытый ключ и сертификат пользователя в формате PKCS #12</string>
-    <string name="pref__CertPickerPreference__success_stored_inside_security_hardware_yes">
+    <string name="pref__CertPickerPreference__success_stored_inside_secure_hardware_yes">
         Сертификат помещён в аппаратное хранилище</string>
-    <string name="pref__CertPickerPreference__success_stored_inside_security_hardware_no">
+    <string name="pref__CertPickerPreference__success_stored_inside_secure_hardware_no">
         Сертификат помещён в программное хранилище</string>
-    <string name="pref__CertPickerPreference__success_stored_inside_security_hardware_yes_cant_tell">
+    <string name="pref__CertPickerPreference__success_stored_inside_secure_hardware_cant_tell">
         Сертификат помещён в хранилище</string>
     <string name="pref__CertPickerPreference__success_certificate_forgotten">
         Сертификат забыт</string>
@@ -409,11 +409,11 @@
 
     <string name="pref__connection__ssh__key">Ключ</string>
     <string name="pref__connection__ssh__key_summary">Ключ Ed25519, ECDSA, RSA или DSA</string>
-    <string name="pref__PrivateKeyPickerPreference__success_stored_inside_security_hardware_yes">
+    <string name="pref__PrivateKeyPickerPreference__success_stored_inside_secure_hardware_yes">
         Ключ %s помещён в аппаратное хранилище</string>
-    <string name="pref__PrivateKeyPickerPreference__success_stored_inside_security_hardware_no">
+    <string name="pref__PrivateKeyPickerPreference__success_stored_inside_secure_hardware_no">
         Ключ %s помещён в программное хранилище</string>
-    <string name="pref__PrivateKeyPickerPreference__success_stored_inside_security_hardware_cant_tell">
+    <string name="pref__PrivateKeyPickerPreference__success_stored_inside_secure_hardware_cant_tell">
         Ключ %s помещён в хранилище</string>
     <string name="pref__PrivateKeyPickerPreference__success_stored_outside_key_store">
         Ключ %1$s помещён в настройки приложения.
