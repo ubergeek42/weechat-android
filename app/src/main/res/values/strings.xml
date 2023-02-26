@@ -35,10 +35,8 @@
     <string name="error__etc__cannot_share_to_empty_buffer_list">Buffer list empty</string>
     <string name="error__etc__activity_not_found_for_url">Activity not found for intent %s</string>
 
-    <plurals name="error__history_with_sharespans">
-        <item quantity="one">Remove or upload the image to navigate</item>
-        <item quantity="other">Remove or upload the images to navigate</item>
-    </plurals>
+    <string name="error__etc__cannot_navigate_input_history_if_sharespans_in_input">
+        Remove or upload media to navigate input history</string>
 
     <!-- ############################## main activity ui elements ############################## -->
 

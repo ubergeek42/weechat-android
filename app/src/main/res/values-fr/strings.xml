@@ -32,11 +32,8 @@
     <string name="error__etc__cannot_share_to_empty_buffer_list">Aucun tampon disponible pour partager</string>
     <string name="error__etc__activity_not_found_for_url">Activité introuvable pour “l’intent” %s</string>
 
-    <plurals name="error__history_with_sharespans">
-        <item quantity="one" tools:ignore="ImpliedQuantity">Supprimez ou uploadez l’image pour naviguer</item>
-        <item quantity="other">Supprimez ou uploadez les images pour naviguer</item>
-        <item quantity="many">Supprimez ou uploadez les images pour naviguer</item>
-    </plurals>
+    <string name="error__etc__cannot_navigate_input_history_if_sharespans_in_input">
+        Supprimez ou uploadez les images pour naviguer</string>
 
     <!-- ############################## main activity ui elements ############################## -->
 

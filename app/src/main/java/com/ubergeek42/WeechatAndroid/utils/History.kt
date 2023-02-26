@@ -65,19 +65,11 @@ class History : java.io.Serializable {
         return false
     }
 
-    private fun shareSpanCount(editText: EditText): Int = editText.text.getSpans<ShareSpan>().size
-
     fun navigate(editText: EditText, direction: Direction) {
-        val spc = shareSpanCount(editText)
-        if (spc > 0) {
+        if (editText.text.getSpans<ShareSpan>().isNotEmpty()) {
             // The editText contains non-uploaded ShareSpans that would be lost by navigating away.
             // Bail out early to prevent data loss.
-            Toaster.ErrorToast.show(
-                editText.context.resources.getQuantityText(
-                    R.plurals.error__history_with_sharespans,
-                    spc
-                ).toString()
-            )
+            Toaster.ErrorToast.show(R.string.error__etc__cannot_navigate_input_history_if_sharespans_in_input)
             return
         }
         var newIndex = when (direction) {
