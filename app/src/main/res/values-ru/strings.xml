@@ -31,6 +31,9 @@
     <string name="error__etc__cannot_share_to_empty_buffer_list">Список буферов пуст</string>
     <string name="error__etc__activity_not_found_for_url">Не найдена Activity для Intent-а %s</string>
 
+    <string name="error__etc__cannot_navigate_input_history_if_sharespans_in_input">
+        Удалите или загрузите медиа, чтобы осущеставить навигацию по истории ввода</string>
+
     <!-- ############################## main activity ui elements ############################## -->
 
     <string name="ui__button_paperclip">Загрузить</string>
@@ -700,9 +703,9 @@
         выбирать файлы можно через меню.</string>
 
     <string name="pref__buttons__volume__title">Кнопки громкости</string>
-    <string name="pref__buttons__volume__actions__none">Ничего не делать</string>
-    <string name="pref__buttons__volume__actions__change_text_size">Кнопки громкости меняют размер текста</string>
-    <string name="pref__buttons__volume__actions__navigate_input_history">Навигация по истории ввода</string>
+    <string name="pref__buttons__volume__actions__none">Меняют громкость</string>
+    <string name="pref__buttons__volume__actions__change_text_size">Меняют размер текста</string>
+    <string name="pref__buttons__volume__actions__navigate_input_history">Осуществляют навигацию по истории ввода</string>
 
     <!-- ####################################################################################### -->
     <!-- #################################### notifications #################################### -->

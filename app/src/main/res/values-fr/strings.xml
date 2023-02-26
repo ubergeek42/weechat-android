@@ -33,7 +33,7 @@
     <string name="error__etc__activity_not_found_for_url">Activité introuvable pour “l’intent” %s</string>
 
     <string name="error__etc__cannot_navigate_input_history_if_sharespans_in_input">
-        Supprimez ou uploadez les images pour naviguer</string>
+        Supprimez ou envoyez les fichiers pour parcourir l’historique des entrées</string>
 
     <!-- ############################## main activity ui elements ############################## -->
 
