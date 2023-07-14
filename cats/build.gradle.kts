@@ -15,6 +15,7 @@ dependencies {
 }
 
 android {
+    namespace = "com.ubergeek42.cats"
     compileSdk = 31
 
     compileOptions {

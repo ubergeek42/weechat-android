@@ -67,6 +67,7 @@ tasks.withType<JavaCompile> {
 }
 
 android {
+    namespace = "com.ubergeek42.WeechatAndroid"
     compileSdk = 31
 
     defaultConfig {
