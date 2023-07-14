@@ -335,7 +335,7 @@ class LineView @JvmOverloads constructor(
     // it either. on long click, we call performLongClick(), which also does haptic feedback.
     // we are consuming all touch events mostly because it works well. perhaps only handle up/down?
     @SuppressLint("ClickableViewAccessibility")
-    override fun onTouchEvent(event: MotionEvent?): Boolean {
+    override fun onTouchEvent(event: MotionEvent): Boolean {
         gestureDetector.onTouchEvent(event)
         return true
     }

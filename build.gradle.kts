@@ -28,9 +28,9 @@ buildscript {
 
     dependencies {
         classpath("com.android.tools.build:gradle:7.4.2")
-        classpath("org.aspectj:aspectjtools:1.9.9.1")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.7.0")
-        classpath("org.jetbrains.kotlin:kotlin-serialization:1.7.0")
+        classpath("org.aspectj:aspectjtools:1.9.20.1")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.10")
+        classpath("org.jetbrains.kotlin:kotlin-serialization:1.9.10")
     }
 }
 
@@ -75,7 +75,7 @@ subprojects {
 //   $ ./gradlew dependencyUpdates
 // See https://github.com/ben-manes/gradle-versions-plugin
 plugins {
-    id("com.github.ben-manes.versions") version "0.42.0"
+    id("com.github.ben-manes.versions") version "0.48.0"
 }
 
 fun isNonStable(version: String): Boolean {

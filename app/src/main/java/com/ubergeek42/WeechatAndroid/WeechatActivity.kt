@@ -462,7 +462,7 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener,
     @MainThread @Cat("Menu") override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_actionbar, menu)
 
-        val menuHotlist = menu.findItem(R.id.menu_hotlist).actionView
+        val menuHotlist = menu.findItem(R.id.menu_hotlist).actionView!!
         uiHot = menuHotlist.findViewById(R.id.hotlist_hot)
 
         // set color of the border around the [2] badge on the bell, as well as text color
@@ -548,7 +548,7 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener,
         })
         menu.findItem(R.id.menu_connection_state).title = connectionStateTitle
 
-        val menuHotlist = menu.findItem(R.id.menu_hotlist).actionView
+        val menuHotlist = menu.findItem(R.id.menu_hotlist).actionView!!
         val bellImage = menuHotlist.findViewById<ImageView>(R.id.hotlist_bell)
         bellImage.setImageResource(if (P.optimizeTraffic) R.drawable.ic_toolbar_bell_cracked else R.drawable.ic_toolbar_bell)
     }
