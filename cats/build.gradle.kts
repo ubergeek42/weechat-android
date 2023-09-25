@@ -8,15 +8,15 @@ plugins {
 
 dependencies {
     implementation("org.aspectj:aspectjrt:1.9.20.1")
-    implementation("androidx.annotation:annotation:1.7.0")
+    implementation("androidx.annotation:annotation:1.7.1")
 
-    testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
-    testImplementation("org.mockito:mockito-core:5.5.0")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.1")
+    testImplementation("org.mockito:mockito-core:5.8.0")
 }
 
 android {
     namespace = "com.ubergeek42.cats"
-    compileSdk = 33
+    compileSdk = 34
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -35,7 +35,7 @@ android {
     }
 
     defaultConfig {
-        targetSdk = 33
+        targetSdk = 34
         minSdk = 16
     }
 }
