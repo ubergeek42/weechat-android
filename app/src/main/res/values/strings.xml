@@ -117,7 +117,7 @@
     <!-- #################################### notifications #################################### -->
     <!-- ####################################################################################### -->
 
-    <string name="notifications__channel__connection_status">Connection Status</string>
+    <string name="notifications__channel__connection_status">Connection status</string>
     <string name="notifications__channel__hotlist">Hotlist</string>
 
     <string name="notifications__main__waiting_for_network">Waiting for network</string>
@@ -188,6 +188,24 @@
         Pinging machinery needs the permission to set exact alarms.
         Alternatively, you can disable pinging in connection settings.</string>
     <string name="dialog__alarm_permission_for_ping__positive_button">Grant permission</string>
+
+    <string name="dialog__notification_permission__title">Permission wanted</string>
+    <string name="dialog__notification_permission__text">
+        To show notifications, we need a permission.
+        This is optional.
+        If you don’t enable notifications now, you can always enable them later in the settings.
+        \n
+        \nWhen connected, a persistent notification is shown.
+        To hide it from the status bar,
+        we suggest that you enable notification minimization for the category “Connection status”.
+        \n
+        \nYou can also customize notifications for individual buffers, changing sound, vibration, etc.
+        To do this, when you have received a notification for the corresponding buffer,
+        long tap it and go to settings.
+    </string>
+    <string name="dialog__notification_permission__positive_button">Grant permission</string>
+    <string name="dialog__notification_permission__negative_button">
+        Continue without granting permission</string>
 
     <!-- ####################################################################################### -->
     <!-- ################################# certificate dialogs ################################# -->
