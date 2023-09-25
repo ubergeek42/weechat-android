@@ -61,6 +61,8 @@ import com.ubergeek42.WeechatAndroid.service.Events.StateChangedEvent
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.service.RelayService
 import com.ubergeek42.WeechatAndroid.service.getSystemTrustedCertificateChain
+import com.ubergeek42.WeechatAndroid.service.showAlarmPermissionRationaleDialog
+import com.ubergeek42.WeechatAndroid.service.shouldRequestExactAlarmPermission
 import com.ubergeek42.WeechatAndroid.upload.Config
 import com.ubergeek42.WeechatAndroid.upload.InsertAt
 import com.ubergeek42.WeechatAndroid.upload.ShareObject
@@ -199,7 +201,7 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener,
 
         menuBackgroundDrawable = ContextCompat.getDrawable(this, R.drawable.bg_popup_menu)!!
 
-        if (P.isServiceAlive()) connect()
+        if (savedInstanceState == null && P.isServiceAlive()) connect()
 
         // restore buffers if we have data in the static
         // if no data and not going to connect, clear stuff
@@ -213,13 +215,20 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener,
 
     @MainThread @CatD(linger = true) fun connect() {
         P.loadConnectionPreferences()
-        val error = P.validateConnectionPreferences()
-        if (error != 0) {
-            Toaster.ErrorToast.show(error)
-        } else {
-            kitty.debug("proceeding!")
-            RelayService.startWithAction(this, RelayService.ACTION_START)
+
+        val errorStringId = P.validateConnectionPreferences()
+        if (errorStringId != 0) {
+            Toaster.ErrorToast.show(errorStringId)
+            return
         }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && shouldRequestExactAlarmPermission()) {
+            showAlarmPermissionRationaleDialog()
+            return
+        }
+
+        kitty.debug("proceeding!")
+        RelayService.startWithAction(this, RelayService.ACTION_START)
     }
 
     @MainThread @CatD fun disconnect() {

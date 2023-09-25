@@ -182,6 +182,13 @@
         To take photos, app needs write access to public storage</string>
     <string name="dialog__write_permission_for_camera__button_ok">OK</string>
 
+    <string name="dialog__alarm_permission_for_ping__title">
+        Permission required</string>
+    <string name="dialog__alarm_permission_for_ping__text">
+        Pinging machinery needs the permission to set exact alarms.
+        Alternatively, you can disable pinging in connection settings.</string>
+    <string name="dialog__alarm_permission_for_ping__positive_button">Grant permission</string>
+
     <!-- ####################################################################################### -->
     <!-- ################################# certificate dialogs ################################# -->
     <!-- ####################################################################################### -->
