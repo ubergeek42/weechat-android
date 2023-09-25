@@ -16,17 +16,17 @@ dependencies {
     implementation(project(":cats"))
     implementation(project(":relay"))
 
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.10")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.20")
 
     // these two are required for logging within the relay module. todo remove?
     implementation("org.slf4j:slf4j-api:2.0.9")
     implementation("com.noveogroup.android:android-logger:1.3.6")
 
-    implementation("androidx.core:core-ktx:1.10.1")
+    implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.legacy:legacy-support-v4:1.0.0")
-    implementation("androidx.annotation:annotation:1.7.0") // For @Nullable/@NonNull
+    implementation("androidx.annotation:annotation:1.7.1") // For @Nullable/@NonNull
     implementation("androidx.appcompat:appcompat:1.6.1")
-    implementation("androidx.emoji2:emoji2:1.3.0")
+    implementation("androidx.emoji2:emoji2:1.4.0")
     implementation("androidx.preference:preference-ktx:1.2.1")  // preference fragment & al
     implementation("androidx.legacy:legacy-preference-v14:1.0.0") // styling for the fragment
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
@@ -37,9 +37,9 @@ dependencies {
 
     implementation("com.github.bumptech.glide:glide:4.16.0")
     kapt("com.github.bumptech.glide:compiler:4.16.0")
-    implementation("com.squareup.okhttp3:okhttp:4.11.0")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
-    val roomVersion = "2.5.2"
+    val roomVersion = "2.6.1"
     implementation("androidx.room:room-runtime:$roomVersion")
     annotationProcessor("androidx.room:room-compiler:$roomVersion")
     kapt("androidx.room:room-compiler:$roomVersion")
@@ -51,15 +51,15 @@ dependencies {
     // needed for thread-safe date formatting as SimpleDateFormat isn"t thread-safe
     // the alternatives, including apache commons and threetenabp, seem to be much slower
     // todo perhaps replace with core library desugaring, if it"s fast
-    implementation("net.danlew:android.joda:2.12.5")
+    implementation("net.danlew:android.joda:2.12.6")
 
     implementation("org.greenrobot:eventbus:3.3.1")
 
     debugImplementation("org.aspectj:aspectjrt:1.9.20.1")
     debugImplementation("com.squareup.leakcanary:leakcanary-android:2.12")
 
-    testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
-    testImplementation("org.junit.jupiter:junit-jupiter-params:5.10.0")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.1")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.10.1")
 }
 
 tasks.withType<JavaCompile> {
@@ -68,14 +68,14 @@ tasks.withType<JavaCompile> {
 
 android {
     namespace = "com.ubergeek42.WeechatAndroid"
-    compileSdk = 33
+    compileSdk = 34
 
     defaultConfig {
         versionCode = 1_08_01
         versionName = "1.8.1"
 
         minSdk = 21
-        targetSdk = 33
+        targetSdk = 34
         buildConfigField("String", "VERSION_BANNER", "\"" + versionBanner() + "\"")
 
         vectorDrawables.useSupportLibrary = true
