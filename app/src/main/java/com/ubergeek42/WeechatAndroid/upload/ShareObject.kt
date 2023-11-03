@@ -102,8 +102,12 @@ fun getThumbnailAndThen(context: Context, uri: Uri, then: (bitmap: Bitmap) -> Un
                         then(bitmap)
                     }
 
+                    // The request seems to be attempted once again on minimizing/restoring the app.
+                    // To avoid that, clear target soon, but not on current thread--the library doesn't allow it.
+                    // See https://github.com/bumptech/glide/issues/4125
                     @MainThread override fun onLoadFailed(errorDrawable: Drawable?) {
                         then(NO_BITMAP)
+                        main { Glide.with(context).clear(this) }
                     }
 
                     override fun onLoadCleared(placeholder: Drawable?) {
