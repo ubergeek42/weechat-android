@@ -121,10 +121,12 @@ val NO_BITMAP: Bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ALPHA_8)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
 @MainThread fun EditText.insertAddingSpacesAsNeeded(insertAt: InsertAt, word: CharSequence) {
     val pos = if (insertAt == InsertAt.CURRENT_POSITION) selectionEnd else text.length
+    insertAddingSpacesAsNeeded(pos, word)
+}
 
+@MainThread fun EditText.insertAddingSpacesAsNeeded(pos: Int, word: CharSequence) {
     val wordStartsWithSpace = word.firstOrNull() == ' '
     val wordEndsWithSpace = word.lastOrNull() == ' '
     val    spaceBeforeInsertLocation = pos > 0 && text[pos - 1] == ' '

@@ -67,8 +67,10 @@ class MediaAcceptingEditText : ActionEditText {
         text?.let {
             for (span in it.getSpans(0, it.length, ShareSpan::class.java)) {
                 span.suri.httpUri?.let { httpUri ->
-                    it.replace(it.getSpanStart(span), it.getSpanEnd(span), httpUri)
+                    val pos = it.getSpanStart(span)
+                    it.replace(pos, it.getSpanEnd(span), "")
                     it.removeSpan(span)
+                    insertAddingSpacesAsNeeded(pos, httpUri)
                 }
             }
         }
