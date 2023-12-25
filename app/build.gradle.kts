@@ -16,7 +16,7 @@ dependencies {
     implementation(project(":cats"))
     implementation(project(":relay"))
 
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.7.0")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.20")
 
     // these two are required for logging within the relay module. todo remove?
     implementation("org.slf4j:slf4j-api:1.7.36")
@@ -87,9 +87,6 @@ android {
         }
 
         kotlinOptions {
-            freeCompilerArgs = listOf(
-                    "-language-version", "1.7",
-                    "-api-version", "1.7")
             jvmTarget = "11"
         }
     }
