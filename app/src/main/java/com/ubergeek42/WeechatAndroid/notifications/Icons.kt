@@ -312,7 +312,7 @@ private val AUTHORITY = applicationContext.packageName + ContentUriFetcher.FILE_
 
 
 private fun String.encodeToSafeString(): String = this.toByteArray().toHexStringLowercase()
-private fun String.decodeFromSafeString(): String = this.fromHexStringToByteArray().toString()
+private fun String.decodeFromSafeString(): String = this.fromHexStringToByteArray().decodeToString()
 
 
 private operator fun <E> List<E>.component6() = this[5]
