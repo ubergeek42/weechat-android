@@ -29,6 +29,7 @@ import androidx.core.view.MenuCompat
 import androidx.core.view.forEach
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ItemDecoration
 import com.ubergeek42.WeechatAndroid.R
@@ -83,6 +84,7 @@ import com.ubergeek42.cats.CatD
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
 import com.ubergeek42.weechat.ColorScheme
+import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
@@ -985,6 +987,11 @@ class BufferFragment : Fragment(), BufferEye {
     // We indicate that we handle `ACTION_DRAG_STARTED`, else `ACTION_DROP` is not received;
     // We indicate that we don't handle other events
     // in order to allow cursor movement in the input field while dragging.
+    //
+    // We are saving input for parallel fragments (i.e. bubbles) on pause and restoring it on resume.
+    // On some systems, particularly on API 27, it's possible that, when dragging from another app,
+    // the target activity isn't actually resumed, hence this input change may fail to be recorded.
+    // To prevent this, explicitly record the change after loading the thumbnails.
     private val onDragListener = View.OnDragListener { _, event ->
         if (event.action == DragEvent.ACTION_DRAG_STARTED) return@OnDragListener true
         if (event.action != DragEvent.ACTION_DROP) return@OnDragListener false
@@ -997,12 +1004,16 @@ class BufferFragment : Fragment(), BufferEye {
                     activity.requestDragAndDropPermissions(event)
                 }
 
-                suppress<Exception>(showToast = true) {
-                    UrisShareObject.fromUris(uris).insert(ui.chatInput, InsertAt.CURRENT_POSITION)
+                lifecycleScope.launch {
+                    suppress<Exception>(showToast = true) {
+                        UrisShareObject.fromUris(uris).insertAsync(ui.chatInput, InsertAt.CURRENT_POSITION)
+                        setPendingInputForParallelFragments()
+                    }
                 }
             } else if (clipData.itemCount > 0) {
                 clipData.getItemAt(0).text?.let { text ->
                     TextShareObject(text).insert(ui.chatInput, InsertAt.CURRENT_POSITION)
+                    setPendingInputForParallelFragments()
                 }
             }
         }
