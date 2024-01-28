@@ -12,6 +12,7 @@ import android.os.Build
 import android.os.Bundle
 import android.transition.Fade
 import android.transition.TransitionManager
+import android.view.DragEvent
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.Menu
@@ -28,6 +29,7 @@ import androidx.core.view.MenuCompat
 import androidx.core.view.forEach
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ItemDecoration
 import com.ubergeek42.WeechatAndroid.R
@@ -54,9 +56,11 @@ import com.ubergeek42.WeechatAndroid.upload.MediaAcceptingEditText.HasLayoutList
 import com.ubergeek42.WeechatAndroid.upload.ShareObject
 import com.ubergeek42.WeechatAndroid.upload.Suri
 import com.ubergeek42.WeechatAndroid.upload.Target
+import com.ubergeek42.WeechatAndroid.upload.TextShareObject
 import com.ubergeek42.WeechatAndroid.upload.Upload.CancelledException
 import com.ubergeek42.WeechatAndroid.upload.UploadManager
 import com.ubergeek42.WeechatAndroid.upload.UploadObserver
+import com.ubergeek42.WeechatAndroid.upload.UrisShareObject
 import com.ubergeek42.WeechatAndroid.upload.WRITE_PERMISSION_REQUEST_FOR_CAMERA
 import com.ubergeek42.WeechatAndroid.upload.chooseFiles
 import com.ubergeek42.WeechatAndroid.upload.getShareObjectFromIntent
@@ -80,6 +84,7 @@ import com.ubergeek42.cats.CatD
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
 import com.ubergeek42.weechat.ColorScheme
+import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
@@ -221,6 +226,9 @@ class BufferFragment : Fragment(), BufferEye {
                 }
             }
         }
+
+        ui.chatInput.setOnDragListener(onDragListener)
+        ui.root.setOnDragListener(onDragListener)
 
         ui.scrollToBottomFab.setOnClickListener {
             ui.chatLines.jumpThenSmoothScroll(linesAdapter!!.itemCount - 1)
@@ -971,6 +979,46 @@ class BufferFragment : Fragment(), BufferEye {
             }
             pendingInputs.remove(buffer.fullName)
         }
+    }
+
+    // It is possible to use OnReceiveContentListener instead of this.
+    // This allows showing some drag and drop indications,
+    // as well as more explicit and possibly simpler permission handling.
+    // We indicate that we handle `ACTION_DRAG_STARTED`, else `ACTION_DROP` is not received;
+    // We indicate that we don't handle other events
+    // in order to allow cursor movement in the input field while dragging.
+    //
+    // We are saving input for parallel fragments (i.e. bubbles) on pause and restoring it on resume.
+    // On some systems, particularly on API 27, it's possible that, when dragging from another app,
+    // the target activity isn't actually resumed, hence this input change may fail to be recorded.
+    // To prevent this, explicitly record the change after loading the thumbnails.
+    private val onDragListener = View.OnDragListener { _, event ->
+        if (event.action == DragEvent.ACTION_DRAG_STARTED) return@OnDragListener true
+        if (event.action != DragEvent.ACTION_DROP) return@OnDragListener false
+
+        ulet(activity, ui, event.clipData) { activity, ui, clipData ->
+            val uris = (0..<clipData.itemCount).mapNotNull { clipData.getItemAt(it).uri }
+
+            if (uris.isNotEmpty()) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    activity.requestDragAndDropPermissions(event)
+                }
+
+                lifecycleScope.launch {
+                    suppress<Exception>(showToast = true) {
+                        UrisShareObject.fromUris(uris).insertAsync(ui.chatInput, InsertAt.CURRENT_POSITION)
+                        setPendingInputForParallelFragments()
+                    }
+                }
+            } else if (clipData.itemCount > 0) {
+                clipData.getItemAt(0).text?.let { text ->
+                    TextShareObject(text).insert(ui.chatInput, InsertAt.CURRENT_POSITION)
+                    setPendingInputForParallelFragments()
+                }
+            }
+        }
+
+        true
     }
 }
 

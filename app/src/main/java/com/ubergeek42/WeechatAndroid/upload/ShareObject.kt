@@ -8,6 +8,8 @@ import android.net.Uri
 import android.text.*
 import android.widget.EditText
 import androidx.annotation.MainThread
+import androidx.lifecycle.findViewTreeLifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.MultiTransformation
 import com.bumptech.glide.load.engine.DiskCacheStrategy
@@ -16,8 +18,15 @@ import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import com.ubergeek42.WeechatAndroid.media.Config
 import com.ubergeek42.WeechatAndroid.media.WAGlideModule.isContextValidForGlide
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import java.io.FileNotFoundException
 import java.io.IOException
+import kotlin.coroutines.resume
 
 
 enum class InsertAt {
@@ -45,32 +54,20 @@ const val PLACEHOLDER_TEXT = "\u00a0"
 open class UrisShareObject(
     private val suris: List<Suri>
 ) : ShareObject {
-    protected val bitmaps: Array<Bitmap?> = arrayOfNulls(suris.size)
-
     override fun insert(editText: EditText, insertAt: InsertAt) {
-        val context = editText.context
-        getAllImagesAndThen(context) {
-            for (i in suris.indices) {
-                editText.insertAddingSpacesAsNeeded(insertAt, makeImageSpanned(i))
-            }
+        editText.findViewTreeLifecycleOwner()?.lifecycleScope?.launch {
+            insertAsync(editText, insertAt)
         }
     }
 
-    open fun getAllImagesAndThen(context: Context, then: () -> Unit) {
-        suris.forEachIndexed { i, suri ->
-            getThumbnailAndThen(context, suri.uri) { bitmap ->
-                bitmaps[i] = bitmap
-                if (bitmaps.all { it != null }) then()
-            }
+    suspend fun insertAsync(editText: EditText, insertAt: InsertAt) {
+        val thumbnailSpannables = coroutineScope {
+            suris.map { async { makeThumbnailSpannable(editText.context, it) } }.awaitAll()
         }
-    }
 
-    private fun makeImageSpanned(i: Int) : Spanned {
-        val spanned = SpannableString(PLACEHOLDER_TEXT)
-        val imageSpan = if (bitmaps[i] != NO_BITMAP)
-                BitmapShareSpan(suris[i], bitmaps[i]!!) else NonBitmapShareSpan(suris[i])
-        spanned.setSpan(imageSpan, 0, spanned.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-        return spanned
+        thumbnailSpannables.forEach { thumbnailSpannable ->
+            editText.insertAddingSpacesAsNeeded(insertAt, thumbnailSpannable)
+        }
     }
 
     companion object {
@@ -81,15 +78,23 @@ open class UrisShareObject(
     }
 }
 
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+suspend fun makeThumbnailSpannable(context: Context, suri: Suri): Spannable {
+    val bitmapOrNull = getBitmapOrNull(context, suri.uri)
+    val span = if (bitmapOrNull != null) BitmapShareSpan(suri, bitmapOrNull) else NonBitmapShareSpan(suri)
+
+    return SpannableString(PLACEHOLDER_TEXT).apply {
+        setSpan(span, 0, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+    }
+}
 
 // this starts the upload in a worker thread and exits immediately.
 // target callbacks will be called on the main thread
-fun getThumbnailAndThen(context: Context, uri: Uri, then: (bitmap: Bitmap) -> Unit) {
-    if (isContextValidForGlide(context)) {
-        Glide.with(context)
+suspend fun getBitmapOrNull(context: Context, uri: Uri): Bitmap? =
+    suspendCancellableCoroutine { continuation ->
+        if (isContextValidForGlide(context)) {
+            Glide.with(context)
                 .asBitmap()
                 .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
                 .transform(MultiTransformation(
@@ -99,28 +104,32 @@ fun getThumbnailAndThen(context: Context, uri: Uri, then: (bitmap: Bitmap) -> Un
                 .load(uri)
                 .into(object : CustomTarget<Bitmap>(THUMBNAIL_MAX_WIDTH, THUMBNAIL_MAX_HEIGHT) {
                     @MainThread override fun onResourceReady(bitmap: Bitmap, transition: Transition<in Bitmap>?) {
-                        then(bitmap)
+                        continuation.resume(bitmap)
                     }
 
+                    // The request seems to be attempted once again on minimizing/restoring the app.
+                    // To avoid that, clear target soon, but not on current thread--the library doesn't allow it.
+                    // See https://github.com/bumptech/glide/issues/4125
                     @MainThread override fun onLoadFailed(errorDrawable: Drawable?) {
-                        then(NO_BITMAP)
+                        continuation.resume(null)
+                        main { Glide.with(context).clear(this) }
                     }
 
                     override fun onLoadCleared(placeholder: Drawable?) {
                         // this shouldn't happen
                     }
                 })
+        }
     }
-}
-
-val NO_BITMAP: Bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ALPHA_8)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
 @MainThread fun EditText.insertAddingSpacesAsNeeded(insertAt: InsertAt, word: CharSequence) {
     val pos = if (insertAt == InsertAt.CURRENT_POSITION) selectionEnd else text.length
+    insertAddingSpacesAsNeeded(pos, word)
+}
 
+@MainThread fun EditText.insertAddingSpacesAsNeeded(pos: Int, word: CharSequence) {
     val wordStartsWithSpace = word.firstOrNull() == ' '
     val wordEndsWithSpace = word.lastOrNull() == ' '
     val    spaceBeforeInsertLocation = pos > 0 && text[pos - 1] == ' '
@@ -161,9 +170,7 @@ fun preloadThumbnailsForIntent(intent: Intent) {
         else -> null
     }
 
-    if (uris != null) {
-        suppress<Exception> {
-            UrisShareObject.fromUris(uris).getAllImagesAndThen(applicationContext) {}
-        }
+    uris?.forEach { uri ->
+        GlobalScope.launch { getBitmapOrNull(applicationContext, uri) }
     }
 }

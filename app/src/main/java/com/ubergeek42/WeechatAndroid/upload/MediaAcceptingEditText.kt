@@ -5,16 +5,18 @@ import android.net.Uri
 import android.os.Build
 import android.os.Parcel
 import android.os.Parcelable
-import android.text.Spanned
 import android.util.AttributeSet
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputConnection
 import androidx.core.view.inputmethod.EditorInfoCompat
 import androidx.core.view.inputmethod.InputConnectionCompat
+import androidx.lifecycle.findViewTreeLifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import com.ubergeek42.WeechatAndroid.utils.ActionEditText
 import com.ubergeek42.WeechatAndroid.utils.Toaster.Companion.ErrorToast
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
+import kotlinx.coroutines.launch
 
 
 class MediaAcceptingEditText : ActionEditText {
@@ -67,8 +69,10 @@ class MediaAcceptingEditText : ActionEditText {
         text?.let {
             for (span in it.getSpans(0, it.length, ShareSpan::class.java)) {
                 span.suri.httpUri?.let { httpUri ->
-                    it.replace(it.getSpanStart(span), it.getSpanEnd(span), httpUri)
+                    val pos = it.getSpanStart(span)
+                    it.replace(pos, it.getSpanEnd(span), "")
                     it.removeSpan(span)
+                    insertAddingSpacesAsNeeded(pos, httpUri)
                 }
             }
         }
@@ -107,7 +111,7 @@ class MediaAcceptingEditText : ActionEditText {
     ///////////////////////////////////////////////////////////////////////////////// save & restore
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    class ShareSpanInfo(val uri: Uri, val start: Int, val end: Int)
+    data class ShareSpanInfo(val uri: Uri, val start: Int, val end: Int)
 
     override fun onSaveInstanceState(): Parcelable? {
         return SavedState(super.onSaveInstanceState()).apply {
@@ -127,14 +131,13 @@ class MediaAcceptingEditText : ActionEditText {
             // if so, make sure we don't create them twice
             if (state.shareSpans.isEmpty() || text == null || hasShareSpans()) return
 
-            state.shareSpans.forEach {
-                suppress<Exception>(showToast = true) {
-                    val suri = Suri.fromUri(it.uri)
-                    getThumbnailAndThen(context, it.uri) { bitmap ->
-                        val span = if (bitmap != NO_BITMAP)
-                            BitmapShareSpan(suri, bitmap) else NonBitmapShareSpan(suri)
+            findViewTreeLifecycleOwner()?.lifecycleScope?.launch {
+                state.shareSpans.forEach { (uri, start, end) ->
+                    launch {
                         suppress<Exception>(showToast = true) {
-                            text?.setSpan(span, it.start, it.end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                            val suri = Suri.fromUri(uri)
+                            val thumbnailSpannable = makeThumbnailSpannable(context, suri)
+                            text?.replace(start, end, thumbnailSpannable)
                         }
                     }
                 }
