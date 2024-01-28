@@ -33,6 +33,9 @@
     <string name="error__etc__cannot_share_to_empty_buffer_list">Bufferliste leer</string>
     <string name="error__etc__activity_not_found_for_url">Keine Aktivität gefunden für %s</string>
 
+    <string name="error__etc__cannot_navigate_input_history_if_sharespans_in_input">
+        Entfernen oder laden Sie Medien hoch, um durch den Eingabeverlauf zu navigieren</string>
+
     <!-- ############################## main activity ui elements ############################## -->
 
     <string name="ui__button_paperclip">Datei hochladen</string>
