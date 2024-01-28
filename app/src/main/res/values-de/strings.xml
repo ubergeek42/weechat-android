@@ -375,11 +375,11 @@
         Client-Zertifikate</string>
     <string name="pref__connection__ssl__client_certificate_summary">
         PKCS # 12-Datei enthält privaten Schlüssel und Client-Zertifikat</string>
-    <string name="pref__CertPickerPreference__success_stored_inside_security_hardware_yes">
+    <string name="pref__CertPickerPreference__success_stored_inside_secure_hardware_yes">
         Das Zertifikat wurde in einer Sicherheitshardware gespeichert</string>
-    <string name="pref__CertPickerPreference__success_stored_inside_security_hardware_no">
+    <string name="pref__CertPickerPreference__success_stored_inside_secure_hardware_no">
         Das Zertifikat wurde im Software-Schlüsselspeicher gespeichert</string>
-    <string name="pref__CertPickerPreference__success_stored_inside_security_hardware_yes_cant_tell">
+    <string name="pref__CertPickerPreference__success_stored_inside_secure_hardware_cant_tell">
         Das Zertifikat wurde im Schlüsselspeicher gespeichert</string>
     <string name="pref__CertPickerPreference__success_certificate_forgotten">
         Zertifikat vergessen</string>
@@ -411,11 +411,11 @@
 
     <string name="pref__connection__ssh__key">Privater Schlüssel</string>
     <string name="pref__connection__ssh__key_summary">Ed25519, ECDSA, RSA, DSA Schlüssel</string>
-    <string name="pref__PrivateKeyPickerPreference__success_stored_inside_security_hardware_yes">
+    <string name="pref__PrivateKeyPickerPreference__success_stored_inside_secure_hardware_yes">
         Der %s Schlüssel wurde in der Sicherheitshardware gespeichert</string>
-    <string name="pref__PrivateKeyPickerPreference__success_stored_inside_security_hardware_no">
+    <string name="pref__PrivateKeyPickerPreference__success_stored_inside_secure_hardware_no">
         Der %s Schlüssel wurde im Software-Schlüsselspeicher gespeichert</string>
-    <string name="pref__PrivateKeyPickerPreference__success_stored_inside_security_hardware_cant_tell">
+    <string name="pref__PrivateKeyPickerPreference__success_stored_inside_secure_hardware_cant_tell">
         %s Schlüssel wurde im Schlüsselspeicher gespeichert</string>
     <string name="pref__PrivateKeyPickerPreference__success_stored_outside_key_store">
         %1$s Schlüssel wurde in der App gespeichert.

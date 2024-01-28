@@ -6,7 +6,7 @@ import androidx.preference.PreferenceManager
 import androidx.preference.PrivateKeyPickerPreference
 import com.ubergeek42.WeechatAndroid.service.P.VolumeRole
 import com.ubergeek42.WeechatAndroid.upload.applicationContext
-import com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils.InsideSecurityHardware
+import com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils.InsideSecureHardware
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
 import com.ubergeek42.weechat.relay.connection.SSHConnection
@@ -104,9 +104,9 @@ class MigratePreferences(val context: Context) {
                             .putString(Constants.Deprecated.PREF_SSH_KEY_PASSPHRASE, null)
                             .apply()
                     val message = mapOf(
-                        InsideSecurityHardware.YES to "security hardware",
-                        InsideSecurityHardware.NO to "software key store",
-                        InsideSecurityHardware.CANT_TELL to "key store"
+                        InsideSecureHardware.YES to "secure hardware",
+                        InsideSecureHardware.NO to "software key store",
+                        InsideSecureHardware.CANT_TELL to "key store"
                     )[AndroidKeyStoreUtils.isInsideSecurityHardware(SSHConnection.KEYSTORE_ALIAS)]
                     showInfo("While migrating preferences, " +
                              "private SSH key was moved into $message")

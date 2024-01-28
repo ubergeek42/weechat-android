@@ -2,10 +2,14 @@
 
 package com.ubergeek42.WeechatAndroid.utils
 
+import com.trilead.ssh2.crypto.keys.Ed25519PrivateKey
+import com.trilead.ssh2.crypto.keys.Ed25519PublicKey
+import org.bouncycastle.asn1.ASN1OctetString
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo
 import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters
 import org.bouncycastle.jcajce.interfaces.EdDSAKey
+import org.bouncycastle.jcajce.provider.asymmetric.edec.BCEdDSAPrivateKey
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.openssl.PEMEncryptedKeyPair
 import org.bouncycastle.openssl.PEMKeyPair
@@ -58,10 +62,10 @@ fun makeKeyPair(keyReader: Reader, passphrase: CharArray): KeyPair {
     if (obj is PrivateKeyInfo) {
         val privateKey = pkcs8pemKeyConverter.getPrivateKey(obj)
 
-        // Ed25519 can't be converted to PEM, so generate public key manually
-        // the actual type here is probably BCEdDSAPrivateKey
-        if (privateKey is EdDSAKey) {
-            return KeyPair(genEd25519publicKey(privateKey, obj), privateKey)
+        // Ed25519 can't be converted to PEM, so generate public key directly
+        when (privateKey) {
+            is BCEdDSAPrivateKey -> return KeyPair(privateKey.publicKey, privateKey)
+            is EdDSAKey -> return KeyPair(genEd25519publicKey(privateKey, obj), privateKey)
         }
 
         // there is no direct way of extracting the public key from the private key.
@@ -100,14 +104,20 @@ private fun PrivateKey.toPem(): String {
 }
 
 
-private fun genEd25519publicKey(privateKey: EdDSAKey, keyInfo: PrivateKeyInfo): PublicKey {
-    val privateKeyParameters = Ed25519PrivateKeyParameters(privateKey.encoded, 0)
+private fun genEd25519publicKey(privateKey: EdDSAKey, privateKeyInfo: PrivateKeyInfo): PublicKey {
+    val privateKeyRaw = ASN1OctetString.getInstance(privateKeyInfo.parsePrivateKey()).octets
+    val privateKeyParameters = Ed25519PrivateKeyParameters(privateKeyRaw)
     val publicKeyParameters = privateKeyParameters.generatePublicKey()
-    val spi = SubjectPublicKeyInfo(keyInfo.privateKeyAlgorithm, publicKeyParameters.encoded)
+    val spi = SubjectPublicKeyInfo(privateKeyInfo.privateKeyAlgorithm, publicKeyParameters.encoded)
     val factory = KeyFactory.getInstance(privateKey.algorithm, bouncyCastleProvider)
     return factory.generatePublic(X509EncodedKeySpec(spi.encoded))
 }
 
+
+fun KeyPair.edDsaKeyPairToSshLibEd25519KeyPair() = KeyPair(
+    Ed25519PublicKey(X509EncodedKeySpec(public.encoded)),
+    Ed25519PrivateKey(PKCS8EncodedKeySpec(private.encoded))
+)
 
 fun ByteArray.toReader() = InputStreamReader(ByteArrayInputStream(this))
 fun String.toReader() = StringReader(this)

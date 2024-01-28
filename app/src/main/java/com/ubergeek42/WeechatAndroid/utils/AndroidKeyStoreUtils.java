@@ -1,9 +1,8 @@
 package com.ubergeek42.WeechatAndroid.utils;
 
-import android.os.Build;
 import android.security.keystore.KeyInfo;
 
-import androidx.annotation.RequiresApi;
+import androidx.annotation.NonNull;
 
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
@@ -109,41 +108,41 @@ public class AndroidKeyStoreUtils {
 
     // YES if key inside Trusted Execution Environment (TEE) or Secure Element (SE), NO if not
     // CANT_TELL on Android < M which doesn't support the inquiry method
-    public enum InsideSecurityHardware {
+    public enum InsideSecureHardware {
         YES,
         NO,
         CANT_TELL
     }
 
-    public static InsideSecurityHardware isInsideSecurityHardware(PrivateKey privateKey)
+    public static @NonNull InsideSecureHardware isInsideSecurityHardware(PrivateKey privateKey)
             throws NoSuchProviderException, NoSuchAlgorithmException, InvalidKeySpecException {
         if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.M)
-            return InsideSecurityHardware.CANT_TELL;
+            return InsideSecureHardware.CANT_TELL;
         KeyFactory factory = KeyFactory.getInstance(privateKey.getAlgorithm(), "AndroidKeyStore");
         KeyInfo keyInfo = factory.getKeySpec(privateKey, KeyInfo.class);
-        return keyInfo.isInsideSecureHardware() ? InsideSecurityHardware.YES : InsideSecurityHardware.NO;
+        return keyInfo.isInsideSecureHardware() ? InsideSecureHardware.YES : InsideSecureHardware.NO;
     }
 
-    public static InsideSecurityHardware isInsideSecurityHardware(String androidKeyStoreKeyAlias)
+    public static @NonNull InsideSecureHardware isInsideSecurityHardware(String androidKeyStoreKeyAlias)
             throws NoSuchProviderException, NoSuchAlgorithmException, InvalidKeySpecException,
             CertificateException, IOException, UnrecoverableKeyException, KeyStoreException {
         PrivateKey privateKey = (PrivateKey) getAndroidKeyStore().getKey(androidKeyStoreKeyAlias, null);
         return isInsideSecurityHardware(privateKey);
     }
 
-    public static InsideSecurityHardware areAllInsideSecurityHardware(String androidKeyStoreKeyAliasPrefix)
+    public static InsideSecureHardware areAllInsideSecurityHardware(String androidKeyStoreKeyAliasPrefix)
             throws NoSuchProviderException, NoSuchAlgorithmException, InvalidKeySpecException,
             CertificateException, IOException, UnrecoverableKeyException, KeyStoreException {
         if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.M)
-            return InsideSecurityHardware.CANT_TELL;
+            return InsideSecureHardware.CANT_TELL;
         KeyStore androidKeystore = getAndroidKeyStore();
         for (String alias : Collections.list(androidKeystore.aliases())) {
             if (alias.startsWith(androidKeyStoreKeyAliasPrefix)) {
-                if (isInsideSecurityHardware(alias) == InsideSecurityHardware.NO)
-                    return InsideSecurityHardware.NO;
+                if (isInsideSecurityHardware(alias) == InsideSecureHardware.NO)
+                    return InsideSecureHardware.NO;
             }
         }
-        return InsideSecurityHardware.YES;
+        return InsideSecureHardware.YES;
     }
 
     public static void putKeyPairIntoAndroidKeyStore(KeyPair keyPair, String alias)
