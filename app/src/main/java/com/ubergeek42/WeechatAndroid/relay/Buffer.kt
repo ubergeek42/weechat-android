@@ -198,8 +198,8 @@ class Buffer @WorkerThread constructor(
     @MainThread @Synchronized fun moveReadMarkerToEnd() {
         lines.moveReadMarkerToEnd()
         if (P.hotlistSync) Events.SendMessageEvent.fire(
-                "input 0x%1${"$"}x /buffer set hotlist -1\n" +
-                "input 0x%1${"$"}x /input set_unread_current_buffer", pointer)
+                "input ${pointer.as0x} /buffer set hotlist -1\n" +
+                "input ${pointer.as0x} /input set_unread_current_buffer")
     }
 
     val hotCount: Int

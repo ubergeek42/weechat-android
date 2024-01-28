@@ -25,8 +25,8 @@ import java.util.HashMap;
  * 
  */
 public class HdataEntry extends RelayObject {
-    private ArrayList<String> pointers = new ArrayList<String>();
-    private HashMap<String, RelayObject> data = new HashMap<String, RelayObject>();
+    private final ArrayList<String> pointers = new ArrayList<String>();
+    private final HashMap<String, RelayObject> data = new HashMap<String, RelayObject>();
 
     protected void addPointer(String pointer) {
         pointers.add(pointer);
@@ -83,7 +83,7 @@ public class HdataEntry extends RelayObject {
 
     public long getPointerLong() {
         try {
-            return Long.parseLong(getPointer().substring(2), 16);
+            return Long.parseUnsignedLong(getPointer().substring(2), 16);
         } catch (Exception e) {
             return -1;
         }
@@ -102,7 +102,7 @@ public class HdataEntry extends RelayObject {
 
     public long getPointerLong(int index) {
         try {
-            return Long.parseLong(getPointer(index).substring(2), 16);
+            return Long.parseUnsignedLong(getPointer(index).substring(2), 16);
         } catch (Exception e) {
             return -1;
         }

@@ -60,7 +60,8 @@ public class Data {
         return (char) getByte();
     }
 
-    // Might have to change to a BigInteger...
+    // What we are given directly corresponds to a regular signed long.
+    // https://weechat.org/files/doc/stable/weechat_relay_protocol.en.html#object_long_integer
     public long getLongInteger() {
         int length = getByte();
         if (pointer + length > data.length) {
@@ -129,17 +130,13 @@ public class Data {
             throw new IndexOutOfBoundsException("Not enough data");
         }
 
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder("0x");
+
         for (int i = 0; i < length; i++) {
             sb.append(getChar());
         }
 
-        if (length == 1 && Long.parseLong(sb.toString().toUpperCase(Locale.ENGLISH), 16) == 0) {
-            // Null Pointer
-            return "0x0";
-        }
-
-        return "0x" + sb.toString();
+        return sb.toString();
     }
 
     // Maybe return a reasonable "Date" object or similar

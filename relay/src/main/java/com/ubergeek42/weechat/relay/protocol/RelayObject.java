@@ -157,7 +157,7 @@ public class RelayObject {
 
     public long asPointerLong() {
         try {
-            return Long.parseLong(asPointer().substring(2), 16);
+            return Long.parseUnsignedLong(asPointer().substring(2), 16);
         } catch (Exception e) {
             return -1;
         }

@@ -19,7 +19,6 @@ import com.ubergeek42.WeechatAndroid.utils.SHOULD_EMOJIFY
 import com.ubergeek42.WeechatAndroid.utils.emojify
 import com.ubergeek42.weechat.Color
 import com.ubergeek42.weechat.ColorScheme
-import java.lang.Long.toHexString
 
 
 open class Line constructor(
@@ -104,5 +103,5 @@ open class Line constructor(
     val timestampedIrcLikeString: String get() =
             timestampString?.let { timestamp -> "$timestamp $ircLikeString" } ?: ircLikeString
 
-    override fun toString() = "Line(0x${toHexString(pointer)}: $ircLikeString)"
+    override fun toString() = "Line(${pointer.as0x}): $ircLikeString)"
 }

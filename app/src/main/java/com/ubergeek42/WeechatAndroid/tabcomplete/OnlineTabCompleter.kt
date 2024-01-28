@@ -4,6 +4,7 @@ import android.widget.EditText
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.coroutineScope
 import com.ubergeek42.WeechatAndroid.relay.Buffer
+import com.ubergeek42.WeechatAndroid.relay.as0x
 import com.ubergeek42.WeechatAndroid.upload.suppress
 import com.ubergeek42.weechat.relay.protocol.Hdata
 import com.ubergeek42.weechat.relay.protocol.RelayObject
@@ -45,7 +46,7 @@ class OnlineTabCompleter(
     // so instead we rely on base word, assuming that it ends on selection end
     private suspend fun fetchCompletions(): Iterator<Replacement> {
         val selectionStart = input.selectionStart
-        val message = "completion 0x%x %d %s".format(buffer.pointer, selectionStart, input.text)
+        val message = "completion ${buffer.pointer.as0x} $selectionStart ${input.text}"
 
         val (completions, baseWord, addSpace) = queryWeechat(message).asCompletions()
                 ?: return EmptyReplacements
