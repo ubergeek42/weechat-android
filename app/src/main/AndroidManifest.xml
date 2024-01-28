@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="com.ubergeek42.WeechatAndroid">
+    xmlns:tools="http://schemas.android.com/tools">
 
     <uses-sdk tools:overrideLibrary="android.support.v14.preference" />
 
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="28" />
@@ -13,6 +13,7 @@
         android:maxSdkVersion="28" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
@@ -34,7 +35,9 @@
         android:requestLegacyExternalStorage="true"
         android:windowSoftInputMode="adjustResize">
 
-        <service android:name=".service.RelayService" />
+        <service
+            android:name=".service.RelayService"
+            android:foregroundServiceType="dataSync" />
 
         <activity
             android:name=".WeechatActivity"

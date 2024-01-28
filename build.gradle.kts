@@ -27,10 +27,10 @@ buildscript {
     }
 
     dependencies {
-        classpath("com.android.tools.build:gradle:7.3.1")
-        classpath("org.aspectj:aspectjtools:1.9.9.1")
+        classpath("com.android.tools.build:gradle:7.4.2")
+        classpath("org.aspectj:aspectjtools:1.9.20.1") // updating to 1.9.21 leads to dexing errors
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.20")
-        classpath("org.jetbrains.kotlin:kotlin-serialization:1.7.0")
+        classpath("org.jetbrains.kotlin:kotlin-serialization:1.9.20")
     }
 }
 
@@ -75,7 +75,7 @@ subprojects {
 //   $ ./gradlew dependencyUpdates
 // See https://github.com/ben-manes/gradle-versions-plugin
 plugins {
-    id("com.github.ben-manes.versions") version "0.42.0"
+    id("com.github.ben-manes.versions") version "0.50.0"
 }
 
 fun isNonStable(version: String): Boolean {

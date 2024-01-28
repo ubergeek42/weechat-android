@@ -13,6 +13,7 @@
 // limitations under the License.
 package com.ubergeek42.WeechatAndroid
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
@@ -53,7 +54,10 @@ import com.ubergeek42.WeechatAndroid.dialogs.ScrollableDialog
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragment
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragmentContainer
 import com.ubergeek42.WeechatAndroid.media.CachePersist
+import com.ubergeek42.WeechatAndroid.notifications.NotificationPermissionChecker
 import com.ubergeek42.WeechatAndroid.notifications.shortcuts
+import com.ubergeek42.WeechatAndroid.notifications.shouldRequestNotificationPermission
+import com.ubergeek42.WeechatAndroid.notifications.showNotificationPermissionRationaleDialog
 import com.ubergeek42.WeechatAndroid.notifications.statistics
 import com.ubergeek42.WeechatAndroid.relay.BufferList
 import com.ubergeek42.WeechatAndroid.service.Events.ExceptionEvent
@@ -61,6 +65,8 @@ import com.ubergeek42.WeechatAndroid.service.Events.StateChangedEvent
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.service.RelayService
 import com.ubergeek42.WeechatAndroid.service.getSystemTrustedCertificateChain
+import com.ubergeek42.WeechatAndroid.service.showAlarmPermissionRationaleDialog
+import com.ubergeek42.WeechatAndroid.service.shouldRequestExactAlarmPermission
 import com.ubergeek42.WeechatAndroid.upload.Config
 import com.ubergeek42.WeechatAndroid.upload.InsertAt
 import com.ubergeek42.WeechatAndroid.upload.ShareObject
@@ -126,6 +132,11 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener,
         private set
 
     private val toolbarController = ToolbarController(this).apply { observeLifecycle() }
+
+    val notificationPermissionChecker = when {
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> NotificationPermissionChecker(this)
+        else -> null
+    }
 
     init { WeechatActivityFullScreenController(this).observeLifecycle() }
 
@@ -199,7 +210,7 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener,
 
         menuBackgroundDrawable = ContextCompat.getDrawable(this, R.drawable.bg_popup_menu)!!
 
-        if (P.isServiceAlive()) connect()
+        if (savedInstanceState == null && P.isServiceAlive()) connect()
 
         // restore buffers if we have data in the static
         // if no data and not going to connect, clear stuff
@@ -213,13 +224,25 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener,
 
     @MainThread @CatD(linger = true) fun connect() {
         P.loadConnectionPreferences()
-        val error = P.validateConnectionPreferences()
-        if (error != 0) {
-            Toaster.ErrorToast.show(error)
-        } else {
-            kitty.debug("proceeding!")
-            RelayService.startWithAction(this, RelayService.ACTION_START)
+
+        val errorStringId = P.validateConnectionPreferences()
+        if (errorStringId != 0) {
+            Toaster.ErrorToast.show(errorStringId)
+            return
         }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && shouldRequestExactAlarmPermission()) {
+            showAlarmPermissionRationaleDialog()
+            return
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && shouldRequestNotificationPermission()) {
+            showNotificationPermissionRationaleDialog()
+            return
+        }
+
+        kitty.debug("proceeding!")
+        RelayService.startWithAction(this, RelayService.ACTION_START)
     }
 
     @MainThread @CatD fun disconnect() {
@@ -462,7 +485,7 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener,
     @MainThread @Cat("Menu") override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_actionbar, menu)
 
-        val menuHotlist = menu.findItem(R.id.menu_hotlist).actionView
+        val menuHotlist = menu.findItem(R.id.menu_hotlist).actionView!!
         uiHot = menuHotlist.findViewById(R.id.hotlist_hot)
 
         // set color of the border around the [2] badge on the bell, as well as text color
@@ -548,7 +571,7 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener,
         })
         menu.findItem(R.id.menu_connection_state).title = connectionStateTitle
 
-        val menuHotlist = menu.findItem(R.id.menu_hotlist).actionView
+        val menuHotlist = menu.findItem(R.id.menu_hotlist).actionView!!
         val bellImage = menuHotlist.findViewById<ImageView>(R.id.hotlist_bell)
         bellImage.setImageResource(if (P.optimizeTraffic) R.drawable.ic_toolbar_bell_cracked else R.drawable.ic_toolbar_bell)
     }

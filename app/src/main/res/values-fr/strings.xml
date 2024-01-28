@@ -174,6 +174,33 @@
         Pour prendre des photos, l’application a besoin d’un accès en écriture au stockage</string>
     <string name="dialog__write_permission_for_camera__button_ok">OK</string>
 
+    <string name="dialog__alarm_permission_for_ping__title">
+        Demande d’autorisation</string>
+    <string name="dialog__alarm_permission_for_ping__text">
+        Le mécanisme de pings a besoin de l’autorisation de programmer des alarmes exactes.
+        Si vous préférez, vous pouvez désactiver les pings dans les paramètres de connexion.</string>
+    <string name="dialog__alarm_permission_for_ping__positive_button">Donner l’autorisation</string>
+
+    <string name="dialog__notification_permission__title">Demande d’autorisation</string>
+    <string name="dialog__notification_permission__text">
+        Pour pouvoir afficher des notifications,
+        Weechat-Android a besoin d’une autorisation optionnelle.
+        Vous pouvez refuser maintenant et réactiver les notifications
+        à tout moment en allant dans les paramètres.
+        \n
+        \nUne notification restera affichée aussi longtemps que la connexion perdure.
+        Pour la masquer de la barre d’état, nous vous suggérons d’activer
+        l’option de réduire les notifications pour la catégorie «&#8239;État de la connexion&#8239;».
+        \n
+        \nVous pouvez également personnaliser les notifications pour des tampons individuels,
+        modifier le son, les vibrations, etc.
+        Pour ce faire, lorsque vous avez reçu au moins une notification pour le tampon correspondant,
+        appuyez longuement dessus et accédez aux paramètres.
+    </string>
+    <string name="dialog__notification_permission__positive_button">Donner l’autorisation</string>
+    <string name="dialog__notification_permission__negative_button">
+        Continuer sans donner l’autorisation</string>
+
     <!-- ####################################################################################### -->
     <!-- ################################# certificate dialogs ################################# -->
     <!-- ####################################################################################### -->
