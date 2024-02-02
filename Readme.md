@@ -32,6 +32,14 @@ Pull requests are welcome—but please check with us on IRC before starting a su
 
 ### Changelog
 
+##### v1.9
+* Drag and drop files on buffers to share
+* Volume keys can now navigate input history
+* Fixed strange behavior resulting from handling WeeChat pointers as signed numbers
+* Fixed importing of PKCS #8 Ed25519 keys
+* Target Android API 34, ask for notification & exact alarm permissions where applicable
+* A few minor bug fixes and improvements
+
 ##### v1.8.1
 * Fixed an issue with ED25519 keys during upgrade
 * Update Android Gradle Plugin to fix build on F-Droid
