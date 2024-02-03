@@ -176,6 +176,32 @@
         Um Fotos zu erstellen, benötigt die App Schreibzugriff auf den öffentlichen Speicher</string>
     <string name="dialog__write_permission_for_camera__button_ok">Ok</string>
 
+    <string name="dialog__alarm_permission_for_ping__title">
+        Erlaubnis erforderlich</string>
+    <string name="dialog__alarm_permission_for_ping__text">
+        Maschine pingen, benötigt die Erlaubnis, genaue Alarme zu setzen.
+        Alternativ können man den Ping in den Verbindungseinstellungen deaktivieren.</string>
+    <string name="dialog__alarm_permission_for_ping__positive_button">Erlaubnis erteilen</string>
+
+    <string name="dialog__notification_permission__title">Erlaubnis erwünscht</string>
+    <string name="dialog__notification_permission__text">
+        Um Benachrichtigungen anzuzeigen, benötigen wir eine Erlaubnis.
+        Dies ist optional.
+        Wenn Sie Benachrichtigungen jetzt nicht aktivieren,
+        können Sie diese jederzeit nachträglich in den Einstellungen aktivieren.
+        \n
+        \nWenn eine Verbindung besteht, wird eine dauerhafte Benachrichtigung angezeigt.
+        Um es aus der Statusleiste auszublenden, wird empfohlen,
+        die Benachrichtigungsminimierung für die Kategorie „Verbindungsstatus“ zu aktivieren.
+        \n
+        \nEs können Benachrichtigungen, z.B. Ton, Vibration usw. auch für einzelne Buffer angepasst werden.
+        Wenn mindestens eine Benachrichtigung für den entsprechenden Buffer erhalten wurde,
+        muss man lange auf die Benachrichtigung tippen, um zu den Einstellungen zu gelangen.
+    </string>
+    <string name="dialog__notification_permission__positive_button">Erlaubnis erteilen</string>
+    <string name="dialog__notification_permission__negative_button">
+        Fortfahren, ohne Erlaubnis zu erteilen</string>
+
     <!-- ####################################################################################### -->
     <!-- ################################# certificate dialogs ################################# -->
     <!-- ####################################################################################### -->

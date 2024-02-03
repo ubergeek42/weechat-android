@@ -2,7 +2,9 @@
 // you may not use this file except in compliance with the License.
 package com.ubergeek42.WeechatAndroid.notifications
 
+import android.Manifest.permission.POST_NOTIFICATIONS
 import android.app.Activity
+import android.app.Dialog
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -12,10 +14,13 @@ import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.net.Uri
 import android.os.Build
+import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
+import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
 import androidx.annotation.AnyThread
 import androidx.annotation.MainThread
 import androidx.annotation.RequiresApi
@@ -23,9 +28,15 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.Person
 import androidx.core.app.RemoteInput
 import androidx.core.content.LocusIdCompat
+import androidx.core.content.edit
+import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.FragmentActivity
+import androidx.preference.PreferenceManager
 import com.ubergeek42.WeechatAndroid.BubbleActivity
 import com.ubergeek42.WeechatAndroid.R
+import com.ubergeek42.WeechatAndroid.Weechat
 import com.ubergeek42.WeechatAndroid.WeechatActivity
+import com.ubergeek42.WeechatAndroid.dialogs.createScrollableDialog
 import com.ubergeek42.WeechatAndroid.relay.BufferList
 import com.ubergeek42.WeechatAndroid.relay.as0x
 import com.ubergeek42.WeechatAndroid.relay.from0xOrNull
@@ -38,7 +49,6 @@ import com.ubergeek42.WeechatAndroid.utils.Toaster
 import com.ubergeek42.cats.Cat
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
-
 import kotlin.apply
 import kotlin.apply as apply2
 
@@ -810,4 +820,95 @@ private fun willBubble(fullName: String): Boolean {
         // We can only detect this on Android S+
         PackageBubblingSetting.NothingCanBubble -> false
     }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////// Permission
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// We show the rationale for the notification permission before requesting it.
+// If the user approves, or denies it, we proceed, and never ask again.
+// If they dismiss the system permission dialog, we ask again.
+
+// Regarding the behavior of `shouldShowRequestPermissionRationale` in practice:
+//
+// When the permission is requested and *denied* repeatedly, on API 34 we can observe:
+//   * Before the first permission request, should-show-rationale is false;
+//   * The first time permission is requested, permission dialog is shown,
+//     and after should-show-rationale is true;
+//   * The second time, permission dialog is shown, and after should-show-rationale is false;
+//   * The third time, permission dialog is not shown, and after should-show-rationale is false.
+//
+// However, when the user dismisses the dialog without pressing any buttons,
+// `granted` is false and also should-show-rationale is false.
+// Dismissals also don't seem to count towards any limits.
+//
+// Also note that if the user approves and denies the permission *in app settings*,
+// it will count as a single denied permission request, that is:
+//   * Before the first permission request, should-show-rationale is true;
+//   * The first time permission is requested, permission dialog is shown,
+//     and after it is denied, should-show-rationale is false.
+//     However, just like above, if the dialog is dismissed, should-show-rationale remains true.
+//
+// Therefore, to catch the *first* time user denies the permission *in the dialog*,
+// we should check whether `granted` is false,
+// and also that should-show-rationale flips in the process.
+//
+// I wonder if this covers all workflows... This is exhausting
+
+private var oldShouldShowRequestPermissionRationale = false
+
+// Recreated with activity, so must be largely stateless
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
+class NotificationPermissionChecker(private val activity: WeechatActivity) {
+    private val shouldShowRequestPermissionRationale get() =
+        activity.shouldShowRequestPermissionRationale(POST_NOTIFICATIONS)
+
+    private val requestLauncher = activity.registerForActivityResult(RequestPermission()) { granted ->
+        if (!granted && shouldShowRequestPermissionRationale != oldShouldShowRequestPermissionRationale) {
+            permissionWasDeniedOnce = true
+        }
+        activity.connect()
+    }
+
+    fun requestNotificationPermission() {
+        oldShouldShowRequestPermissionRationale = shouldShowRequestPermissionRationale
+        requestLauncher.launch(POST_NOTIFICATIONS)
+    }
+}
+
+private val preferences by lazy { PreferenceManager.getDefaultSharedPreferences(Weechat.applicationContext) }
+
+private var permissionWasDeniedOnce: Boolean
+    get() = preferences.getBoolean("notificationPermissionWasDeniedOnce", false)
+    set(value) { preferences.edit { putBoolean("notificationPermissionWasDeniedOnce", value) } }
+
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
+class NotificationPermissionRationaleDialogFragment : DialogFragment() {
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        return requireContext().createScrollableDialog {
+            setTitle(R.string.dialog__notification_permission__title)
+            setText(R.string.dialog__notification_permission__text)
+            setPositiveButton(R.string.dialog__notification_permission__positive_button) {
+                (requireActivity() as WeechatActivity)
+                    .notificationPermissionChecker!!
+                    .requestNotificationPermission()
+
+            }
+            setNegativeButton(R.string.dialog__notification_permission__negative_button) {
+                permissionWasDeniedOnce = true
+                (requireActivity() as WeechatActivity).connect()
+            }
+        }
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
+fun Activity.shouldRequestNotificationPermission() =
+    checkSelfPermission(POST_NOTIFICATIONS) != PERMISSION_GRANTED && !permissionWasDeniedOnce
+
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
+fun FragmentActivity.showNotificationPermissionRationaleDialog() {
+    NotificationPermissionRationaleDialogFragment()
+        .show(supportFragmentManager, "notification-permission-dialog")
 }

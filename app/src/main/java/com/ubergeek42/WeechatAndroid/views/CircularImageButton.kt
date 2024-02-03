@@ -47,8 +47,8 @@ class CircularImageButton @JvmOverloads constructor(
 
     private val backgroundPaint = Paint().apply { style = Paint.Style.FILL }
 
-    override fun onDraw(canvas: Canvas?) {
-        canvas?.drawPaint(backgroundPaint)
+    override fun onDraw(canvas: Canvas) {
+        canvas.drawPaint(backgroundPaint)
         super.onDraw(canvas)
     }
 

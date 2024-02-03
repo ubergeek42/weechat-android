@@ -82,7 +82,7 @@ class NonBitmapShareSpan(suri: Suri) : ShareSpan(suri) {
     @SuppressLint("NewApi")
     private val iconDrawable = if (!CAN_SHOW_ICON) null else
             resolver.getTypeInfo(suri.mediaType.toString()).icon.loadDrawable(applicationContext)
-                    .apply { setBounds(
+                    ?.apply { setBounds(
                             (THUMBNAIL_MAX_WIDTH - ICON_SIZE) / 2,
                             0,
                             (THUMBNAIL_MAX_WIDTH + ICON_SIZE) / 2,
