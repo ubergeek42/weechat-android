@@ -184,7 +184,7 @@ fun weave(classPath: Iterable<File>, aspectPath: Iterable<File>, input: Iterable
     if (runInAProcess) {
         javaexec {
             classpath = weaving
-            main = "org.aspectj.tools.ajc.Main"
+            mainClass.set("org.aspectj.tools.ajc.Main")
             args = arguments
         }
     } else {
@@ -290,7 +290,7 @@ dependencies {
     }
 }
 
-android.registerTransform(TransformCats())
+//android.registerTransform(TransformCats())
 
 val Iterable<File>.asArgument get() = joinToString(File.pathSeparator)
 
