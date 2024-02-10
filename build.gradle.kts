@@ -24,13 +24,15 @@ buildscript {
     repositories {
         mavenCentral()
         google()
+        maven("https://plugins.gradle.org/m2/")
     }
 
     dependencies {
         classpath("com.android.tools.build:gradle:8.2.2")
-        classpath("org.aspectj:aspectjtools:1.9.20.1") // updating to 1.9.21 leads to dexing errors
+        classpath("org.aspectj:aspectjtools:1.9.21")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.20")
         classpath("org.jetbrains.kotlin:kotlin-serialization:1.9.20")
+        classpath("com.ibotta:plugin:1.4.1")
     }
 }
 

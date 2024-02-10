@@ -1,11 +1,3 @@
-import com.android.build.api.transform.*
-import com.android.build.api.variant.VariantInfo
-import com.android.utils.FileUtils
-import org.gradle.internal.os.OperatingSystem
-import org.aspectj.bridge.IMessage
-import org.aspectj.bridge.MessageHandler
-import org.aspectj.tools.ajc.Main
-
 plugins {
     id("com.android.application")
     kotlin("android")
@@ -55,7 +47,7 @@ dependencies {
 
     implementation("org.greenrobot:eventbus:3.3.1")
 
-    debugImplementation("org.aspectj:aspectjrt:1.9.20.1")
+    debugImplementation("org.aspectj:aspectjrt:1.9.21")
     debugImplementation("com.squareup.leakcanary:leakcanary-android:2.12")
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.1")
@@ -157,148 +149,17 @@ fun versionBanner(): String {
 /////////////////////////////////////////////////////////////////////////////////////////////// cats
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// ajc gets hold of some files such as R.jar, and on Windows it leads to errors such as:
-//   The process cannot access the file because it is being used by another process
-// to avoid these, weave in a process, which `javaexec` will helpfully launch for us.
-
-fun weave(classPath: Iterable<File>, aspectPath: Iterable<File>, input: Iterable<File>, output: File) {
-    val runInAProcess = OperatingSystem.current().isWindows
-    val bootClassPath = android.bootClasspath
-
-    println(if (runInAProcess) ":: weaving in a process..." else ":: weaving...")
-    println(":: boot class path:  $bootClassPath")
-    println(":: class path:       $classPath")
-    println(":: aspect path:      $aspectPath")
-    println(":: input:            $input")
-    println(":: output:           $output")
-
-    val arguments = listOf("-showWeaveInfo",
-                           "-1.8",
-                           "-preserveAllLocals",
-                           "-bootclasspath", bootClassPath.asArgument,
-                           "-classpath", classPath.asArgument,
-                           "-aspectpath", aspectPath.asArgument,
-                           "-inpath", input.asArgument,
-                           "-d", output.absolutePath)
-
-    if (runInAProcess) {
-        javaexec {
-            classpath = weaving
-            mainClass.set("org.aspectj.tools.ajc.Main")
-            args = arguments
-        }
-    } else {
-        val handler = MessageHandler(true)
-        Main().run(arguments.toTypedArray(), handler)
-
-        val log = project.logger
-        for (message in handler.getMessages(null, true)) {
-            when (message.kind) {
-                IMessage.DEBUG -> log.debug("DEBUG " + message.message, message.thrown)
-                IMessage.INFO -> log.info("INFO: " + message.message, message.thrown)
-                IMessage.WARNING -> log.warn("WARN: " + message.message, message.thrown)
-                IMessage.FAIL,
-                IMessage.ERROR,
-                IMessage.ABORT -> log.error("ERROR: " + message.message, message.thrown)
-            }
-        }
-    }
-}
-
-// the only purpose of the following is to get a hold of aspectjtools jar
-// this jar is already on build script classpath, but that classpath is impossible to get
-// see https://discuss.gradle.org/t/how-do-i-determine-buildscript-classpath/37973/3
-
-val weaving: Configuration by configurations.creating
-
-dependencies {
-    weaving("org.aspectj:aspectjtools:1.9.20.1")
-}
-
-// historical note: the problem with weaving Kotlin and Java in-place is that:
-//   * Java is compiled by task compileDebugJavaWithJavac
-//   * gradle can run either one of these tasks, or both of them
-//   * compileDebugJavaWithJavac depends on compileDebugKotlin
-//   * weaving Kotlin requires Java classes
+// This is hacky but it makes the AspectJ weaving only happen on debug builds.
+// Note that `apply(plugin = ...)` prevents us from configuring a filter,
+// which seems to require the unconditional syntax `plugin { id(...) }`.
+// However, the filter somehow doesn't seem to work either way, even if we simplify it to this:
 //
-// a transformation is a poorly advertised feature that works on merged code, and also has its own
-// inputs and outputs, so this fixes all of our problems...
+//     aopWeave {
+//        filter = "ubergeek42"
+//     }
 
-    class TransformCats : Transform() {
-    override fun getName(): String = TransformCats::class.simpleName!!
+val taskRequests = getGradle().startParameter.taskRequests.flatMap { it.args }
 
-    override fun getInputTypes() = setOf(QualifiedContent.DefaultContentType.CLASSES)
-
-    // only look for annotations in app classes
-    // transformation will consume these and put woven classes in the output dir
-    override fun getScopes() = mutableSetOf(QualifiedContent.Scope.PROJECT)
-
-    // but also have the rest on our class path
-    // these will not be touched by the transformation
-    override fun getReferencedScopes() = mutableSetOf(QualifiedContent.Scope.SUB_PROJECTS,
-                                                      QualifiedContent.Scope.EXTERNAL_LIBRARIES)
-
-    override fun isIncremental() = false
-
-    // only run on debug builds
-    override fun applyToVariant(variant: VariantInfo) = variant.isDebuggable
-
-    override fun transform(invocation: TransformInvocation) {
-        if (!invocation.isIncremental) {
-            invocation.outputProvider.deleteAll()
-        }
-
-        val output = invocation.outputProvider.getContentLocation(name, outputTypes,
-                                                                  scopes, Format.DIRECTORY)
-        if (output.isDirectory) FileUtils.deleteDirectoryContents(output)
-        FileUtils.mkdirs(output)
-
-        val input = mutableListOf<File>()
-        val classPath = mutableListOf<File>()
-        val aspectPath = mutableListOf<File>()
-
-        invocation.inputs.forEach { source ->
-            source.directoryInputs.forEach { dir ->
-                input.add(dir.file)
-                classPath.add(dir.file)
-            }
-
-            source.jarInputs.forEach { jar ->
-                input.add(jar.file)
-                classPath.add(jar.file)
-            }
-        }
-
-        invocation.referencedInputs.forEach { source ->
-            source.directoryInputs.forEach { dir ->
-                classPath.add(dir.file)
-            }
-
-            source.jarInputs.forEach { jar ->
-                classPath.add(jar.file)
-                // this used to read `if (jar.name == ":cats") ...`,
-                // but with android gradle plugin 4.2.0 jar names contain garbage
-                // this is a very simple but a bit fragile workaround. todo improve
-                if (jar.file.directoriesInsideRootProject().contains("cats")) {
-                    aspectPath.add(jar.file)
-                }
-            }
-
-        }
-
-        weave(classPath, aspectPath, input, output)
-    }
-}
-
-//android.registerTransform(TransformCats())
-
-val Iterable<File>.asArgument get() = joinToString(File.pathSeparator)
-
-fun File.directoriesInsideRootProject() = sequence {
-    var file = this@directoriesInsideRootProject
-    while (true) {
-        yield(file.name)
-        file = file.parentFile ?: break
-        if (file == rootProject.projectDir) break
-    }
+if (taskRequests.isNotEmpty() && taskRequests.all { "Debug" in it }) {
+    apply(plugin = "com.ibotta.gradle.aop")
 }

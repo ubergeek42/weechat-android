@@ -7,7 +7,7 @@ plugins {
 }
 
 dependencies {
-    implementation("org.aspectj:aspectjrt:1.9.20.1")
+    implementation("org.aspectj:aspectjrt:1.9.21")
     implementation("androidx.annotation:annotation:1.7.1")
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.1")
