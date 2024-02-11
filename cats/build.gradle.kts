@@ -38,6 +38,10 @@ android {
         targetSdk = 34
         minSdk = 16
     }
+
+    buildFeatures {
+        buildConfig = true
+    }
 }
 
 tasks.withType<JavaCompile> {
