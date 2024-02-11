@@ -6,7 +6,13 @@ plugins {
 
 dependencies {
     implementation(project(":cats"))
-    implementation(project(":relay"))
+    implementation(project(":relay")) {
+        // Excluding com.google.crypto.tink:tink in favor of com.google.crypto.tink:tink-android
+        // that is pulled by androidx.security:security-crypto
+        exclude("com.google.crypto.tink", "tink")
+    }
+
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
 
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.20")
 

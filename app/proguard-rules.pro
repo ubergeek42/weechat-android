@@ -133,13 +133,16 @@
 -dontwarn java.beans.PropertyDescriptor
 
 
-# Gets rid of the warning,
+# Gets rid of the warnings such as:
 #   Missing class com.google.errorprone.annotations.Immutable
 #   (referenced from: com.google.crypto.tink.util.Bytes)
 # Should be safe to use. See:
 #   https://github.com/google/tink/issues/536
 #   https://issuetracker.google.com/issues/195752905
 -dontwarn com.google.errorprone.annotations.Immutable
+-dontwarn com.google.errorprone.annotations.CanIgnoreReturnValue
+-dontwarn com.google.errorprone.annotations.CheckReturnValue
+-dontwarn com.google.errorprone.annotations.RestrictedApi
 
 # ~*~*~*~ Historical rules, left here for lamenting and general amusement ~*~*~*~
 
