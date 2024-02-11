@@ -7,8 +7,9 @@ plugins {
 dependencies {
     implementation(libs.slf4j.api)
 
-    // "api" because we are calling `SSHConnection.getKnownHosts` from the app
-    // and it returns something from inside sshlib
+    // TODO Change to `implementation`.
+    //   This is using `api` because we are calling `SSHConnection.getKnownHosts` from the app
+    //   and it returns something from inside sshlib.
     api(libs.sshlib)
 
     implementation(libs.nvwebsocketclient)

@@ -15,6 +15,7 @@ androidx-legacy = "1.0.0"
 androidx-lifecycle = "2.8.7"
 androidx-preference = "1.2.1"
 androidx-room = "2.6.1"
+androidx-security-crypto = "1.1.0-alpha06"
 androidx-sharetarget = "1.2.0"
 
 # Bumping AspectJ to either 1.9.22 or 1.9.22.1, the currently latest version, leads to the following
@@ -42,7 +43,20 @@ nvwebsocketclient = "2.14"
 okhttp = "4.12.0"
 slf4j-api = "2.0.16"
 snakeyaml = "2.3"
-sshlib = "2.2.21"
+
+# There are two problems with the current upstream version of sshlib, 2.2.23.
+#   * It uses Gradle Shadow, which seems to be merging all dependencies into a single entity.
+#     It is not an issue unless the same dependencies are pulled from elsewhere.
+#     In this situation you can have a class `foo.Bar` found both in its original
+#     dependency `foo`, and in the fat package `sshlib`, which leads to a conflict.
+#     See https://github.com/connectbot/sshlib/issues/301
+#   * Its Jitpack builds are failing.
+#     See https://github.com/connectbot/sshlib/issues/300
+# To work around these issues, 97498cea, built on top of current upstream master,
+# removes Gradle Shadow and bumps Jitpack Java version.
+# See https://github.com/oakkitten/sshlib/commits/remove-gradle-shadow/
+sshlib = "97498cea3e183a7dd7efb11ec645caaff0740195"
+
 tasktree = "1.5"
 
 
@@ -59,6 +73,7 @@ androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtim
 androidx-preference-ktx = { module = "androidx.preference:preference-ktx", version.ref = "androidx-preference" }
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "androidx-room" }  # plugin
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "androidx-room" }
+androidx-security-crypto = { module = "androidx.security:security-crypto", version.ref = "androidx-security-crypto" }
 androidx-sharetarget = { module = "androidx.sharetarget:sharetarget", version.ref = "androidx-sharetarget" }
 aspectj-rt = { module = "org.aspectj:aspectjrt", version.ref = "aspectj" }
 aspectj-tools = { module = "org.aspectj:aspectjtools", version.ref = "aspectj" }  # plugin
@@ -81,7 +96,7 @@ nvwebsocketclient = { module = "com.neovisionaries:nv-websocket-client", version
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j-api" }
 snakeyaml = { module = "org.yaml:snakeyaml", version.ref = "snakeyaml" }
-sshlib = { module = "com.github.connectbot:sshlib", version.ref = "sshlib" }
+sshlib = { module = "com.github.oakkitten:sshlib", version.ref = "sshlib" }
 
 
 [plugins]

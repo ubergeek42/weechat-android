@@ -6,7 +6,13 @@ plugins {
 
 dependencies {
     implementation(project(":cats"))
-    implementation(project(":relay"))
+    implementation(project(":relay")) {
+        // Excluding com.google.crypto.tink:tink in favor of com.google.crypto.tink:tink-android
+        // that is pulled by androidx.security:security-crypto
+        exclude("com.google.crypto.tink", "tink")
+    }
+
+    implementation(libs.androidx.security.crypto)
 
     // these two are required for logging within the relay module. todo remove?
     implementation(libs.slf4j.api)
