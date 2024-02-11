@@ -88,7 +88,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     public static void storeThemeOrColorSchemeColors(Context context) {
         ColorScheme scheme = ColorScheme.get();
         TypedArray colors = context.obtainStyledAttributes(
-                new int[] {R.attr.colorPrimary, R.attr.colorPrimaryDark, R.attr.toolbarIconColor});
+                new int[] {androidx.appcompat.R.attr.colorPrimary, androidx.appcompat.R.attr.colorPrimaryDark, R.attr.toolbarIconColor});
         colorPrimary = scheme.colorPrimary != ColorScheme.NO_COLOR ?
                 scheme.colorPrimary : colors.getColor(0, ColorScheme.NO_COLOR);
         colorPrimaryDark = scheme.colorPrimaryDark != ColorScheme.NO_COLOR ?

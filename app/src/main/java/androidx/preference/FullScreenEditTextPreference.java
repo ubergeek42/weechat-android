@@ -46,7 +46,7 @@ public class FullScreenEditTextPreference extends EditTextPreference implements 
 
     @SuppressWarnings("WeakerAccess")
     public FullScreenEditTextPreference(Context context, AttributeSet attrs) {
-        this(context, attrs, R.attr.editTextPreferenceStyle);
+        this(context, attrs, androidx.preference.R.attr.editTextPreferenceStyle);
     }
 
     @SuppressWarnings("WeakerAccess")
