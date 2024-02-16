@@ -1,8 +1,11 @@
 package com.ubergeek42.WeechatAndroid.utils
 
 import android.content.SharedPreferences
+import androidx.core.content.edit
 import com.github.ivanshafran.sharedpreferencesmock.SPMockBuilder
+import org.junit.Assert
 import org.junit.Before
+import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
@@ -29,5 +32,13 @@ internal class MigratePreferencesTest {
                 else -> defaultSharedPreferences
             }
         }
+    }
+
+    @Test
+    fun `Test relay password migration`() {
+        defaultSharedPreferences.edit { putString(Constants.Deprecated.PREF_PASSWORD, "foo") }
+        MigratePreferences(multiSharedPreferences).migrate()
+        val value = encryptedSharedPreferences.getString(Constants.PREF_PASSWORD, "missing")
+        Assert.assertEquals("foo", value)
     }
 }

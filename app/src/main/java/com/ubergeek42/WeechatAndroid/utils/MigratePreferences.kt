@@ -186,6 +186,17 @@ class MigratePreferences(private val preferences: SharedPreferences) {
                 )
             }
         }
+
+        add(6, 7) {
+            preferences.edit {
+                fun move(oldKey: String, newKey: String) {
+                    preferences.getString(oldKey, null)?.let { putString(newKey, it) }
+                    remove(oldKey)
+                }
+
+                move(Constants.Deprecated.PREF_PASSWORD, Constants.PREF_PASSWORD)
+            }
+        }
     }
 }
 

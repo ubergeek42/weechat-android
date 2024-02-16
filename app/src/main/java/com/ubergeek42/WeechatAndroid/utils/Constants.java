@@ -49,7 +49,7 @@ public class Constants {
     final public static String PREF_HOST_D = "";
     final static public String PREF_PORT = "port";
     final public static String PREF_PORT_D = "9001";
-    final static public String PREF_PASSWORD = "password";
+    final static public String PREF_PASSWORD = "encrypted_password";
     final public static String PREF_PASSWORD_D = "";
     final static public String PREF_HANDSHAKE_METHOD = "handshake_method";
     final static public String PREF_HANDSHAKE_METHOD_COMPATIBILITY = "compatibility";
@@ -258,5 +258,7 @@ public class Constants {
         final static public String PREF_SSH_KEY_PASSPHRASE = "ssh_key_passphrase"; final public static String PREF_SSH_KEY_PASSPHRASE_D = null;
         final static public String PREF_SSH_KNOWN_HOSTS = "ssh_known_hosts"; final public static String PREF_SSH_KNOWN_HOSTS_D = "";
         final static public String PREF_VOLUME_BTN_SIZE = "volumebtn_size"; final public static boolean PREF_VOLUME_BTN_SIZE_D = true;
+
+        final static public String PREF_PASSWORD = "password";
     }
 }
