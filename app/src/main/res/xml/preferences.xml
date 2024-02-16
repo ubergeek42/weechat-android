@@ -100,7 +100,7 @@
                 android:defaultValue="9001"
                 android:inputType="number" />
             <EditTextPreferenceFix
-                android:key="password"
+                android:key="encrypted_password"
                 android:title="@string/pref__connection__relay_password"
                 android:summary="%s"
                 android:singleLine="true"
