@@ -43,7 +43,7 @@ import com.ubergeek42.WeechatAndroid.relay.from0xOrNull
 import com.ubergeek42.WeechatAndroid.service.Events
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.service.RelayService
-import com.ubergeek42.WeechatAndroid.upload.applicationContext
+import com.ubergeek42.WeechatAndroid.utils.applicationContext
 import com.ubergeek42.WeechatAndroid.utils.Constants
 import com.ubergeek42.WeechatAndroid.utils.Toaster
 import com.ubergeek42.WeechatAndroid.utils.multiSharedPreferences

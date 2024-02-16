@@ -19,6 +19,7 @@ import com.ubergeek42.WeechatAndroid.media.ContentUriFetcher.FILE_PROVIDER_SUFFI
 import com.ubergeek42.WeechatAndroid.utils.Constants
 import com.ubergeek42.WeechatAndroid.dialogs.ScrollableDialog
 import com.ubergeek42.WeechatAndroid.utils.Toaster.Companion.ErrorToast
+import com.ubergeek42.WeechatAndroid.utils.applicationContext
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
 import java.io.File
