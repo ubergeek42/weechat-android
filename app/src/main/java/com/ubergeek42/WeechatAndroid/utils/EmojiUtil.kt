@@ -8,7 +8,7 @@ import androidx.emoji2.text.EmojiCompat
 import androidx.emoji2.text.EmojiCompat.InitCallback
 import androidx.emoji2.text.EmojiCompat.LOAD_STRATEGY_MANUAL
 import androidx.emoji2.text.FontRequestEmojiCompatConfig.ExponentialBackoffRetryPolicy
-import com.ubergeek42.WeechatAndroid.upload.applicationContext
+import com.ubergeek42.WeechatAndroid.utils.applicationContext
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
 import kotlin.concurrent.thread

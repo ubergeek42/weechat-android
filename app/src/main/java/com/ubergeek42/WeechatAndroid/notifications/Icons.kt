@@ -10,7 +10,7 @@ import android.os.Build
 import androidx.core.content.FileProvider
 import androidx.core.graphics.drawable.IconCompat
 import com.ubergeek42.WeechatAndroid.media.ContentUriFetcher
-import com.ubergeek42.WeechatAndroid.upload.applicationContext
+import com.ubergeek42.WeechatAndroid.utils.applicationContext
 import com.ubergeek42.WeechatAndroid.upload.dp_to_px
 import com.ubergeek42.WeechatAndroid.upload.suppress
 import com.ubergeek42.WeechatAndroid.utils.Toaster

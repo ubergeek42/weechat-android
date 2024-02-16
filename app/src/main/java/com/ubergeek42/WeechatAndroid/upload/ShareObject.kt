@@ -18,6 +18,7 @@ import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import com.ubergeek42.WeechatAndroid.media.Config
 import com.ubergeek42.WeechatAndroid.media.WAGlideModule.isContextValidForGlide
+import com.ubergeek42.WeechatAndroid.utils.applicationContext
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll

@@ -3,7 +3,7 @@ package com.ubergeek42.WeechatAndroid.search
 import com.ubergeek42.WeechatAndroid.relay.Line
 import com.ubergeek42.WeechatAndroid.relay.HeaderLine
 import com.ubergeek42.WeechatAndroid.search.Search.Matcher
-import com.ubergeek42.WeechatAndroid.upload.applicationContext
+import com.ubergeek42.WeechatAndroid.utils.applicationContext
 import java.util.regex.PatternSyntaxException
 
 

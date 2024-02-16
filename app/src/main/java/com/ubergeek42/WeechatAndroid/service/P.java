@@ -31,6 +31,7 @@ import com.ubergeek42.WeechatAndroid.media.Config;
 import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.WeechatAndroid.upload.UploadConfigKt;
+import com.ubergeek42.WeechatAndroid.utils.ApplicationContextKt;
 import com.ubergeek42.WeechatAndroid.utils.Constants;
 import com.ubergeek42.WeechatAndroid.utils.History;
 import com.ubergeek42.WeechatAndroid.utils.MigratePreferences;
@@ -55,6 +56,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 
+import static com.ubergeek42.WeechatAndroid.utils.ApplicationContextKt.applicationContext;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
 
 
@@ -100,7 +102,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     ///////////////////////////////////////////////////////////////////////////////////////////// ui
 
     final public static float _1dp = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1,
-            Weechat.applicationContext.getResources().getDisplayMetrics());
+            applicationContext.getResources().getDisplayMetrics());
     final public static float _1_33dp = Math.round(1.33f * _1dp);
     final public static float _4dp = 4 * _1dp;
     final public static float _200dp = 200 * _1dp;

@@ -33,7 +33,7 @@ import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentActivity
 import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.dialogs.createScrollableDialog
-import com.ubergeek42.WeechatAndroid.upload.applicationContext
+import com.ubergeek42.WeechatAndroid.utils.applicationContext
 import com.ubergeek42.cats.Cat
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
