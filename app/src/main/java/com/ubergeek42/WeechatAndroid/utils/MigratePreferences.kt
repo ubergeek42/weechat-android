@@ -76,8 +76,8 @@ class MigratePreferences(private val preferences: SharedPreferences) {
 
             preferences.edit()
                     .putString(Constants.PREF_SSH_AUTHENTICATION_METHOD, authenticationMethod)
-                    .putString(Constants.PREF_SSH_PASSWORD, sshPassword)
-                    .putString(Constants.PREF_SSH_KEY_FILE, sshKeyFile)
+                    .putString(Constants.Deprecated.PREF_SSH_PASSWORD, sshPassword)
+                    .putString(Constants.Deprecated.PREF_SSH_KEY_FILE, sshKeyFile)
                     .putString(Constants.Deprecated.PREF_SSH_KEY_PASSPHRASE, sshPassphrase)
                     .remove(Constants.Deprecated.PREF_SSH_PASS)
                     .remove(Constants.Deprecated.PREF_SSH_KEY)
@@ -85,8 +85,8 @@ class MigratePreferences(private val preferences: SharedPreferences) {
         }
 
         add(1, 2) {
-            val sshKeyFile = preferences.getString(Constants.PREF_SSH_KEY_FILE,
-                                                   Constants.PREF_SSH_KEY_FILE_D) ?: return@add
+            val sshKeyFile = preferences.getString(Constants.Deprecated.PREF_SSH_KEY_FILE,
+                                                   Constants.Deprecated.PREF_SSH_KEY_FILE_D) ?: return@add
 
             val sshPassphrase = preferences.getString(Constants.Deprecated.PREF_SSH_KEY_PASSPHRASE,
                                                       Constants.Deprecated.PREF_SSH_KEY_PASSPHRASE_D)
@@ -97,7 +97,7 @@ class MigratePreferences(private val preferences: SharedPreferences) {
                     val keyPair = SSHConnection.makeKeyPair(sshKeyFileBytes, sshPassphrase)
                     AndroidKeyStoreUtils.putKeyPairIntoAndroidKeyStore(keyPair, SSHConnection.KEYSTORE_ALIAS)
                     preferences.edit()
-                            .putString(Constants.PREF_SSH_KEY_FILE, PrivateKeyPickerPreference.STORED_IN_KEYSTORE)
+                            .putString(Constants.Deprecated.PREF_SSH_KEY_FILE, PrivateKeyPickerPreference.STORED_IN_KEYSTORE)
                             .putString(Constants.Deprecated.PREF_SSH_KEY_PASSPHRASE, null)
                             .apply()
                     val message = mapOf(
@@ -117,8 +117,8 @@ class MigratePreferences(private val preferences: SharedPreferences) {
         }
 
         add(2, 3) {
-            val sshKeyFile = preferences.getString(Constants.PREF_SSH_KEY_FILE,
-                                                   Constants.PREF_SSH_KEY_FILE_D) ?: return@add
+            val sshKeyFile = preferences.getString(Constants.Deprecated.PREF_SSH_KEY_FILE,
+                                                   Constants.Deprecated.PREF_SSH_KEY_FILE_D) ?: return@add
 
             val sshPassphrase = preferences.getString(Constants.Deprecated.PREF_SSH_KEY_PASSPHRASE,
                                                       Constants.Deprecated.PREF_SSH_KEY_PASSPHRASE_D)
@@ -128,12 +128,12 @@ class MigratePreferences(private val preferences: SharedPreferences) {
                     val sshKeyFileBytes = PrivateKeyPickerPreference.getData(sshKeyFile)
                     val keyPair = SSHConnection.makeKeyPair(sshKeyFileBytes, sshPassphrase)
                     preferences.edit()
-                            .putString(Constants.PREF_SSH_KEY_FILE, Utils.serialize(keyPair))
+                            .putString(Constants.Deprecated.PREF_SSH_KEY_FILE, Utils.serialize(keyPair))
                             .apply()
                 } catch (e: Exception) {
                     showError("Failed to migrate SSH key: ", e)
                     preferences.edit()
-                            .putString(Constants.PREF_SSH_KEY_FILE, Constants.PREF_SSH_KEY_FILE_D)
+                            .putString(Constants.Deprecated.PREF_SSH_KEY_FILE, Constants.Deprecated.PREF_SSH_KEY_FILE_D)
                             .apply()
                 }
             }
@@ -196,6 +196,8 @@ class MigratePreferences(private val preferences: SharedPreferences) {
 
                 move(Constants.Deprecated.PREF_PASSWORD, Constants.PREF_PASSWORD)
                 move(Constants.Deprecated.PREF_UPLOAD_AUTHENTICATION_BASIC_PASSWORD, Constants.PREF_UPLOAD_AUTHENTICATION_BASIC_PASSWORD)
+                move(Constants.Deprecated.PREF_SSH_PASSWORD, Constants.PREF_SSH_PASSWORD)
+                move(Constants.Deprecated.PREF_SSH_KEY_FILE, Constants.PREF_SSH_KEY_FILE)
             }
         }
     }
