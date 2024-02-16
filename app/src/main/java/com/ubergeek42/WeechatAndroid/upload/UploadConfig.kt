@@ -7,6 +7,7 @@ import androidx.preference.PreferenceManager
 import com.ubergeek42.WeechatAndroid.BuildConfig
 import com.ubergeek42.WeechatAndroid.notifications.shortcuts
 import com.ubergeek42.WeechatAndroid.utils.Constants.*
+import com.ubergeek42.WeechatAndroid.utils.applicationContext
 
 
 object Config {

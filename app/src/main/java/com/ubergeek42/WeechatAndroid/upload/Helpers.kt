@@ -5,6 +5,7 @@ import android.os.PowerManager
 import com.ubergeek42.WeechatAndroid.Weechat
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.utils.Toaster.Companion.ErrorToast
+import com.ubergeek42.WeechatAndroid.utils.applicationContext
 import java.lang.System.currentTimeMillis
 import java.util.concurrent.CancellationException
 import kotlin.contracts.ExperimentalContracts
@@ -13,7 +14,6 @@ import kotlin.contracts.contract
 import kotlin.math.absoluteValue
 
 
-val applicationContext: Context = Weechat.applicationContext
 val resolver = applicationContext.contentResolver!!
 
 
