@@ -4,7 +4,6 @@ import android.content.SharedPreferences
 import androidx.preference.PreferenceManager
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
-import com.ubergeek42.WeechatAndroid.upload.applicationContext
 
 
 private val masterKey = MasterKey.Builder(applicationContext)

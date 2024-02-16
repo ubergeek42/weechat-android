@@ -9,7 +9,7 @@ import android.net.http.X509TrustManagerExtensions
 import android.os.Build
 import androidx.annotation.CheckResult
 import com.ubergeek42.WeechatAndroid.dialogs.CertificateDialog
-import com.ubergeek42.WeechatAndroid.upload.applicationContext
+import com.ubergeek42.WeechatAndroid.utils.applicationContext
 import com.ubergeek42.WeechatAndroid.upload.suppress
 import com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils
 import com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils.deleteAndroidKeyStoreEntriesWithPrefix
