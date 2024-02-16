@@ -81,7 +81,7 @@ class PrivateKeyPickerPreference(context: Context?, attrs: AttributeSet?) :
             successMessage = context.getString(R.string.pref__PrivateKeyPickerPreference__success_key_forgotten)
         }
 
-        sharedPreferences!!.edit { putString(Constants.PREF_SSH_KEY_FILE, valueToStore) }
+        sharedPreferences!!.edit { putString(key, valueToStore) }
         notifyChanged()
 
         return successMessage

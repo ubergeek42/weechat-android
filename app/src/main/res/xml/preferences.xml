@@ -69,13 +69,13 @@
                 android:entryValues="@array/pref__connection__ssh__authentication_method_values"
                 android:defaultValue="password" />
             <EditTextPreferenceFix
-                android:key="ssh_password"
+                android:key="encrypted_ssh_password"
                 android:title="@string/pref__connection__ssh__password"
                 android:summary="%s"
                 android:singleLine="true"
                 android:inputType="textPassword" />
             <PrivateKeyPickerPreference
-                android:key="ssh_key_file"
+                android:key="encrypted_ssh_key"
                 android:title="@string/pref__connection__ssh__key"
                 android:summary="@string/pref__connection__ssh__key_summary" />
             <ClearKnownHostsPreference

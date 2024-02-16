@@ -37,9 +37,9 @@ public class Constants {
     final static public String PREF_SSH_AUTHENTICATION_METHOD_PASSWORD = "password";
     final static public String PREF_SSH_AUTHENTICATION_METHOD_KEY = "key";
     final public static String PREF_SSH_AUTHENTICATION_METHOD_D = PREF_SSH_AUTHENTICATION_METHOD_PASSWORD;
-    final static public String PREF_SSH_PASSWORD = "ssh_password";
+    final static public String PREF_SSH_PASSWORD = "encrypted_ssh_password";
     final public static String PREF_SSH_PASSWORD_D = "";
-    final static public String PREF_SSH_KEY_FILE = "ssh_key_file";
+    final static public String PREF_SSH_KEY_FILE = "encrypted_ssh_key";
     final public static String PREF_SSH_KEY_FILE_D = null;
     final static public String PREF_SSH_SERVER_KEY_VERIFIER = "ssh_server_key_verifier";
     final public static String PREF_SSH_SERVER_KEY_VERIFIER_D = "";
@@ -261,5 +261,8 @@ public class Constants {
 
         final static public String PREF_PASSWORD = "password";
         final public static String PREF_UPLOAD_AUTHENTICATION_BASIC_PASSWORD = "upload_authentication_basic_password";
+        final static public String PREF_SSH_PASSWORD = "ssh_password";
+        final static public String PREF_SSH_KEY_FILE = "ssh_key_file";
+        final public static String PREF_SSH_KEY_FILE_D = null;
     }
 }
