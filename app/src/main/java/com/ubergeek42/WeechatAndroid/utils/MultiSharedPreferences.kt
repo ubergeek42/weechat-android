@@ -5,7 +5,6 @@ import android.content.SharedPreferences
 import androidx.preference.PreferenceManager
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
-import com.ubergeek42.WeechatAndroid.upload.applicationContext
 import com.ubergeek42.WeechatAndroid.upload.suppress
 import com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils.getAndroidKeyStore
 import com.ubergeek42.cats.Kitty
