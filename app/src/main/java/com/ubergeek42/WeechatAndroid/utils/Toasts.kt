@@ -6,9 +6,8 @@ import androidx.core.content.ContextCompat
 import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.Weechat
 import com.ubergeek42.cats.Cat
-import java.lang.Exception
 
-private val context = Weechat.applicationContext
+private val context = applicationContext
 
 
 class Toaster(

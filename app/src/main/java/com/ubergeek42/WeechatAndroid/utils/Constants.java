@@ -1,5 +1,7 @@
 package com.ubergeek42.WeechatAndroid.utils;
 
+import static com.ubergeek42.WeechatAndroid.utils.ApplicationContextKt.applicationContext;
+
 import android.os.Build;
 
 import com.ubergeek42.WeechatAndroid.R;
@@ -255,7 +257,7 @@ public class Constants {
 
     @SuppressWarnings("SameParameterValue")
     private static String getResourceString(int id) {
-        return Weechat.applicationContext.getResources().getString(id);
+        return applicationContext.getResources().getString(id);
     }
 
     static public class Deprecated {
