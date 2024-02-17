@@ -74,7 +74,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         instance = new P();
         P.context = context;
         p = multiSharedPreferences;
-        new MigratePreferences(context).migrate();
+        new MigratePreferences(p).migrate();
         loadUIPreferences();
         p.registerOnSharedPreferenceChangeListener(instance);
         Config.initPreferences();
