@@ -545,7 +545,7 @@
                 android:singleLine="true"
                 android:inputType="text" />
             <EditTextPreferenceFix
-                android:key="upload_authentication_basic_password"
+                android:key="encrypted_upload_authentication_basic_password"
                 android:title="@string/pref__upload__authentication_basic_password"
                 android:summary="%s"
                 android:singleLine="true"

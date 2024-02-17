@@ -41,4 +41,12 @@ internal class MigratePreferencesTest {
         val value = encryptedSharedPreferences.getString(Constants.PREF_PASSWORD, "missing")
         Assert.assertEquals("foo", value)
     }
+
+    @Test
+    fun `Test upload basic authentication password migration`() {
+        defaultSharedPreferences.edit { putString(Constants.Deprecated.PREF_UPLOAD_AUTHENTICATION_BASIC_PASSWORD, "foo") }
+        MigratePreferences(multiSharedPreferences).migrate()
+        val value = encryptedSharedPreferences.getString(Constants.PREF_UPLOAD_AUTHENTICATION_BASIC_PASSWORD, "missing")
+        Assert.assertEquals("foo", value)
+    }
 }

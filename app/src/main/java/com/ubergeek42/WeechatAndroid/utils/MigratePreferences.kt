@@ -195,6 +195,7 @@ class MigratePreferences(private val preferences: SharedPreferences) {
                 }
 
                 move(Constants.Deprecated.PREF_PASSWORD, Constants.PREF_PASSWORD)
+                move(Constants.Deprecated.PREF_UPLOAD_AUTHENTICATION_BASIC_PASSWORD, Constants.PREF_UPLOAD_AUTHENTICATION_BASIC_PASSWORD)
             }
         }
     }
