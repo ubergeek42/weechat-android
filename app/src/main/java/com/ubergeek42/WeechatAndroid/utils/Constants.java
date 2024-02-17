@@ -237,7 +237,7 @@ public class Constants {
     final public static String PREF_UPLOAD_AUTHENTICATION_D = PREF_UPLOAD_AUTHENTICATION_NONE;
     final public static String PREF_UPLOAD_AUTHENTICATION_BASIC_USER = "upload_authentication_basic_user";
     final public static String PREF_UPLOAD_AUTHENTICATION_BASIC_USER_D = "";
-    final public static String PREF_UPLOAD_AUTHENTICATION_BASIC_PASSWORD = "upload_authentication_basic_password";
+    final public static String PREF_UPLOAD_AUTHENTICATION_BASIC_PASSWORD = "encrypted_upload_authentication_basic_password";
     final public static String PREF_UPLOAD_AUTHENTICATION_BASIC_PASSWORD_D = "";
     final public static String PREF_UPLOAD_REMEMBER_UPLOADS_FOR = "upload_remember_uploads_for";
     final public static String PREF_UPLOAD_REMEMBER_UPLOADS_FOR_D = "24";   // hours
@@ -260,5 +260,6 @@ public class Constants {
         final static public String PREF_VOLUME_BTN_SIZE = "volumebtn_size"; final public static boolean PREF_VOLUME_BTN_SIZE_D = true;
 
         final static public String PREF_PASSWORD = "password";
+        final public static String PREF_UPLOAD_AUTHENTICATION_BASIC_PASSWORD = "upload_authentication_basic_password";
     }
 }
