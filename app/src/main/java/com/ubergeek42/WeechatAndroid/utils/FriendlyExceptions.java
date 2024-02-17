@@ -4,7 +4,6 @@ import android.content.Context;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
-import androidx.preference.PreferenceManager;
 
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.weechat.relay.connection.SSHConnection;
@@ -15,6 +14,7 @@ import java.util.Arrays;
 
 import static com.ubergeek42.WeechatAndroid.media.Cache.findException;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SSL_CLIENT_CERTIFICATE;
+import static com.ubergeek42.WeechatAndroid.utils.MultiSharedPreferencesKt.multiSharedPreferences;
 import static com.ubergeek42.WeechatAndroid.utils.ThrowingKeyManagerWrapper.ClientCertificateMismatchException;
 import static com.ubergeek42.WeechatAndroid.utils.Utils.join;
 
@@ -53,7 +53,7 @@ public class FriendlyExceptions {
     }
 
     public Result getFriendlyException(ClientCertificateMismatchException e) {
-        boolean certificateIsSet = PreferenceManager.getDefaultSharedPreferences(context)
+        boolean certificateIsSet = multiSharedPreferences
                 .getString(PREF_SSL_CLIENT_CERTIFICATE, null) != null;
         String message = context.getString(certificateIsSet ?
                         R.string.error__connection__ssl__client_certificate__certificate_mismatch :

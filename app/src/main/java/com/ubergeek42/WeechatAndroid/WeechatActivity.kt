@@ -84,6 +84,7 @@ import com.ubergeek42.WeechatAndroid.utils.Toaster
 import com.ubergeek42.WeechatAndroid.utils.findCause
 import com.ubergeek42.WeechatAndroid.utils.isAnyOf
 import com.ubergeek42.WeechatAndroid.utils.let
+import com.ubergeek42.WeechatAndroid.utils.multiSharedPreferences
 import com.ubergeek42.WeechatAndroid.utils.u
 import com.ubergeek42.WeechatAndroid.utils.ulet
 import com.ubergeek42.WeechatAndroid.utils.wasCausedBy
@@ -527,7 +528,7 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener,
             }
             R.id.menu_filter_lines -> {
                 item.isChecked = !P.filterLines
-                PreferenceManager.getDefaultSharedPreferences(this)
+                multiSharedPreferences
                         .edit()
                         .putBoolean(Constants.PREF_FILTER_LINES, item.isChecked)
                         .apply()
@@ -535,7 +536,7 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener,
             R.id.menu_dark_theme -> {
                 item.isChecked = !P.darkThemeActive
                 val value = if (item.isChecked) Constants.PREF_THEME_DARK else Constants.PREF_THEME_LIGHT
-                PreferenceManager.getDefaultSharedPreferences(this)
+                multiSharedPreferences
                         .edit()
                         .putString(Constants.PREF_THEME, value)
                         .apply()
