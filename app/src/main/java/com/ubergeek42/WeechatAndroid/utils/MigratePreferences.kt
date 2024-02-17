@@ -1,8 +1,7 @@
 package com.ubergeek42.WeechatAndroid.utils
 
-import android.content.Context
+import android.content.SharedPreferences
 import androidx.core.content.edit
-import androidx.preference.PreferenceManager
 import androidx.preference.PrivateKeyPickerPreference
 import com.ubergeek42.WeechatAndroid.service.P.VolumeRole
 import com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils.InsideSecureHardware
@@ -11,12 +10,11 @@ import com.ubergeek42.cats.Root
 import com.ubergeek42.weechat.relay.connection.SSHConnection
 
 
-class MigratePreferences(val context: Context) {
+class MigratePreferences(private val preferences: SharedPreferences) {
     companion object {
         @Root private val kitty = Kitty.make() as Kitty
     }
 
-    private val preferences = PreferenceManager.getDefaultSharedPreferences(context)
     private var migrators = mutableListOf<Migrator>()
 
     private inner class Migrator(

@@ -58,6 +58,10 @@ dependencies {
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.1")
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.10.1")
+    testImplementation("org.robolectric:robolectric:4.11.1")
+    testImplementation("androidx.test.ext:junit:1.1.5")
+    testImplementation("org.junit.vintage:junit-vintage-engine:5.10.2")
+    testImplementation("io.github.ivanshafran:shared-preferences-mock:1.2.4")
 }
 
 tasks.withType<JavaCompile> {
@@ -140,6 +144,10 @@ android {
     buildFeatures {
         viewBinding = true
         buildConfig = true
+    }
+
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
     }
 }
 
