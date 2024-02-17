@@ -12,6 +12,7 @@ import com.ubergeek42.WeechatAndroid.upload.suppress
 import com.ubergeek42.WeechatAndroid.utils.Constants
 import com.ubergeek42.WeechatAndroid.utils.Toaster
 import com.ubergeek42.WeechatAndroid.utils.getUris
+import com.ubergeek42.WeechatAndroid.utils.multiSharedPreferences
 import com.ubergeek42.WeechatAndroid.utils.saveUriToFile
 import com.ubergeek42.weechat.ColorScheme
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -27,7 +28,7 @@ object ThemeManager {
     }
 
     @JvmStatic fun loadColorSchemeFromPreferences(context: Context) {
-        val path = PreferenceManager.getDefaultSharedPreferences(context)
+        val path = multiSharedPreferences
                 .getString(if (P.darkThemeActive) Constants.PREF_COLOR_SCHEME_NIGHT else Constants.PREF_COLOR_SCHEME_DAY,
                            if (P.darkThemeActive) Constants.PREF_COLOR_SCHEME_NIGHT_D else Constants.PREF_COLOR_SCHEME_DAY_D)
         suppress<Exception>(showToast = true) {
