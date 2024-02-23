@@ -388,6 +388,12 @@ object BufferList {
             }
         }
 
+        add("_buffer_cleared") { obj, _ ->
+            obj.forEachExistingBuffer { _, buffer ->
+                buffer.onLinesCleared()
+            }
+        }
+
         return handlers
     }
 
