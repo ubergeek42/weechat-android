@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <include domain="sharedpref" path="@etc__default_shared_preferences_file_name"/>
+    <include domain="external" path="themes"/>
+    <include domain="external" path="fonts"/>
+</full-backup-content>

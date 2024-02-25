@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data-extraction-rules>
+    <cloud-backup>
+        <include domain="sharedpref" path="@etc__default_shared_preferences_file_name"/>
+        <include domain="external" path="themes"/>
+        <include domain="external" path="fonts"/>
+    </cloud-backup>
+    <device-transfer>
+        <include domain="sharedpref" path="@etc__default_shared_preferences_file_name"/>
+        <include domain="external" path="themes"/>
+        <include domain="external" path="fonts"/>
+    </device-transfer>
+</data-extraction-rules>

@@ -141,6 +141,10 @@ android {
         }
     }
 
+    productFlavors.all {
+        resValue("string", "etc__default_shared_preferences_file_name", applicationId!! + "_preferences.xml")
+    }
+
     buildFeatures {
         viewBinding = true
         buildConfig = true
