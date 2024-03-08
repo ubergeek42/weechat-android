@@ -552,6 +552,8 @@ private fun NotificationCompat.MessagingStyle.maybeAddMissingMessageLine(
 private fun NotificationCompat.Builder.setMakeNoise(makeNoise: Boolean): NotificationCompat.Builder {
     setOnlyAlertOnce(!makeNoise)
 
+    if (!makeNoise) setSilent(true)
+
     if (makeNoise && Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
         var flags = 0
         if (P.notificationLight) flags = flags or Notification.DEFAULT_LIGHTS
