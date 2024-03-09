@@ -34,6 +34,7 @@ fun initEmojiCompat() {
 
     var emojiCompat: EmojiCompat? = null
 
+    config.setReplaceAll(true)
     config.setRetryPolicy(ExponentialBackoffRetryPolicy(5 * 60 * 1000))
     config.setMetadataLoadStrategy(LOAD_STRATEGY_MANUAL)
     config.registerInitCallback(object : InitCallback() {
@@ -58,7 +59,7 @@ fun initEmojiCompat() {
 @Volatile private var emojiCompatOrNull: EmojiCompat? = null
 
 
-// Replace missing emojis with modern emojis
+// Replace old and missing emojis with modern emojis
 @SuppressLint("CheckResult") // Calling process() returns the given input if it is Spannable.
 fun emojify(text: Spannable) {
     emojiCompatOrNull?.process(text)
