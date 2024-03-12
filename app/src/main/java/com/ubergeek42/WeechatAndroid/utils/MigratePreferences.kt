@@ -1,23 +1,20 @@
 package com.ubergeek42.WeechatAndroid.utils
 
-import android.content.Context
+import android.content.SharedPreferences
 import androidx.core.content.edit
-import androidx.preference.PreferenceManager
 import androidx.preference.PrivateKeyPickerPreference
 import com.ubergeek42.WeechatAndroid.service.P.VolumeRole
-import com.ubergeek42.WeechatAndroid.upload.applicationContext
 import com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils.InsideSecureHardware
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
 import com.ubergeek42.weechat.relay.connection.SSHConnection
 
 
-class MigratePreferences(val context: Context) {
+class MigratePreferences(private val preferences: SharedPreferences) {
     companion object {
         @Root private val kitty = Kitty.make() as Kitty
     }
 
-    private val preferences = PreferenceManager.getDefaultSharedPreferences(context)
     private var migrators = mutableListOf<Migrator>()
 
     private inner class Migrator(
@@ -79,8 +76,8 @@ class MigratePreferences(val context: Context) {
 
             preferences.edit()
                     .putString(Constants.PREF_SSH_AUTHENTICATION_METHOD, authenticationMethod)
-                    .putString(Constants.PREF_SSH_PASSWORD, sshPassword)
-                    .putString(Constants.PREF_SSH_KEY_FILE, sshKeyFile)
+                    .putString(Constants.Deprecated.PREF_SSH_PASSWORD, sshPassword)
+                    .putString(Constants.Deprecated.PREF_SSH_KEY_FILE, sshKeyFile)
                     .putString(Constants.Deprecated.PREF_SSH_KEY_PASSPHRASE, sshPassphrase)
                     .remove(Constants.Deprecated.PREF_SSH_PASS)
                     .remove(Constants.Deprecated.PREF_SSH_KEY)
@@ -88,8 +85,8 @@ class MigratePreferences(val context: Context) {
         }
 
         add(1, 2) {
-            val sshKeyFile = preferences.getString(Constants.PREF_SSH_KEY_FILE,
-                                                   Constants.PREF_SSH_KEY_FILE_D) ?: return@add
+            val sshKeyFile = preferences.getString(Constants.Deprecated.PREF_SSH_KEY_FILE,
+                                                   Constants.Deprecated.PREF_SSH_KEY_FILE_D) ?: return@add
 
             val sshPassphrase = preferences.getString(Constants.Deprecated.PREF_SSH_KEY_PASSPHRASE,
                                                       Constants.Deprecated.PREF_SSH_KEY_PASSPHRASE_D)
@@ -100,7 +97,7 @@ class MigratePreferences(val context: Context) {
                     val keyPair = SSHConnection.makeKeyPair(sshKeyFileBytes, sshPassphrase)
                     AndroidKeyStoreUtils.putKeyPairIntoAndroidKeyStore(keyPair, SSHConnection.KEYSTORE_ALIAS)
                     preferences.edit()
-                            .putString(Constants.PREF_SSH_KEY_FILE, PrivateKeyPickerPreference.STORED_IN_KEYSTORE)
+                            .putString(Constants.Deprecated.PREF_SSH_KEY_FILE, PrivateKeyPickerPreference.STORED_IN_KEYSTORE)
                             .putString(Constants.Deprecated.PREF_SSH_KEY_PASSPHRASE, null)
                             .apply()
                     val message = mapOf(
@@ -120,8 +117,8 @@ class MigratePreferences(val context: Context) {
         }
 
         add(2, 3) {
-            val sshKeyFile = preferences.getString(Constants.PREF_SSH_KEY_FILE,
-                                                   Constants.PREF_SSH_KEY_FILE_D) ?: return@add
+            val sshKeyFile = preferences.getString(Constants.Deprecated.PREF_SSH_KEY_FILE,
+                                                   Constants.Deprecated.PREF_SSH_KEY_FILE_D) ?: return@add
 
             val sshPassphrase = preferences.getString(Constants.Deprecated.PREF_SSH_KEY_PASSPHRASE,
                                                       Constants.Deprecated.PREF_SSH_KEY_PASSPHRASE_D)
@@ -131,12 +128,12 @@ class MigratePreferences(val context: Context) {
                     val sshKeyFileBytes = PrivateKeyPickerPreference.getData(sshKeyFile)
                     val keyPair = SSHConnection.makeKeyPair(sshKeyFileBytes, sshPassphrase)
                     preferences.edit()
-                            .putString(Constants.PREF_SSH_KEY_FILE, Utils.serialize(keyPair))
+                            .putString(Constants.Deprecated.PREF_SSH_KEY_FILE, Utils.serialize(keyPair))
                             .apply()
                 } catch (e: Exception) {
                     showError("Failed to migrate SSH key: ", e)
                     preferences.edit()
-                            .putString(Constants.PREF_SSH_KEY_FILE, Constants.PREF_SSH_KEY_FILE_D)
+                            .putString(Constants.Deprecated.PREF_SSH_KEY_FILE, Constants.Deprecated.PREF_SSH_KEY_FILE_D)
                             .apply()
                 }
             }
@@ -187,6 +184,20 @@ class MigratePreferences(val context: Context) {
                     Constants.PREF_VOLUME_ROLE,
                     (if (volumeChangesSize) VolumeRole.ChangeTextSize else VolumeRole.DoNothing).value
                 )
+            }
+        }
+
+        add(6, 7) {
+            preferences.edit {
+                fun move(oldKey: String, newKey: String) {
+                    preferences.getString(oldKey, null)?.let { putString(newKey, it) }
+                    remove(oldKey)
+                }
+
+                move(Constants.Deprecated.PREF_PASSWORD, Constants.PREF_PASSWORD)
+                move(Constants.Deprecated.PREF_UPLOAD_AUTHENTICATION_BASIC_PASSWORD, Constants.PREF_UPLOAD_AUTHENTICATION_BASIC_PASSWORD)
+                move(Constants.Deprecated.PREF_SSH_PASSWORD, Constants.PREF_SSH_PASSWORD)
+                move(Constants.Deprecated.PREF_SSH_KEY_FILE, Constants.PREF_SSH_KEY_FILE)
             }
         }
     }

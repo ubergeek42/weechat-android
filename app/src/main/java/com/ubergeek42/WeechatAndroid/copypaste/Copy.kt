@@ -19,7 +19,7 @@ import com.ubergeek42.WeechatAndroid.dialogs.FancyAlertDialogBuilder
 import com.ubergeek42.WeechatAndroid.relay.BufferList
 import com.ubergeek42.WeechatAndroid.relay.Line
 import com.ubergeek42.WeechatAndroid.service.P
-import com.ubergeek42.WeechatAndroid.upload.applicationContext
+import com.ubergeek42.WeechatAndroid.utils.applicationContext
 import com.ubergeek42.WeechatAndroid.utils.ThemeFix
 import com.ubergeek42.WeechatAndroid.views.LineView
 import com.ubergeek42.weechat.relay.connection.find

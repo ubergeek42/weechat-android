@@ -4,9 +4,7 @@ import android.content.SharedPreferences;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.preference.PreferenceManager;
 
-import com.ubergeek42.WeechatAndroid.Weechat;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.utils.Linkify;
@@ -52,6 +50,7 @@ import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_MEDIA_PREVIEW_T
 import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_MEDIA_PREVIEW_THUMBNAIL_WIDTH;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_MEDIA_PREVIEW_THUMBNAIL_WIDTH_D;
 
+import static com.ubergeek42.WeechatAndroid.utils.MultiSharedPreferencesKt.multiSharedPreferences;
 import static com.ubergeek42.WeechatAndroid.utils.Toaster.ErrorToast;
 
 public class Config {
@@ -130,7 +129,6 @@ public class Config {
     }
 
     public static void initPreferences() {
-        SharedPreferences p = PreferenceManager.getDefaultSharedPreferences(Weechat.applicationContext);
         for (String key : new String[] {
                 PREF_MEDIA_PREVIEW_ENABLED_FOR_NETWORK,
                 PREF_MEDIA_PREVIEW_ENABLED_FOR_LOCATION,
@@ -142,7 +140,7 @@ public class Config {
                 PREF_MEDIA_PREVIEW_THUMBNAIL_MIN_HEIGHT,
                 PREF_MEDIA_PREVIEW_THUMBNAIL_MAX_HEIGHT
         }) {
-            onSharedPreferenceChanged(p, key);
+            onSharedPreferenceChanged(multiSharedPreferences, key);
         }
     }
 

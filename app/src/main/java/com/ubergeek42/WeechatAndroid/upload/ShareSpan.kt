@@ -13,6 +13,7 @@ import android.text.TextUtils
 import android.text.style.ReplacementSpan
 import com.ubergeek42.WeechatAndroid.media.Config
 import com.ubergeek42.WeechatAndroid.service.P
+import com.ubergeek42.WeechatAndroid.utils.applicationContext
 
 
 private val CAN_SHOW_ICON = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q

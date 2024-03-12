@@ -37,9 +37,9 @@ public class Constants {
     final static public String PREF_SSH_AUTHENTICATION_METHOD_PASSWORD = "password";
     final static public String PREF_SSH_AUTHENTICATION_METHOD_KEY = "key";
     final public static String PREF_SSH_AUTHENTICATION_METHOD_D = PREF_SSH_AUTHENTICATION_METHOD_PASSWORD;
-    final static public String PREF_SSH_PASSWORD = "ssh_password";
+    final static public String PREF_SSH_PASSWORD = "encrypted_ssh_password";
     final public static String PREF_SSH_PASSWORD_D = "";
-    final static public String PREF_SSH_KEY_FILE = "ssh_key_file";
+    final static public String PREF_SSH_KEY_FILE = "encrypted_ssh_key";
     final public static String PREF_SSH_KEY_FILE_D = null;
     final static public String PREF_SSH_SERVER_KEY_VERIFIER = "ssh_server_key_verifier";
     final public static String PREF_SSH_SERVER_KEY_VERIFIER_D = "";
@@ -49,7 +49,7 @@ public class Constants {
     final public static String PREF_HOST_D = "";
     final static public String PREF_PORT = "port";
     final public static String PREF_PORT_D = "9001";
-    final static public String PREF_PASSWORD = "password";
+    final static public String PREF_PASSWORD = "encrypted_password";
     final public static String PREF_PASSWORD_D = "";
     final static public String PREF_HANDSHAKE_METHOD = "handshake_method";
     final static public String PREF_HANDSHAKE_METHOD_COMPATIBILITY = "compatibility";
@@ -237,7 +237,7 @@ public class Constants {
     final public static String PREF_UPLOAD_AUTHENTICATION_D = PREF_UPLOAD_AUTHENTICATION_NONE;
     final public static String PREF_UPLOAD_AUTHENTICATION_BASIC_USER = "upload_authentication_basic_user";
     final public static String PREF_UPLOAD_AUTHENTICATION_BASIC_USER_D = "";
-    final public static String PREF_UPLOAD_AUTHENTICATION_BASIC_PASSWORD = "upload_authentication_basic_password";
+    final public static String PREF_UPLOAD_AUTHENTICATION_BASIC_PASSWORD = "encrypted_upload_authentication_basic_password";
     final public static String PREF_UPLOAD_AUTHENTICATION_BASIC_PASSWORD_D = "";
     final public static String PREF_UPLOAD_REMEMBER_UPLOADS_FOR = "upload_remember_uploads_for";
     final public static String PREF_UPLOAD_REMEMBER_UPLOADS_FOR_D = "24";   // hours
@@ -258,5 +258,11 @@ public class Constants {
         final static public String PREF_SSH_KEY_PASSPHRASE = "ssh_key_passphrase"; final public static String PREF_SSH_KEY_PASSPHRASE_D = null;
         final static public String PREF_SSH_KNOWN_HOSTS = "ssh_known_hosts"; final public static String PREF_SSH_KNOWN_HOSTS_D = "";
         final static public String PREF_VOLUME_BTN_SIZE = "volumebtn_size"; final public static boolean PREF_VOLUME_BTN_SIZE_D = true;
+
+        final static public String PREF_PASSWORD = "password";
+        final public static String PREF_UPLOAD_AUTHENTICATION_BASIC_PASSWORD = "upload_authentication_basic_password";
+        final static public String PREF_SSH_PASSWORD = "ssh_password";
+        final static public String PREF_SSH_KEY_FILE = "ssh_key_file";
+        final public static String PREF_SSH_KEY_FILE_D = null;
     }
 }

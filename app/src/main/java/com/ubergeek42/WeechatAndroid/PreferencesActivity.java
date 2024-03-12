@@ -1,6 +1,7 @@
 package com.ubergeek42.WeechatAndroid;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -20,6 +21,7 @@ import androidx.preference.FilePreference;
 import androidx.preference.FontManager;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
+import androidx.preference.PreferenceFragmentCompatWithCustomSharedPreferences;
 import androidx.preference.PreferenceGroup;
 import androidx.preference.PreferenceScreen;
 import androidx.preference.RingtonePreferenceFix;
@@ -40,6 +42,7 @@ import okhttp3.HttpUrl;
 import static androidx.preference.FontManagerKt.IMPORT_FONTS_REQUEST_CODE;
 import static androidx.preference.ThemeManagerKt.IMPORT_THEMES_REQUEST_CODE;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
+import static com.ubergeek42.WeechatAndroid.utils.MultiSharedPreferencesKt.multiSharedPreferences;
 import static com.ubergeek42.WeechatAndroid.utils.Toaster.ErrorToast;
 
 public class PreferencesActivity extends AppCompatActivity implements PreferenceFragmentCompat.OnPreferenceStartScreenCallback {
@@ -112,7 +115,12 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public static class PreferencesFragment extends PreferenceFragmentCompat implements DialogPreference.TargetFragment, Preference.OnPreferenceChangeListener {
+    public static class PreferencesFragment extends PreferenceFragmentCompatWithCustomSharedPreferences implements DialogPreference.TargetFragment, Preference.OnPreferenceChangeListener {
+
+        @NonNull @Override public SharedPreferences getCustomSharedPreferences() {
+            return multiSharedPreferences;
+        }
+
 
         private static final String FRAGMENT_DIALOG_TAG = "android.support.v7.preference.PreferenceFragment.DIALOG";
         private String key;
@@ -154,6 +162,8 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
         // this makes fragment display preferences. key is the key of the preference screen
         // that this fragment is supposed to display. the key is set in activity's onCreate
         @Override public void onCreatePreferences(Bundle bundle, String key) {
+            super.onCreatePreferences(bundle, key);
+
             setPreferencesFromResource(R.xml.preferences, this.key = key);
 
             fixMultiLineTitles(getPreferenceScreen());

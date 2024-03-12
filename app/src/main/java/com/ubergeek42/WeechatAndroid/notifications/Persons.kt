@@ -5,7 +5,7 @@ import android.net.Uri
 import androidx.core.app.Person
 import androidx.core.graphics.drawable.IconCompat
 import com.ubergeek42.WeechatAndroid.relay.Buffer
-import com.ubergeek42.WeechatAndroid.upload.applicationContext
+import com.ubergeek42.WeechatAndroid.utils.applicationContext
 
 
 data class CachedPerson(

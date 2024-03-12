@@ -6,7 +6,13 @@ plugins {
 
 dependencies {
     implementation(project(":cats"))
-    implementation(project(":relay"))
+    implementation(project(":relay")) {
+        // Excluding com.google.crypto.tink:tink in favor of com.google.crypto.tink:tink-android
+        // that is pulled by androidx.security:security-crypto
+        exclude("com.google.crypto.tink", "tink")
+    }
+
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
 
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.20")
 
@@ -52,6 +58,10 @@ dependencies {
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.1")
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.10.1")
+    testImplementation("org.robolectric:robolectric:4.11.1")
+    testImplementation("androidx.test.ext:junit:1.1.5")
+    testImplementation("org.junit.vintage:junit-vintage-engine:5.10.2")
+    testImplementation("io.github.ivanshafran:shared-preferences-mock:1.2.4")
 }
 
 tasks.withType<JavaCompile> {
@@ -134,6 +144,10 @@ android {
     buildFeatures {
         viewBinding = true
         buildConfig = true
+    }
+
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
     }
 }
 
