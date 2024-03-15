@@ -15,6 +15,26 @@
         android:fadingEdge="none"
         android:scrollbars="vertical" />
 
+    <com.ubergeek42.WeechatAndroid.views.RectangularImageButton
+        android:id="@+id/arrow_up"
+        android:layout_width="36dp"
+        android:layout_height="40dp"
+        android:layout_gravity="top|center"
+        app:srcCompat="@drawable/ic_bufferlist_arrow_up"
+        android:visibility="invisible"
+        android:foreground="?attr/selectableItemBackgroundBorderless"
+        />
+
+    <com.ubergeek42.WeechatAndroid.views.RectangularImageButton
+        android:id="@+id/arrow_down"
+        android:layout_width="36dp"
+        android:layout_height="40dp"
+        android:layout_gravity="bottom|center"
+        app:srcCompat="@drawable/ic_bufferlist_arrow_down"
+        android:visibility="invisible"
+        android:foreground="?attr/selectableItemBackgroundBorderless"
+        />
+
     <EditText
         android:id="@+id/filter_input"
 
