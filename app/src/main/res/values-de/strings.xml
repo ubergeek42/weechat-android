@@ -577,11 +577,6 @@
 
     <string name="pref__buffer_list_group">Buffer-Liste</string>
 
-    <string name="pref__buffer_list__sort_by_hot">
-        Liste der Buffer sortieren</string>
-    <string name="pref__buffer_list__sort_by_hot_summary">
-        Sortierung nach Anzahl der Highlights/privaten Nachrichten/ungelesenen Nachrichten</string>
-
     <string name="pref__buffer_list__hide_server_buffers">
         Ausblenden von Buffern in denen man nicht schreibt</string>
     <string name="pref__buffer_list__hide_server_buffers_summary">

@@ -575,11 +575,6 @@
 
     <string name="pref__buffer_list_group">Список буферов</string>
 
-    <string name="pref__buffer_list__sort_by_hot">
-        Сортировать список буферов</string>
-    <string name="pref__buffer_list__sort_by_hot_summary">
-        Сортировать по количество упоминаний и новых сообщений в приватных буферах</string>
-
     <string name="pref__buffer_list__hide_server_buffers">
         Скрывать буферы без людей</string>
     <string name="pref__buffer_list__hide_server_buffers_summary">

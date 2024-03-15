@@ -32,6 +32,9 @@ import com.ubergeek42.WeechatAndroid.relay.BufferList
 import com.ubergeek42.WeechatAndroid.relay.BufferSpec
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.upload.main
+import com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SORT_BUFFER_LIST_BY_HOT_MESSAGES_THEN_BY_NUMBER
+import com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SORT_BUFFER_LIST_BY_HOT_MESSAGES_THEN_BY_OTHER_MESSAGES_THEN_BY_NUMBER
+import com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SORT_BUFFER_LIST_BY_NUMBER
 import com.ubergeek42.WeechatAndroid.utils.Utils
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
@@ -135,11 +138,14 @@ class BufferListAdapter(
             newBuffers.add(VisualBuffer.fromBuffer(buffer))
         }
 
-        if (P.sortBuffers) {
-            Collections.sort(newBuffers, sortByHotAndMessageCountComparator)
-        } else {
-            Collections.sort(newBuffers, sortByHotCountAndNumberComparator)
+        val bufferComparator = when (P.sortBufferList) {
+            PREF_SORT_BUFFER_LIST_BY_NUMBER -> sortByNumberComparator
+            PREF_SORT_BUFFER_LIST_BY_HOT_MESSAGES_THEN_BY_NUMBER -> sortByHotMessagesThenByNumberComparator
+            PREF_SORT_BUFFER_LIST_BY_HOT_MESSAGES_THEN_BY_OTHER_MESSAGES_THEN_BY_NUMBER -> sortByHotMessagesThenByOtherMessagesThenByNumberComparator
+            else -> sortByNumberComparator
         }
+
+        Collections.sort(newBuffers, bufferComparator)
 
         val diffResult = DiffUtil.calculateDiff(DiffCallback(buffers, newBuffers), false)
 
@@ -222,7 +228,11 @@ class BufferListAdapter(
 }
 
 
-private val sortByHotCountAndNumberComparator = Comparator<VisualBuffer> { left, right ->
+private val sortByNumberComparator = Comparator<VisualBuffer> { left, right ->
+    left.number - right.number
+}
+
+private val sortByHotMessagesThenByNumberComparator = Comparator<VisualBuffer> { left, right ->
     val highlightDiff = right.highlights - left.highlights
     if (highlightDiff != 0) return@Comparator highlightDiff
 
@@ -235,7 +245,7 @@ private val sortByHotCountAndNumberComparator = Comparator<VisualBuffer> { left,
 }
 
 
-private val sortByHotAndMessageCountComparator = Comparator<VisualBuffer> { left, right ->
+private val sortByHotMessagesThenByOtherMessagesThenByNumberComparator = Comparator<VisualBuffer> { left, right ->
     val highlightDiff = right.highlights - left.highlights
     if (highlightDiff != 0) return@Comparator highlightDiff
 
@@ -244,5 +254,8 @@ private val sortByHotAndMessageCountComparator = Comparator<VisualBuffer> { left
     val pmDiff = pmRight - pmLeft
     if (pmDiff != 0) return@Comparator pmDiff
 
-    right.unreads - left.unreads
+    val unreadsDiff = right.unreads - left.unreads
+    if (unreadsDiff != 0) return@Comparator unreadsDiff
+
+    left.number - right.number
 }

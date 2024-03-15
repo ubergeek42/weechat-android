@@ -105,7 +105,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     final public static float _4dp = 4 * _1dp;
     final public static float _200dp = 200 * _1dp;
 
-    public static boolean sortBuffers;
+    public static String sortBufferList;
     public static boolean filterBuffers;
     public static boolean hideHiddenBuffers;
     public static boolean optimizeTraffic;
@@ -158,7 +158,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
 
     @MainThread private static void loadUIPreferences() {
         // buffer list preferences
-        sortBuffers = p.getBoolean(PREF_SORT_BUFFERS, PREF_SORT_BUFFERS_D);
+        sortBufferList = p.getString(PREF_SORT_BUFFER_LIST, PREF_SORT_BUFFER_LIST_D);
         filterBuffers = p.getBoolean(PREF_FILTER_NONHUMAN_BUFFERS, PREF_FILTER_NONHUMAN_BUFFERS_D);
         hideHiddenBuffers = p.getBoolean(PREF_HIDE_HIDDEN_BUFFERS, PREF_HIDE_HIDDEN_BUFFERS_D);
         optimizeTraffic = p.getBoolean(PREF_OPTIMIZE_TRAFFIC, PREF_OPTIMIZE_TRAFFIC_D);  // okay this is out of sync with onChanged stuff—used for the bell icon
@@ -329,7 +329,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     @MainThread @Override @CatD public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         switch (key) {
             // buffer list preferences
-            case PREF_SORT_BUFFERS: sortBuffers = p.getBoolean(key, PREF_SORT_BUFFERS_D); break;
+            case PREF_SORT_BUFFER_LIST: sortBufferList = p.getString(key, PREF_SORT_BUFFER_LIST_D); break;
             case PREF_FILTER_NONHUMAN_BUFFERS: filterBuffers = p.getBoolean(key, PREF_FILTER_NONHUMAN_BUFFERS_D); break;
             case PREF_HIDE_HIDDEN_BUFFERS: hideHiddenBuffers = p.getBoolean(key, PREF_HIDE_HIDDEN_BUFFERS_D); break;
             case PREF_AUTO_HIDE_ACTIONBAR: autoHideActionbar = p.getBoolean(key, PREF_AUTO_HIDE_ACTIONBAR_D); break;
