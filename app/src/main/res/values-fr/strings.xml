@@ -569,11 +569,6 @@
 
     <string name="pref__buffer_list_group">Liste des tampons</string>
 
-    <string name="pref__buffer_list__sort_by_hot">
-        Trier la liste des tampons</string>
-    <string name="pref__buffer_list__sort_by_hot_summary">
-        Trier par le nombre de messages notables/messages privés/messages non lus</string>
-
     <string name="pref__buffer_list__hide_server_buffers">
         Cacher les tampons hors salons</string>
     <string name="pref__buffer_list__hide_server_buffers_summary">

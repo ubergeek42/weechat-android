@@ -3,6 +3,12 @@
 
     <!--  Don't touch these, they are internal names -->
 
+    <string-array name="pref__buffer_list__sort_buffer_list_values">
+        <item>by_number</item>
+        <item>by_hot_messages_then_by_number</item>
+        <item>by_hot_messages_then_by_other_messages_then_by_number</item>
+    </string-array>
+
     <string-array name="pref__look_n_feel__alignment_values">
         <item>left</item>
         <item>right</item>
