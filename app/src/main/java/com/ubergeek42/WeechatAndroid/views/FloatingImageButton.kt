@@ -14,28 +14,46 @@ import com.ubergeek42.WeechatAndroid.upload.applicationContext
 import com.ubergeek42.WeechatAndroid.upload.f
 
 
-class CircularImageButton @JvmOverloads constructor(
+open class FloatingImageButton @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
 ) : AppCompatImageButton(context, attrs) {
+    fun show(animate: Boolean = true) {
+        if (visibility != VISIBLE) {
+            visibility = VISIBLE
+            if (animate) startAnimation(makeShowAnimation())
+        }
+    }
+
+    fun hide(animate: Boolean = true) {
+        if (visibility != INVISIBLE) {
+            visibility = INVISIBLE
+            if (animate) startAnimation(makeHideAnimation())
+        }
+    }
+
+    private fun makeShowAnimation() = ScaleAnimation(
+        0f, 1f, 0f, 1f,
+        Animation.RELATIVE_TO_SELF, 0.5f,
+        Animation.RELATIVE_TO_SELF, 0.5f)
+            .apply { duration = shortAnimTime }
+
+    private fun makeHideAnimation() = ScaleAnimation(
+        1f, .5f, 1f, 0.5f,
+        Animation.RELATIVE_TO_SELF, 0.5f,
+        Animation.RELATIVE_TO_SELF, 0.5f)
+            .apply { duration = shortAnimTime / 2 }
+}
+
+
+class CircularImageButton @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+) : FloatingImageButton(context, attrs) {
     init {
         background = null
         outlineProvider = pillOutlineProvider
         clipToOutline = true
-    }
-
-    fun show() {
-        if (visibility != VISIBLE) {
-            visibility = VISIBLE
-            startAnimation(showAnimation)
-        }
-    }
-
-    fun hide() {
-        if (visibility != INVISIBLE) {
-            visibility = INVISIBLE
-            startAnimation(hideAnimation)
-        }
     }
 
     override fun setBackgroundColor(color: Int) {
@@ -51,18 +69,6 @@ class CircularImageButton @JvmOverloads constructor(
         canvas.drawPaint(backgroundPaint)
         super.onDraw(canvas)
     }
-
-    private val showAnimation = ScaleAnimation(
-        0f, 1f, 0f, 1f,
-        Animation.RELATIVE_TO_SELF, 0.5f,
-        Animation.RELATIVE_TO_SELF, 0.5f)
-            .apply { duration = animationDuration }
-
-    private val hideAnimation = ScaleAnimation(
-        1f, .5f, 1f, 0.5f,
-        Animation.RELATIVE_TO_SELF, 0.5f,
-        Animation.RELATIVE_TO_SELF, 0.5f)
-            .apply { duration = animationDuration }
 }
 
 
@@ -73,5 +79,5 @@ private val pillOutlineProvider = object : ViewOutlineProvider() {
 }
 
 
-private val animationDuration = applicationContext
+private val shortAnimTime = applicationContext
         .resources.getInteger(android.R.integer.config_shortAnimTime).toLong()
