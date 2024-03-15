@@ -572,10 +572,13 @@
 
     <string name="pref__buffer_list_group">Buffer list</string>
 
-    <string name="pref__buffer_list__sort_by_hot">
+    <string name="pref__buffer_list__sort_buffer_list">
         Sort buffer list</string>
-    <string name="pref__buffer_list__sort_by_hot_summary">
-        Sort by number of highlights/private messages/unread messages</string>
+    <string-array name="pref__buffer_list__sort_buffer_list_names">
+        <item>By number</item>
+        <item>By hot messages, then by number</item>
+        <item>By hot messages, then by other messages, then by number</item>
+    </string-array>
 
     <string name="pref__buffer_list__hide_server_buffers">
         Hide non-conversation buffers</string>
