@@ -25,7 +25,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import com.ubergeek42.WeechatAndroid.R
-import com.ubergeek42.WeechatAndroid.adapters.BufferListAdapter.*
+import com.ubergeek42.WeechatAndroid.adapters.BufferListAdapter.VisualBuffer
 import com.ubergeek42.WeechatAndroid.databinding.BufferlistItemBinding
 import com.ubergeek42.WeechatAndroid.relay.Buffer
 import com.ubergeek42.WeechatAndroid.relay.BufferList
@@ -35,7 +35,7 @@ import com.ubergeek42.WeechatAndroid.upload.main
 import com.ubergeek42.WeechatAndroid.utils.Utils
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
-import java.util.*
+import java.util.Collections
 
 
 class BufferListAdapter(
@@ -205,6 +205,14 @@ class BufferListAdapter(
                     && old.unreads == new.unreads
         }
     }
+
+    //////////////////////////////////////////////////////////////////////////////////////////// Etc
+
+    @MainThread fun findNextHotBufferPositionOrNull(positionsToSearch: IntProgression) =
+        positionsToSearch.firstOrNull { position ->
+            val buffer = buffers.getOrElse(position) { return@firstOrNull false }
+            buffer.highlights > 0 || (buffer.type == BufferSpec.Type.Private && buffer.unreads != 0)
+        }
 
     companion object {
         @Root private val kitty: Kitty = Kitty.make()

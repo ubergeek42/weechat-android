@@ -1,32 +1,35 @@
 package com.ubergeek42.WeechatAndroid.fragments
 
 import android.content.Context
-import com.ubergeek42.WeechatAndroid.relay.BufferListEye
-import com.ubergeek42.WeechatAndroid.WeechatActivity
-import com.ubergeek42.WeechatAndroid.adapters.BufferListAdapter
-import com.ubergeek42.cats.Cat
 import android.os.Bundle
 import android.view.LayoutInflater
-import android.view.ViewGroup
-import org.greenrobot.eventbus.EventBus
-import com.ubergeek42.WeechatAndroid.service.P
-import org.greenrobot.eventbus.Subscribe
-import com.ubergeek42.WeechatAndroid.service.Events.StateChangedEvent
-import com.ubergeek42.WeechatAndroid.service.RelayService
-import com.ubergeek42.WeechatAndroid.relay.BufferList
 import android.view.View
+import android.view.ViewGroup
 import androidx.annotation.AnyThread
 import androidx.annotation.MainThread
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.SuppressedLinearLayoutManager
+import com.ubergeek42.WeechatAndroid.WeechatActivity
+import com.ubergeek42.WeechatAndroid.adapters.BufferListAdapter
 import com.ubergeek42.WeechatAndroid.databinding.BufferlistBinding
+import com.ubergeek42.WeechatAndroid.relay.BufferList
+import com.ubergeek42.WeechatAndroid.relay.BufferListEye
+import com.ubergeek42.WeechatAndroid.service.Events.StateChangedEvent
+import com.ubergeek42.WeechatAndroid.service.P
+import com.ubergeek42.WeechatAndroid.service.RelayService
 import com.ubergeek42.WeechatAndroid.upload.main
 import com.ubergeek42.WeechatAndroid.utils.afterTextChanged
 import com.ubergeek42.WeechatAndroid.views.BufferListFragmentFullScreenController
 import com.ubergeek42.WeechatAndroid.views.FULL_SCREEN_DRAWER_ENABLED
 import com.ubergeek42.WeechatAndroid.views.FullScreenDrawerLinearLayoutManager
+import com.ubergeek42.WeechatAndroid.views.jumpThenSmoothScrollCentering
+import com.ubergeek42.cats.Cat
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
+import org.greenrobot.eventbus.EventBus
+import org.greenrobot.eventbus.Subscribe
 
 class BufferListFragment : Fragment(), BufferListEye {
     companion object {
@@ -34,6 +37,7 @@ class BufferListFragment : Fragment(), BufferListEye {
     }
 
     private lateinit var weechatActivity: WeechatActivity
+    private lateinit var layoutManager: LinearLayoutManager
     private lateinit var adapter: BufferListAdapter
 
     lateinit var ui: BufferlistBinding
@@ -58,7 +62,7 @@ class BufferListFragment : Fragment(), BufferListEye {
                                                savedInstanceState: Bundle?): View {
         ui = BufferlistBinding.inflate(inflater)
 
-        val layoutManager = if (FULL_SCREEN_DRAWER_ENABLED) {
+        layoutManager = if (FULL_SCREEN_DRAWER_ENABLED) {
             FullScreenDrawerLinearLayoutManager(requireContext(), ui.bufferList, adapter)
         } else {
             SuppressedLinearLayoutManager(requireContext())
@@ -66,6 +70,14 @@ class BufferListFragment : Fragment(), BufferListEye {
 
         ui.bufferList.layoutManager = layoutManager
         ui.bufferList.adapter = adapter
+        ui.bufferList.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                showHideArrows()
+            }
+        })
+
+        ui.arrowUp.setOnClickListener { scrollUpToNextHotBuffer() }
+        ui.arrowDown.setOnClickListener { scrollDownToNextHotBuffer() }
 
         ui.filterClear.setOnClickListener {
             ui.filterInput.text = null
@@ -127,6 +139,7 @@ class BufferListFragment : Fragment(), BufferListEye {
 
         val hotCount = BufferList.totalHotMessageCount
         main {
+            showHideArrows()
             if (this.hotCount != hotCount) {
                 this.hotCount = hotCount
                 if (hotCount > 0) ui.bufferList.smoothScrollToPosition(0)
@@ -138,6 +151,41 @@ class BufferListFragment : Fragment(), BufferListEye {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////// other
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private fun findNextHotBufferPositionAboveVisibleBuffersOrNull(): Int? {
+        val firstVisibleBufferPosition = layoutManager.findFirstVisibleItemPosition()
+        val positionsToSearch = (firstVisibleBufferPosition - 1) downTo 0
+        return adapter.findNextHotBufferPositionOrNull(positionsToSearch)
+    }
+
+    private fun findNextHotBufferPositionBelowVisibleBuffersOrNull(): Int? {
+        val lastBufferPosition = adapter.itemCount - 1
+        val lastVisibleBufferPosition = layoutManager.findLastVisibleItemPosition()
+        val positionsToSearch = (lastVisibleBufferPosition + 1)..lastBufferPosition
+        return adapter.findNextHotBufferPositionOrNull(positionsToSearch)
+    }
+
+    private fun showHideArrows() {
+        val animate = weechatActivity.isBufferListVisible()
+        val showArrowUp = findNextHotBufferPositionAboveVisibleBuffersOrNull() != null
+        val showArrowDown = findNextHotBufferPositionBelowVisibleBuffersOrNull() != null
+        if (showArrowUp) ui.arrowUp.show(animate) else ui.arrowUp.hide(animate)
+        if (showArrowDown) ui.arrowDown.show(animate) else ui.arrowDown.hide(animate)
+    }
+
+    private fun scrollUpToNextHotBuffer() {
+        findNextHotBufferPositionAboveVisibleBuffersOrNull()?.let { position ->
+            ui.bufferList.jumpThenSmoothScrollCentering(position)
+        }
+    }
+
+    private fun scrollDownToNextHotBuffer() {
+        findNextHotBufferPositionBelowVisibleBuffersOrNull()?.let { position ->
+            ui.bufferList.jumpThenSmoothScrollCentering(position)
+        }
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @AnyThread private fun applyFilter() {

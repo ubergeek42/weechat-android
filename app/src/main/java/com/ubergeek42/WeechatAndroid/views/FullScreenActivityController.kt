@@ -148,6 +148,8 @@ class BufferListFragmentFullScreenController(val fragment: BufferListFragment) :
         if (!FULL_SCREEN_DRAWER_ENABLED) {
             fragment.ui.bufferList.updateMargins(
                     bottom = if (P.showBufferFilter) filterBarHeight else 0)
+            fragment.ui.arrowDown.updateMargins(
+                    bottom = if (P.showBufferFilter) filterBarHeight else 0)
         } else {
             insetListeners.add(insetListener)
             insetListener.onInsetsChanged()
@@ -163,8 +165,11 @@ class BufferListFragmentFullScreenController(val fragment: BufferListFragment) :
         val ui = fragment.ui
         val layoutManager = ui.bufferList.layoutManager as? FullScreenDrawerLinearLayoutManager
 
+        ui.arrowUp.updateMargins(top = windowInsets.top)
+
         if (P.showBufferFilter) {
             ui.bufferList.updateMargins(bottom = filterBarHeight + windowInsets.bottom)
+            ui.arrowDown.updateMargins(bottom = filterBarHeight + windowInsets.bottom)
 
             ui.filterInput.updateMargins(bottom = windowInsets.bottom)
             ui.filterInput.updatePadding(left = windowInsets.left)
@@ -176,6 +181,7 @@ class BufferListFragmentFullScreenController(val fragment: BufferListFragment) :
                                      windowInsets.left)
         } else {
             ui.bufferList.updateMargins(bottom = 0)
+            ui.arrowDown.updateMargins(bottom = windowInsets.bottom)
 
             layoutManager?.setInsets(windowInsets.top,
                                      windowInsets.bottom,

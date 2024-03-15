@@ -10,6 +10,7 @@ import android.view.ViewOutlineProvider
 import android.view.animation.Animation
 import android.view.animation.ScaleAnimation
 import androidx.appcompat.widget.AppCompatImageButton
+import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.upload.applicationContext
 import com.ubergeek42.WeechatAndroid.upload.f
 
@@ -72,9 +73,28 @@ class CircularImageButton @JvmOverloads constructor(
 }
 
 
+class RectangularImageButton @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+) : FloatingImageButton(context, attrs) {
+    init {
+        background = null
+        outlineProvider = RoundedRectangleOutlineProvider(10 * P._1dp)
+        clipToOutline = true
+    }
+}
+
+
 private val pillOutlineProvider = object : ViewOutlineProvider() {
     override fun getOutline(view: View, outline: Outline) {
         outline.setRoundRect(0, 0, view.width, view.height, view.height.f / 2)
+    }
+}
+
+
+class RoundedRectangleOutlineProvider(private val cornerRadius: Float) : ViewOutlineProvider() {
+    override fun getOutline(view: View, outline: Outline) {
+        outline.setRoundRect(0, 0, view.width, view.height, cornerRadius)
     }
 }
 
