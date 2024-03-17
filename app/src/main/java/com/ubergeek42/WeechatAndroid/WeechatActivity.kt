@@ -13,7 +13,6 @@
 // limitations under the License.
 package com.ubergeek42.WeechatAndroid
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
@@ -65,8 +64,8 @@ import com.ubergeek42.WeechatAndroid.service.Events.StateChangedEvent
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.service.RelayService
 import com.ubergeek42.WeechatAndroid.service.getSystemTrustedCertificateChain
-import com.ubergeek42.WeechatAndroid.service.showAlarmPermissionRationaleDialog
 import com.ubergeek42.WeechatAndroid.service.shouldRequestExactAlarmPermission
+import com.ubergeek42.WeechatAndroid.service.showAlarmPermissionRationaleDialog
 import com.ubergeek42.WeechatAndroid.upload.Config
 import com.ubergeek42.WeechatAndroid.upload.InsertAt
 import com.ubergeek42.WeechatAndroid.upload.ShareObject
@@ -107,7 +106,7 @@ import java.security.cert.CertPathValidatorException
 import java.security.cert.CertificateException
 import java.security.cert.CertificateExpiredException
 import java.security.cert.CertificateNotYetValidException
-import java.util.*
+import java.util.EnumSet
 import javax.net.ssl.SSLPeerUnverifiedException
 import kotlin.system.exitProcess
 
@@ -659,6 +658,8 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener,
             showDrawer()
         }
     }
+
+    fun isBufferListVisible() = !slidy || isPagerNoticeablyObscured
 
     // set the kitty image that appears when no pages are open
     private var kittyImageResourceId = -1

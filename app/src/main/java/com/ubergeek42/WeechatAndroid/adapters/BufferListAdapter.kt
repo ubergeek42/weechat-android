@@ -220,6 +220,15 @@ class BufferListAdapter(
             buffer.highlights > 0 || (buffer.type == BufferSpec.Type.Private && buffer.unreads != 0)
         }
 
+    @MainThread fun findAllHotBufferIds() =
+        buffers.mapNotNull { buffer ->
+            val hot = buffer.highlights > 0 || (buffer.type == BufferSpec.Type.Private && buffer.unreads != 0)
+            if (hot) buffer.pointer else null
+        }
+
+    // Returns -1 if not found
+    @MainThread fun findPositionByBufferId(id: Long): Int = buffers.indexOfFirst { it.pointer == id }
+
     companion object {
         @Root private val kitty: Kitty = Kitty.make()
 
