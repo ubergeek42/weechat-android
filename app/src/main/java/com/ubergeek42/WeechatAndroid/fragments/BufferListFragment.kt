@@ -16,9 +16,7 @@ import com.ubergeek42.WeechatAndroid.adapters.BufferListAdapter
 import com.ubergeek42.WeechatAndroid.databinding.BufferlistBinding
 import com.ubergeek42.WeechatAndroid.relay.BufferList
 import com.ubergeek42.WeechatAndroid.relay.BufferListEye
-import com.ubergeek42.WeechatAndroid.service.Events.StateChangedEvent
 import com.ubergeek42.WeechatAndroid.service.P
-import com.ubergeek42.WeechatAndroid.service.RelayService
 import com.ubergeek42.WeechatAndroid.upload.main
 import com.ubergeek42.WeechatAndroid.utils.afterTextChanged
 import com.ubergeek42.WeechatAndroid.views.BufferListFragmentFullScreenController
@@ -29,8 +27,6 @@ import com.ubergeek42.WeechatAndroid.views.scrollCenteringWithoutAnimation
 import com.ubergeek42.cats.Cat
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
-import org.greenrobot.eventbus.EventBus
-import org.greenrobot.eventbus.Subscribe
 
 class BufferListFragment : Fragment(), BufferListEye {
     companion object {
@@ -84,6 +80,7 @@ class BufferListFragment : Fragment(), BufferListEye {
             ui.filterInput.text = null
         }
 
+        // The below callback will be called on view restoration
         ui.filterInput.afterTextChanged {
             applyFilter()
             adapter.onBuffersChanged()
@@ -94,26 +91,19 @@ class BufferListFragment : Fragment(), BufferListEye {
 
     @MainThread @Cat override fun onStart() {
         super.onStart()
-        EventBus.getDefault().register(this)
         ui.filterInput.visibility = if (P.showBufferFilter) View.VISIBLE else View.GONE
         applyColorSchemeToViews()
+        attachToBufferList()
     }
 
     @MainThread @Cat override fun onStop() {
         super.onStop()
         detachFromBufferList()
-        EventBus.getDefault().unregister(this)
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////// event
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    @Subscribe(sticky = true) @AnyThread @Cat fun onEvent(event: StateChangedEvent) {
-        if (event.state.contains(RelayService.STATE.LISTED)) attachToBufferList()
-    }
-
     ////////////////////////////////////////////////////////////////////////////////////// the juice
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @AnyThread private fun attachToBufferList() {
         BufferList.bufferListEye = this
