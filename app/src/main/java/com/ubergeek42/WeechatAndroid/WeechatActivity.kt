@@ -266,7 +266,6 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener,
         Network.get().register(this, null)  // no callback, simply make sure that network info is correct while we are showing
         EventBus.getDefault().register(this)
         connectionState = EventBus.getDefault().getStickyEvent(StateChangedEvent::class.java).state
-        updateHotCount(BufferList.totalHotMessageCount)
         started = true
         P.storeThemeOrColorSchemeColors(this)
         applyColorSchemeToViews()
@@ -497,6 +496,7 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener,
         uiMenu = menu
         updateMenuItems()
         makeMenuReflectConnectionStatus()
+        // `onCreateOptionsMenu` is called *after* onStart, when `updateHotCount` was already called
         updateHotCount(hotNumber)
         return super.onCreateOptionsMenu(menu)
     }
