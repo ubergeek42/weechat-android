@@ -25,6 +25,7 @@ import com.ubergeek42.WeechatAndroid.views.BufferListFragmentFullScreenControlle
 import com.ubergeek42.WeechatAndroid.views.FULL_SCREEN_DRAWER_ENABLED
 import com.ubergeek42.WeechatAndroid.views.FullScreenDrawerLinearLayoutManager
 import com.ubergeek42.WeechatAndroid.views.jumpThenSmoothScrollCentering
+import com.ubergeek42.WeechatAndroid.views.scrollCenteringWithoutAnimation
 import com.ubergeek42.cats.Cat
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
@@ -128,24 +129,45 @@ class BufferListFragment : Fragment(), BufferListEye {
     ////////////////////////////////////////////////////////////////////////////////// BufferListEye
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @Volatile private var hotCount = 0
+    private var hotBufferIds: Collection<Long> = emptyList()
 
-    // if hot count has changed and > 0, scroll to top. note that if the scroll operation is not
-    // posted, it cat try to scroll to the view that was at position 0 before the diff update
+    // If the drawer is hidden, and if we've got *new* hot buffers, pick one and center it.
+    // If the drawer is visible, do not scroll anywhere,
+    // instead relying on the arrows for hot buffer indication.
+    //
+    // To calculate the “diff”, we use buffer IDs, not their positions,
+    // otherwise a hot buffer that's been merely moved would appear as a new hot buffer.
+    //
+    // Note: the `main` block below is run on *every* change in buffers,
+    // but the adapter might skip some final updates (on main thread)
+    // if its `onBuffersChanged` is called again soon (usually, on another worker thread).
+    //
     // todo don't update on every change?
     // todo move hotlist updates to the activity
     @AnyThread @Cat override fun onBuffersChanged() {
         adapter.onBuffersChanged()
+        val hotBufferCount = BufferList.hotBufferCount
 
-        val hotCount = BufferList.totalHotMessageCount
         main {
-            showHideArrows()
-            if (this.hotCount != hotCount) {
-                this.hotCount = hotCount
-                if (hotCount > 0) ui.bufferList.smoothScrollToPosition(0)
+            val newHotBufferIds = adapter.findAllHotBufferIds()
+
+            if (weechatActivity.isBufferListVisible()) {
+                showHideArrows()
+            } else {
+                val oneNewHotBufferId = newHotBufferIds.firstOrNull { it !in hotBufferIds }
+                if (oneNewHotBufferId != null) {
+                    val position = adapter.findPositionByBufferId(oneNewHotBufferId)
+                    if (position != -1) {
+                        ui.bufferList.scrollCenteringWithoutAnimation(position)
+                    }
+                } else {
+                    showHideArrows()
+                }
             }
-            weechatActivity.updateHotCount(hotCount)
+
+            weechatActivity.updateHotCount(hotBufferCount)
             weechatActivity.onBuffersChanged()
+            hotBufferIds = newHotBufferIds
         }
     }
 
