@@ -13,7 +13,6 @@
 // limitations under the License.
 package com.ubergeek42.WeechatAndroid
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
@@ -40,6 +39,9 @@ import androidx.appcompat.widget.TooltipCompat
 import androidx.core.content.ContextCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
+import androidx.fragment.app.FragmentManager.FragmentLifecycleCallbacks
 import androidx.preference.PreferenceManager
 import com.ubergeek42.WeechatAndroid.CutePagerTitleStrip.CutePageChangeListener
 import com.ubergeek42.WeechatAndroid.adapters.BufferListClickListener
@@ -65,8 +67,8 @@ import com.ubergeek42.WeechatAndroid.service.Events.StateChangedEvent
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.service.RelayService
 import com.ubergeek42.WeechatAndroid.service.getSystemTrustedCertificateChain
-import com.ubergeek42.WeechatAndroid.service.showAlarmPermissionRationaleDialog
 import com.ubergeek42.WeechatAndroid.service.shouldRequestExactAlarmPermission
+import com.ubergeek42.WeechatAndroid.service.showAlarmPermissionRationaleDialog
 import com.ubergeek42.WeechatAndroid.upload.Config
 import com.ubergeek42.WeechatAndroid.upload.InsertAt
 import com.ubergeek42.WeechatAndroid.upload.ShareObject
@@ -107,7 +109,7 @@ import java.security.cert.CertPathValidatorException
 import java.security.cert.CertificateException
 import java.security.cert.CertificateExpiredException
 import java.security.cert.CertificateNotYetValidException
-import java.util.*
+import java.util.EnumSet
 import javax.net.ssl.SSLPeerUnverifiedException
 import kotlin.system.exitProcess
 
@@ -599,7 +601,14 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener,
                 fragment.setShareObject(shareObject, InsertAt.END)
             } else {
                 // let fragment be created first, if it's not ready
-                main { pagerAdapter.currentBufferFragment?.setShareObject(shareObject, InsertAt.END) }
+                supportFragmentManager.registerFragmentLifecycleCallbacks(object : FragmentLifecycleCallbacks() {
+                    override fun onFragmentResumed(manager: FragmentManager, fragment: Fragment) {
+                        if (fragment is BufferFragment && fragment.pointer == pointer) {
+                            fragment.setShareObject(shareObject, InsertAt.END)
+                            manager.unregisterFragmentLifecycleCallbacks(this)
+                        }
+                    }
+                }, false)
             }
         }
     }
