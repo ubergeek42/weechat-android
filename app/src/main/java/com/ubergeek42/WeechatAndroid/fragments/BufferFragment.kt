@@ -88,7 +88,6 @@ import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
-import java.util.*
 import java.util.regex.PatternSyntaxException
 
 
@@ -106,7 +105,7 @@ interface BufferFragmentContainer {
 class BufferFragment : Fragment(), BufferEye {
     @Root private val kitty: Kitty = Kitty.make("BF")
 
-    private var pointer: Long = 0
+    var pointer: Long = 0
 
     private var container: BufferFragmentContainer? = null
     private var buffer: Buffer? = null
