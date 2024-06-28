@@ -3,14 +3,11 @@
 
 package com.ubergeek42.WeechatAndroid.utils;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.text.Editable;
-import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Base64;
 import android.view.View;
@@ -22,6 +19,8 @@ import androidx.annotation.Nullable;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
 
+import org.joda.time.format.DateTimeFormat;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -31,8 +30,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.nio.CharBuffer;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -97,12 +94,11 @@ public class Utils {
         return true;
     }
 
-    @SuppressLint("SimpleDateFormat")
     public static boolean isValidTimestampFormat(@Nullable String s) {
         if (s == null)
             return false;
         try {
-            new SimpleDateFormat(s);
+            DateTimeFormat.forPattern(s);
             return true;
         } catch (IllegalArgumentException e) {
             return false;
