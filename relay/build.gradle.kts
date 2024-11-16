@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
     `java-library`
     kotlin("jvm")
@@ -25,6 +23,4 @@ tasks.withType<JavaCompile> {
     options.encoding = "UTF-8"
 }
 
-tasks.withType<KotlinCompile> {
-    kotlinOptions { jvmTarget = "17" }
-}
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)

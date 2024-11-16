@@ -78,10 +78,6 @@ android {
                 arguments["room.incremental"] = "true"
             }
         }
-
-        kotlinOptions {
-            jvmTarget = "17"
-        }
     }
 
     signingConfigs {
@@ -124,11 +120,6 @@ android {
             versionNameSuffix = "-dev"
             signingConfig = signingConfigs.getByName("dev")
         }
-
-        compileOptions {
-            sourceCompatibility = JavaVersion.VERSION_17
-            targetCompatibility = JavaVersion.VERSION_17
-        }
     }
 
     buildFeatures {
@@ -145,6 +136,8 @@ fun versionBanner(): String {
     }
     return String(os.toByteArray()).trim()
 }
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////// cats
