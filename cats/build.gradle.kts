@@ -7,11 +7,11 @@ plugins {
 }
 
 dependencies {
-    implementation("org.aspectj:aspectjrt:1.9.21")
-    implementation("androidx.annotation:annotation:1.7.1")
+    implementation(libs.aspectj.rt)
+    implementation(libs.androidx.annotation)
 
-    testImplementation("org.junit.jupiter:junit-jupiter:5.10.1")
-    testImplementation("org.mockito:mockito-core:5.8.0")
+    testImplementation(libs.junit.jupiter)
+    testImplementation(libs.mockito.core)
 }
 
 android {

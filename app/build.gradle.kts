@@ -8,50 +8,49 @@ dependencies {
     implementation(project(":cats"))
     implementation(project(":relay"))
 
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.20")
+    implementation(libs.kotlin.stdlib.jdk7)
 
     // these two are required for logging within the relay module. todo remove?
-    implementation("org.slf4j:slf4j-api:2.0.9")
-    implementation("com.noveogroup.android:android-logger:1.3.6")
+    implementation(libs.slf4j.api)
+    implementation(libs.androidlogger)
 
-    implementation("androidx.core:core-ktx:1.12.0")
-    implementation("androidx.legacy:legacy-support-v4:1.0.0")
-    implementation("androidx.annotation:annotation:1.7.1") // For @Nullable/@NonNull
-    implementation("androidx.appcompat:appcompat:1.6.1")
-    implementation("androidx.emoji2:emoji2:1.4.0")
-    implementation("androidx.preference:preference-ktx:1.2.1")  // preference fragment & al
-    implementation("androidx.legacy:legacy-preference-v14:1.0.0") // styling for the fragment
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
-    implementation("androidx.lifecycle:lifecycle-common-java8:2.6.2")
-    implementation("androidx.sharetarget:sharetarget:1.2.0")
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.legacy.support.v4)
+    implementation(libs.androidx.annotation) // For @Nullable/@NonNull
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.emoji2)
+    implementation(libs.androidx.preference.ktx)  // preference fragment & al
+    implementation(libs.androidx.legacy.preference.v14) // styling for the fragment
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.common.java8)
+    implementation(libs.androidx.sharetarget)
 
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    implementation(libs.kotlinx.coroutines.android)
 
-    implementation("com.github.bumptech.glide:glide:4.16.0")
-    kapt("com.github.bumptech.glide:compiler:4.16.0")
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation(libs.glide.glide)
+    kapt(libs.glide.compiler)
+    implementation(libs.okhttp)
 
-    val roomVersion = "2.6.1"
-    implementation("androidx.room:room-runtime:$roomVersion")
-    annotationProcessor("androidx.room:room-compiler:$roomVersion")
-    kapt("androidx.room:room-compiler:$roomVersion")
+    implementation(libs.androidx.room.runtime)
+    annotationProcessor(libs.androidx.room.compiler)
+    kapt(libs.androidx.room.compiler)
 
-    implementation("org.yaml:snakeyaml:2.2")
+    implementation(libs.snakeyaml)
 
-    implementation("org.bouncycastle:bcpkix-jdk15on:1.70")
+    implementation(libs.bouncycastle.pkix)
 
     // needed for thread-safe date formatting as SimpleDateFormat isn"t thread-safe
     // the alternatives, including apache commons and threetenabp, seem to be much slower
     // todo perhaps replace with core library desugaring, if it"s fast
-    implementation("net.danlew:android.joda:2.12.6")
+    implementation(libs.joda)
 
-    implementation("org.greenrobot:eventbus:3.3.1")
+    implementation(libs.eventbus)
 
-    debugImplementation("org.aspectj:aspectjrt:1.9.21")
-    debugImplementation("com.squareup.leakcanary:leakcanary-android:2.12")
+    debugImplementation(libs.aspectj.rt)
+    debugImplementation(libs.leakcanary)
 
-    testImplementation("org.junit.jupiter:junit-jupiter:5.10.1")
-    testImplementation("org.junit.jupiter:junit-jupiter-params:5.10.1")
+    testImplementation(libs.junit.jupiter)
+    testImplementation(libs.junit.jupiter.params)
 }
 
 tasks.withType<JavaCompile> {
