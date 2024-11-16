@@ -19,7 +19,6 @@ android {
     compileSdk = 34
 
     defaultConfig {
-        targetSdk = 34
         minSdk = 16
         consumerProguardFile("proguard-rules.pro")
     }
@@ -35,9 +34,9 @@ tasks.withType<JavaCompile> {
 
         val args = arrayOf("-showWeaveInfo",
                            "-1.5",
-                           "-inpath", destinationDir.toString(),
+                           "-inpath", destinationDirectory.asFile.get().toString(),
                            "-aspectpath", classpath.asPath,
-                           "-d", destinationDir.toString(),
+                           "-d", destinationDirectory.asFile.get().toString(),
                            "-classpath", classpath.asPath,
                            "-bootclasspath", android.bootClasspath.joinToString(File.pathSeparator))
 
