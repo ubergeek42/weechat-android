@@ -5,18 +5,18 @@ plugins {
 }
 
 dependencies {
-    implementation("org.slf4j:slf4j-api:2.0.9")
+    implementation(libs.slf4j.api)
 
     // "api" because we are calling `SSHConnection.getKnownHosts` from the app
     // and it returns something from inside sshlib
-    api("com.github.connectbot:sshlib:2.2.21")
+    api(libs.sshlib)
 
-    implementation("com.neovisionaries:nv-websocket-client:2.14")
+    implementation(libs.nvwebsocketclient)
 
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.20")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
+    implementation(libs.kotlin.stdlib.jdk8)
+    implementation(libs.kotlinx.serialization.json)
 
-    testImplementation("org.junit.jupiter:junit-jupiter:5.10.1")
+    testImplementation(libs.junit.jupiter)
 }
 
 tasks.withType<JavaCompile> {
