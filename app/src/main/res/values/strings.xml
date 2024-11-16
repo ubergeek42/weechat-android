@@ -887,7 +887,7 @@ strategies:
 - name: youtube
   type: image
   hosts: [www.youtube.com, m.youtube.com, youtube.com, youtu.be]
-  regex: (?i)^https?://(?:(?:www\\.|m\\.)?youtube\\.com/watch\\?v=|youtu\\.be/)([A-Za-z0-9_-]+)
+  regex: (?i)^https?://(?:(?:www\\.|m\\.)?youtube\\.com/(?:watch\\?v=|shorts/)|youtu\\.be/)([A-Za-z0-9_-]+)
   small: https://img.youtube.com/vi/$1/mqdefault.jpg
   big: https://img.youtube.com/vi/$1/hqdefault.jpg
 
@@ -911,12 +911,6 @@ strategies:
   small: https://images-cdn.9gag.com/photo/$1_700b.jpg
   big: https://images-cdn.9gag.com/photo/$1_700b.jpg
 
-- name: mobile.twitter
-  type: any
-  hosts: [mobile.twitter.com]
-  regex: (?i)^https?://mobile\\.twitter\\.com/(.*)
-  sub: https://twitter.com/$1
-
 - name: common
   type: any
   regex: (?i)^https?://(.+)
@@ -926,9 +920,17 @@ strategies:
   - gfycat.com
   - imgur.com
 
-- name: reddit
+- name: v.redd.it
   type: any
-  hosts: [v.redd.it, reddit.com, www.reddit.com, old.reddit.com]
+  hosts: [v.redd.it]
+  regex: (?i)^https?://v.redd.it/([a-z1-9]+)
+  sub: https://old.reddit.com/video/$1
+
+- name: reddit.com
+  type: any
+  hosts: [reddit.com, www.reddit.com, old.reddit.com]
+  regex: (?i)^https?://[^/]+/(.+)
+  sub: https://old.reddit.com/$1
   body size: 196608
 "</string>
 
