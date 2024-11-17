@@ -23,20 +23,10 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    buildTypes {
-        getByName("debug") {}
-
-        getByName("release") {
-            isMinifyEnabled = true
-            proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
-        }
-
-        create("dev") { initWith(getByName("release")) }
-    }
-
     defaultConfig {
         targetSdk = 34
         minSdk = 16
+        consumerProguardFile("proguard-rules.pro")
     }
 
     buildFeatures {
