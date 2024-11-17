@@ -13,7 +13,6 @@ dependencies {
 
     implementation(libs.nvwebsocketclient)
 
-    implementation(libs.kotlin.stdlib.jdk8)
     implementation(libs.kotlinx.serialization.json)
 
     testImplementation(libs.junit.jupiter)
