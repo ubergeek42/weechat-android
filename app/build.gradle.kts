@@ -8,8 +8,6 @@ dependencies {
     implementation(project(":cats"))
     implementation(project(":relay"))
 
-    implementation(libs.kotlin.stdlib.jdk7)
-
     // these two are required for logging within the relay module. todo remove?
     implementation(libs.slf4j.api)
     implementation(libs.androidlogger)
