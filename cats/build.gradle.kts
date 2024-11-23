@@ -7,36 +7,20 @@ plugins {
 }
 
 dependencies {
-    implementation("org.aspectj:aspectjrt:1.9.21")
-    implementation("androidx.annotation:annotation:1.7.1")
+    implementation(libs.aspectj.rt)
+    implementation(libs.androidx.annotation)
 
-    testImplementation("org.junit.jupiter:junit-jupiter:5.10.1")
-    testImplementation("org.mockito:mockito-core:5.8.0")
+    testImplementation(libs.junit.jupiter)
+    testImplementation(libs.mockito.core)
 }
 
 android {
     namespace = "com.ubergeek42.cats"
     compileSdk = 34
 
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-
-    buildTypes {
-        getByName("debug") {}
-
-        getByName("release") {
-            isMinifyEnabled = true
-            proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
-        }
-
-        create("dev") { initWith(getByName("release")) }
-    }
-
     defaultConfig {
-        targetSdk = 34
         minSdk = 16
+        consumerProguardFile("proguard-rules.pro")
     }
 
     buildFeatures {
@@ -50,9 +34,9 @@ tasks.withType<JavaCompile> {
 
         val args = arrayOf("-showWeaveInfo",
                            "-1.5",
-                           "-inpath", destinationDir.toString(),
+                           "-inpath", destinationDirectory.asFile.get().toString(),
                            "-aspectpath", classpath.asPath,
-                           "-d", destinationDir.toString(),
+                           "-d", destinationDirectory.asFile.get().toString(),
                            "-classpath", classpath.asPath,
                            "-bootclasspath", android.bootClasspath.joinToString(File.pathSeparator))
 
@@ -72,3 +56,5 @@ tasks.withType<JavaCompile> {
         }
     }
 }
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)

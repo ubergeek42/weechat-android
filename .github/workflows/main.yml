@@ -7,11 +7,11 @@ jobs:
     name: Run tests
     runs-on: ubuntu-latest
     steps:
-      - name: Install Java 17
+      - name: Install Java 21
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'
 
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -25,11 +25,11 @@ jobs:
     name: Build release apk
     runs-on: ubuntu-latest
     steps:
-      - name: Install Java 17
+      - name: Install Java 21
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'
 
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -54,7 +54,7 @@ jobs:
           DEVSTOREFILE: /home/runner/work/weechat-android/weechat-android/releases/android.jks
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: build-outputs
           path: app/build/outputs/
@@ -73,7 +73,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Download artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: build-outputs
           path: app/build/outputs/
@@ -102,7 +102,7 @@ jobs:
           fetch-depth: 0
 
       - name: Download artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: build-outputs
           path: app/build/outputs/
