@@ -1,26 +1,74 @@
 package com.ubergeek42.WeechatAndroid.utils
 
+import android.content.Context
 import android.content.SharedPreferences
 import androidx.preference.PreferenceManager
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.ubergeek42.WeechatAndroid.upload.applicationContext
+import com.ubergeek42.WeechatAndroid.upload.suppress
+import com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils.getAndroidKeyStore
+import com.ubergeek42.cats.Kitty
+import com.ubergeek42.cats.Root
+import java.security.GeneralSecurityException
+import java.security.KeyStoreException
 
 
-private val masterKey = MasterKey.Builder(applicationContext)
-        .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-        .build()
+@Root private val kitty = Kitty.make("MultiSharedPreferences") as Kitty
+
+
+const val MASTER_KEY_ALIAS = "master-key"
+const val ENCRYPTED_SHARED_PREFERENCES_FILE_NAME = "encrypted_shared_preferences"
+
 
 private val defaultSharedPreferences =
     PreferenceManager.getDefaultSharedPreferences(applicationContext)
 
-private val encryptedSharedPreferences = EncryptedSharedPreferences.create(
-    applicationContext,
-    "encrypted_shared_preferences",
-    masterKey,
-    EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-    EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-)
+
+// Sometimes, for no apparent reason, the master key can become corrupted on some systems.
+// Encrypted preferences are lost in this case; as a last resort,
+// remove anything that might remain of the old encrypted preferences before creating new ones.
+// See:
+//   * https://stackoverflow.com/questions/65463893/
+//   * https://issuetracker.google.com/issues/176215143
+//   * https://github.com/tink-crypto/tink/issues/535#issuecomment-912170221
+private val encryptedSharedPreferences = run {
+    fun makeMasterKey() = MasterKey.Builder(applicationContext, MASTER_KEY_ALIAS)
+        .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+        .build()
+
+    fun createEncryptedSharedPreferences() = EncryptedSharedPreferences.create(
+        applicationContext,
+        ENCRYPTED_SHARED_PREFERENCES_FILE_NAME,
+        makeMasterKey(),
+        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+    )
+
+    // We could remove the file, but `Context.deleteSharedPreferences` requires API 23+.
+    // Clearing the keys seems to work as well;
+    // we can do it by treating the file as regular shared preferences.
+    fun clearEncryptedSharedPreferences() {
+        applicationContext.getSharedPreferences(ENCRYPTED_SHARED_PREFERENCES_FILE_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .clear()
+            .apply()
+    }
+
+    fun deleteMasterKeyEntryFromAndroidKeyStore() = suppress<KeyStoreException> {
+        getAndroidKeyStore().deleteEntry(MasterKey.DEFAULT_MASTER_KEY_ALIAS)
+    }
+
+    try {
+        createEncryptedSharedPreferences()
+    } catch (e: GeneralSecurityException) {
+        kitty.error("Could not create encrypted shared preferences, resetting", e)
+        clearEncryptedSharedPreferences()
+        deleteMasterKeyEntryFromAndroidKeyStore()
+        createEncryptedSharedPreferences()
+    }
+}
+
 
 @JvmField val multiSharedPreferences = object : MultiSharedPreferences() {
     override val allActualSharedPreferences = listOf(defaultSharedPreferences, encryptedSharedPreferences)
