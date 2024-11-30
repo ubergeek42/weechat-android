@@ -69,13 +69,13 @@
                 android:entryValues="@array/pref__connection__ssh__authentication_method_values"
                 android:defaultValue="password" />
             <EditTextPreferenceFix
-                android:key="ssh_password"
+                android:key="encrypted_ssh_password"
                 android:title="@string/pref__connection__ssh__password"
                 android:summary="%s"
                 android:singleLine="true"
                 android:inputType="textPassword" />
             <PrivateKeyPickerPreference
-                android:key="ssh_key_file"
+                android:key="encrypted_ssh_key"
                 android:title="@string/pref__connection__ssh__key"
                 android:summary="@string/pref__connection__ssh__key_summary" />
             <ClearKnownHostsPreference
@@ -100,7 +100,7 @@
                 android:defaultValue="9001"
                 android:inputType="number" />
             <EditTextPreferenceFix
-                android:key="password"
+                android:key="encrypted_password"
                 android:title="@string/pref__connection__relay_password"
                 android:summary="%s"
                 android:singleLine="true"
@@ -545,7 +545,7 @@
                 android:singleLine="true"
                 android:inputType="text" />
             <EditTextPreferenceFix
-                android:key="upload_authentication_basic_password"
+                android:key="encrypted_upload_authentication_basic_password"
                 android:title="@string/pref__upload__authentication_basic_password"
                 android:summary="%s"
                 android:singleLine="true"

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <include domain="sharedpref" path="." />
+    <exclude domain="sharedpref" path="encrypted_shared_preferences.xml" />
+
+    <!--
+    If we specify individual folders here, like we do for API 31+, we run into a strange problem.
+    The files are backed up correctly (judging from the logcat messages),
+    but (at least on emulator) only some of the folders are restored.
+
+    For example, here are some examples of backup/restore operations.
+    On the left there are source folders, each with a file, and according rules,
+    and on the right the outcome.
+
+        ahoy           ahoy
+        fonts
+        fonts2    →
+        themes
+
+        fonts
+        fonts2
+        themes    →
+        sausage        sausage
+
+        fonts
+        fonts2
+        themes    →
+        sausage
+        sausage2       sausage2
+
+        amazing
+        fonts          fonts
+        fonts2    →    fonts2
+        themes
+
+    This was observed on several emulators running different API versions (≤30).
+    -->
+    <include domain="external" path="." />
+</full-backup-content>

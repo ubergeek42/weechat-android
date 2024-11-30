@@ -43,9 +43,10 @@ import com.ubergeek42.WeechatAndroid.relay.from0xOrNull
 import com.ubergeek42.WeechatAndroid.service.Events
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.service.RelayService
-import com.ubergeek42.WeechatAndroid.upload.applicationContext
+import com.ubergeek42.WeechatAndroid.utils.applicationContext
 import com.ubergeek42.WeechatAndroid.utils.Constants
 import com.ubergeek42.WeechatAndroid.utils.Toaster
+import com.ubergeek42.WeechatAndroid.utils.multiSharedPreferences
 import com.ubergeek42.cats.Cat
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
@@ -879,11 +880,9 @@ class NotificationPermissionChecker(private val activity: WeechatActivity) {
     }
 }
 
-private val preferences by lazy { PreferenceManager.getDefaultSharedPreferences(Weechat.applicationContext) }
-
 private var permissionWasDeniedOnce: Boolean
-    get() = preferences.getBoolean("notificationPermissionWasDeniedOnce", false)
-    set(value) { preferences.edit { putBoolean("notificationPermissionWasDeniedOnce", value) } }
+    get() = multiSharedPreferences.getBoolean("notificationPermissionWasDeniedOnce", false)
+    set(value) { multiSharedPreferences.edit { putBoolean("notificationPermissionWasDeniedOnce", value) } }
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 class NotificationPermissionRationaleDialogFragment : DialogFragment() {

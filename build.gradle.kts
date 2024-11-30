@@ -8,12 +8,6 @@ subprojects {
     }
 }
 
-// to print a sensible task graph, uncomment the following lines and run:
-//   $ gradlew :app:assembleDebug taskTree --no-repeat
-// plugins {
-//     id("com.dorongold.task-tree") version "1.5"
-// }
-
 defaultTasks("assembleDebug")
 
 repositories {
@@ -28,11 +22,11 @@ buildscript {
     }
 
     dependencies {
-        classpath("com.android.tools.build:gradle:8.2.2")
-        classpath("org.aspectj:aspectjtools:1.9.21")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.20")
-        classpath("org.jetbrains.kotlin:kotlin-serialization:1.9.20")
-        classpath("com.ibotta:plugin:1.4.1")
+        classpath(libs.gradle)
+        classpath(libs.aspectj.tools)
+        classpath(libs.kotlin.gradle.plugin)
+        classpath(libs.kotlin.serialization)
+        classpath(libs.aspectjpipeline)
     }
 }
 
@@ -71,17 +65,20 @@ subprojects {
     }
 }
 
-
-// The below is a plugin that checks for dependency updates.
-// To get a plain text report, run:
-//   $ ./gradlew dependencyUpdates
-// See https://github.com/ben-manes/gradle-versions-plugin
 plugins {
-    id("com.github.ben-manes.versions") version "0.50.0"
+    // The below is a plugin that checks for dependency updates.
+    // To get a plain text report, run:
+    //   $ ./gradlew dependencyUpdates
+    // See https://github.com/ben-manes/gradle-versions-plugin
+    alias(libs.plugins.gradleversionsplugin)
+
+    // to print a sensible task graph, uncomment the following line and run:
+    //   $ gradlew :app:assembleDebug taskTree --no-repeat
+    //alias(libs.plugins.tasktree)
 }
 
 fun isNonStable(version: String): Boolean {
-    val stableKeyword = listOf("RELEASE", "FINAL", "GA").any { version.toUpperCase().contains(it) }
+    val stableKeyword = listOf("RELEASE", "FINAL", "GA").any { version.uppercase().contains(it) }
     val regex = "^[0-9,.v-]+(-r)?$".toRegex()
     val isStable = stableKeyword || regex.matches(version)
     return isStable.not()

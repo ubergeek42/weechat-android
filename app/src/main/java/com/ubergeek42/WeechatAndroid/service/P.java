@@ -9,7 +9,6 @@ import android.content.SharedPreferences;
 import android.content.res.TypedArray;
 import android.graphics.Typeface;
 import android.os.Build;
-import android.preference.PreferenceManager;
 import android.text.TextPaint;
 import android.text.TextUtils;
 import android.util.TypedValue;
@@ -56,6 +55,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
+import static com.ubergeek42.WeechatAndroid.utils.MultiSharedPreferencesKt.multiSharedPreferences;
 
 
 public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
@@ -73,8 +73,8 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         if (instance != null) return;
         instance = new P();
         P.context = context;
-        p = PreferenceManager.getDefaultSharedPreferences(context);
-        new MigratePreferences(context).migrate();
+        p = multiSharedPreferences;
+        new MigratePreferences(p).migrate();
         loadUIPreferences();
         p.registerOnSharedPreferenceChangeListener(instance);
         Config.initPreferences();

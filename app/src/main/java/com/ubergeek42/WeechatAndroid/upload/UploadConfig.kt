@@ -7,6 +7,8 @@ import androidx.preference.PreferenceManager
 import com.ubergeek42.WeechatAndroid.BuildConfig
 import com.ubergeek42.WeechatAndroid.notifications.shortcuts
 import com.ubergeek42.WeechatAndroid.utils.Constants.*
+import com.ubergeek42.WeechatAndroid.utils.applicationContext
+import com.ubergeek42.WeechatAndroid.utils.multiSharedPreferences
 
 
 object Config {
@@ -23,7 +25,6 @@ object Config {
 }
 
 fun initPreferences() {
-    val p = PreferenceManager.getDefaultSharedPreferences(applicationContext)
     for (key in listOf(
             PREF_UPLOAD_ACCEPT,
             PREF_UPLOAD_NO_OF_DIRECT_SHARE_TARGETS,
@@ -39,7 +40,7 @@ fun initPreferences() {
             PREF_PAPERCLIP_ACTION_1,
             PREF_PAPERCLIP_ACTION_2,
     )) {
-        onSharedPreferenceChanged(p, key)
+        onSharedPreferenceChanged(multiSharedPreferences, key)
     }
 }
 

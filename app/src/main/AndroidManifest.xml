@@ -28,6 +28,8 @@
     <application
         android:name=".Weechat"
         android:allowBackup="true"
+        android:fullBackupContent="@xml/backup_rules_for_api_30_and_below"
+        android:dataExtractionRules="@xml/backup_rules_for_api_31_and_above"
         android:icon="@mipmap/ic_launcher_kitty"
         android:label="@string/etc__application_name"
         android:theme="@style/Weechat"
