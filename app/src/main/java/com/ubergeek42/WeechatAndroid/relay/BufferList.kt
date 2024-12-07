@@ -388,6 +388,22 @@ object BufferList {
             }
         }
 
+        add("_buffer_cleared") { obj, _ ->
+            obj.forEachExistingBuffer { _, buffer ->
+                buffer.onLinesCleared()
+            }
+        }
+
+        add("_buffer_line_data_changed") { obj, _ ->
+            obj.forEach { entry ->
+                val spec = LineSpec(entry)
+                findByPointer(spec.bufferPointer)?.let { buffer ->
+                    buffer.replaceLine(spec.toLine())
+                    buffer.onLineReplaced()
+                }
+            }
+        }
+
         return handlers
     }
 

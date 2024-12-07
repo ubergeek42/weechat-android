@@ -12,6 +12,9 @@ interface BufferEye {
     // 1 line added on bottom
     @WorkerThread fun onLineAdded()
 
+    // line was replaced via _buffer_line_data_changed
+    @WorkerThread fun onLineReplaced()
+
     // indicates changed title
     @WorkerThread fun onTitleChanged()
 

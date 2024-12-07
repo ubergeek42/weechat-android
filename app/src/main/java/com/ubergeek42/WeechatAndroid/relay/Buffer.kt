@@ -17,7 +17,6 @@ import com.ubergeek42.WeechatAndroid.utils.updatable
 import com.ubergeek42.cats.Cat
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
-import java.util.*
 
 class Buffer @WorkerThread constructor(
     @JvmField val pointer: Long,
@@ -209,7 +208,7 @@ class Buffer @WorkerThread constructor(
     /////////////////////////////////////////////////////////////// stuff called by message handlers
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @WorkerThread @Synchronized fun replaceLines(newLines: Collection<Line>) {
+    @WorkerThread fun replaceLines(newLines: Collection<Line>) {
         if (isOpen) {
             newLines.forEach { it.ensureSpannable() }
         }
@@ -218,6 +217,14 @@ class Buffer @WorkerThread constructor(
             lines.replaceLines(newLines)
         }
    }
+
+    @WorkerThread @Synchronized fun replaceLine(line: Line) {
+        if (isOpen) line.ensureSpannable()
+
+        synchronized(this) {
+            lines.replaceLine(line)
+        }
+    }
 
     @WorkerThread fun addLineBottom(line: Line) {
         if (isOpen) line.ensureSpannable()
@@ -348,6 +355,10 @@ class Buffer @WorkerThread constructor(
         bufferEyes.forEach { it.onLineAdded() }
     }
 
+    @WorkerThread fun onLineReplaced() {
+        bufferEyes.forEach { it.onLineReplaced() }
+    }
+
     var style = 0
 
     @MainThread fun onGlobalPreferencesChanged(numberChanged: Boolean) {
@@ -363,6 +374,14 @@ class Buffer @WorkerThread constructor(
 
     @WorkerThread fun onLinesListed() {
         synchronized(this) { lines.onLinesListed() }
+        bufferEyes.forEach { it.onLinesListed() }
+    }
+
+    @WorkerThread fun onLinesCleared() {
+        synchronized(this) {
+            lines = Lines().apply { status = Lines.Status.EverythingFetched }
+            resetUnreadsAndHighlights()
+        }
         bufferEyes.forEach { it.onLinesListed() }
     }
 
