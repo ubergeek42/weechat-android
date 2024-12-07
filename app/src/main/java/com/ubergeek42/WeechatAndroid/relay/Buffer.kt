@@ -218,6 +218,14 @@ class Buffer @WorkerThread constructor(
         }
    }
 
+    @WorkerThread @Synchronized fun replaceLine(line: Line) {
+        if (isOpen) line.ensureSpannable()
+
+        synchronized(this) {
+            lines.replaceLine(line)
+        }
+    }
+
     @WorkerThread fun addLineBottom(line: Line) {
         if (isOpen) line.ensureSpannable()
 

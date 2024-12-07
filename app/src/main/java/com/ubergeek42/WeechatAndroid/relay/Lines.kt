@@ -10,6 +10,7 @@ import com.ubergeek42.WeechatAndroid.utils.invalidatableLazy
 import com.ubergeek42.weechat.Color
 import java.util.*
 import kotlin.properties.Delegates.observable
+import kotlin.collections.ArrayDeque;
 
 // this class is supposed to be synchronized by Buffer
 class Lines {
@@ -97,6 +98,16 @@ class Lines {
         }
     }
 
+    fun replaceLine(line: Line) {
+        val index = unfiltered.indexOfFirst { l -> l.pointer == line.pointer }
+        if (index == -1) return
+        filtered.clear();
+        unfiltered[index] = line
+        for (l in unfiltered) {
+            if (l.isVisible) filtered.add(l)
+        }
+    }
+
     fun addLast(line: Line) {
         if (shouldAddSquiggleOnNewLine) {
             shouldAddSquiggleOnNewLine = false
@@ -164,7 +175,7 @@ class Lines {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    val descendingFilteredIterator: Iterator<Line> get() = filtered.descendingIterator()
+    val descendingFilteredIterator: Iterator<Line> get() = filtered.asReversed().iterator()
 
 
     fun invalidateSpannables() {
@@ -197,7 +208,7 @@ class Lines {
     fun rememberCurrentSkipsOffset() {
         skipFilteredOffset = skipFiltered
         skipUnfilteredOffset = skipUnfiltered
-        if (unfiltered.size > 0) _lastSeenLine = unfiltered.last.pointer
+        if (unfiltered.size > 0) _lastSeenLine = unfiltered.last().pointer
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -216,7 +227,7 @@ class Lines {
         var indexFiltered = 0
         var indexUnfiltered = 0
 
-        unfiltered.descendingIterator().forEach { line ->
+        unfiltered.asReversed().iterator().forEach { line ->
             if (line.pointer == _lastSeenLine) {
                 skipFiltered = indexFiltered
                 skipUnfiltered = indexUnfiltered
