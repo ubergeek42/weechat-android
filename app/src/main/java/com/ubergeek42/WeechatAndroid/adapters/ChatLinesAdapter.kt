@@ -218,7 +218,7 @@ class ChatLinesAdapter @MainThread constructor(
     private var style = 0
 
     @AnyThread @Synchronized private fun onLinesChanged(
-        animation: Animation = Animation.Default,
+        animation: Animation? = Animation.Default,
         diffLineContents: Boolean = false
     ) = ulet(buffer) { buffer ->
         val thisUpdateStep = synchronized (updateLock) { ++updateStep }
@@ -238,7 +238,7 @@ class ChatLinesAdapter @MainThread constructor(
 
             diffResult.dispatchUpdatesTo(this@ChatLinesAdapter)
 
-            uiLines.setAnimation(animation)
+            if (animation != null) uiLines.setAnimation(animation)
 
             if (uiLines.onBottom) {
                 uiLines.scrollToPosition(itemCount - 1)
@@ -265,6 +265,10 @@ class ChatLinesAdapter @MainThread constructor(
 
     @AnyThread override fun onLineAdded() {
         onLinesChanged(Animation.LastLineAdded)
+    }
+
+    @WorkerThread override fun onLineReplaced() {
+        onLinesChanged(null, diffLineContents = true)
     }
 
     @WorkerThread override fun onTitleChanged() {

@@ -355,6 +355,10 @@ class Buffer @WorkerThread constructor(
         bufferEyes.forEach { it.onLineAdded() }
     }
 
+    @WorkerThread fun onLineReplaced() {
+        bufferEyes.forEach { it.onLineReplaced() }
+    }
+
     var style = 0
 
     @MainThread fun onGlobalPreferencesChanged(numberChanged: Boolean) {

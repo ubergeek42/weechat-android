@@ -483,6 +483,10 @@ class BufferFragment : Fragment(), BufferEye {
         linesAdapter?.onLineAdded()
     }
 
+    @WorkerThread override fun onLineReplaced() {
+        linesAdapter?.onLineReplaced()
+    }
+
     @MainThread override fun onGlobalPreferencesChanged(numberChanged: Boolean) {
         linesAdapter?.onGlobalPreferencesChanged(numberChanged)
     }
