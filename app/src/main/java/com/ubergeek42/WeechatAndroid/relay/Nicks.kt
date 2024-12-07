@@ -5,7 +5,9 @@ package com.ubergeek42.WeechatAndroid.relay
 import com.ubergeek42.WeechatAndroid.utils.removeChars
 import com.ubergeek42.WeechatAndroid.utils.removeFirst
 import com.ubergeek42.WeechatAndroid.utils.replaceFirstWith
-import java.util.*
+import java.util.Collections
+import java.util.LinkedList
+import java.util.Locale
 
 
 // this class is supposed to be synchronized by Buffer
@@ -64,15 +66,12 @@ internal class Nicks {
         if (nick != null) nicks.addFirst(nick)
     }
 
-    fun sortNicksByLines(iterator: Iterator<Line>) {
+    fun sortNicksByNamesThatSpokeLast(namesThatSpokeLast: Iterator<String>) {
         val nameToPosition = mutableMapOf<String, Int>()
 
-        iterator.forEach { line ->
-            if (line.type === LineSpec.Type.IncomingMessage) {
-                val name = line.nick
-                if (name != null && !nameToPosition.containsKey(name)) {
-                    nameToPosition[name] = nameToPosition.size
-                }
+        namesThatSpokeLast.forEach { name ->
+            if (!nameToPosition.containsKey(name)) {
+                nameToPosition[name] = nameToPosition.size
             }
         }
 
