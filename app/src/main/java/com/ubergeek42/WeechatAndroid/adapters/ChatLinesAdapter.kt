@@ -31,29 +31,28 @@ import com.ubergeek42.WeechatAndroid.Weechat
 import com.ubergeek42.WeechatAndroid.copypaste.showCopyDialog
 import com.ubergeek42.WeechatAndroid.relay.Buffer
 import com.ubergeek42.WeechatAndroid.relay.BufferEye
+import com.ubergeek42.WeechatAndroid.relay.HeaderLine
 import com.ubergeek42.WeechatAndroid.relay.Line
 import com.ubergeek42.WeechatAndroid.relay.LineSpec
 import com.ubergeek42.WeechatAndroid.relay.Lines
 import com.ubergeek42.WeechatAndroid.relay.MarkerLine
 import com.ubergeek42.WeechatAndroid.relay.SquiggleLine
-import com.ubergeek42.WeechatAndroid.relay.HeaderLine
 import com.ubergeek42.WeechatAndroid.search.Search
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.upload.i
 import com.ubergeek42.WeechatAndroid.upload.main
-import com.ubergeek42.WeechatAndroid.views.AnimatedRecyclerView
-import com.ubergeek42.WeechatAndroid.views.Animation
 import com.ubergeek42.WeechatAndroid.utils.Toaster
 import com.ubergeek42.WeechatAndroid.utils.forEachReversedIndexed
 import com.ubergeek42.WeechatAndroid.utils.isAnyOf
 import com.ubergeek42.WeechatAndroid.utils.ulet
+import com.ubergeek42.WeechatAndroid.views.AnimatedRecyclerView
+import com.ubergeek42.WeechatAndroid.views.Animation
 import com.ubergeek42.WeechatAndroid.views.LineView
 import com.ubergeek42.WeechatAndroid.views.solidColor
 import com.ubergeek42.WeechatAndroid.views.updateMargins
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
 import com.ubergeek42.weechat.ColorScheme
-import java.util.*
 
 
 class ChatLinesAdapter @MainThread constructor(
@@ -218,13 +217,17 @@ class ChatLinesAdapter @MainThread constructor(
     private var updateStep = 0
     private var style = 0
 
-    @AnyThread @Synchronized private fun onLinesChanged(animation: Animation) = ulet(buffer) { buffer ->
+    @AnyThread @Synchronized private fun onLinesChanged(
+        animation: Animation = Animation.Default,
+        diffLineContents: Boolean = false
+    ) = ulet(buffer) { buffer ->
         val thisUpdateStep = synchronized (updateLock) { ++updateStep }
 
         val newLines = buffer.getLinesCopy()
         val newStyle = buffer.style     // todo synchronization?
 
-        val diffResult = DiffUtil.calculateDiff(DiffCallback(lines, newLines, style == newStyle), false)
+        val diffCallback = DiffCallback(lines, newLines, style == newStyle, diffLineContents)
+        val diffResult = DiffUtil.calculateDiff(diffCallback, false)
 
         Weechat.runOnMainThreadASAP {
             synchronized (updateLock) {
@@ -253,11 +256,11 @@ class ChatLinesAdapter @MainThread constructor(
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @MainThread @Synchronized override fun onGlobalPreferencesChanged(numberChanged: Boolean) {
-        onLinesChanged(Animation.Default)
+        onLinesChanged()
     }
 
     @WorkerThread override fun onLinesListed() {
-        onLinesChanged(Animation.NewLinesFetched)
+        onLinesChanged(Animation.NewLinesFetched, diffLineContents = true)
     }
 
     @AnyThread override fun onLineAdded() {
@@ -265,7 +268,7 @@ class ChatLinesAdapter @MainThread constructor(
     }
 
     @WorkerThread override fun onTitleChanged() {
-        onLinesChanged(Animation.Default)
+        onLinesChanged()
     }
 
     @WorkerThread override fun onBufferClosed() {}
@@ -273,7 +276,7 @@ class ChatLinesAdapter @MainThread constructor(
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @MainThread fun loadLinesWithoutAnimation() {
-        onLinesChanged(Animation.None)
+        onLinesChanged(Animation.None, diffLineContents = true)
     }
 
     @MainThread @Synchronized fun loadLinesSilently() = ulet(buffer) { buffer ->
@@ -323,6 +326,7 @@ class ChatLinesAdapter @MainThread constructor(
         private val oldLines: List<Line>,
         private val newLines: List<Line>,
         private val sameStyle: Boolean,
+        private val diffLineContents: Boolean,
     ) : DiffUtil.Callback() {
         override fun getOldListSize() = oldLines.size
         override fun getNewListSize() = newLines.size
@@ -332,10 +336,16 @@ class ChatLinesAdapter @MainThread constructor(
         }
 
         override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-            if (newItemPosition == 0) {
-                return oldLines[oldItemPosition] === newLines[newItemPosition]
+            return if (newItemPosition == 0) {
+                // Header line, always present
+                oldLines[oldItemPosition] === newLines[newItemPosition]
+            } else if (!sameStyle) {
+                false
+            } else if (diffLineContents) {
+                oldLines[oldItemPosition].visuallyEqualsTo(newLines[newItemPosition])
+            } else {
+                true
             }
-            return sameStyle
         }
     }
 }
