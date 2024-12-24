@@ -27,6 +27,7 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.Person
 import androidx.core.app.RemoteInput
+import androidx.core.content.ContextCompat
 import androidx.core.content.LocusIdCompat
 import androidx.core.content.edit
 import androidx.fragment.app.DialogFragment
@@ -70,6 +71,13 @@ private var myself = Person.Builder().setName("Me").build()
 
 
 private val manager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+
+// In dark mode, the icon color might be of the same hue but lighter than the original color.
+// Note that even though the documentation says that setColor sets the background color of the icon,
+// in some cases the foreground will be colored instead,
+// particularly on stock Android, when coloring the small icon attached to the conversation icon.
+val notificationIconBackgroundColor = ContextCompat.getColor(applicationContext, R.color.launcherIconKittyBackgroundColor)
 
 
 fun initializeNotificator(context: Context) {
@@ -122,12 +130,12 @@ private val disconnectActionPendingIntent = PendingIntent.getService(
     PendingIntent.FLAG_IMMUTABLE
 )
 
-
 @AnyThread fun showMainNotification(relay: RelayService, content: String) {
     val builder = NotificationCompat.Builder(
             applicationContext, CHANNEL_CONNECTION_STATUS)
         .setContentIntent(connectionStatusTapPendingIntent)
         .setSmallIcon(R.drawable.ic_notification_main)
+        .setColor(notificationIconBackgroundColor)
         .setCategory(NotificationCompat.CATEGORY_SERVICE)
         .setWhen(System.currentTimeMillis())
         .setPriority(Notification.PRIORITY_MIN)
@@ -353,6 +361,7 @@ private fun makeSummaryNotification(hotBuffers: Collection<HotlistBuffer>): Noti
     val builder = NotificationCompat.Builder(applicationContext, CHANNEL_HOTLIST)
         .setContentIntent(summaryNotificationIntent)
         .setSmallIcon(R.drawable.ic_notification_hot)
+        .setColor(notificationIconBackgroundColor)
         .setCategory(NotificationCompat.CATEGORY_MESSAGE)
         .setGroup(GROUP_KEY)
         .setGroupSummary(true)
@@ -408,6 +417,7 @@ private fun makeBufferNotification(hotBuffer: HotlistBuffer, addReplyAction: Boo
         .setContentIntent(makeActivityIntent<WeechatActivity>(hotBuffer.pointer))
         .setDeleteIntent(makeBroadcastIntent<NotificationDismissedReceiver>(hotBuffer.pointer))
         .setSmallIcon(R.drawable.ic_notification_hot)
+        .setColor(notificationIconBackgroundColor)
         .setCategory(NotificationCompat.CATEGORY_MESSAGE)
         .setGroup(GROUP_KEY)
         .setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_CHILDREN)
@@ -458,6 +468,7 @@ private fun makeEmptyBufferNotification(fullName: String): NotificationCompat.Bu
 
     return NotificationCompat.Builder(applicationContext, CHANNEL_HOTLIST)
             .setSmallIcon(R.drawable.ic_notification_hot)
+            .setColor(notificationIconBackgroundColor)
             .setCategory(NotificationCompat.CATEGORY_MESSAGE)
             .setGroup(GROUP_KEY)
             .setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_CHILDREN)
