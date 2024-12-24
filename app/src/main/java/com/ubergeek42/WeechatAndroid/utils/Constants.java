@@ -63,6 +63,8 @@ public class Constants {
     final public static String PREF_LINE_INCREMENT_D = "300";
     final static public String PREF_SEARCH_LINE_INCREMENT = "line_number_to_request_when_starting_search";
     final static public String PREF_SEARCH_LINE_INCREMENT_D = "4097";
+    final static public String PREF_HANDLE_BUFFER_LINE_DATA_CHANGED = "handle_buffer_line_data_changed";
+    final static public Boolean PREF_HANDLE_BUFFER_LINE_DATA_CHANGED_D = true;
     final static public String PREF_RECONNECT = "reconnect";
     final public static boolean PREF_RECONNECT_D = true;
     final static public String PREF_BOOT_CONNECT = "boot_connect";
