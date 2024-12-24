@@ -247,6 +247,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     static long pingIdleTime, pingTimeout;
     public static int lineIncrement;
     public static int searchLineIncrement;
+    public static boolean handleBufferLineDataChanged;
 
     static String printableHost;
     static boolean connectionSurelyPossibleWithCurrentPreferences;
@@ -275,6 +276,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
 
         lineIncrement = Integer.parseInt(getString(PREF_LINE_INCREMENT, PREF_LINE_INCREMENT_D));
         searchLineIncrement = Integer.parseInt(getString(PREF_SEARCH_LINE_INCREMENT, PREF_SEARCH_LINE_INCREMENT_D));
+        handleBufferLineDataChanged = p.getBoolean(PREF_HANDLE_BUFFER_LINE_DATA_CHANGED, PREF_HANDLE_BUFFER_LINE_DATA_CHANGED_D);
 
         reconnect = p.getBoolean(PREF_RECONNECT, PREF_RECONNECT_D);
         optimizeTraffic = p.getBoolean(PREF_OPTIMIZE_TRAFFIC, PREF_OPTIMIZE_TRAFFIC_D);

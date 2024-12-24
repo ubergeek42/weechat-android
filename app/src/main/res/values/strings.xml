@@ -539,6 +539,11 @@
         Also note that due to WeeChat’s limitations
         the app has to re-fetch all lines every times it requests more lines.</string>
 
+    <string name="pref__connection__synchronization__handle_buffer_line_data_changed">
+        Handle line changes</string>
+    <string name="pref__connection__synchronization__handle_buffer_line_data_changed_summary">
+        In rare circumstances displaying line changes may lead to jerky animation</string>
+
     <!-- ############################## connection: miscellaneous ############################## -->
 
     <string name="pref__connection__misc_group">Miscellaneous</string>

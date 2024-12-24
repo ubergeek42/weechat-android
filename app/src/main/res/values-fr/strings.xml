@@ -536,6 +536,11 @@
         Notez également qu’en raison des limitations de WeeChat,
         l’application doit récupérer toutes les (anciennes) lignes chaque fois qu’elle demande de nouvelles lignes.</string>
 
+    <string name="pref__connection__synchronization__handle_buffer_line_data_changed">
+        Gérer les changement de lignes</string>
+    <string name="pref__connection__synchronization__handle_buffer_line_data_changed_summary">
+        Il est possible que cela entraîne occasionnellement des animations saccadées</string>
+
     <!-- ############################## connection: miscellaneous ############################## -->
 
     <string name="pref__connection__misc_group">Divers</string>
