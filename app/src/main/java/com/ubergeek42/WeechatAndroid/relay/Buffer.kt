@@ -218,6 +218,14 @@ class Buffer @WorkerThread constructor(
         }
    }
 
+    @WorkerThread fun replaceLine(line: Line) {
+        if (isOpen) line.ensureSpannable()
+
+        synchronized(this) {
+            lines.replaceLine(line)
+        }
+    }
+
     @WorkerThread fun addLineBottom(line: Line) {
         if (isOpen) line.ensureSpannable()
 
@@ -435,7 +443,7 @@ class Buffer @WorkerThread constructor(
 
     @WorkerThread @Synchronized fun onNicksListed(newNicks: Collection<Nick>) {
         nicks.replaceNicks(newNicks)
-        nicks.sortNicksByLines(lines.descendingFilteredIterator)
+        nicks.sortNicksByNamesThatSpokeLast(lines.namesThatSpokeLast)
     }
 
     @WorkerThread private fun notifyNicklistChanged() {

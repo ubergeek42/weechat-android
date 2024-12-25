@@ -540,6 +540,11 @@
         Beachten Sie außerdem, dass die App aufgrund der Einschränkungen von WeeChat
         jedes Mal, wenn mehr Zeilen angefordert werden, alle Zeilen erneut abrufen muss.</string>
 
+    <string name="pref__connection__synchronization__handle_buffer_line_data_changed">
+        Behandeln von Zeilenänderungen</string>
+    <string name="pref__connection__synchronization__handle_buffer_line_data_changed_summary">
+        In seltenen Fällen kann die Anzeige von Zeilenänderungen zu ruckelnden Animationen führen</string>
+
     <!-- ############################## connection: miscellaneous ############################## -->
 
     <string name="pref__connection__misc_group">Sonstiges</string>

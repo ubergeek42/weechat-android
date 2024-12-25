@@ -539,6 +539,11 @@
         если включена фильтрация.
         Ввиду ограничений протокола приложение каждый раз запрашивает все строки.</string>
 
+    <string name="pref__connection__synchronization__handle_buffer_line_data_changed">
+        Отображать изменения строк</string>
+    <string name="pref__connection__synchronization__handle_buffer_line_data_changed_summary">
+        В редких случаях отображение изменений строк может приводить к дёрганой анимации</string>
+
     <!-- ############################## connection: miscellaneous ############################## -->
 
     <string name="pref__connection__misc_group">Всякая всячина</string>

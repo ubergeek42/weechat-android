@@ -151,6 +151,11 @@
                     android:summary="@string/pref__connection__synchronization_help"
                     android:persistent="false"
                     android:selectable="false" />
+                <CheckBoxPreference
+                    android:key="handle_buffer_line_data_changed"
+                    android:title="@string/pref__connection__synchronization__handle_buffer_line_data_changed"
+                    android:summary="@string/pref__connection__synchronization__handle_buffer_line_data_changed_summary"
+                    android:defaultValue="true" />
             </PreferenceScreen>
         </PreferenceCategory>
 

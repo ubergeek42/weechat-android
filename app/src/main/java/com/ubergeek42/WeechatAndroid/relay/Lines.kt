@@ -7,8 +7,8 @@ import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.utils.Linkify
 import com.ubergeek42.WeechatAndroid.utils.Utils
 import com.ubergeek42.WeechatAndroid.utils.invalidatableLazy
+import com.ubergeek42.WeechatAndroid.utils.replaceFirstWith
 import com.ubergeek42.weechat.Color
-import java.util.*
 import kotlin.properties.Delegates.observable
 
 // this class is supposed to be synchronized by Buffer
@@ -97,6 +97,11 @@ class Lines {
         }
     }
 
+    fun replaceLine(line: Line) {
+        unfiltered.replaceFirstWith(line, predicate = { it.pointer == line.pointer })
+        filtered.replaceFirstWith(line, predicate = { it.pointer == line.pointer })
+    }
+
     fun addLast(line: Line) {
         if (shouldAddSquiggleOnNewLine) {
             shouldAddSquiggleOnNewLine = false
@@ -164,8 +169,13 @@ class Lines {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    val descendingFilteredIterator: Iterator<Line> get() = filtered.descendingIterator()
-
+    val namesThatSpokeLast: Iterator<String> = iterator {
+        filtered.asReversed().forEach { line ->
+            if (line.type === LineSpec.Type.IncomingMessage) {
+                line.nick?.let { yield(it) }
+            }
+        }
+    }
 
     fun invalidateSpannables() {
         unfiltered.forEach { it.invalidateSpannable() }
@@ -197,7 +207,7 @@ class Lines {
     fun rememberCurrentSkipsOffset() {
         skipFilteredOffset = skipFiltered
         skipUnfilteredOffset = skipUnfiltered
-        if (unfiltered.size > 0) _lastSeenLine = unfiltered.last.pointer
+        if (unfiltered.size > 0) _lastSeenLine = unfiltered.last().pointer
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -216,7 +226,7 @@ class Lines {
         var indexFiltered = 0
         var indexUnfiltered = 0
 
-        unfiltered.descendingIterator().forEach { line ->
+        unfiltered.asReversed().forEach { line ->
             if (line.pointer == _lastSeenLine) {
                 skipFiltered = indexFiltered
                 skipUnfiltered = indexUnfiltered

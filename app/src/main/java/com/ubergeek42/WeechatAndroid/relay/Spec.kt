@@ -5,6 +5,7 @@ package com.ubergeek42.WeechatAndroid.relay
 import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.weechat.relay.connection.Handshake
+import com.ubergeek42.weechat.relay.connection.Handshake.Companion.weechatVersion
 import com.ubergeek42.weechat.relay.connection.find
 import com.ubergeek42.weechat.relay.protocol.Hashtable
 import com.ubergeek42.weechat.relay.protocol.HdataEntry
@@ -108,23 +109,23 @@ enum class Notify(val value: Int) {
 
 @JvmInline value class LastLinesSpec(val entry: HdataEntry) {
     inline val bufferPointer: Long get() = entry.getPointerLong("buffer")
-    inline val linePointer: Long get() = entry.pointerLong
+    inline val linePointer: Long get() = if (weechatVersion >= 0x4040000) entry.getInt("id").toLong() else entry.pointerLong
     inline val visible: Boolean get() = entry.getChar("displayed") == 1.toChar()
 
     companion object {
         const val request = "(last_lines) hdata " +
-                "buffer:gui_buffers(*)/own_lines/last_line(-25)/data buffer,displayed"
+                "buffer:gui_buffers(*)/own_lines/last_line(-25)/data id,buffer,displayed"
     }
 }
 
 
 @JvmInline value class LastReadLineSpec(val entry: HdataEntry) {
     inline val bufferPointer: Long get() = entry.getPointerLong("buffer")
-    inline val linePointer: Long get() = entry.pointerLong
+    inline val linePointer: Long get() = if (weechatVersion >= 0x4040000) entry.getInt("id").toLong() else entry.pointerLong
 
     companion object {
         const val request = "(last_read_lines) hdata " +
-                "buffer:gui_buffers(*)/own_lines/last_read_line/data buffer"
+                "buffer:gui_buffers(*)/own_lines/last_read_line/data id,buffer"
     }
 }
 
@@ -154,7 +155,7 @@ class HotlistSpec(entry: HdataEntry) {
 @JvmInline value class LineSpec(val entry: HdataEntry) {
     inline val bufferPointer: Long get() = entry.getPointerLong("buffer")
 
-    inline val pointer: Long get() = entry.pointerLong
+    inline val pointer: Long get() = if (weechatVersion >= 0x4040000) entry.getInt("id").toLong() else entry.pointerLong
     inline val timestamp: Long get() = entry.getItem("date").asTime().time
     inline val prefix: String? get() = entry.getStringOrNull("prefix")
     inline val message: String? get() = entry.getStringOrNull("message")
@@ -170,7 +171,7 @@ class HotlistSpec(entry: HdataEntry) {
     companion object {
         fun makeLastLinesRequest(id: String, pointer: Long, numberOfLines: Int) =
                 "($id) hdata buffer:${pointer.as0x}/own_lines/last_line(-$numberOfLines)/data " +
-                "date,displayed,prefix,message,highlight,notify,tags_array"
+                "id,date,displayed,prefix,message,highlight,notify,tags_array"
     }
 
     fun toLine(): Line {

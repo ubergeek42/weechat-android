@@ -394,6 +394,18 @@ object BufferList {
             }
         }
 
+        add("_buffer_line_data_changed") { obj, _ ->
+            if (!P.handleBufferLineDataChanged) return@add
+
+            obj.forEach { entry ->
+                val spec = LineSpec(entry)
+                findByPointer(spec.bufferPointer)?.let { buffer ->
+                    buffer.replaceLine(spec.toLine())
+                    buffer.onLinesListed()
+                }
+            }
+        }
+
         return handlers
     }
 
