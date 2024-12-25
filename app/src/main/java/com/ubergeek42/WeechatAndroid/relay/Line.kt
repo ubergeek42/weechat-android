@@ -21,7 +21,7 @@ import com.ubergeek42.weechat.Color
 import com.ubergeek42.weechat.ColorScheme
 
 
-open class Line constructor(
+open class Line(
     @JvmField val pointer: Long,
     @JvmField val type: LineSpec.Type,
     @JvmField val timestamp: Long,
@@ -102,6 +102,14 @@ open class Line constructor(
 
     val timestampedIrcLikeString: String get() =
             timestampString?.let { timestamp -> "$timestamp $ircLikeString" } ?: ircLikeString
+
+    fun visuallyEqualsTo(other: Line) =
+        type == other.type &&
+        timestamp == other.timestamp &&
+        rawPrefix == other.rawPrefix &&
+        rawMessage == other.rawMessage &&
+        isHighlighted == other.isHighlighted &&
+        displayAs == other.displayAs
 
     override fun toString() = "Line(${pointer.as0x}): $ircLikeString)"
 }
