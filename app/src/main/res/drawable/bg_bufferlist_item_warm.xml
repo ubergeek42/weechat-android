@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:top="1dp" android:bottom="1dp">
+    <item android:top="0.666dp" android:bottom="1dp">
         <shape android:shape="rectangle">
-            <corners android:radius="3dp" />
+            <corners android:radius="4dp" />
             <solid android:color="@color/warmShade" />
         </shape>
     </item>
     <item android:top="2dp" android:bottom="1dp">
         <shape android:shape="rectangle">
-            <corners android:radius="3dp" />
+            <corners android:radius="4dp" />
             <solid android:color="@color/warmBackground" />
             <padding android:bottom="1dp" />
         </shape>

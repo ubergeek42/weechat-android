@@ -85,8 +85,12 @@ public class Constants {
 
     // buffer list
     public static final String PREF_BUFFERLIST_GROUP = "bufferlist_group";
-    public static final String PREF_SORT_BUFFERS = "sort_buffers";
-    final public static boolean PREF_SORT_BUFFERS_D = false;
+    public static final String PREF_SORT_BUFFER_LIST = "sort_buffer_list";
+    public static final String PREF_SORT_BUFFER_LIST_BY_NUMBER = "by_number";
+    public static final String PREF_SORT_BUFFER_LIST_BY_HOT_MESSAGES_THEN_BY_NUMBER = "by_hot_messages_then_by_number";
+    public static final String PREF_SORT_BUFFER_LIST_BY_HOT_MESSAGES_THEN_BY_OTHER_MESSAGES_THEN_BY_NUMBER = "by_hot_messages_then_by_other_messages_then_by_number";
+    final public static String PREF_SORT_BUFFER_LIST_D = PREF_SORT_BUFFER_LIST_BY_NUMBER;
+
     public static final String PREF_HIDE_HIDDEN_BUFFERS = "hide_hidden_buffers";
     final public static boolean PREF_HIDE_HIDDEN_BUFFERS_D = true;
     public static final String PREF_FILTER_NONHUMAN_BUFFERS = "filter_nonhuman_buffers";

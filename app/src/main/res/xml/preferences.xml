@@ -201,11 +201,13 @@
     <PreferenceScreen
         android:key="bufferlist_group"
         android:title="@string/pref__buffer_list_group">
-        <CheckBoxPreference
-            android:key="sort_buffers"
-            android:title="@string/pref__buffer_list__sort_by_hot"
-            android:summary="@string/pref__buffer_list__sort_by_hot_summary"
-            android:defaultValue="false" />
+        <ListPreference
+            android:key="sort_buffer_list"
+            android:title="@string/pref__buffer_list__sort_buffer_list"
+            android:summary="%s"
+            android:entries="@array/pref__buffer_list__sort_buffer_list_names"
+            android:entryValues="@array/pref__buffer_list__sort_buffer_list_values"
+            android:defaultValue="by_number" />
         <CheckBoxPreference
             android:key="filter_nonhuman_buffers"
             android:title="@string/pref__buffer_list__hide_server_buffers"

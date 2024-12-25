@@ -83,6 +83,17 @@ fun RecyclerView.jumpThenSmoothScrollCentering(position: Int) {
 }
 
 
+// A bit hacky, but should be safe. Assumes that height of all children is constant.
+fun RecyclerView.scrollCenteringWithoutAnimation(position: Int) {
+    val layoutManager = layoutManager as? LinearLayoutManager ?: return
+    val childHeight = getChildAt(0)?.height ?: 0
+    val originalItemAnimator = itemAnimator
+    itemAnimator = null
+    layoutManager.scrollToPositionWithOffset(position, height / 2 - childHeight / 2 )
+    post { itemAnimator = originalItemAnimator }
+}
+
+
 private class CenteringSmoothScroller(context: Context) : LinearSmoothScroller(context) {
     override fun calculateDtToFit(viewStart: Int, viewEnd: Int,
                                   boxStart: Int, boxEnd: Int,

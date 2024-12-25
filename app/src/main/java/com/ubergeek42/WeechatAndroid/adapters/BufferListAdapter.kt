@@ -25,17 +25,20 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import com.ubergeek42.WeechatAndroid.R
-import com.ubergeek42.WeechatAndroid.adapters.BufferListAdapter.*
+import com.ubergeek42.WeechatAndroid.adapters.BufferListAdapter.VisualBuffer
 import com.ubergeek42.WeechatAndroid.databinding.BufferlistItemBinding
 import com.ubergeek42.WeechatAndroid.relay.Buffer
 import com.ubergeek42.WeechatAndroid.relay.BufferList
 import com.ubergeek42.WeechatAndroid.relay.BufferSpec
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.upload.main
+import com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SORT_BUFFER_LIST_BY_HOT_MESSAGES_THEN_BY_NUMBER
+import com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SORT_BUFFER_LIST_BY_HOT_MESSAGES_THEN_BY_OTHER_MESSAGES_THEN_BY_NUMBER
+import com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SORT_BUFFER_LIST_BY_NUMBER
 import com.ubergeek42.WeechatAndroid.utils.Utils
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
-import java.util.*
+import java.util.Collections
 
 
 class BufferListAdapter(
@@ -135,11 +138,14 @@ class BufferListAdapter(
             newBuffers.add(VisualBuffer.fromBuffer(buffer))
         }
 
-        if (P.sortBuffers) {
-            Collections.sort(newBuffers, sortByHotAndMessageCountComparator)
-        } else {
-            Collections.sort(newBuffers, sortByHotCountAndNumberComparator)
+        val bufferComparator = when (P.sortBufferList) {
+            PREF_SORT_BUFFER_LIST_BY_NUMBER -> sortByNumberComparator
+            PREF_SORT_BUFFER_LIST_BY_HOT_MESSAGES_THEN_BY_NUMBER -> sortByHotMessagesThenByNumberComparator
+            PREF_SORT_BUFFER_LIST_BY_HOT_MESSAGES_THEN_BY_OTHER_MESSAGES_THEN_BY_NUMBER -> sortByHotMessagesThenByOtherMessagesThenByNumberComparator
+            else -> sortByNumberComparator
         }
+
+        Collections.sort(newBuffers, bufferComparator)
 
         val diffResult = DiffUtil.calculateDiff(DiffCallback(buffers, newBuffers), false)
 
@@ -206,6 +212,23 @@ class BufferListAdapter(
         }
     }
 
+    //////////////////////////////////////////////////////////////////////////////////////////// Etc
+
+    @MainThread fun findNextHotBufferPositionOrNull(positionsToSearch: IntProgression) =
+        positionsToSearch.firstOrNull { position ->
+            val buffer = buffers.getOrElse(position) { return@firstOrNull false }
+            buffer.highlights > 0 || (buffer.type == BufferSpec.Type.Private && buffer.unreads != 0)
+        }
+
+    @MainThread fun findAllHotBufferIds() =
+        buffers.mapNotNull { buffer ->
+            val hot = buffer.highlights > 0 || (buffer.type == BufferSpec.Type.Private && buffer.unreads != 0)
+            if (hot) buffer.pointer else null
+        }
+
+    // Returns -1 if not found
+    @MainThread fun findPositionByBufferId(id: Long): Int = buffers.indexOfFirst { it.pointer == id }
+
     companion object {
         @Root private val kitty: Kitty = Kitty.make()
 
@@ -214,7 +237,11 @@ class BufferListAdapter(
 }
 
 
-private val sortByHotCountAndNumberComparator = Comparator<VisualBuffer> { left, right ->
+private val sortByNumberComparator = Comparator<VisualBuffer> { left, right ->
+    left.number - right.number
+}
+
+private val sortByHotMessagesThenByNumberComparator = Comparator<VisualBuffer> { left, right ->
     val highlightDiff = right.highlights - left.highlights
     if (highlightDiff != 0) return@Comparator highlightDiff
 
@@ -227,7 +254,7 @@ private val sortByHotCountAndNumberComparator = Comparator<VisualBuffer> { left,
 }
 
 
-private val sortByHotAndMessageCountComparator = Comparator<VisualBuffer> { left, right ->
+private val sortByHotMessagesThenByOtherMessagesThenByNumberComparator = Comparator<VisualBuffer> { left, right ->
     val highlightDiff = right.highlights - left.highlights
     if (highlightDiff != 0) return@Comparator highlightDiff
 
@@ -236,5 +263,8 @@ private val sortByHotAndMessageCountComparator = Comparator<VisualBuffer> { left
     val pmDiff = pmRight - pmLeft
     if (pmDiff != 0) return@Comparator pmDiff
 
-    right.unreads - left.unreads
+    val unreadsDiff = right.unreads - left.unreads
+    if (unreadsDiff != 0) return@Comparator unreadsDiff
+
+    left.number - right.number
 }

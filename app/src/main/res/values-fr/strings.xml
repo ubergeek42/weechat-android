@@ -574,10 +574,13 @@
 
     <string name="pref__buffer_list_group">Liste des tampons</string>
 
-    <string name="pref__buffer_list__sort_by_hot">
-        Trier la liste des tampons</string>
-    <string name="pref__buffer_list__sort_by_hot_summary">
-        Trier par le nombre de messages notables/messages privés/messages non lus</string>
+    <string name="pref__buffer_list__sort_buffer_list">
+        Trier les tampons</string>
+    <string-array name="pref__buffer_list__sort_buffer_list_names">
+        <item>Par numéro</item>
+        <item>Par messages notables, puis par numéro</item>
+        <item>Par messages notables, puis par messages, puis par numéro</item>
+    </string-array>
 
     <string name="pref__buffer_list__hide_server_buffers">
         Cacher les tampons hors salons</string>
