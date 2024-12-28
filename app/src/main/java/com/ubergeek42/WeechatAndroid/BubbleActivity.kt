@@ -2,9 +2,9 @@ package com.ubergeek42.WeechatAndroid
 
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
-import android.view.View
 import android.widget.FrameLayout
 import androidx.appcompat.app.AppCompatActivity
+import androidx.coordinatorlayout.widget.CoordinatorLayout
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragment
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragmentContainer
 import com.ubergeek42.WeechatAndroid.notifications.notifyBubbleActivityCreated
@@ -12,6 +12,10 @@ import com.ubergeek42.WeechatAndroid.relay.BufferList
 import com.ubergeek42.WeechatAndroid.relay.as0x
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.utils.Constants
+import com.ubergeek42.WeechatAndroid.views.snackbar.BaseSnackbarBuilderProvider
+import com.ubergeek42.WeechatAndroid.views.snackbar.SnackbarBuilder
+import com.ubergeek42.WeechatAndroid.views.snackbar.SnackbarPositionController
+import com.ubergeek42.WeechatAndroid.views.snackbar.setOrScheduleSettingAnchorAfterPagerChange
 import com.ubergeek42.WeechatAndroid.views.solidColor
 import com.ubergeek42.cats.Cat
 import com.ubergeek42.weechat.ColorScheme
@@ -23,17 +27,14 @@ private val matchParentLayoutParams = FrameLayout.LayoutParams(
 )
 
 
-private val FRAME_LAYOUT_ID = View.generateViewId()
-
-
-class BubbleActivity : AppCompatActivity(), BufferFragmentContainer {
+class BubbleActivity : AppCompatActivity(), BufferFragmentContainer, BaseSnackbarBuilderProvider {
     private var bufferFragment: BufferFragment? = null
 
     @Cat override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        FrameLayout(this).apply {
-            id = FRAME_LAYOUT_ID
+        CoordinatorLayout(this).apply {
+            id = R.id.coordinator_layout
             setContentView(this, matchParentLayoutParams)
         }
 
@@ -46,12 +47,16 @@ class BubbleActivity : AppCompatActivity(), BufferFragmentContainer {
             bufferFragment = if (alreadyAddedFragment == null) {
                 BufferFragment.newInstance(buffer.pointer).also {
                     supportFragmentManager.beginTransaction()
-                            .add(FRAME_LAYOUT_ID, it, tag)
+                            .add(R.id.coordinator_layout, it, tag)
                             .commit()
                 }
             } else {
                 alreadyAddedFragment as BufferFragment
             }
+
+            snackbarPositionController.setOrScheduleSettingAnchorAfterPagerChange(
+                pointer, bufferFragment, supportFragmentManager
+            )
 
             notifyBubbleActivityCreated(pointer)
         }
@@ -93,4 +98,11 @@ class BubbleActivity : AppCompatActivity(), BufferFragmentContainer {
     override fun closeBuffer(pointer: Long) {
         finish()
     }
+
+    private val snackbarPositionController = SnackbarPositionController()
+
+    override val baseSnackbarBuilder: SnackbarBuilder = {
+        snackbarPositionController.setSnackbar(this)
+    }
+
 }
