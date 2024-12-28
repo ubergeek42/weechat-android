@@ -22,6 +22,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.common.java8)
     implementation(libs.androidx.sharetarget)
+    implementation(libs.material)
 
     implementation(libs.kotlinx.coroutines.android)
 

@@ -101,6 +101,7 @@ class WeechatActivityFullScreenController(val activity: WeechatActivity) : Defau
                                                        right = windowInsets.right)
             activity.ui.navigationPadding.updateDimensions(height = windowInsets.bottom)
             activity.ui.pager.updateMargins(bottom = windowInsets.bottom)
+            activity.snackbarPositionController.setInsets(windowInsets)
         }
 
         insetListeners.add(weechatActivityInsetsListener)

@@ -106,7 +106,7 @@ interface BufferFragmentContainer {
 class BufferFragment : Fragment(), BufferEye {
     @Root private val kitty: Kitty = Kitty.make("BF")
 
-    private var pointer: Long = 0
+    var pointer: Long = 0
 
     private var container: BufferFragmentContainer? = null
     private var buffer: Buffer? = null
