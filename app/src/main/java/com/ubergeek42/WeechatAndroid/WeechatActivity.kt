@@ -154,9 +154,9 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener,
         }
 
         setContentView(R.layout.main_screen)
-        ui = WeaselBinding.bind(findViewById(android.R.id.content))
         uiDrawer = findViewById(R.id.bufferlist_fragment)
         uiWeasel = findViewById(R.id.weasel)    // ui.weasel for some reason returns a wrong view
+        ui = WeaselBinding.bind(uiWeasel)
 
         setSupportActionBar(ui.toolbar)
 
