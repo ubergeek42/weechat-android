@@ -1,8 +1,9 @@
 package com.ubergeek42.WeechatAndroid.views.snackbar
 
 import android.view.View
+import android.view.ViewGroup.MarginLayoutParams
 import android.view.ViewTreeObserver
-import androidx.core.view.marginBottom
+import androidx.core.view.ViewCompat
 import androidx.core.view.marginTop
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
@@ -22,13 +23,12 @@ class SnackbarPositionController {
     private var insets: Insets? = null
 
     private var animateOnNextLayout = false
-    private var targetTranslationY = 0f
 
     fun setSnackbar(snackbar: Snackbar) {
         this.snackbar = snackbar
-        targetTranslationY = 0f
         animateOnNextLayout = false
-        recalculateAndUpdateTranslation(animate = false)
+        ViewCompat.setOnApplyWindowInsetsListener(snackbar.view) { _, insets -> insets }
+        recalculateAndUpdateBottomMargin(animate = false)
     }
 
     fun setAnchor(view: View?) {
@@ -39,7 +39,7 @@ class SnackbarPositionController {
         anchor = view
 
         if (view == null || view.isLaidOut) {
-            recalculateAndUpdateTranslation(animate = true)
+            recalculateAndUpdateBottomMargin(animate = true)
         } else {
             animateOnNextLayout = true
         }
@@ -47,34 +47,35 @@ class SnackbarPositionController {
 
     fun setInsets(insets: Insets) {
         this.insets = insets
-        recalculateAndUpdateTranslation(animate = false)
+        recalculateAndUpdateBottomMargin(animate = false)
     }
 
     private val onGlobalLayoutListener =
         ViewTreeObserver.OnGlobalLayoutListener {
-            recalculateAndUpdateTranslation(animate = animateOnNextLayout)
+            recalculateAndUpdateBottomMargin(animate = animateOnNextLayout)
             animateOnNextLayout = false
         }
 
-    private fun recalculateAndUpdateTranslation(animate: Boolean) = ulet (snackbar) { snackbar ->
+    private fun recalculateAndUpdateBottomMargin(animate: Boolean) = ulet (snackbar) { snackbar ->
         val snackbarView = snackbar.view
         val snackbarViewParent = snackbarView.parent
+        val snackbarViewLayoutParams = snackbarView.layoutParams as MarginLayoutParams
 
         if (!snackbar.isShown || snackbarViewParent !is View) return
 
-        val extraSpaceBottom = anchor?.let { snackbarViewParent.height - it.top + snackbarView.marginTop }
+        val bottomMargin = anchor?.let { snackbarViewParent.height - it.top + snackbarView.marginTop }
             ?: insets?.bottom
             ?: 0
 
-        val translationY = snackbar.view.marginBottom - extraSpaceBottom.f
+        val oldBottomMargin = snackbarViewLayoutParams.bottomMargin
 
-        if (targetTranslationY != translationY) {
-            targetTranslationY = translationY
+        if (oldBottomMargin != bottomMargin) {
+            snackbarViewLayoutParams.bottomMargin =  bottomMargin
+            snackbarView.requestLayout()
 
             if (animate) {
-                snackbar.view.animate().translationY(translationY).setDuration(shortAnimTime).start()
-            } else {
-                snackbar.view.translationY = translationY
+                snackbarView.translationY = bottomMargin - oldBottomMargin.f
+                snackbarView.animate().translationY(0f).setDuration(shortAnimTime).start()
             }
         }
     }
