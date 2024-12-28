@@ -3,6 +3,7 @@ package com.ubergeek42.WeechatAndroid.views.snackbar
 import android.view.View
 import android.view.ViewTreeObserver
 import androidx.core.view.marginBottom
+import androidx.core.view.marginTop
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentManager.FragmentLifecycleCallbacks
@@ -61,7 +62,7 @@ class SnackbarPositionController {
 
         if (!snackbar.isShown || snackbarViewParent !is View) return
 
-        val extraSpaceBottom = anchor?.let { snackbarViewParent.height - it.top }
+        val extraSpaceBottom = anchor?.let { snackbarViewParent.height - it.top + snackbarView.marginTop }
             ?: insets?.bottom
             ?: 0
 
