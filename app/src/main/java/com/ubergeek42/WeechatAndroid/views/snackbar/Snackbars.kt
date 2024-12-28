@@ -42,7 +42,7 @@ interface BaseSnackbarBuilderProvider {
 }
 
 
-fun Activity.showSnackbar(
+@JvmOverloads fun Activity.showSnackbar(
     @StringRes textResource: Int,
     duration: Int = Snackbar.LENGTH_LONG,
     snackbarBuilder: SnackbarBuilder? = null,
@@ -52,7 +52,7 @@ fun Activity.showSnackbar(
 }
 
 
-fun Activity.showSnackbar(
+@JvmOverloads fun Activity.showSnackbar(
     text: CharSequence,
     duration: Int = Snackbar.LENGTH_LONG,
     snackbarBuilder: SnackbarBuilder? = null,
@@ -78,7 +78,7 @@ fun Activity.showSnackbar(
 }
 
 
-fun View.showSnackbar(
+@JvmOverloads fun View.showSnackbar(
     @StringRes textResource: Int,
     duration: Int = Snackbar.LENGTH_LONG,
     snackbarBuilder: SnackbarBuilder? = null,
@@ -88,7 +88,7 @@ fun View.showSnackbar(
 }
 
 
-fun View.showSnackbar(
+@JvmOverloads fun View.showSnackbar(
     text: CharSequence,
     duration: Int = Snackbar.LENGTH_LONG,
     snackbarBuilder: SnackbarBuilder? = null,
