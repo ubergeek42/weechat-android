@@ -56,9 +56,12 @@ class SnackbarPositionController {
         }
 
     private fun recalculateAndUpdateTranslation(animate: Boolean) = ulet (snackbar) { snackbar ->
-        if (!snackbar.isShown || snackbar.view.parent !is View) return
+        val snackbarView = snackbar.view
+        val snackbarViewParent = snackbarView.parent
 
-        val extraSpaceBottom = anchor?.let { (snackbar.view.parent as View).height - it.top }
+        if (!snackbar.isShown || snackbarViewParent !is View) return
+
+        val extraSpaceBottom = anchor?.let { snackbarViewParent.height - it.top }
             ?: insets?.bottom
             ?: 0
 
