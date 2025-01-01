@@ -85,11 +85,51 @@ jobs:
           S3_SECRET_KEY: ${{secrets.S3_SECRET_KEY}}
           S3_BUCKET: weechat-android.ubergeek42.com
 
+  publish-to-github:
+    name: Publish to GitHub
+    runs-on: ubuntu-latest
+    if: |
+      !contains(github.event.head_commit.message, 'no-publish') &&
+      contains('push workflow_dispatch', github.event_name) &&
+      github.repository == 'ubergeek42/weechat-android' &&
+      startsWith(github.ref, 'refs/tags/v')
+    needs: [run-tests, build-dev-release]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-outputs
+          path: app/build/outputs/
+
+      - name: Name the apk
+        id: name
+        run: |
+          short_sha=`git rev-parse --short HEAD`
+          apk_full_path="app/build/outputs/apk/dev/weechatandroid-${{ github.ref_name }}-${short_sha}.apk"
+          mv app/build/outputs/apk/dev/app-dev.apk "${apk_full_path}"
+          echo ::set-output name=apk_full_path::"${apk_full_path}"
+
+      - name: Publish to Github
+        run: >-
+          gh release create 
+          ${{ github.ref_name }}
+          --verify-tag
+          --notes-from-tag 
+          --title ${{ github.ref_name }}
+          ${{ steps.name.outputs.apk_full_path }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+
   publish-to-play-store:
     name: Publish to Play Store
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: publish-to-s3
+    needs: [publish-to-s3, publish-to-github]
     steps:
       - name: Prepare environment
         run: |
@@ -124,13 +164,16 @@ jobs:
     name: Notify on IRC
     runs-on: ubuntu-latest
     if: ${{always() && github.repository == 'ubergeek42/weechat-android'}}
-    needs: [run-tests, build-dev-release, publish-to-s3, publish-to-play-store]
+    needs: [run-tests, build-dev-release, publish-to-s3, publish-to-github, publish-to-play-store]
     steps:
       - name: Prepare strings
         id: prepare
         run: |
-          status="tests ${{needs.run-tests.result}}, build ${{needs.build-dev-release.result}}, "
-          status+="s3 ${{needs.publish-to-s3.result}}, play store ${{needs.publish-to-play-store.result}}"
+          status="tests ${{needs.run-tests.result}}, "
+          status+="build ${{needs.build-dev-release.result}}, "
+          status+="s3 ${{needs.publish-to-s3.result}}, "
+          status+="github ${{needs.publish-to-github.result}}, "
+          status+="play store ${{needs.publish-to-play-store.result}}"
           status="${status//success/✔️}"
           status="${status//failure/$'\x03'04❌$'\x0f'}"
           status="${status//cancelled/✖️}"
