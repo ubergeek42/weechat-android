@@ -1,0 +1,4 @@
+* Added an option to not move hot buffers to the top of the buffer list
+* Handle relay events `_buffer_cleared` and `_buffer_line_data_changed`
+* Updated the default media preview strategies
+* A few minor bug fixes and improvements

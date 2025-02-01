@@ -32,6 +32,12 @@ Pull requests are welcome—but please check with us on IRC before starting a su
 
 ### Changelog
 
+##### v1.10
+* Added an option to not move hot buffers to the top of the buffer list
+* Handle relay events `_buffer_cleared` and `_buffer_line_data_changed`
+* Updated the default media preview strategies
+* A few minor bug fixes and improvements
+
 ##### v1.9
 * Drag and drop files on buffers to share
 * Volume keys can now navigate input history
