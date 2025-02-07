@@ -188,7 +188,7 @@ class Buffer @WorkerThread constructor(
 
     @Synchronized fun removeWatchedKey(key: String) {
         if (watchedKeys.remove(key) == Keys.Change.BecameEmpty) {
-            lines.rememberCurrentSkipsOffset()
+            //lines.rememberCurrentSkipsOffset()
         }
     }
 
