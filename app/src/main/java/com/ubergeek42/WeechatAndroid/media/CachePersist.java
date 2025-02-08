@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.ubergeek42.WeechatAndroid.utils.ApplicationContextKt.applicationContext;
 import static com.ubergeek42.WeechatAndroid.utils.Utils.runInBackground;
 
 public class CachePersist {
@@ -71,7 +72,7 @@ public class CachePersist {
         if (database == null) {
             synchronized (LOCK) {
                 if (database == null) {
-                    Context context = Weechat.applicationContext;
+                    Context context = applicationContext;
                     database = Room.databaseBuilder(context,
                             AttemptDatabase.class,
                             context.getCacheDir().toString() +  "/" + DATABASE_NAME).build();

@@ -1,5 +1,7 @@
 package com.ubergeek42.WeechatAndroid.media;
 
+import static com.ubergeek42.WeechatAndroid.utils.ApplicationContextKt.applicationContext;
+
 import android.content.Context;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -30,7 +32,7 @@ public class ContentUriFetcher {
     }
 
     @Cat public static void loadFirstUrlFromText(CharSequence text, ContentUriReadyCallback callback) {
-        Context context = Weechat.applicationContext;
+        Context context = applicationContext;
         String textUrl = Linkify.getFirstUrlFromString(text);
         if (textUrl == null) return;
         Strategy.Url strategyUrl = Engine.getStrategyUrl(textUrl, Strategy.Size.BIG);

@@ -22,7 +22,6 @@ import androidx.core.animation.doOnEnd
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
-import com.ubergeek42.WeechatAndroid.Weechat
 import com.ubergeek42.WeechatAndroid.media.Cache
 import com.ubergeek42.WeechatAndroid.media.Config
 import com.ubergeek42.WeechatAndroid.media.Engine
@@ -32,6 +31,7 @@ import com.ubergeek42.WeechatAndroid.relay.Line
 import com.ubergeek42.WeechatAndroid.upload.f
 import com.ubergeek42.WeechatAndroid.upload.i
 import com.ubergeek42.WeechatAndroid.upload.main
+import com.ubergeek42.WeechatAndroid.utils.applicationContext
 import com.ubergeek42.WeechatAndroid.utils.invalidatableLazy
 
 
@@ -340,7 +340,7 @@ class LineView @JvmOverloads constructor(
         return true
     }
 
-    private val gestureDetector = GestureDetector(Weechat.applicationContext,
+    private val gestureDetector = GestureDetector(applicationContext,
             object : SimpleOnGestureListener() {
                 override fun onLongPress(event: MotionEvent) {
                     performLongClick()
