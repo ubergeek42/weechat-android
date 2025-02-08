@@ -49,6 +49,9 @@ dependencies {
 
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.junit.jupiter.params)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.text.ext.junit)
+    testImplementation(libs.junit.vintage.engine)
 }
 
 tasks.withType<JavaCompile> {
@@ -122,6 +125,10 @@ android {
     buildFeatures {
         viewBinding = true
         buildConfig = true
+    }
+
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
     }
 }
 
