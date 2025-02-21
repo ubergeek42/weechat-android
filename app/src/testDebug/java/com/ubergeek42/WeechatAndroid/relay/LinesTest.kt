@@ -105,6 +105,65 @@ class LinesTest {
         )
     }
 
+    @Test fun `Squiggle line never appears doubled around visible lines`() {
+        val lines = Lines()
+        lines.addLast(makeLine(0))
+        lines.updateLastLineInfo(lastPointerServer = 1, lastVisiblePointerServer = 1)
+        lines.addLast(makeLine(3))
+        lines.updateLastLineInfo(lastPointerServer = 4, lastVisiblePointerServer = 4)
+        lines.addLast(makeLine(5))
+
+        lines.assertFilteredConformsTo(
+            hasPointer(0),
+            isSquiggle(),
+            hasPointer(3),
+            isSquiggle(),
+            hasPointer(5),
+        )
+
+        lines.replaceLine(makeLine(3, visible = false))
+
+        lines.assertFilteredConformsTo(
+            hasPointer(0),
+            isSquiggle(),
+            hasPointer(5),
+        )
+    }
+
+    @Test fun `Squiggle line never appears doubled around invisible lines`() {
+        val lines = Lines()
+        lines.addLast(makeLine(0))
+        lines.updateLastLineInfo(lastPointerServer = 1, lastVisiblePointerServer = 1)
+        lines.updateLastLineInfo(lastPointerServer = 2, lastVisiblePointerServer = 2)
+        lines.addLast(makeLine(3, visible = false))
+        lines.updateLastLineInfo(lastPointerServer = 4, lastVisiblePointerServer = 2)
+        lines.addLast(makeLine(5))
+
+        lines.assertUnfilteredConformsTo(
+            hasPointer(0),
+            isSquiggle(),
+            hasPointer(3),
+            isSquiggle(),
+            hasPointer(5)
+        )
+
+        lines.assertFilteredConformsTo(
+            hasPointer(0),
+            isSquiggle(),
+            hasPointer(5),
+        )
+
+        lines.replaceLine(makeLine(3, visible = true))
+
+        lines.assertFilteredConformsTo(
+            hasPointer(0),
+            isSquiggle(),
+            hasPointer(3),
+            isSquiggle(),
+            hasPointer(5)
+        )
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @Test fun `replaceLine() works for lines before unfiltered & filtered squiggle`() {
