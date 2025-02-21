@@ -7,6 +7,7 @@ import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.utils.Linkify
 import com.ubergeek42.WeechatAndroid.utils.Utils
 import com.ubergeek42.WeechatAndroid.utils.invalidatableLazy
+import com.ubergeek42.WeechatAndroid.utils.removeConsecutiveElementsLeavingFirst
 import com.ubergeek42.WeechatAndroid.utils.replaceFirstWith
 import com.ubergeek42.weechat.Color
 import kotlin.properties.Delegates.observable
@@ -42,6 +43,12 @@ class Lines {
     var maxUnfilteredSize = P.lineIncrement
         private set
 
+    // Set to true when adding squiggle lines;
+    // set to false when replacing lines with those from the server.
+    // As lines may disappear due to new lines,
+    // true value does not necessarily guarantee that lines have squiggles.
+    private var mayHaveSquiggleLines = false
+
     // After reconnecting, we start receiving new lines.
     // However, we can't just add these lines to the existing lines,
     // as WeeChat may have received more lines while we were not connected to it.
@@ -50,6 +57,13 @@ class Lines {
     // unless we can tell if the last line on the server is the same as we have.
     // Note that the last *visible* pointer in WeeChat is determined by looking at
     // a limited amount of last lines, and thus might be absent.
+    //
+    // If there are several calls to this method in a row,
+    // there can be consecutive squiggles in the unfiltered and filtered lines.
+    // It is possible to not add one squiggle line next to another,
+    // however it would complicate code somewhat,
+    // and we would have to ensure that the same logic applies in `replaceLines`.
+    // For simplicity, remove consecutive squiggle lines in `getCopy`.
     //
     // Note that the visibility of lines may change.
     // While it may seem that this can affect visibility of the nearby squiggle lines,
@@ -69,6 +83,7 @@ class Lines {
             val squiggleIsVisible = lastVisiblePointerServer != lastVisiblePointer
             val squiggleLine = SquiggleLine(isVisible = squiggleIsVisible)
             addLast(squiggleLine)
+            mayHaveSquiggleLines = true
         }
     }
 
@@ -82,9 +97,11 @@ class Lines {
             val marker = if (skip >= 0 && size > 0) size - skip else -1
             if (marker > 0) add(marker, MarkerLine)
 
-            while (isNotEmpty() && first() is SquiggleLine) removeFirst()
-            while (isNotEmpty() && last() is SquiggleLine) removeLast()
-            // TODO remove consecutive squiggles?
+            if (mayHaveSquiggleLines) {
+                while (isNotEmpty() && first() is SquiggleLine) removeFirst()
+                while (isNotEmpty() && last() is SquiggleLine) removeLast()
+                removeConsecutiveElementsLeavingFirst { it is SquiggleLine }
+            }
         }
     }
 
@@ -101,6 +118,7 @@ class Lines {
         for (line in lines) {
             if (line.isVisible) filtered.add(line)
         }
+        mayHaveSquiggleLines = false
     }
 
     fun replaceLine(line: Line) {
