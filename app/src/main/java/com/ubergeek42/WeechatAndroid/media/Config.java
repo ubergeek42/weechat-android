@@ -23,6 +23,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import static com.ubergeek42.WeechatAndroid.utils.ApplicationContextKt.applicationContext;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_MEDIA_PREVIEW_ENABLED_FOR_LOCATION;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_MEDIA_PREVIEW_ENABLED_FOR_LOCATION_CHAT;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.PREF_MEDIA_PREVIEW_ENABLED_FOR_LOCATION_D;
@@ -130,7 +131,7 @@ public class Config {
     }
 
     public static void initPreferences() {
-        SharedPreferences p = PreferenceManager.getDefaultSharedPreferences(Weechat.applicationContext);
+        SharedPreferences p = PreferenceManager.getDefaultSharedPreferences(applicationContext);
         for (String key : new String[] {
                 PREF_MEDIA_PREVIEW_ENABLED_FOR_NETWORK,
                 PREF_MEDIA_PREVIEW_ENABLED_FOR_LOCATION,

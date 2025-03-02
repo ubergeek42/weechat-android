@@ -55,6 +55,17 @@ inline fun <E> MutableList<E>.replaceFirstWith(element: E, predicate: (E) -> Boo
     }
 }
 
+fun <E> MutableList<E>.removeConsecutiveElementsLeavingFirst(predicate: (E) -> Boolean) {
+    if (size < 2) return
+    var lastItemMatches = predicate(last())
+
+    (lastIndex - 1 downTo 0).forEach { index ->
+        val itemMatches = predicate(get(index))
+        if (itemMatches && lastItemMatches) removeAt(index + 1)
+        lastItemMatches = itemMatches
+    }
+}
+
 
 fun String.removeChars(badChars: CharSequence): CharSequence {
     return StringBuilder().also { builder ->

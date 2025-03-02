@@ -4,6 +4,7 @@ package com.ubergeek42.WeechatAndroid.upload
 
 import android.net.Uri
 import androidx.room.*
+import com.ubergeek42.WeechatAndroid.utils.applicationContext
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
 import java.util.concurrent.ConcurrentHashMap

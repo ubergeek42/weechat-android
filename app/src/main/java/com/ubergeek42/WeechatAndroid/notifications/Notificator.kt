@@ -35,7 +35,6 @@ import androidx.fragment.app.FragmentActivity
 import androidx.preference.PreferenceManager
 import com.ubergeek42.WeechatAndroid.BubbleActivity
 import com.ubergeek42.WeechatAndroid.R
-import com.ubergeek42.WeechatAndroid.Weechat
 import com.ubergeek42.WeechatAndroid.WeechatActivity
 import com.ubergeek42.WeechatAndroid.dialogs.createScrollableDialog
 import com.ubergeek42.WeechatAndroid.relay.BufferList
@@ -44,9 +43,9 @@ import com.ubergeek42.WeechatAndroid.relay.from0xOrNull
 import com.ubergeek42.WeechatAndroid.service.Events
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.service.RelayService
-import com.ubergeek42.WeechatAndroid.upload.applicationContext
 import com.ubergeek42.WeechatAndroid.utils.Constants
 import com.ubergeek42.WeechatAndroid.utils.Toaster
+import com.ubergeek42.WeechatAndroid.utils.applicationContext
 import com.ubergeek42.cats.Cat
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
@@ -890,7 +889,7 @@ class NotificationPermissionChecker(private val activity: WeechatActivity) {
     }
 }
 
-private val preferences by lazy { PreferenceManager.getDefaultSharedPreferences(Weechat.applicationContext) }
+private val preferences by lazy { PreferenceManager.getDefaultSharedPreferences(applicationContext) }
 
 private var permissionWasDeniedOnce: Boolean
     get() = preferences.getBoolean("notificationPermissionWasDeniedOnce", false)

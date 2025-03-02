@@ -7,6 +7,7 @@ import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.utils.Linkify
 import com.ubergeek42.WeechatAndroid.utils.Utils
 import com.ubergeek42.WeechatAndroid.utils.invalidatableLazy
+import com.ubergeek42.WeechatAndroid.utils.removeConsecutiveElementsLeavingFirst
 import com.ubergeek42.WeechatAndroid.utils.replaceFirstWith
 import com.ubergeek42.weechat.Color
 import kotlin.properties.Delegates.observable
@@ -30,8 +31,6 @@ class Lines {
             headerLineDelegate.invalidate()
             if (value == Status.Init) {
                 maxUnfilteredSize = P.lineIncrement
-                shouldAddSquiggleOnNewLine = false
-                shouldAddSquiggleOnNewVisibleLine = false
             }
         }
 
@@ -40,33 +39,52 @@ class Lines {
 
     private var skipUnfiltered = -1
     private var skipFiltered = -1
-    private var skipUnfilteredOffset = -1
-    private var skipFilteredOffset = -1
 
     var maxUnfilteredSize = P.lineIncrement
         private set
 
-    // after reconnecting, in *full sync mode*, we are receiving and adding new lines to buffers.
-    // there can be inconsistencies; if some lines were added while we were offline,
-    // we can't display them, but can display what's on top and what's on bottom.
-    // to resolve this, add a squiggly separator between the old and the new lines ...
-    private var shouldAddSquiggleOnNewLine = false
-    private var shouldAddSquiggleOnNewVisibleLine = false
+    // Set to true when adding squiggle lines;
+    // set to false when replacing lines with those from the server.
+    // As lines may disappear due to new lines,
+    // true value does not necessarily guarantee that lines have squiggles.
+    private var mayHaveSquiggleLines = false
 
-
-    // ... but only add it if the buffer's last line pointer has changed.
-    // do it separately for visible and invisible lines; note, however,
-    // that the list of lines is likely incomplete, and the pointer to the last line may be invalid
-
-    // also note that some lines might have changed visibility due to e.g. smart_filter;
-    // but keeping them hidden would not create an inconsistency due to their nature
+    // After reconnecting, we start receiving new lines.
+    // However, we can't just add these lines to the existing lines,
+    // as WeeChat may have received more lines while we were not connected to it.
+    //
+    // To work around the issue, we add a squiggly line between the old lines and the new ones,
+    // unless we can tell if the last line on the server is the same as we have.
+    // Note that the last *visible* pointer in WeeChat is determined by looking at
+    // a limited amount of last lines, and thus might be absent.
+    //
+    // If there are several calls to this method in a row,
+    // there can be consecutive squiggles in the unfiltered and filtered lines.
+    // It is possible to not add one squiggle line next to another,
+    // however it would complicate code somewhat,
+    // and we would have to ensure that the same logic applies in `replaceLines`.
+    // For simplicity, remove consecutive squiggle lines in `getCopy`.
+    //
+    // Note that the visibility of lines may change.
+    // While it may seem that this can affect visibility of the nearby squiggle lines,
+    // at the point when this method is called we can (almost) reliably tell
+    // if the *visible* lines are continuous or not,
+    // so I think that the visibility of the squiggle line will remain correct.
+    //
+    // Also note that we do note consider here the scenario
+    // where the last visible line becomes invisible in WeeChat.
+    // In this case `lastVisiblePointerServer` would point to a line that we have,
+    // but it would not be `lastVisiblePointer`.
     fun updateLastLineInfo(lastPointerServer: Long?, lastVisiblePointerServer: Long?) {
         val lastPointer = unfiltered.lastOrNull()?.pointer
         val lastVisiblePointer = filtered.lastOrNull()?.pointer
 
-        if (lastPointerServer != lastPointer) shouldAddSquiggleOnNewLine = true
-        if (shouldAddSquiggleOnNewLine && lastVisiblePointerServer != lastVisiblePointer)
-                    shouldAddSquiggleOnNewVisibleLine = true
+        if (lastPointer != null && lastPointerServer != lastPointer) {
+            val squiggleIsVisible = lastVisiblePointerServer != lastVisiblePointer
+            val squiggleLine = SquiggleLine(isVisible = squiggleIsVisible)
+            addLast(squiggleLine)
+            mayHaveSquiggleLines = true
+        }
     }
 
     // it might look like there's a room for optimization here,
@@ -78,7 +96,12 @@ class Lines {
             val skip = if (P.filterLines) skipFiltered else skipUnfiltered
             val marker = if (skip >= 0 && size > 0) size - skip else -1
             if (marker > 0) add(marker, MarkerLine)
-            while (isNotEmpty() && last() is SquiggleLine) removeLast()
+
+            if (mayHaveSquiggleLines) {
+                while (isNotEmpty() && first() is SquiggleLine) removeFirst()
+                while (isNotEmpty() && last() is SquiggleLine) removeLast()
+                removeConsecutiveElementsLeavingFirst { it is SquiggleLine }
+            }
         }
     }
 
@@ -95,31 +118,17 @@ class Lines {
         for (line in lines) {
             if (line.isVisible) filtered.add(line)
         }
+        mayHaveSquiggleLines = false
     }
 
     fun replaceLine(line: Line) {
         unfiltered.replaceFirstWith(line, predicate = { it.pointer == line.pointer })
-        filtered.replaceFirstWith(line, predicate = { it.pointer == line.pointer })
+        filtered.clear()
+        unfiltered.forEach { line -> if (line.isVisible) filtered.add(line) }
+        setSkipsUsingPointer()
     }
 
     fun addLast(line: Line) {
-        if (shouldAddSquiggleOnNewLine) {
-            shouldAddSquiggleOnNewLine = false
-            if (status == Status.Init && unfiltered.size > 0) addLast(SquiggleLine())   // invisible
-        }
-
-        if (shouldAddSquiggleOnNewVisibleLine && line.isVisible) {
-            shouldAddSquiggleOnNewVisibleLine = false
-            if (status == Status.Init && filtered.size > 0) {
-                // “unhide” the squiggly line added above. as it's hidden,
-                // the size of visible lines is surely less than maximum
-                unfiltered.reversed().firstOrNull { it is SquiggleLine }?.let {
-                    filtered.addLast(it)
-                    if (skipFiltered >= 0) skipFiltered++
-                }
-            }
-        }
-
         val unfilteredSize = unfiltered.size
         val maxUnfilteredSize = maxUnfilteredSize
         val shouldRemoveFirstLine = unfilteredSize == maxUnfilteredSize
@@ -192,25 +201,11 @@ class Lines {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     fun moveReadMarkerToEnd() {
-        if (skipFilteredOffset >= 0 && skipUnfilteredOffset >= 0 &&
-                skipFiltered >= skipFilteredOffset && skipUnfiltered >= skipFilteredOffset) {
-            skipFiltered -= skipFilteredOffset
-            skipUnfiltered -= skipUnfilteredOffset
-        } else {
-            skipUnfiltered = 0
-            skipFiltered = 0
-        }
-        skipUnfilteredOffset = -1
-        skipFilteredOffset = -1
-    }
+        skipUnfiltered = 0
+        skipFiltered = 0
 
-    fun rememberCurrentSkipsOffset() {
-        skipFilteredOffset = skipFiltered
-        skipUnfilteredOffset = skipUnfiltered
-        if (unfiltered.size > 0) _lastSeenLine = unfiltered.last().pointer
+        if (unfiltered.isNotEmpty()) _lastSeenLine = unfiltered.last().pointer
     }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private var _lastSeenLine = -1L
     var lastSeenLine: Long
@@ -255,15 +250,15 @@ private var fakePointerCounter = MAX_C_POINTER_VALUE
 private val TITLE_LINE_POINTER = ++fakePointerCounter
 
 
-open class FakeLine(pointer: Long) : Line(
+open class FakeLine(pointer: Long, isVisible: Boolean = false) : Line(
         pointer, LineSpec.Type.Other,
         timestamp = 0, rawPrefix = "", rawMessage = "",
-        nick = null, isVisible = false, isHighlighted = false,
+        nick = null, isVisible = isVisible, isHighlighted = false,
         LineSpec.DisplayAs.Unspecified, LineSpec.NotifyLevel.Low)
 
 
-object MarkerLine : FakeLine(++fakePointerCounter)              // can have only one per buffer
-class SquiggleLine : FakeLine(++fakePointerCounter)             // can have several of these
+object MarkerLine : FakeLine(++fakePointerCounter)  // can have only one per buffer
+class SquiggleLine(pointer: Long = ++fakePointerCounter, isVisible: Boolean = false) : FakeLine(pointer, isVisible)  // can have several of these
 
 
 class HeaderLine(
