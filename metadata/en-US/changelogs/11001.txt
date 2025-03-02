@@ -1,0 +1,1 @@
+* Fixed a rare crash when a line gets unhidden
