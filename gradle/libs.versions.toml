@@ -1,7 +1,7 @@
 [versions]
 androidlogger = "1.3.6"
 androidx-annotation = "1.9.1"
-androidx-appcompat = "1.7.0"
+androidx-appcompat = "1.7.1"
 
 # Bumping androidx-core to 1.15.+ requires compileSdk 35.
 # However, API level 35 comes with some JDK API changes that, if not addressed in code,
@@ -12,9 +12,9 @@ androidx-core = "1.13.1"
 
 androidx-emoji2 = "1.5.0"
 androidx-legacy = "1.0.0"
-androidx-lifecycle = "2.8.7"
+androidx-lifecycle = "2.9.2"
 androidx-preference = "1.2.1"
-androidx-room = "2.6.1"
+androidx-room = "2.7.2"
 androidx-sharetarget = "1.2.0"
 
 # Bumping AspectJ to either 1.9.22 or 1.9.22.1, the currently latest version, leads to the following
@@ -30,23 +30,23 @@ bouncycastle-pkix = "1.70"
 eventbus = "3.3.1"
 glide = "4.16.0"
 gradle = "8.12.2"
-gradleversionsplugin = "0.51.0"
-joda = "2.13.0"
-junit = "5.11.3"
+gradleversionsplugin = "0.52.0"
+joda = "2.13.1"
+junit = "6.0.0"
 androidx-text-ext-junit = "1.2.1"
-kotlin = "2.0.21"
-kotlinx-coroutines = "1.9.0"
-kotlinx-serialization = "1.7.3"
+kotlin = "2.2.0"
+kotlinx-coroutines = "1.10.2"
+kotlinx-serialization = "1.9.0"
 leakcanary = "2.14"
-mockito = "5.14.2"
+mockito = "5.18.0"
 nvwebsocketclient = "2.14"
-okhttp = "4.12.0"
+okhttp = "5.1.0"
 gitversionplugin = "4.0.0"
-robolectric = "4.14.1"
-slf4j-api = "2.0.16"
-snakeyaml = "2.3"
+robolectric = "4.15.1"
+slf4j-api = "2.0.17"
+snakeyaml = "2.4"
 sshlib = "2.2.21"
-tasktree = "1.5"
+tasktree = "4.0.1"
 
 
 [libraries]
