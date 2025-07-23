@@ -2,6 +2,7 @@ plugins {
     id("com.android.application")
     kotlin("android")
     kotlin("kapt")
+    alias(libs.plugins.gitversionplugin)
 }
 
 dependencies {
@@ -133,12 +134,8 @@ android {
 }
 
 fun versionBanner(): String {
-    val os = org.apache.commons.io.output.ByteArrayOutputStream()
-    project.exec {
-        commandLine = "git describe --long".split(" ")
-        standardOutput = os
-    }
-    return String(os.toByteArray()).trim()
+    val versionDetails: groovy.lang.Closure<com.palantir.gradle.gitversion.VersionDetails> by extra
+    return with(versionDetails()) { "$lastTag-$commitDistance-g$gitHash" }
 }
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
