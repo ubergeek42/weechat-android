@@ -17,12 +17,18 @@ androidx-preference = "1.2.1"
 androidx-room = "2.7.2"
 androidx-sharetarget = "1.2.0"
 
-# Bumping AspectJ to either 1.9.22 or 1.9.22.1, the currently latest version, leads to the following
-# crashes on emulators with API 21 to 23, 24 and beyond behaving nominally:
-#     ...
+# Bumping AspectJ to either 1.9.22, 1.9.22.1, or 1.9.24, the currently latest version,
+# leads to the following crashes on emulators running API 21 to 23:
 #     Caused by: java.lang.NoClassDefFoundError: org.aspectj.runtime.reflect.JoinPointImpl$$ExternalSyntheticLambda0
 #         at org.aspectj.runtime.reflect.JoinPointImpl.<init>(JoinPointImpl.java:145)
 #         at org.aspectj.runtime.reflect.Factory.makeJP(Factory.java:270)
+#
+# Bumping to 1.9.24 leads to the following crash on API 35:
+#     java.lang.NoSuchMethodError: No static method aspectOf()Lcom/ubergeek42/cats/KittyAspect; in class Lcom/ubergeek42/cats/KittyAspect; or its super classes (declaration of 'com.ubergeek42.cats.KittyAspect' appears in /data/app/~~26-j0bO5AaPSrMjsHy-T2g==/com.ubergeek42.WeechatAndroid.debug-xQjKUSEcfDBTvOMq3XoP2A==/base.apk!classes2.dex)
+#     at com.ubergeek42.WeechatAndroid.media.CachePersist.<clinit>(CachePersist.java:29)
+#
+# See also:
+#   https://github.com/eclipse-aspectj/aspectj/issues/314
 aspectj = "1.9.21"
 
 aspectjpipeline = "1.4.1"
