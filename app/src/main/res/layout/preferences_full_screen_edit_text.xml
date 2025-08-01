@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent" >
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
@@ -15,8 +16,6 @@
         android:id="@+id/text"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="?attr/actionBarSize"
-        android:paddingVertical="8dp"
         android:paddingHorizontal="16dp"
         android:inputType="textLongMessage|textMultiLine|textFilter|textNoSuggestions"
         android:text="@null"
@@ -27,9 +26,4 @@
         android:autofillHints=""
         android:scrollHorizontally="true"
         tools:ignore="LabelFor" />
-
-    <!-- without this the layout breaks somehow -->
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
-</FrameLayout>
+</LinearLayout>

@@ -13,6 +13,8 @@ import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.TextView
 import androidx.appcompat.widget.Toolbar
+import androidx.core.view.WindowCompat
+import androidx.core.view.updatePadding
 import androidx.recyclerview.widget.RecyclerView
 import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.dialogs.FancyAlertDialogBuilder
@@ -20,11 +22,9 @@ import com.ubergeek42.WeechatAndroid.relay.BufferList
 import com.ubergeek42.WeechatAndroid.relay.Line
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.utils.applicationContext
-import com.ubergeek42.WeechatAndroid.utils.ThemeFix
 import com.ubergeek42.WeechatAndroid.views.LineView
+import com.ubergeek42.WeechatAndroid.views.onSystemBarsInsetsChanged
 import com.ubergeek42.weechat.relay.connection.find
-import java.lang.StringBuilder
-import java.util.*
 
 
 fun showCopyDialog(lineView: LineView, bufferPointer: Long) {
@@ -118,12 +118,22 @@ private class Copy(
             }
         }
 
+        // We use solid background for the navigation, as:
+        //   * TextView by itself doesn't seem to allow disabling clipping to padding, and
+        //   * TextView in a ScrollView can do the above, however I couldn't figure out
+        //     how to make the selection reliably centered inside of the ScrollView.
+        layout.onSystemBarsInsetsChanged { insets ->
+            layout.updatePadding(left = insets.left, top = insets.top, right = insets.right, bottom = insets.bottom)
+        }
+
         dialog.window?.run {
             setDimAmount(0f)
 
-            val isDark = !ThemeFix.isColorLight(P.colorPrimaryDark)
-            if (isDark || Build.VERSION.SDK_INT >= 23) statusBarColor = P.colorPrimaryDark
-            if (isDark || Build.VERSION.SDK_INT >= 26) navigationBarColor = P.colorPrimaryDark
+            WindowCompat.setDecorFitsSystemWindows(this, false)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                decorView // Ensure decor view is not overwritten. See note on WindowCompat.enableEdgeToEdge
+                isNavigationBarContrastEnforced = false // Removes scrim, as we are using solid background.
+            }
 
             // prevent keyboard from showing, while still allow selecting text
             // apparently you can't just disable editing text
