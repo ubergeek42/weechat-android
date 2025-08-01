@@ -3,9 +3,9 @@ package com.ubergeek42.WeechatAndroid.views
 import android.content.Context
 import android.os.Build
 import android.util.TypedValue
-import android.view.View
 import android.view.WindowInsets
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.WindowCompat
 import androidx.core.view.updatePadding
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
@@ -49,11 +49,7 @@ class WeechatActivityFullScreenController(val activity: WeechatActivity) : Defau
     override fun onCreate(owner: LifecycleOwner) {
         val rootView = activity.ui.pager.rootView
 
-        // todo use WindowCompat.setDecorFitsSystemWindows(window, false)
-        // todo needs api 30+? and/or androidx.core:core-ktx:1.5.0-beta02
-        rootView.systemUiVisibility = rootView.systemUiVisibility or
-                View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
-                View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+        WindowCompat.setDecorFitsSystemWindows(activity.window, false)
 
         rootView.setOnApplyWindowInsetsListener listener@{ _, libraryInsets ->
             val newWindowInsets = if (Build.VERSION.SDK_INT >= 30) {
