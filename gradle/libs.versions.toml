@@ -2,14 +2,7 @@
 androidlogger = "1.3.6"
 androidx-annotation = "1.9.1"
 androidx-appcompat = "1.7.1"
-
-# Bumping androidx-core to 1.15.+ requires compileSdk 35.
-# However, API level 35 comes with some JDK API changes that, if not addressed in code,
-# might lead to crashes on lower API level devices. See:
-#   https://developer.android.com/about/versions/15/behavior-changes-15#openjdk-api-changes
-#   https://issuetracker.google.com/issues/350432371
-androidx-core = "1.13.1"
-
+androidx-core = "1.16.0"
 androidx-emoji2 = "1.5.0"
 androidx-legacy = "1.0.0"
 androidx-lifecycle = "2.9.2"

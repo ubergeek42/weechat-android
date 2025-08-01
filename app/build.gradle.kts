@@ -62,14 +62,14 @@ tasks.withType<JavaCompile> {
 
 android {
     namespace = "com.ubergeek42.WeechatAndroid"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         versionCode = 1_10_01
         versionName = "1.10.1"
 
         minSdk = 21
-        targetSdk = 34
+        targetSdk = 35
         buildConfigField("String", "VERSION_BANNER", "\"" + versionBanner() + "\"")
 
         vectorDrawables.useSupportLibrary = true
