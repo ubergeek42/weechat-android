@@ -68,7 +68,7 @@ android {
         versionCode = 1_10_01
         versionName = "1.10.1"
 
-        minSdk = 21
+        minSdk = 26
         targetSdk = 35
         buildConfigField("String", "VERSION_BANNER", "\"" + versionBanner() + "\"")
 
