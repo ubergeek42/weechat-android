@@ -49,8 +49,6 @@ class WeechatActivityFullScreenController(val activity: WeechatActivity) : Defau
     override fun onCreate(owner: LifecycleOwner) {
         val rootView = activity.ui.pager.rootView
 
-        activity.ui.navigationPadding.visibility = View.VISIBLE
-
         // todo use WindowCompat.setDecorFitsSystemWindows(window, false)
         // todo needs api 30+? and/or androidx.core:core-ktx:1.5.0-beta02
         rootView.systemUiVisibility = rootView.systemUiVisibility or
