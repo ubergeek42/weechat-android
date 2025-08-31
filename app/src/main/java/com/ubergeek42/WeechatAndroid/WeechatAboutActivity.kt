@@ -13,11 +13,15 @@
 // limitations under the License.
 package com.ubergeek42.WeechatAndroid
 
+import android.os.Build
 import android.os.Bundle
 import android.text.method.LinkMovementMethod
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.WindowCompat
+import androidx.core.view.updatePadding
 import com.ubergeek42.WeechatAndroid.databinding.AboutBinding
+import com.ubergeek42.WeechatAndroid.views.onSystemBarsInsetsChanged
 
 class WeechatAboutActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,6 +40,13 @@ class WeechatAboutActivity : AppCompatActivity() {
         ui.buildId.text = getString(R.string.pref__about__build_id, BuildConfig.VERSION_BANNER)
         ui.versionString.text = getString(R.string.pref__about__weechat_android_v, BuildConfig.VERSION_NAME)
         ui.libraries.movementMethod = LinkMovementMethod.getInstance()
+
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) window.isNavigationBarContrastEnforced = false
+
+        ui.about.onSystemBarsInsetsChanged { insets ->
+            ui.about.updatePadding(left = insets.left, top = insets.top, right = insets.right, bottom = insets.bottom)
+        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
