@@ -4,23 +4,29 @@ import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.Window;
 import android.widget.EditText;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.WindowCompat;
 import androidx.fragment.app.DialogFragment;
 
 import com.ubergeek42.WeechatAndroid.R;
-
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
+
+import kotlin.Unit;
+
+import static com.ubergeek42.WeechatAndroid.views.FullScreenActivityControllerKt.onSystemBarsInsetsChanged;
 
 
 public class FullScreenEditTextPreference extends EditTextPreference implements DialogFragmentGetter {
@@ -118,8 +124,27 @@ public class FullScreenEditTextPreference extends EditTextPreference implements 
                 return false;
             });
 
+            // We use solid background for the navigation, as:
+            //   * TextView by itself doesn't seem to allow disabling clipping to padding, and
+            //   * TextView in a ScrollView can do the above, however I couldn't figure out
+            //     how to make the selection reliably centered inside of the ScrollView.
+            onSystemBarsInsetsChanged(contents, insets -> {
+                contents.setPadding(insets.left, insets.top, insets.right, insets.bottom);
+                return Unit.INSTANCE;
+            });
+
             Dialog dialog = builder.create();
-            if (dialog.getWindow() != null) dialog.getWindow().setDimAmount(0);
+
+            Window window = dialog.getWindow();
+            if (window != null) {
+                window.setDimAmount(0);
+                WindowCompat.setDecorFitsSystemWindows(window, false);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    window.getDecorView(); // Ensure decor view is not overwritten. See note on WindowCompat.enableEdgeToEdge
+                    window.setNavigationBarContrastEnforced(false); // Removes scrim, as we are using solid background.
+                }
+            }
+
             return dialog;
         }
 
