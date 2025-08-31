@@ -3,11 +3,8 @@ package com.ubergeek42.WeechatAndroid.views
 import android.content.Context
 import android.util.TypedValue
 import android.view.View
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.lifecycle.DefaultLifecycleObserver
-import androidx.lifecycle.LifecycleOwner
 
 
 // Using `getInsetsIgnoringVisibility` for system bars as those can be temporarily hidden at times,
@@ -45,68 +42,6 @@ fun View.onSystemBarsAndImeInsetsChanged(listener: (insets: androidx.core.graphi
         windowInsets
     }
 }
-
-
-data class Insets(
-    val top: Int,
-    val bottom: Int,
-    val left: Int,
-    val right: Int,
-)
-
-var windowInsets = Insets(0, 0, 0, 0)
-
-
-private fun interface InsetListener {
-    fun onInsetsChanged()
-}
-
-
-private val insetListeners = mutableListOf<InsetListener>()
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////// height observer
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-fun interface SystemAreaHeightObserver {
-    fun onSystemAreaHeightChanged(systemAreaHeight: Int)
-}
-
-
-abstract class SystemAreaHeightExaminer(
-        val activity: AppCompatActivity,
-) : DefaultLifecycleObserver {
-    fun observeLifecycle() {
-        activity.lifecycle.addObserver(this)
-    }
-
-    var observer: SystemAreaHeightObserver? = null
-
-    companion object {
-        @JvmStatic fun obtain(activity: AppCompatActivity): SystemAreaHeightExaminer =
-            NewSystemAreaHeightExaminer(activity)
-    }
-}
-
-
-private class NewSystemAreaHeightExaminer(
-        activity: AppCompatActivity,
-) : SystemAreaHeightExaminer(activity) {
-    override fun onCreate(owner: LifecycleOwner) {
-        insetListeners.add(insetListener)
-    }
-
-    private val insetListener = InsetListener {
-        observer?.onSystemAreaHeightChanged(windowInsets.bottom)
-    }
-}
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 fun Context.getActionBarHeight(): Int {

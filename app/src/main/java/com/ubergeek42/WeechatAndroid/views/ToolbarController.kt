@@ -10,10 +10,15 @@ import com.ubergeek42.WeechatAndroid.upload.f
 import kotlin.math.sign
 
 
-class ToolbarController(val activity: WeechatActivity) : DefaultLifecycleObserver, SystemAreaHeightObserver {
+class ToolbarController(val activity: WeechatActivity) : DefaultLifecycleObserver {
     fun observeLifecycle() {
         activity.lifecycle.addObserver(this)
-        SystemAreaHeightExaminer.obtain(activity).also { it.observer = this }.observeLifecycle()
+    }
+
+    override fun onCreate(owner: LifecycleOwner) {
+        activity.ui.toolbar.onSystemBarsAndImeInsetsChanged { insets ->
+            onSystemAreaHeightChanged(insets.bottom)
+        }
     }
 
     override fun onStart(owner: LifecycleOwner) {
@@ -94,7 +99,7 @@ class ToolbarController(val activity: WeechatActivity) : DefaultLifecycleObserve
 
     private var initialSystemAreaHeight = -1
 
-    override fun onSystemAreaHeightChanged(systemAreaHeight: Int) {
+    fun onSystemAreaHeightChanged(systemAreaHeight: Int) {
         // note the initial system area (assuming keyboard closed) and return. we should be getting
         // a few more calls to this method without any changes to the height numbers
 
