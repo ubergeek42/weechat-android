@@ -4,25 +4,16 @@ import android.content.Context
 import android.os.Build
 import android.util.TypedValue
 import android.view.View
-import android.view.ViewTreeObserver
 import android.view.WindowInsets
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.updatePadding
 import androidx.lifecycle.DefaultLifecycleObserver
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import com.ubergeek42.WeechatAndroid.WeechatActivity
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragment
 import com.ubergeek42.WeechatAndroid.fragments.BufferListFragment
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.upload.i
-import com.ubergeek42.WeechatAndroid.utils.ThemeFix
-
-
-// this can technically work on earlier Android versions,
-// e.g. on api 24 (7.0) it works perfectly in dark mode,
-// but in light mode the status bar icons remain light
-val FULL_SCREEN_DRAWER_ENABLED = Build.VERSION.SDK_INT >= 26    // 8.0, Oreo
 
 
 data class Insets(
@@ -56,8 +47,6 @@ class WeechatActivityFullScreenController(val activity: WeechatActivity) : Defau
     private var oldWindowInsets = Insets(-1, -1, -1, -1)
 
     override fun onCreate(owner: LifecycleOwner) {
-        if (!FULL_SCREEN_DRAWER_ENABLED) return
-
         val rootView = activity.ui.pager.rootView
 
         activity.ui.navigationPadding.visibility = View.VISIBLE
@@ -106,24 +95,8 @@ class WeechatActivityFullScreenController(val activity: WeechatActivity) : Defau
         insetListeners.add(weechatActivityInsetsListener)
     }
 
-    // status bar can be colored since api 21 and have dark icons since api 23
-    // navigation bar can be colored since api 21 and can have dark icons since api 26 via
-    // SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR, which the theming engine seems to be setting
-    // automatically, and since api 27 via android:navigationBarColor
     override fun onStart(owner: LifecycleOwner) {
-        if (FULL_SCREEN_DRAWER_ENABLED) {
-            activity.ui.navigationPadding.setBackgroundColor(P.colorPrimaryDark)
-        } else {
-            val systemAreaBackgroundColorIsDark = !ThemeFix.isColorLight(P.colorPrimaryDark)
-            val statusBarIconCanBeDark = Build.VERSION.SDK_INT >= 23
-            val navigationBarIconsCanBeDark = Build.VERSION.SDK_INT >= 26
-
-            if (systemAreaBackgroundColorIsDark || statusBarIconCanBeDark)
-                activity.window.statusBarColor = P.colorPrimaryDark
-
-            if (systemAreaBackgroundColorIsDark || navigationBarIconsCanBeDark)
-                activity.window.navigationBarColor = P.colorPrimaryDark
-        }
+        activity.ui.navigationPadding.setBackgroundColor(P.colorPrimaryDark)
     }
 
     override fun onDestroy(owner: LifecycleOwner) {
@@ -145,15 +118,8 @@ class BufferListFragmentFullScreenController(val fragment: BufferListFragment) :
     override fun onStart(owner: LifecycleOwner) {
         if (filterBarHeight == 0) filterBarHeight = fragment.requireContext().getActionBarHeight()
 
-        if (!FULL_SCREEN_DRAWER_ENABLED) {
-            fragment.ui.bufferList.updateMargins(
-                    bottom = if (P.showBufferFilter) filterBarHeight else 0)
-            fragment.ui.arrowDown.updateMargins(
-                    bottom = if (P.showBufferFilter) filterBarHeight else 0)
-        } else {
-            insetListeners.add(insetListener)
-            insetListener.onInsetsChanged()
-        }
+        insetListeners.add(insetListener)
+        insetListener.onInsetsChanged()
     }
 
     override fun onStop(owner: LifecycleOwner) {
@@ -202,13 +168,11 @@ class BufferFragmentFullScreenController(val fragment: BufferFragment) : Default
     }
 
     override fun onStart(owner: LifecycleOwner) {
-        if (!FULL_SCREEN_DRAWER_ENABLED) return
         insetListeners.add(insetListener)
         insetListener.onInsetsChanged()
     }
 
     override fun onStop(owner: LifecycleOwner) {
-        if (!FULL_SCREEN_DRAWER_ENABLED) return
         insetListeners.remove(insetListener)
     }
 
@@ -250,43 +214,8 @@ abstract class SystemAreaHeightExaminer(
     var observer: SystemAreaHeightObserver? = null
 
     companion object {
-        @JvmStatic fun obtain(activity: AppCompatActivity) = if (FULL_SCREEN_DRAWER_ENABLED)
-            NewSystemAreaHeightExaminer(activity) else OldSystemAreaHeightExaminer(activity)
-    }
-}
-
-
-private class OldSystemAreaHeightExaminer(
-        activity: AppCompatActivity,
-) : SystemAreaHeightExaminer(activity) {
-    private lateinit var content: View
-    private lateinit var rootView: View
-
-    override fun onCreate(owner: LifecycleOwner) {
-        content = activity.findViewById(android.R.id.content)
-        rootView = content.rootView
-        content.viewTreeObserver.addOnGlobalLayoutListener(globalLayoutListener)
-    }
-
-    // windowHeight is the height of the activity that includes the height of the status bar and the
-    // navigation bar. if the activity is split, this height seems to be only including the system
-    // bar that the activity is “touching”. this height doesn't include the keyboard height per se,
-    // but if the activity changes size due to the keyboard, this number remains the same.
-    // activityHeight is the height of the activity not including any of the system stuff.
-    private val globalLayoutListener = ViewTreeObserver.OnGlobalLayoutListener listener@{
-        // on android 7, if changing the day/night theme in settings, the activity can be recreated
-        // right away but with a wrong window height. so we wait until it's actually resumed
-        if (activity.lifecycle.currentState != Lifecycle.State.RESUMED) return@listener
-
-        val windowHeight = rootView.height
-        val activityHeight = content.height
-        val systemAreaHeight = windowHeight - activityHeight
-
-        // weed out some insanity that's happening when the window is in split screen mode.
-        // it seems that while resizing some elements can temporarily have the height 0.
-        if (windowHeight <= 0 || activityHeight <= 0 || systemAreaHeight <= 0) return@listener
-
-        observer?.onSystemAreaHeightChanged(systemAreaHeight)
+        @JvmStatic fun obtain(activity: AppCompatActivity): SystemAreaHeightExaminer =
+            NewSystemAreaHeightExaminer(activity)
     }
 }
 

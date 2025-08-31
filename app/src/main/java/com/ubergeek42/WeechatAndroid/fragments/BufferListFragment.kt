@@ -10,7 +10,6 @@ import androidx.annotation.MainThread
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.recyclerview.widget.SuppressedLinearLayoutManager
 import com.ubergeek42.WeechatAndroid.WeechatActivity
 import com.ubergeek42.WeechatAndroid.adapters.BufferListAdapter
 import com.ubergeek42.WeechatAndroid.databinding.BufferlistBinding
@@ -20,7 +19,6 @@ import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.upload.main
 import com.ubergeek42.WeechatAndroid.utils.afterTextChanged
 import com.ubergeek42.WeechatAndroid.views.BufferListFragmentFullScreenController
-import com.ubergeek42.WeechatAndroid.views.FULL_SCREEN_DRAWER_ENABLED
 import com.ubergeek42.WeechatAndroid.views.FullScreenDrawerLinearLayoutManager
 import com.ubergeek42.WeechatAndroid.views.jumpThenSmoothScrollCentering
 import com.ubergeek42.WeechatAndroid.views.scrollCenteringWithoutAnimation
@@ -59,11 +57,7 @@ class BufferListFragment : Fragment(), BufferListEye {
                                                savedInstanceState: Bundle?): View {
         ui = BufferlistBinding.inflate(inflater)
 
-        layoutManager = if (FULL_SCREEN_DRAWER_ENABLED) {
-            FullScreenDrawerLinearLayoutManager(requireContext(), ui.bufferList, adapter)
-        } else {
-            SuppressedLinearLayoutManager(requireContext())
-        }
+        layoutManager = FullScreenDrawerLinearLayoutManager(requireContext(), ui.bufferList, adapter)
 
         ui.bufferList.layoutManager = layoutManager
         ui.bufferList.adapter = adapter
