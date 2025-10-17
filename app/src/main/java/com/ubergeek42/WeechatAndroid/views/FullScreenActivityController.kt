@@ -1,11 +1,9 @@
 package com.ubergeek42.WeechatAndroid.views
 
 import android.content.Context
-import android.os.Build
 import android.util.TypedValue
-import android.view.WindowInsets
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.WindowCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
@@ -72,70 +70,6 @@ private fun interface InsetListener {
 
 private val insetListeners = mutableListOf<InsetListener>()
 
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////// activity
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-class WeechatActivityFullScreenController(val activity: WeechatActivity) : DefaultLifecycleObserver {
-    fun observeLifecycle() {
-        activity.lifecycle.addObserver(this)
-    }
-
-    // only used to weed out changes we don't care about
-    private var oldWindowInsets = Insets(-1, -1, -1, -1)
-
-    override fun onCreate(owner: LifecycleOwner) {
-        val rootView = activity.ui.pager.rootView
-
-        WindowCompat.setDecorFitsSystemWindows(activity.window, false)
-
-        rootView.setOnApplyWindowInsetsListener listener@{ _, libraryInsets ->
-            val newWindowInsets = if (Build.VERSION.SDK_INT >= 30) {
-                val libraryWindowInsets = libraryInsets.getInsets(
-                        WindowInsets.Type.systemBars() or
-                        WindowInsets.Type.navigationBars() or
-                        WindowInsets.Type.ime())
-                Insets(libraryWindowInsets.top,
-                       libraryWindowInsets.bottom,
-                       libraryWindowInsets.left,
-                       libraryWindowInsets.right)
-            } else {
-                @Suppress("DEPRECATION")
-                Insets(libraryInsets.systemWindowInsetTop,
-                       libraryInsets.systemWindowInsetBottom,
-                       libraryInsets.systemWindowInsetLeft,
-                       libraryInsets.systemWindowInsetRight)
-            }
-
-            if (oldWindowInsets != newWindowInsets) {
-                oldWindowInsets = newWindowInsets
-                windowInsets = newWindowInsets
-                insetListeners.forEach { it.onInsetsChanged() }
-            }
-
-            libraryInsets
-        }
-
-        val weechatActivityInsetsListener = InsetListener {
-            activity.ui.toolbarContainer.updatePadding(top = windowInsets.top,
-                                                       left = windowInsets.left,
-                                                       right = windowInsets.right)
-            activity.ui.navigationPadding.updateDimensions(height = windowInsets.bottom)
-            activity.ui.pager.updateMargins(bottom = windowInsets.bottom)
-        }
-
-        insetListeners.add(weechatActivityInsetsListener)
-    }
-
-    override fun onStart(owner: LifecycleOwner) {
-        activity.ui.navigationPadding.setBackgroundColor(P.colorPrimaryDark)
-    }
-
-    override fun onDestroy(owner: LifecycleOwner) {
-        insetListeners.clear()
-    }
-}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////// buffer list

@@ -37,6 +37,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.widget.TooltipCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.updatePadding
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
@@ -92,9 +94,11 @@ import com.ubergeek42.WeechatAndroid.utils.wasCausedBy
 import com.ubergeek42.WeechatAndroid.utils.wasCausedByEither
 import com.ubergeek42.WeechatAndroid.views.DrawerToggleFix
 import com.ubergeek42.WeechatAndroid.views.ToolbarController
-import com.ubergeek42.WeechatAndroid.views.WeechatActivityFullScreenController
 import com.ubergeek42.WeechatAndroid.views.hideSoftwareKeyboard
+import com.ubergeek42.WeechatAndroid.views.onSystemBarsAndImeInsetsChanged
 import com.ubergeek42.WeechatAndroid.views.solidColor
+import com.ubergeek42.WeechatAndroid.views.updateDimensions
+import com.ubergeek42.WeechatAndroid.views.updateMargins
 import com.ubergeek42.cats.Cat
 import com.ubergeek42.cats.CatD
 import com.ubergeek42.cats.Kitty
@@ -140,8 +144,6 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener,
         else -> null
     }
 
-    init { WeechatActivityFullScreenController(this).observeLifecycle() }
-
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////// life cycle
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -159,6 +161,13 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener,
         ui = WeaselBinding.bind(findViewById(android.R.id.content))
         uiDrawer = findViewById(R.id.bufferlist_fragment)
         uiWeasel = findViewById(R.id.weasel)    // ui.weasel for some reason returns a wrong view
+
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        ui.pager.rootView.onSystemBarsAndImeInsetsChanged { insets ->
+            ui.toolbarContainer.updatePadding(top = insets.top, left = insets.left, right = insets.right)
+            ui.navigationPadding.updateDimensions(height = insets.bottom)
+            ui.pager.updateMargins(bottom = insets.bottom)
+        }
 
         setSupportActionBar(ui.toolbar)
 
@@ -771,6 +780,7 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener,
         window.decorView.background = null
         applyMainBackgroundColor()
         ui.toolbarContainer.setBackgroundColor(P.colorPrimary)
+        ui.navigationPadding.setBackgroundColor(P.colorPrimaryDark)
     }
 
     // to reduce overdraw, change background color instead of drawing over it
