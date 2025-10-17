@@ -6,6 +6,8 @@ import android.util.TypedValue
 import android.view.WindowInsets
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
@@ -14,6 +16,43 @@ import com.ubergeek42.WeechatAndroid.fragments.BufferFragment
 import com.ubergeek42.WeechatAndroid.fragments.BufferListFragment
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.upload.i
+
+
+// Using `getInsetsIgnoringVisibility` for system bars as those can be temporarily hidden at times,
+// particularly when clicking on the paperclip button and getting the “Complete action using” dialog.
+fun View.onSystemBarsInsetsChanged(listener: (insets: androidx.core.graphics.Insets) -> Unit) {
+    var oldInsets = androidx.core.graphics.Insets.NONE
+
+    ViewCompat.setOnApplyWindowInsetsListener(this) { _, windowInsets ->
+        val newInsets = windowInsets.getInsetsIgnoringVisibility(WindowInsetsCompat.Type.systemBars())
+
+        if (oldInsets != newInsets) {
+            listener(newInsets)
+            oldInsets = newInsets
+        }
+
+        windowInsets
+    }
+}
+
+// IME insets can't be queried ignoring visibility, yielding “Unable to query the maximum insets for IME”.
+fun View.onSystemBarsAndImeInsetsChanged(listener: (insets: androidx.core.graphics.Insets) -> Unit) {
+    var oldInsets = androidx.core.graphics.Insets.NONE
+
+    ViewCompat.setOnApplyWindowInsetsListener(this) { _, windowInsets ->
+        val newInsets = androidx.core.graphics.Insets.max(
+            windowInsets.getInsetsIgnoringVisibility(WindowInsetsCompat.Type.systemBars()),
+            windowInsets.getInsets(WindowInsetsCompat.Type.ime()),
+        )
+
+        if (oldInsets != newInsets) {
+            listener(newInsets)
+            oldInsets = newInsets
+        }
+
+        windowInsets
+    }
+}
 
 
 data class Insets(
