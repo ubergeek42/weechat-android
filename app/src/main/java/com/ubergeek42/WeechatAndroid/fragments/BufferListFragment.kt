@@ -7,8 +7,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.AnyThread
 import androidx.annotation.MainThread
+import androidx.core.graphics.Insets
+import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.ubergeek42.WeechatAndroid.WeechatActivity
 import com.ubergeek42.WeechatAndroid.adapters.BufferListAdapter
@@ -18,10 +19,12 @@ import com.ubergeek42.WeechatAndroid.relay.BufferListEye
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.upload.main
 import com.ubergeek42.WeechatAndroid.utils.afterTextChanged
-import com.ubergeek42.WeechatAndroid.views.BufferListFragmentFullScreenController
 import com.ubergeek42.WeechatAndroid.views.FullScreenDrawerLinearLayoutManager
+import com.ubergeek42.WeechatAndroid.views.getActionBarHeight
 import com.ubergeek42.WeechatAndroid.views.jumpThenSmoothScrollCentering
+import com.ubergeek42.WeechatAndroid.views.onSystemBarsAndImeInsetsChanged
 import com.ubergeek42.WeechatAndroid.views.scrollCenteringWithoutAnimation
+import com.ubergeek42.WeechatAndroid.views.updateMargins
 import com.ubergeek42.cats.Cat
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
@@ -32,12 +35,10 @@ class BufferListFragment : Fragment(), BufferListEye {
     }
 
     private lateinit var weechatActivity: WeechatActivity
-    private lateinit var layoutManager: LinearLayoutManager
+    private lateinit var layoutManager: FullScreenDrawerLinearLayoutManager
     private lateinit var adapter: BufferListAdapter
 
     lateinit var ui: BufferlistBinding
-
-    init { BufferListFragmentFullScreenController(this).observeLifecycle() }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////// lifecycle
@@ -80,12 +81,48 @@ class BufferListFragment : Fragment(), BufferListEye {
             adapter.onBuffersChanged()
         }
 
+        ui.root.onSystemBarsAndImeInsetsChanged { insets ->
+            this.insets = insets
+            updateMarginsAndPaddings()
+        }
+
         return ui.root
+    }
+
+    var insets = Insets.NONE
+    var filterInputHeight = 0
+
+    // This is a separate method as it relies on both the insets and the filter input height.
+    // The latter can change without triggering inset changes if the user enables or disables
+    // the filter in the settings.
+    //
+    // Not using `ui.filterInput.height` as it can be 0 on the initial callback call.
+    private fun updateMarginsAndPaddings() {
+        ui.arrowUp.updateMargins(top = insets.top)
+
+        if (P.showBufferFilter) {
+            ui.bufferList.updateMargins(bottom = filterInputHeight + insets.bottom)
+            ui.arrowDown.updateMargins(bottom = filterInputHeight + insets.bottom)
+
+            ui.filterInput.updateMargins(bottom = insets.bottom)
+            ui.filterInput.updatePadding(left = insets.left)
+
+            ui.filterClear.updateMargins(bottom = insets.bottom)
+
+            layoutManager.setInsets(top = insets.top, bottom = 0, left = insets.left)
+        } else {
+            ui.bufferList.updateMargins(bottom = 0)
+            ui.arrowDown.updateMargins(bottom = insets.bottom)
+
+            layoutManager.setInsets(top = insets.top, bottom = insets.bottom, left = insets.left)
+        }
     }
 
     @MainThread @Cat override fun onStart() {
         super.onStart()
         ui.filterInput.visibility = if (P.showBufferFilter) View.VISIBLE else View.GONE
+        filterInputHeight = requireContext().getActionBarHeight()
+        updateMarginsAndPaddings()
         applyColorSchemeToViews()
         attachToBufferList()
     }
