@@ -1,10 +1,11 @@
 package com.ubergeek42.WeechatAndroid
 
-import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
-import android.view.View
-import android.widget.FrameLayout
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.graphics.drawable.toDrawable
+import androidx.core.view.WindowCompat
+import androidx.core.view.updatePadding
+import com.ubergeek42.WeechatAndroid.databinding.BubbleActivityBinding
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragment
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragmentContainer
 import com.ubergeek42.WeechatAndroid.notifications.notifyBubbleActivityCreated
@@ -12,29 +13,29 @@ import com.ubergeek42.WeechatAndroid.relay.BufferList
 import com.ubergeek42.WeechatAndroid.relay.as0x
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.utils.Constants
+import com.ubergeek42.WeechatAndroid.views.onSystemBarsAndImeInsetsChanged
 import com.ubergeek42.WeechatAndroid.views.solidColor
+import com.ubergeek42.WeechatAndroid.views.updateDimensions
 import com.ubergeek42.cats.Cat
 import com.ubergeek42.weechat.ColorScheme
-
-
-private val matchParentLayoutParams = FrameLayout.LayoutParams(
-    FrameLayout.LayoutParams.MATCH_PARENT,
-    FrameLayout.LayoutParams.MATCH_PARENT
-)
-
-
-private val FRAME_LAYOUT_ID = View.generateViewId()
 
 
 class BubbleActivity : AppCompatActivity(), BufferFragmentContainer {
     private var bufferFragment: BufferFragment? = null
 
+    lateinit var ui: BubbleActivityBinding
+
     @Cat override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        FrameLayout(this).apply {
-            id = FRAME_LAYOUT_ID
-            setContentView(this, matchParentLayoutParams)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
+        setContentView(R.layout.bubble_activity)
+        ui = BubbleActivityBinding.bind(findViewById(android.R.id.content))
+
+        ui.root.onSystemBarsAndImeInsetsChanged { insets ->
+            ui.fragmentContainer.updatePadding(bottom = insets.bottom)
+            ui.navigationPadding.updateDimensions(height = insets.bottom)
         }
 
         val pointer = intent?.getLongExtra(Constants.EXTRA_BUFFER_POINTER, -1) as Long
@@ -46,7 +47,7 @@ class BubbleActivity : AppCompatActivity(), BufferFragmentContainer {
             bufferFragment = if (alreadyAddedFragment == null) {
                 BufferFragment.newInstance(buffer.pointer).also {
                     supportFragmentManager.beginTransaction()
-                            .add(FRAME_LAYOUT_ID, it, tag)
+                            .add(R.id.fragment_container, it, tag)
                             .commit()
                 }
             } else {
@@ -81,7 +82,8 @@ class BubbleActivity : AppCompatActivity(), BufferFragmentContainer {
 
     @Cat private fun applyColorSchemeToViews() {
         val chatBackgroundColor = ColorScheme.get().default_color[ColorScheme.OPT_BG].solidColor
-        window.setBackgroundDrawable(ColorDrawable(chatBackgroundColor))
+        window.setBackgroundDrawable(chatBackgroundColor.toDrawable())
+        ui.navigationPadding.setBackgroundColor(P.colorPrimaryDark)
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
