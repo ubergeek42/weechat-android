@@ -9,11 +9,8 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
-import com.ubergeek42.WeechatAndroid.WeechatActivity
-import com.ubergeek42.WeechatAndroid.fragments.BufferFragment
 import com.ubergeek42.WeechatAndroid.fragments.BufferListFragment
 import com.ubergeek42.WeechatAndroid.service.P
-import com.ubergeek42.WeechatAndroid.upload.i
 
 
 // Using `getInsetsIgnoringVisibility` for system bars as those can be temporarily hidden at times,
@@ -123,43 +120,6 @@ class BufferListFragmentFullScreenController(val fragment: BufferListFragment) :
     }
 }
 
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////// buffer fragment
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-class BufferFragmentFullScreenController(val fragment: BufferFragment) : DefaultLifecycleObserver {
-    fun observeLifecycle() {
-        fragment.lifecycle.addObserver(this)
-    }
-
-    override fun onStart(owner: LifecycleOwner) {
-        insetListeners.add(insetListener)
-        insetListener.onInsetsChanged()
-    }
-
-    override fun onStop(owner: LifecycleOwner) {
-        insetListeners.remove(insetListener)
-    }
-
-    private val insetListener = InsetListener {
-        val ui = fragment.ui ?: return@InsetListener
-
-        val linesTopPadding = if (fragment.activity is WeechatActivity && P.autoHideActionbar)
-                windowInsets.top else 0
-        val fabRightMargin = windowInsets.right + (P._1dp * 12).i
-
-        ui.chatLines.updatePadding(top = linesTopPadding,
-                                   left = windowInsets.left,
-                                   right = windowInsets.right)
-
-        ui.bottomBar.updatePadding(left = windowInsets.left,
-                                   right = windowInsets.right)
-
-        ui.scrollToBottomFab.updateMargins(right = fabRightMargin)
-    }
-}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////// height observer

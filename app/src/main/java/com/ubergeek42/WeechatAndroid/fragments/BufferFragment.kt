@@ -27,6 +27,7 @@ import androidx.annotation.MainThread
 import androidx.annotation.WorkerThread
 import androidx.core.view.MenuCompat
 import androidx.core.view.forEach
+import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -70,15 +71,16 @@ import com.ubergeek42.WeechatAndroid.upload.suppress
 import com.ubergeek42.WeechatAndroid.upload.validateUploadConfig
 import com.ubergeek42.WeechatAndroid.utils.*
 import com.ubergeek42.WeechatAndroid.utils.Assert.assertThat
-import com.ubergeek42.WeechatAndroid.views.BufferFragmentFullScreenController
 import com.ubergeek42.WeechatAndroid.views.OnBackGestureListener
 import com.ubergeek42.WeechatAndroid.views.OnJumpedUpWhileScrollingListener
 import com.ubergeek42.WeechatAndroid.views.calculateApproximateWeaselWidth
 import com.ubergeek42.WeechatAndroid.views.hideSoftwareKeyboard
 import com.ubergeek42.WeechatAndroid.views.jumpThenSmoothScroll
 import com.ubergeek42.WeechatAndroid.views.jumpThenSmoothScrollCentering
+import com.ubergeek42.WeechatAndroid.views.onSystemBarsAndImeInsetsChanged
 import com.ubergeek42.WeechatAndroid.views.scrollToPositionWithOffsetFix
 import com.ubergeek42.WeechatAndroid.views.showSoftwareKeyboard
+import com.ubergeek42.WeechatAndroid.views.updateMargins
 import com.ubergeek42.cats.Cat
 import com.ubergeek42.cats.CatD
 import com.ubergeek42.cats.Kitty
@@ -115,8 +117,6 @@ class BufferFragment : Fragment(), BufferEye {
     private var linesAdapter: ChatLinesAdapter? = null
 
     var ui: ChatviewMainBinding? = null
-
-    init { BufferFragmentFullScreenController(this).observeLifecycle() }
 
     companion object {
         @JvmStatic fun newInstance(pointer: Long) =
@@ -243,6 +243,15 @@ class BufferFragment : Fragment(), BufferEye {
 
         initSearchViews()
         ui.chatLines.post { applyRecyclerViewState() }
+
+        ui.root.onSystemBarsAndImeInsetsChanged { insets ->
+            val linesTopPadding = if (activity is WeechatActivity && P.autoHideActionbar) insets.top else 0
+            val fabRightMargin = insets.right + (P._1dp * 12).i
+
+            ui.chatLines.updatePadding(top = linesTopPadding, left = insets.left, right = insets.right)
+            ui.bottomBar.updatePadding(left = insets.left, right = insets.right)
+            ui.scrollToBottomFab.updateMargins(right = fabRightMargin)
+        }
 
         connectedToRelay = true     // assume true, this will get corrected later
         return ui.root
