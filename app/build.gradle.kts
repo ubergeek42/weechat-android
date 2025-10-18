@@ -53,6 +53,7 @@ dependencies {
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.text.ext.junit)
     testImplementation(libs.junit.vintage.engine)
+    testRuntimeOnly(libs.junit.platform.launcher) // https://stackoverflow.com/questions/79546433
 }
 
 tasks.withType<JavaCompile> {

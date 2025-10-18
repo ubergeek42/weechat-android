@@ -16,6 +16,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
 
     testImplementation(libs.junit.jupiter)
+    testRuntimeOnly(libs.junit.platform.launcher) // https://stackoverflow.com/questions/79546433
 }
 
 tasks.withType<JavaCompile> {

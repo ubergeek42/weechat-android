@@ -12,6 +12,7 @@ dependencies {
 
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.mockito.core)
+    testRuntimeOnly(libs.junit.platform.launcher) // https://stackoverflow.com/questions/79546433
 }
 
 android {

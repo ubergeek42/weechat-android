@@ -75,6 +75,7 @@ gradle = { module = "com.android.tools.build:gradle", version.ref = "gradle" }  
 joda = { module = "net.danlew:android.joda", version.ref = "joda" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
 junit-jupiter-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "junit" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit"  }
 junit-vintage-engine = { module = "org.junit.vintage:junit-vintage-engine", version.ref = "junit" }
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }  # plugin
 kotlin-serialization = { module = "org.jetbrains.kotlin:kotlin-serialization", version.ref = "kotlin" }  # plugin
