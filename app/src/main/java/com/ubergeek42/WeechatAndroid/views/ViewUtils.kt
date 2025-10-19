@@ -197,7 +197,7 @@ abstract class DrawerToggleFix(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-private val imm = applicationContext.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+val imm = applicationContext.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
 
 fun View.showSoftwareKeyboard() {
     imm.showSoftInput(this, InputMethodManager.SHOW_IMPLICIT)

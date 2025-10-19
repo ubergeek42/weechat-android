@@ -6,6 +6,7 @@ import com.ubergeek42.WeechatAndroid.relay.Buffer
 import com.ubergeek42.WeechatAndroid.relay.BufferList
 import com.ubergeek42.WeechatAndroid.service.Events
 import com.ubergeek42.WeechatAndroid.upload.suppress
+import com.ubergeek42.WeechatAndroid.views.imm
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
 import com.ubergeek42.weechat.relay.connection.Handshake
@@ -25,12 +26,28 @@ abstract class TabCompleter(val input: EditText) {
     protected var replacements: Iterator<Replacement>? = null
     private var replacingText = false
 
+    // We need to reset completion after replacing text
+    // as Samsung keyboard will try to complete text after replacement.
+    // This looks like this (all text underlined for completion in all cases):
+    //     "h|" after <tab> becomes:
+    //     "hello: |" which after <i> becomes:
+    //     "hi|"
+    //
+    // Alternative ways to reset completion might be:
+    //     // resetting input type effectively calls `InputMethodManager.restartInput`
+    //     input.inputType = input.inputType
+    //
+    //     val inputConnection = input.onCreateInputConnection(EditorInfo())
+    //     inputConnection?.finishComposingText()
     protected fun performCompletion() {
         if (replacements === EmptyReplacements) return
         val (start, end, text) = replacements?.next() ?: return
 
         replacingText = true
-        suppress<Exception> { input.text.replace(start, end, text) }
+        suppress<Exception> {
+            input.text.replace(start, end, text)
+            imm.restartInput(input)
+        }
         replacingText = false
     }
 
