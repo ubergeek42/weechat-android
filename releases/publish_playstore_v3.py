@@ -20,6 +20,7 @@ KEY_PATH = 'releases/google-play-key.p12'
 
 PACKAGE_NAME = 'com.ubergeek42.WeechatAndroid.dev'
 APK_PATH = "app/build/outputs/apk/dev/app-dev.apk"
+MAPPING_PATH = "app/build/outputs/mapping/dev/mapping.txt"
 
 
 def credentials():
@@ -49,6 +50,16 @@ def upload():
         version_code = apk_response['versionCode']
 
         print("Version code %s has been uploaded" % version_code)
+
+        service.edits().deobfuscationfiles().upload(
+            editId=edit_id,
+            packageName=PACKAGE_NAME,
+            apkVersionCode=version_code,
+            deobfuscationFileType='proguard',
+            media_body=MAPPING_PATH
+        ).execute()
+
+        print("Deobfuscation file for version %s has been uploaded" % version_code)
 
         track_response = service.edits().tracks().update(
             editId=edit_id,
