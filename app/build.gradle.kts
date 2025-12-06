@@ -57,7 +57,7 @@ dependencies {
 
 android {
     namespace = "com.ubergeek42.WeechatAndroid"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         versionCode = 1_11_00
