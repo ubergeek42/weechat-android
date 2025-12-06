@@ -27,7 +27,7 @@
                 android:layout_margin="0dp"
                 style="@style/ActionButton" />
 
-            <com.ubergeek42.WeechatAndroid.views.BackGestureAwareEditText
+            <EditText
                 android:id="@+id/search_input"
                 android:layout_weight="1.0"
                 android:layout_width="0dp"

@@ -76,7 +76,6 @@ import com.ubergeek42.WeechatAndroid.utils.equalsIgnoringUselessSpans
 import com.ubergeek42.WeechatAndroid.utils.indexOfOrElse
 import com.ubergeek42.WeechatAndroid.utils.makeCopyWithoutUselessSpans
 import com.ubergeek42.WeechatAndroid.utils.ulet
-import com.ubergeek42.WeechatAndroid.views.OnBackGestureListener
 import com.ubergeek42.WeechatAndroid.views.OnJumpedUpWhileScrollingListener
 import com.ubergeek42.WeechatAndroid.views.calculateApproximateWeaselWidth
 import com.ubergeek42.WeechatAndroid.views.hideSoftwareKeyboard
@@ -812,15 +811,6 @@ class BufferFragment : Fragment(), BufferEye {
             setOnEditorActionListener { _: TextView?, actionId: Int, _: KeyEvent? ->
                 if (actionId == EditorInfo.IME_ACTION_SEARCH) ui.searchUpButton.performClick()
                 false
-            }
-
-            onBackGestureListener = OnBackGestureListener {
-                return@OnBackGestureListener if (ui.searchBar.visibility == View.VISIBLE) {
-                    searchEnableDisable(enable = false)
-                    true
-                } else {
-                    false
-                }
             }
         }
 
