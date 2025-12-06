@@ -22,8 +22,11 @@ import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.widget.PopupMenu
 import android.widget.TextView
+import android.window.OnBackInvokedCallback
+import android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT
 import androidx.annotation.AnyThread
 import androidx.annotation.MainThread
+import androidx.annotation.RequiresApi
 import androidx.annotation.WorkerThread
 import androidx.core.view.MenuCompat
 import androidx.core.view.forEach
@@ -96,6 +99,7 @@ import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
 import java.util.regex.PatternSyntaxException
+import androidx.core.view.isVisible
 
 
 private const val POINTER_KEY = "pointer"
@@ -149,6 +153,7 @@ class BufferFragment : Fragment(), BufferEye {
     @MainThread @Cat override fun onAttach(context: Context) {
         super.onAttach(context)
         container = context as BufferFragmentContainer
+        registerUnregisterSearchBarOnBackInvokedCallback()
     }
 
     @MainThread @Cat override fun onCreate(savedInstanceState: Bundle?) {
@@ -294,6 +299,7 @@ class BufferFragment : Fragment(), BufferEye {
 
     @MainThread @Cat override fun onDetach() {
         container = null
+        registerUnregisterSearchBarOnBackInvokedCallback()
         super.onDetach()
     }
 
@@ -338,6 +344,7 @@ class BufferFragment : Fragment(), BufferEye {
         super.setUserVisibleHint(focused)
         this.focusedInViewPager = focused
         onVisibilityStateChanged(ChangedState.PagerFocus)
+        registerUnregisterSearchBarOnBackInvokedCallback()
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -847,6 +854,26 @@ class BufferFragment : Fragment(), BufferEye {
             ui.chatLines.removeItemDecoration(searchMatchDecoration)
             linesAdapter?.search = null
         }
+
+        registerUnregisterSearchBarOnBackInvokedCallback()
+    }
+
+    // This registers the callback with the same priority as IME,
+    // causing the IME react first to the back gesture.
+    fun registerUnregisterSearchBarOnBackInvokedCallback() {
+        if (Build.VERSION.SDK_INT >= 33 && isAdded) {
+            if (focusedInViewPager && ui?.searchBar?.isVisible == true) {
+                requireActivity().onBackInvokedDispatcher
+                    .registerOnBackInvokedCallback(PRIORITY_DEFAULT, searchBarOnBackInvokedCallback)
+            } else {
+                requireActivity().onBackInvokedDispatcher
+                    .unregisterOnBackInvokedCallback(searchBarOnBackInvokedCallback)
+            }
+        }
+    }
+
+    @get:RequiresApi(33) private val searchBarOnBackInvokedCallback by lazy {
+        OnBackInvokedCallback { searchEnableDisable(enable = false) }
     }
 
     private fun triggerNewSearch() = ulet(ui) { ui ->
