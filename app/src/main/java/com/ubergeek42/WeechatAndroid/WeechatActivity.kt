@@ -13,6 +13,7 @@
 // limitations under the License.
 package com.ubergeek42.WeechatAndroid
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
@@ -651,7 +652,18 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener,
         toolbarController.onChatLinesScrolled(dy, onTop, onBottom)
     }
 
-    @MainThread override fun onBackPressed() {
+    /**
+     * Called on API 32 and below.
+     * On the above API, the functionality of this is handled by:
+     *  * [BufferFragment.registerUnregisterSearchBarOnBackInvokedCallback],
+     *  * [androidx.drawerlayout.widget.OnBackAnimationAwareDrawerLayout], and
+     *  * the overridden [finish] below.
+     *
+     * TODO `OnBackAnimationAwareDrawerLayout` requires API 34.
+     *   Do something about the drawer on API 33?
+     */
+    @Deprecated("Deprecated in Java")
+    @MainThread @CatD override fun onBackPressed() {
         if (currentFocus?.id == R.id.search_input) {
             pagerAdapter.currentBufferFragment?.searchEnableDisable(enable = false, newSearch = false)
         } else if (slidy && isPagerNoticeablyObscured) {
@@ -659,6 +671,55 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener,
         } else {
             moveTaskToBack(true)
         }
+    }
+
+    /**
+     * This here is a poor man's way to prevent the activity from finishing on back gesture.
+     * Before API 33, this was handled by [onBackPressed].
+     * With predictive back animations, there's a problem.
+     * We would like to run the default animation, and then minimize the activity.
+     * However,
+     *
+     *  * If we call [android.window.OnBackInvokedDispatcher.registerOnBackInvokedCallback]
+     *    with `PRIORITY_DEFAULT` or above, we can intercept the gesture,
+     *    but the default predictive back animation does not run.
+     *
+     *  * If we call the above with `PRIORITY_SYSTEM_NAVIGATION_OBSERVER`,
+     *    we can only observe that the back was invoked but can't prevent the default action.
+     *
+     *  * The method that should allow both the animation and the interception of the gesture,
+     *    `registerSystemOnBackInvokedCallback`, is `@hide`-en, as is the flag `PRIORITY_SYSTEM`.
+     *    (And `registerOnBackInvokedCallback` won't accept its integer value.)
+     *
+     * This works for now as this is the method that gets called eventually to finish the activity.
+     * An activity uses `Activity.mDefaultBackCallback` aka `Activity.onBackInvoked`,
+     * which should eventually call `finish`.
+     *
+     * Note that the launcher activities are not longer finished on back.
+     * See https://developer.android.com/about/versions/12/behavior-changes-all#back-press
+     * If it worked as advertised, we wouldn't be needing this hack.
+     * However, when pressing back, this method:
+     *
+     *  * On API 33:
+     *    is not called (working as advertised).
+     *
+     *  * On API 34 and 35:
+     *    is always called if the activity was *first* started *not* from launcher,
+     *    e.g. using a shortcut, a notification, or from Android Studio.
+     *
+     *  * On API 36:
+     *    * running on an emulator:
+     *      * same as API 34 and 35; but also
+     *      * is called *once* if the activity was first started from launcher
+     *        and then opened from a notification.
+     *    * running on Samsung S23, One UI 8.0:
+     *      * as above, except it
+     *      * is called only once if the activity was first started from AS.
+     *
+     * Note that the above is affected by the fact that we prevent finishing here.
+    */
+    @CatD override fun finish() {
+        moveTaskToBack(true)
     }
 
     val isChatInputOrSearchInputFocused: Boolean
@@ -827,6 +888,10 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener,
 
     companion object {
         @Root private val kitty: Kitty = Kitty.make("WA")
+    }
+
+    @CatD override fun onDestroy() {
+        super.onDestroy()
     }
 }
 
