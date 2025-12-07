@@ -33,6 +33,7 @@
         android:theme="@style/Weechat"
         android:usesCleartextTraffic="true"
         android:requestLegacyExternalStorage="true"
+        android:enableOnBackInvokedCallback="true"
         android:windowSoftInputMode="adjustResize">
 
         <service
