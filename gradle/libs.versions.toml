@@ -89,7 +89,7 @@ okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j-api" }
 snakeyaml = { module = "org.yaml:snakeyaml", version.ref = "snakeyaml" }
-sshlib = { module = "com.github.connectbot:sshlib", version.ref = "sshlib" }
+sshlib = { module = "org.connectbot:sshlib", version.ref = "sshlib" }
 
 
 [plugins]
