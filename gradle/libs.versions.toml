@@ -77,7 +77,6 @@ junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "jun
 junit-jupiter-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "junit" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit"  }
 junit-vintage-engine = { module = "org.junit.vintage:junit-vintage-engine", version.ref = "junit" }
-kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }  # plugin
 kotlin-serialization = { module = "org.jetbrains.kotlin:kotlin-serialization", version.ref = "kotlin" }  # plugin
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinx-coroutines" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
@@ -96,3 +95,4 @@ sshlib = { module = "org.connectbot:sshlib", version.ref = "sshlib" }
 gradleversionsplugin = { id = "com.github.ben-manes.versions", version.ref = "gradleversionsplugin" }
 gitversionplugin = { id = "com.palantir.git-version", version.ref = "gitversionplugin" }
 tasktree = { id = "com.dorongold.task-tree", version.ref = "tasktree" }
+legacy-kapt = { id = "com.android.legacy-kapt", version.ref = "gradle" } # move ^?

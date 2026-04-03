@@ -1,7 +1,6 @@
 plugins {
     id("com.android.application")
-    kotlin("android")
-    kotlin("kapt")
+    alias(libs.plugins.legacy.kapt)
     alias(libs.plugins.gitversionplugin)
 }
 
