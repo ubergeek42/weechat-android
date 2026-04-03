@@ -65,7 +65,6 @@ android {
         versionName = "1.11"
 
         minSdk = 26
-        targetSdk = 35
         buildConfigField("String", "VERSION_BANNER", "\"" + versionBanner() + "\"")
 
         vectorDrawables.useSupportLibrary = true
