@@ -1,27 +1,9 @@
 import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
 import org.gradle.api.plugins.JavaPluginExtension
 
-subprojects {
-    repositories {
-        mavenCentral()
-        google()
-        maven { url = uri("https://jitpack.io") }
-    }
-}
-
 defaultTasks("assembleDebug")
 
-repositories {
-    google()
-}
-
 buildscript {
-    repositories {
-        mavenCentral()
-        google()
-        maven("https://plugins.gradle.org/m2/")
-    }
-
     dependencies {
         classpath(libs.gradle)
         classpath(libs.aspectj.tools)
