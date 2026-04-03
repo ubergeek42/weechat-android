@@ -1,6 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.legacy.kapt)
+    alias(libs.plugins.ksp)
     alias(libs.plugins.gitversionplugin)
 }
 
@@ -27,12 +27,11 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
 
     implementation(libs.glide.glide)
-    kapt(libs.glide.compiler)
+    ksp(libs.glide.ksp)
     implementation(libs.okhttp)
 
     implementation(libs.androidx.room.runtime)
-    annotationProcessor(libs.androidx.room.compiler)
-    kapt(libs.androidx.room.compiler)
+    ksp(libs.androidx.room.compiler)
 
     implementation(libs.snakeyaml)
 

@@ -1,5 +1,7 @@
 package com.ubergeek42.WeechatAndroid.copypaste;
 
+import static com.ubergeek42.WeechatAndroid.media.Utils.isContextValidForGlide;
+
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.view.LayoutInflater;
@@ -27,7 +29,6 @@ import com.ubergeek42.cats.Root;
 
 import java.util.List;
 
-import static com.ubergeek42.WeechatAndroid.media.WAGlideModule.isContextValidForGlide;
 
 public class PasteAdapter extends RecyclerView.Adapter<PasteAdapter.PasteLine> {
     final private static  @Root Kitty kitty = Kitty.make();

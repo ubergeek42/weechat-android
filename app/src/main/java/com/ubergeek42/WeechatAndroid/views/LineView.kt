@@ -26,7 +26,7 @@ import com.ubergeek42.WeechatAndroid.media.Cache
 import com.ubergeek42.WeechatAndroid.media.Config
 import com.ubergeek42.WeechatAndroid.media.Engine
 import com.ubergeek42.WeechatAndroid.media.Strategy
-import com.ubergeek42.WeechatAndroid.media.WAGlideModule
+import com.ubergeek42.WeechatAndroid.media.Utils.isContextValidForGlide
 import com.ubergeek42.WeechatAndroid.relay.Line
 import com.ubergeek42.WeechatAndroid.upload.f
 import com.ubergeek42.WeechatAndroid.upload.i
@@ -383,7 +383,7 @@ const val HAVE_NOT_DRAWN = -1L
 private val NoText = SpannableString("error")   // just so that we don't need to say !!
 
 
-fun View.getSafeGlide() = if (WAGlideModule.isContextValidForGlide(context)) {
+fun View.getSafeGlide() = if (isContextValidForGlide(context)) {
                                Glide.with(context)
                            } else {
                                null

@@ -116,7 +116,7 @@ data class BufferToCount(val key: String, val count: Int)
 
 
 @RequiresApi(Build.VERSION_CODES.M)
-private class ShortcutStatisticsDatabase {
+class ShortcutStatisticsDatabase {
     @Dao
     interface Events {
         @Query("SELECT `key`, COUNT(*) AS `count` FROM manually_focused_events GROUP BY `key`")

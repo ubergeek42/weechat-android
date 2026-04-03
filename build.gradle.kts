@@ -60,7 +60,7 @@ plugins {
     alias(libs.plugins.android.library) apply false
     alias(libs.plugins.kotlin.jvm) apply false
     alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.legacy.kapt) apply false
+    alias(libs.plugins.ksp) apply false
 
     // The below is a plugin that checks for dependency updates.
     // To get a plain text report, run:

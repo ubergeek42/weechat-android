@@ -33,7 +33,7 @@ public class CachePersist {
     final private static int NO_OF_ITEMS_TO_PERSIST = 2000;
 
     @Entity(tableName = "attempts")
-    static class Attempt {
+    public static class Attempt {
         @ColumnInfo(name = "key") @PrimaryKey
         final public @NonNull String key;
 
@@ -63,7 +63,7 @@ public class CachePersist {
     }
 
     @Database(entities = {Attempt.class}, version = 1)
-    static abstract class AttemptDatabase extends RoomDatabase {
+    public static abstract class AttemptDatabase extends RoomDatabase {
         abstract AttemptsDao attemptsDao();
     }
 
