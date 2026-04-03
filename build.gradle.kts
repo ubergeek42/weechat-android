@@ -7,7 +7,6 @@ buildscript {
     dependencies {
         classpath(libs.gradle)
         classpath(libs.aspectj.tools)
-        classpath(libs.kotlin.serialization)
         classpath(libs.aspectjpipeline)
     }
 }
@@ -58,6 +57,7 @@ subprojects {
 }
 
 plugins {
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.legacy.kapt) apply false
 
     // The below is a plugin that checks for dependency updates.
