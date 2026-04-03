@@ -5,7 +5,6 @@ defaultTasks("assembleDebug")
 
 buildscript {
     dependencies {
-        classpath(libs.gradle)
         classpath(libs.aspectj.tools)
         classpath(libs.aspectjpipeline)
     }
@@ -57,6 +56,9 @@ subprojects {
 }
 
 plugins {
+    alias(libs.plugins.android.application) apply false
+    alias(libs.plugins.android.library) apply false
+    alias(libs.plugins.kotlin.jvm) apply false
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.legacy.kapt) apply false
 

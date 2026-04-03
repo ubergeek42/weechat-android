@@ -71,7 +71,7 @@ bouncycastle-pkix = { module = "org.bouncycastle:bcpkix-jdk15on", version.ref = 
 eventbus = { module = "org.greenrobot:eventbus", version.ref = "eventbus" }
 glide-compiler = { module = "com.github.bumptech.glide:compiler", version.ref = "glide" }  # plugin
 glide-glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
-gradle = { module = "com.android.tools.build:gradle", version.ref = "gradle" }  # plugin
+glide-ksp = { module = "com.github.bumptech.glide:ksp", version.ref = "glide" }
 joda = { module = "net.danlew:android.joda", version.ref = "joda" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
 junit-jupiter-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "junit" }
@@ -91,8 +91,11 @@ sshlib = { module = "org.connectbot:sshlib", version.ref = "sshlib" }
 
 
 [plugins]
+android-application = { id = "com.android.application", version.ref = "gradle" }
+android-library = { id = "com.android.library", version.ref = "gradle" }
 gradleversionsplugin = { id = "com.github.ben-manes.versions", version.ref = "gradleversionsplugin" }
 gitversionplugin = { id = "com.palantir.git-version", version.ref = "gitversionplugin" }
 tasktree = { id = "com.dorongold.task-tree", version.ref = "tasktree" }
 legacy-kapt = { id = "com.android.legacy-kapt", version.ref = "gradle" } # move ^?
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

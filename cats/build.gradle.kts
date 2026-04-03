@@ -3,7 +3,7 @@ import org.aspectj.bridge.MessageHandler
 import org.aspectj.tools.ajc.Main
 
 plugins {
-    id("com.android.library")
+    alias(libs.plugins.android.library)
 }
 
 dependencies {
