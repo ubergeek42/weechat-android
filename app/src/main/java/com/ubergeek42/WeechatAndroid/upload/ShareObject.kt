@@ -19,6 +19,8 @@ import com.bumptech.glide.request.transition.Transition
 import com.ubergeek42.WeechatAndroid.media.Config
 import com.ubergeek42.WeechatAndroid.media.Utils.isContextValidForGlide
 import com.ubergeek42.WeechatAndroid.utils.applicationContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -158,7 +160,10 @@ suspend fun getBitmapOrNull(context: Context, uri: Uri): Bitmap? =
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-// this simply loads all images for an intent so that they are cached in glide
+// This simply loads all images for an intent so that they are cached in glide.
+// Using GlobalScope as this is this action is not tied to a single activity.
+// TODO Make sure we are not duplicating requests
+@OptIn(DelicateCoroutinesApi::class)
 fun preloadThumbnailsForIntent(intent: Intent) {
     val uris = when (intent.action) {
         Intent.ACTION_SEND -> {
