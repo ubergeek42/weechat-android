@@ -8,6 +8,7 @@ import android.net.Uri
 import android.text.*
 import android.widget.EditText
 import androidx.annotation.MainThread
+import androidx.core.content.IntentCompat
 import androidx.lifecycle.findViewTreeLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
@@ -167,11 +168,11 @@ suspend fun getBitmapOrNull(context: Context, uri: Uri): Bitmap? =
 fun preloadThumbnailsForIntent(intent: Intent) {
     val uris = when (intent.action) {
         Intent.ACTION_SEND -> {
-            val uri = intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)
+            val uri = IntentCompat.getParcelableExtra(intent, Intent.EXTRA_STREAM, Uri::class.java)
             if (uri == null) null else listOf(uri)
         }
         Intent.ACTION_SEND_MULTIPLE -> {
-            intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM)
+            IntentCompat.getParcelableArrayListExtra(intent, Intent.EXTRA_STREAM, Uri::class.java)
         }
         else -> null
     }

@@ -37,6 +37,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.widget.TooltipCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.IntentCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.updatePadding
 import androidx.drawerlayout.widget.DrawerLayout
@@ -763,8 +764,8 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener,
                 intent.getStringExtra(Intent.EXTRA_TEXT)?.let { shareObject = TextShareObject(it) }
             } else {
                 val uris = when {
-                    sendOne -> intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)?.let { listOf(it) }
-                    sendMultiple -> intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM)
+                    sendOne -> IntentCompat.getParcelableExtra(intent, Intent.EXTRA_STREAM, Uri::class.java)?.let { listOf(it) }
+                    sendMultiple -> IntentCompat.getParcelableArrayListExtra(intent, Intent.EXTRA_STREAM, Uri::class.java)
                     else -> null
                 }
 
