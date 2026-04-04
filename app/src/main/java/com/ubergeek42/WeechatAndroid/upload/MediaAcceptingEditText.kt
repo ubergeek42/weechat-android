@@ -2,14 +2,14 @@ package com.ubergeek42.WeechatAndroid.upload
 
 import android.content.Context
 import android.net.Uri
-import android.os.Build
 import android.os.Parcel
 import android.os.Parcelable
 import android.util.AttributeSet
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputConnection
-import androidx.core.view.inputmethod.EditorInfoCompat
-import androidx.core.view.inputmethod.InputConnectionCompat
+import androidx.core.view.ContentInfoCompat
+import androidx.core.view.OnReceiveContentListener
+import androidx.core.view.ViewCompat
 import androidx.lifecycle.findViewTreeLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.ubergeek42.WeechatAndroid.R
@@ -20,6 +20,17 @@ import com.ubergeek42.cats.Root
 import kotlinx.coroutines.launch
 
 
+// Can not start with "*"
+private val MIME_TYPES = arrayOf(
+    "text/*",
+    "image/*",
+    "video/*",
+    "audio/*",
+    "application/pdf",
+    "application/octet-stream" // Generic binary data fallback
+)
+
+
 class MediaAcceptingEditText : ActionEditText {
     @Root private val kitty = Kitty.make()
 
@@ -28,32 +39,42 @@ class MediaAcceptingEditText : ActionEditText {
     constructor(context: Context, attrs: AttributeSet, defStyleAttr: Int) : super(context, attrs, defStyleAttr)
 
     override fun onCreateInputConnection(editorInfo: EditorInfo): InputConnection? {
-        val inputConnection = super.onCreateInputConnection(editorInfo) ?: return null
-        EditorInfoCompat.setContentMimeTypes(editorInfo, arrayOf("*/*", "image/*", "image/png", "image/gif", "image/jpeg"))
-        return InputConnectionCompat.createWrapper(inputConnection, editorInfo, callback)
+        editorInfo.contentMimeTypes = MIME_TYPES
+        setOnReceiveContentListener()
+        return super.onCreateInputConnection(editorInfo)
     }
 
-    private val callback = InputConnectionCompat.OnCommitContentListener { inputContentInfo, flags, _ ->
-        val lacksPermission = (flags and InputConnectionCompat.INPUT_CONTENT_GRANT_READ_URI_PERMISSION) != 0
-        val shouldRequestPermission = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1 && lacksPermission
+    /** As per the [OnReceiveContentListener] documentation,
+      * we must either keep permissions for the content via intents,
+      * or keep a reference to the payload object until we are done. */
+    private val payloadsBeingProcessed = mutableSetOf<ContentInfoCompat>()
 
-        if (shouldRequestPermission) {
-            try {
-                // todo release the permission at some point?
-                inputContentInfo.requestPermission()
-            } catch (e: Exception) {
-                kitty.error("Failed to acquire permission for %s", inputContentInfo.description, e)
-                return@OnCommitContentListener false
+    // TODO call setPendingInputForParallelFragments()?
+    //   See ef86b793811041df06d6f270a75deb3f546822e4
+    private fun setOnReceiveContentListener() {
+        ViewCompat.setOnReceiveContentListener(this, MIME_TYPES) { _, payload ->
+            val split = payload.partition { clipDataItem -> clipDataItem.uri != null }
+            val uriContent: ContentInfoCompat? = split.first
+            val remaining: ContentInfoCompat? = split.second
+
+            uriContent?.clip?.let { clipData ->
+                val uris = (0..<clipData.itemCount).mapNotNull { clipData.getItemAt(it).uri }
+
+                if (uris.isNotEmpty()) {
+                    payloadsBeingProcessed.add(payload)
+
+                    findViewTreeLifecycleOwner()?.lifecycleScope?.launch {
+                        try {
+                            UrisShareObject.fromUris(uris)
+                                .insertAsync(this@MediaAcceptingEditText, InsertAt.CURRENT_POSITION)
+                        } catch (e: Exception) {
+                            showSnackbar(R.string.error__etc__could_not_import_data, e)
+                        }
+                    }
+                }
             }
-        }
 
-        try {
-            UrisShareObject.fromUris(listOf(inputContentInfo.contentUri)).insert(this, InsertAt.CURRENT_POSITION)
-            true
-        } catch(e:Exception) {
-            kitty.error("Error while accessing uri", e)
-            showSnackbar(R.string.error__etc__while_accessing_uri, e)
-            false
+            remaining
         }
     }
 
@@ -77,6 +98,8 @@ class MediaAcceptingEditText : ActionEditText {
                 }
             }
         }
+
+        if (!hasShareSpans()) payloadsBeingProcessed.clear()
     }
 
     private fun hasShareSpans(): Boolean {
