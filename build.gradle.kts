@@ -1,4 +1,5 @@
 import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
+import org.gradle.api.plugins.JavaPluginExtension
 
 subprojects {
     repositories {
@@ -31,6 +32,16 @@ buildscript {
 }
 
 subprojects {
+    tasks.withType<JavaCompile> {
+        options.encoding = "UTF-8"
+    }
+
+    plugins.withType<JavaBasePlugin> {
+        extensions.configure<JavaPluginExtension> {
+            toolchain.languageVersion = JavaLanguageVersion.of(21)
+        }
+    }
+
     tasks.withType<Test> {
         useJUnitPlatform()                      // aka JUnit 5
 

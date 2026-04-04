@@ -57,5 +57,3 @@ tasks.withType<JavaCompile> {
         }
     }
 }
-
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)

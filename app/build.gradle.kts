@@ -57,10 +57,6 @@ dependencies {
     testRuntimeOnly(libs.junit.platform.launcher) // https://stackoverflow.com/questions/79546433
 }
 
-tasks.withType<JavaCompile> {
-    options.encoding = "UTF-8"
-}
-
 android {
     namespace = "com.ubergeek42.WeechatAndroid"
     compileSdk = 35
@@ -140,8 +136,6 @@ fun versionBanner(): String {
     val versionDetails: groovy.lang.Closure<com.palantir.gradle.gitversion.VersionDetails> by extra
     return with(versionDetails()) { "$lastTag-$commitDistance-g$gitHash" }
 }
-
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////// cats

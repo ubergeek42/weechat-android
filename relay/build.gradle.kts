@@ -18,9 +18,3 @@ dependencies {
     testImplementation(libs.junit.jupiter)
     testRuntimeOnly(libs.junit.platform.launcher) // https://stackoverflow.com/questions/79546433
 }
-
-tasks.withType<JavaCompile> {
-    options.encoding = "UTF-8"
-}
-
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
