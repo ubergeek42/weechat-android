@@ -13,13 +13,18 @@ import androidx.core.view.WindowInsetsCompat
 import com.ubergeek42.WeechatAndroid.R
 
 
-// Using `getInsetsIgnoringVisibility` for system bars as those can be temporarily hidden at times,
-// particularly when clicking on the paperclip button and getting the “Complete action using” dialog.
+// Sometimes the system bars are temporarily hidden, in particular:
+//   * when the window is in a split screen mode, and
+//   * when clicking on the paperclip button and getting the “Complete action using” dialog.
+// For the second case we may prefer using `getInsetsIgnoringVisibility`
+// so that we don't get any jitter in the background.
+// However, the split screen situation is more common, so we don't ignore the visibility.
+// Are there other cases where the system bars may get temporarily hidden?
 fun View.onSystemBarsInsetsChanged(listener: (insets: androidx.core.graphics.Insets) -> Unit) {
     var oldInsets = androidx.core.graphics.Insets.NONE
 
     ViewCompat.setOnApplyWindowInsetsListener(this) { _, windowInsets ->
-        val newInsets = windowInsets.getInsetsIgnoringVisibility(WindowInsetsCompat.Type.systemBars())
+        val newInsets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
 
         if (oldInsets != newInsets) {
             listener(newInsets)
@@ -36,7 +41,7 @@ fun View.onSystemBarsAndImeInsetsChanged(listener: (insets: androidx.core.graphi
 
     ViewCompat.setOnApplyWindowInsetsListener(this) { _, windowInsets ->
         val newInsets = androidx.core.graphics.Insets.max(
-            windowInsets.getInsetsIgnoringVisibility(WindowInsetsCompat.Type.systemBars()),
+            windowInsets.getInsets(WindowInsetsCompat.Type.systemBars()),
             windowInsets.getInsets(WindowInsetsCompat.Type.ime()),
         )
 
