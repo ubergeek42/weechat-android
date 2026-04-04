@@ -2,7 +2,6 @@ package com.ubergeek42.WeechatAndroid.media;
 
 import android.content.Context;
 
-import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 import androidx.room.Dao;
 import androidx.room.Database;
@@ -24,6 +23,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static com.ubergeek42.WeechatAndroid.utils.ApplicationContextKt.applicationContext;
 import static com.ubergeek42.WeechatAndroid.utils.Utils.runInBackground;
+
+import org.jspecify.annotations.NonNull;
 
 public class CachePersist {
     final private static @Root Kitty kitty = Kitty.make();
@@ -53,7 +54,7 @@ public class CachePersist {
     @Dao
     public interface AttemptsDao {
         @Query("SELECT * FROM attempts ORDER BY timestamp DESC LIMIT :count")
-        List<Attempt> getLast(int count);
+        @NonNull List<@NonNull Attempt> getLast(int count);
 
         @Insert(onConflict = OnConflictStrategy.REPLACE)
         void insertAll(Collection<Attempt> attempts);
