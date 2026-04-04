@@ -2,14 +2,14 @@ package com.ubergeek42.WeechatAndroid.upload
 
 import android.content.Context
 import android.net.Uri
-import android.os.Build
 import android.os.Parcel
 import android.os.Parcelable
 import android.util.AttributeSet
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputConnection
-import androidx.core.view.inputmethod.EditorInfoCompat
-import androidx.core.view.inputmethod.InputConnectionCompat
+import androidx.core.view.ContentInfoCompat
+import androidx.core.view.OnReceiveContentListener
+import androidx.core.view.ViewCompat
 import androidx.lifecycle.findViewTreeLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.ubergeek42.WeechatAndroid.R
@@ -20,6 +20,35 @@ import com.ubergeek42.cats.Root
 import kotlinx.coroutines.launch
 
 
+// Can not start with "*"
+private val ACCEPTABLE_MIME_TYPES = arrayOf(
+    "text/*",
+    "image/*",
+    "video/*",
+    "audio/*",
+    "application/pdf",
+    "application/octet-stream" // Generic binary data fallback
+)
+
+
+/**
+ * As per the [OnReceiveContentListener] documentation,
+ * the permissions for the URIs are transient and are released automatically by the platform.
+ * In order to keep the permissions while processing, we should keep a reference to the payload.
+ *
+ * This keeps the reference globally, per every URI.
+ *
+ * Note that it is possible for multiple buffers to receive payloads with the same URI.
+ * In practice, the same URIs should be denoting the same object, so this shouldn't be an issue.
+ *
+ * Also note that the reference is removed after the URI is converted to its HTTP equivalent.
+ * If any other buffers have the same URI as a preview, they may no longer have the permission.
+ * In practice, at this point the preview image is cached, and the HTTP URI is also available,
+ * so this may only pose an issue if the app cache is cleared.
+ */
+private val payloadsBeingProcessed = mutableMapOf<Uri, ContentInfoCompat>()
+
+
 class MediaAcceptingEditText : ActionEditText {
     @Root private val kitty = Kitty.make()
 
@@ -28,32 +57,35 @@ class MediaAcceptingEditText : ActionEditText {
     constructor(context: Context, attrs: AttributeSet, defStyleAttr: Int) : super(context, attrs, defStyleAttr)
 
     override fun onCreateInputConnection(editorInfo: EditorInfo): InputConnection? {
-        val inputConnection = super.onCreateInputConnection(editorInfo) ?: return null
-        EditorInfoCompat.setContentMimeTypes(editorInfo, arrayOf("*/*", "image/*", "image/png", "image/gif", "image/jpeg"))
-        return InputConnectionCompat.createWrapper(inputConnection, editorInfo, callback)
+        editorInfo.contentMimeTypes = ACCEPTABLE_MIME_TYPES
+        setOnReceiveContentListener()
+        return super.onCreateInputConnection(editorInfo)
     }
 
-    private val callback = InputConnectionCompat.OnCommitContentListener { inputContentInfo, flags, _ ->
-        val lacksPermission = (flags and InputConnectionCompat.INPUT_CONTENT_GRANT_READ_URI_PERMISSION) != 0
-        val shouldRequestPermission = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1 && lacksPermission
+    private fun setOnReceiveContentListener() {
+        ViewCompat.setOnReceiveContentListener(this, ACCEPTABLE_MIME_TYPES) { _, payload ->
+            val split = payload.partition { clipDataItem -> clipDataItem.uri != null }
+            val uriContent: ContentInfoCompat? = split.first
+            val remaining: ContentInfoCompat? = split.second
 
-        if (shouldRequestPermission) {
-            try {
-                // todo release the permission at some point?
-                inputContentInfo.requestPermission()
-            } catch (e: Exception) {
-                kitty.error("Failed to acquire permission for %s", inputContentInfo.description, e)
-                return@OnCommitContentListener false
+            uriContent?.clip?.let { clipData ->
+                val uris = (0..<clipData.itemCount).mapNotNull { clipData.getItemAt(it).uri }
+
+                if (uris.isNotEmpty()) {
+                    uris.forEach { payloadsBeingProcessed[it] = payload }
+
+                    findViewTreeLifecycleOwner()?.lifecycleScope?.launch {
+                        try {
+                            UrisShareObject.fromUris(uris)
+                                .insertAsync(this@MediaAcceptingEditText, InsertAt.CURRENT_POSITION)
+                        } catch (e: Exception) {
+                            showSnackbar(R.string.error__etc__could_not_import_data, e)
+                        }
+                    }
+                }
             }
-        }
 
-        try {
-            UrisShareObject.fromUris(listOf(inputContentInfo.contentUri)).insert(this, InsertAt.CURRENT_POSITION)
-            true
-        } catch(e:Exception) {
-            kitty.error("Error while accessing uri", e)
-            showSnackbar(R.string.error__etc__while_accessing_uri, e)
-            false
+            remaining
         }
     }
 
@@ -74,6 +106,7 @@ class MediaAcceptingEditText : ActionEditText {
                     it.replace(pos, it.getSpanEnd(span), "")
                     it.removeSpan(span)
                     insertAddingSpacesAsNeeded(pos, httpUri)
+                    payloadsBeingProcessed.remove(span.suri.uri)
                 }
             }
         }
