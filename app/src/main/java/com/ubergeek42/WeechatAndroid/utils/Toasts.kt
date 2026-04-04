@@ -19,6 +19,7 @@ class Toaster(
             Toast.makeText(context, message, duration).apply {
                 colorResource?.let {
                     val color = ContextCompat.getColor(context, it)
+                    @Suppress("DEPRECATION") // TODO Remove this or the whole class
                     view?.background?.setTint(color)
                 }
                 show()
