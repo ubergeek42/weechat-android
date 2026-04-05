@@ -3,6 +3,8 @@
 
 package com.ubergeek42.WeechatAndroid.service;
 
+import static androidx.preference.FontManager2Kt.createTypefaceOrNull;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -50,11 +52,14 @@ import com.ubergeek42.weechat.relay.connection.SSHServerKeyVerifier;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
+import java.io.File;
 import java.io.Serializable;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.ubergeek42.WeechatAndroid.utils.ApplicationContextKt.applicationContext;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
@@ -368,7 +373,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
                 BufferList.onGlobalPreferencesChanged(false);
                 break;
             case PREF_TEXT_SIZE:
-            case PREF_BUFFER_FONT:
+            case PREF_BUFFER_FONTS:
                 setTextSizeColorAndLetterWidth();
                 BufferList.onGlobalPreferencesChanged(false);
                 break;
@@ -421,10 +426,21 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
 
     @MainThread private static void setTextSizeColorAndLetterWidth() {
         textSize = Float.parseFloat(getString(PREF_TEXT_SIZE, PREF_TEXT_SIZE_D));
-        String bufferFont = p.getString(PREF_BUFFER_FONT, PREF_BUFFER_FONT_D);
 
-        Typeface typeface = Typeface.MONOSPACE;
-        try {typeface = Typeface.createFromFile(bufferFont);} catch (Exception ignored) {}
+        Typeface typeface = null;
+
+        try {
+            Set<String> bufferFonts = p.getStringSet(PREF_BUFFER_FONTS, PREF_BUFFER_FONTS_D);
+            if (bufferFonts != null && !bufferFonts.isEmpty()) {
+                typeface = createTypefaceOrNull(bufferFonts.stream().map(File::new).collect(Collectors.toList()));
+            }
+        } catch (Exception e) {
+            kitty.error("Could not load typeface", e);
+        }
+
+        if (typeface == null) {
+            typeface = Typeface.MONOSPACE;
+        }
 
         textPaint = new TextPaint();
         textPaint.setAntiAlias(true);
