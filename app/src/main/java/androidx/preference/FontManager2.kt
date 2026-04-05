@@ -15,28 +15,27 @@ private fun List<File>.createTypeface0(): Typeface? {
 
 
 @RequiresApi(Build.VERSION_CODES.Q)
-private fun List<File>.createFonts29(): List<Font> {
-    return mapNotNull { file ->
-        try {
-            Font.Builder(file).build()
-        } catch (e: Exception) {
-            println("Failed to parse font from file $file: $e")
-            null
+private fun List<File>.createTypeface29(): Pair<List<Font>, Typeface?> {
+    if (isEmpty()) return emptyList<Font>() to null
+
+    val fonts = mapNotNull { file ->
+            try {
+                Font.Builder(file).build()
+            } catch (e: Exception) {
+                println("Failed to parse font from file $file: $e")
+                null
+            }
         }
-    }
-}
 
+    val addedFonts = mutableListOf<Font>()
 
-@RequiresApi(Build.VERSION_CODES.Q)
-private fun List<Font>.createTypefaceOrNull29(): Typeface? {
-    if (isEmpty()) return null
-
-    val fontIterator = iterator()
+    val fontIterator = fonts.iterator()
     val family: FontFamily = FontFamily.Builder(fontIterator.next())
             .apply {
                 fontIterator.forEach { font ->
                     try {
                         addFont(font)
+                        addedFonts.add(font)
                     } catch (e: Exception) {
                         println("Failed to add font $font to family: $e")
                     }
@@ -44,13 +43,13 @@ private fun List<Font>.createTypefaceOrNull29(): Typeface? {
             }
             .build()
 
-    return Typeface.CustomFallbackBuilder(family).build()
+    return addedFonts to Typeface.CustomFallbackBuilder(family).build()
 }
 
 
 fun List<File>.createTypefaceOrNull(): Typeface? {
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-        createFonts29().createTypefaceOrNull29()
+        createTypeface29().second
     } else {
         createTypeface0()
     }
@@ -112,12 +111,11 @@ private fun enumerateTypefaces29(files: List<File>): List<TypefaceInfo> {
     return files
             .groupBy { file -> file.getFontFamilyGroupKey() }
             .mapNotNull { (_, files) ->
-                val fonts = files.createFonts29()
-                val typeface = fonts.createTypefaceOrNull29()
+                val (addedFonts, typeface) = files.createTypeface29()
                 if (typeface != null) {
-                    val firstFile = fonts.first().file!!
+                    val firstFile = addedFonts.first().file!!
                     val name = firstFile.getFontFamilyOrNull() ?: firstFile.name
-                    TypefaceInfo(name, fonts.map { it.file!!.absolutePath }, fonts, typeface)
+                    TypefaceInfo(name, addedFonts.map { it.file!!.absolutePath }, addedFonts, typeface)
                 } else {
                     null
                 }
