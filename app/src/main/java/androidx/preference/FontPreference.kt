@@ -2,7 +2,6 @@ package androidx.preference
 
 import android.content.Context
 import android.content.DialogInterface
-import android.graphics.Typeface
 import android.text.TextUtils
 import android.util.AttributeSet
 import android.view.LayoutInflater
@@ -16,22 +15,39 @@ import androidx.fragment.app.DialogFragment
 import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.utils.Constants
 import java.io.File
+import androidx.core.content.edit
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 
 class FontPreference(context: Context, attrs: AttributeSet?) : DialogPreference(context, attrs), DialogFragmentGetter {
-    private var fontPath: String
-        get() = sharedPreferences!!.getString(key, Constants.PREF_BUFFER_FONT_D) ?: ""
-        set(path) {
-            sharedPreferences!!.edit().putString(key, path).apply()
-            notifyChanged()
+    private var fontPaths: Set<String>?
+        get() = sharedPreferences!!.getStringSet(Constants.PREF_BUFFER_FONTS, Constants.PREF_BUFFER_FONTS_D)
+        set(paths) {
+            sharedPreferences!!.edit { putStringSet(Constants.PREF_BUFFER_FONTS, paths) }
+            setSummary()
         }
 
-    override fun getSummary(): CharSequence {
-        val path = fontPath
-        return if (path.isEmpty()) {
-            context.getString(R.string.pref__FontPreference__default)
+    override fun onAttached() {
+        super.onAttached()
+        setSummary()
+    }
+
+    fun setSummary() {
+        val paths = fontPaths
+        if (paths.isNullOrEmpty()) {
+            setSummary(R.string.pref__FontPreference__default)
         } else {
-            File(path).name
+            (context as? LifecycleOwner)?.lifecycleScope
+                    ?.launch(Dispatchers.IO) {
+                        enumerateTypefaces(paths.map(::File))
+                               .firstOrNull()
+                               ?.getDescription()
+                               ?.let { withContext(Dispatchers.Main) { setSummary(it) } }
+                    }
         }
     }
 
@@ -42,7 +58,7 @@ class FontPreference(context: Context, attrs: AttributeSet?) : DialogPreference(
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     class FontPreferenceFragment : PreferenceDialogFragmentCompat(), DialogInterface.OnClickListener {
-        private lateinit var fonts: List<FontInfo>
+        private lateinit var typefaceInfos: List<TypefaceInfo>
         private lateinit var inflater: LayoutInflater
 
         @OptIn(ExperimentalStdlibApi::class)
@@ -50,23 +66,22 @@ class FontPreference(context: Context, attrs: AttributeSet?) : DialogPreference(
             super.onPrepareDialogBuilder(builder)
             inflater = LayoutInflater.from(context)
 
-            val fakeDefaultFontName = getString(R.string.pref__FontPreference__default)
-            val fakeDefaultFont = FontInfo(fakeDefaultFontName, "", Typeface.MONOSPACE)
-            val managerFonts = FontManager.enumerateFonts(requireActivity())
-            fonts = listOf(fakeDefaultFont) + managerFonts.sortedBy { it.name.lowercase() }
+            val defaultTypefaceInfo = TypefaceInfo.getDefault(requireContext())
+            val availableTypefaceInfos = enumerateTypefaces(requireContext())
+            typefaceInfos = listOf(defaultTypefaceInfo) + availableTypefaceInfos.sortedBy { it.name.lowercase() }
 
-            val currentPath = (preference as FontPreference).fontPath
-            val currentIndex = fonts.indexOfFirst { it.path == currentPath }  // -1 is ok
+            val currentPaths = (preference as FontPreference).fontPaths
+            val currentIndex = typefaceInfos.indexOfFirst { currentPaths == it.fontFilePaths } // -1 is ok
 
             builder.setSingleChoiceItems(FontAdapter(), currentIndex, this)
             builder.setPositiveButton(getString(R.string.pref__FontPreference__import_button)) { _, _ ->
-                FontManager.requestFontImport(requireActivity())
+                requireActivity().requestFontImport()
                 dismiss()
             }
         }
 
         override fun onClick(dialog: DialogInterface, which: Int) {
-            if (which >= 0) (preference as FontPreference).fontPath = fonts[which].path
+            if (which >= 0) (preference as FontPreference).fontPaths = typefaceInfos[which].fontFilePaths
             dialog.dismiss()
         }
 
@@ -75,8 +90,8 @@ class FontPreference(context: Context, attrs: AttributeSet?) : DialogPreference(
         ////////////////////////////////////////////////////////////////////////////////////////////
 
         private inner class FontAdapter : BaseAdapter() {
-            override fun getCount() = fonts.size
-            override fun getItem(position: Int) = fonts[position]
+            override fun getCount() = typefaceInfos.size
+            override fun getItem(position: Int) = typefaceInfos[position]
             override fun getItemId(position: Int) = position.toLong()
 
             override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
@@ -86,9 +101,8 @@ class FontPreference(context: Context, attrs: AttributeSet?) : DialogPreference(
                 val fontInfo = getItem(position)
                 textView.apply {
                     ellipsize = TextUtils.TruncateAt.END
-                    setSingleLine()
                     typeface = fontInfo.typeface
-                    text = fontInfo.name
+                    text = fontInfo.getDescription()
                 }
 
                 return view
