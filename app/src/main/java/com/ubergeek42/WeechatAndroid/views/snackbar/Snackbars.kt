@@ -14,7 +14,7 @@ import androidx.preference.Preference
 import com.google.android.material.snackbar.Snackbar
 import com.ubergeek42.WeechatAndroid.BuildConfig
 import com.ubergeek42.WeechatAndroid.R
-import com.ubergeek42.WeechatAndroid.copypaste.setClipboard
+import com.ubergeek42.WeechatAndroid.copypaste.setClipboardText
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.utils.FriendlyExceptions
 import com.ubergeek42.WeechatAndroid.utils.Toaster
@@ -237,7 +237,7 @@ class ErrorDetailsActivity : EditTextActivity(allowSoftKeyboard = false) {
             setOnMenuItemClickListener { item: MenuItem ->
                 when (item.itemId) {
                     R.id.copy      -> {
-                        setClipboard(errorText)
+                        setClipboardText(errorText)
                         finish()
                     }
 

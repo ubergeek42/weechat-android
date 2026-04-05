@@ -1,8 +1,9 @@
 package com.ubergeek42.WeechatAndroid.copypaste
 
 import android.app.Dialog
+import android.content.ClipData
 import android.content.Context
-import android.text.ClipboardManager
+import android.content.ClipboardManager
 import android.text.style.URLSpan
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -12,7 +13,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.dialogs.FancyAlertDialogBuilder
 import com.ubergeek42.WeechatAndroid.relay.Line
-import com.ubergeek42.WeechatAndroid.utils.applicationContext
 import com.ubergeek42.WeechatAndroid.views.LineView
 
 
@@ -45,7 +45,7 @@ private class Copy(
 
         layout.findViewById<RecyclerView>(R.id.list).adapter =
                 CopyAdapter(context, getSourceLines()) { item ->
-            setClipboard(item)
+            context.setClipboardText(item)
             dialog.dismiss()
         }
 
@@ -60,8 +60,12 @@ private class Copy(
 }
 
 
-fun setClipboard(text: CharSequence) {
-    val clipboardManager = applicationContext
-            .getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager?
-    clipboardManager?.text = text
+fun Context.setClipboardText(text: CharSequence) {
+    val clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
+    clipboardManager?.setPrimaryClip(ClipData.newPlainText(text, text))
+}
+
+fun Context.getClipboardText(): CharSequence {
+    val clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
+    return clipboardManager?.primaryClip?.getItemAt(0)?.coerceToText(this) ?: ""
 }

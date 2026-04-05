@@ -4,12 +4,12 @@ package androidx.preference
 
 import android.content.Context
 import android.content.Intent
-import android.text.ClipboardManager
 import android.util.AttributeSet
 import android.util.Base64
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import com.ubergeek42.WeechatAndroid.R
+import com.ubergeek42.WeechatAndroid.copypaste.getClipboardText
 import com.ubergeek42.WeechatAndroid.utils.Utils
 import com.ubergeek42.WeechatAndroid.views.snackbar.showSnackbar
 import com.ubergeek42.cats.Kitty
@@ -74,9 +74,8 @@ open class FilePreference(context: Context, attrs: AttributeSet?)
             }
 
             builder.setNegativeButton(R.string.pref__FilePreference__button_paste) { _, _ ->
-                val clipboardManager = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                val clipboardText = clipboardManager.text
-                if (!clipboardText.isNullOrEmpty()) {
+                val clipboardText = requireContext().getClipboardText()
+                if (clipboardText.isNotEmpty()) {
                     preference.saveDataAndShowSnackbar { clipboardText.toString().toByteArray() }
                 } else {
                     showSnackbar(R.string.error__pref__clipboard_empty)
