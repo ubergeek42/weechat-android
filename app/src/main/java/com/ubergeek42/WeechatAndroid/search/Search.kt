@@ -57,7 +57,7 @@ class Search(
                         if (caseSensitive) {
                             { string -> string.contains(text) }
                         } else {
-                            val locale = applicationContext.resources.configuration.locale;
+                            val locale = applicationContext.resources.configuration.locales.get(0);
                             val textUpper = text.uppercase(locale)
                             val textLower = text.lowercase(locale);
 
