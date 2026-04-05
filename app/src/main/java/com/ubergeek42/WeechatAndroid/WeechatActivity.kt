@@ -271,7 +271,10 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener,
 
     private var started = false
 
-    // a dirty but quick & safe hack that sets background color of the popup menu
+    // A dirty but quick & safe hack that sets background color of the popup menu.
+    // While setColorFilter is deprecated, the suggested alternative requires API 29,
+    // so just leave this as is for now.
+    @Suppress("DEPRECATION") // setColorFilter
     override fun onCreateView(parent: View?, name: String, context: Context, attrs: AttributeSet): View? {
         if (name.endsWith(".menu.ListMenuItemView") && parent?.parent is FrameLayout) {
             (parent.parent as View).background = menuBackgroundDrawable.apply {
