@@ -15,8 +15,8 @@ private fun List<File>.createTypeface0(): Typeface? {
 
 
 @RequiresApi(Build.VERSION_CODES.Q)
-private fun List<File>.createTypefaceOrNull29(): Typeface? {
-    val fonts = sorted().mapNotNull { file ->
+private fun List<File>.createFonts29(): List<Font> {
+    return mapNotNull { file ->
         try {
             Font.Builder(file).build()
         } catch (e: Exception) {
@@ -24,10 +24,14 @@ private fun List<File>.createTypefaceOrNull29(): Typeface? {
             null
         }
     }
+}
 
-    if (fonts.isEmpty()) return null
 
-    val fontIterator = fonts.iterator()
+@RequiresApi(Build.VERSION_CODES.Q)
+private fun List<Font>.createTypefaceOrNull29(): Typeface? {
+    if (isEmpty()) return null
+
+    val fontIterator = iterator()
     val family: FontFamily = FontFamily.Builder(fontIterator.next())
             .apply {
                 fontIterator.forEach { font ->
@@ -46,7 +50,7 @@ private fun List<File>.createTypefaceOrNull29(): Typeface? {
 
 fun List<File>.createTypefaceOrNull(): Typeface? {
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-        createTypefaceOrNull29()
+        createFonts29().createTypefaceOrNull29()
     } else {
         createTypeface0()
     }
@@ -56,11 +60,25 @@ fun List<File>.createTypefaceOrNull(): Typeface? {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
+/**
+ * [filePaths] can be empty if it's a default font.
+ *
+ * [fonts] *might* be empty below API 29. If present:
+ *   * [filePaths] correspond to [fonts], and
+ *   * all fonts are actually available.
+ * If not:
+ *   * the path might not be a valid font.
+ */
 data class TypefaceInfo(
     val familyName: String,
     val filePaths: List<String>,
+    val fonts: List<Font>,
     val typeface: Typeface,
-)
+) {
+    companion object {
+        fun getDefault(name: String) = TypefaceInfo(name, emptyList(), emptyList(), Typeface.MONOSPACE)
+    }
+}
 
 
 private fun getFontSearchDirectories(context: Context): List<File> {
@@ -76,7 +94,7 @@ private fun getFontSearchDirectories(context: Context): List<File> {
 private fun enumerateTypefaces0(files: List<File>): List<TypefaceInfo> {
     return files.map { file ->
         val typeface = Typeface.createFromFile(file)
-        TypefaceInfo(file.name, listOf(file.absolutePath), typeface)
+        TypefaceInfo(file.name, listOf(file.absolutePath), emptyList(), typeface)
     }
 }
 
@@ -94,10 +112,12 @@ private fun enumerateTypefaces29(files: List<File>): List<TypefaceInfo> {
     return files
             .groupBy { file -> file.getFontFamilyGroupKey() }
             .mapNotNull { (_, files) ->
-                val typeface = files.createTypefaceOrNull29()
+                val fonts = files.createFonts29()
+                val typeface = fonts.createTypefaceOrNull29()
                 if (typeface != null) {
-                    val name = files.first().getFontFamilyOrNull() ?: files.first().name
-                    TypefaceInfo(name, files.map { it.absolutePath }, typeface)
+                    val firstFile = fonts.first().file!!
+                    val name = firstFile.getFontFamilyOrNull() ?: firstFile.name
+                    TypefaceInfo(name, fonts.map { it.file!!.absolutePath }, fonts, typeface)
                 } else {
                     null
                 }
