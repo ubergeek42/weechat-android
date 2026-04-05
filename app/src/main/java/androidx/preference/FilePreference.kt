@@ -85,6 +85,7 @@ open class FilePreference(context: Context, attrs: AttributeSet?)
             builder.setPositiveButton(R.string.pref__FilePreference__button_choose_file) { _, _ ->
                 val intent = Intent(Intent.ACTION_GET_CONTENT)
                 intent.setType("*/*")
+                @Suppress("DEPRECATION") // targetFragment, startActivityForResult
                 targetFragment!!.startActivityForResult(intent, requireArguments().getInt("code"))
             }
         }
