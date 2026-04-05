@@ -124,6 +124,7 @@ enum class Target(
 }
 
 
+@Suppress("DEPRECATION") // startActivityForResult, requestPermissions
 fun chooseFiles(fragment: Fragment, target: Target) {
     try {
         validateUploadConfig()

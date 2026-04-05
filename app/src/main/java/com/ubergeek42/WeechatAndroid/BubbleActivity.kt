@@ -69,11 +69,13 @@ class BubbleActivity : AppCompatActivity(), BufferFragmentContainer, BaseSnackba
         P.storeThemeOrColorSchemeColors(this)
     }
 
+    @Suppress("DEPRECATION") // userVisibleHint
     override fun onResume() {
         super.onResume()
         bufferFragment?.userVisibleHint = true
     }
 
+    @Suppress("DEPRECATION") // userVisibleHint
     override fun onPause() {
         bufferFragment?.userVisibleHint = false
         super.onPause()

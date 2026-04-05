@@ -333,6 +333,8 @@ class BufferFragment : Fragment(), BufferEye {
 
     // called by MainPagerAdapter
     // if true the page is the main in the adapter; called when sideways scrolling is complete
+    @Suppress("DEPRECATION") // setUserVisibleHint. TODO Don't use this
+    @Deprecated("Overridden method deprecated")
     @MainThread override fun setUserVisibleHint(focused: Boolean) {
         super.setUserVisibleHint(focused)
         this.focusedInViewPager = focused
@@ -698,6 +700,7 @@ class BufferFragment : Fragment(), BufferEye {
         }
     }
 
+    @Deprecated("Overridden method deprecated")
     @Cat override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (resultCode == Activity.RESULT_OK) {
             try {
@@ -756,6 +759,7 @@ class BufferFragment : Fragment(), BufferEye {
         container.updateMenuItems()
     }
 
+    @Deprecated("Overridden method deprecated")
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         if (requestCode == WRITE_PERMISSION_REQUEST_FOR_CAMERA &&
                 grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED) {
