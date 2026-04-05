@@ -1,7 +1,6 @@
 package com.ubergeek42.WeechatAndroid.copypaste;
 
 import android.content.Context;
-import android.text.ClipboardManager;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.widget.EditText;
@@ -19,6 +18,9 @@ import com.ubergeek42.WeechatAndroid.utils.Linkify;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.ubergeek42.WeechatAndroid.copypaste.CopyKt.getClipboardText;
+
 
 public class Paste {
     static class PasteItem {
@@ -41,7 +43,7 @@ public class Paste {
             return false;
 
         Context context = editText.getContext();
-        String clipboard = getCurrentClipboardAsText(context);
+        String clipboard = getClipboardText(context).toString().trim();
         boolean hasClipboard = !TextUtils.isEmpty(clipboard);
 
         List<PasteItem> list = new ArrayList<>(P.sentMessages.size());
@@ -72,13 +74,5 @@ public class Paste {
         dialog.setView(recyclerView);
         dialog.show();
         return true;
-    }
-
-    private static @Nullable String getCurrentClipboardAsText(Context context) {
-        ClipboardManager cm = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
-        if (cm == null || cm.getText() == null)
-            return null;
-        String text = cm.getText().toString().trim();
-        return TextUtils.isEmpty(text) ? null : text;
     }
 }
