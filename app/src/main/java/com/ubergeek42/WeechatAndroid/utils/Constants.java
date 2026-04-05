@@ -120,8 +120,8 @@ public class Constants {
     final public static String PREF_TIMESTAMP_FORMAT_D = "HH:mm:ss";
     public static final String PREF_DIM_DOWN = "dim_down";
     final public static boolean PREF_DIM_DOWN_D = true;
-    public static final String PREF_BUFFER_FONT = "buffer_font";
-    final public static String PREF_BUFFER_FONT_D = "";
+    public static final String PREF_BUFFER_FONTS = "buffer_fonts";
+    final public static Set<String> PREF_BUFFER_FONTS_D = null;
     public static final String PREF_COLOR_SCHEME_DAY = "color_scheme_day";
     final public static String PREF_COLOR_SCHEME_DAY_D = "squirrely-light-theme.properties";
     public static final String PREF_COLOR_SCHEME_NIGHT = "color_scheme_night";
@@ -266,5 +266,7 @@ public class Constants {
         final static public String PREF_SSH_KEY_PASSPHRASE = "ssh_key_passphrase"; final public static String PREF_SSH_KEY_PASSPHRASE_D = null;
         final static public String PREF_SSH_KNOWN_HOSTS = "ssh_known_hosts"; final public static String PREF_SSH_KNOWN_HOSTS_D = "";
         final static public String PREF_VOLUME_BTN_SIZE = "volumebtn_size"; final public static boolean PREF_VOLUME_BTN_SIZE_D = true;
+        final static public String PREF_BUFFER_FONT = "buffer_font";
+        final public static String PREF_BUFFER_FONT_D = "";
     }
 }
