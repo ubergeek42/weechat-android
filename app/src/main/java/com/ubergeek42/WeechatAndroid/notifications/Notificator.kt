@@ -137,7 +137,7 @@ private val disconnectActionPendingIntent = PendingIntent.getService(
         .setColor(notificationIconBackgroundColor)
         .setCategory(NotificationCompat.CATEGORY_SERVICE)
         .setWhen(System.currentTimeMillis())
-        .setPriority(Notification.PRIORITY_MIN)
+        .setPriority(NotificationCompat.PRIORITY_MIN)
         .setNotificationText(content)
 
     val textResource = if (relay.state.contains(RelayService.STATE.AUTHENTICATED))
@@ -574,7 +574,7 @@ private fun NotificationCompat.Builder.setMakeNoise(makeNoise: Boolean): Notific
             setSound(Uri.parse(it))
         }
 
-        priority = Notification.PRIORITY_HIGH
+        priority = NotificationCompat.PRIORITY_HIGH
     }
 
     return this
