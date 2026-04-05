@@ -276,7 +276,7 @@
             android:defaultValue="HH:mm:ss"
             android:singleLine="true" />
         <FontPreference
-            android:key="buffer_font"
+            android:key="buffer_fonts"
             android:title="@string/pref__look_n_feel__font" />
         <FontPreferenceHelp
             android:key="buffer_font_help"
