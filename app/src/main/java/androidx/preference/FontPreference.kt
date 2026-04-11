@@ -2,7 +2,6 @@ package androidx.preference
 
 import android.content.Context
 import android.content.DialogInterface
-import android.graphics.Typeface
 import android.text.TextUtils
 import android.util.AttributeSet
 import android.view.LayoutInflater
@@ -42,7 +41,7 @@ class FontPreference(context: Context, attrs: AttributeSet?) : DialogPreference(
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     class FontPreferenceFragment : PreferenceDialogFragmentCompat(), DialogInterface.OnClickListener {
-        private lateinit var fonts: List<FontInfo>
+        private lateinit var typefaces: List<TypefaceInfo>
         private lateinit var inflater: LayoutInflater
 
         @OptIn(ExperimentalStdlibApi::class)
@@ -50,13 +49,16 @@ class FontPreference(context: Context, attrs: AttributeSet?) : DialogPreference(
             super.onPrepareDialogBuilder(builder)
             inflater = LayoutInflater.from(context)
 
-            val fakeDefaultFontName = getString(R.string.pref__FontPreference__default)
-            val fakeDefaultFont = FontInfo(fakeDefaultFontName, "", Typeface.MONOSPACE)
-            val managerFonts = FontManager.enumerateFonts(requireActivity())
-            fonts = listOf(fakeDefaultFont) + managerFonts.sortedBy { it.name.lowercase() }
+            val defaultTypeface = TypefaceInfo.getDefault(requireContext().getString(R.string.pref__FontPreference__default))
+            val availableTypefaces = enumerateTypefaces(requireContext())
+            typefaces = listOf(defaultTypeface) + availableTypefaces.sortedBy { it.familyName.lowercase() }
 
-            val currentPath = (preference as FontPreference).fontPath
-            val currentIndex = fonts.indexOfFirst { it.path == currentPath }  // -1 is ok
+            typefaces.forEach {
+                println("Typeface: ${it.familyName} ${it.fonts}")
+            }
+            // TODO val currentPath = (preference as FontPreference).fontPath
+            // TODO val currentIndex = typefaces.indexOfFirst { it.path == currentPath }  // -1 is ok
+            val currentIndex = -1
 
             builder.setSingleChoiceItems(FontAdapter(), currentIndex, this)
             builder.setPositiveButton(getString(R.string.pref__FontPreference__import_button)) { _, _ ->
@@ -66,7 +68,7 @@ class FontPreference(context: Context, attrs: AttributeSet?) : DialogPreference(
         }
 
         override fun onClick(dialog: DialogInterface, which: Int) {
-            if (which >= 0) (preference as FontPreference).fontPath = fonts[which].path
+            // TODO if (which >= 0) (preference as FontPreference).fontPath = typefaces[which].path
             dialog.dismiss()
         }
 
@@ -75,8 +77,8 @@ class FontPreference(context: Context, attrs: AttributeSet?) : DialogPreference(
         ////////////////////////////////////////////////////////////////////////////////////////////
 
         private inner class FontAdapter : BaseAdapter() {
-            override fun getCount() = fonts.size
-            override fun getItem(position: Int) = fonts[position]
+            override fun getCount() = typefaces.size
+            override fun getItem(position: Int) = typefaces[position]
             override fun getItemId(position: Int) = position.toLong()
 
             override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
@@ -86,9 +88,9 @@ class FontPreference(context: Context, attrs: AttributeSet?) : DialogPreference(
                 val fontInfo = getItem(position)
                 textView.apply {
                     ellipsize = TextUtils.TruncateAt.END
-                    setSingleLine()
+                    //setSingleLine()
                     typeface = fontInfo.typeface
-                    text = fontInfo.name
+                    text = fontInfo.familyName + " (${fontInfo.getStylesDescription().joinToString(", ")})"
                 }
 
                 return view

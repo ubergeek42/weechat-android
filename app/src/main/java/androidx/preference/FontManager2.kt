@@ -4,6 +4,8 @@ import android.content.Context
 import android.graphics.Typeface
 import android.graphics.fonts.Font
 import android.graphics.fonts.FontFamily
+import android.graphics.fonts.FontStyle.FONT_SLANT_ITALIC
+import android.graphics.fonts.FontStyle.FONT_SLANT_UPRIGHT
 import android.os.Build
 import androidx.annotation.RequiresApi
 import java.io.File
@@ -16,9 +18,7 @@ private fun List<File>.createTypeface0(): Typeface? {
 
 @RequiresApi(Build.VERSION_CODES.Q)
 private fun List<File>.createTypeface29(): Pair<List<Font>, Typeface?> {
-    if (isEmpty()) return emptyList<Font>() to null
-
-    val fonts = mapNotNull { file ->
+    val fonts = sorted().mapNotNull { file ->
             try {
                 Font.Builder(file).build()
             } catch (e: Exception) {
@@ -27,10 +27,14 @@ private fun List<File>.createTypeface29(): Pair<List<Font>, Typeface?> {
             }
         }
 
+    if (fonts.isEmpty()) return emptyList<Font>() to null
+
     val addedFonts = mutableListOf<Font>()
 
     val fontIterator = fonts.iterator()
-    val family: FontFamily = FontFamily.Builder(fontIterator.next())
+    val firstFont = fontIterator.next()
+    addedFonts.add(firstFont)
+    val family: FontFamily = FontFamily.Builder(firstFont)
             .apply {
                 fontIterator.forEach { font ->
                     try {
@@ -72,8 +76,17 @@ data class TypefaceInfo(
     val familyName: String,
     val filePaths: List<String>,
     val fonts: List<Font>,
-    val typeface: Typeface,
+    val typeface: Typeface
 ) {
+    @RequiresApi(Build.VERSION_CODES.Q)
+    fun getStylesDescription(): List<String> {
+        return fonts.map {
+                val weight = it.style.weight
+                val italic = if (it.style.slant == FONT_SLANT_ITALIC) "i" else ""
+                "$weight$italic"
+            }
+    }
+
     companion object {
         fun getDefault(name: String) = TypefaceInfo(name, emptyList(), emptyList(), Typeface.MONOSPACE)
     }
