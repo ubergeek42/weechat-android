@@ -5,20 +5,30 @@ import android.graphics.Typeface
 import android.graphics.fonts.Font
 import android.graphics.fonts.FontFamily
 import android.graphics.fonts.FontStyle.FONT_SLANT_ITALIC
-import android.graphics.fonts.FontStyle.FONT_SLANT_UPRIGHT
 import android.os.Build
 import androidx.annotation.RequiresApi
 import java.io.File
 
 
-private fun List<File>.createTypeface0(): Typeface? {
+/**
+ * For API < 29.
+ * Throws RuntimeException if file not found.
+ * Does not check if the file is a valid font.
+ */
+@Throws(RuntimeException::class) // If file not found.
+private fun Collection<File>.createTypeface0(): Typeface? {
     return Typeface.createFromFile(first())
 }
 
 
+/**
+ * For API ≥ 29.
+ * Returns a list of added fonts, and the resulting typeface or null if no font files are valid.
+ * In the case where several fonts have the same style (weight & slant), only one will be added.
+ */
 @RequiresApi(Build.VERSION_CODES.Q)
-private fun List<File>.createTypeface29(): Pair<List<Font>, Typeface?> {
-    val fonts = sorted().mapNotNull { file ->
+private fun Collection<File>.createTypeface29(): Pair<List<Font>, Typeface?> {
+    val fonts = mapNotNull { file ->
             try {
                 Font.Builder(file).build()
             } catch (e: Exception) {
@@ -29,17 +39,12 @@ private fun List<File>.createTypeface29(): Pair<List<Font>, Typeface?> {
 
     if (fonts.isEmpty()) return emptyList<Font>() to null
 
-    val addedFonts = mutableListOf<Font>()
-
     val fontIterator = fonts.iterator()
-    val firstFont = fontIterator.next()
-    addedFonts.add(firstFont)
-    val family: FontFamily = FontFamily.Builder(firstFont)
+    val family = FontFamily.Builder(fontIterator.next())
             .apply {
                 fontIterator.forEach { font ->
                     try {
                         addFont(font)
-                        addedFonts.add(font)
                     } catch (e: Exception) {
                         println("Failed to add font $font to family: $e")
                     }
@@ -47,7 +52,7 @@ private fun List<File>.createTypeface29(): Pair<List<Font>, Typeface?> {
             }
             .build()
 
-    return addedFonts to Typeface.CustomFallbackBuilder(family).build()
+    return family.fonts to Typeface.CustomFallbackBuilder(family).build()
 }
 
 
@@ -155,3 +160,7 @@ fun enumerateTypefaces(context: Context): List<TypefaceInfo> {
         enumerateTypefaces0(files)
     }
 }
+
+
+private val FontFamily.fonts: List<Font>
+    @RequiresApi(Build.VERSION_CODES.Q) get() = (0..<size).map { index -> getFont(index) }
