@@ -15,22 +15,23 @@ import androidx.fragment.app.DialogFragment
 import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.utils.Constants
 import java.io.File
+import androidx.core.content.edit
 
 
 class FontPreference(context: Context, attrs: AttributeSet?) : DialogPreference(context, attrs), DialogFragmentGetter {
-    private var fontPath: String
-        get() = sharedPreferences!!.getString(key, Constants.PREF_BUFFER_FONT_D) ?: ""
-        set(path) {
-            sharedPreferences!!.edit().putString(key, path).apply()
+    private var fontPaths: Set<String>?
+        get() = sharedPreferences!!.getStringSet(Constants.PREF_BUFFER_FONTS, Constants.PREF_BUFFER_FONTS_D)
+        set(paths) {
+            sharedPreferences!!.edit { putStringSet(Constants.PREF_BUFFER_FONTS, paths) }
             notifyChanged()
         }
 
     override fun getSummary(): CharSequence {
-        val path = fontPath
-        return if (path.isEmpty()) {
+        val paths = fontPaths
+        return if (paths.isNullOrEmpty()) {
             context.getString(R.string.pref__FontPreference__default)
         } else {
-            File(path).name
+            paths.joinToString(", ") { File(it).name }
         }
     }
 
@@ -56,9 +57,9 @@ class FontPreference(context: Context, attrs: AttributeSet?) : DialogPreference(
             typefaces.forEach {
                 println("Typeface: ${it.familyName} ${it.fonts}")
             }
-            // TODO val currentPath = (preference as FontPreference).fontPath
-            // TODO val currentIndex = typefaces.indexOfFirst { it.path == currentPath }  // -1 is ok
-            val currentIndex = -1
+
+            val currentPaths = (preference as FontPreference).fontPaths
+            val currentIndex = typefaces.indexOfFirst { currentPaths == it.filePaths.toSet() } // -1 is ok
 
             builder.setSingleChoiceItems(FontAdapter(), currentIndex, this)
             builder.setPositiveButton(getString(R.string.pref__FontPreference__import_button)) { _, _ ->
@@ -68,7 +69,7 @@ class FontPreference(context: Context, attrs: AttributeSet?) : DialogPreference(
         }
 
         override fun onClick(dialog: DialogInterface, which: Int) {
-            // TODO if (which >= 0) (preference as FontPreference).fontPath = typefaces[which].path
+            if (which >= 0) (preference as FontPreference).fontPaths = typefaces[which].filePaths.toSet()
             dialog.dismiss()
         }
 
