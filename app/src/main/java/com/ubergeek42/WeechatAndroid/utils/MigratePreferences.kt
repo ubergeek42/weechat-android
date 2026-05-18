@@ -159,9 +159,9 @@ class MigratePreferences(val context: Context) {
         }
 
         add(4, 5) {
-            val font = preferences.getString(Constants.PREF_BUFFER_FONT,
-                                             Constants.PREF_BUFFER_FONT_D)
-            val fontSet = font != Constants.PREF_BUFFER_FONT_D
+            val font = preferences.getString(Constants.Deprecated.PREF_BUFFER_FONT,
+                                             Constants.Deprecated.PREF_BUFFER_FONT_D)
+            val fontSet = font != Constants.Deprecated.PREF_BUFFER_FONT_D
 
             val colorSchemeDay = preferences.getString(Constants.PREF_COLOR_SCHEME_DAY,
                                                        Constants.PREF_COLOR_SCHEME_DAY_D) ?: ""

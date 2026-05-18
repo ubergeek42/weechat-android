@@ -1,23 +1,36 @@
 package androidx.preference
 
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.graphics.Typeface
 import android.graphics.fonts.Font
 import android.graphics.fonts.FontFamily
 import android.graphics.fonts.FontStyle.FONT_SLANT_ITALIC
 import android.os.Build
 import androidx.annotation.RequiresApi
+import com.ubergeek42.WeechatAndroid.upload.Suri
+import com.ubergeek42.WeechatAndroid.upload.resolver
+import com.ubergeek42.WeechatAndroid.upload.suppress
+import com.ubergeek42.WeechatAndroid.utils.getUris
+import com.ubergeek42.WeechatAndroid.utils.saveUriToFile
+import com.ubergeek42.WeechatAndroid.views.snackbar.showSnackbar
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import java.io.File
 
 
 /**
  * For API < 29.
- * Throws RuntimeException if file not found.
- * Does not check if the file is a valid font.
+ * Returns null if file not found.
+ * Otherwise, does not check if the file is a valid font.
  */
-@Throws(RuntimeException::class) // If file not found.
-private fun Collection<File>.createTypeface0(): Typeface? {
-    return Typeface.createFromFile(first())
+private fun File.createTypefaceOrNull0(): Typeface? {
+    return try {
+        Typeface.createFromFile(this)
+    } catch (e: Exception) {
+        println("Failed to load typeface from file ${this}: $e")
+        null
+    }
 }
 
 
@@ -60,7 +73,7 @@ fun List<File>.createTypefaceOrNull(): Typeface? {
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
         createTypeface29().second
     } else {
-        createTypeface0()
+        firstOrNull()?.createTypefaceOrNull0()
     }
 }
 
@@ -92,6 +105,14 @@ data class TypefaceInfo(
             }
     }
 
+    override fun toString(): String {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            "$familyName (${getStylesDescription().joinToString(", ")})"
+        } else {
+            familyName
+        }
+    }
+
     companion object {
         fun getDefault(name: String) = TypefaceInfo(name, emptyList(), emptyList(), Typeface.MONOSPACE)
     }
@@ -109,8 +130,8 @@ private fun getFontSearchDirectories(context: Context): List<File> {
 
 
 private fun enumerateTypefaces0(files: List<File>): List<TypefaceInfo> {
-    return files.map { file ->
-        val typeface = Typeface.createFromFile(file)
+    return files.mapNotNull { file ->
+        val typeface = file.createTypefaceOrNull0() ?: return@mapNotNull null
         TypefaceInfo(file.name, listOf(file.absolutePath), emptyList(), typeface)
     }
 }
@@ -141,6 +162,15 @@ private fun enumerateTypefaces29(files: List<File>): List<TypefaceInfo> {
 }
 
 
+private fun List<File>.enumerateTypefaces(): List<TypefaceInfo> {
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        enumerateTypefaces29(this) // TODO ext
+    } else {
+        enumerateTypefaces0(this)
+    }
+
+}
+
 fun enumerateTypefaces(context: Context): List<TypefaceInfo> {
     val directories = getFontSearchDirectories(context)
 
@@ -154,13 +184,67 @@ fun enumerateTypefaces(context: Context): List<TypefaceInfo> {
                 }
             }
 
-    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-        enumerateTypefaces29(files)
-    } else {
-        enumerateTypefaces0(files)
-    }
+    return files.enumerateTypefaces()
 }
 
 
 private val FontFamily.fonts: List<Font>
     @RequiresApi(Build.VERSION_CODES.Q) get() = (0..<size).map { index -> getFont(index) }
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+fun importFontsFromResultIntent(context: Activity, intent: Intent?) {
+    val exceptions = mutableListOf<Exception>()
+    val importedFiles = mutableListOf<File>()
+
+    val fontsFolder = context.getExternalFilesDir(CUSTOM_FONTS_DIRECTORY)
+
+    intent?.getUris()?.forEach { uri ->
+        try {
+            val mediaType = resolver.getType(uri)?.toMediaTypeOrNull()
+            val fileName = Suri.makeFileNameWithExtension(uri, mediaType)
+            val outputFile = File(fontsFolder, fileName)
+
+            try {
+                context.saveUriToFile(uri, outputFile)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    Font.Builder(outputFile).build() // validate the file, if possible
+                }
+            } catch (e: Exception) {
+                suppress<Exception> { outputFile.delete() }
+                throw e
+            }
+
+            importedFiles.add(outputFile)
+        } catch (e: Exception) {
+            exceptions.add(e)
+        }
+    }
+
+    val importedTypefacesDescription = importedFiles.enumerateTypefaces().joinToString()
+
+    when {
+        importedFiles.isNotEmpty() && exceptions.isEmpty() -> {
+            context.showSnackbar("Imported: $importedTypefacesDescription")
+        }
+        importedFiles.isNotEmpty() && exceptions.isNotEmpty() -> {
+            context.showSnackbar("Imported: $importedTypefacesDescription. There were errors while importing some of the fonts", exceptions.combineIntoOne())
+        }
+        importedFiles.isEmpty() && exceptions.isNotEmpty() -> {
+            context.showSnackbar("Failed to import fonts", exceptions.combineIntoOne())
+        }
+        else -> {
+            context.showSnackbar("Failed to import fonts", Exception("Failed to import fonts from intent $intent"))
+        }
+    }
+}
+
+
+private fun List<Exception>.combineIntoOne() =
+    if (size == 1) {
+        first()
+    } else {
+        Exception("Could not import fonts").apply { forEach { addSuppressed(it) } }
+    }

@@ -43,6 +43,7 @@ import java.util.Set;
 import kotlin.Unit;
 import okhttp3.HttpUrl;
 
+import static androidx.preference.FontManager2Kt.importFontsFromResultIntent;
 import static androidx.preference.FontManagerKt.IMPORT_FONTS_REQUEST_CODE;
 import static androidx.preference.ThemeManagerKt.IMPORT_THEMES_REQUEST_CODE;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
@@ -122,7 +123,7 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
 
         if (resultCode == RESULT_OK) {
             if (requestCode == IMPORT_FONTS_REQUEST_CODE) {
-                FontManager.importFontsFromResultIntent(this, data);
+                importFontsFromResultIntent(this, data);
             } else if (requestCode == IMPORT_THEMES_REQUEST_CODE) {
                 ThemeManager.importThemesFromResultIntent(this, data);
             }
