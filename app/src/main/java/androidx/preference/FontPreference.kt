@@ -52,14 +52,14 @@ class FontPreference(context: Context, attrs: AttributeSet?) : DialogPreference(
 
             val defaultTypeface = TypefaceInfo.getDefault(requireContext().getString(R.string.pref__FontPreference__default))
             val availableTypefaces = enumerateTypefaces(requireContext())
-            typefaces = listOf(defaultTypeface) + availableTypefaces.sortedBy { it.familyName.lowercase() }
+            typefaces = listOf(defaultTypeface) + availableTypefaces.sortedBy { it.name.lowercase() }
 
             typefaces.forEach {
-                println("Typeface: ${it.familyName} ${it.fonts}")
+                println("Typeface: ${it.name} ${it.fonts}")
             }
 
             val currentPaths = (preference as FontPreference).fontPaths
-            val currentIndex = typefaces.indexOfFirst { currentPaths == it.filePaths.toSet() } // -1 is ok
+            val currentIndex = typefaces.indexOfFirst { currentPaths == it.fontFilePaths.toSet() } // -1 is ok
 
             builder.setSingleChoiceItems(FontAdapter(), currentIndex, this)
             builder.setPositiveButton(getString(R.string.pref__FontPreference__import_button)) { _, _ ->
@@ -69,7 +69,7 @@ class FontPreference(context: Context, attrs: AttributeSet?) : DialogPreference(
         }
 
         override fun onClick(dialog: DialogInterface, which: Int) {
-            if (which >= 0) (preference as FontPreference).fontPaths = typefaces[which].filePaths.toSet()
+            if (which >= 0) (preference as FontPreference).fontPaths = typefaces[which].fontFilePaths.toSet()
             dialog.dismiss()
         }
 
@@ -91,7 +91,7 @@ class FontPreference(context: Context, attrs: AttributeSet?) : DialogPreference(
                     ellipsize = TextUtils.TruncateAt.END
                     //setSingleLine()
                     typeface = fontInfo.typeface
-                    text = fontInfo.familyName + " (${fontInfo.getStylesDescription().joinToString(", ")})"
+                    text = fontInfo.name + " (${fontInfo.getStylesDescription().joinToString(", ")})"
                 }
 
                 return view

@@ -40,7 +40,7 @@ private fun File.createTypefaceOrNull0(): Typeface? {
  * In the case where several fonts have the same style (weight & slant), only one will be added.
  */
 @RequiresApi(Build.VERSION_CODES.Q)
-private fun Collection<File>.createTypeface29(): Pair<List<Font>, Typeface?> {
+private fun Collection<File>.createFontFamilyOrNull29(): FontFamily? {
     val fonts = mapNotNull { file ->
             try {
                 Font.Builder(file).build()
@@ -50,10 +50,10 @@ private fun Collection<File>.createTypeface29(): Pair<List<Font>, Typeface?> {
             }
         }
 
-    if (fonts.isEmpty()) return emptyList<Font>() to null
+    if (fonts.isEmpty()) return null
 
     val fontIterator = fonts.iterator()
-    val family = FontFamily.Builder(fontIterator.next())
+    return FontFamily.Builder(fontIterator.next())
             .apply {
                 fontIterator.forEach { font ->
                     try {
@@ -64,14 +64,17 @@ private fun Collection<File>.createTypeface29(): Pair<List<Font>, Typeface?> {
                 }
             }
             .build()
-
-    return family.fonts to Typeface.CustomFallbackBuilder(family).build()
 }
+
+
+@RequiresApi(Build.VERSION_CODES.Q)
+private fun FontFamily.createTypeface29() = Typeface.CustomFallbackBuilder(this).build()
+
 
 
 fun List<File>.createTypefaceOrNull(): Typeface? {
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-        createTypeface29().second
+        createFontFamilyOrNull29()?.createTypeface29()
     } else {
         firstOrNull()?.createTypefaceOrNull0()
     }
@@ -82,17 +85,17 @@ fun List<File>.createTypefaceOrNull(): Typeface? {
 
 
 /**
- * [filePaths] can be empty if it's a default font.
+ * [fontFilePaths] can be empty if it's a default font.
  *
  * [fonts] *might* be empty below API 29. If present:
- *   * [filePaths] correspond to [fonts], and
+ *   * [fontFilePaths] correspond to [fonts], and
  *   * all fonts are actually available.
  * If not:
  *   * the path might not be a valid font.
  */
 data class TypefaceInfo(
-    val familyName: String,
-    val filePaths: List<String>,
+    val name: String,
+    val fontFilePaths: List<String>,
     val fonts: List<Font>,
     val typeface: Typeface
 ) {
@@ -107,9 +110,9 @@ data class TypefaceInfo(
 
     override fun toString(): String {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            "$familyName (${getStylesDescription().joinToString(", ")})"
+            "$name (${getStylesDescription().joinToString(", ")})"
         } else {
-            familyName
+            name
         }
     }
 
@@ -150,11 +153,16 @@ private fun enumerateTypefaces29(files: List<File>): List<TypefaceInfo> {
     return files
             .groupBy { file -> file.getFontFamilyGroupKey() }
             .mapNotNull { (_, files) ->
-                val (addedFonts, typeface) = files.createTypeface29()
-                if (typeface != null) {
-                    val firstFile = addedFonts.first().file!!
-                    val name = firstFile.getFontFamilyOrNull() ?: firstFile.name
-                    TypefaceInfo(name, addedFonts.map { it.file!!.absolutePath }, addedFonts, typeface)
+                val fontFamily = files.createFontFamilyOrNull29()
+                if (fontFamily != null) {
+                    val fonts = fontFamily.fonts
+                    val firstFile = fonts.first().file!!
+                    TypefaceInfo(
+                        name = firstFile.getFontFamilyOrNull() ?: firstFile.name,
+                        fontFilePaths = fonts.map { it.file!!.absolutePath },
+                        fonts = fonts,
+                        typeface = fontFamily.createTypeface29()
+                    )
                 } else {
                     null
                 }
