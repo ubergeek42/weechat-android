@@ -6,8 +6,10 @@ import com.ubergeek42.weechat.relay.protocol.Data;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PushbackInputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -68,6 +70,14 @@ public class Utils {
 
         RelayMessage message;
         try {message = new RelayMessage(data);}
+        catch (Exception e) {throw new ProtocolError("Error while parsing message", e);}
+
+        return message;
+    }
+
+    static RelayMessage getApiRelayMessage(byte[] stream) throws IOException {
+        RelayMessage message;
+        try {message = new RelayMessage(stream, false);}
         catch (Exception e) {throw new ProtocolError("Error while parsing message", e);}
 
         return message;

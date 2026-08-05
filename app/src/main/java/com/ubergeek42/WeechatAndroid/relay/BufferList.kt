@@ -11,8 +11,12 @@ import com.ubergeek42.WeechatAndroid.service.Events.SendMessageEvent
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
-import com.ubergeek42.weechat.relay.protocol.Hdata
+import com.ubergeek42.weechat.relay.protocol.ApiRelayObject
 import com.ubergeek42.weechat.relay.protocol.RelayObject
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonObject
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
 
@@ -28,13 +32,22 @@ object BufferList {
     @JvmStatic @WorkerThread fun onServiceAuthenticated() {
         defaultMessageHandlers.forEach { (id, handler) -> addMessageHandler(id, handler) }
 
-        SendMessageEvent.fire(listOf(
+        SendMessageEvent.fire(
+            listOf(
                 BufferSpec.listBuffersRequest,
-                LastLinesSpec.request,          // see Lines.shouldAddSquiggleOnNewLastLine
-                LastReadLineSpec.request,
-                HotlistSpec.request,
-                if (P.optimizeTraffic) "sync * buffers,upgrade" else "sync",
-        ).joinToString("\n"))
+                //LastLinesSpec.request,          // see Lines.shouldAddSquiggleOnNewLastLine
+                //LastReadLineSpec.request,
+                //HotlistSpec.request,
+                //if (P.optimizeTraffic) "sync * buffers,upgrade" else "sync",
+                buildJsonObject {
+                    put("request", "POST /api/sync")
+
+                    putJsonObject("body") {
+                        put("colors", "weechat")
+                    }
+                }
+            ).joinToString(",", prefix = "[", postfix = "]")
+        )
     }
 
     @JvmStatic @AnyThread fun onServiceStopped() {
@@ -63,10 +76,10 @@ object BufferList {
 
     /////////////////////////////////////////////////////////////////////////////////////// handlers
 
-    private val handlers = ConcurrentHashMap<String, HdataHandler>()
+    private val handlers = ConcurrentHashMap<String, RelayObjectHandler>()
     private var handlerIdCounter = 0
 
-    @AnyThread private fun addMessageHandler(id: String, handler: HdataHandler) {
+    @AnyThread private fun addMessageHandler(id: String, handler: RelayObjectHandler) {
         handlers[id] = handler
     }
 
@@ -74,7 +87,7 @@ object BufferList {
         handlers.remove(id)
     }
 
-    @AnyThread fun addOneOffMessageHandler(handler: HdataHandler): String {
+    @AnyThread fun addOneOffMessageHandler(handler: RelayObjectHandler): String {
         val id = handlerIdCounter++.toString()
         addMessageHandler(id) { obj, _ ->
             removeMessageHandler(id)
@@ -83,10 +96,8 @@ object BufferList {
         return id
     }
 
-    @JvmStatic @WorkerThread fun handleMessage(obj: RelayObject?, id: String) {
-        if (obj is Hdata) {
-            handlers[id]?.handleMessage(obj, id) ?: kitty.warn("no handler for message id: %s", id)
-        }
+    @JvmStatic @WorkerThread fun handleMessage(obj: RelayObject, id: String) {
+        handlers[id]?.handleMessage(obj, id) ?: kitty.warn("no handler for message id: %s", id)
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////// eye
@@ -122,7 +133,7 @@ object BufferList {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @JvmStatic @AnyThread fun syncHotlist() {
-        SendMessageEvent.fire(LastReadLineSpec.request + "\n" + HotlistSpec.request)
+        //SendMessageEvent.fire(LastReadLineSpec.request + "\n" + HotlistSpec.request)
     }
 
     // if optimizing traffic, sync hotlist to make sure the number of unread messages is correct
@@ -146,7 +157,7 @@ object BufferList {
     }
 
     @MainThread fun requestNicklistForBuffer(pointer: Long) {
-        SendMessageEvent.fire(NickSpec.makeNicklistRequest(pointer))
+        //SendMessageEvent.fire(NickSpec.makeNicklistRequest(pointer))
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -158,27 +169,34 @@ object BufferList {
     private val defaultMessageHandlers = setupDefaultMessageHandlers()
 
 
-    fun interface HdataHandler {
-        fun handleMessage(obj: Hdata, id: String)
+    fun interface RelayObjectHandler {
+        fun handleMessage(obj: RelayObject, id: String)
     }
 
-
-    @Suppress("IfThenToElvis")
-    private fun setupDefaultMessageHandlers(): Map<String, HdataHandler> {
-        val handlers = mutableMapOf<String, HdataHandler>()
-
-        fun add(vararg ids: String, handler: HdataHandler) {
-            ids.forEach { id -> handlers[id] = handler }
+    private inline fun <reified T : RelayObject> MutableMap<String, RelayObjectHandler>.add(
+        vararg ids: String,
+        crossinline handler: (obj: T, id: String) -> Unit
+    ) {
+        ids.forEach { id ->
+            this[id] = RelayObjectHandler { obj, msgId ->
+                if (obj is T) {
+                    handler(obj, msgId)
+                }
+            }
         }
+    }
+
+    private fun setupDefaultMessageHandlers(): Map<String, RelayObjectHandler> {
+        val handlers = mutableMapOf<String, RelayObjectHandler>()
 
         ////////////////////////////////////////////////////////////////////////////////////////////
         //////////////////////////////////////////////////////////////////////////////// buffer list
         ////////////////////////////////////////////////////////////////////////////////////////////
 
-        add("listbuffers") { obj, _ ->
+        handlers.add<ApiRelayObject>("listbuffers") { obj, _ ->
             val buffers = CopyOnWriteArrayList<Buffer>()
 
-            obj.forEach { entry ->
+            (obj.inner as List<com.ubergeek42.weechat.Buffer>).forEach { entry ->
                 val buffer = BufferSpec(entry).toBuffer(openWhileRunning = false)
                 buffers.add(buffer)
 
@@ -193,8 +211,8 @@ object BufferList {
             Hotlist.makeSureHotlistDoesNotContainInvalidBuffers()
         }
 
-        add("_buffer_opened") { obj, _ ->
-            obj.forEach { entry ->
+        handlers.add<ApiRelayObject>("_buffer_opened") { obj, _ ->
+            (obj.inner as List<com.ubergeek42.weechat.Buffer>).forEach { entry ->
                 val buffer = BufferSpec(entry).toBuffer(openWhileRunning = true)
                 buffers.add(buffer)
             }
@@ -202,8 +220,8 @@ object BufferList {
             notifyBuffersChanged()  // todo this wasn't present before -- why?
         }
 
-        add("renumber") { obj, _ ->
-            obj.forEachExistingBuffer { spec, buffer ->
+        handlers.add<ApiRelayObject>("renumber") { obj, _ ->
+            (obj.inner as List<com.ubergeek42.weechat.Buffer>).forEachExistingBuffer { spec, buffer ->
                 val number = spec.number
 
                 if (buffer.number != number) {
@@ -216,8 +234,8 @@ object BufferList {
         }
 
 
-        add("_buffer_renamed") { obj, _ ->
-            obj.forEachExistingBuffer { spec, buffer ->
+        handlers.add<ApiRelayObject>("_buffer_renamed") { obj, _ ->
+            (obj.inner as List<com.ubergeek42.weechat.Buffer>).forEachExistingBuffer { spec, buffer ->
                 buffer.update { fullName = spec.fullName; shortName = spec.shortName }
             }
 
@@ -225,8 +243,8 @@ object BufferList {
         }
 
 
-        add("_buffer_title_changed") { obj, _ ->
-            obj.forEachExistingBuffer { spec, buffer ->
+        handlers.add<ApiRelayObject>("_buffer_title_changed") { obj, _ ->
+            (obj.inner as List<com.ubergeek42.weechat.Buffer>).forEachExistingBuffer { spec, buffer ->
                 buffer.update { title = spec.title }
             }
 
@@ -234,9 +252,9 @@ object BufferList {
         }
 
 
-        add("_buffer_localvar_added", "_buffer_localvar_changed", "_buffer_localvar_removed") {
+        handlers.add<ApiRelayObject>("_buffer_localvar_added", "_buffer_localvar_changed", "_buffer_localvar_removed") {
                 obj, _ ->
-            obj.forEachExistingBuffer { spec, buffer ->
+            (obj.inner as List<com.ubergeek42.weechat.Buffer>).forEachExistingBuffer { spec, buffer ->
                 buffer.update { type = spec.type }
             }
 
@@ -244,15 +262,15 @@ object BufferList {
         }
 
 
-        add("_buffer_moved", "_buffer_merged") { _, _ ->
+        handlers.add<ApiRelayObject>("_buffer_moved", "_buffer_merged") { _, _ ->
             SendMessageEvent.fire(BufferSpec.renumberRequest)
         }
 
 
-        add("_buffer_hidden", "_buffer_unhidden") { obj, id ->
+        handlers.add<ApiRelayObject>("_buffer_hidden", "_buffer_unhidden") { obj, id ->
             val hidden = id == "_buffer_hidden"
 
-            obj.forEachExistingBuffer { _, buffer ->
+            (obj.inner as List<com.ubergeek42.weechat.Buffer>).forEachExistingBuffer { _, buffer ->
                 buffer.update { this.hidden = hidden  }
             }
 
@@ -260,8 +278,8 @@ object BufferList {
         }
 
 
-        add("_buffer_closing") { obj, _ ->
-            obj.forEachExistingBuffer { _, buffer ->
+        handlers.add<ApiRelayObject>("_buffer_closing") { obj, _ ->
+            (obj.inner as List<com.ubergeek42.weechat.Buffer>).forEachExistingBuffer { _, buffer ->
                 buffers.remove(buffer)
                 buffer.onBufferClosed()
             }
@@ -276,7 +294,8 @@ object BufferList {
         var bufferToLastReadLine = LongSparseArray<Long>()
         var lastHotlistUpdateTime = 0L
 
-        add("last_read_lines") { obj, _ ->
+        /*
+        handlers.add<Hdata>("last_read_lines") { obj, _ ->
             bufferToLastReadLine = LongSparseArray<Long>().apply {
                 obj.forEach { entry ->
                     val spec = LastReadLineSpec(entry)
@@ -284,13 +303,14 @@ object BufferList {
                 }
             }
         }
+         */
 
-        add("last_lines") { obj, _ ->
+        handlers.add<ApiRelayObject>("last_lines") { obj, _ ->
             class PointerPair(var lastPointer: Long? = null, var lastVisiblePointer: Long? = null)
 
             val bufferToPointers = mutableMapOf<Long, PointerPair>()
 
-            obj.forEach { entry ->      // last lines com first
+            (obj.inner as List<com.ubergeek42.weechat.BufferLine>).forEach { entry ->      // last lines com first
                 val spec = LastLinesSpec(entry)
                 val pair = bufferToPointers.getOrPut(spec.bufferPointer) { PointerPair() }
                 val linePointer = spec.linePointer
@@ -304,7 +324,8 @@ object BufferList {
             }
         }
 
-        add("hotlist") { obj, _ ->
+        /*
+        handlers.add<Hdata>("hotlist") { obj, _ ->
             val bufferToHotlistSpec = LongSparseArray<HotlistSpec>()
 
             obj.forEach { entry ->
@@ -328,12 +349,14 @@ object BufferList {
 
             notifyBuffersChanged()
         }
+         */
 
         ////////////////////////////////////////////////////////////////////////////////////////////
         ////////////////////////////////////////////////////////////////////////////////////// nicks
         ////////////////////////////////////////////////////////////////////////////////////////////
 
-        add("nicklist", "_nicklist") { obj, _ ->
+        /*
+        handlers.add<Hdata>("nicklist", "_nicklist") { obj, _ ->
             val updates = mutableMapOf<Long, MutableList<Nick>>()
 
             obj.forEach { entry ->
@@ -351,7 +374,7 @@ object BufferList {
             }
         }
 
-        add("_nicklist_diff") { obj, _ ->
+        handlers.add<Hdata>("_nicklist_diff") { obj, _ ->
             var buffer: Buffer? = null
 
             obj.forEach { entry ->
@@ -372,12 +395,14 @@ object BufferList {
             }
         }
 
+         */
+
         ////////////////////////////////////////////////////////////////////////////////////////////
         ////////////////////////////////////////////////////////////////////////////////////// lines
         ////////////////////////////////////////////////////////////////////////////////////////////
 
-        add("_buffer_line_added") { obj, _ ->
-            obj.forEach { entry ->
+        handlers.add<ApiRelayObject>("_buffer_line_added") { obj, _ ->
+            listOf(obj.inner as com.ubergeek42.weechat.BufferLine).forEach { entry ->
                 val spec = LineSpec(entry)
                 findByPointer(spec.bufferPointer)?.let { buffer ->
                     buffer.addLineBottom(spec.toLine())
@@ -386,16 +411,16 @@ object BufferList {
             }
         }
 
-        add("_buffer_cleared") { obj, _ ->
-            obj.forEachExistingBuffer { _, buffer ->
+        handlers.add<ApiRelayObject>("_buffer_cleared") { obj, _ ->
+            (obj.inner as List<com.ubergeek42.weechat.Buffer>).forEachExistingBuffer { _, buffer ->
                 buffer.onLinesCleared()
             }
         }
 
-        add("_buffer_line_data_changed") { obj, _ ->
+        handlers.add<ApiRelayObject>("_buffer_line_data_changed") { obj, _ ->
             if (!P.handleBufferLineDataChanged) return@add
 
-            obj.forEach { entry ->
+            listOf((obj.inner as com.ubergeek42.weechat.BufferLine)).forEach { entry ->
                 val spec = LineSpec(entry)
                 findByPointer(spec.bufferPointer)?.let { buffer ->
                     buffer.replaceLine(spec.toLine())
@@ -407,12 +432,12 @@ object BufferList {
         return handlers
     }
 
-    private class LineListingHandler(private val bufferPointer: Long) : HdataHandler {
-        override fun handleMessage(obj: Hdata, id: String) {
+    private class LineListingHandler(private val bufferPointer: Long) : RelayObjectHandler {
+        override fun handleMessage(obj: RelayObject, id: String) {
             findByPointer(bufferPointer)?.let { buffer ->
-                val newLines = ArrayList<Line>(obj.count)
+                val newLines = ArrayList<Line>(((obj as ApiRelayObject).inner as List<com.ubergeek42.weechat.BufferLine>).count())
 
-                obj.forEachReversed { entry ->
+                (obj.inner as List<com.ubergeek42.weechat.BufferLine>).forEach { entry ->
                     newLines.add(LineSpec(entry).toLine())
                 }
 
@@ -422,9 +447,3 @@ object BufferList {
         }
     }
 }
-
-
-//data class LastLine(
-//    val pointer: Long,
-//    val visible: Boolean,
-//)

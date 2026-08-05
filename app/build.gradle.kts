@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.ksp)
     alias(libs.plugins.gitversionplugin)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 dependencies {
@@ -25,6 +26,7 @@ dependencies {
     implementation(libs.material)
 
     implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.kotlinx.serialization.json)
 
     implementation(libs.glide.glide)
     ksp(libs.glide.ksp)

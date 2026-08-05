@@ -74,12 +74,12 @@ private fun RelayObject.asCompletions(): Completions? {
     if (this !is Hdata || count == 0) return null
 
     val item = getItem(0)
-    val completions = item.getItem("list").asArray().asStringArray().toList()
+    val completions = item.getItem("list")?.asArray()?.asStringArray()?.toList().orEmpty()
 
     if (completions.isEmpty()) return null
 
-    val baseWord = item.getItem("base_word").asString()
-    val addSpace = item.getItem("add_space").asInt() == 1
+    val baseWord = item.getItem("base_word")?.asString().orEmpty()
+    val addSpace = item.getItem("add_space")?.asInt() == 1
 
     return Completions(completions, baseWord, addSpace)
 }

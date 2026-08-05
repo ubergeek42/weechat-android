@@ -4,12 +4,13 @@ package com.ubergeek42.WeechatAndroid.relay
 
 import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.service.P
+import com.ubergeek42.weechat.BufferLine
 import com.ubergeek42.weechat.relay.connection.Handshake
 import com.ubergeek42.weechat.relay.connection.Handshake.Companion.weechatVersion
 import com.ubergeek42.weechat.relay.connection.find
 import com.ubergeek42.weechat.relay.protocol.Hashtable
 import com.ubergeek42.weechat.relay.protocol.HdataEntry
-import kotlin.jvm.JvmInline
+import kotlinx.serialization.json.Json
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -31,26 +32,26 @@ enum class Notify(val value: Int) {
 }
 
 
-@JvmInline value class BufferSpec(val entry: HdataEntry) {
-    inline val pointer: Long get() = entry.pointerLong
-    inline val number: Int get() = entry.getInt("number")
-    inline val fullName: String get() = entry.getString("full_name")
-    inline val shortName: String? get() = entry.getStringOrNull("short_name")
-    inline val title: String? get() = entry.getStringOrNull("title")
-    inline val notify: Notify? get() = Notify::value.find(entry.getIntOrNull("notify"))
-    inline val type get() = Type.fromLocalVariables(entry.getHashtable("local_variables"))
-    inline val hidden get() = entry.getIntOrNull("hidden") == 1
+@JvmInline value class BufferSpec(val entry: com.ubergeek42.weechat.Buffer) {
+    inline val pointer: Long get() = entry.pointer
+    inline val number: Int get() = entry.number
+    inline val fullName: String get() = entry.fullName
+    inline val shortName: String? get() = entry.shortName
+    inline val title: String? get() = entry.title
+    inline val notify: Notify? get() = Notify::value.find(entry.notify)
+    inline val type get() = Type.Channel // FIXME: Type.fromLocalVariables(entry.type)
+    inline val hidden get() = entry.hidden
 
     // todo get rid of openWhileRunning
-    fun toBuffer(openWhileRunning: Boolean) = Buffer(pointer).apply {
+    fun toBuffer(openWhileRunning: Boolean) = Buffer(entry.pointer).apply {
         update(silently = true) {
-            number = this@BufferSpec.number
-            fullName = this@BufferSpec.fullName
-            shortName = this@BufferSpec.shortName
-            title = this@BufferSpec.title
-            notify = this@BufferSpec.notify
-            hidden = this@BufferSpec.hidden
-            type = this@BufferSpec.type
+            number = entry.number
+            fullName = entry.fullName
+            shortName = entry.shortName
+            title = entry.title
+            notify = Notify::value.find(entry.notify)
+            type = Type.Channel // FIXME Type.fromLocalVariables(entry.type)
+            hidden = entry.hidden
         }
 
         if (P.isBufferOpen(pointer)) addOpenKey("main-activity", syncHotlistOnOpen = false)
@@ -67,8 +68,12 @@ enum class Notify(val value: Int) {
     }
 
     companion object {
+        /*
         const val listBuffersRequest = "(listbuffers) hdata buffer:gui_buffers(*) " +
                 "number,full_name,short_name,type,title,nicklist,local_variables,notify,hidden"
+         */
+        val listBuffersRequest = Json.encodeToString(mapOf("request" to "GET /api/buffers?colors=weechat", "request_id" to "listbuffers"))
+
 
         const val renumberRequest = "(renumber) hdata buffer:gui_buffers(*) number"
     }
@@ -106,19 +111,20 @@ enum class Notify(val value: Int) {
 //////////////////////////////////////////////////////////////////////////////////////////// hotlist
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-@JvmInline value class LastLinesSpec(val entry: HdataEntry) {
-    inline val bufferPointer: Long get() = entry.getPointerLong("buffer")
-    inline val linePointer: Long get() = if (weechatVersion >= 0x4040000) entry.getInt("id").toLong() else entry.pointerLong
-    inline val visible: Boolean get() = entry.getChar("displayed") == 1.toChar()
+@JvmInline value class LastLinesSpec(val entry: com.ubergeek42.weechat.BufferLine) {
+    inline val bufferPointer: Long get() = entry.bufferPointer
+    inline val linePointer: Long get() = if (weechatVersion >= 0x4040000) entry.id!! else entry.pointer!!
+    inline val visible: Boolean get() = entry.displayed
 
     companion object {
+        /*
         const val request = "(last_lines) hdata " +
                 "buffer:gui_buffers(*)/own_lines/last_line(-25)/data id,buffer,displayed"
+         */
     }
 }
 
-
+/*
 @JvmInline value class LastReadLineSpec(val entry: HdataEntry) {
     inline val bufferPointer: Long get() = entry.getPointerLong("buffer")
     inline val linePointer: Long get() = if (weechatVersion >= 0x4040000) entry.getInt("id").toLong() else entry.pointerLong
@@ -128,9 +134,11 @@ enum class Notify(val value: Int) {
                 "buffer:gui_buffers(*)/own_lines/last_read_line/data id,buffer"
     }
 }
+ */
 
 
 class HotlistSpec(entry: HdataEntry) {
+    /*
     val unreads: Int        // chat messages & private messages
     val highlights: Int     // highlights
     val bufferPointer = entry.getPointerLong("buffer")
@@ -140,6 +148,8 @@ class HotlistSpec(entry: HdataEntry) {
         unreads = count[1].asInt() + count[2].asInt()
         highlights = count.get(3).asInt()
     }
+
+     */
 
     companion object {
         const val request = "(hotlist) hdata hotlist:gui_hotlist(*) buffer,count"
@@ -152,26 +162,31 @@ class HotlistSpec(entry: HdataEntry) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-@JvmInline value class LineSpec(val entry: HdataEntry) {
-    inline val bufferPointer: Long get() = entry.getPointerLong("buffer")
+@JvmInline value class LineSpec(val entry: BufferLine) {
+    inline val bufferPointer: Long get() = entry.bufferPointer
 
-    inline val pointer: Long get() = if (weechatVersion >= 0x4040000) entry.getInt("id").toLong() else entry.pointerLong
-    inline val timestamp: Long get() = entry.getItem("date").asTime().time
-    inline val prefix: String? get() = entry.getStringOrNull("prefix")
-    inline val message: String? get() = entry.getStringOrNull("message")
+    inline val pointer: Long get() = if (weechatVersion >= 0x4040000) entry.id!! else entry.pointer!!
+    inline val timestamp: Long get() = entry.timestamp
+    inline val prefix: String? get() = entry.prefix
+    inline val message: String? get() = entry.message
 
-    inline val visible: Boolean get() = entry.getChar("displayed") == 1.toChar()
-    inline val highlight: Boolean get() = entry.getChar("highlight") == 1.toChar()
+    inline val visible: Boolean get() = entry.displayed
+    inline val highlight: Boolean get() = entry.highlight
 
     inline val notifyLevel: NotifyLevel? get() = NotifyLevel.fromByte(
-            entry.getByteOrNull("notify_level"))
+            entry.notifyLevel
+    )
 
-    inline val tags: Array<String>? get() = entry.getStringArrayOrNull("tags_array")
+    inline val tags: Array<String>? get() = entry.tags
 
     companion object {
+        /*
         fun makeLastLinesRequest(id: String, pointer: Long, numberOfLines: Int) =
                 "($id) hdata buffer:${pointer.as0x}/own_lines/last_line(-$numberOfLines)/data " +
                 "id,date,displayed,prefix,message,highlight,notify,tags_array"
+         */
+        fun makeLastLinesRequest(id: String, pointer: Long, numberOfLines: Int) =
+          Json.encodeToString(mapOf("request" to "GET /api/buffers/$pointer/lines?lines=-$numberOfLines&colors=weechat", "request_id" to id))
     }
 
     fun toLine(): Line {
@@ -258,6 +273,7 @@ class HotlistSpec(entry: HdataEntry) {
     }
 
 
+
     enum class Type {
         Other,
         IncomingMessage,
@@ -331,6 +347,7 @@ internal const val UPDATE = '*'
 
 
 @JvmInline value class NickSpec(val entry: HdataEntry) {
+    /*
     inline val bufferPointer: Long get() = entry.getPointerLong(0)
 
     inline val pointer: Long get() = entry.pointerLong
@@ -349,6 +366,7 @@ internal const val UPDATE = '*'
         return Nick(pointer, prefix, name, away)
     }
 
+     */
     companion object {
         fun makeNicklistRequest(pointer: Long) = "(nicklist) nicklist ${pointer.as0x}"
     }
@@ -356,5 +374,5 @@ internal const val UPDATE = '*'
 
 
 @JvmInline value class NickDiffSpec(val entry: HdataEntry) {
-    inline val command: Char get() = entry.getChar("_diff")
+    //inline val command: Char get() = entry.getChar("_diff")
 }
