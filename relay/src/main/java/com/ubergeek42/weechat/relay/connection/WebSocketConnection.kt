@@ -12,17 +12,22 @@ import java.io.IOException
 import java.io.PipedInputStream
 import java.io.PipedOutputStream
 import java.net.URI
+import java.util.concurrent.LinkedBlockingQueue
 import javax.net.ssl.SSLSocket
+import kotlin.io.encoding.Base64
 
 
 class WebSocketConnection(
     private val hostname: String,
     port: Int,
     path: String,
+    pass: String,
     private val sslAxolotl: SslAxolotl?,
 ) : IConnection {
     private val webSocket: WebSocket
     private val pipedOutputStream = PipedOutputStream()
+
+    val messages: LinkedBlockingQueue<ByteArray> = LinkedBlockingQueue()
 
     // This is why we call setVerifyHostname(false) here:
     // The library is verifying the hostname like this:
@@ -68,6 +73,8 @@ class WebSocketConnection(
                 .setServerName(hostname)  // for SNI
                 .createSocket(uri)
 
+        webSocket.setDirectTextMessage(true);
+        webSocket.addHeader("Authorization", "Basic " + Base64.encode("plain:$pass".toByteArray()))
         webSocket.addListener(Listener())
     }
 
@@ -122,6 +129,11 @@ class WebSocketConnection(
             logger.trace("onBinaryMessage(size={})", binary.size)
             pipedOutputStream.write(binary)
             pipedOutputStream.flush()  // much faster with this
+        }
+
+        @Throws(Exception::class) override fun onTextMessage(websocket: WebSocket, binary: ByteArray) {
+            logger.trace("onTextMessage(size={})", binary.size);
+            messages.put(binary)
         }
 
         override fun onError(websocket: WebSocket, cause: WebSocketException) {

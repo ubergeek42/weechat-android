@@ -242,10 +242,10 @@ public class RelayService extends Service implements IObserver {
                         SSLHandler.getInstance(this).makeSslAxolotl()
                 ); break;
                 case PREF_TYPE_WEBSOCKET: conn = new WebSocketConnection(
-                        P.host, P.port, P.wsPath, null
+                        P.host, P.port, P.wsPath, P.pass, null
                 ); break;
                 case PREF_TYPE_WEBSOCKET_SSL: conn = new WebSocketConnection(
-                        P.host, P.port, P.wsPath,
+                        P.host, P.port, P.wsPath, P.pass,
                         SSLHandler.getInstance(this).makeSslAxolotl()
                 ); break;
                 default: conn = new SimpleConnection(P.host, P.port, null); break;

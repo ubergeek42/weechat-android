@@ -5,6 +5,7 @@ import com.ubergeek42.weechat.relay.protocol.Hashtable
 import com.ubergeek42.weechat.relay.protocol.Info
 import com.ubergeek42.weechat.fromHexStringToByteArray
 import com.ubergeek42.weechat.toHexStringLowercase
+import kotlinx.serialization.json.Json
 import org.slf4j.LoggerFactory
 import java.security.MessageDigest
 import javax.crypto.SecretKeyFactory
@@ -65,8 +66,11 @@ class CompatibilityHandshake(
     private val password: String
 ): Handshake {
     override fun start() {
+        connection.sendMessage(Json.encodeToString(mapOf("request" to "GET /api/version", "request_id" to VERSION_MESSAGE_ID)))
+        /*
         connection.sendMessage("init password=${password.withCommasEscaped},compression=zlib\n" +
                                "($VERSION_MESSAGE_ID) info version_number\n")
+         */
     }
 
     override fun onMessage(message: RelayMessage) = checkForVersionResponse(message)

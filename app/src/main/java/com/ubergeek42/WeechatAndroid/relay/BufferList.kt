@@ -11,9 +11,17 @@ import com.ubergeek42.WeechatAndroid.service.Events.SendMessageEvent
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
-import com.ubergeek42.weechat.relay.protocol.Hdata
 import com.ubergeek42.weechat.relay.protocol.Infolist
+import com.ubergeek42.weechat.relay.protocol.ApiRelayObject
+import com.ubergeek42.weechat.relay.protocol.BufferList
+import com.ubergeek42.weechat.relay.protocol.Hdata
+import com.ubergeek42.weechat.relay.protocol.LineList
 import com.ubergeek42.weechat.relay.protocol.RelayObject
+import kotlinx.serialization.json.add
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonArray
+import kotlinx.serialization.json.putJsonObject
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.atomic.AtomicInteger
@@ -30,14 +38,25 @@ object BufferList {
     @JvmStatic @WorkerThread fun onServiceAuthenticated() {
         setupDefaultMessageHandlers()
 
-        SendMessageEvent.fire(listOf(
-            OptionsSpec.dayChangeRequest,
-            BufferSpec.listBuffersRequest,
-            LastLinesSpec.request,          // see Lines.shouldAddSquiggleOnNewLastLine
-            LastReadLineSpec.request,
-            HotlistSpec.request,
-            if (P.optimizeTraffic) "sync * buffers,upgrade" else "sync",
-        ).joinToString("\n"))
+        SendMessageEvent.fire(
+            listOf(
+                OptionsSpec.dayChangeRequest,
+                BufferSpec.listBuffersRequest,
+                //LastLinesSpec.request,          // see Lines.shouldAddSquiggleOnNewLastLine
+                //LastReadLineSpec.request,
+                //HotlistSpec.request,
+                buildJsonObject {
+                    put("request", "POST /api/sync")
+
+                    putJsonObject("body") {
+                        put("colors", "weechat")
+                        putJsonArray("options") {
+                            add("weechat.look.day_change")
+                        }
+                    }
+                }
+            ).joinToString(",", prefix = "[", postfix = "]")
+        )
     }
 
     @JvmStatic @AnyThread fun onServiceStopped() {
@@ -140,7 +159,7 @@ object BufferList {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @JvmStatic @AnyThread fun syncHotlist() {
-        SendMessageEvent.fire(LastReadLineSpec.request + "\n" + HotlistSpec.request)
+        //SendMessageEvent.fire(LastReadLineSpec.request + "\n" + HotlistSpec.request)
     }
 
     // if optimizing traffic, sync hotlist to make sure the number of unread messages is correct
@@ -164,7 +183,7 @@ object BufferList {
     }
 
     @MainThread fun requestNicklistForBuffer(pointer: Long) {
-        SendMessageEvent.fire(NickSpec.makeNicklistRequest(pointer))
+        //SendMessageEvent.fire(NickSpec.makeNicklistRequest(pointer))
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -183,7 +202,7 @@ object BufferList {
         //////////////////////////////////////////////////////////////////////////////// buffer list
         ////////////////////////////////////////////////////////////////////////////////////////////
 
-        addMessageHandler<Hdata>("listbuffers") { obj, _ ->
+        addMessageHandler<BufferList>("listbuffers") { obj, _ ->
             val buffers = CopyOnWriteArrayList<Buffer>()
 
             obj.forEach { entry ->
@@ -201,6 +220,7 @@ object BufferList {
             Hotlist.makeSureHotlistDoesNotContainInvalidBuffers()
         }
 
+        /*
         addMessageHandler<Hdata>("_buffer_opened") { obj, _ ->
             obj.forEach { entry ->
                 val buffer = BufferSpec(entry).toBuffer(openWhileRunning = true)
@@ -276,9 +296,14 @@ object BufferList {
 
             notifyBuffersChanged()
         }
+         */
 
 
         addMessageHandler<Infolist>("options") { obj, _ ->
+            OptionsSpec.init(obj)
+        }
+
+        addMessageHandler<Infolist>("_option_changed") { obj, _ ->
             OptionsSpec.init(obj)
         }
 
@@ -289,6 +314,7 @@ object BufferList {
         var bufferToLastReadLine = LongSparseArray<Long>()
         var lastHotlistUpdateTime = 0L
 
+        /*
         addMessageHandler<Hdata>("last_read_lines") { obj, _ ->
             bufferToLastReadLine = LongSparseArray<Long>().apply {
                 obj.forEach { entry ->
@@ -341,11 +367,13 @@ object BufferList {
 
             notifyBuffersChanged()
         }
+         */
 
         ////////////////////////////////////////////////////////////////////////////////////////////
         ////////////////////////////////////////////////////////////////////////////////////// nicks
         ////////////////////////////////////////////////////////////////////////////////////////////
 
+        /*
         addMessageHandler<Hdata>("nicklist", "_nicklist") { obj, _ ->
             val updates = mutableMapOf<Long, MutableList<Nick>>()
 
@@ -385,11 +413,13 @@ object BufferList {
             }
         }
 
+         */
+
         ////////////////////////////////////////////////////////////////////////////////////////////
         ////////////////////////////////////////////////////////////////////////////////////// lines
         ////////////////////////////////////////////////////////////////////////////////////////////
 
-        addMessageHandler<Hdata>("_buffer_line_added") { obj, _ ->
+        addMessageHandler<LineList>("_buffer_line_added") { obj, _ ->
             obj.forEach { entry ->
                 val spec = LineSpec(entry)
                 findByPointer(spec.bufferPointer)?.let { buffer ->
@@ -399,6 +429,7 @@ object BufferList {
             }
         }
 
+        /*
         addMessageHandler<Hdata>("_buffer_cleared") { obj, _ ->
             obj.forEachExistingBuffer { _, buffer ->
                 buffer.onLinesCleared()
@@ -416,18 +447,18 @@ object BufferList {
                 }
             }
         }
+         */
     }
 
     @JvmStatic fun clearPrecomputedLayoutsEtcForAllBuffers() {
         buffers.forEach { it.clearPrecomputedLayoutsEtc() }
     }
-
-    private class LineListingHandler(private val bufferPointer: Long) : RelayObjectHandler<Hdata> {
-        override fun handleMessage(obj: Hdata, id: String) {
+    private class LineListingHandler(private val bufferPointer: Long) : RelayObjectHandler<LineList> {
+        override fun handleMessage(obj: LineList, id: String) {
             findByPointer(bufferPointer)?.let { buffer ->
-                val newLines = ArrayList<Line>(obj.count)
+                val newLines = ArrayList<Line>(obj.count())
 
-                obj.forEachReversed { entry ->
+                obj.forEach { entry ->
                     newLines.add(LineSpec(entry).toLine())
                 }
 
@@ -437,9 +468,3 @@ object BufferList {
         }
     }
 }
-
-
-//data class LastLine(
-//    val pointer: Long,
-//    val visible: Boolean,
-//)
