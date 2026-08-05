@@ -199,10 +199,10 @@ class RelayService : Service(), IObserver {
                     SSLHandler.getInstance(this).makeSslAxolotl()
                 )
                 Constants.PREF_TYPE_WEBSOCKET -> WebSocketConnection(
-                    P.host, P.port, P.wsPath, null
+                    P.host, P.port, P.wsPath, P.pass, null
                 )
                 Constants.PREF_TYPE_WEBSOCKET_SSL -> WebSocketConnection(
-                    P.host, P.port, P.wsPath,
+                    P.host, P.port, P.wsPath, P.pass,
                     SSLHandler.getInstance(this).makeSslAxolotl()
                 )
                 else -> SimpleConnection(P.host, P.port, null)

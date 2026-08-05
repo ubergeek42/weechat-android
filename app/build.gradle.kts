@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.ksp)
     alias(libs.plugins.gitversionplugin)
+    alias(libs.plugins.kotlin.serialization)
     id("cats")
 }
 
@@ -25,6 +26,7 @@ dependencies {
 
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.linkedblockingmultiqueue)
+    implementation(libs.kotlinx.serialization.json)
 
     implementation(libs.glide.glide)
     ksp(libs.glide.ksp)

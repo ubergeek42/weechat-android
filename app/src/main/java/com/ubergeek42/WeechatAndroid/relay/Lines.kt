@@ -147,14 +147,6 @@ class Lines {
     }
 
     fun addLast(line: Line) {
-        val unfilteredSize = unfiltered.size
-        val maxUnfilteredSize = maxUnfilteredSize
-        val shouldRemoveFirstLine = unfilteredSize == maxUnfilteredSize
-
-        if (shouldRemoveFirstLine) {
-            if (unfiltered.removeFirst().isVisible) filtered.removeFirst()
-        }
-
         unfiltered.addLast(line)
         if (line.isVisible) filtered.addLast(line)
         dayChangeLineAugmenter.clear()
@@ -165,18 +157,6 @@ class Lines {
         if (skipUnfiltered >= 0) skipUnfiltered++
 
         if (status == Status.Init) return
-
-        if (shouldRemoveFirstLine) {
-            if (status != Status.CanFetchMore) {
-                if (!status.ready()) setSkipsUsingPointer()
-                status = Status.CanFetchMore
-            }
-        } else if (unfilteredSize + 1 == maxUnfilteredSize) {
-            if (status != Status.EverythingFetched) {
-                if (!status.ready()) setSkipsUsingPointer()
-                status = Status.EverythingFetched
-            }
-        }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

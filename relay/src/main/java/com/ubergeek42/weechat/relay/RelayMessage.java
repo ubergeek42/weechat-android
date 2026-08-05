@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright 2012 Keith Johnson
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,6 +15,15 @@
  ******************************************************************************/
 package com.ubergeek42.weechat.relay;
 
+import com.ubergeek42.weechat.relay.protocol.ApiData;
+import com.ubergeek42.weechat.relay.protocol.Data;
+import com.ubergeek42.weechat.relay.protocol.PayloadSerializer;
+import com.ubergeek42.weechat.relay.protocol.RelayObject;
+import com.ubergeek42.weechat.relay.protocol.VersionPayload;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -22,15 +31,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.zip.InflaterInputStream;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.ubergeek42.weechat.relay.protocol.Data;
-import com.ubergeek42.weechat.relay.protocol.RelayObject;
+import kotlinx.serialization.json.Json;
 
 /**
  * Represents a message from the Weechat Relay Server
- * 
+ *
  * @author ubergeek42<kj@ubergeek42.com>
  */
 public class RelayMessage {
@@ -89,6 +94,17 @@ public class RelayMessage {
         while (wd.empty() == false) {
             objects.add(wd.getObject());
         }
+    }
+
+    public RelayMessage(byte[] data, boolean noop) {
+        String s = new String(data, StandardCharsets.UTF_8);
+
+        ApiData d = Json.Default.decodeFromString(
+                PayloadSerializer.INSTANCE,
+                new String(data, StandardCharsets.UTF_8).trim()
+        );
+        id = d.requestIdOrEventName();
+        objects.add(d.toRelayObject());
     }
 
     /**

@@ -124,7 +124,8 @@ public class RelayConnection {
 
     private void startThreadsAndAuthenticate() {
         new Utils.FriendlyThread("com.ubergeek42.weechat.relay.connection.ReadStream", iteration, new Protected("readStream", () -> {
-            while (!Thread.interrupted()) onMessage(Utils.getRelayMessage(streams.inputStream));
+            while (!Thread.interrupted())
+                onMessage(Utils.getApiRelayMessage(((WebSocketConnection) connection).getMessages().take()));
         })).start();
 
         if (streams.outputStream != null) writerStream.start();
