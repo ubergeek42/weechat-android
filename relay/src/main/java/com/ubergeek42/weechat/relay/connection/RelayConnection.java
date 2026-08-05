@@ -124,7 +124,7 @@ public class RelayConnection {
 
     private void startThreadsAndAuthenticate() {
         new Utils.FriendlyThread("ReadStream", iteration, new Protected("readStream", () -> {
-            while (!Thread.interrupted()) onMessage(Utils.getRelayMessage(streams.inputStream));
+            while (!Thread.interrupted()) onMessage(Utils.getApiRelayMessage(((WebSocketConnection)connection).getMessages().take()));
         })).start();
 
         if (streams.outputStream != null) writerStream.start();
