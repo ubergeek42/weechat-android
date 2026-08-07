@@ -34,7 +34,6 @@ tasks.withType<JavaCompile> {
         println("weaving cats...")
 
         val args = arrayOf("-showWeaveInfo",
-                           "-1.5",
                            "-inpath", destinationDirectory.asFile.get().toString(),
                            "-aspectpath", classpath.asPath,
                            "-d", destinationDirectory.asFile.get().toString(),
