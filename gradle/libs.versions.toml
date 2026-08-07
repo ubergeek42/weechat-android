@@ -31,7 +31,12 @@ gitversionplugin = "5.0.0"
 robolectric = "4.16.1"
 slf4j-api = "2.0.18"
 snakeyaml = "2.6"
+
+# The old, Trilead-based ConnectBot SSH library has been deprecated. Use the new one?
+#   https://github.com/connectbot/trilead-ssh2
+#   https://github.com/connectbot/cbssh
 sshlib = "2.2.48"
+
 tasktree = "4.0.2"
 
 
