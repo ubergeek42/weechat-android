@@ -17,7 +17,7 @@ dependencies {
 
 android {
     namespace = "com.ubergeek42.cats"
-    compileSdk = 34
+    compileSdk = 37
 
     defaultConfig {
         minSdk = 16
