@@ -62,26 +62,25 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp) apply false
 
-    // The below is a plugin that checks for dependency updates.
-    // To get a plain text report, run:
-    //   $ ./gradlew dependencyUpdates
-    // See https://github.com/ben-manes/gradle-versions-plugin
-    alias(libs.plugins.gradleversionsplugin)
-
     // to print a sensible task graph, uncomment the following line and run:
     //   $ gradlew :app:assembleDebug taskTree --no-repeat
     //alias(libs.plugins.tasktree)
 }
 
-fun isNonStable(version: String): Boolean {
-    val stableKeyword = listOf("RELEASE", "FINAL", "GA").any { version.uppercase().contains(it) }
-    val regex = "^[0-9,.v-]+(-r)?$".toRegex()
-    val isStable = stableKeyword || regex.matches(version)
+// This and below is the configuration for the Gradle Version Plugin,
+// taken verbatim from the recommended configuration section its readme as of version 0.61.0
+// See https://github.com/ben-manes/gradle-versions-plugin#a-recommended-configuration
+fun String.isNonStable(): Boolean {
+    val stableKeyword = listOf("RELEASE", "FINAL", "GA").any { uppercase().contains(it) }
+    val regex = "^[0-9,.v-]+(-r|-jre|-android)?$".toRegex()
+    val isStable = stableKeyword || regex.matches(this)
     return isStable.not()
 }
 
-tasks.named<DependencyUpdatesTask>("dependencyUpdates").configure {
+tasks.named<DependencyUpdatesTask>("dependencyUpdates") {
+    checkConstraints = true
     rejectVersionIf {
-        isNonStable(candidate.version) && !isNonStable(currentVersion)
+        (candidate.version.isNonStable() && !currentVersion.isNonStable()) ||
+                !satisfiesDeclaredBound
     }
 }

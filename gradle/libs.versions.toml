@@ -29,7 +29,6 @@ bouncycastle-pkix = "1.70"
 eventbus = "3.3.1"
 glide = "5.0.5"
 gradle = "9.3.1"
-gradleversionsplugin = "0.53.0"
 joda = "2.13.1"
 junit = "6.0.0"
 androidx-text-ext-junit = "1.3.0"
@@ -93,7 +92,6 @@ sshlib = { module = "org.connectbot:sshlib", version.ref = "sshlib" }
 [plugins]
 android-application = { id = "com.android.application", version.ref = "gradle" }
 android-library = { id = "com.android.library", version.ref = "gradle" }
-gradleversionsplugin = { id = "com.github.ben-manes.versions", version.ref = "gradleversionsplugin" }
 gitversionplugin = { id = "com.palantir.git-version", version.ref = "gitversionplugin" }
 tasktree = { id = "com.dorongold.task-tree", version.ref = "tasktree" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

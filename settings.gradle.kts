@@ -14,6 +14,12 @@ pluginManagement {
 
 plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
+    
+    // The below is a plugin that checks for dependency updates.
+    // To get a plain text report, run:
+    //   $ ./gradlew dependencyUpdates
+    // See https://github.com/ben-manes/gradle-versions-plugin
+    id("io.github.ben-manes.versions.settings") version "0.61.0"
 }
 
 dependencyResolutionManagement {
