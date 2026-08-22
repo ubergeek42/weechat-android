@@ -314,7 +314,7 @@ class BufferFragment : Fragment(), BufferEye {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     enum class ChangedState { BufferAttachment, PagerFocus, FullVisibility, LinesListed }
-    @MainThread @Cat(linger = true) fun onVisibilityStateChanged(changedState: ChangedState)
+    @MainThread @Cat(linger = true) fun onVisibilityStateChanged(changedState: ChangedState): Unit
             = ulet(container, buffer) { container, buffer ->
         if (!buffer.linesAreReady()) return
         kitty.trace("proceeding!")
@@ -474,7 +474,7 @@ class BufferFragment : Fragment(), BufferEye {
                 savedInstanceState.getInt(KEY_INVISIBLE_PIXELS))
     }
 
-    private fun recordRecyclerViewState() = ulet(ui?.chatLines) { lines ->
+    private fun recordRecyclerViewState(): Unit = ulet(ui?.chatLines) { lines ->
         recyclerViewState = if (lines.onBottom) {
             null
         } else {
@@ -485,7 +485,7 @@ class BufferFragment : Fragment(), BufferEye {
         }
     }
 
-    private fun applyRecyclerViewState() = ulet(recyclerViewState, ui?.chatLines, linesAdapter) {
+    private fun applyRecyclerViewState(): Unit = ulet(recyclerViewState, ui?.chatLines, linesAdapter) {
             state, lines, adapter ->
         val position = adapter.findPositionByPointer(state.lastChildPointer)
         if (position == -1) return
@@ -627,7 +627,7 @@ class BufferFragment : Fragment(), BufferEye {
     private var uploadManager: UploadManager? = null
     private var lastUploadStatus: UploadStatus? = null
 
-    @CatD @MainThread fun setUploadStatus(uploadStatus: UploadStatus) = ulet(ui) { ui ->
+    @CatD @MainThread fun setUploadStatus(uploadStatus: UploadStatus): Unit = ulet(ui) { ui ->
         if (uploadStatus == lastUploadStatus) return
         lastUploadStatus = uploadStatus
 
@@ -910,7 +910,7 @@ class BufferFragment : Fragment(), BufferEye {
     // but a + that depends on true availability of lines isn't very useful if we are not
     // requesting the entirety of lines available.
     // so we only show it to indicate that we are fetching lines.
-    private fun adjustSearchNumbers() = ulet(ui) { ui ->
+    private fun adjustSearchNumbers(): Unit = ulet(ui) { ui ->
         if (!isSearchEnabled) return
         val matchIndex = matches.indexOf(focusedMatch)
         ui.searchResultNo.text = if (matchIndex == -1)
