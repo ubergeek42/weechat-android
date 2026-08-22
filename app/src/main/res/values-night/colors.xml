@@ -20,6 +20,7 @@
     <color name="bufferListChannelHot">#aa596c7d</color>
     <color name="bufferListPrivate">#aa57474f</color>
     <color name="bufferListPrivateHot">#aa735e69</color>
+    <color name="bufferListServerName">@color/accent</color>
 
     <color name="warmShade">#59ffffff</color>
     <color name="warmBackground">#29000000</color>

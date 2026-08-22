@@ -15,12 +15,16 @@ package com.ubergeek42.WeechatAndroid.adapters
 
 import android.content.Context
 import android.text.Spannable
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.annotation.AnyThread
 import androidx.annotation.MainThread
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
@@ -72,7 +76,17 @@ class BufferListAdapter(
             val important = highlights > 0 || unreads > 0 && buffer.type == BufferSpec.Type.Private
             ui.container.setBackgroundResource(if (important) buffer.type.hotColorRes else buffer.type.colorRes)
             ui.openIndicator.visibility = if (buffer.isOpen) View.VISIBLE else View.GONE
-            ui.buffer.text = buffer.printable
+
+            // server buffers (e.g. "freenode", "libera") have no explicit type,
+            // so they fall into Type.Other -- tint their name to set them apart
+            // from regular channel/private buffer rows in the list
+            val printable = buffer.printable
+            ui.buffer.text = if (buffer.type == BufferSpec.Type.Other && printable != null) {
+                SpannableString(printable).apply {
+                    val color = ContextCompat.getColor(itemView.context, R.color.bufferListServerName)
+                    setSpan(ForegroundColorSpan(color), 0, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                }
+            } else printable
 
             fun TextView.applyNumber(number: Int) {
                 if (number > 0) {
