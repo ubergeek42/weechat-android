@@ -421,7 +421,7 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener,
 
         if (fragmentMaker != null) {
             main {
-                fragmentMaker!!.invoke().show(supportFragmentManager, "ssl-or-ssh-error")
+                fragmentMaker.invoke().show(supportFragmentManager, "ssl-or-ssh-error")
                 disconnect()
             }
         } else {

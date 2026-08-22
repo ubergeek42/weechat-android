@@ -297,7 +297,7 @@ private fun separateViewHoldersIntoConsecutiveTopDisappearingAndTheRest(source: 
             .takeWhile { holder ->
                 val nextView = holder.itemView
                 val consecutive = previousView == null ||
-                        nextView.topIncludingMargin == previousView!!.bottomIncludingMargin
+                        nextView.topIncludingMargin == previousView.bottomIncludingMargin
                 previousView = nextView
                 consecutive
             }
