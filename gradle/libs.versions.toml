@@ -28,7 +28,7 @@ mockito = "5.23.0"
 nvwebsocketclient = "2.14"
 okhttp = "5.5.0"
 gitversionplugin = "5.0.0"
-robolectric = "4.16.1"
+robolectric = "4.17-beta-3" # 4.16 does not support API 37
 slf4j-api = "2.0.18"
 snakeyaml = "2.6"
 
