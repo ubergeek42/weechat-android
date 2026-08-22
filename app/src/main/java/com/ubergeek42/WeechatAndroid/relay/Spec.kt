@@ -109,7 +109,7 @@ enum class Notify(val value: Int) {
 
 @JvmInline value class LastLinesSpec(val entry: HdataEntry) {
     inline val bufferPointer: Long get() = entry.getPointerLong("buffer")
-    inline val linePointer: Long get() = if (weechatVersion >= 0x4040000) entry.getInt("id").toLong() else entry.pointerLong
+    inline val linePointer: Long get() = if (weechatVersion >= 0x4040000) entry.getIntOrLongAsLong("id") else entry.pointerLong
     inline val visible: Boolean get() = entry.getChar("displayed") == 1.toChar()
 
     companion object {
@@ -121,7 +121,7 @@ enum class Notify(val value: Int) {
 
 @JvmInline value class LastReadLineSpec(val entry: HdataEntry) {
     inline val bufferPointer: Long get() = entry.getPointerLong("buffer")
-    inline val linePointer: Long get() = if (weechatVersion >= 0x4040000) entry.getInt("id").toLong() else entry.pointerLong
+    inline val linePointer: Long get() = if (weechatVersion >= 0x4040000) entry.getIntOrLongAsLong("id") else entry.pointerLong
 
     companion object {
         const val request = "(last_read_lines) hdata " +
@@ -155,7 +155,7 @@ class HotlistSpec(entry: HdataEntry) {
 @JvmInline value class LineSpec(val entry: HdataEntry) {
     inline val bufferPointer: Long get() = entry.getPointerLong("buffer")
 
-    inline val pointer: Long get() = if (weechatVersion >= 0x4040000) entry.getInt("id").toLong() else entry.pointerLong
+    inline val pointer: Long get() = if (weechatVersion >= 0x4040000) entry.getIntOrLongAsLong("id") else entry.pointerLong
     inline val timestamp: Long get() = entry.getItem("date").asTime().time
     inline val prefix: String? get() = entry.getStringOrNull("prefix")
     inline val message: String? get() = entry.getStringOrNull("message")

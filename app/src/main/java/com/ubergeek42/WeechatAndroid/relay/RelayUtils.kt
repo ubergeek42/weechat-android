@@ -10,6 +10,17 @@ import java.lang.NumberFormatException
 import com.ubergeek42.weechat.relay.protocol.Array as WeeArray
 
 inline fun HdataEntry.getInt(id: String): Int = getItem(id).asInt()
+inline fun HdataEntry.getIntOrLongAsLong(id: String): Long = getItem(id).let {
+    return@let when (it.type) {
+        RelayObject.WType.INT -> {
+            it.asInt().toLong()
+        }
+        RelayObject.WType.LON -> {
+            it.asLong()
+        }
+        else -> { throw IllegalArgumentException("Item with key $id must be 'INT' or 'LON', got: '${it.type}'") }
+    }
+}
 inline fun HdataEntry.getChar(id: String): Char = getItem(id).asChar()
 inline fun HdataEntry.getString(id: String): String = getItem(id).asString()
 inline fun HdataEntry.getHashtable(id: String): Hashtable = getItem(id) as Hashtable
