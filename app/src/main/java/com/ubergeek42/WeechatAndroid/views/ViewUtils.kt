@@ -202,6 +202,13 @@ abstract class DrawerToggleFix(
 
 val imm = applicationContext.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
 
+// Not using `SoftwareKeyboardControllerCompat` etc as I noticed a rare momentary flicker
+// of the layout when opening search. The flicker looks like the layout is shifted up
+// to accommodate the keyboard for a frame, then back down, then up again.
+// This may be an issue of androidx, or perhaps of my Samsung phone.
+// Either way, the input manager method has been working fine without issues,
+// and the deprecated flag simply has no effect on newer platforms.
+@Suppress("DEPRECATION") // InputMethodManager.SHOW_IMPLICIT
 fun View.showSoftwareKeyboard() {
     imm.showSoftInput(this, InputMethodManager.SHOW_IMPLICIT)
 }
