@@ -72,10 +72,10 @@ android {
     signingConfigs {
         create("dev") {
             try {
-                storeFile = file(project.properties["devStorefile"] as String)
-                storePassword = project.properties["devStorePassword"] as String
-                keyAlias = project.properties["devKeyAlias"] as String
-                keyPassword = project.properties["devKeyPassword"] as String
+                storeFile = file(providers.gradleProperty("devStorefile").get())
+                storePassword = providers.gradleProperty("devStorePassword").get()
+                keyAlias = providers.gradleProperty("devKeyAlias").get()
+                keyPassword = providers.gradleProperty("devKeyPassword").get()
             } catch (_: Exception) {
                 project.logger.warn("WARNING: Set the values devStorefile, devStorePassword, " +
                         "devKeyAlias, and devKeyPassword " +
