@@ -50,6 +50,13 @@ subprojects {
     tasks.all {
         if (name == "clean") {
             dependsOn(gradle.includedBuild("build-logic").task(":clean"))
+            dependsOn(gradle.includedBuild("cats2").task(":gradle-plugin:clean"))
+            dependsOn(gradle.includedBuild("cats2").task(":compiler-plugin:clean"))
+            dependsOn(gradle.includedBuild("cats2").task(":runtime:clean"))
+            dependsOn(gradle.includedBuild("cats2").task(":android-runtime:clean"))
+        }
+        if (name == "test") {
+            dependsOn(gradle.includedBuild("cats2").task(":compiler-plugin:test"))
         }
     }
 }
