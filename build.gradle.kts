@@ -1,5 +1,4 @@
 import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
-import org.gradle.api.plugins.JavaPluginExtension
 
 defaultTasks("assembleDebug")
 
@@ -11,47 +10,8 @@ buildscript {
 }
 
 subprojects {
-    tasks.withType<JavaCompile> {
-        options.encoding = "UTF-8"
-    }
-
-    plugins.withType<JavaBasePlugin> {
-        extensions.configure<JavaPluginExtension> {
-            toolchain.languageVersion = JavaLanguageVersion.of(21)
-        }
-    }
-
     tasks.withType<Test> {
         useJUnitPlatform()                      // aka JUnit 5
-
-        testLogging {
-            outputs.upToDateWhen { false }      // always rerun tests
-
-            events("skipped", "failed")
-
-            // https://github.com/gradle/gradle/issues/5431
-            // https://github.com/gradle/kotlin-dsl-samples/issues/836#issuecomment-384206237
-            addTestListener(object : TestListener {
-                override fun beforeSuite(suite: TestDescriptor) {}
-                override fun beforeTest(testDescriptor: TestDescriptor) {}
-                override fun afterTest(testDescriptor: TestDescriptor, result: TestResult) {}
-                override fun afterSuite(suite: TestDescriptor, result: TestResult) {
-                    // print only the bottom-level test result information
-                    if (suite.className == null) return
-
-                    val details = if (result.skippedTestCount > 0 || result.failedTestCount > 0) {
-                        ": ${result.successfulTestCount} successes, " +
-                                "${result.failedTestCount} failures, " +
-                                "${result.skippedTestCount} skipped"
-                    } else {
-                        ""
-                    }
-
-                    println("${suite.displayName}: ${result.resultType} " +
-                            "(${result.testCount} tests$details)")
-                }
-            })
-        }
     }
 }
 
@@ -61,6 +21,7 @@ plugins {
     alias(libs.plugins.kotlin.jvm) apply false
     alias(libs.plugins.kotlin.serialization) apply false
     alias(libs.plugins.ksp) apply false
+    id("common")
 
     // to print a sensible task graph, uncomment the following line and run:
     //   $ gradlew :app:assembleDebug taskTree --no-repeat
@@ -82,6 +43,14 @@ tasks.named<DependencyUpdatesTask>("dependencyUpdates") {
     rejectVersionIf {
         (candidate.version.isNonStable() && !currentVersion.isNonStable()) ||
                 !satisfiesDeclaredBound
+    }
+}
+
+subprojects {
+    tasks.all {
+        if (name == "clean") {
+            dependsOn(gradle.includedBuild("build-logic").task(":clean"))
+        }
     }
 }
 
