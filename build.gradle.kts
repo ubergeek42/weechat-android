@@ -84,3 +84,16 @@ tasks.named<DependencyUpdatesTask>("dependencyUpdates") {
                 !satisfiesDeclaredBound
     }
 }
+
+// Uncomment to verify IR and see the IR dumps.
+// See https://kotlinlang.org/docs/custom-compiler-plugins.html#check-your-backend-plugin-code-for-problems
+//tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+//    compilerOptions {
+//        freeCompilerArgs.add("-Xverify-ir=error")
+//
+//        freeCompilerArgs.addAll(
+//            "-Xphases-to-dump-before=ExternalPackageParentPatcherLowering", // Or ALL
+//            "-Xdump-directory=${layout.buildDirectory.get().asFile}/ir-dumps"
+//        )
+//    }
+//}
