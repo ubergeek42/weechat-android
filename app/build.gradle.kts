@@ -2,9 +2,12 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.ksp)
     alias(libs.plugins.gitversionplugin)
+    id("cats")
 }
 
 dependencies {
+    //noinspection UseTomlInstead
+    implementation("cats:android-runtime")
     implementation(project(":cats"))
     implementation(project(":relay"))
 

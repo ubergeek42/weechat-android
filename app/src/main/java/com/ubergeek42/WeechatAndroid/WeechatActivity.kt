@@ -47,6 +47,8 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentManager.FragmentLifecycleCallbacks
 import androidx.preference.PreferenceManager
+import cats.Name
+import cats.Trace
 import com.ubergeek42.WeechatAndroid.CutePagerTitleStrip.CutePageChangeListener
 import com.ubergeek42.WeechatAndroid.adapters.BufferListClickListener
 import com.ubergeek42.WeechatAndroid.adapters.MainPagerAdapter
@@ -125,6 +127,7 @@ import javax.net.ssl.SSLPeerUnverifiedException
 import kotlin.system.exitProcess
 
 
+@Name("WA")
 class WeechatActivity : AppCompatActivity(), CutePageChangeListener,
         BufferListClickListener, BufferFragmentContainer, BaseSnackbarBuilderProvider {
     private var uiMenu: Menu? = null
@@ -285,7 +288,7 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener,
         return super.onCreateView(parent, name, context, attrs)
     }
 
-    @MainThread @CatD override fun onStart() {
+    @MainThread @Trace override fun onStart() {
         Network.get().register(this, null)  // no callback, simply make sure that network info is correct while we are showing
         EventBus.getDefault().register(this)
         connectionState = EventBus.getDefault().getStickyEvent(StateChangedEvent::class.java).state
