@@ -68,6 +68,7 @@ junit-jupiter-params = { module = "org.junit.jupiter:junit-jupiter-params", vers
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit"  }
 junit-vintage-engine = { module = "org.junit.vintage:junit-vintage-engine", version.ref = "junit" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinx-coroutines" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 leakcanary = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
@@ -78,6 +79,9 @@ robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectr
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j-api" }
 snakeyaml = { module = "org.yaml:snakeyaml", version.ref = "snakeyaml" }
 sshlib = { module = "org.connectbot:sshlib", version.ref = "sshlib" }
+
+kotlin-gradleplugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin-api", version.ref = "kotlin" }
+kotlin-compiler = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable", version.ref = "kotlin" }
 
 
 [plugins]

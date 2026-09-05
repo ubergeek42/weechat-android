@@ -34,3 +34,5 @@ dependencyResolutionManagement {
 include(":cats")
 include(":relay")
 include(":app")
+
+includeBuild("cats2")
