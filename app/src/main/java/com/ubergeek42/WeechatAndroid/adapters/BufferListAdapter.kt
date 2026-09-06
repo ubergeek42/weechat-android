@@ -36,8 +36,6 @@ import com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SORT_BUFFER_LIST_BY_HO
 import com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SORT_BUFFER_LIST_BY_HOT_MESSAGES_THEN_BY_OTHER_MESSAGES_THEN_BY_NUMBER
 import com.ubergeek42.WeechatAndroid.utils.Constants.PREF_SORT_BUFFER_LIST_BY_NUMBER
 import com.ubergeek42.WeechatAndroid.utils.Utils
-import com.ubergeek42.cats.Kitty
-import com.ubergeek42.cats.Root
 import java.util.Collections
 
 
@@ -230,8 +228,6 @@ class BufferListAdapter(
     @MainThread fun findPositionByBufferId(id: Long): Int = buffers.indexOfFirst { it.pointer == id }
 
     companion object {
-        @Root private val kitty: Kitty = Kitty.make()
-
         var filterGlobal = ""
     }
 }

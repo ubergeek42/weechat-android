@@ -3,14 +3,22 @@
 package com.ubergeek42.WeechatAndroid.upload
 
 import android.net.Uri
-import androidx.room.*
+import androidx.room.ColumnInfo
+import androidx.room.Dao
+import androidx.room.Database
+import androidx.room.Entity
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.PrimaryKey
+import androidx.room.Query
+import androidx.room.Room
+import androidx.room.RoomDatabase
+import androidx.room.TypeConverter
+import androidx.room.TypeConverters
+import cats.trace
 import com.ubergeek42.WeechatAndroid.utils.applicationContext
-import com.ubergeek42.cats.Kitty
-import com.ubergeek42.cats.Root
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.concurrent.thread
-
-@Root private val kitty: Kitty = Kitty.make()
 
 
 @Entity(tableName = "upload_records")
@@ -73,7 +81,7 @@ object UploadDatabase {
             applicationContext.cacheDir.toString() + "/" + DATABASE_NAME).build()
 
     init {
-        kitty.trace("using database at %s", database.openHelper.writableDatabase.path)
+        trace { "using database at ${database.openHelper.writableDatabase.path}" }
     }
 
     private val records get() = database.uploadRecordsDao()
@@ -87,7 +95,7 @@ object UploadDatabase {
     @JvmStatic fun save() {
         if (insertCache.isNotEmpty()) {
             thread {
-                kitty.trace("saving %s items", insertCache.size)
+                trace { "saving ${insertCache.size} items" }
                 records.insertAll(insertCache.values)
                 insertCache.clear()
             }
@@ -98,8 +106,7 @@ object UploadDatabase {
         thread {
             val deleted = records.deleteRecordsOlderThan(System.currentTimeMillis() - Config.rememberUploadsFor)
             val records = records.getAll()
-            kitty.trace("restoring %s items; deleted %s entries (remembering uploads for %s ms)",
-                    records.size, deleted, Config.rememberUploadsFor)
+            trace {"restoring ${records.size} items; deleted $deleted entries (remembering uploads for ${Config.rememberUploadsFor} ms)" }
             records.forEach { cache.putIfAbsent(it.uri, it) }
         }
     }

@@ -22,6 +22,10 @@ import android.os.IBinder
 import androidx.annotation.AnyThread
 import androidx.annotation.MainThread
 import androidx.annotation.WorkerThread
+import cats.Suffix
+import cats.Trace
+import cats.err
+import cats.trace
 import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.Weechat
 import com.ubergeek42.WeechatAndroid.notifications.addOrRemoveActionForCurrentNotifications
@@ -32,10 +36,6 @@ import com.ubergeek42.WeechatAndroid.service.Events.StateChangedEvent
 import com.ubergeek42.WeechatAndroid.utils.Assert
 import com.ubergeek42.WeechatAndroid.utils.Constants
 import com.ubergeek42.WeechatAndroid.utils.Network
-import com.ubergeek42.cats.Cat
-import com.ubergeek42.cats.CatD
-import com.ubergeek42.cats.Kitty
-import com.ubergeek42.cats.Root
 import com.ubergeek42.weechat.relay.RelayMessage
 import com.ubergeek42.weechat.relay.connection.IObserver
 import com.ubergeek42.weechat.relay.connection.RelayConnection
@@ -53,8 +53,7 @@ import kotlin.concurrent.Volatile
 class RelayService : Service(), IObserver {
     init { ++iteration }
 
-    @Root private val kitty: Kitty = Kitty.make()
-            .apply { setPrefix(iteration.toString()) }
+    @Suffix val suffix = iteration.toString()
 
     @Volatile private var connection: RelayConnection? = null
     private lateinit var pingingPenguin: PingingPenguin
@@ -64,7 +63,7 @@ class RelayService : Service(), IObserver {
     //////////////////////////////////////////////////////////////////////////////////////////////// status & life cycle
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @MainThread @Cat override fun onCreate() {
+    @MainThread @Trace override fun onCreate() {
         doge = Handler(HandlerThread("d-$iteration").apply { start() }.getLooper())
 
         Network.get().register(this) {
@@ -75,7 +74,7 @@ class RelayService : Service(), IObserver {
         EventBus.getDefault().register(this)
     }
 
-    @MainThread @Cat override fun onDestroy() {
+    @MainThread @Trace override fun onDestroy() {
         EventBus.getDefault().unregister(this)
         P.saveStuff()
         Network.get().unregister(this)
@@ -85,14 +84,14 @@ class RelayService : Service(), IObserver {
     @MainThread override fun onBind(intent: Intent?): IBinder? = null
 
     // todo synchronization?
-    @Subscribe @Cat fun onEvent(event: SendMessageEvent) {
+    @Subscribe @Trace fun onEvent(event: SendMessageEvent) {
         connection?.sendMessage(event.message)
     }
 
     // this method is called:
     //     * whenever app calls startService() (that means on each screen rotate)
     //     * when service is recreated by system after OOM kill. (intent = null)
-    @MainThread @Cat override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+    @MainThread @Trace override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent == null || intent.action == ACTION_START) {
             if (state.contains(STOPPED)) {
                 P.loadConnectionPreferences()
@@ -111,7 +110,7 @@ class RelayService : Service(), IObserver {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     // called by user and when disconnected
-    @MainThread @Cat @Synchronized private fun start() {
+    @MainThread @Trace @Synchronized private fun start() {
         Assert.assertThat(state).contains(STATE.STOPPED)
         changeState(EnumSet.of(STARTED))
         P.setServiceAlive(true)
@@ -119,7 +118,7 @@ class RelayService : Service(), IObserver {
     }
 
     // called by ↑ and Connectivity
-    @MainThread @Cat @Synchronized fun _start() {
+    @MainThread @Trace @Synchronized fun _start() {
         doge.removeCallbacksAndMessages(null)
         doge.post(object : Runnable {
             var reconnects: Int = 0
@@ -157,7 +156,7 @@ class RelayService : Service(), IObserver {
     }
 
     // called by user and when there was a fatal exception while trying to connect
-    @AnyThread @Cat @Synchronized fun stop() {
+    @AnyThread @Trace @Synchronized fun stop() {
         Assert.assertThat(state).doesNotContain(STATE.STOPPED)
         if (state.contains(AUTHENTICATED)) goodbye()
         changeState(EnumSet.of(STOPPED))
@@ -168,7 +167,7 @@ class RelayService : Service(), IObserver {
 
     // called by ↑ and PingingPenguin
     // close whatever connection we have in a thread, may result in a call to onStateChanged
-    @AnyThread @Cat @Synchronized fun interrupt() {
+    @AnyThread @Trace @Synchronized fun interrupt() {
         doge.removeCallbacksAndMessages(null)
         doge.post {
             doge.removeCallbacksAndMessages(null)
@@ -180,7 +179,7 @@ class RelayService : Service(), IObserver {
 
     private enum class TRY { POSSIBLE, LATER, IMPOSSIBLE }
 
-    @WorkerThread @CatD(exit = true) private fun connect(): TRY {
+    @WorkerThread @Trace private fun connect(): TRY {
         connection?.disconnect()
 
         if (!Network.get().hasProperty(Network.Property.CONNECTED)) {
@@ -209,7 +208,7 @@ class RelayService : Service(), IObserver {
                 else -> SimpleConnection(P.host, P.port, null)
             }
         } catch (e: Exception) {
-            kitty.error("connect(): exception while creating connection", e)
+            err(e) { "connect(): exception while creating connection" }
             onException(e)
             return TRY.IMPOSSIBLE
         }
@@ -258,7 +257,7 @@ class RelayService : Service(), IObserver {
         EventBus.getDefault().postSticky(StateChangedEvent(state))
     }
 
-    @WorkerThread @Cat private fun hello() {
+    @WorkerThread private fun hello() {
         addOrRemoveActionForCurrentNotifications(true)
         if (P.pingEnabled) pingingPenguin.startPinging()
         BufferList.onServiceAuthenticated()
@@ -266,7 +265,7 @@ class RelayService : Service(), IObserver {
     }
 
     //sync so that goodbye() never happens while state=auth but hello didn't run yet
-    @AnyThread @Cat private fun goodbye() {
+    @AnyThread private fun goodbye() {
         SyncAlarmReceiver.stop(this)
         BufferList.onServiceStopped()
         if (P.pingEnabled) pingingPenguin.stopPinging()
@@ -281,7 +280,7 @@ class RelayService : Service(), IObserver {
     }
 
     @WorkerThread override fun onException(e: Exception) {
-        kitty.error("→ onException(%s)", e.javaClass.getSimpleName())
+        err { "→ onException(${e.javaClass.getSimpleName()})" }
         if (state.contains(STOPPED)) return
 
         val wrappedException = when (e) {
@@ -301,7 +300,7 @@ class RelayService : Service(), IObserver {
 
 
     @WorkerThread override fun onMessage(message: RelayMessage) {
-        kitty.trace("→ onMessage(%s)", message.id)
+        trace { "→ onMessage(${message.id})" }
         if (state.contains(STOPPED)) return
         pingingPenguin.onMessage()
         val id = message.id

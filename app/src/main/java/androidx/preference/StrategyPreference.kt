@@ -10,12 +10,11 @@ import com.ubergeek42.WeechatAndroid.media.Config
 import com.ubergeek42.WeechatAndroid.utils.Constants.PREF_MEDIA_PREVIEW_STRATEGIES
 import com.ubergeek42.WeechatAndroid.utils.Constants.PREF_MEDIA_PREVIEW_STRATEGIES_D
 import com.ubergeek42.WeechatAndroid.views.snackbar.showSnackbar
-import com.ubergeek42.cats.Cat
 
 class StrategyPreference(context: Context, attrs: AttributeSet?) :
         Preference(context, attrs) {
 
-    @Cat(exit = true) override fun getSummary(): CharSequence {
+    override fun getSummary(): CharSequence {
         val info = Config.parseConfigSafe(getPersistedString(PREF_MEDIA_PREVIEW_STRATEGIES_D))
                 ?: return context.getString(R.string.pref__StrategyPreference__summary_error)
 
