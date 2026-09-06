@@ -30,12 +30,17 @@ import androidx.annotation.RequiresApi
 import androidx.annotation.WorkerThread
 import androidx.core.view.MenuCompat
 import androidx.core.view.forEach
+import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ItemDecoration
+import cats.Name
+import cats.Suffix
+import cats.Trace
+import cats.trace
 import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.Weechat
 import com.ubergeek42.WeechatAndroid.WeechatActivity
@@ -87,19 +92,14 @@ import com.ubergeek42.WeechatAndroid.views.jumpThenSmoothScrollCentering
 import com.ubergeek42.WeechatAndroid.views.onSystemBarsAndImeInsetsChanged
 import com.ubergeek42.WeechatAndroid.views.scrollToPositionWithOffsetFix
 import com.ubergeek42.WeechatAndroid.views.showSoftwareKeyboard
-import com.ubergeek42.WeechatAndroid.views.updateMargins
 import com.ubergeek42.WeechatAndroid.views.snackbar.showSnackbar
-import com.ubergeek42.cats.Cat
-import com.ubergeek42.cats.CatD
-import com.ubergeek42.cats.Kitty
-import com.ubergeek42.cats.Root
+import com.ubergeek42.WeechatAndroid.views.updateMargins
 import com.ubergeek42.weechat.ColorScheme
 import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
 import java.util.regex.PatternSyntaxException
-import androidx.core.view.isVisible
 
 
 private const val POINTER_KEY = "pointer"
@@ -113,8 +113,9 @@ interface BufferFragmentContainer {
 }
 
 
+@Name("BF")
 class BufferFragment : Fragment(), BufferEye {
-    @Root private val kitty: Kitty = Kitty.make("BF")
+    @Suffix var suffix = "?"
 
     var pointer: Long = 0
 
@@ -139,10 +140,8 @@ class BufferFragment : Fragment(), BufferEye {
     @MainThread override fun setArguments(args: Bundle?) {
         super.setArguments(args)
         pointer = requireArguments().getLong(POINTER_KEY)
-        BufferList.findByPointer(pointer)?.let {
-            buffer = it
-            kitty.setPrefix(it.shortName)
-        } ?: kitty.setPrefix(Utils.pointerToString(pointer))
+        BufferList.findByPointer(pointer)?.let { buffer = it }
+        suffix = buffer?.shortName ?: Utils.pointerToString(pointer)
         uploadManager = UploadManager.forBuffer(pointer)
     }
 
@@ -150,13 +149,13 @@ class BufferFragment : Fragment(), BufferEye {
     ///////////////////////////////////////////////////////////////////////////////////// life cycle
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @MainThread @Cat override fun onAttach(context: Context) {
+    @MainThread @Trace override fun onAttach(context: Context) {
         super.onAttach(context)
         container = context as BufferFragmentContainer
         registerUnregisterSearchBarOnBackInvokedCallback()
     }
 
-    @MainThread @Cat override fun onCreate(savedInstanceState: Bundle?) {
+    @MainThread @Trace override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         savedInstanceState?.let {
@@ -165,7 +164,7 @@ class BufferFragment : Fragment(), BufferEye {
         }
     }
 
-    @MainThread @Cat override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
+    @MainThread @Trace override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                                                savedInstanceState: Bundle?): View {
         val ui = ChatviewMainBinding.inflate(inflater).also { this.ui = it }
 
@@ -267,13 +266,13 @@ class BufferFragment : Fragment(), BufferEye {
         return ui.root
     }
 
-    @MainThread @Cat override fun onDestroyView() {
+    @MainThread @Trace override fun onDestroyView() {
         super.onDestroyView()
         ui = null
         linesAdapter = null
     }
 
-    @MainThread @Cat override fun onResume() = ulet(ui) { ui ->
+    @MainThread @Trace override fun onResume() = ulet(ui) { ui ->
         super.onResume()
         ui.tabButton.visibility = if (P.showTab) View.VISIBLE else View.GONE
         EventBus.getDefault().register(this)
@@ -287,7 +286,7 @@ class BufferFragment : Fragment(), BufferEye {
         uploadManager?.observer = uploadObserver   // this will resume ui for any uploads that are still running
     }
 
-    @MainThread @Cat override fun onPause() {
+    @MainThread @Trace override fun onPause() {
         super.onPause()
         uploadManager?.observer = null
         lastUploadStatus = null         // setObserver & afterTextChanged2 will fix this
@@ -297,7 +296,7 @@ class BufferFragment : Fragment(), BufferEye {
         setPendingInputForParallelFragments()
     }
 
-    @MainThread @Cat override fun onDetach() {
+    @MainThread @Trace override fun onDetach() {
         container = null
         registerUnregisterSearchBarOnBackInvokedCallback()
         super.onDetach()
@@ -314,10 +313,10 @@ class BufferFragment : Fragment(), BufferEye {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     enum class ChangedState { BufferAttachment, PagerFocus, FullVisibility, LinesListed }
-    @MainThread @Cat(linger = true) fun onVisibilityStateChanged(changedState: ChangedState): Unit
+    @MainThread @Trace fun onVisibilityStateChanged(changedState: ChangedState): Unit
             = ulet(container, buffer) { container, buffer ->
         if (!buffer.linesAreReady()) return
-        kitty.trace("proceeding!")
+        trace { "proceeding!" }
 
         val watchedKey = if (container is WeechatActivity) "main-activity" else "bubble-activity"
         val watched = attachedToBuffer && focusedInViewPager && !container.isPagerNoticeablyObscured
@@ -357,7 +356,7 @@ class BufferFragment : Fragment(), BufferEye {
     // this can be forced to always run in background, but then it would run after onStart()
     // if the fragment hasn't been initialized yet, that would lead to a bit of flicker
     @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
-    @MainThread @Cat fun onEvent(event: StateChangedEvent) {
+    @MainThread @Trace fun onEvent(event: StateChangedEvent) {
         val connectedToRelay = event.state.contains(RelayService.STATE.LISTED)
         val oldBuffer = buffer
 
@@ -384,7 +383,7 @@ class BufferFragment : Fragment(), BufferEye {
     // so we only set adapter's buffer if lines are ready for the current buffer.
     // if they're not, the adapter will be using the old buffer, if any, until onLinesListed is run.
     // todo make sure that this behaves fine on slow connections
-    @MainThread @Cat private fun attachToBuffer() = ulet(buffer) { buffer ->
+    @MainThread @Trace private fun attachToBuffer() = ulet(buffer) { buffer ->
         buffer.addBufferEye(this)
         if (buffer.linesAreReady()) linesAdapter?.buffer = buffer
         linesAdapter?.loadLinesWithoutAnimation()
@@ -393,7 +392,7 @@ class BufferFragment : Fragment(), BufferEye {
     }
 
     // buffer might be null if we are closing fragment that is not connected
-    @MainThread @Cat private fun detachFromBuffer() {
+    @MainThread @Trace private fun detachFromBuffer() {
         attachedToBuffer = false
         onVisibilityStateChanged(ChangedState.BufferAttachment)
         buffer?.removeBufferEye(this)
@@ -627,7 +626,7 @@ class BufferFragment : Fragment(), BufferEye {
     private var uploadManager: UploadManager? = null
     private var lastUploadStatus: UploadStatus? = null
 
-    @CatD @MainThread fun setUploadStatus(uploadStatus: UploadStatus): Unit = ulet(ui) { ui ->
+    @Trace @MainThread fun setUploadStatus(uploadStatus: UploadStatus): Unit = ulet(ui) { ui ->
         if (uploadStatus == lastUploadStatus) return
         lastUploadStatus = uploadStatus
 
@@ -648,7 +647,7 @@ class BufferFragment : Fragment(), BufferEye {
     }
 
     // show indeterminate progress in the end, when waiting for the server to produce a response
-    @CatD @MainThread fun setUploadProgress(ratio: Float) {
+    @Trace @MainThread fun setUploadProgress(ratio: Float) {
         ui?.uploadProgressBar?.apply {
             if (ratio < 0) {
                 visibility = View.INVISIBLE
@@ -707,7 +706,7 @@ class BufferFragment : Fragment(), BufferEye {
     }
 
     @Deprecated("Overridden method deprecated")
-    @Cat override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+    @Trace override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (resultCode == Activity.RESULT_OK) {
             try {
                 getShareObjectFromIntent(requestCode, data)?.let {
@@ -834,7 +833,7 @@ class BufferFragment : Fragment(), BufferEye {
         }
     }
 
-    @MainThread @Cat fun searchEnableDisable(enable: Boolean, newSearch: Boolean = false) = ulet(ui) { ui ->
+    @MainThread @Trace fun searchEnableDisable(enable: Boolean, newSearch: Boolean = false) = ulet(ui) { ui ->
         ui.searchBar.visibility = if (enable) View.VISIBLE else View.GONE
         ui.inputBar.visibility = if (enable) View.GONE else View.VISIBLE
 

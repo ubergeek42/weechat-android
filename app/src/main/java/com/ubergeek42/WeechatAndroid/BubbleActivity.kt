@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.WindowCompat
 import androidx.core.view.updatePadding
+import cats.Trace
 import com.ubergeek42.WeechatAndroid.databinding.BubbleActivityBinding
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragment
 import com.ubergeek42.WeechatAndroid.fragments.BufferFragmentContainer
@@ -13,14 +14,13 @@ import com.ubergeek42.WeechatAndroid.relay.BufferList
 import com.ubergeek42.WeechatAndroid.relay.as0x
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.utils.Constants
+import com.ubergeek42.WeechatAndroid.views.onSystemBarsAndImeInsetsChanged
 import com.ubergeek42.WeechatAndroid.views.snackbar.BaseSnackbarBuilderProvider
 import com.ubergeek42.WeechatAndroid.views.snackbar.SnackbarBuilder
 import com.ubergeek42.WeechatAndroid.views.snackbar.SnackbarPositionController
 import com.ubergeek42.WeechatAndroid.views.snackbar.setOrScheduleSettingAnchorAfterPagerChange
-import com.ubergeek42.WeechatAndroid.views.onSystemBarsAndImeInsetsChanged
 import com.ubergeek42.WeechatAndroid.views.solidColor
 import com.ubergeek42.WeechatAndroid.views.updateDimensions
-import com.ubergeek42.cats.Cat
 import com.ubergeek42.weechat.ColorScheme
 
 
@@ -29,7 +29,7 @@ class BubbleActivity : AppCompatActivity(), BufferFragmentContainer, BaseSnackba
 
     lateinit var ui: BubbleActivityBinding
 
-    @Cat override fun onCreate(savedInstanceState: Bundle?) {
+    @Trace override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -81,16 +81,16 @@ class BubbleActivity : AppCompatActivity(), BufferFragmentContainer, BaseSnackba
         super.onPause()
     }
 
-    @Cat override fun onStart() {
+    @Trace override fun onStart() {
         super.onStart()
         applyColorSchemeToViews()
     }
 
-    @Cat override fun onStop() {
+    @Trace override fun onStop() {
         super.onStop()
     }
 
-    @Cat private fun applyColorSchemeToViews() {
+    @Trace private fun applyColorSchemeToViews() {
         val chatBackgroundColor = ColorScheme.get().default_color[ColorScheme.OPT_BG].solidColor
         window.setBackgroundDrawable(chatBackgroundColor.toDrawable())
         ui.navigationPadding.setBackgroundColor(P.colorPrimaryDark)

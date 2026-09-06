@@ -8,16 +8,16 @@ import android.content.Context
 import android.net.http.X509TrustManagerExtensions
 import android.os.Build
 import androidx.annotation.CheckResult
+import cats.debug
+import cats.err
 import com.ubergeek42.WeechatAndroid.dialogs.CertificateDialog
-import com.ubergeek42.WeechatAndroid.utils.applicationContext
 import com.ubergeek42.WeechatAndroid.upload.suppress
 import com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils
 import com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils.deleteAndroidKeyStoreEntriesWithPrefix
 import com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils.putKeyEntriesIntoAndroidKeyStoreWithPrefix
 import com.ubergeek42.WeechatAndroid.utils.ThrowingKeyManagerWrapper
+import com.ubergeek42.WeechatAndroid.utils.applicationContext
 import com.ubergeek42.WeechatAndroid.utils.isAnyOf
-import com.ubergeek42.cats.Kitty
-import com.ubergeek42.cats.Root
 import com.ubergeek42.weechat.RememberingTrustManager
 import com.ubergeek42.weechat.SslAxolotl
 import java.io.ByteArrayInputStream
@@ -26,7 +26,6 @@ import java.io.FileInputStream
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.io.IOException
-import java.lang.UnsupportedOperationException
 import java.security.KeyStore
 import java.security.KeyStoreException
 import java.security.NoSuchAlgorithmException
@@ -40,9 +39,6 @@ import javax.net.ssl.KeyManagerFactory
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManagerFactory
 import javax.net.ssl.X509TrustManager
-
-
-@Root private val kitty: Kitty = Kitty.make()
 
 
 private const val SAN_DNSNAME = 2
@@ -92,14 +88,14 @@ class SSLHandler private constructor(private val userKeystoreFile: File) {
     fun getUserCertificateCount() = try {
         userKeystore.size()
     } catch (e: KeyStoreException) {
-        kitty.error("getUserCertificateCount()", e)
+        err(e) { "getUserCertificateCount()" }
         0
     }
 
     fun trustCertificate(cert: X509Certificate) {
         suppress<KeyStoreException> {
             val description = CertificateDialog.buildCertificateDescription(applicationContext, cert)
-            kitty.debug("Trusting:\n$description")
+            debug { "Trusting:\n$description" }
             userKeystore.setEntry(cert.subjectDN.name, KeyStore.TrustedCertificateEntry(cert), null)
             userTrustManager = buildTrustManger(userKeystore)
         }
@@ -162,7 +158,7 @@ private fun getKeyManagers(): Array<KeyManager>? {
             cachedKeyManagers = keyManagers
             keyManagers
         } catch (e: Exception) {
-            kitty.error("getKeyManagers()", e)
+            err(e) { "getKeyManagers()" }
             null
         }
     }
@@ -191,13 +187,12 @@ private class CustomTrustManager(val userTrustManager: X509TrustManager)
 
         try {
             userTrustManager.checkServerTrusted(x509Certificates, authType)
-            kitty.debug("Server is trusted by user")
+            debug { "Server is trusted by user" }
         } catch (e: CertificateException) {
-            kitty.debug("Server is NOT trusted by user (authType: $authType); pin "
-                    + if (P.pinRequired) "REQUIRED -- failing" else "not required -- trying system")
+            debug { "Server is NOT trusted by user (authType: $authType); pin " + if (P.pinRequired) "REQUIRED -- failing" else "not required -- trying system" }
             if (P.pinRequired) throw e
             systemTrustManager.checkServerTrusted(x509Certificates, authType)
-            kitty.debug("Server is trusted by system")
+            debug { "Server is trusted by system" }
         }
     }
 
