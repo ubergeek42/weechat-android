@@ -6,9 +6,11 @@ import org.jetbrains.kotlin.compiler.plugin.CommandLineProcessor
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.CompilerConfigurationKey
+import org.jetbrains.kotlin.name.CallableId
 
 
 val processTraceAndDebugCalls = CompilerConfigurationKey<Boolean>("processTraceAndDebugCalls")
+val moduleLoggerCallableIdKey = CompilerConfigurationKey<CallableId>("moduleLoggerCallableId")
 
 
 @OptIn(ExperimentalCompilerApi::class)
