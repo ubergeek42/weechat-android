@@ -9,24 +9,19 @@ import androidx.annotation.RequiresApi
 import androidx.core.content.LocusIdCompat
 import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
+import cats.trace
 import com.ubergeek42.WeechatAndroid.WeechatActivity
 import com.ubergeek42.WeechatAndroid.relay.Buffer
 import com.ubergeek42.WeechatAndroid.relay.BufferList
 import com.ubergeek42.WeechatAndroid.relay.BufferSpec
 import com.ubergeek42.WeechatAndroid.upload.Config
-import com.ubergeek42.WeechatAndroid.utils.applicationContext
 import com.ubergeek42.WeechatAndroid.utils.Constants
 import com.ubergeek42.WeechatAndroid.utils.Constants.PREF_UPLOAD_ACCEPT_TEXT_AND_MEDIA
 import com.ubergeek42.WeechatAndroid.utils.Constants.PREF_UPLOAD_ACCEPT_TEXT_ONLY
 import com.ubergeek42.WeechatAndroid.utils.Utils
-import com.ubergeek42.cats.Kitty
-import com.ubergeek42.cats.Root
-
+import com.ubergeek42.WeechatAndroid.utils.applicationContext
 
 private val USE_SHORTCUTS = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1
-
-
-@Root private val kitty: Kitty = Kitty.make("Shortcuts")
 
 
 interface Shortcuts {
@@ -152,7 +147,7 @@ private class ShortcutsImpl(val context: Context): Shortcuts {
         val old = directShareShortcuts.toSet()
         val new = statistics.getMostFrequentlySharedToBuffers(directShareShortcutLimit).toSet()
         if (old != new) {
-            kitty.trace("updating direct share shortcuts: %s → %s", old, new)
+            trace { "updating direct share shortcuts: $old → $new" }
             (old - new).forEach { key -> updateShortcut(key, shareTarget = false) }
             (new - old).forEach { key -> updateShortcut(key, shareTarget = true) }
             shortcuts = fetchShortcuts()
@@ -169,7 +164,7 @@ private class ShortcutsImpl(val context: Context): Shortcuts {
         val old = launcherShortcuts
         val new = statistics.getMostFrequentlyManuallyFocusedBuffers(launcherShortcutLimit)
         if (old != new) {
-            kitty.trace("updating launcher shortcuts: %s → %s", old, new)
+            trace { "updating launcher shortcuts: $old → $new" }
             val oldSansNew = old - new
             val oldSansOldSansNew = old - oldSansNew
             oldSansNew.forEach { key -> updateShortcut(key, rank = 10000) }
