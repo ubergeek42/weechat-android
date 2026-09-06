@@ -11,6 +11,8 @@ import androidx.annotation.StringRes
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.fragment.app.Fragment
 import androidx.preference.Preference
+import cats.err
+import cats.info
 import com.google.android.material.snackbar.Snackbar
 import com.ubergeek42.WeechatAndroid.BuildConfig
 import com.ubergeek42.WeechatAndroid.R
@@ -20,11 +22,6 @@ import com.ubergeek42.WeechatAndroid.utils.FriendlyExceptions
 import com.ubergeek42.WeechatAndroid.utils.Toaster
 import com.ubergeek42.WeechatAndroid.utils.Utils
 import com.ubergeek42.WeechatAndroid.views.EditTextActivity
-import com.ubergeek42.cats.Kitty
-import com.ubergeek42.cats.Root
-
-
-@Root private val kitty = Kitty.make("Snackbars")
 
 
 // Create snackbars by calling `showSnackbar` on either an activity or a view.
@@ -144,7 +141,7 @@ private fun Activity.getCoordinatorLayoutOrNull(): CoordinatorLayout? {
         if (BuildConfig.DEBUG) {
             throw IllegalArgumentException(errorMessage)
         } else {
-            kitty.error(errorMessage)
+            err { errorMessage }
             Toaster.ErrorToast.show(errorMessage)
         }
 
@@ -186,7 +183,7 @@ fun View.showSnackbar(text: CharSequence, snackbarBuilder: SnackbarBuilder? = nu
     baseSnackbarBuilder?.invoke(snackbar)
     snackbarBuilder?.invoke(snackbar)
 
-    kitty.info("Showing a snackbar: '%s'", text)
+    info { "Showing a snackbar: $text" }
 
     snackbar.show()
 }

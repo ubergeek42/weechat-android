@@ -1,9 +1,9 @@
 package com.ubergeek42.WeechatAndroid.upload
 
 import androidx.annotation.MainThread
+import cats.info
+import cats.trace
 import com.ubergeek42.WeechatAndroid.utils.Assert.assertThat
-import com.ubergeek42.cats.Kitty
-import com.ubergeek42.cats.Root
 
 
 interface UploadObserver {
@@ -15,8 +15,6 @@ interface UploadObserver {
 
 
 class UploadManager {
-    @Root private val kitty = Kitty.make()
-
     // list of running and completed uploads in the current batch upload.
     // failed uploads get removed from this list.
     val uploads = mutableListOf<Upload>()
@@ -40,7 +38,7 @@ class UploadManager {
         for (upload in uploads) {
             if (upload.suri !in suris) {
                 if (upload.state == Upload.State.RUNNING) {
-                    kitty.info("Cancelling upload: $upload")
+                    info { "Cancelling upload: $upload" }
                     upload.cancel()
                 }
             }
@@ -66,7 +64,7 @@ class UploadManager {
         Upload.upload(suri, object : Upload.Listener {
             override fun onStarted(upload: Upload) {
                 main {
-                    kitty.info("Upload started: $upload")
+                    info { "Upload started: $upload" }
                     uploads.add(upload)
                     if (uploads.size == 1) {
                         observer?.onUploadsStarted()
@@ -79,7 +77,7 @@ class UploadManager {
                 main {
                     val ratio = uploads.stats.ratio
                     if (limiter.step(ratio)) {
-                        kitty.trace("Upload progress: ${ratio.format(2)}; $upload")
+                        trace { "Upload progress: ${ratio.format(2)}; $upload" }
                         observer?.onProgress(ratio)
                     }
                 }
@@ -87,7 +85,7 @@ class UploadManager {
 
             override fun onFinished(upload: Upload, result: Upload.Result) {
                 main {
-                    kitty.info("Upload finished: $upload, result: $result")
+                    info { "Upload finished: $upload, result: $result" }
                     uploads.remove(upload)
 
                     if (result is Upload.Result.Done) {

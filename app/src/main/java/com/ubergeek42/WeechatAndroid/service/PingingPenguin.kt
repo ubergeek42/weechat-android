@@ -31,15 +31,11 @@ import androidx.core.content.getSystemService
 import androidx.core.net.toUri
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentActivity
+import cats.err
+import cats.info
 import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.dialogs.createScrollableDialog
 import com.ubergeek42.WeechatAndroid.utils.applicationContext
-import com.ubergeek42.cats.Cat
-import com.ubergeek42.cats.Kitty
-import com.ubergeek42.cats.Root
-
-
-@Root private val kitty: Kitty = Kitty.make()
 
 
 private var staticPingingPenguin: PingingPenguin? = null  // Oh well
@@ -69,11 +65,11 @@ class PingingPenguin(val relayService: RelayService) {
         if (lastMessageReceivedAt > lastTick.scheduledAt) {
             scheduleTick(Tick.Regular(), lastMessageReceivedAt + P.pingIdleTime)
         } else if (lastTick is Tick.Regular) {
-            kitty.info("Last message was received too long ago, sending a ping")
+            info { "Last message was received too long ago, sending a ping" }
             Events.SendMessageEvent.fire("ping")
             scheduleTick(Tick.LastMessageTooOld(), now() + P.pingTimeout)
         } else {
-            kitty.info("No messages received since ping was sent, disconnecting")
+            info { "No messages received since ping was sent, disconnecting" }
             relayService.interrupt()
         }
     }
@@ -82,7 +78,7 @@ class PingingPenguin(val relayService: RelayService) {
         lastTick = tick
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
-            kitty.error("Can't schedule exact alarms, so pinging mechanism won't work")
+            err { "Can't schedule exact alarms, so pinging mechanism won't work" }
         } else {
             alarmManager.setExact(AlarmManager.ELAPSED_REALTIME_WAKEUP, at, pendingPingIntent)
         }
@@ -138,7 +134,7 @@ class ExactAlarmPermissionRationaleDialogFragment : DialogFragment() {
 fun shouldRequestExactAlarmPermission() = P.pingEnabled && !alarmManager.canScheduleExactAlarms()
 
 @RequiresApi(Build.VERSION_CODES.S)
-@Cat fun FragmentActivity.showAlarmPermissionRationaleDialog() {
+fun FragmentActivity.showAlarmPermissionRationaleDialog() {
     ExactAlarmPermissionRationaleDialogFragment()
         .show(supportFragmentManager, "alarm-permission-for-ping-dialog")
 }
