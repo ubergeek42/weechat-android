@@ -19,6 +19,7 @@
     <color name="bufferListPrivate">#44570022</color>
     <color name="bufferListPrivateHot">#44e30052</color>
     <color name="bufferListOpenIndicator">@color/textColor</color>
+    <color name="bufferListServerName">@color/accent</color>
 
     <color name="warmShade">#66ffffff</color>
     <color name="warmBackground">#11000000</color>
