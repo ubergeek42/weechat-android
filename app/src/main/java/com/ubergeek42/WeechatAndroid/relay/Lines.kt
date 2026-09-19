@@ -3,6 +3,7 @@
 package com.ubergeek42.WeechatAndroid.relay
 
 import android.text.SpannableString
+import android.text.format.DateUtils
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.utils.Linkify
 import com.ubergeek42.WeechatAndroid.utils.Utils
@@ -54,12 +55,9 @@ class Lines {
     // true value does not necessarily guarantee that lines have squiggles.
     private var mayHaveSquiggleLines = false
 
-    private var dateOfLastUnfilteredLine: LocalDate? = null
-    private var dateOfLastFilteredLine: LocalDate? = null
-
-    private var lastOldDate: LocalDate? = null
-    private lateinit var lastNewDate: LocalDate
-    private lateinit var lastDateLine: Line
+    /** Display marker when day changes */
+    var displayDayChange = false
+    private val dayChangeInserter = DayChangeInserter()
 
     // After reconnecting, we start receiving new lines.
     // However, we can't just add these lines to the existing lines,
@@ -83,7 +81,7 @@ class Lines {
     // if the *visible* lines are continuous or not,
     // so I think that the visibility of the squiggle line will remain correct.
     //
-    // Also note that we do note consider here the scenario
+    // Also note that we do not consider here the scenario
     // where the last visible line becomes invisible in WeeChat.
     // In this case `lastVisiblePointerServer` would point to a line that we have,
     // but it would not be `lastVisiblePointer`.
@@ -94,7 +92,7 @@ class Lines {
         if (lastPointer != null && lastPointerServer != lastPointer) {
             val squiggleIsVisible = lastVisiblePointerServer != lastVisiblePointer
             val squiggleLine = SquiggleLine(isVisible = squiggleIsVisible)
-            addLast(squiggleLine, false)
+            addLast(squiggleLine)
             mayHaveSquiggleLines = true
         }
     }
@@ -103,11 +101,15 @@ class Lines {
     // but these uses very optimized array operations underneath and
     // getting this work faster is probably just not feasible or worth the effort
     fun getCopy(): ArrayList<Line> {
-        return ArrayList(if (P.filterLines) filtered else unfiltered).apply {
-            add(0, headerLine)
-            val skip = if (P.filterLines) skipFiltered else skipUnfiltered
-            val marker = if (skip >= 0 && size > 0) size - skip else -1
-            if (marker > 0) add(marker, MarkerLine)
+        val lines = (if (P.filterLines) filtered else unfiltered).let {
+            if (displayDayChange) dayChangeInserter.insert(it) else it
+        }
+        val skip = if (P.filterLines) skipFiltered else skipUnfiltered
+
+        return ArrayList<Line>(lines.size + 2).apply {
+            add(headerLine)
+            addAll(lines)
+            if (skip in 0..lines.size) add(readMarkerIndex(skip), MarkerLine)
 
             if (mayHaveSquiggleLines) {
                 while (isNotEmpty() && first() is SquiggleLine) removeAt(0) // removeFirst
@@ -122,15 +124,13 @@ class Lines {
     // in very rare cases status might not be FETCHING here, particularly when closing buffers
     // while the app is connecting and has already requested lines
 
-    fun replaceLines(lines: Collection<Line>, displayDayChange: Boolean) {
+    fun replaceLines(lines: Collection<Line>) {
         if (status != Status.Fetching) return
         unfiltered.clear()
         filtered.clear()
-        dateOfLastUnfilteredLine = null
-        dateOfLastFilteredLine = null
 
         for (line in lines) {
-            addLast(line, displayDayChange)
+            addLast(line)
         }
         mayHaveSquiggleLines = false
     }
@@ -139,56 +139,11 @@ class Lines {
         unfiltered.replaceFirstWith(line, predicate = { it.pointer == line.pointer })
         filtered.clear()
         unfiltered.forEach { line -> if (line.isVisible) filtered.add(line) }
+        dayChangeInserter.clear()
         setSkipsUsingPointer()
     }
 
-    private fun makeDateChangeLine(oldDate: LocalDate?, newDate: LocalDate) : Line {
-        val tstamp = newDate.atStartOfDay(ZoneId.systemDefault()).toEpochSecond() * 1000
-        var msg = newDate.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM))
-        if (oldDate != null && oldDate.plusDays(1) != newDate) {
-            msg += " (" +
-                   oldDate.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)) +
-                   ")"
-        }
-        msg += " --"
-
-        var datePointer = MAX_C_POINTER_VALUE shl 2 + newDate.year shl 32 + newDate.dayOfYear shl 20
-        if (oldDate != null) {
-            datePointer += oldDate.year shl 16 + oldDate.dayOfYear
-        }
-        return Line(datePointer, LineSpec.Type.Other, tstamp, "--", msg,
-                    nick = null, isVisible = true, isHighlighted = false,
-                    LineSpec.DisplayAs.Unspecified, LineSpec.NotifyLevel.Low)
-    }
-
-    private fun obtainDateChangeLine(oldDate: LocalDate?, newDate: LocalDate) : Line {
-        if (oldDate == null || lastOldDate != oldDate || lastNewDate != newDate) {
-            lastDateLine = makeDateChangeLine(oldDate, newDate)
-            lastOldDate = oldDate
-            lastNewDate = newDate
-        }
-        return lastDateLine
-    }
-
-    fun addLast(line: Line, displayDayChange: Boolean) {
-        if(displayDayChange) {
-                val newDate = Instant.ofEpochSecond(line.timestamp / 1000)
-                              .atZone(ZoneId.systemDefault())
-                              .toLocalDate()
-
-                if (dateOfLastUnfilteredLine != newDate) {
-                    unfiltered.addLast(obtainDateChangeLine(dateOfLastUnfilteredLine, newDate))
-                    dateOfLastUnfilteredLine = newDate
-                    skipUnfiltered++
-                }
-
-                if (line.isVisible && dateOfLastFilteredLine != newDate) {
-                    filtered.addLast(obtainDateChangeLine(dateOfLastFilteredLine, newDate))
-                    dateOfLastFilteredLine = newDate
-                    skipFiltered++
-                }
-        }
-
+    fun addLast(line: Line) {
         val unfilteredSize = unfiltered.size
         val maxUnfilteredSize = maxUnfilteredSize
         val shouldRemoveFirstLine = unfilteredSize == maxUnfilteredSize
@@ -199,6 +154,7 @@ class Lines {
 
         unfiltered.addLast(line)
         if (line.isVisible) filtered.addLast(line)
+        dayChangeInserter.clear()
 
         if (status == Status.Fetching) return
 
@@ -310,19 +266,124 @@ private var fakePointerCounter = MAX_C_POINTER_VALUE
 private val TITLE_LINE_POINTER = ++fakePointerCounter
 
 
-open class FakeLine(pointer: Long, isVisible: Boolean = false) : Line(
-        pointer, LineSpec.Type.Other,
-        timestamp = 0, rawPrefix = "", rawMessage = "",
-        nick = null, isVisible = isVisible, isHighlighted = false,
-        LineSpec.DisplayAs.Unspecified, LineSpec.NotifyLevel.Low)
+private fun List<Line>.readMarkerIndex(skip: Int): Int {
+    var index = size
+    repeat(skip) {
+        index--
+        if (this[index] is DateChangeMarker) index--
+    }
+    if (index > 0 && this[index - 1] is DateChangeMarker) index--
+    return index
+}
+
+
+private class DayChangeInserter {
+    private var outputLines: List<Line>? = null
+    private var inputLines: List<Line>? = null
+    private var zoneId: ZoneId? = null
+
+    /**
+     * Clear cached lines
+     *
+     * This must be called whenever the underlying lines change.
+     *
+     */
+    fun clear() {
+        outputLines = null
+    }
+
+    /**
+     * Insert day change markers into the given `lines`
+     *
+     * Result is cached for the given `lines` until [clear] is called or the timezone changes.
+     *
+     * @param lines lines to process
+     * @return lines with day change markers inserted
+     */
+    fun insert(lines: List<Line>): List<Line> {
+        val zone = ZoneId.systemDefault()
+        val outputLines = outputLines
+        if (outputLines != null && lines === this.inputLines && zone == this.zoneId) return outputLines
+
+        this.inputLines = lines
+        this.zoneId = zone
+        return insertDayChangeMarkers(lines, zone).also { this@DayChangeInserter.outputLines = it }
+    }
+
+    private fun insertDayChangeMarkers(lines: List<Line>, zone: ZoneId): List<Line> {
+        val output = ArrayList<Line>(lines.size + estimatedDayChanges(lines))
+        var oldDate: LocalDate? = null
+        var currentTimestamp = Long.MAX_VALUE
+        var nextTimestamp = Long.MIN_VALUE
+
+        for (line in lines) {
+            if (line !is SquiggleLine && line.timestamp !in currentTimestamp..<nextTimestamp) {
+                val newDate = Instant.ofEpochMilli(line.timestamp).atZone(zone).toLocalDate()
+                currentTimestamp = newDate.atStartOfDay(zone).toInstant().toEpochMilli()
+                nextTimestamp = newDate.plusDays(1).atStartOfDay(zone).toInstant().toEpochMilli()
+                output.add(makeDateChangeMarker(oldDate, newDate))
+                oldDate = newDate
+            }
+            output.add(line)
+        }
+        return output
+    }
+
+    private fun estimatedDayChanges(lines: List<Line>): Int {
+        val first = lines.firstOrNull { it !is SquiggleLine } ?: return 0
+        val days = (System.currentTimeMillis() - first.timestamp) / DateUtils.DAY_IN_MILLIS + 1
+        return days.coerceIn(0, lines.size.toLong()).toInt()
+    }
+}
+
+
+private fun makeDateChangeMarker(oldDate: LocalDate?, newDate: LocalDate): Line {
+    val tstamp = newDate.atStartOfDay(ZoneId.systemDefault()).toEpochSecond() * 1000
+    var msg = newDate.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM))
+    if (oldDate != null && oldDate.plusDays(1) != newDate) {
+        msg += " (" +
+                oldDate.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)) +
+                ")"
+    }
+    msg += " --"
+
+    return DateChangeMarker(dateChangePointer(oldDate, newDate), tstamp, msg)
+}
+
+
+private fun dateChangePointer(oldDate: LocalDate?, newDate: LocalDate): Long {
+    // bits: new year 32 and up, new day 21–29, old year 9–20, old day 0–8
+    var datePointer = (MAX_C_POINTER_VALUE shl 2) + (newDate.year.toLong() shl 32) + (newDate.dayOfYear shl 21)
+    if (oldDate != null) {
+        datePointer += (oldDate.year shl 9) + oldDate.dayOfYear
+    }
+    return datePointer
+}
+
+
+private class DateChangeMarker(pointer: Long, timestamp: Long, message: String) : FakeLine(
+    pointer, true, timestamp, "--", message
+)
+
+
+open class FakeLine(
+    pointer: Long, isVisible: Boolean = false, timestamp: Long = 0,
+    rawPrefix: String = "", rawMessage: String = ""
+) : Line(
+    pointer, LineSpec.Type.Other, timestamp, rawPrefix, rawMessage,
+    nick = null, isVisible = isVisible, isHighlighted = false,
+    LineSpec.DisplayAs.Unspecified, LineSpec.NotifyLevel.Low
+)
 
 
 object MarkerLine : FakeLine(++fakePointerCounter)  // can have only one per buffer
-class SquiggleLine(pointer: Long = ++fakePointerCounter, isVisible: Boolean = false) : FakeLine(pointer, isVisible)  // can have several of these
+
+class SquiggleLine(pointer: Long = ++fakePointerCounter, isVisible: Boolean = false) :
+    FakeLine(pointer, isVisible)  // can have several of these
 
 
 class HeaderLine(
-    override val messageString : String,
+    override val messageString: String,
     override val spannable: SpannableString,
     val status: Lines.Status,
 ) : FakeLine(TITLE_LINE_POINTER) {

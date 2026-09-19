@@ -74,7 +74,12 @@ class Buffer @WorkerThread constructor(
         if (updater.updateNotifyLevel) notify = updater.notify ?: Notify.default
         if (updater.updateHidden) hidden = updater.hidden
         if (updater.updateType) type = updater.type
-        if (updater.updateDayChange) displayDayChange = updater.displayDayChange
+        if (updater.updateDayChange) {
+            synchronized(this) {
+                displayDayChange = updater.displayDayChange
+                lines.displayDayChange = displayDayChange
+            }
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -98,7 +103,10 @@ class Buffer @WorkerThread constructor(
     private var nicks: Nicks = Nicks()
 
     fun copyOldDataFrom(buffer: Buffer) {
-        lines = buffer.lines.apply { status = Lines.Status.Init }
+        lines = buffer.lines.apply {
+            status = Lines.Status.Init
+            displayDayChange = this@Buffer.displayDayChange
+        }
         nicks = buffer.nicks.apply { status = Nicks.Status.Init }
     }
 
@@ -218,9 +226,9 @@ class Buffer @WorkerThread constructor(
         }
 
         synchronized(this) {
-            lines.replaceLines(newLines, displayDayChange)
+            lines.replaceLines(newLines)
         }
-   }
+    }
 
     @WorkerThread fun replaceLine(line: Line) {
         if (isOpen) line.ensureSpannable()
@@ -238,7 +246,7 @@ class Buffer @WorkerThread constructor(
         val notifyPmOrMessage = line.notifyLevel == LineSpec.NotifyLevel.Message || notifyPm
 
         synchronized(this) {
-            lines.addLast(line, displayDayChange)
+            lines.addLast(line)
 
             // notify levels: 0 none 1 highlight 2 message 3 all
             // treat hidden lines and lines that are not supposed to generate a “notification” as read
@@ -382,6 +390,7 @@ class Buffer @WorkerThread constructor(
             lines = Lines().apply {
                 status = Lines.Status.EverythingFetched
                 title = lines.title
+                displayDayChange = this@Buffer.displayDayChange
             }
             resetUnreadsAndHighlights()
         }
