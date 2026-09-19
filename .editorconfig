@@ -1,0 +1,7 @@
+root = true
+
+[{*.kt,*.kts}]
+max_line_length = off
+ij_kotlin_class_annotation_wrap = off
+ij_kotlin_field_annotation_wrap = off
+ij_kotlin_method_annotation_wrap = off
