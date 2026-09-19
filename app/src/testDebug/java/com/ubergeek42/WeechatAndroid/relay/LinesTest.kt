@@ -70,9 +70,9 @@ class LinesTest {
 
     @Test fun `Squiggle line appears in both unfiltered and filtered modes`() {
         val lines = Lines()
-        lines.addLast(makeLine(0))
+        lines.addLast(makeLine(0), false)
         lines.updateLastLineInfo(lastPointerServer = 1, lastVisiblePointerServer = 1)
-        lines.addLast(makeLine(2))
+        lines.addLast(makeLine(2), false)
 
         lines.assertUnfilteredConformsTo(
             hasPointer(0),
@@ -89,9 +89,9 @@ class LinesTest {
 
     @Test fun `Squiggle line appears only in unfiltered mode`() {
         val lines = Lines()
-        lines.addLast(makeLine(0))
+        lines.addLast(makeLine(0), false)
         lines.updateLastLineInfo(lastPointerServer = 1, lastVisiblePointerServer = 0)
-        lines.addLast(makeLine(2))
+        lines.addLast(makeLine(2), false)
 
         lines.assertUnfilteredConformsTo(
             hasPointer(0),
@@ -107,11 +107,11 @@ class LinesTest {
 
     @Test fun `Squiggle line never appears doubled around visible lines`() {
         val lines = Lines()
-        lines.addLast(makeLine(0))
+        lines.addLast(makeLine(0), false)
         lines.updateLastLineInfo(lastPointerServer = 1, lastVisiblePointerServer = 1)
-        lines.addLast(makeLine(3))
+        lines.addLast(makeLine(3), false)
         lines.updateLastLineInfo(lastPointerServer = 4, lastVisiblePointerServer = 4)
-        lines.addLast(makeLine(5))
+        lines.addLast(makeLine(5), false)
 
         lines.assertFilteredConformsTo(
             hasPointer(0),
@@ -132,12 +132,12 @@ class LinesTest {
 
     @Test fun `Squiggle line never appears doubled around invisible lines`() {
         val lines = Lines()
-        lines.addLast(makeLine(0))
+        lines.addLast(makeLine(0), false)
         lines.updateLastLineInfo(lastPointerServer = 1, lastVisiblePointerServer = 1)
         lines.updateLastLineInfo(lastPointerServer = 2, lastVisiblePointerServer = 2)
-        lines.addLast(makeLine(3, visible = false))
+        lines.addLast(makeLine(3, visible = false), false)
         lines.updateLastLineInfo(lastPointerServer = 4, lastVisiblePointerServer = 2)
-        lines.addLast(makeLine(5))
+        lines.addLast(makeLine(5), false)
 
         lines.assertUnfilteredConformsTo(
             hasPointer(0),
@@ -168,10 +168,10 @@ class LinesTest {
 
     @Test fun `replaceLine() works for lines before unfiltered & filtered squiggle`() {
         val lines = Lines()
-        lines.addLast(makeLine(0))
-        lines.addLast(makeLine(1, visible = false))
+        lines.addLast(makeLine(0), false)
+        lines.addLast(makeLine(1, visible = false), false)
         lines.updateLastLineInfo(lastPointerServer = 2, lastVisiblePointerServer = 2)
-        lines.addLast(makeLine(3))
+        lines.addLast(makeLine(3), false)
 
         lines.assertFilteredConformsTo(
             hasPointer(0),
@@ -201,10 +201,10 @@ class LinesTest {
     // updateLastLineInfo is called with lastVisiblePointerServer = 1.
     @Test fun `replaceLine() works for lines before unfiltered-only squiggle`() {
         val lines = Lines()
-        lines.addLast(makeLine(0))
-        lines.addLast(makeLine(1, visible = false))
+        lines.addLast(makeLine(0), false)
+        lines.addLast(makeLine(1, visible = false), false)
         lines.updateLastLineInfo(lastPointerServer = 2, lastVisiblePointerServer = 0)
-        lines.addLast(makeLine(3))
+        lines.addLast(makeLine(3), false)
 
         lines.assertUnfilteredConformsTo(
             hasPointer(0),
@@ -238,10 +238,10 @@ class LinesTest {
 
     @Test fun `replaceLine() works for lines after unfiltered & filtered squiggle`() {
         val lines = Lines()
-        lines.addLast(makeLine(0))
-        lines.addLast(makeLine(1))
+        lines.addLast(makeLine(0), false)
+        lines.addLast(makeLine(1), false)
         lines.updateLastLineInfo(lastPointerServer = 2, lastVisiblePointerServer = 2)
-        lines.addLast(makeLine(3, visible = false))
+        lines.addLast(makeLine(3, visible = false), false)
 
         lines.assertFilteredConformsTo(
             hasPointer(0),
@@ -267,10 +267,10 @@ class LinesTest {
 
     @Test fun `replaceLine() works for lines after unfiltered-only squiggle`() {
         val lines = Lines()
-        lines.addLast(makeLine(0))
-        lines.addLast(makeLine(1))
+        lines.addLast(makeLine(0), false)
+        lines.addLast(makeLine(1), false)
         lines.updateLastLineInfo(lastPointerServer = 2, lastVisiblePointerServer = 1)
-        lines.addLast(makeLine(3, visible = false))
+        lines.addLast(makeLine(3, visible = false), false)
 
         lines.assertFilteredConformsTo(
             hasPointer(0),
@@ -298,8 +298,8 @@ class LinesTest {
 
     @Test fun `replaceLine() works sensibly with read marker`() {
         val lines = Lines()
-        lines.addLast(makeLine(0))
-        lines.addLast(makeLine(1, visible = false))
+        lines.addLast(makeLine(0), false)
+        lines.addLast(makeLine(1, visible = false), false)
 
         lines.assertUnfilteredConformsTo(
             hasPointer(0),
@@ -319,8 +319,8 @@ class LinesTest {
             isReadMarker(),
         )
 
-        lines.addLast(makeLine(2, visible = false))
-        lines.addLast(makeLine(3, visible = true))
+        lines.addLast(makeLine(2, visible = false), false)
+        lines.addLast(makeLine(3, visible = true), false)
 
         lines.assertFilteredConformsTo(
             hasPointer(0),
