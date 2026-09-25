@@ -130,7 +130,7 @@ class Buffer @WorkerThread constructor(
     @Synchronized fun addOpenKey(key: String, syncHotlistOnOpen: Boolean) {
         if (openKeys.add(key) == Keys.Change.BecameNotEmpty) {
             BufferList.syncBuffer(this, syncHotlistOnOpen)
-            lines.ensureSpannables()
+            lines.ensurePrecomputedLayoutsInBackground()
             BufferList.notifyBuffersChanged()
         }
     }
@@ -138,7 +138,7 @@ class Buffer @WorkerThread constructor(
     @Synchronized fun removeOpenKey(key: String) {
         if (openKeys.remove(key) == Keys.Change.BecameEmpty) {
             BufferList.desyncBuffer(this)
-            lines.invalidateSpannables()
+            lines.clearPrecomputedLayoutsEtc()
             if (P.optimizeTraffic) {
                 // request lines & nicks on the next sync
                 // the previous comment here was stupid
@@ -210,7 +210,7 @@ class Buffer @WorkerThread constructor(
 
     @WorkerThread fun replaceLines(newLines: Collection<Line>) {
         if (isOpen) {
-            newLines.forEach { it.ensureSpannable() }
+            newLines.forEach { it.ensurePrecomputedLayout() }
         }
 
         synchronized(this) {
@@ -219,7 +219,7 @@ class Buffer @WorkerThread constructor(
    }
 
     @WorkerThread fun replaceLine(line: Line) {
-        if (isOpen) line.ensureSpannable()
+        if (isOpen) line.ensurePrecomputedLayout()
 
         synchronized(this) {
             lines.replaceLine(line)
@@ -227,7 +227,7 @@ class Buffer @WorkerThread constructor(
     }
 
     @WorkerThread fun addLineBottom(line: Line) {
-        if (isOpen) line.ensureSpannable()
+        if (isOpen) line.ensurePrecomputedLayout()
 
         val notifyHighlight = line.notifyLevel == LineSpec.NotifyLevel.Highlight
         val notifyPm = line.notifyLevel == LineSpec.NotifyLevel.Private
@@ -360,10 +360,10 @@ class Buffer @WorkerThread constructor(
     @MainThread fun onGlobalPreferencesChanged(numberChanged: Boolean) {
         synchronized(this) {
             if (!numberChanged) {
-                lines.invalidateSpannables()
+                lines.clearPrecomputedLayoutsEtc()
                 style++
             }
-            lines.ensureSpannables()
+            lines.ensurePrecomputedLayoutsInBackground()
         }
         bufferEyes.forEach { it.onGlobalPreferencesChanged(numberChanged) }
     }

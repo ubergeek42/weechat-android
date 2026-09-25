@@ -28,11 +28,11 @@ public class ColorScheme {
     private int options[][] = new int[44][2];
 
     // the following are used by Color.java and UI
-    int[] chat_time;
-    int[] chat_highlight;
-    int[] chat_nick_prefix;
-    int[] chat_nick_suffix;
-    int[] chat_prefix_more;
+    public int[] chat_time;
+    public int[] chat_highlight;
+    public int[] chat_nick_prefix;
+    public int[] chat_nick_suffix;
+    public int[] chat_prefix_more;
     public int[] chat_read_marker;
     public int[] default_color = new int[2];
     public int[] chat_inactive_buffer;
