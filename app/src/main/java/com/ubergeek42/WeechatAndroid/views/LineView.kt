@@ -325,6 +325,7 @@ class LineView @JvmOverloads constructor(
 
             it.doOnEnd {
                 state = if (animatingToImage) State.TextWithImage else State.TextOnly
+                if (animatingToImage) wideMessageLayoutDelegate.invalidate() else narrowMessageLayoutDelegate.invalidate() // TODO check??
                 wideLayoutAlphaDrawer?.releaseResources()
                 narrowLayoutAlphaDrawer?.releaseResources()
                 wideLayoutAlphaDrawer = null
