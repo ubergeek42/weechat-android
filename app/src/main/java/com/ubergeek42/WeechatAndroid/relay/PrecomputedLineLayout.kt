@@ -2,6 +2,7 @@ package com.ubergeek42.WeechatAndroid.relay
 
 import android.annotation.SuppressLint
 import android.graphics.Canvas
+import android.graphics.Rect
 import android.text.Layout
 import android.text.Spanned
 import android.text.StaticLayout
@@ -11,7 +12,10 @@ import androidx.core.graphics.withTranslation
 import androidx.core.text.PrecomputedTextCompat
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.service.P.Alignment
+import com.ubergeek42.WeechatAndroid.upload.f
 import com.ubergeek42.WeechatAndroid.utils.SHOULD_EMOJIFY
+import com.ubergeek42.WeechatAndroid.views.H_BLOOM
+import com.ubergeek42.WeechatAndroid.views.drawRoundedBackground
 import com.ubergeek42.weechat.ColorScheme
 
 
@@ -24,7 +28,22 @@ private class Cached private constructor(val textPaint: TextPaint) {
     val aWidth: Float = textPaint.measureText("+")
     val lessThanWidth: Float = textPaint.measureText("<")
     val moreThanWidth: Float = textPaint.measureText(">")
-    val plusWidth: Float = textPaint.measureText("+")
+    val plusWidth: Float
+    val plusShiftForBloom: Float
+
+    // When drawing the "+", it is positioned directly between two letters,
+    // both of which can have background with some bloom, or extra padding on its sides.
+    // The below code positions the "+" so that the adjacent background is allowed
+    // to encroach on the bearings of the glyph (its intrinsic padding), but not glyph itself.
+    init {
+        val plusBounds = Rect()
+        textPaint.getTextBounds("+", 0, 1, plusBounds)
+        val plusAdvanceWidth = textPaint.measureText("+")
+        val plusBearingLeft = plusBounds.left.f
+        val plusBearingRight = plusAdvanceWidth - plusBounds.right
+        plusWidth = maxOf(plusBearingLeft, H_BLOOM) + maxOf(plusBearingRight, H_BLOOM) + plusBounds.width()
+        plusShiftForBloom = maxOf(0f, H_BLOOM - plusBearingLeft)
+    }
 
     companion object {
         @Volatile private var cached: Cached? = null
@@ -110,7 +129,7 @@ class PrecomputedLineLayout {
         nickPrefixOffset = if (enclosePrefix) prefixOffset - nickPrefixWidth else -1f
         nickSuffixOffset = if (enclosePrefix) prefixOffset + consumedPrefixWidth else -1f
 
-        moreOffset = if (fittingPrefixChars < prefix.length) prefixOffset + consumedPrefixWidth + nickSuffixWidth else -1f
+        moreOffset = if (fittingPrefixChars < prefix.length) prefixOffset + consumedPrefixWidth + nickSuffixWidth + cached.plusShiftForBloom else -1f
 
         messageOffset = when (alignment) {
             Alignment.Left      -> 0f
@@ -156,6 +175,7 @@ class PrecomputedLineLayout {
         }
 
         canvas.withTranslation(prefixOffset, 0f) {
+            prefixLayout.drawRoundedBackground(canvas, drawingPaint, 0f)
             prefixLayout.draw(canvas)
         }
 
@@ -168,6 +188,7 @@ class PrecomputedLineLayout {
         }
 
         canvas.withTranslation(messageOffset, 0f) {
+            messageLayout.drawRoundedBackground(canvas, drawingPaint, leadingMessageIndent)
             messageLayout.draw(canvas)
         }
     }
