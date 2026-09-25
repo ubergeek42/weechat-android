@@ -9,8 +9,10 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.drawable.Drawable
-import android.text.Spannable
+import android.text.Layout
 import android.text.SpannableString
+import android.text.Spanned
+import android.text.StaticLayout
 import android.text.style.ClickableSpan
 import android.text.style.URLSpan
 import android.util.AttributeSet
@@ -28,6 +30,7 @@ import com.ubergeek42.WeechatAndroid.media.Engine
 import com.ubergeek42.WeechatAndroid.media.Strategy
 import com.ubergeek42.WeechatAndroid.media.Utils.isContextValidForGlide
 import com.ubergeek42.WeechatAndroid.relay.Line
+import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.upload.f
 import com.ubergeek42.WeechatAndroid.upload.i
 import com.ubergeek42.WeechatAndroid.upload.main
@@ -60,7 +63,7 @@ class LineView @JvmOverloads constructor(
     private var text: Spannable = NoText
 
     fun setText(line: Line) {
-        if (text == line.spannable && currentLayout.usesCurrentPaint()) return
+        if (text == line.spannable && currentLayout.paint == P.textPaint) return
 
         invalidateInternal()
         setTextInternal(line)
@@ -105,8 +108,8 @@ class LineView @JvmOverloads constructor(
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private val wideLayoutDelegate = invalidatableLazy { AlphaLayout.make(text, wideLayoutWidth) }
-    private val narrowLayoutDelegate = invalidatableLazy { AlphaLayout.make(text, narrowLayoutWidth) }
+    private val wideLayoutDelegate = invalidatableLazy { text.makeLayout(wideLayoutWidth) }
+    private val narrowLayoutDelegate = invalidatableLazy { text.makeLayout(narrowLayoutWidth) }
 
     private val wideLayout by wideLayoutDelegate
     private val narrowLayout by narrowLayoutDelegate
@@ -240,10 +243,13 @@ class LineView @JvmOverloads constructor(
         setMeasuredDimension(viewWidth, measureViewHeight())
     }
 
+    var wideLayoutAlphaDrawer: AlphaDrawer? = null
+    var narrowLayoutAlphaDrawer: AlphaDrawer? = null
+
     override fun onDraw(canvas: Canvas) {
         if (state.animatingText) {
-            wideLayout.draw(canvas, 1f - animatedValue)
-            narrowLayout.draw(canvas, animatedValue)
+            wideLayoutAlphaDrawer?.drawWithAlpha(canvas, 1f - animatedValue)
+            narrowLayoutAlphaDrawer?.drawWithAlpha(canvas, animatedValue)
         } else {
             currentLayout.draw(canvas)
         }
@@ -300,6 +306,13 @@ class LineView @JvmOverloads constructor(
             State.AnimatingToTextOnly
         }
 
+        wideLayoutAlphaDrawer = getAlphaDrawer(wideLayoutWidth, wideLayout.height) { canvas ->
+            wideLayout.draw(canvas)
+        }
+        narrowLayoutAlphaDrawer = getAlphaDrawer(narrowLayoutWidth, narrowLayout.height) { canvas ->
+            narrowLayout.draw(canvas)
+        }
+
         animator = ValueAnimator.ofFloat(from, to).also {
             it.duration = ANIMATION_DURATION
 
@@ -311,8 +324,10 @@ class LineView @JvmOverloads constructor(
 
             it.doOnEnd {
                 state = if (animatingToImage) State.TextWithImage else State.TextOnly
-                wideLayoutDelegate.getValueOrNull()?.clearBitmap()
-                narrowLayoutDelegate.getValueOrNull()?.clearBitmap()
+                wideLayoutAlphaDrawer?.releaseResources()
+                narrowLayoutAlphaDrawer?.releaseResources()
+                wideLayoutAlphaDrawer = null
+                narrowLayoutAlphaDrawer = null
                 animator = null
             }
         }
@@ -351,22 +366,10 @@ class LineView @JvmOverloads constructor(
                     return true
                 }
 
-                // see android.text.method.LinkMovementMethod.onTouchEvent
                 override fun onSingleTapUp(event: MotionEvent): Boolean {
-                    val currentLayout = this@LineView.currentLayout
-                    val line = currentLayout.getLineForVertical(event.y.i)
-
-                    if (event.x in currentLayout.getHorizontalTextCoordinatesForLine(line)) {
-                        val offset = currentLayout.getOffsetForHorizontal(line, event.x)
-                        val links = text.getSpans(offset, offset, ClickableSpan::class.java)
-
-                        if (links.isNotEmpty()) {
-                            links.first().onClick(this@LineView)
-                            return true
-                        }
-                    }
-
-                    return false
+                    val clickableSpan = currentLayout.getClickableSpans(event.x, event.y)?.firstOrNull()
+                    clickableSpan?.onClick(this@LineView)
+                    return clickableSpan != null
                 }
             })
 
@@ -388,3 +391,27 @@ fun View.getSafeGlide() = if (isContextValidForGlide(context)) {
                            } else {
                                null
                            }
+
+
+private fun Spannable.makeLayout(width: Int) =
+    StaticLayout.Builder.obtain(this, 0, length, P.textPaint, width)
+            .setBreakStrategy(Layout.BREAK_STRATEGY_HIGH_QUALITY)
+            .setHyphenationFrequency(Layout.HYPHENATION_FREQUENCY_NORMAL)
+            .build()
+
+
+// See `android.text.method.LinkMovementMethod.onTouchEvent`
+//
+// TODO LinkMovementMethod's implementation does NOT account for any indents.
+//   Adjust this so that we have more precision.
+//   Our old implementation checked `getParagraphLeft` and `getLineMax`.
+private fun Layout.getClickableSpans(x: Float, y: Float): Array<ClickableSpan>? {
+    val line = getLineForVertical(y.i)
+
+    return if (x < getLineLeft(line) || x > getLineRight(line)) {
+         null
+    } else {
+        val offset = getOffsetForHorizontal(line, x)
+        (text as? Spanned)?.getSpans(offset, offset, ClickableSpan::class.java)
+    }
+}
