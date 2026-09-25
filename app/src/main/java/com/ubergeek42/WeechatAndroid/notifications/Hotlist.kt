@@ -36,8 +36,8 @@ class HotlistMessage(
     companion object {
         fun fromLine(line: Line, hotBuffer: HotlistBuffer): HotlistMessage {
             val isAction = line.displayAs === LineSpec.DisplayAs.Action
-            val message = line.messageString.let { if (isAction) it.toItalicizedSpannable() else it }
-            val nick = line.nick ?: line.prefixString
+            val message = line.getMessageString().let { if (isAction) it.toItalicizedSpannable() else it }
+            val nick = line.nick ?: line.getPrefixString()
 
             return HotlistMessage(hotBuffer = hotBuffer,
                                   timestamp = line.timestamp,
