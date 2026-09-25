@@ -43,6 +43,7 @@ inline val Double.l inline get() = this.toLong()
 // for floating division of integers
 infix fun Long.fdiv(i: Long): Float = this / i.f
 
+val Int.dp_to_pxf get() = this * P._1dp
 val Int.dp_to_px get() = (this * P._1dp).toInt()
 
 // same as to for Pairs, but for triples
