@@ -6,9 +6,9 @@ import android.text.SpannableString
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.utils.Linkify
 import com.ubergeek42.WeechatAndroid.utils.Utils
-import com.ubergeek42.WeechatAndroid.utils.invalidatableLazy
 import com.ubergeek42.WeechatAndroid.utils.removeConsecutiveElementsLeavingFirst
 import com.ubergeek42.WeechatAndroid.utils.replaceFirstWith
+import com.ubergeek42.WeechatAndroid.utils.synchronizedInvalidatableLazy
 import com.ubergeek42.weechat.Color
 import kotlin.properties.Delegates.observable
 
@@ -240,7 +240,7 @@ class Lines {
 
     var title: String by observable("") { _, _, _ -> headerLineDelegate.invalidate() }
 
-    private var headerLineDelegate = invalidatableLazy { HeaderLine.make(title, status) }
+    private var headerLineDelegate = synchronizedInvalidatableLazy { HeaderLine.make(title, status) }
     private val headerLine by headerLineDelegate
 }
 
