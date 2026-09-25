@@ -27,6 +27,22 @@ abstract class InvalidatableLazyProperty<T>(
 }
 
 
+class UnsynchronizedInvalidatableLazyProperty<T>(
+    initializer: (() -> T)
+) : InvalidatableLazyProperty<T>(initializer) {
+    override fun getValue(thisRef: Any?, property: KProperty<*>): T {
+        var value = this.value
+
+        if (value === Missing) {
+            value = initializer()
+            this.value = value
+        }
+
+        return value
+    }
+}
+
+
 class SynchronizedInvalidatableLazyProperty<T>(
     initializer: (() -> T)
 ) : InvalidatableLazyProperty<T>(initializer) {
@@ -48,7 +64,8 @@ class SynchronizedInvalidatableLazyProperty<T>(
 }
 
 
-fun <T> invalidatableLazy(initializer: () -> T) = SynchronizedInvalidatableLazyProperty(initializer)
+fun <T> invalidatableLazy(initializer: () -> T) = UnsynchronizedInvalidatableLazyProperty(initializer)
+fun <T> synchronizedInvalidatableLazy(initializer: () -> T) = SynchronizedInvalidatableLazyProperty(initializer)
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
