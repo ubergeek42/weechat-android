@@ -90,13 +90,13 @@ open class Line(
 
     // caching this method (for the purpose of speeding up search)
     // yields about 5ms for searches of 4096 lines, despite what the flame chart shows
-    fun getIrcLikeString() = if (displayAs == LineSpec.DisplayAs.Say)
+    open fun getIrcLikeString() = if (displayAs == LineSpec.DisplayAs.Say)
             "<${getPrefixString()}> ${getMessageString()}" else "${getPrefixString()} ${getMessageString()}"
 
-    fun getTimestampedIrcLikeString(): String =
+    open fun getTimestampedIrcLikeString(): String =
             P.dateFormat?.let { "${it.print(timestamp)} ${getIrcLikeString()}" } ?: getIrcLikeString()
 
-    fun visuallyEqualsTo(other: Line) =
+    open fun visuallyEqualsTo(other: Line) =
         type == other.type &&
         timestamp == other.timestamp &&
         rawPrefix == other.rawPrefix &&
