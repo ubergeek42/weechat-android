@@ -12,7 +12,6 @@ import android.graphics.drawable.Drawable
 import android.text.Layout
 import android.text.SpannableString
 import android.text.Spanned
-import android.text.StaticLayout
 import android.text.style.ClickableSpan
 import android.text.style.URLSpan
 import android.util.AttributeSet
@@ -29,8 +28,9 @@ import com.ubergeek42.WeechatAndroid.media.Config
 import com.ubergeek42.WeechatAndroid.media.Engine
 import com.ubergeek42.WeechatAndroid.media.Strategy
 import com.ubergeek42.WeechatAndroid.media.Utils.isContextValidForGlide
+import com.ubergeek42.WeechatAndroid.relay.FakeLine
 import com.ubergeek42.WeechatAndroid.relay.Line
-import com.ubergeek42.WeechatAndroid.service.P
+import com.ubergeek42.WeechatAndroid.relay.PrecomputedLineLayout
 import com.ubergeek42.WeechatAndroid.upload.f
 import com.ubergeek42.WeechatAndroid.upload.i
 import com.ubergeek42.WeechatAndroid.upload.main
@@ -60,10 +60,11 @@ class LineView @JvmOverloads constructor(
 ) : View(context, attrs, defStyle) {
     private val glide = getSafeGlide()
 
-    private var text: Spannable = NoText
+    private var messageSpanned: Spanned = NoSpanned
+    private var precomputedLayout: PrecomputedLineLayout = NoPrecomputedLayout
 
     fun setText(line: Line) {
-        if (text == line.spannable && currentLayout.paint == P.textPaint) return
+        if (precomputedLayout == line.getPrecomputedLayout()) return
 
         invalidateInternal()
         setTextInternal(line)
@@ -71,9 +72,10 @@ class LineView @JvmOverloads constructor(
     }
 
     private fun invalidateInternal() {
-        wideLayoutDelegate.invalidate()
-        narrowLayoutDelegate.invalidate()
-        text = NoText
+        wideMessageLayoutDelegate.invalidate()
+        narrowMessageLayoutDelegate.invalidate()
+        precomputedLayout = NoPrecomputedLayout
+        messageSpanned = NoSpanned
         image = null
         firstDrawAt = HAVE_NOT_DRAWN
         state = State.TextOnly
@@ -86,7 +88,8 @@ class LineView @JvmOverloads constructor(
     }
 
     private fun setTextInternal(line: Line) {
-        this.text = line.spannable
+        this.messageSpanned = line.getMessageSpanned()
+        this.precomputedLayout = line.getPrecomputedLayout()
 
         val (url, cacheInfo) = getUrlInfo(line)
         val prettySureWillShowImage = cacheInfo == Cache.Info.FETCHED_RECENTLY
@@ -104,19 +107,21 @@ class LineView @JvmOverloads constructor(
 
     private var state = State.TextOnly
 
-    val urls: Array<URLSpan> get() = text.getSpans(0, text.length, URLSpan::class.java)
+    val urls: Array<URLSpan> get() = messageSpanned.getSpans(0, messageSpanned.length, URLSpan::class.java)
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private val wideLayoutDelegate = invalidatableLazy { text.makeLayout(wideLayoutWidth) }
-    private val narrowLayoutDelegate = invalidatableLazy { text.makeLayout(narrowLayoutWidth) }
+    private val wideMessageLayoutDelegate =
+        invalidatableLazy { precomputedLayout.obtainMessageLayout(wideLayoutWidth) }
+    private val narrowMessageLayoutDelegate =
+        invalidatableLazy { precomputedLayout.obtainMessageLayout(narrowLayoutWidth) }
 
-    private val wideLayout by wideLayoutDelegate
-    private val narrowLayout by narrowLayoutDelegate
+    private val wideMessageLayout by wideMessageLayoutDelegate
+    private val narrowMessageLayout by narrowMessageLayoutDelegate
 
-    private val currentLayout get() = when (state) {
-        State.TextOnly, State.AnimatingToTextOnly -> wideLayout
-        State.TextWithImage, State.AnimatingToTextWithImage, State.AnimatingOnlyImage -> narrowLayout
+    private val currentMessageLayout get() = when (state) {
+        State.TextOnly, State.AnimatingToTextOnly -> wideMessageLayout
+        State.TextWithImage, State.AnimatingToTextWithImage, State.AnimatingOnlyImage -> narrowMessageLayout
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -190,10 +195,10 @@ class LineView @JvmOverloads constructor(
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private fun measureViewHeight(): Int {
-        fun getTextOnlyHeight() = if (text === NoText) 0 else wideLayout.height
+        fun getTextOnlyHeight() = if (precomputedLayout === NoPrecomputedLayout) 0 else wideMessageLayout.height
 
         fun getTextWithImageHeight(): Int {
-            val narrowLayoutHeight = if (text === NoText) 0 else narrowLayout.height
+            val narrowLayoutHeight = if (precomputedLayout === NoPrecomputedLayout) 0 else narrowMessageLayout.height
             return maxOf(narrowLayoutHeight, Config.thumbnailAreaMinHeight)
         }
 
@@ -209,7 +214,7 @@ class LineView @JvmOverloads constructor(
     }
 
     private fun measureThumbnailHeight(): Int {
-        return (narrowLayout.height - Config.THUMBNAIL_VERTICAL_MARGIN * 2)
+        return (narrowMessageLayout.height - Config.THUMBNAIL_VERTICAL_MARGIN * 2)
                 .coerceAtMost(Config.thumbnailMaxHeight)
                 .coerceAtLeast(Config.thumbnailMinHeight)
                 .coerceAtLeast(1)
@@ -236,8 +241,8 @@ class LineView @JvmOverloads constructor(
 
         if (oldViewWidth != viewWidth) {
             oldViewWidth = viewWidth
-            wideLayoutDelegate.invalidate()
-            narrowLayoutDelegate.invalidate()
+            wideMessageLayoutDelegate.invalidate()
+            narrowMessageLayoutDelegate.invalidate()
             if (state.withImage) lastRequestedUrl?.let { requestThumbnail(it) }
         }
         setMeasuredDimension(viewWidth, measureViewHeight())
@@ -251,7 +256,7 @@ class LineView @JvmOverloads constructor(
             wideLayoutAlphaDrawer?.drawWithAlpha(canvas, 1f - animatedValue)
             narrowLayoutAlphaDrawer?.drawWithAlpha(canvas, animatedValue)
         } else {
-            currentLayout.draw(canvas)
+            precomputedLayout.draw(canvas, currentMessageLayout)
         }
 
         image?.let {
@@ -306,11 +311,11 @@ class LineView @JvmOverloads constructor(
             State.AnimatingToTextOnly
         }
 
-        wideLayoutAlphaDrawer = getAlphaDrawer(wideLayoutWidth, wideLayout.height) { canvas ->
-            wideLayout.draw(canvas)
+        wideLayoutAlphaDrawer = getAlphaDrawer(wideLayoutWidth, wideMessageLayout.height) { canvas ->
+            precomputedLayout.draw(canvas, wideMessageLayout)
         }
-        narrowLayoutAlphaDrawer = getAlphaDrawer(narrowLayoutWidth, narrowLayout.height) { canvas ->
-            narrowLayout.draw(canvas)
+        narrowLayoutAlphaDrawer = getAlphaDrawer(narrowLayoutWidth, narrowMessageLayout.height) { canvas ->
+            precomputedLayout.draw(canvas, narrowMessageLayout)
         }
 
         animator = ValueAnimator.ofFloat(from, to).also {
@@ -367,7 +372,8 @@ class LineView @JvmOverloads constructor(
                 }
 
                 override fun onSingleTapUp(event: MotionEvent): Boolean {
-                    val clickableSpan = currentLayout.getClickableSpans(event.x, event.y)?.firstOrNull()
+                    val x = event.x - precomputedLayout.messageOffset
+                    val clickableSpan = currentMessageLayout.getClickableSpans(x, event.y)?.firstOrNull()
                     clickableSpan?.onClick(this@LineView)
                     return clickableSpan != null
                 }
@@ -383,7 +389,8 @@ class LineView @JvmOverloads constructor(
 
 const val HAVE_NOT_DRAWN = -1L
 
-private val NoText = SpannableString("error")   // just so that we don't need to say !!
+private val NoSpanned = SpannableString("error")   // just so that we don't need to say !!
+private val NoPrecomputedLayout = FakeLine(0).getPrecomputedLayout()   // just so that we don't need to say !!
 
 
 fun View.getSafeGlide() = if (isContextValidForGlide(context)) {
@@ -391,13 +398,6 @@ fun View.getSafeGlide() = if (isContextValidForGlide(context)) {
                            } else {
                                null
                            }
-
-
-private fun Spannable.makeLayout(width: Int) =
-    StaticLayout.Builder.obtain(this, 0, length, P.textPaint, width)
-            .setBreakStrategy(Layout.BREAK_STRATEGY_HIGH_QUALITY)
-            .setHyphenationFrequency(Layout.HYPHENATION_FREQUENCY_NORMAL)
-            .build()
 
 
 // See `android.text.method.LinkMovementMethod.onTouchEvent`

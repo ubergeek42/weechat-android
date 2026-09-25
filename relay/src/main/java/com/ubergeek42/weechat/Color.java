@@ -152,8 +152,8 @@ public class Color {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     // output of parseColors()
-    private StringBuffer out;                                   // printable characters
-    private ArrayList<Span> spanList = new ArrayList<>();       // list of spans in “out”
+    public StringBuffer out;                                   // printable characters
+    public ArrayList<Span> spanList = new ArrayList<>();       // list of spans in “out”
 
     // working vars of parseColor()
     private String msg;                                         // text currently being parsed by parseColors

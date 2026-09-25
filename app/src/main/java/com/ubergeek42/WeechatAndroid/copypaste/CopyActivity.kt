@@ -79,9 +79,9 @@ private typealias TextGetter = (Line) -> String
 
 @Suppress("unused")
 private enum class Select(val id: Int, val textGetter: TextGetter) {
-    WithTimestamps(R.id.menu_select_with_timestamps, Line::timestampedIrcLikeString),
-    WithoutTimestamps(R.id.menu_select_without_timestamps, Line::ircLikeString),
-    MessagesOnly(R.id.menu_select_messages_only, Line::messageString),
+    WithTimestamps(R.id.menu_select_with_timestamps, Line::getTimestampedIrcLikeString),
+    WithoutTimestamps(R.id.menu_select_without_timestamps, Line::getIrcLikeString),
+    MessagesOnly(R.id.menu_select_messages_only, Line::getMessageString),
 }
 
 
