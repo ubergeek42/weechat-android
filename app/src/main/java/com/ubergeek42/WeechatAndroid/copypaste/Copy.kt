@@ -4,7 +4,7 @@ import android.app.Dialog
 import android.content.ClipData
 import android.content.Context
 import android.content.ClipboardManager
-import android.text.style.URLSpan
+import android.text.Spanned
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.ImageButton
@@ -14,50 +14,47 @@ import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.dialogs.FancyAlertDialogBuilder
 import com.ubergeek42.WeechatAndroid.relay.Line
 import com.ubergeek42.WeechatAndroid.relay.getUrls
-import com.ubergeek42.WeechatAndroid.views.LineView
 
 
-fun showCopyDialog(lineView: LineView, bufferPointer: Long) {
-    Copy(lineView.context, bufferPointer, lineView, lineView.tag as Line)
-            .buildCopyDialog()
-            .show()
+fun Context.showCopyDialog(line: Line, bufferPointer: Long) {
+    val strings = mutableListOf<String>().apply {
+        if (line.getPrefixString().isNotEmpty()) add(line.getIrcLikeString())
+        add(line.getMessageString())
+        addAll(line.getMessageSpanned().getUrls())
+    }.distinct()
+
+    buildCopyDialog(strings, bufferPointer, line.pointer).show()
 }
 
 
-private class Copy(
-    private val context: Context,
-    private val bufferPointer: Long,
-    private val sourceLineView: LineView,
-    private val sourceLine: Line,
-) {
-    private fun getSourceLines(): List<String> {
-        return mutableListOf<String>().apply {
-            if (sourceLine.getPrefixString().isNotEmpty()) add(sourceLine.getIrcLikeString())
-            add(sourceLine.getMessageString())
-            addAll(sourceLine.getMessageSpannable().getUrls())
-        }.distinct()
-    }
+fun Context.showCopyDialog(charSequence: CharSequence, bufferPointer: Long, linePointer: Long) {
+    val strings = mutableListOf<String>().apply {
+        add(charSequence.toString())
+        (charSequence as? Spanned)?.let { addAll(it.getUrls()) }
+    }.distinct()
 
-    fun buildCopyDialog(): Dialog {
-        val dialog = FancyAlertDialogBuilder(context).create()
-        val layout = LayoutInflater.from(context).inflate(R.layout.dialog_copy, null) as ViewGroup
+    buildCopyDialog(strings, bufferPointer, linePointer).show()
+}
 
-        layout.findViewById<TextView>(R.id.title).setText(R.string.dialog__copy__title)
+fun Context.buildCopyDialog(strings: List<String>, bufferPointer: Long, sourceLinePointer: Long): Dialog {
+    val dialog = FancyAlertDialogBuilder(this).create()
+    val layout = LayoutInflater.from(this).inflate(R.layout.dialog_copy, null) as ViewGroup
 
-        layout.findViewById<RecyclerView>(R.id.list).adapter =
-                CopyAdapter(context, getSourceLines()) { item ->
-            context.setClipboardText(item)
+    layout.findViewById<TextView>(R.id.title).setText(R.string.dialog__copy__title)
+
+    layout.findViewById<RecyclerView>(R.id.list).adapter =
+        CopyAdapter(this, strings) { item ->
+            setClipboardText(item)
             dialog.dismiss()
         }
 
-        layout.findViewById<ImageButton>(R.id.select_text).setOnClickListener {
-            launchCopyActivity(context, bufferPointer, sourceLine.pointer)
-            dialog.dismiss()
-        }
-
-        dialog.setView(layout)
-        return dialog
+    layout.findViewById<ImageButton>(R.id.select_text).setOnClickListener {
+        launchCopyActivity(this, bufferPointer, sourceLinePointer)
+        dialog.dismiss()
     }
+
+    dialog.setView(layout)
+    return dialog
 }
 
 

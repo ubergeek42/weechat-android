@@ -2,14 +2,15 @@
 // you may not use this file except in compliance with the License.
 package com.ubergeek42.WeechatAndroid.relay
 
-import android.text.SpannableString
+import android.text.Spanned
 import com.ubergeek42.WeechatAndroid.service.P
-import com.ubergeek42.WeechatAndroid.utils.Linkify
+import com.ubergeek42.WeechatAndroid.utils.Linkify.linkify
+import com.ubergeek42.WeechatAndroid.utils.SHOULD_EMOJIFY
+import com.ubergeek42.WeechatAndroid.utils.emojify
 import com.ubergeek42.WeechatAndroid.utils.Utils
 import com.ubergeek42.WeechatAndroid.utils.removeConsecutiveElementsLeavingFirst
 import com.ubergeek42.WeechatAndroid.utils.replaceFirstWith
 import com.ubergeek42.WeechatAndroid.utils.synchronizedInvalidatableLazy
-import com.ubergeek42.weechat.Color
 import kotlin.properties.Delegates.observable
 
 // this class is supposed to be synchronized by Buffer
@@ -247,7 +248,7 @@ class Lines {
 
 private const val MAX_C_POINTER_VALUE = 0x200000000000000       // 2⁵⁷
 private var fakePointerCounter = MAX_C_POINTER_VALUE
-private val TITLE_LINE_POINTER = ++fakePointerCounter
+val TITLE_LINE_POINTER = ++fakePointerCounter
 
 
 open class FakeLine(pointer: Long, isVisible: Boolean = false) : Line(
@@ -262,15 +263,24 @@ class SquiggleLine(pointer: Long = ++fakePointerCounter, isVisible: Boolean = fa
 
 
 class HeaderLine(
-    //val messageString : String,
-    //val spannable: SpannableString,
-    val status: Lines.Status,
+    val titleSpanned: Spanned,
+    val linesStatus: Lines.Status,
 ) : FakeLine(TITLE_LINE_POINTER) {
+    override fun getIrcLikeString() = titleSpanned.toString()
+    override fun getTimestampedIrcLikeString() = titleSpanned.toString()
+
+    override fun visuallyEqualsTo(other: Line): Boolean {
+        return titleSpanned == (other as? HeaderLine)?.titleSpanned && linesStatus == other.linesStatus
+    }
+
     companion object {
-        fun make(data: String, status: Lines.Status): HeaderLine {
-            val title = Color.stripEverything(data)
-            val spannable = SpannableString(title).also { Linkify.linkify(it) }
-            return HeaderLine(/*title, spannable,*/ status)
+        fun make(rawTitle: String, status: Lines.Status): HeaderLine {
+            val titleSpanned = rawTitle.toSpannableWithWeechatColorsParsed(false, false)
+                    .also {
+                        if (SHOULD_EMOJIFY) emojify(it)
+                        linkify(it)
+                    }
+            return HeaderLine(titleSpanned, status)
         }
     }
 }
