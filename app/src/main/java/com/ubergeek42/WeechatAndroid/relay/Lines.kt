@@ -2,16 +2,18 @@
 // you may not use this file except in compliance with the License.
 package com.ubergeek42.WeechatAndroid.relay
 
+import android.os.Process.THREAD_PRIORITY_BACKGROUND
 import android.text.Spanned
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.utils.Linkify.linkify
 import com.ubergeek42.WeechatAndroid.utils.SHOULD_EMOJIFY
 import com.ubergeek42.WeechatAndroid.utils.emojify
-import com.ubergeek42.WeechatAndroid.utils.Utils
 import com.ubergeek42.WeechatAndroid.utils.removeConsecutiveElementsLeavingFirst
 import com.ubergeek42.WeechatAndroid.utils.replaceFirstWith
 import com.ubergeek42.WeechatAndroid.utils.synchronizedInvalidatableLazy
 import kotlin.properties.Delegates.observable
+import java.util.concurrent.LinkedBlockingQueue
+import kotlin.concurrent.thread
 
 // this class is supposed to be synchronized by Buffer
 class Lines {
@@ -195,8 +197,7 @@ class Lines {
     // this method gets called after line filter change, so it does get to process all needed lines
     fun ensurePrecomputedLayoutsInBackground() {
         val target = if (P.filterLines) filtered else unfiltered
-        val snapshot = target.toTypedArray()
-        Utils.runInBackground { for (i in snapshot.indices.reversed()) snapshot[i].ensurePrecomputedLayout() }
+        BackgroundLinePrecomputedLayoutProcessor.process(target.reversed())
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -303,3 +304,26 @@ class HeaderLine(
 //            if (line.visible) idx_f++;
 //        }
 //    }
+
+
+/**
+ * Processes lines in thread pool with the threads having background priority,
+ * which is supposed to help us not impact the responsiveness of the UI.
+ */
+object BackgroundLinePrecomputedLayoutProcessor {
+    init {
+        for (i in 0 until Runtime.getRuntime().availableProcessors()) {
+            thread(name = "lc-$i", isDaemon = true, priority = THREAD_PRIORITY_BACKGROUND) {
+                while (true) {
+                    queue.take().ensurePrecomputedLayout()
+                }
+            }
+        }
+    }
+
+    private val queue = LinkedBlockingQueue<Line>()
+
+    fun process(lines: Collection<Line>) {
+        queue.addAll(lines)
+    }
+}
