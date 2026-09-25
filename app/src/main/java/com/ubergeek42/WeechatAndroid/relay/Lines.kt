@@ -186,16 +186,16 @@ class Lines {
         }
     }
 
-    fun invalidateSpannables() {
-        unfiltered.forEach { it.invalidateSpannable() }
+    fun clearPrecomputedLayoutsEtc() {
+        unfiltered.forEach { it.clearPrecomputerLayoutEtc() }
     }
 
     // process lines that are gre going to be displayed, backwards, on a background thread pool.
     // this method gets called after line filter change, so it does get to process all needed lines
-    fun ensureSpannables() {
+    fun ensurePrecomputedLayoutsInBackground() {
         val target = if (P.filterLines) filtered else unfiltered
         val snapshot = target.toTypedArray()
-        Utils.runInBackground { for (i in snapshot.indices.reversed()) snapshot[i].ensureSpannable() }
+        Utils.runInBackground { for (i in snapshot.indices.reversed()) snapshot[i].ensurePrecomputedLayout() }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -262,15 +262,15 @@ class SquiggleLine(pointer: Long = ++fakePointerCounter, isVisible: Boolean = fa
 
 
 class HeaderLine(
-    override val messageString : String,
-    override val spannable: SpannableString,
+    //val messageString : String,
+    //val spannable: SpannableString,
     val status: Lines.Status,
 ) : FakeLine(TITLE_LINE_POINTER) {
     companion object {
         fun make(data: String, status: Lines.Status): HeaderLine {
             val title = Color.stripEverything(data)
             val spannable = SpannableString(title).also { Linkify.linkify(it) }
-            return HeaderLine(title, spannable, status)
+            return HeaderLine(/*title, spannable,*/ status)
         }
     }
 }
