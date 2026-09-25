@@ -31,8 +31,8 @@ private class Copy(
 ) {
     private fun getSourceLines(): List<String> {
         return mutableListOf<String>().apply {
-            if (sourceLine.prefixString.isNotEmpty()) add(sourceLine.ircLikeString)
-            add(sourceLine.messageString)
+            if (sourceLine.getPrefixString().isNotEmpty()) add(sourceLine.getIrcLikeString())
+            add(sourceLine.getMessageString())
             addAll(sourceLineView.urls.map(URLSpan::getURL))
         }.distinct()
     }

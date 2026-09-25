@@ -121,7 +121,9 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     public static int maxWidth;
     public static boolean encloseNick, dimDownNonHumanLines;
     public static @Nullable DateTimeFormatter dateFormat;
-    public static int align;
+
+    public enum Alignment { Left, Timestamp, PrefixLeft, PrefixRight }
+    public static Alignment align;
 
     public static float textSize, letterWidth;
     public static TextPaint textPaint;
@@ -417,10 +419,10 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     @MainThread private static void setAlignment() {
         String alignment = getString(PREF_PREFIX_ALIGN, PREF_PREFIX_ALIGN_D);
         switch (alignment) {
-            case "right":     align = Color.ALIGN_RIGHT; break;
-            case "left":      align = Color.ALIGN_LEFT; break;
-            case "timestamp": align = Color.ALIGN_TIMESTAMP; break;
-            default:          align = Color.ALIGN_NONE; break;
+            case "right":     align = Alignment.PrefixRight; break;
+            case "left":      align = Alignment.PrefixLeft; break;
+            case "timestamp": align = Alignment.Timestamp; break;
+            default:          align = Alignment.Left; break;
         }
     }
 
