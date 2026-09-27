@@ -14,12 +14,14 @@ import android.os.StrictMode;
 import com.ubergeek42.WeechatAndroid.media.CachePersist;
 import com.ubergeek42.WeechatAndroid.notifications.IconsKt;
 import com.ubergeek42.WeechatAndroid.notifications.StatisticsKt;
+import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.WeechatAndroid.service.Events;
 import com.ubergeek42.WeechatAndroid.notifications.NotificatorKt;
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.service.RelayService.STATE;
 import com.ubergeek42.WeechatAndroid.upload.UploadDatabase;
 import com.ubergeek42.WeechatAndroid.utils.EmojiUtilKt;
+import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.Cats;
 
 import net.danlew.android.joda.JodaTimeAndroid;
@@ -61,7 +63,7 @@ public class Weechat extends Application {
     }
 
 
-    @Override public void onTrimMemory(int level) {
+    @Override @Cat public void onTrimMemory(int level) {
         super.onTrimMemory(level);
         switch (level) {
             case TRIM_MEMORY_COMPLETE:
@@ -71,6 +73,7 @@ public class Weechat extends Application {
             case TRIM_MEMORY_RUNNING_LOW:
             case TRIM_MEMORY_RUNNING_MODERATE:
                 IconsKt.clearMemoryIconCache();
+                BufferList.clearPrecomputedLayoutsEtcForAllBuffers();
                 break;
             case TRIM_MEMORY_UI_HIDDEN:
                 break;
