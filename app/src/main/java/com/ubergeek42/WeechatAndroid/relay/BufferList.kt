@@ -407,6 +407,10 @@ object BufferList {
         return handlers
     }
 
+    @JvmStatic fun clearPrecomputedLayoutsEtcForAllBuffers() {
+        buffers.forEach { it.clearPrecomputedLayoutsEtc() }
+    }
+
     private class LineListingHandler(private val bufferPointer: Long) : HdataHandler {
         override fun handleMessage(obj: Hdata, id: String) {
             findByPointer(bufferPointer)?.let { buffer ->
