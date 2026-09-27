@@ -13,7 +13,6 @@ import android.text.Layout
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.style.ClickableSpan
-import android.text.style.URLSpan
 import android.util.AttributeSet
 import android.view.GestureDetector
 import android.view.GestureDetector.SimpleOnGestureListener
@@ -31,6 +30,7 @@ import com.ubergeek42.WeechatAndroid.media.Utils.isContextValidForGlide
 import com.ubergeek42.WeechatAndroid.relay.FakeLine
 import com.ubergeek42.WeechatAndroid.relay.Line
 import com.ubergeek42.WeechatAndroid.relay.PrecomputedLineLayout
+import com.ubergeek42.WeechatAndroid.relay.getUrls
 import com.ubergeek42.WeechatAndroid.upload.f
 import com.ubergeek42.WeechatAndroid.upload.i
 import com.ubergeek42.WeechatAndroid.upload.main
@@ -104,9 +104,6 @@ class LineView @JvmOverloads constructor(
 
     private var state = State.TextOnly
 
-    val urls: Array<URLSpan> get() = precomputedLayout.messagePrecomputedText
-            .let { it.getSpans(0, it.length, URLSpan::class.java) }
-
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private val wideMessageLayoutDelegate =
@@ -133,6 +130,7 @@ class LineView @JvmOverloads constructor(
         if (Engine.isEnabledAtAll() &&
             Engine.isEnabledForLocation(Engine.Location.CHAT) &&
             Engine.isEnabledForLine(line)) {
+            val urls = line.getMessageSpanned().getUrls()
             val candidates = Engine.getPossibleMediaCandidates(urls, Strategy.Size.SMALL)
             if (candidates.isNotEmpty()) {
                 val url = candidates[0]

@@ -4,7 +4,6 @@ import android.app.Dialog
 import android.content.ClipData
 import android.content.Context
 import android.content.ClipboardManager
-import android.text.style.URLSpan
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.ImageButton
@@ -13,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.dialogs.FancyAlertDialogBuilder
 import com.ubergeek42.WeechatAndroid.relay.Line
+import com.ubergeek42.WeechatAndroid.relay.getUrls
 import com.ubergeek42.WeechatAndroid.views.LineView
 
 
@@ -33,7 +33,7 @@ private class Copy(
         return mutableListOf<String>().apply {
             if (sourceLine.getPrefixString().isNotEmpty()) add(sourceLine.getIrcLikeString())
             add(sourceLine.getMessageString())
-            addAll(sourceLineView.urls.map(URLSpan::getURL))
+            addAll(sourceLine.getMessageSpanned().getUrls())
         }.distinct()
     }
 
