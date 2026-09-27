@@ -31,6 +31,7 @@ import com.ubergeek42.WeechatAndroid.media.Utils.isContextValidForGlide
 import com.ubergeek42.WeechatAndroid.relay.FakeLine
 import com.ubergeek42.WeechatAndroid.relay.Line
 import com.ubergeek42.WeechatAndroid.relay.PrecomputedLineLayout
+import com.ubergeek42.WeechatAndroid.relay.getUrls
 import com.ubergeek42.WeechatAndroid.upload.f
 import com.ubergeek42.WeechatAndroid.upload.i
 import com.ubergeek42.WeechatAndroid.upload.main
@@ -107,8 +108,6 @@ class LineView @JvmOverloads constructor(
 
     private var state = State.TextOnly
 
-    val urls: Array<URLSpan> get() = messageSpanned.getSpans(0, messageSpanned.length, URLSpan::class.java)
-
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private val wideMessageLayoutDelegate =
@@ -135,6 +134,7 @@ class LineView @JvmOverloads constructor(
         if (Engine.isEnabledAtAll() &&
             Engine.isEnabledForLocation(Engine.Location.CHAT) &&
             Engine.isEnabledForLine(line)) {
+            val urls = line.getMessageSpanned().getUrls()
             val candidates = Engine.getPossibleMediaCandidates(urls, Strategy.Size.SMALL)
             if (candidates.isNotEmpty()) {
                 val url = candidates[0]

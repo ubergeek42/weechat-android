@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.dialogs.FancyAlertDialogBuilder
 import com.ubergeek42.WeechatAndroid.relay.Line
+import com.ubergeek42.WeechatAndroid.relay.getUrls
 import com.ubergeek42.WeechatAndroid.views.LineView
 
 
@@ -33,7 +34,7 @@ private class Copy(
         return mutableListOf<String>().apply {
             if (sourceLine.getPrefixString().isNotEmpty()) add(sourceLine.getIrcLikeString())
             add(sourceLine.getMessageString())
-            addAll(sourceLineView.urls.map(URLSpan::getURL))
+            addAll(sourceLine.getMessageSpannable().getUrls())
         }.distinct()
     }
 

@@ -125,10 +125,10 @@ public class Engine {
         return null;
     }
 
-    public static @NonNull List<Strategy.Url> getPossibleMediaCandidates(@NonNull URLSpan[] urls, Strategy.Size size) {
+    public static @NonNull List<Strategy.Url> getPossibleMediaCandidates(@NonNull List<String> urls, Strategy.Size size) {
         List<Strategy.Url> candidates = new ArrayList<>();
-        for (URLSpan url : urls) {
-            Strategy.Url strategyUrl = getStrategyUrl(url.getURL(), size);
+        for (String url : urls) {
+            Strategy.Url strategyUrl = getStrategyUrl(url, size);
             if (strategyUrl != null) candidates.add(strategyUrl);
         }
         return candidates;
