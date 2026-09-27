@@ -11,8 +11,8 @@ import com.ubergeek42.WeechatAndroid.utils.emojify
 import com.ubergeek42.WeechatAndroid.utils.removeConsecutiveElementsLeavingFirst
 import com.ubergeek42.WeechatAndroid.utils.replaceFirstWith
 import com.ubergeek42.WeechatAndroid.utils.synchronizedInvalidatableLazy
+import lbmq.LinkedBlockingMultiQueue
 import kotlin.properties.Delegates.observable
-import java.util.concurrent.LinkedBlockingQueue
 import kotlin.concurrent.thread
 
 // this class is supposed to be synchronized by Buffer
@@ -309,6 +309,16 @@ class HeaderLine(
 /**
  * Processes lines in thread pool with the threads having background priority,
  * which is supposed to help us not impact the responsiveness of the UI.
+ *
+ * When a collection of lines is submitted for processing,
+ * it is added to a sub-queue of the queue that the threads take from.
+ * This ensures that, even if several collections are added soon after each other,
+ * they start being processed at once from start to end.
+ *
+ * By using a sub-queue pool of 3, we can be reasonably sure that
+ * when switching to a far away buffer in the pager,
+ * all three buffers that get attached to it get their bottom lines ready soon.
+ * In my testing on a device, the precomputed layout are almost never processed on the main thread.
  */
 object BackgroundLinePrecomputedLayoutProcessor {
     init {
@@ -321,9 +331,17 @@ object BackgroundLinePrecomputedLayoutProcessor {
         }
     }
 
-    private val queue = LinkedBlockingQueue<Line>()
+    private val subQueues: MutableList<LinkedBlockingMultiQueue<Int, Line>.SubQueue> = mutableListOf()
+
+    private val queue = LinkedBlockingMultiQueue<Int, Line>()
+            .apply {
+                repeat(3) { key ->
+                    addSubQueue(key, 0)
+                    subQueues.add(getSubQueue(key))
+                }
+            }
 
     fun process(lines: Collection<Line>) {
-        queue.addAll(lines)
+        subQueues.minBy { it.size }.addAll(lines)
     }
 }
