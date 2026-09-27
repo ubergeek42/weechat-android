@@ -192,6 +192,10 @@ class Buffer @WorkerThread constructor(
         }
     }
 
+    fun clearPrecomputedLayoutsEtc() {
+        lines.clearPrecomputedLayoutsEtc()
+    }
+
     @Synchronized fun isWatchedByKey(key: String) = watchedKeys.contains(key)
 
     @MainThread @Synchronized fun moveReadMarkerToEnd() {
