@@ -9,6 +9,7 @@ import android.text.Spanned
 import android.text.style.BackgroundColorSpan
 import android.text.style.ForegroundColorSpan
 import android.text.style.StyleSpan
+import android.text.style.URLSpan
 import android.text.style.UnderlineSpan
 import androidx.annotation.AnyThread
 import com.ubergeek42.WeechatAndroid.service.P
@@ -146,3 +147,6 @@ fun String.toSpannableWithWeechatColorsParsed(highlight: Boolean, dim: Boolean):
 
     return spannable
 }
+
+
+fun Spanned.getUrls() = getSpans(0, length, URLSpan::class.java).map { it.url }
