@@ -25,6 +25,7 @@ dependencies {
     implementation(libs.material)
 
     implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.linkedblockingmultiqueue)
 
     implementation(libs.glide.glide)
     ksp(libs.glide.ksp)

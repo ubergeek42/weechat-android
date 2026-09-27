@@ -23,6 +23,7 @@ kotlinx-coroutines = "1.11.0"
 kotlinx-serialization = "1.11.0"
 ksp = "2.3.11"
 leakcanary = "2.14"
+linkedblockingmultiqueue = "1.0.0"
 material = "1.14.0"
 mockito = "5.23.0"
 nvwebsocketclient = "2.14"
@@ -70,6 +71,7 @@ junit-vintage-engine = { module = "org.junit.vintage:junit-vintage-engine", vers
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinx-coroutines" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 leakcanary = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
+linkedblockingmultiqueue = { module = "com.github.marianobarrios:lbmq", version.ref = "linkedblockingmultiqueue" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
 nvwebsocketclient = { module = "com.neovisionaries:nv-websocket-client", version.ref = "nvwebsocketclient" }
