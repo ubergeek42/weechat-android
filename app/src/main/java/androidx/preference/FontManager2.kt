@@ -40,6 +40,10 @@ private fun File.createTypefaceOrNull0(): Typeface? {
  * Returns null if no font files are valid.
  * In the case where several fonts have the same style (weight & slant), only one will be added.
  * Does NOT check whether the files actually belong to the same family.
+ *
+ * On API ≥ 35, we attempt to create a variable font family (see note on the called method).
+ * If variable fonts are used below API 35, a font family is still created,
+ * and it will use font synthesis to provide bold and slanted characters.
  */
 @RequiresApi(Build.VERSION_CODES.Q)
 private fun Collection<File>.createFontFamilyOrNull29(): FontFamily? {
@@ -55,17 +59,18 @@ private fun Collection<File>.createFontFamilyOrNull29(): FontFamily? {
     if (fonts.isEmpty()) return null
 
     val fontIterator = fonts.iterator()
-    return FontFamily.Builder(fontIterator.next())
-            .apply {
-                fontIterator.forEach { font ->
-                    try {
-                        addFont(font)
-                    } catch (e: Exception) {
-                        println("Failed to add font $font to family: $e")
-                    }
-                }
-            }
-            .build()
+
+    val builder = FontFamily.Builder(fontIterator.next())
+    fontIterator.forEach { font ->
+        try {
+            builder.addFont(font)
+        } catch (e: Exception) {
+            println("Failed to add font $font to family: $e")
+        }
+    }
+
+    if (Build.VERSION.SDK_INT >= 35) builder.buildVariableFamily()?.let { return it }
+    return builder.build()
 }
 
 
@@ -110,6 +115,18 @@ data class TypefaceInfo0(
 }
 
 
+/**
+ * Get axes such as "wght", "ital" for a variable font, or an empty list.
+ * While there exists the [Font.getAxes] method, in practice it returns an empty list.
+ *
+ * Note that [FontFamily.Builder.buildVariableFamily] that we are using
+ * to actually create the typeface requires API 35.
+ */
+@RequiresApi(29)
+fun Font.getSupportedAxes29() = FontFileUtil.getSupportedAxes(buffer.duplicate(), ttcIndex)
+        .map(FontFileUtil::axisToString)
+
+
 @RequiresApi(Build.VERSION_CODES.Q)
 data class TypefaceInfo29(
     override val name: String,
@@ -119,9 +136,14 @@ data class TypefaceInfo29(
 ) : TypefaceInfo {
     override fun getDescription(): String {
         val styles = fonts.map { font ->
-            val weight = font.style.weight
-            val italic = font.style.slant == FONT_SLANT_ITALIC
-            if (italic) "${weight}i" else "$weight"
+            val axes = if (Build.VERSION.SDK_INT >= 35) font.getSupportedAxes29() else emptyList()
+
+            val description = mutableListOf<String>()
+            description.addAll(axes)
+            if (!axes.contains("wght")) description.add(font.style.weight.toString())
+            if (!axes.contains("ital") && font.style.slant == FONT_SLANT_ITALIC) description.add("i")
+
+            description.joinToString(":")
         }
 
         return "$name (${styles.joinToString(", ")})"
