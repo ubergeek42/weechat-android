@@ -687,6 +687,8 @@
          See https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/font-feature-settings -->
     <string name="pref__look_n_feel__font_feature_settings">Font feature settings</string>
 
+    <string name="pref__look_n_feel__line_height">Line height</string>
+
     <!-- ####################################################################################### -->
     <!-- ######################################## theme ######################################## -->
     <!-- ####################################################################################### -->
