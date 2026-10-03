@@ -124,6 +124,8 @@ public class Constants {
     final public static Set<String> PREF_BUFFER_FONTS_D = null;
     public static final String PREF_FONT_FEATURE_SETTINGS = "font_feature_settings";
     final public static String PREF_FONT_FEATURE_SETTINGS_D = "";
+    public static final String PREF_LINE_HEIGHT = "line_height";
+    final public static String PREF_LINE_HEIGHT_D = "1.0";
     public static final String PREF_COLOR_SCHEME_DAY = "color_scheme_day";
     final public static String PREF_COLOR_SCHEME_DAY_D = "squirrely-light-theme.properties";
     public static final String PREF_COLOR_SCHEME_NIGHT = "color_scheme_night";

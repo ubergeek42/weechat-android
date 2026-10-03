@@ -61,6 +61,7 @@ class PrecomputedLineLayout(line: Line) {
     private val maxPrefixWidthInChars: Int = P.maxWidth
     private val enclosePrefix: Boolean = P.encloseNick && line.displayAs == LineSpec.DisplayAs.Say
     private val alignment: Alignment = P.align
+    private val lineHeight: Float = P.lineHeight
 
     private val colorScheme: ColorScheme = ColorScheme.get()
 
@@ -140,6 +141,7 @@ class PrecomputedLineLayout(line: Line) {
         return StaticLayout.Builder.obtain(messagePrecomputedText, 0, messagePrecomputedText.length, textPaint, viewWidth - messageOffset.toInt())
                 .setBreakStrategy(Layout.BREAK_STRATEGY_HIGH_QUALITY)
                 .setHyphenationFrequency(Layout.HYPHENATION_FREQUENCY_NORMAL)
+                .setLineSpacing(0f, lineHeight)
                 .apply { if (leadingMessageIndent > 0) setIndents(intArrayOf(leadingMessageIndent.toInt(), 0), null) }
                 .build()
     }
