@@ -31,11 +31,13 @@ import com.ubergeek42.WeechatAndroid.relay.FakeLine
 import com.ubergeek42.WeechatAndroid.relay.Line
 import com.ubergeek42.WeechatAndroid.relay.PrecomputedLineLayout
 import com.ubergeek42.WeechatAndroid.relay.getUrls
+import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.upload.f
 import com.ubergeek42.WeechatAndroid.upload.i
 import com.ubergeek42.WeechatAndroid.upload.main
 import com.ubergeek42.WeechatAndroid.utils.applicationContext
 import com.ubergeek42.WeechatAndroid.utils.invalidatableLazy
+import kotlin.math.roundToInt
 
 
 private const val ANIMATION_DURATION = 250L // ms
@@ -191,10 +193,15 @@ class LineView @JvmOverloads constructor(
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private fun measureViewHeight(): Int {
-        fun getTextOnlyHeight() = if (precomputedLayout === NoPrecomputedLayout) 0 else wideMessageLayout.height
+        fun Int.adjustForParagraphSpacing() =
+            (this + P.paragraphSpacing * 2)
+                    .roundToInt()
+                    .coerceAtLeast(0)
+
+        fun getTextOnlyHeight() = wideMessageLayout.height.adjustForParagraphSpacing()
 
         fun getTextWithImageHeight(): Int {
-            val narrowLayoutHeight = if (precomputedLayout === NoPrecomputedLayout) 0 else narrowMessageLayout.height
+            val narrowLayoutHeight = narrowMessageLayout.height.adjustForParagraphSpacing()
             return maxOf(narrowLayoutHeight, Config.thumbnailAreaMinHeight)
         }
 
@@ -210,7 +217,9 @@ class LineView @JvmOverloads constructor(
     }
 
     private fun measureThumbnailHeight(): Int {
-        return (narrowMessageLayout.height - Config.THUMBNAIL_VERTICAL_MARGIN * 2)
+        val thumbnailAreaHeight = narrowMessageLayout.height +
+                if (P.paragraphSpacing < 0) P.paragraphSpacing * 2 else 0f
+        return (thumbnailAreaHeight - Config.THUMBNAIL_VERTICAL_MARGIN * 2).i
                 .coerceAtMost(Config.thumbnailMaxHeight)
                 .coerceAtLeast(Config.thumbnailMinHeight)
                 .coerceAtLeast(1)
@@ -248,6 +257,8 @@ class LineView @JvmOverloads constructor(
     var narrowLayoutAlphaDrawer: AlphaDrawer? = null
 
     override fun onDraw(canvas: Canvas) {
+        canvas.translate(0f, P.paragraphSpacing)
+
         if (state.animatingText) {
             wideLayoutAlphaDrawer?.drawWithAlpha(canvas, 1f - animatedValue)
             narrowLayoutAlphaDrawer?.drawWithAlpha(canvas, animatedValue)
@@ -256,6 +267,8 @@ class LineView @JvmOverloads constructor(
         }
 
         image?.let {
+            if (P.paragraphSpacing < 0) canvas.translate(0f, -P.paragraphSpacing)
+
             val left = narrowLayoutWidth + Config.THUMBNAIL_HORIZONTAL_MARGIN.f
             val top = Config.THUMBNAIL_VERTICAL_MARGIN.f
 
@@ -370,7 +383,8 @@ class LineView @JvmOverloads constructor(
 
                 override fun onSingleTapUp(event: MotionEvent): Boolean {
                     val x = event.x - precomputedLayout.messageOffset
-                    val clickableSpan = currentMessageLayout.getClickableSpans(x, event.y)?.firstOrNull()
+                    val y = event.y - P.paragraphSpacing
+                    val clickableSpan = currentMessageLayout.getClickableSpans(x, y)?.firstOrNull()
                     clickableSpan?.onClick(this@LineView)
                     return clickableSpan != null
                 }
