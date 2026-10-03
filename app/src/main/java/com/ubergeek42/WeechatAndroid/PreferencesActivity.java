@@ -203,7 +203,7 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
             } else if (PREF_PING_GROUP.equals(key))
                 listenTo = new String[] {PREF_PING_IDLE, PREF_PING_TIMEOUT};
             else if (PREF_LOOKFEEL_GROUP.equals(key))
-                listenTo = new String[] {PREF_TEXT_SIZE, PREF_MAX_WIDTH, PREF_TIMESTAMP_FORMAT};
+                listenTo = new String[] {PREF_TEXT_SIZE, PREF_MAX_WIDTH, PREF_TIMESTAMP_FORMAT, PREF_LINE_HEIGHT};
             else if (PREF_THEME_GROUP.equals(key)) {
                 enableDisableThemeSwitch(getPreferenceScreen().getSharedPreferences().getString(PREF_THEME, PREF_THEME_D));
                 listenTo = new String[]{PREF_THEME};
@@ -266,6 +266,9 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
                 } else if (Utils.isAnyOf(key, PREF_TEXT_SIZE, PREF_MAX_WIDTH, PREF_PORT, PREF_SSH_PORT, PREF_PING_IDLE, PREF_PING_TIMEOUT)) {
                     valid = Utils.isAllDigits((String) o);
                     errorResource = R.string.error__pref__invalid_number;
+                } else if (PREF_LINE_HEIGHT.equals(key)) {
+                    float height = Float.parseFloat((String) o);
+                    if (height <= 0) throw new IllegalArgumentException("Line height must be > 0");
                 } else if (PREF_TIMESTAMP_FORMAT.equals(key)) {
                     valid = Utils.isValidTimestampFormat((String) o);
                     errorResource = R.string.error__pref__invalid_timestamp_format;
