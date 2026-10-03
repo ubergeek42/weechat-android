@@ -5,7 +5,6 @@ import static com.ubergeek42.WeechatAndroid.utils.ApplicationContextKt.applicati
 import android.os.Build;
 
 import com.ubergeek42.WeechatAndroid.R;
-import com.ubergeek42.WeechatAndroid.Weechat;
 import com.ubergeek42.WeechatAndroid.service.P;
 
 import java.util.Set;
@@ -126,6 +125,8 @@ public class Constants {
     final public static String PREF_FONT_FEATURE_SETTINGS_D = "";
     public static final String PREF_LINE_HEIGHT = "line_height";
     final public static String PREF_LINE_HEIGHT_D = "1.0";
+    public static final String PREF_PARAGRAPH_SPACING = "paragraph_spacing";
+    final public static String PREF_PARAGRAPH_SPACING_D = "0";
     public static final String PREF_COLOR_SCHEME_DAY = "color_scheme_day";
     final public static String PREF_COLOR_SCHEME_DAY_D = "squirrely-light-theme.properties";
     public static final String PREF_COLOR_SCHEME_NIGHT = "color_scheme_night";
