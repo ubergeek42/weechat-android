@@ -683,6 +683,10 @@
         or put them into one of the following locations:%1$s
     ]]></string>
 
+    <!-- This is a very low level option that may be best left untranslated.
+         See https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/font-feature-settings -->
+    <string name="pref__look_n_feel__font_feature_settings">Font feature settings</string>
+
     <!-- ####################################################################################### -->
     <!-- ######################################## theme ######################################## -->
     <!-- ####################################################################################### -->
