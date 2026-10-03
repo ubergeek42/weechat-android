@@ -150,10 +150,11 @@ class PrecomputedLineLayout {
     }
 
     @SuppressLint("WrongConstant") // Layout.BREAK_STRATEGY_HIGH_QUALITY
-    fun obtainMessageLayout(viewWidth: Int, textPaint: TextPaint = P.textPaint): StaticLayout {
+    fun obtainMessageLayout(viewWidth: Int, lineHeight: Float = P.lineHeight, textPaint: TextPaint = P.textPaint): StaticLayout {
         return StaticLayout.Builder.obtain(messagePrecomputedText, 0, messagePrecomputedText.length, textPaint, viewWidth - messageOffset.toInt())
                 .setBreakStrategy(Layout.BREAK_STRATEGY_HIGH_QUALITY)
                 .setHyphenationFrequency(Layout.HYPHENATION_FREQUENCY_NORMAL)
+                .setLineSpacing(0f, lineHeight)
                 .apply { if (leadingMessageIndent > 0) setIndents(intArrayOf(leadingMessageIndent.toInt(), 0), null) }
                 .build()
     }

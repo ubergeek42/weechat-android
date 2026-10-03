@@ -288,6 +288,13 @@
             android:summary="%s"
             android:defaultValue=""
             android:singleLine="true" />
+        <EditTextPreferenceFix
+            android:key="line_height"
+            android:title="@string/pref__look_n_feel__line_height"
+            android:summary="%s"
+            android:defaultValue="1.0"
+            android:inputType="numberDecimal"
+            android:singleLine="true" />
     </PreferenceScreen>
 
     <!-- theme -->
