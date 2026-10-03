@@ -126,6 +126,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     public static Alignment align;
 
     public static float textSize, letterWidth;
+    public static String fontFeatureSettings;
     public static TextPaint textPaint;
 
     public static boolean notificationEnable;
@@ -172,7 +173,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         hideHiddenBuffers = p.getBoolean(PREF_HIDE_HIDDEN_BUFFERS, PREF_HIDE_HIDDEN_BUFFERS_D);
         optimizeTraffic = p.getBoolean(PREF_OPTIMIZE_TRAFFIC, PREF_OPTIMIZE_TRAFFIC_D);  // okay this is out of sync with onChanged stuff—used for the bell icon
         useGestureExclusionZone = p.getBoolean(PREF_USE_GESTURE_EXCLUSION_ZONE,
-                Constants.PREF_USE_GESTURE_EXCLUSION_ZONE_D);
+                PREF_USE_GESTURE_EXCLUSION_ZONE_D);
 
         // buffer-wide preferences
         filterLines = p.getBoolean(PREF_FILTER_LINES, PREF_FILTER_LINES_D);
@@ -376,6 +377,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
                 break;
             case PREF_TEXT_SIZE:
             case PREF_BUFFER_FONTS:
+            case PREF_FONT_FEATURE_SETTINGS:
                 setTextSizeColorAndLetterWidth();
                 BufferList.onGlobalPreferencesChanged(false);
                 break;
@@ -428,6 +430,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
 
     @MainThread private static void setTextSizeColorAndLetterWidth() {
         textSize = Float.parseFloat(getString(PREF_TEXT_SIZE, PREF_TEXT_SIZE_D));
+        fontFeatureSettings = getString(PREF_FONT_FEATURE_SETTINGS, PREF_FONT_FEATURE_SETTINGS_D);
 
         Typeface typeface = null;
 
@@ -449,6 +452,9 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         textPaint.setTypeface(typeface);
         textPaint.setColor(0xFF000000 | ColorScheme.get().default_color[0]);
         textPaint.setTextSize(textSize * context.getResources().getDisplayMetrics().scaledDensity);
+        if (!TextUtils.isEmpty(fontFeatureSettings)) {
+            textPaint.setFontFeatureSettings(fontFeatureSettings);
+        }
 
         letterWidth = (textPaint.measureText("m"));
     }
