@@ -2,10 +2,13 @@ package com.ubergeek42.WeechatAndroid.utils
 
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.graphics.text.LineBreakConfig
 import android.net.Uri
+import android.os.Build
 import android.text.Spannable
 import android.text.Spanned
 import android.text.TextPaint
+import android.text.style.LineBreakConfigSpan
 import android.text.style.URLSpan
 import android.view.View
 import com.ubergeek42.WeechatAndroid.R
@@ -25,6 +28,12 @@ object Linkify {
             spannable.setSpan(URLSpan2(url),
                     match.range.first, match.range.last + 1,
                     Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+
+            if (Build.VERSION.SDK_INT >= 35) {
+                spannable.setSpan(LineBreakConfigSpan(urlLineBreakConfig!!),
+                        match.range.first, match.range.last + 1,
+                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            }
         }
     }
 
@@ -47,6 +56,17 @@ object Linkify {
     @JvmStatic
     fun getFirstUrlFromString(s: CharSequence) = URL.find(s)?.value
 }
+
+
+private val urlLineBreakConfig =
+    if (Build.VERSION.SDK_INT >= 35) {
+        LineBreakConfig.Builder()
+                .setHyphenation(LineBreakConfig.HYPHENATION_DISABLED)
+                .setLineBreakStyle(LineBreakConfig.LINE_BREAK_STYLE_LOOSE)
+                .build()
+    } else {
+        null
+    }
 
 
 // an url span that doesn't change the color of the link
