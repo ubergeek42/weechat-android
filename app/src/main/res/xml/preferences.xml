@@ -282,6 +282,12 @@
             android:key="buffer_font_help"
             android:selectable="false"
             android:persistent="false" />
+        <EditTextPreferenceFix
+            android:key="font_feature_settings"
+            android:title="@string/pref__look_n_feel__font_feature_settings"
+            android:summary="%s"
+            android:defaultValue=""
+            android:singleLine="true" />
     </PreferenceScreen>
 
     <!-- theme -->
