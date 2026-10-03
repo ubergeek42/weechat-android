@@ -5,10 +5,12 @@ import android.graphics.CornerPathEffect
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.RectF
+import android.os.Build
 import android.text.Spanned
 import android.text.StaticLayout
 import com.ubergeek42.WeechatAndroid.upload.dp_to_pxf
 import com.ubergeek42.WeechatAndroid.upload.f
+import com.ubergeek42.WeechatAndroid.upload.i
 
 
 class RoundedBackgroundColorSpan(val color: Int)
@@ -96,9 +98,10 @@ private fun StaticLayout.collectRects(start: Int, end: Int, firstLineIndent: Flo
             else -> getLineTop(lineIndex)
         }
 
-        val bottom = when (lineIndex) {
-            lineCount - 1 -> getLineBottom(lineIndex) - bottomPadding
-            else          -> getLineBottom(lineIndex)
+        val bottom = when {
+            lineIndex == lineCount - 1 -> getLineBottom(lineIndex) - bottomPadding
+            spacingMultiplier < 1.0f   -> getLineBottomIgnoringLineSpacing(lineIndex)
+            else                       -> getLineBottom(lineIndex)
         }
 
         when {
@@ -146,6 +149,17 @@ private fun RectF.addBloom(bounds: RectF) {
     top = maxOf(bounds.top, top - V_BLOOM)
     right = minOf(bounds.right, right + H_BLOOM)
     bottom = minOf(bounds.bottom, bottom + V_BLOOM)
+}
+
+
+fun StaticLayout.getLineBottomIgnoringLineSpacing(lineIndex: Int): Int {
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+        getLineBottom(lineIndex, false)
+    } else {
+        val lineTop = getLineTop(lineIndex)
+        val lineBottom = getLineBottom(lineIndex)
+        (lineTop + (lineBottom - lineTop) / spacingMultiplier - spacingAdd).i
+    }
 }
 
 
