@@ -295,6 +295,13 @@
             android:defaultValue="1.0"
             android:inputType="numberDecimal"
             android:singleLine="true" />
+        <EditTextPreferenceFix
+            android:key="paragraph_spacing"
+            android:title="Paragraph spacing"
+            android:summary="%s"
+            android:defaultValue="0"
+            android:inputType="numberSigned|numberDecimal"
+            android:singleLine="true" />
     </PreferenceScreen>
 
     <!-- theme -->
