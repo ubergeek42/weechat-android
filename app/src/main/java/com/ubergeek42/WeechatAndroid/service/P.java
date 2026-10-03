@@ -127,6 +127,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
 
     public static float textSize, letterWidth;
     public static String fontFeatureSettings;
+    public static float lineHeight = 1f;
     public static TextPaint textPaint;
 
     public static boolean notificationEnable;
@@ -378,6 +379,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
             case PREF_TEXT_SIZE:
             case PREF_BUFFER_FONTS:
             case PREF_FONT_FEATURE_SETTINGS:
+            case PREF_LINE_HEIGHT:
                 setTextSizeColorAndLetterWidth();
                 BufferList.onGlobalPreferencesChanged(false);
                 break;
@@ -431,6 +433,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     @MainThread private static void setTextSizeColorAndLetterWidth() {
         textSize = Float.parseFloat(getString(PREF_TEXT_SIZE, PREF_TEXT_SIZE_D));
         fontFeatureSettings = getString(PREF_FONT_FEATURE_SETTINGS, PREF_FONT_FEATURE_SETTINGS_D);
+        lineHeight = Float.parseFloat(getString(PREF_LINE_HEIGHT, PREF_LINE_HEIGHT_D));
 
         Typeface typeface = null;
 
