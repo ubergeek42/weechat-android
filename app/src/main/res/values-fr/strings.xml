@@ -660,16 +660,9 @@
     <string name="pref__look_n_feel__timestamp_format_summary">%s (par défaut&#8239;: HH:mm:ss)</string>
     <string name="error__pref__invalid_timestamp_format">Format de date/heure invalide</string>
 
-    <string name="pref__look_n_feel__font">
-        Police des tampons</string>
     <string name="pref__FontPreference__default">Par défaut</string>
     <string name="pref__FontPreference__import_button">Importer</string>
     <string name="pref__FontPreference__imported">Importée&#8239;: %s</string>
-
-    <string name="pref__FontPreferenceHelp__summary">
-        Les polices non-monospaces peuvent poser des problèmes d’alignement.
-        Importez des polices via la boîte de dialogue
-        ou déposez-les dans l’un de ces dossiers&#8239;:%1$s</string>
 
     <!-- ####################################################################################### -->
     <!-- ######################################## theme ######################################## -->
