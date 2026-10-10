@@ -294,13 +294,13 @@ fun importFontsFromResultIntent(context: Activity, intent: Intent?) {
     @Suppress("KotlinConstantConditions")
     when {
         importedFiles.isNotEmpty() && exceptions.isEmpty() ->
-            context.showSnackbar("Imported: $importedTypefacesDescription")
+            context.showSnackbar(context.getString(R.string.pref__FontPreference__imported, importedTypefacesDescription))
         importedFiles.isNotEmpty() && exceptions.isNotEmpty() ->
-            context.showSnackbar("Imported: $importedTypefacesDescription. There were errors while importing some of the fonts", exceptions.combineIntoOne())
+            context.showSnackbar(context.getString(R.string.pref__FontPreference__imported_with_errors, importedTypefacesDescription), exceptions.combineIntoOne())
         importedFiles.isEmpty() && exceptions.isNotEmpty() ->
-            context.showSnackbar("Failed to import fonts", exceptions.combineIntoOne())
+            context.showSnackbar(R.string.pref__FontPreference__failed_to_import, exceptions.combineIntoOne())
         else ->
-            context.showSnackbar("Failed to import fonts", Exception("Failed to import fonts from intent $intent"))
+            context.showSnackbar(R.string.pref__FontPreference__failed_to_import, Exception("Failed to import fonts from intent $intent"))
     }
 }
 
