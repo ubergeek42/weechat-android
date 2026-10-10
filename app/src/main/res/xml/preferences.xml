@@ -277,7 +277,7 @@
             android:singleLine="true" />
         <FontPreference
             android:key="buffer_fonts"
-            android:title="@string/pref__look_n_feel__font" />
+            android:title="@string/pref__look_n_feel__typeface" />
         <FontPreferenceHelp
             android:key="buffer_font_help"
             android:selectable="false"

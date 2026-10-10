@@ -666,16 +666,9 @@
     <string name="pref__look_n_feel__timestamp_format_summary">%s (по умолчанию: HH:mm:ss)</string>
     <string name="error__pref__invalid_timestamp_format">Неверный формат времени</string>
 
-    <string name="pref__look_n_feel__font">
-        Шрифт буфера</string>
     <string name="pref__FontPreference__default">По умолчанию</string>
     <string name="pref__FontPreference__import_button">Импортировать</string>
     <string name="pref__FontPreference__imported">Импортировано: %s</string>
-
-    <string name="pref__FontPreferenceHelp__summary">
-        Пропорциональные шрифты лучше не смешивать с выравниванием.
-        Импортируйте шрифты через диалог выбора
-        или поместите их в одну из этих папок:%1$s</string>
 
     <!-- ####################################################################################### -->
     <!-- ######################################## theme ######################################## -->
