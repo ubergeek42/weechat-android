@@ -19,6 +19,7 @@ import android.view.GestureDetector.SimpleOnGestureListener
 import android.view.MotionEvent
 import android.view.View
 import androidx.core.animation.doOnEnd
+import androidx.core.graphics.withTranslation
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
@@ -31,6 +32,8 @@ import com.ubergeek42.WeechatAndroid.relay.FakeLine
 import com.ubergeek42.WeechatAndroid.relay.Line
 import com.ubergeek42.WeechatAndroid.relay.PrecomputedLineLayout
 import com.ubergeek42.WeechatAndroid.relay.getUrls
+import com.ubergeek42.WeechatAndroid.relay.intrinsicPadding
+import com.ubergeek42.WeechatAndroid.relay.intrinsicTopPadding
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.upload.f
 import com.ubergeek42.WeechatAndroid.upload.i
@@ -193,15 +196,15 @@ class LineView @JvmOverloads constructor(
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private fun measureViewHeight(): Int {
-        fun Int.adjustForParagraphSpacing() =
-            (this + P.paragraphSpacing * 2)
-                    .roundToInt()
-                    .coerceAtLeast(0)
+        fun Int.adjustForFontPaddingAndParagraphSpacing() =
+                (this + P.textPaint.fontMetrics.intrinsicPadding + P.paragraphSpacing * 2)
+                .roundToInt()
+                .coerceAtLeast(0)
 
-        fun getTextOnlyHeight() = wideMessageLayout.height.adjustForParagraphSpacing()
+        fun getTextOnlyHeight() = wideMessageLayout.height.adjustForFontPaddingAndParagraphSpacing()
 
         fun getTextWithImageHeight(): Int {
-            val narrowLayoutHeight = narrowMessageLayout.height.adjustForParagraphSpacing()
+            val narrowLayoutHeight = narrowMessageLayout.height.adjustForFontPaddingAndParagraphSpacing()
             return maxOf(narrowLayoutHeight, Config.thumbnailAreaMinHeight)
         }
 
@@ -218,6 +221,7 @@ class LineView @JvmOverloads constructor(
 
     private fun measureThumbnailHeight(): Int {
         val thumbnailAreaHeight = narrowMessageLayout.height +
+                P.textPaint.fontMetrics.intrinsicPadding +
                 if (P.paragraphSpacing < 0) P.paragraphSpacing * 2 else 0f
         return (thumbnailAreaHeight - Config.THUMBNAIL_VERTICAL_MARGIN * 2).i
                 .coerceAtMost(Config.thumbnailMaxHeight)
@@ -257,17 +261,17 @@ class LineView @JvmOverloads constructor(
     var narrowLayoutAlphaDrawer: AlphaDrawer? = null
 
     override fun onDraw(canvas: Canvas) {
-        canvas.translate(0f, P.paragraphSpacing)
-
-        if (state.animatingText) {
-            wideLayoutAlphaDrawer?.drawWithAlpha(canvas, 1f - animatedValue)
-            narrowLayoutAlphaDrawer?.drawWithAlpha(canvas, animatedValue)
-        } else {
-            precomputedLayout.draw(canvas, currentMessageLayout)
+        canvas.withTranslation(y = P.textPaint.fontMetrics.intrinsicTopPadding + P.paragraphSpacing) {
+            if (state.animatingText) {
+                wideLayoutAlphaDrawer?.drawWithAlpha(canvas, 1f - animatedValue)
+                narrowLayoutAlphaDrawer?.drawWithAlpha(canvas, animatedValue)
+            } else {
+                precomputedLayout.draw(canvas, currentMessageLayout)
+            }
         }
 
         image?.let {
-            if (P.paragraphSpacing < 0) canvas.translate(0f, -P.paragraphSpacing)
+            if (P.paragraphSpacing > 0) canvas.translate(0f, P.paragraphSpacing)
 
             val left = narrowLayoutWidth + Config.THUMBNAIL_HORIZONTAL_MARGIN.f
             val top = Config.THUMBNAIL_VERTICAL_MARGIN.f
@@ -383,7 +387,7 @@ class LineView @JvmOverloads constructor(
 
                 override fun onSingleTapUp(event: MotionEvent): Boolean {
                     val x = event.x - precomputedLayout.messageOffset
-                    val y = event.y - P.paragraphSpacing
+                    val y = event.y - P.textPaint.fontMetrics.intrinsicTopPadding - P.paragraphSpacing
                     val clickableSpan = currentMessageLayout.getClickableSpans(x, y)?.firstOrNull()
                     clickableSpan?.onClick(this@LineView)
                     return clickableSpan != null
