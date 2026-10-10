@@ -2,16 +2,19 @@
 // you may not use this file except in compliance with the License.
 package com.ubergeek42.WeechatAndroid.relay
 
+import android.graphics.Paint
 import android.graphics.Typeface
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.style.ForegroundColorSpan
+import android.text.style.LineHeightSpan
 import android.text.style.StyleSpan
 import android.text.style.URLSpan
 import android.text.style.UnderlineSpan
 import androidx.annotation.AnyThread
 import com.ubergeek42.WeechatAndroid.service.P
+import com.ubergeek42.WeechatAndroid.upload.i
 import com.ubergeek42.WeechatAndroid.utils.Linkify.linkify
 import com.ubergeek42.WeechatAndroid.utils.SHOULD_EMOJIFY
 import com.ubergeek42.WeechatAndroid.utils.emojify
@@ -30,7 +33,7 @@ open class Line(
     @JvmField val isVisible: Boolean,
     @JvmField val isHighlighted: Boolean,
     @JvmField val displayAs: LineSpec.DisplayAs,
-    @JvmField val notifyLevel: LineSpec.NotifyLevel
+    @JvmField val notifyLevel: LineSpec.NotifyLevel,
 ) {
     @AnyThread fun ensurePrecomputedLayout() {
         getPrecomputedLayout()
@@ -77,6 +80,7 @@ open class Line(
     fun getMessageSpanned() = messageSpanned
             ?: rawMessage.toSpannableWithWeechatColorsParsed(false, type == LineSpec.Type.Other && P.dimDownNonHumanLines)
                     .also {
+                        it.applyParagraphSpansToDoubleNewLine()
                         if (SHOULD_EMOJIFY) emojify(it)
                         linkify(it)
                         messageSpanned = it
@@ -146,6 +150,56 @@ fun String.toSpannableWithWeechatColorsParsed(highlight: Boolean, dim: Boolean):
     }
 
     return spannable
+}
+
+/**
+ * This makes the paragraph the height of `fontMetrics.intrinsicPadding` and `P.paragraphSpacing`,
+ * effectively the same distance as the distance between individual messages.
+ * The `chooseHeight` method runs *before* `StaticLayout` applies any line height changes.
+ * It is supposed to be preemptively undoing those changes,
+ * as we don't want the line height setting to affect the spacing between messages.
+ */
+class ParagraphSpan : LineHeightSpan {
+    override fun chooseHeight(text: CharSequence, start: Int, end: Int, spanstartv: Int, lineHeight: Int, fm: Paint.FontMetricsInt) {
+        val extra = (fm.descent - fm.ascent + P.paragraphSpacing * 2) * (P.lineHeight - 1) // Ctrl-F "spacingmult - 1" in StaticLayout.java
+        fm.ascent = fm.top - fm.ascent // Same as -intrinsicTopPadding
+        fm.descent = fm.bottom - fm.descent // Same as intrinsicBottomPadding
+        fm.descent -= extra.i
+        fm.descent = (fm.ascent + (fm.descent - fm.ascent + P.paragraphSpacing * 2) / P.lineHeight).i
+    }
+}
+
+/**
+ * We can have new lines in a message. WeeChat doesn't exactly define the meaning of a new line,
+ * or of multiple new lines. Neither does the `draft/multiline` spec.
+ *
+ * Here we make an assumption that a new line should behave like `<br>`,
+ * perhaps for the purpose of pasting code or poetry.
+ * Also, we make an assumption that a double new line should behave like a `<p>`, as in Markdown.
+ *
+ * The below is a simple solution that applies message spacing to the second of every `\n\n`.
+ *
+ * Thought: With these assumptions, it may make sense to display new paragraphs as separate messages.
+ * This would allow for a more efficient display in the `RecyclerView`,
+ * however we should bear in mind the following questions:
+ *   * If there's a highlight in a message, or a search term,
+ *     should it semantically apply to the whole message, or only one paragraph?
+ *   * If there's a media preview, do we display one per paragraph, or one per message?
+ *   * What should we offer in the copy dialog?
+ *
+ * TODO Decide if we want to specially treat:
+ *   * More than two `\n` in a row,
+ *   * Lines only consisting of whitespace,
+ *   * Leading and ending empty lines.
+ */
+fun Spannable.applyParagraphSpansToDoubleNewLine() {
+    var searchIndex = 0
+    while (true) {
+        val index = indexOf("\n\n", startIndex = searchIndex)
+        if (index == -1) return
+        setSpan(ParagraphSpan(), index + 1, index + 2, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        searchIndex = index + 1
+    }
 }
 
 
