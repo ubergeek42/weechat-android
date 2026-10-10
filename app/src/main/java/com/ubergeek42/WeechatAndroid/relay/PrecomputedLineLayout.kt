@@ -2,6 +2,7 @@ package com.ubergeek42.WeechatAndroid.relay
 
 import android.annotation.SuppressLint
 import android.graphics.Canvas
+import android.graphics.Paint
 import android.graphics.Rect
 import android.text.Layout
 import android.text.Spanned
@@ -140,6 +141,7 @@ class PrecomputedLineLayout {
         leadingMessageIndent = prefixOffset + consumedPrefixWidth + nickSuffixWidth + cached.plusWidth - messageOffset
 
         prefixLayout = StaticLayout.Builder.obtain(prefix, 0, fittingPrefixChars, textPaint, Int.MAX_VALUE)
+                .setIncludePad(false)
                 .build()
 
         val messagePrecomputedTextParams = PrecomputedTextCompat.Params.Builder(textPaint)
@@ -155,6 +157,7 @@ class PrecomputedLineLayout {
                 .setBreakStrategy(Layout.BREAK_STRATEGY_HIGH_QUALITY)
                 .setHyphenationFrequency(Layout.HYPHENATION_FREQUENCY_NORMAL)
                 .setLineSpacing(0f, lineHeight)
+                .setIncludePad(false)
                 .apply { if (leadingMessageIndent > 0) setIndents(intArrayOf(leadingMessageIndent.toInt(), 0), null) }
                 .build()
     }
@@ -165,7 +168,7 @@ class PrecomputedLineLayout {
         fun getChatNickSuffixColor() = colorScheme.chat_nick_prefix[0] or -0x1000000
         fun getMoreColor() = colorScheme.chat_prefix_more[0] or -0x1000000
 
-        val textY = -drawingPaint.fontMetrics.top
+        val textY = -drawingPaint.fontMetrics.ascent
 
         if (timestamp != null) {
             canvas.drawText(timestamp, 0f, textY, timestampPaint.apply { color = getTimestampColor() })
@@ -238,3 +241,8 @@ fun Spanned.cutToFitWidthUsingLayout(textPaint: TextPaint, maxWidth: Float): Fit
 
     return FittingCharsAndWidth(fittingChars, consumedWidth)
 }
+
+
+val Paint.FontMetrics.intrinsicTopPadding get() = ascent - top
+val Paint.FontMetrics.intrinsicBottomPadding get() = bottom - descent
+val Paint.FontMetrics.intrinsicPadding get() = intrinsicTopPadding + intrinsicBottomPadding
