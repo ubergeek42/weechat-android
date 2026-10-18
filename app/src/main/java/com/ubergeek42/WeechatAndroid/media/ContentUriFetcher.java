@@ -13,9 +13,6 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.Target;
 import com.ubergeek42.WeechatAndroid.Weechat;
 import com.ubergeek42.WeechatAndroid.utils.Linkify;
-import com.ubergeek42.cats.Cat;
-import com.ubergeek42.cats.Kitty;
-import com.ubergeek42.cats.Root;
 
 import java.io.File;
 
@@ -23,15 +20,13 @@ import java.io.File;
 // see https://github.com/bumptech/glide/issues/459
 
 public class ContentUriFetcher {
-    final private static @Root Kitty kitty = Kitty.make();
-
     final public static String FILE_PROVIDER_SUFFIX = ".file_provider";
 
     public interface ContentUriReadyCallback {
         void onContentUriReady(Uri uri);
     }
 
-    @Cat public static void loadFirstUrlFromText(CharSequence text, ContentUriReadyCallback callback) {
+    public static void loadFirstUrlFromText(CharSequence text, ContentUriReadyCallback callback) {
         Context context = applicationContext;
         String textUrl = Linkify.getFirstUrlFromString(text);
         if (textUrl == null) return;
