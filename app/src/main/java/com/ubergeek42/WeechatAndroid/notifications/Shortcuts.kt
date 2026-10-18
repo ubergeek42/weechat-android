@@ -115,7 +115,7 @@ private class ShortcutsImpl(val context: Context): Shortcuts {
 
     @SuppressLint("WrongConstant")
     fun fetchShortcuts() = ShortcutManagerCompat
-            .getShortcuts(applicationContext, 0xffffff)
+            .getDynamicShortcuts(applicationContext)
             .map { it.id to it }
             .toMap()
 
