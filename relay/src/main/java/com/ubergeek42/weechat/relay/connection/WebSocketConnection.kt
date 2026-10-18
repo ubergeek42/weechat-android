@@ -130,6 +130,6 @@ class WebSocketConnection(
     }
 
     companion object {
-        private val logger = LoggerFactory.getLogger("WebSocketConnection")
+        private val logger = LoggerFactory.getLogger(WebSocketConnection::class.java)
     }
 }
