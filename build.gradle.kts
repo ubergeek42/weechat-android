@@ -2,13 +2,6 @@ import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
 
 defaultTasks("assembleDebug")
 
-buildscript {
-    dependencies {
-        classpath(libs.aspectj.tools)
-        classpath(libs.aspectjpipeline)
-    }
-}
-
 subprojects {
     tasks.withType<Test> {
         useJUnitPlatform()                      // aka JUnit 5

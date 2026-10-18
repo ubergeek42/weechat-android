@@ -10,7 +10,6 @@ androidx-preference = "1.2.1"
 androidx-room = "2.8.4"
 androidx-sharetarget = "1.2.0"
 aspectj = "1.9.25.1"
-aspectjpipeline = "1.4.1"
 bouncycastle-pkix = "1.70"
 eventbus = "3.3.1"
 glide = "5.0.9"
@@ -56,8 +55,6 @@ androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref =
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "androidx-room" }
 androidx-sharetarget = { module = "androidx.sharetarget:sharetarget", version.ref = "androidx-sharetarget" }
 aspectj-rt = { module = "org.aspectj:aspectjrt", version.ref = "aspectj" }
-aspectj-tools = { module = "org.aspectj:aspectjtools", version.ref = "aspectj" }  # plugin
-aspectjpipeline = { module = "com.ibotta:plugin", version.ref = "aspectjpipeline" }  # plugin
 bouncycastle-pkix = { module = "org.bouncycastle:bcpkix-jdk15on", version.ref = "bouncycastle-pkix" }
 eventbus = { module = "org.greenrobot:eventbus", version.ref = "eventbus" }
 glide-glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
