@@ -142,6 +142,13 @@ ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
 }
 
+kotlin {
+    compilerOptions {
+        // https://kotlinlang.org/docs/whatsnew22.html#preview-of-context-sensitive-resolution
+        freeCompilerArgs.add("-Xcontext-sensitive-resolution")
+    }
+}
+
 fun versionBanner(): String {
     val versionDetails: groovy.lang.Closure<com.palantir.gradle.gitversion.VersionDetails> by extra
     return with(versionDetails()) { "$lastTag-$commitDistance-g$gitHash" }
