@@ -3,6 +3,9 @@
 
 package com.ubergeek42.WeechatAndroid.utils;
 
+import static com.ubergeek42.WeechatAndroid.utils.LoggingKt.jerr;
+import static com.ubergeek42.WeechatAndroid.utils.LoggingKt.jwarn;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.ContextWrapper;
@@ -15,9 +18,6 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
-import com.ubergeek42.cats.Kitty;
-import com.ubergeek42.cats.Root;
 
 import org.joda.time.format.DateTimeFormat;
 
@@ -40,9 +40,6 @@ import java.util.regex.Pattern;
 
 @SuppressWarnings({"SameParameterValue", "WeakerAccess", "unused"})
 public class Utils {
-
-    final private static @Root Kitty kitty = Kitty.make();
-
     //////////////////////////////////////////////////////////////////////////////////////////////// serialization
 
     public static @Nullable Object deserialize(@Nullable String string) {
@@ -54,7 +51,7 @@ public class Utils {
             ois.close();
             return o;
         } catch (Exception e) {
-            kitty.error("deserialize()", e);
+            jerr(e, "deserialize()");
             return null;
         }
     }
@@ -68,7 +65,7 @@ public class Utils {
             oos.close();
             return Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT);
         } catch (Exception e) {
-            kitty.error("serialize()", e);
+            jerr(e, "serialize()");
             return null;
         }
     }
@@ -201,7 +198,7 @@ public class Utils {
         try {
             stream.close();
         } catch (IOException e) {
-            kitty.warn("readInputStream(): exception while closing stream", e);
+            jwarn(e, "readInputStream(): exception while closing stream");
         }
         return stringBuilder;
     }

@@ -13,9 +13,6 @@ import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
 import com.ubergeek42.WeechatAndroid.utils.Network;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
-import com.ubergeek42.cats.Cat;
-import com.ubergeek42.cats.Kitty;
-import com.ubergeek42.cats.Root;
 
 import java.io.File;
 import java.net.SocketTimeoutException;
@@ -23,10 +20,9 @@ import java.net.UnknownHostException;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.ubergeek42.WeechatAndroid.utils.Assert.assertThat;
+import static com.ubergeek42.WeechatAndroid.utils.LoggingKt.jtrace;
 
 public class Cache {
-    final private static @Root Kitty kitty = Kitty.make();
-
     static class Attempt {
         final int code;
         final long timestamp;
@@ -47,19 +43,27 @@ public class Cache {
         FAILED_RECENTLY
     }
 
-    @Cat(exit=true) public static Info info(Strategy.Url url) {
+    public static Info info(Strategy.Url url) {
+        Info result;
         Attempt lastAttempt = cache.get(url.getCacheKey());
-        if (lastAttempt == null) return Info.NEVER_ATTEMPTED;
 
-        if (lastAttempt.code == SUCCESS)
-            return Config.successCooldown > System.currentTimeMillis() - lastAttempt.timestamp ?
+        if (lastAttempt == null) {
+            result = Info.NEVER_ATTEMPTED;
+        } else if (lastAttempt.code == SUCCESS) {
+            result = Config.successCooldown > System.currentTimeMillis() - lastAttempt.timestamp ?
                     Info.FETCHED_RECENTLY : Info.FETCHED_BEFORE_BUT_MIGHT_NOT_WORK;
-        int cooldown = getErrorCooldown(lastAttempt.code);
-        return cooldown > System.currentTimeMillis() - lastAttempt.timestamp ?
-                Info.FAILED_RECENTLY : Info.FAILED_BEFORE_BUT_MIGHT_WORK;
+        } else {
+            int cooldown = getErrorCooldown(lastAttempt.code);
+            result = cooldown > System.currentTimeMillis() - lastAttempt.timestamp ?
+                    Info.FAILED_RECENTLY : Info.FAILED_BEFORE_BUT_MIGHT_WORK;
+        }
+
+        jtrace(() -> String.format("media.Cache: → info(%s) → %s", url, result));
+        return result;
     }
 
-    @Cat private static void record(Strategy.Url url, int code) {
+    private static void record(Strategy.Url url, int code) {
+        jtrace(() -> String.format("media.Cache: → record(url=%s, code=%s)", url, code));
         String key = url.getCacheKey();
         Attempt attempt = new Attempt(code, System.currentTimeMillis());
         cache.put(key, attempt);
@@ -71,9 +75,7 @@ public class Cache {
     final static RequestListener<File> fileListener = new SimpleRequestListener<>();
 
     private static class SimpleRequestListener<T> implements RequestListener<T> {
-        final private @Root Kitty kitty = Kitty.make();
-
-        @Override @Cat public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<T> target, boolean isFirstResource) {
+        @Override public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<T> target, boolean isFirstResource) {
             Cache.record((Strategy.Url) model, getErrorCode(e));
             return false;
         }

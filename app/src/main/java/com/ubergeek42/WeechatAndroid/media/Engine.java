@@ -15,9 +15,6 @@ import com.ubergeek42.WeechatAndroid.relay.Line;
 import com.ubergeek42.WeechatAndroid.relay.LineSpec;
 import com.ubergeek42.WeechatAndroid.utils.DefaultHashMap;
 import com.ubergeek42.WeechatAndroid.utils.Network;
-import com.ubergeek42.cats.Cat;
-import com.ubergeek42.cats.Kitty;
-import com.ubergeek42.cats.Root;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,10 +24,9 @@ import okhttp3.HttpUrl;
 
 import static com.ubergeek42.WeechatAndroid.media.Config.THUMBNAIL_CORNER_RADIUS;
 import static com.ubergeek42.WeechatAndroid.media.HostUtils.getHost;
+import static com.ubergeek42.WeechatAndroid.utils.LoggingKt.jtrace;
 
 public class Engine {
-    final private static @Root Kitty kitty = Kitty.make();
-
     private static @NonNull HashMap<String, List<Strategy>> strategies = new HashMap<>();
     private static @Nullable List<LineFilter> lineFilters = new ArrayList<>();
 
@@ -92,7 +88,7 @@ public class Engine {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @Cat static void setStrategies(@Nullable List<Strategy> strategyList) {
+    static void setStrategies(@Nullable List<Strategy> strategyList) {
         DefaultHashMap<String, List<Strategy>> strategies = new DefaultHashMap<>(key -> new ArrayList<>());
         if (strategyList != null) {
             for (Strategy strategy : strategyList) {
@@ -105,7 +101,7 @@ public class Engine {
     }
 
     // given an url, return a StrategyUrl that it the best candidate to handle it
-    public static @Nullable @Cat(exit=true) Strategy.Url getStrategyUrl(String url, Strategy.Size size) {
+    public static @Nullable Strategy.Url getStrategyUrl(String url, Strategy.Size size) {
         String host = getHost(url);
         if (host != null) {
             for (String subHost : new HostUtils.HostIterable(host)) {
@@ -114,14 +110,19 @@ public class Engine {
                     for (Strategy strategy : strategies) {
                         try {
                             Strategy.Url strategyUrl = strategy.make(url, size);
-                            if (strategyUrl != null) return strategyUrl;
+                            if (strategyUrl != null) {
+                                jtrace(() -> String.format("media.Engine: → getStrategyUrl(%s, %s) → %s", url, size, strategyUrl));
+                                return strategyUrl;
+                            }
                         } catch (Strategy.CancelFurtherAttempts e) {
+                            jtrace(() -> String.format("media.Engine: → getStrategyUrl(%s, %s) → null (cancelled)", url, size));
                             return null;
                         }
                     }
                 }
             }
         }
+        jtrace(() -> String.format("media.Engine: → getStrategyUrl(%s, %s) → null (not found)", url, size));
         return null;
     }
 

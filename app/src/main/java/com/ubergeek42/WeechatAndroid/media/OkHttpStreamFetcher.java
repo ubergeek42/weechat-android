@@ -34,9 +34,6 @@ import com.bumptech.glide.Priority;
 import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.data.DataFetcher;
 import com.bumptech.glide.util.Preconditions;
-import com.ubergeek42.cats.Cat;
-import com.ubergeek42.cats.Kitty;
-import com.ubergeek42.cats.Root;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -50,10 +47,9 @@ import okhttp3.ResponseBody;
 
 import static com.ubergeek42.WeechatAndroid.media.Exceptions.ContentLengthExceedsLimitException;
 import static com.ubergeek42.WeechatAndroid.media.Exceptions.HttpException;
+import static com.ubergeek42.WeechatAndroid.utils.LoggingKt.jtrace;
 
 public class OkHttpStreamFetcher implements DataFetcher<InputStream> {
-    final private static @Root Kitty kitty = Kitty.make();
-
     private final static Call.Factory regularClient = new OkHttpClient.Builder()
             .addNetworkInterceptor(new OkHttpNullifyingInterceptor())
             .build();
@@ -73,7 +69,7 @@ public class OkHttpStreamFetcher implements DataFetcher<InputStream> {
         this.strategyUrl = strategyUrl;
     }
 
-    @Override @Cat public void loadData(@NonNull Priority priority, @NonNull DataCallback<? super InputStream> callback) {
+    @Override public void loadData(@NonNull Priority priority, @NonNull DataCallback<? super InputStream> callback) {
         this.callback = callback;
         try {
             fire(strategyUrl.getFirstRequest());
@@ -102,11 +98,13 @@ public class OkHttpStreamFetcher implements DataFetcher<InputStream> {
             call.enqueue(this);
         }
 
-        @Override @Cat public void onFailure(@NonNull Call call, @NonNull IOException e) {
+        @Override public void onFailure(@NonNull Call call, @NonNull IOException e) {
+            jtrace(e, () -> String.format("OkHttpStreamFetcher/CallHandler: → onFailure(call.request=%s)", call.request()));
             callback.onLoadFailed(e);
         }
 
-        @Override @Cat public void onResponse(@NonNull Call call, Response response)  {
+        @Override public void onResponse(@NonNull Call call, Response response)  {
+            jtrace(() -> String.format("OkHttpStreamFetcher/CallHandler: → onResponse(call.request=%s, response=%s)", call.request(), response));
             body = Preconditions.checkNotNull(response.body());         // must be closed!
 
             try {

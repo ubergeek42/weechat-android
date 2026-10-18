@@ -3,6 +3,10 @@
 
 package com.ubergeek42.WeechatAndroid.utils;
 
+import static com.ubergeek42.WeechatAndroid.utils.LoggingKt.jerr;
+import static com.ubergeek42.WeechatAndroid.utils.LoggingKt.jinfo;
+import static com.ubergeek42.WeechatAndroid.utils.LoggingKt.jtrace;
+
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -13,9 +17,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
 import android.view.WindowManager;
-
-import com.ubergeek42.cats.Kitty;
-import com.ubergeek42.cats.Root;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -28,8 +29,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 @SuppressWarnings("unused")
 public class Debug {
-    final private static @Root Kitty kitty = Kitty.make();
-
     // get permission for showing system alert, see next method
     @RequiresApi(api = Build.VERSION_CODES.M)
     public static void checkDrawOverlayPermission(AppCompatActivity activity) {
@@ -70,13 +69,13 @@ public class Debug {
 
     public static void saveLogCatToFile(Context ctx) {
         String path = ctx.getDir("log", Context.MODE_PRIVATE) + "/logcat.txt";
-        kitty.trace("saving log to: {}", path);
+        jtrace(() -> String.format("saving log to: %s", path));
         try {
             bash("echo \\n\\n\\n >> " + path);
             bash("date >> " + path);
             bash("logcat -t 100 >> " + path);
         } catch (IOException | InterruptedException e) {
-            kitty.error("error writing file", e);
+            jerr(e, "error writing file");
         }
     }
 
@@ -99,7 +98,7 @@ public class Debug {
     public static void dumpThreads() {
         Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
         for (Thread t : threadSet) {
-            kitty.info("%s -> %s [a %s, d %s]", t.getName(), t.getState(), t.isAlive(), t.isDaemon());
+            jinfo(() -> String.format("%s -> %s [a %s, d %s]", t.getName(), t.getState(), t.isAlive(), t.isDaemon()));
         }
     }
 }
