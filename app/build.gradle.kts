@@ -7,7 +7,6 @@ plugins {
 
 dependencies {
     implementation("cats:android-runtime")
-    implementation(project(":cats"))
     implementation(project(":relay"))
 
     // these two are required for logging within the relay module. todo remove?
@@ -46,7 +45,6 @@ dependencies {
 
     implementation(libs.eventbus)
 
-    debugImplementation(libs.aspectj.rt)
     debugImplementation(libs.leakcanary)
 
     testImplementation(libs.junit.jupiter)
@@ -154,23 +152,4 @@ kotlin {
 fun versionBanner(): String {
     val versionDetails: groovy.lang.Closure<com.palantir.gradle.gitversion.VersionDetails> by extra
     return with(versionDetails()) { "$lastTag-$commitDistance-g$gitHash" }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////// cats
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// This is hacky but it makes the AspectJ weaving only happen on debug builds.
-// Note that `apply(plugin = ...)` prevents us from configuring a filter,
-// which seems to require the unconditional syntax `plugin { id(...) }`.
-// However, the filter somehow doesn't seem to work either way, even if we simplify it to this:
-//
-//     aopWeave {
-//        filter = "ubergeek42"
-//     }
-
-val taskRequests = getGradle().startParameter.taskRequests.flatMap { it.args }
-
-if (taskRequests.isNotEmpty() && taskRequests.all { "Debug" in it }) {
-    apply(plugin = "com.ibotta.gradle.aop")
 }
