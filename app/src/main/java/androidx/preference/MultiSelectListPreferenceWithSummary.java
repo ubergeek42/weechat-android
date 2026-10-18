@@ -9,9 +9,6 @@ import androidx.annotation.Nullable;
 
 import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
-import com.ubergeek42.cats.Cat;
-import com.ubergeek42.cats.Kitty;
-import com.ubergeek42.cats.Root;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -22,9 +19,6 @@ import java.util.Set;
 public class MultiSelectListPreferenceWithSummary extends MultiSelectListPreference {
     final private @Nullable String emptySummary;
 
-    final private static @Root Kitty kitty = Kitty.make();
-
-    @Cat
     public MultiSelectListPreferenceWithSummary(Context context, AttributeSet attrs) {
         super(context, attrs);
         TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.MultiSelectListPreferenceWithSummary, 0, 0);

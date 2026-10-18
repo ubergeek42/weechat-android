@@ -23,16 +23,11 @@ import com.ubergeek42.WeechatAndroid.R;
 import com.ubergeek42.WeechatAndroid.media.Cache;
 import com.ubergeek42.WeechatAndroid.media.Engine;
 import com.ubergeek42.WeechatAndroid.media.Strategy;
-import com.ubergeek42.cats.Cat;
-import com.ubergeek42.cats.Kitty;
-import com.ubergeek42.cats.Root;
 
 import java.util.List;
 
 
 public class PasteAdapter extends RecyclerView.Adapter<PasteAdapter.PasteLine> {
-    final private static  @Root Kitty kitty = Kitty.make();
-
     final private LayoutInflater inflater;
     final private OnClickListener onClickListener;
     final private List<Paste.PasteItem> items;
@@ -84,7 +79,6 @@ public class PasteAdapter extends RecyclerView.Adapter<PasteAdapter.PasteLine> {
                 return;
             }
 
-            kitty.info("loading: %s", url);
             imageView.layout(0, 0, 0, 0);       // https://github.com/bumptech/glide/issues/1591
             imageView.requestLayout();
             if (isContextValidForGlide(context)) {
@@ -99,12 +93,12 @@ public class PasteAdapter extends RecyclerView.Adapter<PasteAdapter.PasteLine> {
             }
         }
 
-        @Cat @Override public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Bitmap> target, boolean isFirstResource) {
+        @Override public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Bitmap> target, boolean isFirstResource) {
             viewSwitcher.crossfadeTo(0);
             return false;
         }
 
-        @Cat @Override public boolean onResourceReady(Bitmap resource, Object model, Target<Bitmap> target, DataSource dataSource, boolean isFirstResource) {
+        @Override public boolean onResourceReady(Bitmap resource, Object model, Target<Bitmap> target, DataSource dataSource, boolean isFirstResource) {
             viewSwitcher.crossfadeTo(1);
             return false;
         }

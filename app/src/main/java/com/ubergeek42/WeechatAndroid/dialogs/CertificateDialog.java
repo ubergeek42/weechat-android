@@ -27,8 +27,6 @@ import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.service.SSLHandler;
 import com.ubergeek42.WeechatAndroid.service.SSLHandlerKt;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
-import com.ubergeek42.cats.Kitty;
-import com.ubergeek42.cats.Root;
 import com.ubergeek42.weechat.HexUtilsKt;
 
 import java.security.MessageDigest;
@@ -39,8 +37,6 @@ import java.text.DateFormat;
 import java.util.Set;
 
 public class CertificateDialog extends DialogFragment {
-    final private static @Root Kitty kitty = Kitty.make();
-
     final @NonNull CharSequence title;
     final @NonNull CharSequence text;
     final @NonNull X509Certificate[] reversedCertificateChain;
