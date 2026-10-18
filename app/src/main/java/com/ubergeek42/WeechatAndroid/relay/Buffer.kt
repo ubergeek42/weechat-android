@@ -23,22 +23,25 @@ class Buffer @WorkerThread constructor(
 ) {
     @JvmField var number: Int = 0
     @JvmField var fullName: String = ""
-    @JvmField @Suffix var shortName: String = ""
+    @JvmField var shortName: String = ""
     @JvmField var hidden: Boolean = false
     @JvmField var type = BufferSpec.Type.Other
 
     private var notify: Notify = Notify.default
 
+    @Suffix private val suffix get() = shortName.ifEmpty { pointer.as0x }
+
     inner class Updater {
-        internal var updateNameOrNumber = false
+        internal var updateNumber = false
+        internal var updateFullName = false
         internal var updateShortName = false
         internal var updateTitle = false
         internal var updateHidden = false
         internal var updateType = false
         internal var updateNotifyLevel = false
 
-        var number: Int by updatable(::updateNameOrNumber, this@Buffer::number)
-        var fullName: String by updatable(::updateNameOrNumber, this@Buffer::fullName)
+        var number: Int by updatable(::updateNumber, this@Buffer::number)
+        var fullName: String by updatable(::updateFullName, this@Buffer::fullName)
         var shortName: String? by updatable(::updateShortName, this@Buffer::shortName)
         var title: String? by updatable(::updateTitle)
         var hidden: Boolean by updatable(::updateHidden)
@@ -50,10 +53,23 @@ class Buffer @WorkerThread constructor(
         val updater = Updater()
         updater.block()
 
-        if (updater.updateNameOrNumber || updater.updateShortName) {
-            number = updater.number
-            fullName = updater.fullName
-            shortName = updater.shortName ?: fullName
+        trace {
+            val updatedEntries = mutableMapOf<String, Any?>()
+            if (updater.updateNumber) updatedEntries["number"] = updater.number
+            if (updater.updateFullName) updatedEntries["fullName"] = updater.fullName
+            if (updater.updateShortName) updatedEntries["shortName"] = updater.shortName
+            if (updater.updateNotifyLevel) updatedEntries["notify"] = updater.notify
+            if (updater.updateHidden) updatedEntries["hidden"] = updater.hidden
+            if (updater.updateType) updatedEntries["type"] = updater.type
+            if (updater.updateTitle) updatedEntries["title"] = updater.title
+            "→ update $updatedEntries"
+        }
+
+        if (updater.updateNumber) number = updater.number
+        if (updater.updateFullName) fullName = updater.fullName
+        if (updater.updateShortName) shortName = updater.shortName ?: fullName
+
+        if (updater.updateNumber || updater.updateShortName) {
             processBufferNameSpannable()
         }
 
@@ -101,8 +117,6 @@ class Buffer @WorkerThread constructor(
     @JvmField var highlights = 0
 
     @JvmField var printable: Spannable? = null  // printable buffer without title (for TextView)
-
-    init { trace {"→ Buffer(number=$number, fullName=$fullName)" } }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////// LINES
