@@ -30,16 +30,15 @@ import com.bumptech.glide.load.Options;
 import com.bumptech.glide.load.model.ModelLoader;
 import com.bumptech.glide.load.model.ModelLoaderFactory;
 import com.bumptech.glide.load.model.MultiModelLoaderFactory;
-import com.ubergeek42.cats.Cat;
 
 import java.io.InputStream;
 
 public class OkHttpUrlLoader implements ModelLoader<Strategy.Url, InputStream> {
-    @Override @Cat public boolean handles(@NonNull Strategy.Url url) {
+    @Override public boolean handles(@NonNull Strategy.Url url) {
         return true;
     }
 
-    @Override public @Cat LoadData<InputStream> buildLoadData(@NonNull Strategy.Url model, int width, int height, @NonNull Options options) {
+    @Override public LoadData<InputStream> buildLoadData(@NonNull Strategy.Url model, int width, int height, @NonNull Options options) {
         return new LoadData<>(model, new OkHttpStreamFetcher(model));
     }
 
