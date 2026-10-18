@@ -28,6 +28,7 @@ nvwebsocketclient = "2.14"
 okhttp = "5.5.0"
 gitversionplugin = "5.0.0"
 robolectric = "4.17-beta-3" # 4.16 does not support API 37
+slf4j-android = "2.0.20-0"
 slf4j-api = "2.0.18"
 snakeyaml = "2.6"
 
@@ -40,7 +41,6 @@ tasktree = "4.0.2"
 
 
 [libraries]
-androidlogger = { module = "com.noveogroup.android:android-logger", version.ref = "androidlogger" }
 androidx-annotation = { module = "androidx.annotation:annotation", version.ref = "androidx-annotation" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidx-appcompat" }
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx-core" }
@@ -73,6 +73,7 @@ mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
 nvwebsocketclient = { module = "com.neovisionaries:nv-websocket-client", version.ref = "nvwebsocketclient" }
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+slf4j-android = { module = "uk.uuid.slf4j:slf4j-android", version.ref = "slf4j-android" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j-api" }
 snakeyaml = { module = "org.yaml:snakeyaml", version.ref = "snakeyaml" }
 sshlib = { module = "org.connectbot:sshlib", version.ref = "sshlib" }

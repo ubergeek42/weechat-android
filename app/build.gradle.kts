@@ -9,10 +9,7 @@ dependencies {
     implementation("cats:android-runtime")
     implementation(project(":relay"))
 
-    // these two are required for logging within the relay module. todo remove?
-    implementation(libs.slf4j.api)
-    implementation(libs.androidlogger)
-
+    implementation(libs.slf4j.android)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.legacy.support.v4)
     implementation(libs.androidx.annotation) // For @Nullable/@NonNull
