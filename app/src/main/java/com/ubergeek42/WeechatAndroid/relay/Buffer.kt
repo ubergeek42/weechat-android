@@ -8,15 +8,15 @@ import android.text.style.SuperscriptSpan
 import androidx.annotation.AnyThread
 import androidx.annotation.MainThread
 import androidx.annotation.WorkerThread
+import cats.Suffix
+import cats.Trace
+import cats.trace
 import com.ubergeek42.WeechatAndroid.notifications.Hotlist
 import com.ubergeek42.WeechatAndroid.notifications.shortcuts
 import com.ubergeek42.WeechatAndroid.service.Events
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.utils.Assert
 import com.ubergeek42.WeechatAndroid.utils.updatable
-import com.ubergeek42.cats.Cat
-import com.ubergeek42.cats.Kitty
-import com.ubergeek42.cats.Root
 
 class Buffer @WorkerThread constructor(
     @JvmField val pointer: Long,
@@ -29,16 +29,19 @@ class Buffer @WorkerThread constructor(
 
     private var notify: Notify = Notify.default
 
+    @Suffix private val suffix get() = shortName.ifEmpty { pointer.as0x }
+
     inner class Updater {
-        internal var updateNameOrNumber = false
+        internal var updateNumber = false
+        internal var updateFullName = false
         internal var updateShortName = false
         internal var updateTitle = false
         internal var updateHidden = false
         internal var updateType = false
         internal var updateNotifyLevel = false
 
-        var number: Int by updatable(::updateNameOrNumber, this@Buffer::number)
-        var fullName: String by updatable(::updateNameOrNumber, this@Buffer::fullName)
+        var number: Int by updatable(::updateNumber, this@Buffer::number)
+        var fullName: String by updatable(::updateFullName, this@Buffer::fullName)
         var shortName: String? by updatable(::updateShortName, this@Buffer::shortName)
         var title: String? by updatable(::updateTitle)
         var hidden: Boolean by updatable(::updateHidden)
@@ -50,11 +53,23 @@ class Buffer @WorkerThread constructor(
         val updater = Updater()
         updater.block()
 
-        if (updater.updateNameOrNumber || updater.updateShortName) {
-            number = updater.number
-            fullName = updater.fullName
-            shortName = updater.shortName ?: fullName
-            kitty.setPrefix(shortName)
+        trace {
+            val updatedEntries = mutableMapOf<String, Any?>()
+            if (updater.updateNumber) updatedEntries["number"] = updater.number
+            if (updater.updateFullName) updatedEntries["fullName"] = updater.fullName
+            if (updater.updateShortName) updatedEntries["shortName"] = updater.shortName
+            if (updater.updateNotifyLevel) updatedEntries["notify"] = updater.notify
+            if (updater.updateHidden) updatedEntries["hidden"] = updater.hidden
+            if (updater.updateType) updatedEntries["type"] = updater.type
+            if (updater.updateTitle) updatedEntries["title"] = updater.title
+            "→ update $updatedEntries"
+        }
+
+        if (updater.updateNumber) number = updater.number
+        if (updater.updateFullName) fullName = updater.fullName
+        if (updater.updateShortName) shortName = updater.shortName ?: fullName
+
+        if (updater.updateNumber || updater.updateShortName) {
             processBufferNameSpannable()
         }
 
@@ -82,8 +97,6 @@ class Buffer @WorkerThread constructor(
     @JvmField var readUnreads = 0
     @JvmField var readHighlights = 0
 
-    @Root private val kitty: Kitty = Kitty.make("Buffer")
-
     // number of hotlist updates while syncing this buffer. if >= 2, when the new update arrives, we
     // keep own unreads/highlights as they have been correct since the last update
     var hotlistUpdatesWhileSyncing = 0
@@ -104,8 +117,6 @@ class Buffer @WorkerThread constructor(
     @JvmField var highlights = 0
 
     @JvmField var printable: Spannable? = null  // printable buffer without title (for TextView)
-
-    init { kitty.trace("→ Buffer(number=%s, fullName=%s)", number, fullName) }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////// LINES
@@ -158,13 +169,13 @@ class Buffer @WorkerThread constructor(
     //     so we request lines and nicks upon user actually (getting close to) opening the buffer.
     // we are requesting nicks along with the lines because:
     //     nick completion
-    @MainThread @Cat @Synchronized fun addBufferEye(bufferEye: BufferEye) {
+    @MainThread @Trace @Synchronized fun addBufferEye(bufferEye: BufferEye) {
         bufferEyes = bufferEyes + bufferEye
         if (lines.status == Lines.Status.Init) requestMoreLines()
         if (nicks.status == Nicks.Status.Init) BufferList.requestNicklistForBuffer(pointer)
     }
 
-    @MainThread @Cat @Synchronized fun removeBufferEye(bufferEye: BufferEye) {
+    @MainThread @Trace @Synchronized fun removeBufferEye(bufferEye: BufferEye) {
         bufferEyes = bufferEyes - bufferEye
     }
 

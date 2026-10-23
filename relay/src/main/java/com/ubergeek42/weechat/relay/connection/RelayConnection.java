@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 
 public class RelayConnection {
-    final private static Logger logger = LoggerFactory.getLogger("RelayConnection");
+    final private static Logger logger = LoggerFactory.getLogger(RelayConnection.class);
 
     final static int CONNECTION_TIMEOUT = 5 * 1000;
 
@@ -55,9 +55,9 @@ public class RelayConnection {
         this.observer = observer;
         iteration = iterationCounter++;
 
-        controlStream = new Events.EventStream("ControlStream", iteration);
-        eventStream = new Events.EventStream("EventStream", iteration);
-        writerStream = new Events.EventStream("WriteStream", iteration);
+        controlStream = new Events.EventStream("com.ubergeek42.weechat.relay.connection.ControlStream", iteration);
+        eventStream = new Events.EventStream("com.ubergeek42.weechat.relay.connection.EventStream", iteration);
+        writerStream = new Events.EventStream("com.ubergeek42.weechat.relay.connection.WriteStream", iteration);
 
         if (handshakeMethod == HandshakeMethod.Compatibility) {
             handshake = new CompatibilityHandshake(this, password);
@@ -123,7 +123,7 @@ public class RelayConnection {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private void startThreadsAndAuthenticate() {
-        new Utils.FriendlyThread("ReadStream", iteration, new Protected("readStream", () -> {
+        new Utils.FriendlyThread("com.ubergeek42.weechat.relay.connection.ReadStream", iteration, new Protected("readStream", () -> {
             while (!Thread.interrupted()) onMessage(Utils.getRelayMessage(streams.inputStream));
         })).start();
 

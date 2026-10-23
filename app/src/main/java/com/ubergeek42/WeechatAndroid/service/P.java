@@ -37,10 +37,6 @@ import com.ubergeek42.WeechatAndroid.utils.History;
 import com.ubergeek42.WeechatAndroid.utils.MigratePreferences;
 import com.ubergeek42.WeechatAndroid.utils.ThemeFix;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
-import com.ubergeek42.cats.Cat;
-import com.ubergeek42.cats.CatD;
-import com.ubergeek42.cats.Kitty;
-import com.ubergeek42.cats.Root;
 import com.ubergeek42.weechat.Color;
 import com.ubergeek42.weechat.ColorScheme;
 import com.ubergeek42.weechat.relay.connection.HandshakeMethod;
@@ -58,11 +54,11 @@ import java.util.LinkedList;
 
 import static com.ubergeek42.WeechatAndroid.utils.ApplicationContextKt.applicationContext;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
+import static com.ubergeek42.WeechatAndroid.utils.LoggingKt.jdebug;
+import static com.ubergeek42.WeechatAndroid.utils.LoggingKt.jwarn;
 
 
 public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
-    final private static @Root Kitty kitty = Kitty.make();
-
     @SuppressLint("StaticFieldLeak")
     private static Context context;
     private static SharedPreferences p;
@@ -221,7 +217,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     }
 
     // todo optimize this method—might be too expensive
-    private static @CatD void changeColorScheme() {
+    private static void changeColorScheme() {
         ThemeManager.loadColorSchemeFromPreferences(context);
         setTextSizeColorAndLetterWidth();
         BufferList.onGlobalPreferencesChanged(false);
@@ -301,7 +297,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
             try {
                 sshServerKeyVerifier = SSHServerKeyVerifier.decodeFromString(data);
             } catch (Exception e) {
-                kitty.warn("Error while decoding server key verifier", e);
+                jwarn(e, "Error while decoding server key verifier");
             }
         }
 
@@ -330,7 +326,8 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @MainThread @Override @CatD public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+    @MainThread @Override public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        jdebug(() -> String.format("P: onSharedPreferenceChanged(key=%s)", key));
         switch (key) {
             // buffer list preferences
             case PREF_SORT_BUFFER_LIST: sortBufferList = p.getString(key, PREF_SORT_BUFFER_LIST_D); break;
@@ -464,14 +461,14 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     // needed to make sure nothing crashes if we cannot restore the data
     private static final int PROTOCOL_ID = 19;
 
-    @AnyThread @Cat public static void saveStuff() {
+    @AnyThread public static void saveStuff() {
         for (Buffer buffer : BufferList.buffers) saveLastReadLine(buffer);
         String data = Utils.serialize(new Object[]{openBuffers, bufferToLastReadLine, sentMessages, history});
         p.edit().putString(PREF_DATA, data).putInt(PREF_PROTOCOL_ID, PROTOCOL_ID).apply();
     }
 
     @SuppressWarnings("unchecked")
-    @MainThread @Cat public static void restoreStuff() {
+    @MainThread public static void restoreStuff() {
         if (p.getInt(PREF_PROTOCOL_ID, -1) != PROTOCOL_ID) return;
         Object o = Utils.deserialize(p.getString(PREF_DATA, null));
         if (!(o instanceof Object[])) return;

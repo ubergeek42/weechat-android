@@ -13,11 +13,6 @@ import com.ubergeek42.WeechatAndroid.relay.BufferList
 import com.ubergeek42.WeechatAndroid.relay.BufferSpec
 import com.ubergeek42.WeechatAndroid.relay.Line
 import com.ubergeek42.WeechatAndroid.relay.LineSpec
-import com.ubergeek42.cats.Kitty
-import com.ubergeek42.cats.Root
-
-
-@Root private val kitty = Kitty.make("Hotlist") as Kitty
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
