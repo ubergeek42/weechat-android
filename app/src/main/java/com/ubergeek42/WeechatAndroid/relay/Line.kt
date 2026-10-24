@@ -79,6 +79,7 @@ open class Line(
 
     fun getMessageSpanned() = messageSpanned
             ?: rawMessage.toSpannableWithWeechatColorsParsed(false, type == LineSpec.Type.Other && P.dimDownNonHumanLines)
+                    .withLeadingAndTrailingNewlinesRemoved()
                     .also {
                         it.applyParagraphSpansToDoubleNewLine()
                         if (SHOULD_EMOJIFY) emojify(it)
@@ -189,8 +190,7 @@ class ParagraphSpan : LineHeightSpan {
  *
  * TODO Decide if we want to specially treat:
  *   * More than two `\n` in a row,
- *   * Lines only consisting of whitespace,
- *   * Leading and ending empty lines.
+ *   * Lines only consisting of whitespace.
  */
 fun Spannable.applyParagraphSpansToDoubleNewLine() {
     var searchIndex = 0
@@ -200,6 +200,31 @@ fun Spannable.applyParagraphSpansToDoubleNewLine() {
         setSpan(ParagraphSpan(), index + 1, index + 2, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         searchIndex = index + 1
     }
+}
+
+/**
+ * We would like to elect to not treat the leading and the trailing newlines in a special way.
+ * However, we decided to treat double new lines as a paragraph, `<p>`,
+ * and in some circumstances a multiline message containing new lines
+ * can be split into mutliple messages, and this split can occur around the double new lines.
+ *
+ * As we already have paragraph spacing between individual messages,
+ * remove any trailing and leading new lines for the sake of visual consistency.
+ *
+ * Implementation note: not using `trim('\n')` as it calls `subSequence` unconditionally,
+ *   and [SpannableString]'s implementation of that always creates a new object.
+ *
+ * TODO: Trim newlines while parsing colors.
+ *   Be mindful of the spans, they have to have proper start and end indices.
+ */
+fun Spannable.withLeadingAndTrailingNewlinesRemoved(): Spannable {
+    var start = 0
+    var end = lastIndex
+
+    while (start <= end && this[start] == '\n') start++
+    while (start <= end && this[end] == '\n') end--
+
+    return if (start == 0 && end == lastIndex) this else subSequence(start, end + 1) as Spannable
 }
 
 
