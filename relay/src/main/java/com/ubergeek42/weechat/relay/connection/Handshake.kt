@@ -16,7 +16,7 @@ private const val HANDSHAKE_MESSAGE_ID = "handshake"
 private const val VERSION_MESSAGE_ID = "version"
 
 
-private val logger = LoggerFactory.getLogger("Handshake")
+private val logger = LoggerFactory.getLogger(Handshake::class.java)
 
 
 @Suppress("unused")

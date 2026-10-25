@@ -13,15 +13,11 @@ import androidx.room.PrimaryKey
 import androidx.room.Query
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import cats.trace
 import com.ubergeek42.WeechatAndroid.utils.applicationContext
-import com.ubergeek42.cats.Kitty
-import com.ubergeek42.cats.Root
 
 
 private val COLLECT_STATISTICS = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1
-
-
-@Root private val kitty: Kitty = Kitty.make()
 
 
 interface Statistics {
@@ -148,7 +144,7 @@ class ShortcutStatisticsDatabase {
             applicationContext.cacheDir.toString() + "/" + DATABASE_NAME).build()
 
     init {
-        kitty.trace("using database at %s", database.openHelper.writableDatabase.path)
+        trace { "using database at ${database.openHelper.writableDatabase.path}" }
     }
 
     private val events get() = database.eventsDao()
@@ -170,14 +166,14 @@ class ShortcutStatisticsDatabase {
         if (focusedSize > 0 || sharedToSize > 0) {
             notificationHandler.post {
                 if (focusedSize > 0) {
-                    kitty.trace("saving %s manually focused events", focusedSize)
+                    trace { "saving $focusedSize manually focused events" }
                     events.insertAllManuallyFocusedEvents(manuallyFocusedEventsInsertCache
                             .map { ManuallyFocusedEvent(0, it) })
                     manuallyFocusedEventsInsertCache.clear()
                 }
 
                 if (sharedToSize > 0) {
-                    kitty.trace("saving %s shared to events", sharedToSize)
+                    trace { "saving $sharedToSize shared to events" }
                     events.insertAllSharedToEvents(sharedToEventsInsertCache
                             .map { SharedToEvent(0, it) })
                     sharedToEventsInsertCache.clear()
@@ -190,13 +186,11 @@ class ShortcutStatisticsDatabase {
         notificationHandler.post {
             val deletedFocused = events.deleteFromManuallyFocusedEventsLeaving(KEEP_MANUALLY_FOCUSED_EVENTS)
             val focused = events.getBufferToManuallyFocusedCount()
-            kitty.trace("restoring %s manually focused buffer records; deleted %s events",
-                    focused.size, deletedFocused)
+            trace { "restoring ${focused.size} manually focused buffer records; deleted $deletedFocused events" }
 
             val deletedSharedTo = events.deleteFromSharedToEventsLeaving(KEEP_MANUALLY_SHARED_TO_EVENTS)
             val sharedTo = events.getBufferToSharedToCount()
-            kitty.trace("restoring %s shared to buffer records; deleted %s events",
-                sharedTo.size, deletedSharedTo)
+            trace { "restoring ${sharedTo.size} shared to buffer records; deleted $deletedSharedTo events" }
 
             (statistics as StatisticsImpl).initialize(focused, sharedTo)
         }

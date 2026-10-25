@@ -8,12 +8,9 @@ import androidx.emoji2.text.EmojiCompat
 import androidx.emoji2.text.EmojiCompat.InitCallback
 import androidx.emoji2.text.EmojiCompat.LOAD_STRATEGY_MANUAL
 import androidx.emoji2.text.FontRequestEmojiCompatConfig.ExponentialBackoffRetryPolicy
-import com.ubergeek42.WeechatAndroid.utils.applicationContext
-import com.ubergeek42.cats.Kitty
-import com.ubergeek42.cats.Root
+import cats.err
+import cats.info
 import kotlin.concurrent.thread
-
-@Root private val kitty = Kitty.make("EmojiUtil")
 
 
 // Android 12 and above can update emoji font at any time, while 11 and below
@@ -28,7 +25,7 @@ fun initEmojiCompat() {
     val config = DefaultEmojiCompatConfig.create(applicationContext)
 
     if (config == null) {
-        kitty.error("Could not create DefaultEmojiCompatConfig: no font provider found")
+        err { "Could not create DefaultEmojiCompatConfig: no font provider found" }
         return
     }
 
@@ -39,12 +36,12 @@ fun initEmojiCompat() {
     config.setMetadataLoadStrategy(LOAD_STRATEGY_MANUAL)
     config.registerInitCallback(object : InitCallback() {
         override fun onInitialized() {
-            kitty.info("EmojiCompat initialized")
+            info { "EmojiCompat initialized" }
             emojiCompatOrNull = emojiCompat
         }
 
         override fun onFailed(throwable: Throwable?) {
-            kitty.error("EmojiCompat initialization failed", throwable)
+            err(throwable) { "EmojiCompat initialization failed" }
         }
     })
 

@@ -22,3 +22,6 @@ build
 # vim
 *.swp
 *.swo
+
+# Kotlin gradle plugin stuff, such as errors
+.kotlin

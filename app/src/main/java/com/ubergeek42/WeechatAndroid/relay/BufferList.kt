@@ -6,11 +6,10 @@ import android.util.LongSparseArray
 import androidx.annotation.AnyThread
 import androidx.annotation.MainThread
 import androidx.annotation.WorkerThread
+import cats.warn
 import com.ubergeek42.WeechatAndroid.notifications.Hotlist
 import com.ubergeek42.WeechatAndroid.service.Events.SendMessageEvent
 import com.ubergeek42.WeechatAndroid.service.P
-import com.ubergeek42.cats.Kitty
-import com.ubergeek42.cats.Root
 import com.ubergeek42.weechat.relay.protocol.Hdata
 import com.ubergeek42.weechat.relay.protocol.RelayObject
 import java.util.concurrent.ConcurrentHashMap
@@ -21,7 +20,6 @@ const val LINE_MISSING = -1L
 
 
 object BufferList {
-    @Root private val kitty = Kitty.make()
 
     ////////////////////////////////////////////////////////////////////////////////////// lifecycle
 
@@ -47,13 +45,13 @@ object BufferList {
 
     @JvmStatic @AnyThread fun findByPointer(pointer: Long): Buffer? {
         return buffers.firstOrNull { it.pointer == pointer }.also {
-            it ?: kitty.warn("did not find buffer pointer: ${pointer.as0x}")
+            it ?: warn { "did not find buffer pointer: ${pointer.as0x}" }
         }
     }
 
     @JvmStatic @AnyThread fun findByFullName(fullName: String): Buffer? {
         return buffers.firstOrNull { it.fullName == fullName }.also {
-            it ?: kitty.warn("did not find buffer pointer: $fullName")
+            it ?: warn { "did not find buffer pointer: $fullName" }
         }
     }
 
@@ -85,7 +83,7 @@ object BufferList {
 
     @JvmStatic @WorkerThread fun handleMessage(obj: RelayObject?, id: String) {
         if (obj is Hdata) {
-            handlers[id]?.handleMessage(obj, id) ?: kitty.warn("no handler for message id: %s", id)
+            handlers[id]?.handleMessage(obj, id) ?: warn { "no handler for message id: $id" }
         }
     }
 

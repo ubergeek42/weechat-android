@@ -2,16 +2,14 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.ksp)
     alias(libs.plugins.gitversionplugin)
+    id("cats")
 }
 
 dependencies {
-    implementation(project(":cats"))
+    implementation("cats:android-runtime")
     implementation(project(":relay"))
 
-    // these two are required for logging within the relay module. todo remove?
-    implementation(libs.slf4j.api)
-    implementation(libs.androidlogger)
-
+    implementation(libs.slf4j.android)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.legacy.support.v4)
     implementation(libs.androidx.annotation) // For @Nullable/@NonNull
@@ -44,7 +42,6 @@ dependencies {
 
     implementation(libs.eventbus)
 
-    debugImplementation(libs.aspectj.rt)
     debugImplementation(libs.leakcanary)
 
     testImplementation(libs.junit.jupiter)
@@ -142,26 +139,14 @@ ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
 }
 
+kotlin {
+    compilerOptions {
+        // https://kotlinlang.org/docs/whatsnew22.html#preview-of-context-sensitive-resolution
+        freeCompilerArgs.add("-Xcontext-sensitive-resolution")
+    }
+}
+
 fun versionBanner(): String {
     val versionDetails: groovy.lang.Closure<com.palantir.gradle.gitversion.VersionDetails> by extra
     return with(versionDetails()) { "$lastTag-$commitDistance-g$gitHash" }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////// cats
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// This is hacky but it makes the AspectJ weaving only happen on debug builds.
-// Note that `apply(plugin = ...)` prevents us from configuring a filter,
-// which seems to require the unconditional syntax `plugin { id(...) }`.
-// However, the filter somehow doesn't seem to work either way, even if we simplify it to this:
-//
-//     aopWeave {
-//        filter = "ubergeek42"
-//     }
-
-val taskRequests = getGradle().startParameter.taskRequests.flatMap { it.args }
-
-if (taskRequests.isNotEmpty() && taskRequests.all { "Debug" in it }) {
-    apply(plugin = "com.ibotta.gradle.aop")
 }

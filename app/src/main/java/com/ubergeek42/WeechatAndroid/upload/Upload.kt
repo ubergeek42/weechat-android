@@ -2,17 +2,20 @@ package com.ubergeek42.WeechatAndroid.upload
 
 import android.net.Uri
 import androidx.annotation.MainThread
+import cats.warn
 import com.ubergeek42.WeechatAndroid.BuildConfig
-import com.ubergeek42.cats.Kitty
-import com.ubergeek42.cats.Root
-import okhttp3.*
+import okhttp3.Call
+import okhttp3.Interceptor
+import okhttp3.MultipartBody
+import okhttp3.OkHttp
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody
 import okio.BufferedSink
 import okio.IOException
 import okio.source
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
-
-@Root private val kitty: Kitty = Kitty.make()
 
 
 private const val SEGMENT_SIZE = 4096L
@@ -66,7 +69,7 @@ class Upload(
             state = State.FAILED
             val cancelled = call?.isCanceled() == true
             if (!cancelled) {
-                kitty.warn("error while uploading", e)
+                warn(e) { "error while uploading" }
                 jobs.lock {
                     listeners.forEach { it.onFinished(this@Upload, Result.Failed(e)) }
                     remove(suri.uri)

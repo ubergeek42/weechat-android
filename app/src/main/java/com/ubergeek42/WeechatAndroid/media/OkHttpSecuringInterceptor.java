@@ -1,8 +1,5 @@
 package com.ubergeek42.WeechatAndroid.media;
 
-import com.ubergeek42.cats.Kitty;
-import com.ubergeek42.cats.Root;
-
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -14,8 +11,6 @@ import okhttp3.Response;
 import static com.ubergeek42.WeechatAndroid.utils.Assert.assertThat;
 
 class OkHttpSecuringInterceptor implements Interceptor {
-    final private static @Root Kitty kitty = Kitty.make();
-
     @NotNull @Override public Response intercept(@NotNull Chain chain) throws IOException {
         assertThat(Config.secureRequestsPolicy).isAnyOf(Config.SecureRequest.REQUIRED, Config.SecureRequest.REWRITE);
         Request request = chain.request();

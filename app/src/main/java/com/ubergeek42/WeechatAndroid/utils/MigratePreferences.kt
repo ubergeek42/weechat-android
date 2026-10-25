@@ -4,18 +4,13 @@ import android.content.Context
 import androidx.core.content.edit
 import androidx.preference.PreferenceManager
 import androidx.preference.PrivateKeyPickerPreference
+import cats.info
 import com.ubergeek42.WeechatAndroid.service.P.VolumeRole
 import com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils.InsideSecureHardware
-import com.ubergeek42.cats.Kitty
-import com.ubergeek42.cats.Root
 import com.ubergeek42.weechat.relay.connection.SSHConnection
 
 
 class MigratePreferences(val context: Context) {
-    companion object {
-        @Root private val kitty = Kitty.make() as Kitty
-    }
-
     private val preferences = PreferenceManager.getDefaultSharedPreferences(context)
     private var migrators = mutableListOf<Migrator>()
 
@@ -25,7 +20,7 @@ class MigratePreferences(val context: Context) {
         val action: Migrator.() -> Unit
     ) {
         fun migrate() {
-            kitty.info("Migrating preferences from version %s to %s", oldVersion, newVersion)
+            info { "Migrating preferences from version $oldVersion to $newVersion" }
             if (oldVersion != preferences.getInt(VERSION_KEY, 0)) throw RuntimeException("Could not migrate")
             this.action()
             preferences.edit().putInt(VERSION_KEY, newVersion).apply()
@@ -33,7 +28,7 @@ class MigratePreferences(val context: Context) {
     }
 
     fun migrate() {
-        kitty.info("Preferences version: %s", preferences.getInt(VERSION_KEY, 0))
+        info { "Preferences version: " + preferences.getInt(VERSION_KEY, 0) }
 
         outer@ while (true) {
             val version = preferences.getInt(VERSION_KEY, 0)
