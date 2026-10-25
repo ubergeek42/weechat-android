@@ -276,12 +276,32 @@
             android:defaultValue="HH:mm:ss"
             android:singleLine="true" />
         <FontPreference
-            android:key="buffer_font"
-            android:title="@string/pref__look_n_feel__font" />
+            android:key="buffer_fonts"
+            android:title="@string/pref__look_n_feel__typeface" />
         <FontPreferenceHelp
             android:key="buffer_font_help"
             android:selectable="false"
             android:persistent="false" />
+        <EditTextPreferenceFix
+            android:key="font_feature_settings"
+            android:title="@string/pref__look_n_feel__font_feature_settings"
+            android:summary="%s"
+            android:defaultValue=""
+            android:singleLine="true" />
+        <EditTextPreferenceFix
+            android:key="line_height"
+            android:title="@string/pref__look_n_feel__line_height"
+            android:summary="%s"
+            android:defaultValue="1.0"
+            android:inputType="numberDecimal"
+            android:singleLine="true" />
+        <EditTextPreferenceFix
+            android:key="paragraph_spacing"
+            android:title="@string/pref__look_n_feel__paragraph_spacing"
+            android:summary="%s dp"
+            android:defaultValue="0"
+            android:inputType="numberSigned|numberDecimal"
+            android:singleLine="true" />
     </PreferenceScreen>
 
     <!-- theme -->

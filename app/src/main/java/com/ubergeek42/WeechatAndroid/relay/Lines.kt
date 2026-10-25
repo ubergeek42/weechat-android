@@ -2,15 +2,18 @@
 // you may not use this file except in compliance with the License.
 package com.ubergeek42.WeechatAndroid.relay
 
-import android.text.SpannableString
+import android.os.Process.THREAD_PRIORITY_BACKGROUND
+import android.text.Spanned
 import com.ubergeek42.WeechatAndroid.service.P
-import com.ubergeek42.WeechatAndroid.utils.Linkify
-import com.ubergeek42.WeechatAndroid.utils.Utils
-import com.ubergeek42.WeechatAndroid.utils.invalidatableLazy
+import com.ubergeek42.WeechatAndroid.utils.Linkify.linkify
+import com.ubergeek42.WeechatAndroid.utils.SHOULD_EMOJIFY
+import com.ubergeek42.WeechatAndroid.utils.emojify
 import com.ubergeek42.WeechatAndroid.utils.removeConsecutiveElementsLeavingFirst
 import com.ubergeek42.WeechatAndroid.utils.replaceFirstWith
-import com.ubergeek42.weechat.Color
+import com.ubergeek42.WeechatAndroid.utils.synchronizedInvalidatableLazy
+import lbmq.LinkedBlockingMultiQueue
 import kotlin.properties.Delegates.observable
+import kotlin.concurrent.thread
 
 // this class is supposed to be synchronized by Buffer
 class Lines {
@@ -186,16 +189,15 @@ class Lines {
         }
     }
 
-    fun invalidateSpannables() {
-        unfiltered.forEach { it.invalidateSpannable() }
+    fun clearPrecomputedLayoutsEtc() {
+        unfiltered.forEach { it.clearPrecomputerLayoutEtc() }
     }
 
     // process lines that are gre going to be displayed, backwards, on a background thread pool.
     // this method gets called after line filter change, so it does get to process all needed lines
-    fun ensureSpannables() {
+    fun ensurePrecomputedLayoutsInBackground() {
         val target = if (P.filterLines) filtered else unfiltered
-        val snapshot = target.toTypedArray()
-        Utils.runInBackground { for (i in snapshot.indices.reversed()) snapshot[i].ensureSpannable() }
+        BackgroundLinePrecomputedLayoutProcessor.process(target.reversed())
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -240,14 +242,14 @@ class Lines {
 
     var title: String by observable("") { _, _, _ -> headerLineDelegate.invalidate() }
 
-    private var headerLineDelegate = invalidatableLazy { HeaderLine.make(title, status) }
+    private var headerLineDelegate = synchronizedInvalidatableLazy { HeaderLine.make(title, status) }
     private val headerLine by headerLineDelegate
 }
 
 
 private const val MAX_C_POINTER_VALUE = 0x200000000000000       // 2⁵⁷
 private var fakePointerCounter = MAX_C_POINTER_VALUE
-private val TITLE_LINE_POINTER = ++fakePointerCounter
+val TITLE_LINE_POINTER = ++fakePointerCounter
 
 
 open class FakeLine(pointer: Long, isVisible: Boolean = false) : Line(
@@ -262,15 +264,24 @@ class SquiggleLine(pointer: Long = ++fakePointerCounter, isVisible: Boolean = fa
 
 
 class HeaderLine(
-    override val messageString : String,
-    override val spannable: SpannableString,
-    val status: Lines.Status,
+    val titleSpanned: Spanned,
+    val linesStatus: Lines.Status,
 ) : FakeLine(TITLE_LINE_POINTER) {
+    override fun getIrcLikeString() = titleSpanned.toString()
+    override fun getTimestampedIrcLikeString() = titleSpanned.toString()
+
+    override fun visuallyEqualsTo(other: Line): Boolean {
+        return titleSpanned == (other as? HeaderLine)?.titleSpanned && linesStatus == other.linesStatus
+    }
+
     companion object {
-        fun make(data: String, status: Lines.Status): HeaderLine {
-            val title = Color.stripEverything(data)
-            val spannable = SpannableString(title).also { Linkify.linkify(it) }
-            return HeaderLine(title, spannable, status)
+        fun make(rawTitle: String, status: Lines.Status): HeaderLine {
+            val titleSpanned = rawTitle.toSpannableWithWeechatColorsParsed(false, false)
+                    .also {
+                        if (SHOULD_EMOJIFY) emojify(it)
+                        linkify(it)
+                    }
+            return HeaderLine(titleSpanned, status)
         }
     }
 }
@@ -293,3 +304,44 @@ class HeaderLine(
 //            if (line.visible) idx_f++;
 //        }
 //    }
+
+
+/**
+ * Processes lines in thread pool with the threads having background priority,
+ * which is supposed to help us not impact the responsiveness of the UI.
+ *
+ * When a collection of lines is submitted for processing,
+ * it is added to a sub-queue of the queue that the threads take from.
+ * This ensures that, even if several collections are added soon after each other,
+ * they start being processed at once from start to end.
+ *
+ * By using a sub-queue pool of 3, we can be reasonably sure that
+ * when switching to a far away buffer in the pager,
+ * all three buffers that get attached to it get their bottom lines ready soon.
+ * In my testing on a device, the precomputed layout are almost never processed on the main thread.
+ */
+object BackgroundLinePrecomputedLayoutProcessor {
+    init {
+        for (i in 0 until Runtime.getRuntime().availableProcessors()) {
+            thread(name = "lc-$i", isDaemon = true, priority = THREAD_PRIORITY_BACKGROUND) {
+                while (true) {
+                    queue.take().ensurePrecomputedLayout()
+                }
+            }
+        }
+    }
+
+    private val subQueues: MutableList<LinkedBlockingMultiQueue<Int, Line>.SubQueue> = mutableListOf()
+
+    private val queue = LinkedBlockingMultiQueue<Int, Line>()
+            .apply {
+                repeat(3) { key ->
+                    addSubQueue(key, 0)
+                    subQueues.add(getSubQueue(key))
+                }
+            }
+
+    fun process(lines: Collection<Line>) {
+        subQueues.minBy { it.size }.addAll(lines)
+    }
+}
