@@ -1,0 +1,952 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE resources [
+    <!ENTITY nbsp "&#160;">
+]>
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- ####################################################################################### -->
+    <!-- ######################################### etc ######################################### -->
+    <!-- ####################################################################################### -->
+
+    <!-- ################################### runtime errors #################################### -->
+
+    <string name="error__pref_validation__relay_host_not_set">O anfitrião do relay não está definido</string>
+    <string name="error__pref_validation__relay_password_not_set">A palavra-passe do relay não está definida</string>
+    <string name="error__pref_validation__ssh_host_not_set">O anfitrião SSH não está definido</string>
+    <string name="error__pref_validation__ssh_password_not_set">A palavra-passe SSH não está definida</string>
+    <string name="error__pref_validation__ssh_key_not_set">A chave privada SSH não está definida</string>
+
+    <!-- more connection errors in preferences section -->
+    <string name="error__connection__server_unexpectedly_closed_connection">
+        O servidor fechou inesperadamente a ligação durante a tentativa.
+        Palavra-passe ou tipo de ligação errados?</string>
+    <string name="error__connection__could_not_resolve_address">
+        Não foi possível resolver o endereço %s</string>
+
+    <string name="error__etc__prefix">Erro: %s</string>
+    <string name="error__etc__hot_line_lost">O buffer perdeu algumas mensagens importantes devido a novas linhas</string>
+    <string name="error__etc__no_hot_buffers">De momento não há buffers com mensagens importantes</string>
+    <string name="error__etc__not_connected">Sem ligação</string>
+    <string name="error__etc__cannot_share_to_empty_buffer_list">A lista de buffers está vazia</string>
+    <string name="error__etc__activity_not_found_for_url">Nenhuma atividade encontrada para o intent %s</string>
+
+    <string name="error__etc__cannot_navigate_input_history_if_sharespans_in_input">
+        Remova ou envie os ficheiros multimédia para navegar no histórico de entrada</string>
+
+    <string name="error__etc__while_accessing_uri">Erro ao aceder ao URI</string>
+    <string name="error__etc__could_not_upload_file">Não foi possível enviar o ficheiro</string>
+    <string name="error__etc__could_not_upload_files">Não foi possível enviar os ficheiros</string>
+    <string name="error__etc__could_not_import_data">Não foi possível importar os dados</string>
+
+    <!-- ############################## main activity ui elements ############################## -->
+
+    <string name="ui__button_paperclip">Enviar ficheiro</string>
+    <string name="ui__button_tab">Tab</string>
+    <string name="ui__button_upload_now">Enviar</string>
+    <string name="ui__button_send">Enviar</string>
+
+    <string name="ui__button_search_cancel">Cancelar pesquisa</string>
+    <string name="ui__button_search_up">Pesquisar para cima</string>
+    <string name="ui__button_search_down">Pesquisar para baixo</string>
+    <string name="ui__button_search_overflow">Mais</string>
+
+    <string name="ui__fab_go_to_bottom">Ir para o fim</string>
+
+    <string name="ui__button_fetch_more_lines">Obter mais linhas</string>
+    <string name="ui__button_fetching_lines">A obter linhas…</string>
+
+    <string name="ui__input_search_hint"><i>pesquisar</i></string>
+
+    <string name="ui__buffer_list_filter_placeholder"><i>filtrar</i></string>
+
+    <string name="ui__ActionBarDrawerToggle__open_drawer">Abrir painel</string>
+    <string name="ui__ActionBarDrawerToggle__close_drawer">Fechar painel</string>
+
+    <string name="ui__snackbars__action__error_details">Detalhes</string>
+    <string name="ui__snackbars__upload_complete">Envio concluído</string>
+
+    <!-- ####################################################################################### -->
+    <!-- ######################################### menu ######################################## -->
+    <!-- ####################################################################################### -->
+
+    <string name="menu__search">Pesquisar</string>
+
+    <string name="menu__nicklist">Utilizadores</string>
+
+    <string name="menu__hotlist">Hotlist</string>
+    <string name="menu__hotlist_hint">Mostrar mensagem importante</string>
+
+    <string name="menu__close">Fechar</string>
+
+    <string name="menu__connection_state__connect">Ligar</string>
+    <string name="menu__connection_state__disconnect">Desligar</string>
+    <string name="menu__connection_state__stop_connecting">Parar de ligar</string>
+
+    <string name="menu__preferences">Definições</string>
+
+    <string name="menu__filter_lines">Filtrar linhas</string>
+
+    <string name="menu__dark_theme">Tema escuro</string>
+
+    <string name="menu__upload_actions__content_images">Anexar imagem</string>
+    <string name="menu__upload_actions__content_media">Anexar multimédia</string>
+    <string name="menu__upload_actions__content_anything">Anexar ficheiro</string>
+    <string name="menu__upload_actions__mediastore_images">Anexar imagem</string>
+    <string name="menu__upload_actions__mediastore_media">Anexar multimédia</string>
+    <string name="menu__upload_actions__camera">Tirar fotografia</string>
+
+    <string name="menu__debug">Depuração</string>
+    <string name="menu__debug__sync_hotlist">Sincronizar hotlist</string>
+    <string name="menu__debug__die">Terminar</string>
+
+    <!-- ####################################################################################### -->
+
+    <string name="menu__search__source__prefix">Prefixo</string>
+    <string name="menu__search__source__message">Mensagem</string>
+    <string name="menu__search__source__prefix_and_message">Ambos</string>
+
+    <string name="menu__search__regex">Regex</string>
+    <string name="menu__search__case_sensitive">Diferenciar maiúsculas</string>
+
+    <!-- ####################################################################################### -->
+
+    <string name="menu__copy__with_timestamps">Com hora</string>
+    <string name="menu__copy__without_timestamps">Sem hora</string>
+    <string name="menu__copy__messages_only">Só mensagens</string>
+
+    <!-- ####################################################################################### -->
+
+    <string name="menu__error_details__copy">Copiar</string>
+    <string name="menu__error_details__wrap_text">Quebrar texto</string>
+
+    <!-- ####################################################################################### -->
+    <!-- #################################### notifications #################################### -->
+    <!-- ####################################################################################### -->
+
+    <string name="notifications__channel__connection_status">Estado da ligação</string>
+    <string name="notifications__channel__hotlist">Hotlist</string>
+
+    <string name="notifications__main__waiting_for_network">A aguardar rede</string>
+    <string name="notifications__main__will_connect_in_n_seconds">A ligar dentro de %d segundos…</string>
+    <string name="notifications__main__connecting_now">A ligar…</string>
+    <string name="notifications__main__connected_to">Ligado a %s</string>
+
+    <!-- the is the title for the summary notification, it is visible to users -->
+    <plurals name="notifications__hot_summary__messages">
+        <item quantity="one">%d mensagem</item>
+        <item quantity="many">%d mensagens</item>
+        <item quantity="other">%d mensagens</item>
+    </plurals>
+    <plurals name="notifications__hot_summary__in_buffers">
+        <item quantity="one">&nbsp;em %d buffer</item>
+        <item quantity="many">&nbsp;em %d buffers</item>
+        <item quantity="other">&nbsp;em %d buffers</item>
+    </plurals>
+
+    <!-- this is the title for individual buffer hot message notifications. it is not normally
+    visible to users in any way as they instead see messages from MessagingStyle -->
+    <plurals name="notifications__hot__text">
+        <item quantity="one">Nova mensagem em %2$s</item>
+        <item quantity="many">%1$d novas mensagens em %2$s</item>
+        <item quantity="other">%1$d novas mensagens em %2$s</item>
+    </plurals>
+
+    <plurals name="notifications__MessagingStyle__missing_users">
+        <item quantity="one">(utilizador desconhecido)</item>
+        <item quantity="many">(utilizadores desconhecidos)</item>
+        <item quantity="other">(utilizadores desconhecidos)</item>
+    </plurals>
+    <string name="notifications__MessagingStyle__missing_messages_1">(mensagem não obtida)</string>
+    <plurals name="notifications__MessagingStyle__missing_messages">
+        <item quantity="one">(mensagem não obtida)</item>
+        <item quantity="many">(%d mensagens não obtidas)</item>
+        <item quantity="other">(%d mensagens não obtidas)</item>
+    </plurals>
+
+    <!-- this is displayed when you reply to messages from notification itself -->
+    <string name="notifications__MessagingStyle__me">Eu</string>
+
+    <string name="notifications__RemoteInput__label">Responder</string>
+
+    <!-- ####################################################################################### -->
+    <!-- ####################################################################################### -->
+    <!-- ####################################### dialogs ####################################### -->
+    <!-- ####################################################################################### -->
+    <!-- ####################################################################################### -->
+
+    <plurals name="dialog__nicklist__n_users">
+        <item quantity="one">%1$d utilizador</item>
+        <item quantity="many">%1$d utilizadores</item>
+        <item quantity="other">%1$d utilizadores</item>
+    </plurals>
+    <string name="dialog__nicklist__user_away">%s (ausente)</string>
+
+
+    <string name="dialog__copy__title">Copiar</string>
+    <string name="dialog__copy__button_select_text">Selecionar texto</string>
+
+    <string name="dialog__paste__title">Colar</string>
+
+    <string name="dialog__write_permission_for_camera__title">
+        Permissão necessária</string>
+    <string name="dialog__write_permission_for_camera__text">
+        Para tirar fotografias, a aplicação precisa de acesso de escrita ao armazenamento público</string>
+    <string name="dialog__write_permission_for_camera__button_ok">OK</string>
+
+    <string name="dialog__alarm_permission_for_ping__title">
+        Permissão necessária</string>
+    <string name="dialog__alarm_permission_for_ping__text">
+        O mecanismo de ping precisa da permissão para definir alarmes exatos.
+        Em alternativa, pode desativar o ping nas definições de ligação.</string>
+    <string name="dialog__alarm_permission_for_ping__positive_button">Conceder permissão</string>
+
+    <string name="dialog__notification_permission__title">Permissão pretendida</string>
+    <string name="dialog__notification_permission__text">
+        Para mostrar notificações, precisamos de uma permissão.
+        Isto é opcional.
+        Se não ativar as notificações agora, pode sempre ativá-las mais tarde nas definições.
+        \n
+        \nQuando ligado, é mostrada uma notificação persistente.
+        Para a ocultar da barra de estado,
+        sugerimos que ative a minimização de notificações para a categoria “Estado da ligação”.
+        \n
+        \nTambém pode personalizar as notificações de cada buffer, alterando o som, a vibração, etc.
+        Para isso, quando receber uma notificação do buffer correspondente,
+        toque nela sem soltar e vá às definições.
+    </string>
+    <string name="dialog__notification_permission__positive_button">Conceder permissão</string>
+    <string name="dialog__notification_permission__negative_button">
+        Continuar sem conceder permissão</string>
+
+    <string name="dialog__error_details__title">Detalhes do erro</string>
+
+    <!-- ####################################################################################### -->
+    <!-- ################################# certificate dialogs ################################# -->
+    <!-- ####################################################################################### -->
+
+    <string name="dialog__certificate__certificate_description"><![CDATA[
+        <b>Emitido para:</b><br>
+        %1$s<br>
+        <br>
+        <b>Emitido por:</b><br>
+        %2$s<br>
+        <br>
+        <b>Período de validade:</b><br>
+        Emitido em: %3$s<br>
+        Expira em: %4$s<br>
+        <br>
+        <b>Impressão digital SHA-256:</b><br>
+        %5$s
+    ]]></string>
+    <string name="dialog__certificate__unknown_fingerprint">Desconhecida</string>
+
+    <string name="dialog__certificate__button_reject">Rejeitar</string>
+    <string name="dialog__certificate__button_back_to_safety">Voltar à segurança</string>
+
+    <!-- ############################### invalid hostname dialog ############################### -->
+
+    <string name="dialog__certificate__invalid_hostname__title">
+        Nome de anfitrião inválido</string>
+
+    <string name="dialog__certificate__invalid_hostname__text"><![CDATA[
+        Está a tentar ligar-se a <strong>%1$s</strong>
+        mas o certificado só é válido para os seguintes anfitriões: %2$s
+    ]]></string>
+    <string name="dialog__certificate__invalid_hostname__text__android_p_warning"><![CDATA[
+        <br>Note que, a partir do Android P, já não é feita a validação pelo Common Name (CN).
+        Em vez disso, deve ser usado o Subject Alternative Name (SAN).
+        <a href="https://github.com/ubergeek42/weechat-android/wiki/Using-SSL-with-WeeChat">Saber mais</a>
+    ]]></string>
+    <string name="dialog__certificate__invalid_hostname__text__host_line_empty"><![CDATA[
+        <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>(nenhum)</strong>
+    ]]></string>
+
+    <!-- ############################## certificate expired dialog ############################# -->
+
+    <string name="dialog__certificate__expired__title">
+        Certificado expirado</string>
+    <string name="dialog__certificate__expired__text">
+        Este certificado já não é válido.
+        Verifique se a data do dispositivo está correta.</string>
+
+    <!-- ########################### certificate not yet valid dialog ########################## -->
+
+    <string name="dialog__certificate__not_yet_valid__title">
+        Certificado ainda não válido</string>
+    <string name="dialog__certificate__not_yet_valid__text">
+        Este certificado só será válido no futuro.
+        Verifique se a data do dispositivo está correta.</string>
+
+    <!-- ############################# untrusted certificate dialog ############################ -->
+
+    <string name="dialog__certificate__untrusted__title">
+        Certificado não fidedigno</string>
+    <string name="dialog__certificate__untrusted__text">
+        Este certificado não é considerado fidedigno pelo Android, mas pode ligar-se na mesma.
+        A aplicação vai memorizar o certificado selecionado
+        e confiar nele e em todos os certificados assinados por ele.</string>
+
+    <string name="dialog__certificate__untrusted__button_accept">
+        Aceitar selecionado</string>
+
+    <!-- ############################ certificate not pinned dialog ############################ -->
+
+    <string name="dialog__certificate__not_pinned__title">
+        Certificado não fixado</string>
+    <string name="dialog__certificate__not_pinned__text">
+        Este servidor é considerado fidedigno pelo Android,
+        mas uma definição exige que confirme que também confia nele.
+        A aplicação vai memorizar o certificado selecionado
+        e confiar nele e em todos os certificados assinados por ele.</string>
+
+    <string name="dialog__certificate__not_pinned__pin_selected">
+        Fixar selecionado</string>
+
+    <!-- ####################################################################################### -->
+    <!-- ##################################### ssh dialogs ##################################### -->
+    <!-- ####################################################################################### -->
+
+    <!-- as used by dialog__ssh__server_unknown__text and dialog__ssh__server_changed_key__text -->
+    <string name="dialog__ssh__etc_unknown_key_type">Desconhecido</string>
+
+    <!-- #################################### unknown server ################################### -->
+
+    <string name="dialog__ssh__server_unknown__title">
+        Servidor desconhecido</string>
+    <string name="dialog__ssh__server_unknown__text"><![CDATA[
+        O servidor em <b>%1$s</b> nunca foi encontrado antes.
+        <br>
+        <br>Impressão digital SHA256 da chave %2$s:
+        <br><b>%3$s</b>
+    ]]></string>
+
+    <string name="dialog__ssh__server_unknown__button_accept_key">Aceitar chave do servidor</string>
+    <string name="dialog__ssh__server_unknown__button_reject_key">Rejeitar</string>
+
+    <!-- ################################## server changed key ################################# -->
+
+    <string name="dialog__ssh__server_changed_key__title">
+        O servidor mudou de chave</string>
+    <string name="dialog__ssh__server_changed_key__text"><![CDATA[
+        <b>⚠ Aviso:</b> é possível que alguém esteja a tentar intercetar esta ligação!
+        <br>
+        <br>O servidor em <b>%1$s</b> é conhecido, mas a sua chave não corresponde à chave que aceitou anteriormente.
+        <br>
+        <br>Impressão digital SHA256 da chave %2$s:
+        <br><b>%3$s</b>
+        <br>
+        <br>Se quiser continuar, limpe os anfitriões conhecidos nas definições.
+    ]]></string>
+
+    <!-- ####################################################################################### -->
+    <!-- ####################################################################################### -->
+    <!-- ##################################### preferences ##################################### -->
+    <!-- ####################################################################################### -->
+    <!-- ####################################################################################### -->
+
+    <!-- ############################# generic preferences strings ############################# -->
+
+    <string name="pref__FilePreference__button_clear">Limpar</string>
+    <string name="pref__FilePreference__button_paste">Colar</string>
+    <string name="pref__FilePreference__button_choose_file">Escolher ficheiro</string>
+    <string name="pref__FilePreference__summary_status_set">definido</string>
+    <string name="pref__FilePreference__summary_status_not_set">não definido</string>
+    <string name="error__pref__clipboard_empty">A área de transferência está vazia</string>
+
+    <string name="pref__PasswordedFilePickerPreference__input_hint">palavra-passe</string>
+
+    <string name="pref__FullScreenEditTextPreference__menu_save">Guardar</string>
+    <string name="pref__FullScreenEditTextPreference__menu_reset_to_default">Predefinição</string>
+    <string name="pref__FullScreenEditTextPreference__discard_changes_prompt">Descartar alterações?</string>
+    <string name="pref__FullScreenEditTextPreference__discard_changes_cancel">Cancelar</string>
+    <string name="pref__FullScreenEditTextPreference__discard_changes_discard">Descartar</string>
+
+    <string name="pref__RingtonePreferenceFix__summary_none">Nenhum</string>
+    <string name="pref__RingtonePreferenceFix__summary_unknown">Desconhecido</string>
+
+    <string name="error__pref__invalid_number">Número inválido</string>
+    <string name="error__pref__no_spaces_allowed_in_hostnames">Não são permitidos espaços em nomes de anfitrião</string>
+
+    <!-- ####################################################################################### -->
+    <!-- ###################################### connection ##################################### -->
+    <!-- ####################################################################################### -->
+
+    <string name="pref__connection_group">Ligação</string>
+
+    <string name="pref__connection_type">Tipo de ligação</string>
+    <string-array name="pref__connection_type_names">
+        <item>Ligação simples</item>
+        <item>WeeChat SSL</item>
+        <item>Túnel SSH</item>
+        <item>WebSocket</item>
+        <item>WebSocket (SSL)</item>
+    </string-array>
+
+    <!-- ########################### connection: web socket settings ########################### -->
+
+    <string name="pref__connection__websocket_path">Caminho do WebSocket</string>
+
+    <!-- ############################### connection: ssl settings ############################## -->
+
+    <string name="pref__connection__ssl_group">Definições de SSL</string>
+
+    <string name="pref__connection__ssl__require_certificate_pin">
+        Exigir fixação de certificados</string>
+    <string name="pref__connection__ssl__require_certificate_pin_summary">
+        Pedir confirmação de que confia no servidor, mesmo que o sistema confie nele</string>
+
+    <string name="pref__connection__ssl__clear_certificates">Limpar certificados</string>
+    <string name="pref__ClearCertPreference__0_entries">Nenhum certificado fidedigno</string>
+    <string name="pref__ClearCertPreference__1_entries">Um certificado fidedigno</string>
+    <plurals name="pref__ClearCertPreference__n_entries">
+        <item quantity="one">Um certificado fidedigno</item>
+        <item quantity="many">%s certificados fidedignos</item>
+        <item quantity="other">%s certificados fidedignos</item>
+    </plurals>
+    <string name="pref__ClearCertPreference__prompt">Limpar certificados?</string>
+    <string name="pref__ClearCertPreference__button_clear">Limpar</string>
+    <string name="pref__ClearCertPreference__button_cancel">Cancelar</string>
+    <string name="pref__ClearCertPreference__success_cleared">Certificados limpos</string>
+    <string name="pref__ClearCertPreference__error_could_not_clear">Não foi possível limpar os certificados</string>
+
+    <string name="pref__connection__ssl__client_certificate">
+        Certificado de cliente</string>
+    <string name="pref__connection__ssl__client_certificate_summary">
+        Ficheiro PKCS #12 com a chave privada e o certificado de cliente</string>
+    <string name="pref__CertPickerPreference__success_stored_inside_secure_hardware_yes">
+        O certificado foi guardado em hardware seguro</string>
+    <string name="pref__CertPickerPreference__success_stored_inside_secure_hardware_no">
+        O certificado foi guardado no armazenamento de chaves por software</string>
+    <string name="pref__CertPickerPreference__success_stored_inside_secure_hardware_cant_tell">
+        O certificado foi guardado no armazenamento de chaves</string>
+    <string name="pref__CertPickerPreference__success_certificate_forgotten">
+        Certificado esquecido</string>
+
+    <string name="error__connection__ssl__client_certificate__not_set">
+        O servidor está a pedir um certificado de cliente, mas nenhum está definido.
+        Pretendido: certificado %1$s emitido por: %2$s</string>
+    <string name="error__connection__ssl__client_certificate__certificate_mismatch">
+        O servidor está a pedir um certificado de cliente, mas o que temos não serve.
+        Pretendido: certificado %1$s emitido por: %2$s</string>
+
+    <!-- ########################### connection: ssh tunnel settings ########################### -->
+
+    <string name="pref__connection__ssh_group">Definições do túnel SSH</string>
+
+    <string name="pref__connection__ssh__host">Anfitrião SSH</string>
+
+    <string name="pref__connection__ssh__port">Porta SSH</string>
+
+    <string name="pref__connection__ssh__user">Nome de utilizador SSH</string>
+
+    <string name="pref__connection__ssh__authentication_method">Método de autenticação</string>
+    <string-array name="pref__connection__ssh__authentication_method_names">
+        <item>Palavra-passe</item>
+        <item>Chave</item>
+    </string-array>
+
+    <string name="pref__connection__ssh__password">Palavra-passe</string>
+
+    <string name="pref__connection__ssh__key">Chave privada</string>
+    <string name="pref__connection__ssh__key_summary">Chave Ed25519, ECDSA, RSA ou DSA</string>
+    <string name="pref__PrivateKeyPickerPreference__success_stored_inside_secure_hardware_yes">
+        A chave %s foi guardada em hardware seguro</string>
+    <string name="pref__PrivateKeyPickerPreference__success_stored_inside_secure_hardware_no">
+        A chave %s foi guardada no armazenamento de chaves por software</string>
+    <string name="pref__PrivateKeyPickerPreference__success_stored_inside_secure_hardware_cant_tell">
+        A chave %s foi guardada no armazenamento de chaves</string>
+    <string name="pref__PrivateKeyPickerPreference__success_stored_outside_key_store">
+        A chave %1$s foi guardada dentro da aplicação.
+        \n
+        \nNão foi possível guardar a chave no armazenamento de chaves: %2$s</string>
+    <string name="pref__PrivateKeyPickerPreference__success_key_forgotten">
+        Chave esquecida</string>
+
+    <string name="pref__connection__ssh__clear_known_hosts">Limpar anfitriões conhecidos</string>
+    <string name="pref__ClearKnownHostsPreference__0_entries">Sem entradas</string>
+    <plurals name="pref__ClearKnownHostsPreference__n_entries">
+        <item quantity="one">%s entrada</item>
+        <item quantity="many">%s entradas</item>
+        <item quantity="other">%s entradas</item>
+    </plurals>
+    <string name="pref__ClearKnownHostsPreference__prompt">Limpar anfitriões conhecidos?</string>
+    <string name="pref__ClearKnownHostsPreference__button_cancel">Cancelar</string>
+    <string name="pref__ClearKnownHostsPreference__button_clear">Limpar</string>
+    <string name="pref__ClearKnownHostsPreference__success_cleared">Anfitriões conhecidos limpos</string>
+
+    <string name="error__connection__ssh__failed_to_authenticate_with_password">
+        Falha na autenticação com palavra-passe</string>
+    <string name="error__connection__ssh__failed_to_authenticate_with_key">
+        Falha na autenticação com chave</string>
+
+    <!-- ################################## connection: relay ################################## -->
+
+    <string name="pref__connection__relay_group">Relay</string>
+
+    <string name="pref__connection__relay_host">Anfitrião do relay</string>
+
+    <string name="pref__connection__relay_port">Porta do relay</string>
+
+    <string name="pref__connection__relay_password">Palavra-passe do relay</string>
+
+    <!-- ############################ connection: relay: handshake ############################# -->
+
+    <string name="pref__connection__handshake_group">Definições de handshake</string>
+
+    <string name="pref__connection__handshake">Handshake</string>
+    <string-array name="pref__connection__handshake_method_names">
+        <item>Compatibilidade</item>
+        <item>Moderno e rápido</item>
+        <item>Moderno</item>
+    </string-array>
+
+    <string name="pref__connection__handshake_help"><![CDATA[
+        Esta opção determina a forma como é calculado o hash da palavra-passe durante a autenticação.
+
+        <p>No modo de <b>compatibilidade</b>, não é aplicado hash à palavra-passe. Este é o método mais rápido.
+        Este método é obrigatório com o WeeChat < 2.9, mas também funciona nas versões posteriores.
+
+        <p>O handshake <b>moderno e rápido</b> limita os algoritmos à família SHA-2.
+
+        <p>O handshake <b>moderno</b> inclui também o PBKDF2.
+        Estes algoritmos podem ser muito lentos, dependendo do número de iterações.
+
+        <p>Aplicar hash à palavra-passe traz pouco ou nenhum benefício se a ligação já for encriptada.
+        <a href="https://github.com/ubergeek42/weechat-android/wiki/FAQ#what-does-the-handshake-option-do">Saber mais</a>
+    ]]></string>
+
+    <!-- ######################### connection: relay: synchronization ########################## -->
+
+    <string name="pref__connection__synchronization_group">Definições de sincronização</string>
+
+    <string name="pref__connection__synchronization__only_sync_open_buffers">
+        Sincronizar só buffers abertos</string>
+    <string name="pref__connection__synchronization__only_sync_open_buffers_summary">
+        Pode reduzir significativamente o tráfego e o consumo de bateria,
+        mas a hotlist só será atualizada uma vez a cada 5 minutos</string>
+
+    <string name="pref__connection__synchronization__sync_read_status">
+        Sincronizar estado de leitura dos buffers</string>
+    <string name="pref__connection__synchronization__sync_read_status_summary">
+        Marcar buffers como lidos no WeeChat quando os lê nesta aplicação</string>
+
+    <string name="pref__connection__synchronization__line_increment">
+        Número de linhas a obter</string>
+    <string name="pref__connection__synchronization__line_increment_summary">
+        O número de linhas pedidas ao abrir um buffer
+        ou ao premir o botão “Obter mais linhas” (%s)</string>
+
+    <string name="pref__connection__synchronization__line_number_to_request_when_starting_search">
+        Número de linhas a obter para pesquisa</string>
+    <string name="pref__connection__synchronization__line_number_to_request_when_starting_search_summary">
+        Ao iniciar uma nova pesquisa, se ainda não tiverem sido obtidas,
+        a aplicação vai pedir ao WeeChat até este número de linhas (%s)</string>
+
+    <string name="pref__connection__synchronization_help">
+        Estas definições têm efeito após voltar a ligar.
+        Note que, devido aos filtros, o número de linhas realmente mostradas
+        pode ser inferior ao número de linhas carregadas.
+        Note também que, devido às limitações do WeeChat,
+        a aplicação tem de voltar a obter todas as linhas sempre que pede mais linhas.</string>
+
+    <string name="pref__connection__synchronization__handle_buffer_line_data_changed">
+        Tratar alterações de linhas</string>
+    <string name="pref__connection__synchronization__handle_buffer_line_data_changed_summary">
+        Em casos raros, mostrar alterações de linhas pode causar animações irregulares</string>
+
+    <!-- ############################## connection: miscellaneous ############################## -->
+
+    <string name="pref__connection__misc_group">Diversos</string>
+
+    <string name="pref__connection__reconnect_on_connection_loss">Voltar a ligar se a ligação cair</string>
+
+    <string name="pref__connection__connect_on_boot">Ligar ao iniciar o sistema</string>
+
+    <!-- ############################## connection: ping settings ############################## -->
+
+    <string name="pref__connection__ping_group">Definições de ping</string>
+
+    <string name="pref__connection__ping_enabled">
+        Ativar ping</string>
+    <string name="pref__connection__ping_enabled_summary">
+        Verificar periodicamente se a ligação ao relay continua ativa quando inativa</string>
+
+    <string name="pref__connection__ping_idle">
+        Tempo de inatividade</string>
+    <string name="pref__connection__ping_idle_summary">
+        Número de segundos a aguardar antes de enviar um ping quando a ligação está inativa (%s)</string>
+
+    <string name="pref__connection__ping_timeout">
+        Tempo limite do ping</string>
+    <string name="pref__connection__ping_timeout_summary">
+        Número de segundos a aguardar antes de fechar uma ligação que não responde (%s)</string>
+
+    <!-- ####################################################################################### -->
+    <!-- ##################################### buffer list ##################################### -->
+    <!-- ####################################################################################### -->
+
+    <string name="pref__buffer_list_group">Lista de buffers</string>
+
+    <string name="pref__buffer_list__sort_buffer_list">
+        Ordenar lista de buffers</string>
+    <string-array name="pref__buffer_list__sort_buffer_list_names">
+        <item>Por número</item>
+        <item>Por mensagens importantes, depois por número</item>
+        <item>Por mensagens importantes, depois por outras mensagens, depois por número</item>
+    </string-array>
+
+    <string name="pref__buffer_list__hide_server_buffers">
+        Ocultar buffers que não são conversas</string>
+    <string name="pref__buffer_list__hide_server_buffers_summary">
+        Por exemplo, buffers de servidor e de plugins</string>
+
+    <string name="pref__buffer_list__hide_hidden_buffers">
+        Ocultar buffers escondidos</string>
+    <string name="pref__buffer_list__hide_hidden_buffers_summary">
+        Ocultar buffers escondidos com /buffer hide</string>
+
+    <string name="pref__buffer_list__show_buffer_filter">
+        Mostrar filtro de buffers</string>
+    <string name="pref__buffer_list__show_buffer_filter_summary">
+        O filtro procura nos nomes completos dos buffers e revela buffers escondidos que correspondam</string>
+
+    <string name="pref__buffer_list__use_gesture_exclusion_zone">
+        Zona de exclusão de gestos do sistema</string>
+    <string name="pref__buffer_list__use_gesture_exclusion_zone_summary">
+        No Android Q, o lado esquerdo do ecrã está reservado para o gesto de retroceder.
+        Ative esta opção para ter uma pequena área na parte inferior do ecrã
+        onde pode abrir a lista de buffers normalmente.</string>
+
+    <!-- ####################################################################################### -->
+    <!-- #################################### look and feel #################################### -->
+    <!-- ####################################################################################### -->
+
+    <string name="pref__look_n_feel_group">Aspeto</string>
+
+    <string name="pref__look_n_feel__text_size">Tamanho do texto</string>
+
+    <string name="pref__look_n_feel__hide_toolbar">
+        Ocultar barra de ações</string>
+    <string name="pref__look_n_feel__hide_toolbar_summary">
+        Ocultar a barra de ações quando o teclado está aberto ou ao deslizar para cima</string>
+
+    <string name="pref__look_n_feel__filter_messages">
+        Filtrar mensagens</string>
+    <string name="pref__look_n_feel__filter_messages_summary">
+        Ocultar mensagens filtradas pelo WeeChat (por exemplo, irc_smart_filter)</string>
+
+    <string name="pref__look_n_feel__alignment">
+        Alinhamento do prefixo</string>
+    <string-array name="pref__look_n_feel__alignment_names">
+        <item>Alinhado à esquerda</item>
+        <item>Alinhado à direita</item>
+        <item>Alinhado com a hora</item>
+        <item>Sem alinhamento</item>
+    </string-array>
+
+    <string name="pref__look_n_feel__maximum_prefix_width">
+        Largura máxima do prefixo</string>
+    <string name="pref__look_n_feel__maximum_prefix_width_summary">
+        Em número de letras; nicks mais longos serão cortados (%s)</string>
+
+    <string name="pref__look_n_feel__enclose_nicks">
+        Envolver nicks</string>
+    <string name="pref__look_n_feel__enclose_nicks_summary">
+        Envolver os nicks em &lt;&nbsp;e&nbsp;&gt;</string>
+
+    <string name="pref__look_n_feel__timestamp_format">Formato da hora</string>
+    <string name="pref__look_n_feel__timestamp_format_summary">%s (predefinição: HH:mm:ss)</string>
+    <string name="error__pref__invalid_timestamp_format">Formato da hora inválido</string>
+
+    <string name="pref__look_n_feel__font">
+        Tipo de letra dos buffers</string>
+    <string name="pref__FontPreference__default">Predefinido</string>
+    <string name="pref__FontPreference__import_button">Importar</string>
+    <string name="pref__FontPreference__imported">Importado: %s</string>
+
+    <string name="pref__FontPreferenceHelp__summary">
+        Tipos de letra que não sejam monoespaçados não funcionam bem com o alinhamento.
+        Importe tipos de letra a partir da caixa de diálogo
+        ou coloque-os numa das seguintes localizações:%1$s</string>
+
+    <!-- ####################################################################################### -->
+    <!-- ######################################## theme ######################################## -->
+    <!-- ####################################################################################### -->
+
+    <string name="pref__theme">Tema</string>
+    <string-array name="pref__theme__theme_names">
+        <item translatable="false">@string/pref__theme__theme__system</item>
+        <item>Escuro</item>
+        <item>Claro</item>
+    </string-array>
+    <!-- overridden in -v29 -->
+    <string name="pref__theme__theme__system">Definido pela poupança de bateria</string>
+
+    <string name="pref__theme__menu_switch">Alternar tema</string>
+    <string name="pref__theme__menu_switch_summary">Mostrar o botão de alternar tema no menu</string>
+
+    <string name="pref__theme__color_scheme_light">Esquema de cores claro</string>
+    <string name="pref__theme__color_scheme_dark">Esquema de cores escuro</string>
+    <string name="pref__ThemeManager__error_loading_color_scheme">Erro ao carregar o esquema de cores %s</string>
+    <string name="pref__ThemePreference__not_set">Não definido</string>
+    <string name="pref__ThemePreference__error">Erro</string>
+    <string name="pref__ThemePreference__import_button">Importar</string>
+    <string name="pref__ThemePreference__imported">Importado: %s</string>
+
+    <string name="pref__ThemePreferenceHelp__summary"><![CDATA[
+        Pode criar esquemas de cores personalizados para esta aplicação.
+        Use quaisquer cores para os elementos da interface,
+        personalize a cor dos destaques e do marcador de leitura,
+        altere a paleta de cores do WeeChat!
+        <a href="https://github.com/ubergeek42/weechat-android/wiki/Custom-Color-Schemes">Saber mais</a>
+        <br>
+        <br>Importe esquemas de cores a partir das caixas de diálogo
+        ou coloque-os na seguinte localização:%1$s
+    ]]></string>
+
+    <string name="pref__theme__dim_down_non_human_lines">
+        Atenuar linhas não humanas</string>
+    <string name="pref__theme__dim_down_non_human_lines_summary">
+        Mostrar entradas/saídas numa cor esbatida, conforme definido no esquema de cores</string>
+
+    <!-- ####################################################################################### -->
+    <!-- ####################################### buttons ####################################### -->
+    <!-- ####################################################################################### -->
+
+    <string name="pref__buttons_group">Botões</string>
+
+    <string name="pref__buttons__show_tab">Mostrar botão Tab</string>
+
+    <string name="pref__buttons__show_send">Mostrar botão Enviar</string>
+
+    <string name="pref__buttons__show_paperclip">Mostrar botão de clipe</string>
+
+    <string name="pref__buttons__paperclip__action_1">Toque curto no botão de clipe</string>
+
+    <string name="pref__buttons__paperclip__action_2">Toque longo no botão de clipe</string>
+    <string name="pref__buttons__paperclip__actions__none">
+        Desativado</string>
+    <string name="pref__buttons__paperclip__actions__content_images">
+        Sistema: anexar imagens</string>
+    <string name="pref__buttons__paperclip__actions__content_media">
+        Sistema: anexar imagens e vídeos</string>
+    <string name="pref__buttons__paperclip__actions__content_anything">
+        Sistema: anexar quaisquer ficheiros</string>
+    <string name="pref__buttons__paperclip__actions__mediastore_images">
+        Galeria: anexar imagens</string>
+    <string name="pref__buttons__paperclip__actions__mediastore_media">
+        Galeria: anexar imagens e vídeos</string>
+    <string name="pref__buttons__paperclip__actions__camera">
+        Tirar fotografia</string>
+
+    <string name="pref__paperclip__help">
+        Quando o botão de clipe fica oculto para dar mais espaço ao campo de entrada,
+        pode na mesma anexar ficheiros através do menu de opções.</string>
+
+    <string name="pref__buttons__volume__title">Botões de volume</string>
+
+    <string name="pref__buttons__volume__actions__none">Nenhuma ação especial</string>
+    <string name="pref__buttons__volume__actions__change_text_size">Alterar o tamanho do texto</string>
+    <string name="pref__buttons__volume__actions__navigate_input_history">Navegar no histórico de entrada</string>
+
+    <!-- ####################################################################################### -->
+    <!-- #################################### notifications #################################### -->
+    <!-- ####################################################################################### -->
+
+    <string name="pref__notifications_group">Notificações</string>
+
+    <string name="pref__notifications__enable">
+        Ativar notificações</string>
+    <string name="pref__notifications__enable_summary">
+        Notificar sobre mensagens importantes, como mensagens privadas ou destaques</string>
+
+    <string name="pref__notifications__sound">Som de notificação</string>
+
+    <string name="pref__notifications__vibration">Vibração</string>
+
+    <string name="pref__notifications__light">Luz de notificação</string>
+
+    <!-- ####################################################################################### -->
+    <!-- #################################### media preview #################################### -->
+    <!-- ####################################################################################### -->
+
+    <string name="pref__media_preview_group">Pré-visualização multimédia</string>
+
+    <string name="pref__media_preview__enabled_for_network">Ativada</string>
+    <string-array name="pref__media_preview__enabled_for_network_names">
+        <item>Nunca</item>
+        <item>Só em Wi-Fi</item>
+        <item>Só em redes não limitadas</item>
+        <item>Sempre</item>
+    </string-array>
+
+    <string name="pref__media_preview__enabled_for_context">Contexto</string>
+    <string name="pref__media_preview__enabled_for_context_summary_empty">Desativada em todo o lado</string>
+    <string name="pref__media_preview__enabled_for_context_summary">Ativada para %s</string>
+    <string-array name="pref__media_preview__enabled_for_context_names">
+        <item>Conversa</item>
+        <item>Caixa de diálogo de colar</item>
+        <item>Notificações</item>
+    </string-array>
+
+    <!-- originally secure requests: optional, rewrite, require, hence the naming -->
+    <string name="pref__media_preview__secure_requests">Pedidos inseguros</string>
+    <string-array name="pref__media_preview__secure_requests_names">
+        <item>Permitir</item>
+        <item>Reescrever como HTTPS</item>
+        <item>Não permitir</item>
+    </string-array>
+
+    <string name="pref__media_preview__help"><![CDATA[
+        Ativar a pré-visualização multimédia nas notificações
+        pode fazer com que apareçam linhas duplicadas em algumas versões mais antigas do Android.
+        Note também que pode ser necessário limpar as caches
+        para que as definições se apliquem aos dados já existentes.
+        <br />
+        <br /><b>⚠ Aviso:</b> a aplicação acede diretamente à web.
+        Uma pessoa mal-intencionada pode criar um site para descobrir o seu endereço IP e outros dados.
+        Para impedir que a aplicação aceda a sites que não conhece,
+        remova a estratégia para o anfitrião universal “*” ou defina-a como “none”.
+        <a href="https://github.com/ubergeek42/weechat-android/wiki/Media-preview">Saber mais</a>
+    ]]></string>
+
+    <string name="pref__media_preview__strategies">
+        Estratégias</string>
+    <string name="pref__StrategyPreference__summary">
+        Define a forma como as imagens são obtidas de cada site, e alguns filtros.
+        \n
+        \n%1$s; %2$s;
+        \n
+        \n%3$s</string>
+    <string name="pref__StrategyPreference__summary_error">Erro</string>
+    <string name="pref__StrategyPreference__message_filter_set">Filtro de mensagens definido</string>
+    <string name="pref__StrategyPreference__message_filter_not_set">Filtro de mensagens não definido</string>
+    <string name="pref__StrategyPreference__0_line_filters_set">filtros de linhas não definidos</string>
+    <plurals name="pref__StrategyPreference__n_line_filters_set">
+        <item quantity="one">%d filtro de linhas definido</item>
+        <item quantity="many">%d filtros de linhas definidos</item>
+        <item quantity="other">%d filtros de linhas definidos</item>
+    </plurals>
+    <string name="pref__StrategyPreference__strategies_not_loaded">Nenhuma estratégia carregada</string>
+    <string name="pref__StrategyPreference__strategies_list">Estratégias: %s</string>
+
+    <string name="pref__media_preview__advanced_group">Avançado</string>
+
+    <string name="pref__media_preview__maximum_body_size">Limite de tamanho da transferência</string>
+    <string name="pref__media_preview__maximum_body_size_summary">%s MB</string>
+
+    <string name="pref__media_preview__image_disk_cache_size">
+        Cache em disco</string>
+    <string name="pref__media_preview__image_disk_cache_size_summary">
+        %s MB; tem efeito após reiniciar</string>
+
+    <string name="pref__media_preview__success_cooldown">
+        Validade de sucesso</string>
+    <string name="pref__media_preview__success_cooldown_summary">
+        %s horas. A aplicação vai considerar uma imagem obtida com sucesso como disponível,
+        seja a partir da cache ou da web,
+        durante o período especificado.</string>
+
+    <string name="pref__media_preview__thumbnail_width">Largura das miniaturas</string>
+
+    <string name="pref__media_preview__thumbnail_min_height">Altura mínima das miniaturas</string>
+
+    <string name="pref__media_preview__thumbnail_max_height">Altura máxima das miniaturas</string>
+
+    <!-- ####################################################################################### -->
+    <!-- ####################################### sharing ####################################### -->
+    <!-- ####################################################################################### -->
+
+    <string name="pref__upload_group">Partilha de ficheiros</string>
+
+    <string name="pref__upload__accept_shared">Aceitar de outras aplicações</string>
+    <string-array name="pref__upload__accept_shared_names">
+        <item>Só texto</item>
+        <item>Texto, imagens e vídeos</item>
+        <item>Tudo</item>
+    </string-array>
+
+    <string name="pref__upload__no_of_direct_share_targets">Partilha direta</string>
+    <string-array name="pref__upload__no_of_direct_share_targets_names">
+        <item>Desativada</item>
+        <item>Até um buffer</item>
+        <item>Até dois buffers</item>
+        <item>Até três buffers</item>
+        <item>Até quatro buffers</item>
+    </string-array>
+
+    <string name="pref__upload__upload_uri">URL de envio</string>
+
+    <string name="pref__upload__file_field">Campo do ficheiro</string>
+
+    <string name="pref__upload__regex">Regex</string>
+
+    <string name="pref__upload__help" tools:ignore="TypographyDashes,Typos"><![CDATA[
+        Estas definições correspondem aproximadamente ao seguinte comando:
+        <br>
+        <br><tt><small> curl -s --user user:pass \\
+        <br>&nbsp;&nbsp;--header \'Additional: Header\' \\
+        <br>&nbsp;&nbsp;--form additional=field \\
+        <br>&nbsp;&nbsp;--form file=@file.ext \\
+        <br>&nbsp;&nbsp;https://example.com | perl -nle \\
+        <br>&nbsp;&nbsp;\'m#^https://\\S+#; print $1//$&\'</small></tt>
+        <br>
+        <br>Se a expressão regular estiver definida, é usada para encontrar o URL no corpo da resposta;
+        é usado o primeiro grupo de captura ou, na falta deste, a correspondência completa.
+        <a href="https://github.com/ubergeek42/weechat-android/wiki/File-sharing">Saber mais</a>
+    ]]></string>
+
+    <string name="pref__upload__advanced_group">Avançado</string>
+
+    <string name="pref__upload__additional_headers">Cabeçalhos adicionais</string>
+
+    <string name="pref__upload__additional_fields">Campos adicionais</string>
+
+    <string name="pref__upload__authentication">Autenticação</string>
+    <string-array name="pref__upload__authentication_names">
+        <item>Nenhuma</item>
+        <item>Básica</item>
+    </string-array>
+
+    <string name="pref__upload__authentication_basic_user">Utilizador</string>
+
+    <string name="pref__upload__authentication_basic_password">Palavra-passe</string>
+
+    <string name="pref__upload__remember_uploads_for">Lembrar envios durante</string>
+    <string name="pref__upload__remember_uploads_for_summary">%s horas</string>
+
+    <!-- ####################################################################################### -->
+    <!-- ######################################## about ######################################## -->
+    <!-- ####################################################################################### -->
+
+    <string name="pref__about_group">Acerca de</string>
+
+    <string name="pref__about__created_by">criado por ubergeek42</string>
+
+    <string name="pref__about__build_id">ID da compilação %s</string>
+    <string name="pref__about__unknown_version_id">ID de versão desconhecido</string>
+
+    <string name="pref__about__used_libraries">
+        \nEste projeto usa as seguintes bibliotecas:
+        \n
+        \n&nbsp;&nbsp;&nbsp;&nbsp;•&nbsp;<a href="https://github.com/noveogroup/android-logger">Android Logger, da Noveo Group</a>
+        \n&nbsp;&nbsp;&nbsp;&nbsp;•&nbsp;<a href="https://www.eclipse.org/aspectj/">AspectJ, da Eclipse Foundation</a>
+        \n&nbsp;&nbsp;&nbsp;&nbsp;•&nbsp;<a href="https://www.bouncycastle.org/">Bouncy Castle</a>
+        \n&nbsp;&nbsp;&nbsp;&nbsp;•&nbsp;<a href="https://github.com/greenrobot/EventBus">EventBus, da greenrobot</a>
+        \n&nbsp;&nbsp;&nbsp;&nbsp;•&nbsp;<a href="https://bumptech.github.io/glide/">Glide, da Bump Technologies</a>
+        \n&nbsp;&nbsp;&nbsp;&nbsp;•&nbsp;<a href="https://github.com/JakeWharton/hugo">Hugo, de Jake Wharton</a>
+        \n&nbsp;&nbsp;&nbsp;&nbsp;•&nbsp;<a href="https://github.com/TooTallNate/Java-WebSocket">Java-WebSocket, de Nathan Rajlich</a>
+        \n&nbsp;&nbsp;&nbsp;&nbsp;•&nbsp;<a href="https://github.com/dlew/joda-time-android">joda-time-android, de Daniel Lew</a>
+        \n&nbsp;&nbsp;&nbsp;&nbsp;•&nbsp;<a href="http://www.jcraft.com/jsch/">JSch, da JCraft</a>
+        \n&nbsp;&nbsp;&nbsp;&nbsp;•&nbsp;<a href="https://square.github.io/leakcanary/">LeakCanary, da Square, Inc</a>
+        \n&nbsp;&nbsp;&nbsp;&nbsp;•&nbsp;<a href="http://site.mockito.org/">Mockito, de Szczepan Faber e amigos</a>
+        \n&nbsp;&nbsp;&nbsp;&nbsp;•&nbsp;<a href="https://github.com/TakahikoKawasaki/nv-websocket-client">nv-websocket-client, de Takahiko Kawasaki</a>
+        \n&nbsp;&nbsp;&nbsp;&nbsp;•&nbsp;<a href="https://square.github.io/okhttp/">OkHttp, da Square, Inc</a>
+        \n&nbsp;&nbsp;&nbsp;&nbsp;•&nbsp;<a href="https://www.slf4j.org/">SLF4J, da QOS.ch</a>
+        \n&nbsp;&nbsp;&nbsp;&nbsp;•&nbsp;<a href="https://bitbucket.org/asomov/snakeyaml">SnakeYAML, de Andrey Somov</a>
+        \n&nbsp;&nbsp;&nbsp;&nbsp;•&nbsp;<a href="https://github.com/connectbot/sshlib">sshlib, da ConnectBot</a>
+        \n
+        \nSe encontrar um erro ou tiver um pedido de funcionalidade, crie uma issue no&nbsp;<a href="https://github.com/ubergeek42/weechat-android/">GitHub</a>.
+        \n
+        \n</string>
+</resources>
