@@ -20,7 +20,6 @@ import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.service.RelayService.STATE;
 import com.ubergeek42.WeechatAndroid.upload.UploadDatabase;
 import com.ubergeek42.WeechatAndroid.utils.EmojiUtilKt;
-import com.ubergeek42.cats.Cats;
 
 import net.danlew.android.joda.JodaTimeAndroid;
 
@@ -41,7 +40,6 @@ public class Weechat extends Application {
         applicationContext = getApplicationContext();
         startTrackingResumedActivities();
         JodaTimeAndroid.init(applicationContext);
-        Cats.setup(applicationContext);
         if (EmojiUtilKt.SHOULD_EMOJIFY) EmojiUtilKt.initEmojiCompat();
         CachePersist.restore();
         IconsKt.initializeIconCache();

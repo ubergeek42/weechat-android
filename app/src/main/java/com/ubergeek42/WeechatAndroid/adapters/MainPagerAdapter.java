@@ -1,5 +1,7 @@
 package com.ubergeek42.WeechatAndroid.adapters;
 
+import static com.ubergeek42.WeechatAndroid.utils.LoggingKt.jdebug;
+
 import android.annotation.SuppressLint;
 import android.os.Handler;
 import android.os.Looper;
@@ -20,18 +22,11 @@ import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.WeechatAndroid.service.P;
 import com.ubergeek42.WeechatAndroid.utils.Utils;
-import com.ubergeek42.cats.Cat;
-import com.ubergeek42.cats.CatD;
-import com.ubergeek42.cats.Kitty;
-import com.ubergeek42.cats.Root;
 
 import java.util.ArrayList;
 
 
 public class MainPagerAdapter extends PagerAdapter {
-
-    final private static @Root Kitty kitty = Kitty.make();
-
     final private ArrayList<Long> pointers = new ArrayList<>();
 
     final private ViewPager pager;
@@ -51,7 +46,8 @@ public class MainPagerAdapter extends PagerAdapter {
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @MainThread @CatD public void openBuffer(final long pointer) {
+    @MainThread public void openBuffer(final long pointer) {
+        jdebug(() -> String.format("MainPagerAdapter: → openBuffer(%s)", Utils.pointerToString(pointer)));
         if (pointers.contains(pointer)) return;
         Buffer buffer = BufferList.findByPointer(pointer);
         if (buffer != null) buffer.addOpenKey("main-activity", true);
@@ -61,7 +57,8 @@ public class MainPagerAdapter extends PagerAdapter {
         P.setBufferOpen(pointer, true);
     }
 
-    @MainThread @CatD public void closeBuffer(final long pointer) {
+    @MainThread public void closeBuffer(final long pointer) {
+        jdebug(() -> String.format("MainPagerAdapter: → closeBuffer(%s)", Utils.pointerToString(pointer)));
         if (!pointers.remove(pointer)) return;
         notifyDataSetChanged();
         Buffer buffer = BufferList.findByPointer(pointer);
@@ -108,31 +105,27 @@ public class MainPagerAdapter extends PagerAdapter {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     // attach a fragment if it's in the FragmentManager, create and add a new one if it's not
-    @MainThread @Override @SuppressLint("CommitTransaction") @Cat(linger=true)
+    @MainThread @Override @SuppressLint("CommitTransaction")
     public @NonNull Object instantiateItem(@NonNull ViewGroup container, int i) {
         if (transaction == null) transaction = manager.beginTransaction();
         String tag = Utils.pointerToString(pointers.get(i));
         Fragment frag = manager.findFragmentByTag(tag);
         if (frag == null) {
-            kitty.trace("adding");
             transaction.add(container.getId(), frag = BufferFragment.newInstance(pointers.get(i)), tag);
         } else {
-            kitty.trace("attaching");
             transaction.attach(frag);
         }
         return frag;
     }
 
     // detach fragment if it went off-screen or remove it completely if it's been closed by user
-    @MainThread @Override @SuppressLint("CommitTransaction") @Cat(linger=true)
+    @MainThread @Override @SuppressLint("CommitTransaction")
     public void destroyItem(@NonNull ViewGroup container, int i, @NonNull Object object) {
         if (transaction == null) transaction = manager.beginTransaction();
         Fragment frag = (Fragment) object;
         if (pointers.contains(Utils.pointerFromString(frag.getTag()))) {
-            kitty.trace("detaching");
             transaction.detach(frag);
         } else {
-            kitty.trace("removing");
             transaction.remove(frag);
         }
         if (pointers.isEmpty()) oldFrag = null;

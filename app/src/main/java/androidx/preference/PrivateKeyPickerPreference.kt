@@ -3,6 +3,7 @@ package androidx.preference
 import android.content.Context
 import android.util.AttributeSet
 import androidx.core.content.edit
+import cats.warn
 import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils
 import com.ubergeek42.WeechatAndroid.utils.AndroidKeyStoreUtils.InsideSecureHardware
@@ -11,8 +12,6 @@ import com.ubergeek42.WeechatAndroid.utils.Utils
 import com.ubergeek42.WeechatAndroid.utils.edDsaKeyPairToSshLibEd25519KeyPair
 import com.ubergeek42.WeechatAndroid.utils.makeKeyPair
 import com.ubergeek42.WeechatAndroid.utils.toReader
-import com.ubergeek42.cats.Kitty
-import com.ubergeek42.cats.Root
 import com.ubergeek42.weechat.relay.connection.SSHConnection
 import org.bouncycastle.jcajce.interfaces.EdDSAKey
 import java.io.IOException
@@ -64,7 +63,7 @@ class PrivateKeyPickerPreference(context: Context?, attrs: AttributeSet?) :
                 valueToStore = STORED_IN_KEYSTORE
                 successMessage = getInsideSecurityHardwareString(algorithmName)
             } catch (e: Exception) {
-                kitty.warn("Error while putting %s key into AndroidKeyStore", algorithmName, e)
+                warn(e) { "Error while putting $algorithmName key into AndroidKeyStore" }
                 valueToStore = Utils.serialize(keyPair)
                 successMessage = context.getString(
                     R.string.pref__PrivateKeyPickerPreference__success_stored_outside_key_store,
@@ -75,7 +74,7 @@ class PrivateKeyPickerPreference(context: Context?, attrs: AttributeSet?) :
             try {
                 AndroidKeyStoreUtils.deleteAndroidKeyStoreEntry(SSHConnection.KEYSTORE_ALIAS)
             } catch (e: Exception) {
-                kitty.warn("Error while deleting key from AndroidKeyStore", e)
+                warn(e) { "Error while deleting key from AndroidKeyStore" }
             }
             valueToStore = null
             successMessage = context.getString(R.string.pref__PrivateKeyPickerPreference__success_key_forgotten)
@@ -105,8 +104,6 @@ class PrivateKeyPickerPreference(context: Context?, attrs: AttributeSet?) :
     }
 
     companion object {
-        @Root private val kitty: Kitty = Kitty.make()
-
         const val STORED_IN_KEYSTORE = "woo hoo the key is stored in keystore!"
 
         @JvmStatic fun getData(data: String?): ByteArray? {

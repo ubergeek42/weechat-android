@@ -25,6 +25,7 @@ import androidx.annotation.WorkerThread
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
+import cats.Suffix
 import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.R.layout
 import com.ubergeek42.WeechatAndroid.Weechat
@@ -50,15 +51,13 @@ import com.ubergeek42.WeechatAndroid.views.LineView
 import com.ubergeek42.WeechatAndroid.views.snackbar.showSnackbar
 import com.ubergeek42.WeechatAndroid.views.solidColor
 import com.ubergeek42.WeechatAndroid.views.updateMargins
-import com.ubergeek42.cats.Kitty
-import com.ubergeek42.cats.Root
 import com.ubergeek42.weechat.ColorScheme
 
 
 class ChatLinesAdapter @MainThread constructor(
     private val uiLines: AnimatedRecyclerView
 ) : RecyclerView.Adapter<ViewHolder>(), BufferEye {
-    @Root private val kitty: Kitty = Kitty.make("ChatLinesAdapter")
+    @Suffix var suffix = "?"
 
     private val inflater = LayoutInflater.from(uiLines.context)
 
@@ -71,7 +70,7 @@ class ChatLinesAdapter @MainThread constructor(
         @MainThread @Synchronized set(value) {
             if (field != value) {
                 field = value
-                kitty.setPrefix(value?.shortName)
+                suffix = value?.shortName ?: "?"
             }
         }
 

@@ -12,19 +12,14 @@ import android.os.Build;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.ubergeek42.cats.Cat;
-import com.ubergeek42.cats.Kitty;
-import com.ubergeek42.cats.Root;
-
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 
 import static com.ubergeek42.WeechatAndroid.utils.Assert.assertThat;
+import static com.ubergeek42.WeechatAndroid.utils.LoggingKt.jtrace;
 
 public class Network {
-    final private @Root Kitty kitty = Kitty.make();
-
     final private static Network instance = new Network();
 
     public static Network get() {
@@ -47,7 +42,8 @@ public class Network {
         return properties.contains(property);
     }
 
-    @Cat private void setProperties(EnumSet<Property> p) {
+    private void setProperties(EnumSet<Property> p) {
+        jtrace(() -> String.format("Network: setProperties(p=%s)", p));
         boolean justConnected = !properties.contains(Property.CONNECTED) && p.contains(Property.CONNECTED);
         properties = p;
         if (justConnected) {
@@ -58,7 +54,7 @@ public class Network {
 
     final private Map<Context, Callback> contexts = new HashMap<>();
 
-    @Cat public void register(@NonNull Context context, @Nullable Callback callback) {
+    public void register(@NonNull Context context, @Nullable Callback callback) {
         if (contexts.isEmpty()) {
             Context applicationContext = context.getApplicationContext();
             ConnectivityManager manager = getManager(applicationContext);
@@ -78,7 +74,7 @@ public class Network {
         contexts.put(context, callback);
     }
 
-    @Cat public void unregister(@NonNull Context context) {
+    public void unregister(@NonNull Context context) {
         assertThat(contexts.containsKey(context)).isTrue();
         contexts.remove(context);
         if (contexts.isEmpty()) {
@@ -98,8 +94,6 @@ public class Network {
     // broadcast receiver effectively behaves just like the network callback, however it's not
     // called if the network's metering status changes. it seems to be always called on registration
     final private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
-        final private @Root Kitty kitty_b = kitty.kid("Broadcast");
-
         @Override public void onReceive(Context context, Intent intent) {
             ConnectivityManager manager = getManager(context);
             NetworkInfo info = manager.getActiveNetworkInfo();
@@ -122,8 +116,6 @@ public class Network {
     // registration, while onAvailable() is. it's not clear whether onAvailable() is guaranteed to
     // be called at all. todo make sure that onCapabilitiesChanged is called upon every connection
     final private ConnectivityManager.NetworkCallback networkCallback = new ConnectivityManager.NetworkCallback() {
-        final private @Root Kitty kitty_n = kitty.kid("Callback");
-
         @Override public void onLost(@NonNull android.net.Network network) {
             setProperties(EnumSet.noneOf(Property.class));
         }

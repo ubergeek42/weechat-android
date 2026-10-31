@@ -15,8 +15,6 @@ import androidx.lifecycle.lifecycleScope
 import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.utils.ActionEditText
 import com.ubergeek42.WeechatAndroid.views.snackbar.showSnackbar
-import com.ubergeek42.cats.Kitty
-import com.ubergeek42.cats.Root
 import kotlinx.coroutines.launch
 
 
@@ -50,8 +48,6 @@ private val payloadsBeingProcessed = mutableMapOf<Uri, ContentInfoCompat>()
 
 
 class MediaAcceptingEditText : ActionEditText {
-    @Root private val kitty = Kitty.make()
-
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet) : super(context, attrs)
     constructor(context: Context, attrs: AttributeSet, defStyleAttr: Int) : super(context, attrs, defStyleAttr)

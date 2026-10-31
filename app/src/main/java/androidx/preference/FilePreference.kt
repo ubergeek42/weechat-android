@@ -8,12 +8,11 @@ import android.util.AttributeSet
 import android.util.Base64
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
+import cats.err
 import com.ubergeek42.WeechatAndroid.R
 import com.ubergeek42.WeechatAndroid.copypaste.getClipboardText
 import com.ubergeek42.WeechatAndroid.utils.Utils
 import com.ubergeek42.WeechatAndroid.views.snackbar.showSnackbar
-import com.ubergeek42.cats.Kitty
-import com.ubergeek42.cats.Root
 
 
 open class FilePreference(context: Context, attrs: AttributeSet?)
@@ -49,7 +48,7 @@ open class FilePreference(context: Context, attrs: AttributeSet?)
             val message = saveData(bytes)
             if (message != null) showSnackbar(message)
         } catch (e: Exception) {
-            kitty.error("error", e)
+            err(e) { "error" }
             showSnackbar(e)
         }
     }
@@ -94,8 +93,6 @@ open class FilePreference(context: Context, attrs: AttributeSet?)
     }
 
     companion object {
-        @Root private val kitty = Kitty.make()
-
         // a helper method that gets the original bytes from the strings
         fun getData(data: String?): ByteArray? {
             return try {

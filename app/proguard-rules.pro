@@ -35,6 +35,12 @@
     public void debug(...);
     public void trace(...);
 }
+
+-assumenosideeffects class com.ubergeek42.WeechatAndroid.utils.LoggingKt {
+    public void jtrace(...);
+    public void jdebug(...);
+}
+
 -dontwarn org.slf4j.impl.StaticMDCBinder
 -dontwarn org.slf4j.impl.StaticMarkerBinder
 -dontwarn org.slf4j.impl.StaticLoggerBinder

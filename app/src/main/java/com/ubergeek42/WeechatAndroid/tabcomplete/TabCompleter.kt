@@ -7,8 +7,6 @@ import com.ubergeek42.WeechatAndroid.relay.BufferList
 import com.ubergeek42.WeechatAndroid.service.Events
 import com.ubergeek42.WeechatAndroid.upload.suppress
 import com.ubergeek42.WeechatAndroid.views.imm
-import com.ubergeek42.cats.Kitty
-import com.ubergeek42.cats.Root
 import com.ubergeek42.weechat.relay.connection.Handshake
 import com.ubergeek42.weechat.relay.protocol.RelayObject
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -52,8 +50,6 @@ abstract class TabCompleter(val input: EditText) {
     }
 
     companion object {
-        @Root private val kitty = Kitty.make()
-
         fun obtain(lifecycle: Lifecycle, buffer: Buffer, input: EditText): TabCompleter {
             val localCompleter = LocalTabCompleter(buffer, input)
 

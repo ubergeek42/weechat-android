@@ -13,22 +13,17 @@ import androidx.room.Query;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
-import com.ubergeek42.WeechatAndroid.Weechat;
-import com.ubergeek42.cats.Kitty;
-import com.ubergeek42.cats.Root;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.ubergeek42.WeechatAndroid.utils.ApplicationContextKt.applicationContext;
+import static com.ubergeek42.WeechatAndroid.utils.LoggingKt.jtrace;
 import static com.ubergeek42.WeechatAndroid.utils.Utils.runInBackground;
 
 import org.jspecify.annotations.NonNull;
 
 public class CachePersist {
-    final private static @Root Kitty kitty = Kitty.make();
-
     final private static Object LOCK = new Object();
     final private static String DATABASE_NAME = "image-fetch-attempts";
     final private static int NO_OF_ITEMS_TO_PERSIST = 2000;
@@ -77,10 +72,9 @@ public class CachePersist {
                     database = Room.databaseBuilder(context,
                             AttemptDatabase.class,
                             context.getCacheDir().toString() +  "/" + DATABASE_NAME).build();
-                    String path = database.getOpenHelper().getWritableDatabase().getPath();
                     int deleted = database.attemptsDao().deleteLeaving(NO_OF_ITEMS_TO_PERSIST);
-                    kitty.trace("using database at %s", path);
-                    kitty.trace("deleted %s entries, leaving at most %s", deleted, NO_OF_ITEMS_TO_PERSIST);
+                    jtrace(() -> String.format("CachePersist: using database at %s", database.getOpenHelper().getWritableDatabase().getPath()));
+                    jtrace(() -> String.format("CachePersist: deleted %s entries, leaving at most %s", deleted, NO_OF_ITEMS_TO_PERSIST));
                 }
             }
         }
@@ -98,7 +92,7 @@ public class CachePersist {
     public static void save() {
         if (insertCache.isEmpty()) return;
         runInBackground(() -> {
-            kitty.trace("saving %s items", insertCache.size());
+            jtrace(() -> String.format("CachePersist: saving %s items", insertCache.size()));
             getDatabase().attemptsDao().insertAll(insertCache.values());
             insertCache.clear();
         });
@@ -107,7 +101,7 @@ public class CachePersist {
     public static void restore() {
         runInBackground(() -> {
             Collection<Attempt> attempts = getDatabase().attemptsDao().getLast(NO_OF_ITEMS_TO_PERSIST);
-            kitty.trace("restoring %s items", attempts.size());
+            jtrace(() -> String.format("CachePersist: restoring %s items", attempts.size()));
             for (Attempt attempt : attempts)
                 Cache.cache.putIfAbsent(attempt.key, new Cache.Attempt(attempt.code, attempt.timestamp));
         });
