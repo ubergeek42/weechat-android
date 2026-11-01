@@ -29,11 +29,12 @@ object BufferList {
         setupDefaultMessageHandlers()
 
         SendMessageEvent.fire(listOf(
-                BufferSpec.listBuffersRequest,
-                LastLinesSpec.request,          // see Lines.shouldAddSquiggleOnNewLastLine
-                LastReadLineSpec.request,
-                HotlistSpec.request,
-                if (P.optimizeTraffic) "sync * buffers,upgrade" else "sync",
+            OptionsSpec.dayChangeRequest,
+            BufferSpec.listBuffersRequest,
+            LastLinesSpec.request,          // see Lines.shouldAddSquiggleOnNewLastLine
+            LastReadLineSpec.request,
+            HotlistSpec.request,
+            if (P.optimizeTraffic) "sync * buffers,upgrade" else "sync",
         ).joinToString("\n"))
     }
 
@@ -269,6 +270,11 @@ object BufferList {
             }
 
             notifyBuffersChanged()
+        }
+
+
+        addMessageHandler<Infolist>("options") { obj, _ ->
+            OptionsSpec.init(obj)
         }
 
         ////////////////////////////////////////////////////////////////////////////////////////////
